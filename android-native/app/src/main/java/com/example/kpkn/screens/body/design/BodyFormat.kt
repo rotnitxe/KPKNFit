@@ -84,7 +84,7 @@ internal fun bodyEtaDisplayText(summary: BodyWeightSummary, today: LocalDate): S
  * cambio» si el cambio es apenas perceptible (se decide en kg, antes de convertir).
  */
 internal fun bodyIslandChangeText(summary30: BodyWeightSummary, unit: WizardMassUnit): String? {
-    val change = summary30.change ?: return null
+    val change = (if (summary30.trendKg != null) summary30.trendChange else null) ?: summary30.change ?: return null
     if (summary30.rangeStartDate == summary30.currentDate) return null
     return if (abs(change) < BODY_FLAT_CHANGE) {
         "Sin cambio en 30 días"

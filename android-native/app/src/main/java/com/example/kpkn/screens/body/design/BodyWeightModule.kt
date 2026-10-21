@@ -72,7 +72,8 @@ fun BodyWeightModule(
     val hasTrend = summary.trendKg != null
     val remaining = if (hasTrend) summary.trendRemaining else summary.remaining
     val progressPercent = if (hasTrend) summary.trendProgressPercent else summary.progressPercent
-    val change = summary.change
+    // El cambio también sale de la tendencia (hoy menos el primer día del rango): un pesaje atípico no lo invierte.
+    val change = if (hasTrend) summary.trendChange ?: summary.change else summary.change
     val startDay = summary.rangeStartDate
     KpknModule(modifier = modifier.fillMaxWidth()) {
         KpknModuleHeader(
