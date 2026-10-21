@@ -798,7 +798,7 @@ internal object PartialsReport {
         append("## 4. Por escenario\n\n")
         append(table(COMPACT_HEADERS, groups(outs) { dim(it, "escenario") }.map { (k, t) -> compactRow(k, t) }))
         append("\n")
-        append("### Los cinco escenarios donde peor sale la serie exacta\n\n")
+        append("### Los cinco escenarios donde peor sale la serie exacta (solo vistas soportadas por el perfil)\n\n")
         append(table(COMPACT_HEADERS, worst(outs).map { (k, t) -> compactRow(k, t) }))
         append("\n")
         var section = 5
