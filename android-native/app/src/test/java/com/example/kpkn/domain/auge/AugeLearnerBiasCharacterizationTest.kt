@@ -474,7 +474,7 @@ class AugeLearnerBiasCharacterizationTest {
         val learner = CurrentEmaLearner()
         learner.onGesture(gesture(squat, 24.0, differs))
         val drain = AugeFatigueEngine.calculateCompletedSessionDrain(squat.completedExercises, db, settings, durationMinutes = squat.durationMinutes)
-        val (cns, spinal) = AugeAdaptiveEngine.updateSystemRecoveryHours(
+        val (cns, spinal) = LegacyEmaReference.updateSystemRecoveryHours(
             currentCnsTau = null,
             currentSpinalTau = null,
             cnsObservation = RecoveryLearningObservation("cns", 90, 80, drain.cns.toDouble(), 24.0),
@@ -482,7 +482,7 @@ class AugeLearnerBiasCharacterizationTest {
             totalObservations = 0,
         )
         val stress = squat.muscularImpactV2!!.perMuscle.getValue("Cuádriceps").immediateDrainPct
-        val muscles = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(
+        val muscles = LegacyEmaReference.updatePersonalizedRecoveryHours(
             current = emptyMap(),
             observation = RecoveryLearningObservation("Cuádriceps", 75, 60, stress, 24.0),
             totalObservations = 0,

@@ -23,7 +23,7 @@ import kotlin.random.Random
 // Bucle cerrado «usuario con τ verdadero ⇄ aprendiz». Réplica fiel del flujo de producción
 // `AugeViewModel.saveWellbeing/applyManualBatteries` → `learnFromManualAdjustment`
 // (`AugeViewModel.kt:410-460`, `:596-702`, `:712-835`, `:1098-1130`), con las funciones REALES
-// `AugeAdaptiveEngine.updatePersonalizedRecoveryHours` y `updateSystemRecoveryHours`.
+// `LegacyEmaReference.updatePersonalizedRecoveryHours` y `updateSystemRecoveryHours`.
 //
 // CÓMO ENCHUFA EL PAQUETE 3.2 (aprendiz bayesiano / Kalman): implementar [SimLearner] y pasarlo como
 // `learnerFactory` a [AugeLearnerSimulator.runUser] / [AugeLearnerSimulator.runPopulation]. Cada [SimGesture]
@@ -128,7 +128,7 @@ class CurrentEmaLearner(initial: AugeAdaptiveCache = AugeAdaptiveCache()) : SimL
             .maxByOrNull { AugeUtils.logDateMs(it) }
             ?: return
         val derivedHoursSince = (gesto.tiempoMs - AugeUtils.logDateMs(lastSession)) / 3_600_000.0
-        if (derivedHoursSince < AugeAdaptiveEngine.MIN_HOURS_FOR_TAU_LEARNING) return
+        if (derivedHoursSince < LegacyEmaReference.MIN_HOURS_FOR_TAU_LEARNING) return
         if (derivedHoursSince > MAX_HOURS_FOR_TAU_LEARNING) return
 
         val base = current
@@ -177,7 +177,7 @@ class CurrentEmaLearner(initial: AugeAdaptiveCache = AugeAdaptiveCache()) : SimL
 
         val built = ArrayList<RecoveryLearningObservation>()
         if (cnsObs != null || spinalObs != null) {
-            val (newCnsTau, newSpinalTau) = AugeAdaptiveEngine.updateSystemRecoveryHours(
+            val (newCnsTau, newSpinalTau) = LegacyEmaReference.updateSystemRecoveryHours(
                 currentCnsTau = updated.cnsRecoveryHours,
                 currentSpinalTau = updated.spinalRecoveryHours,
                 cnsObservation = cnsObs,
@@ -199,7 +199,7 @@ class CurrentEmaLearner(initial: AugeAdaptiveCache = AugeAdaptiveCache()) : SimL
                 sessionStress = muscleStress,
                 hoursSinceSession = derivedHoursSince,
             )
-            val nextHours = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(
+            val nextHours = LegacyEmaReference.updatePersonalizedRecoveryHours(
                 current = updated.personalizedRecoveryHours,
                 observation = obs,
                 totalObservations = base.totalObservations,
@@ -338,13 +338,13 @@ object AugeLearnerSimulator {
     fun defaultTau(param: String): Double = when (param) {
         CNS -> DEFAULT_CNS_TAU
         SPINAL -> DEFAULT_SPINAL_TAU
-        else -> AugeAdaptiveEngine.defaultRecoveryHours(param)
+        else -> LegacyEmaReference.defaultRecoveryHours(param)
     }
 
     fun tauOf(cache: AugeAdaptiveCache, param: String): Double = when (param) {
         CNS -> cache.cnsRecoveryHours ?: DEFAULT_CNS_TAU
         SPINAL -> cache.spinalRecoveryHours ?: DEFAULT_SPINAL_TAU
-        else -> cache.personalizedRecoveryHours[param] ?: AugeAdaptiveEngine.defaultRecoveryHours(param)
+        else -> cache.personalizedRecoveryHours[param] ?: LegacyEmaReference.defaultRecoveryHours(param)
     }
 
     /** Parámetros con valor explícito en el caché más Energía y Columna. */
@@ -355,23 +355,17 @@ object AugeLearnerSimulator {
     fun trueCache(tauFactor: Double): AugeAdaptiveCache = AugeAdaptiveCache(
         personalizedRecoveryHours = PILLARS.associate { pillar ->
             val key = muscleParam(pillar)
-            key to AugeAdaptiveEngine.defaultRecoveryHours(key) * tauFactor
+            key to LegacyEmaReference.defaultRecoveryHours(key) * tauFactor
         },
         cnsRecoveryHours = DEFAULT_CNS_TAU * tauFactor,
         spinalRecoveryHours = DEFAULT_SPINAL_TAU * tauFactor,
     )
 
-    // ─── τ implícito por reflexión (deriveImpliedRecoveryTime es private) ──────
+    // ─── τ implícito de la referencia EMA congelada ───────────────────────────
 
-    private val deriveMethod by lazy {
-        AugeAdaptiveEngine::class.java
-            .getDeclaredMethod("deriveImpliedRecoveryTime", RecoveryLearningObservation::class.java)
-            .apply { isAccessible = true }
-    }
-
-    /** τ implícito que devuelve la inversión actual (sin tope de ±25 %); `null` si la inversión no emite. */
+    /** τ implícito que devuelve la inversión congelada (sin tope de ±25 %); `null` si la inversión no emite. */
     fun impliedTauOrNull(obs: RecoveryLearningObservation): Double? =
-        deriveMethod.invoke(AugeAdaptiveEngine, obs) as? Double
+        LegacyEmaReference.deriveImpliedRecoveryTime(obs)
 
     // ─── Evaluadores de motor real (mismos filtros que la ruta de Home) ────────
 
