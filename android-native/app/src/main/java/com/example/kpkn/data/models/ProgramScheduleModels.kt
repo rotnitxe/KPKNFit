@@ -130,6 +130,8 @@ data class OneRmResolution(
     val squat1RM: Double? = null,
     val bench1RM: Double? = null,
     val deadlift1RM: Double? = null,
+    /** CAL5: el press militar, cuando el programa lo trabaja (5/3/1, Juggernaut, nSuns…). null = no se pidió. */
+    val overhead1RM: Double? = null,
     val resolvedAtMs: Long = System.currentTimeMillis(),
     val note: String? = null,
 )

@@ -182,6 +182,7 @@ fun ProgramDetailScreen(
     var squat1RmKg by rememberSaveable { mutableStateOf<Double?>(null) }
     var bench1RmKg by rememberSaveable { mutableStateOf<Double?>(null) }
     var deadlift1RmKg by rememberSaveable { mutableStateOf<Double?>(null) }
+    var overhead1RmKg by rememberSaveable { mutableStateOf<Double?>(null) }
 
     WizardDarkSystemBars()
 
@@ -527,10 +528,27 @@ fun ProgramDetailScreen(
     val settings by ProgramRepository.getInstance().settings.collectAsState()
     val settingsUnit = if (settings.weightUnit == WeightUnit.LBS) MarksMath.UNIT_LB else MarksMath.UNIT_KG
     if (showOneRmDialog) {
+        // CAL5: el test pide solo los levantamientos del programa (Smolov: la sentadilla; con press militar, también ese) y se precarga con
+        // las series «Test» registradas. La persona confirma o corrige cada valor: nada se guarda hasta «Guardar y continuar».
+        val testLifts = remember(p.id, p.sourceRecipe) { viewModel.oneRmTestLifts() }
+        val testPrefill = remember(p.id, showOneRmDialog) { viewModel.oneRmTestPrefill() }
+        LaunchedEffect(p.id, showOneRmDialog) {
+            squat1RmKg = squat1RmKg ?: testPrefill[com.example.kpkn.data.protocols.LiftSlot.SQUAT]
+            bench1RmKg = bench1RmKg ?: testPrefill[com.example.kpkn.data.protocols.LiftSlot.BENCH]
+            deadlift1RmKg = deadlift1RmKg ?: testPrefill[com.example.kpkn.data.protocols.LiftSlot.DEADLIFT]
+            overhead1RmKg = overhead1RmKg ?: testPrefill[com.example.kpkn.data.protocols.LiftSlot.OVERHEAD]
+        }
         val marks = buildMap<LiftMark, Double> {
             squat1RmKg?.let { put(LiftMark.SQUAT, it) }
             bench1RmKg?.let { put(LiftMark.BENCH, it) }
             deadlift1RmKg?.let { put(LiftMark.DEADLIFT, it) }
+            overhead1RmKg?.let { put(LiftMark.OVERHEAD_PRESS, it) }
+        }
+        fun markOf(lift: com.example.kpkn.data.protocols.LiftSlot): LiftMark = when (lift) {
+            com.example.kpkn.data.protocols.LiftSlot.SQUAT -> LiftMark.SQUAT
+            com.example.kpkn.data.protocols.LiftSlot.BENCH -> LiftMark.BENCH
+            com.example.kpkn.data.protocols.LiftSlot.DEADLIFT -> LiftMark.DEADLIFT
+            com.example.kpkn.data.protocols.LiftSlot.OVERHEAD -> LiftMark.OVERHEAD_PRESS
         }
         ProgramOneRmSheet(
             valuesKg = marks,
@@ -540,6 +558,7 @@ fun ProgramDetailScreen(
                     LiftMark.SQUAT -> squat1RmKg = kg
                     LiftMark.BENCH -> bench1RmKg = kg
                     LiftMark.DEADLIFT -> deadlift1RmKg = kg
+                    LiftMark.OVERHEAD_PRESS -> overhead1RmKg = kg
                     else -> Unit
                 }
             },
@@ -548,6 +567,14 @@ fun ProgramDetailScreen(
                 showOneRmDialog = false
             },
             onDismiss = { showOneRmDialog = false },
+            lifts = testLifts.map(::markOf),
+            prefilled = testPrefill.isNotEmpty(),
+            onSaveMarks = { values ->
+                viewModel.recordPendingOneRmTestMarks(
+                    testLifts.mapNotNull { lift -> values[markOf(lift)]?.let { lift to it } }.toMap(),
+                )
+                showOneRmDialog = false
+            },
         )
     }
 
@@ -1139,6 +1166,9 @@ internal fun usesTrainingMax(recipe: com.example.kpkn.data.protocols.TrainingPla
         com.example.kpkn.data.protocols.ProgressionRule.RepMaxAutoregulated,
         is com.example.kpkn.data.protocols.ProgressionRule.AmrapDrivenTm,
         is com.example.kpkn.data.protocols.ProgressionRule.RepTargetDrivenTm,
+        is com.example.kpkn.data.protocols.ProgressionRule.RepsOverStandardTm,
+        is com.example.kpkn.data.protocols.ProgressionRule.StagedVolume,
+        is com.example.kpkn.data.protocols.ProgressionRule.ApreXrm,
         -> true
         is com.example.kpkn.data.protocols.ProgressionRule.WeeklyPercent,
         com.example.kpkn.data.protocols.ProgressionRule.None,
@@ -1157,6 +1187,3 @@ internal fun usesTrainingMax(recipe: com.example.kpkn.data.protocols.TrainingPla
     }
 }
 
-        is com.example.kpkn.data.protocols.ProgressionRule.RepsOverStandardTm,
-        is com.example.kpkn.data.protocols.ProgressionRule.StagedVolume,
-        is com.example.kpkn.data.protocols.ProgressionRule.ApreXrm,

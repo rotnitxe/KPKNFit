@@ -389,17 +389,19 @@ object ProgramProgressEngine {
             "No hay un test 1RM pendiente de resolver."
         }
         if (resolution.status == OneRmResolutionStatus.RECORDED) {
-            require(resolution.squat1RM != null && resolution.squat1RM > 0.0) { "Registra un 1RM de sentadilla válido." }
-            require(resolution.bench1RM != null && resolution.bench1RM > 0.0) { "Registra un 1RM de banca válido." }
-            require(resolution.deadlift1RM != null && resolution.deadlift1RM > 0.0) { "Registra un 1RM de peso muerto válido." }
+            // CAL5: el test pide SOLO los levantamientos del programa (Smolov: la sentadilla) y el press militar si lo trabaja.
+            OneRmTestPlan.missingLifts(resolution, OneRmTestPlan.requiredLifts(program)).firstOrNull()?.let { lift ->
+                throw IllegalArgumentException("Registra un 1RM de ${AuthoredProgressionEngine.liftName(lift)} válido.")
+            }
         }
         val withResolution = if (resolution.status == OneRmResolutionStatus.RECORDED) {
+            val currentGoals = program.goals ?: com.example.kpkn.data.models.ProgramGoals()
             withTestedProfile(
                 program.copy(
-                    goals = (program.goals ?: com.example.kpkn.data.models.ProgramGoals()).copy(
-                        squat1RM = resolution.squat1RM,
-                        bench1RM = resolution.bench1RM,
-                        deadlift1RM = resolution.deadlift1RM,
+                    goals = currentGoals.copy(
+                        squat1RM = resolution.squat1RM ?: currentGoals.squat1RM,
+                        bench1RM = resolution.bench1RM ?: currentGoals.bench1RM,
+                        deadlift1RM = resolution.deadlift1RM ?: currentGoals.deadlift1RM,
                     ),
                     runState = run.copy(
                         oneRmResolution = resolution,
@@ -427,6 +429,7 @@ object ProgramProgressEngine {
             squat1RM = resolution.squat1RM,
             bench1RM = resolution.bench1RM,
             deadlift1RM = resolution.deadlift1RM,
+            overhead1RM = resolution.overhead1RM,
         )
         val merged = TrainingMaxMerge.merge(
             old = program.powerliftingProfile,
@@ -702,9 +705,6 @@ object ProgramProgressEngine {
                 runId = runId,
                 recipe = recipe,
             ),
-        )
-    }
-
             // CAL5 (Juggernaut): el AMRAP de realización de la ola que se cierra decide el TM nuevo: reps sobre el estándar.
             evidence = if (recipe.progression is ProgressionRule.RepsOverStandardTm) {
                 AuthoredProgressionEngine.CloseEvidence(
@@ -715,6 +715,9 @@ object ProgramProgressEngine {
             } else {
                 AuthoredProgressionEngine.CloseEvidence()
             },
+        )
+    }
+
     /**
      * Semanas del bloque que se deja al resolver una puerta (descarga o test de 1RM): el bloque en el que
      * quedó el cursor al levantarla (`runState.blockId`), o, si ese id falta en un estado antiguo, el de
@@ -1274,13 +1277,13 @@ object ProgramProgressEngine {
         // run y, antes del avance, arrastraría las semanas escaladas del ciclo cerrado.
         // B.S4: un levantamiento con un AMRAP corto en el ciclo que se cierra no sube su TM. Se lee de los
         // registros de ESE ciclo (`cycleNumber` es el cerrado) y de las semanas tal como se entrenaron.
+        // CAL5: además, la regla de cada método lee lo registrado en el ciclo que se cierra: 5/3/1 cuenta los ciclos congelados
+        // seguidos (reinicio −10 %) y GZCLP el volumen que completó cada T1 y T2 (etapas).
         val cycleRecipe = program.sourceRecipe
         val closingWeeks = currentInstances.mapNotNull { instance -> hierarchy.locateWeek(instance.templateWeekId)?.week }
         val closesByCycle = cycleRecipe != null && AuthoredProgressionEngine.appliesAtCycleClose(cycleRecipe.progression)
         val shortAmrapLifts: Set<LiftSlot> = if (cycleRecipe != null && closesByCycle) {
             ProgramAutoregulationEngine.shortAmrapLifts(
-        // CAL5: además, la regla de cada método lee lo registrado en el ciclo que se cierra: 5/3/1 cuenta los ciclos congelados
-        // seguidos (reinicio −10 %) y GZCLP el volumen que completó cada T1 y T2 (etapas).
                 weeks = closingWeeks,
                 logs = logs,
                 cycleNumber = cycleNumber,
@@ -1291,9 +1294,6 @@ object ProgramProgressEngine {
         } else {
             emptySet()
         }
-        val authored = AuthoredProgressionEngine.applyAtCycleClose(
-            program = updatedProgram,
-            newCycle = newCycle,
         val closeEvidence: AuthoredProgressionEngine.CloseEvidence = if (cycleRecipe == null) {
             AuthoredProgressionEngine.CloseEvidence()
         } else when (val rule = cycleRecipe.progression) {
@@ -1324,14 +1324,17 @@ object ProgramProgressEngine {
             )
             else -> AuthoredProgressionEngine.CloseEvidence()
         }
+        val authored = AuthoredProgressionEngine.applyAtCycleClose(
+            program = updatedProgram,
+            newCycle = newCycle,
             firstWeekOccurrence = firstOccurrence,
             metadata = compositionMetadata ?: CompositionMetadataHolder.current,
             inventory = inventory,
             excludedLifts = shortAmrapLifts,
+            evidence = closeEvidence,
         )
 
         return ProgressAdvanceResult(
-            evidence = closeEvidence,
             program = authored,
             activeState = activeState?.copy(
                 currentWeekId = firstInstance?.instanceId ?: activeState.currentWeekId,
