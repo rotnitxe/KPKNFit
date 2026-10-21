@@ -116,9 +116,6 @@ object AugeAdaptiveEngine {
         )
     }
 
-    /**
-     * τ base (horas) de [muscle] para quien aún no tiene uno aprendido: el mismo que usa el motor, es decir el de su perfil
-     * en [AugeParameters] (48 h si no tiene perfil). Antes era una tabla propia que daba 48 h a los músculos que no son pilares.
-     */
+    /** τ base del perfil de [muscle] en el motor; sin perfil se usa el medio de [AugeParameters]. */
     fun defaultRecoveryHours(muscle: String): Double = AugeParameters.baseTauHours(muscle)
 }

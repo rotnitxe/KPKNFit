@@ -33,10 +33,6 @@ object AugeRecoveryEngine {
 
     private const val ACUTE_FEEDBACK_WINDOW_MS = 14L * 24 * 3_600 * 1_000
 
-    // ─── Perfiles de recuperación (horas base) ────────────────────────────────
-
-    // El τ base de cada perfil, el perfil de cada músculo y la lista de pilares viven en AugeParameters.
-
     // Los músculos "pilar" para el cálculo de batería muscular global
     private val PILLAR_MUSCLES = AugeParameters.PILLARS
 
@@ -487,7 +483,11 @@ object AugeRecoveryEngine {
             ?: adaptiveCache.personalizedRecoveryHours.entries.firstOrNull {
                 normKey(it.key) == normKey(muscleName)
             }?.value
-        val baseRecoveryTime = clamp(adaptiveHours ?: AugeParameters.baseTauHours(muscleName), AugeParameters.TAU_MIN_H, AugeParameters.TAU_MAX_H)
+        val baseRecoveryTime = clamp(
+            adaptiveHours ?: AugeParameters.baseTauHours(muscleName),
+            AugeParameters.TAU_MIN_H,
+            AugeParameters.TAU_MAX_H,
+        )
 
         var multiplier = nutritionMultiplier
 

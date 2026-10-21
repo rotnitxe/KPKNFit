@@ -1,11 +1,15 @@
 package com.example.kpkn.domain.auge
 
+import com.example.kpkn.data.models.AugeAdaptiveCache
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.DailyWellbeingLog
+import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InitialRecoveryEvidenceFactory
+import com.example.kpkn.data.models.InvolvedMuscle
+import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WorkoutLog
 import org.junit.Assert.assertEquals
@@ -169,7 +173,7 @@ class AugeParametersConsistencyTest {
 
     @Test
     fun lasDiferenciasDelAprendizSonExactamenteLasDeclaradas() {
-        // Antes defaultRecoveryHours daba 48 h a los músculos que no eran pilares; ahora da el τ del motor.
+        // Los once nombres con perfil que no estaban en la tabla del aprendiz dejan su respaldo de 48 h.
         val cambian = PERFIL_DEL_MOTOR_ANTES.map { it.first }.filter { musculo ->
             aprendizDeAntes(musculo) != AugeAdaptiveEngine.defaultRecoveryHours(musculo.lowercase())
         }
@@ -193,6 +197,81 @@ class AugeParametersConsistencyTest {
                 AugeAdaptiveEngine.defaultRecoveryHours(pilar.lowercase()),
                 0.0,
             )
+        }
+    }
+
+    @Test
+    fun lasObservacionesRealesDelAprendizIncluyenCostalesEntreLosGruposAdicionales() {
+        val fichas = PERFIL_DEL_MOTOR_ANTES.mapIndexed { indice, (musculo, _) ->
+            val id = "musculo-$indice"
+            id to ExerciseMuscleInfo(
+                id = id, name = "Referencia $indice", equipment = "barra", efc = 3.0, cnc = 2.0, ssc = 0.1,
+                axialLoadFactor = 0.0,
+                involvedMuscles = listOf(InvolvedMuscle(musculo, MuscleRole.PRIMARY, volumeContribution = 1.0)),
+            )
+        }.toMap()
+        val ejercicios = fichas.map { (id, ficha) ->
+            CompletedExercise(exerciseId = id, exerciseDbId = id, canonicalExerciseId = id, exerciseName = ficha.name)
+        }
+        val claves = ejercicios.map { requireNotNull(PerformanceTauLearner.primaryAugePillarFor(it, fichas)) }.toSet()
+        val baterias = AugeRecoveryEngine.getPerMuscleBatteries(
+            history = emptyList(), wellbeing = null, settings = Settings(), nowOverrideMs = ORIGEN, zone = ZoneId.of("UTC"),
+        )
+        assertEquals(baterias.keys, claves)
+        assertEquals(
+            setOf("Antebrazo", "Costales", "Redondo Menor", "Infraespinoso", "Supraespinoso", "Subescapular",
+                "Serrato Anterior", "Aductores", "Cuello", "Psoas"),
+            claves - PILARES_EN_ORDEN.toSet(),
+        )
+
+        fun sesion(id: String, horasAtras: Long, peso: Double): WorkoutLog {
+            val iso = Instant.ofEpochMilli(ORIGEN - horasAtras * HORA_MS).toString()
+            val base = sesionV2("Costales", ESTRES)
+            val impacto = requireNotNull(base.muscularImpactV2)
+            return base.copy(
+                id = id, date = iso,
+                completedExercises = ejercicios.map { ejercicio ->
+                    ejercicio.copy(sets = listOf(CompletedSet(id = "$id-${ejercicio.exerciseId}", weight = peso, reps = 5, rpe = 8.0)))
+                },
+                muscularImpactV2 = impacto.copy(
+                    completionInstantIso = iso,
+                    perMuscle = claves.associateWith { impacto.perMuscle.getValue("Costales") },
+                    involvedVolumeMuscles = claves,
+                ),
+            )
+        }
+        val resultado = PerformanceTauLearner.observations(
+            PerformanceTauInput(
+                historyWithoutToday = listOf(sesion("h3", 18L * 24, 80.0), sesion("h2", 12L * 24, 80.0), sesion("h1", 48, 80.0)),
+                today = sesion("hoy", 0, 72.0), nowMs = ORIGEN, exerciseDb = fichas,
+                predictedEnergy = 100, predictedStructure = 100, predictedMuscles = claves.associateWith { 70 },
+                manual = PerformanceTauManualTouches(energy = true, structure = true),
+            ),
+        )
+        assertEquals(claves, resultado.observations.map { it.muscle }.toSet())
+        assertEquals(
+            setOf("Costales"),
+            resultado.observations.map { it.muscle }.filter { aprendizDeAntes(it) != AugeAdaptiveEngine.defaultRecoveryHours(it) }.toSet(),
+        )
+        // La primera observación llega con la clave real: prior vacío 24 h → 27 h; un τ ya guardado en 48 h sigue dando 54 h.
+        val nuevo = PerformanceTauLearner.applyToCache(AugeAdaptiveCache(), resultado, "hoy", ORIGEN)
+        val guardado = PerformanceTauLearner.applyToCache(
+            AugeAdaptiveCache(personalizedRecoveryHours = mapOf("costales" to 48.0)), resultado, "hoy", ORIGEN,
+        )
+        assertEquals(27.0, nuevo.personalizedRecoveryHours.getValue("costales"), 1e-9)
+        assertEquals(54.0, guardado.personalizedRecoveryHours.getValue("costales"), 1e-9)
+    }
+
+    @Test
+    fun elMotorConservaElRespaldoSinPerfilYLosLimitesDelTauAprendido() {
+        assertCercano("Sin perfil: τ medio", puntuacionMusculo("Tibial Anterior", 24), bateriaRealMusculo(ESTRES, 24.0, 48.0))
+        for ((aprendido, limitado) in listOf(6.0 to 18.0, 18.0 to 18.0, 144.0 to 144.0, 200.0 to 144.0)) {
+            val estado = AugeRecoveryEngine.calculateMuscleBattery(
+                muscleName = "Pectorales", history = listOf(sesionV2("Pectorales", ESTRES)), wellbeing = null,
+                settings = Settings(), precomputedCapacity = CAPACIDAD, nowOverride = ORIGEN + 24 * HORA_MS,
+                adaptiveCache = AugeAdaptiveCache(personalizedRecoveryHours = mapOf("pectorales" to aprendido)),
+            )
+            assertCercano("τ aprendido $aprendido limitado a $limitado", estado.recoveryScore, bateriaRealMusculo(ESTRES, 24.0, limitado))
         }
     }
 
@@ -400,7 +479,7 @@ class AugeParametersConsistencyTest {
         assertTrue("El escaneo leyó pocos archivos (${nombres.size})", nombres.size >= 25)
         for (esperado in listOf(
             "AugeRecoveryEngine.kt", "AugeAdaptiveEngine.kt", "AugeUtils.kt", "InitialRecoveryEvidencePolicy.kt",
-            "InterferenceEngine.kt", "AugeViewModel.kt", "InitialRecoveryEvidence.kt",
+            "InterferenceEngine.kt", "AugeViewModel.kt", "InitialRecoveryEvidence.kt", "RingAdjustMath.kt",
         )) {
             assertTrue("El escaneo no incluye $esperado", esperado in nombres)
         }
@@ -499,7 +578,7 @@ class AugeParametersConsistencyTest {
         return 100.0 * exp(-(carga / capacidad * 100.0) / c)
     }
 
-    /** Columna de las carreras [horas] h después, a mano; el tiempo pasa por el warp espinal (+18 h desde las 24 h). */
+    /** Columna de las carreras [horas] h después, a mano; el warp espinal añade 18 h gradualmente entre las 12 y las 24 h. */
     private fun columnaAMano(
         horas: Double,
         c: Double = AugeParameters.C_SPINAL,
@@ -562,7 +641,7 @@ class AugeParametersConsistencyTest {
         error("No encuentro $relativo subiendo desde ${File("").absolutePath}")
     }
 
-    /** Los archivos .kt de `domain/auge` salvo el registro, más los dos de fuera que también tenían copias. */
+    /** Los archivos .kt de `domain/auge` salvo el registro, más los llamadores externos que también tenían copias. */
     private fun archivosEscaneados(raiz: File): List<File> {
         val auge = File(raiz, "domain/auge").listFiles { f -> f.isFile && f.extension == "kt" }
             .orEmpty().filter { it.name != "AugeParameters.kt" }.sortedBy { it.name }
@@ -717,7 +796,9 @@ class AugeParametersConsistencyTest {
         )
 
         /** Archivos de fuera de `domain/auge` que también tenían copias de τ por defecto o de la lista de pilares. */
-        val ARCHIVOS_EXTRA = listOf("screens/auge/AugeViewModel.kt", "data/models/InitialRecoveryEvidence.kt")
+        val ARCHIVOS_EXTRA = listOf(
+            "screens/auge/AugeViewModel.kt", "data/models/InitialRecoveryEvidence.kt", "ui/components/rings/RingAdjustMath.kt",
+        )
 
         val REGLAS = listOf(
             Regla(

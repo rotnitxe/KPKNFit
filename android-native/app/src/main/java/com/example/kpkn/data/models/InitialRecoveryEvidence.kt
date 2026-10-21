@@ -304,6 +304,6 @@ object InitialRecoveryEvidenceFactory {
         ).normalized()
     }
 
-    /** Canonical pillars used by AUGE's localized battery map. */
+    /** Pilares canónicos del registro para las baterías musculares de AUGE. */
     val INITIAL_RECOVERY_MUSCLE_PILLARS: List<String> = AugeParameters.PILLARS
 }

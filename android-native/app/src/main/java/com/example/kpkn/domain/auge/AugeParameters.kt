@@ -12,7 +12,7 @@ package com.example.kpkn.domain.auge
  */
 object AugeParameters {
 
-    /** Versión del registro: súbela cuando cambie CUALQUIER valor de este objeto; el caché del aprendiz la guarda para invalidar los τ aprendidos. */
+    /** Versión del registro: súbela cuando cambie CUALQUIER valor; el caché del aprendiz de fase 3 la usará para invalidar los τ aprendidos. */
     const val VERSION: Int = 1
 
     // ─── τ base por perfil (horas) ───────────────────────────────────────────
