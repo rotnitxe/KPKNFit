@@ -45,6 +45,7 @@ class NutritionDayStateRenderSheetTest {
     @get:Rule val rule = createComposeRule()
     private var hostView: View? = null
     private fun render(name: String, scale: Float) {
+        assumeTrue("Sin KPKN_RENDER_DIR no se dibuja nada.", System.getenv("KPKN_RENDER_DIR") != null)
         val state = NutritionDayStateSamples.state(name)
         rule.setContent { KPKNTheme {
             hostView = LocalView.current

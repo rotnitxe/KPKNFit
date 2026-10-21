@@ -47,6 +47,7 @@ class EquipmentInventoryRenderSheetTest {
     private var view: View? = null
 
     private fun render(name: String, scale: Float) {
+        assumeTrue("Sin KPKN_RENDER_DIR no se dibuja nada.", System.getenv("KPKN_RENDER_DIR") != null)
         val state = EquipmentInventorySamples.state(name)
         val actions = EquipmentInventoryActions()
         rule.setContent { KPKNTheme {
