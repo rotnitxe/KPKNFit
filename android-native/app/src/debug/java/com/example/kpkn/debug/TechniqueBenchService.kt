@@ -45,7 +45,7 @@ class TechniqueBenchService : Service() {
             createChannel()
             val initialNotification = notification(0, 0)
             when {
-                Build.VERSION.SDK_INT >= 35 -> startForeground(NOTIFICATION_ID, initialNotification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING)
+                Build.VERSION.SDK_INT >= 34 -> startForeground(NOTIFICATION_ID, initialNotification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
                 Build.VERSION.SDK_INT >= 29 -> startForeground(NOTIFICATION_ID, initialNotification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
                 else -> startForeground(NOTIFICATION_ID, initialNotification)
             }
@@ -122,8 +122,21 @@ class TechniqueBenchService : Service() {
         wakeLock = null
     }
 
-    // Android 15 limita mediaProcessing a seis horas por día; la cancelación publica el parcial.
+    private fun writeTimeout(resolved: BenchLayout) {
+        runCatching {
+            AnalyzeFileBench.writeReport(resolved.outDir, AnalyzeFileBench.SUMMARY_FILE, JSONObject()
+                .put("modo", "analyze_file").put("ok", false)
+                .put("error", "tiempo de servicio agotado"))
+        }.onFailure { Log.e("KpknTechniqueBench", "No se pudo escribir analyze.json al agotar el servicio", it) }
+    }
+
+    // Publica el fallo enseguida, sin esperar a que el análisis termine de cancelarse.
     override fun onTimeout(startId: Int, fgsType: Int) {
+        layout?.let { resolved ->
+            writeTimeout(resolved)
+            // El parcial que escribe AnalyzeFileBench al cancelar no debe borrar la causa.
+            job?.invokeOnCompletion { writeTimeout(resolved) }
+        }
         scope.cancel(CancellationException("Tiempo de servicio en primer plano agotado"))
         releaseWakeLock()
         stopForeground(STOP_FOREGROUND_REMOVE)
