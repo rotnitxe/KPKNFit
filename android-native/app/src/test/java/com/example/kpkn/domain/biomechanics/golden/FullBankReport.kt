@@ -199,7 +199,7 @@ internal object FullBankReport {
             cropped.frames.maxOf { it.posesDetected },
             posed.takeIf { it.isNotEmpty() }?.let { frames -> frames.count { it.posesDetected >= 2 }.toDouble() / frames.size },
             goodFraming(expected, profile), "Done", (built as? CountSeriesResult.Ok)?.series?.source,
-            fullBankSignalDiagnostics(prepared, built, profile))
+            fullBankSignalDiagnostics(prepared, built, profile, croppedBar))
     }
 
     fun resolve(row: FullBankRow): AnalysisProfile {

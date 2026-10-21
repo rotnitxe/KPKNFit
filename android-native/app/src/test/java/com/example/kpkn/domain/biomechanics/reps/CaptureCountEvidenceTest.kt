@@ -34,12 +34,12 @@ class CaptureCountEvidenceTest {
 
     @Test fun croppedRequiredFeetAbstainButAnOptionalOccludedFootDoesNot() {
         val squat = generate(SynthMovement.SQUAT).track.mapFrames { _, image, _ ->
-            for (lm in listOf(PoseLandmark.LEFT_ANKLE, PoseLandmark.RIGHT_ANKLE))
+            for (lm in listOf(PoseLandmark.LEFT_FOOT_INDEX, PoseLandmark.RIGHT_FOOT_INDEX))
                 image[lm]?.let { image[lm] = it.copy(x = -0.2f) }
         }
         assertEquals("poor_capture", analyze(squat, AnalysisProfileId.SQUAT).noRepsReason)
         val bench = generate(SynthMovement.BENCH).track.mapFrames { _, image, _ ->
-            for (lm in listOf(PoseLandmark.LEFT_ANKLE, PoseLandmark.RIGHT_ANKLE))
+            for (lm in listOf(PoseLandmark.LEFT_FOOT_INDEX, PoseLandmark.RIGHT_FOOT_INDEX))
                 image[lm]?.let { image[lm] = it.copy(x = -0.2f) }
         }
         assertTrue(CountSeriesBuilder.build(TrackPreparation.prepare(bench), null,
