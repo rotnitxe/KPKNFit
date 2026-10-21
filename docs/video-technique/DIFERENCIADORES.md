@@ -126,8 +126,20 @@ nube sin decirlo (My Jump Lab usa Firestore pese a su texto de privacidad).
   - Arreglo: vetar solo si el cierre anterior fue un fallo real. `ActivityManager.getHistoricalProcessExitReasons` da el motivo:
     `REASON_CRASH_NATIVE`, `REASON_CRASH` o `REASON_ANR`. Con cualquier otro motivo (memoria, sistema, cierre por la persona), se
     borra la marca sin vetar. Y que el veto caduque tras N arranques correctos.
+  - **Arreglado en B12** (`ed1df0085`, 21-oct):
+    - solo un `NATIVE_CRASH` veta al momento;
+    - un fallo Java (como el corte del servicio) o un cierre del sistema no veta;
+    - con causa desconocida (API < 30, ANR o una marca sin pid) se veta al 2.º aviso seguido.
+    - El veto no caduca por arranques, sino con la `versionCode`: un fallo nativo de la GPU se repite siempre, y reintentar
+      supondría un cierre más de la app.
+    - Falta probarlo en el Flip.
 - **B2 · Servicio de análisis largo (media).** El trabajador real (`TechniqueAnalysisWorker`) usa también un servicio en primer plano.
   Hay que comprobar que su tipo y su `onTimeout` no dejan el análisis a medias sin aviso en Android 15+.
+  - **Arreglado en B12** (`ed1df0085`, 21-oct):
+    - WorkManager 2.11.2 ya atiende el límite: `SystemForegroundService.onTimeout` → `SystemForegroundDispatcher.onTimeout` para
+      los trabajadores con el motivo −128;
+    - en un paro del sistema la fila vuelve a `QUEUED` y el análisis sigue desde su punto de control, en vez de quedarse en
+      «Analizando… 42 %».
 
 ## Orden propuesto
 1. Ronda de interfaz en curso: UI-2, UI-3 y UI-4.
