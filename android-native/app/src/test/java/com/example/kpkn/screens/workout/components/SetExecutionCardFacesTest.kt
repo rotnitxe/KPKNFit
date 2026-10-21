@@ -29,6 +29,7 @@ import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.screens.workout.technique.TechniqueRecorderStageTag
 import com.example.kpkn.screens.workout.RecordActionHolder
 import com.example.kpkn.screens.workout.RecordSetResult
 import com.example.kpkn.screens.workout.WeightSuggestion
@@ -188,6 +189,7 @@ class SetExecutionCardFacesTest {
         rule.waitForIdle()
 
         rule.onNodeWithTag(MediaExpandedTag).assertExists()
+        rule.onNodeWithTag(TechniqueRecorderStageTag).assertExists()
         rule.onNodeWithText("Modo visual · serie 3").assertExists()
         comprobarMismaAltura(base, "con Modo visual expandido encima")
         val expandido = rule.onNodeWithTag(MediaExpandedTag).fetchSemanticsNode().boundsInRoot
@@ -200,6 +202,7 @@ class SetExecutionCardFacesTest {
         rule.waitForIdle()
 
         rule.onNodeWithTag(MediaExpandedTag).assertDoesNotExist()
+        rule.onNodeWithTag(TechniqueRecorderStageTag).assertDoesNotExist()
         rule.onNodeWithTag(MediaFaceTag).assertExists()
         comprobarMismaAltura(base, "tras plegar")
     }

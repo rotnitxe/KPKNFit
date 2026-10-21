@@ -118,7 +118,6 @@ internal fun WorkoutV2Body(
     skipExerciseLabel: String? = null,
     onSkipExercise: (() -> Unit)? = null,
     onRetryPendingCaptures: () -> Unit = {},
-    techniqueRecorderHolder: com.example.kpkn.screens.workout.technique.TechniqueRecorderHolder? = null,
     onOpenTechniqueAnalysis: (String) -> Unit = {},
 ) {
     val sharedFabBottomOffset = recordFabBottomOffset ?: rememberWorkoutRecordFabBottomOffset(dockBottomClearance)
@@ -2309,7 +2308,7 @@ internal fun WorkoutV2Body(
                                         ?: uiState.lastHomologatedResultV3?.takeIf {
                                             uiState.setJustLoggedKey?.startsWith("${targetExercise.id}_$activeSetIndex") == true
                                         },
-                                    techniqueRecorderHolder = techniqueRecorderHolder,
+                                    techniqueVideoSettings = settings.techniqueVideo,
                                     loadPopTrigger = relatorLoadPopTrigger,
                                     videoThumbBadges = videoThumbBadges,
                                     onRetryAnalysis = { viewModel.retryVideoAnalysis(it) },

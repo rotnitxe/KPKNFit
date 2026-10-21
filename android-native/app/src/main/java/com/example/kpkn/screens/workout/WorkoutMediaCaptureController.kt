@@ -63,6 +63,28 @@ data class WorkoutMediaCaptureRequest(
     val catalogConfigurationId: String? = null,
 )
 
+/** Resultado de persistencia, independiente del código Finalize de CameraX. */
+sealed interface TechniqueRecordingResult {
+    val errorMessage: String?
+
+    data class Saved(val media: WorkoutMedia) : TechniqueRecordingResult {
+        override val errorMessage: String? = null
+    }
+    data object Discarded : TechniqueRecordingResult {
+        override val errorMessage = "No se pudo guardar el vídeo. Puedes volver a grabar."
+    }
+    data class Error(override val errorMessage: String = "No se pudo guardar el vídeo. Puedes reintentar.") : TechniqueRecordingResult
+}
+
+/** Espera el trabajo del repositorio; un fichero retenido aún debe quedar persistido. */
+internal suspend fun awaitTechniqueRecordingResult(write: suspend () -> WorkoutMedia?): TechniqueRecordingResult = try {
+    write()?.let { TechniqueRecordingResult.Saved(it) } ?: TechniqueRecordingResult.Discarded
+} catch (cancelled: CancellationException) {
+    throw cancelled
+} catch (_: Exception) {
+    TechniqueRecordingResult.Error()
+}
+
 /**
  * CameraX remains UI-scoped, while each accepted file and its metadata are journaled
  * and ingested by the repository owner so VM teardown cannot cancel persistence.
@@ -436,7 +458,7 @@ class WorkoutMediaCaptureController(
         session: RecorderSession,
         exercise: Exercise? = null,
         metadataRecorder: CaptureMetadataRecorder? = null,
-        onFinalized: ((File?) -> Unit)? = null,
+        onFinalized: ((TechniqueRecordingResult) -> Unit)? = null,
         targetRotation: Int = Surface.ROTATION_0,
         maxRecordSeconds: Int = 180,
         plateDiameterOverrideMm: Int? = null,
@@ -497,38 +519,37 @@ class WorkoutMediaCaptureController(
                             val finalRequest = requestProvider().withExerciseCaptureContext(exercise)
 
                             scope.launch(Dispatchers.IO) {
-                                // 1. Guardar metadatos de captura (gravedad, focal y fps) en capture.json antes de entregar el vídeo
-                                metadataInterval.save(dest)
+                                val result = awaitTechniqueRecordingResult {
+                                    // 1. Guardar metadatos de captura (gravedad, focal y fps) en capture.json antes de entregar el vídeo
+                                    metadataInterval.save(dest)
 
-                                // 2. Si el usuario seleccionó un diámetro distinto al de los ajustes, guardarlo con CaptureOverridesFile.update
-                                if (plateDiameterOverrideMm != null && plateDiameterOverrideMm != defaultPlateDiameterMm) {
-                                    val captureFile = TechniqueSidecars.captureFile(dest)
-                                    runCatching {
-                                        CaptureOverridesFile.update(captureFile) { current ->
-                                            current.copy(plateDiameterMm = plateDiameterOverrideMm)
+                                    // 2. Si el usuario seleccionó un diámetro distinto al de los ajustes, guardarlo con CaptureOverridesFile.update
+                                    if (plateDiameterOverrideMm != null && plateDiameterOverrideMm != defaultPlateDiameterMm) {
+                                        val captureFile = TechniqueSidecars.captureFile(dest)
+                                        runCatching {
+                                            CaptureOverridesFile.update(captureFile) { current ->
+                                                current.copy(plateDiameterMm = plateDiameterOverrideMm)
+                                            }
                                         }
                                     }
+
+                                    // 3. Registrar el medio finalizado en el repositorio (el pipeline arrancará después de que exista capture.json)
+                                    val finalEntry = captureEntry(
+                                        file = dest,
+                                        kind = WorkoutMediaKind.VIDEO,
+                                        request = finalRequest,
+                                        id = id,
+                                        createdAtMs = createdAtMs,
+                                        meta = meta,
+                                    )
+
+                                    repository.submitFinalizedVideoCapture(finalEntry, event.hasError(), event.error).await()
                                 }
 
-                                // 3. Registrar el medio finalizado en el repositorio (el pipeline arrancará después de que exista capture.json)
-                                val finalEntry = captureEntry(
-                                    file = dest,
-                                    kind = WorkoutMediaKind.VIDEO,
-                                    request = finalRequest,
-                                    id = id,
-                                    createdAtMs = createdAtMs,
-                                    meta = meta,
-                                )
-
-                                observeDurableWrite(
-                                    entry = finalEntry,
-                                    request = finalRequest,
-                                    work = repository.submitFinalizedVideoCapture(finalEntry, event.hasError(), event.error),
-                                    nullResultMessage = "No se pudo guardar el vídeo.",
-                                )
-
                                 withContext(Dispatchers.Main) {
-                                    onFinalized?.invoke(if (event.hasError()) null else dest)
+                                    _captureError.value = result.errorMessage
+                                    refreshSessionMedia()
+                                    onFinalized?.invoke(result)
                                 }
                             }
                         }
@@ -551,6 +572,7 @@ class WorkoutMediaCaptureController(
                 videoStartJob = null
                 _captureError.value = "No se pudo iniciar la captura del vídeo."
                 preparedEntry?.let(repository::abandonEmptyCaptureAsync)
+                onFinalized?.invoke(TechniqueRecordingResult.Error(_captureError.value!!))
             }
         }
     }

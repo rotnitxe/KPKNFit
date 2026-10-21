@@ -24,6 +24,8 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
@@ -119,6 +121,9 @@ class LiveCardRenderSheetMediaTest {
     @Test fun modoVisualTarjeta130() { onlyWhenAsked(); dibujar(1.3f, "modo_visual_tarjeta_130") }
     @Test fun modoVisualExpandido100() { onlyWhenAsked(); dibujar(1f, "modo_visual_expandido_100", expandido = true) }
     @Test fun modoVisualExpandido130() { onlyWhenAsked(); dibujar(1.3f, "modo_visual_expandido_130", expandido = true) }
+
+    @Test fun despuesDeGrabar100() { onlyWhenAsked(); dibujar(1f, "modo_visual_despues_de_grabar_100", despuesDeGrabar = true) }
+    @Test fun despuesDeGrabar130() { onlyWhenAsked(); dibujar(1.3f, "modo_visual_despues_de_grabar_130", despuesDeGrabar = true) }
 
     @Test fun analisisEnLaTarjeta100() { onlyWhenAsked(); dibujarAnalisis(1f, "100") }
     @Test fun analisisEnLaTarjeta130() { onlyWhenAsked(); dibujarAnalisis(1.3f, "130") }
@@ -285,7 +290,7 @@ class LiveCardRenderSheetMediaTest {
         assertTrue("Acciones del Modo visual:\n${actionFailures.joinToString("\n")}", actionFailures.isEmpty())
     }
 
-    private fun dibujar(fontScale: Float, nombre: String, expandido: Boolean = false) {
+    private fun dibujar(fontScale: Float, nombre: String, expandido: Boolean = false, despuesDeGrabar: Boolean = false) {
         val alto = alturaDeLaTarjeta(fontScale)
         rule.setContent {
             hostView = LocalView.current
@@ -299,7 +304,7 @@ class LiveCardRenderSheetMediaTest {
                         Box(
                             Modifier
                                 .width(360.dp)
-                                .height(if (expandido) 760.dp else (alto + 32).dp)
+                                .height(if (expandido) 880.dp else (alto + 32).dp)
                                 .background(Color.Black)
                                 .testTag(MEDIA_SHEET_TAG),
                         ) {
@@ -317,7 +322,12 @@ class LiveCardRenderSheetMediaTest {
                                     weightKg = 95.0,
                                     reps = 6,
                                     effortLabel = "RIR 2",
-                                    startExpanded = expandido,
+                                    mediaFilesOverride = if (despuesDeGrabar) listOf(WorkoutMedia(
+                                        "nuevo", WorkoutMediaKind.VIDEO, "", createdAtMs = 1L,
+                                        exerciseId = ejercicio.id, setIndex = 2, durationMs = 12_000L,
+                                    )) else null,
+                                    videoThumbBadges = if (despuesDeGrabar) mapOf("nuevo" to VideoThumbBadge.Analyzing(0)) else emptyMap(),
+                                    videoAnalysis = if (despuesDeGrabar) SetVideoAnalysisUi("nuevo", SetVideoAnalysisState.Analyzing(0)) else null,
                                     showControlsWithoutCamera = true,
                                 )
                             }
@@ -328,6 +338,11 @@ class LiveCardRenderSheetMediaTest {
             }
         }
         rule.waitForIdle()
+        if (expandido) {
+            rule.onNodeWithText("Foto").performClick()
+            rule.onNodeWithTag("media_expand").performClick()
+            rule.waitForIdle()
+        }
         guardar(MEDIA_SHEET_TAG, nombre)
     }
 

@@ -33,6 +33,7 @@ fun FramingChip(
     verdict: FramingVerdict,
     modifier: Modifier = Modifier,
     isFrontPreferred: Boolean = false,
+    visualMode: Boolean = false,
 ) {
     val isOk = verdict.ok
     val primaryIssue = verdict.issues.firstOrNull()
@@ -43,7 +44,7 @@ fun FramingChip(
         else -> "Comprobando encuadre…"
     }
 
-    val warningColor = Color(0xFFFFA726)
+    val warningColor = if (visualMode) WizardColors.textMuted else Color(0xFFFFA726)
     val (bgColor, borderColor, textColor) = when {
         isOk -> Triple(
             WizardColors.done.copy(alpha = 0.22f),

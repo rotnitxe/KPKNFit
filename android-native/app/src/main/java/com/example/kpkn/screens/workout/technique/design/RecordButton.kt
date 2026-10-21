@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.workout.technique.design
 
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
@@ -36,22 +39,29 @@ fun RecordButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    visualMode: Boolean = false,
+    recordColor: Color = WizardColors.danger,
 ) {
+    val reduced = wizardReducedMotion()
+    val outer = if (visualMode) 68.dp else 72.dp
+    val idleInner = if (visualMode) 50.dp else 32.dp
     val interaction = remember { MutableInteractionSource() }
     val desc = if (isRecording) "Detener grabación" else "Iniciar grabación"
 
     val cornerRadius by animateDpAsState(
-        targetValue = if (isRecording) 6.dp else 16.dp,
+        targetValue = if (isRecording) 6.dp else idleInner / 2,
+        animationSpec = if (reduced) snap() else tween(180),
         label = "recButtonCorner",
     )
     val innerSizeDp by animateDpAsState(
-        targetValue = if (isRecording) 24.dp else 32.dp,
+        targetValue = if (isRecording) 24.dp else idleInner,
+        animationSpec = if (reduced) snap() else tween(180),
         label = "recButtonInnerSize",
     )
 
     Box(
         modifier = modifier
-            .size(72.dp)
+            .size(outer)
             .graphicsLayer { alpha = if (enabled) 1f else 0.38f }
             .semantics { this.contentDescription = desc }
             .clickable(
@@ -63,14 +73,14 @@ fun RecordButton(
             ),
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(modifier = Modifier.size(72.dp)) {
+        Canvas(modifier = Modifier.size(outer)) {
             val strokeWidthPx = 3.dp.toPx()
             val radiusPx = (size.minDimension - strokeWidthPx) / 2f
             val center = Offset(size.width / 2f, size.height / 2f)
 
             // Anillo exterior
             drawCircle(
-                color = Color.White.copy(alpha = 0.88f),
+                color = WizardColors.text,
                 radius = radiusPx,
                 center = center,
                 style = Stroke(width = strokeWidthPx),
@@ -82,7 +92,7 @@ fun RecordButton(
             val topLeft = Offset(center.x - innerPx / 2f, center.y - innerPx / 2f)
 
             drawRoundRect(
-                color = WizardColors.danger,
+                color = recordColor,
                 topLeft = topLeft,
                 size = Size(innerPx, innerPx),
                 cornerRadius = CornerRadius(cornerPx, cornerPx),
