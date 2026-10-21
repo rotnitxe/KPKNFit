@@ -495,12 +495,14 @@ fun SessionEditorScreen(
         session.cardioFirst,
         uiState.collapsedPartIds,
         uiState.strengthSpaceCommitted,
+        uiState.cardioSpaceCommitted,
         uiState.cardioSpacePlacement,
     ) {
         buildSessionListItems(
             session = session,
             collapsedPartIds = uiState.collapsedPartIds,
             showStrengthDivider = uiState.strengthSpaceCommitted,
+            cardioSpaceCommitted = uiState.cardioSpaceCommitted,
             cardioAtStart = when (uiState.cardioSpacePlacement) {
                 CardioSpacePlacement.START -> true
                 CardioSpacePlacement.END -> false

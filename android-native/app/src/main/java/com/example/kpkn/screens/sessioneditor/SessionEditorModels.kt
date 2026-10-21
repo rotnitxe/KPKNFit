@@ -345,6 +345,11 @@ data class SessionEditorUiState(
      */
     val strengthSpaceCommitted: Boolean = false,
     /**
+     * Empty-state chooser (ED-A · A2): el usuario eligió Cardio. Su espacio se ve (vacío, con «Añadir cardio») aunque la sesión aún no
+     * tenga ningún cardio; la parte de cardio se crea al añadir el primero.
+     */
+    val cardioSpaceCommitted: Boolean = false,
+    /**
      * Preferencia de colocación del espacio de cardio (inicio/final).
      * Se conserva tras crear el part: con sesión vacía START y END producen
      * la misma lista de parts, y el list builder necesita esta señal.

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
@@ -28,8 +29,12 @@ import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
 import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorCard
 import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.screens.sessioneditor.components.SessionEditorCardioPlacementControl
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorEmptyState
+import com.example.kpkn.screens.sessioneditor.components.SessionEditorSpace
+import com.example.kpkn.screens.sessioneditor.components.SessionEditorSpaceOption
 import com.example.kpkn.screens.sessioneditor.components.SupersetGroupEditorCard
 import com.example.kpkn.screens.sessioneditor.design.SessionEditorDashedAddButton
 import com.example.kpkn.screens.sessioneditor.design.SessionExerciseUndoNotice
@@ -40,6 +45,7 @@ import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.domain.cardio.CardioTypeHistory
 import com.example.kpkn.data.models.SupersetGroup
@@ -458,8 +464,13 @@ internal fun SessionEditorListItem(
         SessionListItem.StrengthAddActions -> {
             val isEmptySession = session.exercises.isEmpty() &&
                 session.parts.none { !it.isUncategorizedPart() }
-            val hasCardioSpace = session.hasCardioPart()
-            val showChooser = isEmptySession && !uiState.strengthSpaceCommitted
+            // ED-A · A2: Fuerza y Cardio son los dos espacios de una sesión. La persona entrena uno, el otro o los dos.
+            val hasStrengthSpace = session.exercises.isNotEmpty() ||
+                groupedParts.any { !it.isCardioPart() } ||
+                uiState.strengthSpaceCommitted
+            val hasCardioSpace = session.hasCardioPart() || uiState.cardioSpaceCommitted
+            val noExercises = session.exercises.isEmpty() && session.parts.all { it.exercises.isEmpty() }
+            val showChooser = !hasStrengthSpace && !hasCardioSpace
 
             Column(
                 modifier = Modifier
@@ -479,26 +490,47 @@ internal fun SessionEditorListItem(
                 if (showChooser) {
                     SessionEditorEmptyState(
                         onChooseStrength = viewModel::commitStrengthSpace,
-                        onChooseCardio = viewModel::createCardioSpace,
+                        onChooseCardio = viewModel::commitCardioSpace,
                     )
                 } else {
-                    KpknTextAction(
-                        text = "Añadir ejercicio",
-                        onClick = viewModel::openPickerForUncategorized,
-                        modifier = Modifier.padding(start = 4.dp),
-                        leadingIcon = KpknLineIcons.Plus,
-                    )
-                    KpknSecondaryPill(
-                        text = "Nuevo grupo",
-                        onClick = viewModel::addPart,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    if (!hasCardioSpace) {
+                    if (hasStrengthSpace) {
+                        KpknTextAction(
+                            text = "Añadir ejercicio",
+                            onClick = viewModel::openPickerForUncategorized,
+                            modifier = Modifier.padding(start = 4.dp),
+                            leadingIcon = KpknLineIcons.Plus,
+                        )
                         KpknSecondaryPill(
-                            text = "Crear espacio de cardio",
-                            onClick = viewModel::createCardioSpace,
+                            text = "Nuevo grupo",
+                            onClick = viewModel::addPart,
                             modifier = Modifier.fillMaxWidth(),
                         )
+                    }
+                    // El otro espacio queda abajo como opción pendiente: la grande con su símbolo mientras la sesión no tiene ejercicios y la
+                    // píldora de siempre cuando ya los tiene.
+                    if (!hasCardioSpace) {
+                        if (noExercises) {
+                            PendingSpaceLabel()
+                            SessionEditorSpaceOption(space = SessionEditorSpace.CARDIO, onClick = viewModel::commitCardioSpace)
+                        } else {
+                            KpknSecondaryPill(
+                                text = "Crear espacio de cardio",
+                                onClick = viewModel::createCardioSpace,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+                    if (!hasStrengthSpace) {
+                        if (noExercises) {
+                            PendingSpaceLabel()
+                            SessionEditorSpaceOption(space = SessionEditorSpace.STRENGTH, onClick = viewModel::commitStrengthSpace)
+                        } else {
+                            KpknSecondaryPill(
+                                text = "Añadir fuerza",
+                                onClick = viewModel::commitStrengthSpace,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
                     }
                 }
             }
@@ -551,14 +583,29 @@ internal fun SessionEditorListItem(
         }
 
         is SessionListItem.StrengthDivider -> {
-            SessionGroupLabel(
-                label = "FUERZA",
-                moveLabel = if (listItem.canMove) {
-                    if (listItem.showCardioFirst) "Mover al inicio" else "Mover al final"
-                } else {
-                    null
+            // Con la fuerza primero y ya con contenido, la lista empieza sin rótulo, como en Main (ED-A · A1).
+            val hasStrengthContent = session.exercises.isNotEmpty() || groupedParts.any { !it.isCardioPart() }
+            if (listItem.showCardioFirst || !hasStrengthContent) {
+                SessionGroupLabel(
+                    label = "FUERZA",
+                    moveLabel = if (listItem.canMove) {
+                        if (listItem.showCardioFirst) "Mover al inicio" else "Mover al final"
+                    } else {
+                        null
+                    },
+                    onMove = viewModel::toggleCardioPlacement,
+                )
+            }
+        }
+
+        SessionListItem.CardioPlacement -> {
+            val atStart = uiState.cardioSpacePlacement?.let { it == CardioSpacePlacement.START } ?: session.cardioFirst
+            SessionEditorCardioPlacementControl(
+                atStart = atStart,
+                onChange = { start ->
+                    viewModel.setCardioPlacement(if (start) CardioSpacePlacement.START else CardioSpacePlacement.END)
                 },
-                onMove = viewModel::toggleCardioPlacement,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
 
@@ -670,7 +717,9 @@ private fun LooseExerciseItem(
                     if (pendingAutoExpandExerciseId == exercise.id) onPendingAutoExpandHandled(exercise.id)
                 },
                 cardioFirst = session.cardioFirst,
+                // ED-A · A2b: el «Al inicio / Al final» del cardio solo se ofrece si la sesión también tiene fuerza.
                 showCardioPlacementChip = exercise.cardioDetails != null &&
+                    session.hasStrengthContent() &&
                     session.cardioPart()?.exercises?.firstOrNull()?.id == exercise.id,
                 onToggleCardioPlacement = viewModel::toggleCardioPlacement,
                 cardioHistory = exercise.cardioDetails?.type?.let { cardioHistoryByType[it] },
@@ -762,7 +811,9 @@ private fun PartExerciseItem(
                     if (pendingAutoExpandExerciseId == exercise.id) onPendingAutoExpandHandled(exercise.id)
                 },
                 cardioFirst = session.cardioFirst,
+                // ED-A · A2b: el «Al inicio / Al final» del cardio solo se ofrece si la sesión también tiene fuerza.
                 showCardioPlacementChip = exercise.cardioDetails != null &&
+                    session.hasStrengthContent() &&
                     session.cardioPart()?.exercises?.firstOrNull()?.id == exercise.id,
                 onToggleCardioPlacement = viewModel::toggleCardioPlacement,
                 cardioHistory = exercise.cardioDetails?.type?.let { cardioHistoryByType[it] },
@@ -1077,6 +1128,17 @@ private fun PartSupersetItem(
             if (position < supersetMembers.lastIndex) SupersetMemberDivider()
         }
     }
+}
+
+/** «AÑADIR A LA SESIÓN»: el rótulo de la opción pendiente, el espacio que todavía no está en la sesión (ED-A · A2). */
+@Composable
+private fun PendingSpaceLabel() {
+    Text(
+        text = "AÑADIR A LA SESIÓN",
+        style = KpknType.eyebrow,
+        color = WizardColors.textMuted,
+        modifier = Modifier.padding(start = 4.dp, top = 8.dp),
+    )
 }
 
 /** Línea de 1 dp al 6 % entre dos miembros de una superserie, sangrada para no cruzar el raíl. */
