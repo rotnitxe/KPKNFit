@@ -234,9 +234,13 @@ internal fun FinishWorkoutSheet(
     val spinalSeed = postSessionPreview.spinal.coerceIn(0, 100)
     val muscleSeed = remember(postSessionPreview.perMuscle, postSessionPreview.involvedVolumeMuscles) {
         val involved = postSessionPreview.involvedVolumeMuscles
-        postSessionPreview.perMuscle
-            .filterKeys { involved.isEmpty() || it in involved }
-            .mapValues { it.value.recoveryScore }
+        if (involved.isEmpty()) {
+            emptyMap()
+        } else {
+            postSessionPreview.perMuscle
+                .filterKeys { it in involved }
+                .mapValues { it.value.recoveryScore }
+        }
     }
     // Las ediciones sobreviven a la recreación de la Activity (plegar/girar); cada grupo se reinicia solo con su semilla.
     val ringEdits = rememberFinishRingEdits(neuralSeed = neuralSeed, spinalSeed = spinalSeed, muscleSeed = muscleSeed)

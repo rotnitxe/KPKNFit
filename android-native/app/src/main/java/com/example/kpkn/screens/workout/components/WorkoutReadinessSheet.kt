@@ -401,7 +401,7 @@ internal fun readinessBodyValues(
     session.forEach { (id, value) -> add(id, value) }
     others.forEach { (id, value) -> add(id, value) }
     perMuscle.forEach { (name, status) ->
-        if (status.hoursSinceLastSession < 0) return@forEach
+        if (status.hoursSinceLastSession < 0 && !status.hasEvidence && status.recoveryScore >= 100) return@forEach
         add(name, status.recoveryScore)
     }
     return out
@@ -421,7 +421,7 @@ internal fun readinessBodyBefore(
     }
     sessionStart.forEach { (id, value) -> add(id, value) }
     perMuscle.forEach { (name, status) ->
-        if (status.hoursSinceLastSession < 0) return@forEach
+        if (status.hoursSinceLastSession < 0 && !status.hasEvidence && status.recoveryScore >= 100) return@forEach
         add(name, status.recoveryScore)
     }
     return out
