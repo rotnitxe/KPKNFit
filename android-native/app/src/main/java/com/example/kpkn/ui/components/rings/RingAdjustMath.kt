@@ -1,6 +1,7 @@
 package com.example.kpkn.ui.components.rings
 
 import androidx.compose.ui.graphics.Color
+import com.example.kpkn.domain.auge.AugeParameters
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import kotlin.math.PI
 import kotlin.math.abs
@@ -137,11 +138,7 @@ internal fun ringAdjustChannelName(channel: RingChannel): String = when (channel
 internal enum class RingAdjustBodyView { FRONT, BACK }
 
 /** Los 13 pilares del motor, los que tienen zona en el cuerpo. */
-internal val RingAdjustBodyPillars: List<String> = listOf(
-    "Pectorales", "Dorsales", "Deltoides", "Bíceps", "Tríceps",
-    "Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas",
-    "Abdomen", "Trapecio", "Erectores Espinales", "Core",
-)
+internal val RingAdjustBodyPillars: List<String> = AugeParameters.PILLARS
 
 /** Nombre de un pilar para leerlo en pantalla: solo la primera letra en mayúscula («Erectores espinales»). */
 internal fun ringAdjustPillarLabel(pillar: String): String =

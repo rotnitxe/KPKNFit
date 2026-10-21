@@ -239,34 +239,26 @@ object InitialRecoveryEvidencePolicy {
  * `calculateSystemicFatigue` y `calculateSpinalBattery`. Las cargas están en unidades de «% de capacidad».
  */
 internal object InitialRecoveryV2Model {
-    /** C del músculo: `calculateMuscleBattery`, `exp(-rawFatiguePct / 90.0)`. */
-    const val C_MUSCLE = 90.0
+    /** C del músculo (`calculateMuscleBattery`): alias de [AugeParameters.C_MUSCLE]. */
+    const val C_MUSCLE = AugeParameters.C_MUSCLE
 
-    /** C de la energía: `calculateSystemicFatigue`, `exp(-rawGymPct / 75.0)`. */
-    const val C_ENERGY = 75.0
+    /** C de la energía (`calculateSystemicFatigue`): alias de [AugeParameters.C_ENERGY]. */
+    const val C_ENERGY = AugeParameters.C_ENERGY
 
-    /** C de la columna: `calculateSpinalBattery`, `exp(-rawPct / 70.0)`. */
-    const val C_SPINAL = 70.0
+    /** C de la columna (`calculateSpinalBattery`): alias de [AugeParameters.C_SPINAL]. */
+    const val C_SPINAL = AugeParameters.C_SPINAL
 
-    /** τ de la energía en horas crudas: `adaptiveCache.cnsRecoveryHours ?: 36.0` (`calculateSystemicFatigue`). */
-    const val TAU_ENERGY_HOURS = 36.0
+    /** τ de la energía en horas crudas: alias de [AugeParameters.DEFAULT_TAU_ENERGY_H]. */
+    const val TAU_ENERGY_HOURS = AugeParameters.DEFAULT_TAU_ENERGY_H
 
-    /** τ de la columna en horas efectivas de `getSpinalRecoveryHours`: `adaptiveCache.spinalRecoveryHours ?: 52.0`. */
-    const val TAU_SPINAL_HOURS = 52.0
+    /** τ de la columna en horas efectivas de `getSpinalRecoveryHours`: alias de [AugeParameters.DEFAULT_TAU_SPINAL_H]. */
+    const val TAU_SPINAL_HOURS = AugeParameters.DEFAULT_TAU_SPINAL_H
 
-    /** τ del músculo global en ajustes manuales: `… ?: 48.0` (`calculateGlobalBatteries`), horas de `getSigmoidalHours`. */
-    const val TAU_GLOBAL_MUSCLE_HOURS = 48.0
+    /** τ del músculo global en ajustes manuales, horas de `getSigmoidalHours`: alias de [AugeParameters.DEFAULT_TAU_GLOBAL_MUSCLE_H]. */
+    const val TAU_GLOBAL_MUSCLE_HOURS = AugeParameters.DEFAULT_TAU_GLOBAL_MUSCLE_H
 
-    /**
-     * τ de cada pilar: horas base de su perfil en `AugeRecoveryEngine` (`MUSCLE_PROFILE_MAP` y `RECOVERY_PROFILES`:
-     * fast 24 · medium 48 · slow 72 · heavy 96). Son copias de esos valores: si cambian en el motor, cambiar aquí.
-     */
-    val PILLAR_TAU_HOURS: Map<String, Double> = mapOf(
-        "Pectorales" to 48.0, "Dorsales" to 48.0, "Deltoides" to 24.0,
-        "Bíceps" to 24.0, "Tríceps" to 24.0,
-        "Cuádriceps" to 72.0, "Isquiosurales" to 96.0, "Glúteos" to 72.0, "Pantorrillas" to 24.0,
-        "Abdomen" to 24.0, "Trapecio" to 48.0, "Erectores Espinales" to 96.0, "Core" to 48.0,
-    )
+    /** τ de cada pilar: el de su perfil en el registro ([AugeParameters.PILLAR_TAU_HOURS]); ya no es una copia. */
+    val PILLAR_TAU_HOURS: Map<String, Double> = AugeParameters.PILLAR_TAU_HOURS
 
     /**
      * Carga muscular por serie de grupo a intensidad HARD. Calibrada con el descenso de Cuádriceps de la sesión de

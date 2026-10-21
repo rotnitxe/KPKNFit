@@ -539,7 +539,7 @@ object AugeFatigueEngine {
     private fun scaleSpinalDrainToUi(rawSpinalSessionDrain: Double, tanks: BatteryTanks): Double {
         val capacity = max(70.0, tanks.spinal * 0.02)
         val rawPct = (rawSpinalSessionDrain / capacity) * 100.0
-        val batteryDrop = 100.0 * (1.0 - exp(-rawPct / 70.0))
+        val batteryDrop = 100.0 * (1.0 - exp(-rawPct / AugeParameters.C_SPINAL))
         return batteryDrop.coerceIn(0.0, 100.0)
     }
 

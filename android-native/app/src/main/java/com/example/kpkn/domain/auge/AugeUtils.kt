@@ -27,8 +27,8 @@ internal object AugeUtils {
     const val STRESS_WEIGHT_MUSCULAR = 0.25
     const val STRESS_WEIGHT_SPINAL = 0.30
 
-    /** ln(20): hours to ~95 % recovery when remaining = exp(-k t) with k = TAU_K_95 / τ. */
-    const val TAU_K_95 = 2.9957
+    /** Alias de [AugeParameters.TAU_K_95] (ln 20): horas hasta ~95 % de recuperación cuando residuo = exp(-k t) con k = TAU_K_95 / τ. */
+    const val TAU_K_95 = AugeParameters.TAU_K_95
 
     /** V2 muscular stress is drainPct × 10. Capacity must live in the same units. */
     const val STRESS_UNITS_PER_DRAIN_PCT = 10.0
