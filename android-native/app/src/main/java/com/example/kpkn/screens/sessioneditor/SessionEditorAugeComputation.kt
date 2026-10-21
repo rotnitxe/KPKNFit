@@ -669,6 +669,19 @@ internal fun computeSessionAugeComputation(
 }
 
 /**
+ * Ordena las peticiones de cálculo de Impacto y asistente (AUD2-P03): editar o cambiar de variante mientras se calcula lanza otra
+ * petición; el resultado de la anterior ya no pertenece a la sesión que se ve y no se publica.
+ */
+internal class AugeRequestGate {
+    private val counter = java.util.concurrent.atomic.AtomicLong()
+
+    /** Abre una petición nueva: las anteriores dejan de ser vigentes. */
+    fun next(): Long = counter.incrementAndGet()
+
+    fun isCurrent(ticket: Long): Boolean = counter.get() == ticket
+}
+
+/**
  * Claves de la caché del Impacto (MOT · I3). El tamaño del índice no basta como versión (cambiar metadatos de un ejercicio
  * conserva el número de entradas) y el historial entra en el coste por el ajuste de estrés: ambos invalidan el resultado.
  */

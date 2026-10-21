@@ -19,6 +19,21 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/** Operaciones puras sobre la lista de ejercicios propios: lo que se publica de forma optimista y cómo se revierte un guardado fallido. */
+internal object CustomExerciseListOps {
+    private fun sameId(a: String, b: String) = a.equals(b, ignoreCase = true)
+
+    fun withExercise(list: List<ExerciseMuscleInfo>, exercise: ExerciseMuscleInfo): List<ExerciseMuscleInfo> =
+        (list.filterNot { sameId(it.id, exercise.id) } + exercise).sortedBy { it.name.lowercase() }
+
+    fun withoutExercise(list: List<ExerciseMuscleInfo>, id: String): List<ExerciseMuscleInfo> =
+        list.filterNot { sameId(it.id, id) }
+
+    /** El estado tras un guardado fallido: vuelve el ejercicio anterior, o desaparece si era nuevo. */
+    fun reverted(list: List<ExerciseMuscleInfo>, failed: ExerciseMuscleInfo, previous: ExerciseMuscleInfo?): List<ExerciseMuscleInfo> =
+        if (previous != null) withExercise(list, previous) else withoutExercise(list, failed.id)
+}
+
 object CustomExerciseRepository {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -63,10 +78,7 @@ object CustomExerciseRepository {
         if (!initialized) return
         val normalized = exercise.copy(isCustom = true)
         val previous = _customExercises.value.firstOrNull { it.id.equals(normalized.id, ignoreCase = true) }
-        _customExercises.update { list ->
-            val filtered = list.filterNot { it.id.equals(normalized.id, ignoreCase = true) }
-            (filtered + normalized).sortedBy { it.name.lowercase() }
-        }
+        _customExercises.update { list -> CustomExerciseListOps.withExercise(list, normalized) }
         upsertCustomExerciseOverlay(normalized)
         scope.launch {
             runCatching {
@@ -80,15 +92,8 @@ object CustomExerciseRepository {
 
     /** Deshace una publicación optimista cuyo guardado falló: vuelve el ejercicio anterior o lo quita si era nuevo. */
     private fun revertUpsert(failed: ExerciseMuscleInfo, previous: ExerciseMuscleInfo?) {
-        if (previous != null) {
-            _customExercises.update { list ->
-                (list.filterNot { it.id.equals(failed.id, ignoreCase = true) } + previous).sortedBy { it.name.lowercase() }
-            }
-            upsertCustomExerciseOverlay(previous)
-        } else {
-            _customExercises.update { list -> list.filterNot { it.id.equals(failed.id, ignoreCase = true) } }
-            removeCustomExerciseOverlay(failed.id)
-        }
+        _customExercises.update { list -> CustomExerciseListOps.reverted(list, failed, previous) }
+        if (previous != null) upsertCustomExerciseOverlay(previous) else removeCustomExerciseOverlay(failed.id)
         _lastPersistError.value = "No se pudo guardar «${failed.name}»."
     }
 

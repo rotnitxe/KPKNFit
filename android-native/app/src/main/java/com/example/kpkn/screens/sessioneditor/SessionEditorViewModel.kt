@@ -938,14 +938,18 @@ class SessionEditorViewModel(
 
     fun updateCurrentSession(transform: (Session) -> Session) = updateSession(transform = transform)
 
+    /** Petición vigente de cálculo: un resultado de una petición anterior se descarta (AUD2-P03). */
+    private val augeGate = AugeRequestGate()
+
     internal fun scheduleAugeRecalc() {
         augeJob?.cancel()
+        val ticket = augeGate.next()
         augeJob = viewModelScope.launch {
             delay(300)
             withContext(Dispatchers.Default) {
                 val state = _uiState.value
                 val session = state.activeVariantSession ?: state.session ?: return@withContext
-                recalcAndPushAuge(state, session)
+                recalcAndPushAuge(state, session, ticket)
             }
         }
     }
@@ -955,12 +959,13 @@ class SessionEditorViewModel(
         augeJob = null
         val state = _uiState.value
         val session = state.activeVariantSession ?: state.session ?: return
+        val ticket = augeGate.next()
         viewModelScope.launch(Dispatchers.Default) {
-            recalcAndPushAuge(state, session)
+            recalcAndPushAuge(state, session, ticket)
         }
     }
 
-    private fun recalcAndPushAuge(state: SessionEditorUiState, session: Session) {
+    private fun recalcAndPushAuge(state: SessionEditorUiState, session: Session, ticket: Long) {
         val exercises = session.allExercises()
         val totalSets = exercises.sumOf { it.sets.size.coerceAtLeast(1) }
         // SE12: la duración es la del estimador común (la de Inicio y la del programa), medida sobre el borrador.
@@ -1043,6 +1048,8 @@ class SessionEditorViewModel(
         val timeBreakdown = durationEstimate?.toSessionTimeBreakdown(session)
         // Assistant bajo demanda: inmediato si AUGE abierto, si no debounce 2500ms
         val shouldEvaluateAssistantNow = state.sheet == SessionEditorSheet.AUGE
+        // Una petición más reciente (otra edición o variante) ya está en marcha: este resultado no es de la sesión que se ve.
+        if (!augeGate.isCurrent(ticket)) return
         if (shouldEvaluateAssistantNow) {
             val assistantReport = runCatching {
                 val templates = allTemplates.value
@@ -1154,8 +1161,9 @@ class SessionEditorViewModel(
         val state = _uiState.value
         val session = state.activeVariantSession ?: state.session ?: return
         assistantJob?.cancel()
+        val ticket = augeGate.next()
         viewModelScope.launch(Dispatchers.Default) {
-            recalcAndPushAuge(state, session)
+            recalcAndPushAuge(state, session, ticket)
         }
     }
 
