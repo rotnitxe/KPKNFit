@@ -306,6 +306,8 @@ class SessionEditorViewModel(
         val mesoIndex: Int,
         val settingsHash: Int,
         val catalogVersion: Int,
+        /** Huella del historial del programa: el ajuste por historial depende de él (MOT · I3). */
+        val logsFingerprint: Int,
         val perSession: Map<String, Pair<Int, SessionAugeComputation>>,
     )
 
@@ -936,14 +938,18 @@ class SessionEditorViewModel(
 
     fun updateCurrentSession(transform: (Session) -> Session) = updateSession(transform = transform)
 
+    /** Petición vigente de cálculo: un resultado de una petición anterior se descarta (AUD2-P03). */
+    private val augeGate = AugeRequestGate()
+
     internal fun scheduleAugeRecalc() {
         augeJob?.cancel()
+        val ticket = augeGate.next()
         augeJob = viewModelScope.launch {
             delay(300)
             withContext(Dispatchers.Default) {
                 val state = _uiState.value
                 val session = state.activeVariantSession ?: state.session ?: return@withContext
-                recalcAndPushAuge(state, session)
+                recalcAndPushAuge(state, session, ticket)
             }
         }
     }
@@ -953,12 +959,13 @@ class SessionEditorViewModel(
         augeJob = null
         val state = _uiState.value
         val session = state.activeVariantSession ?: state.session ?: return
+        val ticket = augeGate.next()
         viewModelScope.launch(Dispatchers.Default) {
-            recalcAndPushAuge(state, session)
+            recalcAndPushAuge(state, session, ticket)
         }
     }
 
-    private fun recalcAndPushAuge(state: SessionEditorUiState, session: Session) {
+    private fun recalcAndPushAuge(state: SessionEditorUiState, session: Session, ticket: Long) {
         val exercises = session.allExercises()
         val totalSets = exercises.sumOf { it.sets.size.coerceAtLeast(1) }
         // SE12: la duración es la del estimador común (la de Inicio y la del programa), medida sobre el borrador.
@@ -976,10 +983,13 @@ class SessionEditorViewModel(
         val program = repository.getProgramById(state.programId)
         val settingsVal = repository.settings.value
         val index = exerciseIndex
-        val catalogVersion = index.size
+        // I3: el tamaño del índice no basta como versión (cambiar metadatos conserva el número de entradas): se usa la identidad del
+        // índice y una huella del historial, que alimenta el ajuste por historial del coste.
+        val catalogVersion = AugeCacheKeys.catalogVersion(index)
         val settingsHash = settingsVal.hashCode()
+        val logsFingerprint = AugeCacheKeys.logsFingerprint(programLogs)
         val cache = weeklyMetricsCache
-        val canReuseCache = cache != null && cache.programId == state.programId && cache.mesoIndex == state.mesoIndex && cache.settingsHash == settingsHash && cache.catalogVersion == catalogVersion
+        val canReuseCache = cache != null && cache.programId == state.programId && cache.mesoIndex == state.mesoIndex && cache.settingsHash == settingsHash && cache.catalogVersion == catalogVersion && cache.logsFingerprint == logsFingerprint
         val perSessionMutable = mutableMapOf<String, Pair<Int, SessionAugeComputation>>()
         if (canReuseCache) {
             perSessionMutable.putAll(cache!!.perSession)
@@ -1000,6 +1010,7 @@ class SessionEditorViewModel(
                 mesoIndex = state.mesoIndex,
                 settingsHash = settingsHash,
                 catalogVersion = catalogVersion,
+                logsFingerprint = logsFingerprint,
                 perSession = perSessionMutable,
             )
             buildAugeSummaryFromMetrics(
@@ -1037,6 +1048,8 @@ class SessionEditorViewModel(
         val timeBreakdown = durationEstimate?.toSessionTimeBreakdown(session)
         // Assistant bajo demanda: inmediato si AUGE abierto, si no debounce 2500ms
         val shouldEvaluateAssistantNow = state.sheet == SessionEditorSheet.AUGE
+        // Una petición más reciente (otra edición o variante) ya está en marcha: este resultado no es de la sesión que se ve.
+        if (!augeGate.isCurrent(ticket)) return
         if (shouldEvaluateAssistantNow) {
             val assistantReport = runCatching {
                 val templates = allTemplates.value
@@ -1062,6 +1075,9 @@ class SessionEditorViewModel(
                         targetDurationMinutes = session.targetDurationMinutes,
                         supersetGroups = session.allSupersetGroups(),
                         sessionWarmup = session.warmup,
+                        session = session,
+                        supersetBetweenRestSeconds = state.ruleDefaults.supersetBetweenRestSeconds,
+                        supersetRoundRestSeconds = state.ruleDefaults.supersetRoundRestSeconds,
                     ),
                     allTemplates = templates,
                 )
@@ -1129,6 +1145,9 @@ class SessionEditorViewModel(
                             targetDurationMinutes = sess.targetDurationMinutes,
                             supersetGroups = sess.allSupersetGroups(),
                             sessionWarmup = sess.warmup,
+                            session = sess,
+                            supersetBetweenRestSeconds = s.ruleDefaults.supersetBetweenRestSeconds,
+                            supersetRoundRestSeconds = s.ruleDefaults.supersetRoundRestSeconds,
                         ),
                         allTemplates = templates,
                     )
@@ -1142,8 +1161,9 @@ class SessionEditorViewModel(
         val state = _uiState.value
         val session = state.activeVariantSession ?: state.session ?: return
         assistantJob?.cancel()
+        val ticket = augeGate.next()
         viewModelScope.launch(Dispatchers.Default) {
-            recalcAndPushAuge(state, session)
+            recalcAndPushAuge(state, session, ticket)
         }
     }
 
