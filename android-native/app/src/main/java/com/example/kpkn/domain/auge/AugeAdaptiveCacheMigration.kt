@@ -1,12 +1,50 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.math.exp
 import kotlin.math.ln
 
 object AugeAdaptiveCacheMigration {
     const val CURRENT_SCHEMA = 4
     const val OBSERVATION_LIMIT = 200
+
+    val codecJson = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+        allowSpecialFloatingPointValues = true
+    }
+
+    fun encodeAdaptiveCache(cache: AugeAdaptiveCache): String {
+        val normalized = if (cache.schemaVersion == CURRENT_SCHEMA) normalize(cache) else cache
+        return codecJson.encodeToString(normalized)
+    }
+
+    fun decodeAdaptiveCache(data: String): AugeAdaptiveCacheDecodeResult {
+        val diagnostics = mutableListOf<String>()
+        return runCatching {
+            val element = codecJson.parseToJsonElement(data)
+            val version = element.jsonObject["schemaVersion"]?.jsonPrimitive?.intOrNull ?: 1
+            if (version > CURRENT_SCHEMA) {
+                return AugeAdaptiveCacheDecodeResult(AugeAdaptiveCache(), false, listOf("future_schema:$version"))
+            }
+            val decoded = codecJson.decodeFromString<AugeAdaptiveCache>(data)
+            if (version < CURRENT_SCHEMA) diagnostics += "learning_reset_v4:$version"
+            val migrated = migrate(decoded, version)
+            val normalized = if (version == CURRENT_SCHEMA) normalize(decoded) {
+                diagnostics += it
+            } else migrated
+            AugeAdaptiveCacheDecodeResult(normalized, diagnostics = diagnostics)
+        }.getOrElse {
+            AugeAdaptiveCacheDecodeResult(AugeAdaptiveCache(), diagnostics = listOf("unreadable_json"))
+        }
+    }
+
+    fun toAdaptiveCache(data: String): AugeAdaptiveCache = decodeAdaptiveCache(data).cache
 
     fun parameterKey(raw: String): String = when (raw.lowercase().trim()) {
         "cns", "energía", "energia", "snc" -> "cns"

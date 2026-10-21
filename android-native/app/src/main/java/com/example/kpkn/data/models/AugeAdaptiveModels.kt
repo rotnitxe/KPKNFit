@@ -54,6 +54,12 @@ data class AugeObservationOutcome(
 @Serializable
 enum class AugeObservationStatus { ADMITTED, CENSORED, REJECTED }
 
+data class AugeAdaptiveCacheDecodeResult(
+    val cache: AugeAdaptiveCache,
+    val writable: Boolean = true,
+    val diagnostics: List<String> = emptyList(),
+)
+
 /** Registro auditable; el ancla identifica el gesto aunque se procese más tarde. */
 @Serializable
 data class AugeObservationRecord(
