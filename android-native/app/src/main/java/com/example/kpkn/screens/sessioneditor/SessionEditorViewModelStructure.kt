@@ -364,11 +364,17 @@ fun SessionEditorViewModel.moveExerciseToPart(
 }
 
 fun SessionEditorViewModel.updateExercise(partId: String?, exerciseId: String, transform: (Exercise) -> Exercise) = updateSession { session ->
+    fun update(exercise: Exercise): Exercise {
+        if (exercise.id != exerciseId) return exercise
+        val changed = transform(exercise)
+        val withPurpose = if (changed.trainingMode != exercise.trainingMode) changed.withTrainingMode(changed.trainingMode) else changed
+        return withPurpose.normalizeExercise()
+    }
     if (partId == null) {
-        session.copy(exercises = session.exercises.map { ex -> if (ex.id == exerciseId) transform(ex).normalizeExercise() else ex })
+        session.copy(exercises = session.exercises.map(::update))
     } else {
         session.copy(parts = session.parts.map { part ->
-            if (part.id != partId) part else part.copy(exercises = part.exercises.map { ex -> if (ex.id == exerciseId) transform(ex).normalizeExercise() else ex })
+            if (part.id != partId) part else part.copy(exercises = part.exercises.map(::update))
         })
     }
 }

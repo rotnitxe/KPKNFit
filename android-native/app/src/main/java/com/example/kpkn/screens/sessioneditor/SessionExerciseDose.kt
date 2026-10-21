@@ -83,7 +83,7 @@ private fun repsLabel(sets: List<ExerciseSet>, mode: TrainingMode, customUnit: S
         val unit = if (mode == TrainingMode.DISTANCE) "m" else customUnit?.takeIf { it.isNotBlank() } ?: "u"
         return valueRange(values, prefix = "", suffix = " $unit")
     }
-    val amrap = sets.count { it.isAmrap || mode == TrainingMode.AMRAP }
+    val amrap = sets.count { it.purpose.isAmrap }
     if (amrap == sets.size) return "AMRAP"
     if (amrap > 0) return null
     val timed = mode == TrainingMode.TIME || sets.all { repRangeOf(it) == null }

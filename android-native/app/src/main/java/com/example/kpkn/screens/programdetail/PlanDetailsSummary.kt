@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.programdetail
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
@@ -257,7 +258,7 @@ private fun materializedWorkingSetCount(week: ProgramWeek): Int? = week.sessions
     .takeIf { it.isNotEmpty() }
     ?.sumOf { session ->
         session.allExercises().sumOf { exercise ->
-            exercise.sets.count { !it.isEmptySlot && !it.isCalibrator && !it.isIneffective }
+            exercise.sets.count { !it.isEmptySlot && it.purpose != SetPurpose.CALIBRATOR && !it.isIneffective }
         }
     }
 

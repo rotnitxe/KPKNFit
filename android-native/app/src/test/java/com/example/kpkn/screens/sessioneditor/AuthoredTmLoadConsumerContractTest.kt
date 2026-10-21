@@ -142,7 +142,7 @@ class AuthoredTmLoadConsumerContractTest {
     fun an_explicit_tm_basis_does_not_guess_a_missing_tm_from_a_pr_or_history_one_rm() {
         val realSquat = squatOn(5)
         val top = realSquat.sets[4]
-        val prOnly = realSquat.copy(reference1RM = null, prFor1RM = PrReference(200.0, 1))
+        val prOnly = realSquat.copy(reference1RM = null, referenceTrainingMax = null, prFor1RM = PrReference(200.0, 1))
         val history = historyWithOneRm200(prOnly)
         assertKg(200.0, resolveReferenceCapacity(prOnly, history))
         assertNull(calculateSuggestedLoad(prOnly, top))
@@ -152,7 +152,7 @@ class AuthoredTmLoadConsumerContractTest {
         assertKg(200.0, resolveReferenceCapacity(historyOnly, history))
         assertNull(calculateSuggestedLoad(historyOnly, top, history))
         listOf(0.0, -1.0, Double.NaN, Double.POSITIVE_INFINITY).forEach { invalidTm ->
-            val invalid = prOnly.copy(reference1RM = invalidTm)
+            val invalid = prOnly.copy(referenceTrainingMax = invalidTm)
             assertNull(calculateSuggestedLoad(invalid, top, history))
         }
     }
@@ -163,7 +163,8 @@ class AuthoredTmLoadConsumerContractTest {
         assertNull(pending.reference1RM)
         assertTrue(pending.sets.all { it.weight == null })
         val hydrated = pending.withSharedPerformanceFromHistory(historyWithOneRm200(pending))
-        assertNull(hydrated.reference1RM)
+        assertNull(hydrated.referenceTrainingMax)
+        assertKg(200.0, hydrated.reference1RM)
         assertTrue(hydrated.sets.all { it.weight == null })
         assertEquals(pending.sets.map { it.targetPercentageRM }, hydrated.sets.map { it.targetPercentageRM })
         assertKg(200.0, hydrated.prFor1RM?.weight)
@@ -177,7 +178,8 @@ class AuthoredTmLoadConsumerContractTest {
             if (index == 0) set.copy(targetPercentageRM = null, weight = null) else set
         })
         val hydrated = pending.withSharedPerformanceFromHistory(historyWithOneRm200(pending))
-        assertKg(174.0, hydrated.reference1RM)
+        assertKg(174.0, hydrated.referenceTrainingMax)
+        assertKg(200.0, hydrated.reference1RM)
         assertNull(hydrated.sets.first().targetPercentageRM)
         assertNull(hydrated.sets.first().weight)
         assertKg(178.35, hydrated.sets[4].weight)
@@ -188,7 +190,8 @@ class AuthoredTmLoadConsumerContractTest {
         val squat = squatOn(5)
         val pendingWeights = squat.copy(sets = squat.sets.map { it.copy(weight = null) })
         val hydrated = pendingWeights.withSharedPerformanceFromHistory(historyWithOneRm200(pendingWeights))
-        assertKg(174.0, hydrated.reference1RM)
+        assertKg(174.0, hydrated.referenceTrainingMax)
+        assertKg(200.0, hydrated.reference1RM)
         assertEquals(squat.sets[4].targetPercentageRM, hydrated.sets[4].targetPercentageRM)
         assertKg(178.35, hydrated.sets[4].weight)
     }
@@ -199,7 +202,8 @@ class AuthoredTmLoadConsumerContractTest {
         val pendingSession = sessionOn(5, pendingProgram)
         val pendingSquat = squatOn(5, pendingProgram).copy(prFor1RM = PrReference(200.0, 1))
         val normalizedExercise = pendingSquat.normalizeExercise()
-        assertNull(normalizedExercise.reference1RM)
+        assertNull(normalizedExercise.referenceTrainingMax)
+        assertKg(200.0, normalizedExercise.reference1RM)
         assertTrue(normalizedExercise.sets.all { it.weight == null })
         val hydrated = pendingSquat.withSharedPerformanceFromHistory(historyWithOneRm200(pendingSquat))
         val composedSession = pendingSession.copy(
@@ -210,7 +214,8 @@ class AuthoredTmLoadConsumerContractTest {
         )
         val normalized = composedSession.normalizeSession().allExercises()
             .single { it.catalogConfigurationId == CatalogIds.SQ_LOW }
-        assertNull(normalized.reference1RM)
+        assertNull(normalized.referenceTrainingMax)
+        assertKg(200.0, normalized.reference1RM)
         assertTrue(normalized.sets.all { it.weight == null })
         assertKg(200.0, normalized.prFor1RM?.weight)
     }

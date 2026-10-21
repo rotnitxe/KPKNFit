@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import com.example.kpkn.data.models.SetPurpose
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -117,8 +118,7 @@ internal fun shouldShowPlannedIntensity(
         set.targetPercentageRM != null ||
         set.weight != null ||
         set.isFailure ||
-        set.isAmrap ||
-        set.intensityMode == IntensityMode.AMRAP
+        set.purpose.isAmrap
 }
 
 @Composable
@@ -180,7 +180,7 @@ internal fun InlineSetRow(
     val usesExplicitTmPercent = isRmMode && set.loadBasis == LoadBasis.PERCENT_TM &&
         (set.loadModeV2 ?: LoadModeV2.LOAD) == LoadModeV2.LOAD
     val isSoloRpeMode = trainingMode == TrainingMode.SOLO_RPE
-    val isAmrapMode = set.isAmrap || trainingMode == TrainingMode.AMRAP
+    val isAmrapMode = set.purpose.isAmrap
     var selectedUniSide by remember(set.id, fixedUnilateralSide) { mutableStateOf(fixedUnilateralSide ?: "L") }
     val activeUniSide = fixedUnilateralSide ?: selectedUniSide
     fun commitEditedField(updater: (ExerciseSet) -> ExerciseSet) {
@@ -270,7 +270,7 @@ internal fun InlineSetRow(
             // mirror. The editor must expose the minimum here; showing 4–6 in
             // a field labelled “Reps mín.” incorrectly suggests a fixed target.
             if (isAmrapMode) {
-                range?.min?.toString() ?: plannedReps?.toString().orEmpty()
+                set.amrapMinimumReps?.toString().orEmpty()
             } else {
                 range?.format() ?: plannedReps?.toString().orEmpty()
             }
@@ -359,11 +359,13 @@ internal fun InlineSetRow(
     }
     val onSoloRpeCommit: (String) -> Unit = { input ->
         commitEditedField(if (isUnilateral) updateUniSet { it.copy(targetRPE = input.safeDoubleOrNull(), intensityMode = IntensityMode.RPE) } else { current ->
-            current.copy(targetRPE = input.safeDoubleOrNull(), intensityMode = IntensityMode.RPE, targetRIR = null, targetPercentageRM = null, targetReps = null, targetDuration = null, isFailure = false, isAmrap = false)
+            current.copy(targetRPE = input.safeDoubleOrNull(), intensityMode = IntensityMode.RPE, targetRIR = null, targetPercentageRM = null, targetReps = null, targetDuration = null, isFailure = false, purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null)
         })
     }
     val onMetricCommit: (String) -> Unit = { input ->
-        commitEditedField(
+        if (set.purpose.isAmrap) {
+            commitEditedField { current -> current.copy(amrapMinimumReps = RepRangeParser.parse(input)?.min ?: input.safeIntOrNull()) }
+        } else commitEditedField(
             if (isUnilateral) updateUniSet {
                 when (trainingMode) {
                     TrainingMode.TIME -> it.copy(targetDuration = input.safeIntOrNull())
@@ -389,6 +391,7 @@ internal fun InlineSetRow(
                         current.copy(
                             targetReps = parsed?.max ?: input.safeIntOrNull(),
                             targetRepsRange = parsed?.takeIf { range -> range.min != range.max },
+                            amrapMinimumReps = if (current.purpose.isAmrap) parsed?.min ?: input.safeIntOrNull() else current.amrapMinimumReps,
                         )
                     }
                 }
@@ -418,9 +421,9 @@ internal fun InlineSetRow(
     fun applyIntensityMode(mode: IntensityMode) {
         val updater: (ExerciseSet) -> ExerciseSet = {
             when (mode) {
-                IntensityMode.RPE -> it.copy(intensityMode = IntensityMode.RPE, isFailure = false, isAmrap = false, targetRPE = it.targetRPE ?: 8.0, targetRIR = null, targetPercentageRM = null)
-                IntensityMode.RIR -> it.copy(intensityMode = IntensityMode.RIR, isFailure = false, isAmrap = false, targetRIR = it.targetRIR ?: 2, targetRPE = null, targetPercentageRM = null)
-                IntensityMode.FAILURE -> it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, isAmrap = false, targetRIR = null, targetRPE = null, targetPercentageRM = null)
+                IntensityMode.RPE -> it.copy(intensityMode = IntensityMode.RPE, isFailure = false, purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null, targetRPE = it.targetRPE ?: 8.0, targetRIR = null, targetPercentageRM = null)
+                IntensityMode.RIR -> it.copy(intensityMode = IntensityMode.RIR, isFailure = false, purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null, targetRIR = it.targetRIR ?: 2, targetRPE = null, targetPercentageRM = null)
+                IntensityMode.FAILURE -> it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null, targetRIR = null, targetRPE = null, targetPercentageRM = null)
                 else -> it
             }
         }
@@ -431,8 +434,8 @@ internal fun InlineSetRow(
                 val temp = ExerciseSet(id = "", targetRPE = currentSide.targetRPE, targetRIR = currentSide.targetRIR, intensityMode = currentSide.intensityMode ?: current.intensityMode, weight = currentSide.weight, targetPercentageRM = current.targetPercentageRM)
                 val updated = updater(temp)
                 val newSide = currentSide.copy(targetRPE = updated.targetRPE, targetRIR = updated.targetRIR, intensityMode = updated.intensityMode, weight = updated.weight)
-                if (side == "L") current.copy(leftTarget = newSide, isFailure = updated.isFailure, isAmrap = false, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
-                else current.copy(rightTarget = newSide, isFailure = updated.isFailure, isAmrap = false, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
+                if (side == "L") current.copy(leftTarget = newSide, isFailure = updated.isFailure, purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
+                else current.copy(rightTarget = newSide, isFailure = updated.isFailure, purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
             }
         } else {
             commitEditedField(updater)
@@ -509,7 +512,7 @@ internal fun InlineSetRow(
                             targetRPE = current.targetRPE ?: 8.0,
                             targetRIR = null,
                             isFailure = false,
-                            isAmrap = false,
+                            purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
                         )
                     }
                 },
@@ -616,7 +619,7 @@ internal fun InlineSetRow(
                                 .height(48.dp),
                             contentAlignment = Alignment.Center,
                         ) {
-                            AmrapTag(calibrator = set.isCalibrator, modifier = Modifier.fillMaxWidth())
+                            AmrapTag(calibrator = (set.purpose == SetPurpose.CALIBRATOR), modifier = Modifier.fillMaxWidth())
                         }
                     }
                 }
@@ -739,7 +742,7 @@ internal fun InlineSetRow(
                                             targetRPE = current.targetRPE ?: 8.0,
                                             targetRIR = null,
                                             isFailure = false,
-                                            isAmrap = false,
+                                            purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
                                         )
                                     }
                                 },
@@ -818,7 +821,7 @@ internal fun InlineSetRow(
                     Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         // Hueco del rótulo: la píldora AMRAP queda a la altura de la cifra de reps.
                         Text(" ", style = KpknType.caption, minLines = 2, maxLines = 2)
-                        AmrapTag(calibrator = set.isCalibrator, modifier = Modifier.fillMaxWidth())
+                        AmrapTag(calibrator = (set.purpose == SetPurpose.CALIBRATOR), modifier = Modifier.fillMaxWidth())
                     }
                 } else {
                     Surface(
@@ -827,7 +830,7 @@ internal fun InlineSetRow(
                         color = accentColor.copy(alpha = 0.12f),
                     ) {
                         Text(
-                            text = if (set.isCalibrator) "AMRAP calibrador" else "AMRAP",
+                            text = if ((set.purpose == SetPurpose.CALIBRATOR)) "AMRAP calibrador" else "AMRAP",
                             modifier = Modifier.padding(horizontal = if (isNarrowScreen) 8.dp else 10.dp, vertical = if (isNarrowScreen) 8.dp else 10.dp),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,

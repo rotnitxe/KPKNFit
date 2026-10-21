@@ -588,11 +588,9 @@ internal fun computeSessionAugeComputation(
             totalSpinalLoad += info.axialLoadFactor ?: 0.0
             accumulated++
 
-            val calculatedWeight = if (exercise.trainingMode == TrainingMode.RM && set.targetPercentageRM != null && exercise.reference1RM != null && exercise.reference1RM!! > 0.0) {
-                (set.targetPercentageRM / 100.0) * exercise.reference1RM!!
-            } else {
-                set.weight ?: 60.0
-            }
+            val calculatedWeight = if (exercise.trainingMode == TrainingMode.RM) {
+                com.example.kpkn.domain.calculations.calculateSuggestedLoad(exercise, set) ?: set.weight ?: 60.0
+            } else set.weight ?: 60.0
             val completedSet = CompletedSet(
                 id = set.id,
                 weight = calculatedWeight,

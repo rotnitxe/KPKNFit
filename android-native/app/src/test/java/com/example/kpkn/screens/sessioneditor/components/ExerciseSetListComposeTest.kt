@@ -18,6 +18,7 @@ import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
+import com.example.kpkn.screens.sessioneditor.withTrainingMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -41,6 +42,7 @@ class ExerciseSetListComposeTest {
         mode: TrainingMode = TrainingMode.REPS,
         customUnit: String? = null,
     ) = Exercise(id = "press", name = "Press", trainingMode = mode, customUnit = customUnit, sets = sets.toList())
+        .let { if (mode == TrainingMode.AMRAP) it.withTrainingMode(mode) else it }
 
     private fun renderList(
         exercise: Exercise,

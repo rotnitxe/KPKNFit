@@ -380,7 +380,7 @@ internal fun setRowSummary(
 ): SetRowSummary {
     val target: UnilateralTarget? = if (side == null) null else sideTarget(set, side)
     fun <T> pick(fromSet: T?, fromTarget: T?): T? = if (target != null) fromTarget else fromSet
-    val isAmrap = set.isAmrap || mode == TrainingMode.AMRAP
+    val isAmrap = set.purpose.isAmrap
     val rpe = pick(set.targetRPE, target?.targetRPE)
     val rir = pick(set.targetRIR, target?.targetRIR)
     // ER2a: la fila enseña la carga guardada; la calculada solo aparece si la serie no tiene ninguna.
@@ -410,7 +410,7 @@ internal fun setRowSummary(
         } ?: "—"
         else -> {
             val repsText = if (isAmrap) {
-                (range?.min ?: reps)?.let { "$it+" }
+                set.amrapMinimumReps?.let { "$it+" } ?: "AMRAP"
             } else {
                 range?.format() ?: reps?.toString()
             }

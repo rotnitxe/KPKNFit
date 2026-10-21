@@ -123,6 +123,7 @@ internal fun ExerciseSmartLoadDialog(
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    var trainingMaxInput by remember(exercise.id) { mutableStateOf(exercise.referenceTrainingMax?.toString().orEmpty()) }
 EditorDialogImeArea {
 KpknAlertDialog(
     onDismissRequest = { onDismiss() },
@@ -140,6 +141,16 @@ KpknAlertDialog(
                 color = WizardColors.textMuted,
             )
             if (exercise.trainingMode == TrainingMode.REPS || exercise.trainingMode == TrainingMode.RM) {
+                if (exercise.sets.any { it.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM }) {
+                    EditorKpknField(
+                        label = "Training max (TM)", value = trainingMaxInput,
+                        keyboardType = KeyboardType.Decimal, modifier = Modifier.fillMaxWidth(),
+                    ) { input ->
+                        trainingMaxInput = input
+                        val parsed = input.safeDoubleOrNull()?.takeIf { it > 0.0 }
+                        onUpdateExercise { current -> current.copy(referenceTrainingMax = parsed) }
+                    }
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     KpknChip(text = "RM directo", selected = rmInputMode == "direct", onClick = { onRmInputModeChange("direct") })
                     KpknChip(text = "Desde PR", selected = rmInputMode == "pr", onClick = { onRmInputModeChange("pr") })

@@ -418,7 +418,7 @@ object PlanInfoModelBuilder {
             percent = set.targetPercentageRM,
             rpe = set.targetRPE,
             rir = set.targetRIR,
-            amrap = set.isAmrap,
+            amrap = set.purpose.isAmrap,
             isTopSet = set.isTopSet,
             loadBasis = set.loadBasis ?: LoadBasis.PERCENT_1RM,
         )

@@ -463,7 +463,7 @@ private fun HeroButtonRow(buttons: List<HeroButton>) {
 internal fun heroDose(exercise: Exercise): String? {
     val working = exercise.sets.filter { !it.isEmptySlot }
     if (working.isEmpty()) return null
-    val amrap = working.any { it.isAmrap || it.intensityMode == IntensityMode.AMRAP }
+    val amrap = working.any { it.purpose.isAmrap }
     val reps = if (amrap) "AMRAP" else working.first().effectiveRepRange()?.format()
     val head = if (reps != null) {
         "${working.size} × $reps"

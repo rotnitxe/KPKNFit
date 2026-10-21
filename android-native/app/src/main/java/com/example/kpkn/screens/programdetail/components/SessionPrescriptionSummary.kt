@@ -59,7 +59,7 @@ internal fun formatExercisePrescription(exercise: Exercise): String? {
     when {
         rir != null -> parts += "RIR $rir"
         rpe != null -> parts += "RPE ${NativeProgressionText.formatKg(rpe)}"
-        sets.any { it.isAmrap || it.intensityMode == IntensityMode.AMRAP } -> parts += "AMRAP"
+        sets.any { it.purpose.isAmrap } -> parts += "AMRAP"
         sets.isNotEmpty() && sets.all { it.isFailure || it.intensityMode == IntensityMode.FAILURE } -> parts += "hasta el fallo"
     }
     // El descanso va solo con su tiempo, como en el editor: «3:15» o «45 s».

@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.home.design
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
@@ -33,7 +34,7 @@ class HomeSessionHeroDoseTest {
         targetRIR = rir,
         targetRPE = rpe,
         targetPercentageRM = percent,
-        isAmrap = amrap,
+        purpose = if (amrap) SetPurpose.AMRAP else SetPurpose.NONE,
         intensityMode = if (amrap) IntensityMode.AMRAP else null,
     )
 
