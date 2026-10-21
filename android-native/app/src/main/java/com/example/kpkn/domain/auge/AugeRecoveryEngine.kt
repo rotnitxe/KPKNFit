@@ -1475,12 +1475,13 @@ object AugeRecoveryEngine {
         initial: Int,
         floor: Int,
     ): MuscleBatteryDetail {
-        if (initial >= 100) return detail
+        val hasEvidence = initial < 100 || detail.status.hoursSinceLastSession >= 0
+        if (initial >= 100) return detail.copy(status = detail.status.copy(hasEvidence = hasEvidence))
         val status = detail.status
         val score = batteryPercent(status.recoveryScore * initial / 100.0).coerceIn(floor, 100)
         return detail.copy(
             exact = (detail.exact * initial / 100.0).coerceIn(floor.toDouble(), 100.0),
-            status = status.copy(recoveryScore = score, status = recoveryStatusFor(score)),
+            status = status.copy(recoveryScore = score, status = recoveryStatusFor(score), hasEvidence = true),
         )
     }
 

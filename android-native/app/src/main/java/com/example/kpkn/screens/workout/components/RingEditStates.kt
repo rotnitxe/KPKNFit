@@ -45,7 +45,7 @@ internal class ReadinessSheetState(startNeural: Int, startMuscular: Int, startSp
     /** Valor del anillo de Músculos: el promedio de los ajustes por músculo, o la semilla si aún no hay ninguno. */
     fun derivedMuscular(startMuscular: Int): Int =
         if (muscleAdjustments.isEmpty()) startMuscular.coerceIn(0, 100)
-        else muscleAdjustments.values.average().toInt().coerceIn(0, 100)
+        else kotlin.math.round(muscleAdjustments.values.average()).toInt().coerceIn(0, 100)
 
     /**
      * Cuerpo del `LaunchedEffect` de la hoja, extraído sin cambios para poder probarlo. La primera vez copia los valores de

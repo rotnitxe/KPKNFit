@@ -296,13 +296,15 @@ fun WorkoutReadinessSheet(
                 )
 
                 // 1. La torre luminosa, su leyenda de tres columnas y el aviso de que se toca para ajustar.
+                val isAugeLoading = augeSnapshot?.isLoading == true
                 ReadinessTowerBlock(
                     muscular = derivedMuscular,
                     neural = state.neural,
                     spinal = state.spinal,
                     style = ringsStyle,
                     forcedGleamProgress = forcedGleamProgress,
-                    onChannelTap = { adjustChannel = it },
+                    onChannelTap = { if (!isAugeLoading) adjustChannel = it },
+                    isLoading = isAugeLoading,
                 )
 
                 // 2. Molestias en línea: buscador y chips.
@@ -469,6 +471,7 @@ private fun ReadinessTowerBlock(
     style: TowerRingsStyle,
     forcedGleamProgress: Float?,
     onChannelTap: (RingChannel) -> Unit,
+    isLoading: Boolean = false,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -493,9 +496,9 @@ private fun ReadinessTowerBlock(
         // Leyenda en el orden de la torre vista de frente (G1): Músculos, Energía y Columna; cada columna también abre su ajuste.
         // Las de los lados pesan lo mismo y algo más que la del centro: «MÚSCULOS» es la palabra más larga y con la letra grande no cabía.
         Row(Modifier.fillMaxWidth()) {
-            ReadinessLegendColumn("Músculos", muscular, KpknRingColors.musculos, RingChannel.MUSCULOS, onChannelTap, Modifier.weight(LegendSideWeight))
-            ReadinessLegendColumn("Energía", neural, KpknRingColors.energia, RingChannel.ENERGIA, onChannelTap, Modifier.weight(1f))
-            ReadinessLegendColumn("Columna", spinal, KpknRingColors.columna, RingChannel.COLUMNA, onChannelTap, Modifier.weight(LegendSideWeight))
+            ReadinessLegendColumn("Músculos", muscular, KpknRingColors.musculos, RingChannel.MUSCULOS, onChannelTap, Modifier.weight(LegendSideWeight), isLoading = isLoading)
+            ReadinessLegendColumn("Energía", neural, KpknRingColors.energia, RingChannel.ENERGIA, onChannelTap, Modifier.weight(1f), isLoading = isLoading)
+            ReadinessLegendColumn("Columna", spinal, KpknRingColors.columna, RingChannel.COLUMNA, onChannelTap, Modifier.weight(LegendSideWeight), isLoading = isLoading)
         }
 
     }
@@ -512,14 +515,16 @@ private fun ReadinessLegendColumn(
     channel: RingChannel,
     onTap: (RingChannel) -> Unit,
     modifier: Modifier = Modifier,
+    isLoading: Boolean = false,
 ) {
-    val percent = "$value\u00A0%"
+    val figure = if (isLoading) "…" else "$value\u00A0%"
+    val desc = if (isLoading) "$label calculando. Espera mientras se procesa" else "$label $figure. Toca para ajustarlo"
     Column(
         modifier = modifier
             .defaultMinSize(minHeight = 48.dp)
             .testTag("readiness-legend-${channel.name}")
-            .semantics { contentDescription = "$label $percent. Toca para ajustarlo" }
-            .clickable(role = Role.Button) { onTap(channel) },
+            .semantics { contentDescription = desc }
+            .clickable(enabled = !isLoading, role = Role.Button) { onTap(channel) },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // Eyebrow en el color de su anillo y cifra en Syne con espacio inseparable (LR1b).
@@ -533,7 +538,7 @@ private fun ReadinessLegendColumn(
             overflow = TextOverflow.Visible,
         )
         Text(
-            text = percent,
+            text = figure,
             style = KpknType.metricL.copy(fontSize = 22.sp, lineHeight = 26.sp),
             color = WizardColors.text,
             maxLines = 1,

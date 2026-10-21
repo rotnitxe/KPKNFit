@@ -132,6 +132,7 @@ data class MuscleRecoveryStatus(
     val hoursSinceLastSession: Int,
     val effectiveSets: Int,
     val status: RecoveryStatus,
+    val hasEvidence: Boolean = hoursSinceLastSession >= 0,
 )
 
 enum class RecoveryStatus { FRESH, OPTIMAL, RECOVERING, EXHAUSTED }
