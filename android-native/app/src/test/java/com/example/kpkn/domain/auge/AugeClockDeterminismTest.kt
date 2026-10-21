@@ -6,6 +6,13 @@ import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.DailyWellbeingLog
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.GlobalBatteries
+import com.example.kpkn.data.models.InitialRecoveryActivityType
+import com.example.kpkn.data.models.InitialRecoveryEvidenceFactory
+import com.example.kpkn.data.models.InitialRecoveryIntensity
+import com.example.kpkn.data.models.InitialRecoverySensations
+import com.example.kpkn.data.models.RingsLiftPattern
+import com.example.kpkn.data.models.RingsMuscleGroup
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.LoggedFood
 import com.example.kpkn.data.models.ManualMuscleBatteryOverride
@@ -29,10 +36,9 @@ import java.util.TimeZone
 /**
  * Reloj explícito y evaluaciones causales (WP 1.7, hallazgo F-27).
  *
- * Dos épocas a propósito: [pasado] (2025, muy anterior a hoy) y [futuro] (2085, posterior a cualquier reloj real
- * que corra esta prueba). Un motor que lea el reloj real por debajo ve la primera como «fuera de toda ventana» y la
- * segunda como «justo ahora»; con el instante explícito las dos épocas deben dar exactamente lo mismo. La guarda
- * estructural que complementa estas pruebas es [AugeNoHiddenClockTest].
+ * Las mismas entradas y el instante de evaluación se desplazan 364 días (52 semanas): las cifras se conservan.
+ * Los controles verifican carga efectiva y [AugeNoHiddenClockTest] detecta fugas del reloj aunque ambas
+ * épocas queden fuera de sus ventanas reales.
  *
  * Ninguna prueba lee el reloj ni la zona del equipo: la zona por defecto se fija en UTC (los motores de nutrición y
  * de ancla usan la zona local de la persona) y todo instante sale de [pasado] o de [futuro].
@@ -57,8 +63,8 @@ class AugeClockDeterminismTest {
     /** Lunes 2025-03-03 10:00 UTC (la base del máster dorado). */
     private val pasado = Instant.parse("2025-03-03T10:00:00Z").toEpochMilli()
 
-    /** La misma fecha 60 años después: el reloj real está siempre antes que ella. */
-    private val futuro = Instant.parse("2085-03-03T10:00:00Z").toEpochMilli()
+    /** El mismo día de la semana, 52 semanas después. */
+    private val futuro = pasado + 364L * dia
 
     private val settings = Settings()
 
@@ -377,6 +383,27 @@ class AugeClockDeterminismTest {
         assertTrue("Columna con anclas previas $con frente a sin ellas $sin", con < sin)
     }
 
+    @Test
+    fun theLatestGlobalOrV2AnchorPreventsTodayFromRewritingEarlierSpinalDrain() {
+        val sesionEn = pasado - 5 * hora
+        val sesion = log("temprano", sesionEn, pesados(), impactoV2(sesionEn, "Isquiosurales" to 600.0))
+        val neutral = DailyWellbeingLog(id = "hoy", date = "2025-03-03")
+        val guardiasPrevias = guardiasAncladas(sesionEn - 2 * hora)
+        val anclaGlobal = neutral.copy(
+            manualBatteryAnchorMs = pasado - hora,
+            manualMuscleOverridesV2 = guardiasPrevias,
+        )
+        val anclaV2 = neutral.copy(
+            manualMuscleOverridesV2 = guardiasPrevias + (
+                "Pectorales" to ManualMuscleBatteryOverride(40, pasado - hora, automaticBatteryAtAnchor = 100)
+            ),
+        )
+        val sinAnclas = columna(listOf(sesion), pasado, neutral)
+        // El corte más reciente manda aunque otras anclas sean anteriores a la sesión.
+        assertEquals(sinAnclas, columna(listOf(sesion), pasado, anclaGlobal))
+        assertEquals(sinAnclas, columna(listOf(sesion), pasado, anclaV2))
+    }
+
     // ─── Anclas fechadas después del instante evaluado ───────────────────────
 
     @Test
@@ -384,13 +411,18 @@ class AugeClockDeterminismTest {
         val ancla = pasado + 2 * hora
         val bienestar = DailyWellbeingLog(
             id = "hoy", date = "2025-03-03",
-            manualNeuralBattery = 40, manualSpinalBattery = 40,
+            manualMuscularBattery = 40, manualNeuralBattery = 40, manualSpinalBattery = 40,
             manualMuscleBatteries = mapOf("Pectorales" to 40),
             manualBatteryAnchorMs = ancla,
             manualMuscleOverridesV2 = mapOf(
                 "Cuádriceps" to ManualMuscleBatteryOverride(battery = 40, anchorEpochMs = ancla, automaticBatteryAtAnchor = 100),
             ),
         )
+        fun muscularGlobal(en: Long) = AugeRecoveryEngine.calculateGlobalBatteries(
+            history = emptyList(), wellbeing = bienestar, settings = settings, exerciseDb = db, nowOverrideMs = en,
+        ).muscular
+        assertEquals("Muscular global antes del ancla", 100, muscularGlobal(pasado))
+        assertEquals("Muscular global en el ancla", 40, muscularGlobal(ancla))
         // Antes del ancla aún no existía: con la historia vacía todo está al 100.
         assertEquals("Energía", 100, energia(emptyList(), pasado, bienestar))
         assertEquals("Columna", 100, columna(emptyList(), pasado, bienestar))
@@ -401,6 +433,55 @@ class AugeClockDeterminismTest {
         assertTrue("Columna ${columna(emptyList(), ancla, bienestar)}", columna(emptyList(), ancla, bienestar) in 38..42)
         assertTrue("Pectorales", musculo("Pectorales", emptyList(), ancla, bienestar) in 38..42)
         assertTrue("Cuádriceps", musculo("Cuádriceps", emptyList(), ancla, bienestar) in 38..42)
+        val globalPrevio = bienestar.copy(
+            manualBatteryAnchorMs = pasado, manualMuscleBatteries = mapOf("Cuádriceps" to 55),
+        )
+        assertEquals("Un V2 futuro no tapa un ajuste previo", 55, musculo("Cuádriceps", emptyList(), pasado, globalPrevio))
+    }
+
+    @Test
+    fun futureManualAnchorsDoNotSuppressInitialEvidence() {
+        val zone = java.time.ZoneId.of("UTC")
+        val evidencias = listOf(
+            InitialRecoveryEvidenceFactory.fromInputs(
+                capturedAtMs = pasado, recencyDays = 0, sessions = 2,
+                type = InitialRecoveryActivityType.MIXED, intensity = InitialRecoveryIntensity.HARD,
+                zones = listOf("axial"), sensations = InitialRecoverySensations(3, 3, 3),
+            ),
+            InitialRecoveryEvidenceFactory.fromInputsV2(
+                capturedAtMs = pasado, zone = zone, trainedDays = setOf(1),
+                intensity = InitialRecoveryIntensity.HARD,
+                lifts = setOf(RingsLiftPattern.SQUAT, RingsLiftPattern.HINGE_ROW),
+                groupSets = mapOf(RingsMuscleGroup.LEGS to 9),
+            ),
+        )
+        val neutral = DailyWellbeingLog(id = "hoy", date = "2025-03-03")
+        val futuroGlobal = neutral.copy(
+            manualMuscularBattery = 40, manualNeuralBattery = 40, manualSpinalBattery = 40,
+            manualMuscleBatteries = mapOf("Pectorales" to 40), manualBatteryAnchorMs = pasado + hora,
+        )
+        val futuroV2 = neutral.copy(manualMuscleOverridesV2 = mapOf(
+            "Cuádriceps" to ManualMuscleBatteryOverride(40, pasado + hora, automaticBatteryAtAnchor = 100),
+        ))
+        for (evidencia in evidencias) {
+            val ajustes = settings.copy(initialRecoveryEvidence = evidencia)
+            fun evaluar(bienestar: DailyWellbeingLog): Pair<GlobalBatteries, Map<String, Int>> {
+                val musculos = AugeRecoveryEngine.getPerMuscleBatteries(
+                    history = emptyList(), wellbeing = bienestar, settings = ajustes,
+                    exerciseDb = db, nowOverrideMs = pasado, zone = zone,
+                )
+                val baterias = AugeRecoveryEngine.calculateGlobalBatteries(
+                    history = emptyList(), wellbeing = bienestar, settings = ajustes,
+                    exerciseDb = db, precomputedMuscles = musculos, nowOverrideMs = pasado,
+                )
+                assertTrue("La evidencia debe cargar músculos", baterias.muscular < 100)
+                return baterias to musculos.mapValues { it.value.recoveryScore }
+            }
+            val automatico = evaluar(neutral)
+            // Antes de las anclas, ambos ajustes deben producir exactamente el estado automático.
+            assertEquals(automatico, evaluar(futuroGlobal))
+            assertEquals(automatico, evaluar(futuroV2))
+        }
     }
 
     // ─── (e) La vista previa de «mañana» usa la articular de ahora + 24 h ────
@@ -429,6 +510,7 @@ class AugeClockDeterminismTest {
         val historia = listOf(base, vista)
         val musculos = AugeRecoveryEngine.getPerMuscleBatteries(
             history = historia, wellbeing = null, settings = settings, exerciseDb = db, nowOverrideMs = manana,
+            zone = java.time.ZoneId.of("UTC"),
         )
         val globales = AugeRecoveryEngine.calculateGlobalBatteries(
             history = historia, wellbeing = null, settings = settings, exerciseDb = db,

@@ -1058,6 +1058,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             exerciseDb,
             feedbacks,
             wellbeing,
+            nowMs = com.example.kpkn.domain.auge.AugeClock.nowMs(),
         )
         val batteries = AugeRecoveryEngine.calculateGlobalBatteries(
             history = historyWithout,
