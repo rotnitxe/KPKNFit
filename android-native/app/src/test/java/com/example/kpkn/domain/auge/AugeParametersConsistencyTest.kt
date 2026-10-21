@@ -39,7 +39,7 @@ class AugeParametersConsistencyTest {
 
     @Test
     fun elRegistroFijaLosValoresDelModelo() {
-        assertEquals(1, AugeParameters.VERSION)
+        assertEquals(2, AugeParameters.VERSION)
         assertEquals(24.0, AugeParameters.TAU_FAST_H, 0.0)
         assertEquals(48.0, AugeParameters.TAU_MEDIUM_H, 0.0)
         assertEquals(72.0, AugeParameters.TAU_SLOW_H, 0.0)
