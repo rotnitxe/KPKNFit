@@ -29,7 +29,11 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -106,12 +110,16 @@ internal fun WorkoutStorySheet(
     }
     val enabled=!busy&&!rendering&&image!=null
     val content: @Composable ()->Unit={
-        Column(Modifier.fillMaxSize().background(Color(0xFF0E0E0E)).padding(horizontal=16.dp).testTag("story-sheet"),verticalArrangement=Arrangement.spacedBy(14.dp)){
+        Column(Modifier.fillMaxSize().background(Color(0xFF0E0E0E)).padding(horizontal=16.dp)
+            .semantics(mergeDescendants = true) { paneTitle = "Historia" }.testTag("story-sheet"),verticalArrangement=Arrangement.spacedBy(14.dp)){
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){
                 Text("Compartir",style=KpknType.title.copy(fontSize=20.sp),color=FinishCream)
                 IconButton(onClick={if(!busy)onDismiss()},enabled=!busy,modifier=Modifier.size(30.dp)){Icon(Icons.Default.Close,"Volver al resumen",Modifier.size(18.dp),tint=FinishCream)}
             }
-            Row(Modifier.fillMaxWidth().height(38.dp).background(Color.Black,RoundedCornerShape(18.dp)).padding(4.dp).testTag("story-templates"),horizontalArrangement=Arrangement.spacedBy(4.dp)){
+            // Keep the template group as its own accessible node inside KpknSheet's clickable panel.
+            Row(Modifier.fillMaxWidth().height(38.dp).background(Color.Black,RoundedCornerShape(18.dp)).padding(4.dp)
+                .semantics(mergeDescendants = true) { contentDescription = "Plantillas de historia" }
+                .testTag("story-templates"),horizontalArrangement=Arrangement.spacedBy(4.dp)){
                 templates.forEach{template->Box(Modifier.weight(1f).height(30.dp).clip(RoundedCornerShape(15.dp)).background(if(template==safeOptions.template)FinishCream else Color.Transparent)
                     .clickable(enabled=!busy){onOptionsChange(safeOptions.copy(template=template))},contentAlignment=Alignment.Center){
                     Text(template.label,style=KpknType.caption.copy(fontSize=12.sp,fontWeight=FontWeight.SemiBold),color=if(template==safeOptions.template)Color(0xFF0B0B0B)else FinishCream.copy(alpha=.62f))
@@ -161,8 +169,8 @@ internal fun WorkoutStorySheet(
                 }
                 Button(onClick={image?.takeIf{!busy&&!rendering}?.let{bitmap->busy=true;scope.launch{
                     try{WorkoutShareService.shareBitmap(context,bitmap)}catch(error:CancellationException){throw error}catch(_:Exception){message="No se pudo abrir la pantalla para compartir."}finally{busy=false}
-                }}},enabled=enabled,modifier=Modifier.weight(1f).height(48.dp).testTag("story-share"),contentPadding=PaddingValues(horizontal=10.dp),shape=RoundedCornerShape(24.dp),colors=ButtonDefaults.buttonColors(containerColor=FinishCream,contentColor=Color(0xFF0B0B0B))){
-                    Text("Compartir en historias",style=KpknType.bodyStrong.copy(fontSize=12.sp),maxLines=1)
+                }}},enabled=enabled,modifier=Modifier.weight(1f).height(48.dp).testTag("story-share"),contentPadding=PaddingValues(horizontal=10.dp,vertical=4.dp),shape=RoundedCornerShape(24.dp),colors=ButtonDefaults.buttonColors(containerColor=FinishCream,contentColor=Color(0xFF0B0B0B))){
+                    Text("Compartir en historias",style=KpknType.bodyStrong.copy(fontSize=12.sp,lineHeight=14.sp),maxLines=2,textAlign=TextAlign.Center)
                 }
             }
         }

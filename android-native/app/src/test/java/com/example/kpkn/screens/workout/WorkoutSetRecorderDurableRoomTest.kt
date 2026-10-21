@@ -111,6 +111,7 @@ class WorkoutSetRecorderDurableRoomTest {
     private var profileWrites = 0
     private var failAncillary = false
     private var failFirstPublication = false
+    private var afterDurablePublication: (() -> Unit)? = null
     private val session = Session(id = "durable-session", name = "Regresión", exercises = listOf(
         Exercise(id = "exercise", name = "Regression fixture exercise", sets = listOf(
             ExerciseSet(id = "s1", targetReps = 6), ExerciseSet(id = "s2", targetReps = 6),
@@ -149,7 +150,9 @@ class WorkoutSetRecorderDurableRoomTest {
                 "evaluateSetEntryV3" -> error("La homologación está desactivada en este fixture")
                 "persistOngoingStateAndAwait" -> runBlocking {
                     @Suppress("UNCHECKED_CAST")
-                    persistence.persistAndAwait(args[0] as WorkoutUiState, args[1] as () -> Unit)
+                    persistence.persistAndAwait(args[0] as WorkoutUiState, args[1] as () -> Unit).also {
+                        if (it.succeeded) afterDurablePublication?.invoke()
+                    }
                 }
                 "nextSet" -> { advances++; state = state.copy(currentSetIdx = state.currentSetIdx + 1); Unit }
                 "startRestTimer" -> { rests++; Unit }
@@ -189,6 +192,44 @@ class WorkoutSetRecorderDurableRoomTest {
         unitMode = unit, setIdxOverride = index,
     )
     private suspend fun room() = repository.databaseForTests().stateDao().getOngoingWorkout()!!.toOngoingWorkoutState()!!
+
+    @Test fun quickSheetClosesAtRoomAcknowledgementWhileTheCommandIsStillSuspended() = runBlocking {
+        state = state.copy(showUltraFastSheet = true)
+        val acknowledged = CompletableDeferred<Unit>()
+        val release = java.util.concurrent.CountDownLatch(1)
+        afterDurablePublication = {
+            acknowledged.complete(Unit)
+            check(release.await(10, java.util.concurrent.TimeUnit.SECONDS))
+        }
+        val command = async(Dispatchers.Default) { record() }
+        try {
+            withTimeout(10_000) { acknowledged.await() }
+            assertFalse("Se reproduce el intervalo entre confirmación y retorno", command.isCompleted)
+            assertEquals(1, room().completedSets.size)
+            assertEquals(1, state.completedSets.size)
+            assertFalse("La hoja ya debe estar cerrada al confirmar Room", state.showUltraFastSheet)
+        } finally {
+            release.countDown()
+            command.await()
+        }
+        assertEquals(1, advances)
+    }
+
+    @Test fun failedQuickWriteKeepsTheSheetDraftAndCursorForRetry() = runBlocking {
+        state = state.copy(showUltraFastSheet = true)
+        val drafts = state.setDrafts
+        failWrites()
+        assertTrue(record() is RecordSetResult.PersistenceFailed)
+        assertTrue(state.showUltraFastSheet)
+        assertEquals(drafts, state.setDrafts)
+        assertEquals(0, state.currentSetIdx)
+        assertTrue(state.completedSets.isEmpty())
+        assertTrue(room().completedSets.isEmpty())
+        allowWrites()
+        assertTrue(record() is RecordSetResult.Created)
+        assertFalse(state.showUltraFastSheet)
+        assertEquals(1, state.completedSets.size)
+    }
 
     @Test fun uiPublicationFailureDoesNotDisguiseACommittedSetAsPersistenceFailure() = runBlocking {
         failFirstPublication = true

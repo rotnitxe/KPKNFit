@@ -2,6 +2,7 @@ package com.example.kpkn.screens.workout
 
 import android.app.Application
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -67,6 +68,36 @@ class LiveSessionSheetsTest {
         // These are the existing calculator's real rows, not a replacement table.
         for (reps in 1..10) rule.onNodeWithText("${reps}RM", useUnmergedTree = true).performScrollTo().assertIsDisplayed()
         assertEquals(112.5, com.example.kpkn.domain.calculations.calculateHybrid1RM(100.0, 5), .001)
+    }
+    @Test fun rmCalculatorKeepsSpanishDecimalsInTheEstimateAndEveryRowWithEnglishLocale() {
+        val original = java.util.Locale.getDefault()
+        java.util.Locale.setDefault(java.util.Locale.US)
+        try {
+            content { LiveSessionSheetsHost(LiveSessionDestination.RM, {}) }
+            rule.onAllNodes(hasSetTextAction())[0].performTextReplacement("100")
+            rule.onAllNodes(hasSetTextAction())[1].performTextReplacement("5")
+            rule.onNodeWithText("e1RM: 112,5 kg", true).assertIsDisplayed()
+            for ((reps, weight) in rmTableLoads(112.5)) {
+                val expected = String.format(java.util.Locale.forLanguageTag("es"), "%.1f", weight)
+                rule.onNode(hasText(expected) and hasAnySibling(hasText("${reps}RM")), true)
+                    .performScrollTo().assertIsDisplayed()
+            }
+        } finally { java.util.Locale.setDefault(original) }
+    }
+
+    @Test fun rmCalculatorAcceptsCommaAndPreservesTheSelectedLoad() {
+        var selected: Double? = null
+        content { Column(Modifier.fillMaxSize().verticalScroll(androidx.compose.foundation.rememberScrollState())) {
+            WorkoutRmCalcContent(softInputs = true, onWeightSelected = { weight, _ -> selected = weight })
+        } }
+        rule.onAllNodes(hasSetTextAction())[0].performTextReplacement("82,5")
+        rule.onAllNodes(hasSetTextAction())[1].performTextReplacement("5")
+        val expected = com.example.kpkn.domain.calculations.calculateHybrid1RM(82.5, 5)
+        val text = String.format(java.util.Locale.forLanguageTag("es"), "%.1f", expected)
+        rule.onNodeWithText("e1RM: $text kg").assertIsDisplayed()
+        rule.onNode(hasClickAction() and hasAnyDescendant(hasText("1RM")), useUnmergedTree = true)
+            .performScrollTo().performClick()
+        rule.runOnIdle { assertEquals(expected, selected!!, .00001) }
     }
     @Test fun notesKeepDraftSaveLastNoteAndAddToggleRemoveTasks() {
         var draft by mutableStateOf("")

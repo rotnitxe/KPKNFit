@@ -585,6 +585,7 @@ class WorkoutSetRecorder(
                 )
                 current.copy(
                     completedSets = mergedCompleted,
+                    showUltraFastSheet = false,
                     // Make the recorded step the canonical cursor before
                     // resolving the next incomplete step. This matters when
                     // a pager/action closure carries an explicit set index:
@@ -628,6 +629,9 @@ class WorkoutSetRecorder(
                     }
                     current.copy(
                         completedSets = current.completedSets + (key to completedSet),
+                        // Room has confirmed this record. Closing here avoids waiting for
+                        // rest, suggestions and other post-commit effects to return.
+                        showUltraFastSheet = false,
                         currentExerciseIdx = candidate.currentExerciseIdx,
                         currentSetIdx = candidate.currentSetIdx,
                         activeStepKey = candidate.activeStepKey,

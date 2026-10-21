@@ -203,11 +203,6 @@ internal fun WorkoutV2Body(
             )
         }
     }
-    var drainOverlayState by remember { mutableStateOf<ExerciseDrainOverlayState?>(null) }
-
-    LaunchedEffect(uiState.lastDrainOverlay?.key) {
-        uiState.lastDrainOverlay?.let { drainOverlayState = it }
-    }
     var expandedSupersetWarmups by remember { mutableStateOf<Set<String>>(emptySet()) }
     var warmupWeightDrafts by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     val recordActionScopeOwner = remember(
@@ -233,14 +228,6 @@ internal fun WorkoutV2Body(
             recordFabHolder.visible = false
             recordFabHolder.isUpdateMode = false
             recordFabHolder.activePageKey = null
-        }
-    }
-
-    LaunchedEffect(drainOverlayState?.key) {
-        val activeKey = drainOverlayState?.key ?: return@LaunchedEffect
-        kotlinx.coroutines.delay(1650L)
-        if (drainOverlayState?.key == activeKey) {
-            drainOverlayState = null
         }
     }
 
@@ -2451,8 +2438,9 @@ internal fun WorkoutV2Body(
                                     setIdxOverride = quickSetIndex, expectedExerciseId = quickExercise.id,
                                     expectedSetIdx = quickSetIndex, expectedSide = activeSide,
                                 )
-                                if (result.succeeded) viewModel.hideUltraFastSheet()
-                                else quickError = when (result) {
+                                // The recorder closes this sheet at durable publication.
+                                // A late return must not close a newly reopened quick form.
+                                if (!result.succeeded) quickError = when (result) {
                                     is RecordSetResult.Rejected -> result.reason
                                     else -> "No se pudo guardar la serie. Tus valores siguen aquí; vuelve a intentar."
                                 }
@@ -2493,22 +2481,13 @@ internal fun WorkoutV2Body(
         )
     }
 
-        AnimatedVisibility(
-            visible = drainOverlayState != null,
+        ExerciseDrainOverlay(
+            state = uiState.lastDrainOverlay,
+            bottomClearance = dockBottomClearance,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(start = 14.dp, end = 14.dp, bottom = dockBottomClearance + 8.dp)
                 .zIndex(4f),
-            enter = fadeIn(animationSpec = tween(120)),
-            exit = fadeOut(animationSpec = tween(220)),
-        ) {
-            drainOverlayState?.let { overlay ->
-                ExerciseDrainOverlayCard(
-                    state = overlay,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        }
+        )
         if (!showingPostExerciseCard) {
         imbalanceNoticeText(uiState.imbalanceNotice)?.let { notice ->
             Surface(

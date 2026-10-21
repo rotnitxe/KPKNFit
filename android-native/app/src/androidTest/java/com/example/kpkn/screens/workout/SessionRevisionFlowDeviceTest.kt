@@ -382,6 +382,7 @@ class SessionRevisionFlowDeviceTest {
         recordThroughQuickForm(vm)
         compose.runOnUiThread { vm.stopRestTimer() }
         compose.waitUntil(15_000) { !vm.uiState.value.isRestTimerRunning }
+        assertQuickRecordLineAdvanced()
         val state = vm.uiState.value
         val recorded = state.completedSets.entries.single()
         assertEquals(exerciseId, parseCompletedSetKey(recorded.key)?.exerciseId)
@@ -394,6 +395,20 @@ class SessionRevisionFlowDeviceTest {
         assertEquals(setIds, state.session!!.allExercises().single().sets.map { it.id })
         assertEquals(1, repository.ongoingWorkout.value!!.completedSets.size)
         capture("06-live-after-canonical-record")
+    }
+
+    @Test fun repeatedQuickRecordsCloseTheirSheetAndAdvanceTheSameFourSeries() {
+        val vm = launchWorkout()
+        repeat(3) { index ->
+            recordThroughQuickForm(vm, expectedCompleted = index)
+            compose.runOnUiThread { vm.stopRestTimer() }
+            compose.waitUntil(15_000) { !vm.uiState.value.isRestTimerRunning }
+            assertQuickRecordLineAdvanced(index + 1)
+            assertEquals(index + 1, vm.uiState.value.currentSetIdx)
+            assertEquals(setIds, vm.uiState.value.session!!.allExercises().single().sets.map { it.id })
+            assertEquals(index + 1, repository.ongoingWorkout.value!!.completedSets.size)
+        }
+        capture("22-repeated-quick-records-v1")
     }
 
     @Test fun realActivityWeightImeKeepsFrameAndReturnsToSameSeries() {
@@ -586,12 +601,29 @@ class SessionRevisionFlowDeviceTest {
         recordThroughQuickForm(vm)
         compose.runOnUiThread { vm.stopRestTimer() }
         compose.waitUntil(15_000) { !vm.uiState.value.isRestTimerRunning }
+        assertQuickRecordLineAdvanced()
+        val historyBefore = repository.history.value.map { it.id }
         compose.onNodeWithTag("workout-story-header").performClick()
         waitForTag("story-sheet")
         compose.onNodeWithTag("story-templates").assertIsDisplayed()
+        compose.waitUntil(30_000) { compose.onNodeWithTag("story-preview", true).isDisplayed() }
+        val sheet = compose.onNodeWithTag("story-sheet", true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        listOf("story-templates", "story-share-after-save", "story-save-image", "story-share").forEach { tag ->
+            val bounds = compose.onNodeWithTag(tag, true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+            assertTrue("$tag tiene alto visible", bounds.height > 0)
+            assertTrue("$tag está íntegro en Historia", bounds.top >= sheet.top && bounds.bottom <= sheet.bottom)
+        }
+        val preview = compose.onNodeWithTag("story-preview", true).fetchSemanticsNode().boundsInRoot
+        assertEquals(9f / 16f, preview.width / preview.height, .01f)
         assertFalse("La entrada a Historia no guarda ni termina la sesión", vm.uiState.value.isComplete)
         assertEquals(sessionId, repository.ongoingWorkout.value?.session?.id)
+        assertEquals(historyBefore, repository.history.value.map { it.id })
+        assertEquals(1, vm.uiState.value.completedSets.size)
         capture("21-story-from-live-header")
+        compose.onNodeWithContentDescription("Volver al resumen").performClick()
+        compose.onNodeWithTag("finish-tabs", true).assertIsDisplayed()
+        assertFalse(vm.uiState.value.isComplete)
+        assertEquals(historyBefore, repository.history.value.map { it.id })
     }
 
     @Test fun closingBackReturnsToRealSessionAndReopenedNotesRetainPersistedDraft() {
@@ -705,18 +737,27 @@ class SessionRevisionFlowDeviceTest {
         return vm
     }
 
-    private fun recordThroughQuickForm(vm: WorkoutViewModel) {
+    private fun recordThroughQuickForm(vm: WorkoutViewModel, expectedCompleted: Int = 0) {
         compose.runOnUiThread { vm.previewUltraFast() }
         waitForTag("ultra-record-submit")
         for (index in 0 until 4) compose.onNodeWithTag("ultra-record-row-$index", true).assertExists()
         assertEquals(setIds, vm.uiState.value.session!!.allExercises().single().sets.map { it.id })
         compose.onNodeWithTag("ultra-record-submit", true).assertIsNotEnabled()
-        assertTrue(vm.uiState.value.completedSets.isEmpty())
+        assertEquals(expectedCompleted, vm.uiState.value.completedSets.size)
         capture("05-quick-four-series-effort-required")
         compose.onNodeWithContentDescription("RIR", useUnmergedTree = true).performTextReplacement("2")
         compose.onNodeWithTag("ultra-record-submit", true).assertIsEnabled().performClick()
-        compose.waitUntil(30_000) { vm.uiState.value.completedSets.size == 1 && !vm.uiState.value.showUltraFastSheet }
-        runBlocking { withTimeout(20_000) { repository.ongoingWorkout.first { it?.completedSets?.size == 1 } } }
+        compose.waitUntil(30_000) { vm.uiState.value.completedSets.size == expectedCompleted + 1 && !vm.uiState.value.showUltraFastSheet }
+        compose.onNodeWithTag("ultra-record-submit", true).assertDoesNotExist()
+        // The sheet closes at commit, before the command finishes starting rest/advancing.
+        compose.waitUntil(30_000) { vm.uiState.value.recordingSetKey == null }
+        runBlocking { withTimeout(20_000) { repository.ongoingWorkout.first { it?.completedSets?.size == expectedCompleted + 1 } } }
+    }
+
+    private fun assertQuickRecordLineAdvanced(completed: Int = 1) {
+        compose.onNode(hasText("$completed/4", substring = true) and hasAnyAncestor(hasTestTag("live-session-route")), true).assertIsDisplayed()
+        compose.onNodeWithText("✓S$completed", useUnmergedTree = true).assertIsDisplayed()
+        compose.onNode(hasContentDescription("S${completed + 1}") and isSelected(), true).assertIsDisplayed()
     }
 
     /** Card/page queries are scoped to the workout window, anchored by its header voice action.

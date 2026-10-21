@@ -572,7 +572,7 @@ internal fun WorkoutRmCalcContent(
         else -> "Peso (kg)"
     }
     val effectiveLoad = remember(rmWeightText, isLastre, isAssisted, bodyWeight) {
-        val w = rmWeightText.toDoubleOrNull() ?: 0.0
+        val w = rmWeightText.replace(',', '.').toDoubleOrNull() ?: 0.0
         when {
             isLastre && bodyWeight != null && bodyWeight > 0 -> bodyWeight + w
             isAssisted && bodyWeight != null && bodyWeight > 0 -> (bodyWeight - w).coerceAtLeast(0.0)
@@ -651,7 +651,7 @@ internal fun WorkoutRmCalcContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        if (isAssisted || isLastre) "e1RM equiv.: ${"%.1f".format(rmResult)} kg" else "e1RM: ${"%.1f".format(rmResult)} kg",
+                        if (isAssisted || isLastre) "e1RM equiv.: ${String.format(Locale.forLanguageTag("es"), "%.1f", rmResult)} kg" else "e1RM: ${String.format(Locale.forLanguageTag("es"), "%.1f", rmResult)} kg",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF4CAF50),
@@ -688,7 +688,7 @@ internal fun WorkoutRmCalcContent(
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text("${reps}RM", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = sessionAccentColor)
-                            Text("${"%.1f".format(displayWeight)}", style = MaterialTheme.typography.labelSmall, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(String.format(Locale.forLanguageTag("es"), "%.1f", displayWeight), style = MaterialTheme.typography.labelSmall, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(suffix, style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = Color.White.copy(alpha = 0.5f), maxLines = 1)
                         }
                     }
