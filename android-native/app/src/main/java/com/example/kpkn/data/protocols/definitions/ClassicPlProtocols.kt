@@ -19,6 +19,7 @@ import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.SlotSource
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.data.protocols.amrapAsRecord
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
 import com.example.kpkn.data.protocols.dropT3
@@ -141,14 +142,16 @@ object ClassicPlProtocols {
                     kpknAssist("row", CatalogIds.CSR, 4, 10, 90),
                     kpknAssist("ghr", CatalogIds.GHR, 3, 8, 90),
                     kpknAssist("jm", CatalogIds.JM, 2, 10, 60),
-                )).dropT3(drop),
+                    // CAL5: ninguna fuente le da al AMRAP del día de repeticiones una regla de carga: es una serie de registro explícita.
+                )).dropT3(drop).amrapAsRecord(),
                 DayArchetypes.bbTorso().asKpknSuggested().copy(label = "Culturismo", weekday = 5).dropT3(drop),
             ))
         }
         Protocol(
             id = "cube-method", name = "Cube Method", emoji = "🧊",
-            description = "10 semanas, 4 días: la sentadilla va siempre pesada, la banca explosiva y el peso muerto a repeticiones (una serie AMRAP), " +
-                "más un día de culturismo. La rotación semanal de los tres métodos del Cube no está implementada. La semana 10 es el test.",
+            description = "10 semanas, 4 días: la sentadilla va siempre pesada, la banca explosiva y el peso muerto a repeticiones (una serie AMRAP de " +
+                "registro: se guarda en tu historial y no cambia tu carga), más un día de culturismo. La rotación semanal de los tres métodos del Cube no " +
+                "está implementada. La semana 10 es el test.",
             author = "Brandon Lilly", tags = listOf("powerlifting", "avanzado", "4 días", "10 semanas", "%"),
             blocks = listOf(ProtocolBlock("Cubo", 10, "Intensificación", 60, 100)),
             defaultSplit = "cube_method", publicationStatus = ProtocolPublicationStatus.VERIFIED,
@@ -164,7 +167,7 @@ object ClassicPlProtocols {
                         "https://www.powerliftingtowin.com/brandon-lillys-cube-method/",
                     ),
                 ),
-                claimedDaysPerWeek = 4, claimedLevel = "avanzado", contentVersion = 2,
+                claimedDaysPerWeek = 4, claimedLevel = "avanzado", contentVersion = 3,
             ),
             fidelitySpec = ProtocolFidelitySpec(10, 4, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("heavy" to listOf(80.0))),
         )
@@ -197,14 +200,15 @@ object ClassicPlProtocols {
                     if (w % 2 == 1) DayArchetypes.plSquat(heavySq.getValue(w), t1Sets = 2, t1Reps = 1, t1Top = true, weekday = 1)
                     else DayArchetypes.plDeadlift(heavyDl.getValue(w), t1Sets = 2, t1Reps = 1, t1Top = true, weekday = 1),
                 ).dropT3(if (w >= 8) 2 else 0),
-                stabilize(DayArchetypes.plBenchHeavy(bp, t1Sets = if (w % 2 == 1) 3 else 4, t1Reps = if (w % 2 == 1) 1 else 5, t1Amrap = w % 2 == 0, weekday = 3)).dropT3(if (w >= 8) 2 else 0),
+                // CAL5: el AMRAP alterno de la banca pesada es de registro (la hoja original no es pública y no declara regla de carga).
+                stabilize(DayArchetypes.plBenchHeavy(bp, t1Sets = if (w % 2 == 1) 3 else 4, t1Reps = if (w % 2 == 1) 1 else 5, t1Amrap = w % 2 == 0, weekday = 3)).dropT3(if (w >= 8) 2 else 0).amrapAsRecord(),
                 stabilize(DayArchetypes.plBenchVolume(bp - 8, weekday = 5)).dropT3(if (w >= 8) 2 else 0),
             ))
         }
         Protocol(
             id = "lilliebridge", name = "Lilliebridge Method", emoji = "🌉",
             description = "10 semanas, 3 días: el lunes alterna sentadilla pesada (semanas impares) y peso muerto pesado (pares); " +
-                "banca con singles y AMRAP alternos. Sin regla de subida de TM.",
+                "banca con singles y AMRAP alternos. Sin regla de subida de TM: el AMRAP es de registro y se guarda en tu historial.",
             // H-06 (B.S6 parte 2b): el método es de Ernie Lilliebridge y su familia, no de «Matt Lilliebridge». La hoja original no es
             // pública, así que los porcentajes de cada semana son los de KPKN (lo dice `source.variant`; el texto editorial lo reescribe C.P4).
             author = "Ernie Lilliebridge (familia Lilliebridge)", tags = listOf("powerlifting", "avanzado", "3 días", "10 semanas", "%", "AMRAP"),
@@ -216,7 +220,7 @@ object ClassicPlProtocols {
             ),
             // B.S4 (hallazgo): con `TopSetPr` el plan propondría +2,5 kg por cada semana pesada; Lilliebridge sube por semana según su
             // tabla de porcentajes, no por récord del top set, así que no lleva regla de subida (`None`).
-            recipe = TrainingPlanRecipe("lilliebridge", weeks, 1.0, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 2),
+            recipe = TrainingPlanRecipe("lilliebridge", weeks, 1.0, sbdSlots(), ProgressionRule.None, claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 3),
             fidelitySpec = ProtocolFidelitySpec(10, 3, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("w1_sq" to listOf(87.0))),
         )
     }

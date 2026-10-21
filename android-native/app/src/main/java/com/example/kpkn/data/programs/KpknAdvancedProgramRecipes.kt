@@ -12,6 +12,7 @@ import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.WeekRecipe
+import com.example.kpkn.data.protocols.amrapAsCalibrator
 import com.example.kpkn.data.protocols.asDeload
 import com.example.kpkn.data.protocols.mainWorkPercentOfOneRm
 import com.example.kpkn.data.protocols.dropT3
@@ -29,6 +30,12 @@ import com.example.kpkn.data.protocols.weekRecipe
  */
 object KpknAdvancedProgramRecipes {
     private const val CONTENT_VERSION = 2
+
+    /**
+     * CAL5/CAL6: `power-12-3`, `power-16-4` y `power-20-5` cambian de contenido (sus AMRAP pasan a calibrador de «próximas sesiones» y
+     * se retiran las banderas muertas de las semanas de pico): versión 3. Los programas ya activados conservan su snapshot.
+     */
+    private const val POWER_CONTENT_VERSION = 3
 
     private val sbd = mapOf(
         LiftSlot.SQUAT to CatalogIds.SQ_LOW,
@@ -72,7 +79,8 @@ object KpknAdvancedProgramRecipes {
             deloadOrTraining(
                 w, block, name, goal,
                 listOf(
-                    DayArchetypes.plSquat(squat, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 1, t1Amrap = w == 1 || w == 5 || w == 9),
+                    // CAL5: el AMRAP del inicio de cada bloque es un calibrador de «próximas sesiones» (canal de propuestas del programa).
+                    DayArchetypes.plSquat(squat, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 1, t1Amrap = w == 1 || w == 5 || w == 9).amrapAsCalibrator(),
                     DayArchetypes.plBenchHeavy(bench, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 3),
                     DayArchetypes.plDeadlift(dl, t1Sets = t1Sets.coerceAtMost(3), t1Reps = t1Reps.coerceAtLeast(2), weekday = 5),
                 ),
@@ -81,7 +89,7 @@ object KpknAdvancedProgramRecipes {
         }
         return TrainingPlanRecipe(
             "power-12-3", weeks, 0.90, sbd,
-            claimedDaysPerWeek = 3, claimedLevel = "principiante", contentVersion = CONTENT_VERSION,
+            claimedDaysPerWeek = 3, claimedLevel = "principiante", contentVersion = POWER_CONTENT_VERSION,
         )
     }
 
@@ -105,7 +113,9 @@ object KpknAdvancedProgramRecipes {
                 BlockGoal.PEAK, BlockGoal.TAPER -> 2
                 else -> 0
             }
-            val amrap = w == 1 || w == 6 || w == 11
+            // CAL5: la semana 11, primera del pico, tenía la bandera pero el pico sustituye el T1 por top set y back-offs (`peakDay`): era
+            // una bandera muerta. El AMRAP queda en las dos semanas en las que de verdad lo lleva el T1.
+            val amrap = w == 1 || w == 6
             val days = when {
                 w == 15 -> listOf(
                     openerDay(DayArchetypes.plSquat(91.0, weekday = 1, label = "Sentadilla pesada"), 91.0),
@@ -120,13 +130,13 @@ object KpknAdvancedProgramRecipes {
                     testDay(DayArchetypes.plBenchVolume(70.0, weekday = 5), listOf(90.0, 95.0)),
                 )
                 spec.goal == BlockGoal.PEAK -> listOf(
-                    peakDay(DayArchetypes.plSquat(spec.squat, weekday = 1, t1Amrap = amrap, t1ConfigurationId = sqId, t1Technique = sqTech), spec.squat, (spec.squat - 8).coerceAtLeast(80.0), if (w >= 13) 1 else 2),
+                    peakDay(DayArchetypes.plSquat(spec.squat, weekday = 1, t1ConfigurationId = sqId, t1Technique = sqTech), spec.squat, (spec.squat - 8).coerceAtLeast(80.0), if (w >= 13) 1 else 2),
                     peakDay(DayArchetypes.plBenchHeavy(spec.bench, weekday = 2, t1ConfigurationId = bpId, t1Technique = bpTech), spec.bench, (spec.bench - 8).coerceAtLeast(80.0), if (w >= 13) 1 else 2),
                     peakDay(DayArchetypes.plDeadlift(spec.dl, weekday = 4, t1ConfigurationId = dlId, t1Technique = dlTech), spec.dl, (spec.dl - 8).coerceAtLeast(80.0), 1),
                     DayArchetypes.plBenchVolume((spec.bench - 8).coerceAtLeast(58.0), weekday = 5).dropT3(drop),
                 )
                 else -> listOf(
-                    DayArchetypes.plSquat(spec.squat, t1Sets = 4, t1Reps = if (spec.goal == BlockGoal.ACCUMULATION) 6 else 4, weekday = 1, t1Amrap = amrap, t1ConfigurationId = sqId, t1Technique = sqTech).dropT3(drop),
+                    DayArchetypes.plSquat(spec.squat, t1Sets = 4, t1Reps = if (spec.goal == BlockGoal.ACCUMULATION) 6 else 4, weekday = 1, t1Amrap = amrap, t1ConfigurationId = sqId, t1Technique = sqTech).dropT3(drop).amrapAsCalibrator(),
                     DayArchetypes.plBenchHeavy(spec.bench, t1Sets = 4, t1Reps = if (spec.goal == BlockGoal.ACCUMULATION) 6 else 4, weekday = 2, t1ConfigurationId = bpId, t1Technique = bpTech).dropT3(drop),
                     DayArchetypes.plDeadlift(spec.dl, t1Sets = 3, t1Reps = if (spec.goal == BlockGoal.ACCUMULATION) 5 else 3, weekday = 4, t1ConfigurationId = dlId, t1Technique = dlTech).dropT3(drop),
                     DayArchetypes.plBenchVolume((spec.bench - 8).coerceAtLeast(58.0), weekday = 5).dropT3(drop),
@@ -134,7 +144,7 @@ object KpknAdvancedProgramRecipes {
             }
             weekRecipe(w, spec.block, spec.name, spec.goal, days.inPeakOneRm(spec.goal))
         }
-        return TrainingPlanRecipe("power-16-4", weeks, 0.90, sbd, claimedDaysPerWeek = 4, claimedLevel = "intermedio", contentVersion = CONTENT_VERSION)
+        return TrainingPlanRecipe("power-16-4", weeks, 0.90, sbd, claimedDaysPerWeek = 4, claimedLevel = "intermedio", contentVersion = POWER_CONTENT_VERSION)
     }
 
     fun plAdvanced20(): TrainingPlanRecipe {
@@ -160,7 +170,8 @@ object KpknAdvancedProgramRecipes {
                 BlockGoal.PEAK, BlockGoal.TAPER -> 2
                 else -> 0
             }
-            val amrap = w == 1 || w == 7 || w == 12 || w == 16
+            // CAL5: la semana 16, primera del pico, tenía la bandera muerta (`peakDay` sustituye el T1): se retira.
+            val amrap = w == 1 || w == 7 || w == 12
             // C9: la sentadilla con anderson (pines) y el press con cadenas son configuraciones propias; el press técnico del bloque 2 es
             // ahora `BP_CHAINS` en el T1 (antes `BP_FLOOR` + `CHAINS_BANDS`) y el press en suelo pasa al suplementario.
             val techDay = when (spec.block) {
@@ -185,14 +196,14 @@ object KpknAdvancedProgramRecipes {
                     testDay(DayArchetypes.plSquat(80.0, weekday = 6, label = "Sentadilla técnica"), listOf(90.0)),
                 )
                 spec.goal == BlockGoal.PEAK -> listOf(
-                    peakDay(DayArchetypes.plSquat(spec.squat, weekday = 1, t1Amrap = amrap), spec.squat, (spec.squat - 8).coerceAtLeast(80.0), 2),
+                    peakDay(DayArchetypes.plSquat(spec.squat, weekday = 1), spec.squat, (spec.squat - 8).coerceAtLeast(80.0), 2),
                     peakDay(DayArchetypes.plBenchHeavy(spec.bench, weekday = 2), spec.bench, (spec.bench - 8).coerceAtLeast(80.0), 2),
                     peakDay(DayArchetypes.plDeadlift(spec.dl, weekday = 4), spec.dl, (spec.dl - 8).coerceAtLeast(80.0), 1),
                     DayArchetypes.plBenchVolume((spec.bench - 8).coerceAtLeast(58.0), weekday = 5).dropT3(drop),
                     techDay.dropT3(drop),
                 )
                 else -> listOf(
-                    DayArchetypes.plSquat(spec.squat, t1Sets = if (spec.goal == BlockGoal.SPECIFICITY) 3 else 4, t1Reps = if (spec.goal == BlockGoal.ACCUMULATION) 5 else 4, weekday = 1, t1Amrap = amrap, t1ConfigurationId = sqId, t1Technique = sqTech).dropT3(drop),
+                    DayArchetypes.plSquat(spec.squat, t1Sets = if (spec.goal == BlockGoal.SPECIFICITY) 3 else 4, t1Reps = if (spec.goal == BlockGoal.ACCUMULATION) 5 else 4, weekday = 1, t1Amrap = amrap, t1ConfigurationId = sqId, t1Technique = sqTech).dropT3(drop).amrapAsCalibrator(),
                     DayArchetypes.plBenchHeavy(spec.bench, t1Sets = if (spec.goal == BlockGoal.SPECIFICITY) 3 else 4, t1Reps = if (spec.goal == BlockGoal.ACCUMULATION) 5 else 4, weekday = 2, t1ConfigurationId = bpId, t1Technique = bpTech, t2ConfigurationId = if (spec.block == 2) CatalogIds.BP_CHAINS else CatalogIds.BP_INC).dropT3(drop),
                     DayArchetypes.plDeadlift(spec.dl, t1Sets = 3, t1Reps = if (spec.goal == BlockGoal.ACCUMULATION) 5 else 3, weekday = 4, t1ConfigurationId = dlId, t1Technique = dlTech).dropT3(drop),
                     DayArchetypes.plBenchVolume((spec.bench - 8).coerceAtLeast(58.0), weekday = 5).dropT3(drop),
@@ -201,7 +212,7 @@ object KpknAdvancedProgramRecipes {
             }
             weekRecipe(w, spec.block, spec.name, spec.goal, days.inPeakOneRm(spec.goal))
         }
-        return TrainingPlanRecipe("power-20-5", weeks, 0.90, sbd, claimedDaysPerWeek = 5, claimedLevel = "avanzado", contentVersion = CONTENT_VERSION)
+        return TrainingPlanRecipe("power-20-5", weeks, 0.90, sbd, claimedDaysPerWeek = 5, claimedLevel = "avanzado", contentVersion = POWER_CONTENT_VERSION)
     }
 
     fun powerbuilding16(): TrainingPlanRecipe {

@@ -571,7 +571,7 @@ class TrainingPlanRecipeJsonCompatTest {
         // `dbJson` (el codec real de Room) tiene `encodeDefaults` activo: escribe `scope` y los incrementos
         // de TopSetPr. Lo guardado antes de B.S3, sin esos campos, se lee igual con los valores por defecto.
         assertEquals(
-            """{"type":"cycle_increment","upperKg":2.5,"lowerKg":5.0,"scope":"CYCLE"}""",
+            """{"type":"cycle_increment","upperKg":2.5,"lowerKg":5.0,"scope":"CYCLE","resetAfterFrozenCycles":0,"resetPercent":10.0}""",
             dbJson.encodeToString(ProgressionRule.serializer(), ProgressionRule.CycleIncrement(2.5, 5.0)),
         )
         assertEquals(
@@ -601,5 +601,52 @@ class TrainingPlanRecipeJsonCompatTest {
         assertEquals(ProgressionRule.TopSetPr(), recipe.progression)
         val reencoded = codec.decodeFromString(TrainingPlanRecipe.serializer(), codec.encodeToString(TrainingPlanRecipe.serializer(), recipe))
         assertEquals(recipe, reencoded)
+    }
+    // ---------------------------------------------------------------------
+    // CAL5/CAL6: las reglas nuevas y los campos nuevos de CycleIncrement
+    // ---------------------------------------------------------------------
+
+    @Test
+    fun the_cycle_increment_reset_fields_default_to_no_reset_for_what_was_stored_before() {
+        // Lo guardado antes de CAL5 (sin `resetAfterFrozenCycles`) se lee sin reinicio: Madcow y los 5/3/1 ya activados no cambian de regla.
+        val legacy = dbJson.decodeFromString(
+            ProgressionRule.serializer(),
+            """{"type":"cycle_increment","upperKg":2.5,"lowerKg":5.0,"scope":"CYCLE"}""",
+        ) as ProgressionRule.CycleIncrement
+        assertEquals(0, legacy.resetAfterFrozenCycles)
+        val wendler = ProgressionRule.CycleIncrement(2.5, 5.0, resetAfterFrozenCycles = 2, resetPercent = 10.0)
+        assertEquals(wendler, dbJson.decodeFromString(ProgressionRule.serializer(), dbJson.encodeToString(ProgressionRule.serializer(), wendler)))
+    }
+
+    @Test
+    fun the_new_progression_rules_round_trip_and_read_their_defaults() {
+        val rules = listOf(
+            ProgressionRule.RepsOverStandardTm(lowerKgPerRep = 2.5, upperKgPerRep = 1.25, maxExtraReps = 10),
+            ProgressionRule.StagedVolume(upperKg = 2.5, lowerKg = 5.0, t1AmrapCap = 10, t3RaiseReps = 25),
+            ProgressionRule.ApreXrm(incrementKg = 2.5),
+        )
+        rules.forEach { rule ->
+            val encoded = dbJson.encodeToString(ProgressionRule.serializer(), rule)
+            assertEquals(encoded, rule, dbJson.decodeFromString(ProgressionRule.serializer(), encoded))
+        }
+        assertEquals(ProgressionRule.RepsOverStandardTm(), dbJson.decodeFromString(ProgressionRule.serializer(), """{"type":"reps_over_standard_tm"}"""))
+        assertEquals(ProgressionRule.StagedVolume(), dbJson.decodeFromString(ProgressionRule.serializer(), """{"type":"staged_volume"}"""))
+        assertEquals(ProgressionRule.ApreXrm(), dbJson.decodeFromString(ProgressionRule.serializer(), """{"type":"apre_xrm"}"""))
+    }
+
+    @Test
+    fun a_published_recipe_with_the_new_rules_and_calibrator_sets_round_trips() {
+        listOf("juggernaut-2", "gzclp", "apre-mann", "wendler-531-bbb").forEach { id ->
+            val recipe = PROTOCOL_LIBRARY.first { it.id == id }.recipe!!
+            val decoded = dbJson.decodeFromString(TrainingPlanRecipe.serializer(), dbJson.encodeToString(TrainingPlanRecipe.serializer(), recipe))
+            assertEquals(id, recipe, decoded)
+        }
+        val power = com.example.kpkn.data.programs.PROGRAM_TEMPLATES.first { it.id == "power-12-3" }.recipe!!
+        assertEquals(power, dbJson.decodeFromString(TrainingPlanRecipe.serializer(), dbJson.encodeToString(TrainingPlanRecipe.serializer(), power)))
+        assertTrue(
+            "la receta conserva el alcance del calibrador",
+            power.weeks.flatMap { it.days }.flatMap { it.slots }.flatMap { it.sets }
+                .any { it.purpose == com.example.kpkn.data.models.SetPurpose.CALIBRATOR && it.calibrationScope == com.example.kpkn.data.models.CalibrationScope.NEXT_SESSIONS },
+        )
     }
 }

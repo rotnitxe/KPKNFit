@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -122,13 +123,19 @@ class SmartExerciseCreatorTest {
     }
 
     @Test
-    fun empty_catalog_falls_back_to_structural_inference() {
+    fun empty_catalog_keeps_the_data_unknown_instead_of_inventing_a_structure() {
         val created = SmartExerciseCreator.create(
             SmartCreateRequest(name = "Ejercicio inventado raro", implementoId = "machine"),
             emptyList(),
         )
         assertTrue(created.id.startsWith("custom:"))
         assertEquals("Máquina", created.equipment)
-        assertTrue(created.efc != null)
+        // MOT · E2: sin referencia confirmada no hay inferencia estructural con cifras inventadas; los datos quedan desconocidos
+        // (null, no 0) y el motor de fatiga usa su heurística por nombre hasta que la persona los complete.
+        assertNull(created.efc)
+        assertNull(created.cnc)
+        assertNull(created.ssc)
+        assertNull(created.axialLoadFactor)
+        assertTrue(created.involvedMuscles.isEmpty())
     }
 }

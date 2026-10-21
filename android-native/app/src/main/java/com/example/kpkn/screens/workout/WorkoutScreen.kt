@@ -1186,6 +1186,7 @@ fun WorkoutScreen(
     }
 
     LiveSessionSheetsHost(
+            calibratedLoads = calibrationRouteLoads(uiState),
         destination = liveSessionDestination,
         onDestination = { liveSessionDestination = it },
         exercises = visibleExercises,
@@ -1649,6 +1650,7 @@ fun WorkoutScreen(
             onContinuePendingSeries = viewModel::continuePendingSeriesFromFinish,
             hazeState = overlayHazeState,
             onSummaryReady = viewModel::announceWorkoutSessionSummary,
+            calibrationDecisions = uiState.calibrationDecisions,
             onConfirm = { notes, fatigue, closingFeedback, shareToStory ->
                 RepairBenchmarkTrace.workoutExitRequested("finish")
                 val share = shareToStory

@@ -1057,10 +1057,8 @@ object PlanMaterializer {
         val working = slot.sets.filter { !it.isWarmup }
         val warmups = slot.sets.filter { it.isWarmup }
         val usesPercent = working.any { it.percent != null } || warmups.any { it.percent != null }
-        val legacyReference = when (working.firstOrNull()?.loadBasis ?: slot.sets.firstOrNull()?.loadBasis) {
-            LoadBasis.PERCENT_1RM, LoadBasis.PERCENT_DESIRED_MAX -> oneRm
-            else -> tm
-        }
+        // Fracción de TM de la receta (0,90 = TM al 90 % del 1RM): con un 1RM y sin TM declarado, TM = 1RM × esta fracción.
+        val recipeTmFraction = PercentBasis.tmFraction(recipe.trainingMaxPercent)
         // §14.1: una referencia declarada en el set prevalece sobre la
         // resolución legacy por LiftSlot (que es de otra variante). La bolsa
         // del programa solo se consulta para ejercientes con identidad estable
@@ -1095,10 +1093,27 @@ object PlanMaterializer {
             sideReferenceCandidates.map { it.quantityConvention }.distinct().size <= 1 -> sideReferenceCandidates
             else -> emptyList()
         }
-        val baseLoadKg = if (explicit != null) {
-            referenceBaseKg(explicit)
-        } else {
-            legacyReference
+        // La base de carga se elige POR SERIE según su `loadBasis` (una receta puede mezclar %TM y %1RM en un
+        // mismo slot): PERCENT_1RM / PERCENT_DESIRED_MAX leen el 1RM; PERCENT_TM, PERCENT_OF_TOP_SET y el
+        // resto leen el TM, que sin TM declarado es 1RM × la fracción de TM de la receta. Nunca se deduce un
+        // 1RM desde un TM. Una referencia declarada de trabajo observado/lastre es la base de todas las series.
+        fun readsOneRm(basis: LoadBasis): Boolean =
+            basis == LoadBasis.PERCENT_1RM || basis == LoadBasis.PERCENT_DESIRED_MAX
+        val declaredOneRmKg = explicit
+            ?.takeIf { it.kind == PlanLoadReferenceKind.EXERCISE_1RM }
+            ?.let { referenceBaseKg(it) }
+        val declaredTmKg: Double? = when {
+            explicit == null -> tm
+            explicit.kind == PlanLoadReferenceKind.EXERCISE_TM -> referenceBaseKg(explicit)
+            else -> declaredOneRmKg?.times(recipeTmFraction)
+        }
+        fun baseLoadKgFor(set: SetRecipe): Double? = when {
+            explicit == null -> if (readsOneRm(set.loadBasis)) oneRm else tm
+            explicit.kind == PlanLoadReferenceKind.EXERCISE_1RM ->
+                if (readsOneRm(set.loadBasis)) declaredOneRmKg else declaredTmKg
+            explicit.kind == PlanLoadReferenceKind.EXERCISE_TM ->
+                if (readsOneRm(set.loadBasis)) null else declaredTmKg
+            else -> referenceBaseKg(explicit)
         }
         val directWorkingLoadKg = explicit
             ?.takeIf { reference ->
@@ -1123,7 +1138,7 @@ object PlanMaterializer {
                 set = set,
                 slot = slot,
                 week = week,
-                tm = baseLoadKg,
+                tm = baseLoadKgFor(set),
                 idProvider = idProvider,
                 stableSetId = stableExerciseId?.let { "$it#set:$index" },
                 progression = recipe.progression,
@@ -1224,10 +1239,15 @@ object PlanMaterializer {
                     explicit.state == PlanLoadReferenceState.CAPTURED -> explicit.capturedLoadKg?.takeIf { it > 0.0 }
                 else -> null
             },
+            // `referenceTrainingMax` es el TM con el que se resolvieron las series %TM. Con un 1RM capturado y sin TM
+            // declarado (TM = 1RM × la fracción de TM de la receta) se conserva ese TM derivado para que el editor
+            // y el entrenamiento resuelvan las mismas cargas; sin series %TM no se inventa ninguno.
             referenceTrainingMax = when {
                 explicit == null -> tm
                 explicit.kind == PlanLoadReferenceKind.EXERCISE_TM &&
                     explicit.state == PlanLoadReferenceState.CAPTURED -> explicit.capturedLoadKg?.takeIf { it > 0.0 }
+                explicit.kind == PlanLoadReferenceKind.EXERCISE_1RM &&
+                    working.any { it.percent != null && !readsOneRm(it.loadBasis) } -> declaredTmKg
                 else -> null
             },
             variantName = slot.technique?.displayName(),

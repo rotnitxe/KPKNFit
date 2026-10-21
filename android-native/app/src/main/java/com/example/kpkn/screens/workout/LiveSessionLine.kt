@@ -102,7 +102,11 @@ internal fun LiveSessionLine(
 ) {
     val ink = WizardColors.text
     val reduced = wizardReducedMotion()
-    val clouds = snapshot?.let { liveSessionLineSteps(it, it.activePageIndex) }.orEmpty()
+    val clouds = snapshot?.let { state -> liveSessionLineSteps(state, state.activePageIndex).map { step ->
+        state.calibratedPageLoads[step.pageIndex]?.let { load ->
+            step.copy(calibratedLoad = load, description = "${step.description}, calibrada ${finishNumber(load)} kg")
+        } ?: step
+    } }.orEmpty()
     val selected = clouds.indexOfFirst { it.active }.coerceAtLeast(0)
     val preparation = clouds.indices.filter { clouds[it].preparationSelect != null }.toSet()
     val ranges = liveSessionLineRanges(clouds.size, selected, preparation)
@@ -262,7 +266,7 @@ internal fun LiveSessionLine(
 @Composable
 private fun SessionLinePill(label: String, description: String, active: Boolean, onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null, cloud: LiveSessionLineStep? = null, tag: String? = null) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(if (cloud?.calibratedLoad != null) 12.dp else 18.dp)
     val ink = when {
         active -> androidx.compose.ui.graphics.Color.Black
         cloud?.completed == true -> SymbolPalette.ok
@@ -278,18 +282,28 @@ private fun SessionLinePill(label: String, description: String, active: Boolean,
                 if (cloud?.skipped == true) add("Omitida")
                 cloud?.preparationProgress?.takeIf { !cloud.completed }?.let { add("${(it.coerceIn(0f, 1f) * 100).toInt()} por ciento") }
                 if (cloud?.volumeReplaced == true) add("Técnica de volumen reemplazado")
+                if (cloud?.calibratedLoad != null) add("calibrada")
             }.joinToString(", ")
         }.testTag(tag ?: "live-session-step-${cloud?.key ?: description}"), contentAlignment = Alignment.Center) {
-        Row(Modifier.size(44.dp, if (active) 44.dp else 34.dp).clip(shape)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(Modifier.size(44.dp, if (active || cloud?.calibratedLoad != null) 44.dp else 34.dp).clip(shape)
             .background(if (active) WizardColors.text else androidx.compose.ui.graphics.Color(0xFF202020))
             .border(1.dp, if (cloud?.volumeReplaced == true) VolumeReplacedStepperTint else WizardColors.text.copy(alpha = .10f), shape),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
             when (cloud?.description) {
                 "Movilidad" -> Icon(Icons.Default.AccessibilityNew, null, Modifier.size(20.dp), tint = ink)
                 "Aproximación" -> Icon(Icons.Default.FitnessCenter, null, Modifier.size(20.dp), tint = ink)
-                else -> Text((if (cloud?.completed == true) "✓" else "") + label,
-                    style = KpknType.chip.copy(fontSize = 11.sp, lineHeight = 14.sp), color = ink.copy(alpha = if (cloud?.skipped == true) .4f else 1f), maxLines = 1)
+                else -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text((if (cloud?.completed == true) "✓" else "") + label,
+                        style = KpknType.chip.copy(fontSize = 11.sp, lineHeight = 14.sp), color = ink.copy(alpha = if (cloud?.skipped == true) .4f else 1f), maxLines = 1)
+                    cloud?.calibratedLoad?.let {
+                        Text("${finishNumber(it)} kg", fontSize = 9.sp, lineHeight = 10.sp, color = ink)
+                    }
+                }
             }
+        }
+        if (cloud?.calibratedLoad != null) Text("calibrada", fontSize = 7.sp, lineHeight = 8.sp,
+            color = WizardColors.textMuted, maxLines = 1)
         }
     }
 }

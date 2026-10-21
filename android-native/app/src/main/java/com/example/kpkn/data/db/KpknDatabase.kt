@@ -65,8 +65,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         SetupCommitReceiptEntity::class,
         // Técnica en vídeo: caché del análisis, hija de workout_media con CASCADE (v29)
         VideoAnalysisEntity::class,
+        CalibrationDecisionEntity::class,
     ],
-    version = 29,
+    version = 30,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -91,6 +92,7 @@ abstract class KpknDatabase : RoomDatabase() {
     abstract fun setupDraftDao(): SetupDraftDao
     abstract fun setupCommitReceiptDao(): SetupCommitReceiptDao
     abstract fun videoAnalysisDao(): VideoAnalysisDao
+    abstract fun calibrationDecisionDao(): CalibrationDecisionDao
 
     companion object {
         @Volatile private var INSTANCE: KpknDatabase? = null
@@ -778,6 +780,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_26_27,
                     MIGRATION_27_28,
                     videoAnalysisMigration(28),
+                    CALIBRATION_MIGRATION_29_30,
                 )
                 .addCallback(GlobalFoodsFtsHygiene)
                 .build()

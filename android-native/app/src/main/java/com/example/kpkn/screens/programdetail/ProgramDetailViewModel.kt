@@ -1577,16 +1577,41 @@ class ProgramDetailViewModel(
      * siguen pendientes y el botón RE-MATERIALIZAR aplica las cargas nuevas.
      */
     fun recordPendingOneRmTest(squat1RM: Double, bench1RM: Double, deadlift1RM: Double) {
+        recordPendingOneRmTestMarks(
+            mapOf(
+                com.example.kpkn.data.protocols.LiftSlot.SQUAT to squat1RM,
+                com.example.kpkn.data.protocols.LiftSlot.BENCH to bench1RM,
+                com.example.kpkn.data.protocols.LiftSlot.DEADLIFT to deadlift1RM,
+            ),
+        )
+    }
+
+    /**
+     * Los levantamientos que pide el test de 1RM del programa (CAL5): solo los de su receta (Smolov: la sentadilla) y el press militar
+     * si lo trabaja. Sin programa, sentadilla, banca y peso muerto.
+     */
+    fun oneRmTestLifts(): List<com.example.kpkn.data.protocols.LiftSlot> =
+        program.value?.let { com.example.kpkn.domain.training.OneRmTestPlan.requiredLifts(it) }
+            ?: com.example.kpkn.domain.training.OneRmTestPlan.requiredLifts(recipe = null)
+
+    /**
+     * Los 1RM que sugieren las series «Test» ya registradas (el single al 100 % de un top set de 1RM), por levantamiento. Solo precarga la
+     * hoja: la persona confirma o corrige cada valor y nada se guarda hasta «Guardar y continuar».
+     */
+    fun oneRmTestPrefill(): Map<com.example.kpkn.data.protocols.LiftSlot, Double> {
+        val current = program.value ?: return emptyMap()
+        val weeks = current.macrocycles.flatMap { macro -> macro.blocks.flatMap { block -> block.mesocycles.flatMap { it.weeks } } }
+        val hits = ProgramAutoregulationEngine.collectOneRmTestHits(weeks, currentProgramLogs(), current.sourceRecipe)
+        return com.example.kpkn.domain.training.OneRmTestPlan.prefill(hits, oneRmTestLifts())
+    }
+
+    /** Guarda los 1RM del test de los levantamientos del programa ([values], en kg) y avanza el cursor (R-19). */
+    fun recordPendingOneRmTestMarks(values: Map<com.example.kpkn.data.protocols.LiftSlot, Double>) {
         val current = program.value ?: return
         val result = ProgramProgressEngine.resolvePendingOneRmTest(
             program = current,
             activeState = activeProgramState.value?.takeIf { it.programId == current.id },
-            resolution = com.example.kpkn.data.models.OneRmResolution(
-                status = com.example.kpkn.data.models.OneRmResolutionStatus.RECORDED,
-                squat1RM = squat1RM,
-                bench1RM = bench1RM,
-                deadlift1RM = deadlift1RM,
-            ),
+            resolution = com.example.kpkn.domain.training.OneRmTestPlan.recorded(values),
             logs = currentProgramLogs(),
             inventory = currentEquipmentInventory(),
         )

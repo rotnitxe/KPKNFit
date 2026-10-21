@@ -1,4 +1,5 @@
 package com.example.kpkn.screens.workout
+import com.example.kpkn.data.models.performedPurpose
 
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.tourAnchor
@@ -998,6 +999,8 @@ internal fun WorkoutV2Body(
                             pagerState.settledPage,
                             showingPostExerciseCard,
                             workingRestActive,
+                            uiState.isRestMinimized,
+                            uiState.completedSets,
                             currentExercise.isCardio,
                             setPagerPages,
                         ) {
@@ -1014,6 +1017,9 @@ internal fun WorkoutV2Body(
                                 showingPostExerciseCard = showingPostExerciseCard,
                                 workingRestActive = workingRestActive,
                                 isCardio = currentExercise.isCardio,
+                                amrapResultWithMinimizedRest = uiState.isRestMinimized && settledPage?.type == LivePageType.NORMAL &&
+                                    settledPage?.let { page -> uiState.completedSets[workoutSetKey(page.exerciseId ?: currentExercise.id, page.setIndex, page.side)]
+                                        ?.performedPurpose()?.isAmrap == true } == true,
                             )
                             if (!recordFabHolder.visible) {
                                 recordFabHolder.isUpdateMode = false
@@ -1574,6 +1580,13 @@ internal fun WorkoutV2Body(
                             sessionAccentColor = sessionAccentColor,
                             canAddSet = canAddSetToCurrentExercise,
                             activePageIndex = pagerState.settledPage,
+                            calibratedPageLoads = setPagerPages.mapIndexedNotNull { pageIndex, page ->
+                                if (page.type != LivePageType.NORMAL) return@mapIndexedNotNull null
+                                val owner = uiState.session?.allExercises()?.firstOrNull { it.id == (page.exerciseId ?: currentExercise.id) }
+                                    ?: return@mapIndexedNotNull null
+                                calibrationLoadForSet(uiState, owner, page.setIndex, page.side)?.takeIf { it.calibrated }
+                                    ?.let { pageIndex to it.weight }
+                            }.toMap(),
                         )
                         if (liveSetStepperHolder.snapshot != next) {
                             liveSetStepperHolder.snapshot = next
@@ -2191,7 +2204,16 @@ internal fun WorkoutV2Body(
                                     sessionAccentColor = sessionAccentColor,
                                     persistedLoadModeBySet = uiState.persistedLoadModeBySet,
                                     persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,
-                                    amrapCalibrationMessage = uiState.amrapCalibrationMessage,
+                                    amrapResultPanel = if (sessionCompletedSet?.performedPurpose()?.isAmrap == true) {
+                                        { edit ->
+                                            com.example.kpkn.screens.workout.components.LiveCalibrationResult(
+                                                state = uiState, exercise = targetExercise, completed = sessionCompletedSet,
+                                                record = viewModel.calibrationForSet(sessionCompletedSet),
+                                                program = viewModel.amrapProgramPreview(targetExercise, activeSetIndex, sessionCompletedSet),
+                                                onResolve = viewModel::resolveCalibrationDecision,
+                                                onContinue = { viewModel.nextSet(stopRest = false) }, onEdit = edit)
+                                        }
+                                    } else null,
                                     isActivePage = isActivePage,
                                     isSettledPage = isSettledPage,
                                     initialDraft = viewModel.getSetDraft(targetExercise.id, activeSetIndex, cardSide),

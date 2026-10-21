@@ -194,6 +194,7 @@ class WorkoutPersistenceController(
                     activeExerciseIndex = state.currentExerciseIdx,
                     activeStepKey = state.activeStepKey,
                     completedSets = state.completedSets,
+                    calibrationDecisions = state.calibrationDecisions,
                     dynamicWeights = state.loadSuggestions.mapValues { it.value.suggestedWeight },
                     loadSuggestionReasons = state.loadSuggestions.mapValues { it.value.reason },
                     exerciseTags = state.exerciseTags,

@@ -512,6 +512,28 @@ class PlanMaterializerCardioIdentityTest {
 
         assertEquals(reference, exercise.loadReference)
         assertEquals(100.0, exercise.reference1RM ?: -1.0, 0.001)
+        // FIX-TM: la serie es PERCENT_TM, así que su 80 % se lee sobre el TM. Un 1RM capturado sin TM declarado
+        // da TM = 1RM × la fracción de TM de la receta (0,90): 90 kg, y la carga es 72 kg, no el 80 % del 1RM.
+        // Antes de CAL1 esta prueba esperaba 80 kg porque el 1RM hacía de TM (mezcla de significados).
+        assertEquals(90.0, exercise.referenceTrainingMax ?: -1.0, 0.001)
+        assertEquals(72.0, exercise.sets.first().weight ?: -1.0, 0.001)
+    }
+
+    @Test
+    fun captured_1rm_reference_feeds_percent_1rm_sets_directly() {
+        val reference = PlanLoadReference(
+            kind = PlanLoadReferenceKind.EXERCISE_1RM,
+            configurationId = CatalogIds.BP,
+            state = PlanLoadReferenceState.CAPTURED,
+            capturedLoadKg = 100.0,
+        )
+        val program = materialize(
+            referenceRecipe(SetRecipe(reps = 5, percent = 80.0, loadBasis = LoadBasis.PERCENT_1RM, reference = reference)),
+        )
+        val exercise = firstWeek(program).sessions.first().allExercises().first()
+
+        assertEquals(100.0, exercise.reference1RM ?: -1.0, 0.001)
+        assertNull("Sin series %TM no se inventa un TM", exercise.referenceTrainingMax)
         assertEquals(80.0, exercise.sets.first().weight ?: -1.0, 0.001)
     }
 
@@ -574,7 +596,10 @@ class PlanMaterializerCardioIdentityTest {
         // El squat no tiene entrada en la bolsa: resolución legacy intacta.
         val squat = exercises.first { it.recipeSlotId == "s_squat" }
         assertNull(squat.loadReference)
-        assertEquals(180.0, squat.reference1RM ?: -1.0, 0.001)
+        // FIX-TM: el perfil trae 1RM 200 y la receta TM al 90 %: `reference1RM` es el 1RM (200) y el TM (180)
+        // vive en `referenceTrainingMax`; las series son %TM, así que el 75 % se lee sobre 180.
+        assertEquals(200.0, squat.reference1RM ?: -1.0, 0.001)
+        assertEquals(180.0, squat.referenceTrainingMax ?: -1.0, 0.001)
         assertEquals(75.0 / 100.0 * 180.0, squat.sets.first().weight ?: -1.0, 0.001)
 
         assertNotNull(squat.warmupSets.firstOrNull())

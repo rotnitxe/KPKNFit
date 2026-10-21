@@ -34,6 +34,7 @@ data class WorkoutLog(
     val exercisePhotos: Map<String, List<String>> = emptyMap(), // exerciseId → local paths (max 2)
     val sessionMilestones: List<SessionMilestone> = emptyList(),
     val sessionNotes: String = "",
+    val calibrationDecisions: List<CalibrationDecisionRecord> = emptyList(),
     val sessionSavedNotes: List<SessionSavedNote> = emptyList(),
     val sessionPhotos: List<String> = emptyList(),
     val sessionChecklist: List<SessionChecklistItem> = emptyList(),
@@ -265,6 +266,7 @@ data class OngoingWorkoutState(
     val activeStepKey: String? = null,
     val activeMode: WeekVariant = WeekVariant.A,
     val completedSets: Map<String, CompletedSet> = emptyMap(),
+    val calibrationDecisions: List<CalibrationDecisionRecord> = emptyList(),
     val dynamicWeights: Map<String, Double> = emptyMap(),
     val loadSuggestionReasons: Map<String, String> = emptyMap(),
     val setDrafts: Map<String, com.example.kpkn.screens.workout.WorkoutSetDraft> = emptyMap(),

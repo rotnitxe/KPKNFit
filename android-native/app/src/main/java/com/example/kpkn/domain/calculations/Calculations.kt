@@ -259,6 +259,54 @@ private fun explicitTrainingMaxLoad(exercise: Exercise, set: ExerciseSet): Doubl
     return TrainingMaxResolver.loadKg(percent, trainingMax)?.takeIf { it.isFinite() && it > 0.0 }
 }
 
+/**
+ * Referencia (kg) sobre la que se lee el `targetPercentageRM` de [set], según su base de carga:
+ * - `PERCENT_TM`: SOLO el TM declarado (`referenceTrainingMax`); jamás el 1RM ni una capacidad deducida;
+ * - cualquier otra base con porcentaje (`PERCENT_1RM`, `PERCENT_DESIRED_MAX`, sin base...): el 1RM declarado
+ *   (`reference1RM`), que siempre significa 1RM.
+ * null = falta la referencia de esa base (la carga queda pendiente, nunca se rellena con la otra).
+ */
+fun percentLoadReferenceKg(exercise: Exercise, set: ExerciseSet): Double? {
+    val reference = if (set.loadBasis == LoadBasis.PERCENT_TM) exercise.referenceTrainingMax else exercise.reference1RM
+    return reference?.takeIf { it.isFinite() && it > 0.0 }
+}
+
+/** Kg de un `%RM` declarado leído sobre la referencia de su base ([percentLoadReferenceKg]); null si falta el porcentaje o la referencia. */
+fun percentLoadKg(exercise: Exercise, set: ExerciseSet): Double? {
+    val percent = set.targetPercentageRM?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+    val reference = percentLoadReferenceKg(exercise, set) ?: return null
+    return (percent / 100.0 * reference).takeIf { it.isFinite() && it > 0.0 }
+}
+
+/**
+ * `%RM` de [set] expresado sobre el 1RM: el porcentaje tal cual para las bases de 1RM; para `PERCENT_TM`, el porcentaje por
+ * TM ÷ 1RM (con el TM y el 1RM declarados). null si no hay porcentaje o no se puede convertir (nunca mezcla las bases).
+ */
+fun percentOfOneRm(exercise: Exercise, set: ExerciseSet): Double? {
+    val percent = set.targetPercentageRM?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+    if (set.loadBasis != LoadBasis.PERCENT_TM) return percent
+    val trainingMax = percentLoadReferenceKg(exercise, set) ?: return null
+    val oneRm = exercise.reference1RM?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+    return percent * trainingMax / oneRm
+}
+
+/** Qué referencia falta para resolver los `%RM` declarados de un ejercicio, separada por base (1RM o TM). */
+data class MissingPercentReferences(val oneRm: Boolean, val trainingMax: Boolean) {
+    val any: Boolean get() = oneRm || trainingMax
+}
+
+/**
+ * Las series `PERCENT_TM` necesitan el TM; las demás con porcentaje, el 1RM ([resolved1RM], que puede venir de un PR).
+ * Un TM no sustituye a un 1RM ni al revés: cada base avisa de su propia falta.
+ */
+fun missingPercentReferences(exercise: Exercise, resolved1RM: Double?): MissingPercentReferences {
+    val withPercent = exercise.sets.filter { it.targetPercentageRM != null }
+    val needsTm = withPercent.any { it.loadBasis == LoadBasis.PERCENT_TM } &&
+        withPercent.first { it.loadBasis == LoadBasis.PERCENT_TM }.let { percentLoadReferenceKg(exercise, it) } == null
+    val needsOneRm = withPercent.any { it.loadBasis != LoadBasis.PERCENT_TM } && resolved1RM == null
+    return MissingPercentReferences(oneRm = needsOneRm, trainingMax = needsTm)
+}
+
 fun calculateSuggestedLoad(exercise: Exercise, set: ExerciseSet): Double? {
     val loadMode = set.loadModeV2 ?: LoadModeV2.LOAD
     if (loadMode == LoadModeV2.BODYWEIGHT) return 0.0

@@ -49,3 +49,13 @@ El paquete `screens.workout` completo: **193 pruebas, 11 fallos**. Son exactamen
 - **Historia desde la cabecera:** ahora pasa. La hoja «Compartir» se ve completa (`21-story-from-live-header.png`).
 - **Registro rápido:** pasa.
 - **Línea tras registrar:** marca «1/4 · ✓S1 · S2».
+
+## Verificación de LV-BF en el emulador (APK `404af1b09`)
+
+En el paquete `screens.workout` completo, **195 pruebas: 194 pasan y 1 falla**. Las 7 omitidas lo son por suposición: revisiones congeladas y usuario QA 10.
+
+- **Nuevo fallo, reproducible:** `SessionRevisionFlowDeviceTest#realActivityReducedHeightKeepsCardAndLineComplete`, con «Voz conserva al menos 48dp táctiles» (`:841`).
+  - A 760 dp de alto, el botón de voz de la cabecera queda por debajo de 48 dp de objetivo táctil.
+  - Pasaba con LV-A. Probablemente lo introdujo el ajuste de títulos con elipsis y alto reservado de LV-BF.
+  - **Destino:** el siguiente paquete de arreglos de la sesión en vivo, junto a la QA de CAL3.
+- **Los 11 fallos anteriores** (commits guiados y los 7 heredados) ya pasan.

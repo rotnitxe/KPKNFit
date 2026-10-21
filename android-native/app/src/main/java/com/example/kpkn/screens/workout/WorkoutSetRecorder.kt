@@ -46,6 +46,7 @@ import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -158,7 +159,9 @@ class WorkoutSetRecorder(
             return RecordSetResult.Rejected("Cambia al lado activo antes de registrar.")
         }
         val recordingKey = buildCompletedSetKey(exercise.id, targetSetIdx, initialSide)
-        val requiresEffort = !exercise.isCardio && !advanced.isWarmup && !advanced.skipped
+        val calibratorRecording = exercise.sets.getOrNull(targetSetIdx)?.purpose == SetPurpose.CALIBRATOR &&
+            advanced.amrapOverride != false
+        val requiresEffort = !exercise.isCardio && !advanced.isWarmup && !advanced.skipped && !calibratorRecording
         var report = if (requiresEffort) preserveExistingRecordingEffort(intensity, advanced, state.completedSets[recordingKey]) else advanced
         if (requiresEffort) {
             recordingEffortError(intensity, report)?.let { message ->
@@ -246,7 +249,9 @@ class WorkoutSetRecorder(
             }
             val hasOnlyPartialReps = resolvedUnitMode == UnitModeV2.REPS && value == 0.0 &&
                 (report.partialReps ?: 0) > 0
-            if (resolvedUnitMode != UnitModeV2.TIME && value <= 0.0 && !isFailedEntry && !hasOnlyPartialReps) {
+            val zeroRepCalibrator = calibratorRecording && resolvedUnitMode == UnitModeV2.REPS && value == 0.0 &&
+                (report.reachedFailure || report.rir != null || intensity != null)
+            if (resolvedUnitMode != UnitModeV2.TIME && value <= 0.0 && !isFailedEntry && !hasOnlyPartialReps && !zeroRepCalibrator) {
                 ports.onRecordingRejected("Reps/tiempo inválidos. Revisa el valor antes de registrar.")
                 return RecordSetResult.Rejected("Reps/tiempo inválidos. Revisa el valor antes de registrar.")
             }
@@ -351,7 +356,7 @@ class WorkoutSetRecorder(
                 },
                 assistedLoad = if (resolvedLoadMode == LoadModeV2.ASSISTED) weight.takeIf { it > 0.0 } else null,
                 bodyWeightSnapshot = resolvedBodyWeight,
-                completedReps = actualReps.takeIf { it > 0 || hasOnlyPartialReps },
+                completedReps = actualReps.takeIf { it > 0 || hasOnlyPartialReps || zeroRepCalibrator },
                 partialReps = report.partialReps,
                 durationSeconds = durationSeconds,
                 actualIntensityMode = actualIntensityMode,
@@ -592,8 +597,8 @@ class WorkoutSetRecorder(
                     // nextSet() must never advance from a stale cursor.
                     currentExerciseIdx = recordedExerciseIdx.takeIf { it >= 0 } ?: current.currentExerciseIdx,
                     currentSetIdx = targetSetIdx,
-                    activeStepKey = currentWorkoutStep?.stepKey
-                        ?: WorkoutStepRules.workingStepKey(exercise.id, targetSetIdx, resolvedSide),
+                    activeStepKey = if (amrapActive) WorkoutStepRules.workingStepKey(exercise.id, targetSetIdx, resolvedSide)
+                        else currentWorkoutStep?.stepKey ?: WorkoutStepRules.workingStepKey(exercise.id, targetSetIdx, resolvedSide),
                     setAdvancedFeedback = current.setAdvancedFeedback + (key to report),
                     planDeviations = current.planDeviations + newDeviations,
                     setJustLoggedKey = key,
@@ -617,11 +622,21 @@ class WorkoutSetRecorder(
             val submitted = getState()
             val draftKey = workoutSetKey(exercise.id, targetSetIdx, resolvedSide)
             val fallbackKey = workoutSetKey(exercise.id, targetSetIdx)
-            val candidate = applyRecorded(submitted).copy(
+            val recordedCandidate = applyRecorded(submitted).copy(
                 setDrafts = submitted.setDrafts.minus(draftKey).minus(fallbackKey),
                 persistedLoadModeBySet = submitted.persistedLoadModeBySet + (fallbackKey to resolvedLoadMode),
                 persistedLoadModeByExercise = submitted.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode),
             )
+            val now = System.currentTimeMillis()
+            val calibrationRecord = if (performedPurpose == SetPurpose.CALIBRATOR && !completedSet.skipped) {
+                withContext(Dispatchers.IO) {
+                    buildRecordedCalibration(recordedCandidate, exercise, targetSetIdx, completedSet,
+                        repository.history.value, repository.calibrationDecisions.accepted(now, completedSet.id), now,
+                        repository.settings.value.resolvedEquipmentInventory())
+                }
+            } else null
+            val candidate = recordedCandidate.copy(calibrationDecisions = replaceRecordedCalibration(
+                submitted.calibrationDecisions, completedSet.id, calibrationRecord, now))
             val publishRecorded: () -> Unit = {
                 updateState { current ->
                     val remainingDrafts = current.setDrafts.filter { (draftId, draft) ->
@@ -646,6 +661,8 @@ class WorkoutSetRecorder(
                         setDrafts = remainingDrafts,
                         persistedLoadModeBySet = current.persistedLoadModeBySet + (fallbackKey to resolvedLoadMode),
                         persistedLoadModeByExercise = current.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode),
+                        calibrationDecisions = candidate.calibrationDecisions,
+                        calibrationError = null,
                     )
                 }
             }
@@ -729,7 +746,7 @@ class WorkoutSetRecorder(
                 (plannedSet.isDropSet && report.dropSets.isEmpty()) ||
                     (plannedSet.isRestPause && report.restPauses.isEmpty())
                 )
-            if (!isExecutionError && !unilateralPendingOtherSide && !wasExistingSet && !techniqueStillOpen) {
+            if (!amrapActive && !isExecutionError && !unilateralPendingOtherSide && !wasExistingSet && !techniqueStillOpen) {
                 // A legacy/one-phase scheduled set still gets its deterministic
                 // next-load prescription even when the UI did not need to
                 // collect explicit follow-up rows.
@@ -1012,23 +1029,7 @@ class WorkoutSetRecorder(
                 },
             )
             updateState { it.copy(lastDrainOverlay = drainOverlay) }
-            if (amrapActive) {
-                val contextPerformance = state.contextualPerformanceCache[contextKey]
-                val ewma = contextPerformance?.ewma ?: 0.0
-                val amrapVolume = weight * actualValue
-                val calibratorMsg = if (ewma > 0 && amrapVolume > 0) {
-                    val ratio = amrapVolume / ewma
-                    val pct = (kotlin.math.abs(ratio - 1.0) * 100).toInt().coerceAtLeast(1)
-                    when {
-                        ratio > 1.10 -> "AMRAP: +$pct% vs histórico. Sugerencia: aumentar carga."
-                        ratio < 0.90 -> "AMRAP: -$pct% vs histórico. Sugerencia: reducir carga."
-                        else -> null
-                    }
-                } else {
-                    null
-                }
-                updateState { it.copy(amrapCalibrationMessage = calibratorMsg) }
-            }
+            if (amrapActive) updateState { it.copy(isRestMinimized = true) }
             ports.updateCoachMessage(
                 setDrain = setDrain,
                 sessionProgress = sessionProgress,

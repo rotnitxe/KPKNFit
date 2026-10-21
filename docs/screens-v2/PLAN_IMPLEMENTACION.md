@@ -26,6 +26,16 @@ El usuario aprobó todas las recomendaciones y todos los diseños del lienzo. Or
   5. RIR/RPE parte del mínimo. Deslizador de esfuerzo aprobado (fino, con destello).
 - **Pruebas:** cada paquete compila (`:app:compileBaseDebugKotlin` y `androidTest` si toca la interfaz) y pasa sus pruebas nuevas o afectadas. Al cerrar cada ola, regresión filtrada del área y QA en el Z Flip (`.dbg`, regla de 20 min).
 - **Commits** con `Co-Authored-By: Codex <noreply@openai.com>`. Sin push sin orden del usuario.
+- **Esquema de Room congelado desde el 21-oct.** El usuario usa con datos personales un APK de integración, `com.example.kpkn.completo` (`C:\kw\qa-todo`, rama `qa/todo-20261021`) que lleva:
+  - calibración 29→30 (`CALIBRATION_MIGRATION_29_30`, `CalibrationDecisionEntity` tal como están en `a913d3742`);
+  - nutrición 30→31 (`nutritionDayStateMigration(30)`, de `feat/macrofactor-parity`);
+  - versión 31.
+
+  Reglas:
+  1. Nadie edita esa entidad, esa migración ni `schemas/30.json`.
+  2. Todo cambio de esquema nuevo va en una migración de la 32 en adelante, después de fusionar con master.
+  3. Al fusionar en master se mantiene ese orden (calibración 30, nutrición 31). Si hay que cambiarlo, antes se avisa a la sesión de técnica por vídeo, porque ajusta el APK.
+  4. `com.example.kpkn.completo` se trata como `com.example.kpkn`: no se toca. La `.dbg` tiene otro id y sigue siendo desechable para la QA.
 
 ## Olas y paquetes (en este orden)
 

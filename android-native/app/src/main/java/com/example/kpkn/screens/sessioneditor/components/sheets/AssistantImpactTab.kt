@@ -30,6 +30,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.domain.auge.DrainReading
+import com.example.kpkn.domain.auge.SpinalEvidence
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.MuscleVolumeRow
@@ -62,11 +64,18 @@ internal fun AssistantImpactTab(uiState: SessionEditorUiState) {
     val session = uiState.session
     val volumeRows = remember(session) { session?.let { buildMuscleVolumeRows(it) }.orEmpty() }
     // Energía = coste del SNC; Músculos = coste muscular; Columna = coste axial (mismo mapeo que en la sesión en vivo).
+    // MOT · I2: las cifras salen de la proyección compartida con el motor general, con decimales: cero, «<1» y «sin estimación» se
+    // distinguen. Sin proyección (resumen de respaldo) se leen los enteros de siempre.
+    val projection = summary.drainProjection
+    val columnaReading = projection?.spinalReading ?: DrainReading.of(summary.sessionDrain.spinal.toDouble())
+    val musculosReading = projection?.muscularReading ?: DrainReading.of(summary.sessionDrain.muscular.toDouble())
+    val energiaReading = projection?.cnsReading ?: DrainReading.of(summary.sessionDrain.cns.toDouble())
     val rings = TowerRingValues(
-        columna = summary.sessionDrain.spinal,
-        musculos = summary.sessionDrain.muscular,
-        energia = summary.sessionDrain.cns,
+        columna = columnaReading.ringValue,
+        musculos = musculosReading.ringValue,
+        energia = energiaReading.ringValue,
     )
+    val axialNote = remember(projection, session) { columnAxialNote(projection, session) }
 
     if (report == null) {
         SheetLoadingSkeleton()
@@ -83,7 +92,16 @@ internal fun AssistantImpactTab(uiState: SessionEditorUiState) {
                 animate = false,
             )
             Spacer(Modifier.width(20.dp))
-            AssistantRingFigures(values = rings, modifier = Modifier.weight(1f))
+            AssistantRingFigures(
+                musculos = musculosReading,
+                energia = energiaReading,
+                columna = columnaReading,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        if (axialNote != null) {
+            Spacer(Modifier.height(8.dp))
+            SheetCaption(axialNote, color = WizardColors.textFaint)
         }
     }
 
@@ -133,19 +151,49 @@ internal fun AssistantImpactTab(uiState: SessionEditorUiState) {
 
 /** Las tres cifras de la torre: Músculos, Energía y Columna, una por fila, con el color de su anillo y la cifra en `metricM`. */
 @Composable
-private fun AssistantRingFigures(values: TowerRingValues, modifier: Modifier = Modifier) {
+private fun AssistantRingFigures(
+    musculos: DrainReading,
+    energia: DrainReading,
+    columna: DrainReading,
+    modifier: Modifier = Modifier,
+) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        AssistantRingFigure(name = "Músculos", value = values.musculos ?: 0, color = KpknRingColors.musculos)
-        AssistantRingFigure(name = "Energía", value = values.energia ?: 0, color = KpknRingColors.energia)
-        AssistantRingFigure(name = "Columna", value = values.columna ?: 0, color = KpknRingColors.columna)
+        AssistantRingFigure(name = "Músculos", reading = musculos, color = KpknRingColors.musculos)
+        AssistantRingFigure(name = "Energía", reading = energia, color = KpknRingColors.energia)
+        AssistantRingFigure(name = "Columna", reading = columna, color = KpknRingColors.columna)
     }
 }
 
 @Composable
-private fun AssistantRingFigure(name: String, value: Int, color: Color) {
+private fun AssistantRingFigure(name: String, reading: DrainReading, color: Color) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         SheetCaption(text = name, modifier = Modifier.weight(1f), color = WizardColors.textMuted)
-        KpknMetric(value = "$value", unit = "%", style = KpknType.metricM, color = color)
+        if (reading is DrainReading.Unknown) {
+            // Dato desconocido: no se pinta un cero que parezca «sin carga».
+            SheetCaption(text = reading.label, color = WizardColors.textMuted)
+        } else {
+            KpknMetric(value = reading.label, unit = "%", style = KpknType.metricM, color = color)
+        }
+    }
+}
+
+/**
+ * Nota bajo las cifras cuando la Columna no se apoya en cargas axiales declaradas: dice de qué ejercicios falta el dato en vez de
+ * mostrar un cero. Null si todos los ejercicios de fuerza declaran su carga axial.
+ */
+internal fun columnAxialNote(
+    projection: com.example.kpkn.domain.auge.SessionDrainProjection?,
+    session: Session?,
+): String? {
+    projection ?: return null
+    if (!projection.hasWork || projection.spinalEvidence == SpinalEvidence.DECLARED) return null
+    val names = projection.axialUnknownExerciseIds.mapNotNull { id ->
+        session?.allExercises()?.firstOrNull { it.id == id }?.name
+    }.distinct()
+    val list = names.take(2).joinToString(", ").let { if (names.size > 2) "$it y otros" else it }
+    return when (projection.spinalEvidence) {
+        SpinalEvidence.NONE -> "Columna sin estimación: no consta la carga axial de ${list.ifBlank { "estos ejercicios" }}."
+        else -> "Columna con datos parciales: no consta la carga axial de ${list.ifBlank { "algunos ejercicios" }}."
     }
 }
 
@@ -204,9 +252,12 @@ private fun AssistantVolumeModule(
                             maxDirect = maxDirect,
                             maxSecondary = maxSecondary,
                             maxStabilizer = maxStabilizer,
-                            energyDrain = summary.muscleEnergyDrain[row.muscle] ?: 0,
-                            spinalDrain = summary.muscleSpinalDrain[row.muscle] ?: 0,
-                            muscleDrain = summary.muscleDrainProjection[row.muscle] ?: 0,
+                            energyDrain = summary.muscleDrainPrecise[row.muscle]?.cns
+                                ?: (summary.muscleEnergyDrain[row.muscle] ?: 0).toDouble(),
+                            spinalDrain = summary.muscleDrainPrecise[row.muscle]?.spinal
+                                ?: (summary.muscleSpinalDrain[row.muscle] ?: 0).toDouble(),
+                            muscleDrain = summary.muscleDrainPrecise[row.muscle]?.muscular
+                                ?: (summary.muscleDrainProjection[row.muscle] ?: 0).toDouble(),
                             session = session,
                         )
                     }
@@ -232,9 +283,9 @@ private fun AssistantVolumeRow(
     maxDirect: Double,
     maxSecondary: Double,
     maxStabilizer: Double,
-    energyDrain: Int,
-    spinalDrain: Int,
-    muscleDrain: Int,
+    energyDrain: Double,
+    spinalDrain: Double,
+    muscleDrain: Double,
     session: Session?,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -299,10 +350,11 @@ private fun AssistantVolumeRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            AssistantDrainChip(label = "Músculo", value = muscleDrain, color = KpknRingColors.musculos)
-            AssistantDrainChip(label = "Energía", value = energyDrain, color = KpknRingColors.energia)
-            if (spinalDrain > 0) {
-                AssistantDrainChip(label = "Columna", value = spinalDrain, color = KpknRingColors.columna)
+            AssistantDrainChip(label = "Músculo", reading = DrainReading.of(muscleDrain), color = KpknRingColors.musculos)
+            AssistantDrainChip(label = "Energía", reading = DrainReading.of(energyDrain), color = KpknRingColors.energia)
+            // Un coste de Columna positivo menor de uno sigue visible como «<1 %».
+            if (spinalDrain > 0.0) {
+                AssistantDrainChip(label = "Columna", reading = DrainReading.of(spinalDrain), color = KpknRingColors.columna)
             }
         }
     }
@@ -331,10 +383,10 @@ private fun AssistantVolumeBar(label: String, progress: Float, color: Color) {
 }
 
 @Composable
-private fun AssistantDrainChip(label: String, value: Int, color: Color) {
+private fun AssistantDrainChip(label: String, reading: DrainReading, color: Color) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(color))
-        SheetCaption(text = "$label $value %", color = WizardColors.textMuted)
+        SheetCaption(text = "$label ${reading.label} %", color = WizardColors.textMuted)
     }
 }
 

@@ -478,7 +478,7 @@ private fun heroLoad(exercise: Exercise, working: List<ExerciseSet>): String? {
     val first = working.first()
     val percent = first.targetPercentageRM
     val kg = first.weight?.takeIf { it > 0.0 }
-        ?: percent?.let { p -> exercise.reference1RM?.let { rm -> rm * p / 100.0 } }
+        ?: com.example.kpkn.domain.calculations.percentLoadKg(exercise, first)
     val rir = first.targetRIR
     val rpe = first.targetRPE
     return when {

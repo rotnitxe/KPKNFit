@@ -144,6 +144,8 @@ data class WorkoutEditingState(
     val side: String? = null,
 )
 
+data class CalibrationActionFailure(val decisionId: String, val message: String)
+
 data class WorkoutUiState(
     val persistenceRevision: Long = 0L,
     val isStartingWorkout: Boolean = false,
@@ -229,6 +231,10 @@ data class WorkoutUiState(
     val imbalanceNotice: String? = null,
     val setDrafts: Map<String, WorkoutSetDraft> = emptyMap(),
     val manualLoadOverrides: Map<String, Double> = emptyMap(),
+    val calibrationDecisions: List<com.example.kpkn.data.models.CalibrationDecisionRecord> = emptyList(),
+    val acceptedCalibrationReferences: List<com.example.kpkn.domain.calibration.AcceptedCalibrationReference> = emptyList(),
+    val calibrationActionId: String? = null,
+    val calibrationError: CalibrationActionFailure? = null,
     val loadSuggestions: Map<String, WorkoutLoadSuggestionUi> = emptyMap(),
     val loadSuggestionPulseTokens: Map<String, Long> = emptyMap(),
     val editingState: WorkoutEditingState? = null,
@@ -264,7 +270,6 @@ data class WorkoutUiState(
     val persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
     val previousSessionDiscomforts: List<String> = emptyList(),
     val showExecutionErrorDiscomfortSheet: Boolean = false,
-    val amrapCalibrationMessage: String? = null,
     val targetDurationMinutes: Int? = null,
     val customTargetDurationMinutes: Int? = null,
     val pacingAlertMessage: String? = null,

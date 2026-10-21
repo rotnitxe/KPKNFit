@@ -7,7 +7,6 @@ import com.example.kpkn.data.protocols.AutoregulationHookKind
 import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.data.protocols.DayArchetypes
 import com.example.kpkn.data.protocols.DayRecipe
-import com.example.kpkn.data.protocols.IncrementScope
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.ProgressionRule
@@ -155,10 +154,11 @@ object JuggernautProtocol {
             weeks = weeks,
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
-            // B.S6 parte 2b: Juggernaut sube el TM al entrar en cada ola (5 kg en sentadilla y peso muerto, 2,5 kg en banca y press militar),
-            // no al cerrar un ciclo (la receta no se repite): `scope = BLOCK`. Entrar en la ola 8s sube el TM una vez y el final de la ola
-            // 3s, la última, no sube nada.
-            progression = ProgressionRule.CycleIncrement(2.5, 5.0, scope = IncrementScope.BLOCK),
+            // CAL5 (RES1 §5.2): Juggernaut no sube el TM un salto fijo por ola: el TM nuevo es TM + (reps del AMRAP de realización − estándar)
+            // × 2,5 kg (sentadilla y peso muerto) o 1,25 kg (banca y press militar), con un tope de 10 repeticiones extra. Se aplica al
+            // entrar en la ola siguiente (la receta no se repite); sin superar el estándar el TM no cambia y se avisa. El final de la
+            // ola 3s, la última, no sube nada.
+            progression = ProgressionRule.RepsOverStandardTm(lowerKgPerRep = 2.5, upperKgPerRep = 1.25, maxExtraReps = 10),
             // C7/B.S6 parte 2c: la ola de 3s llega al 90 % TM (81 % 1RM); el método mide su realización sobre el TM.
             // Exención BLOCK limitada a esa ola, tras convertir todos los chequeos a %1RM efectivo.
             exemptions = listOf(
@@ -171,13 +171,15 @@ object JuggernautProtocol {
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
-            contentVersion = 2,
+            contentVersion = 3,
         )
     }
 
     val definition = protocol(
         "juggernaut-2", "Juggernaut Method 2.0", "🦏",
-        "16 semanas = 4 olas × 4 semanas (10s/8s/5s/3s) con AMRAP de realización que ajusta TM.",
+        "16 semanas = 4 olas × 4 semanas (10s/8s/5s/3s). La AMRAP de la semana de realización fija el TM de la ola siguiente: " +
+            "TM + (repeticiones − estándar de la ola) × 2,5 kg en sentadilla y peso muerto o × 1,25 kg en banca y press, con un tope de 10 " +
+            "repeticiones extra; sin superar el estándar el TM no cambia y se avisa de que quizá esté alto.",
         "Chad Wesley Smith", listOf("powerlifting", "avanzado", "4 días", "16 semanas", "AMRAP", "%"),
         waves.map { ProtocolBlock(it.name, 4, it.goal.name.lowercase().replaceFirstChar { c -> c.titlecase() }, 40, 90) },
         "pl_classic_4", attributed("The Juggernaut Method 2.0", "https://www.jtsstrength.com/the-juggernaut-method-2-0/", "Chad Wesley Smith"),

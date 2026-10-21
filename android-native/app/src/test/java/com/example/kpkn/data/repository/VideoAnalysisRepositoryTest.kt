@@ -127,7 +127,7 @@ class VideoAnalysisRepositoryTest {
         assertEquals("squat_2", row.setKey)
         assertEquals(80.0, row.loadKg!!, 0.0)
         assertEquals(1_780_000_000_000L, row.recordedAtMs)
-        assertEquals(1, row.engineVersion)
+        assertEquals(com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisEngine.ENGINE_VERSION, row.engineVersion)
         assertNull(db.videoAnalysisDao().getByMedia("fantasma"))
     }
 

@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -779,21 +780,8 @@ private fun inlineRomLoadOptions(options: List<QuickLoadChipOption>): List<Quick
     return picked.take(2)
 }
 
-private fun quickLoadIncrementFor(exercise: Exercise, currentSet: ExerciseSet): Double {
-    val setupText = listOfNotNull(
-        exercise.setupDetails?.equipmentNotes,
-        currentSet.machineBrand,
-        exercise.contextProfilesV3.firstOrNull { it.id == currentSet.contextProfileIdV3 }?.machineBrand,
-        exercise.name,
-    ).joinToString(" ").lowercase()
-
-    return when {
-        "mancuerna" in setupText || "dumbbell" in setupText -> 1.0
-        "polea" in setupText || "maquina" in setupText || "máquina" in setupText || "machine" in setupText -> 5.0
-        else -> 2.5
-    }
-}
-
+private fun quickLoadIncrementFor(exercise: Exercise, currentSet: ExerciseSet): Double =
+    com.example.kpkn.screens.workout.calibrationIncrement(exercise, currentSet)
 
 @Composable
 internal fun WorkoutMiniTextField(
@@ -872,7 +860,6 @@ internal fun SetInputCardV2(
     persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
     activeTag: String? = null,
-    amrapCalibrationMessage: String? = null,
     activeSide: String? = null,
     sideLocked: Boolean = false,
     rmSuggestedWeight: Double? = null,
@@ -916,9 +903,12 @@ internal fun SetInputCardV2(
     onOpenAnalysis: (String) -> Unit = {},
     /** CAL3 may render a result inside the existing frame, without owning the recorder. */
     modeResultContent: (@Composable (LiveSetCardMode) -> Unit)? = null,
+    amrapResultPanel: (@Composable (() -> Unit) -> Unit)? = null,
     clockNowMillis: () -> Long = { android.os.SystemClock.elapsedRealtime() },
 ) {
     val context = LocalContext.current
+    var editingAmrapResult by remember(exercise.id, setIndex, activeSide, sessionCompletedSet) { mutableStateOf(false) }
+    val showAmrapResult = amrapResultPanel != null && !editingAmrapResult
     val recordActionInstanceOwner = remember { Any() }
     val isNarrowScreen = LocalLivePagerShouldReflow.current
     val resolvedWeightSuggestion = weightSuggestion.takeUnless { exercise.trainingMode == TrainingMode.SOLO_RPE }
@@ -926,11 +916,15 @@ internal fun SetInputCardV2(
         suggestion.suggestedWeight.toTrimmedNumberString()
     }
     val completedWeightText = sessionCompletedSet
-        ?.weight
+        ?.let { it.originalLoad ?: it.weight }
         ?.takeIf { it > 0.0 }
         ?.toLiveNumberString()
+    val calibrationWeight = resolvedWeightSuggestion?.takeIf {
+        it.reason == "calibrada" || it.reason == "Carga del plan conservada" || it.reason == "Referencia de calibración aceptada"
+    }?.suggestedWeight
     val defaultWeight: String = when {
         completedWeightText != null -> completedWeightText
+        calibrationWeight != null -> calibrationWeight.toLiveNumberString()
         exercise.trainingMode == TrainingMode.SOLO_RPE -> ""
         currentSet.targetPercentageRM != null -> {
             val baseText = liveRmValues(exercise, currentSet, currentSet.targetPercentageRM,
@@ -1039,7 +1033,7 @@ internal fun SetInputCardV2(
     }
     var lastAutoFilledWeight by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) { mutableStateOf(defaultWeight) }
     var hasManualWeightOverride by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
-        mutableStateOf(!draftWeightText.isNullOrBlank() || completedWeightText != null)
+        mutableStateOf(restoredDraft?.weightManuallyFixed ?: (!draftWeightText.isNullOrBlank() || completedWeightText != null))
     }
     var valueText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
         mutableStateOf(draftValueText ?: initialTechniqueValue ?: defaultValue.ifBlank { initialValueGhost })
@@ -1218,6 +1212,8 @@ internal fun SetInputCardV2(
         (exercise.nativeProgressionManaged && sidePlanWeight == null && loadMode != LoadModeV2.BODYWEIGHT)
     val plannedWeightGhost = if (manualLoadRequiredNow) {
         null
+    } else if (calibrationWeight != null) {
+        calibrationWeight.toLiveNumberString()
     } else if (liveMode == LiveSetCardMode.RM) {
         rmValues.weight?.toLiveNumberString() ?: sidePlanWeight?.takeIf { it > 0 }?.toLiveNumberString()
     } else {
@@ -1226,6 +1222,11 @@ internal fun SetInputCardV2(
     }
     LaunchedEffect(loadMode) {
         if (loadMode != LoadModeV2.ASSISTED) showBodyWeightPrompt = false
+    }
+    LaunchedEffect(calibrationWeight, sessionCompletedSet, hasManualWeightOverride) {
+        if (calibrationWeight != null && sessionCompletedSet == null && !hasManualWeightOverride) {
+            updateActiveWeightText(calibrationWeight.toLiveNumberString(), markManual = false)
+        }
     }
     // LV8: el fallo del plan es solo una marca sobre la pista del esfuerzo. La serie empieza sin marcar y el fallo se elige como cualquier
     // otro valor; una intensidad que la persona no eligió nunca se registra.
@@ -1919,6 +1920,10 @@ internal fun SetInputCardV2(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxSize()
+                    .then(if (showAmrapResult) Modifier.layout { measurable, constraints ->
+                        val placeable = measurable.measure(constraints)
+                        layout(placeable.width, placeable.height) {}
+                    } else Modifier)
                     .then(if (legacyModeLayout) Modifier.padding(bottom = 64.dp).verticalScroll(rememberScrollState()) else Modifier),
                 verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
@@ -1985,6 +1990,13 @@ internal fun SetInputCardV2(
             }
 
             // Ghost 'Última' removed - base container message eliminated
+            if (isAmrap) {
+                Text("${amrapMinimumReps?.let { "Mínimo $it" } ?: "Sin mínimo"} · ${if (currentSet.purpose == com.example.kpkn.data.models.SetPurpose.CALIBRATOR) "Calibrador" else "AMRAP"}",
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).testTag("amrap-purpose-badge"),
+                    color = Color(0xFFF49A6E), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(amrapMinimumReps?.let { "Haz al menos $it. Cuenta todas las que completes." } ?: "Cuenta todas las repeticiones que completes.",
+                    Modifier.padding(horizontal = 16.dp), color = Color.White.copy(alpha = .65f), fontSize = 11.sp, lineHeight = 15.sp)
+            }
 
             val volumeReplacedLabel = currentSet.volumeReplacedLabel()
             if (volumeReplacedLabel != null) {
@@ -2545,6 +2557,7 @@ internal fun SetInputCardV2(
                 onDraftChange(
                     base.copy(
                         weightText = reportWeightText,
+                        weightManuallyFixed = hasManualWeightOverride,
                         valueText = reportValueText,
                         intensityText = intensityText,
                         loadMode = loadMode,
@@ -2577,6 +2590,7 @@ internal fun SetInputCardV2(
                 rmReference,
                 rmPercent,
                 reportWeightText,
+                hasManualWeightOverride,
                 reportValueText,
                 intensityText,
                 loadMode,
@@ -2636,6 +2650,7 @@ internal fun SetInputCardV2(
                     onDraftChange(
                         WorkoutSetDraft(
                             weightText = reportWeightText,
+                            weightManuallyFixed = hasManualWeightOverride,
                             valueText = reportValueText,
                             intensityText = intensityText,
                             loadMode = loadMode,
@@ -3049,7 +3064,7 @@ internal fun SetInputCardV2(
                             return@label
                         }
                         // Error conserva carga y reps, pero también exige el esfuerzo elegido.
-                        if (!hasChosenReportedEffort) {
+                        if (!hasChosenReportedEffort && !(isAmrap && currentSet.purpose == com.example.kpkn.data.models.SetPurpose.CALIBRATOR)) {
                             requireEffort()
                             return@label
                         }
@@ -3105,7 +3120,9 @@ internal fun SetInputCardV2(
                         }
                         if (!isFailedSet) {
                             val parsedValue = liveQuantityNumber(reportedValueText, resolvedPlannedUnitMode)
-                            if (parsedValue == null || parsedValue < 0.0 || (parsedValue == 0.0 && !(resolvedPlannedUnitMode == UnitModeV2.REPS && partialRepsTotal > 0))) {
+                            val zeroRepCalibrator = isAmrap && currentSet.purpose == com.example.kpkn.data.models.SetPurpose.CALIBRATOR &&
+                                resolvedPlannedUnitMode == UnitModeV2.REPS && hasChosenReportedEffort
+                            if (parsedValue == null || parsedValue < 0.0 || (parsedValue == 0.0 && !(resolvedPlannedUnitMode == UnitModeV2.REPS && partialRepsTotal > 0) && !zeroRepCalibrator)) {
                                 quantityError = if (isTimeMode) "Introduce un tiempo positivo en min:s (segundos de 0 a 59)." else "Introduce una cantidad positiva."
                                 android.widget.Toast.makeText(
                                     context,
@@ -3291,12 +3308,15 @@ internal fun SetInputCardV2(
                 onDispose { recordActionHolder.clearIfOwner(recordActionInstanceOwner) }
             }
             }
-            if (legacyModeLayout) {
+            if (legacyModeLayout && !showAmrapResult) {
                 Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().background(Color(0xFF111111))
                     .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp)) {
                     LiveSetCardActions(onAdvanced = { cardFace = SetCardFace.Technique },
                         onVisual = { cardFace = SetCardFace.ExerciseMedia }, onHistory = onShowHistory)
                 }
+            }
+            if (showAmrapResult) Box(Modifier.matchParentSize()) {
+                amrapResultPanel?.invoke { editingAmrapResult = true }
             }
             // Ley 1 (LV8): la tarjeta no cambia de tamaño en ningún estado. El panel guiado de drop-set y rest-pause y el aviso del peso
             // corporal del asistido ya no se insertan arriba (la alargaban): van ENCIMA de la parte de abajo, con la carga a la vista.
@@ -3304,7 +3324,7 @@ internal fun SetInputCardV2(
             // Programmed editor techniques are VOLUME_REPLACED and use the existing top band/timeline.  The guided surface belongs
             // only to manual STACKED_ON_SET techniques; rendering it for a scheduled plan cuts the live card (the bug shown in the
             // beta capture).
-            if (guidedPhaseNow != null && currentSet.techniqueScope() == SetTechniqueScope.STACKED_ON_SET) {
+            if (!showAmrapResult && guidedPhaseNow != null && currentSet.techniqueScope() == SetTechniqueScope.STACKED_ON_SET) {
                 BoxWithConstraints(modifier = Modifier.matchParentSize()) {
                     Box(
                         modifier = Modifier
@@ -3329,7 +3349,7 @@ internal fun SetInputCardV2(
                     }
                 }
             }
-            if (loadMode == LoadModeV2.ASSISTED && (showBodyWeightPrompt || bodyWeightText.isBlank())) {
+            if (!showAmrapResult && loadMode == LoadModeV2.ASSISTED && (showBodyWeightPrompt || bodyWeightText.isBlank())) {
                 Box(modifier = Modifier.matchParentSize()) {
                     Surface(
                         modifier = Modifier

@@ -131,12 +131,12 @@ class GlobalFoodsFtsTriggerHygieneTest {
     fun upgrade_path_recreates_room_triggers_before_the_cleanup_runs() {
         createCurrentDatabase()
         val rowId = withRawDatabase { db ->
-            assertEquals("This test rewinds a v29 database to 27: revisit it when the schema version changes", 29, db.version)
+            assertEquals("This test rewinds a v30 database to 27: revisit it when the schema version changes", 30, db.version)
             // A database that reached v27 from v<=5: legacy triggers and, until Room's onPostMigrate, no Room ones.
             ROOM_TRIGGERS.forEach { db.execSQL("DROP TRIGGER `$it`") }
             plantLegacyTriggers(db)
             insertRawGlobalFood(db, "hallulla-1", "Hallulla amasada").also {
-                // MIGRATION_27_28 and videoAnalysisMigration(28) are idempotent, so a v29 file can be rewound to exercise onUpgrade.
+                // The 27→28, video-analysis and calibration migrations are idempotent; rewind v30 to exercise onUpgrade.
                 db.version = 27
             }
         }
