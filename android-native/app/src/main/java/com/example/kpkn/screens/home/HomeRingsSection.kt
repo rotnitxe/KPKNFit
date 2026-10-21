@@ -209,7 +209,7 @@ fun HomeRingsSection(
                 )
             },
         )
-        dashboard?.headline?.takeIf { it.isNotBlank() && !isLoading }?.let { headline ->
+        dashboard?.headline?.takeIf { it.isNotBlank() && !isLoading && ringsCoverage.hasAnyData }?.let { headline ->
             Text(
                 text = headline,
                 modifier = Modifier.padding(top = 6.dp),
@@ -320,7 +320,7 @@ fun HomeRingsSection(
             }
         }
 
-        if (dashboard != null && !isLoading) {
+        if (dashboard != null && !isLoading && ringsCoverage.hasAnyData) {
             Text(
                 // «por qué» va sin corte: no deja «qué» huérfano en la segunda línea.
                 text = "Confianza ${dashboard.confidenceLabel.lowercase()} · Toca un anillo para ver por qué",

@@ -34,7 +34,7 @@ data class AugeSnapshotCore(
     val batteries: GlobalBatteries,
     val perMuscle: Map<String, MuscleRecoveryStatus>,
     val dashboard: RecoveryDashboard,
-    val readiness: AugeReadinessVerdict,
+    val readiness: AugeReadinessVerdict?,
     val articular: Map<ArticularBattery, ArticularBatteryState>,
     val cumulativeFatigue: Double,
     val coverage: RingsCoverage,
@@ -65,9 +65,15 @@ object AugeSnapshotComputer {
             precomputedMuscles = muscles, articularBatteries = articular,
             nowOverrideMs = nowMs, zone = zone, nutritionContext = nutritionContext,
         )
+        val initialDashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
+            batteries, muscles, articular, wellbeing, sleepLogs,
+            recentSessionCount = AugeRecoveryEngine.recentSessionCount(history, nowMs),
+        )
+        val coverage = computeSnapshotCoverage(history, settings, wellbeing, initialDashboard, batteries, nowMs, zone)
         val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
             batteries, muscles, articular, wellbeing, sleepLogs,
             recentSessionCount = AugeRecoveryEngine.recentSessionCount(history, nowMs),
+            coverage = coverage,
         )
         val twoWeeksAgo = nowMs - 14L * 24 * 3_600_000L
         val cumulativeFatigue = history.filter { AugeUtils.logDateMs(it) >= twoWeeksAgo }.sumOf { log ->
@@ -79,10 +85,15 @@ object AugeSnapshotComputer {
                 durationMinutes = log.durationMinutes,
             )
         }
+        val readiness = if (coverage.hasAnyData) {
+            AugeRecoveryEngine.calculateDailyReadiness(dashboard, wellbeing)
+        } else {
+            null
+        }
         AugeSnapshotCore(
-            batteries, muscles, dashboard, AugeRecoveryEngine.calculateDailyReadiness(dashboard, wellbeing),
+            batteries, muscles, dashboard, readiness,
             articular, cumulativeFatigue,
-            computeSnapshotCoverage(history, settings, wellbeing, dashboard, batteries, nowMs, zone),
+            coverage,
         )
     }
 }

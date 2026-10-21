@@ -2,6 +2,7 @@ package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.auge.AugeFatigueEngine.calculateSetBatteryDrain
 import com.example.kpkn.domain.auge.AugeFatigueEngine.getDynamicAugeMetrics
 import com.example.kpkn.domain.auge.AugeFatigueEngine.isSetEffective
@@ -1281,6 +1282,7 @@ object AugeRecoveryEngine {
         wellbeing: DailyWellbeingLog?,
         sleepLogs: List<SleepLog> = emptyList(),
         recentSessionCount: Int = 0,
+        coverage: RingsCoverage? = null,
     ): RecoveryDashboard {
         val weightedSleep = calculateWeightedSleepHours(sleepLogs, wellbeing)
         val lowestMuscles = perMuscle.values.sortedBy { it.recoveryScore }.take(2)
@@ -1395,13 +1397,25 @@ object AugeRecoveryEngine {
                 channels.first { it.id == RecoveryChannelId.MUSCULAR }.score * 0.35 +
                 channels.first { it.id == RecoveryChannelId.STRUCTURE }.score * 0.25,
         )
-        val headline = RecoveryBands.headline(recoveryBand(overallScore))
-        val recommendation = RecoveryBands.recommendation(recoveryBand(overallScore))
         val confidenceAverage = channels.map { it.confidence }.average().toInt()
-        val limitingChannel = channels.minByOrNull { it.score }
-        val summary = limitingChannel?.let {
-            "${it.title} es hoy el factor limitante (${it.score}%)."
-        } ?: "Tu estado está equilibrado."
+        val knownChannels = if (coverage != null) {
+            channels.filter { coverage.channel(it.id).hasData }
+        } else {
+            channels
+        }
+        val limitingChannel = if (knownChannels.isNotEmpty()) {
+            knownChannels.minByOrNull { it.score }
+        } else {
+            null
+        }
+        val limitingBand = limitingChannel?.band ?: recoveryBand(overallScore)
+        val headline = if (coverage != null && !coverage.hasAnyData) "" else RecoveryBands.headline(limitingBand)
+        val recommendation = if (coverage != null && !coverage.hasAnyData) "" else RecoveryBands.recommendation(limitingBand)
+        val summary = when {
+            coverage != null && !coverage.hasAnyData -> "Sin datos de recuperación registrados."
+            limitingChannel != null -> "${limitingChannel.title} es hoy el factor limitante (${limitingChannel.score}%)."
+            else -> "Tu estado está equilibrado."
+        }
 
         return RecoveryDashboard(
             overallScore = overallScore,

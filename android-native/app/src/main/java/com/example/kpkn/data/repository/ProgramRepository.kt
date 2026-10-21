@@ -1175,7 +1175,7 @@ class ProgramRepository private constructor(
             val topLevel = advisory.advisories.maxByOrNull { LoadAdvisoryEngine.rank(it.level) }?.level
                 ?: LoadAdvisoryLevel.NONE
             AugeTransitionSnapshot(
-                readinessScore = core.readiness.score,
+                readinessScore = core.readiness?.score,
                 cumulativeFatigue = core.cumulativeFatigue,
                 stressLevel = wellbeing?.stressLevel,
                 advisoryLevel = topLevel,
