@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.data.exercises.approvedExerciseCatalogV2
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
@@ -106,6 +107,7 @@ internal fun SmartExerciseForm(
     onDismiss: () -> Unit,
 ) {
     val catalog = remember { exerciseCatalogSnapshot() }
+    val catalogV2 = remember { approvedExerciseCatalogV2() }
     var name by remember(initial) { mutableStateOf(initial?.name ?: "") }
     var implementoId by remember(initial) {
         mutableStateOf(
@@ -143,11 +145,16 @@ internal fun SmartExerciseForm(
                         implementoId = implementoId ?: "",
                         estacionId = estacionId,
                         lateralidadId = lateralidadId,
-                        description = description,
+                        // El borrador automático no cuenta como texto de la persona: se regenera mientras no lo edite.
+                        description = description.takeIf {
+                            it.isNotBlank() && !(initial?.descriptionOrigin == "GENERATED" && it == initial?.description)
+                        },
                         musclesOverride = musclesOverride,
                         existingId = initial?.id,
+                        existing = initial,
                     ),
                     catalog,
+                    catalogV2,
                 )
             }.getOrNull()
         } else {
@@ -171,7 +178,6 @@ internal fun SmartExerciseForm(
 
         OptionChipRow(
             title = "Implemento",
-            required = true,
             value = implementoId,
             options = SmartExerciseCreator.IMPLEMENTO_IDS,
             label = SmartExerciseCreator::implementoLabel,
@@ -218,7 +224,8 @@ internal fun SmartExerciseForm(
                     )
                     if (p.manualRecommended) {
                         Text(
-                            text = "No pudimos detectar el patrón con certeza: revisa el involucramiento muscular antes de guardar.",
+                            text = (p.referenceResult?.reason ?: "No pudimos detectar el patrón con certeza.") +
+                                " Revisa el involucramiento muscular antes de guardar.",
                             style = KpknType.caption,
                             color = SymbolPalette.energia,
                         )
@@ -278,7 +285,8 @@ internal fun SmartExerciseForm(
                     }
                 },
                 modifier = Modifier.weight(1f),
-                enabled = name.isNotBlank() && implementoId != null && !creating && preview != null,
+                // El material puede quedar desconocido: un ejercicio sin referencia nace con los datos por completar.
+                enabled = name.isNotBlank() && !creating && preview != null,
             )
         }
     }

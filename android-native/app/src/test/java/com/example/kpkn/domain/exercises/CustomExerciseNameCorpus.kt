@@ -119,3 +119,70 @@ internal val HELD_OUT_ABSTENTIONS: List<String> = listOf(
     "baile de salon",
     "mi rutina favorita",
 )
+
+/**
+ * Corpus FRESCO: escrito después de que el motor unificado alcanzara el 100 % en las 36 consultas de AUD1 y en el conjunto de
+ * validación (cuyas tablas de alias se redactaron con ese conjunto a la vista, así que su cifra es optimista). Estos nombres se
+ * midieron UNA vez antes de tocar nada: su resultado es la estimación honesta de generalización y no se ajustó nada con él.
+ */
+internal val FRESH_CORPUS: List<NameCase> = listOf(
+    NameCase(201, "press de hombros con mancuernas sentado", setOf("seated_shoulder_press"), "dumbbells"),
+    NameCase(202, "press militar de pie", setOf("military_press")),
+    NameCase(203, "elevaciones laterales en polea", setOf("standing_lateral_raise", "seated_lateral_raise"), "cable"),
+    NameCase(204, "peso muerto sumo", setOf("sumo_deadlift")),
+    NameCase(205, "peso muerto rumano a una pierna", setOf("romanian_deadlift")),
+    NameCase(206, "hip thrust con mancuerna", setOf("hip_thrust"), "dumbbells"),
+    NameCase(207, "sentadilla en smith", setOf("high_bar_back_squat", "low_bar_back_squat", "front_squat", "sumo_squat"), "smith_machine"),
+    NameCase(208, "curl predicador con barra z", setOf("preacher_curl"), "ez_bar"),
+    NameCase(209, "extension de cuadriceps", setOf("quads_extension_cuadriceps")),
+    NameCase(210, "curl de piernas tumbado", setOf("lying_leg_curl")),
+    NameCase(211, "jalon con agarre cerrado", setOf("close_grip_lat_pulldown", "lat_pulldown")),
+    NameCase(212, "remo en polea baja", setOf("conventional_row", "chest_supported_row"), "cable"),
+    NameCase(213, "aperturas en maquina", setOf("flat_chest_fly", "incline_chest_fly"), "machine"),
+    NameCase(214, "fondos", setOf("tren_superior_fondos", "triceps_fondos_entre_bancos")),
+    NameCase(215, "zancada caminando con mancuernas", setOf("walking_lunge"), "dumbbells"),
+    NameCase(216, "step up con mancuernas", setOf("step_up"), "dumbbells"),
+    NameCase(217, "elevacion de talones de pie en maquina", setOf("calf_raise"), "machine"),
+    NameCase(
+        218, "crunch abdominal",
+        setOf("core_crunch_suelo_peso_corporal", "core_crunch_maquina", "core_crunch_en_polea_alta", "core_crunch_banco_declinado_lastrado_disco"),
+    ),
+    NameCase(219, "plancha", setOf("core_plancha")),
+    NameCase(220, "dead bug", setOf("dead_bug")),
+    NameCase(221, "press de pecho en maquina", setOf("tren_superior_press_pecho_maquina_convergente", "bench_press"), "machine"),
+    NameCase(222, "pullover en polea", setOf("pullover"), "cable"),
+    NameCase(223, "curl de biceps con mancuernas", setOf("standing_biceps_curl"), "dumbbells"),
+    NameCase(224, "triceps en polea con cuerda", setOf("triceps_pushdown"), "cable"),
+    NameCase(225, "press frances con mancuernas", setOf("triceps_press_frances"), "dumbbells"),
+    NameCase(226, "encogimientos con barra", setOf("back_encogimientos"), "barbell"),
+    NameCase(227, "remo con mancuerna a una mano", setOf("back_remo_gorilla_mancuernas", "conventional_row", "chest_supported_row"), "dumbbells"),
+    NameCase(228, "buenos dias", setOf("good_morning")),
+    NameCase(229, "sentadilla goblet", setOf("quads_sentadilla_copa")),
+    NameCase(230, "peso muerto trap bar", setOf("conventional_deadlift"), "hex_bar"),
+    NameCase(231, "clean", setOf("power_clean", "squat_clean", "hang_power_clean")),
+    NameCase(232, "snatch", setOf("power_snatch", "squat_snatch", "hang_power_snatch")),
+    NameCase(233, "paseo del granjero", setOf("forearms_paseo_del_granjero")),
+    NameCase(234, "curl de muñeca", setOf("forearms_curl_muneca_sentado")),
+    NameCase(235, "extensiones de cuello", setOf("neck_extension_cuello")),
+    NameCase(236, "hiperextension 45", setOf("glutes_hiperextension_45", "back_extension_lumbar")),
+    NameCase(237, "sissy squat", setOf("sissy_squat")),
+    NameCase(238, "pistol squat", setOf("quads_sentadilla_pistola")),
+    NameCase(239, "nordic curl", setOf("hams_curl_nordic_peso_corporal")),
+    NameCase(240, "dominada australiana", setOf("back_remo_invertido")),
+    NameCase(241, "sentadila bulgara con mancuernas", setOf("bulgarian_split_squat"), "dumbbells"),
+    NameCase(242, "pres de banca con barra", setOf("bench_press", "paused_bench_press", "close_grip_bench_press"), "barbell"),
+    NameCase(243, "remo penday", setOf("pendlay_row")),
+    NameCase(244, "curl martillo con cuerda", setOf("hammer_curl"), "cable"),
+    NameCase(245, "abdominales en rueda", setOf("core_rueda_abdominal")),
+)
+
+/** Nombres sin equivalente en el catálogo: el motor debe abstenerse de certificar una referencia. */
+internal val FRESH_ABSTENTIONS: List<String> = listOf(
+    "burpees",
+    "salto al cajon",
+    "ejercicio loco",
+    "abc",
+    "yoga",
+    "sentadilla sobre bosu",
+    "turkish get up",
+)
