@@ -8296,5 +8296,13 @@
         "media": 1.1666666666666667
       }
     }
+  },
+  "verificacion_final": {
+    "tests": 126,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classes": 15,
+    "seconds": 45.2
   }
 }

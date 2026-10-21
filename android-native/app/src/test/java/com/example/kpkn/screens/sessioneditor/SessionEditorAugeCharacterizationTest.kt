@@ -9,7 +9,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.util.TimeZone
 
-/** Caracterización del editor re-anclada por 2.2b1; véanse las tablas antes→después del informe. */
+/** Caracterización del editor re-anclada por 2.2b2; véanse las tablas antes→después del informe. */
 @RunWith(Parameterized::class)
 class SessionEditorAugeCharacterizationTest(private val caseId: String) {
     private lateinit var previousZone: TimeZone

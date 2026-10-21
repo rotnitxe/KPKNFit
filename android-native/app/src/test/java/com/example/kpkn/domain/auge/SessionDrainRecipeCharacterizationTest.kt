@@ -13,7 +13,7 @@ import java.time.ZoneId
 import java.util.Locale
 import java.util.TimeZone
 
-/** Caracterización re-anclada por 2.2b1; las tablas del informe conservan la base y los motivos. */
+/** Caracterización re-anclada por 2.2b2; las tablas del informe conservan la base y los motivos. */
 @RunWith(Parameterized::class)
 class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
     private lateinit var previousZone: TimeZone

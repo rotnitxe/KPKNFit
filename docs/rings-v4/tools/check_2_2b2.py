@@ -200,6 +200,22 @@ def changed_lines(before, after):
     return [dict(antes=a, despues=b) for a, b in zip(before, after) if a != b]
 
 
+def characterization_statistics(row):
+    before, after = row["antes"], row["despues"]
+    if "MuscleRecoveryStatus(" in before:
+        unit = {"recoveryScore": "puntos", "hoursToRecovery": "horas", "hoursSinceLastSession": "horas", "effectiveSets": "series"}
+        a = dict(re.findall(r"(recoveryScore|hoursToRecovery|hoursSinceLastSession|effectiveSets)=(-?\d+)", before))
+        b = dict(re.findall(r"(recoveryScore|hoursToRecovery|hoursSinceLastSession|effectiveSets)=(-?\d+)", after))
+        groups = defaultdict(list)
+        for key in a:
+            groups[unit[key]] += deltas(a[key], b[key])
+    else:
+        unit = "unidades de estrés" if before.startswith("stress[") else "puntos"
+        groups = {unit: deltas(before, after)}
+    parts = [f"{unit}: {stats(values)['maximo']}/{stats(values)['media']:.6f}" for unit, values in groups.items() if values]
+    return "; ".join(parts) or "0/0 (solo bits/etiquetas)"
+
+
 def reanchor_pins(data):
     """Los nuevos pines proceden exclusivamente de la salida ya calculada por JUnit."""
     changes = []
@@ -311,8 +327,7 @@ def markdown(evidence):
                 f"{stats(r['deltas'])['maximo']}/{stats(r['deltas'])['media']:.6f}"] for r in data["golden"]])
         lines += ["### Caracterizaciones: todas las líneas distintas", ""]
         table(["Consumidor/caso", "Antes", "Después", "Máximo/media"],
-              [[r["caso"], r["antes"], r["despues"],
-                f"{stats(deltas(r['antes'], r['despues']))['maximo']}/{stats(deltas(r['antes'], r['despues']))['media']:.6f}"]
+              [[r["caso"], r["antes"], r["despues"], characterization_statistics(r)]
                for r in data["caracterizaciones"]])
         for key, title in (("pines", "Pines F0"), ("realismo", "Realismo muscular"), ("aprendiz", "Aprendiz: inversión, 30 gestos, observaciones propias y diagnósticos")):
             lines += [f"### {title}", ""]
@@ -345,6 +360,12 @@ def markdown(evidence):
         ])
         if "verificacion_final" in evidence:
             lines += ["Limpieza final de comentarios/opciones constantes: 0 campos, máximo 0, media 0. La corrida 5 comprueba sin regenerar que máster, caracterizaciones, pines, aprendiz y series siguen exactos tras esa limpieza.", ""]
+    lines += ["## Archivos y firmas", "",
+              "Ninguna firma pública nueva o cambiada. Todo tipo nuevo de la receta es interno: `ChannelDrainAccumulation(muscular, cns, spinal)`, `AdjustedSetDrain.accumulatedDrain: ChannelDrainAccumulation`, `SessionDrainRecipe.adjustSet(SetDrain, ChannelDrainAccumulation, Double)` y `accumulateCardio(Double, Double, Double)`. `RecipeOptions` conserva únicamente las dos variantes legítimas y el campo zombi de 3.1.", ""]
+    paths = subprocess.check_output(["git", "diff", "--name-only", BASE, "--"], cwd=ROOT).decode("utf-8").splitlines()
+    paths = sorted(set(paths + ["docs/rings-v4/reports/2.2b2.md"]))
+    lines += [f"- [{Path(path).name}](../../../{path})" for path in paths]
+    lines += [""]
     lines += ["## Ejecuciones y reproducción", "", "Base antes de editar producción; tres bloques numéricos con regeneración; verificación final sin regeneración. Los fallos de captura son snapshots anteriores, detallados en el JSON.", ""]
     rows = []
     for n, (stage, data) in enumerate(evidence["stages"].items(), 1):

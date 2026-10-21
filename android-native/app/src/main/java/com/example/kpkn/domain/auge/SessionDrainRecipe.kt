@@ -3,11 +3,13 @@ package com.example.kpkn.domain.auge
 import com.example.kpkn.data.models.*
 import kotlin.math.roundToInt
 
-/** Decisiones pendientes de 2.2b2, salvo el estado muscular zombi que se retira en 3.1. */
+/** Variantes legítimas del consumidor, salvo el estado muscular zombi reservado a 3.1. */
 internal data class RecipeOptions(
     /** Se elimina en 3.1 junto con el campo zombi del caché; conserva sus tres variantes hasta entonces. */
     val muscleMultiplierSource: MuscleMultiplierSource,
+    /** C conserva el respaldo de estrés del aprendiz sin V2; los demás usan ganchos con su propio reparto de cardio. */
     val cardioHandling: CardioHandling,
+    /** A/P/F: porcentaje por canal; B: unidades de estrés; C: sin tope; D/E: porcentaje por log. */
     val softCapUnits: SoftCapUnits,
 ) {
     /** Se elimina en 3.1 junto con el campo zombi del caché; no activar calibraciones antiguas. */
@@ -69,7 +71,7 @@ internal class SessionDrainRecipe(
             cns = accumulatedDrain.cns + cns, // Porcentaje neural del gancho.
             spinal = accumulatedDrain.spinal + spinal, // Porcentaje espinal del gancho.
         ) // Los topes siguen aplicándose únicamente en cada consumidor.
-    } // B–E mantienen sus ganchos históricos sin esta realimentación de cardio.
+    } // B/D/E no realimentan el cardio; C conserva su recorrido legacy de series para el aprendiz sin V2.
 
     private val halfVolume = mutableMapOf<String, Double>()
     private val muscleMultipliers = when (options.muscleMultiplierSource) {
@@ -267,7 +269,10 @@ internal class SessionDrainRecipe(
         fun durationSpinal(spinal: Double, durationMinutes: Int): Double =
             if (durationMinutes > 90) spinal * 1.08 else spinal
 
-        /** Adaptación histórica: las técnicas y la duración planificadas no se añaden a la serie sintética. */
+        /**
+         * Adaptación histórica: las técnicas y la duración planificadas no se añaden a la serie sintética.
+         * Cada serie del plan es lógica: aquí no se expanden lados ni objetivos izquierdo/derecho.
+         */
         fun plannedSet(exercise: Exercise, set: ExerciseSet): CompletedSet {
             val percentage = set.targetPercentageRM
             val reference = exercise.reference1RM

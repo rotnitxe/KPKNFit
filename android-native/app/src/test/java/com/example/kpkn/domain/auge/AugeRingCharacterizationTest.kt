@@ -60,8 +60,8 @@ class AugeRingCharacterizationTest {
         }
         assertTrue("Pecho duro debe drenar de forma visible", chest(hard, 0) < 95)
         assertTrue("Columna con sentadilla debe drenar", spinal(hard, 0) < 100)
-        // Re-anclados por el redondeo de las baterías (WP 1.5), +1 como mucho; antes: energyHard@0 80 · chestHard@0 72 ·
-        // spinalHard@12 96 · energyHard@48 y @72 99 (la meseta del 99, ahora 100) · chestLight@0 92.
+        // Re-anclados por 2.2b2 desde los valores medidos; el informe conserva la tabla completa.
+        // La base ya incluye el redondeo de 1.5 y el fin de la meseta del 99.
         pin("energyHard@0", energy(hard, 0), 81)
         pin("spinalHard@0", spinal(hard, 0), 93)
         pin("chestHard@0", chest(hard, 0), 73)
