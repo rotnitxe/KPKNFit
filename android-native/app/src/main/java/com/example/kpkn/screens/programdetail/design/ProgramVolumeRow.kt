@@ -134,7 +134,7 @@ fun ProgramVolumeRow(
                 }
                 muscle.real?.let { real ->
                     Text(
-                        text = "Real ${programVolumeSeries(real)}",
+                        text = "Real ${programVolumeSeries(real)} series/sem",
                         style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
                         color = WizardColors.textMuted,
                         maxLines = 1,

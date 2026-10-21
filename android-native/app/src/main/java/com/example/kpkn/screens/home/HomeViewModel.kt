@@ -31,6 +31,7 @@ import com.example.kpkn.domain.nutrition.resolveDayGoals
 import com.example.kpkn.domain.training.HomeCompetitionResolver
 import com.example.kpkn.domain.training.HomeCompetitionState
 import com.example.kpkn.domain.training.HomeSessionResolver
+import com.example.kpkn.domain.training.TrainingWindow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -179,7 +180,7 @@ import java.util.Calendar
         feedbacks,
     ) { p, historyLogs, fbs ->
         if (p == null) emptyList()
-        else OvertrainingDetector.detectOvertrainedMuscles(p, historyLogs, fbs)
+        else OvertrainingDetector.detectOvertrainedMuscles(p, historyLogs, fbs, window = TrainingWindow.last28Days())
     }
         .distinctUntilChanged()
         .flowOn(Dispatchers.Default)

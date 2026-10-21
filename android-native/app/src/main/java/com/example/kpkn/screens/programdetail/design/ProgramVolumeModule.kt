@@ -40,6 +40,7 @@ fun ProgramVolumeModule(
     breakdown: ProgramVolumeBreakdown?,
     onCalibrate: () -> Unit,
     modifier: Modifier = Modifier,
+    unassignedCount: Int = 0,
     controls: @Composable () -> Unit = {},
 ) {
     KpknModule(modifier = modifier.kpknEntrance("programa-volumen", 0)) {
@@ -59,12 +60,20 @@ fun ProgramVolumeModule(
         }
         Spacer(Modifier.height(10.dp))
         ProgramVolumeScopeSelector(scope = scope, onPrevious = onPreviousScope, onNext = onNextScope)
+        if (unassignedCount > 0) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = if (unassignedCount == 1) "1 registro sin fecha no se cuenta" else "$unassignedCount registros sin fecha no se cuentan",
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+            )
+        }
         Spacer(Modifier.height(12.dp))
         // Sin calibrar en todo el módulo, la etiqueta «Sin calibrar» se dice una sola vez (en la invitación de arriba), no en cada fila.
         val uncalibrated = muscles.none { it.zones != null }
         // Los músculos sin series no tienen fila: se juntan al final en una línea.
-        val withSets = muscles.filter { it.sets > 0.0 }
-        val withoutSets = muscles.filter { it.sets <= 0.0 }
+        val withSets = muscles.filter { it.sets > 0.0 || (it.real ?: 0.0) > 0.0 }
+        val withoutSets = muscles.filter { it.sets <= 0.0 && (it.real ?: 0.0) <= 0.0 }
         withSets.forEachIndexed { index, muscle ->
             if (index > 0) {
                 Box(Modifier.fillMaxWidth().height(1.dp).background(KpknSurface.divider))

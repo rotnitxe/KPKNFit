@@ -1,18 +1,26 @@
 package com.example.kpkn.screens.programdetail.design
 
 import android.app.Application
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.programdetail.ProgramDetailSamples
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -121,5 +129,58 @@ class ProgramVolumeModuleTest {
         composeRule.onNodeWithText("Aún no hay sesiones en esta semana").assertExists()
         composeRule.onNodeWithText("Añadir sesión").performClick()
         assertTrue(added)
+    }
+
+    @Test
+    fun registrosSinFechaSeExplicanSinOcultarLasFilasConVolumenReal() {
+        val muscle = ProgramDetailSamples.volumeWeek.first().copy(sets = 0.0, real = 2.0)
+        setAtRest {
+            ProgramVolumeModule(
+                muscles = listOf(muscle),
+                scope = ProgramDetailSamples.volumeScopeWeek,
+                onSelectKind = {}, onPreviousScope = {}, onNextScope = {},
+                expandedMuscle = null, onToggleMuscle = {}, breakdown = null, onCalibrate = {},
+                unassignedCount = 2,
+            )
+        }
+        composeRule.onNodeWithText("2 registros sin fecha no se cuentan").assertExists()
+        composeRule.onNodeWithTag("volumen_fila_${muscle.name}").assertExists()
+        composeRule.onNodeWithText("Real 2 series/sem", useUnmergedTree = true).assertExists()
+    }
+
+    @Test
+    fun lasPorcionesConservanElRolYExplicanQueNoSeSuman() {
+        setAtRest {
+            ProgramVolumeBreakdownList(
+                ProgramVolumeBreakdown(
+                    exercises = listOf(ProgramVolumeLine("Press", 3.0)),
+                    subMuscles = listOf(ProgramVolumeSubMuscle("Deltoides Lateral", 1.5, emptyList(), com.example.kpkn.data.models.MuscleRole.SECONDARY)),
+                ),
+            )
+        }
+        composeRule.onNodeWithText("Deltoides Lateral · Secundario").assertExists()
+        composeRule.onNodeWithText("Las porciones comparten series; no se suman al músculo.").assertExists()
+    }
+
+    @Test
+    fun losNombresYRolesDePorcionesNoSeCortanConLetraAlCientoTreinta() {
+        val label = "Deltoides Anterior · Directo"
+        setAtRest {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 1.3f)) {
+                Box(Modifier.width(288.dp)) {
+                    ProgramVolumeBreakdownList(
+                        ProgramVolumeBreakdown(
+                            exercises = emptyList(),
+                            subMuscles = listOf(ProgramVolumeSubMuscle("Deltoides Anterior", 4.0, emptyList(), com.example.kpkn.data.models.MuscleRole.PRIMARY)),
+                        ),
+                    )
+                }
+            }
+        }
+        val layouts = mutableListOf<TextLayoutResult>()
+        composeRule.onNodeWithText(label).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        assertTrue(layouts.isNotEmpty())
+        assertFalse("el nombre y el rol deben quedar completos", layouts.single().hasVisualOverflow)
     }
 }
