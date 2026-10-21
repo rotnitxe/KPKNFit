@@ -153,7 +153,7 @@ class LiveOptionsLargeFontTest {
         showStrengthOptions(1.3f)
 
         listOf("Reemplazar", "Reordenar", "Historial", "Ultrarrápido", "Notas", "Etiquetas", "Editar").forEach { assertWhole(it) }
-        listOf("Crear superserie", "Agregar otro").forEach { assertWhole(it, maxLines = 2) }
+        listOf("Crear superserie", "Agregar ejercicio").forEach { assertWhole(it, maxLines = 2) }
         assertWhole("Saltar ejercicio")
         assertWhole("Quitar de la sesión")
     }

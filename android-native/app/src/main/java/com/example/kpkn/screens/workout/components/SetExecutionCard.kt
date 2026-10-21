@@ -2463,6 +2463,7 @@ internal fun SetInputCardV2(
 
             LaunchedEffect(
                 isActivePage,
+                sessionCompletedSet,
                 reportWeightText,
                 reportValueText,
                 intensityText,
@@ -2516,7 +2517,9 @@ internal fun SetInputCardV2(
                     assistedRepsValue != (restoredDraft?.assistedReps ?: 0) ||
                     setNoteText.trim() != (restoredDraft?.notes.orEmpty()) ||
                     liveDropCountForDraft != (restoredDraft?.dropSetCount ?: plannedDropCountForDraft)
-                if (isDirty || restoredDraft != null || techniqueProgressForDraft != null) {
+                // Un parche persistido con el mismo id puede coincidir por completo con el estado
+                // restaurado. También publicamos ese borrador limpio para sustituir el anterior.
+                if (isDirty || restoredDraft != null || techniqueProgressForDraft != null || sessionCompletedSet != null) {
                     onDraftChange(
                         WorkoutSetDraft(
                             weightText = reportWeightText,

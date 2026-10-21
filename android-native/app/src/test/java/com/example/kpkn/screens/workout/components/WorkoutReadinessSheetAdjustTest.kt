@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertTextEquals
@@ -80,6 +81,7 @@ class WorkoutReadinessSheetAdjustTest {
         reported: List<ReadinessReportedDiscomfort> = emptyList(),
         pillars: List<String>? = null,
         initialDiscomforts: List<String> = emptyList(),
+        onOpenVoice: (() -> Unit)? = null,
     ) {
         saved = null
         voiceToggles = 0
@@ -103,6 +105,7 @@ class WorkoutReadinessSheetAdjustTest {
                         voiceSessionEnabled = voiceEnabled,
                         voiceCaptureMode = mode,
                         onVoiceToggle = { voiceToggles++ },
+                        onOpenVoice = onOpenVoice,
                         onVoiceCaptureModeChange = { modeChanges += it },
                         reportedDiscomforts = reported,
                         suggestionPillars = pillars,
@@ -130,7 +133,7 @@ class WorkoutReadinessSheetAdjustTest {
 
     private fun openAdjust(channel: String) {
         tap("readiness-legend-$channel")
-        node("ring-adjust-sheet").assertExists()
+        node("readiness-adjust-panel").assertExists()
     }
 
     private fun setDialTo(value: Float) {
@@ -145,17 +148,17 @@ class WorkoutReadinessSheetAdjustTest {
 
     private fun done() {
         tap("ring-adjust-done")
-        node("ring-adjust-sheet").assertDoesNotExist()
+        node("readiness-adjust-panel").assertDoesNotExist()
     }
 
     // ── el contenido de hoy sigue a la vista ──────────────────────────────────────────────────────────────
 
     @Test
-    fun `el estado previo conserva su titulo, la torre, la leyenda y el aviso`() {
+    fun `el estado previo conserva su titulo, la torre y las leyendas que abren el ajuste`() {
         show()
         text("¿Cómo llegas a entrenar hoy?").assertExists()
         node("readiness-tower").assertExists()
-        text("Toca un anillo para ajustarlo").assertExists()
+        listOf("MUSCULOS", "ENERGIA", "COLUMNA").forEach { node("readiness-legend-$it").assertHasClickAction() }
         text("MÚSCULOS").assertExists()
         text("ENERGÍA").assertExists()
         text("COLUMNA").assertExists()
@@ -207,7 +210,7 @@ class WorkoutReadinessSheetAdjustTest {
         rule.onNodeWithContentDescription("Energía 88 %", useUnmergedTree = true)
             .performSemanticsAction(SemanticsActions.OnClick) { it() }
         rule.waitForIdle()
-        node("ring-adjust-sheet").assertExists()
+        node("readiness-adjust-panel").assertExists()
         node("ring-adjust-value").assertTextEquals("88\u00A0%")
     }
 
@@ -411,8 +414,19 @@ class WorkoutReadinessSheetAdjustTest {
     // ── la voz ─────────────────────────────────────────────────────────────────────────────────────────────
 
     @Test
-    fun `la voz sale en una fila con su interruptor y sin modos mientras esta apagada`() {
+    fun `el icono delega en el flujo de voz de la sesion cuando esta disponible`() {
+        var opened = 0
+        show(onOpenVoice = { opened++ })
+        tap("readiness-voice-fab")
+        assertEquals(1, opened)
+        assertEquals(0, voiceToggles)
+        node("readiness-voice-toggle").assertDoesNotExist()
+    }
+
+    @Test
+    fun `el icono de voz abre sus controles y sin modos mientras esta apagada`() {
         show(voiceEnabled = false)
+        tap("readiness-voice-fab")
         text("VOZ").assertExists()
         text("Comandos de voz").assertExists()
         node("readiness-voice-toggle").assertIsOff()
@@ -425,6 +439,7 @@ class WorkoutReadinessSheetAdjustTest {
     @Test
     fun `con la voz encendida salen Manos libres y Musica y cambiar de modo avisa`() {
         show(voiceEnabled = true, mode = VoiceCaptureMode.HANDS_FREE)
+        tap("readiness-voice-fab")
         node("readiness-voice-toggle").assertIsOn()
         node("readiness-voice-mode-hands-free").assertIsOn()
         node("readiness-voice-mode-music").assertIsOff()
@@ -435,6 +450,7 @@ class WorkoutReadinessSheetAdjustTest {
     @Test
     fun `pulsar el modo ya elegido no lo cambia`() {
         show(voiceEnabled = true, mode = VoiceCaptureMode.HANDS_FREE)
+        tap("readiness-voice-fab")
         tap("readiness-voice-mode-hands-free")
         assertTrue(modeChanges.isEmpty())
     }
@@ -442,6 +458,7 @@ class WorkoutReadinessSheetAdjustTest {
     @Test
     fun `el i abre la explicacion de la voz`() {
         show(voiceEnabled = true)
+        tap("readiness-voice-fab")
         tap("readiness-voice-info")
         rule.onNodeWithText("¿Cómo funciona la voz?").assertExists()
         rule.onNodeWithText("Entendido").performSemanticsAction(SemanticsActions.OnClick) { it() }

@@ -121,7 +121,7 @@ private val SearchFill = Color(0xFF161616)
 
 /**
  * Estado previo (G1): «¿Cómo llegas a entrenar hoy?». La torre luminosa con la leyenda de tres columnas; tocar un anillo (o su columna)
- * abre el ajuste oficial ([RingAdjustSheet]) en ese canal. Debajo, las molestias en línea (buscador y chips: «Ninguna», las que
+ * abre el ajuste oficial ([RingAdjustPanel]) en ese canal. Debajo, las molestias en línea (buscador y chips: «Ninguna», las que
  * quedaron de la sesión anterior y las sugeridas para los músculos de hoy), la voz en una fila y el ✓ que confirma.
  *
  * Lo que se ajusta va al mismo estado de siempre (`neural`, `spinal`, `muscleAdjustments` y las marcas `userEdited*`) y solo los canales
@@ -195,6 +195,7 @@ fun WorkoutReadinessSheet(
     var initialized by rememberSaveable { mutableStateOf(false) }
     var selectedDiscomforts by rememberSaveable { mutableStateOf(listOf<String>()) }
     var adjustChannel by remember { mutableStateOf<RingChannel?>(null) }
+    var showVoiceControls by remember { mutableStateOf(false) }
 
     LaunchedEffect(
         initialized,
@@ -234,13 +235,21 @@ fun WorkoutReadinessSheet(
         stableHeightFraction = 0.86f,
         hazeState = hazeState,
     ) {
-        if (adjustChannel != null) {
-    // El ajuste oficial: una hoja sobre el estado previo, en el canal que se tocó. Lo que cambia va al mismo estado de arriba.
+        if (showVoiceControls) {
+            androidx.activity.compose.BackHandler { showVoiceControls = false }
+            Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text("Modo de voz", style = KpknType.title, color = WizardColors.text)
+                ReadinessVoiceRow(voiceSessionEnabled, voiceCaptureMode, onVoiceToggle, onVoiceCaptureModeChange)
+                KpknCompactPill(text = "Volver", onClick = { showVoiceControls = false }, filled = false)
+            }
+        } else if (adjustChannel != null) {
+    // El ajuste oficial sustituye el contenido del estado previo, en el canal que se tocó.
     adjustChannel?.let { channel ->
         val bodyValues = readinessBodyValues(muscleAdjustments, otherMuscleAdjustments, perMuscle)
         val bodyBefore = readinessBodyBefore(sessionMuscleStartingBatteries, perMuscle)
         val editedIds = muscleAdjustments.keys.filter { userEditedMuscles[it] == true }.toSet() + otherMuscleAdjustments.keys
         RingAdjustPanel(
+            modifier = Modifier.testTag("readiness-adjust-panel"),
             initialChannel = channel,
             onDismiss = { adjustChannel = null },
             energy = RingAdjustLevel(value = neural, before = readinessNeuralStart, edited = userEditedNeural),
@@ -320,7 +329,7 @@ fun WorkoutReadinessSheet(
                     color = WizardColors.text,
                 )
 
-                // 1. La torre luminosa, su leyenda de tres columnas y el aviso de que se toca para ajustar.
+                // 1. La torre y las tres leyendas conservan sus acciones accesibles de ajuste.
                 ReadinessTowerBlock(
                     muscular = derivedMuscular,
                     neural = neural,
@@ -355,7 +364,7 @@ fun WorkoutReadinessSheet(
                     KpknIconButton(
                         icon = KpknLineIcons.Mic,
                         contentDescription = "Modo de voz",
-                        onClick = { onOpenVoice?.invoke() ?: onVoiceToggle() },
+                        onClick = { if (onOpenVoice != null) onOpenVoice() else showVoiceControls = true },
                         modifier = Modifier.size(48.dp).testTag("readiness-voice-fab"),
                     )
                 ReadinessConfirmButton(
