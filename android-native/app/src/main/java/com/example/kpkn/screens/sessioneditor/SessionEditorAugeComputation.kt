@@ -542,6 +542,13 @@ internal fun computeSessionAugeComputation(
             if (duration <= 0) return@mapNotNull null
             val rpe = cardio.resolvedRpe()
             val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
+            val cappedCns = recipe.softCap(cardioDrain.cns, pipelinedTotalCns, cnsCap)
+            val cappedMuscular = recipe.softCap(cardioDrain.muscular, pipelinedTotalMuscular, muscularCap)
+            val cappedSpinal = recipe.softCap(cardioDrain.spinal, pipelinedTotalSpinal, spinalCap)
+            pipelinedTotalCns += cappedCns
+            pipelinedTotalMuscular += cappedMuscular
+            pipelinedTotalSpinal += cappedSpinal
+            recipe.accumulatedDrain += (cappedCns + cappedMuscular + cappedSpinal) / 3.0
             totalSets += 1
             rpeSum += rpe
             rpeCount += 1
@@ -685,12 +692,10 @@ internal fun computeSessionAugeComputation(
     }
 
     val predictedDrain = run {
-        val fromPass = PredictedDrain(
-            cns = pipelinedTotalCns.roundToInt().coerceIn(0, 100),
-            muscular = pipelinedTotalMuscular.roundToInt().coerceIn(0, 100),
-            spinal = pipelinedTotalSpinal.roundToInt().coerceIn(0, 100),
+        val fromPass = AugeFatigueEngine.finalizePlannedSessionDrain(
+            session, exerciseIndex, settings, pipelinedTotalMuscular, pipelinedTotalCns, pipelinedTotalSpinal,
         )
-        val ema = runCatching {
+        val ema = if (programLogs.isEmpty()) null else runCatching {
             AugeFatigueEngine.calculateMesocycleStressEMA(
                 logs = programLogs,
                 programId = programId,

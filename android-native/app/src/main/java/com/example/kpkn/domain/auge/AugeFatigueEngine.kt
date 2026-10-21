@@ -815,7 +815,7 @@ object AugeFatigueEngine {
             ),
         )
 
-        val exercises = session.exercises + session.parts.flatMap { it.exercises }
+        val exercises = session.allExercises()
 
         recipe.forEachPlanned(
             exercises = exercises,
@@ -849,6 +849,25 @@ object AugeFatigueEngine {
             },
         )
 
+        return finalizePlannedSessionDrain(session, exerciseDb, settings, acc.totalMuscular, acc.totalCns, acc.totalSpinal)
+    }
+
+    /** Finalización común del editor y el predictor: escala espinal, topes y mínimo de sesión dura. */
+    internal fun finalizePlannedSessionDrain(
+        session: Session,
+        exerciseDb: Map<String, ExerciseMuscleInfo>,
+        settings: Settings,
+        muscular: Double,
+        cns: Double,
+        spinal: Double,
+    ): PredictedDrain {
+        val exercises = session.allExercises()
+        val tanks = calculatePersonalizedBatteryTanks(settings)
+        val floor = physiologicalFloor(settings)
+        val muscularCap = (100 - floor.muscular).coerceAtLeast(5).toDouble()
+        val cnsCap = (100 - floor.cns).coerceAtLeast(5).toDouble()
+        val spinalCap = (100 - floor.spinal).coerceAtLeast(5).toDouble()
+        val acc = AggregateDrainAcc(totalMuscular = muscular, totalCns = cns, totalSpinal = spinal)
         val hardSets = exercises.sumOf { ex ->
             ex.sets.count { s ->
                 !s.isIneffective && (s.targetRPE ?: when {
