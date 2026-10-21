@@ -92,7 +92,18 @@ class ProgramVolumeT2RenderSheetTest {
             }
         }
         val output = File(System.getenv("KPKN_RENDER_DIR")!!).also { it.mkdirs() }
-        for ((scale, name) in listOf(1f to "t2-s100", 1.3f to "t2-s130")) {
+        val scales = listOf(1f to "t2-s100", 1.3f to "t2-s130")
+        // Guarda ambas escalas antes de las aserciones para poder revisar cualquier recorte.
+        for ((scale, name) in scales) {
+            rule.runOnUiThread { fontScale = scale }
+            rule.waitForIdle()
+            val view = host!!
+            val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+            rule.runOnUiThread { view.draw(Canvas(bitmap)) }
+            File(output, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            bitmap.recycle()
+        }
+        for ((scale, _) in scales) {
             rule.runOnUiThread { fontScale = scale }
             rule.waitForIdle()
             rule.onNodeWithContentDescription("6 series/sem", useUnmergedTree = true).assertExists()
@@ -103,11 +114,6 @@ class ProgramVolumeT2RenderSheetTest {
                 assertTrue(layouts.isNotEmpty())
                 assertFalse("sin recortes al $scale: $text", layouts.single().hasVisualOverflow)
             }
-            val view = host!!
-            val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
-            rule.runOnUiThread { view.draw(Canvas(bitmap)) }
-            File(output, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
-            bitmap.recycle()
         }
     }
 }
