@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.body.design
 
 import com.example.kpkn.domain.body.BodyWeightSummary
+import com.example.kpkn.domain.body.etaRangeText
 import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.WizardWeightScale
 import com.example.kpkn.screens.onboarding.design.formatDecimalEs
@@ -66,6 +67,17 @@ internal fun bodyTargetEs(value: Double): String {
 
 /** «≈ marzo de 2027», o «Sin fecha estimada aún». La fecha solo llega con ritmo medido hacia la meta. */
 internal fun bodyEtaText(eta: YearMonth?): String = eta?.let { "≈ ${bodyMonthEs(it)}" } ?: "Sin fecha estimada aún"
+
+/**
+ * Texto de la fecha estimada de la meta. Con tendencia, el rango si el margen cambia de mes («entre abril y junio»), el mes central
+ * si no («≈ marzo de 2027») y «Sin fecha estimada aún» sin ritmo hacia la meta. Sin tendencia (resúmenes que no la traen) se
+ * conserva el mes de siempre.
+ */
+internal fun bodyEtaDisplayText(summary: BodyWeightSummary, today: LocalDate): String {
+    if (summary.trendKg == null) return bodyEtaText(summary.eta)
+    val range = summary.etaRange ?: return bodyEtaText(null)
+    return etaRangeText(range, today) ?: bodyEtaText(range.central)
+}
 
 /**
  * Cambio de la isla: «−0,6 kg en 30 días» en la unidad de Ajustes. Null si no hay dos pesajes distintos en los últimos 30 días; «Sin

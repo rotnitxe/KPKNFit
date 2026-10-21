@@ -31,8 +31,10 @@ import kotlin.math.abs
 private val RANGE_LABELS = listOf("1M", "3M", "6M", "1A", "Todo")
 
 /**
- * Módulo «Peso» de Cuerpo (BODY_V1 §2.2): el rango, el peso actual con «hoy» o «hace n días», el cambio desde el primer pesaje del
- * rango, el ritmo medido, la gráfica y el objetivo. Sin ningún pesaje, el estado vacío con su acción. Sin estado propio.
+ * Módulo «Peso» de Cuerpo (BODY_V1 §2.2): el rango, la tendencia del peso como cifra principal (con el último pesaje debajo, con
+ * «hoy» o «hace n días»), el cambio desde el primer pesaje del rango, el ritmo medido, la gráfica y el objetivo con su fecha
+ * estimada (un rango si el margen cambia de mes). Con un solo día con pesaje no hay tendencia: la cifra es ese pesaje. Sin ningún
+ * pesaje, el estado vacío con su acción. Sin estado propio.
  *
  * @param goalKg meta de peso en kg, o null si el objetivo no es de peso.
  * @param weightUnit unidad de Ajustes: las cifras, la gráfica y la meta se muestran en ella; los datos siguen en kg.
@@ -66,7 +68,10 @@ fun BodyWeightModule(
         }
         return
     }
-    val remaining = summary.remaining
+    // Con tendencia, lo que falta y el avance se cuentan desde ella (la misma cifra de arriba), no desde un pesaje suelto.
+    val hasTrend = summary.trendKg != null
+    val remaining = if (hasTrend) summary.trendRemaining else summary.remaining
+    val progressPercent = if (hasTrend) summary.trendProgressPercent else summary.progressPercent
     val change = summary.change
     val startDay = summary.rangeStartDate
     KpknModule(modifier = modifier.fillMaxWidth()) {
@@ -83,9 +88,22 @@ fun BodyWeightModule(
             },
         )
         Spacer(Modifier.height(10.dp))
-        KpknMetric(value = bodyWeightValue(current, weightUnit), unit = unit, style = KpknType.metricXL)
+        // La cifra grande es la tendencia; el último pesaje sigue debajo como dato. Sin tendencia (un solo día con pesaje) la
+        // cifra es ese pesaje y se rotula como tal: ningún número que nadie midió.
+        val trendKg = summary.trendKg
+        Text(
+            text = if (trendKg != null) "Tendencia" else "Último pesaje",
+            style = KpknType.caption,
+            color = WizardColors.textMuted,
+        )
+        KpknMetric(value = bodyWeightValue(trendKg ?: current, weightUnit), unit = unit, style = KpknType.metricXL)
         summary.currentDate?.let { day ->
-            Text(text = bodyRelativeDayEs(day, today), style = KpknType.caption, color = WizardColors.textMuted)
+            val since = bodyRelativeDayEs(day, today)
+            Text(
+                text = if (trendKg != null) "Último pesaje: ${bodyWeightText(current, weightUnit)} · $since" else since,
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+            )
         }
         if (change != null && startDay != null) {
             Spacer(Modifier.height(8.dp))
@@ -97,7 +115,7 @@ fun BodyWeightModule(
             )
         }
         Spacer(Modifier.height(10.dp))
-        val rate = summary.measuredWeeklyRate
+        val rate = summary.trendWeeklyRate ?: summary.measuredWeeklyRate
         if (rate != null) {
             Text(
                 text = "Ritmo: ${bodyWeightChangeValue(rate, weightUnit)} $unit por semana",
@@ -123,11 +141,11 @@ fun BodyWeightModule(
         )
         if (goalKg != null && remaining != null) {
             Spacer(Modifier.height(16.dp))
-            val reached = summary.progressPercent == 100 || abs(remaining) < BODY_FLAT_CHANGE
+            val reached = progressPercent == 100 || abs(remaining) < BODY_FLAT_CHANGE
             BodyGoalBlock(
                 headline = if (reached) "Meta alcanzada" else "Te faltan ${bodyWeightValue(abs(remaining), weightUnit)} $unit",
-                detail = "Meta: ${bodyTargetEs(WizardWeightScale.toDisplay(goalKg, weightUnit))} $unit · ${bodyEtaText(summary.eta)}",
-                progress = summary.progressPercent?.let { it / 100f },
+                detail = "Meta: ${bodyTargetEs(WizardWeightScale.toDisplay(goalKg, weightUnit))} $unit · ${bodyEtaDisplayText(summary, today)}",
+                progress = progressPercent?.let { it / 100f },
             )
         }
     }
