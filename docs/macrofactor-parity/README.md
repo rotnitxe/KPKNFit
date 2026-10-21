@@ -84,5 +84,5 @@ Archivos calientes con un único dueño por paquete (no se tocan fuera de él): 
 | P2-Ta | pendiente (brief y prompt listos) | | |
 | P2-Tb | pendiente (brief y prompt listos) | | |
 | P2-D | pendiente (brief y prompt listos) | | |
-| P2-E | pendiente (brief tras N3) | | |
-| P2-F | pendiente (brief tras N3) | | |
+| P2-E | pendiente (brief y prompt listos; revisar contra el código de N3 antes de lanzar) | | |
+| P2-F | pendiente (brief y prompt listos) | | |
