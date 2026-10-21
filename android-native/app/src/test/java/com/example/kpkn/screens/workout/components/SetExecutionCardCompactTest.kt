@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -205,7 +207,8 @@ class SetExecutionCardCompactTest {
         }
         rule.waitForIdle()
 
-        rule.onNodeWithText("102,5").assertExists()
+        // La misma cifra puede aparecer también en un chip de carga rápida.
+        rule.onNode(hasSetTextAction() and hasText("102,5")).assertExists()
     }
 
     /**
@@ -241,8 +244,8 @@ class SetExecutionCardCompactTest {
         nextNode.assertExists()
 
         // El objetivo táctil del botón clickable es de 48 dp
-        val prevBounds = prevNode.fetchSemanticsNode().boundsInRoot
-        val nextBounds = nextNode.fetchSemanticsNode().boundsInRoot
+        val prevBounds = prevNode.fetchSemanticsNode().touchBoundsInRoot
+        val nextBounds = nextNode.fetchSemanticsNode().touchBoundsInRoot
 
         val prevHeightDp = prevBounds.height / densityFactor
         val nextHeightDp = nextBounds.height / densityFactor

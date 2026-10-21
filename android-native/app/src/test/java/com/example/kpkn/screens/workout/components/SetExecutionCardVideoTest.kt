@@ -7,10 +7,13 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
+import com.example.kpkn.screens.workout.design.WorkoutVideoChipTag
+import com.example.kpkn.screens.workout.design.WorkoutVideoMenuTag
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.ui.theme.KPKNTheme
 import com.example.kpkn.services.workout.VoiceSetEditPatch
@@ -32,7 +35,7 @@ class SetExecutionCardVideoTest {
     private var recordedAdvanced: SetAdvancedFeedback? = null
     private var draft: WorkoutSetDraft? = null
 
-    private fun show(full: Int, partials: Int, withSuggestion: Boolean = true, unit: UnitModeV2 = UnitModeV2.REPS) {
+    private fun show(full: Int, partials: Int, withSuggestion: Boolean = true, unit: UnitModeV2 = UnitModeV2.REPS, confidence: CountConfidence = CountConfidence.ALTA) {
         val set = ExerciseSet(id = "s", targetReps = 8, weight = 95.0, targetRIR = 2,
             intensityMode = IntensityMode.RIR, loadModeV2 = LoadModeV2.LOAD, unitModeV2 = unit)
         val exercise = Exercise(id = "e", name = "Sentadilla", sets = listOf(set))
@@ -46,7 +49,7 @@ class SetExecutionCardVideoTest {
                         initialDraft = WorkoutSetDraft(weightText = "95", valueText = if (withSuggestion) "8" else full.toString(),
                             intensityText = "2", partialReps = if (withSuggestion) null else partials),
                         onDraftChange = { value, _ -> draft = value },
-                        videoAnalysis = if (withSuggestion) SetVideoAnalysisUi("v", SetVideoAnalysisState.Suggest(full, partials, 0, CountConfidence.ALTA)) else null,
+                        videoAnalysis = if (withSuggestion) SetVideoAnalysisUi("v", SetVideoAnalysisState.Suggest(full, partials, 0, confidence)) else null,
                         onRecordV2 = { _, _, _, value, _, advanced, _, _, _, result ->
                             recordedValue = value
                             recordedAdvanced = advanced
@@ -60,9 +63,17 @@ class SetExecutionCardVideoTest {
         rule.waitForIdle()
     }
 
+    private fun openMenu() {
+        rule.onNodeWithTag(WorkoutVideoMenuTag).assertDoesNotExist()
+        rule.onNodeWithTag(WorkoutVideoChipTag).performClick()
+        rule.onNodeWithTag(WorkoutVideoMenuTag).assertExists()
+    }
+
     @Test fun use_only_updates_local_draft_and_keeps_effort_until_explicit_registration() {
         show(7, 1)
+        openMenu()
         rule.onNodeWithText("Usar").performClick()
+        rule.onNodeWithTag(WorkoutVideoMenuTag).assertDoesNotExist()
         rule.runOnIdle {
             assertNull(recordedValue)
             assertEquals("7", draft?.valueText)
@@ -79,6 +90,7 @@ class SetExecutionCardVideoTest {
 
     @Test fun zero_complete_reps_with_partials_can_be_registered() {
         show(0, 2)
+        openMenu()
         rule.onNodeWithText("Usar").performClick()
         rule.runOnIdle { holder.actionForPage("page")!!.invoke() }
         rule.runOnIdle {
@@ -110,6 +122,7 @@ class SetExecutionCardVideoTest {
 
     @Test fun manual_reps_selection_after_use_remains_authoritative() {
         show(7, 1)
+        openMenu()
         rule.onNodeWithText("Usar").performClick()
         rule.onNodeWithText("9").performClick()
         rule.waitForIdle()
@@ -123,7 +136,7 @@ class SetExecutionCardVideoTest {
     private lateinit var completed: MutableState<CompletedSet>
     private val redraw = mutableStateOf(false)
 
-    private fun showCompleted(full: Int = 8, partials: Int = 0, staleDraft: Boolean = true) {
+    private fun showCompleted(full: Int = 8, partials: Int = 0, staleDraft: Boolean = true, confidence: CountConfidence = CountConfidence.ALTA) {
         completed = mutableStateOf(CompletedSet(id = "stable-id", weight = 95.0, reps = full,
             partialReps = partials.takeIf { it > 0 }, isPartial = partials > 0,
             actualIntensityMode = IntensityMode.RIR, actualIntensityValue = 2.0, rir = 2))
@@ -142,7 +155,7 @@ class SetExecutionCardVideoTest {
                             intensityText = "2", reachedFailure = false) else null,
                         onDraftChange = { value, _ -> draft = value },
                         videoAnalysis = SetVideoAnalysisUi("v", SetVideoAnalysisState.Mismatch(
-                            logged = 8, counted = 7, partials = 1, failed = 1, confidence = CountConfidence.ALTA)),
+                            logged = 8, counted = 7, partials = 1, failed = 1, confidence = confidence)),
                         onVideoCorrect = { mismatch -> completed.value = applyCompletedSetPatch(completed.value,
                             CompletedSetPatch(edit = VoiceSetEditPatch(metricValue = mismatch.counted), partialReps = mismatch.partials)) },
                         onVideoMarkFailure = { completed.value = applyCompletedSetPatch(completed.value,
@@ -162,7 +175,9 @@ class SetExecutionCardVideoTest {
 
     @Test fun correcting_mounted_completed_set_with_same_id_survives_explicit_update() {
         showCompleted()
+        openMenu()
         rule.onNodeWithText("Corregir").performClick()
+        rule.onNodeWithTag(WorkoutVideoMenuTag).assertDoesNotExist()
         rule.runOnIdle {
             assertEquals("stable-id", completed.value.id)
             assertEquals("7", draft?.valueText)
@@ -179,6 +194,7 @@ class SetExecutionCardVideoTest {
 
     @Test fun muscular_failure_patch_with_same_id_updates_effort_and_does_not_become_execution_error() {
         showCompleted()
+        openMenu()
         rule.onNodeWithText("Marcar fallo").performClick()
         rule.runOnIdle {
             assertEquals("stable-id", completed.value.id)
@@ -205,6 +221,7 @@ class SetExecutionCardVideoTest {
 
     @Test fun ordinary_recomposition_preserves_manual_edit_after_persisted_correction() {
         showCompleted()
+        openMenu()
         rule.onNodeWithText("Corregir").performClick()
         rule.onNodeWithText("9").performClick()
         rule.runOnIdle { redraw.value = true }
@@ -214,6 +231,59 @@ class SetExecutionCardVideoTest {
             assertEquals(9.0, recordedValue!!, 0.0)
             assertEquals(1, recordedAdvanced?.partialReps)
             assertEquals("2", draft?.intensityText)
+        }
+    }
+
+    @Test fun medium_use_resets_the_wheel_and_keeps_partials_and_effort() {
+        show(7, 2, confidence = CountConfidence.MEDIA)
+        // El selector tenía una cifra distinta: «Usar» debe sustituir también su centro.
+        rule.onNodeWithText("9").performClick()
+        openMenu()
+        rule.onNodeWithText("Usar ≈ 7").performClick()
+        rule.onNodeWithTag(WorkoutVideoMenuTag).assertDoesNotExist()
+        rule.runOnIdle {
+            assertNull(recordedValue)
+            assertEquals("7", draft?.valueText)
+            assertEquals(2, draft?.partialReps)
+            assertEquals("2", draft?.intensityText)
+            holder.actionForPage("page")!!.invoke()
+        }
+        rule.runOnIdle {
+            assertEquals(7.0, recordedValue!!, 0.0)
+            assertEquals(2, recordedAdvanced?.partialReps)
+            assertFalse(recordedAdvanced?.reachedFailure == true)
+        }
+    }
+
+    @Test fun medium_correction_keeps_the_persisted_patch_and_reinitializes_the_wheel() {
+        showCompleted(confidence = CountConfidence.MEDIA)
+        rule.onNodeWithText("9").performClick()
+        openMenu()
+        rule.onNodeWithText("Marcar fallo").assertDoesNotExist()
+        rule.onNodeWithText("Corregir a ≈ 7").performClick()
+        rule.onNodeWithTag(WorkoutVideoMenuTag).assertDoesNotExist()
+        rule.runOnIdle {
+            assertEquals("stable-id", completed.value.id)
+            assertEquals(7, completed.value.reps)
+            assertEquals(1, completed.value.partialReps)
+            assertEquals("7", draft?.valueText)
+            assertEquals("2", draft?.intensityText)
+            holder.actionForPage("page")!!.invoke()
+        }
+        rule.runOnIdle {
+            assertEquals(7.0, recordedValue!!, 0.0)
+            assertEquals(1, recordedAdvanced?.partialReps)
+        }
+    }
+
+    @Test fun medium_partials_with_zero_full_reps_can_be_used() {
+        show(0, 2, confidence = CountConfidence.MEDIA)
+        openMenu()
+        rule.onNodeWithText("Usar ≈ 0").performClick()
+        rule.runOnIdle { holder.actionForPage("page")!!.invoke() }
+        rule.runOnIdle {
+            assertEquals(0.0, recordedValue!!, 0.0)
+            assertEquals(2, recordedAdvanced?.partialReps)
         }
     }
 

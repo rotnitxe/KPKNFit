@@ -31,15 +31,16 @@ class WorkoutVideoRepsSuggestionTest {
         rule.runOnIdle { assertEquals(1, uses) }
     }
 
-    @Test fun medium_confidence_offers_review_and_low_confidence_never_claims_a_number() {
-        var opened: String? = null
+    @Test fun medium_confidence_offers_explicit_approximate_use_and_low_confidence_never_claims_a_number() {
+        var used: SetVideoAnalysisState.Suggest? = null
         val value = SetVideoAnalysisUi("video", SetVideoAnalysisState.Suggest(8, 0, 0, CountConfidence.MEDIA))
         rule.setContent {
-            WorkoutVideoRepsSuggestion(value, onUse = {}, onCorrect = {}, onMarkFailure = {}, onOpenAnalysis = { opened = it })
+            WorkoutVideoRepsSuggestion(value, onUse = { used = it }, onCorrect = {}, onMarkFailure = {}, onOpenAnalysis = {})
         }
+        rule.runOnIdle { assertEquals(null, used) }
         rule.onNodeWithText("Usar").assertDoesNotExist()
-        rule.onNodeWithText("Revisar").performClick()
-        rule.runOnIdle { assertEquals("video", opened) }
+        rule.onNodeWithText("Usar ≈ 8").performClick()
+        rule.runOnIdle { assertEquals(value.state, used) }
         assertEquals("Vídeo no concluyente", workoutVideoRepsText(SetVideoAnalysisState.Suggest(27, 4, 2, CountConfidence.BAJA)))
     }
 
@@ -107,7 +108,7 @@ class WorkoutVideoRepsSuggestionTest {
             WorkoutVideoRepsSuggestion(SetVideoAnalysisUi("v", state.value), {}, {}, {}, {})
         }
         val cases = listOf(
-            SetVideoAnalysisState.Analyzing(42) to "Analizando el vídeo… 42 %",
+            SetVideoAnalysisState.Analyzing(42) to "Analizando el vídeo… 42\u00A0%",
             SetVideoAnalysisState.Agrees(8) to "El vídeo confirma 8",
             SetVideoAnalysisState.Unsupported("Esta serie se registra por tiempo") to "Esta serie se registra por tiempo",
             SetVideoAnalysisState.Inconclusive to "Vídeo no concluyente",
@@ -123,18 +124,52 @@ class WorkoutVideoRepsSuggestionTest {
         }
     }
 
-    @Test fun medium_mismatch_requires_review_even_when_it_detects_failure() {
+    @Test fun medium_mismatch_uses_the_same_patch_as_high_confidence_without_a_separate_failure_action() {
+        var patch: com.example.kpkn.screens.workout.CompletedSetPatch? = null
+        var opened: String? = null
+        rule.setContent {
+            WorkoutCompletedVideoSuggestion(
+                SetVideoAnalysisUi("medium-video", SetVideoAnalysisState.Mismatch(8, 7, 1, 1, CountConfidence.MEDIA)),
+                onPatch = { patch = it }, onOpenAnalysis = { opened = it },
+            )
+        }
+        rule.runOnIdle { assertEquals(null, patch) }
+        rule.onNodeWithText("Corregir").assertDoesNotExist()
+        rule.onNodeWithText("Marcar fallo").assertDoesNotExist()
+        rule.onNodeWithText("Corregir a ≈ 7").performClick()
+        rule.runOnIdle {
+            assertEquals(7, patch?.edit?.metricValue)
+            assertEquals(1, patch?.partialReps)
+            assertEquals(true, patch?.reachedFailure)
+        }
+        rule.onNodeWithText("Ver análisis").performClick()
+        rule.runOnIdle { assertEquals("medium-video", opened) }
+    }
+
+    @Test fun equal_medium_counts_only_offer_analysis_and_never_a_correction() {
+        rule.setContent {
+            WorkoutVideoRepsSuggestion(
+                SetVideoAnalysisUi("v", SetVideoAnalysisState.Mismatch(8, 8, 1, 0, CountConfidence.MEDIA, loggedPartials = 1)),
+                onUse = {}, onCorrect = { error("Los conteos coinciden") }, onMarkFailure = {}, onOpenAnalysis = {},
+            )
+        }
+        rule.onNodeWithText("Corregir a ≈ 8").assertDoesNotExist()
+        rule.onNodeWithText("Ver análisis").assertExists()
+    }
+
+    @Test fun failed_state_exposes_distinct_analysis_and_explicit_retry() {
+        var retried: String? = null
         var opened: String? = null
         rule.setContent {
             WorkoutVideoRepsSuggestion(
-                SetVideoAnalysisUi("medium-video", SetVideoAnalysisState.Mismatch(8, 7, 1, 1, CountConfidence.MEDIA)),
-                onUse = { error("No debe aplicar") }, onCorrect = { error("No debe corregir") },
-                onMarkFailure = { error("No debe marcar fallo sin revisar") }, onOpenAnalysis = { opened = it },
+                SetVideoAnalysisUi("failed-video", SetVideoAnalysisState.Failed("decode")),
+                {}, {}, {}, onOpenAnalysis = { opened = it }, onRetryAnalysis = { retried = it },
             )
         }
-        rule.onNodeWithText("Corregir").assertDoesNotExist()
-        rule.onNodeWithText("Marcar fallo").assertDoesNotExist()
-        rule.onNodeWithText("Revisar").performClick()
-        rule.runOnIdle { assertEquals("medium-video", opened) }
+        rule.runOnIdle { assertEquals(null, retried) }
+        rule.onNodeWithText("Ver análisis").performClick()
+        rule.runOnIdle { assertEquals("failed-video", opened) }
+        rule.onNodeWithText("Reintentar").performClick()
+        rule.runOnIdle { assertEquals("failed-video", retried) }
     }
 }
