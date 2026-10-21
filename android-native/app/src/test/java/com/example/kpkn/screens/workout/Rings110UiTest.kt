@@ -1,17 +1,24 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.MuscleRecoveryStatus
+import com.example.kpkn.data.models.RecoveryBands
 import com.example.kpkn.data.models.RecoveryStatus
+import com.example.kpkn.domain.relator.*
 import com.example.kpkn.screens.home.homeBodyValues
 import com.example.kpkn.screens.workout.components.ReadinessSheetState
 import org.junit.Assert.*
 import org.junit.Test
 
 /**
- * Pruebas de integración de superficies de interfaz de 1.10v2 (screens/):
+ * Pruebas de integración de superficies de interfaz y relator de 1.10v2 (screens/):
  * - RingEditStates: derivedMuscular redondea y no trunca.
  * - RingDetailSheet: homeBodyValues no descarta músculos con hasEvidence=true o recoveryScore < 100.
  * - WorkoutCoachMessages: no afirma 'batería baja' desde gasto ni sugiere 'probar RMs'.
+ * - WarmupObserver: dailyScore=null con exerciseScore=100 -> sin «Salta aprox».
+ * - WarmupObserver: ambos null con 300 s restantes -> sin «Salta aprox».
+ * - WarmupObserver: dailyScore=85 -> ofrece «Salta aprox».
+ * - ReadinessObserver: dailyScore=null -> sin candidato de disponibilidad inventado.
+ * - ReadinessObserver: dailyScore=65 -> ofrece ajuste de carga.
  */
 class Rings110UiTest {
 
@@ -65,4 +72,109 @@ class Rings110UiTest {
         assertFalse("No debe sugerir 'probar RMs'", msg2.body.contains("probar RMs"))
         assertFalse("No debe titular 'max effort'", msg2.title.contains("max effort"))
     }
+
+    @Test
+    fun `warmup observer no ofrece salta aprox con dailyScore null y exerciseScore 100`() {
+        val context = dummyRelatorContext(
+            phase = RelatorSessionPhase.WARMUP,
+            dailyScore = null,
+            exerciseScore = 100,
+            remainingSeconds = 600,
+            suggestedKg = 60.0,
+        )
+        val candidates = WarmupObserver.observe(context)
+        val actions = candidates.flatMap { it.actions }
+        val skipAction = actions.find { it.kind == RelatorActionKind.SKIP_REMAINING_WARMUPS }
+        assertNull("No debe ofrecer 'Salta aprox' cuando dailyScore es null", skipAction)
+    }
+
+    @Test
+    fun `warmup observer no ofrece salta aprox cuando ambos scores son null con 300 s restantes`() {
+        val context = dummyRelatorContext(
+            phase = RelatorSessionPhase.WARMUP,
+            dailyScore = null,
+            exerciseScore = null,
+            remainingSeconds = 300,
+            suggestedKg = 60.0,
+        )
+        val candidates = WarmupObserver.observe(context)
+        val actions = candidates.flatMap { it.actions }
+        val skipAction = actions.find { it.kind == RelatorActionKind.SKIP_REMAINING_WARMUPS }
+        assertNull("No debe ofrecer 'Salta aprox' por el solo tiempo cuando no hay disponibilidad diaria", skipAction)
+    }
+
+    @Test
+    fun `warmup observer si ofrece salta aprox con dailyScore alto`() {
+        val context = dummyRelatorContext(
+            phase = RelatorSessionPhase.WARMUP,
+            dailyScore = 85,
+            exerciseScore = null,
+            remainingSeconds = 600,
+            suggestedKg = 60.0,
+        )
+        val candidates = WarmupObserver.observe(context)
+        val actions = candidates.flatMap { it.actions }
+        val skipAction = actions.find { it.kind == RelatorActionKind.SKIP_REMAINING_WARMUPS }
+        assertNotNull("Debe ofrecer 'Salta aprox' con dailyScore >= 85", skipAction)
+    }
+
+    @Test
+    fun `readiness observer no emite candidatos de disponibilidad sin dailyScore`() {
+        val context = dummyRelatorContext(
+            phase = RelatorSessionPhase.WORKING,
+            dailyScore = null,
+            exerciseScore = 100,
+            preWorkoutDiscomforts = listOf("Rodilla izquierda"),
+            doms = 4,
+        )
+        val candidates = ReadinessObserver.observe(context)
+        assertTrue("No debe emitir candidatos de disponibilidad sin dailyScore observado", candidates.isEmpty())
+    }
+
+    @Test
+    fun `readiness observer emite candidato cuando dailyScore es bajo`() {
+        val context = dummyRelatorContext(
+            phase = RelatorSessionPhase.WORKING,
+            dailyScore = 65,
+            exerciseScore = null,
+        )
+        val candidates = ReadinessObserver.observe(context)
+        assertFalse("Debe emitir candidato con dailyScore conocido < 70", candidates.isEmpty())
+        val adjust = candidates.flatMap { it.actions }.find { it.kind == RelatorActionKind.ADJUST_LOAD }
+        assertNotNull("Debe ofrecer ajuste de carga con score 65", adjust)
+    }
+
+    private fun dummyRelatorContext(
+        phase: RelatorSessionPhase,
+        dailyScore: Int?,
+        exerciseScore: Int?,
+        remainingSeconds: Int? = null,
+        suggestedKg: Double? = null,
+        preWorkoutDiscomforts: List<String> = emptyList(),
+        doms: Int? = null,
+    ): RelatorContext = RelatorContext(
+        sessionId = "s1",
+        setKey = "e1_0",
+        exerciseId = "e1",
+        exerciseName = "Press banca",
+        setIndex = 1,
+        phase = phase,
+        progress = RelatorProgressSlice(
+            completedWorkingSets = 0,
+            totalWorkingSets = 3,
+            remainingSeconds = remainingSeconds,
+        ),
+        readiness = RelatorReadinessSlice(
+            dailyScore = dailyScore,
+            dailyLabel = dailyScore?.let { RecoveryBands.labelForScore(it) },
+            dailyDetails = emptyList<String>(),
+            exerciseScore = exerciseScore,
+            doms = doms,
+            preWorkoutDiscomforts = preWorkoutDiscomforts,
+        ),
+        warmup = RelatorWarmupSlice(
+            suggestedKg = suggestedKg,
+            remainingCount = 1,
+        ),
+    )
 }

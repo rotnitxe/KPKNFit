@@ -1,29 +1,17 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.relator.RelatorContext
-import com.example.kpkn.domain.relator.RelatorProgressSlice
-import com.example.kpkn.domain.relator.RelatorReadinessSlice
-import com.example.kpkn.domain.relator.RelatorWarmupSlice
-import com.example.kpkn.domain.relator.RelatorSessionPhase
-import com.example.kpkn.domain.relator.RelatorActionKind
-import com.example.kpkn.domain.relator.WarmupObserver
-import com.example.kpkn.domain.relator.ReadinessObserver
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.ZoneId
 
 /**
- * Pruebas de integración puras del paquete 1.10v2 («Sin datos» no es 100 %):
+ * Pruebas de integración puras de domain/auge del paquete 1.10v2 («Sin datos» no es 100 %):
  * 1. Snapshot sin datos y no cargando -> readiness null, titular vacío.
  * 2. Check-in de un solo canal -> titular por canal limitante conocido.
- * 3. WarmupObserver: dailyScore=null con exerciseScore=100 -> sin «Salta aprox».
- * 4. WarmupObserver: ambos null con 300 s restantes -> sin «Salta aprox».
- * 5. WarmupObserver: dailyScore=85 -> ofrece «Salta aprox».
- * 6. ReadinessObserver: dailyScore=null -> sin candidato de disponibilidad inventado.
- * 7. ReadinessObserver: dailyScore=65 -> ofrece ajuste de carga.
- * 8. MuscleRecoveryStatus: hasEvidence = true cuando initial < 100 o session >= 0.
- * 9. Cierre solo de cardio -> lista vacía de músculos implicados no expande a todo el mapa.
+ * 3. MuscleRecoveryStatus: hasEvidence = true cuando initial < 100 o session >= 0.
+ * 4. Cierre solo de cardio -> lista vacía de músculos implicados no expande a todo el mapa.
+ * 5. calculateRecoveryDashboardDetail conserva consistencia y preserva el máster dorado.
  */
 class Rings110IntegrationTest {
 
@@ -77,77 +65,6 @@ class Rings110IntegrationTest {
     }
 
     @Test
-    fun `warmup observer no ofrece salta aprox con dailyScore null y exerciseScore 100`() {
-        val context = dummyRelatorContext(
-            phase = RelatorSessionPhase.WARMUP,
-            dailyScore = null,
-            exerciseScore = 100,
-            remainingSeconds = 600,
-            suggestedKg = 60.0,
-        )
-        val candidates = WarmupObserver.observe(context)
-        val actions = candidates.flatMap { it.actions }
-        val skipAction = actions.find { it.kind == RelatorActionKind.SKIP_REMAINING_WARMUPS }
-        assertNull("No debe ofrecer 'Salta aprox' cuando dailyScore es null", skipAction)
-    }
-
-    @Test
-    fun `warmup observer no ofrece salta aprox cuando ambos scores son null con 300 s restantes`() {
-        val context = dummyRelatorContext(
-            phase = RelatorSessionPhase.WARMUP,
-            dailyScore = null,
-            exerciseScore = null,
-            remainingSeconds = 300,
-            suggestedKg = 60.0,
-        )
-        val candidates = WarmupObserver.observe(context)
-        val actions = candidates.flatMap { it.actions }
-        val skipAction = actions.find { it.kind == RelatorActionKind.SKIP_REMAINING_WARMUPS }
-        assertNull("No debe ofrecer 'Salta aprox' por el solo tiempo cuando no hay disponibilidad diaria", skipAction)
-    }
-
-    @Test
-    fun `warmup observer si ofrece salta aprox con dailyScore alto`() {
-        val context = dummyRelatorContext(
-            phase = RelatorSessionPhase.WARMUP,
-            dailyScore = 85,
-            exerciseScore = null,
-            remainingSeconds = 600,
-            suggestedKg = 60.0,
-        )
-        val candidates = WarmupObserver.observe(context)
-        val actions = candidates.flatMap { it.actions }
-        val skipAction = actions.find { it.kind == RelatorActionKind.SKIP_REMAINING_WARMUPS }
-        assertNotNull("Debe ofrecer 'Salta aprox' con dailyScore >= 85", skipAction)
-    }
-
-    @Test
-    fun `readiness observer no emite candidatos de disponibilidad sin dailyScore`() {
-        val context = dummyRelatorContext(
-            phase = RelatorSessionPhase.WORKING,
-            dailyScore = null,
-            exerciseScore = 100,
-            preWorkoutDiscomforts = listOf("Rodilla izquierda"),
-            doms = 4,
-        )
-        val candidates = ReadinessObserver.observe(context)
-        assertTrue("No debe emitir candidatos de disponibilidad sin dailyScore observado", candidates.isEmpty())
-    }
-
-    @Test
-    fun `readiness observer emite candidato cuando dailyScore es bajo`() {
-        val context = dummyRelatorContext(
-            phase = RelatorSessionPhase.WORKING,
-            dailyScore = 65,
-            exerciseScore = null,
-        )
-        val candidates = ReadinessObserver.observe(context)
-        assertFalse("Debe emitir candidato con dailyScore conocido < 70", candidates.isEmpty())
-        val adjust = candidates.flatMap { it.actions }.find { it.kind == RelatorActionKind.ADJUST_LOAD }
-        assertNotNull("Debe ofrecer ajuste de carga con score 65", adjust)
-    }
-
-    @Test
     fun `muscle recovery status expone hasEvidence correctamente`() {
         val freshWithoutEvidence = MuscleRecoveryStatus(
             muscleName = "Pectorales",
@@ -189,37 +106,24 @@ class Rings110IntegrationTest {
         assertTrue("Para cardio solo muscleSeed debe ser vacío", muscleSeed.isEmpty())
     }
 
-    private fun dummyRelatorContext(
-        phase: RelatorSessionPhase,
-        dailyScore: Int?,
-        exerciseScore: Int?,
-        remainingSeconds: Int? = null,
-        suggestedKg: Double? = null,
-        preWorkoutDiscomforts: List<String> = emptyList(),
-        doms: Int? = null,
-    ): RelatorContext = RelatorContext(
-        sessionId = "s1",
-        setKey = "e1_0",
-        exerciseId = "e1",
-        exerciseName = "Press banca",
-        setIndex = 1,
-        phase = phase,
-        progress = RelatorProgressSlice(
-            completedWorkingSets = 0,
-            totalWorkingSets = 3,
-            remainingSeconds = remainingSeconds,
-        ),
-        readiness = RelatorReadinessSlice(
-            dailyScore = dailyScore,
-            dailyLabel = dailyScore?.let { RecoveryBands.labelForScore(it) },
-            dailyDetails = emptyList<String>(),
-            exerciseScore = exerciseScore,
-            doms = doms,
-            preWorkoutDiscomforts = preWorkoutDiscomforts,
-        ),
-        warmup = RelatorWarmupSlice(
-            suggestedKg = suggestedKg,
-            remainingCount = 1,
-        ),
-    )
+    @Test
+    fun `dashboard conserva calculo de score general pero titular solo habla de canal con datos`() {
+        val detail = AugeRecoveryEngine.calculateRecoveryDashboardDetail(
+            muscularScore = 65.0,
+            systemScore = 100.0,
+            spinalScore = 100.0,
+            perMuscle = emptyMap(),
+            energyEstimate = null,
+            spinalEstimate = null,
+            coverage = RingsCoverage(
+                muscular = ChannelCoverage(hasData = true, source = "checkin"),
+                system = ChannelCoverage(hasData = false, source = "none"),
+                structure = ChannelCoverage(hasData = false, source = "none"),
+            )
+        )
+        // Score general ponderado se calcula matemáticamente igual
+        assertEquals(72, detail.dashboard.overallScore)
+        // Pero el titular y la recomendación se basan en el canal limitante conocido (muscular 65), no en energía ni columna
+        assertTrue(detail.dashboard.summary.contains("Músculos"))
+    }
 }
