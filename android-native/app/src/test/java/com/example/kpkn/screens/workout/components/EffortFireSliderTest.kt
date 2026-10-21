@@ -173,11 +173,12 @@ class EffortFireSliderTest {
     }
 
     @Test
-    fun laZonaTactilMide48DpYCabeEnLaTarjeta() {
+    fun laPistaMide18DpDentroDeLaZonaTactilAprobadaDe44Dp() {
         mostrar(rirConPlanDos(), ancho = 252)
 
         val alto = nodo().size.height / 3f
-        assertTrue("la zona táctil mide $alto dp y debe ser de 48 dp", alto >= 47.5f && alto <= 48.5f)
+        assertTrue("la zona táctil mide $alto dp y debe ser de 44 dp", alto >= 43.5f && alto <= 44.5f)
+        assertEquals(18f, rule.onNodeWithTag("effort-fire-track", useUnmergedTree = true).fetchSemanticsNode().size.height / 3f, .5f)
         assertTrue("el slider cabe en 252 dp", nodo().size.width / 3f <= 252.5f)
     }
 }

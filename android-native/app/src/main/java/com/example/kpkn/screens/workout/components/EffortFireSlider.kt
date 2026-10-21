@@ -100,15 +100,15 @@ internal const val EffortSliderTag = "effort_fire_slider"
 /** Aviso que sale bajo el slider cuando se pulsa el ✓ sin haber marcado el esfuerzo. */
 internal const val EffortRequiredHint = "Marca tu esfuerzo para registrar la serie"
 
-private val TrackHeight = 32.dp
-private val TouchHeight = 48.dp
+private val TrackHeight = 18.dp
+private val TouchHeight = 44.dp
 private val ThumbSize = 26.dp
 
 /** Margen del centro del pulgar al borde de la pista: 5 dp de holgura más el radio del pulgar (18 dp). */
 private val ThumbInset = 18.dp
 
-/** Alto de la marca del plan: 5 dp por encima y por debajo de la pista de 32 dp. */
-private val PlanMarkHeight = 38.dp
+/** Marca del plan de 32 dp, centrada sobre la pista fina. */
+private val PlanMarkHeight = 32.dp
 
 // Los seis degradados del prototipo (Main): de gris frío a ascua y fuego. Cada uno, con las posiciones de sus colores.
 private val FireLevelStops: List<List<Pair<Float, Color>>> = listOf(
@@ -153,7 +153,7 @@ internal fun effortFireColors(level: Float): List<Color> {
 }
 
 /**
- * El slider de esfuerzo de la tarjeta de la serie (LV8, `Main.dc.html`): una pista de 32 dp con relleno de fuego que crece con el esfuerzo,
+ * El slider de esfuerzo aprobado: pista de 18 dp dentro de una zona táctil de 44 dp, con relleno que crece con el esfuerzo,
  * partículas que suben dentro del relleno y un pulgar de tinta. Los valores son los de [scale] (los de siempre de la app). Empieza en el
  * MÍNIMO y sin marcar ([selectedIndex] nulo): el pulgar espera a la izquierda, sin fuego. El objetivo del plan es una marca tenue sobre la
  * pista. Se arrastra con ajuste a cada valor y también se toca un punto de la pista.
@@ -174,6 +174,7 @@ internal fun EffortFireSlider(
     animate: Boolean = true,
     hapticsEnabled: Boolean = true,
     forcedFireSeconds: Float? = null,
+    prominent: Boolean = false,
 ) {
     val items = scale.items
     if (items.isEmpty()) return
@@ -209,7 +210,7 @@ internal fun EffortFireSlider(
     } else {
         null
     }
-    val drawParticles = level >= 2f && (forcedFireSeconds != null || particlesRunning)
+    val drawParticles = !reduced && level >= 2f && (forcedFireSeconds != null || particlesRunning)
 
     val wobble = remember { Animatable(0f) }
     LaunchedEffect(wobbleKey) {
@@ -226,7 +227,7 @@ internal fun EffortFireSlider(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 20.dp),
+                .heightIn(min = if (prominent) 32.dp else 20.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -244,14 +245,14 @@ internal fun EffortFireSlider(
                 if (selectedItem == null) {
                     Text(
                         text = "Sin marcar",
-                        style = KpknType.action,
+                        style = KpknType.action.copy(fontSize = if (prominent) 22.sp else 13.sp, lineHeight = if (prominent) 28.sp else 18.sp),
                         color = WizardColors.textFaint,
                         maxLines = 1,
                     )
                 } else {
                     Text(
                         text = effortValueLabel(selectedItem),
-                        style = KpknType.action.copy(fontFeatureSettings = "'tnum' 1"),
+                        style = KpknType.action.copy(fontFeatureSettings = "'tnum' 1", fontSize = if (prominent) 22.sp else 13.sp, lineHeight = if (prominent) 28.sp else 18.sp),
                         color = WizardColors.text,
                         maxLines = 1,
                     )
@@ -270,7 +271,7 @@ internal fun EffortFireSlider(
         }
         Spacer(Modifier.height(6.dp))
 
-        // Zona táctil de 48 dp con la pista de 46 dp, la marca del plan, el relleno de fuego y el pulgar.
+        // Zona táctil de 44 dp con pista de 18 dp, marca del plan y pulgar de 26 dp.
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
@@ -325,6 +326,7 @@ internal fun EffortFireSlider(
                     .align(Alignment.Center)
                     .fillMaxWidth()
                     .height(TrackHeight)
+                    .testTag("effort-fire-track")
                     .clip(KpknShape.pill)
                     .background(KpknSurface.inset)
                     .drawWithContent {
@@ -357,6 +359,10 @@ internal fun EffortFireSlider(
                                 if (drawParticles) {
                                     val seconds = forcedFireSeconds ?: clock?.value ?: 0f
                                     drawFire(level, seconds, size.width, size.height)
+                                    if (level >= 4f) {
+                                        val pulse = 0.5f + 0.5f * sin((2.0 * PI * seconds / 0.8).toFloat())
+                                        drawRect(Color(0xFFFFF1C8).copy(alpha = (level - 3f) * .08f * pulse))
+                                    }
                                 }
                             },
                     )
@@ -371,7 +377,8 @@ internal fun EffortFireSlider(
                         .align(Alignment.CenterStart)
                         .offset { IntOffset((planCenterPx - 1.dp.toPx()).roundToInt(), 0) }
                         .size(width = 2.dp, height = PlanMarkHeight)
-                        .background(WizardColors.text.copy(alpha = 0.35f), RoundedCornerShape(1.dp)),
+                        .testTag("effort-plan-mark")
+                        .background(WizardColors.text.copy(alpha = 0.25f), RoundedCornerShape(1.dp)),
                 )
             }
 
@@ -394,11 +401,11 @@ internal fun EffortFireSlider(
                                 radius = radius,
                                 center = center,
                             )
-                        },
+                        }.testTag("effort-fire-halo"),
                 )
             }
 
-            // Pulgar de tinta de 36 dp.
+            // Pulgar de tinta de 26 dp.
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterStart)

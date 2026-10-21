@@ -577,18 +577,21 @@ class SetExecutionCardEffortTest {
     }
 
     @Test
-    fun elTemporizadorDeUnEjercicioPorTiempoEstaJuntoAlValorYSuLineaEnLaCabecera() {
+    fun elRelojPorTiempoConservaObjetivoInicioYDetencionEnElMarcoPorModo() {
         mostrar(Caso("tiempo", ejercicio(serieEnTiempo(), TrainingMode.TIME), serieEnTiempo()))
 
         rule.onNodeWithContentDescription("Iniciar").assertExists()
-        rule.onNodeWithText("TIEMPO").assertExists()
-        rule.onNodeWithText(" · Objetivo 45s").assertExists()
+        rule.onNodeWithText("TIEMPO REALIZADO · min:s").assertExists()
+        rule.onNodeWithText("Objetivo 0:45").assertExists()
 
         rule.onNodeWithContentDescription("Iniciar").performClick()
         rule.waitForIdle()
 
         rule.onNodeWithContentDescription("Detener").assertExists()
-        rule.onNodeWithText(" · Restan", substring = true).assertExists()
+        rule.onNodeWithText("Restan", substring = true).assertExists()
+        rule.onNodeWithContentDescription("Detener").performClick()
+        rule.onNodeWithContentDescription("Iniciar").assertExists()
+        assertTrue("detener el reloj no registra la serie", registros.isEmpty())
     }
 
     @Test

@@ -103,6 +103,9 @@ data class WorkoutSetDraft(
     val notes: String? = null,
     /** Missing in legacy payloads; null means no multi-phase technique is in progress. */
     val techniqueProgress: WorkoutTechniqueProgressDraft? = null,
+    /** Local live RM edits; absent in older serialized drafts. Never changes the exercise's TM. */
+    val rmReference1RM: Double? = null,
+    val rmPercent: Double? = null,
 )
 
 @Serializable
