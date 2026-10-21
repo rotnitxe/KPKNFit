@@ -17,6 +17,7 @@ import com.example.kpkn.data.work.TechniqueAnalysisWorker
 import com.example.kpkn.data.work.TechniqueWorkTestKit
 import com.example.kpkn.domain.biomechanics.bar.PlateSeed
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
+import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisEngine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -112,6 +113,24 @@ class VideoAnalysisRepositoryTest {
     // --- El estado de la fila ---
 
     @Test
+    fun recent_summaries_keep_order_limit_enums_and_live_progress() = runBlocking {
+        done("older")
+        TechniqueWorkTestKit.insertVideo(db, store, "recent") { it.copy(createdAtMs = it.createdAtMs + 1_000L) }
+        repository.markState("recent", VideoAnalysisStatus.RUNNING, 42)
+
+        val rows = withTimeout(5_000L) { repository.observeRecent(2).first() }
+        assertEquals(listOf("recent", "older"), rows.map { it.mediaId })
+        assertEquals(VideoAnalysisStatus.RUNNING, rows.first().status)
+        assertEquals(42, rows.first().progressPct)
+        assertEquals("Sentadilla trasera", rows.first().exerciseName)
+        assertEquals(repository.getByMedia("older"), rows.last())
+        assertEquals(listOf("recent"), withTimeout(5_000L) { repository.observeRecent(1).first() }.map { it.mediaId })
+        assertTrue(withTimeout(5_000L) { repository.observeRecent(-1).first() }.isEmpty())
+        repository.writeProgress("recent", 73)
+        assertEquals(73, withTimeout(5_000L) { repository.observeRecent(1).first() }.single().progressPct)
+    }
+
+    @Test
     fun markState_creates_a_row_from_the_media_and_never_for_a_media_that_is_gone() = runBlocking {
         TechniqueWorkTestKit.insertVideo(db, store, "vid-1")
 
@@ -127,7 +146,7 @@ class VideoAnalysisRepositoryTest {
         assertEquals("squat_2", row.setKey)
         assertEquals(80.0, row.loadKg!!, 0.0)
         assertEquals(1_780_000_000_000L, row.recordedAtMs)
-        assertEquals(1, row.engineVersion)
+        assertEquals(TechniqueAnalysisEngine.ENGINE_VERSION, row.engineVersion)
         assertNull(db.videoAnalysisDao().getByMedia("fantasma"))
     }
 

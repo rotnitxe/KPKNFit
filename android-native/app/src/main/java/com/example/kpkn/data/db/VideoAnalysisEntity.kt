@@ -130,6 +130,10 @@ interface VideoAnalysisDao {
     @Query("SELECT * FROM video_analysis WHERE mediaId = :id LIMIT 1")
     fun observeByMedia(id: String): Flow<VideoAnalysisEntity?>
 
+    /** Vídeos recientes en cualquier estado; el id resuelve los empates de fecha. */
+    @Query("SELECT * FROM video_analysis ORDER BY recordedAtMs DESC, mediaId ASC LIMIT :limit")
+    fun observeRecent(limit: Int): Flow<List<VideoAnalysisEntity>>
+
     /** Los vídeos de una sesión que tienen análisis (cualquier estado), del más antiguo al más reciente. */
     @Query(
         """
