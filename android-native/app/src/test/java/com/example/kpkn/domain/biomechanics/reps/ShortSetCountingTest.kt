@@ -38,7 +38,8 @@ class ShortSetCountingTest {
     }
 
     @Test fun aShortCroppedConcentricStillDoesNotOfferACompleteNumber() {
-        val series = SignalBuilder().hold(0.3).go(0.5, 1.0).hold(0.4).series()
+        // 1,6 s: por encima del mínimo de 1,5 s, para que la censura (y no la duración) sea lo que se mide.
+        val series = SignalBuilder().hold(0.5).go(0.6, 1.0).hold(0.5).series()
         val profile = RepTestSupport.concentricProfile()
         val seg = RepSegmenter.segment(series, profile, emptySet())
         val confidence = RepConfidence.score(series, seg,
@@ -57,5 +58,18 @@ class ShortSetCountingTest {
         val confidence = RepConfidence.score(series, seg,
             ViewEstimate(ViewKind.SIDE, 90.0, 90.0, 90.0, true), profile, emptySet())
         assertNotEquals(CountConfidence.ALTA, confidence.level)
+    }
+
+    @Test fun aSetUnderOneAndAHalfSecondsIsTooShort() {
+        // 1,37 s: por debajo del mínimo de 1,5 s (el más conservador de los que eligieron las cuatro rotaciones).
+        val series = SignalBuilder().hold(0.2).rep(up = 0.4, top = 0.1, down = 0.4, rest = 0.05).hold(0.2).series()
+        assertTrue(series.size / series.fs < 1.5)
+        val seg = RepSegmenter.segment(series, RepTestSupport.eccentricProfile(), emptySet())
+        assertEquals("too_short", seg.noRepsReason)
+        // 1,6 s con la misma repetición: ya se intenta contar.
+        val longer = SignalBuilder().hold(0.3).rep(up = 0.4, top = 0.1, down = 0.4, rest = 0.05).hold(0.35).series()
+        assertTrue(longer.size / longer.fs >= 1.5)
+        assertEquals(RepTestSupport.summary(RepSegmenter.segment(longer, RepTestSupport.eccentricProfile(), emptySet())), 1,
+            RepSegmenter.segment(longer, RepTestSupport.eccentricProfile(), emptySet()).fullCount)
     }
 }

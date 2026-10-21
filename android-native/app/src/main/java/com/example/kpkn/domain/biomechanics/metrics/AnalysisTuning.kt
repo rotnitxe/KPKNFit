@@ -44,8 +44,12 @@ data class AnalysisTuning(
     val fillCountGapS: Double = 0.60,
     /** Fracción mínima de fotogramas con pose para dar por buena la serie con un lado en un perfil por lado (§6 p9). */
     val perSideMinValid: Double = 0.70,
-    /** M2 LOFO: admit a measured short set from one second; confidence still requires complete boundary evidence. */
-    val minObservedS: Double = 1.0,
+    /**
+     * Segundos mínimos de señal observada para que haya serie. M2, iteración 2: va acoplado a [minSeriesS] y sale de la
+     * validación cruzada dejando un fold fuera (candidatos 1/1,5/2/2,5/3 s; las rotaciones eligieron 1, 1, 1 y 1,5 s): el
+     * producto usa el más conservador de los elegidos. La confianza sigue exigiendo bordes completos en un single o un doble.
+     */
+    val minObservedS: Double = 1.5,
 
     // ---------------------------------------------------------------------------------------------------------
     // §5 · disco como señal principal y caminar
@@ -73,8 +77,11 @@ data class AnalysisTuning(
     // ---------------------------------------------------------------------------------------------------------
     // §6 · segmentador
     // ---------------------------------------------------------------------------------------------------------
-    /** M2 LOFO candidates 1/1.5/2/2.5/3 s: a second is enough to attempt a cycle, never to certify it by duration alone. */
-    val minSeriesS: Double = 1.0,
+    /**
+     * Menos de estos segundos de señal válida: «too_short». Acoplado a [minObservedS] (mismo valor y misma validación
+     * cruzada): bastan para intentar un ciclo, nunca para certificarlo solo por su duración.
+     */
+    val minSeriesS: Double = 1.5,
     /** p1: σn = 1,4826·MAD(r − LP(r, 5 Hz)). */
     val noiseLowPassHz: Double = 5.0,
     /** p2: rd = LP(r, 2,5 Hz) hasta conocer T0. */
