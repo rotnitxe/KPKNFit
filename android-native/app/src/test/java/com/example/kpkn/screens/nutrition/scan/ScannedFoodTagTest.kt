@@ -1,7 +1,6 @@
 package com.example.kpkn.screens.nutrition.scan
 
 import com.example.kpkn.data.models.FoodItem
-import com.example.kpkn.domain.nutrition.HouseholdPortions
 import com.example.kpkn.domain.nutrition.TagOrigin
 import com.example.kpkn.domain.nutrition.canFinalize
 import com.example.kpkn.domain.nutrition.toLoggedFood
@@ -17,10 +16,11 @@ class ScannedFoodTagTest {
         source = "OFF Chile", sourceRecordId = "7801234567894", nutritionBasis = "PER_100G_AS_SOLD", sourcePriority = 80, verifiedScore = 0.72,
     )
 
-    @Test fun `sin gramos propone la misma racion que el buscador del cajon`() {
+    @Test fun `sin gramos propone 125 g de yogur como el buscador del cajon`() {
+        // Yogur sin porción declarada (su 100 g es el denominador): la taza de yogur de la tabla de familias.
         val tag = scannedFoodTag(yogur)
-        assertEquals(HouseholdPortions.eatenGramsForSearchPick(yogur, yogur.name), tag.amountGrams!!, 0.0)
-        assertEquals(defaultGramsForScanned(yogur), tag.amountGrams!!, 0.0)
+        assertEquals(125.0, tag.amountGrams!!, 0.0)
+        assertEquals(125.0, defaultGramsForScanned(yogur), 0.0)
         assertEquals(TagOrigin.SEARCH, tag.origin)
     }
 
@@ -44,10 +44,10 @@ class ScannedFoodTagTest {
     }
 
     @Test fun `gramos no validos caen en la racion propuesta`() {
-        val default = defaultGramsForScanned(yogur)
-        assertEquals(default, scannedFoodTag(yogur, grams = 0.0).amountGrams!!, 0.0)
-        assertEquals(default, scannedFoodTag(yogur, grams = Double.NaN).amountGrams!!, 0.0)
-        assertEquals(default, scannedFoodTag(yogur, grams = -5.0).amountGrams!!, 0.0)
+        // La ración de yogur sin porción declarada son 125 g (ver el primer caso).
+        assertEquals(125.0, scannedFoodTag(yogur, grams = 0.0).amountGrams!!, 0.0)
+        assertEquals(125.0, scannedFoodTag(yogur, grams = Double.NaN).amountGrams!!, 0.0)
+        assertEquals(125.0, scannedFoodTag(yogur, grams = -5.0).amountGrams!!, 0.0)
     }
 
     @Test fun `un alimento propio por porcion escala sus nutrientes por la racion`() {
@@ -56,8 +56,9 @@ class ScannedFoodTagTest {
             isCustom = true, source = "custom", sourceRecordId = "4006381333931", nutritionBasis = "PER_SERVING",
         )
         val tag = scannedFoodTag(galletas)
-        assertTrue(tag.amountGrams!! > 0.0)
-        // Los nutrientes son los de 30 g: la ración elegida los escala en proporción.
-        assertEquals(135.0 * tag.amountGrams!! / 30.0, tag.loggedFood!!.calories, 1.0)
+        // Las galletas se cuentan por unidad de 30 g (unitGrams) y su porción declarada también es de 30 g: la ración son 30 g.
+        assertEquals(30.0, tag.amountGrams!!, 0.0)
+        // Sus nutrientes son los de esos 30 g: 135 kcal.
+        assertEquals(135.0, tag.loggedFood!!.calories, 1.0)
     }
 }
