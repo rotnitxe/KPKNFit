@@ -94,7 +94,7 @@ class StrengthModelTest {
         val set = ExerciseSet("plan", targetReps = 5, targetRIR = 2)
         assertEquals(100.0, StrengthModel.weightFor(120.0, set)!!, 0.0)
         assertEquals(100.0, StrengthModel.weightFor(120.0, set.copy(targetRIR = null, targetRPE = 8.0))!!, 0.0)
-        assertEquals(100.0, StrengthModel.weightFor(112.5, set.copy(targetRIR = null))!!, 0.0)
+        assertEquals(100.0, StrengthModel.weightFor(120.0, set.copy(targetRIR = null))!!, 0.0)
         listOf(IntensityMode.FAILURE, IntensityMode.AMRAP, IntensityMode.SOLO_RM).forEach { mode ->
             assertEquals(100.0, StrengthModel.weightFor(112.5, set.copy(intensityMode = mode))!!, 0.0)
         }
