@@ -9,7 +9,6 @@ internal data class RecipeOptions(
     val volumeCounting: VolumeCounting,
     val axialGatePosition: AxialGatePosition,
     val muscleMultiplierSource: MuscleMultiplierSource,
-    val densitySource: DensitySource,
     val cardioHandling: CardioHandling,
     val softCapUnits: SoftCapUnits,
 ) {
@@ -18,7 +17,6 @@ internal data class RecipeOptions(
     enum class AxialGatePosition { BEFORE_ACCUMULATION, AFTER_ACCUMULATION, NOT_APPLIED }
     /** Se elimina en 3.1 junto con el campo zombi del caché; no activar calibraciones antiguas. */
     enum class MuscleMultiplierSource { REMAPPED_PILLARS, DIRECT_KEYS, NONE }
-    enum class DensitySource { COMPLETED_METADATA, PLANNED_LEGACY_SUPERSET, PLANNED_GROUP_OR_LEGACY }
     enum class CardioHandling { CONSUMER_HOOK, LEGACY_STRENGTH }
     enum class SoftCapUnits { CHANNEL_PERCENT, MUSCLE_STRESS_UNITS, LOG_PERCENT, NONE }
 }
@@ -89,7 +87,7 @@ internal class SessionDrainRecipe(
                     snapshot = ex.effectiveMuscles,
                     restTime = ex.restTime,
                     supersetId = ex.supersetId,
-                    groupSupersetId = ex.supersetId,
+                    isPlanned = false,
                     supersetExerciseCount = ex.supersetExerciseCount,
                     supersetRounds = ex.supersetRounds,
                     supersetRestBetween = ex.supersetRestBetween,
@@ -116,8 +114,8 @@ internal class SessionDrainRecipe(
                     identity = RecipeExerciseIdentity(ex.name, ex.catalogConfigurationId, ex.exerciseDbId, ex.exerciseId),
                     snapshot = ex.effectiveMuscles,
                     restTime = ex.restTime,
-                    supersetId = ex.supersetId,
-                    groupSupersetId = ex.supersetGroupRefOrLegacyId(),
+                    supersetId = ex.supersetGroupRefOrLegacyId(),
+                    isPlanned = true,
                     supersetExerciseCount = 1,
                     supersetRounds = null,
                     supersetRestBetween = ex.supersetRestBetween,
@@ -188,7 +186,7 @@ internal class SessionDrainRecipe(
         val snapshot: List<InvolvedMuscle>?,
         val restTime: Int?,
         val supersetId: String?,
-        val groupSupersetId: String?,
+        val isPlanned: Boolean,
         val supersetExerciseCount: Int,
         val supersetRounds: Int?,
         val supersetRestBetween: Int?,
@@ -209,18 +207,16 @@ internal class SessionDrainRecipe(
             RecipeOptions.RestSource.PLANNED_OR_90 -> input.restTime ?: 90
             RecipeOptions.RestSource.PLANNED_OR_SETTINGS -> input.restTime ?: settings.restTimerDefaultSeconds
         }
-        val density = when (options.densitySource) {
-            RecipeOptions.DensitySource.COMPLETED_METADATA -> AugeFatigueEngine.getDensityMultiplierForExercise(
+        val density = if (input.isPlanned) {
+            AugeFatigueEngine.getDensityMultiplierForExercise(input.supersetId, input.restTime ?: settings.restTimerDefaultSeconds)
+        } else {
+            AugeFatigueEngine.getDensityMultiplierForExercise(
                 supersetId = input.supersetId,
                 restTime = input.supersetRestBetween ?: input.restTime ?: rest,
                 supersetExerciseCount = input.supersetExerciseCount,
                 supersetRounds = input.supersetRounds,
                 supersetRestAfter = input.supersetRestAfter,
             )
-            RecipeOptions.DensitySource.PLANNED_LEGACY_SUPERSET ->
-                AugeFatigueEngine.getDensityMultiplierForExercise(input.supersetId, input.restTime ?: 90)
-            RecipeOptions.DensitySource.PLANNED_GROUP_OR_LEGACY ->
-                AugeFatigueEngine.getDensityMultiplierForExercise(input.groupSupersetId, input.restTime ?: settings.restTimerDefaultSeconds)
         }
         val gate = AugeFatigueEngine.spinalAxialGate(info?.axialLoadFactor)
         return RecipeExerciseContext(

@@ -520,7 +520,6 @@ internal fun computeSessionAugeComputation(
             volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
             axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION,
             muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
-            densitySource = RecipeOptions.DensitySource.PLANNED_GROUP_OR_LEGACY,
             cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
             softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
         ),

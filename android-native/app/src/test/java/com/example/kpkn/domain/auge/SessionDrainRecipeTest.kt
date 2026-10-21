@@ -15,7 +15,6 @@ class SessionDrainRecipeTest {
         volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
         axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
         muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
-        densitySource = RecipeOptions.DensitySource.COMPLETED_METADATA,
         cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
         softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
     )
@@ -100,7 +99,6 @@ class SessionDrainRecipeTest {
         val target = plannedExercise()
         val predictorOptions = options().copy(
             restSource = RecipeOptions.RestSource.PLANNED_OR_90,
-            densitySource = RecipeOptions.DensitySource.PLANNED_LEGACY_SUPERSET,
         )
         val predictor = planned(predictorOptions, target)
         val editor = planned(predictorOptions.copy(restSource = RecipeOptions.RestSource.PLANNED_OR_SETTINGS), target)
@@ -163,27 +161,19 @@ class SessionDrainRecipeTest {
         }
     }
 
-    @Test fun densidadConservaMetadatosCompletosIdLegacyOIdDeGrupo() {
+    @Test fun densidadUsaGrupoOIdHeredadoEnPlanesYMetadatosCompletosAlCerrar() {
         val ex = exercise().copy(
             supersetId = "ss", supersetExerciseCount = 3, supersetRounds = 5,
             supersetRestBetween = 20, supersetRestAfter = 60,
         )
         val full = completed(options(), listOf(ex)).single()
-        val legacy = completed(options().copy(densitySource = RecipeOptions.DensitySource.PLANNED_LEGACY_SUPERSET), listOf(ex)).single()
         assertEquals(1.45, full.context.densityMultiplier, 0.0)
-        assertEquals(1.18, legacy.context.densityMultiplier, 0.0)
-        assertTrue(full.raw.cnsDrainPct > legacy.raw.cnsDrainPct)
-
         val target = plannedExercise().copy(supersetGroupRef = "group", restTime = 20)
-        val plannedOptions = options().copy(
-            restSource = RecipeOptions.RestSource.PLANNED_OR_90,
-            densitySource = RecipeOptions.DensitySource.PLANNED_LEGACY_SUPERSET,
-        )
-        val legacyId = planned(plannedOptions, target)
-        val groupId = planned(plannedOptions.copy(densitySource = RecipeOptions.DensitySource.PLANNED_GROUP_OR_LEGACY), target)
-        assertEquals(1.0, legacyId.context.densityMultiplier, 0.0)
-        assertEquals(1.3, groupId.context.densityMultiplier, 0.0)
-        assertTrue(groupId.raw.cnsDrainPct > legacyId.raw.cnsDrainPct)
+        val group = planned(options().copy(restSource = RecipeOptions.RestSource.PLANNED_OR_SETTINGS), target)
+        val legacy = planned(options().copy(restSource = RecipeOptions.RestSource.PLANNED_OR_SETTINGS), target.copy(supersetGroupRef = null, supersetId = "ss"))
+        assertEquals(1.3, group.context.densityMultiplier, 0.0)
+        assertEquals(group.raw, legacy.raw)
+        assertEquals(1.0, planned(options().copy(restSource = RecipeOptions.RestSource.PLANNED_OR_SETTINGS), target.copy(supersetGroupRef = null)).context.densityMultiplier, 0.0)
     }
 
     @Test fun pilarDelSnapshotSeparaLosContadoresAunqueCoincidaElCatalogo() {
