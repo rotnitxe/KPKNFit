@@ -185,3 +185,25 @@ y los 416 externos, sin las 37 reservas antiguas ni x14. No cambia el manifiesto
 - **Por qué:** con 1–3 rondas de ajuste sobre el mismo desarrollo, el fold ciego avisa del sobreajuste antes de gastar el examen, que
   es de un solo uso.
 - **Ronda 1: M2** (brief `briefs/M2.md`).
+
+## Examen final (21-oct, motor 9, una sola vez)
+Ejecutado con `feat/vt-ui` @d6f0bd7bc sobre los 181 clips del examen (trazas del Z Flip5, GPU). Informe externo:
+`C:\kw\vt-bench\full-20261020-flip\report-exam\`. El marcador `exam-evaluation.json` impide repetirlo.
+
+| Medida | Examen | Listón |
+|---|---|---|
+| G1 (82): con número | 63 (76,8 %) | — |
+| G1: exacto entre los que dan número | 45/63 (71,4 %) | — |
+| ALTA: exactas | 8/10 (80 %; IC95 49–94 %) | ≥ 99 % |
+| MEDIA: exactas | 22/22 (100 %; IC95 85–100 %) | ≥ 90 % |
+| Encuadre bueno (28): con número / exacto entre salidas | 25 (89 %) / 18 (72 %) | — |
+| Serie exacta, básicos (sin número = fallo) | 35/49 (71 %) | ≥ 95 % |
+| Serie exacta, el resto | 10/33 (30 %) | ≥ 90 % |
+| G2: equivocadas entre ofrecidas | 2/5 | — |
+
+- **Las dos ALTA equivocadas** son dominadas de Kaggle (`kaggle_pull_up_1` y `_2`) con una repetición de menos (7 de 8 y 3 de 4):
+  un error de borde sistemático de un grupo que estaba entero en el examen.
+- **MEDIA** acierta todo; si se juntan desarrollo y examen, ALTA da 62/65 (95 %) y MEDIA 147/151 (97 %).
+- **No se alcanza el listón del mercado** en la serie exacta ni en ALTA. Parte de la diferencia es del banco: clips de Kaggle y UCF
+  cortados a mitad de serie, de 320×240 y con la cámara en movimiento. Pero no lo explica todo.
+- El examen queda gastado. Lo siguiente se valida con datos nuevos: las grabaciones del usuario y MM-Fit.
