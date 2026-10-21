@@ -3,6 +3,7 @@ package com.example.kpkn.domain.auge
 import com.example.kpkn.data.models.*
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -12,7 +13,7 @@ import java.time.ZoneId
 import java.util.Locale
 import java.util.TimeZone
 
-/** Valores obtenidos antes de extraer la receta; los bits protegen incluso el último decimal. */
+/** Caracterización re-anclada por 2.2b1; las tablas del informe conservan la base y los motivos. */
 @RunWith(Parameterized::class)
 class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
     private lateinit var previousZone: TimeZone
@@ -25,28 +26,56 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
     @After fun restaurarZona() { TimeZone.setDefault(previousZone) }
 
     @Test fun conservaResultadosDeLasFuncionesPublicas() {
+        val actual = snapshot(SessionDrainCharacterizationFixtures.cache)
+        println("[2.2b1-domain][$caseId]\n$actual\n[/2.2b1-domain]")
+        assertEquals(caseId, expectedSnapshots.getValue(caseId), actual)
+    }
+
+    @Test fun remapearLaCacheNoVaciaPuedeCambiarLosAnillosLegacy() {
+        val cache = SessionDrainCharacterizationFixtures.cache
+        val original = snapshot(cache)
+        val remapped = snapshot(cache.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(cache.muscleDrainMultipliers)))
+        // Cierre, predictor y estrés ya remapean; los tres primeros consumidores no deben moverse.
+        assertEquals(original.lines().take(5), remapped.lines().take(5))
+        val expectedChange = when (caseId) {
+            "superserie" -> Triple("history[0][Pectorales]", 91, 92)
+            "cardio" -> Triple("history[6][Pectorales]", 97, 98)
+            else -> null
+        }
+        if (expectedChange != null) {
+            val (key, before, after) = expectedChange
+            val originalLine = original.lines().single { it.startsWith("$key=") }
+            val remappedLine = remapped.lines().single { it.startsWith("$key=") }
+            assertNotEquals(originalLine, remappedLine)
+            assertEquals(originalLine.replace("recoveryScore=$before", "recoveryScore=$after"), remappedLine)
+        } else {
+            assertEquals(original, remapped)
+        }
+        if (original != remapped) println("[2.2b1][$caseId]\n$remapped\n[/2.2b1]")
+    }
+
+    private fun snapshot(cache: AugeAdaptiveCache): String {
         val f = SessionDrainCharacterizationFixtures
         val exercises = f.completed.getValue(caseId)
-        val breakdown = AugeFatigueEngine.calculateCompletedSessionDrainBreakdown(exercises, f.db, f.settings, f.cache)
         val log = f.log(caseId, f.baseMs)
+        val breakdown = AugeFatigueEngine.calculateCompletedSessionDrainBreakdown(exercises, f.db, f.settings, cache, log.durationMinutes)
         val history = listOf(log, f.log("axial", f.baseMs - 18 * f.hourMs), f.log("superserie", f.baseMs - 52 * f.hourMs))
         val actual = buildString {
             appendLine("global=${breakdown.global};muscles=${breakdown.perMuscleMuscular.toSortedMap()}")
             f.muscles.forEach { muscle ->
-                appendLine("stress[$muscle]=${f.number(AugeRecoveryEngine.calculateMuscleSessionStress(muscle, log, f.settings, f.db, f.cache))}")
+                appendLine("stress[$muscle]=${f.number(AugeRecoveryEngine.calculateMuscleSessionStress(muscle, log, f.settings, f.db, cache))}")
             }
-            appendLine("predicted=${AugeFatigueEngine.calculateAdjustedPredictedDrain(f.planned.getValue(caseId), f.db, f.settings, f.cache)}")
+            appendLine("predicted=${AugeFatigueEngine.calculateAdjustedPredictedDrain(f.planned.getValue(caseId), f.db, f.settings, cache)}")
             listOf(0, 6, 24).forEach { hours ->
                 val now = f.baseMs + hours * f.hourMs
-                appendLine("history[$hours].energy=${AugeRecoveryEngine.calculateSystemicFatigue(history, null, f.settings, f.db, adaptiveCache = f.cache, nowOverride = now)}")
-                appendLine("history[$hours].spinal=${AugeRecoveryEngine.calculateSpinalBattery(history, null, f.settings, f.db, adaptiveCache = f.cache, nowOverride = now)}")
+                appendLine("history[$hours].energy=${AugeRecoveryEngine.calculateSystemicFatigue(history, null, f.settings, f.db, adaptiveCache = cache, nowOverride = now)}")
+                appendLine("history[$hours].spinal=${AugeRecoveryEngine.calculateSpinalBattery(history, null, f.settings, f.db, adaptiveCache = cache, nowOverride = now)}")
                 f.muscles.forEach { muscle ->
-                    appendLine("history[$hours][$muscle]=${AugeRecoveryEngine.calculateMuscleBattery(muscle, history, null, f.settings, f.db, adaptiveCache = f.cache, nowOverride = now)}")
+                    appendLine("history[$hours][$muscle]=${AugeRecoveryEngine.calculateMuscleBattery(muscle, history, null, f.settings, f.db, adaptiveCache = cache, nowOverride = now)}")
                 }
             }
         }.trimEnd()
-        val expected = expectedSnapshots.getValue(caseId)
-        assertEquals(caseId, expected, actual)
+        return actual
     }
 
     companion object {
@@ -55,7 +84,7 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
 
         private val expectedSnapshots = mapOf(
             "unilateral" to """
-                global=PredictedDrain(cns=50, muscular=39, spinal=8);muscles={Cuádriceps=25, Erectores Espinales=2, Glúteos=12}
+                global=PredictedDrain(cns=54, muscular=39, spinal=8);muscles={Cuádriceps=25, Erectores Espinales=2, Glúteos=12}
                 stress[Pectorales]=0.000000[0]
                 stress[Cuádriceps]=313.138244[4644216402439619441]
                 stress[Erectores Espinales]=23.338819[4627262511298630878]
@@ -77,7 +106,7 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
                 history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
             """.trimIndent(),
             "superserie" to """
-                global=PredictedDrain(cns=78, muscular=57, spinal=8);muscles={Bíceps=4, Deltoides=6, Dorsales=8, Erectores Espinales=3, Pectorales=17, Trapecio=4, Tríceps=16}
+                global=PredictedDrain(cns=78, muscular=64, spinal=8);muscles={Bíceps=4, Deltoides=8, Dorsales=7, Erectores Espinales=3, Pectorales=22, Trapecio=4, Tríceps=17}
                 stress[Pectorales]=430.198775[4646275753084504383]
                 stress[Cuádriceps]=0.000000[0]
                 stress[Erectores Espinales]=151.008128[4639517142719779935]
@@ -99,7 +128,7 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
                 history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
             """.trimIndent(),
             "cardio" to """
-                global=PredictedDrain(cns=43, muscular=40, spinal=8);muscles={Bíceps=1, Core=1, Cuádriceps=14, Deltoides=3, Dorsales=1, Erectores Espinales=5, Glúteos=6, Pectorales=7, Tríceps=3}
+                global=PredictedDrain(cns=47, muscular=40, spinal=8);muscles={Bíceps=1, Core=1, Cuádriceps=14, Deltoides=3, Dorsales=1, Erectores Espinales=5, Glúteos=6, Pectorales=7, Tríceps=3}
                 stress[Pectorales]=134.717355[4638943962117049929]
                 stress[Cuádriceps]=259.720667[4643276670481307199]
                 stress[Erectores Espinales]=103.888267[4637010903800383998]
@@ -121,7 +150,7 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
                 history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
             """.trimIndent(),
             "tecnicas" to """
-                global=PredictedDrain(cns=64, muscular=66, spinal=8);muscles={Bíceps=1, Deltoides=12, Dorsales=1, Erectores Espinales=0, Pectorales=35, Trapecio=1, Tríceps=16}
+                global=PredictedDrain(cns=70, muscular=66, spinal=8);muscles={Bíceps=1, Deltoides=12, Dorsales=1, Erectores Espinales=0, Pectorales=35, Trapecio=1, Tríceps=16}
                 stress[Pectorales]=937.712102[4651459418695749866]
                 stress[Cuádriceps]=0.000000[0]
                 stress[Erectores Espinales]=62.736113[4634026140307166209]
@@ -143,11 +172,11 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
                 history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
             """.trimIndent(),
             "axial" to """
-                global=PredictedDrain(cns=54, muscular=39, spinal=8);muscles={Bíceps=3, Deltoides=7, Dorsales=5, Erectores Espinales=5, Glúteos=3, Isquiosurales=5, Trapecio=8, Tríceps=3}
+                global=PredictedDrain(cns=65, muscular=39, spinal=8);muscles={Bíceps=3, Deltoides=7, Dorsales=5, Erectores Espinales=5, Glúteos=3, Isquiosurales=5, Trapecio=8, Tríceps=3}
                 stress[Pectorales]=0.000000[0]
                 stress[Cuádriceps]=0.000000[0]
                 stress[Erectores Espinales]=144.399958[4639284638432422277]
-                predicted=PredictedDrain(cns=54, muscular=39, spinal=8)
+                predicted=PredictedDrain(cns=57, muscular=39, spinal=8)
                 history[0].energy=(68, 32, 0)
                 history[0].spinal=90
                 history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=52, effectiveSets=5, status=FRESH)
@@ -165,7 +194,7 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
                 history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=10, status=FRESH)
             """.trimIndent(),
             "sin-ficha" to """
-                global=PredictedDrain(cns=52, muscular=45, spinal=10);muscles={Deltoides=1, Erectores Espinales=4, Glúteos=5, Isquiosurales=10, Pectorales=4, Tríceps=2}
+                global=PredictedDrain(cns=57, muscular=45, spinal=10);muscles={Deltoides=1, Erectores Espinales=4, Glúteos=5, Isquiosurales=10, Pectorales=4, Tríceps=2}
                 stress[Pectorales]=109.528284[4637407784732285832]
                 stress[Cuádriceps]=0.000000[0]
                 stress[Erectores Espinales]=93.118024[4636253015334077926]
@@ -187,11 +216,11 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
                 history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
             """.trimIndent(),
             "filtrado-rir" to """
-                global=PredictedDrain(cns=26, muscular=16, spinal=0);muscles={Deltoides=3, Pectorales=9, Tríceps=4}
+                global=PredictedDrain(cns=29, muscular=16, spinal=0);muscles={Deltoides=3, Pectorales=9, Tríceps=4}
                 stress[Pectorales]=173.399924[4640304984013649747]
                 stress[Cuádriceps]=0.000000[0]
                 stress[Erectores Espinales]=0.000000[0]
-                predicted=PredictedDrain(cns=32, muscular=22, spinal=0)
+                predicted=PredictedDrain(cns=38, muscular=19, spinal=0)
                 history[0].energy=(81, 19, 0)
                 history[0].spinal=98
                 history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=8, status=FRESH)

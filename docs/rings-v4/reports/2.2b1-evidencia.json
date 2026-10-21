@@ -1,0 +1,42 @@
+{
+  "base": "ffd6a1648",
+  "diagnostic_only": true,
+  "golden_changed_lines": 0,
+  "golden_maximum_delta": 0,
+  "golden_mean_delta": 0,
+  "cases_changed": 2,
+  "fields_changed": 2,
+  "maximum_delta": 1.0,
+  "mean_delta": 1.0,
+  "delta_definition": "Campos numéricos distintos de las caracterizaciones; incluye puntos y horas.",
+  "points": {
+    "count": 2,
+    "maximum": 1.0,
+    "mean": 1.0
+  },
+  "recovery_hours": {
+    "count": 0,
+    "maximum": 0,
+    "mean": 0.0
+  },
+  "changes": [
+    {
+      "case": "superserie",
+      "field": "history[0][Pectorales]",
+      "before": "MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=91, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)",
+      "after": "MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=92, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)",
+      "absolute_deltas": [
+        1.0
+      ]
+    },
+    {
+      "case": "cardio",
+      "field": "history[6][Pectorales]",
+      "before": "MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=7, status=FRESH)",
+      "after": "MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=7, status=FRESH)",
+      "absolute_deltas": [
+        1.0
+      ]
+    }
+  ]
+}

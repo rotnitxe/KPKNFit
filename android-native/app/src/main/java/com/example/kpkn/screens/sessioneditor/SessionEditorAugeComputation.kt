@@ -516,17 +516,11 @@ internal fun computeSessionAugeComputation(
         tanks = tanks,
         adaptiveCache = AugeAdaptiveCache(),
         options = RecipeOptions(
-            restSource = RecipeOptions.RestSource.PLANNED_OR_SETTINGS,
             volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
             axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION,
             muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
-            densitySource = RecipeOptions.DensitySource.PLANNED_GROUP_OR_LEGACY,
-            primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.CATALOG_VOLUME_GROUP,
-            missingCatalog = RecipeOptions.MissingCatalog.SKIP,
             cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
             softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
-            weightUnitSource = RecipeOptions.WeightUnitSource.KG_DEFAULT,
-            plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
         ),
         resolveInfo = { identity ->
             resolveCatalogExerciseInfoInIndex(
@@ -548,6 +542,13 @@ internal fun computeSessionAugeComputation(
             if (duration <= 0) return@mapNotNull null
             val rpe = cardio.resolvedRpe()
             val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
+            val cappedCns = recipe.softCap(cardioDrain.cns, pipelinedTotalCns, cnsCap)
+            val cappedMuscular = recipe.softCap(cardioDrain.muscular, pipelinedTotalMuscular, muscularCap)
+            val cappedSpinal = recipe.softCap(cardioDrain.spinal, pipelinedTotalSpinal, spinalCap)
+            pipelinedTotalCns += cappedCns
+            pipelinedTotalMuscular += cappedMuscular
+            pipelinedTotalSpinal += cappedSpinal
+            recipe.accumulatedDrain += (cappedCns + cappedMuscular + cappedSpinal) / 3.0
             totalSets += 1
             rpeSum += rpe
             rpeCount += 1
@@ -567,7 +568,7 @@ internal fun computeSessionAugeComputation(
                 suggestion = exerciseSuggestionForInsight(cardioDrain.muscular, cardioDrain.cns, cardioDrain.spinal),
             )
         }
-        val info = resolveExerciseInfo(exercise, exerciseIndex) ?: return@mapNotNull null
+        val info = resolveExerciseInfo(exercise, exerciseIndex)
         val validSets = exercise.validAugeSets()
         if (validSets.isEmpty()) return@mapNotNull null
         val musclesForVolume = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
@@ -612,7 +613,7 @@ internal fun computeSessionAugeComputation(
                     }
                 }
 
-                totalSpinalLoad += info.axialLoadFactor ?: 0.0
+                totalSpinalLoad += info?.axialLoadFactor ?: 0.0
                 val axialGate = context.axialGate
                 muscular += drain.muscularDrainPct
                 cns += drain.cnsDrainPct
@@ -670,7 +671,7 @@ internal fun computeSessionAugeComputation(
             if (validSets.any { it.isFailure || it.intensityMode == IntensityMode.FAILURE }) ctx.usesFailure = true
         }
 
-        val name = info.name.lowercase()
+        val name = (info?.name ?: exercise.name).lowercase()
         if (name.contains("press francés") || name.contains("press frances") || name.contains("rompecráneos") || name.contains("rompecraneos") || name.contains("extensión en polea") || name.contains("extension en polea")) {
             elbowStress += validSets.size
         }
@@ -691,12 +692,10 @@ internal fun computeSessionAugeComputation(
     }
 
     val predictedDrain = run {
-        val fromPass = PredictedDrain(
-            cns = pipelinedTotalCns.roundToInt().coerceIn(0, 100),
-            muscular = pipelinedTotalMuscular.roundToInt().coerceIn(0, 100),
-            spinal = pipelinedTotalSpinal.roundToInt().coerceIn(0, 100),
+        val fromPass = AugeFatigueEngine.finalizePlannedSessionDrain(
+            session, exerciseIndex, settings, pipelinedTotalMuscular, pipelinedTotalCns, pipelinedTotalSpinal,
         )
-        val ema = runCatching {
+        val ema = if (programLogs.isEmpty()) null else runCatching {
             AugeFatigueEngine.calculateMesocycleStressEMA(
                 logs = programLogs,
                 programId = programId,

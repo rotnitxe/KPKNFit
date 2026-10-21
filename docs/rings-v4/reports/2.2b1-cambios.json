@@ -1,0 +1,1270 @@
+{
+  "base": "fd4940a13",
+  "regenerated_in": "r4-2-2b1-4.log",
+  "golden": [
+    {
+      "case": "A08",
+      "instant": "session#1",
+      "field": "drain",
+      "before": "drain=cns:62,spinal:8,muscular:48",
+      "after": "drain=cns:56,spinal:8,muscular:52",
+      "deltas": [
+        6.0,
+        4.0
+      ]
+    },
+    {
+      "case": "A08",
+      "instant": "session#1",
+      "field": "pm",
+      "before": "pm=Bíceps:4;Deltoides:6;Dorsales:7;Erectores Espinales:3;Pectorales:17;Trapecio:4;Tríceps:8",
+      "after": "pm=Bíceps:4;Deltoides:7;Dorsales:7;Erectores Espinales:3;Pectorales:20;Trapecio:4;Tríceps:9",
+      "deltas": [
+        1.0,
+        3.0,
+        1.0
+      ]
+    },
+    {
+      "case": "A08",
+      "instant": "session#1",
+      "field": "v2global",
+      "before": "v2global=48",
+      "after": "v2global=52",
+      "deltas": [
+        4.0
+      ]
+    }
+  ],
+  "golden_statistics": {
+    "changed_numbers": 6,
+    "maximum": 6.0,
+    "mean": 3.1666666666666665
+  },
+  "golden_sha256": "89efdf7d0d23df77aac68fc2bec1c83990ed86557c855ef082b4b306d257292b",
+  "golden_categories": {
+    "supersets": {
+      "covered": [
+        "A08"
+      ],
+      "changed": [
+        "A08"
+      ]
+    },
+    "singles": {
+      "covered": [
+        "A11"
+      ],
+      "changed": []
+    },
+    "cardio": {
+      "covered": [],
+      "changed": []
+    },
+    "missing_catalog": {
+      "covered": [],
+      "changed": []
+    },
+    "long_sessions": {
+      "covered": [],
+      "changed": []
+    }
+  },
+  "frozen_tests": [
+    "domain/auge/AugeRingCharacterizationTest.kt",
+    "domain/auge/AugeRingDrainRealismTest.kt",
+    "domain/auge/SessionDrainBoundsTest.kt",
+    "domain/auge/RingsIntroSimulatorTest.kt",
+    "screens/sessioneditor/SessionEditorAugeAxialGateTest.kt"
+  ],
+  "characterization_changes": [
+    {
+      "consumer": "domain",
+      "case": "unilateral",
+      "field": "global",
+      "before": "global=PredictedDrain(cns=50, muscular=39, spinal=8);muscles={Cuádriceps=25, Erectores Espinales=2, Glúteos=12}",
+      "after": "global=PredictedDrain(cns=54, muscular=39, spinal=8);muscles={Cuádriceps=25, Erectores Espinales=2, Glúteos=12}"
+    },
+    {
+      "consumer": "domain",
+      "case": "superserie",
+      "field": "global",
+      "before": "global=PredictedDrain(cns=78, muscular=57, spinal=8);muscles={Bíceps=4, Deltoides=6, Dorsales=8, Erectores Espinales=3, Pectorales=17, Trapecio=4, Tríceps=16}",
+      "after": "global=PredictedDrain(cns=78, muscular=64, spinal=8);muscles={Bíceps=4, Deltoides=8, Dorsales=7, Erectores Espinales=3, Pectorales=22, Trapecio=4, Tríceps=17}"
+    },
+    {
+      "consumer": "domain",
+      "case": "cardio",
+      "field": "global",
+      "before": "global=PredictedDrain(cns=43, muscular=40, spinal=8);muscles={Bíceps=1, Core=1, Cuádriceps=14, Deltoides=3, Dorsales=1, Erectores Espinales=5, Glúteos=6, Pectorales=7, Tríceps=3}",
+      "after": "global=PredictedDrain(cns=47, muscular=40, spinal=8);muscles={Bíceps=1, Core=1, Cuádriceps=14, Deltoides=3, Dorsales=1, Erectores Espinales=5, Glúteos=6, Pectorales=7, Tríceps=3}"
+    },
+    {
+      "consumer": "domain",
+      "case": "tecnicas",
+      "field": "global",
+      "before": "global=PredictedDrain(cns=64, muscular=66, spinal=8);muscles={Bíceps=1, Deltoides=12, Dorsales=1, Erectores Espinales=0, Pectorales=35, Trapecio=1, Tríceps=16}",
+      "after": "global=PredictedDrain(cns=70, muscular=66, spinal=8);muscles={Bíceps=1, Deltoides=12, Dorsales=1, Erectores Espinales=0, Pectorales=35, Trapecio=1, Tríceps=16}"
+    },
+    {
+      "consumer": "domain",
+      "case": "axial",
+      "field": "global",
+      "before": "global=PredictedDrain(cns=54, muscular=39, spinal=8);muscles={Bíceps=3, Deltoides=7, Dorsales=5, Erectores Espinales=5, Glúteos=3, Isquiosurales=5, Trapecio=8, Tríceps=3}",
+      "after": "global=PredictedDrain(cns=65, muscular=39, spinal=8);muscles={Bíceps=3, Deltoides=7, Dorsales=5, Erectores Espinales=5, Glúteos=3, Isquiosurales=5, Trapecio=8, Tríceps=3}"
+    },
+    {
+      "consumer": "domain",
+      "case": "axial",
+      "field": "predicted",
+      "before": "predicted=PredictedDrain(cns=54, muscular=39, spinal=8)",
+      "after": "predicted=PredictedDrain(cns=57, muscular=39, spinal=8)"
+    },
+    {
+      "consumer": "domain",
+      "case": "sin-ficha",
+      "field": "global",
+      "before": "global=PredictedDrain(cns=52, muscular=45, spinal=10);muscles={Deltoides=1, Erectores Espinales=4, Glúteos=5, Isquiosurales=10, Pectorales=4, Tríceps=2}",
+      "after": "global=PredictedDrain(cns=57, muscular=45, spinal=10);muscles={Deltoides=1, Erectores Espinales=4, Glúteos=5, Isquiosurales=10, Pectorales=4, Tríceps=2}"
+    },
+    {
+      "consumer": "domain",
+      "case": "filtrado-rir",
+      "field": "global",
+      "before": "global=PredictedDrain(cns=26, muscular=16, spinal=0);muscles={Deltoides=3, Pectorales=9, Tríceps=4}",
+      "after": "global=PredictedDrain(cns=29, muscular=16, spinal=0);muscles={Deltoides=3, Pectorales=9, Tríceps=4}"
+    },
+    {
+      "consumer": "domain",
+      "case": "filtrado-rir",
+      "field": "predicted",
+      "before": "predicted=PredictedDrain(cns=32, muscular=22, spinal=0)",
+      "after": "predicted=PredictedDrain(cns=38, muscular=19, spinal=0)"
+    },
+    {
+      "consumer": "editor",
+      "case": "unilateral",
+      "field": "drain",
+      "before": "drain=PredictedDrain(cns=64, muscular=42, spinal=5)",
+      "after": "drain=PredictedDrain(cns=63, muscular=41, spinal=8)"
+    },
+    {
+      "consumer": "editor",
+      "case": "superserie",
+      "field": "drain",
+      "before": "drain=PredictedDrain(cns=71, muscular=60, spinal=2)",
+      "after": "drain=PredictedDrain(cns=67, muscular=63, spinal=8)"
+    },
+    {
+      "consumer": "editor",
+      "case": "superserie",
+      "field": "muscular",
+      "before": "muscular={Bíceps=4, Deltoides=7, Dorsales=8, Erectores Espinales=3, Pectorales=21, Trapecio=4, Tríceps=14}",
+      "after": "muscular={Bíceps=4, Deltoides=7, Dorsales=8, Erectores Espinales=3, Pectorales=21, Trapecio=4, Tríceps=17}"
+    },
+    {
+      "consumer": "editor",
+      "case": "superserie",
+      "field": "energy",
+      "before": "energy={Bíceps=3, Deltoides=9, Dorsales=6, Erectores Espinales=2, Pectorales=26, Trapecio=3, Tríceps=21}",
+      "after": "energy={Bíceps=3, Deltoides=9, Dorsales=6, Erectores Espinales=2, Pectorales=26, Trapecio=3, Tríceps=18}"
+    },
+    {
+      "consumer": "editor",
+      "case": "superserie",
+      "field": "insights",
+      "before": "insights=[SessionEditorAugeExerciseInsight(exerciseId=bench, name=Press banca, muscular=52, cns=75, spinal=0, total=42, suggestion=null), SessionEditorAugeExerciseInsight(exerciseId=row, name=Remo, muscular=56, cns=68, spinal=3, total=42, suggestion=null), SessionEditorAugeExerciseInsight(exerciseId=incline, name=Press inclinado, muscular=25, cns=100, spinal=0, total=46, suggestion=Carga neural elevada. Reducir RPE o %1RM deja más margen para el resto de la sesión.)]",
+      "after": "insights=[SessionEditorAugeExerciseInsight(exerciseId=bench, name=Press banca, muscular=52, cns=75, spinal=0, total=42, suggestion=null), SessionEditorAugeExerciseInsight(exerciseId=row, name=Remo, muscular=56, cns=68, spinal=3, total=42, suggestion=null), SessionEditorAugeExerciseInsight(exerciseId=incline, name=Press inclinado, muscular=49, cns=64, spinal=0, total=38, suggestion=null)]"
+    },
+    {
+      "consumer": "editor",
+      "case": "cardio",
+      "field": "drain",
+      "before": "drain=PredictedDrain(cns=10, muscular=14, spinal=8)",
+      "after": "drain=PredictedDrain(cns=4, muscular=5, spinal=1)"
+    },
+    {
+      "consumer": "editor",
+      "case": "axial",
+      "field": "drain",
+      "before": "drain=PredictedDrain(cns=52, muscular=39, spinal=5)",
+      "after": "drain=PredictedDrain(cns=54, muscular=39, spinal=9)"
+    },
+    {
+      "consumer": "editor",
+      "case": "axial",
+      "field": "energy",
+      "before": "energy={Bíceps=2, Deltoides=10, Dorsales=3, Erectores Espinales=7, Glúteos=5, Isquiosurales=10, Trapecio=10, Tríceps=4}",
+      "after": "energy={Bíceps=1, Deltoides=10, Dorsales=3, Erectores Espinales=8, Glúteos=6, Isquiosurales=12, Trapecio=11, Tríceps=4}"
+    },
+    {
+      "consumer": "editor",
+      "case": "sin-ficha",
+      "field": "drain",
+      "before": "drain=PredictedDrain(cns=16, muscular=13, spinal=0)",
+      "after": "drain=PredictedDrain(cns=50, muscular=46, spinal=11)"
+    },
+    {
+      "consumer": "editor",
+      "case": "sin-ficha",
+      "field": "muscular",
+      "before": "muscular={Deltoides=3, Pectorales=7, Tríceps=3}",
+      "after": "muscular={Deltoides=1, Pectorales=4, Tríceps=2}"
+    },
+    {
+      "consumer": "editor",
+      "case": "sin-ficha",
+      "field": "energy",
+      "before": "energy={Deltoides=3, Pectorales=9, Tríceps=4}",
+      "after": "energy={Deltoides=1, Pectorales=3, Tríceps=1}"
+    },
+    {
+      "consumer": "editor",
+      "case": "sin-ficha",
+      "field": "insights",
+      "before": "insights=[SessionEditorAugeExerciseInsight(exerciseId=bench, name=Press banca, muscular=16, cns=19, spinal=0, total=12, suggestion=null)]",
+      "after": "insights=[SessionEditorAugeExerciseInsight(exerciseId=custom, name=Movimiento propio, muscular=26, cns=32, spinal=2, total=20, suggestion=null), SessionEditorAugeExerciseInsight(exerciseId=hinge, name=Peso muerto custom, muscular=32, cns=37, spinal=6, total=25, suggestion=null), SessionEditorAugeExerciseInsight(exerciseId=bench, name=Press banca, muscular=16, cns=19, spinal=0, total=12, suggestion=null)]"
+    },
+    {
+      "consumer": "editor",
+      "case": "sin-ficha",
+      "field": "sets",
+      "before": "sets=2;duration=23;difficulty=5;rpe=8.500000[4620974692658839552];axial=0.000000[0];elbow=0;knee=0",
+      "after": "sets=9;duration=23;difficulty=5;rpe=8.500000[4620974692658839552];axial=0.000000[0];elbow=0;knee=0"
+    },
+    {
+      "consumer": "editor",
+      "case": "filtrado-rir",
+      "field": "drain",
+      "before": "drain=PredictedDrain(cns=35, muscular=20, spinal=0)",
+      "after": "drain=PredictedDrain(cns=34, muscular=20, spinal=0)"
+    }
+  ],
+  "global_drains": [
+    {
+      "consumer": "domain",
+      "case": "unilateral",
+      "field": "global",
+      "before": [
+        50,
+        39,
+        8
+      ],
+      "after": [
+        54,
+        39,
+        8
+      ],
+      "deltas": [
+        4
+      ],
+      "changed_numbers": 1,
+      "maximum": 4,
+      "mean": 4.0
+    },
+    {
+      "consumer": "domain",
+      "case": "superserie",
+      "field": "global",
+      "before": [
+        78,
+        57,
+        8
+      ],
+      "after": [
+        78,
+        64,
+        8
+      ],
+      "deltas": [
+        7
+      ],
+      "changed_numbers": 1,
+      "maximum": 7,
+      "mean": 7.0
+    },
+    {
+      "consumer": "domain",
+      "case": "cardio",
+      "field": "global",
+      "before": [
+        43,
+        40,
+        8
+      ],
+      "after": [
+        47,
+        40,
+        8
+      ],
+      "deltas": [
+        4
+      ],
+      "changed_numbers": 1,
+      "maximum": 4,
+      "mean": 4.0
+    },
+    {
+      "consumer": "domain",
+      "case": "tecnicas",
+      "field": "global",
+      "before": [
+        64,
+        66,
+        8
+      ],
+      "after": [
+        70,
+        66,
+        8
+      ],
+      "deltas": [
+        6
+      ],
+      "changed_numbers": 1,
+      "maximum": 6,
+      "mean": 6.0
+    },
+    {
+      "consumer": "domain",
+      "case": "axial",
+      "field": "global",
+      "before": [
+        54,
+        39,
+        8
+      ],
+      "after": [
+        65,
+        39,
+        8
+      ],
+      "deltas": [
+        11
+      ],
+      "changed_numbers": 1,
+      "maximum": 11,
+      "mean": 11.0
+    },
+    {
+      "consumer": "domain",
+      "case": "axial",
+      "field": "predicted",
+      "before": [
+        54,
+        39,
+        8
+      ],
+      "after": [
+        57,
+        39,
+        8
+      ],
+      "deltas": [
+        3
+      ],
+      "changed_numbers": 1,
+      "maximum": 3,
+      "mean": 3.0
+    },
+    {
+      "consumer": "domain",
+      "case": "sin-ficha",
+      "field": "global",
+      "before": [
+        52,
+        45,
+        10
+      ],
+      "after": [
+        57,
+        45,
+        10
+      ],
+      "deltas": [
+        5
+      ],
+      "changed_numbers": 1,
+      "maximum": 5,
+      "mean": 5.0
+    },
+    {
+      "consumer": "domain",
+      "case": "filtrado-rir",
+      "field": "global",
+      "before": [
+        26,
+        16,
+        0
+      ],
+      "after": [
+        29,
+        16,
+        0
+      ],
+      "deltas": [
+        3
+      ],
+      "changed_numbers": 1,
+      "maximum": 3,
+      "mean": 3.0
+    },
+    {
+      "consumer": "domain",
+      "case": "filtrado-rir",
+      "field": "predicted",
+      "before": [
+        32,
+        22,
+        0
+      ],
+      "after": [
+        38,
+        19,
+        0
+      ],
+      "deltas": [
+        6,
+        3
+      ],
+      "changed_numbers": 2,
+      "maximum": 6,
+      "mean": 4.5
+    },
+    {
+      "consumer": "editor",
+      "case": "unilateral",
+      "field": "drain",
+      "before": [
+        64,
+        42,
+        5
+      ],
+      "after": [
+        63,
+        41,
+        8
+      ],
+      "deltas": [
+        1,
+        1,
+        3
+      ],
+      "changed_numbers": 3,
+      "maximum": 3,
+      "mean": 1.6666666666666667
+    },
+    {
+      "consumer": "editor",
+      "case": "superserie",
+      "field": "drain",
+      "before": [
+        71,
+        60,
+        2
+      ],
+      "after": [
+        67,
+        63,
+        8
+      ],
+      "deltas": [
+        4,
+        3,
+        6
+      ],
+      "changed_numbers": 3,
+      "maximum": 6,
+      "mean": 4.333333333333333
+    },
+    {
+      "consumer": "editor",
+      "case": "cardio",
+      "field": "drain",
+      "before": [
+        10,
+        14,
+        8
+      ],
+      "after": [
+        4,
+        5,
+        1
+      ],
+      "deltas": [
+        6,
+        9,
+        7
+      ],
+      "changed_numbers": 3,
+      "maximum": 9,
+      "mean": 7.333333333333333
+    },
+    {
+      "consumer": "editor",
+      "case": "axial",
+      "field": "drain",
+      "before": [
+        52,
+        39,
+        5
+      ],
+      "after": [
+        54,
+        39,
+        9
+      ],
+      "deltas": [
+        2,
+        4
+      ],
+      "changed_numbers": 2,
+      "maximum": 4,
+      "mean": 3.0
+    },
+    {
+      "consumer": "editor",
+      "case": "sin-ficha",
+      "field": "drain",
+      "before": [
+        16,
+        13,
+        0
+      ],
+      "after": [
+        50,
+        46,
+        11
+      ],
+      "deltas": [
+        34,
+        33,
+        11
+      ],
+      "changed_numbers": 3,
+      "maximum": 34,
+      "mean": 26.0
+    },
+    {
+      "consumer": "editor",
+      "case": "filtrado-rir",
+      "field": "drain",
+      "before": [
+        35,
+        20,
+        0
+      ],
+      "after": [
+        34,
+        20,
+        0
+      ],
+      "deltas": [
+        1
+      ],
+      "changed_numbers": 1,
+      "maximum": 1,
+      "mean": 1.0
+    }
+  ],
+  "drain_statistics": {
+    "changed_numbers": 25,
+    "maximum": 34,
+    "mean": 7.08
+  },
+  "learner": [
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=pectorales tras 30 observaciones propias",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=pectorales tras 30 observaciones propias tauVerdadero=48.0 usuarios=13 MAE=9.9 h sesgo=9.5 h",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=pectorales tras 30 observaciones propias tauVerdadero=48.0 usuarios=13 MAE=9.9 h sesgo=9.5 h"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=cns tras 30 observaciones propias",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=cns tras 30 observaciones propias tauVerdadero=36.0 usuarios=20 MAE=3.9 h sesgo=-3.6 h",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=cns tras 30 observaciones propias tauVerdadero=36.0 usuarios=20 MAE=3.9 h sesgo=-3.6 h"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=spinal tras 30 observaciones propias",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=spinal tras 30 observaciones propias tauVerdadero=52.0 usuarios=20 MAE=22.7 h sesgo=22.7 h",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=spinal tras 30 observaciones propias tauVerdadero=52.0 usuarios=20 MAE=22.7 h sesgo=22.7 h"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=pectorales tras 100 gestos",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=pectorales tras 100 gestos tauVerdadero=48.0 MAE=9.2 h sesgo=9.0 h obsMedias=30.3",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=pectorales tras 100 gestos tauVerdadero=48.0 MAE=9.2 h sesgo=9.0 h obsMedias=30.3"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=cns tras 100 gestos",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=cns tras 100 gestos tauVerdadero=36.0 MAE=3.5 h sesgo=-3.5 h obsMedias=100.0",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=cns tras 100 gestos tauVerdadero=36.0 MAE=3.5 h sesgo=-3.5 h obsMedias=100.0"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=spinal tras 100 gestos",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=spinal tras 100 gestos tauVerdadero=52.0 MAE=37.8 h sesgo=37.8 h obsMedias=100.0",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=spinal tras 100 gestos tauVerdadero=52.0 MAE=37.8 h sesgo=37.8 h obsMedias=100.0"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales tras 30 observaciones propias",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales tras 30 observaciones propias tauVerdadero=60.0 usuarios=13 MAE=2.8 h sesgo=-1.1 h",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales tras 30 observaciones propias tauVerdadero=60.0 usuarios=13 MAE=2.8 h sesgo=-1.1 h"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns tras 30 observaciones propias",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns tras 30 observaciones propias tauVerdadero=45.0 usuarios=20 MAE=11.0 h sesgo=-11.0 h",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns tras 30 observaciones propias tauVerdadero=45.0 usuarios=20 MAE=11.0 h sesgo=-11.0 h"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal tras 30 observaciones propias",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal tras 30 observaciones propias tauVerdadero=65.0 usuarios=20 MAE=15.4 h sesgo=15.3 h",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal tras 30 observaciones propias tauVerdadero=65.0 usuarios=20 MAE=15.4 h sesgo=15.3 h"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales tras 100 gestos",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales tras 100 gestos tauVerdadero=60.0 MAE=3.0 h sesgo=-0.7 h obsMedias=30.3",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales tras 100 gestos tauVerdadero=60.0 MAE=3.0 h sesgo=-0.7 h obsMedias=30.3"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns tras 100 gestos",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns tras 100 gestos tauVerdadero=45.0 MAE=9.7 h sesgo=-9.7 h obsMedias=100.0",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns tras 100 gestos tauVerdadero=45.0 MAE=9.7 h sesgo=-9.7 h obsMedias=100.0"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal tras 100 gestos",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal tras 100 gestos tauVerdadero=65.0 MAE=29.3 h sesgo=29.3 h obsMedias=100.0",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal tras 100 gestos tauVerdadero=65.0 MAE=29.3 h sesgo=29.3 h obsMedias=100.0"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales tras 30 observaciones propias",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales tras 30 observaciones propias tauVerdadero=36.0 usuarios=13 MAE=19.1 h sesgo=19.1 h",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales tras 30 observaciones propias tauVerdadero=36.0 usuarios=13 MAE=19.1 h sesgo=19.1 h"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns tras 30 observaciones propias",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns tras 30 observaciones propias tauVerdadero=27.0 usuarios=20 MAE=3.4 h sesgo=3.0 h",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns tras 30 observaciones propias tauVerdadero=27.0 usuarios=20 MAE=3.4 h sesgo=3.0 h"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal tras 30 observaciones propias",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal tras 30 observaciones propias tauVerdadero=39.0 usuarios=20 MAE=36.5 h sesgo=36.5 h",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal tras 30 observaciones propias tauVerdadero=39.0 usuarios=20 MAE=36.5 h sesgo=36.5 h"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales tras 100 gestos",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales tras 100 gestos tauVerdadero=36.0 MAE=18.8 h sesgo=18.8 h obsMedias=30.3",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales tras 100 gestos tauVerdadero=36.0 MAE=18.8 h sesgo=18.8 h obsMedias=30.3"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns tras 100 gestos",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns tras 100 gestos tauVerdadero=27.0 MAE=2.2 h sesgo=1.9 h obsMedias=100.0",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns tras 100 gestos tauVerdadero=27.0 MAE=2.2 h sesgo=1.9 h obsMedias=100.0"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal tras 100 gestos",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal tras 100 gestos tauVerdadero=39.0 MAE=47.6 h sesgo=47.6 h obsMedias=100.0",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal tras 100 gestos tauVerdadero=39.0 MAE=47.6 h sesgo=47.6 h obsMedias=100.0"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales tras 30 observaciones propias",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales tras 30 observaciones propias tauVerdadero=48.0 usuarios=13 MAE=10.5 h sesgo=10.3 h",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales tras 30 observaciones propias tauVerdadero=48.0 usuarios=13 MAE=10.5 h sesgo=10.3 h"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=cns tras 30 observaciones propias",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=cns tras 30 observaciones propias tauVerdadero=36.0 usuarios=20 MAE=3.1 h sesgo=-1.3 h",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=cns tras 30 observaciones propias tauVerdadero=36.0 usuarios=20 MAE=3.1 h sesgo=-1.3 h"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal tras 30 observaciones propias",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal tras 30 observaciones propias tauVerdadero=52.0 usuarios=20 MAE=24.7 h sesgo=24.7 h",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal tras 30 observaciones propias tauVerdadero=52.0 usuarios=20 MAE=24.7 h sesgo=24.7 h"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales tras 100 gestos",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales tras 100 gestos tauVerdadero=48.0 MAE=10.1 h sesgo=10.0 h obsMedias=30.3",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales tras 100 gestos tauVerdadero=48.0 MAE=10.1 h sesgo=10.0 h obsMedias=30.3"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=cns tras 100 gestos",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=cns tras 100 gestos tauVerdadero=36.0 MAE=1.7 h sesgo=-0.7 h obsMedias=100.0",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=cns tras 100 gestos tauVerdadero=36.0 MAE=1.7 h sesgo=-0.7 h obsMedias=100.0"
+    },
+    {
+      "metric": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal tras 100 gestos",
+      "before": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal tras 100 gestos tauVerdadero=52.0 MAE=44.2 h sesgo=44.2 h obsMedias=100.0",
+      "after": "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal tras 100 gestos tauVerdadero=52.0 MAE=44.2 h sesgo=44.2 h obsMedias=100.0"
+    },
+    {
+      "metric": "[SIM-INV-RATIO] RESUMEN músculo",
+      "before": "[SIM-INV-RATIO] RESUMEN músculo  8h: ×1.45–×2.78  12h: ×1.23–×2.58  24h: ×1.12–×1.79  48h: ×1.01–×2.19",
+      "after": "[SIM-INV-RATIO] RESUMEN músculo  8h: ×1.45–×2.78  12h: ×1.23–×2.58  24h: ×1.12–×1.79  48h: ×1.01–×2.19"
+    },
+    {
+      "metric": "[SIM-INV-RATIO] RESUMEN Energía",
+      "before": "[SIM-INV-RATIO] RESUMEN Energía  8h: ×0.43–×0.44  12h: ×0.53–×0.56  24h: ×0.69–×0.74  48h: ×0.95–×1.38",
+      "after": "[SIM-INV-RATIO] RESUMEN Energía  8h: ×0.43–×0.44  12h: ×0.53–×0.56  24h: ×0.69–×0.74  48h: ×0.95–×1.38"
+    },
+    {
+      "metric": "[SIM-INV-RATIO] RESUMEN Columna",
+      "before": "[SIM-INV-RATIO] RESUMEN Columna  8h: ×1.14–×1.34  12h: ×1.00–×1.70  24h: ×1.05–×2.20  48h: ×1.20–×3.46",
+      "after": "[SIM-INV-RATIO] RESUMEN Columna  8h: ×1.14–×1.34  12h: ×1.00–×1.70  24h: ×1.05–×2.20  48h: ×1.20–×3.46"
+    },
+    {
+      "metric": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=pectorales n=30",
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=pectorales n=30 tauVerdadero=48.0 usuarios=60 MAE=7.3 h (15.2 % del τ) sesgo=6.9 h obsMedias=9.4",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=pectorales n=30 tauVerdadero=48.0 usuarios=60 MAE=7.3 h (15.2 % del τ) sesgo=6.9 h obsMedias=9.4"
+    },
+    {
+      "metric": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=cns n=30",
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=cns n=30 tauVerdadero=36.0 usuarios=60 MAE=3.8 h (10.5 % del τ) sesgo=-3.6 h obsMedias=30.0",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=cns n=30 tauVerdadero=36.0 usuarios=60 MAE=3.8 h (10.5 % del τ) sesgo=-3.6 h obsMedias=30.0"
+    },
+    {
+      "metric": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=spinal n=30",
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=spinal n=30 tauVerdadero=52.0 usuarios=60 MAE=23.8 h (45.7 % del τ) sesgo=23.8 h obsMedias=30.0",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=spinal n=30 tauVerdadero=52.0 usuarios=60 MAE=23.8 h (45.7 % del τ) sesgo=23.8 h obsMedias=30.0"
+    },
+    {
+      "metric": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales n=30",
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales n=30 tauVerdadero=60.0 usuarios=60 MAE=5.2 h (8.6 % del τ) sesgo=-4.4 h obsMedias=9.4",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales n=30 tauVerdadero=60.0 usuarios=60 MAE=5.2 h (8.6 % del τ) sesgo=-4.4 h obsMedias=9.4"
+    },
+    {
+      "metric": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns n=30",
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns n=30 tauVerdadero=45.0 usuarios=60 MAE=9.5 h (21.1 % del τ) sesgo=-9.5 h obsMedias=30.0",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns n=30 tauVerdadero=45.0 usuarios=60 MAE=9.5 h (21.1 % del τ) sesgo=-9.5 h obsMedias=30.0"
+    },
+    {
+      "metric": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal n=30",
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal n=30 tauVerdadero=65.0 usuarios=60 MAE=14.1 h (21.6 % del τ) sesgo=13.9 h obsMedias=30.0",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal n=30 tauVerdadero=65.0 usuarios=60 MAE=14.1 h (21.6 % del τ) sesgo=13.9 h obsMedias=30.0"
+    },
+    {
+      "metric": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales n=30",
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales n=30 tauVerdadero=36.0 usuarios=60 MAE=17.4 h (48.4 % del τ) sesgo=17.4 h obsMedias=9.4",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales n=30 tauVerdadero=36.0 usuarios=60 MAE=17.4 h (48.4 % del τ) sesgo=17.4 h obsMedias=9.4"
+    },
+    {
+      "metric": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns n=30",
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns n=30 tauVerdadero=27.0 usuarios=60 MAE=3.3 h (12.1 % del τ) sesgo=2.8 h obsMedias=30.0",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns n=30 tauVerdadero=27.0 usuarios=60 MAE=3.3 h (12.1 % del τ) sesgo=2.8 h obsMedias=30.0"
+    },
+    {
+      "metric": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal n=30",
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal n=30 tauVerdadero=39.0 usuarios=60 MAE=34.9 h (89.6 % del τ) sesgo=34.9 h obsMedias=30.0",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal n=30 tauVerdadero=39.0 usuarios=60 MAE=34.9 h (89.6 % del τ) sesgo=34.9 h obsMedias=30.0"
+    },
+    {
+      "metric": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales n=30",
+      "before": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales n=30 tauVerdadero=48.0 usuarios=60 MAE=7.7 h (16.1 % del τ) sesgo=7.2 h obsMedias=9.4",
+      "after": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales n=30 tauVerdadero=48.0 usuarios=60 MAE=7.7 h (16.1 % del τ) sesgo=7.2 h obsMedias=9.4"
+    },
+    {
+      "metric": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=cns n=30",
+      "before": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=cns n=30 tauVerdadero=36.0 usuarios=60 MAE=2.8 h (7.9 % del τ) sesgo=-1.3 h obsMedias=30.0",
+      "after": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=cns n=30 tauVerdadero=36.0 usuarios=60 MAE=2.8 h (7.9 % del τ) sesgo=-1.3 h obsMedias=30.0"
+    },
+    {
+      "metric": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal n=30",
+      "before": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal n=30 tauVerdadero=52.0 usuarios=60 MAE=25.7 h (49.5 % del τ) sesgo=25.7 h obsMedias=30.0",
+      "after": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal n=30 tauVerdadero=52.0 usuarios=60 MAE=25.7 h (49.5 % del τ) sesgo=25.7 h obsMedias=30.0"
+    }
+  ],
+  "learner_diagnostics": [
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[pectorales]: 67.5 % (268 de 397 contadas, 453 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[pectorales]: 67.5 % (268 de 397 contadas, 453 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[energía]: 51.1 % (559 de 1094 contadas, 1323 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[energía]: 51.1 % (559 de 1094 contadas, 1323 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[columna]: 68.4 % (805 de 1177 contadas, 1210 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[columna]: 68.4 % (805 de 1177 contadas, 1210 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[todos los músculos]: 67.8 % (2370 de 3493 contadas, 3919 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[todos los músculos]: 67.8 % (2370 de 3493 contadas, 3919 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[todos los parámetros]: 64.8 % (3734 de 5764 contadas, 6452 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[todos los parámetros]: 64.8 % (3734 de 5764 contadas, 6452 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" guarda de planta (sentido == predicho ⇒ no se aprende): MUSCLE: planta 1481 de 5400 (27.4 %)  ENERGY: planta 477 de 1800 (26.5 %)  SPINAL: planta 587 de 1800 (32.6 %)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" guarda de planta (sentido == predicho ⇒ no se aprende): MUSCLE: planta 1481 de 5400 (27.4 %)  ENERGY: planta 477 de 1800 (26.5 %)  SPINAL: planta 587 de 1800 (32.6 %)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" actualizaciones de τ por usuario en 30 gestos: 107.5",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" actualizaciones de τ por usuario en 30 gestos: 107.5"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" cociente implícito/verdadero con ruido [pectorales]: 8-30 h: ×NaN (n=0)  30-60 h: ×1.80 (n=421)  >60 h: ×3.45 (n=32)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" cociente implícito/verdadero con ruido [pectorales]: 8-30 h: ×NaN (n=0)  30-60 h: ×1.80 (n=421)  >60 h: ×3.45 (n=32)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" cociente implícito/verdadero con ruido [energía]: 8-30 h: ×0.70 (n=823)  30-60 h: ×1.34 (n=296)  >60 h: ×2.06 (n=204)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" cociente implícito/verdadero con ruido [energía]: 8-30 h: ×0.70 (n=823)  30-60 h: ×1.34 (n=296)  >60 h: ×2.06 (n=204)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" cociente implícito/verdadero con ruido [columna]: 8-30 h: ×1.97 (n=788)  30-60 h: ×3.19 (n=246)  >60 h: ×3.52 (n=176)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" cociente implícito/verdadero con ruido [columna]: 8-30 h: ×1.97 (n=788)  30-60 h: ×3.19 (n=246)  >60 h: ×3.52 (n=176)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[pectorales]: 33.9 % (139 de 410 contadas, 467 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[pectorales]: 33.9 % (139 de 410 contadas, 467 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[energía]: 53.1 % (724 de 1364 contadas, 1377 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[energía]: 53.1 % (724 de 1364 contadas, 1377 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[columna]: 59.1 % (684 de 1157 contadas, 1246 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[columna]: 59.1 % (684 de 1157 contadas, 1246 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[todos los músculos]: 36.2 % (1302 de 3593 contadas, 4042 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[todos los músculos]: 36.2 % (1302 de 3593 contadas, 4042 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[todos los parámetros]: 44.3 % (2710 de 6114 contadas, 6665 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[todos los parámetros]: 44.3 % (2710 de 6114 contadas, 6665 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" guarda de planta (sentido == predicho ⇒ no se aprende): MUSCLE: planta 1358 de 5400 (25.1 %)  ENERGY: planta 423 de 1800 (23.5 %)  SPINAL: planta 550 de 1800 (30.6 %)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" guarda de planta (sentido == predicho ⇒ no se aprende): MUSCLE: planta 1358 de 5400 (25.1 %)  ENERGY: planta 423 de 1800 (23.5 %)  SPINAL: planta 550 de 1800 (30.6 %)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" actualizaciones de τ por usuario en 30 gestos: 111.1",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" actualizaciones de τ por usuario en 30 gestos: 111.1"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" cociente implícito/verdadero con ruido [pectorales]: 8-30 h: ×NaN (n=0)  30-60 h: ×1.58 (n=437)  >60 h: ×2.94 (n=30)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" cociente implícito/verdadero con ruido [pectorales]: 8-30 h: ×NaN (n=0)  30-60 h: ×1.58 (n=437)  >60 h: ×2.94 (n=30)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" cociente implícito/verdadero con ruido [energía]: 8-30 h: ×0.65 (n=808)  30-60 h: ×1.06 (n=364)  >60 h: ×1.66 (n=205)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" cociente implícito/verdadero con ruido [energía]: 8-30 h: ×0.65 (n=808)  30-60 h: ×1.06 (n=364)  >60 h: ×1.66 (n=205)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" cociente implícito/verdadero con ruido [columna]: 8-30 h: ×1.65 (n=791)  30-60 h: ×2.49 (n=265)  >60 h: ×2.87 (n=190)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" cociente implícito/verdadero con ruido [columna]: 8-30 h: ×1.65 (n=791)  30-60 h: ×2.49 (n=265)  >60 h: ×2.87 (n=190)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[pectorales]: 61.9 % (288 de 465 contadas, 465 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[pectorales]: 61.9 % (288 de 465 contadas, 465 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[energía]: 42.4 % (427 de 1008 contadas, 1258 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[energía]: 42.4 % (427 de 1008 contadas, 1258 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[columna]: 68.1 % (825 de 1212 contadas, 1212 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[columna]: 68.1 % (825 de 1212 contadas, 1212 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[todos los músculos]: 60.2 % (2400 de 3985 contadas, 4025 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[todos los músculos]: 60.2 % (2400 de 3985 contadas, 4025 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[todos los parámetros]: 58.9 % (3652 de 6205 contadas, 6495 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[todos los parámetros]: 58.9 % (3652 de 6205 contadas, 6495 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" guarda de planta (sentido == predicho ⇒ no se aprende): MUSCLE: planta 1375 de 5400 (25.5 %)  ENERGY: planta 542 de 1800 (30.1 %)  SPINAL: planta 586 de 1800 (32.6 %)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" guarda de planta (sentido == predicho ⇒ no se aprende): MUSCLE: planta 1375 de 5400 (25.5 %)  ENERGY: planta 542 de 1800 (30.1 %)  SPINAL: planta 586 de 1800 (32.6 %)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" actualizaciones de τ por usuario en 30 gestos: 108.3",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" actualizaciones de τ por usuario en 30 gestos: 108.3"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" cociente implícito/verdadero con ruido [pectorales]: 8-30 h: ×NaN (n=0)  30-60 h: ×2.08 (n=429)  >60 h: ×4.96 (n=36)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" cociente implícito/verdadero con ruido [pectorales]: 8-30 h: ×NaN (n=0)  30-60 h: ×2.08 (n=429)  >60 h: ×4.96 (n=36)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" cociente implícito/verdadero con ruido [energía]: 8-30 h: ×0.83 (n=833)  30-60 h: ×1.76 (n=231)  >60 h: ×2.81 (n=194)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" cociente implícito/verdadero con ruido [energía]: 8-30 h: ×0.83 (n=833)  30-60 h: ×1.76 (n=231)  >60 h: ×2.81 (n=194)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" cociente implícito/verdadero con ruido [columna]: 8-30 h: ×2.53 (n=778)  30-60 h: ×4.33 (n=250)  >60 h: ×4.67 (n=184)",
+      "after": "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" cociente implícito/verdadero con ruido [columna]: 8-30 h: ×2.53 (n=778)  30-60 h: ×4.33 (n=250)  >60 h: ×4.67 (n=184)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[pectorales]: 68.7 % (288 de 419 contadas, 474 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[pectorales]: 68.7 % (288 de 419 contadas, 474 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[energía]: 48.2 % (480 de 996 contadas, 1388 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[energía]: 48.2 % (480 de 996 contadas, 1388 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[columna]: 69.2 % (864 de 1249 contadas, 1276 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[columna]: 69.2 % (864 de 1249 contadas, 1276 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[todos los músculos]: 67.8 % (2511 de 3706 contadas, 4095 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[todos los músculos]: 67.8 % (2511 de 3706 contadas, 4095 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[todos los parámetros]: 64.8 % (3855 de 5951 contadas, 6759 actualizaciones)",
+      "after": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[todos los parámetros]: 64.8 % (3855 de 5951 contadas, 6759 actualizaciones)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" guarda de planta (sentido == predicho ⇒ no se aprende): MUSCLE: planta 1305 de 5400 (24.2 %)  ENERGY: planta 412 de 1800 (22.9 %)  SPINAL: planta 521 de 1800 (28.9 %)",
+      "after": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" guarda de planta (sentido == predicho ⇒ no se aprende): MUSCLE: planta 1305 de 5400 (24.2 %)  ENERGY: planta 412 de 1800 (22.9 %)  SPINAL: planta 521 de 1800 (28.9 %)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" actualizaciones de τ por usuario en 30 gestos: 112.7",
+      "after": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" actualizaciones de τ por usuario en 30 gestos: 112.7"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" cociente implícito/verdadero con ruido [pectorales]: 8-30 h: ×NaN (n=0)  30-60 h: ×2.08 (n=441)  >60 h: ×3.86 (n=33)",
+      "after": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" cociente implícito/verdadero con ruido [pectorales]: 8-30 h: ×NaN (n=0)  30-60 h: ×2.08 (n=441)  >60 h: ×3.86 (n=33)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" cociente implícito/verdadero con ruido [energía]: 8-30 h: ×0.76 (n=845)  30-60 h: ×1.53 (n=331)  >60 h: ×2.57 (n=212)",
+      "after": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" cociente implícito/verdadero con ruido [energía]: 8-30 h: ×0.76 (n=845)  30-60 h: ×1.53 (n=331)  >60 h: ×2.57 (n=212)"
+    },
+    {
+      "before": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" cociente implícito/verdadero con ruido [columna]: 8-30 h: ×2.16 (n=825)  30-60 h: ×3.36 (n=258)  >60 h: ×3.62 (n=193)",
+      "after": "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" cociente implícito/verdadero con ruido [columna]: 8-30 h: ×2.16 (n=825)  30-60 h: ×3.36 (n=258)  >60 h: ×3.62 (n=193)"
+    }
+  ],
+  "characterization_field_statistics": [
+    {
+      "consumer": "domain",
+      "case": "unilateral",
+      "field": "global",
+      "unit": "puntos",
+      "deltas": [
+        4.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 1,
+      "maximum": 4.0,
+      "mean": 4.0
+    },
+    {
+      "consumer": "domain",
+      "case": "superserie",
+      "field": "global",
+      "unit": "puntos",
+      "deltas": [
+        7.0,
+        2.0,
+        1.0,
+        5.0,
+        1.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 5,
+      "maximum": 7.0,
+      "mean": 3.2
+    },
+    {
+      "consumer": "domain",
+      "case": "cardio",
+      "field": "global",
+      "unit": "puntos",
+      "deltas": [
+        4.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 1,
+      "maximum": 4.0,
+      "mean": 4.0
+    },
+    {
+      "consumer": "domain",
+      "case": "tecnicas",
+      "field": "global",
+      "unit": "puntos",
+      "deltas": [
+        6.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 1,
+      "maximum": 6.0,
+      "mean": 6.0
+    },
+    {
+      "consumer": "domain",
+      "case": "axial",
+      "field": "global",
+      "unit": "puntos",
+      "deltas": [
+        11.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 1,
+      "maximum": 11.0,
+      "mean": 11.0
+    },
+    {
+      "consumer": "domain",
+      "case": "axial",
+      "field": "predicted",
+      "unit": "puntos",
+      "deltas": [
+        3.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 1,
+      "maximum": 3.0,
+      "mean": 3.0
+    },
+    {
+      "consumer": "domain",
+      "case": "sin-ficha",
+      "field": "global",
+      "unit": "puntos",
+      "deltas": [
+        5.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 1,
+      "maximum": 5.0,
+      "mean": 5.0
+    },
+    {
+      "consumer": "domain",
+      "case": "filtrado-rir",
+      "field": "global",
+      "unit": "puntos",
+      "deltas": [
+        3.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 1,
+      "maximum": 3.0,
+      "mean": 3.0
+    },
+    {
+      "consumer": "domain",
+      "case": "filtrado-rir",
+      "field": "predicted",
+      "unit": "puntos",
+      "deltas": [
+        6.0,
+        3.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 2,
+      "maximum": 6.0,
+      "mean": 4.5
+    },
+    {
+      "consumer": "editor",
+      "case": "unilateral",
+      "field": "drain",
+      "unit": "puntos",
+      "deltas": [
+        1.0,
+        1.0,
+        3.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 3,
+      "maximum": 3.0,
+      "mean": 1.6666666666666667
+    },
+    {
+      "consumer": "editor",
+      "case": "superserie",
+      "field": "drain",
+      "unit": "puntos",
+      "deltas": [
+        4.0,
+        3.0,
+        6.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 3,
+      "maximum": 6.0,
+      "mean": 4.333333333333333
+    },
+    {
+      "consumer": "editor",
+      "case": "superserie",
+      "field": "muscular",
+      "unit": "puntos",
+      "deltas": [
+        3.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 1,
+      "maximum": 3.0,
+      "mean": 3.0
+    },
+    {
+      "consumer": "editor",
+      "case": "superserie",
+      "field": "energy",
+      "unit": "puntos",
+      "deltas": [
+        3.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 1,
+      "maximum": 3.0,
+      "mean": 3.0
+    },
+    {
+      "consumer": "editor",
+      "case": "superserie",
+      "field": "insights",
+      "unit": "puntos",
+      "deltas": [
+        24,
+        36,
+        8
+      ],
+      "added_insights": {},
+      "changed_numbers": 3,
+      "maximum": 36,
+      "mean": 22.666666666666668
+    },
+    {
+      "consumer": "editor",
+      "case": "cardio",
+      "field": "drain",
+      "unit": "puntos",
+      "deltas": [
+        6.0,
+        9.0,
+        7.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 3,
+      "maximum": 9.0,
+      "mean": 7.333333333333333
+    },
+    {
+      "consumer": "editor",
+      "case": "axial",
+      "field": "drain",
+      "unit": "puntos",
+      "deltas": [
+        2.0,
+        4.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 2,
+      "maximum": 4.0,
+      "mean": 3.0
+    },
+    {
+      "consumer": "editor",
+      "case": "axial",
+      "field": "energy",
+      "unit": "puntos",
+      "deltas": [
+        1.0,
+        1.0,
+        1.0,
+        2.0,
+        1.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 5,
+      "maximum": 2.0,
+      "mean": 1.2
+    },
+    {
+      "consumer": "editor",
+      "case": "sin-ficha",
+      "field": "drain",
+      "unit": "puntos",
+      "deltas": [
+        34.0,
+        33.0,
+        11.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 3,
+      "maximum": 34.0,
+      "mean": 26.0
+    },
+    {
+      "consumer": "editor",
+      "case": "sin-ficha",
+      "field": "muscular",
+      "unit": "puntos",
+      "deltas": [
+        2.0,
+        3.0,
+        1.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 3,
+      "maximum": 3.0,
+      "mean": 2.0
+    },
+    {
+      "consumer": "editor",
+      "case": "sin-ficha",
+      "field": "energy",
+      "unit": "puntos",
+      "deltas": [
+        2.0,
+        6.0,
+        3.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 3,
+      "maximum": 6.0,
+      "mean": 3.6666666666666665
+    },
+    {
+      "consumer": "editor",
+      "case": "sin-ficha",
+      "field": "insights",
+      "unit": "puntos",
+      "deltas": [],
+      "added_insights": {
+        "custom": [
+          26,
+          32,
+          2,
+          20
+        ],
+        "hinge": [
+          32,
+          37,
+          6,
+          25
+        ]
+      },
+      "changed_numbers": 0,
+      "maximum": 0,
+      "mean": 0.0
+    },
+    {
+      "consumer": "editor",
+      "case": "sin-ficha",
+      "field": "sets",
+      "unit": "series",
+      "deltas": [
+        7.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 1,
+      "maximum": 7.0,
+      "mean": 7.0
+    },
+    {
+      "consumer": "editor",
+      "case": "filtrado-rir",
+      "field": "drain",
+      "unit": "puntos",
+      "deltas": [
+        1.0
+      ],
+      "added_insights": {},
+      "changed_numbers": 1,
+      "maximum": 1.0,
+      "mean": 1.0
+    }
+  ]
+}

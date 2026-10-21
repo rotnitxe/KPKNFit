@@ -11,17 +11,11 @@ class SessionDrainRecipeTest {
     private val fixtures = SessionDrainCharacterizationFixtures
 
     private fun options() = RecipeOptions(
-        restSource = RecipeOptions.RestSource.EXERCISE,
         volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
         axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
         muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
-        densitySource = RecipeOptions.DensitySource.COMPLETED_METADATA,
-        primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
-        missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
         cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
         softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
-        weightUnitSource = RecipeOptions.WeightUnitSource.KG_DEFAULT,
-        plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
     )
 
     private fun recipe(
@@ -93,24 +87,15 @@ class SessionDrainRecipeTest {
         assertEquals(110.3030303030303, result.accumulatedDrain, 1e-13)
     }
 
-    @Test fun descansoDistingueSuperserieEjercicioYLosDosDefaultsPlanificados() {
-        val ex = exercise().copy(supersetRestBetween = 20)
-        val regular = completed(options(), listOf(ex)).single()
-        val superset = completed(options().copy(restSource = RecipeOptions.RestSource.SUPERSET_OR_EXERCISE), listOf(ex)).single()
-        assertEquals(180, regular.context.restTime)
-        assertEquals(20, superset.context.restTime)
-        assertTrue(superset.raw.cnsDrainPct > regular.raw.cnsDrainPct)
-
-        val target = plannedExercise()
-        val predictorOptions = options().copy(
-            restSource = RecipeOptions.RestSource.PLANNED_OR_90,
-            densitySource = RecipeOptions.DensitySource.PLANNED_LEGACY_SUPERSET,
-        )
-        val predictor = planned(predictorOptions, target)
-        val editor = planned(predictorOptions.copy(restSource = RecipeOptions.RestSource.PLANNED_OR_SETTINGS), target)
-        assertEquals(90, predictor.context.restTime)
-        assertEquals(45, editor.context.restTime)
-        assertTrue(editor.raw.cnsDrainPct > predictor.raw.cnsDrainPct)
+    @Test fun descansoCrudoEsDelEjercicioYElDefaultPlanificadoEsDelUsuario() {
+        val ex = exercise().copy(supersetId = "ss", supersetRestBetween = 20)
+        val actual = completed(options(), listOf(ex)).single()
+        assertEquals(180, actual.context.restTime)
+        assertEquals(1.3, actual.context.densityMultiplier, 0.0)
+        assertEquals(45, planned(options(), plannedExercise()).context.restTime)
+        assertEquals(180, planned(options(), plannedExercise().copy(restTime = 180)).context.restTime)
+        val target = planned(options(), plannedExercise().copy(supersetGroupRef = "group"))
+        assertEquals(1.3, target.context.densityMultiplier, 0.0)
     }
 
     @Test fun conteoUnilateralUsaMitadesRedondeadasOEnteros() {
@@ -159,47 +144,44 @@ class SessionDrainRecipeTest {
         assertTrue(remapped.raw.muscularDrainPct > none.raw.muscularDrainPct)
     }
 
-    @Test fun densidadConservaMetadatosCompletosIdLegacyOIdDeGrupo() {
+    @Test fun migracionV2YV3ConservaMultiplicadoresMuscularesNoVacios() {
+        listOf(2, 3).forEach { version ->
+            val migrated = AugeAdaptiveCacheMigration.migrate(fixtures.cache, version)
+            assertEquals(fixtures.cache.muscleDrainMultipliers, migrated.muscleDrainMultipliers)
+            assertEquals(1.07, migrated.muscleDrainMultipliers.getValue("pectorales"), 0.0)
+        }
+    }
+
+    @Test fun densidadUsaGrupoOIdHeredadoEnPlanesYMetadatosCompletosAlCerrar() {
         val ex = exercise().copy(
             supersetId = "ss", supersetExerciseCount = 3, supersetRounds = 5,
             supersetRestBetween = 20, supersetRestAfter = 60,
         )
         val full = completed(options(), listOf(ex)).single()
-        val legacy = completed(options().copy(densitySource = RecipeOptions.DensitySource.PLANNED_LEGACY_SUPERSET), listOf(ex)).single()
         assertEquals(1.45, full.context.densityMultiplier, 0.0)
-        assertEquals(1.18, legacy.context.densityMultiplier, 0.0)
-        assertTrue(full.raw.cnsDrainPct > legacy.raw.cnsDrainPct)
-
         val target = plannedExercise().copy(supersetGroupRef = "group", restTime = 20)
-        val plannedOptions = options().copy(
-            restSource = RecipeOptions.RestSource.PLANNED_OR_90,
-            densitySource = RecipeOptions.DensitySource.PLANNED_LEGACY_SUPERSET,
-        )
-        val legacyId = planned(plannedOptions, target)
-        val groupId = planned(plannedOptions.copy(densitySource = RecipeOptions.DensitySource.PLANNED_GROUP_OR_LEGACY), target)
-        assertEquals(1.0, legacyId.context.densityMultiplier, 0.0)
-        assertEquals(1.3, groupId.context.densityMultiplier, 0.0)
-        assertTrue(groupId.raw.cnsDrainPct > legacyId.raw.cnsDrainPct)
+        val group = planned(options(), target)
+        val legacy = planned(options(), target.copy(supersetGroupRef = null, supersetId = "ss"))
+        assertEquals(1.3, group.context.densityMultiplier, 0.0)
+        assertEquals(group.raw, legacy.raw)
+        assertEquals(1.0, planned(options(), target.copy(supersetGroupRef = null)).context.densityMultiplier, 0.0)
     }
 
-    @Test fun pilarDelSnapshotYGrupoDelCatalogoMantienenContadoresDistintos() {
+    @Test fun pilarDelSnapshotSeparaLosContadoresAunqueCoincidaElCatalogo() {
         val first = exercise().copy(effectiveMuscles = listOf(InvolvedMuscle("Tríceps", MuscleRole.PRIMARY, 1.0)))
         val inputs = listOf(first, exercise())
         val snapshot = completed(options(), inputs)
-        val catalog = completed(options().copy(primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.CATALOG_VOLUME_GROUP), inputs)
         assertEquals("Tríceps", snapshot.first().context.primaryMuscle)
-        assertEquals("Pectorales", catalog.first().context.primaryMuscle)
         assertEquals(listOf(1, 1), snapshot.map { it.count })
-        assertEquals(listOf(1, 2), catalog.map { it.count })
     }
 
-    @Test fun fichaAusenteSeOmiteOSigueLaHeuristica() {
+    @Test fun fichaAusenteSiempreUsaHeuristicaYCuentaUnaSerie() {
         val ex = exercise().copy(exerciseId = "unknown", exerciseDbId = null, exerciseName = "Movimiento propio")
         val heuristic = completed(options(), listOf(ex))
-        val skipped = completed(options().copy(missingCatalog = RecipeOptions.MissingCatalog.SKIP), listOf(ex))
         assertEquals(1, heuristic.size)
         assertTrue(heuristic.single().raw.muscularDrainPct > 0.0)
-        assertTrue(skipped.isEmpty())
+        assertEquals(1, heuristic.single().count)
+        assertEquals(2.5, heuristic.single().context.metrics.efc, 0.0)
     }
 
     @Test fun cardioSeDelegaAlConsumidorOSeProcesaComoFuerzaLegacy() {
@@ -214,6 +196,7 @@ class SessionDrainRecipeTest {
             )
             return cardio to strength
         }
+        assertEquals(PredictedDrain(cns = 10, muscular = 14, spinal = 8), AugeFatigueEngine.DEFAULT_FALLBACK_PREDICTED_DRAIN)
         assertEquals(1 to 0, visits(RecipeOptions.CardioHandling.CONSUMER_HOOK))
         assertEquals(0 to 1, visits(RecipeOptions.CardioHandling.LEGACY_STRENGTH))
     }
@@ -225,23 +208,23 @@ class SessionDrainRecipeTest {
         assertEquals(90.0, recipe(options().copy(softCapUnits = RecipeOptions.SoftCapUnits.MUSCLE_STRESS_UNITS)).softCap(100.0, 200.0, 1000.0), 0.0)
     }
 
-    @Test fun unidadDePesoSePasaSegunElConsumidorAunqueElCalculoActualNoLaUse() {
-        val settings = fixtures.settings.copy(weightUnit = WeightUnit.LBS)
-        val implicit = completed(options(), settings = settings).single()
-        val explicit = completed(options().copy(weightUnitSource = RecipeOptions.WeightUnitSource.SETTINGS), settings = settings).single()
-        assertEquals(WeightUnit.KG, implicit.context.weightUnit)
-        assertEquals(WeightUnit.LBS, explicit.context.weightUnit)
-        assertEquals(implicit.raw, explicit.raw)
+    @Test fun unidadDePesoDelUsuarioNoCambiaElDrenajeCrudo() {
+        val kilos = completed(options(), settings = fixtures.settings.copy(weightUnit = WeightUnit.KG)).single()
+        val libras = completed(options(), settings = fixtures.settings.copy(weightUnit = WeightUnit.LBS)).single()
+        assertEquals(kilos.raw, libras.raw)
+        assertEquals(kilos.adjusted, libras.adjusted)
     }
 
-    @Test fun identidadSinteticaVaciaOPreservadaNoCambiaLaCarga() {
+    @Test fun identidadSinteticaSeConservaSinCambiarLaCarga() {
         val ex = plannedExercise()
         val set = ex.sets.single()
-        val empty = SessionDrainRecipe.plannedSet(ex, set, RecipeOptions.PlannedSetIds.EMPTY)
-        val preserved = SessionDrainRecipe.plannedSet(ex, set, RecipeOptions.PlannedSetIds.PRESERVE)
-        assertEquals("", empty.id)
+        val preserved = SessionDrainRecipe.plannedSet(ex, set)
         assertEquals(set.id, preserved.id)
-        assertEquals(empty, preserved.copy(id = ""))
+        val metrics = completed(options()).single().context.metrics
+        val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(fixtures.settings)
+        val emptyDrain = AugeFatigueEngine.calculateSetBatteryDrain(preserved.copy(id = ""), metrics, tanks)
+        val preservedDrain = AugeFatigueEngine.calculateSetBatteryDrain(preserved, metrics, tanks)
+        assertEquals(emptyDrain, preservedDrain)
     }
 
     @Test fun adaptadorConservaSesentaKilosOchoRepsRirYFalloSinAnadirTecnicas() {
@@ -249,24 +232,48 @@ class SessionDrainRecipeTest {
             "default", targetRIR = 3, intensityMode = IntensityMode.RIR,
             targetDuration = 60, dropSets = listOf(DropSetData(30.0, 5)), restPauses = listOf(RestPauseData(15, 2)),
         )
-        val actual = SessionDrainRecipe.plannedSet(plannedExercise(), set, RecipeOptions.PlannedSetIds.PRESERVE)
+        val actual = SessionDrainRecipe.plannedSet(plannedExercise(), set)
         assertEquals(60.0, actual.weight, 0.0)
         assertEquals(8, actual.reps)
         assertEquals(3, requireNotNull(actual.rir))
         assertEquals(3.0, requireNotNull(actual.actualIntensityValue), 0.0)
         assertTrue(actual.timeSeconds == null)
         assertTrue(actual.dropSets.isEmpty() && actual.restPauses.isEmpty())
-        val failure = SessionDrainRecipe.plannedSet(plannedExercise(), set.copy(intensityMode = IntensityMode.FAILURE), RecipeOptions.PlannedSetIds.PRESERVE)
+        val failure = SessionDrainRecipe.plannedSet(plannedExercise(), set.copy(intensityMode = IntensityMode.FAILURE))
         assertTrue(failure.isFailure)
     }
 
     @Test fun adaptadorRmUsaPorcentajeYReferenciaSoloCuandoCorresponde() {
         val ex = plannedExercise().copy(trainingMode = TrainingMode.RM, reference1RM = 200.0)
         val set = ex.sets.single().copy(targetPercentageRM = 75.0, weight = 20.0)
-        fun weight(exercise: Exercise) = SessionDrainRecipe.plannedSet(exercise, set, RecipeOptions.PlannedSetIds.PRESERVE).weight
+        fun weight(exercise: Exercise) = SessionDrainRecipe.plannedSet(exercise, set).weight
         assertEquals(150.0, weight(ex), 0.0)
         assertEquals(20.0, weight(ex.copy(reference1RM = 0.0)), 0.0)
         assertEquals(20.0, weight(ex.copy(trainingMode = TrainingMode.REPS)), 0.0)
+    }
+
+    @Test fun singlePesadoSumaQuincePorCientoSoloAlNeuralAntesDelTope() {
+        val base = AdjustedSetDrain(8.5, 17.0, 25.5, 17.0)
+        val single = CompletedSet("single", weight = 100.0, reps = 1, rpe = 9.5)
+        val actual = SessionDrainRecipe.withHeavySingleBonus(base, single)
+        assertEquals(19.55, actual.cns, 1e-14)
+        assertEquals(base.accumulatedDrain, actual.accumulatedDrain, 0.0)
+        assertEquals(base.muscular, actual.muscular, 0.0)
+        assertEquals(base.spinal, actual.spinal, 0.0)
+        assertEquals(actual, SessionDrainRecipe.withHeavySingleBonus(base, single.copy(reps = 3)))
+        assertEquals(base, SessionDrainRecipe.withHeavySingleBonus(base, single.copy(reps = 4)))
+        assertEquals(base, SessionDrainRecipe.withHeavySingleBonus(base, single.copy(weight = 0.0)))
+        assertEquals(base, SessionDrainRecipe.withHeavySingleBonus(base, single.copy(rpe = 9.4)))
+        assertEquals(actual, SessionDrainRecipe.withHeavySingleBonus(base, single.copy(rpe = null, rir = 0)))
+    }
+
+    @Test fun bonosPorDuracionRespetanLosUmbrales75Y90() {
+        assertEquals(10.0, SessionDrainRecipe.durationCns(10.0, 75), 0.0)
+        assertEquals(10.8, SessionDrainRecipe.durationCns(10.0, 76), 1e-14)
+        assertEquals(10.8, SessionDrainRecipe.durationCns(10.0, 90), 1e-14)
+        assertEquals(11.5, SessionDrainRecipe.durationCns(10.0, 91), 1e-14)
+        assertEquals(10.0, SessionDrainRecipe.durationSpinal(10.0, 90), 0.0)
+        assertEquals(10.8, SessionDrainRecipe.durationSpinal(10.0, 91), 1e-14)
     }
 
     @Test fun constantesDeLaRecetaSoloSeConsumenEnElArchivoCompartido() {

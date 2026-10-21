@@ -32,6 +32,7 @@ object SystemicLoadMonitor {
                 exerciseDb = exerciseDb,
                 settings = settings,
                 adaptiveCache = adaptiveCache,
+                durationMinutes = log.durationMinutes,
             ).cns.toDouble()
             if (drain <= 0.0) return@mapNotNull null
             Triple(log, ms, drain)

@@ -17,6 +17,7 @@ import kotlin.math.max
  * Caracterización numérica del SESGO ACTUAL del aprendiz de τ (hallazgo F-10, P0-B) con los motores reales y el
  * arnés de usuarios sintéticos (paquete 0.3 de Rings v4). Documenta con números lo que el actualizador nuevo
  * (paquete 3.2, enchufado a la misma [SimLearner]) tendrá que batir. No cambia código de producción.
+ * 2.2b1 reevalúa la duración del log: los 39 resúmenes medidos mantienen los valores de la base.
  *
  * Ninguna prueba usa el reloj real: todo va con instantes explícitos y `ZoneId.of("UTC")`.
  */
@@ -140,7 +141,7 @@ class AugeLearnerBiasCharacterizationTest {
         val rows = ArrayList<InversionRow>()
         systemSizes().forEach { size ->
             val log = logOf("s-${size.name}", size.exercises)
-            val drain = AugeFatigueEngine.calculateCompletedSessionDrain(log.completedExercises, db, settings)
+            val drain = AugeFatigueEngine.calculateCompletedSessionDrain(log.completedExercises, db, settings, durationMinutes = log.durationMinutes)
             val cache = AugeAdaptiveCache(cnsRecoveryHours = 36.0, spinalRecoveryHours = 52.0)
             hoursList.forEach { h ->
                 val t = completionMs + h * HOUR_MS
@@ -492,7 +493,7 @@ class AugeLearnerBiasCharacterizationTest {
         // Un gesto con Energía + Columna + un músculo = UNA observación global, y las funciones reales hacen el cálculo.
         val learner = CurrentEmaLearner()
         learner.onGesture(gesture(squat, 24.0, differs))
-        val drain = AugeFatigueEngine.calculateCompletedSessionDrain(squat.completedExercises, db, settings)
+        val drain = AugeFatigueEngine.calculateCompletedSessionDrain(squat.completedExercises, db, settings, durationMinutes = squat.durationMinutes)
         val (cns, spinal) = AugeAdaptiveEngine.updateSystemRecoveryHours(
             currentCnsTau = null,
             currentSpinalTau = null,

@@ -587,17 +587,11 @@ object AugeRecoveryEngine {
             }
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-                restSource = RecipeOptions.RestSource.EXERCISE,
                 volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
                 axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
-                densitySource = RecipeOptions.DensitySource.COMPLETED_METADATA,
-                primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
-                missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.MUSCLE_STRESS_UNITS,
-                weightUnitSource = RecipeOptions.WeightUnitSource.KG_DEFAULT,
-                plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
             ))
             recipe.forEachCompleted(
                 exercises = log.completedExercises,
@@ -702,17 +696,11 @@ object AugeRecoveryEngine {
         var sessionMuscleStress = 0.0
 
         val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-            restSource = RecipeOptions.RestSource.EXERCISE,
             volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
             axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
             muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
-            densitySource = RecipeOptions.DensitySource.COMPLETED_METADATA,
-            primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
-            missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
             cardioHandling = RecipeOptions.CardioHandling.LEGACY_STRENGTH,
             softCapUnits = RecipeOptions.SoftCapUnits.NONE,
-            weightUnitSource = RecipeOptions.WeightUnitSource.KG_DEFAULT,
-            plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
         ))
         recipe.forEachCompleted(
             exercises = log.completedExercises,
@@ -776,17 +764,11 @@ object AugeRecoveryEngine {
             var sessionSoftAccum = 0.0
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-                restSource = RecipeOptions.RestSource.EXERCISE,
                 volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
                 axialGatePosition = RecipeOptions.AxialGatePosition.NOT_APPLIED,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
-                densitySource = RecipeOptions.DensitySource.COMPLETED_METADATA,
-                primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
-                missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.LOG_PERCENT,
-                weightUnitSource = RecipeOptions.WeightUnitSource.KG_DEFAULT,
-                plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
             ))
             recipe.forEachCompleted(
                 exercises = log.completedExercises,
@@ -805,20 +787,14 @@ object AugeRecoveryEngine {
                     sessionSoftAccum += capped
                     sessionCns += capped
                 },
-                onSet = { _, s, _, _, adjusted, _ ->
-                    var currentCns = adjusted.cns
-                    if (s.weight > 0.0 && s.reps <= 3 && AugeFatigueEngine.getEffectiveRPE(s) >= 9.5) {
-                        currentCns += adjusted.cns * 0.15
-                    }
-                    val capped = recipe.softCap(currentCns, sessionSoftAccum, cnsCap)
+                onSet = { _, _, _, _, adjusted, _ ->
+                    val capped = recipe.softCap(adjusted.cns, sessionSoftAccum, cnsCap)
                     sessionSoftAccum += capped
                     sessionCns += capped
                 },
             )
 
-            val durationMin = log.durationMinutes
-            if (durationMin > 90) sessionCns *= 1.15
-            else if (durationMin > 75) sessionCns *= 1.08
+            sessionCns = SessionDrainRecipe.durationCns(sessionCns, log.durationMinutes)
 
             accumulatedGymLoad += sessionCns * AugeUtils.recoveryDecay(hoursSince, tauHours)
         }
@@ -967,17 +943,11 @@ object AugeRecoveryEngine {
             var sessionSoftAccum = 0.0
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-                restSource = RecipeOptions.RestSource.EXERCISE,
                 volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
                 axialGatePosition = RecipeOptions.AxialGatePosition.AFTER_ACCUMULATION,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
-                densitySource = RecipeOptions.DensitySource.COMPLETED_METADATA,
-                primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
-                missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.LOG_PERCENT,
-                weightUnitSource = RecipeOptions.WeightUnitSource.KG_DEFAULT,
-                plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
             ))
             recipe.forEachCompleted(
                 exercises = log.completedExercises,
@@ -1004,7 +974,7 @@ object AugeRecoveryEngine {
                 },
             )
 
-            if (log.durationMinutes > 90) sessionSpinalLoad *= 1.08
+            sessionSpinalLoad = SessionDrainRecipe.durationSpinal(sessionSpinalLoad, log.durationMinutes)
             accumulatedSpinalLoad += sessionSpinalLoad * AugeUtils.recoveryDecay(
                 AugeUtils.getSpinalRecoveryHours(hoursSince),
                 tauHours,

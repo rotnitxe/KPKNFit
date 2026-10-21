@@ -3,6 +3,7 @@ package com.example.kpkn.domain.auge
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.domain.auge.AugeUtils.physiologicalFloor
+import com.example.kpkn.domain.training.SessionDurationEstimator
 import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.max
@@ -629,10 +630,11 @@ object AugeFatigueEngine {
         spinalCap: Double,
         hardEffectiveSets: Int,
         hasAxialLoad: Boolean,
+        durationMinutes: Int,
     ): SessionDrainBreakdown {
-        val scaledSpinal = scaleSpinalDrainToUi(acc.totalSpinal, tanks)
+        val scaledSpinal = scaleSpinalDrainToUi(SessionDrainRecipe.durationSpinal(acc.totalSpinal, durationMinutes), tanks)
         var result = PredictedDrain(
-            cns = acc.totalCns.coerceAtMost(cnsCap).toInt(),
+            cns = SessionDrainRecipe.durationCns(acc.totalCns, durationMinutes).coerceAtMost(cnsCap).toInt(),
             muscular = acc.totalMuscular.coerceAtMost(muscularCap).toInt(),
             spinal = scaledSpinal.coerceAtMost(spinalCap).toInt(),
         )
@@ -652,11 +654,13 @@ object AugeFatigueEngine {
         )
     }
 
+    /** [durationMinutes] usa el log; cero indica duración desconocida y no inventa un bono. */
     fun calculateCompletedSessionDrainBreakdown(
         completedExercises: List<CompletedExercise>,
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
         settings: Settings = Settings(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
+        durationMinutes: Int = 0,
     ): SessionDrainBreakdown {
         val tanks = calculatePersonalizedBatteryTanks(settings)
         val floor = physiologicalFloor(settings)
@@ -670,17 +674,11 @@ object AugeFatigueEngine {
             adaptiveCache = adaptiveCache,
             exerciseDb = exerciseDb,
             options = RecipeOptions(
-                restSource = RecipeOptions.RestSource.SUPERSET_OR_EXERCISE,
                 volumeCounting = RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED,
                 axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
-                densitySource = RecipeOptions.DensitySource.COMPLETED_METADATA,
-                primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
-                missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
-                weightUnitSource = RecipeOptions.WeightUnitSource.SETTINGS,
-                plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
             ),
         )
 
@@ -720,7 +718,7 @@ object AugeFatigueEngine {
         val hardSets = completedExercises.flatMap { it.sets }
             .count { isSetEffective(it) && getEffectiveRPE(it) >= 8.0 }
         val hasAxial = sessionHasAxialLoad(completedExercises, exerciseDb)
-        return finalizeSessionDrain(acc, tanks, settings, muscularCap, cnsCap, spinalCap, hardSets, hasAxial)
+        return finalizeSessionDrain(acc, tanks, settings, muscularCap, cnsCap, spinalCap, hardSets, hasAxial, durationMinutes)
     }
 
     fun calculateCompletedSessionDrain(
@@ -728,11 +726,13 @@ object AugeFatigueEngine {
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
         settings: Settings = Settings(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
+        durationMinutes: Int = 0,
     ): PredictedDrain = calculateCompletedSessionDrainBreakdown(
         completedExercises = completedExercises,
         exerciseDb = exerciseDb,
         settings = settings,
         adaptiveCache = adaptiveCache,
+        durationMinutes = durationMinutes,
     ).global
 
     /** Pillar → muscular drain % for finish-sheet seeding (same pipeline as global drain). */
@@ -741,11 +741,13 @@ object AugeFatigueEngine {
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
         settings: Settings = Settings(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
+        durationMinutes: Int = 0,
     ): Map<String, Int> = calculateCompletedSessionDrainBreakdown(
         completedExercises = completedExercises,
         exerciseDb = exerciseDb,
         settings = settings,
         adaptiveCache = adaptiveCache,
+        durationMinutes = durationMinutes,
     ).perMuscleMuscular
 
     private fun ensureMinimumHardSessionDrain(
@@ -774,12 +776,14 @@ object AugeFatigueEngine {
         exerciseDb: Map<String, ExerciseMuscleInfo> = emptyMap(),
         settings: Settings = Settings(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
+        durationMinutes: Int = 0,
     ): Double {
         val summary = calculateCompletedSessionDrain(
             completedExercises = completedExercises,
             exerciseDb = exerciseDb,
             settings = settings,
             adaptiveCache = adaptiveCache,
+            durationMinutes = durationMinutes,
         )
         return (summary.cns * STRESS_WEIGHT_CNS) +
             (summary.muscular * STRESS_WEIGHT_MUSCULAR) +
@@ -813,21 +817,15 @@ object AugeFatigueEngine {
             adaptiveCache = adaptiveCache,
             exerciseDb = exerciseDb,
             options = RecipeOptions(
-                restSource = RecipeOptions.RestSource.PLANNED_OR_90,
                 volumeCounting = RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED,
                 axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
-                densitySource = RecipeOptions.DensitySource.PLANNED_LEGACY_SUPERSET,
-                primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
-                missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
-                weightUnitSource = RecipeOptions.WeightUnitSource.SETTINGS,
-                plannedSetIds = RecipeOptions.PlannedSetIds.EMPTY,
             ),
         )
 
-        val exercises = session.exercises + session.parts.flatMap { it.exercises }
+        val exercises = session.allExercises()
 
         recipe.forEachPlanned(
             exercises = exercises,
@@ -861,12 +859,28 @@ object AugeFatigueEngine {
             },
         )
 
+        return finalizePlannedSessionDrain(session, exerciseDb, settings, acc.totalMuscular, acc.totalCns, acc.totalSpinal)
+    }
+
+    /** Finalización común del editor y el predictor: escala espinal, topes y mínimo de sesión dura. */
+    internal fun finalizePlannedSessionDrain(
+        session: Session,
+        exerciseDb: Map<String, ExerciseMuscleInfo>,
+        settings: Settings,
+        muscular: Double,
+        cns: Double,
+        spinal: Double,
+    ): PredictedDrain {
+        val exercises = session.allExercises()
+        val tanks = calculatePersonalizedBatteryTanks(settings)
+        val floor = physiologicalFloor(settings)
+        val muscularCap = (100 - floor.muscular).coerceAtLeast(5).toDouble()
+        val cnsCap = (100 - floor.cns).coerceAtLeast(5).toDouble()
+        val spinalCap = (100 - floor.spinal).coerceAtLeast(5).toDouble()
+        val acc = AggregateDrainAcc(totalMuscular = muscular, totalCns = cns, totalSpinal = spinal)
         val hardSets = exercises.sumOf { ex ->
             ex.sets.count { s ->
-                !s.isIneffective && (s.targetRPE ?: when {
-                    s.targetRIR != null -> (10.0 - s.targetRIR).coerceIn(1.0, 10.0)
-                    else -> 7.0
-                }) >= 8.0
+                !s.isIneffective && getEffectiveRPE(SessionDrainRecipe.plannedSet(ex, s)) >= 8.0
             }
         }
         val hasAxial = exercises.any { ex ->
@@ -881,7 +895,8 @@ object AugeFatigueEngine {
             val axial = info?.axialLoadFactor
             axial == null || axial > 0.0
         }
-        return finalizeSessionDrain(acc, tanks, settings, muscularCap, cnsCap, spinalCap, hardSets, hasAxial).global
+        val durationMinutes = runCatching { SessionDurationEstimator.estimate(session).totalMinutes }.getOrDefault(0)
+        return finalizeSessionDrain(acc, tanks, settings, muscularCap, cnsCap, spinalCap, hardSets, hasAxial, durationMinutes).global
     }
 
     private const val EMA_ALPHA = 0.17

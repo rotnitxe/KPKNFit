@@ -334,6 +334,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                         exerciseDb = exerciseDb,
                         settings = settings,
                         adaptiveCache = adaptiveCache,
+                        durationMinutes = log.durationMinutes,
                     )
                 }
             // Cobertura por canal con las MISMAS entradas y el MISMO corte temporal
@@ -1188,6 +1189,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 completedExercises = log.completedExercises,
                 exerciseDb = exerciseDb,
                 settings = programRepo.settings.value,
+                durationMinutes = log.durationMinutes,
             )
         }.getOrNull()
     }

@@ -69,6 +69,7 @@ internal object AugeGoldenRender {
             exerciseDb = AugeGoldenCorpus.EXERCISE_DB,
             settings = caso.settings,
             adaptiveCache = AugeAdaptiveCache(),
+            durationMinutes = sesion.durationMinutes,
         )
         val impacto = requireNotNull(sesion.muscularImpactV2) { "${caso.id}: sesión sin muscularImpactV2" }
         val global = drenaje.global

@@ -1,34 +1,23 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.roundToInt
 
-/** Cada consumidor fija sus decisiones históricas; ninguna combinación es canónica en 2.2a. */
+/** Decisiones pendientes de 2.2b2, salvo el estado muscular zombi que se retira en 3.1. */
 internal data class RecipeOptions(
-    val restSource: RestSource,
     val volumeCounting: VolumeCounting,
     val axialGatePosition: AxialGatePosition,
+    /** Se elimina en 3.1 junto con el campo zombi del caché; conserva sus tres variantes hasta entonces. */
     val muscleMultiplierSource: MuscleMultiplierSource,
-    val densitySource: DensitySource,
-    val primaryMuscleSource: PrimaryMuscleSource,
-    val missingCatalog: MissingCatalog,
     val cardioHandling: CardioHandling,
     val softCapUnits: SoftCapUnits,
-    val weightUnitSource: WeightUnitSource,
-    val plannedSetIds: PlannedSetIds,
 ) {
-    enum class RestSource { SUPERSET_OR_EXERCISE, EXERCISE, PLANNED_OR_90, PLANNED_OR_SETTINGS }
     enum class VolumeCounting { UNILATERAL_HALVES_ROUNDED, EFFECTIVE_SET_COUNT }
     enum class AxialGatePosition { BEFORE_ACCUMULATION, AFTER_ACCUMULATION, NOT_APPLIED }
+    /** Se elimina en 3.1 junto con el campo zombi del caché; no activar calibraciones antiguas. */
     enum class MuscleMultiplierSource { REMAPPED_PILLARS, DIRECT_KEYS, NONE }
-    enum class DensitySource { COMPLETED_METADATA, PLANNED_LEGACY_SUPERSET, PLANNED_GROUP_OR_LEGACY }
-    enum class PrimaryMuscleSource { SNAPSHOT_PILLAR, CATALOG_VOLUME_GROUP }
-    enum class MissingCatalog { HEURISTIC, SKIP }
     enum class CardioHandling { CONSUMER_HOOK, LEGACY_STRENGTH }
     enum class SoftCapUnits { CHANNEL_PERCENT, MUSCLE_STRESS_UNITS, LOG_PERCENT, NONE }
-    enum class WeightUnitSource { SETTINGS, KG_DEFAULT }
-    enum class PlannedSetIds { EMPTY, PRESERVE }
 }
 
 internal data class AdjustedSetDrain(
@@ -54,12 +43,11 @@ internal data class RecipeExerciseContext(
     val densityMultiplier: Double,
     val axialGate: Double,
     val postAccumulationAxialGate: Double,
-    val weightUnit: WeightUnit,
 )
 
 /**
  * Recorrido común de las series efectivas y ajuste anterior a los topes.
- * El consumidor conserva el cardio, las unidades del tope, el reparto y los bonos.
+ * El consumidor conserva el cardio, las unidades del tope y el reparto.
  * El resolvedor inyectado evita añadir dependencias del dominio hacia datos.
  */
 internal class SessionDrainRecipe(
@@ -98,7 +86,7 @@ internal class SessionDrainRecipe(
                     snapshot = ex.effectiveMuscles,
                     restTime = ex.restTime,
                     supersetId = ex.supersetId,
-                    groupSupersetId = ex.supersetId,
+                    isPlanned = false,
                     supersetExerciseCount = ex.supersetExerciseCount,
                     supersetRounds = ex.supersetRounds,
                     supersetRestBetween = ex.supersetRestBetween,
@@ -125,8 +113,8 @@ internal class SessionDrainRecipe(
                     identity = RecipeExerciseIdentity(ex.name, ex.catalogConfigurationId, ex.exerciseDbId, ex.exerciseId),
                     snapshot = ex.effectiveMuscles,
                     restTime = ex.restTime,
-                    supersetId = ex.supersetId,
-                    groupSupersetId = ex.supersetGroupRefOrLegacyId(),
+                    supersetId = ex.supersetGroupRefOrLegacyId(),
+                    isPlanned = true,
                     supersetExerciseCount = 1,
                     supersetRounds = null,
                     supersetRestBetween = ex.supersetRestBetween,
@@ -134,7 +122,7 @@ internal class SessionDrainRecipe(
                 ))
             },
             effectiveSets = { ex -> ex.sets.filterNot { it.isIneffective } },
-            complete = { ex, set -> plannedSet(ex, set, options.plannedSetIds) },
+            complete = { ex, set -> plannedSet(ex, set) },
             onCardio = onCardio,
             onSet = onSet,
         )
@@ -143,7 +131,7 @@ internal class SessionDrainRecipe(
     private fun <E, S> walk(
         exercises: List<E>,
         hasCardio: (E) -> Boolean,
-        prepare: (E) -> RecipeExerciseContext?,
+        prepare: (E) -> RecipeExerciseContext,
         effectiveSets: (E) -> List<S>,
         complete: (E, S) -> CompletedSet,
         onCardio: (E) -> Unit,
@@ -154,7 +142,7 @@ internal class SessionDrainRecipe(
                 onCardio(exercise)
                 continue
             }
-            val context = prepare(exercise) ?: continue
+            val context = prepare(exercise)
             var integerCount = integerVolume[context.primaryMuscle] ?: 0
             var halfCount = halfVolume[context.primaryMuscle] ?: 0.0
             for (sourceSet in effectiveSets(exercise)) {
@@ -179,10 +167,11 @@ internal class SessionDrainRecipe(
                     cnsMultiplier = adaptiveCache.cnsDrainMultiplier,
                     spinalMultiplier = adaptiveCache.spinalDrainMultiplier,
                     muscleMultiplier = context.muscleMultiplier,
-                    weightUnit = context.weightUnit,
+                    weightUnit = settings.weightUnit,
                 )
-                val adjusted = adjustSet(drain, accumulatedDrain, options, context.axialGate)
-                accumulatedDrain = adjusted.accumulatedDrain
+                val base = adjustSet(drain, accumulatedDrain, options, context.axialGate)
+                accumulatedDrain = base.accumulatedDrain
+                val adjusted = withHeavySingleBonus(base, set)
                 onSet(exercise, sourceSet, context, drain, adjusted, accumulatedSets)
             }
             when (options.volumeCounting) {
@@ -197,48 +186,33 @@ internal class SessionDrainRecipe(
         val snapshot: List<InvolvedMuscle>?,
         val restTime: Int?,
         val supersetId: String?,
-        val groupSupersetId: String?,
+        val isPlanned: Boolean,
         val supersetExerciseCount: Int,
         val supersetRounds: Int?,
         val supersetRestBetween: Int?,
         val supersetRestAfter: Int?,
     )
 
-    private fun contextFor(input: ExerciseInput): RecipeExerciseContext? {
+    private fun contextFor(input: ExerciseInput): RecipeExerciseContext {
         val info = resolveInfo(input.identity)
-        if (info == null && options.missingCatalog == RecipeOptions.MissingCatalog.SKIP) return null
         val metrics = AugeFatigueEngine.getDynamicAugeMetrics(input.identity.exerciseName, info?.equipment, info) ?: AugeMetrics()
         val involved = AugeFatigueEngine.resolveInvolvedMuscles(input.identity.exerciseName, input.snapshot, info)
-        val primary = when (options.primaryMuscleSource) {
-            RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR ->
-                involved.find { it.role == MuscleRole.PRIMARY }
-                    ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
-                    ?: involved.firstOrNull()?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
-                    ?: ""
-            RecipeOptions.PrimaryMuscleSource.CATALOG_VOLUME_GROUP -> {
-                val muscle = info?.involvedMuscles?.firstOrNull { it.role == MuscleRole.PRIMARY }
-                    ?: info?.involvedMuscles?.firstOrNull()
-                muscle?.let { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) } ?: "Core"
-            }
-        }
-        val rest = when (options.restSource) {
-            RecipeOptions.RestSource.SUPERSET_OR_EXERCISE -> input.supersetRestBetween ?: requireNotNull(input.restTime)
-            RecipeOptions.RestSource.EXERCISE -> requireNotNull(input.restTime)
-            RecipeOptions.RestSource.PLANNED_OR_90 -> input.restTime ?: 90
-            RecipeOptions.RestSource.PLANNED_OR_SETTINGS -> input.restTime ?: settings.restTimerDefaultSeconds
-        }
-        val density = when (options.densitySource) {
-            RecipeOptions.DensitySource.COMPLETED_METADATA -> AugeFatigueEngine.getDensityMultiplierForExercise(
+        val primary = involved.find { it.role == MuscleRole.PRIMARY }
+            ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
+            ?: involved.firstOrNull()?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
+            ?: ""
+        // El descanso corto de la superserie solo interviene en la densidad.
+        val rest = input.restTime ?: settings.restTimerDefaultSeconds
+        val density = if (input.isPlanned) {
+            AugeFatigueEngine.getDensityMultiplierForExercise(input.supersetId, input.restTime ?: settings.restTimerDefaultSeconds)
+        } else {
+            AugeFatigueEngine.getDensityMultiplierForExercise(
                 supersetId = input.supersetId,
                 restTime = input.supersetRestBetween ?: input.restTime ?: rest,
                 supersetExerciseCount = input.supersetExerciseCount,
                 supersetRounds = input.supersetRounds,
                 supersetRestAfter = input.supersetRestAfter,
             )
-            RecipeOptions.DensitySource.PLANNED_LEGACY_SUPERSET ->
-                AugeFatigueEngine.getDensityMultiplierForExercise(input.supersetId, input.restTime ?: 90)
-            RecipeOptions.DensitySource.PLANNED_GROUP_OR_LEGACY ->
-                AugeFatigueEngine.getDensityMultiplierForExercise(input.groupSupersetId, input.restTime ?: settings.restTimerDefaultSeconds)
         }
         val gate = AugeFatigueEngine.spinalAxialGate(info?.axialLoadFactor)
         return RecipeExerciseContext(
@@ -250,10 +224,6 @@ internal class SessionDrainRecipe(
             densityMultiplier = density,
             axialGate = gate,
             postAccumulationAxialGate = if (options.axialGatePosition == RecipeOptions.AxialGatePosition.AFTER_ACCUMULATION) gate else 1.0,
-            weightUnit = when (options.weightUnitSource) {
-                RecipeOptions.WeightUnitSource.SETTINGS -> settings.weightUnit
-                RecipeOptions.WeightUnitSource.KG_DEFAULT -> WeightUnit.KG
-            },
         )
     }
 
@@ -275,8 +245,24 @@ internal class SessionDrainRecipe(
 
         fun conserveCardio(drain: Double): Double = drain * AugeUtils.SESSION_CONSERVATION_FACTOR
 
+        /** El bono neural precede al tope blando y no realimenta el acumulado de tres canales. */
+        fun withHeavySingleBonus(drain: AdjustedSetDrain, set: CompletedSet): AdjustedSetDrain =
+            if (set.weight > 0.0 && set.reps <= 3 && AugeFatigueEngine.getEffectiveRPE(set) >= 9.5) {
+                drain.copy(cns = drain.cns + drain.cns * 0.15)
+            } else drain
+
+        /** Post-proceso del total de la sesión, después de los topes por serie. */
+        fun durationCns(cns: Double, durationMinutes: Int): Double = when {
+            durationMinutes > 90 -> cns * 1.15
+            durationMinutes > 75 -> cns * 1.08
+            else -> cns
+        }
+
+        fun durationSpinal(spinal: Double, durationMinutes: Int): Double =
+            if (durationMinutes > 90) spinal * 1.08 else spinal
+
         /** Adaptación histórica: las técnicas y la duración planificadas no se añaden a la serie sintética. */
-        fun plannedSet(exercise: Exercise, set: ExerciseSet, ids: RecipeOptions.PlannedSetIds): CompletedSet {
+        fun plannedSet(exercise: Exercise, set: ExerciseSet): CompletedSet {
             val percentage = set.targetPercentageRM
             val reference = exercise.reference1RM
             val weight = if (exercise.trainingMode == TrainingMode.RM && percentage != null && reference != null && reference > 0.0) {
@@ -285,7 +271,7 @@ internal class SessionDrainRecipe(
                 set.weight ?: 60.0
             }
             return CompletedSet(
-                id = if (ids == RecipeOptions.PlannedSetIds.EMPTY) "" else set.id,
+                id = set.id,
                 weight = weight,
                 reps = set.plannedRepAnchor() ?: 8,
                 rpe = set.targetRPE,
