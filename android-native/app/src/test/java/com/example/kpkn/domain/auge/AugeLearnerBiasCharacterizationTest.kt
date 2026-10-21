@@ -140,7 +140,7 @@ class AugeLearnerBiasCharacterizationTest {
         val rows = ArrayList<InversionRow>()
         systemSizes().forEach { size ->
             val log = logOf("s-${size.name}", size.exercises)
-            val drain = AugeFatigueEngine.calculateCompletedSessionDrain(log.completedExercises, db, settings)
+            val drain = AugeFatigueEngine.calculateCompletedSessionDrain(log.completedExercises, db, settings, durationMinutes = log.durationMinutes)
             val cache = AugeAdaptiveCache(cnsRecoveryHours = 36.0, spinalRecoveryHours = 52.0)
             hoursList.forEach { h ->
                 val t = completionMs + h * HOUR_MS
@@ -492,7 +492,7 @@ class AugeLearnerBiasCharacterizationTest {
         // Un gesto con Energía + Columna + un músculo = UNA observación global, y las funciones reales hacen el cálculo.
         val learner = CurrentEmaLearner()
         learner.onGesture(gesture(squat, 24.0, differs))
-        val drain = AugeFatigueEngine.calculateCompletedSessionDrain(squat.completedExercises, db, settings)
+        val drain = AugeFatigueEngine.calculateCompletedSessionDrain(squat.completedExercises, db, settings, durationMinutes = squat.durationMinutes)
         val (cns, spinal) = AugeAdaptiveEngine.updateSystemRecoveryHours(
             currentCnsTau = null,
             currentSpinalTau = null,

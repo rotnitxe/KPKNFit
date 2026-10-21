@@ -313,6 +313,7 @@ class WorkoutFinishController(
                         exerciseDb = catalogExerciseIndex(),
                         settings = repository.settings.value,
                         adaptiveCache = adaptiveCache,
+                        durationMinutes = durationMinutes,
                     )
                     val base = (
                         drainSummary.cns * AugeFatigueEngine.STRESS_WEIGHT_CNS +

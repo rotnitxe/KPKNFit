@@ -46,7 +46,7 @@ internal data class RecipeExerciseContext(
 
 /**
  * Recorrido común de las series efectivas y ajuste anterior a los topes.
- * El consumidor conserva el cardio, las unidades del tope, el reparto y los bonos.
+ * El consumidor conserva el cardio, las unidades del tope y el reparto.
  * El resolvedor inyectado evita añadir dependencias del dominio hacia datos.
  */
 internal class SessionDrainRecipe(
@@ -168,8 +168,9 @@ internal class SessionDrainRecipe(
                     muscleMultiplier = context.muscleMultiplier,
                     weightUnit = settings.weightUnit,
                 )
-                val adjusted = adjustSet(drain, accumulatedDrain, options, context.axialGate)
-                accumulatedDrain = adjusted.accumulatedDrain
+                val base = adjustSet(drain, accumulatedDrain, options, context.axialGate)
+                accumulatedDrain = base.accumulatedDrain
+                val adjusted = withHeavySingleBonus(base, set)
                 onSet(exercise, sourceSet, context, drain, adjusted, accumulatedSets)
             }
             when (options.volumeCounting) {
@@ -242,6 +243,22 @@ internal class SessionDrainRecipe(
         }
 
         fun conserveCardio(drain: Double): Double = drain * AugeUtils.SESSION_CONSERVATION_FACTOR
+
+        /** El bono neural precede al tope blando y no realimenta el acumulado de tres canales. */
+        fun withHeavySingleBonus(drain: AdjustedSetDrain, set: CompletedSet): AdjustedSetDrain =
+            if (set.weight > 0.0 && set.reps <= 3 && AugeFatigueEngine.getEffectiveRPE(set) >= 9.5) {
+                drain.copy(cns = drain.cns + drain.cns * 0.15)
+            } else drain
+
+        /** Post-proceso del total de la sesión, después de los topes por serie. */
+        fun durationCns(cns: Double, durationMinutes: Int): Double = when {
+            durationMinutes > 90 -> cns * 1.15
+            durationMinutes > 75 -> cns * 1.08
+            else -> cns
+        }
+
+        fun durationSpinal(spinal: Double, durationMinutes: Int): Double =
+            if (durationMinutes > 90) spinal * 1.08 else spinal
 
         /** Adaptación histórica: las técnicas y la duración planificadas no se añaden a la serie sintética. */
         fun plannedSet(exercise: Exercise, set: ExerciseSet): CompletedSet {

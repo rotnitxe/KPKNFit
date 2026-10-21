@@ -483,6 +483,7 @@ object PerformanceTauLearner {
                         completedExercises = log.completedExercises,
                         exerciseDb = exerciseDb,
                         settings = settings,
+                        durationMinutes = log.durationMinutes,
                     )
                 }.getOrNull() ?: return@mapNotNull null
                 val stress = if (spinal) drain.spinal.toDouble() else drain.cns.toDouble()

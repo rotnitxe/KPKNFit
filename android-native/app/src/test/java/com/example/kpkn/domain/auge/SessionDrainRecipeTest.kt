@@ -181,6 +181,7 @@ class SessionDrainRecipeTest {
         assertEquals(1, heuristic.size)
         assertTrue(heuristic.single().raw.muscularDrainPct > 0.0)
         assertEquals(1, heuristic.single().count)
+        assertEquals(2.5, heuristic.single().context.metrics.efc, 0.0)
     }
 
     @Test fun cardioSeDelegaAlConsumidorOSeProcesaComoFuerzaLegacy() {
@@ -195,6 +196,7 @@ class SessionDrainRecipeTest {
             )
             return cardio to strength
         }
+        assertEquals(PredictedDrain(cns = 10, muscular = 14, spinal = 8), AugeFatigueEngine.DEFAULT_FALLBACK_PREDICTED_DRAIN)
         assertEquals(1 to 0, visits(RecipeOptions.CardioHandling.CONSUMER_HOOK))
         assertEquals(0 to 1, visits(RecipeOptions.CardioHandling.LEGACY_STRENGTH))
     }
@@ -248,6 +250,30 @@ class SessionDrainRecipeTest {
         assertEquals(150.0, weight(ex), 0.0)
         assertEquals(20.0, weight(ex.copy(reference1RM = 0.0)), 0.0)
         assertEquals(20.0, weight(ex.copy(trainingMode = TrainingMode.REPS)), 0.0)
+    }
+
+    @Test fun singlePesadoSumaQuincePorCientoSoloAlNeuralAntesDelTope() {
+        val base = AdjustedSetDrain(8.5, 17.0, 25.5, 17.0)
+        val single = CompletedSet("single", weight = 100.0, reps = 1, rpe = 9.5)
+        val actual = SessionDrainRecipe.withHeavySingleBonus(base, single)
+        assertEquals(19.55, actual.cns, 1e-14)
+        assertEquals(base.accumulatedDrain, actual.accumulatedDrain, 0.0)
+        assertEquals(base.muscular, actual.muscular, 0.0)
+        assertEquals(base.spinal, actual.spinal, 0.0)
+        assertEquals(actual, SessionDrainRecipe.withHeavySingleBonus(base, single.copy(reps = 3)))
+        assertEquals(base, SessionDrainRecipe.withHeavySingleBonus(base, single.copy(reps = 4)))
+        assertEquals(base, SessionDrainRecipe.withHeavySingleBonus(base, single.copy(weight = 0.0)))
+        assertEquals(base, SessionDrainRecipe.withHeavySingleBonus(base, single.copy(rpe = 9.4)))
+        assertEquals(actual, SessionDrainRecipe.withHeavySingleBonus(base, single.copy(rpe = null, rir = 0)))
+    }
+
+    @Test fun bonosPorDuracionRespetanLosUmbrales75Y90() {
+        assertEquals(10.0, SessionDrainRecipe.durationCns(10.0, 75), 0.0)
+        assertEquals(10.8, SessionDrainRecipe.durationCns(10.0, 76), 1e-14)
+        assertEquals(10.8, SessionDrainRecipe.durationCns(10.0, 90), 1e-14)
+        assertEquals(11.5, SessionDrainRecipe.durationCns(10.0, 91), 1e-14)
+        assertEquals(10.0, SessionDrainRecipe.durationSpinal(10.0, 90), 0.0)
+        assertEquals(10.8, SessionDrainRecipe.durationSpinal(10.0, 91), 1e-14)
     }
 
     @Test fun constantesDeLaRecetaSoloSeConsumenEnElArchivoCompartido() {

@@ -140,6 +140,7 @@ class CurrentEmaLearner(initial: AugeAdaptiveCache = AugeAdaptiveCache()) : SimL
                 completedExercises = lastSession.completedExercises,
                 exerciseDb = gesto.exerciseDb,
                 settings = gesto.ajustes,
+                durationMinutes = lastSession.durationMinutes,
             )
         }.getOrNull()
         val cnsStress = lastDrain?.cns?.toDouble()

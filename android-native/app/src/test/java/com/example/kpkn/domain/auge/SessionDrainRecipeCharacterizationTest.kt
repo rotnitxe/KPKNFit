@@ -55,8 +55,8 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
     private fun snapshot(cache: AugeAdaptiveCache): String {
         val f = SessionDrainCharacterizationFixtures
         val exercises = f.completed.getValue(caseId)
-        val breakdown = AugeFatigueEngine.calculateCompletedSessionDrainBreakdown(exercises, f.db, f.settings, cache)
         val log = f.log(caseId, f.baseMs)
+        val breakdown = AugeFatigueEngine.calculateCompletedSessionDrainBreakdown(exercises, f.db, f.settings, cache, log.durationMinutes)
         val history = listOf(log, f.log("axial", f.baseMs - 18 * f.hourMs), f.log("superserie", f.baseMs - 52 * f.hourMs))
         val actual = buildString {
             appendLine("global=${breakdown.global};muscles=${breakdown.perMuscleMuscular.toSortedMap()}")

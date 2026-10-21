@@ -62,11 +62,11 @@ class AugeEditorCompletedParityTest {
         sets = List(3) { CompletedSet("$id-$it", weight = 80.0, reps = reps, rpe = rpe) },
     )
 
-    private fun assertParity(completed: List<CompletedExercise>, minimumMinutes: Int? = null) {
+    private fun assertParity(completed: List<CompletedExercise>, minimumMinutes: Int? = null, missingPlannedRest: Boolean = false) {
         val planned = Session("parity", "Paridad", exercises = completed.map { ex ->
             Exercise(
                 id = ex.exerciseId, name = ex.exerciseName, exerciseDbId = ex.exerciseDbId,
-                effectiveMuscles = ex.effectiveMuscles, restTime = ex.restTime,
+                effectiveMuscles = ex.effectiveMuscles, restTime = ex.restTime.takeUnless { missingPlannedRest },
                 supersetGroupRef = ex.supersetId, cardioDetails = ex.cardioDetails,
                 targetDurationMinutes = minimumMinutes,
                 sets = ex.sets.map { set ->
@@ -76,7 +76,7 @@ class AugeEditorCompletedParityTest {
         })
         val editor = computeSessionAugeComputation(planned, f.db, f.settings, emptyList(), "p", 0)
         val predicted = AugeFatigueEngine.calculateAdjustedPredictedDrain(planned, f.db, f.settings)
-        val finished = AugeFatigueEngine.calculateCompletedSessionDrain(completed, f.db, f.settings)
+        val finished = AugeFatigueEngine.calculateCompletedSessionDrain(completed, f.db, f.settings, durationMinutes = editor.durationMinutes)
         assertEquals("Editor y predictor", predicted, editor.drain)
         assertEquals("Predictor y cierre", finished, predicted)
     }
@@ -106,4 +106,15 @@ class AugeEditorCompletedParityTest {
             it.copy(supersetId = "ss", supersetExerciseCount = 2, supersetRestBetween = 45)
         })
     }
+
+    @Test fun singlesPesadosTienenParidadExacta() = assertParity(listOf(strength("deadlift", 1, 9.5)))
+
+    @Test fun duracionMayorA75MinutosTieneParidadExacta() =
+        assertParity(listOf(strength("bench")), minimumMinutes = 80)
+
+    @Test fun duracionMayorA90MinutosTieneParidadExacta() =
+        assertParity(listOf(strength("deadlift", 1, 9.5)), minimumMinutes = 96)
+
+    @Test fun descansoPredeterminadoDelUsuarioTieneParidadExacta() =
+        assertParity(listOf(strength("bench", rest = f.settings.restTimerDefaultSeconds)), missingPlannedRest = true)
 }

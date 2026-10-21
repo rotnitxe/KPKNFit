@@ -1213,6 +1213,7 @@ class ProgramRepository private constructor(
                         exerciseDb = exerciseDb,
                         settings = settings,
                         adaptiveCache = adaptiveCache,
+                        durationMinutes = log.durationMinutes,
                     )
                 }
             val axial = AxialLoadMonitor.evaluate(history, exerciseDb, evaluationNowMs)

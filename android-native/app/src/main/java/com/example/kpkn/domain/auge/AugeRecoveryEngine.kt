@@ -787,20 +787,14 @@ object AugeRecoveryEngine {
                     sessionSoftAccum += capped
                     sessionCns += capped
                 },
-                onSet = { _, s, _, _, adjusted, _ ->
-                    var currentCns = adjusted.cns
-                    if (s.weight > 0.0 && s.reps <= 3 && AugeFatigueEngine.getEffectiveRPE(s) >= 9.5) {
-                        currentCns += adjusted.cns * 0.15
-                    }
-                    val capped = recipe.softCap(currentCns, sessionSoftAccum, cnsCap)
+                onSet = { _, _, _, _, adjusted, _ ->
+                    val capped = recipe.softCap(adjusted.cns, sessionSoftAccum, cnsCap)
                     sessionSoftAccum += capped
                     sessionCns += capped
                 },
             )
 
-            val durationMin = log.durationMinutes
-            if (durationMin > 90) sessionCns *= 1.15
-            else if (durationMin > 75) sessionCns *= 1.08
+            sessionCns = SessionDrainRecipe.durationCns(sessionCns, log.durationMinutes)
 
             accumulatedGymLoad += sessionCns * AugeUtils.recoveryDecay(hoursSince, tauHours)
         }
@@ -980,7 +974,7 @@ object AugeRecoveryEngine {
                 },
             )
 
-            if (log.durationMinutes > 90) sessionSpinalLoad *= 1.08
+            sessionSpinalLoad = SessionDrainRecipe.durationSpinal(sessionSpinalLoad, log.durationMinutes)
             accumulatedSpinalLoad += sessionSpinalLoad * AugeUtils.recoveryDecay(
                 AugeUtils.getSpinalRecoveryHours(hoursSince),
                 tauHours,
