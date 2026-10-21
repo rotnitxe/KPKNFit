@@ -117,6 +117,18 @@ Informes en `docs/video-technique/re/`.
 la velocidad en 2,7–4,0 Hz, que explican el sesgo de la velocidad pico publicado; la potencia total mal sumada; y el envío de datos a la
 nube sin decirlo (My Jump Lab usa Firestore pese a su texto de privacidad).
 
+## Defectos encontrados al probar en el Z Flip5 (21-oct)
+- **B1 · Veto de GPU por cierres del sistema (alta, esfuerzo bajo).**
+  - `GpuProbe` marca la GPU como «en prueba» y, si el proceso muere con la marca puesta, la veta para toda la versión.
+  - En el teléfono, Android mató el servicio por el límite de 6 h (`FGS timed out`) en plena inferencia. La app vetó la GPU, y el
+    análisis pasó de unos 15 ms a 214 ms por fotograma en la CPU, unas 14 veces más lento, hasta la siguiente versión.
+  - En la app real puede pasar igual si el sistema cierra el análisis por memoria, por tiempo o porque la persona cierra la app.
+  - Arreglo: vetar solo si el cierre anterior fue un fallo real. `ActivityManager.getHistoricalProcessExitReasons` da el motivo:
+    `REASON_CRASH_NATIVE`, `REASON_CRASH` o `REASON_ANR`. Con cualquier otro motivo (memoria, sistema, cierre por la persona), se
+    borra la marca sin vetar. Y que el veto caduque tras N arranques correctos.
+- **B2 · Servicio de análisis largo (media).** El trabajador real (`TechniqueAnalysisWorker`) usa también un servicio en primer plano.
+  Hay que comprobar que su tipo y su `onTimeout` no dejan el análisis a medias sin aviso en Android 15+.
+
 ## Orden propuesto
 1. Ronda de interfaz en curso: UI-2, UI-3 y UI-4.
 2. **Rondas del motor con el banco:** D42.1 (ángulos 3D) y D43.1 (relevo), que se miden enseguida con las trazas del Flip.
