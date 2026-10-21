@@ -62,6 +62,13 @@ object RepFlags {
  * máximo es MEDIA (§4.11 y §6 p9). Con menos de 3 FULL el CV no es de fiar y c_amp y c_rhy valen 0,5.
  * M2 fuerza BAJA con varias personas, vista no admitida, ciclos ambiguos o censura en el borde. Un single/doble
  * completamente observado y rodeado por reposo medido puede usar tracking y SNR sin imputar regularidad entre reps.
+ *
+ * M2, iteración 2: un problema que no invalida los ciclos observados cuesta UN nivel en vez de forzar BAJA.
+ * - Vista OBLIQUE en un perfil que no la admite: no se fuerza BAJA; su c_view = 0,7 (§6) ya deja la puntuación en ≤ 0,7, así
+ *   que como mucho es MEDIA. Las demás vistas no admitidas siguen forzando BAJA. ALTA exige siempre una vista admitida.
+ * - Ciclos dudosos (n_amb > 0) con TODOS los ciclos completos: si la serie sería ALTA salvo por la duda, es MEDIA. Con algún
+ *   ciclo parcial o fallido, o con menos evidencia, sigue en BAJA: la duda puede cambiar el número de completas.
+ * - Encuadre recortado sin desplazamiento ([SegmentationResult.captureLimited]): como mucho MEDIA.
  */
 object RepConfidence {
     fun score(
@@ -112,25 +119,30 @@ object RepConfidence {
         // tracking and SNR directly; the neutral cAmp/cRhy remain explicit in the diagnostic breakdown.
         val score = if (evidence.closedShortSet && cTrack == 1.0 && cSnr == 1.0) sqrt(cTrack) * cView * cSnr else repeatedScore
 
+        val polarityFlipped = seg.polarityFlipped || AnalysisFlag.POLARITY_FLIPPED in flags
+        val sideCap = seg.sideMode == SideMode.NEAR_ONLY || AnalysisFlag.SIDE_UNKNOWN in flags ||
+            AnalysisFlag.FAR_SIDE_WORKING in flags
+        // Todo lo que ALTA exige, salvo la ausencia de ciclos dudosos.
+        val altaEvidence = AnalysisFlag.LEGACY_TRACK !in flags && AnalysisFlag.MULTI_PERSON !in flags && !polarityFlipped &&
+            !sideCap && view.kind in profile.countViews && !seg.captureLimited
+        val ambiguityCostsOneLevel = nAmb > tuning.metrics.countReliability.maxOfferedAmbiguousCycles &&
+            seg.cycles.all { it.kind == RepKind.FULL } && score >= tuning.altaScore && altaEvidence
         val forced = when {
             fulls.isEmpty() -> "no_full_reps"
             series.validFraction < tuning.minValidFraction -> "low_valid_fraction"
             series.fs < tuning.lowFpsBelow -> "low_fps"
             AnalysisFlag.MULTI_PERSON in flags -> "multiple_people"
-            view.kind !in profile.countViews -> "unsupported_view"
+            view.kind !in profile.countViews && view.kind != ViewKind.OBLIQUE -> "unsupported_view"
             evidence.censoredStart -> "censored_start"
             evidence.censoredReturn -> "censored_return"
-            nAmb > tuning.metrics.countReliability.maxOfferedAmbiguousCycles -> "ambiguous_cycles"
+            nAmb > tuning.metrics.countReliability.maxOfferedAmbiguousCycles && !ambiguityCostsOneLevel -> "ambiguous_cycles"
             fulls.size < tuning.minCvReps && seg.cycles.any { it.kind != RepKind.FULL } -> "uncertain_partial_cycles"
             else -> null
         }
-        val polarityFlipped = seg.polarityFlipped || AnalysisFlag.POLARITY_FLIPPED in flags
-        val sideCap = seg.sideMode == SideMode.NEAR_ONLY || AnalysisFlag.SIDE_UNKNOWN in flags ||
-            AnalysisFlag.FAR_SIDE_WORKING in flags
-        val altaAllowed = nAmb == 0 && AnalysisFlag.LEGACY_TRACK !in flags && AnalysisFlag.MULTI_PERSON !in flags &&
-            !polarityFlipped && !sideCap
+        val altaAllowed = nAmb == 0 && altaEvidence
         val level = when {
             forced != null -> CountConfidence.BAJA
+            ambiguityCostsOneLevel -> CountConfidence.MEDIA
             score >= tuning.altaScore && altaAllowed -> CountConfidence.ALTA
             score >= tuning.mediaScore -> CountConfidence.MEDIA
             else -> CountConfidence.BAJA

@@ -12,7 +12,14 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
-internal data class CaptureCountEvidence(val clippedFraction: Double, val commonFootTravelBh: Double, val unsafe: Boolean)
+/**
+ * [clipped]: una región requerida del cuerpo queda fuera de la imagen en la mayoría de los fotogramas (encuadre).
+ * [travelled]: los dos pies apoyados se desplazan juntos (cámara en movimiento o caminar durante la serie).
+ */
+internal data class CaptureCountEvidence(val clippedFraction: Double, val commonFootTravelBh: Double, val clipped: Boolean,
+    val travelled: Boolean) {
+    val unsafe: Boolean get() = clipped || travelled
+}
 
 /** Valley minima can precede an unrack/walkout by seconds. Motion fits delimit the actual set for planted-foot travel. */
 internal fun captureWindowUs(series: CountSeries, seg: SegmentationResult, tuning: AnalysisTuning): LongRange? {
@@ -36,7 +43,7 @@ internal fun captureCountEvidence(prepared: PreparedTrack, profile: AnalysisProf
     footWindowUs: LongRange? = null): CaptureCountEvidence {
     val frames = prepared.track.frames
     val posed = frames.indices.filter { frames[it].hasPose }
-    if (posed.isEmpty()) return CaptureCountEvidence(0.0, 0.0, false)
+    if (posed.isEmpty()) return CaptureCountEvidence(0.0, 0.0, false, false)
     fun clippedFraction(points: List<PoseLandmark>): Double = posed.count { i ->
         points.any { lm ->
             val x = frames[i].x(lm); val y = frames[i].y(lm)
@@ -82,6 +89,5 @@ internal fun captureCountEvidence(prepared: PreparedTrack, profile: AnalysisProf
         }
     }
     val settings = tuning.metrics.countReliability
-    return CaptureCountEvidence(clipped, travel,
-        clipped > settings.maxClippedFraction || travel > settings.maxCommonFootTravelBh)
+    return CaptureCountEvidence(clipped, travel, clipped > settings.maxClippedFraction, travel > settings.maxCommonFootTravelBh)
 }

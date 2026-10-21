@@ -2,6 +2,7 @@ package com.example.kpkn.domain.biomechanics.reps
 
 import com.example.kpkn.domain.biomechanics.kinematics.Side
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisTuning
+import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.domain.biomechanics.metrics.PartialKind
 import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfile
@@ -79,6 +80,8 @@ data class DiscardedCycle(val peak: Int, val reason: String)
  * @property noRepsReason por qué no hay repeticiones (o no hay ninguna completa).
  * @property ambiguousCycles n_amb de la confianza: ciclos con a cerca de los umbrales (0,30 y 0,70), con prominencia a ±15 %
  *   del umbral de picos, o con el giro dentro de un hueco rellenado; más 1 si los dos lados cuentan distinto (BOTH_SYNC).
+ * @property captureLimited una región requerida del cuerpo quedó fuera del encuadre, sin desplazamiento: los ciclos se
+ *   conservan solo porque su evidencia sería ALTA, y la confianza no pasa de MEDIA.
  */
 data class SegmentationResult(
     val cycles: List<RepCycle>,
@@ -94,6 +97,7 @@ data class SegmentationResult(
     val polarityFlipped: Boolean,
     val noRepsReason: String?,
     val ambiguousCycles: Int = 0,
+    val captureLimited: Boolean = false,
 ) {
     val fullCount: Int get() = cycles.count { it.kind == RepKind.FULL }
     val partialCount: Int get() = cycles.count { it.kind == RepKind.PARTIAL }
@@ -481,6 +485,12 @@ object RepSegmenter {
         // Walkout/setup before the first repetition does not establish camera motion during the set.
         val capture = captureCountEvidence(prepared, profile, tuning, captureWindowUs(series, result, tuning))
         if (!capture.unsafe) return result
+        // M2 (iteración 2): una región del cuerpo fuera del encuadre, sin desplazamiento, no borra ciclos ya observados; cuesta
+        // un nivel. Solo un conteo que sin ese problema sería ALTA se conserva, y como mucho en MEDIA. Lo demás se abstiene.
+        if (!capture.travelled) {
+            val unlimited = RepConfidence.score(series, result, prepared.view, profile, RepFlags.of(prepared, series, result), tuning)
+            if (unlimited.level == CountConfidence.ALTA) return result.copy(captureLimited = true)
+        }
         return result.copy(cycles = emptyList(),
             discarded = result.discarded + result.cycles.map { DiscardedCycle(it.peak, "poor_capture") },
             activeWindow = null, miniSets = 0, perSideCounts = emptyMap(), noRepsReason = "poor_capture")

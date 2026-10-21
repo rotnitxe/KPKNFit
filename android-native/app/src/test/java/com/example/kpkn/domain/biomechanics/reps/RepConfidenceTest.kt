@@ -244,8 +244,10 @@ class RepConfidenceTest {
     @Test
     fun theLevelsFollowTheScoreAndTheBlockers() {
         assertEquals(CountConfidence.ALTA, score().level)
-        // Un ciclo dudoso o varias personas no ofrecen un número; los demás topes siguen en MEDIA.
-        assertEquals(CountConfidence.BAJA, score(ambiguous = 1).level)
+        // Varias personas no ofrecen un número. Un ciclo dudoso con todas las repeticiones completas cuesta un nivel
+        // (M2, iteración 2): lo que sería ALTA queda en MEDIA y lo que ya era MEDIA (solo el lado cercano) baja a BAJA.
+        assertEquals(CountConfidence.MEDIA, score(ambiguous = 1).level)
+        assertEquals(CountConfidence.BAJA, score(ambiguous = 1, mode = SideMode.NEAR_ONLY).level)
         assertEquals(CountConfidence.MEDIA, score(flags = setOf(AnalysisFlag.LEGACY_TRACK)).level)
         assertEquals(CountConfidence.BAJA, score(flags = setOf(AnalysisFlag.MULTI_PERSON)).level)
         assertEquals(CountConfidence.MEDIA, score(flags = setOf(AnalysisFlag.POLARITY_FLIPPED)).level)

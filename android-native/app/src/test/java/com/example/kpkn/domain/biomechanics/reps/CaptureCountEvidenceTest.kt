@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.biomechanics.reps
 
+import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.domain.biomechanics.pose.PoseLandmark
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisEngine
@@ -32,12 +33,16 @@ class CaptureCountEvidenceTest {
         assertEquals("poor_capture", analyze(translated, AnalysisProfileId.SQUAT).noRepsReason)
     }
 
-    @Test fun croppedRequiredFeetAbstainButAnOptionalOccludedFootDoesNot() {
+    @Test fun croppedRequiredFeetCostALevelButAnOptionalOccludedFootDoesNot() {
         val squat = generate(SynthMovement.SQUAT).track.mapFrames { _, image, _ ->
             for (lm in listOf(PoseLandmark.LEFT_FOOT_INDEX, PoseLandmark.RIGHT_FOOT_INDEX))
                 image[lm]?.let { image[lm] = it.copy(x = -0.2f) }
         }
-        assertEquals("poor_capture", analyze(squat, AnalysisProfileId.SQUAT).noRepsReason)
+        // M2, iteración 2: los pies fuera del cuadro no borran ciclos vistos; esta serie sería ALTA y queda en MEDIA.
+        val cropped = analyze(squat, AnalysisProfileId.SQUAT)
+        assertNull(cropped.noRepsReason)
+        assertEquals(4, cropped.repCount)
+        assertEquals(CountConfidence.MEDIA, cropped.confidence)
         val bench = generate(SynthMovement.BENCH).track.mapFrames { _, image, _ ->
             for (lm in listOf(PoseLandmark.LEFT_FOOT_INDEX, PoseLandmark.RIGHT_FOOT_INDEX))
                 image[lm]?.let { image[lm] = it.copy(x = -0.2f) }
