@@ -247,6 +247,15 @@ sealed class KpknRoute(val route: String) {
     // ─── Health Connect ───────────────────────────────────────────────
     object HealthConnect : KpknRoute("settings/health-connect")
 
+    // ─── Progreso ─────────────────────────────────────────────────────
+    /** Panel de series registradas por músculo y ventana. Con [ARG_PROGRAM_ID] solo cuenta ese programa; vacío = todos. */
+    object MuscleVolumePanel : KpknRoute("progress/muscle-volume?programId={programId}") {
+        const val BASE_ROUTE = "progress/muscle-volume"
+        const val ARG_PROGRAM_ID = "programId"
+
+        fun create(programId: String? = null): String = "$BASE_ROUTE?programId=${Uri.encode(programId.orEmpty())}"
+    }
+
 }
 
 // ─── Bottom Nav Items ────────────────────────────────────────────────────────

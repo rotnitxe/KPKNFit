@@ -200,6 +200,7 @@ fun ProfileScreen(
     onOpenAlbums: () -> Unit = {},
     viewModel: ProfileViewModel = viewModel { ProfileViewModel() },
     onOpenTechnique: () -> Unit = {},
+    onOpenMuscleVolume: () -> Unit = {},
 ) {
     // Recorrido de Perfil: la primera vez que se abre. El icono de ajustes y la competición están en esta pantalla.
     val tourHost = LocalKpknOverlayHost.current
@@ -314,6 +315,7 @@ fun ProfileScreen(
                 )
             }
             NutritionProgressCard(state.nutritionGoal)
+            ProfileProgressBlock(onOpenMuscleVolume = onOpenMuscleVolume)
             Spacer(Modifier.height(64.dp))
         }
     }
@@ -530,6 +532,41 @@ private fun NutritionProgressCard(progress: NutritionGoalProgress?) {
                 }
             }
         }
+    }
+}
+
+/** Bloque «Progreso» del perfil: entradas a las vistas de avance. Cada vista es una fila; las nuevas se añaden al final. */
+@Composable
+private fun ProfileProgressBlock(onOpenMuscleVolume: () -> Unit) {
+    ProfileCard(title = "Progreso", icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Layers) {
+        ProfileProgressEntry(
+            title = "Volumen por músculo",
+            description = "Series registradas por músculo en 1, 4 o 12 semanas, con los ejercicios que las explican.",
+            onClick = onOpenMuscleVolume,
+        )
+    }
+}
+
+@Composable
+private fun ProfileProgressEntry(title: String, description: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Spacer(Modifier.width(8.dp))
+        Icon(
+            com.example.kpkn.ui.components.icons.KpknLineIcons.ChevronRight,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
