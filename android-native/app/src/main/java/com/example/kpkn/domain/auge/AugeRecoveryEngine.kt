@@ -839,7 +839,7 @@ object AugeRecoveryEngine {
             val manualBattery = manualNeural.coerceIn(0, 100).toDouble()
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
             val impliedRawGymPct = -AugeParameters.C_ENERGY * ln(1.0 - penalty / 100.0)
-            val capacity = max(80.0, tanks.cns * 1.15)
+            val capacity = AugeParameters.energyCapacity(tanks.cns)
             val manualLoad = (impliedRawGymPct / 100.0) * capacity
             accumulatedGymLoad = manualLoad * AugeUtils.recoveryDecay(hoursSinceAnchor, tauHours)
             history.filter { logDateMs(it) > anchorMs && logDateMs(it) > last10Days && logDateMs(it) <= now }
@@ -885,7 +885,7 @@ object AugeRecoveryEngine {
             accumulatedGymLoad += sessionCns * AugeUtils.recoveryDecay(hoursSince, tauHours)
         }
 
-        val capacity = max(80.0, tanks.cns * 1.15)
+        val capacity = AugeParameters.energyCapacity(tanks.cns)
         val rawGymPct = (accumulatedGymLoad / capacity) * 100.0
         val normalizedGymFatigue = clamp(100.0 * (1.0 - safeExp(-rawGymPct / AugeParameters.C_ENERGY)), 0.0, 100.0)
 
@@ -981,7 +981,7 @@ object AugeRecoveryEngine {
             val manualBattery = manualSpinal.coerceIn(0, 100).toDouble()
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
             val impliedRawPct = -AugeParameters.C_SPINAL * ln(1.0 - penalty / 100.0)
-            val capacity = max(70.0, tanks.spinal * 0.02)
+            val capacity = AugeParameters.spinalCapacity(tanks.spinal)
             val manualLoad = (impliedRawPct / 100.0) * capacity
             accumulatedSpinalLoad = manualLoad * AugeUtils.recoveryDecay(
                 AugeUtils.getSpinalRecoveryHours(hoursSinceAnchor),
@@ -1091,7 +1091,7 @@ object AugeRecoveryEngine {
             )
         }
 
-        val capacity = max(70.0, tanks.spinal * 0.02)
+        val capacity = AugeParameters.spinalCapacity(tanks.spinal)
         val rawPct = (accumulatedSpinalLoad / capacity) * 100.0
         val normalizedLoad = clamp(100.0 * (1.0 - safeExp(-rawPct / AugeParameters.C_SPINAL)), 0.0, 100.0)
         val exact = clamp(100.0 - normalizedLoad, 0.0, 100.0)

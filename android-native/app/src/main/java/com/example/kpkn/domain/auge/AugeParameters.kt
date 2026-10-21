@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.auge
 
+import kotlin.math.max
+
 /**
  * AugeParameters — Registro único de los parámetros numéricos del modelo de recuperación de AUGE (WP 2.1, F-61).
  *
@@ -113,6 +115,41 @@ object AugeParameters {
 
     /** τ del anillo muscular global en un ajuste manual sin τ aprendidos, en horas del warp muscular. */
     const val DEFAULT_TAU_GLOBAL_MUSCLE_H = 48.0
+
+    // ─── Escalas de capacidad por canal (D5) ─────────────────────────────────
+
+    /**
+     * Factor que lleva el tanque CNS a la capacidad de Energía. Las tres magnitudes del canal viven en unidades
+     * distintas: la salida de una serie (`calculateSetBatteryDrain`, ya en % de drenaje × 10), el acumulado de
+     * sesión (`SessionDrainRecipe`, misma unidad que la anterior) y la carga del anillo que consume
+     * `100·exp(−R/C)`. El tanque de [AugeFatigueEngine.calculatePersonalizedBatteryTanks] se expresa con la escala
+     * de serie y este factor lo alinea con la carga del anillo; no es una recalibración.
+     */
+    const val ENERGY_CAPACITY_FACTOR = 1.15
+
+    /** Mínimo de capacidad de Energía, en unidades de carga del anillo (evita dividir por tanques diminutos). */
+    const val ENERGY_CAPACITY_MIN = 80.0
+
+    /**
+     * Capacidad de Energía para un tanque CNS: `max(80; tanque·1,15)`. La usan el ancla manual y el camino hacia
+     * delante del canal, para que ambos no puedan divergir.
+     */
+    fun energyCapacity(cnsTank: Double): Double =
+        max(ENERGY_CAPACITY_MIN, cnsTank * ENERGY_CAPACITY_FACTOR)
+
+    /**
+     * Factor que lleva el tanque espinal a la capacidad de Columna. El tanque
+     * ([AugeFatigueEngine.calculatePersonalizedBatteryTanks]) está en unidades de serie y el acumulado de sesión
+     * del canal espinal usa la escala del anillo; el factor es el mismo en el ancla y en el forward.
+     */
+    const val SPINAL_CAPACITY_FACTOR = 0.02
+
+    /** Mínimo de capacidad de Columna, en unidades de carga del anillo. */
+    const val SPINAL_CAPACITY_MIN = 70.0
+
+    /** Capacidad de Columna para un tanque espinal: `max(70; tanque·0,02)`. Ancla y forward comparten esta cuenta. */
+    fun spinalCapacity(spinalTank: Double): Double =
+        max(SPINAL_CAPACITY_MIN, spinalTank * SPINAL_CAPACITY_FACTOR)
 
     // ─── Constante de recuperación y límites ─────────────────────────────────
 
