@@ -44,6 +44,24 @@ import com.example.kpkn.domain.workout.WarmupEffortReport
 import java.util.Locale
 import kotlin.math.roundToInt
 
+internal fun voiceEnergyValueConfirmation(value: Int): String = "Energía en $value por ciento"
+
+internal fun voiceColumnValueConfirmation(value: Int): String = "Columna en $value por ciento"
+
+internal fun voiceSessionDrainSummary(drain: Triple<Int, Int, Int>): String {
+    val amounts = buildList {
+        add("${drain.second} por ciento en Músculos")
+        add("${drain.first} por ciento en Energía")
+        if (drain.third >= 10) add("${drain.third} por ciento en Columna")
+    }
+    val spokenAmounts = if (amounts.size == 2) {
+        "${amounts[0]} y ${amounts[1]}"
+    } else {
+        "${amounts[0]}, ${amounts[1]} y ${amounts[2]}"
+    }
+    return "Has gastado $spokenAmounts durante esta sesión."
+}
+
 /**
  * Voice input (transcript) and continuous voice-session command handling.
  */
@@ -1370,12 +1388,12 @@ class WorkoutVoiceCommandHandler(
 
         if (command.neuralBattery != null) {
             nextNeural = command.neuralBattery
-            updates.add("Batería nerviosa en ${command.neuralBattery}")
+            updates.add(voiceEnergyValueConfirmation(command.neuralBattery))
         }
 
         if (command.spinalBattery != null) {
             nextSpinal = command.spinalBattery
-            updates.add("Batería espinal en ${command.spinalBattery}")
+            updates.add(voiceColumnValueConfirmation(command.spinalBattery))
         }
 
         if (command.discomfortId != null) {
@@ -1921,8 +1939,7 @@ class WorkoutVoiceCommandHandler(
         val message = if (drain == null) {
             "Todavía no hay series registradas para calcular el drenaje."
         } else {
-            val spinalText = if (drain.third >= 10) " y ${drain.third} por ciento espinal" else ""
-            "Llevas ${drain.second} por ciento de drenaje muscular y ${drain.first} por ciento del sistema nervioso$spinalText."
+            voiceSessionDrainSummary(drain)
         }
         voiceController.speakFeedbackUpdated(message)
         updateState { it.copy(voiceSessionState = voiceController.state.value) }

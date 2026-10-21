@@ -13,6 +13,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
 
 class SessionAssistantEngineTest {
     @Test
@@ -99,9 +100,12 @@ class SessionAssistantEngineTest {
                 programId = "p1",
                 customDrain = PredictedDrain(cns = 30, muscular = 35, spinal = 20),
             ),
+            nowMs = Instant.parse("2026-01-05T12:00:00Z").toEpochMilli(),
         )
         assertTrue(report.ajustes.any { it.id.startsWith("overlap-") })
         assertTrue(report.ajustes.any { it.title.contains("Poco descanso", ignoreCase = true) })
+        assertTrue(report.ajustes.filter { it.id.startsWith("overlap-") }.all { it.message.contains("está planificada") })
+        assertTrue(report.ajustes.filter { it.id.startsWith("overlap-") }.none { it.message.startsWith("Entrenaste") })
         assertTrue(report.ajustes.filter { it.id.startsWith("overlap-") }.all { suggestion ->
             val text = (suggestion.title + " " + suggestion.message).lowercase()
             !text.contains("interferencia") &&

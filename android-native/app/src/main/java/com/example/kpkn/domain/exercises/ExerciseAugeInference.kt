@@ -134,13 +134,12 @@ fun inferExerciseMetrics(
             InvolvedMuscle("Deltoides", MuscleRole.SECONDARY, 0.5),
         )
 
-        else -> listOf(
-            InvolvedMuscle("Core", MuscleRole.PRIMARY, 1.0),
-            InvolvedMuscle("Erectores Espinales", MuscleRole.STABILIZER, 0.4),
-        )
+        // sin coincidencias no se inventan músculos; el creador recomienda entrada manual
+        else -> emptyList()
     }
 
     val bodyPart = when {
+        muscles.isEmpty() -> "full"
         muscles.any { it.muscle in setOf("Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas", "Aductores") } -> "lower"
         muscles.any { it.muscle in setOf("Pectorales", "Dorsales", "Deltoides", "Bíceps", "Tríceps", "Antebrazo", "Trapecio") } -> "upper"
         else -> "core"

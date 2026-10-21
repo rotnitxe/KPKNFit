@@ -73,7 +73,7 @@ private val ExclusiveCanvas = 64.dp
 private const val ExclusiveArtScale = 0.9f
 
 /** Nota de la pantalla: la ventana de siete días. */
-private const val WINDOW_NOTE = "Cuentan los últimos 7 días: lo anterior ya casi no pesa en tus RINGS."
+internal const val RingsSessionDaysNote = "Indica tus sesiones recientes; los días anteriores también pueden aportar contexto a tus RINGS."
 
 /**
  * Paso `RINGS_SESSION_DAYS`: los siete días previos, de hace seis a hoy, para marcar en cuáles entrenaste; y dos símbolos
@@ -152,7 +152,7 @@ internal fun RingsSessionDaysContent(
             )
         }
         Text(
-            text = WINDOW_NOTE,
+            text = RingsSessionDaysNote,
             style = WizardTypography.note,
             color = WizardColors.textMuted,
         )

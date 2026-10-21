@@ -8,6 +8,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
+/** Caché sin fila persistida: no hay una actualización pendiente que anunciar. */
+internal fun adaptiveCacheWhenEntityIsMissing(): AugeAdaptiveCache =
+    AugeAdaptiveCache(modelUpdateNoticeShown = true)
+
 /**
  * AugeRepository — Persistent storage para datos del sistema AUGE.
  * Migrado de SharedPreferences a Room para consistencia con ProgramRepository.
@@ -127,7 +131,7 @@ class AugeRepository private constructor(context: Context) {
         result?.diagnostics?.forEach { diagnostic ->
             KpknDiagnosticLogger.event(namespace = "auge", name = "adaptive_cache_v4", fields = mapOf("diagnostic" to diagnostic))
         }
-        result?.cache ?: AugeAdaptiveCache()
+        result?.cache ?: adaptiveCacheWhenEntityIsMissing()
     }
 
     suspend fun saveAdaptiveCache(cache: AugeAdaptiveCache) = withContext(Dispatchers.IO) {

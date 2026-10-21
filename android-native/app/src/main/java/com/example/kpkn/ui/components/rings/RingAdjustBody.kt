@@ -192,7 +192,7 @@ private fun smoothClosedPath(points: FloatArray): Path {
 
 /**
  * Ajuste de Músculos (G6): el cuerpo de frente y de espalda (segmentado «Frente · Espalda», que gira la figura al cambiar) con las
- * zonas de los 13 pilares pintadas según su valor (80 o más, verde; 60 o más, ámbar; si no, el tono de Músculos). Tocar una zona la
+ * zonas de los 13 pilares pintadas según las bandas compartidas de Músculos. Tocar una zona la
  * elige; debajo, la zona elegida con su mini-anillo, «Cuádriceps · 54 % · cargado» y − y + de 10 (arrastrar en horizontal sobre la fila
  * afina de uno en uno). Las zonas pequeñas amplían su área táctil a 48 dp y, para TalkBack, cada una es un botón «Cuádriceps 54 %».
  *
@@ -327,7 +327,7 @@ fun MuscleBodyAdjust(
 
     // El color de cada zona se anima al cambiar su valor.
     val zoneColors: Map<String, Color> = RingAdjustBodyPillars.associateWith { pillar ->
-        val target = byPillar[pillar]?.value?.let { if (it >= 80) Color(0xFF8FB2FF) else Color(0xFFF49A6E) } ?: Color.Transparent
+        val target = byPillar[pillar]?.value?.let(::ringAdjustMuscleTone)?.color ?: Color.Transparent
         animateColorAsState(
             targetValue = target,
             animationSpec = if (reduced) tween(0) else tween(350),
@@ -757,7 +757,7 @@ private fun MiniRing(value: Int?, modifier: Modifier = Modifier) {
         val sweep = 360f * value / RingAdjustMax
         if (sweep > 0f) {
             drawArc(
-                if (value >= 80) Color(0xFF8FB2FF) else Color(0xFFF49A6E),
+                ringAdjustMuscleTone(value).color,
                 -90f,
                 sweep,
                 false,

@@ -185,12 +185,12 @@ internal fun buildAugeSummary(
         )
     }
 
-    if (currentMetrics.drain.cns >= 85 || currentMetrics.averageRpe >= 9.3) {
+    if (currentMetrics.drain.cns >= 85) {
         val topNeuralExercise = currentMetrics.exerciseInsights.maxByOrNull { it.cns }
         suggestions += SessionEditorAugeAlert(
             id = "system-neural",
             title = "Recomendación energía",
-            message = "Tu Energía ya va alta para esta sesión. Bajar RPE, subir RIR o reducir %1RM deja margen sin romper el plan.",
+            message = "La sesión podría gastar ${currentMetrics.drain.cns} % de Energía. Baja RPE o %1RM, o sube RIR.",
             severity = SessionEditorAugeAlertSeverity.INFO,
             source = SessionEditorAugeAlertSource.SYSTEM,
             exerciseId = topNeuralExercise?.exerciseId,
@@ -222,8 +222,8 @@ internal fun buildAugeSummary(
     if (settings.calorieGoalObjective == CalorieGoalObjective.DEFICIT) {
         suggestions += SessionEditorAugeAlert(
             id = "info-deficit",
-            title = "Déficit activo",
-            message = "En déficit calórico conviene apretar menos el volumen efectivo por sesión para que la recuperación no se caiga.",
+            title = "Objetivo de déficit",
+            message = "Con un objetivo de déficit calórico, puede convenirte moderar el volumen efectivo por sesión.",
             severity = SessionEditorAugeAlertSeverity.INFO,
             source = SessionEditorAugeAlertSource.SYSTEM,
         )
@@ -387,12 +387,12 @@ internal fun buildAugeSummaryFromMetrics(
             correctionType = SessionEditorAugeCorrectionType.REDUCE_VOLUME_RPE,
         )
     }
-    if (currentMetrics.drain.cns >= 85 || currentMetrics.averageRpe >= 9.3) {
+    if (currentMetrics.drain.cns >= 85) {
         val topNeuralExercise = currentMetrics.exerciseInsights.maxByOrNull { it.cns }
         suggestions += SessionEditorAugeAlert(
             id = "system-neural",
             title = "Recomendación energía",
-            message = "Tu Energía ya va alta para esta sesión. Bajar RPE, subir RIR o reducir %1RM deja margen sin romper el plan.",
+            message = "La sesión podría gastar ${currentMetrics.drain.cns} % de Energía. Baja RPE o %1RM, o sube RIR.",
             severity = SessionEditorAugeAlertSeverity.INFO,
             source = SessionEditorAugeAlertSource.SYSTEM,
             exerciseId = topNeuralExercise?.exerciseId,
@@ -421,8 +421,8 @@ internal fun buildAugeSummaryFromMetrics(
     if (settings.calorieGoalObjective == CalorieGoalObjective.DEFICIT) {
         suggestions += SessionEditorAugeAlert(
             id = "info-deficit",
-            title = "Déficit activo",
-            message = "En déficit calórico conviene apretar menos el volumen efectivo por sesión para que la recuperación no se caiga.",
+            title = "Objetivo de déficit",
+            message = "Con un objetivo de déficit calórico, puede convenirte moderar el volumen efectivo por sesión.",
             severity = SessionEditorAugeAlertSeverity.INFO,
             source = SessionEditorAugeAlertSource.SYSTEM,
         )
