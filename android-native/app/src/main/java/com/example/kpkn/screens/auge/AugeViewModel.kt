@@ -36,7 +36,6 @@ import com.example.kpkn.domain.auge.SystemicLoadMonitor
 import com.example.kpkn.domain.auge.detectWellbeingEdits
 import com.example.kpkn.domain.auge.mergeWellbeingForSave
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
-import com.example.kpkn.domain.auge.remapMuscleMultiplierMapToPillars
 import com.example.kpkn.domain.auge.toAugeAdaptiveMuscleKey
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -201,11 +200,9 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     private suspend fun <T> withWriteLock(held: Boolean, block: suspend () -> T): T =
         if (held) block() else augeWriteMutex.withLock { block() }
 
-    /** Caché adaptativo tal como lo lee el motor: multiplicadores musculares remapeados a pilares. */
+    /** Caché normalizado por el repositorio. */
     private suspend fun readAdaptiveCacheForEngine(): AugeAdaptiveCache =
-        augeRepo.getAdaptiveCache().let { raw ->
-            raw.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(raw.muscleDrainMultipliers))
-        }
+        augeRepo.getAdaptiveCache()
 
     /**
      * Recalcula y publica el snapshot. [lockHeld] = true si el llamador ya tiene [augeWriteMutex]
@@ -692,6 +689,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         predictedMuscleBatteries: Map<String, Int>,
         wellbeing: DailyWellbeingLog,
     ) {
+        // Puente v4: las anclas ya se guardaron; el EMA queda suspendido hasta 3.3/3.4.
+        if (augeRepo.getAdaptiveCache().schemaVersion >= 4) return
         val hasSystemSignal = (manualNeural != null && predictedNeuralBattery != null && manualNeural != predictedNeuralBattery) ||
             (manualSpinal != null && predictedSpinalBattery != null && manualSpinal != predictedSpinalBattery)
         val hasMuscleSignal = manualMuscleBatteries.isNotEmpty()
@@ -710,9 +709,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         if (derivedHoursSince < AugeAdaptiveEngine.MIN_HOURS_FOR_TAU_LEARNING) return
         if (derivedHoursSince > MAX_HOURS_FOR_TAU_LEARNING) return
 
-        val cache = augeRepo.getAdaptiveCache().let { raw ->
-            raw.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(raw.muscleDrainMultipliers))
-        }
+        val cache = augeRepo.getAdaptiveCache()
         var updatedCache = cache
         var learned = false
 
@@ -824,6 +821,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         feedbacks: List<PostSessionFeedback>,
         lockHeld: Boolean,
     ): AugeAdaptiveCache {
+        // No sellar como aprendido un rendimiento cuyo aprendizaje está suspendido.
+        if (cache.schemaVersion >= 4) return cache
         val newest = history
             .filter { AugeUtils.logDateMs(it) > 0L }
             .maxByOrNull { AugeUtils.logDateMs(it) }

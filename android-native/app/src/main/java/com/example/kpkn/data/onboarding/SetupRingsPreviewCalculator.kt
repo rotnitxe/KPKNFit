@@ -18,7 +18,6 @@ import com.example.kpkn.domain.auge.AugeSnapshotInputs
 import com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicy
 import com.example.kpkn.domain.auge.InitialRecoveryPolicyInput
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
-import com.example.kpkn.domain.auge.remapMuscleMultiplierMapToPillars
 import com.example.kpkn.domain.onboarding.RingsCalibration
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.onboarding.RingsEvidenceHandling
@@ -152,7 +151,7 @@ class SetupRingsPreviewCalculator(private val context: Context) {
         val feedbacks = auge.getPostSessionFeedbacks()
         val sleep = auge.getLastNSleepLogs(7)
         val nutrition = NutritionRepository.getInstance().nutritionLogs.value
-        val cache = auge.getAdaptiveCache().let { it.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(it.muscleDrainMultipliers)) }
+        val cache = auge.getAdaptiveCache()
         val catalog = catalogExerciseIndex()
         val candidateSettings = when (evidenceInput) {
             is SetupRingsEvidenceInput.Available -> settings.copy(initialRecoveryEvidence = evidenceInput.evidence)

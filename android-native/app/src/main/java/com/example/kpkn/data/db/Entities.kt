@@ -220,22 +220,39 @@ data class PendingQuestionnaireEntity(@PrimaryKey val rowId: Int = 1, val data: 
 
 @Entity(tableName = "auge_adaptive_cache")
 data class AugeAdaptiveCacheEntity(@PrimaryKey val rowId: Int = 1, val data: String)
-fun com.example.kpkn.data.models.AugeAdaptiveCache.toEntity() = AugeAdaptiveCacheEntity(data = dbJson.encodeToString(this))
-fun AugeAdaptiveCacheEntity.toAdaptiveCache(): com.example.kpkn.data.models.AugeAdaptiveCache =
-    runCatching {
-        val decoded = dbJson.decodeFromString<com.example.kpkn.data.models.AugeAdaptiveCache>(data.ifBlank { "{}" })
-        val storedVersion = runCatching {
-            dbJson.parseToJsonElement(data.ifBlank { "{}" })
-                .jsonObject["schemaVersion"]?.jsonPrimitive?.intOrNull ?: 1
-        }.getOrDefault(1)
-        if (storedVersion < 2) {
-            // v1 muscular τ/deltas/multipliers were learned from finish-sheet
-            // inversions (hoursSince≈0.5). Drop all three; keep CNS/spinal until v3.
-            decoded
-        } else {
-            decoded
-        }.let { com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.migrate(it, storedVersion) }
-    }.getOrDefault(com.example.kpkn.data.models.AugeAdaptiveCache())
+fun com.example.kpkn.data.models.AugeAdaptiveCache.toEntity(): AugeAdaptiveCacheEntity {
+    val normalized = if (schemaVersion == com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.CURRENT_SCHEMA)
+        com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.normalize(this) else this
+    return AugeAdaptiveCacheEntity(data = dbJson.encodeToString(normalized))
+}
+data class AugeAdaptiveCacheDecodeResult(
+    val cache: com.example.kpkn.data.models.AugeAdaptiveCache,
+    val writable: Boolean = true,
+    val diagnostics: List<String> = emptyList(),
+)
+
+fun AugeAdaptiveCacheEntity.decodeAdaptiveCache(): AugeAdaptiveCacheDecodeResult {
+    val diagnostics = mutableListOf<String>()
+    return runCatching {
+        val cacheJson = Json(dbJson) { allowSpecialFloatingPointValues = true }
+        val version = cacheJson.parseToJsonElement(data).jsonObject["schemaVersion"]?.jsonPrimitive?.intOrNull ?: 1
+        if (version > com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.CURRENT_SCHEMA) {
+            return AugeAdaptiveCacheDecodeResult(com.example.kpkn.data.models.AugeAdaptiveCache(), false, listOf("future_schema:$version"))
+        }
+        val decoded = cacheJson.decodeFromString<com.example.kpkn.data.models.AugeAdaptiveCache>(data)
+        if (version < 4) diagnostics += "learning_reset_v4:$version"
+        val migrated = com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.migrate(decoded, version)
+        // Normalizar antes de migrar v4 permite informar cada parámetro inválido.
+        val normalized = if (version == 4) com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.normalize(decoded) {
+            diagnostics += it
+        } else migrated
+        AugeAdaptiveCacheDecodeResult(normalized, diagnostics = diagnostics)
+    }.getOrElse {
+        AugeAdaptiveCacheDecodeResult(com.example.kpkn.data.models.AugeAdaptiveCache(), diagnostics = listOf("unreadable_json"))
+    }
+}
+
+fun AugeAdaptiveCacheEntity.toAdaptiveCache(): com.example.kpkn.data.models.AugeAdaptiveCache = decodeAdaptiveCache().cache
 
 @Entity(tableName = "nutrition_logs", indices = [Index("date")])
 data class NutritionLogEntity(@PrimaryKey val id: String, val date: String, val mealType: String, val data: String)

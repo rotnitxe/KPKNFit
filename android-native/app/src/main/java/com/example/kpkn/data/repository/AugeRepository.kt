@@ -6,10 +6,6 @@ import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.models.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import java.time.LocalDate
 
 /**
@@ -21,7 +17,6 @@ import java.time.LocalDate
 class AugeRepository private constructor(context: Context) {
 
     private val dao = KpknDatabase.getInstance(context).augeDao()
-    @Volatile private var muscularResetDiagnosticEmitted = false
 
     // ─── DailyWellbeingLog ────────────────────────────────────────────────────
 
@@ -128,26 +123,19 @@ class AugeRepository private constructor(context: Context) {
     // ─── Adaptive Cache ─────────────────────────────────────────────────────
 
     suspend fun getAdaptiveCache(): AugeAdaptiveCache = withContext(Dispatchers.IO) {
-        val entity = dao.getAdaptiveCache()
-        val rawVersion = entity?.data?.let { raw ->
-            runCatching {
-                Json.parseToJsonElement(raw).jsonObject["schemaVersion"]?.jsonPrimitive?.intOrNull ?: 1
-            }.getOrDefault(1)
-        } ?: 2
-        if (rawVersion < 2 && !muscularResetDiagnosticEmitted) {
-            muscularResetDiagnosticEmitted = true
-            KpknDiagnosticLogger.event(
-                namespace = "auge",
-                name = "muscular_calibration_reset_v2",
-                fields = mapOf("previousSchemaVersion" to rawVersion, "preservedChannels" to listOf("cns", "spinal")),
-                priority = com.example.kpkn.data.diagnostics.TelemetryPriority.CRITICAL,
-            )
+        val result = dao.getAdaptiveCache()?.decodeAdaptiveCache()
+        result?.diagnostics?.forEach { diagnostic ->
+            KpknDiagnosticLogger.event(namespace = "auge", name = "adaptive_cache_v4", fields = mapOf("diagnostic" to diagnostic))
         }
-        entity?.toAdaptiveCache() ?: AugeAdaptiveCache()
+        result?.cache ?: AugeAdaptiveCache()
     }
 
     suspend fun saveAdaptiveCache(cache: AugeAdaptiveCache) = withContext(Dispatchers.IO) {
-        dao.upsertAdaptiveCache(cache.toEntity())
+        // Releer también al guardar: ni los avisos ni otro escritor deben tapar un esquema futuro.
+        val stored = dao.getAdaptiveCache()?.decodeAdaptiveCache()
+        if (stored?.writable != false) {
+            dao.upsertAdaptiveCache(com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.normalize(cache).toEntity())
+        }
     }
 
     suspend fun resetAdaptiveCache() = withContext(Dispatchers.IO) {

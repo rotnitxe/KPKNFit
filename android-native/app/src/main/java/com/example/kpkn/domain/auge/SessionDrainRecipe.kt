@@ -3,17 +3,13 @@ package com.example.kpkn.domain.auge
 import com.example.kpkn.data.models.*
 import kotlin.math.roundToInt
 
-/** Variantes legítimas del consumidor, salvo el estado muscular zombi reservado a 3.1. */
+/** Variantes legítimas del consumidor. */
 internal data class RecipeOptions(
-    /** Se elimina en 3.1 junto con el campo zombi del caché; conserva sus tres variantes hasta entonces. */
-    val muscleMultiplierSource: MuscleMultiplierSource,
     /** C conserva el respaldo de estrés del aprendiz sin V2; los demás usan ganchos con su propio reparto de cardio. */
     val cardioHandling: CardioHandling,
     /** A/P/F: porcentaje por canal; B: unidades de estrés; C: sin tope; D/E: porcentaje por log. */
     val softCapUnits: SoftCapUnits,
 ) {
-    /** Se elimina en 3.1 junto con el campo zombi del caché; no activar calibraciones antiguas. */
-    enum class MuscleMultiplierSource { REMAPPED_PILLARS, DIRECT_KEYS, NONE }
     enum class CardioHandling { CONSUMER_HOOK, LEGACY_STRENGTH }
     enum class SoftCapUnits { CHANNEL_PERCENT, MUSCLE_STRESS_UNITS, LOG_PERCENT, NONE }
 }
@@ -43,7 +39,6 @@ internal data class RecipeExerciseContext(
     val metrics: AugeMetrics,
     val involvedMuscles: List<InvolvedMuscle>,
     val primaryMuscle: String,
-    val muscleMultiplier: Double,
     val restTime: Int,
     val densityMultiplier: Double,
     val axialGate: Double,
@@ -74,12 +69,6 @@ internal class SessionDrainRecipe(
     } // B/D/E no realimentan el cardio; C conserva su recorrido legacy de series para el aprendiz sin V2.
 
     private val halfVolume = mutableMapOf<String, Double>()
-    private val muscleMultipliers = when (options.muscleMultiplierSource) {
-        RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS ->
-            remapMuscleMultiplierMapToPillars(adaptiveCache.muscleDrainMultipliers)
-        RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS -> adaptiveCache.muscleDrainMultipliers
-        RecipeOptions.MuscleMultiplierSource.NONE -> emptyMap()
-    }
 
     fun softCap(drain: Double, accumulated: Double, cap: Double): Double =
         if (options.softCapUnits == RecipeOptions.SoftCapUnits.NONE) drain
@@ -168,9 +157,6 @@ internal class SessionDrainRecipe(
                     accumulatedSets = accumulatedSets,
                     restTime = context.restTime,
                     densityMultiplier = context.densityMultiplier,
-                    cnsMultiplier = adaptiveCache.cnsDrainMultiplier,
-                    spinalMultiplier = adaptiveCache.spinalDrainMultiplier,
-                    muscleMultiplier = context.muscleMultiplier,
                     weightUnit = settings.weightUnit,
                 )
                 val base = adjustSet(drain, accumulatedDrain, context.axialGate) // La puerta axial siempre precede al acumulado.
@@ -220,7 +206,6 @@ internal class SessionDrainRecipe(
             metrics = metrics,
             involvedMuscles = involved,
             primaryMuscle = primary,
-            muscleMultiplier = lookupMuscleDrainMultiplier(muscleMultipliers, primary),
             restTime = rest,
             densityMultiplier = density,
             axialGate = gate,

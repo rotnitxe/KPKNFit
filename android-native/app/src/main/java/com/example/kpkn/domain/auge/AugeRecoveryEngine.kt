@@ -584,7 +584,6 @@ object AugeRecoveryEngine {
             }
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-                muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.MUSCLE_STRESS_UNITS,
             ))
@@ -653,14 +652,10 @@ object AugeRecoveryEngine {
         }
 
         val floor = physiologicalFloor(settings).muscular.toDouble()
-        val myDelta = adaptiveCache.muscleDeltas[muscleName.lowercase().trim()]
-            ?: adaptiveCache.muscleDeltas[normKey(muscleName)]
-            ?: adaptiveCache.muscleDeltas.entries.firstOrNull { normKey(it.key) == normKey(muscleName) }?.value
-            ?: 0.0
         // Pre-workout discomfort is a readiness signal now, not only a τ stretch
         battery = clamp(battery - discomfortPenaltyPct * 0.35, 0.0, 100.0)
-        // Apply deltas first, then enforce physiological floor so calibration cannot sink below floor
-        battery = max(clamp(battery + myDelta, 0.0, 100.0), floor)
+        // El suelo fisiológico se aplica después de las penalizaciones.
+        battery = max(clamp(battery, 0.0, 100.0), floor)
 
         val status = when {
             battery >= 95 -> RecoveryStatus.FRESH
@@ -691,7 +686,6 @@ object AugeRecoveryEngine {
         var sessionMuscleStress = 0.0
 
         val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-            muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
             cardioHandling = RecipeOptions.CardioHandling.LEGACY_STRENGTH,
             softCapUnits = RecipeOptions.SoftCapUnits.NONE,
         ))
@@ -758,7 +752,6 @@ object AugeRecoveryEngine {
             var sessionSoftAccum = 0.0
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-                muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.LOG_PERCENT,
             ))
@@ -772,7 +765,7 @@ object AugeRecoveryEngine {
                     val rpe = ex.sets.firstOrNull { (it.timeSeconds ?: 0) > 0 }?.rpe ?: cardio.resolvedRpe()
                     val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
                     val capped = recipe.softCap(
-                        SessionDrainRecipe.conserveCardio(cardioDrain.cns) * adaptiveCache.cnsDrainMultiplier,
+                        SessionDrainRecipe.conserveCardio(cardioDrain.cns),
                         sessionSoftAccum,
                         cnsCap,
                     )
@@ -939,7 +932,6 @@ object AugeRecoveryEngine {
             var sessionSoftAccum = 0.0
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-                muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.LOG_PERCENT,
             ))
@@ -953,7 +945,7 @@ object AugeRecoveryEngine {
                     val rpe = ex.sets.firstOrNull { (it.timeSeconds ?: 0) > 0 }?.rpe ?: cardio.resolvedRpe()
                     val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
                     val capped = recipe.softCap(
-                        SessionDrainRecipe.conserveCardio(cardioDrain.spinal) * adaptiveCache.spinalDrainMultiplier,
+                        SessionDrainRecipe.conserveCardio(cardioDrain.spinal),
                         sessionSoftAccum,
                         spinalCap,
                     )
@@ -1097,25 +1089,20 @@ object AugeRecoveryEngine {
             zone = zone,
         )
 
-        val avgMuscleDelta = if (adaptiveCache.muscleDeltas.isNotEmpty()) {
-            adaptiveCache.muscleDeltas.values.average().coerceIn(-25.0, 25.0)
-        } else 0.0
-        val cnsDelta = adaptiveCache.cnsLearningDelta.coerceIn(-15.0, 15.0)
-        val spinalDelta = adaptiveCache.spinalLearningDelta.coerceIn(-15.0, 15.0)
         val floor = physiologicalFloor(settings)
 
-        // Los tres valores finales de los anillos también se redondean: aquí ya hay decimales (ACWR, deceleración, deltas).
+        // Los tres valores finales de los anillos también se redondean: aquí ya hay decimales (ACWR y desaceleración).
         val decelMuscular = decelerateBattery(muscularWithAcwr)
         val finalMuscular = batteryPercent(
             max(
-                clamp(decelMuscular + avgMuscleDelta, 0.0, 100.0),
+                clamp(decelMuscular, 0.0, 100.0),
                 floor.muscular.toDouble(),
             ),
         )
         val finalCnc = batteryPercent(
             max(
                 decelerateBattery(
-                    clamp(cncBattery.toDouble() + cnsDelta, 0.0, 100.0),
+                    clamp(cncBattery.toDouble(), 0.0, 100.0),
                 ),
                 floor.cns.toDouble(),
             ),
@@ -1123,7 +1110,7 @@ object AugeRecoveryEngine {
         val finalSpinal = batteryPercent(
             max(
                 decelerateBattery(
-                    clamp(spinalBattery.toDouble() + spinalDelta, 0.0, 100.0),
+                    clamp(spinalBattery.toDouble(), 0.0, 100.0),
                 ),
                 floor.spinal.toDouble(),
             ),

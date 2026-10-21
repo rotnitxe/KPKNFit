@@ -201,8 +201,6 @@ object MuscularSessionImpactEngine {
                     accumulatedSets = accumulatedSets.roundToInt(),
                     restTime = exercise.supersetRestBetween ?: exercise.restTime,
                     densityMultiplier = density,
-                    cnsMultiplier = adaptiveCache.cnsDrainMultiplier,
-                    spinalMultiplier = adaptiveCache.spinalDrainMultiplier,
                     muscleMultiplier = 1.0,
                     weightUnit = settings.weightUnit,
                 )
@@ -301,8 +299,8 @@ object MuscularSessionImpactEngine {
             settings.weightUnit,
             settings.algorithmSettings.augeFatigueSensitivity,
             adaptiveCache.schemaVersion,
-            adaptiveCache.cnsDrainMultiplier,
-            adaptiveCache.spinalDrainMultiplier,
+
+
         ).joinToString("|")
     )
 
