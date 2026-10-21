@@ -525,7 +525,6 @@ internal fun computeSessionAugeComputation(
             missingCatalog = RecipeOptions.MissingCatalog.SKIP,
             cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
             softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
-            weightUnitSource = RecipeOptions.WeightUnitSource.KG_DEFAULT,
             plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
         ),
         resolveInfo = { identity ->

@@ -679,7 +679,6 @@ object AugeFatigueEngine {
                 missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
-                weightUnitSource = RecipeOptions.WeightUnitSource.SETTINGS,
                 plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
             ),
         )
@@ -822,7 +821,6 @@ object AugeFatigueEngine {
                 missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
-                weightUnitSource = RecipeOptions.WeightUnitSource.SETTINGS,
                 plannedSetIds = RecipeOptions.PlannedSetIds.EMPTY,
             ),
         )

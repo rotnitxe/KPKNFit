@@ -15,7 +15,6 @@ internal data class RecipeOptions(
     val missingCatalog: MissingCatalog,
     val cardioHandling: CardioHandling,
     val softCapUnits: SoftCapUnits,
-    val weightUnitSource: WeightUnitSource,
     val plannedSetIds: PlannedSetIds,
 ) {
     enum class RestSource { SUPERSET_OR_EXERCISE, EXERCISE, PLANNED_OR_90, PLANNED_OR_SETTINGS }
@@ -27,7 +26,6 @@ internal data class RecipeOptions(
     enum class MissingCatalog { HEURISTIC, SKIP }
     enum class CardioHandling { CONSUMER_HOOK, LEGACY_STRENGTH }
     enum class SoftCapUnits { CHANNEL_PERCENT, MUSCLE_STRESS_UNITS, LOG_PERCENT, NONE }
-    enum class WeightUnitSource { SETTINGS, KG_DEFAULT }
     enum class PlannedSetIds { EMPTY, PRESERVE }
 }
 
@@ -54,7 +52,6 @@ internal data class RecipeExerciseContext(
     val densityMultiplier: Double,
     val axialGate: Double,
     val postAccumulationAxialGate: Double,
-    val weightUnit: WeightUnit,
 )
 
 /**
@@ -179,7 +176,7 @@ internal class SessionDrainRecipe(
                     cnsMultiplier = adaptiveCache.cnsDrainMultiplier,
                     spinalMultiplier = adaptiveCache.spinalDrainMultiplier,
                     muscleMultiplier = context.muscleMultiplier,
-                    weightUnit = context.weightUnit,
+                    weightUnit = settings.weightUnit,
                 )
                 val adjusted = adjustSet(drain, accumulatedDrain, options, context.axialGate)
                 accumulatedDrain = adjusted.accumulatedDrain
@@ -250,10 +247,6 @@ internal class SessionDrainRecipe(
             densityMultiplier = density,
             axialGate = gate,
             postAccumulationAxialGate = if (options.axialGatePosition == RecipeOptions.AxialGatePosition.AFTER_ACCUMULATION) gate else 1.0,
-            weightUnit = when (options.weightUnitSource) {
-                RecipeOptions.WeightUnitSource.SETTINGS -> settings.weightUnit
-                RecipeOptions.WeightUnitSource.KG_DEFAULT -> WeightUnit.KG
-            },
         )
     }
 

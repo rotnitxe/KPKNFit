@@ -20,7 +20,6 @@ class SessionDrainRecipeTest {
         missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
         cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
         softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
-        weightUnitSource = RecipeOptions.WeightUnitSource.KG_DEFAULT,
         plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
     )
 
@@ -225,13 +224,11 @@ class SessionDrainRecipeTest {
         assertEquals(90.0, recipe(options().copy(softCapUnits = RecipeOptions.SoftCapUnits.MUSCLE_STRESS_UNITS)).softCap(100.0, 200.0, 1000.0), 0.0)
     }
 
-    @Test fun unidadDePesoSePasaSegunElConsumidorAunqueElCalculoActualNoLaUse() {
-        val settings = fixtures.settings.copy(weightUnit = WeightUnit.LBS)
-        val implicit = completed(options(), settings = settings).single()
-        val explicit = completed(options().copy(weightUnitSource = RecipeOptions.WeightUnitSource.SETTINGS), settings = settings).single()
-        assertEquals(WeightUnit.KG, implicit.context.weightUnit)
-        assertEquals(WeightUnit.LBS, explicit.context.weightUnit)
-        assertEquals(implicit.raw, explicit.raw)
+    @Test fun unidadDePesoDelUsuarioNoCambiaElDrenajeCrudo() {
+        val kilos = completed(options(), settings = fixtures.settings.copy(weightUnit = WeightUnit.KG)).single()
+        val libras = completed(options(), settings = fixtures.settings.copy(weightUnit = WeightUnit.LBS)).single()
+        assertEquals(kilos.raw, libras.raw)
+        assertEquals(kilos.adjusted, libras.adjusted)
     }
 
     @Test fun identidadSinteticaVaciaOPreservadaNoCambiaLaCarga() {
