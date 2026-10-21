@@ -1,7 +1,14 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.relator.*
+import com.example.kpkn.domain.relator.RelatorContext
+import com.example.kpkn.domain.relator.RelatorProgressSlice
+import com.example.kpkn.domain.relator.RelatorReadinessSlice
+import com.example.kpkn.domain.relator.RelatorWarmupSlice
+import com.example.kpkn.domain.relator.RelatorSessionPhase
+import com.example.kpkn.domain.relator.RelatorActionKind
+import com.example.kpkn.domain.relator.WarmupObserver
+import com.example.kpkn.domain.relator.ReadinessObserver
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.ZoneId
@@ -117,7 +124,7 @@ class Rings110IntegrationTest {
     @Test
     fun `readiness observer no emite candidatos de disponibilidad sin dailyScore`() {
         val context = dummyRelatorContext(
-            phase = RelatorSessionPhase.WORK,
+            phase = RelatorSessionPhase.WORKING,
             dailyScore = null,
             exerciseScore = 100,
             preWorkoutDiscomforts = listOf("Rodilla izquierda"),
@@ -130,7 +137,7 @@ class Rings110IntegrationTest {
     @Test
     fun `readiness observer emite candidato cuando dailyScore es bajo`() {
         val context = dummyRelatorContext(
-            phase = RelatorSessionPhase.WORK,
+            phase = RelatorSessionPhase.WORKING,
             dailyScore = 65,
             exerciseScore = null,
         )
@@ -192,47 +199,27 @@ class Rings110IntegrationTest {
         doms: Int? = null,
     ): RelatorContext = RelatorContext(
         sessionId = "s1",
+        setKey = "e1_0",
         exerciseId = "e1",
         exerciseName = "Press banca",
         setIndex = 1,
         phase = phase,
         progress = RelatorProgressSlice(
-            completedSets = 1,
-            totalSets = 4,
             completedWorkingSets = 0,
             totalWorkingSets = 3,
-            sessionProgressPercent = 25,
-            isLastWorkingSet = false,
-            exerciseRemainingSets = 2,
             remainingSeconds = remainingSeconds,
-            plannedSeconds = 180,
-            adaptiveSeconds = 180,
-            justHitPr = false,
-            overlayMinimized = false,
         ),
         readiness = RelatorReadinessSlice(
             dailyScore = dailyScore,
             dailyLabel = dailyScore?.let { RecoveryBands.labelForScore(it) },
-            dailyDetails = emptyList(),
+            dailyDetails = emptyList<String>(),
             exerciseScore = exerciseScore,
-            limitingFactor = null,
-            sleepQuality = 4,
-            stressLevel = 2,
             doms = doms,
-            motivation = 4,
             preWorkoutDiscomforts = preWorkoutDiscomforts,
-            muscleDrainLabel = null,
         ),
         warmup = RelatorWarmupSlice(
-            incompleteIndex = 0,
-            count = 2,
-            isLastIncomplete = false,
             suggestedKg = suggestedKg,
             remainingCount = 1,
         ),
-        coach = RelatorCoachSlice(null, null, null, null),
-        media = RelatorMediaSlice(0),
-        milestone = RelatorMilestoneSlice(false, false, null, null, false, null),
-        loggedSet = null,
     )
 }
