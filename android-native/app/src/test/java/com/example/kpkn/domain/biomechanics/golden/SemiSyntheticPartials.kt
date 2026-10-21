@@ -2,6 +2,8 @@ package com.example.kpkn.domain.biomechanics.golden
 
 import com.example.kpkn.domain.biomechanics.kinematics.ViewKind
 import com.example.kpkn.domain.biomechanics.metrics.MetricKey
+import com.example.kpkn.domain.biomechanics.metrics.RangeReference
+import com.example.kpkn.domain.biomechanics.metrics.RangeReferenceSource
 import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisEngine
 import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisInput
@@ -112,6 +114,8 @@ internal class SemiClip(
     val reps: List<SemiRep>,
     val analyzedFps: Double?,
     val windowS: Pair<Double, Double>?,
+    /** M4: la referencia PERSONAL del clip: sus completas originales, antes de deformarlas (como las series anteriores del usuario). */
+    val reference: RangeReference? = null,
 ) {
     /** La señal de conteo del motor en el instante [tUs] (interpolada). */
     fun rAt(tUs: Long): Double {
@@ -203,10 +207,15 @@ internal object SemiClipBuilder {
             }
             reps.add(SemiRep(j, e, e.amplitude, startUs, endUs, tPeak, r[vbK], r[vaK], rPeak, dImg, dWld))
         }
+        val amplitude = report.fullAmplitude
+        val signal = report.countSignal
+        val reference = if (amplitude != null && signal != null) {
+            RangeReference(amplitude, signal, RangeReferenceSource.PERSONAL, 2, report.view)
+        } else null
         return Result(
             SemiClip(
                 id, source, profileName, profile, labelView, supportedView, clipShell.startsEccentric, track,
-                series.t0Us, series.fs, r, reps, prepared.timebase.fs, windowS,
+                series.t0Us, series.fs, r, reps, prepared.timebase.fs, windowS, reference,
             ),
             null,
         )
@@ -441,18 +450,20 @@ internal object SemiCalibrator {
 }
 
 internal object SemiRunner {
-    fun analyze(track: PoseTrackV2, profile: AnalysisProfile): EngineOut = try {
-        val report = TechniqueAnalysisEngine.analyze(TechniqueAnalysisInput(track, null, profile, null, null, emptySet()))
-        EngineOut.of(report)
+    fun analyze(track: PoseTrackV2, profile: AnalysisProfile, reference: RangeReference? = null): EngineOut = try {
+        val report = TechniqueAnalysisEngine.analyze(
+            TechniqueAnalysisInput(track, null, profile, null, null, emptySet(), rangeReference = reference),
+        )
+        EngineOut.of(report, PartialsDiag.of(track, profile, reference))
     } catch (e: Throwable) {
         EngineOut.failure(e.javaClass.simpleName + ": " + e.message)
     }
 
-    fun run(clip: SemiClip, scenario: SemiScenario, variant: Int, seed: Long): PartialsOutcome? {
+    fun run(clip: SemiClip, scenario: SemiScenario, variant: Int, seed: Long, reference: Boolean = false): PartialsOutcome? {
         val started = System.nanoTime()
         val designed = SemiPlanner.plan(clip, scenario, Random(seed)) ?: return null
         val (plan, track) = SemiCalibrator.calibrate(clip, designed)
-        val engine = analyze(track, clip.profile)
+        val engine = analyze(track, clip.profile, if (reference) clip.reference else null)
         val truth = SemiPlanner.truth(clip, plan)
         val matches = PartialsMatching.match(truth, engine.reps.map { it.turnCenterUs })
         val id = String.format(Locale.ROOT, "%s_%s_v%d", clip.id, scenario.label, variant)
@@ -536,7 +547,7 @@ internal object SemiBench {
         return Loaded(clips, stats)
     }
 
-    fun run(root: File, outDir: File, minSeries: Int, log: (String) -> Unit = {}): List<PartialsOutcome> {
+    fun run(root: File, outDir: File, minSeries: Int, log: (String) -> Unit = {}, reference: Boolean = false): List<PartialsOutcome> {
         val loaded = load(root, log)
         val clips = loaded.clips
         // Menor número de variantes con el que salen al menos [minSeries] series (control solo en la variante 0).
@@ -555,7 +566,7 @@ internal object SemiBench {
             if (sc == SemiScenario.CONTROL && v > 0) continue
             serial++
             val seed = SEED + 104729L * serial
-            val o = SemiRunner.run(clip, sc, v, seed) ?: continue
+            val o = SemiRunner.run(clip, sc, v, seed, reference) ?: continue
             outs.add(o)
             if (outs.size % 100 == 0) log("[semi] ${outs.size} series")
         }
@@ -567,7 +578,8 @@ internal object SemiBench {
             val design = j["f"]?.jsonPrimitive?.doubleOrNull
             if (real != null && design != null) errs.add(real - design)
         }
-        PartialsReport.write(outDir, outs, semiDef(loaded, variants, errs), elapsed)
+        val def = semiDef(loaded, variants, errs)
+        PartialsReport.write(outDir, outs, if (reference) PartialsReport.withReference(def, outs) else def, elapsed)
         return outs
     }
 

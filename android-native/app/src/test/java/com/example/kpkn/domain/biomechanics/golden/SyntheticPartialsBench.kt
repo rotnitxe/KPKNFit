@@ -1,12 +1,17 @@
 package com.example.kpkn.domain.biomechanics.golden
 
+import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.domain.biomechanics.metrics.MetricKey
+import com.example.kpkn.domain.biomechanics.metrics.RangeReference
+import com.example.kpkn.domain.biomechanics.metrics.RangeReferenceSource
 import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.domain.biomechanics.metrics.SetTechniqueReport
 import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisEngine
 import com.example.kpkn.domain.biomechanics.metrics.TechniqueAnalysisInput
+import com.example.kpkn.domain.biomechanics.kinematics.ViewKind
 import com.example.kpkn.domain.biomechanics.pose.PoseLandmark
 import com.example.kpkn.domain.biomechanics.pose.PoseTrackV2
+import com.example.kpkn.domain.biomechanics.profiles.CountSignal
 import com.example.kpkn.domain.biomechanics.testing.SynthConfig
 import com.example.kpkn.domain.biomechanics.testing.SynthNoise
 import com.example.kpkn.domain.biomechanics.testing.SynthSegment
@@ -289,6 +294,8 @@ internal class EngineRep(
     val departUs: Long,
     val turnCenterUs: Long,
     val arriveUs: Long,
+    /** M4: zona muscular de una parcial (`STRETCHED`/`SHORTENED`) según el motor. */
+    val zone: String? = null,
 )
 
 internal class EngineOut(
@@ -304,19 +311,31 @@ internal class EngineOut(
     val noRepsReason: String?,
     val flags: List<String>,
     val error: String? = null,
+    /** M4: confianza propia de las parciales, amplitud completa (para la referencia), señal y si se aplicó una referencia. */
+    val partialLevel: String? = null,
+    val fullAmplitude: Double? = null,
+    val countSignal: String? = null,
+    val referenceApplied: Boolean = false,
+    /** M4, solo diagnóstico: [PartialsDiag]. */
+    val diag: JsonObject? = null,
 ) {
     val offered: Boolean get() = hasOutput && (level == "ALTA" || level == "MEDIA")
 
+    /** M4: el número de parciales se ofrece (con el conteo ofrecido y su confianza propia ALTA o MEDIA). */
+    val partialsOffered: Boolean get() = offered && (partialLevel == "ALTA" || partialLevel == "MEDIA")
+
     companion object {
-        fun of(report: SetTechniqueReport): EngineOut {
+        fun of(report: SetTechniqueReport, diag: JsonObject? = null): EngineOut {
             val reps = report.reps.map {
                 EngineRep(it.kind.name, it.partialKind?.name, it.amplitudeFraction, it.phases.departUs,
-                    (it.phases.turnStartUs + it.phases.turnEndUs) / 2, it.phases.arriveUs)
+                    (it.phases.turnStartUs + it.phases.turnEndUs) / 2, it.phases.arriveUs, it.zone?.name)
             }
             val has = MetricKey.REPS in report.available
             return EngineOut(has, if (has) report.confidence.name else "SIN_SALIDA", report.confidenceScore, report.repCount,
                 report.partialReps, report.failedReps, reps, report.view.name, report.analyzedFps, report.noRepsReason,
-                report.flags.map { it.name }.sorted())
+                report.flags.map { it.name }.sorted(), partialLevel = report.partialConfidence?.name,
+                fullAmplitude = report.fullAmplitude, countSignal = report.countSignal?.name,
+                referenceApplied = report.rangeReference?.applied == true, diag = diag)
         }
 
         fun failure(message: String) = EngineOut(false, "SIN_SALIDA", 0.0, 0, 0, 0, emptyList(), null, null, null, emptyList(), message)
@@ -355,7 +374,7 @@ internal class PartialsOutcome(
 internal object PartialsRunner {
     private const val BORDER_US = 1_000_000L
 
-    fun run(spec: PartialsSeriesSpec): PartialsOutcome {
+    fun run(spec: PartialsSeriesSpec, reference: RangeReference? = null): PartialsOutcome {
         val started = System.nanoTime()
         val profile = spec.profile
         val ecc = profile.startsEccentric
@@ -394,11 +413,13 @@ internal object PartialsRunner {
             if (!cut) tr else tr.copy(frames = tr.frames.filter { it.tUs >= (t0 * 1e6).toLong() && it.tUs <= (t1 * 1e6).toLong() })
         }
         val engine = try {
-            val report = TechniqueAnalysisEngine.analyze(TechniqueAnalysisInput(track, null, profile.profile, null, null, emptySet()))
+            val report = TechniqueAnalysisEngine.analyze(
+                TechniqueAnalysisInput(track, null, profile.profile, null, null, emptySet(), rangeReference = reference),
+            )
             require(report.repCount == report.reps.count { it.kind == RepKind.FULL })
             require(report.partialReps == report.reps.count { it.kind == RepKind.PARTIAL })
             require(report.failedReps == report.reps.count { it.kind == RepKind.FAILED })
-            EngineOut.of(report)
+            EngineOut.of(report, PartialsDiag.of(track, profile.profile, reference))
         } catch (e: Throwable) {
             EngineOut.failure(e.javaClass.simpleName + ": " + e.message)
         }
@@ -472,6 +493,15 @@ internal class Tally {
     var offeredWrong = 0
     var errors = 0
 
+    /** M4: zona muscular del motor (STRETCHED/SHORTENED) frente a la de la verdad, en las parciales acertadas. */
+    var muscleOk = 0
+    var muscleTotal = 0
+
+    /** M4: series con el número de parciales ofrecido (conteo ofrecido y confianza propia ALTA o MEDIA) y las que lo yerran. */
+    var partialsOffered = 0
+    var partialsOfferedWrong = 0
+    val partialLevel = HashMap<String, IntArray>() // n, partialExact
+
     fun add(o: PartialsOutcome) {
         n++
         if (o.engine.error != null) errors++
@@ -506,6 +536,11 @@ internal class Tally {
                             val expected = if (r.zone == PartialsZone.TURN_SIDE) "FAR_END" else "REST_END"
                             if (pk == expected) kindAgree++
                         }
+                        val ez = o.engine.reps[e].zone
+                        if (ez != null) {
+                            muscleTotal++
+                            if ((ez == "STRETCHED") == (r.muscleZone == "ESTIRAMIENTO")) muscleOk++
+                        }
                     }
                     0 -> z[2]++
                     3 -> z[3]++
@@ -526,6 +561,13 @@ internal class Tally {
             offered++
             if (!o.seriesExact) offeredWrong++
         }
+        if (o.engine.partialsOffered) {
+            partialsOffered++
+            if (!o.partialExact || !o.fullExact) partialsOfferedWrong++
+        }
+        val pl = partialLevel.getOrPut(if (o.engine.hasOutput) (o.engine.partialLevel ?: "?") else "SIN_SALIDA") { IntArray(2) }
+        pl[0]++
+        if (o.partialExact) pl[1]++
     }
 
     val partialTruthTotal get() = confusion[1].sum()
@@ -584,6 +626,7 @@ internal object PartialsReport {
                 put("n", a[0]); put("comoParcial", a[1]); put("comoCompleta", a[2]); put("omitidas", a[3]); put("comoFallida", a[4])
             })
             put("partialKindCoincideConZona", prop(t.kindAgree, t.kindTotal))
+            put("zonaMuscularCoincide", prop(t.muscleOk, t.muscleTotal))
         })
     }
 
@@ -617,6 +660,11 @@ internal object PartialsReport {
             }
             put("ofrecida", prop(t.offered, t.n))
             put("ofrecidaConSerieErronea", prop(t.offeredWrong, t.offered))
+            put("parcialesOfrecidas", prop(t.partialsOffered, t.n))
+            put("parcialesOfrecidasErroneas", prop(t.partialsOfferedWrong, t.partialsOffered))
+            put("confianzaParciales", buildJsonObject {
+                for ((lvl, a) in t.partialLevel.toSortedMap()) put(lvl, buildJsonObject { put("series", a[0]); put("partialExacto", prop(a[1], a[0])) })
+            })
         })
     }
 
@@ -634,6 +682,8 @@ internal object PartialsReport {
         put("completasComoParcial", t.fullAsPartial)
         put("ofrecida", num(ratio(t.offered, t.n)))
         put("ofrecidaErronea", num(ratio(t.offeredWrong, t.offered)))
+        put("zonaMuscular", num(ratio(t.muscleOk, t.muscleTotal)))
+        put("parcialesOfrecidasErroneas", num(ratio(t.partialsOfferedWrong, t.partialsOffered)))
     }
 
     private fun groups(outs: List<PartialsOutcome>, key: (PartialsOutcome) -> String): Map<String, Tally> =
@@ -730,12 +780,12 @@ internal object PartialsReport {
     private fun compactRow(label: String, t: Tally): List<String> = listOf(
         label, t.n.toString(), pctOf(t.fullExact, t.n), pctOf(t.partialExact, t.n), pctOf(t.failedExact, t.n), pctOf(t.seriesExact, t.n),
         pctOf(t.repsCorrect, t.truthReps), pctOf(t.partialHits, t.confusion.sumOf { it[1] } + t.extra[1]), pctOf(t.partialHits, t.partialTruthTotal),
-        t.ghostExtra.toString(), t.fullAsPartial.toString(), pctOf(t.n - t.withOutput, t.n),
+        t.ghostExtra.toString(), t.fullAsPartial.toString(), pctOf(t.n - t.withOutput, t.n), pctOf(t.muscleOk, t.muscleTotal),
     )
 
     private val COMPACT_HEADERS = listOf(
         "grupo", "series", "FULL exacto", "PARTIAL exacto", "FAILED exacto", "serie exacta", "reps acertadas",
-        "precisión parciales", "exhaustividad parciales", "fantasmas", "completa→parcial", "sin salida",
+        "precisión parciales", "exhaustividad parciales", "fantasmas", "completa→parcial", "sin salida", "zona muscular",
     )
 
     fun markdown(outs: List<PartialsOutcome>, def: ReportDef, elapsedS: Double): String = buildString {
@@ -789,11 +839,12 @@ internal object PartialsReport {
             listOf("fantasmas: fallidas vistas como parcial", all.failedAsPartial.toString()),
             listOf("series sin parciales en la verdad donde el motor da alguna", "${all.phantomSeriesNum} de ${all.phantomSeriesDen} (${pctOf(all.phantomSeriesNum, all.phantomSeriesDen)})"),
             listOf("`partialKind` coincide con la zona (solo parcial con parcial)", pctOf(all.kindAgree, all.kindTotal)),
+            listOf("zona muscular del motor (estiramiento/acortada) coincide con la verdad (parcial con parcial)", pctOf(all.muscleOk, all.muscleTotal)),
         )))
         append("\n### Por zona de la verdad\n\n")
         append(table(listOf("zona", "n", "como parcial", "como completa", "omitidas", "como fallida"),
             all.zone.toSortedMap().map { (z, a) -> listOf(z, a[0].toString(), pctOf(a[1], a[0]), pctOf(a[2], a[0]), pctOf(a[3], a[0]), pctOf(a[4], a[0])) }))
-        append("\nLa zona no existe hoy en el informe del motor (solo `partialKind`); queda anotada en la verdad de cada serie (`zone`, `muscleZone`).\n\n")
+        append("\nM4: el motor da la zona muscular de cada parcial (`RepReport.zone`: STRETCHED o SHORTENED); se compara con la `muscleZone` de la verdad.\n\n")
 
         append("## 4. Por escenario\n\n")
         append(table(COMPACT_HEADERS, groups(outs) { dim(it, "escenario") }.map { (k, t) -> compactRow(k, t) }))
@@ -815,6 +866,11 @@ internal object PartialsReport {
                 listOf(lvl, a[0].toString(), pctOf(a[1], a[0]), pctOf(a[2], a[0]), pctOf(a[3], a[0]))
             }))
         append("\nOfrecidas (ALTA o MEDIA): ${pctOf(all.offered, all.n)} de las series; de ellas, con la serie mal contada: ${pctOf(all.offeredWrong, all.offered)}.\n\n")
+        append("Parciales ofrecidas (conteo ofrecido y confianza propia de las parciales ALTA o MEDIA): ${pctOf(all.partialsOffered, all.n)} de las series; ")
+        append("de ellas, con las completas o las parciales mal contadas: ${pctOf(all.partialsOfferedWrong, all.partialsOffered)}.\n\n")
+        append(table(listOf("confianza de las parciales", "series", "PARTIAL exacto"),
+            all.partialLevel.toSortedMap().map { (lvl, a) -> listOf(lvl, a[0].toString(), pctOf(a[1], a[0])) }))
+        append("\n")
 
         append("## ${section++}. Parciales por tramo de recorrido y zona\n\n")
         append("Recorrido de la parcial = a de la verdad (fracción de la señal). Se cuentan solo las repeticiones de la verdad.\n\n")
@@ -883,6 +939,15 @@ internal object PartialsReport {
         metaJson = buildJsonObject { put("semilla", PartialsPlan.SEED); put("variantes", variants) },
     )
 
+    /** M4: la misma definición, con la referencia PERSONAL (cuántas series la recibieron y en cuántas se aplicó). */
+    fun withReference(def: ReportDef, outs: List<PartialsOutcome>): ReportDef {
+        val applied = outs.count { it.engine.referenceApplied }
+        val note = "Con referencia PERSONAL (M4): cada serie recibe la amplitud de una repetición completa medida como la mediría la app " +
+            "con las series anteriores del usuario (ver el código). Se aplicó en $applied de ${outs.size} series (el motor la usa si la serie se queda claramente corta frente a ella)."
+        return ReportDef(def.title + " · con referencia PERSONAL", def.intro + " " + note, def.dims, def.notes + note, def.methodText,
+            buildJsonObject { for ((k, v) in def.metaJson) put(k, v); put("referencia", "PERSONAL"); put("referenciaAplicada", applied) })
+    }
+
     fun write(outDir: File, outs: List<PartialsOutcome>, def: ReportDef, elapsedS: Double) {
         outDir.mkdirs()
         File(outDir, "summary.json").writeText(pretty.encodeToString(JsonElement.serializer(), summaryJson(outs, def, elapsedS)), Charsets.UTF_8)
@@ -913,6 +978,10 @@ internal object PartialsReport {
         put("motor", buildJsonObject {
             val e = o.engine
             put("conSalida", e.hasOutput); put("confianza", e.level); put("puntuacion", e.confidenceScore)
+            put("confianzaParciales", e.partialLevel?.let { JsonPrimitive(it) } ?: JsonNull)
+            put("amplitudCompleta", e.fullAmplitude?.let { JsonPrimitive(it) } ?: JsonNull)
+            put("referenciaAplicada", e.referenceApplied)
+            e.diag?.let { put("diagnostico", it) }
             put("full", e.full); put("partial", e.partial); put("failed", e.failed)
             put("vista", e.view?.let { JsonPrimitive(it) } ?: JsonNull)
             put("fpsAnalizados", e.analyzedFps?.let { JsonPrimitive(it) } ?: JsonNull)
@@ -922,6 +991,7 @@ internal object PartialsReport {
             put("repeticiones", buildJsonArray {
                 for ((i, r) in e.reps.withIndex()) add(buildJsonObject {
                     put("tipo", r.kind); put("partialKind", r.partialKind?.let { JsonPrimitive(it) } ?: JsonNull)
+                    put("zona", r.zone?.let { JsonPrimitive(it) } ?: JsonNull)
                     put("amplitud", r.amplitude); put("parejaVerdad", o.engineToTruth[i]); put("sobranteEnBorde", o.borderExtra[i])
                     put("salidaUs", r.departUs); put("giroUs", r.turnCenterUs); put("llegadaUs", r.arriveUs)
                 })
@@ -934,18 +1004,53 @@ internal object PartialsReport {
     }
 }
 
-/** Punto de entrada: planifica, corre las series y escribe el informe. */
+/**
+ * M4: la referencia PERSONAL de una serie sintética, como la sacaría la app de las series anteriores del usuario: dos series
+ * de completas del mismo perfil, vista, cadencia y ruido (otras semillas); si las dos salen ALTA o MEDIA, la mediana de su
+ * `fullAmplitude`, en su señal y con la vista que estimó el motor. Si no, ninguna (como la app con menos de dos series).
+ */
+internal object PartialsReferences {
+    private val cache = HashMap<String, RangeReference?>()
+
+    @Synchronized
+    fun of(spec: PartialsSeriesSpec): RangeReference? = cache.getOrPut(key(spec)) { measure(spec) }
+
+    private fun key(spec: PartialsSeriesSpec) = "${spec.profile}/${spec.view}/${spec.fps.toInt()}/${spec.noise}"
+
+    private fun measure(spec: PartialsSeriesSpec): RangeReference? {
+        val amplitudes = ArrayList<Double>()
+        val signals = HashSet<String>()
+        val views = HashSet<String>()
+        for (k in 0 until 2) {
+            val id = "ref_" + key(spec).replace('/', '_') + "_" + k
+            val seed = PartialsPlan.SEED + 1_000_003L * (key(spec).hashCode().toLong() and 0xffffL) + k
+            val o = PartialsRunner.run(PartialsSeriesSpec(id, PartialsScenario.COMPLETAS, spec.profile, spec.view, spec.fps, spec.noise, false, seed, k))
+            val amplitude = o.engine.fullAmplitude
+            if (!o.engine.offered || amplitude == null || o.engine.countSignal == null) return null
+            amplitudes.add(amplitude)
+            signals.add(o.engine.countSignal)
+            o.engine.view?.let { views.add(it) }
+        }
+        if (signals.size != 1) return null
+        val view = views.singleOrNull()?.let { ViewKind.valueOf(it) }
+        return RangeReference(amplitudes.sorted().let { (it[0] + it[1]) / 2 }, CountSignal.valueOf(signals.single()),
+            RangeReferenceSource.PERSONAL, amplitudes.size, view)
+    }
+}
+
+/** Punto de entrada: planifica, corre las series y escribe el informe. Con [reference], cada serie lleva su referencia PERSONAL (M4). */
 internal object PartialsBench {
-    fun run(outDir: File, variants: Int, log: (String) -> Unit = {}): List<PartialsOutcome> {
+    fun run(outDir: File, variants: Int, log: (String) -> Unit = {}, reference: Boolean = false): List<PartialsOutcome> {
         val plan = PartialsPlan.plan(variants)
         val started = System.nanoTime()
         val outs = ArrayList<PartialsOutcome>(plan.size)
         for ((i, spec) in plan.withIndex()) {
-            outs.add(PartialsRunner.run(spec))
+            outs.add(PartialsRunner.run(spec, if (reference) PartialsReferences.of(spec) else null))
             if (i % 100 == 99) log("[parciales] ${i + 1}/${plan.size}")
         }
         val elapsed = (System.nanoTime() - started) / 1e9
-        PartialsReport.write(outDir, outs, PartialsReport.synthDef(variants), elapsed)
+        val def = PartialsReport.synthDef(variants)
+        PartialsReport.write(outDir, outs, if (reference) PartialsReport.withReference(def, outs) else def, elapsed)
         return outs
     }
 }

@@ -28,7 +28,18 @@ class SyntheticPartialsBenchTest {
         val out = System.getenv("KPKN_PARTIALS_BENCH_OUT")
         assumeTrue("Banco sintético de parciales opcional: define KPKN_PARTIALS_BENCH_OUT", !out.isNullOrBlank())
         val variants = System.getenv("KPKN_PARTIALS_BENCH_VARIANTS")?.toIntOrNull() ?: 3
-        val outcomes = PartialsBench.run(File(requireNotNull(out)), variants) { println(it) }
+        val outcomes = PartialsBench.run(File(requireNotNull(out)), variants, { println(it) })
+        assertTrue("Menos de 600 series: ${outcomes.size}", outcomes.size >= 600)
+        assertEquals("El motor lanzó excepciones", 0, outcomes.count { it.engine.error != null })
+    }
+
+    /** M4: el mismo banco con la referencia PERSONAL de cada serie; solo con KPKN_PARTIALS_BENCH_REF_OUT=<carpeta externa>. */
+    @Test
+    fun optionalSyntheticPartialsBenchWithReference() {
+        val out = System.getenv("KPKN_PARTIALS_BENCH_REF_OUT")
+        assumeTrue("Banco sintético con referencia opcional: define KPKN_PARTIALS_BENCH_REF_OUT", !out.isNullOrBlank())
+        val variants = System.getenv("KPKN_PARTIALS_BENCH_VARIANTS")?.toIntOrNull() ?: 3
+        val outcomes = PartialsBench.run(File(requireNotNull(out)), variants, { println(it) }, reference = true)
         assertTrue("Menos de 600 series: ${outcomes.size}", outcomes.size >= 600)
         assertEquals("El motor lanzó excepciones", 0, outcomes.count { it.engine.error != null })
     }
@@ -185,7 +196,22 @@ class SyntheticPartialsBenchTest {
         val out = System.getenv("KPKN_PARTIALS_SEMI_OUT")
         assumeTrue("Fase 2 opcional: define KPKN_PARTIALS_SEMI_DIR (paquete de desarrollo) y KPKN_PARTIALS_SEMI_OUT", !dir.isNullOrBlank() && !out.isNullOrBlank())
         val min = System.getenv("KPKN_PARTIALS_SEMI_MIN")?.toIntOrNull() ?: 500
-        val outcomes = SemiBench.run(File(requireNotNull(dir)), File(requireNotNull(out)), min) { println(it) }
+        val outcomes = SemiBench.run(File(requireNotNull(dir)), File(requireNotNull(out)), min, { println(it) })
+        assertTrue("Menos de $min series: ${outcomes.size}", outcomes.size >= min)
+        assertEquals("El motor lanzó excepciones", 0, outcomes.count { it.engine.error != null })
+    }
+
+    /**
+     * M4: el semi-sintético con la referencia PERSONAL de cada clip (sus completas originales, antes de deformarlas); solo con
+     * KPKN_PARTIALS_SEMI_DIR y KPKN_PARTIALS_SEMI_REF_OUT.
+     */
+    @Test
+    fun optionalSemiSyntheticPartialsWithReference() {
+        val dir = System.getenv("KPKN_PARTIALS_SEMI_DIR")
+        val out = System.getenv("KPKN_PARTIALS_SEMI_REF_OUT")
+        assumeTrue("Semi-sintético con referencia opcional: define KPKN_PARTIALS_SEMI_DIR y KPKN_PARTIALS_SEMI_REF_OUT", !dir.isNullOrBlank() && !out.isNullOrBlank())
+        val min = System.getenv("KPKN_PARTIALS_SEMI_MIN")?.toIntOrNull() ?: 500
+        val outcomes = SemiBench.run(File(requireNotNull(dir)), File(requireNotNull(out)), min, { println(it) }, reference = true)
         assertTrue("Menos de $min series: ${outcomes.size}", outcomes.size >= min)
         assertEquals("El motor lanzó excepciones", 0, outcomes.count { it.engine.error != null })
     }
