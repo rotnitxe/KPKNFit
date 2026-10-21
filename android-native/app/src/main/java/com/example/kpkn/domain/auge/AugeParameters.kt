@@ -14,8 +14,8 @@ import kotlin.math.max
  */
 object AugeParameters {
 
-    /** Versión del registro: súbela cuando cambie CUALQUIER valor; el caché del aprendiz de fase 3 la usará para invalidar los τ aprendidos. */
-    const val VERSION: Int = 1
+    /** Versión del registro: súbela cuando cambie CUALQUIER valor o la forma de una política (v2 = D1/D2 de 2.6; D5 no la sube porque es identidad); el caché del aprendiz de fase 3 la usa para invalidar los τ aprendidos. */
+    const val VERSION: Int = 2
 
     // ─── τ base por perfil (horas) ───────────────────────────────────────────
 
@@ -150,6 +150,24 @@ object AugeParameters {
     /** Capacidad de Columna para un tanque espinal: `max(70; tanque·0,02)`. Ancla y forward comparten esta cuenta. */
     fun spinalCapacity(spinalTank: Double): Double =
         max(SPINAL_CAPACITY_MIN, spinalTank * SPINAL_CAPACITY_FACTOR)
+
+    // ─── Agregación del global de Músculos (D1/D2) ───────────────────────────
+
+    /**
+     * D1: el global de Músculos agrega los 13 pilares SIN el coeficiente articular
+     * `0,6 + 0,4·articular/100`. La articular sigue pesando en la Columna mostrada ([AugeRecoveryEngine.structureRingScore])
+     * y en el readiness por ejercicio ([ExerciseReadinessEngine]); el coeficiente solo salió del global muscular.
+     */
+    const val MUSCULAR_GLOBAL_APPLIES_ARTICULAR_COEF = false
+
+    /** D2: peso de la media de los 13 pilares en el global de Músculos. */
+    const val MUSCULAR_GLOBAL_MEAN_WEIGHT = 0.85
+
+    /** D2: peso del cuartil inferior de los 13 pilares en el global de Músculos. */
+    const val MUSCULAR_GLOBAL_BOTTOM_WEIGHT = 0.15
+
+    /** D2: fracción que define el cuartil inferior: `max(1; floor(13·0,25)) = 3` pilares. */
+    const val MUSCULAR_GLOBAL_BOTTOM_FRACTION = 0.25
 
     // ─── Constante de recuperación y límites ─────────────────────────────────
 

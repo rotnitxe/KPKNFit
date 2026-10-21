@@ -1173,24 +1173,10 @@ object AugeRecoveryEngine {
                 ?: return@forEach
             val muscleExact = detail?.exact ?: computedDetail?.exact ?: muscleScore.toDouble()
 
-            val relatedArtic = AugeTtcEngine.articularBatteriesFor(muscleName)
-            val articularAvg = if (relatedArtic.isEmpty()) {
-                null
-            } else {
-                relatedArtic
-                    .mapNotNull { articularBatteries[it]?.recoveryScore }
-                    .takeIf { it.isNotEmpty() }
-                    ?.average()
-            }
-            if (articularAvg == null) {
-                gatedPillarBatteries += muscleScore
-                gatedPillarExacts += muscleExact
-            } else {
-                // BLEND SUAVE: muscular * (0.6 + 0.4 * articular/100)
-                val coef = 0.6 + 0.4 * (articularAvg / 100.0)
-                gatedPillarBatteries += (muscleScore * coef).roundToInt().coerceIn(0, 100)
-                gatedPillarExacts += muscleExact * coef
-            }
+            // D1: el pilar entra en el global de Músculos sin el coeficiente articular (0,6 + 0,4·articular/100).
+            // La articular sigue pesando en structureRingScore (Columna mostrada) y en ExerciseReadinessEngine.
+            gatedPillarBatteries += muscleScore
+            gatedPillarExacts += muscleExact
         }
 
         // El ajuste muscular global tampoco existe antes de su ancla: se usa el cálculo automático.
@@ -1218,9 +1204,12 @@ object AugeRecoveryEngine {
         } else {
             val overallAvg = gatedPillarBatteries.average()
             val sortedAsc = gatedPillarBatteries.sorted()
-            val bottomCount = maxOf(1, (sortedAsc.size * 0.25).toInt())
+            val bottomCount = maxOf(1, (sortedAsc.size * AugeParameters.MUSCULAR_GLOBAL_BOTTOM_FRACTION).toInt())
             val bottomQuartileAvg = sortedAsc.take(bottomCount).average()
-            batteryPercent(overallAvg * 0.85 + bottomQuartileAvg * 0.15)
+            batteryPercent(
+                overallAvg * AugeParameters.MUSCULAR_GLOBAL_MEAN_WEIGHT +
+                    bottomQuartileAvg * AugeParameters.MUSCULAR_GLOBAL_BOTTOM_WEIGHT,
+            )
         }
 
         val muscularAvgExact = if (manualMuscular != null) {
@@ -1230,9 +1219,10 @@ object AugeRecoveryEngine {
         } else {
             val overallAvg = gatedPillarExacts.average()
             val sortedAsc = gatedPillarExacts.sorted()
-            val bottomCount = maxOf(1, (sortedAsc.size * 0.25).toInt())
+            val bottomCount = maxOf(1, (sortedAsc.size * AugeParameters.MUSCULAR_GLOBAL_BOTTOM_FRACTION).toInt())
             val bottomQuartileAvg = sortedAsc.take(bottomCount).average()
-            overallAvg * 0.85 + bottomQuartileAvg * 0.15
+            overallAvg * AugeParameters.MUSCULAR_GLOBAL_MEAN_WEIGHT +
+                bottomQuartileAvg * AugeParameters.MUSCULAR_GLOBAL_BOTTOM_WEIGHT
         }
 
         // Solo un ajuste ya vigente sustituye al anillo automático con ACWR.
