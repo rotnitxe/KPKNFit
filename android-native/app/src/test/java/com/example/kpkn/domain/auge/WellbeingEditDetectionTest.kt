@@ -208,7 +208,7 @@ class WellbeingEditDetectionTest {
     // ─── El merge sigue la misma regla ────────────────────────────────────────
 
     @Test
-    fun mergeTakesTheIncomingChannelsAndAnchorExactlyWhenThereAreEdits() {
+    fun mergeChangesOnlyTheEditedChannelsAndKeepsTheLegacyAnchorMetadata() {
         val existing = stored(anchorMs = 5_000L)
         val cases = mapOf(
             "copia exacta" to stored(anchorMs = 9_000L),
@@ -227,7 +227,7 @@ class WellbeingEditDetectionTest {
 
             val expectedAnchor = if (edits.isEmpty()) existing.manualBatteryAnchorMs else incoming.manualBatteryAnchorMs
             assertEquals("ancla en «$name»", expectedAnchor, merged.manualBatteryAnchorMs)
-            val expectedNeural = if (edits.isEmpty()) existing.manualNeuralBattery else incoming.manualNeuralBattery
+            val expectedNeural = edits.neural ?: existing.manualNeuralBattery
             assertEquals("Energía en «$name»", expectedNeural, merged.manualNeuralBattery)
         }
         assertFalse(

@@ -83,29 +83,13 @@ object AugeRecoveryEngine {
         ld.atStartOfDay(zone).toInstant().toEpochMilli()
     } catch (e: Exception) { 0L }
 
-    private fun manualBatteryAnchorMs(wellbeing: DailyWellbeingLog?, zone: ZoneId): Long {
-        if (wellbeing == null) return 0L
-        return wellbeing.manualBatteryAnchorMs
-            ?: if (wellbeing.manualNeuralBattery != null
-                || wellbeing.manualMuscularBattery != null
-                || wellbeing.manualSpinalBattery != null
-                || wellbeing.manualMuscleBatteries.isNotEmpty()
-                || wellbeing.manualMuscleOverridesV2.isNotEmpty()
-            ) parseWellbeingDate(wellbeing.date, zone)
-            else wellbeing.date.let { parseWellbeingDate(it, zone) }
-    }
-
     /**
-     * Instante de la ancla manual más reciente del bienestar (global o por músculo V2); 0 si no tiene ninguna.
-     * Un log anterior a ella se evalúa sin el estado de hoy (R-09).
+     * Solo las anclas musculares condicionan la guardia espinal; Energía no puede reescribirla.
+     * Un log anterior a esas anclas se evalúa sin el estado muscular posterior (R-09).
      */
     private fun latestManualAnchorMs(wellbeing: DailyWellbeingLog?, zone: ZoneId): Long {
         if (wellbeing == null) return 0L
-        val hasGlobalManual = wellbeing.manualNeuralBattery != null ||
-            wellbeing.manualMuscularBattery != null ||
-            wellbeing.manualSpinalBattery != null ||
-            wellbeing.manualMuscleBatteries.isNotEmpty()
-        val global = wellbeing.manualBatteryAnchorMs ?: if (hasGlobalManual) manualBatteryAnchorMs(wellbeing, zone) else 0L
+        val global = wellbeing.manualMuscleBatteries.keys.maxOfOrNull { wellbeing.legacyMuscleAnchorMs(it, zone) } ?: 0L
         val perMuscle = wellbeing.manualMuscleOverridesV2.values.maxOfOrNull { it.anchorEpochMs } ?: 0L
         return max(global, perMuscle)
     }
@@ -113,9 +97,10 @@ object AugeRecoveryEngine {
     /** Solo los ajustes que ya existían pueden sustituir la evidencia inicial. */
     private fun hasManualMuscularAnchorsAt(wellbeing: DailyWellbeingLog?, now: Long, zone: ZoneId): Boolean {
         if (wellbeing == null) return false
-        val globalMuscular = (wellbeing.manualMuscularBattery != null ||
-            wellbeing.manualMuscleBatteries.isNotEmpty()) && manualBatteryAnchorMs(wellbeing, zone) <= now
-        return globalMuscular || wellbeing.manualMuscleOverridesV2.values.any { it.anchorEpochMs <= now }
+        val window = (now - MANUAL_ANCHOR_WINDOW_MS + 1)..now
+        val globalMuscular = wellbeing.manualMuscularBattery != null && wellbeing.manualAnchorMs(RecoveryChannelId.MUSCULAR, zone) in window
+        return globalMuscular || wellbeing.manualMuscleBatteries.keys.any { wellbeing.legacyMuscleAnchorMs(it, zone) in window } ||
+            wellbeing.manualMuscleOverridesV2.values.any { it.anchorEpochMs in window }
     }
 
     private fun manualMuscleOverride(
@@ -528,15 +513,15 @@ object AugeRecoveryEngine {
 
         // Un V2 futuro se ignora también al elegir un posible ajuste global anterior.
         val manualOverrideV2 = manualMuscleOverride(wellbeing, muscleName)
-            ?.takeIf { it.anchorEpochMs <= now }
+            ?.takeIf { it.anchorEpochMs in (now - MANUAL_ANCHOR_WINDOW_MS + 1)..now }
         val manualScore = manualOverrideV2?.battery
             ?: wellbeing?.manualMuscleBatteries?.let { lookupMuscleScore(it, muscleName) }
-        val anchorMs = manualOverrideV2?.anchorEpochMs ?: manualBatteryAnchorMs(wellbeing, zone)
+        val anchorMs = manualOverrideV2?.anchorEpochMs ?: wellbeing?.legacyMuscleAnchorMs(muscleName, zone) ?: 0L
         val hoursSinceAnchor = max(0.0, (now - anchorMs) / 3_600_000.0)
         var accumulatedFatigue = 0.0
 
         // Un ajuste manual fechado después del instante evaluado aún no existía: no se aplica.
-        val relevantHistory = if (manualScore != null && anchorMs > 0 && anchorMs <= now) {
+        val relevantHistory = if (manualScore != null && anchorMs > tenDaysAgo && anchorMs <= now) {
             val manualBattery = manualScore.coerceIn(0, 100).toDouble()
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
             val impliedRawFatiguePct = -AugeParameters.C_MUSCLE * ln(1.0 - penalty / 100.0)
@@ -734,13 +719,13 @@ object AugeRecoveryEngine {
         val last10Days = now - 10L * 24 * 3600 * 1000
 
         val manualNeural = wellbeing?.manualNeuralBattery
-        val anchorMs = manualBatteryAnchorMs(wellbeing, zone)
+        val anchorMs = wellbeing?.manualAnchorMs(RecoveryChannelId.SYSTEM, zone) ?: 0L
         val hoursSinceAnchor = max(0.0, (now - anchorMs) / 3_600_000.0)
         var accumulatedGymLoad = 0.0
 
         // Un ajuste manual posterior al instante evaluado aún no existía: no se aplica. Un registro posterior
         // tampoco había ocurrido: no cuenta (R-10), así que ambas ramas filtran a <= now.
-        val recentLogs = if (manualNeural != null && anchorMs > 0 && anchorMs <= now) {
+        val recentLogs = if (manualNeural != null && anchorMs > last10Days && anchorMs <= now) {
             val manualBattery = manualNeural.coerceIn(0, 100).toDouble()
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
             val impliedRawGymPct = -AugeParameters.C_ENERGY * ln(1.0 - penalty / 100.0)
@@ -852,7 +837,7 @@ object AugeRecoveryEngine {
         val last10Days = now - 10L * 24 * 3600 * 1000
 
         val manualSpinal = wellbeing?.manualSpinalBattery
-        val anchorMs = manualBatteryAnchorMs(wellbeing, zone)
+        val anchorMs = wellbeing?.manualAnchorMs(RecoveryChannelId.STRUCTURE, zone) ?: 0L
         val hoursSinceAnchor = max(0.0, (now - anchorMs) / 3_600_000.0)
         // Ancla más reciente del bienestar: un log anterior a ella se evalúa sin el estado de hoy (R-09 b).
         val latestAnchorMs = latestManualAnchorMs(wellbeing, zone)
@@ -860,7 +845,7 @@ object AugeRecoveryEngine {
 
         // Un ajuste manual posterior al instante evaluado aún no existía: no se aplica. Un registro posterior
         // tampoco había ocurrido: no cuenta (R-10), así que ambas ramas filtran a <= now.
-        val recentLogs = if (manualSpinal != null && anchorMs > 0 && anchorMs <= now) {
+        val recentLogs = if (manualSpinal != null && anchorMs > last10Days && anchorMs <= now) {
             val manualBattery = manualSpinal.coerceIn(0, 100).toDouble()
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
             val impliedRawPct = -AugeParameters.C_SPINAL * ln(1.0 - penalty / 100.0)
@@ -1037,12 +1022,12 @@ object AugeRecoveryEngine {
 
         // El ajuste muscular global tampoco existe antes de su ancla: se usa el cálculo automático.
         val manualMuscular = wellbeing?.manualMuscularBattery?.takeIf {
-            manualBatteryAnchorMs(wellbeing, zone) <= evaluationNow
+            wellbeing.manualAnchorMs(RecoveryChannelId.MUSCULAR, zone) in (evaluationNow - MANUAL_ANCHOR_WINDOW_MS + 1)..evaluationNow
         }
         val muscularAvg = if (manualMuscular != null) {
             // Same anchor + temporal decay semantics as neural/spinal — do not freeze raw value all day
             val manualBattery = manualMuscular.coerceIn(0, 100).toDouble()
-            val anchorMs = manualBatteryAnchorMs(wellbeing, zone)
+            val anchorMs = wellbeing.manualAnchorMs(RecoveryChannelId.MUSCULAR, zone)
             val hoursSinceAnchor = max(0.0, (evaluationNow - anchorMs) / 3_600_000.0)
             val baseTau = adaptiveCache.personalizedRecoveryHours.values
                 .takeIf { it.isNotEmpty() }
@@ -1138,10 +1123,10 @@ object AugeRecoveryEngine {
             ),
         )
         // Las anclas futuras tampoco pueden desactivar una estimación inicial que sí existía.
-        val globalAnchorExists = manualBatteryAnchorMs(wellbeing, zone) <= evaluationNow
+        val anchorWindow = (evaluationNow - MANUAL_ANCHOR_WINDOW_MS + 1)..evaluationNow
         val muscularEstimated = initialContribution.isEstimated && !hasManualMuscularAnchorsAt(wellbeing, evaluationNow, zone)
-        val systemEstimated = initialContribution.isEstimated && (wellbeing?.manualNeuralBattery == null || !globalAnchorExists)
-        val structureEstimated = initialContribution.isEstimated && (wellbeing?.manualSpinalBattery == null || !globalAnchorExists)
+        val systemEstimated = initialContribution.isEstimated && (wellbeing?.manualNeuralBattery == null || wellbeing.manualAnchorMs(RecoveryChannelId.SYSTEM, zone) !in anchorWindow)
+        val structureEstimated = initialContribution.isEstimated && (wellbeing?.manualSpinalBattery == null || wellbeing.manualAnchorMs(RecoveryChannelId.STRUCTURE, zone) !in anchorWindow)
         val estimated = muscularEstimated || systemEstimated || structureEstimated
         fun combine(real: Int, initial: Int?, enabled: Boolean, minimum: Int): Int =
             if (enabled && initial != null) (real - (100 - initial)).coerceIn(minimum, 100) else real
