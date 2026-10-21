@@ -39,6 +39,7 @@ import com.example.kpkn.data.db.PerformanceSnapshotData
 import com.example.kpkn.data.prepopulateWikiLabAssets
 import com.example.kpkn.data.profile.ProfilePhotoStore
 import com.example.kpkn.data.repository.NutritionRepository
+import com.example.kpkn.data.repository.CalibrationDecisionRepository
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.domain.body.validateBodyValue
 import com.example.kpkn.data.food.FoodImporter
@@ -146,6 +147,8 @@ object SettingsJsonBackup {
             performanceRanges = performanceRanges,
             performanceSnapshots = performanceSnapshots,
             workoutMedia = workoutMedia,
+            calibrationDecisions = CalibrationDecisionRepository(db.calibrationDecisionDao()).all(),
+            includesCalibrationDecisionsSection = true,
             includesCompetitionSection = true,
             includesWorkoutV2Section = true,
             includesPerformanceSection = true,
@@ -180,6 +183,7 @@ object SettingsJsonBackup {
             hasWorkoutMediaSection = v5 && payload.includesWorkoutMediaSection,
             hasCalibrationSection = v5 && payload.includesCalibrationSection,
             hasSetupSection = hasSetup,
+            hasCalibrationDecisionsSection = payload.includesCalibrationDecisionsSection && payload.calibrationDecisions != null,
         )
         val settingsProfileToken = when {
             payload.profilePhotoJpegBase64 != null -> ProfilePhotoStore.STORAGE_TOKEN
@@ -200,6 +204,9 @@ object SettingsJsonBackup {
             payload.workoutLogs.forEach { db.workoutLogDao().insert(it.toEntity()) }
             payload.activeProgramState?.let { db.stateDao().upsertActiveProgram(it.toEntity()) }
             payload.ongoingWorkout?.let { db.stateDao().upsertOngoingWorkout(it.toEntity()) }
+            if (payload.schemaVersion >= 6 && payload.includesCalibrationDecisionsSection && payload.calibrationDecisions != null) {
+                CalibrationDecisionRepository(db.calibrationDecisionDao()).saveSnapshot(payload.calibrationDecisions)
+            }
             payload.nutritionLogs.forEach { db.nutritionDao().upsertLog(it.toEntity()) }
             payload.nutritionPlans.forEach { db.nutritionDao().upsertPlan(it.toEntity()) }
             payload.activeNutritionPlanId?.let {
@@ -343,6 +350,8 @@ data class SettingsExportPayload(
     val performanceRanges: List<PerformanceRangeData>? = null,
     val performanceSnapshots: List<PerformanceSnapshotData>? = null,
     val workoutMedia: List<WorkoutMedia>? = null,
+    val calibrationDecisions: List<com.example.kpkn.data.models.CalibrationDecisionRecord>? = null,
+    val includesCalibrationDecisionsSection: Boolean = false,
     val includesCompetitionSection: Boolean = false,
     val includesWorkoutV2Section: Boolean = false,
     val includesPerformanceSection: Boolean = false,

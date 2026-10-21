@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.calibration
 
+import kotlinx.serialization.Serializable
+
 /** Product thresholds, kept together so a decision can retain the policy that produced it. */
 object CalibrationPolicy {
     val defaults = CalibrationPolicySnapshot(
@@ -19,6 +21,7 @@ object CalibrationPolicy {
     )
 }
 
+@Serializable
 data class CalibrationPolicySnapshot(
     val version: Int,
     val minimumFullReps: Int,

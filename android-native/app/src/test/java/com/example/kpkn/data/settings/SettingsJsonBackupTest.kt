@@ -29,6 +29,22 @@ import java.util.UUID
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 class SettingsJsonBackupTest {
+    @Test fun calibrationDecisionsRoundTripAndLegacyPayloadsNeverClearThem() = runBlocking {
+        val db = KpknDatabase.createInMemory(context)
+        try {
+            val repository = com.example.kpkn.data.repository.CalibrationDecisionRepository(db.calibrationDecisionDao())
+            val record = com.example.kpkn.screens.workout.cal3Fixture().record.copy(
+                status = com.example.kpkn.data.models.CalibrationStatus.APPLIED, resolvedAt = 1_790_000_003_000L)
+            val payload = minimalPayload().copy(calibrationDecisions = listOf(record), includesCalibrationDecisionsSection = true)
+            val restored = dbJson.decodeFromString<SettingsExportPayload>(dbJson.encodeToString(payload))
+            SettingsJsonBackup.importPayload(context, restored, db, nutritionRepo(db)) {}
+            assertEquals(listOf(record), repository.all())
+            SettingsJsonBackup.importPayload(context, minimalPayload().copy(schemaVersion = 5), db, nutritionRepo(db)) {}
+            assertEquals(listOf(record), repository.all())
+            SettingsJsonBackup.importPayload(context, payload.copy(calibrationDecisions = emptyList()), db, nutritionRepo(db)) {}
+            assertTrue(repository.all().isEmpty())
+        } finally { db.close() }
+    }
 
     @get:Rule
     val roomRule = RoomTestRule()
