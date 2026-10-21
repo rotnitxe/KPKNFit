@@ -125,6 +125,63 @@ object AugeParameters {
     /** τ máximo de un músculo en el motor, en horas. */
     const val TAU_MAX_H = 144.0
 
+    // ─── Constantes del aprendiz bayesiano (AugeLearner / EKF) ───────────────
+
+    /** Desviación típica del prior de ln τ: 35 % logarítmico (sdθ = 0,35). */
+    const val LEARNER_SD_THETA = 0.35
+
+    /** Varianza inicial del prior en ln² τ: P0 = sdθ² = 0,35 · 0,35 = 0,1225. */
+    const val LEARNER_P0 = LEARNER_SD_THETA * LEARNER_SD_THETA
+
+    /** Ruido de proceso por día en ln² τ: q = (0,02)² = 0,0004 / día. */
+    const val LEARNER_Q_PER_DAY = 0.02 * 0.02
+
+    /** Sensibilidad mínima (|H|mín): 0,1 puntos de batería por unidad de ln τ. */
+    const val LEARNER_H_MIN = 0.1
+
+    /** Límite inferior compartido de τ para el aprendiz (horas). */
+    const val LEARNER_TAU_MIN_H = TAU_MIN_H
+
+    /** Límite superior compartido de τ para el aprendiz (horas). */
+    const val LEARNER_TAU_MAX_H = TAU_MAX_H
+
+    /** Factor de recorte de la innovación sobre la desviación típica prevista: ±2,5 · √S. */
+    const val LEARNER_INNOVATION_CLIP_SIGMA = 2.5
+
+    /** Paso relativo de diferencia finita: ±2 % (τ− = 0,98 · e^m, τ+ = 1,02 · e^m). */
+    const val LEARNER_FINITE_DIFF_STEP = 0.02
+
+    /** Umbral de saturación de batería: lecturas o predicciones ≥ 99,5 se censuran. */
+    const val LEARNER_SATURATION_THRESHOLD = 99.5
+
+    /** Zona muerta en puntos de batería: innovaciones |ν| < 3,0 se censuran (3,0 exacto se admite). */
+    const val LEARNER_DEAD_ZONE = 3.0
+
+    /** Límite inferior de la ventana temporal de observación (horas desde la carga relevante). */
+    const val LEARNER_WINDOW_MIN_HOURS = 8.0
+
+    /** Límite superior de la ventana temporal de observación (horas desde la carga relevante = 14 días). */
+    const val LEARNER_WINDOW_MAX_HOURS = 336.0
+
+    /** Desviación típica del error de observación para sensaciones manuales de batería (puntos). */
+    const val LEARNER_SIGMA_MANUAL = 5.0
+
+    /** Desviación típica del error de observación para rendimiento por e1RM (puntos). */
+    const val LEARNER_SIGMA_E1RM = 12.0
+
+    /** Desviación típica del error de observación para cambios en RPE (ΔRPE) (puntos). */
+    const val LEARNER_SIGMA_DELTA_RPE = 10.0
+
+    /**
+     * Devuelve la desviación típica σ según la fuente de la observación (`manual`, `e1rm`, `delta_rpe`).
+     */
+    fun learnerSigmaForSource(source: String): Double = when (source.lowercase().trim()) {
+        "manual", "sensation", "sensacion", "sensación" -> LEARNER_SIGMA_MANUAL
+        "e1rm", "performance", "rendimiento" -> LEARNER_SIGMA_E1RM
+        "delta_rpe", "rpe", "deltarpe" -> LEARNER_SIGMA_DELTA_RPE
+        else -> LEARNER_SIGMA_MANUAL
+    }
+
     private fun normKey(s: String): String = s
         .lowercase().trim()
         .replace("á", "a").replace("é", "e").replace("í", "i")
