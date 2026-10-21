@@ -1,0 +1,1520 @@
+{
+  "base": "5375987ce",
+  "executions": [
+    {
+      "iteration": 1,
+      "mode": "light",
+      "log": "C:/kw/logs/r4-2-3-1.log",
+      "count": "clases=26 pruebas=166 fallos=1 errores=0 omitidas=0 tiempo_suma=33.5s",
+      "classes": [
+        {
+          "name": "com.example.kpkn.data.onboarding.SetupRingsPreviewPayloadTest",
+          "tests": "2",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "3.597"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugeClockDeterminismTest",
+          "tests": "15",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.354"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugeGoldenMasterTest",
+          "tests": "4",
+          "failures": "1",
+          "errors": "0",
+          "skipped": "0",
+          "time": "6.454"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugeNoHiddenClockTest",
+          "tests": "4",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.068"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugePostSessionPreviewImmediateTest",
+          "tests": "2",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.012"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugeRingCharacterizationTest",
+          "tests": "2",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.031"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugeSnapshotComputerTest",
+          "tests": "6",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "2.396"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugeSyntheticUserInvariantsTest",
+          "tests": "9",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "13.149"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.NutritionRecoveryEngineTest",
+          "tests": "7",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.004"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.RingsIntroSimulatorTest",
+          "tests": "14",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.007"
+        },
+        {
+          "name": "com.example.kpkn.domain.onboarding.SetupRingsCheckInPersistenceTest",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.315"
+        },
+        {
+          "name": "com.example.kpkn.domain.onboarding.SetupRingsHomeCoverageTest",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.158"
+        },
+        {
+          "name": "com.example.kpkn.domain.onboarding.SetupRingsMapperTest",
+          "tests": "11",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.016"
+        },
+        {
+          "name": "com.example.kpkn.domain.onboarding.SetupRingsMergeTest",
+          "tests": "9",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.72"
+        },
+        {
+          "name": "com.example.kpkn.domain.onboarding.SetupRingsResponseMappingTest",
+          "tests": "4",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.001"
+        },
+        {
+          "name": "com.example.kpkn.screens.auge.AugeSnapshotCoverageTest",
+          "tests": "4",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.164"
+        },
+        {
+          "name": "com.example.kpkn.screens.auge.AugeWriteMutexTest",
+          "tests": "10",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "2.959"
+        },
+        {
+          "name": "com.example.kpkn.screens.onboarding.SetupRingsAnswersV2Test",
+          "tests": "14",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.1"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.FinishRingEditsTest",
+          "tests": "26",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.044"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.WorkoutFinishCalibrationTest",
+          "tests": "4",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.007"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.WorkoutFinishCancellationTest",
+          "tests": "4",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "2.288"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.WorkoutFinishControllerPostCommitTest",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.495"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.WorkoutFinishControllerTimeoutTest",
+          "tests": "1",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.065"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.WorkoutFinishEmptySessionTest",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.117"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.WorkoutFinishSheetEntryTest",
+          "tests": "1",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.006"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.WorkoutFinishVolumeAdvanceDurableTest",
+          "tests": "1",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.002"
+        }
+      ],
+      "summaries": [
+        "[SNAPSHOT-2.3] Home anterior = computador en 200 instantes del corpus",
+        "[SNAPSHOT-2.3] 12 semanas, anclas=false, sesiones=35, divergencia=0",
+        "[SNAPSHOT-2.3] 12 semanas, anclas=true, sesiones=35, divergencia=0",
+        "[SIM-PARIDAD] RESUMEN variante=real puntos=42 máx|Δ| por músculo=0(Abdomen L1#2 Tirón) muscular=0 energía=0 columnaCruda=0 estructura=0 global=0 Δmúsculo>1 en 0 de 42",
+        "[SIM-PARIDAD] RESUMEN variante=pesada puntos=42 máx|Δ| por músculo=0(Abdomen L1#2 Tirón) muscular=0 energía=0 columnaCruda=0 estructura=0 global=0 Δmúsculo>1 en 0 de 42",
+        "[SIM-PARIDAD] RESUMEN variante=ligera puntos=42 máx|Δ| por músculo=0(Abdomen L1#2 Tirón) muscular=0 energía=0 columnaCruda=0 estructura=0 global=0 Δmúsculo>1 en 0 de 42",
+        "[SIM-PARIDAD] RESUMEN GLOBAL puntos=126 máx|Δ|=0 Δ medio por músculo=0.00 tiempo=4687 ms"
+      ],
+      "failures": [
+        {
+          "test": "com.example.kpkn.domain.auge.AugeGoldenMasterTest.goldenMasterMatches",
+          "message": "java.lang.AssertionError: Máster dorado: 14 diferencias (caso | instante | campo: esperado → obtenido). Primeras 14:\nE01 | preview | neural: neural=75 spinal=96 muscular=86 → neural=75 spinal=86 muscular=76\nE01 | preview | drains: drains=cns:21,spinal:0,muscular:7 → drains=cns:21,spinal:4,muscular:11\nE01 | preview | tomorrow: tomorrow=cns:96,spinal:99 → tomorrow=cns:96,spinal:91\nE01 | preview | pre: pre=muscular:93,neural:96,spinal:96 → pre=muscular:87,neural:96,spinal:90\nE01 | preview | muscles: muscles=Abdomen:100/0;Aductores:100/0;Antebrazo:100/0;Bíceps:100/0;Core:100/0;Costales:100/0;Cuello:100/0;Cuádriceps:78/20;Deltoides:73/0;Dorsales:98/0;Erectores Espinales:86/11;Glúteos:83/13;Infraespinoso:100/0;Isquiosurales:87/9;Pantorrillas:97/0;Pectorales:77/0;Psoas:100/0;Redondo Menor:100/0;Serrato Anterior:100/0;Subescapular:100/0;Supraespinoso:100/0;Trapecio:93/0;Tríceps:79/0 → muscles=Abdomen:100/0;Aductores:100/0;Antebrazo:100/0;Bíceps:100/0;Core:100/0;Costales:100/0;Cuello:100/0;Cuádriceps:78/20;Deltoides:70/9;Dorsales:98/0;Erectores Espinales:86/11;Glúteos:83/13;Infraespinoso:100/0;Isquiosurales:87/9;Pantorrillas:97/0;Pectorales:75/16;Psoas:100/0;Redondo Menor:100/0;Serrato Anterior:100/0;Subescapular:100/0;Supraespinoso:100/0;Trapecio:92/0;Tríceps:77/7\nE02 | preview | neural: neural=78 spinal=90 muscular=90 → neural=78 spinal=87 muscular=87\nE02 | preview | drains: drains=cns:22,spinal:10,muscular:10 → drains=cns:22,spinal:13,muscular:13\nE02 | preview | tomorrow: tomorrow=cns:97,spinal:97 → tomorrow=cns:97,spinal:93\nE02 | preview | muscles: muscles=Abdomen:100/0;Aductores:100/0;Antebrazo:100/0;Bíceps:100/0;Core:100/0;Costales:100/0;Cuello:100/0;Cuádriceps:71/0;Deltoides:100/0;Dorsales:100/0;Erectores Espinales:88/0;Glúteos:79/0;Infraespinoso:100/0;Isquiosurales:88/0;Pantorrillas:89/0;Pectorales:100/0;Psoas:100/0;Redondo Menor:100/0;Serrato Anterior:100/0;Subescapular:100/0;Supraespinoso:100/0;Trapecio:100/0;Tríceps:100/0 → muscles=Abdomen:100/0;Aductores:100/0;Antebrazo:100/0;Bíceps:100/0;Core:100/0;Costales:100/0;Cuello:100/0;Cuádriceps:68/31;Deltoides:100/0;Dorsales:100/0;Erectores Espinales:86/10;Glúteos:77/21;Infraespinoso:100/0;Isquiosurales:87/9;Pantorrillas:88/1;Pectorales:100/0;Psoas:100/0;Redondo Menor:100/0;Serrato Anterior:100/0;Subescapular:100/0;Supraespinoso:100/0;Trapecio:100/0;Tríceps:100/0\nE03 | preview | neural: neural=79 spinal=91 muscular=91 → neural=79 spinal=83 muscular=85\nE03 | preview | drains: drains=cns:21,spinal:9,muscular:8 → drains=cns:21,spinal:14,muscular:12\nE03 | preview | tomorrow: tomorrow=cns:97,spinal:96 → tomorrow=cns:97,spinal:91\nE03 | preview | pre: pre=muscular:99,neural:100,spinal:100 → pre=muscular:97,neural:100,spinal:97\nE03 | preview | muscles: muscles=Abdomen:100/0;Aductores:100/0;Antebrazo:100/0;Bíceps:81/0;Core:100/0;Costales:100/0;Cuello:100/0;Cuádriceps:99/0;Deltoides:100/0;Dorsales:76/0;Erectores Espinales:88/0;Glúteos:95/0;Infraespinoso:100/0;Isquiosurales:90/0;Pantorrillas:100/0;Pectorales:98/0;Psoas:100/0;Redondo Menor:100/0;Serrato Anterior:100/0;Subescapular:100/0;Supraespinoso:100/0;Trapecio:89/0;Tríceps:100/0 → muscles=Abdomen:100/0;Aductores:100/0;Antebrazo:100/0;Bíceps:79/6;Core:100/0;Costales:100/0;Cuello:100/0;Cuádriceps:99/0;Deltoides:100/0;Dorsales:74/17;Erectores Espinales:87/9;Glúteos:94/0;Infraespinoso:100/0;Isquiosurales:89/2;Pantorrillas:100/0;Pectorales:98/0;Psoas:100/0;Redondo Menor:100/0;Serrato Anterior:100/0;Subescapular:100/0;Supraespinoso:100/0;Trapecio:87/4;Tríceps:100/0"
+        }
+      ],
+      "command": "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c \"bash /c/kw/tools/gradle_solo.sh /c/kw/v3c/android-native :app:compileBaseDebugKotlin :app:testBaseDebugUnitTest --tests 'com.example.kpkn.domain.auge.AugeSnapshotComputerTest' --tests 'com.example.kpkn.domain.auge.AugeGoldenMasterTest' --tests 'com.example.kpkn.domain.auge.AugeRingCharacterizationTest' --tests 'com.example.kpkn.domain.auge.AugeSyntheticUserInvariantsTest' --tests 'com.example.kpkn.domain.auge.AugeNoHiddenClockTest' --tests 'com.example.kpkn.domain.auge.AugeClockDeterminismTest' --tests 'com.example.kpkn.domain.auge.NutritionRecoveryEngineTest' --tests 'com.example.kpkn.domain.auge.AugePostSessionPreviewImmediateTest' --tests 'com.example.kpkn.domain.auge.RingsIntroSimulatorTest' --tests 'com.example.kpkn.screens.auge.AugeSnapshotCoverageTest' --tests 'com.example.kpkn.screens.auge.AugeWriteMutexTest' --tests 'com.example.kpkn.screens.workout.WorkoutFinish*' --tests 'com.example.kpkn.screens.workout.FinishRingEditsTest' --tests 'com.example.kpkn.domain.onboarding.SetupRings*' --tests 'com.example.kpkn.data.onboarding.SetupRingsPreviewPayloadTest' --tests 'com.example.kpkn.screens.onboarding.SetupRingsAnswersV2Test' > /c/kw/logs/r4-2-3-1.log 2>&1\""
+    },
+    {
+      "iteration": 2,
+      "mode": "full",
+      "log": "C:/kw/logs/r4-2-3-2.log",
+      "command": "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c \"bash /c/kw/tools/gradle_solo.sh /c/kw/v3c/android-native :app:compileBaseDebugKotlin :app:testBaseDebugUnitTest --tests 'com.example.kpkn.domain.auge.AugeSnapshotComputerTest' --tests 'com.example.kpkn.domain.auge.AugeGoldenMasterTest' --tests 'com.example.kpkn.domain.auge.AugeRingCharacterizationTest' --tests 'com.example.kpkn.domain.auge.AugeSyntheticUserInvariantsTest' --tests 'com.example.kpkn.domain.auge.AugeNoHiddenClockTest' --tests 'com.example.kpkn.domain.auge.AugeClockDeterminismTest' --tests 'com.example.kpkn.domain.auge.NutritionRecoveryEngineTest' --tests 'com.example.kpkn.domain.auge.AugePostSessionPreviewImmediateTest' --tests 'com.example.kpkn.domain.auge.RingsIntroSimulatorTest' --tests 'com.example.kpkn.domain.auge.AugeRecoveryEngineRingTest' --tests 'com.example.kpkn.domain.auge.SpineRingSingleDefinitionTest' --tests 'com.example.kpkn.domain.auge.MuscleColdStartParityTest' --tests 'com.example.kpkn.screens.auge.AugeSnapshotCoverageTest' --tests 'com.example.kpkn.screens.auge.AugeWriteMutexTest' --tests 'com.example.kpkn.screens.workout.WorkoutFinish*' --tests 'com.example.kpkn.screens.workout.FinishRingEditsTest' --tests 'com.example.kpkn.domain.onboarding.SetupRings*' --tests 'com.example.kpkn.data.onboarding.SetupRingsPreviewPayloadTest' --tests 'com.example.kpkn.screens.onboarding.SetupRingsAnswersV2Test' > /c/kw/logs/r4-2-3-2.log 2>&1\"",
+      "environment": {
+        "AUGE_SIM_FULL": "1"
+      },
+      "count": "clases=29 pruebas=182 fallos=0 errores=0 omitidas=0 tiempo_suma=96.7s",
+      "classes": [
+        {
+          "name": "com.example.kpkn.data.onboarding.SetupRingsPreviewPayloadTest",
+          "tests": "2",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "3.411"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugeClockDeterminismTest",
+          "tests": "15",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.131"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugeGoldenMasterTest",
+          "tests": "4",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "6.116"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugeNoHiddenClockTest",
+          "tests": "4",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.1"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugePostSessionPreviewImmediateTest",
+          "tests": "2",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.016"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugeRecoveryEngineRingTest",
+          "tests": "14",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.117"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugeRingCharacterizationTest",
+          "tests": "2",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.026"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugeSnapshotComputerTest",
+          "tests": "6",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "2.504"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.AugeSyntheticUserInvariantsTest",
+          "tests": "9",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "76.736"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.MuscleColdStartParityTest",
+          "tests": "1",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.006"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.NutritionRecoveryEngineTest",
+          "tests": "7",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.003"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.RingsIntroSimulatorTest",
+          "tests": "14",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.006"
+        },
+        {
+          "name": "com.example.kpkn.domain.auge.SpineRingSingleDefinitionTest",
+          "tests": "1",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.004"
+        },
+        {
+          "name": "com.example.kpkn.domain.onboarding.SetupRingsCheckInPersistenceTest",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.345"
+        },
+        {
+          "name": "com.example.kpkn.domain.onboarding.SetupRingsHomeCoverageTest",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.172"
+        },
+        {
+          "name": "com.example.kpkn.domain.onboarding.SetupRingsMapperTest",
+          "tests": "11",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.026"
+        },
+        {
+          "name": "com.example.kpkn.domain.onboarding.SetupRingsMergeTest",
+          "tests": "9",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.77"
+        },
+        {
+          "name": "com.example.kpkn.domain.onboarding.SetupRingsResponseMappingTest",
+          "tests": "4",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.001"
+        },
+        {
+          "name": "com.example.kpkn.screens.auge.AugeSnapshotCoverageTest",
+          "tests": "4",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.145"
+        },
+        {
+          "name": "com.example.kpkn.screens.auge.AugeWriteMutexTest",
+          "tests": "10",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "2.919"
+        },
+        {
+          "name": "com.example.kpkn.screens.onboarding.SetupRingsAnswersV2Test",
+          "tests": "14",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.099"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.FinishRingEditsTest",
+          "tests": "26",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.046"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.WorkoutFinishCalibrationTest",
+          "tests": "4",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.011"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.WorkoutFinishCancellationTest",
+          "tests": "4",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "2.287"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.WorkoutFinishControllerPostCommitTest",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.474"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.WorkoutFinishControllerTimeoutTest",
+          "tests": "1",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.067"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.WorkoutFinishEmptySessionTest",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.132"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.WorkoutFinishSheetEntryTest",
+          "tests": "1",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.006"
+        },
+        {
+          "name": "com.example.kpkn.screens.workout.WorkoutFinishVolumeAdvanceDurableTest",
+          "tests": "1",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "0.002"
+        }
+      ],
+      "summaries": [
+        "[SNAPSHOT-2.3] Home anterior = computador en 200 instantes del corpus",
+        "[SNAPSHOT-2.3] 12 semanas, anclas=false, sesiones=35, divergencia=0",
+        "[SNAPSHOT-2.3] 12 semanas, anclas=true, sesiones=35, divergencia=0",
+        "[SIM-INV] trayectorias: modo=completo usuarios=10 muestras=3650 sesiones=520 tiempo=23878 ms",
+        "[SIM-INV] rango/suelos: valores comprobados=222650 violaciones=0",
+        "[SIM-PARIDAD] RESUMEN variante=real puntos=500 máx|Δ| por músculo=0(Abdomen F1#2 Cuerpo completo) muscular=0 energía=0 columnaCruda=0 estructura=0 global=0 Δmúsculo>1 en 0 de 500",
+        "[SIM-PARIDAD] RESUMEN variante=pesada puntos=500 máx|Δ| por músculo=0(Abdomen F1#2 Cuerpo completo) muscular=0 energía=0 columnaCruda=0 estructura=0 global=0 Δmúsculo>1 en 0 de 500",
+        "[SIM-PARIDAD] RESUMEN variante=ligera puntos=500 máx|Δ| por músculo=0(Abdomen F1#2 Cuerpo completo) muscular=0 energía=0 columnaCruda=0 estructura=0 global=0 Δmúsculo>1 en 0 de 500",
+        "[SIM-PARIDAD] RESUMEN GLOBAL puntos=1500 máx|Δ|=0 Δ medio por músculo=0.00 tiempo=45209 ms",
+        "[SIM-INV] monotonía: pares sin sesión nueva=3120 comparaciones=99840 subidas estrictas=35203 violaciones=0 caída máxima=0",
+        "[SIM-INV] monotonía del drenaje: cadenas=102 comparaciones=10064 violaciones=0",
+        "[SIM-INV] conformidad ruta rápida: instantes=19 comparaciones=399 discrepancias=0",
+        "[SIM-INV] ACWR: muestras nulas=580 no nulas=3070 violaciones=0"
+      ],
+      "failures": [],
+      "build": "BUILD SUCCESSFUL in 2m 1s"
+    }
+  ],
+  "golden": {
+    "totalLines": 272,
+    "changedPreviewLines": 3,
+    "unchangedOtherLines": 269,
+    "nonPreviewSha256": "57a59f91f5c791b730ccfa7ea026585ad7dfeb28e5b0bb5e4aaf47c370d9d784",
+    "pinsSha256": "eb2188e56b64ce87b3a29f62e185ac2805fd03da11c608cd24bfc27e9640c7e8",
+    "previewRows": [
+      {
+        "id": "E01",
+        "line": 268,
+        "before": {
+          "rings": {
+            "neural": 75,
+            "spinal": 96,
+            "muscular": 86
+          },
+          "drains": {
+            "cns": 21,
+            "spinal": 0,
+            "muscular": 7
+          },
+          "raw": 98,
+          "tomorrow": {
+            "cns": 96,
+            "spinal": 99
+          },
+          "pre": {
+            "muscular": 93,
+            "neural": 96,
+            "spinal": 96
+          },
+          "muscles": {
+            "Abdomen": {
+              "score": 100,
+              "hours": 0
+            },
+            "Aductores": {
+              "score": 100,
+              "hours": 0
+            },
+            "Antebrazo": {
+              "score": 100,
+              "hours": 0
+            },
+            "Bíceps": {
+              "score": 100,
+              "hours": 0
+            },
+            "Core": {
+              "score": 100,
+              "hours": 0
+            },
+            "Costales": {
+              "score": 100,
+              "hours": 0
+            },
+            "Cuello": {
+              "score": 100,
+              "hours": 0
+            },
+            "Cuádriceps": {
+              "score": 78,
+              "hours": 20
+            },
+            "Deltoides": {
+              "score": 73,
+              "hours": 0
+            },
+            "Dorsales": {
+              "score": 98,
+              "hours": 0
+            },
+            "Erectores Espinales": {
+              "score": 86,
+              "hours": 11
+            },
+            "Glúteos": {
+              "score": 83,
+              "hours": 13
+            },
+            "Infraespinoso": {
+              "score": 100,
+              "hours": 0
+            },
+            "Isquiosurales": {
+              "score": 87,
+              "hours": 9
+            },
+            "Pantorrillas": {
+              "score": 97,
+              "hours": 0
+            },
+            "Pectorales": {
+              "score": 77,
+              "hours": 0
+            },
+            "Psoas": {
+              "score": 100,
+              "hours": 0
+            },
+            "Redondo Menor": {
+              "score": 100,
+              "hours": 0
+            },
+            "Serrato Anterior": {
+              "score": 100,
+              "hours": 0
+            },
+            "Subescapular": {
+              "score": 100,
+              "hours": 0
+            },
+            "Supraespinoso": {
+              "score": 100,
+              "hours": 0
+            },
+            "Trapecio": {
+              "score": 93,
+              "hours": 0
+            },
+            "Tríceps": {
+              "score": 79,
+              "hours": 0
+            }
+          }
+        },
+        "after": {
+          "rings": {
+            "neural": 75,
+            "spinal": 86,
+            "muscular": 76
+          },
+          "drains": {
+            "cns": 21,
+            "spinal": 4,
+            "muscular": 11
+          },
+          "raw": 98,
+          "tomorrow": {
+            "cns": 96,
+            "spinal": 91
+          },
+          "pre": {
+            "muscular": 87,
+            "neural": 96,
+            "spinal": 90
+          },
+          "muscles": {
+            "Abdomen": {
+              "score": 100,
+              "hours": 0
+            },
+            "Aductores": {
+              "score": 100,
+              "hours": 0
+            },
+            "Antebrazo": {
+              "score": 100,
+              "hours": 0
+            },
+            "Bíceps": {
+              "score": 100,
+              "hours": 0
+            },
+            "Core": {
+              "score": 100,
+              "hours": 0
+            },
+            "Costales": {
+              "score": 100,
+              "hours": 0
+            },
+            "Cuello": {
+              "score": 100,
+              "hours": 0
+            },
+            "Cuádriceps": {
+              "score": 78,
+              "hours": 20
+            },
+            "Deltoides": {
+              "score": 70,
+              "hours": 9
+            },
+            "Dorsales": {
+              "score": 98,
+              "hours": 0
+            },
+            "Erectores Espinales": {
+              "score": 86,
+              "hours": 11
+            },
+            "Glúteos": {
+              "score": 83,
+              "hours": 13
+            },
+            "Infraespinoso": {
+              "score": 100,
+              "hours": 0
+            },
+            "Isquiosurales": {
+              "score": 87,
+              "hours": 9
+            },
+            "Pantorrillas": {
+              "score": 97,
+              "hours": 0
+            },
+            "Pectorales": {
+              "score": 75,
+              "hours": 16
+            },
+            "Psoas": {
+              "score": 100,
+              "hours": 0
+            },
+            "Redondo Menor": {
+              "score": 100,
+              "hours": 0
+            },
+            "Serrato Anterior": {
+              "score": 100,
+              "hours": 0
+            },
+            "Subescapular": {
+              "score": 100,
+              "hours": 0
+            },
+            "Supraespinoso": {
+              "score": 100,
+              "hours": 0
+            },
+            "Trapecio": {
+              "score": 92,
+              "hours": 0
+            },
+            "Tríceps": {
+              "score": 77,
+              "hours": 7
+            }
+          }
+        },
+        "beforeLine": "E01 | preview | neural=75 spinal=96 muscular=86 | drains=cns:21,spinal:0,muscular:7 | raw=98 | tomorrow=cns:96,spinal:99 | pre=muscular:93,neural:96,spinal:96 | muscles=Abdomen:100/0;Aductores:100/0;Antebrazo:100/0;Bíceps:100/0;Core:100/0;Costales:100/0;Cuello:100/0;Cuádriceps:78/20;Deltoides:73/0;Dorsales:98/0;Erectores Espinales:86/11;Glúteos:83/13;Infraespinoso:100/0;Isquiosurales:87/9;Pantorrillas:97/0;Pectorales:77/0;Psoas:100/0;Redondo Menor:100/0;Serrato Anterior:100/0;Subescapular:100/0;Supraespinoso:100/0;Trapecio:93/0;Tríceps:79/0",
+        "afterLine": "E01 | preview | neural=75 spinal=86 muscular=76 | drains=cns:21,spinal:4,muscular:11 | raw=98 | tomorrow=cns:96,spinal:91 | pre=muscular:87,neural:96,spinal:90 | muscles=Abdomen:100/0;Aductores:100/0;Antebrazo:100/0;Bíceps:100/0;Core:100/0;Costales:100/0;Cuello:100/0;Cuádriceps:78/20;Deltoides:70/9;Dorsales:98/0;Erectores Espinales:86/11;Glúteos:83/13;Infraespinoso:100/0;Isquiosurales:87/9;Pantorrillas:97/0;Pectorales:75/16;Psoas:100/0;Redondo Menor:100/0;Serrato Anterior:100/0;Subescapular:100/0;Supraespinoso:100/0;Trapecio:92/0;Tríceps:77/7"
+      },
+      {
+        "id": "E02",
+        "line": 270,
+        "before": {
+          "rings": {
+            "neural": 78,
+            "spinal": 90,
+            "muscular": 90
+          },
+          "drains": {
+            "cns": 22,
+            "spinal": 10,
+            "muscular": 10
+          },
+          "raw": 90,
+          "tomorrow": {
+            "cns": 97,
+            "spinal": 97
+          },
+          "pre": {
+            "muscular": 100,
+            "neural": 100,
+            "spinal": 100
+          },
+          "muscles": {
+            "Abdomen": {
+              "score": 100,
+              "hours": 0
+            },
+            "Aductores": {
+              "score": 100,
+              "hours": 0
+            },
+            "Antebrazo": {
+              "score": 100,
+              "hours": 0
+            },
+            "Bíceps": {
+              "score": 100,
+              "hours": 0
+            },
+            "Core": {
+              "score": 100,
+              "hours": 0
+            },
+            "Costales": {
+              "score": 100,
+              "hours": 0
+            },
+            "Cuello": {
+              "score": 100,
+              "hours": 0
+            },
+            "Cuádriceps": {
+              "score": 71,
+              "hours": 0
+            },
+            "Deltoides": {
+              "score": 100,
+              "hours": 0
+            },
+            "Dorsales": {
+              "score": 100,
+              "hours": 0
+            },
+            "Erectores Espinales": {
+              "score": 88,
+              "hours": 0
+            },
+            "Glúteos": {
+              "score": 79,
+              "hours": 0
+            },
+            "Infraespinoso": {
+              "score": 100,
+              "hours": 0
+            },
+            "Isquiosurales": {
+              "score": 88,
+              "hours": 0
+            },
+            "Pantorrillas": {
+              "score": 89,
+              "hours": 0
+            },
+            "Pectorales": {
+              "score": 100,
+              "hours": 0
+            },
+            "Psoas": {
+              "score": 100,
+              "hours": 0
+            },
+            "Redondo Menor": {
+              "score": 100,
+              "hours": 0
+            },
+            "Serrato Anterior": {
+              "score": 100,
+              "hours": 0
+            },
+            "Subescapular": {
+              "score": 100,
+              "hours": 0
+            },
+            "Supraespinoso": {
+              "score": 100,
+              "hours": 0
+            },
+            "Trapecio": {
+              "score": 100,
+              "hours": 0
+            },
+            "Tríceps": {
+              "score": 100,
+              "hours": 0
+            }
+          }
+        },
+        "after": {
+          "rings": {
+            "neural": 78,
+            "spinal": 87,
+            "muscular": 87
+          },
+          "drains": {
+            "cns": 22,
+            "spinal": 13,
+            "muscular": 13
+          },
+          "raw": 90,
+          "tomorrow": {
+            "cns": 97,
+            "spinal": 93
+          },
+          "pre": {
+            "muscular": 100,
+            "neural": 100,
+            "spinal": 100
+          },
+          "muscles": {
+            "Abdomen": {
+              "score": 100,
+              "hours": 0
+            },
+            "Aductores": {
+              "score": 100,
+              "hours": 0
+            },
+            "Antebrazo": {
+              "score": 100,
+              "hours": 0
+            },
+            "Bíceps": {
+              "score": 100,
+              "hours": 0
+            },
+            "Core": {
+              "score": 100,
+              "hours": 0
+            },
+            "Costales": {
+              "score": 100,
+              "hours": 0
+            },
+            "Cuello": {
+              "score": 100,
+              "hours": 0
+            },
+            "Cuádriceps": {
+              "score": 68,
+              "hours": 31
+            },
+            "Deltoides": {
+              "score": 100,
+              "hours": 0
+            },
+            "Dorsales": {
+              "score": 100,
+              "hours": 0
+            },
+            "Erectores Espinales": {
+              "score": 86,
+              "hours": 10
+            },
+            "Glúteos": {
+              "score": 77,
+              "hours": 21
+            },
+            "Infraespinoso": {
+              "score": 100,
+              "hours": 0
+            },
+            "Isquiosurales": {
+              "score": 87,
+              "hours": 9
+            },
+            "Pantorrillas": {
+              "score": 88,
+              "hours": 1
+            },
+            "Pectorales": {
+              "score": 100,
+              "hours": 0
+            },
+            "Psoas": {
+              "score": 100,
+              "hours": 0
+            },
+            "Redondo Menor": {
+              "score": 100,
+              "hours": 0
+            },
+            "Serrato Anterior": {
+              "score": 100,
+              "hours": 0
+            },
+            "Subescapular": {
+              "score": 100,
+              "hours": 0
+            },
+            "Supraespinoso": {
+              "score": 100,
+              "hours": 0
+            },
+            "Trapecio": {
+              "score": 100,
+              "hours": 0
+            },
+            "Tríceps": {
+              "score": 100,
+              "hours": 0
+            }
+          }
+        },
+        "beforeLine": "E02 | preview | neural=78 spinal=90 muscular=90 | drains=cns:22,spinal:10,muscular:10 | raw=90 | tomorrow=cns:97,spinal:97 | pre=muscular:100,neural:100,spinal:100 | muscles=Abdomen:100/0;Aductores:100/0;Antebrazo:100/0;Bíceps:100/0;Core:100/0;Costales:100/0;Cuello:100/0;Cuádriceps:71/0;Deltoides:100/0;Dorsales:100/0;Erectores Espinales:88/0;Glúteos:79/0;Infraespinoso:100/0;Isquiosurales:88/0;Pantorrillas:89/0;Pectorales:100/0;Psoas:100/0;Redondo Menor:100/0;Serrato Anterior:100/0;Subescapular:100/0;Supraespinoso:100/0;Trapecio:100/0;Tríceps:100/0",
+        "afterLine": "E02 | preview | neural=78 spinal=87 muscular=87 | drains=cns:22,spinal:13,muscular:13 | raw=90 | tomorrow=cns:97,spinal:93 | pre=muscular:100,neural:100,spinal:100 | muscles=Abdomen:100/0;Aductores:100/0;Antebrazo:100/0;Bíceps:100/0;Core:100/0;Costales:100/0;Cuello:100/0;Cuádriceps:68/31;Deltoides:100/0;Dorsales:100/0;Erectores Espinales:86/10;Glúteos:77/21;Infraespinoso:100/0;Isquiosurales:87/9;Pantorrillas:88/1;Pectorales:100/0;Psoas:100/0;Redondo Menor:100/0;Serrato Anterior:100/0;Subescapular:100/0;Supraespinoso:100/0;Trapecio:100/0;Tríceps:100/0"
+      },
+      {
+        "id": "E03",
+        "line": 272,
+        "before": {
+          "rings": {
+            "neural": 79,
+            "spinal": 91,
+            "muscular": 91
+          },
+          "drains": {
+            "cns": 21,
+            "spinal": 9,
+            "muscular": 8
+          },
+          "raw": 93,
+          "tomorrow": {
+            "cns": 97,
+            "spinal": 96
+          },
+          "pre": {
+            "muscular": 99,
+            "neural": 100,
+            "spinal": 100
+          },
+          "muscles": {
+            "Abdomen": {
+              "score": 100,
+              "hours": 0
+            },
+            "Aductores": {
+              "score": 100,
+              "hours": 0
+            },
+            "Antebrazo": {
+              "score": 100,
+              "hours": 0
+            },
+            "Bíceps": {
+              "score": 81,
+              "hours": 0
+            },
+            "Core": {
+              "score": 100,
+              "hours": 0
+            },
+            "Costales": {
+              "score": 100,
+              "hours": 0
+            },
+            "Cuello": {
+              "score": 100,
+              "hours": 0
+            },
+            "Cuádriceps": {
+              "score": 99,
+              "hours": 0
+            },
+            "Deltoides": {
+              "score": 100,
+              "hours": 0
+            },
+            "Dorsales": {
+              "score": 76,
+              "hours": 0
+            },
+            "Erectores Espinales": {
+              "score": 88,
+              "hours": 0
+            },
+            "Glúteos": {
+              "score": 95,
+              "hours": 0
+            },
+            "Infraespinoso": {
+              "score": 100,
+              "hours": 0
+            },
+            "Isquiosurales": {
+              "score": 90,
+              "hours": 0
+            },
+            "Pantorrillas": {
+              "score": 100,
+              "hours": 0
+            },
+            "Pectorales": {
+              "score": 98,
+              "hours": 0
+            },
+            "Psoas": {
+              "score": 100,
+              "hours": 0
+            },
+            "Redondo Menor": {
+              "score": 100,
+              "hours": 0
+            },
+            "Serrato Anterior": {
+              "score": 100,
+              "hours": 0
+            },
+            "Subescapular": {
+              "score": 100,
+              "hours": 0
+            },
+            "Supraespinoso": {
+              "score": 100,
+              "hours": 0
+            },
+            "Trapecio": {
+              "score": 89,
+              "hours": 0
+            },
+            "Tríceps": {
+              "score": 100,
+              "hours": 0
+            }
+          }
+        },
+        "after": {
+          "rings": {
+            "neural": 79,
+            "spinal": 83,
+            "muscular": 85
+          },
+          "drains": {
+            "cns": 21,
+            "spinal": 14,
+            "muscular": 12
+          },
+          "raw": 93,
+          "tomorrow": {
+            "cns": 97,
+            "spinal": 91
+          },
+          "pre": {
+            "muscular": 97,
+            "neural": 100,
+            "spinal": 97
+          },
+          "muscles": {
+            "Abdomen": {
+              "score": 100,
+              "hours": 0
+            },
+            "Aductores": {
+              "score": 100,
+              "hours": 0
+            },
+            "Antebrazo": {
+              "score": 100,
+              "hours": 0
+            },
+            "Bíceps": {
+              "score": 79,
+              "hours": 6
+            },
+            "Core": {
+              "score": 100,
+              "hours": 0
+            },
+            "Costales": {
+              "score": 100,
+              "hours": 0
+            },
+            "Cuello": {
+              "score": 100,
+              "hours": 0
+            },
+            "Cuádriceps": {
+              "score": 99,
+              "hours": 0
+            },
+            "Deltoides": {
+              "score": 100,
+              "hours": 0
+            },
+            "Dorsales": {
+              "score": 74,
+              "hours": 17
+            },
+            "Erectores Espinales": {
+              "score": 87,
+              "hours": 9
+            },
+            "Glúteos": {
+              "score": 94,
+              "hours": 0
+            },
+            "Infraespinoso": {
+              "score": 100,
+              "hours": 0
+            },
+            "Isquiosurales": {
+              "score": 89,
+              "hours": 2
+            },
+            "Pantorrillas": {
+              "score": 100,
+              "hours": 0
+            },
+            "Pectorales": {
+              "score": 98,
+              "hours": 0
+            },
+            "Psoas": {
+              "score": 100,
+              "hours": 0
+            },
+            "Redondo Menor": {
+              "score": 100,
+              "hours": 0
+            },
+            "Serrato Anterior": {
+              "score": 100,
+              "hours": 0
+            },
+            "Subescapular": {
+              "score": 100,
+              "hours": 0
+            },
+            "Supraespinoso": {
+              "score": 100,
+              "hours": 0
+            },
+            "Trapecio": {
+              "score": 87,
+              "hours": 4
+            },
+            "Tríceps": {
+              "score": 100,
+              "hours": 0
+            }
+          }
+        },
+        "beforeLine": "E03 | preview | neural=79 spinal=91 muscular=91 | drains=cns:21,spinal:9,muscular:8 | raw=93 | tomorrow=cns:97,spinal:96 | pre=muscular:99,neural:100,spinal:100 | muscles=Abdomen:100/0;Aductores:100/0;Antebrazo:100/0;Bíceps:81/0;Core:100/0;Costales:100/0;Cuello:100/0;Cuádriceps:99/0;Deltoides:100/0;Dorsales:76/0;Erectores Espinales:88/0;Glúteos:95/0;Infraespinoso:100/0;Isquiosurales:90/0;Pantorrillas:100/0;Pectorales:98/0;Psoas:100/0;Redondo Menor:100/0;Serrato Anterior:100/0;Subescapular:100/0;Supraespinoso:100/0;Trapecio:89/0;Tríceps:100/0",
+        "afterLine": "E03 | preview | neural=79 spinal=83 muscular=85 | drains=cns:21,spinal:14,muscular:12 | raw=93 | tomorrow=cns:97,spinal:91 | pre=muscular:97,neural:100,spinal:97 | muscles=Abdomen:100/0;Aductores:100/0;Antebrazo:100/0;Bíceps:79/6;Core:100/0;Costales:100/0;Cuello:100/0;Cuádriceps:99/0;Deltoides:100/0;Dorsales:74/17;Erectores Espinales:87/9;Glúteos:94/0;Infraespinoso:100/0;Isquiosurales:89/2;Pantorrillas:100/0;Pectorales:98/0;Psoas:100/0;Redondo Menor:100/0;Serrato Anterior:100/0;Subescapular:100/0;Supraespinoso:100/0;Trapecio:87/4;Tríceps:100/0"
+      }
+    ],
+    "numericChanges": [
+      {
+        "path": "E01.rings.spinal",
+        "before": 96,
+        "after": 86,
+        "delta": -10
+      },
+      {
+        "path": "E01.rings.muscular",
+        "before": 86,
+        "after": 76,
+        "delta": -10
+      },
+      {
+        "path": "E01.drains.spinal",
+        "before": 0,
+        "after": 4,
+        "delta": 4
+      },
+      {
+        "path": "E01.drains.muscular",
+        "before": 7,
+        "after": 11,
+        "delta": 4
+      },
+      {
+        "path": "E01.tomorrow.spinal",
+        "before": 99,
+        "after": 91,
+        "delta": -8
+      },
+      {
+        "path": "E01.pre.muscular",
+        "before": 93,
+        "after": 87,
+        "delta": -6
+      },
+      {
+        "path": "E01.pre.spinal",
+        "before": 96,
+        "after": 90,
+        "delta": -6
+      },
+      {
+        "path": "E01.muscles.Deltoides.score",
+        "before": 73,
+        "after": 70,
+        "delta": -3
+      },
+      {
+        "path": "E01.muscles.Deltoides.hours",
+        "before": 0,
+        "after": 9,
+        "delta": 9
+      },
+      {
+        "path": "E01.muscles.Pectorales.score",
+        "before": 77,
+        "after": 75,
+        "delta": -2
+      },
+      {
+        "path": "E01.muscles.Pectorales.hours",
+        "before": 0,
+        "after": 16,
+        "delta": 16
+      },
+      {
+        "path": "E01.muscles.Trapecio.score",
+        "before": 93,
+        "after": 92,
+        "delta": -1
+      },
+      {
+        "path": "E01.muscles.Tríceps.score",
+        "before": 79,
+        "after": 77,
+        "delta": -2
+      },
+      {
+        "path": "E01.muscles.Tríceps.hours",
+        "before": 0,
+        "after": 7,
+        "delta": 7
+      },
+      {
+        "path": "E02.rings.spinal",
+        "before": 90,
+        "after": 87,
+        "delta": -3
+      },
+      {
+        "path": "E02.rings.muscular",
+        "before": 90,
+        "after": 87,
+        "delta": -3
+      },
+      {
+        "path": "E02.drains.spinal",
+        "before": 10,
+        "after": 13,
+        "delta": 3
+      },
+      {
+        "path": "E02.drains.muscular",
+        "before": 10,
+        "after": 13,
+        "delta": 3
+      },
+      {
+        "path": "E02.tomorrow.spinal",
+        "before": 97,
+        "after": 93,
+        "delta": -4
+      },
+      {
+        "path": "E02.muscles.Cuádriceps.score",
+        "before": 71,
+        "after": 68,
+        "delta": -3
+      },
+      {
+        "path": "E02.muscles.Cuádriceps.hours",
+        "before": 0,
+        "after": 31,
+        "delta": 31
+      },
+      {
+        "path": "E02.muscles.Erectores Espinales.score",
+        "before": 88,
+        "after": 86,
+        "delta": -2
+      },
+      {
+        "path": "E02.muscles.Erectores Espinales.hours",
+        "before": 0,
+        "after": 10,
+        "delta": 10
+      },
+      {
+        "path": "E02.muscles.Glúteos.score",
+        "before": 79,
+        "after": 77,
+        "delta": -2
+      },
+      {
+        "path": "E02.muscles.Glúteos.hours",
+        "before": 0,
+        "after": 21,
+        "delta": 21
+      },
+      {
+        "path": "E02.muscles.Isquiosurales.score",
+        "before": 88,
+        "after": 87,
+        "delta": -1
+      },
+      {
+        "path": "E02.muscles.Isquiosurales.hours",
+        "before": 0,
+        "after": 9,
+        "delta": 9
+      },
+      {
+        "path": "E02.muscles.Pantorrillas.score",
+        "before": 89,
+        "after": 88,
+        "delta": -1
+      },
+      {
+        "path": "E02.muscles.Pantorrillas.hours",
+        "before": 0,
+        "after": 1,
+        "delta": 1
+      },
+      {
+        "path": "E03.rings.spinal",
+        "before": 91,
+        "after": 83,
+        "delta": -8
+      },
+      {
+        "path": "E03.rings.muscular",
+        "before": 91,
+        "after": 85,
+        "delta": -6
+      },
+      {
+        "path": "E03.drains.spinal",
+        "before": 9,
+        "after": 14,
+        "delta": 5
+      },
+      {
+        "path": "E03.drains.muscular",
+        "before": 8,
+        "after": 12,
+        "delta": 4
+      },
+      {
+        "path": "E03.tomorrow.spinal",
+        "before": 96,
+        "after": 91,
+        "delta": -5
+      },
+      {
+        "path": "E03.pre.muscular",
+        "before": 99,
+        "after": 97,
+        "delta": -2
+      },
+      {
+        "path": "E03.pre.spinal",
+        "before": 100,
+        "after": 97,
+        "delta": -3
+      },
+      {
+        "path": "E03.muscles.Bíceps.score",
+        "before": 81,
+        "after": 79,
+        "delta": -2
+      },
+      {
+        "path": "E03.muscles.Bíceps.hours",
+        "before": 0,
+        "after": 6,
+        "delta": 6
+      },
+      {
+        "path": "E03.muscles.Dorsales.score",
+        "before": 76,
+        "after": 74,
+        "delta": -2
+      },
+      {
+        "path": "E03.muscles.Dorsales.hours",
+        "before": 0,
+        "after": 17,
+        "delta": 17
+      },
+      {
+        "path": "E03.muscles.Erectores Espinales.score",
+        "before": 88,
+        "after": 87,
+        "delta": -1
+      },
+      {
+        "path": "E03.muscles.Erectores Espinales.hours",
+        "before": 0,
+        "after": 9,
+        "delta": 9
+      },
+      {
+        "path": "E03.muscles.Glúteos.score",
+        "before": 95,
+        "after": 94,
+        "delta": -1
+      },
+      {
+        "path": "E03.muscles.Isquiosurales.score",
+        "before": 90,
+        "after": 89,
+        "delta": -1
+      },
+      {
+        "path": "E03.muscles.Isquiosurales.hours",
+        "before": 0,
+        "after": 2,
+        "delta": 2
+      },
+      {
+        "path": "E03.muscles.Trapecio.score",
+        "before": 89,
+        "after": 87,
+        "delta": -2
+      },
+      {
+        "path": "E03.muscles.Trapecio.hours",
+        "before": 0,
+        "after": 4,
+        "delta": 4
+      }
+    ]
+  },
+  "finalCommand": "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c \"bash /c/kw/tools/gradle_solo.sh /c/kw/v3c/android-native :app:compileBaseDebugKotlin :app:testBaseDebugUnitTest --tests 'com.example.kpkn.domain.auge.AugeSnapshotComputerTest' --tests 'com.example.kpkn.domain.auge.AugeGoldenMasterTest' --tests 'com.example.kpkn.domain.auge.AugeRingCharacterizationTest' --tests 'com.example.kpkn.domain.auge.AugeSyntheticUserInvariantsTest' --tests 'com.example.kpkn.domain.auge.AugeNoHiddenClockTest' --tests 'com.example.kpkn.domain.auge.AugeClockDeterminismTest' --tests 'com.example.kpkn.domain.auge.NutritionRecoveryEngineTest' --tests 'com.example.kpkn.domain.auge.AugePostSessionPreviewImmediateTest' --tests 'com.example.kpkn.domain.auge.RingsIntroSimulatorTest' --tests 'com.example.kpkn.domain.auge.AugeRecoveryEngineRingTest' --tests 'com.example.kpkn.domain.auge.SpineRingSingleDefinitionTest' --tests 'com.example.kpkn.domain.auge.MuscleColdStartParityTest' --tests 'com.example.kpkn.screens.auge.AugeSnapshotCoverageTest' --tests 'com.example.kpkn.screens.auge.AugeWriteMutexTest' --tests 'com.example.kpkn.screens.workout.WorkoutFinish*' --tests 'com.example.kpkn.screens.workout.FinishRingEditsTest' --tests 'com.example.kpkn.domain.onboarding.SetupRings*' --tests 'com.example.kpkn.data.onboarding.SetupRingsPreviewPayloadTest' --tests 'com.example.kpkn.screens.onboarding.SetupRingsAnswersV2Test' > /c/kw/logs/r4-2-3-2.log 2>&1\"",
+  "finalEnvironment": {
+    "AUGE_SIM_FULL": "1"
+  },
+  "verification": {
+    "homeGoldenLinesUnchanged": 269,
+    "pinsUnchanged": true,
+    "previewBudget": 1,
+    "lightPoints": 126,
+    "fullPoints": 1500,
+    "maxParityDifference": 0,
+    "homeLegacyInstants": 200,
+    "iterations": 2
+  },
+  "implementationCommit": "0711a4ba9"
+}
