@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,12 +25,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.NutritionCalibrationProfile
+import com.example.kpkn.domain.nutrition.checkin.CheckinAvailability
 import com.example.kpkn.screens.nutrition.checkin.*
 import com.example.kpkn.screens.nutrition.design.NutritionSubpageHeader
 import com.example.kpkn.screens.nutrition.design.calibration.CalibrationStatusModule
 import com.example.kpkn.screens.nutrition.design.calibration.CalibrationWizardModule
 import com.example.kpkn.screens.nutrition.design.calibration.WEIGHING_CONVENTIONS
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknPrimaryPill
@@ -47,6 +51,20 @@ internal fun calibrationStatusLabel(status: String): String = when (status) {
     "waiting_after_plan_change" -> "En espera: cambiaste el plan hace poco"
     "ready" -> "Lista para ajustar"
     else -> "En evaluación"
+}
+
+/** Clave y posición del `item` que aloja el flujo del check-in en la lista de la página. */
+internal const val CHECKIN_ITEM_KEY = "calibration-checkin"
+internal const val CHECKIN_ITEM_INDEX = 3
+
+/**
+ * ¿Hay que desplazar la lista hasta el inicio del check-in? [itemOffsetPx] es la distancia entre el borde alto de la ventana y el
+ * inicio del `item` (negativa si ya se salió por arriba; null si no está dibujado). No salta si la persona ya lo tiene arriba:
+ * de su borde alto hasta una cuarta parte de la ventana, con unos píxeles de tolerancia.
+ */
+internal fun shouldScrollToCheckin(itemOffsetPx: Int?, viewportHeightPx: Int): Boolean {
+    if (itemOffsetPx == null) return true
+    return itemOffsetPx !in -4..(viewportHeightPx / 4)
 }
 
 /**
@@ -109,9 +127,23 @@ internal fun NutritionCalibrationContent(
     var askReset by remember { mutableStateOf(false) }
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val pagePadding = Modifier.padding(horizontal = 16.dp)
+    val listState = rememberLazyListState()
+    val reducedMotion = wizardReducedMotion()
+    // Al abrir con el check-in disponible y en cada cambio de paso, la lista lleva el módulo a la parte alta de la ventana;
+    // con movimiento reducido el salto es directo.
+    val checkinReady = checkinState.plan != null && checkinState.availability == CheckinAvailability.NOW
+    LaunchedEffect(checkinReady, checkinState.stepIndex) {
+        if (!checkinReady) return@LaunchedEffect
+        val info = listState.layoutInfo
+        val item = info.visibleItemsInfo.firstOrNull { it.key == CHECKIN_ITEM_KEY }
+        if (shouldScrollToCheckin(item?.offset, info.viewportEndOffset - info.viewportStartOffset)) {
+            if (reducedMotion) listState.scrollToItem(CHECKIN_ITEM_INDEX) else listState.animateScrollToItem(CHECKIN_ITEM_INDEX)
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(KpknSurface.canvas)) {
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize().navigationBarsPadding(),
             contentPadding = PaddingValues(bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -133,7 +165,7 @@ internal fun NutritionCalibrationContent(
                     modifier = pagePadding,
                 )
             }
-            item(key = "calibration-checkin") {
+            item(key = CHECKIN_ITEM_KEY) {
                 NutritionCheckinContent(
                     state = checkinState,
                     onNext = { checkinController?.next() }, onPrevious = { checkinController?.back() },
@@ -142,6 +174,8 @@ internal fun NutritionCalibrationContent(
                     onPartial = { checkinController?.markPartial(it) }, onComplete = { checkinController?.keepComplete(it) },
                     onFasting = { checkinController?.confirmFasting(it) }, onResumeLogging = onResumeLogging,
                     onWeighIn = onWeighIn, modifier = pagePadding,
+                    // El gasto estimado ya está arriba, en «Gasto estimado»: los módulos no lo repiten.
+                    showEstimateSummary = false,
                 )
             }
             item(key = "calibration-checkin-day") {

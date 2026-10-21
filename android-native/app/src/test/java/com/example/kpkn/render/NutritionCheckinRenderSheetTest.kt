@@ -53,13 +53,14 @@ class NutritionCheckinRenderSheetTest {
                     .then(if (viewport) Modifier.verticalScroll(scroll) else Modifier)) {
                     if (name == "card") NutritionCheckinCard({})
                     else {
+                        // Las variantes «_page» son los módulos dentro de la calibración, sin repetir el gasto estimado.
                         val state = NutritionCheckinSamples.state(when (name) {
                             "paused_proposal" -> "paused"
                             "apply_error_viewport" -> "apply_error"
-                            else -> name
+                            else -> name.removeSuffix("_page")
                         })
                         NutritionCheckinContent(if (name == "paused_proposal") state.copy(stepIndex = state.steps.lastIndex) else state,
-                            {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
+                            {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, showEstimateSummary = !name.endsWith("_page"))
                     }
                 }
             }
@@ -86,6 +87,10 @@ class NutritionCheckinRenderSheetTest {
     @Test fun partial130() = render("partial_days", 1.3f)
     @Test fun weigh100() = render("weigh_in", 1f)
     @Test fun weigh130() = render("weigh_in", 1.3f)
+    @Test fun weighPage100() = render("weigh_in_page", 1f)
+    @Test fun weighPage130() = render("weigh_in_page", 1.3f)
+    @Test fun proposalPage100() = render("proposal_change_page", 1f)
+    @Test fun proposalPage130() = render("proposal_change_page", 1.3f)
     @Test fun proposal100() = render("proposal_change", 1f)
     @Test fun proposal130() = render("proposal_change", 1.3f)
     @Test fun nochange100() = render("proposal_nochange", 1f)

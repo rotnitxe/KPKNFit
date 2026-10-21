@@ -79,6 +79,36 @@ class NutritionCheckinUiTest {
         rule.onNodeWithText("Registrar pesaje").performClick()
         assertTrue(opened)
     }
+    @Test fun `dentro de la calibracion el pesaje no repite el gasto estimado`() {
+        rule.setContent {
+            NutritionCheckinContent(NutritionCheckinSamples.state("weigh_in"), {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
+                showEstimateSummary = false)
+        }
+        rule.onNodeWithTag("checkin-weighin-summary").assertExists()
+        rule.onNodeWithText("Pesajes usados:", substring = true).assertExists()
+        rule.onNodeWithText("Tendencia:", substring = true).assertExists()
+        rule.onNodeWithText("Un pesaje reciente", substring = true).assertExists()
+        rule.onNodeWithText("Registrar pesaje").assertExists()
+        rule.onNodeWithText("Banda de incertidumbre:", substring = true).assertDoesNotExist()
+        rule.onNodeWithText("kcal/día").assertDoesNotExist()
+        rule.onNodeWithText("El gasto estimado aproxima", substring = true).assertDoesNotExist()
+    }
+    @Test fun `dentro de la calibracion el objetivo conserva antes despues y evidencia sin repetir el gasto`() {
+        var accepted = false
+        rule.setContent {
+            NutritionCheckinContent(NutritionCheckinSamples.state("proposal_change"), {}, {}, { accepted = true }, {}, {}, {}, {}, {}, {}, {}, {},
+                showEstimateSummary = false)
+        }
+        rule.onNodeWithText("Actual").assertExists()
+        rule.onNodeWithText("Propuesto").assertExists()
+        rule.onNodeWithTag("checkin-quality").assertExists()
+        rule.onNodeWithText("Banda de incertidumbre:", substring = true).assertDoesNotExist()
+        rule.onNodeWithText("El gasto estimado aproxima", substring = true).assertDoesNotExist()
+        rule.onNodeWithTag("checkin-accept").assertIsEnabled().performClick()
+        assertTrue(accepted)
+        rule.onNodeWithTag("checkin-decline").assertExists()
+        rule.onNodeWithTag("checkin-postpone").assertExists()
+    }
     @Test fun `el error es visible y aceptar sigue disponible con letra al 130 por ciento`() {
         content("apply_error", scale = 1.3f)
         rule.onNodeWithTag("checkin-error").assertExists()
