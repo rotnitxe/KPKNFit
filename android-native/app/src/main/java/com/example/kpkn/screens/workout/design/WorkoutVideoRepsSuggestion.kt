@@ -16,8 +16,6 @@ import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.workout.SetVideoAnalysisState
 import com.example.kpkn.screens.workout.SetVideoAnalysisUi
-import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 
@@ -31,29 +29,38 @@ internal fun WorkoutVideoRepsSuggestion(
     onMarkFailure: () -> Unit,
     onOpenAnalysis: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onRetryAnalysis: ((String) -> Unit)? = null,
 ) {
     val state = value.state
     val text = workoutVideoRepsText(state)
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(text, style = KpknType.caption, color = if (state is SetVideoAnalysisState.Unsupported) WizardColors.textFaint else WizardColors.textMuted, modifier = Modifier.semantics { contentDescription = text })
         FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             when (state) {
                 is SetVideoAnalysisState.Suggest -> {
-                    if (state.confidence == CountConfidence.ALTA) {
-                        if (state.reps > 0 || state.partials > 0) KpknTextAction("Usar", onClick = { onUse(state) }, modifier = Modifier.defaultMinSize(minWidth = 48.dp))
-                        if (state.failed > 0) KpknTextAction("Marcar fallo", onClick = onMarkFailure)
-                        KpknIconButton(icon = KpknLineIcons.ChevronRight, contentDescription = "Ver análisis", onClick = { onOpenAnalysis(value.mediaId) })
-                    } else KpknTextAction("Revisar", onClick = { onOpenAnalysis(value.mediaId) })
+                    if (state.confidence != CountConfidence.BAJA) {
+                        if (state.reps > 0 || state.partials > 0) KpknTextAction(
+                            if (state.confidence == CountConfidence.MEDIA) "Usar ≈ ${state.reps}" else "Usar",
+                            onClick = { onUse(state) }, modifier = Modifier.defaultMinSize(minWidth = 48.dp),
+                        )
+                        if (state.failed > 0 && state.confidence == CountConfidence.ALTA) KpknTextAction("Marcar fallo", onClick = onMarkFailure)
+                    }
                 }
                 is SetVideoAnalysisState.Mismatch -> {
-                    if (state.confidence == CountConfidence.ALTA) {
-                        if (state.countsDiffer && (state.counted > 0 || state.partials > 0)) KpknTextAction("Corregir", onClick = { onCorrect(state) })
-                        if (state.failed > 0) KpknTextAction("Marcar fallo", onClick = onMarkFailure)
-                        KpknIconButton(icon = KpknLineIcons.ChevronRight, contentDescription = "Ver análisis", onClick = { onOpenAnalysis(value.mediaId) })
-                    } else KpknTextAction("Revisar", onClick = { onOpenAnalysis(value.mediaId) })
+                    if (state.confidence != CountConfidence.BAJA) {
+                        if (state.countsDiffer && (state.counted > 0 || state.partials > 0)) KpknTextAction(
+                            if (state.confidence == CountConfidence.MEDIA) "Corregir a ≈ ${state.counted}" else "Corregir",
+                            onClick = { onCorrect(state) },
+                        )
+                        if (state.failed > 0 && state.confidence == CountConfidence.ALTA) KpknTextAction("Marcar fallo", onClick = onMarkFailure)
+                    }
                 }
-                SetVideoAnalysisState.Inconclusive, is SetVideoAnalysisState.Failed -> KpknTextAction("Ver análisis", onClick = { onOpenAnalysis(value.mediaId) })
                 else -> Unit
+            }
+            KpknTextAction("Ver análisis", onClick = { onOpenAnalysis(value.mediaId) },
+                modifier = Modifier.semantics { contentDescription = "Ver análisis" })
+            if (state is SetVideoAnalysisState.Failed && onRetryAnalysis != null) {
+                KpknTextAction("Reintentar", onClick = { onRetryAnalysis(value.mediaId) })
             }
         }
     }
@@ -61,27 +68,13 @@ internal fun WorkoutVideoRepsSuggestion(
 
 /** Texto compartido por la pieza, TalkBack y las regresiones de confianza. */
 internal fun workoutVideoRepsText(state: SetVideoAnalysisState): String {
-    fun extras(partials: Int, failed: Int): String = buildString {
-        if (partials > 0) append(" · +$partials ${if (partials == 1) "parcial" else "parciales"}")
-        if (failed > 0) append(" · $failed al fallo")
+    if (state is SetVideoAnalysisState.Analyzing) {
+        return "Analizando el vídeo… ${state.progress.coerceIn(0, 100)}\u00A0%"
     }
-    return when (state) {
-        is SetVideoAnalysisState.Analyzing -> "Analizando el vídeo… ${state.progress} %"
-        is SetVideoAnalysisState.Suggest -> when (state.confidence) {
-            CountConfidence.ALTA -> if (state.reps == 0 && state.partials == 0 && state.failed > 0) "El vídeo muestra ${state.failed} ${if (state.failed == 1) "intento" else "intentos"} al fallo" else "El vídeo cuenta ${state.reps}" + extras(state.partials, state.failed) + (state.romPercent?.let { " · ROM ≈ $it %" } ?: "")
-            CountConfidence.MEDIA -> "≈ ${state.reps} en el vídeo" + extras(state.partials, state.failed)
-            CountConfidence.BAJA -> "Vídeo no concluyente"
-        }
-        is SetVideoAnalysisState.Mismatch -> when (state.confidence) {
-            CountConfidence.ALTA -> if (state.countsDiffer && (state.counted > 0 || state.partials > 0)) {
-                "Registraste ${state.logged}${if (state.loggedPartials > 0) " + ${state.loggedPartials} parciales" else ""}; el vídeo cuenta ${state.counted}" + extras(state.partials, state.failed)
-            } else "El vídeo muestra ${state.failed} ${if (state.failed == 1) "intento" else "intentos"} al fallo"
-            CountConfidence.MEDIA -> "≈ ${state.counted} en el vídeo" + extras(state.partials, state.failed)
-            CountConfidence.BAJA -> "Vídeo no concluyente"
-        }
-        is SetVideoAnalysisState.Agrees -> "El vídeo confirma ${state.counted}"
-        SetVideoAnalysisState.Inconclusive -> "Vídeo no concluyente"
-        is SetVideoAnalysisState.Failed -> "No se pudo analizar el vídeo"
-        is SetVideoAnalysisState.Unsupported -> state.reasonText
-    }
+    val line = visualModeAnalysisLine(state, setIndex = 0)
+    val description = line.actionLabel?.let { line.text.removeSuffix(" · $it") } ?: line.text
+    val rom = (state as? SetVideoAnalysisState.Suggest)
+        ?.takeIf { it.confidence != CountConfidence.BAJA }
+        ?.romPercent?.let { " · ROM\u00A0≈\u00A0$it\u00A0%" }.orEmpty()
+    return description + rom
 }

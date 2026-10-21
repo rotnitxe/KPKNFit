@@ -83,6 +83,10 @@ import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.screens.workout.design.WorkoutVideoChip
+import com.example.kpkn.screens.workout.design.WorkoutVideoMenuPositionProvider
+import com.example.kpkn.screens.workout.design.WorkoutVideoMenuTag
+import com.example.kpkn.screens.workout.design.WorkoutVideoRepsSuggestion
 import java.util.Locale
 
 /** Full range of motion; the slider's starting point only for exercises that track ROM. */
@@ -1795,7 +1799,8 @@ internal fun SetInputCardV2(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(stableCardHeight),
+            .height(stableCardHeight)
+            .testTag("set_execution_card"),
     ) {
     Box(
         modifier = Modifier
@@ -2048,10 +2053,12 @@ internal fun SetInputCardV2(
                         ) {
                             val maxRepsForPopup = reportValueText.toIntOrNull() ?: 0
                             val partialRepsValueForPopup = partialSets.sum().coerceAtLeast(0)
+                            var showVideoMenu by remember(exercise.id, setIndex, sideKey, videoAnalysis?.mediaId) { mutableStateOf(false) }
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .heightIn(min = 20.dp),
+                                    .height(24.dp)
+                                    .testTag("set_reps_header"),
                                 horizontalArrangement = Arrangement.Start,
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -2145,6 +2152,59 @@ internal fun SetInputCardV2(
                                                         }
                                                     }
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                                Spacer(Modifier.weight(1f))
+                                if (resolvedPlannedUnitMode == UnitModeV2.REPS) videoAnalysis?.let { analysis ->
+                                    Box {
+                                        WorkoutVideoChip(
+                                            value = analysis,
+                                            onClick = {
+                                                showFeedbackExtrasPopup = false
+                                                showVideoMenu = true
+                                            },
+                                            sessionAccentColor = sessionAccentColor,
+                                        )
+                                        if (showVideoMenu && analysis.state !is SetVideoAnalysisState.Unsupported) {
+                                            Popup(
+                                                popupPositionProvider = remember(density) {
+                                                    WorkoutVideoMenuPositionProvider(with(density) { 14.dp.roundToPx() })
+                                                },
+                                                onDismissRequest = { showVideoMenu = false },
+                                                properties = PopupProperties(focusable = true),
+                                            ) {
+                                                WorkoutVideoRepsSuggestion(
+                                                    value = analysis,
+                                                    onUse = { result ->
+                                                        if (sessionCompletedSet == null && resolvedPlannedUnitMode == UnitModeV2.REPS && !isFailedSet) {
+                                                            updateActiveValueText(result.reps.toString())
+                                                            repsWheelCenterIndex.intValue = result.reps
+                                                            // El centro viejo no puede sobrescribir el borrador tras «Usar».
+                                                            repsInputGeneration++
+                                                            partialSets = listOf(result.partials.coerceAtLeast(0))
+                                                            showPartialsMode = result.partials > 0
+                                                        }
+                                                        showVideoMenu = false
+                                                    },
+                                                    onCorrect = { onVideoCorrect(it); showVideoMenu = false },
+                                                    onMarkFailure = {
+                                                        if (sessionCompletedSet != null) onVideoMarkFailure()
+                                                        else effortScale.items.indexOfFirst { it.isFailure }.takeIf { it >= 0 }?.let(::onEffortSelected)
+                                                        showVideoMenu = false
+                                                    },
+                                                    onOpenAnalysis = { onOpenAnalysis(it); showVideoMenu = false },
+                                                    onRetryAnalysis = onRetryAnalysis?.let { retry ->
+                                                        { id -> retry(id); showVideoMenu = false }
+                                                    },
+                                                    modifier = Modifier.width(264.dp)
+                                                        .testTag(WorkoutVideoMenuTag)
+                                                        .background(Color(0xFF151515), RoundedCornerShape(16.dp))
+                                                        .border(1.dp, WizardColors.text.copy(alpha = 0.10f), RoundedCornerShape(16.dp))
+                                                        .verticalScroll(rememberScrollState())
+                                                        .padding(14.dp),
+                                                )
                                             }
                                         }
                                     }
@@ -2277,27 +2337,6 @@ internal fun SetInputCardV2(
                     }
 
                     ValueStepperBlock(Modifier.fillMaxWidth())
-                    videoAnalysis?.let { analysis ->
-                        com.example.kpkn.screens.workout.design.WorkoutVideoRepsSuggestion(
-                            value = analysis,
-                            onUse = { result ->
-                                if (sessionCompletedSet == null && resolvedPlannedUnitMode == UnitModeV2.REPS && !isFailedSet) {
-                                    updateActiveValueText(result.reps.toString())
-                                    repsWheelCenterIndex.intValue = result.reps
-                                    // «Usar» sustituye también el scroll anterior: el centro viejo no puede sobrescribir el borrador.
-                                    repsInputGeneration++
-                                    partialSets = listOf(result.partials.coerceAtLeast(0))
-                                    showPartialsMode = result.partials > 0
-                                }
-                            },
-                            onCorrect = onVideoCorrect,
-                            onMarkFailure = {
-                                if (sessionCompletedSet != null) onVideoMarkFailure()
-                                else effortScale.items.indexOfFirst { it.isFailure }.takeIf { it >= 0 }?.let(::onEffortSelected)
-                            },
-                            onOpenAnalysis = onOpenAnalysis,
-                        )
-                    }
                     EffortBlock()
 
                     if (exercise.trackRom) {
