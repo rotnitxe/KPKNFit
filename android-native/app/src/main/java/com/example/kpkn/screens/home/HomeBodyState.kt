@@ -5,6 +5,8 @@ import com.example.kpkn.data.models.BodyMetric
 import com.example.kpkn.data.models.BodyObservation
 import com.example.kpkn.domain.body.blendedTrendRate
 import com.example.kpkn.domain.body.bmi
+import com.example.kpkn.domain.body.bodyTrendChange
+import com.example.kpkn.domain.body.bodyWeightTrendSeries
 import com.example.kpkn.domain.body.bodyWeightTrendSnapshot
 import com.example.kpkn.domain.body.dailyMedianSeries
 import com.example.kpkn.domain.body.etaMonthText
@@ -48,6 +50,10 @@ data class HomeBodyState(
     val musclePct: Double? = null,
     val bmi: Double? = null,
     val ffmi: Double? = null,
+    /** Cambio por tendencia en la ventana de 30 días (kg): la tendencia de hoy menos la del primer día de la ventana; null sin tendencia. */
+    val trendChange30d: Double? = null,
+    /** [trendChange30d] acerca la tendencia al objetivo; null sin objetivo o sin cambio por tendencia. */
+    val trendChangeTowardGoal: Boolean? = null,
 )
 
 /**
@@ -81,6 +87,7 @@ internal fun homeBodyState(
     } else {
         null
     }
+    val trendChange = if (hasTrend) bodyTrendChange(bodyWeightTrendSeries(observations, zone, today), window.first().date) else null
     val latest = latestValidByMetric(observations)
     val bodyFat = latest[BodyMetric.BODY_FAT_PERCENT]?.valueSi
     val muscle = latest[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi
@@ -99,6 +106,12 @@ internal fun homeBodyState(
         bmi = bmi(weightKg, heightCm),
         ffmi = if (weightKg != null && bodyFat != null && heightCm != null) {
             calculateFFMI(heightCm, weightKg, bodyFat)?.normalizedFfmi
+        } else {
+            null
+        },
+        trendChange30d = trendChange,
+        trendChangeTowardGoal = if (goalKg != null && trendChange != null && snapshot != null) {
+            (goalKg - snapshot.trendKg) * trendChange > 0.0
         } else {
             null
         },

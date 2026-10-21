@@ -162,10 +162,12 @@ fun HomeBodyToday(
  */
 @Composable
 private fun BodyWeightBlock(state: HomeBodyState, weight: Double, shown: Float) {
-    val change = state.weightChange30d
+    // Con tendencia, el cambio y su color salen de la tendencia (la cifra de arriba); sin ella, del cambio de siempre.
+    val change = state.trendChange30d ?: state.weightChange30d
+    val toward = state.trendChangeTowardGoal ?: state.changeTowardGoal
     val tint = when {
         state.goalKg == null -> WizardColors.textMuted
-        state.changeTowardGoal -> WizardColors.done
+        toward -> WizardColors.done
         else -> WizardColors.danger
     }
     val trend = state.trendKg
