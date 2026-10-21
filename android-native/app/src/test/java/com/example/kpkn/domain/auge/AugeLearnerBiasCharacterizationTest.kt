@@ -17,6 +17,7 @@ import kotlin.math.max
  * Caracterización numérica del SESGO ACTUAL del aprendiz de τ (hallazgo F-10, P0-B) con los motores reales y el
  * arnés de usuarios sintéticos (paquete 0.3 de Rings v4). Documenta con números lo que el actualizador nuevo
  * (paquete 3.2, enchufado a la misma [SimLearner]) tendrá que batir. No cambia código de producción.
+ * 2.2b1 reevalúa la duración del log: los 39 resúmenes medidos mantienen los valores de la base.
  *
  * Ninguna prueba usa el reloj real: todo va con instantes explícitos y `ZoneId.of("UTC")`.
  */
