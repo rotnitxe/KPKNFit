@@ -290,6 +290,9 @@ interface NutritionDao {
     @Query("SELECT * FROM nutrition_checkins ORDER BY weekKey")
     suspend fun getAllCheckIns(): List<NutritionCheckInEntity>
 
+    @Query("SELECT * FROM nutrition_checkins ORDER BY weekKey")
+    fun observeCheckIns(): kotlinx.coroutines.flow.Flow<List<NutritionCheckInEntity>>
+
     @Query("SELECT * FROM nutrition_checkins WHERE weekKey = :weekKey LIMIT 1")
     suspend fun getCheckIn(weekKey: String): NutritionCheckInEntity?
 

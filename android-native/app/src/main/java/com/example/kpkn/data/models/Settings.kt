@@ -27,6 +27,8 @@ data class Settings(
      * elección persistida y reversible, y nunca borra los planes anteriores.
      */
     val nutritionTrackingOnly: Boolean = false,
+    /** Día elegido y módulos omitidos del check-in; JSON con valor por defecto, sin migración. */
+    val nutritionCheckin: com.example.kpkn.domain.nutrition.checkin.CheckinPreferences = com.example.kpkn.domain.nutrition.checkin.CheckinPreferences(),
     /**
      * ¿Compites? «Sí, sin fecha»: compite, pero aún no tiene la fecha. Inicio pide añadirla en las fechas clave del programa.
      * JSON con valor por defecto: sin migración de Room.

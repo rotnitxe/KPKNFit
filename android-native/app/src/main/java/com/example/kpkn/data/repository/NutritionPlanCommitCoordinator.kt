@@ -6,6 +6,7 @@ import com.example.kpkn.data.db.NutritionActiveStateEntity
 import com.example.kpkn.data.db.SetupCommitReceiptEntity
 import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.db.toSettings
+import com.example.kpkn.data.db.toNutritionPlan
 import com.example.kpkn.data.models.BodyGoal
 import com.example.kpkn.data.models.BodyMetric
 import com.example.kpkn.data.models.CalculationOrigin
@@ -56,6 +57,8 @@ data class NutritionPlanCommitRequest(
      * reemplaza solo si la fila de hoy es de OTRO plan.
      */
     val captureTodaySnapshot: Boolean = true,
+    /** Solo el check-in: comprueba la base exacta y fija hoy con el plan anterior, incluso sin snapshot previo. */
+    val preserveTodayFrom: NutritionPlan? = null,
 )
 
 /** Espejo de las metas del plan en `Settings` (0 legítimo se conserva). */
@@ -116,6 +119,13 @@ class NutritionPlanCommitCoordinator(
                     }
 
                     val currentSettings = db.settingsDao().get()?.toSettings() ?: Settings()
+                    request.preserveTodayFrom?.let { previous ->
+                        val current = db.nutritionDao().getAllPlans().firstOrNull { it.id == previous.id }?.toNutritionPlan()
+                        check(current == previous && request.plan?.id == previous.id &&
+                            db.nutritionDao().getActiveState()?.activePlanId == previous.id && !currentSettings.nutritionTrackingOnly) {
+                            "El plan cambió. Revisa de nuevo la propuesta."
+                        }
+                    }
                     val withMode = currentSettings.copy(nutritionTrackingOnly = request.trackingOnly)
                     val updatedSettings = request.settingsGoalMirror?.let { mirror ->
                         withMode.copy(
@@ -156,11 +166,10 @@ class NutritionPlanCommitCoordinator(
                         // distinto el mismo día cambia la meta de hoy). Los días
                         // pasados jamás se reescriben.
                         val today = LocalDate.now()
-                        val target = planDayTargetForDate(request.plan, today, NutritionGoalSource.PLAN_FORECAST)
-                        db.nutritionDao().pinTodayGoalSnapshot(
-                            dailyGoalSnapshotOf(target, today, System.currentTimeMillis()).toEntity(),
-                            today.toString(),
-                        )
+                        val target = planDayTargetForDate(request.preserveTodayFrom ?: request.plan, today, NutritionGoalSource.PLAN_FORECAST)
+                        val snapshot = dailyGoalSnapshotOf(target, today, System.currentTimeMillis()).toEntity()
+                        if (request.preserveTodayFrom != null) db.nutritionDao().insertDailyGoalSnapshot(snapshot)
+                        else db.nutritionDao().pinTodayGoalSnapshot(snapshot, today.toString())
                     }
 
                     request.pendingDraftId?.let { db.setupDraftDao().deleteDraft(it) }
