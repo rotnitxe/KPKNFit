@@ -2,6 +2,7 @@ package com.example.kpkn.screens.sessioneditor.frame
 
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
+import com.example.kpkn.screens.sessioneditor.SessionRoadmapOption
 
 /** Tono del anillo de tiempo de la barra: `ok` por debajo del 85 %, Energía hasta el 108 % y `danger` por encima (E21 del original). */
 internal enum class FrameRingTone { NEUTRAL, OK, ENERGIA, DANGER }
@@ -67,6 +68,20 @@ internal fun frameDayLabel(day: Int?, sessionName: String): String {
     return if (day == null) name else "${com.example.kpkn.screens.sessioneditor.sessionEditorDayLabelShort(day)} · $name"
 }
 
+/**
+ * Texto de la píldora del centro (ED-A · A1): «Jue · Semana 3». Sin número de semana, solo el día; sin día, el nombre de la sesión. El
+ * nombre de la sesión ya está en el título de la cabecera, así que no se repite aquí.
+ */
+internal fun frameDayWeekLabel(day: Int?, weekNumber: Int?, sessionName: String): String {
+    if (day == null) return sessionName.ifBlank { "Sesión" }
+    val dayLabel = com.example.kpkn.screens.sessioneditor.sessionEditorDayLabelShort(day)
+    return if (weekNumber != null && weekNumber > 0) "$dayLabel · Semana $weekNumber" else dayLabel
+}
+
+/** Número de la semana abierta (la primera es la 1) según la ruta del programa, o nulo si no se conoce. */
+internal fun frameWeekNumber(options: List<SessionRoadmapOption>, currentWeekId: String): Int? =
+    options.firstOrNull { it.weekId == currentWeekId && it.weekId.isNotBlank() }?.let { it.weekIndex + 1 }
+
 /** Nombre de una variante en el menú: A es «Original»; B, C y D toman el nombre de su sesión. */
 internal fun frameVariantName(session: Session, variant: WeekVariant): String = when (variant) {
     WeekVariant.A -> "Original"
@@ -83,11 +98,21 @@ internal fun nextFreeVariant(available: List<WeekVariant>): WeekVariant? =
  * Línea de resumen de la cabecera: «7 ejercicios · 22 series · ≈ 54 min». Sin ejercicios, lo dice. Sin minutos, no los nombra. Las
  * unidades van con espacio duro, como manda la piel.
  */
-internal fun sessionFrameSummary(exercises: Int, sets: Int, minutes: Int?): String {
-    if (exercises <= 0) return "Sin ejercicios"
+internal fun sessionFrameSummary(exercises: Int, sets: Int, minutes: Int?): String =
+    sessionFrameSummaryChips(exercises = exercises, sets = sets, minutes = minutes).joinToString(" · ")
+
+/**
+ * Las fichas del resumen de la cabecera (ED-A · A1): «5 ejercicios · 14 series» y «≈ 58 min», cada una en su ficha. Sin
+ * ejercicios, una sola ficha que lo dice. Con [showSets] en falso (una sesión solo de cardio) no se cuentan series: «2 ejercicios». Las
+ * unidades van con espacio duro, como manda la piel.
+ */
+internal fun sessionFrameSummaryChips(exercises: Int, sets: Int, minutes: Int?, showSets: Boolean = true): List<String> {
+    if (exercises <= 0) return listOf("Sin ejercicios")
     val exerciseWord = if (exercises == 1) "ejercicio" else "ejercicios"
     val setWord = if (sets == 1) "serie" else "series"
-    val parts = mutableListOf("$exercises $exerciseWord", "$sets $setWord")
-    if (minutes != null && minutes > 0) parts += "≈ $minutes min"
-    return parts.joinToString(" · ")
+    val first = if (showSets) "$exercises $exerciseWord · $sets $setWord" else "$exercises $exerciseWord"
+    return buildList {
+        add(first)
+        if (minutes != null && minutes > 0) add("≈ $minutes min")
+    }
 }

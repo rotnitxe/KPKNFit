@@ -28,8 +28,10 @@ import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
 import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorCard
 import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorEmptyState
 import com.example.kpkn.screens.sessioneditor.components.SupersetGroupEditorCard
+import com.example.kpkn.screens.sessioneditor.design.SessionEditorDashedAddButton
 import com.example.kpkn.screens.sessioneditor.design.SessionExerciseUndoNotice
 import com.example.kpkn.screens.sessioneditor.design.SessionGroupLabel
 import com.example.kpkn.screens.sessioneditor.design.SessionModuleEdge
@@ -435,12 +437,11 @@ internal fun SessionEditorListItem(
                             leadingIcon = KpknLineIcons.Plus,
                         )
                     } else {
-                        KpknTextAction(
-                            text = "Añadir ejercicio a $displayName",
+                        // ED-A · A1: el recuadro de trazos de Main, «+ Añadir a Principal».
+                        SessionEditorDashedAddButton(
+                            text = "Añadir a $displayName",
                             onClick = { viewModel.openPicker(part.id) },
-                            // ER1f: alineado con el contenido del módulo (16 dp), no pegado a su borde.
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            leadingIcon = KpknLineIcons.Plus,
+                            modifier = Modifier.padding(start = 14.dp, end = 14.dp, top = 6.dp, bottom = 12.dp),
                         )
                     }
                 }
@@ -531,14 +532,21 @@ internal fun SessionEditorListItem(
         }
 
         is SessionListItem.CardioDivider -> {
+            // «CARDIO · AL FINAL ——— Mover al inicio», como en Main (ED-A · A1); sin los dos espacios, solo «CARDIO».
             SessionGroupLabel(
-                label = "CARDIO",
+                label = if (listItem.canMove) {
+                    if (listItem.showCardioFirst) "CARDIO · AL INICIO" else "CARDIO · AL FINAL"
+                } else {
+                    "CARDIO"
+                },
                 moveLabel = if (listItem.canMove) {
                     if (listItem.showCardioFirst) "Mover al final" else "Mover al inicio"
                 } else {
                     null
                 },
                 onMove = viewModel::toggleCardioPlacement,
+                accent = SymbolPalette.columna,
+                showRule = true,
             )
         }
 

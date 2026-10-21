@@ -95,6 +95,9 @@ import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameWeekSheet
 import com.example.kpkn.screens.sessioneditor.frame.adjacentWeekDay
 import com.example.kpkn.screens.sessioneditor.frame.frameDayIndex
 import com.example.kpkn.screens.sessioneditor.frame.frameDayLabel
+import com.example.kpkn.screens.sessioneditor.frame.frameDayWeekLabel
+import com.example.kpkn.screens.sessioneditor.frame.frameWeekNumber
+import com.example.kpkn.screens.sessioneditor.frame.sessionFrameSummaryChips
 import com.example.kpkn.screens.sessioneditor.frame.frameVariantName
 import com.example.kpkn.screens.sessioneditor.frame.frameWeekOrder
 import com.example.kpkn.screens.sessioneditor.frame.neighbourSessionDay
@@ -657,10 +660,12 @@ fun SessionEditorScreen(
             breakdownMinutes = uiState.sessionTimeBreakdown?.totalMinutes,
             fallbackMinutes = uiState.estimatedDurationMinutes,
         )
-        val summary = sessionFrameSummary(
+        // Una sesión solo de cardio no cuenta series (ED-A · A2b): «2 ejercicios · ≈ 42 min».
+        val summaryChips = sessionFrameSummaryChips(
             exercises = allExercisesForUi.size,
             sets = session.workingSetCount(),
             minutes = timeMinutes,
+            showSets = !(allExercisesForUi.isNotEmpty() && allExercisesForUi.all { it.isCardio }),
         )
 
         // Cambio de día: el contenido nuevo entra deslizándose desde el lado del día (220 ms); con movimiento reducido, un fundido.
@@ -703,7 +708,16 @@ fun SessionEditorScreen(
 
         Column(modifier = Modifier.fillMaxSize()) {
             SessionEditorFrameTopBar(
-                dayLabel = frameDayLabel(currentDay, session.name),
+                dayLabel = frameDayWeekLabel(
+                    day = currentDay,
+                    // Solo se nombra la semana si el programa las distingue (varias semanas, o una simple con bucles).
+                    weekNumber = if (uiState.roadmapOptions.size > 1 || (uiState.isSimpleProgram && uiState.hasActiveLoops)) {
+                        frameWeekNumber(uiState.roadmapOptions, uiState.weekId)
+                    } else {
+                        null
+                    },
+                    sessionName = session.name,
+                ),
                 forward = slideForward,
                 canGoPrevious = previousDay != null,
                 canGoNext = nextDay != null,
@@ -744,7 +758,7 @@ fun SessionEditorScreen(
                             name = session.name,
                             description = session.description.orEmpty(),
                             protocolLabel = uiState.protocolLabel,
-                            summary = summary,
+                            summaryChips = summaryChips,
                             onNameChange = viewModel::updateSessionName,
                             onDescriptionChange = viewModel::updateSessionDescription,
                             onDaySwipe = ::swipeToAdjacentDay,
@@ -799,7 +813,9 @@ fun SessionEditorScreen(
             limitMinutes = session.targetDurationMinutes,
             onAdd = { viewModel.openPickerForUncategorized() },
             onAssistant = ::openAssistantSheet,
-            onRules = { viewModel.openRulesSheet(initialTab = 1) },
+            // ED-A · A1: el anillo del tiempo abre la pestaña de tiempo; «Reglas», la de reglas.
+            onRules = { viewModel.openRulesSheet(initialTab = 0) },
+            onTime = { viewModel.openRulesSheet(initialTab = 1) },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
