@@ -22,7 +22,7 @@ object AugeAdaptiveEngine {
      *
      * remaining_fraction = (100 - actualBattery) / (100 - initialDepletion)
      * k = -ln(remaining_fraction) / effectiveHours
-     * tau = 2.9957 / k
+     * tau = AugeParameters.TAU_K_95 / k
      */
     private fun deriveImpliedRecoveryTime(obs: RecoveryLearningObservation): Double? {
         if (obs.hoursSinceSession < MIN_HOURS_FOR_TAU_LEARNING) return null
@@ -43,7 +43,7 @@ object AugeAdaptiveEngine {
         val k = -ln(remainingFraction) / effectiveHours
         if (k <= 0) return null
 
-        val impliedTau = 2.9957 / k
+        val impliedTau = AugeParameters.TAU_K_95 / k
         return clamp(impliedTau, 6.0, 200.0)
     }
 
@@ -97,7 +97,7 @@ object AugeAdaptiveEngine {
         val newCnsTau = if (cnsObservation != null) {
             val impliedCns = deriveImpliedRecoveryTime(cnsObservation)
             if (impliedCns != null) {
-                val base = currentCnsTau ?: 36.0
+                val base = currentCnsTau ?: AugeParameters.DEFAULT_TAU_ENERGY_H
                 base * (1.0 - alpha) + capObservationTau(impliedCns, base) * alpha
             } else currentCnsTau
         } else currentCnsTau
@@ -105,7 +105,7 @@ object AugeAdaptiveEngine {
         val newSpinalTau = if (spinalObservation != null) {
             val impliedSpinal = deriveImpliedRecoveryTime(spinalObservation)
             if (impliedSpinal != null) {
-                val base = currentSpinalTau ?: 52.0
+                val base = currentSpinalTau ?: AugeParameters.DEFAULT_TAU_SPINAL_H
                 base * (1.0 - alpha) + capObservationTau(impliedSpinal, base) * alpha
             } else currentSpinalTau
         } else currentSpinalTau
@@ -117,35 +117,8 @@ object AugeAdaptiveEngine {
     }
 
     /**
-     * Population default recovery hours per muscle (same as Python backend).
+     * τ base (horas) de [muscle] para quien aún no tiene uno aprendido: el mismo que usa el motor, es decir el de su perfil
+     * en [AugeParameters] (48 h si no tiene perfil). Antes era una tabla propia que daba 48 h a los músculos que no son pilares.
      */
-    fun defaultRecoveryHours(muscle: String): Double {
-        val key = muscle.lowercase().trim()
-        val normalized = key.replace("á","a").replace("é","e").replace("í","i")
-            .replace("ó","o").replace("ú","u")
-
-        return when (normalized) {
-            "biceps" -> 24.0
-            "triceps" -> 24.0
-            "deltoides" -> 24.0
-            "deltoides anterior" -> 24.0
-            "deltoides lateral" -> 24.0
-            "deltoides posterior" -> 24.0
-            "pantorrillas" -> 24.0
-            "abdomen" -> 24.0
-            "antebrazo" -> 24.0
-            "pectorales" -> 48.0
-            "dorsales" -> 48.0
-            "hombros" -> 48.0
-            "trapecio" -> 48.0
-            "aductores" -> 48.0
-            "core" -> 48.0
-            "cuadriceps" -> 72.0
-            "gluteos" -> 72.0
-            "isquiosurales" -> 96.0
-            "erectores espinales" -> 96.0
-            "cuello" -> 48.0
-            else -> 48.0
-        }
-    }
+    fun defaultRecoveryHours(muscle: String): Double = AugeParameters.baseTauHours(muscle)
 }

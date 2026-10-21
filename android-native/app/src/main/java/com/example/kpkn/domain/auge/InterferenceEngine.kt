@@ -22,20 +22,20 @@ import kotlin.math.min
  */
 object InterferenceEngine {
 
-    // Media-vida de recuperación muscular (horas) — alineado con MUSCLE_PROFILE_MAP
-    private val MUSCLE_HALF_LIFE: Map<String, Double> = mapOf(
-        // fast: 24h
-        "Bíceps" to 24.0, "Tríceps" to 24.0, "Deltoides" to 24.0,
-        "Deltoides Anterior" to 24.0, "Deltoides Lateral" to 24.0, "Deltoides Posterior" to 24.0,
-        "Pantorrillas" to 24.0, "Abdomen" to 24.0, "Antebrazo" to 24.0,
-        // medium: 48h
-        "Pectorales" to 48.0, "Dorsales" to 48.0, "Hombros" to 48.0, "Trapecio" to 48.0,
-        "Core" to 48.0, "Aductores" to 48.0, "Cuello" to 48.0,
-        // slow: 72h
-        "Cuádriceps" to 72.0, "Glúteos" to 72.0,
-        // heavy: 96h
-        "Isquiosurales" to 96.0, "Erectores Espinales" to 96.0,
-    )
+    // Media-vida de recuperación muscular (horas): el τ base del registro (AugeParameters) para los músculos que esta pantalla conoce
+    private val MUSCLE_HALF_LIFE: Map<String, Double> = listOf(
+        // perfil fast
+        "Bíceps", "Tríceps", "Deltoides",
+        "Deltoides Anterior", "Deltoides Lateral", "Deltoides Posterior",
+        "Pantorrillas", "Abdomen", "Antebrazo",
+        // perfil medium
+        "Pectorales", "Dorsales", "Hombros", "Trapecio",
+        "Core", "Aductores", "Cuello",
+        // perfil slow
+        "Cuádriceps", "Glúteos",
+        // perfil heavy
+        "Isquiosurales", "Erectores Espinales",
+    ).associateWith { AugeParameters.baseTauHours(it) }
 
     private const val MAX_HOURS_APART = 96.0
 
@@ -453,7 +453,7 @@ object InterferenceEngine {
 
             if (drainA < MIN_RESIDUAL_THRESHOLD || usageB < MIN_USAGE_THRESHOLD) return@forEach
 
-            val halfLife = MUSCLE_HALF_LIFE[muscle] ?: 48.0
+            val halfLife = MUSCLE_HALF_LIFE[muscle] ?: AugeParameters.TAU_MEDIUM_H
             // Fatiga residual al momento de la sesión B: decay exponencial
             val residualFatigue = drainA * exp(-ln(2.0) / halfLife * hoursApart)
 

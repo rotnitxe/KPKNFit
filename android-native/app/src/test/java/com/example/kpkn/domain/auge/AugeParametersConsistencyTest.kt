@@ -1,12 +1,25 @@
 package com.example.kpkn.domain.auge
 
+import com.example.kpkn.data.models.CardioDetails
+import com.example.kpkn.data.models.CardioType
+import com.example.kpkn.data.models.CompletedExercise
+import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.DailyWellbeingLog
+import com.example.kpkn.data.models.InitialRecoveryEvidenceFactory
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WorkoutLog
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 import java.time.Instant
+import java.time.ZoneId
+import java.util.Locale
+import kotlin.math.abs
 import kotlin.math.exp
+import kotlin.math.ln
+import kotlin.math.max
+import kotlin.math.pow
 
 /**
  * WP 2.1 (F-61): cada parámetro numérico del modelo de recuperación (τ por perfil y por pilar, C por canal, τ por defecto de
@@ -17,7 +30,60 @@ import kotlin.math.exp
  */
 class AugeParametersConsistencyTest {
 
-    // ─── (a) τ por músculo: lo que usa el motor ───────────────────────────────
+    // ─── El registro: valores, versión y alias ────────────────────────────────
+
+    @Test
+    fun elRegistroFijaLosValoresDelModelo() {
+        assertEquals(1, AugeParameters.VERSION)
+        assertEquals(24.0, AugeParameters.TAU_FAST_H, 0.0)
+        assertEquals(48.0, AugeParameters.TAU_MEDIUM_H, 0.0)
+        assertEquals(72.0, AugeParameters.TAU_SLOW_H, 0.0)
+        assertEquals(96.0, AugeParameters.TAU_HEAVY_H, 0.0)
+        assertEquals(90.0, AugeParameters.C_MUSCLE, 0.0)
+        assertEquals(75.0, AugeParameters.C_ENERGY, 0.0)
+        assertEquals(70.0, AugeParameters.C_SPINAL, 0.0)
+        assertEquals(36.0, AugeParameters.DEFAULT_TAU_ENERGY_H, 0.0)
+        assertEquals(52.0, AugeParameters.DEFAULT_TAU_SPINAL_H, 0.0)
+        assertEquals(48.0, AugeParameters.DEFAULT_TAU_GLOBAL_MUSCLE_H, 0.0)
+        assertEquals(K95_ESPERADA, AugeParameters.TAU_K_95, 0.0)
+        assertEquals("2,9957 es ln 20 redondeado a 4 decimales", ln(20.0), AugeParameters.TAU_K_95, 1e-4)
+        assertEquals(18.0, AugeParameters.TAU_MIN_H, 0.0)
+        assertEquals(144.0, AugeParameters.TAU_MAX_H, 0.0)
+        assertEquals(
+            mapOf("fast" to 24.0, "medium" to 48.0, "slow" to 72.0, "heavy" to 96.0),
+            AugeParameters.PROFILE_TAU_HOURS,
+        )
+    }
+
+    @Test
+    fun losNombresHeredadosSonAliasDelRegistro() {
+        assertEquals(AugeParameters.TAU_K_95, AugeUtils.TAU_K_95, 0.0)
+        assertEquals(AugeParameters.C_MUSCLE, InitialRecoveryV2Model.C_MUSCLE, 0.0)
+        assertEquals(AugeParameters.C_ENERGY, InitialRecoveryV2Model.C_ENERGY, 0.0)
+        assertEquals(AugeParameters.C_SPINAL, InitialRecoveryV2Model.C_SPINAL, 0.0)
+        assertEquals(AugeParameters.DEFAULT_TAU_ENERGY_H, InitialRecoveryV2Model.TAU_ENERGY_HOURS, 0.0)
+        assertEquals(AugeParameters.DEFAULT_TAU_SPINAL_H, InitialRecoveryV2Model.TAU_SPINAL_HOURS, 0.0)
+        assertEquals(AugeParameters.DEFAULT_TAU_GLOBAL_MUSCLE_H, InitialRecoveryV2Model.TAU_GLOBAL_MUSCLE_HOURS, 0.0)
+    }
+
+    @Test
+    fun laVersionTieneUnaLineaDeKdocQueDiceCuandoSubirla() {
+        val fuente = File(raizDeFuentes(), "domain/auge/AugeParameters.kt").readText(Charsets.UTF_8)
+        val kdoc = Regex("""/\*\*[^*]*[Ss]úbela[^*]*cambie[^*]*\*/\s*const val VERSION""")
+        assertTrue("Falta el KDoc de VERSION con la regla «súbela cuando cambie …»", kdoc.containsMatchIn(fuente))
+    }
+
+    // ─── (a) τ por músculo ────────────────────────────────────────────────────
+
+    @Test
+    fun lasTablasDeTauPorPilarCoincidenConLaTablaEscritaAMano() {
+        assertEquals(TAU_ESPERADO_POR_PILAR, AugeParameters.PILLAR_TAU_HOURS)
+        assertEquals(TAU_ESPERADO_POR_PILAR, InitialRecoveryV2Model.PILLAR_TAU_HOURS)
+        for ((pilar, tau) in TAU_ESPERADO_POR_PILAR) {
+            assertEquals("baseTauHours($pilar)", tau, AugeParameters.baseTauHours(pilar), 0.0)
+            assertEquals("defaultRecoveryHours($pilar)", tau, AugeAdaptiveEngine.defaultRecoveryHours(pilar.lowercase()), 0.0)
+        }
+    }
 
     @Test
     fun elMotorUsaElTauDelPerfilEnLosCuarentaMusculosConPerfil() {
@@ -54,6 +120,219 @@ class AugeParametersConsistencyTest {
             }
         }
         assertTrue("τ del motor distinto de la tabla del plan (${fallos.size}): $fallos", fallos.isEmpty())
+    }
+
+    @Test
+    fun profileOfYBaseTauHoursSiguenLaReglaDelMotorDeAntes() {
+        val nombres = PERFIL_DEL_MOTOR_ANTES.map { it.first } +
+            listOf("Gluteo Mayor", "Soleo", "BICEPS", "  pectorales  ", "cuadriceps", "Tibial Anterior", "Hombro", "Foo", "")
+        for (nombre in nombres) {
+            assertEquals("profileOf(«$nombre»)", perfilDeAntes(nombre), AugeParameters.profileOf(nombre))
+            assertEquals("baseTauHours(«$nombre»)", tauDeAntes(nombre), AugeParameters.baseTauHours(nombre), 0.0)
+        }
+        assertEquals(PERFIL_DEL_MOTOR_ANTES.map { it.first }, AugeParameters.PROFILED_MUSCLES)
+    }
+
+    @Test
+    fun losTrecePilaresYLasGuardasSonUnaSolaListaEnElMismoOrden() {
+        assertEquals(PILARES_EN_ORDEN, AugeParameters.PILLARS)
+        assertEquals(PILARES_EN_ORDEN, AugeRecoveryEngine.pillarMuscles)
+        assertEquals(PILARES_EN_ORDEN, InitialRecoveryEvidenceFactory.INITIAL_RECOVERY_MUSCLE_PILLARS)
+        assertEquals(PILARES_EN_ORDEN, AugeParameters.PILLAR_TAU_HOURS.keys.toList())
+        assertEquals(listOf("Erectores Espinales", "Dorsales", "Trapecio"), AugeParameters.SPINE_GUARD_MUSCLES)
+        assertEquals(AugeParameters.SPINE_GUARD_MUSCLES, AugeRecoveryEngine.SPINE_GUARD_MUSCLES)
+    }
+
+    @Test
+    fun elConjuntoCompletoDeBateriasPorMusculoNoCambia() {
+        // Los 13 pilares y, después, el pilar de cada músculo con perfil, sin repetir: lo que arma BATTERY_MUSCLES.
+        val esperado = (PILARES_EN_ORDEN + PERFIL_DEL_MOTOR_ANTES.map { getAugeMusclePillarId(it.first) }).distinct()
+        val real = AugeRecoveryEngine.getPerMuscleBatteries(
+            history = emptyList(), wellbeing = null, settings = Settings(),
+            nowOverrideMs = ORIGEN, zone = ZoneId.of("UTC"),
+        ).keys.toList()
+        assertEquals(esperado, real)
+        assertEquals(PILARES_EN_ORDEN, real.take(PILARES_EN_ORDEN.size))
+    }
+
+    @Test
+    fun laMediaVidaDeInterferenciaSeDerivaDelRegistroSinCambiarSusValores() {
+        val campo = InterferenceEngine::class.java.getDeclaredField("MUSCLE_HALF_LIFE").apply { isAccessible = true }
+        @Suppress("UNCHECKED_CAST")
+        val real = campo.get(null) as Map<String, Double>
+        assertEquals(MEDIA_VIDA_ANTES.keys.toList(), real.keys.toList())
+        assertEquals(MEDIA_VIDA_ANTES, real)
+        for ((musculo, horas) in real) {
+            assertEquals("media vida de $musculo", AugeParameters.baseTauHours(musculo), horas, 0.0)
+        }
+    }
+
+    @Test
+    fun lasDiferenciasDelAprendizSonExactamenteLasDeclaradas() {
+        // Antes defaultRecoveryHours daba 48 h a los músculos que no eran pilares; ahora da el τ del motor.
+        val cambian = PERFIL_DEL_MOTOR_ANTES.map { it.first }.filter { musculo ->
+            aprendizDeAntes(musculo) != AugeAdaptiveEngine.defaultRecoveryHours(musculo.lowercase())
+        }
+        assertEquals(DIFERENCIAS_DEL_APRENDIZ.keys.toList(), cambian)
+        for ((musculo, antesYDespues) in DIFERENCIAS_DEL_APRENDIZ) {
+            assertEquals("antes, $musculo", antesYDespues.first, aprendizDeAntes(musculo), 0.0)
+            assertEquals("después, $musculo", antesYDespues.second, AugeAdaptiveEngine.defaultRecoveryHours(musculo.lowercase()), 0.0)
+        }
+
+        // El aprendiz recibe ids de pilar (PerformanceTauLearner y las baterías por músculo): lo que puede ver es el conjunto
+        // de BATTERY_MUSCLES. De los once músculos afectados solo «Costales» es su propio id; los otros diez se resuelven a un
+        // pilar cuyo τ no cambia.
+        val queVe = (PILARES_EN_ORDEN + PERFIL_DEL_MOTOR_ANTES.map { getAugeMusclePillarId(it.first) }).toSet()
+        val alcanzables = cambian.filter { it in queVe }
+        assertEquals(listOf("Costales"), alcanzables)
+        for (musculo in cambian - alcanzables.toSet()) {
+            val pilar = getAugeMusclePillarId(musculo)
+            assertEquals(
+                "el pilar $pilar de $musculo conserva su τ",
+                aprendizDeAntes(pilar),
+                AugeAdaptiveEngine.defaultRecoveryHours(pilar.lowercase()),
+                0.0,
+            )
+        }
+    }
+
+    // ─── (b) C y τ por defecto de cada canal ──────────────────────────────────
+
+    @Test
+    fun elMusculoUsaCMuscleYElTauDelPerfilEnVariasHoras() {
+        val fallos = mutableListOf<String>()
+        for ((pilar, tau) in TAU_ESPERADO_POR_PILAR) {
+            for (horas in HORAS_DE_PRUEBA) {
+                val mano = bateriaRealMusculo(ESTRES, horas.toDouble(), tau, AugeParameters.C_MUSCLE, AugeParameters.TAU_K_95)
+                val motor = puntuacionMusculo(pilar, horas)
+                if (abs(motor - mano) > TOLERANCIA) fallos += "$pilar a $horas h: motor $motor, a mano ${fmt(mano)}"
+            }
+        }
+        assertTrue("El músculo se aparta de 100·exp(−R/C) (${fallos.size}): $fallos", fallos.isEmpty())
+        // Sensibilidad: con otra C o con otro τ el resultado a mano cambiaría en más de un punto; si no, la prueba no distingue.
+        val c = AugeParameters.C_MUSCLE
+        assertTrue(abs(bateriaRealMusculo(ESTRES, 0.0, 48.0, c * 1.2) - bateriaRealMusculo(ESTRES, 0.0, 48.0, c)) > 1.0)
+        assertTrue(abs(bateriaRealMusculo(ESTRES, 24.0, 60.0, c) - bateriaRealMusculo(ESTRES, 24.0, 48.0, c)) > 1.0)
+    }
+
+    @Test
+    fun lasHorasParaRecuperarseDelMusculoUsanCMuscle() {
+        // Pectorales (τ 48 h) recién entrenados: carga residual 750; el objetivo (90 % de batería) es −C·ln 0,9 · capacidad / 100.
+        val estado = AugeRecoveryEngine.calculateMuscleBattery(
+            muscleName = "Pectorales", history = listOf(sesionV2("Pectorales", ESTRES)), wellbeing = null,
+            settings = Settings(), precomputedCapacity = CAPACIDAD, nowOverride = ORIGEN,
+        )
+        fun horasAMano(c: Double): Int {
+            val objetivo = -c * ln(0.9) * CAPACIDAD / 100.0
+            val k = AugeParameters.TAU_K_95 / AugeParameters.baseTauHours("Pectorales")
+            return max(0.0, -ln(objetivo / ESTRES) / k).toInt()
+        }
+        assertEquals(horasAMano(AugeParameters.C_MUSCLE), estado.hoursToRecovery)
+        assertTrue(horasAMano(AugeParameters.C_MUSCLE * 1.2) != horasAMano(AugeParameters.C_MUSCLE))
+    }
+
+    @Test
+    fun laEnergiaUsaCEnergyYElTauPorDefectoEnVariasHoras() {
+        for (horas in HORAS_DE_PRUEBA) {
+            val motor = AugeRecoveryEngine.calculateSystemicFatigue(
+                history = historiaDeCarreras(), wellbeing = null, settings = Settings(), nowOverride = ORIGEN + horas * HORA_MS,
+            ).first
+            assertCercano("Energía a $horas h", motor, energiaAMano(horas.toDouble()))
+        }
+        assertTrue("A 0 h la Energía debe estar lejos de 100 y del piso", energiaAMano(0.0) in 40.0..90.0)
+        val c = AugeParameters.C_ENERGY
+        val tau = AugeParameters.DEFAULT_TAU_ENERGY_H
+        assertTrue(abs(energiaAMano(0.0, c = c * 1.2) - energiaAMano(0.0)) > 1.0)
+        assertTrue(abs(energiaAMano(24.0, tau = tau * 1.25) - energiaAMano(24.0)) > 1.0)
+    }
+
+    @Test
+    fun laColumnaUsaCSpinalYElTauPorDefectoEnVariasHoras() {
+        for (horas in HORAS_DE_PRUEBA) {
+            val motor = AugeRecoveryEngine.calculateSpinalBattery(
+                history = historiaDeCarreras(), wellbeing = null, settings = Settings(), nowOverride = ORIGEN + horas * HORA_MS,
+            )
+            assertCercano("Columna a $horas h", motor, columnaAMano(horas.toDouble()))
+        }
+        assertTrue("A 0 h la Columna debe estar lejos de 100 y del piso", columnaAMano(0.0) in 40.0..90.0)
+        val c = AugeParameters.C_SPINAL
+        val tau = AugeParameters.DEFAULT_TAU_SPINAL_H
+        assertTrue(abs(columnaAMano(0.0, c = c * 1.2) - columnaAMano(0.0)) > 1.0)
+        assertTrue(abs(columnaAMano(24.0, tau = tau * 1.25) - columnaAMano(24.0)) > 1.0)
+    }
+
+    @Test
+    fun laLeyDeAnclaConservaElValorYUsaElTauPorDefectoDeCadaCanal() {
+        // Con ancla, batería(t) = 100·(ancla/100)^d(t): C se cancela entre la inversión y la ley directa, así que a 0 h
+        // devuelve el valor anclado solo si ambas copias de C son la misma; a más horas manda el τ por defecto del canal.
+        val ancla = 60
+        val bienestar = DailyWellbeingLog(
+            id = "ancla", date = "2026-09-12",
+            manualNeuralBattery = ancla, manualSpinalBattery = ancla,
+            manualMuscleBatteries = mapOf("Pectorales" to ancla),
+            manualBatteryAnchorMs = ORIGEN,
+        )
+        val k95 = AugeParameters.TAU_K_95
+        fun ley(restante: Double): Double = 100.0 * (ancla / 100.0).pow(restante)
+        fun energia(h: Double, tau: Double = AugeParameters.DEFAULT_TAU_ENERGY_H) = ley(exp(-k95 / tau * h))
+        fun columna(h: Double, tau: Double = AugeParameters.DEFAULT_TAU_SPINAL_H) =
+            ley(exp(-k95 / tau * AugeUtils.getSpinalRecoveryHours(h)))
+        fun musculo(h: Double, tau: Double = AugeParameters.baseTauHours("Pectorales")) =
+            ley(exp(-k95 / tau * AugeUtils.getSigmoidalHours(h)))
+
+        for (horas in HORAS_DE_PRUEBA) {
+            val ahora = ORIGEN + horas * HORA_MS
+            val h = horas.toDouble()
+            assertCercano(
+                "Energía anclada a $horas h",
+                AugeRecoveryEngine.calculateSystemicFatigue(
+                    history = emptyList(), wellbeing = bienestar, settings = Settings(), nowOverride = ahora,
+                ).first,
+                energia(h),
+            )
+            assertCercano(
+                "Columna anclada a $horas h",
+                AugeRecoveryEngine.calculateSpinalBattery(
+                    history = emptyList(), wellbeing = bienestar, settings = Settings(), nowOverride = ahora,
+                ),
+                columna(h),
+            )
+            assertCercano(
+                "Músculo anclado a $horas h",
+                AugeRecoveryEngine.calculateMuscleBattery(
+                    muscleName = "Pectorales", history = emptyList(), wellbeing = bienestar, settings = Settings(),
+                    precomputedCapacity = CAPACIDAD, nowOverride = ahora,
+                ).recoveryScore,
+                musculo(h),
+            )
+        }
+        assertTrue(abs(energia(24.0, tau = AugeParameters.DEFAULT_TAU_ENERGY_H * 1.25) - energia(24.0)) > 1.0)
+        assertTrue(abs(columna(24.0, tau = AugeParameters.DEFAULT_TAU_SPINAL_H * 1.25) - columna(24.0)) > 1.0)
+        assertTrue(abs(musculo(24.0, tau = 60.0) - musculo(24.0)) > 1.0)
+    }
+
+    @Test
+    fun elAnclaDelAnilloMuscularGlobalUsaElTauPorDefectoDelRegistro() {
+        // Sin τ aprendidos, el ajuste manual del anillo muscular decae con DEFAULT_TAU_GLOBAL_MUSCLE_H y el warp muscular.
+        val ancla = 35
+        val bienestar = DailyWellbeingLog(
+            id = "ancla-global", date = "2026-09-12", manualMuscularBattery = ancla, manualBatteryAnchorMs = ORIGEN,
+        )
+        val k95 = AugeParameters.TAU_K_95
+        // El anillo muscular manual no pasa por la desaceleración ni por el ACWR: batería = 100 − (100 − ancla)·exp(−k·warp(h)).
+        fun anilloAMano(horas: Double, tau: Double = AugeParameters.DEFAULT_TAU_GLOBAL_MUSCLE_H): Double =
+            100.0 - (100.0 - ancla) * exp(-k95 / tau * AugeUtils.getSigmoidalHours(horas))
+        val fallos = mutableListOf<String>()
+        for (horas in HORAS_DE_PRUEBA) {
+            val global = AugeRecoveryEngine.calculateGlobalBatteries(
+                history = emptyList(), wellbeing = bienestar, settings = Settings(),
+                precomputedMuscles = emptyMap(), nowOverrideMs = ORIGEN + horas * HORA_MS,
+            ).muscular
+            val mano = anilloAMano(horas.toDouble())
+            if (abs(global - mano) > TOLERANCIA) fallos += "a $horas h: anillo $global, a mano ${fmt(mano)}"
+        }
+        assertTrue("El anillo muscular manual se aparta de su ley (${fallos.size}): $fallos", fallos.isEmpty())
+        assertTrue(abs(anilloAMano(24.0, tau = AugeParameters.DEFAULT_TAU_GLOBAL_MUSCLE_H * 1.25) - anilloAMano(24.0)) > 1.0)
     }
 
     // ─── (c) guarda estructural: ningún parámetro del modelo fuera del registro ─
@@ -162,15 +441,103 @@ class AugeParametersConsistencyTest {
             nowOverride = ORIGEN + horas * HORA_MS,
         ).recoveryScore
 
-    /** Batería REAL (Double) del músculo con la fórmula del motor: `100·exp(−R/C)`, R = % de fatiga restante (como `BatteryRoundingTest`). */
-    private fun bateriaRealMusculo(estres: Double, horas: Double, tau: Double, c: Double = C_MUSCULO_ESPERADA): Double {
-        val k = AugeUtils.TAU_K_95 / tau
+    /**
+     * Batería REAL (Double) del músculo con la fórmula del motor: `100·exp(−R/C)`, R = % de fatiga restante (como
+     * `BatteryRoundingTest`). Por defecto usa la C y la K escritas a mano en esta prueba.
+     */
+    private fun bateriaRealMusculo(
+        estres: Double,
+        horas: Double,
+        tau: Double,
+        c: Double = C_MUSCULO_ESPERADA,
+        k95: Double = K95_ESPERADA,
+    ): Double {
+        val k = k95 / tau
         val restante = estres * exp(-k * AugeUtils.getSigmoidalHours(horas))
         // Con ≤ 0,1 unidades de carga residual el motor fija 100 exacto.
         if (restante <= 0.1) return 100.0
         val crudoPct = restante / CAPACIDAD * 100.0
         return 100.0 * exp(-crudoPct / c)
     }
+
+    private val detallesCarrera = CardioDetails(type = CardioType.RUN_OUTDOOR, targetDurationSeconds = DURACION_CARRERA_S)
+
+    /** Carrera de 70 min a RPE 9 sin bloques: la carga de Energía y Columna se puede reproducir con piezas públicas del motor. */
+    private fun sesionCarrera(indice: Int): WorkoutLog = WorkoutLog(
+        id = "carrera-$indice", programId = "p", sessionId = "s", sessionName = "Carrera",
+        date = Instant.ofEpochMilli(ORIGEN).toString(), durationMinutes = DURACION_CARRERA_S / 60,
+        completedExercises = listOf(
+            CompletedExercise(
+                exerciseId = "run", exerciseName = "Carrera", exerciseDbId = "run", restTime = 0,
+                cardioDetails = detallesCarrera,
+                sets = listOf(
+                    CompletedSet(id = "run-$indice", weight = 0.0, reps = 0, rpe = RPE_CARRERA, timeSeconds = DURACION_CARRERA_S),
+                ),
+            ),
+        ),
+    )
+
+    /** Tres carreras idénticas a la vez: triplican la carga y dejan Energía y Columna lejos de 100 y del piso. */
+    private fun historiaDeCarreras(): List<WorkoutLog> = List(CARRERAS) { sesionCarrera(it) }
+
+    /**
+     * Energía de las carreras [horas] h después, a mano: R = Σ(drenaje·0,85·e^(−k·h)) / capacidad · 100, batería = 100·exp(−R/C).
+     * La capacidad del canal, máx(80; tanque·1,15), se copia del motor: no es un parámetro del registro.
+     */
+    private fun energiaAMano(
+        horas: Double,
+        c: Double = AugeParameters.C_ENERGY,
+        tau: Double = AugeParameters.DEFAULT_TAU_ENERGY_H,
+    ): Double {
+        val ajustes = Settings()
+        val tanques = AugeFatigueEngine.calculatePersonalizedBatteryTanks(ajustes)
+        val drenaje = CardioRingDrainEngine.drain(detallesCarrera, DURACION_CARRERA_S, RPE_CARRERA, ajustes)
+        val tope = (100 - AugeUtils.physiologicalFloor(ajustes).cns).coerceAtLeast(5).toDouble()
+        val porSesion = AugeUtils.applySessionSoftCap(drenaje.cns * AugeUtils.SESSION_CONSERVATION_FACTOR, 0.0, tope)
+        val carga = CARRERAS * porSesion * exp(-AugeParameters.TAU_K_95 / tau * horas)
+        val capacidad = max(80.0, tanques.cns * 1.15)
+        return 100.0 * exp(-(carga / capacidad * 100.0) / c)
+    }
+
+    /** Columna de las carreras [horas] h después, a mano; el tiempo pasa por el warp espinal (+18 h desde las 24 h). */
+    private fun columnaAMano(
+        horas: Double,
+        c: Double = AugeParameters.C_SPINAL,
+        tau: Double = AugeParameters.DEFAULT_TAU_SPINAL_H,
+    ): Double {
+        val ajustes = Settings()
+        val tanques = AugeFatigueEngine.calculatePersonalizedBatteryTanks(ajustes)
+        val drenaje = CardioRingDrainEngine.drain(detallesCarrera, DURACION_CARRERA_S, RPE_CARRERA, ajustes)
+        val tope = (100 - AugeUtils.physiologicalFloor(ajustes).spinal).coerceAtLeast(5).toDouble()
+        val porSesion = AugeUtils.applySessionSoftCap(drenaje.spinal * AugeUtils.SESSION_CONSERVATION_FACTOR, 0.0, tope)
+        val carga = CARRERAS * porSesion * exp(-AugeParameters.TAU_K_95 / tau * AugeUtils.getSpinalRecoveryHours(horas))
+        val capacidad = max(70.0, tanques.spinal * 0.02)
+        return 100.0 * exp(-(carga / capacidad * 100.0) / c)
+    }
+
+    /** El motor muestra el entero más cercano: la diferencia con la batería real a mano no pasa de medio punto. */
+    private fun assertCercano(mensaje: String, motor: Int, mano: Double) {
+        assertTrue("$mensaje: motor $motor, a mano ${fmt(mano)}", abs(motor - mano) <= TOLERANCIA)
+    }
+
+    private fun fmt(v: Double): String = "%.4f".format(Locale.ROOT, v)
+
+    // ─── La regla de antes, escrita a mano ────────────────────────────────────
+
+    private fun normalizarComoElMotor(s: String): String = s
+        .lowercase().trim()
+        .replace("á", "a").replace("é", "e").replace("í", "i")
+        .replace("ó", "o").replace("ú", "u").replace("ü", "u")
+
+    /** `MUSCLE_PROFILE_MAP.entries.firstOrNull { normKey(it.key) == normKey(muscleName) }?.value` de antes de 2.1. */
+    private fun perfilDeAntes(musculo: String): String? =
+        PERFIL_DEL_MOTOR_ANTES.firstOrNull { normalizarComoElMotor(it.first) == normalizarComoElMotor(musculo) }?.second
+
+    /** `RECOVERY_PROFILES[profileKey ?: "medium"] ?: 48.0` de antes de 2.1. */
+    private fun tauDeAntes(musculo: String): Double = TAU_DEL_PERFIL_ANTES[perfilDeAntes(musculo) ?: "medium"] ?: 48.0
+
+    /** Lo que daba `AugeAdaptiveEngine.defaultRecoveryHours` antes de 2.1 (48 h para todo lo que no estaba en su `when`). */
+    private fun aprendizDeAntes(musculo: String): Double = APRENDIZ_ANTES[normalizarComoElMotor(musculo)] ?: 48.0
 
     // ─── Escaneo de fuentes ───────────────────────────────────────────────────
 
@@ -269,11 +636,22 @@ class AugeParametersConsistencyTest {
     private companion object {
         val ORIGEN: Long = Instant.parse("2026-09-12T18:00:00Z").toEpochMilli()
         const val HORA_MS = 3_600_000L
+
+        /** Horas tras la sesión o el ancla en que se compara el motor con la fórmula a mano. */
+        val HORAS_DE_PRUEBA = listOf(0, 6, 12, 18, 24, 36, 48)
         const val CAPACIDAD = 2_600.0
         const val ESTRES = 750.0
 
-        /** C del músculo (90), escrita a mano: la especificación contra la que se compara el motor. */
+        /** Medio punto de redondeo del motor, más un resquicio de coma flotante. */
+        const val TOLERANCIA = 0.5 + 1e-9
+
+        const val CARRERAS = 3
+        const val DURACION_CARRERA_S = 70 * 60
+        const val RPE_CARRERA = 9.0
+
+        /** C del músculo (90) y K de 95 % (2,9957), escritas a mano: la especificación contra la que se compara el motor. */
         const val C_MUSCULO_ESPERADA = 90.0
+        const val K95_ESPERADA = 2.9957
 
         /** τ base de cada pilar según el plan, escrito a mano a propósito: no se calcula de ningún mapa del código. */
         val TAU_ESPERADO_POR_PILAR: Map<String, Double> = linkedMapOf(
@@ -281,6 +659,7 @@ class AugeParametersConsistencyTest {
             "Cuádriceps" to 72.0, "Isquiosurales" to 96.0, "Glúteos" to 72.0, "Pantorrillas" to 24.0,
             "Abdomen" to 24.0, "Trapecio" to 48.0, "Erectores Espinales" to 96.0, "Core" to 48.0,
         )
+        val PILARES_EN_ORDEN: List<String> = TAU_ESPERADO_POR_PILAR.keys.toList()
 
         /** τ de cada perfil tal como estaba en `AugeRecoveryEngine.RECOVERY_PROFILES` antes de 2.1. */
         val TAU_DEL_PERFIL_ANTES: Map<String, Double> =
@@ -302,6 +681,39 @@ class AugeParametersConsistencyTest {
             "Isquiosurales" to "heavy", "Bíceps Femoral" to "heavy", "Semitendinoso" to "heavy",
             "Semimembranoso" to "heavy", "Erectores Espinales" to "heavy", "Core" to "medium",
             "Cuello" to "medium", "Psoas" to "medium", "Lumbar" to "heavy",
+        )
+
+        /** Lo que daba el `when` de `AugeAdaptiveEngine.defaultRecoveryHours` antes de 2.1 (claves ya normalizadas). */
+        val APRENDIZ_ANTES: Map<String, Double> = mapOf(
+            "biceps" to 24.0, "triceps" to 24.0, "deltoides" to 24.0, "deltoides anterior" to 24.0,
+            "deltoides lateral" to 24.0, "deltoides posterior" to 24.0, "pantorrillas" to 24.0, "abdomen" to 24.0,
+            "antebrazo" to 24.0,
+            "pectorales" to 48.0, "dorsales" to 48.0, "hombros" to 48.0, "trapecio" to 48.0, "aductores" to 48.0,
+            "core" to 48.0, "cuello" to 48.0,
+            "cuadriceps" to 72.0, "gluteos" to 72.0,
+            "isquiosurales" to 96.0, "erectores espinales" to 96.0,
+        )
+
+        /**
+         * Diferencia declarada de 2.1: los once músculos con perfil que el aprendiz trataba como 48 h y ahora reciben el τ del
+         * motor (antes → después). Solo «Costales» llega al aprendiz con su propio nombre; los demás se resuelven a un pilar.
+         */
+        val DIFERENCIAS_DEL_APRENDIZ: Map<String, Pair<Double, Double>> = linkedMapOf(
+            "Gemelos" to (48.0 to 24.0), "Sóleo" to (48.0 to 24.0), "Oblicuos" to (48.0 to 24.0), "Costales" to (48.0 to 24.0),
+            "Glúteo Mayor" to (48.0 to 72.0), "Glúteo Medio" to (48.0 to 72.0), "Glúteo Menor" to (48.0 to 72.0),
+            "Bíceps Femoral" to (48.0 to 96.0), "Semitendinoso" to (48.0 to 96.0), "Semimembranoso" to (48.0 to 96.0),
+            "Lumbar" to (48.0 to 96.0),
+        )
+
+        /** Media vida de `InterferenceEngine.MUSCLE_HALF_LIFE` antes de 2.1 (mismo orden). */
+        val MEDIA_VIDA_ANTES: Map<String, Double> = linkedMapOf(
+            "Bíceps" to 24.0, "Tríceps" to 24.0, "Deltoides" to 24.0,
+            "Deltoides Anterior" to 24.0, "Deltoides Lateral" to 24.0, "Deltoides Posterior" to 24.0,
+            "Pantorrillas" to 24.0, "Abdomen" to 24.0, "Antebrazo" to 24.0,
+            "Pectorales" to 48.0, "Dorsales" to 48.0, "Hombros" to 48.0, "Trapecio" to 48.0,
+            "Core" to 48.0, "Aductores" to 48.0, "Cuello" to 48.0,
+            "Cuádriceps" to 72.0, "Glúteos" to 72.0,
+            "Isquiosurales" to 96.0, "Erectores Espinales" to 96.0,
         )
 
         /** Archivos de fuera de `domain/auge` que también tenían copias de τ por defecto o de la lista de pilares. */

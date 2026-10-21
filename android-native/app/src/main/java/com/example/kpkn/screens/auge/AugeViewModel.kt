@@ -17,6 +17,7 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.AugeAdaptiveEngine
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.AugeMuscleCapacityEngine
+import com.example.kpkn.domain.auge.AugeParameters
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.domain.auge.AugeTtcEngine
 import com.example.kpkn.domain.auge.AugeUtils
@@ -379,11 +380,11 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             RecoveryChannelId.MUSCULAR to muscularHoursToNormal(batteries.muscular, perMuscle),
             RecoveryChannelId.SYSTEM to RecoveryBands.hoursUntilNormal(
                 batteries.cnc,
-                adaptiveCache.cnsRecoveryHours ?: 36.0,
+                adaptiveCache.cnsRecoveryHours ?: AugeParameters.DEFAULT_TAU_ENERGY_H,
             ),
             RecoveryChannelId.STRUCTURE to RecoveryBands.hoursUntilNormal(
                 dashboard.channelScore(RecoveryChannelId.STRUCTURE, batteries.spinal),
-                adaptiveCache.spinalRecoveryHours ?: 52.0,
+                adaptiveCache.spinalRecoveryHours ?: AugeParameters.DEFAULT_TAU_SPINAL_H,
             ),
         )
         val personalBaseline = RecoveryChannelId.entries.mapNotNull { channel ->
@@ -1173,7 +1174,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         return perMuscle.values
             .filter { it.recoveryScore < RecoveryBands.NORMAL_MIN }
             .minOfOrNull { it.hoursToRecovery }
-            ?: RecoveryBands.hoursUntilNormal(muscularScore, 48.0)
+            ?: RecoveryBands.hoursUntilNormal(muscularScore, AugeParameters.DEFAULT_TAU_GLOBAL_MUSCLE_H)
     }
 
     private fun lastSessionDrainOrNull(log: WorkoutLog): PredictedDrain? {

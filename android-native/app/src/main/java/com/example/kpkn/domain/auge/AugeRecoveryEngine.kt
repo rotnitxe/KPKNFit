@@ -35,43 +35,17 @@ object AugeRecoveryEngine {
 
     // ─── Perfiles de recuperación (horas base) ────────────────────────────────
 
-    private val RECOVERY_PROFILES = mapOf(
-        "fast"   to 24.0,
-        "medium" to 48.0,
-        "slow"   to 72.0,
-        "heavy"  to 96.0,
-    )
-
-    private val MUSCLE_PROFILE_MAP = mapOf(
-        "Bíceps" to "fast", "Tríceps" to "fast", "Deltoides" to "fast",
-        "Deltoides Anterior" to "fast", "Deltoides Lateral" to "fast", "Deltoides Posterior" to "fast",
-        "Pantorrillas" to "fast", "Abdomen" to "fast", "Antebrazo" to "fast",
-        "Gemelos" to "fast", "Sóleo" to "fast", "Oblicuos" to "fast", "Costales" to "fast",
-        "Pectorales" to "medium", "Dorsales" to "medium", "Hombros" to "medium", "Trapecio" to "medium",
-        "Romboide" to "medium", "Redondo Menor" to "medium", "Redondo Mayor" to "medium",
-        "Infraespinoso" to "medium", "Supraespinoso" to "medium", "Subescapular" to "medium",
-        "Serrato Anterior" to "medium",
-        "Cuádriceps" to "slow", "Glúteos" to "slow",
-        "Glúteo Mayor" to "slow", "Glúteo Medio" to "slow", "Glúteo Menor" to "slow",
-        "Aductores" to "medium", "Tensor Fascia Lata" to "medium",
-        "Isquiosurales" to "heavy", "Bíceps Femoral" to "heavy", "Semitendinoso" to "heavy",
-        "Semimembranoso" to "heavy", "Erectores Espinales" to "heavy", "Core" to "medium",
-        "Cuello" to "medium", "Psoas" to "medium", "Lumbar" to "heavy",
-    )
+    // El τ base de cada perfil, el perfil de cada músculo y la lista de pilares viven en AugeParameters.
 
     // Los músculos "pilar" para el cálculo de batería muscular global
-    private val PILLAR_MUSCLES = listOf(
-        "Pectorales", "Dorsales", "Deltoides", "Bíceps", "Tríceps",
-        "Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas",
-        "Abdomen", "Trapecio", "Erectores Espinales", "Core",
-    )
+    private val PILLAR_MUSCLES = AugeParameters.PILLARS
 
     // Set completo de baterías por músculo: pilares + todo grupo con perfil de
     // recuperación (Aductores, Antebrazo, Cuello, Psoas, rotadores, etc.).
     // El promedio global sigue usando solo PILLAR_MUSCLES; este set alimenta
     // perMuscle para la UI y el readiness de sesiones que involucran esos músculos.
     private val BATTERY_MUSCLES: List<String> =
-        (PILLAR_MUSCLES + MUSCLE_PROFILE_MAP.keys.map { getAugeMusclePillarId(it) }).distinct()
+        (PILLAR_MUSCLES + AugeParameters.PROFILED_MUSCLES.map { getAugeMusclePillarId(it) }).distinct()
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
@@ -483,14 +457,12 @@ object AugeRecoveryEngine {
             muscleName, history, settings, exerciseDb, adaptiveCache,
         )
 
-        val profileKey = MUSCLE_PROFILE_MAP.entries
-            .firstOrNull { normKey(it.key) == normKey(muscleName) }?.value ?: "medium"
         val adaptiveHours = adaptiveCache.personalizedRecoveryHours[muscleName.lowercase().trim()]
             ?: adaptiveCache.personalizedRecoveryHours[normKey(muscleName)]
             ?: adaptiveCache.personalizedRecoveryHours.entries.firstOrNull {
                 normKey(it.key) == normKey(muscleName)
             }?.value
-        val baseRecoveryTime = clamp(adaptiveHours ?: RECOVERY_PROFILES[profileKey] ?: 48.0, 18.0, 144.0)
+        val baseRecoveryTime = clamp(adaptiveHours ?: AugeParameters.baseTauHours(muscleName), AugeParameters.TAU_MIN_H, AugeParameters.TAU_MAX_H)
 
         var multiplier = nutritionMultiplier
 
@@ -526,7 +498,7 @@ object AugeRecoveryEngine {
         val relevantHistory = if (manualScore != null && anchorMs > 0) {
             val manualBattery = manualScore.coerceIn(0, 100).toDouble()
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
-            val impliedRawFatiguePct = -90.0 * ln(1.0 - penalty / 100.0)
+            val impliedRawFatiguePct = -AugeParameters.C_MUSCLE * ln(1.0 - penalty / 100.0)
             val manualLoad = (impliedRawFatiguePct / 100.0) * capacity
             accumulatedFatigue = manualLoad * exp(-k * com.example.kpkn.domain.auge.AugeUtils.getSigmoidalHours(hoursSinceAnchor))
             history.filter { logDateMs(it) > anchorMs && logDateMs(it) > tenDaysAgo }
@@ -656,7 +628,7 @@ object AugeRecoveryEngine {
         }
 
         val rawFatiguePct = (accumulatedFatigue / capacity) * 100.0
-        val fatiguePenalty = clamp(100.0 * (1.0 - safeExp(-rawFatiguePct / 90.0)), 0.0, 100.0)
+        val fatiguePenalty = clamp(100.0 * (1.0 - safeExp(-rawFatiguePct / AugeParameters.C_MUSCLE)), 0.0, 100.0)
         var battery = clamp(100.0 - fatiguePenalty, 0.0, 100.0)
 
         if (accumulatedFatigue <= 0.1 && (wellbeing?.doms ?: 1) <= 2) battery = 100.0
@@ -671,7 +643,7 @@ object AugeRecoveryEngine {
 
         var hoursToRecovery = 0
         if (battery < 90 && accumulatedFatigue > 0) {
-            val targetFatigue = -90.0 * ln(0.9) * capacity / 100.0
+            val targetFatigue = -AugeParameters.C_MUSCLE * ln(0.9) * capacity / 100.0
             if (accumulatedFatigue > targetFatigue) {
                 hoursToRecovery = max(0.0, -ln(targetFatigue / accumulatedFatigue) / k).toInt()
             }
@@ -783,7 +755,7 @@ object AugeRecoveryEngine {
     ): Triple<Int, Int, Int> { // Triple(cnsBattery, gymLoad, lifeLoad)
         val now = nowOverride ?: nowMs()
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
-        val baseTau = adaptiveCache.cnsRecoveryHours ?: 36.0
+        val baseTau = adaptiveCache.cnsRecoveryHours ?: AugeParameters.DEFAULT_TAU_ENERGY_H
         val feedbackPenalty = calculateSystemFeedbackPenaltyPct(feedbacks)
         val sleepMult = systemicRecoveryMultiplier(wellbeing, sleepLogs)
         val cnsCap = (100 - physiologicalFloor(settings).cns).coerceAtLeast(5).toDouble()
@@ -798,7 +770,7 @@ object AugeRecoveryEngine {
         val recentLogs = if (manualNeural != null && anchorMs > 0) {
             val manualBattery = manualNeural.coerceIn(0, 100).toDouble()
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
-            val impliedRawGymPct = -75.0 * ln(1.0 - penalty / 100.0)
+            val impliedRawGymPct = -AugeParameters.C_ENERGY * ln(1.0 - penalty / 100.0)
             val capacity = max(80.0, tanks.cns * 1.15)
             val manualLoad = (impliedRawGymPct / 100.0) * capacity
             accumulatedGymLoad = manualLoad * AugeUtils.recoveryDecay(hoursSinceAnchor, tauHours)
@@ -889,7 +861,7 @@ object AugeRecoveryEngine {
 
         val capacity = max(80.0, tanks.cns * 1.15)
         val rawGymPct = (accumulatedGymLoad / capacity) * 100.0
-        val normalizedGymFatigue = clamp(100.0 * (1.0 - safeExp(-rawGymPct / 75.0)), 0.0, 100.0)
+        val normalizedGymFatigue = clamp(100.0 * (1.0 - safeExp(-rawGymPct / AugeParameters.C_ENERGY)), 0.0, 100.0)
 
         val total = normalizedGymFatigue
         val cnsBattery = batteryPercent(clamp(100.0 - total, 0.0, 100.0))
@@ -899,7 +871,7 @@ object AugeRecoveryEngine {
 
     // ─── 3. BATERÍA ESPINAL ───────────────────────────────────────────────────
 
-    internal val SPINE_GUARD_MUSCLES = listOf("Erectores Espinales", "Dorsales", "Trapecio")
+    internal val SPINE_GUARD_MUSCLES = AugeParameters.SPINE_GUARD_MUSCLES
 
     private fun calculateSpineFatigueMultiplier(
         history: List<WorkoutLog>,
@@ -940,7 +912,7 @@ object AugeRecoveryEngine {
     ): Int {
         val now = nowOverride ?: nowMs()
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
-        val tauHours = adaptiveCache.spinalRecoveryHours ?: 52.0
+        val tauHours = adaptiveCache.spinalRecoveryHours ?: AugeParameters.DEFAULT_TAU_SPINAL_H
         val spinalCap = (100 - physiologicalFloor(settings).spinal).coerceAtLeast(5).toDouble()
         val last10Days = now - 10L * 24 * 3600 * 1000
 
@@ -952,7 +924,7 @@ object AugeRecoveryEngine {
         val recentLogs = if (manualSpinal != null && anchorMs > 0) {
             val manualBattery = manualSpinal.coerceIn(0, 100).toDouble()
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)
-            val impliedRawPct = -70.0 * ln(1.0 - penalty / 100.0)
+            val impliedRawPct = -AugeParameters.C_SPINAL * ln(1.0 - penalty / 100.0)
             val capacity = max(70.0, tanks.spinal * 0.02)
             val manualLoad = (impliedRawPct / 100.0) * capacity
             accumulatedSpinalLoad = manualLoad * AugeUtils.recoveryDecay(
@@ -1099,7 +1071,7 @@ object AugeRecoveryEngine {
 
         val capacity = max(70.0, tanks.spinal * 0.02)
         val rawPct = (accumulatedSpinalLoad / capacity) * 100.0
-        val normalizedLoad = clamp(100.0 * (1.0 - safeExp(-rawPct / 70.0)), 0.0, 100.0)
+        val normalizedLoad = clamp(100.0 * (1.0 - safeExp(-rawPct / AugeParameters.C_SPINAL)), 0.0, 100.0)
         return batteryPercent(clamp(100.0 - normalizedLoad, 0.0, 100.0))
     }
 
@@ -1162,7 +1134,7 @@ object AugeRecoveryEngine {
             val baseTau = adaptiveCache.personalizedRecoveryHours.values
                 .takeIf { it.isNotEmpty() }
                 ?.average()
-                ?: 48.0
+                ?: AugeParameters.DEFAULT_TAU_GLOBAL_MUSCLE_H
             val sleepMult = systemicRecoveryMultiplier(wellbeing, sleepLogs)
             val tauHours = max(1.0, baseTau * sleepMult)
             val penalty = (100.0 - manualBattery).coerceIn(0.0, 99.9)

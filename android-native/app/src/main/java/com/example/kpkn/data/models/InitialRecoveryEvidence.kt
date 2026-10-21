@@ -1,5 +1,6 @@
 package com.example.kpkn.data.models
 
+import com.example.kpkn.domain.auge.AugeParameters
 import com.example.kpkn.domain.auge.InitialRecoveryV2Model
 import java.time.Instant
 import java.time.ZoneId
@@ -304,9 +305,5 @@ object InitialRecoveryEvidenceFactory {
     }
 
     /** Canonical pillars used by AUGE's localized battery map. */
-    val INITIAL_RECOVERY_MUSCLE_PILLARS: List<String> = listOf(
-        "Pectorales", "Dorsales", "Deltoides", "Bíceps", "Tríceps",
-        "Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas",
-        "Abdomen", "Trapecio", "Erectores Espinales", "Core",
-    )
+    val INITIAL_RECOVERY_MUSCLE_PILLARS: List<String> = AugeParameters.PILLARS
 }
