@@ -65,6 +65,27 @@ repetición), alimentada por los sidecars con PTS.
 - **Honestidad:** solo se quema lo fiable. Con «≈» donde toque y nada inventado: sin m/s si el disco no está calibrado.
 - Se valida con hojas de render y un vídeo real del teléfono.
 
+## Lo que confirmó la ingeniería inversa (20-oct)
+Informes en `docs/video-technique/re/`: `WL_ANALYSIS_RE_V2.md`, `MY_JUMP_LAB_RE.md` y `WOD_APP_RE.md`. El mapa de apps y métricas por
+tipo de atleta está en `CANDIDATAS_Y_METRICAS.md`.
+
+**Ninguna de las tres corrige la perspectiva ni tiene tracking híbrido.** Solo WL Analysis exporta vídeo con telemetría: D42 y D43
+siguen siendo diferenciadores, y D44 es la brecha principal.
+
+| Id | Qué | De dónde | Prioridad | Esfuerzo |
+|---|---|---|---|---|
+| D44 | **Exportar vídeo con telemetría.** WL Analysis lo hace con Media3 Transformer, dibujando cada fotograma con el código del reproductor: trazo progresivo amarillo→rojo, rejilla en cm, referencias, tabla y franja de gráfico, cámara lenta y dos vídeos lado a lado. NO tiene 9:16: ahí ganamos | WL Analysis | alta | ~1 semana |
+| D47 | **Buscar el disco sin depender de la pose.** Búsqueda geométrica en todo el fotograma con un toque para confirmar; más adelante, un detector propio. Hoy exigimos las muñecas quietas, y eso falló en r02. Evitar Ultralytics/YOLO, que es AGPL | WL Analysis | alta | media |
+| D48 | **Módulo de saltos:** CMJ, SJ y drop jump con despegue y aterrizaje por los PIES de la pose, a 60–240 fps (CameraX 1.5 permite la cámara lenta), y encima Samozino (F, v y P), el perfil F-V con su desequilibrio, RSI y RSImod, la rigidez (Morin) y las asimetrías. My Jump Lab marca los fotogramas a mano | My Jump Lab | alta | media |
+| D49 | **Extras de VBT:** voz por repetición, alerta de pérdida de velocidad, velocidad objetivo, «test rápido» de 1RM con una carga, método de dos puntos, tabla editable de v1RM por ejercicio, potencia media y pico BIEN calculadas a ≥ 50 fps, CSV, rejilla métrica y recorte del vídeo antes de analizar | My Jump Lab y WL Analysis | media-alta | ~2 días cada uno |
+| D50 | **Esprint y carrera:** tiempos de contacto y vuelo, frecuencia y longitud de paso, F-V del esprint (Samozino 2016), test 505 de cambio de dirección y kinograma automático por la pose. My Jump Lab y Runmatic lo hacen a toques | My Jump Lab y candidatas | media | media-alta |
+| D43.2 | **Marcador impreso** (estilo ArUco, con la escala de su propio lado) para mancuernas y máquinas. WL Analysis usa uno, pero escala mal | WL Analysis | media | media |
+| — | **Temporizadores EMOM, AMRAP y For Time,** con el servicio en primer plano y la voz que ya existen | WOD App (carencia de KPKN) | media | baja |
+
+**No hay que copiar:** las escalas fijas sacadas de la primera caja; los tiempos por índice de fotograma, sin PTS; los filtros que dejan
+la velocidad en 2,7–4,0 Hz, que explican el sesgo de la velocidad pico publicado; la potencia total mal sumada; y el envío de datos a la
+nube sin decirlo (My Jump Lab usa Firestore pese a su texto de privacidad).
+
 ## Orden propuesto
 1. Ronda de interfaz en curso: UI-2, UI-3 y UI-4.
 2. **Rondas del motor con el banco:** D42.1 (ángulos 3D) y D43.1 (relevo), que se miden enseguida con las trazas del Flip.
