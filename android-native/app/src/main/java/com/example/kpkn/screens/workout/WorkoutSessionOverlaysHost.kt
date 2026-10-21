@@ -94,10 +94,10 @@ internal fun WorkoutSessionOverlaysHost(
             )
             augeViewModel.saveWellbeing(log)
             viewModel.saveReadinessAdjustments(
-                neural = neural,
-                muscular = muscular,
-                spinal = spinal,
-                perMuscle = remapMuscleIntMapToPillars(perMuscle),
+                neural = manualNeural,
+                muscular = manualMuscular,
+                spinal = manualSpinal,
+                perMuscle = remapMuscleIntMapToPillars(manualMuscleBatteries),
                 sleepQuality = todayWellbeing?.sleepQuality,
             )
             onReadinessDismissed()

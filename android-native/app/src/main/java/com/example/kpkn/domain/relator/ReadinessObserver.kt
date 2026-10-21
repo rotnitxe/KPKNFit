@@ -5,7 +5,7 @@ import com.example.kpkn.domain.auge.RecoveryBands
 object ReadinessObserver : RelatorObserver {
     override fun observe(context: RelatorContext): List<RelatorCandidate> {
         val r = context.readiness
-        val score = r.dailyScore ?: r.exerciseScore ?: return emptyList()
+        val score = r.dailyScore ?: return emptyList()
         if (score >= RecoveryBands.HIGH_MIN && r.preWorkoutDiscomforts.isEmpty() && (r.doms ?: 1) < 4) return emptyList()
         val done = context.progress.completedWorkingSets
         val lines = buildList {
