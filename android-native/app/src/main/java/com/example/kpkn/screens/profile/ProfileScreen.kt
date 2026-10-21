@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.profile
 
 import android.graphics.Bitmap
+import android.app.Application
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -73,13 +75,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.Gender
@@ -89,15 +94,29 @@ import com.example.kpkn.data.models.WeightUnit
 import com.example.kpkn.data.profile.ProfilePhotoStore
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.db.VideoAnalysisExerciseRow
+import com.example.kpkn.data.models.VideoAnalysisSummary
+import com.example.kpkn.data.models.WorkoutMedia
+import com.example.kpkn.data.repository.VideoAnalysisRepository
+import com.example.kpkn.data.repository.WorkoutMediaRepository
+import com.example.kpkn.screens.technique.hub.design.TechniqueRecentStrip
+import com.example.kpkn.screens.technique.hub.design.TechniqueRecentVideo
+import com.example.kpkn.screens.technique.hub.design.techniqueConclusion
+import com.example.kpkn.screens.technique.hub.design.techniqueDate
 import com.example.kpkn.screens.competitions.ProfileCompetitionsArchive
 import com.example.kpkn.domain.training.NutritionGoalProgress
 import com.example.kpkn.domain.training.StarredExerciseProgress
 import com.example.kpkn.domain.training.buildNutritionGoalProgress
 import com.example.kpkn.domain.training.buildStarredExerciseProgress
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -106,11 +125,57 @@ data class ProfileUiState(
     val settings: Settings = Settings(),
     val starredExercises: List<StarredExerciseProgress> = emptyList(),
     val nutritionGoal: NutritionGoalProgress? = null,
+    val technique: ProfileTechniqueUiState = ProfileTechniqueUiState(),
 )
 
-class ProfileViewModel : ViewModel() {
+data class ProfileTechniqueUiState(
+    val recentVideos: List<TechniqueRecentVideo> = emptyList(),
+    val analyzedVideoCount: Int = 0,
+    val lastRecordedAtMs: Long? = null,
+    val latestConclusion: VideoAnalysisSummary? = null,
+) {
+    val summary: String get() =
+        "$analyzedVideoCount ${if (analyzedVideoCount == 1) "vídeo analizado" else "vídeos analizados"}" +
+            lastRecordedAtMs?.let { " · último el ${techniqueDate(it)}" }.orEmpty()
+
+    val conclusion: String? get() = latestConclusion?.let {
+        "${it.exerciseName?.takeIf(String::isNotBlank) ?: "Ejercicio sin nombre"} · ${techniqueConclusion(it)}"
+    }
+}
+
+/** La conclusión sigue siendo la última terminada aunque los tres recientes aún estén en cola. */
+@OptIn(ExperimentalCoroutinesApi::class)
+internal fun observeProfileTechnique(
+    recent: Flow<List<VideoAnalysisSummary>>,
+    summaries: Flow<List<VideoAnalysisExerciseRow>>,
+    media: Flow<List<WorkoutMedia>>,
+    trend: (String) -> Flow<List<VideoAnalysisSummary>>,
+): Flow<ProfileTechniqueUiState> = summaries.flatMapLatest { exercises ->
+    val lastExercise = exercises.maxByOrNull { it.lastRecordedAtMs }
+    val latest = lastExercise?.let { row ->
+        trend(row.exerciseKey).map { videos -> videos.filter { it.isDone }.maxByOrNull { it.recordedAtMs } }
+    } ?: flowOf<VideoAnalysisSummary?>(null)
+    combine(recent, media, latest) { videos, allMedia, conclusion ->
+        val mediaById = allMedia.associateBy { it.id }
+        ProfileTechniqueUiState(
+            recentVideos = videos.take(3).map { TechniqueRecentVideo(it, mediaById[it.mediaId]) },
+            analyzedVideoCount = exercises.sumOf { it.videoCount },
+            lastRecordedAtMs = lastExercise?.lastRecordedAtMs,
+            latestConclusion = conclusion,
+        )
+    }
+}
+
+class ProfileViewModel(application: Application) : AndroidViewModel(application) {
     private val programRepository = ProgramRepository.getInstance()
     private val nutritionRepository = NutritionRepository.getInstance()
+    private val analysisRepository = VideoAnalysisRepository.init(application)
+    private val technique = observeProfileTechnique(
+        analysisRepository.observeRecent(3),
+        analysisRepository.observeExerciseSummaries(),
+        WorkoutMediaRepository.init(application).observeAll(),
+        analysisRepository::observeTrend,
+    )
 
     private val activeNutritionPlan = nutritionRepository.nutritionPlans
         .combine(nutritionRepository.activeNutritionPlanId) { plans, activeId ->
@@ -129,6 +194,8 @@ class ProfileViewModel : ViewModel() {
             starredExercises = buildStarredExerciseProgress(programs, history),
             nutritionGoal = buildNutritionGoalProgress(plan, observations),
         )
+    }.combine(technique) { profile, videos ->
+        profile.copy(technique = videos)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProfileUiState())
 
     fun saveProfile(
@@ -198,8 +265,9 @@ fun ProfileScreen(
     onOpenCompetition: (String) -> Unit = {},
     onCreateCompetition: () -> Unit = {},
     onOpenAlbums: () -> Unit = {},
-    viewModel: ProfileViewModel = viewModel { ProfileViewModel() },
+    viewModel: ProfileViewModel = viewModel(),
     onOpenTechnique: () -> Unit = {},
+    onOpenTechniqueAnalysis: (String) -> Unit = {},
 ) {
     // Recorrido de Perfil: la primera vez que se abre. El icono de ajustes y la competición están en esta pantalla.
     val tourHost = LocalKpknOverlayHost.current
@@ -306,7 +374,7 @@ fun ProfileScreen(
 
             StarredExercisesCard(state.starredExercises)
             ProfileAlbumsCard(onOpenAlbums = onOpenAlbums)
-            ProfileTechniqueCard(onOpenTechnique = onOpenTechnique)
+            ProfileTechniqueCard(state.technique, onOpenTechnique, onOpenTechniqueAnalysis)
             Box(Modifier.fillMaxWidth().tourAnchor(TourAnchors.PROFILE_COMPETICION)) {
                 ProfileCompetitionsArchive(
                     onOpenCompetition = onOpenCompetition,
@@ -480,7 +548,7 @@ private fun StarredExercisesCard(exercises: List<StarredExerciseProgress>) {
 }
 
 @Composable
-private fun ProfileAlbumsCard(onOpenAlbums: () -> Unit) {
+internal fun ProfileAlbumsCard(onOpenAlbums: () -> Unit) {
     ProfileCard(title = "Álbumes de entrenamiento", icon = Icons.Default.PhotoLibrary) {
         Text(
             "Fotos y vídeos de tus series, agrupados por sesión.",
@@ -494,15 +562,42 @@ private fun ProfileAlbumsCard(onOpenAlbums: () -> Unit) {
 }
 
 @Composable
-private fun ProfileTechniqueCard(onOpenTechnique: () -> Unit) {
+internal fun ProfileTechniqueCard(
+    state: ProfileTechniqueUiState,
+    onOpenTechnique: () -> Unit,
+    onOpenTechniqueAnalysis: (String) -> Unit = {},
+) {
     ProfileCard(title = "Técnica en vídeo", icon = com.example.kpkn.ui.components.icons.KpknLineIcons.TrendUp) {
-        Text(
-            "Analiza tus series y sigue las tendencias de tu técnica.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        TextButton(onClick = onOpenTechnique, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
-            Text("Ver técnica en vídeo")
+        if (state.recentVideos.isEmpty() && state.analyzedVideoCount == 0) {
+            Text(
+                "Analiza tus series y sigue las tendencias de tu técnica.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                "Graba una serie desde el Modo visual de la sesión o analiza un vídeo de tu galería",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            TechniqueRecentStrip(state.recentVideos.take(3), 56.dp, onOpenTechniqueAnalysis)
+            Text(
+                state.summary,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.testTag("profile-technique-summary"),
+            )
+            state.conclusion?.let { conclusion ->
+                Text(conclusion, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.testTag("profile-technique-conclusion"))
+            }
+        }
+        TextButton(
+            onClick = onOpenTechnique,
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+            modifier = Modifier.heightIn(min = 48.dp).testTag("profile-technique-open").semantics { contentDescription = "Abrir técnica en vídeo" },
+        ) {
+            Text("Abrir técnica en vídeo")
         }
     }
 }

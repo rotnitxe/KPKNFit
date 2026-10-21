@@ -98,6 +98,10 @@ class VideoAnalysisRepository internal constructor(
     fun observeByMedia(mediaId: String): Flow<VideoAnalysisSummary?> =
         db.videoAnalysisDao().observeByMedia(mediaId).map { row -> row?.toSummary() }
 
+    /** Los vídeos más recientes con su estado, también mientras se analizan. */
+    fun observeRecent(limit: Int): Flow<List<VideoAnalysisSummary>> =
+        db.videoAnalysisDao().observeRecent(limit.coerceAtLeast(0)).map { rows -> rows.map { it.toSummary() } }
+
     /** Los vídeos de una sesión que tienen análisis (cualquier estado), del más antiguo al más reciente. */
     fun observeBySessionKey(sessionKey: String): Flow<List<VideoAnalysisSessionRow>> =
         db.videoAnalysisDao().observeBySessionKey(sessionKey)

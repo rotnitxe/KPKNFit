@@ -42,6 +42,7 @@ import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
 import com.example.kpkn.screens.sessioneditor.CatalogResult
 import com.example.kpkn.screens.technique.hub.design.TechniqueExerciseRow
 import com.example.kpkn.screens.technique.hub.design.TechniqueSettingsModule
+import com.example.kpkn.screens.technique.hub.design.TechniqueHubSummary
 import com.example.kpkn.screens.technique.importer.VideoImportSheet
 import com.example.kpkn.screens.technique.importer.VideoImportViewModel
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -105,6 +106,7 @@ fun TechniqueHubRoute(
         onMaxRecordSeconds = hub::setMaxRecordSeconds,
         showCustomPlate = customPlate,
         onShowCustomPlate = { customPlate = it },
+        onOpenAnalysis = onOpenAnalysis,
     )
     if (importState.isOpen && !importState.pickerInFlight) {
         VideoImportSheet(
@@ -135,11 +137,15 @@ fun TechniqueHubScreen(
     showCustomPlate: Boolean = false,
     onShowCustomPlate: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
+    onOpenAnalysis: (String) -> Unit = {},
 ) {
     Column(modifier.fillMaxSize().background(KpknSurface.canvas).statusBarsPadding().navigationBarsPadding().testTag("technique-hub-screen")) {
         KpknTopRow(onBack)
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text("Técnica en vídeo", style = KpknType.title, color = WizardColors.text, modifier = Modifier.semantics { heading() })
+            if (!state.isLoading) {
+                TechniqueHubSummary(state.analyzedVideoCount, state.exercises.size, state.recentVideos, onOpenAnalysis)
+            }
             KpknPrimaryPill(
                 text = if (LocalDensity.current.fontScale > 1.1f) "Analizar de la galería" else "Analizar un vídeo de la galería",
                 onClick = onImport,
@@ -148,13 +154,13 @@ fun TechniqueHubScreen(
             )
             if (state.isLoading) {
                 Text("Cargando tus vídeos…", style = KpknType.body, color = WizardColors.textMuted)
-            } else if (state.exercises.isEmpty()) {
+            } else if (state.exercises.isEmpty() && state.recentVideos.isEmpty()) {
                 KpknEmptyState(
                     icon = KpknLineIcons.Play,
                     title = "Tu técnica empieza aquí",
-                    body = "Graba una serie desde la sesión o analiza un vídeo de tu galería",
+                    body = "Graba una serie desde el Modo visual de la sesión o analiza un vídeo de tu galería",
                 )
-            } else {
+            } else if (state.exercises.isNotEmpty()) {
                 KpknModule(modifier = Modifier.kpknEntrance("technique-hub", 0)) {
                     KpknModuleHeader(label = "Tus ejercicios")
                     state.exercises.forEach { item -> TechniqueExerciseRow(item, onClick = { onOpenTrends(item.exerciseKey) }) }

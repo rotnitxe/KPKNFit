@@ -12,6 +12,7 @@ import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.VideoAnalysisRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
+import com.example.kpkn.screens.technique.hub.design.TechniqueRecentVideo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,7 @@ data class TechniqueExerciseItem(
     val lastRecordedAtMs: Long,
     val sparkline: List<Float> = emptyList(),
     val metricLabel: String? = null,
+    val latestConclusion: VideoAnalysisSummary? = null,
 )
 
 data class TechniqueHubUiState(
@@ -42,6 +44,16 @@ data class TechniqueHubUiState(
     val settings: TechniqueVideoSettings = TechniqueVideoSettings(),
     val isEnqueuing: Boolean = false,
     val message: String? = null,
+    val recentVideos: List<TechniqueRecentVideo> = emptyList(),
+) {
+    val analyzedVideoCount: Int get() = exercises.sumOf { it.videoCount }
+}
+
+private data class HubReadings(
+    val summaries: List<VideoAnalysisExerciseRow>,
+    val media: List<WorkoutMedia>,
+    val settings: TechniqueVideoSettings,
+    val recent: List<VideoAnalysisSummary>,
 )
 
 /** Frontera inyectable del hub: las lecturas siguen pasando por los repositorios. */
@@ -49,6 +61,7 @@ interface TechniqueHubSource {
     val summaries: Flow<List<VideoAnalysisExerciseRow>>
     val media: Flow<List<WorkoutMedia>>
     val settings: Flow<Settings>
+    val recent: Flow<List<VideoAnalysisSummary>>
     suspend fun analysis(mediaId: String): VideoAnalysisSummary?
     suspend fun trend(exerciseKey: String): List<VideoAnalysisSummary>
     suspend fun requestAnalysis(mediaId: String): Boolean
@@ -62,6 +75,7 @@ private class RepositoryTechniqueHubSource(application: Application) : Technique
     override val summaries = analysisRepository.observeExerciseSummaries()
     override val media = mediaRepository.observeAll()
     override val settings = programs.settings
+    override val recent = analysisRepository.observeRecent(10)
     override suspend fun analysis(mediaId: String) = analysisRepository.getByMedia(mediaId)
     override suspend fun trend(exerciseKey: String) = analysisRepository.observeTrend(exerciseKey).first()
     override suspend fun requestAnalysis(mediaId: String) = analysisRepository.requestAnalysis(mediaId)
@@ -81,11 +95,11 @@ class TechniqueHubViewModel @JvmOverloads constructor(
 
     init {
         viewModelScope.launch {
-            combine(source.summaries, source.media, source.settings, refresh) { rows, media, settings, _ ->
-                Triple(rows, media, settings.techniqueVideo)
-            }.collectLatest { (rows, media, settings) ->
+            combine(source.summaries, source.media, source.settings, source.recent, refresh) { rows, media, settings, recent, _ ->
+                HubReadings(rows, media, settings.techniqueVideo, recent)
+            }.collectLatest { (rows, media, settings, recent) ->
                 try {
-                    val (items, pending) = withContext(ioDispatcher) {
+                    val (items, pending, recentVideos) = withContext(ioDispatcher) {
                         val items = rows.map { row ->
                             val trend = source.trend(row.exerciseKey).sortedBy { it.recordedAtMs }
                             val loss = trend.mapNotNull { it.velocityLossPct?.takeIf(Double::isFinite)?.toFloat() }
@@ -99,13 +113,15 @@ class TechniqueHubViewModel @JvmOverloads constructor(
                                 lastRecordedAtMs = row.lastRecordedAtMs,
                                 sparkline = points.takeLast(12).takeIf { it.size >= 2 }.orEmpty(),
                                 metricLabel = if (points.size < 2) null else if (useLoss) "Pérdida de velocidad, %" else "ROM, °",
+                                latestConclusion = trend.lastOrNull { it.isDone },
                             )
                         }
                         val pending = media.filter { it.kind == WorkoutMediaKind.VIDEO }
                             .filter { source.analysis(it.id) == null }.map { it.id }
-                        items to pending
+                        val mediaById = media.associateBy { it.id }
+                        Triple(items, pending, recent.take(10).map { TechniqueRecentVideo(it, mediaById[it.mediaId]) })
                     }
-                    _uiState.update { it.copy(isLoading = false, exercises = items, pendingMediaIds = pending, settings = settings) }
+                    _uiState.update { it.copy(isLoading = false, exercises = items, pendingMediaIds = pending, settings = settings, recentVideos = recentVideos) }
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (_: Exception) {

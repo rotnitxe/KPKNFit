@@ -1201,6 +1201,7 @@ private fun KPKNNavGraph(
                 },
                 onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
                 onOpenTechnique = { navController.navigate(KpknRoute.TechniqueHub.route) },
+                onOpenTechniqueAnalysis = { id -> navController.navigate(KpknRoute.TechniqueAnalysis.create(id)) },
             )
         }
         composable(KpknRoute.CompetitionDetail.route) { backStack ->
@@ -1415,6 +1416,7 @@ private fun KPKNNavGraph(
                 },
                 onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
                 onOpenTechnique = { navController.navigate(KpknRoute.TechniqueHub.route) },
+                onOpenTechniqueAnalysis = { id -> navController.navigate(KpknRoute.TechniqueAnalysis.create(id)) },
             )
         }
         composable(KpknRoute.WorkoutAlbums.route) {

@@ -120,6 +120,26 @@ class VideoAnalysisDaoTest {
     }
 
     @Test
+    fun observeRecent_orders_by_recording_date_limits_and_keeps_every_state() = runBlocking {
+        val database = db()
+        database.insertMedia(media("old"), media("latest"), media("tie"), media("failed"))
+        val dao = database.videoAnalysisDao()
+        dao.upsert(analysis("old", recordedAtMs = 1_000L))
+        dao.upsert(analysis("latest", status = "RUNNING", progressPct = 42, repCount = null, recordedAtMs = 4_000L))
+        dao.upsert(analysis("tie", status = "QUEUED", recordedAtMs = 4_000L))
+        dao.upsert(analysis("failed", status = "FAILED", recordedAtMs = 2_000L))
+
+        val recent = firstOf(dao.observeRecent(3))
+        assertEquals(listOf("latest", "tie", "failed"), recent.map { it.mediaId })
+        assertEquals(42, recent.first().progressPct)
+        assertEquals("Sentadilla", recent.first().exerciseName)
+        assertNull(recent.first().repCount)
+        assertEquals(listOf("latest"), firstOf(dao.observeRecent(1)).map { it.mediaId })
+        assertTrue(firstOf(dao.observeRecent(0)).isEmpty())
+        assertEquals(4, firstOf(dao.observeRecent(10)).size)
+    }
+
+    @Test
     fun a_second_upsert_updates_the_same_row_in_place() = runBlocking {
         val database = db()
         database.insertMedia(media("m1"))

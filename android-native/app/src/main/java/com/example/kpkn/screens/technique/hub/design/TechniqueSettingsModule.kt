@@ -57,7 +57,7 @@ fun TechniqueSettingsModule(
         Text("Disco de calibración", style = KpknType.bodyStrong, color = WizardColors.text)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf(450, 400, 350).forEach { diameter ->
-                KpknChip("${diameter / 10} cm", !showCustomPlate && settings.plateDiameterMm == diameter, {
+                KpknChip("${diameter / 10}\u00A0cm", !showCustomPlate && settings.plateDiameterMm == diameter, {
                     onShowCustomPlate(false)
                     onPlateDiameterMm(diameter)
                 })
@@ -67,7 +67,7 @@ fun TechniqueSettingsModule(
         if (showCustomPlate || settings.plateDiameterMm !in listOf(450, 400, 350)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 KpknNumberCell(
-                    value = (settings.plateDiameterMm / 10.0).let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() },
+                    value = (settings.plateDiameterMm / 10.0).let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString().replace('.', ',') },
                     input = KpknCellInput.Text(onCommit = { raw -> raw.replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() && it in 10.0..70.0 }?.let { onPlateDiameterMm((it * 10).toInt()) } }),
                     contentDescription = "Diámetro del disco en centímetros, entre 10 y 70",
                     modifier = Modifier.width(96.dp),
@@ -80,7 +80,7 @@ fun TechniqueSettingsModule(
         Spacer(Modifier.height(8.dp))
         val durations = listOf(60, 120, 180, 300)
         KpknSegmentedControl(
-            options = listOf("1 min", "2 min", "3 min", "5 min"),
+            options = listOf("1\u00A0min", "2\u00A0min", "3\u00A0min", "5\u00A0min"),
             selectedIndex = durations.indexOf(settings.maxRecordSeconds),
             onSelect = { onMaxRecordSeconds(durations[it]) },
             descriptions = listOf("1 minuto", "2 minutos", "3 minutos", "5 minutos"),

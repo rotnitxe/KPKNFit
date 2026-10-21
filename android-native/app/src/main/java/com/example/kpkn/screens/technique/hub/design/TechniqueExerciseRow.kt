@@ -25,14 +25,14 @@ import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.technique.hub.TechniqueExerciseItem
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknType
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 /** Fila del ejercicio con tendencia real; sin dos medidas no dibuja ninguna línea. */
 @Composable
 fun TechniqueExerciseRow(item: TechniqueExerciseItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val date = SimpleDateFormat("d MMM", Locale.forLanguageTag("es")).format(Date(item.lastRecordedAtMs))
+    val date = techniqueDate(item.lastRecordedAtMs)
+    val detail = "${item.videoCount} ${if (item.videoCount == 1) "vídeo" else "vídeos"} · último $date" +
+        item.latestConclusion?.let { " · ${techniqueConclusion(it, compact = true)}" }.orEmpty()
     Column(
         modifier.fillMaxWidth().heightIn(min = 72.dp).clickable(role = Role.Button, onClick = onClick).padding(vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -40,7 +40,7 @@ fun TechniqueExerciseRow(item: TechniqueExerciseItem, onClick: () -> Unit, modif
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(item.name, style = KpknType.bodyStrong, color = WizardColors.text)
-                Text("${item.videoCount} ${if (item.videoCount == 1) "vídeo" else "vídeos"} · último $date", style = KpknType.caption, color = WizardColors.textMuted)
+                Text(detail, style = KpknType.caption, color = WizardColors.textMuted)
             }
             Icon(KpknLineIcons.ChevronRight, contentDescription = null, tint = WizardColors.textFaint, modifier = Modifier.size(20.dp))
         }
