@@ -58,7 +58,7 @@ class ObservationsTest {
     ): Run {
         val report = TechniqueAnalysisEngine.analyze(TechniqueAnalysisInput(result.track, bar, profile, null, null, hints, tuning))
         val scene = MetricsTestSupport.scene(result, profile, bar, hints, tuning) ?: error("sin señal: ${report.noRepsReason}")
-        val path = PathMetrics.compute(scene.ctx)
+        val path = PathMetrics.compute(scene.ctx, bar = bar)
         val found = Observations.candidates(
             report, scene.run.prepared, profile, report.scale ?: ScaleInfo.NONE, tuning, if (withContext) scene.ctx else null, path, hints,
         )
