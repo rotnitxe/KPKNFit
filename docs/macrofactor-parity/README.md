@@ -26,6 +26,7 @@
 | D15 | Micronutrientes («sin dato» ≠ 0) se resuelve **sin tocar importador ni Room**: por presencia en `micronutrients` y por cobertura. Separar «cero» de «desconocido» en el catálogo se propone aparte. | El catálogo de ~80 MB no se reimporta en esta ola. |
 | D16 | La búsqueda de alimentos (`LIKE`) no cambia: el ítem D8 del informe pide medir p95 en el dispositivo antes de decidir un FTS. La medición va en P2-F. | Criterio del propio informe. |
 | D17 | La foto de etiqueta (ítem D10 del informe) va en P2-E como **experimental**: imagen de galería + OCR ya incluido + pantalla de revisión; nunca guarda sin que la persona lo confirme. | Sin cámara, sin permisos nuevos; se prueba con textos de etiqueta escritos a mano. |
+| D18 | Las metas DRI de P2-Nb salen de una tabla ya investigada y revisada (`data/DRI_ADULTOS.csv`, su LEEME dice qué se verificó), con un test que compara las 240 filas; solo se avisa de exceso con los UL que aplican a la ingesta total. | La app no distingue comida de suplemento: un aviso con el UL de magnesio, folato, niacina o vitamina E sería una falsa alarma; y sin tabla fija un agente la reescribiría de memoria. |
 
 ### Protocolo de QA en el Flip5 (D12)
 - **Aislamiento:** solo `com.example.kpkn.mfp`. Nunca `.dbg` (el banco de vídeos corre como servicio en primer plano ahí), nunca `.vtqa`, ni la app de producción. No toco el candado `C:\kw\phone.lock` (lo tiene el banco), no hago `adb kill-server` ni `logcat -c`, y solo lanzo comandos sobre mi paquete y lecturas de `dumpsys`.
