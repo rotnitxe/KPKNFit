@@ -19,6 +19,17 @@ data class SessionAssistantInput(
     val customTemplateDrains: Map<String, PredictedDrain> = emptyMap(),
     val supersetGroups: List<com.example.kpkn.data.models.SupersetGroup> = emptyList(),
     val sessionWarmup: List<com.example.kpkn.data.models.WarmupExercise> = emptyList(),
+    /**
+     * El borrador activo completo (partes, grupos, calentamiento). Con él, el reloj de las reglas es el MISMO que el del editor
+     * ([com.example.kpkn.domain.training.SessionDurationEstimator]) y las acciones se simulan sobre la estructura real. Null =
+     * se arma una sesión provisional con [allExercisesInSession] (pruebas y llamadas sueltas).
+     */
+    val session: com.example.kpkn.data.models.Session? = null,
+    /** Descansos con que el editor crea una superserie (Reglas): la simulación de «unir en superserie» usa los mismos. */
+    val supersetBetweenRestSeconds: Int = 60,
+    val supersetRoundRestSeconds: Int = 120,
+    /** Ahora, en milisegundos: el historial reciente y los cruces se miden contra este instante. */
+    val nowMs: Long = System.currentTimeMillis(),
 )
 
 enum class Verdict { OPTIMAL, WARNING, FATIGUING, CRITICAL }
@@ -64,8 +75,12 @@ sealed class AssistantDetailAction {
         val muscle: String? = null,
     ) : AssistantDetailAction()
 
+    /** [exerciseIds] vacío = todos los ejercicios (acción antigua); con ids, solo esos (los elegibles tras la verificación). */
     data class ReduceRest(
         val seconds: Int = 15,
+        val exerciseIds: List<String> = emptyList(),
+        /** Descanso que se supone a un ejercicio sin descanso propio: el mismo que usó la simulación al verificar la acción. */
+        val defaultRestSeconds: Int = 90,
     ) : AssistantDetailAction()
 
     data class ConvertToSuperset(
@@ -79,12 +94,31 @@ sealed class AssistantDetailAction {
     data object RemoveFailure : AssistantDetailAction()
 }
 
+/** Efecto verificado de una acción sobre un borrador simulado: lo que de verdad cambia, antes de ofrecerla. */
+data class AssistantActionEffect(
+    /** Cambio de la duración con el reloj común: negativo = ahorra. */
+    val deltaSeconds: Int,
+    /** Cambio en el número de series de fuerza. */
+    val deltaSets: Int,
+    /** Cambio del pico de coste estimado (puntos): negativo = baja. Null si no se midió. */
+    val deltaPeakCost: Double? = null,
+)
+
 data class AssistantSuggestionDetail(
     val id: String,
     val label: String,
     val action: AssistantDetailAction,
     val defaultAccepted: Boolean = true,
+    /** Efecto ya comprobado sobre un borrador; null en las acciones antiguas sin verificar. */
+    val effect: AssistantActionEffect? = null,
 )
+
+/** Etiqueta de cada aviso: sin severidades de lesión, solo qué es y de quién es la restricción. */
+enum class AssistantNoticeKind(val label: String) {
+    INFO("Información"),
+    OPTIONAL_ADJUSTMENT("Ajuste opcional"),
+    USER_LIMIT("Límite que elegiste"),
+}
 
 data class AssistantSuggestion(
     val id: String,
@@ -97,6 +131,7 @@ data class AssistantSuggestion(
     val priority: Int = 0,
     val canAutoApply: Boolean = false,
     val details: List<AssistantSuggestionDetail> = emptyList(),
+    val kind: AssistantNoticeKind = AssistantNoticeKind.OPTIONAL_ADJUSTMENT,
 )
 
 data class GhostExerciseCard(
@@ -146,6 +181,11 @@ data class SessionAssistantReport(
     val resumenTexto: String,
     val totalRestSeconds: Int = 0,
     val estimatedWorkSeconds: Int = 0,
+    /**
+     * Notas informativas (sin acción): un coste alto sin historial comparable, un exceso de tiempo pequeño o un cruce bajo entre
+     * sesiones previstas. Junto con [ajustes] suman como mucho tres avisos.
+     */
+    val notas: List<String> = emptyList(),
 )
 
 data class SessionEditorRuleLimits(

@@ -157,6 +157,7 @@ internal fun AssistantSheet(
                 suggestions = report?.ajustes.orEmpty(),
                 analysisReady = report != null,
                 onApply = onApplyAssistantSuggestion,
+                notes = report?.notas.orEmpty(),
             )
             2 -> AssistantTemplatesTab(
                 templates = templates,

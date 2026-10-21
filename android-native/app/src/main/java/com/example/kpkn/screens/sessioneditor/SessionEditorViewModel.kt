@@ -1068,6 +1068,9 @@ class SessionEditorViewModel(
                         targetDurationMinutes = session.targetDurationMinutes,
                         supersetGroups = session.allSupersetGroups(),
                         sessionWarmup = session.warmup,
+                        session = session,
+                        supersetBetweenRestSeconds = state.ruleDefaults.supersetBetweenRestSeconds,
+                        supersetRoundRestSeconds = state.ruleDefaults.supersetRoundRestSeconds,
                     ),
                     allTemplates = templates,
                 )
@@ -1135,6 +1138,9 @@ class SessionEditorViewModel(
                             targetDurationMinutes = sess.targetDurationMinutes,
                             supersetGroups = sess.allSupersetGroups(),
                             sessionWarmup = sess.warmup,
+                            session = sess,
+                            supersetBetweenRestSeconds = s.ruleDefaults.supersetBetweenRestSeconds,
+                            supersetRoundRestSeconds = s.ruleDefaults.supersetRoundRestSeconds,
                         ),
                         allTemplates = templates,
                     )
