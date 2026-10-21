@@ -17,6 +17,7 @@ import com.example.kpkn.data.protocols.RecipeCompositionExemption
 import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.data.protocols.amrapAsRecord
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
 import com.example.kpkn.data.protocols.mainWorkPercentOfOneRm
@@ -416,7 +417,8 @@ object GzclProtocols {
                 gzclDay("Banca", 2, CatalogIds.BP, LiftSlot.BENCH, CatalogIds.BP_INC, repeatPercentSets(3, 2, pct, 240, amrapLast = i < 10), t2sets, CatalogIds.PENDLAY, CatalogIds.JM),
                 gzclDay("Peso muerto", 4, CatalogIds.DL, LiftSlot.DEADLIFT, CatalogIds.RDL, repeatPercentSets(2, 2, pct, 240), if (t2[i] == 0.0) rpeSets(3, 6, 7.0) else repeatPercentSets(3, 5, t2[i] - 5, 120), CatalogIds.ROW, CatalogIds.GHR),
                 gzclDay("Press", 5, CatalogIds.OHP, LiftSlot.OVERHEAD, CatalogIds.BP, repeatPercentSets(3, 3, pct - 5, 180, amrapLast = i < 10), t2sets, CatalogIds.LAT, CatalogIds.FACE),
-            ))
+                // CAL5: la última serie del T1 es un AMRAP de registro explícito (sin regla de carga en la fuente).
+            ).map { it.amrapAsRecord() })
         }
         return TrainingPlanRecipe(
             "gzcl-rippler", weeks, 0.90, sbdSlots(), ProgressionRule.None,
@@ -428,7 +430,7 @@ object GzclProtocols {
                     GZCL_URL,
                 ),
             ),
-            claimedDaysPerWeek = 4, claimedLevel = "intermedio",
+            claimedDaysPerWeek = 4, claimedLevel = "intermedio", contentVersion = 2,
         )
     }
 
@@ -436,7 +438,8 @@ object GzclProtocols {
         id = "gzcl-rippler",
         name = "GZCL The Rippler",
         emoji = "🌊",
-        description = "12 semanas, 4 días: T1 sobre 2RM 85-92,5 % +2,5 por bloque; T2 sobre 5RM; sem 11-12 test.",
+        description = "12 semanas, 4 días: T1 sobre 2RM 85-92,5 % +2,5 por bloque, con la última serie AMRAP de registro (no cambia la carga); " +
+            "T2 sobre 5RM; sem 11-12 test.",
         author = "Cody Lefever",
         tags = listOf("powerlifting", "intermedio", "4 días", "12 semanas", "%"),
         blocks = listOf(ProtocolBlock("B1", 4, "Acumulación", 80, 92), ProtocolBlock("B2", 4, "Intensificación", 85, 95), ProtocolBlock("B3", 4, "Peak", 90, 100)),

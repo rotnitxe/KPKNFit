@@ -821,7 +821,7 @@ internal object PlanEditorialTable {
                 summary = "10 semanas, 3 días por semana. El lunes alternas una sentadilla pesada (semanas " +
                     "impares) y un peso muerto pesado (semanas pares), con el otro levantamiento más ligero; " +
                     "el miércoles haces banca pesada (simples, o series de 5 con la última al máximo de " +
-                    "repeticiones) y el viernes banca de volumen. La semana 10 es una descarga ligera.",
+                    "repeticiones, que es de registro) y el viernes banca de volumen. La semana 10 es una descarga ligera.",
                 rank = 451,
                 level = CatalogLevel.ADVANCED,
                 methodName = "Lilliebridge",
@@ -853,7 +853,8 @@ internal object PlanEditorialTable {
                 displayName = "Cube Method",
                 summary = "10 semanas, 4 días por semana: sentadilla pesada, sentadilla en cajón y banca rápidas, " +
                     "peso muerto por repeticiones y un día de torso para músculo. La carga sube por etapas y " +
-                    "la décima semana es de prueba.",
+                    "la décima semana es de prueba. La serie al máximo de repeticiones del peso muerto es de " +
+                    "registro: queda en tu historial y no cambia tu carga.",
                 rank = 453,
                 level = CatalogLevel.ADVANCED,
                 methodName = "Cube Method",
@@ -933,8 +934,8 @@ internal object PlanEditorialTable {
             thirdParty(
                 displayName = "GZCL The Rippler",
                 summary = "12 semanas en tres bloques de 4, con 4 días. Haces series pesadas de 2 repeticiones, la " +
-                    "última al máximo, cuyo peso sube cada semana y arranca más alto en cada bloque; las dos " +
-                    "últimas semanas son de pico.",
+                    "última al máximo, cuyo peso sube cada semana y arranca más alto en cada bloque; esa serie es " +
+                    "de registro y no cambia tu carga. Las dos últimas semanas son de pico.",
                 rank = 463,
                 level = CatalogLevel.INTERMEDIATE,
                 methodName = "GZCL The Rippler",
