@@ -261,7 +261,13 @@ class ProgramTemplateEngineTest {
             assertEquals(recipeWeek.weekNumber, week.progressionIndex)
             val squat = week.sessions.flatMap { it.allExercises() }
                 .first { it.catalogConfigurationId == configurationId }
-            assertEquals("$goal: referencia de la fase", referenceKg, squat.reference1RM ?: -1.0, 0.001)
+            // FIX-TM: la referencia de la fase es la de SU base: el TM (180) para %TM y el 1RM (200) para %1RM.
+            // Antes de CAL1 se leía siempre `reference1RM`, que en %TM guardaba el TM (mezcla de significados).
+            val phaseReference = if (basis == LoadBasis.PERCENT_TM) squat.referenceTrainingMax else squat.reference1RM
+            assertEquals("$goal: referencia de la fase", referenceKg, phaseReference ?: -1.0, 0.001)
+            if (basis == LoadBasis.PERCENT_TM) {
+                assertEquals("$goal: reference1RM sigue siendo el 1RM", 200.0, squat.reference1RM ?: -1.0, 0.001)
+            }
             assertEquals("$goal: primera carga publicada", firstLoadKg, squat.sets.first().weight ?: -1.0, 0.001)
             val workingSets = slot.sets.filterNot { it.isWarmup }
             assertEquals("$goal: conserva todas las series", workingSets.size, squat.sets.size)
