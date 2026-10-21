@@ -691,11 +691,11 @@ internal object PlanEditorialTable {
             "protocol:wendler-531-bbb",
             thirdParty(
                 displayName = "5/3/1 Boring But Big",
-                summary = "Ciclos de 4 semanas (de 5, de 3 y de 1 repeticiones, y descarga), con 4 días: " +
-                    "sentadilla, banca, peso muerto y press. En las tres primeras, tras el levantamiento " +
-                    "principal (con una última serie al máximo de repeticiones), haces 5 series de 10 al 50 % " +
-                    "de tu máximo de entrenamiento; la descarga no las lleva. Cada ciclo ese máximo sube " +
-                    "2,5 kg (banca y press) o 5 kg.",
+                summary = "Ciclos de 4 semanas (5, 3, 1 repeticiones y descarga), con 4 días: sentadilla, banca, " +
+                    "peso muerto y press. Tras el levantamiento principal, que acaba en una serie al máximo de " +
+                    "repeticiones, haces 5×10 al 50 % de tu máximo de entrenamiento. Esa serie no cambia ese " +
+                    "máximo: sube 2,5 kg (banca y press) o 5 kg por ciclo si cumples las repeticiones mínimas, y " +
+                    "baja un 10 % tras dos ciclos sin cumplirlas.",
                 rank = 410,
                 level = CatalogLevel.INTERMEDIATE,
                 methodName = "5/3/1 Boring But Big",
