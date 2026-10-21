@@ -1,0 +1,313 @@
+{
+  "base": "f871dd49212c3db050aa7d92550f8f7d311e6819",
+  "commit_A": "5c65a64b2bb2e677ae6c0bc92a9aae3f53a08f7d",
+  "golden_A": {
+    "regeneraciones": 1,
+    "log": "C:/kw/logs/r4-2-5-1.log",
+    "lineas": 272,
+    "cambiadas": 0,
+    "sha256_normalizado": "4f1802658470eb6c43849490a075aa46b3e0ea5ec27cfc5752b1b0b188503ba8"
+  },
+  "android_A_1": {
+    "log": "C:/kw/logs/r4-2-5-1.log",
+    "clases": 29,
+    "pruebas": 214,
+    "fallos": 1,
+    "errores": 0,
+    "omitidas": 0,
+    "motivo": "Expectativa de guarda global 73 a 64: independencia de Energia"
+  },
+  "android_A_2": {
+    "log": "C:/kw/logs/r4-2-5-2.log",
+    "estado": "espera terminada antes de Gradle; codigo 143; sin pruebas nuevas"
+  },
+  "android_A_3": {
+    "log": "C:/kw/logs/r4-2-5-3.log",
+    "clases": [
+      {
+        "name": "com.example.kpkn.data.onboarding.SetupManualAnchorMergeTest",
+        "tests": "3",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.042"
+      },
+      {
+        "name": "com.example.kpkn.data.onboarding.SetupRingsPreviewPayloadTest",
+        "tests": "2",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "8.524"
+      },
+      {
+        "name": "com.example.kpkn.data.repository.AugeManualAnchorRepositoryTest",
+        "tests": "3",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.661"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.AugeClockDeterminismTest",
+        "tests": "15",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "1.246"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.AugeGoldenMasterTest",
+        "tests": "4",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "15.809"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.AugeNoHiddenClockTest",
+        "tests": "4",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.634"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.AugePerMuscleInitialEvidenceTest",
+        "tests": "6",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.015"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.AugeRecoveryEngineManualOverrideTest",
+        "tests": "3",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.047"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.AugeRingCharacterizationTest",
+        "tests": "2",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.028"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.AugeSnapshotComputerTest",
+        "tests": "6",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "5.24"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.AugeSyntheticUserInvariantsTest",
+        "tests": "9",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "21.565"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.ExerciseReadinessEngineArticularTest",
+        "tests": "6",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.02"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.ExerciseReadinessEngineTest",
+        "tests": "17",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.024"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicyTest",
+        "tests": "13",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.036"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.InitialRecoveryEvidenceV2Test",
+        "tests": "8",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.023"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.ManualAnchorStateTest",
+        "tests": "11",
+        "failures": "1",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.046"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.ManualSpinalOverrideSticksTest",
+        "tests": "1",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.001"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.RingsIntroSimulatorTest",
+        "tests": "14",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.025"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.WellbeingEditDetectionTest",
+        "tests": "16",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.005"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.WellbeingSaveMergeTest",
+        "tests": "10",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.012"
+      },
+      {
+        "name": "com.example.kpkn.domain.auge.WellbeingSourceMergeTest",
+        "tests": "5",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.006"
+      },
+      {
+        "name": "com.example.kpkn.domain.onboarding.SetupRingsMergeTest",
+        "tests": "9",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "1.893"
+      },
+      {
+        "name": "com.example.kpkn.screens.auge.AugeSnapshotCoverageTest",
+        "tests": "4",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.404"
+      },
+      {
+        "name": "com.example.kpkn.screens.auge.AugeWellbeingProvenanceTest",
+        "tests": "6",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "3.401"
+      },
+      {
+        "name": "com.example.kpkn.screens.auge.AugeWriteMutexTest",
+        "tests": "10",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "3.11"
+      },
+      {
+        "name": "com.example.kpkn.screens.workout.FinishRingEditsTest",
+        "tests": "26",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.108"
+      },
+      {
+        "name": "com.example.kpkn.screens.workout.ReadinessWellbeingLogTest",
+        "tests": "10",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.007"
+      },
+      {
+        "name": "com.example.kpkn.screens.workout.WorkoutFinishCalibrationTest",
+        "tests": "4",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.008"
+      },
+      {
+        "name": "com.example.kpkn.screens.workout.WorkoutFinishCancellationTest",
+        "tests": "4",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "3.541"
+      },
+      {
+        "name": "com.example.kpkn.screens.workout.WorkoutFinishControllerPostCommitTest",
+        "tests": "3",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.557"
+      },
+      {
+        "name": "com.example.kpkn.screens.workout.WorkoutFinishControllerTimeoutTest",
+        "tests": "1",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.111"
+      },
+      {
+        "name": "com.example.kpkn.screens.workout.WorkoutFinishEmptySessionTest",
+        "tests": "3",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.182"
+      },
+      {
+        "name": "com.example.kpkn.screens.workout.WorkoutFinishSheetEntryTest",
+        "tests": "1",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.005"
+      },
+      {
+        "name": "com.example.kpkn.screens.workout.WorkoutFinishVolumeAdvanceDurableTest",
+        "tests": "1",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "0.003"
+      }
+    ],
+    "fallos": [
+      {
+        "class": "com.example.kpkn.domain.auge.ManualAnchorStateTest",
+        "test": "aStaleCopyCannotUndoAResetAndResurrectAnOlderAnchor",
+        "message": "java.lang.IllegalArgumentException: Required value was null."
+      }
+    ],
+    "observacion": "Produccion A definitiva; unico fallo de expectativa requireNotNull en nuevo test de reset; corregido a assertNull antes del commit A"
+  },
+  "android_A_4": {
+    "log": "C:/kw/logs/r4-2-5-4.log",
+    "estado": "espera detenida por el orquestador al habilitar JVM; no inicio Gradle ni produjo XML"
+  }
+}
