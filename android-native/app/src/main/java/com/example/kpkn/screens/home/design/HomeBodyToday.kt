@@ -40,6 +40,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.home.HomeBodyState
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -84,7 +85,7 @@ fun HomeBodyToday(
     val figureSpec: AnimationSpec<Float> =
         if (reduced) snap() else tween(durationMillis = 900, easing = FastOutSlowInEasing)
     val weightShown by animateFloatAsState(
-        targetValue = if (appeared) (state.weightKg ?: 0.0).toFloat() else 0f,
+        targetValue = if (appeared) (state.trendKg ?: state.weightKg ?: 0.0).toFloat() else 0f,
         animationSpec = figureSpec,
         label = "home-weight",
     )
@@ -154,8 +155,10 @@ fun HomeBodyToday(
 }
 
 /**
- * El último peso en Syne con «kg» y, a su derecha, el cambio de 30 días con su flecha: en `done` si va hacia el objetivo, en `danger` si se
- * aleja y en `textMuted` si no hay objetivo. Si no cabe a la derecha (a 130 % de letra), el cambio baja debajo del peso.
+ * La tendencia del peso (la cifra de Cuerpo; sin tendencia, el último peso) en Syne con «kg» y, a su derecha, el cambio de 30 días con su
+ * flecha: en `done` si va hacia el objetivo, en `danger` si se aleja y en `textMuted` si no hay objetivo. Si no cabe a la derecha (a 130 %
+ * de letra), el cambio baja debajo del peso. Con tendencia lleva encima la etiqueta «Tendencia» (una línea de `caption`), y el último
+ * pesaje solo se dice en la descripción accesible.
  */
 @Composable
 private fun BodyWeightBlock(state: HomeBodyState, weight: Double, shown: Float) {
@@ -165,24 +168,33 @@ private fun BodyWeightBlock(state: HomeBodyState, weight: Double, shown: Float) 
         state.changeTowardGoal -> WizardColors.done
         else -> WizardColors.danger
     }
+    val trend = state.trendKg
+    val figure = if (trend != null) {
+        "Tendencia del peso: ${formatDecimalEs(trend, 1)} kilos, último pesaje ${formatDecimalEs(weight, 1)} kilos"
+    } else {
+        "Peso: ${formatDecimalEs(weight, 1)} kilos"
+    }
+    val description = figure + change?.let { ", ${formatSignedDecimalEs(it, 1)} kilos en 30 días" }.orEmpty()
     Box(
         modifier = Modifier
             .fillMaxWidth()
             // La cifra cuenta: la semántica da el peso y el cambio finales.
-            .clearAndSetSemantics {
-                contentDescription = "Peso: ${formatDecimalEs(weight, 1)} kilos" +
-                    change?.let { ", ${formatSignedDecimalEs(it, 1)} kilos en 30 días" }.orEmpty()
-            },
+            .clearAndSetSemantics { contentDescription = description },
     ) {
-        HomeMetricNote(
-            value = formatDecimalEs(shown.toDouble(), 1),
-            unit = "kg",
-            note = change?.let { "${formatSignedDecimalEs(it, 1)} kg en 30 días" },
-            valueStyle = KpknType.metricXL,
-            noteStyle = KpknType.caption,
-            noteColor = tint,
-            noteIcon = change?.let { if (it < 0) KpknLineIcons.TrendDown else KpknLineIcons.TrendUp },
-        )
+        Column {
+            if (trend != null) {
+                Text(text = "Tendencia", style = KpknType.caption, color = WizardColors.textMuted)
+            }
+            HomeMetricNote(
+                value = formatDecimalEs(shown.toDouble(), 1),
+                unit = "kg",
+                note = change?.let { "${formatSignedDecimalEs(it, 1)} kg en 30 días" },
+                valueStyle = KpknType.metricXL,
+                noteStyle = KpknType.caption,
+                noteColor = tint,
+                noteIcon = change?.let { if (it < 0) KpknLineIcons.TrendDown else KpknLineIcons.TrendUp },
+            )
+        }
     }
 }
 
@@ -232,9 +244,7 @@ private fun BodyTrendChart(
     modifier: Modifier,
 ) {
     val measurer = rememberTextMeasurer()
-    val goalLayout = remember(goalText) {
-        goalText?.let { measurer.measure(it, style = WizardTypography.caption.copy(color = WizardColors.textMuted)) }
-    }
+    val goalStyle = remember { WizardTypography.caption.copy(color = WizardColors.textMuted) }
     Canvas(modifier.semantics { contentDescription = "Tendencia de peso de los últimos 30 días" }) {
         val first = state.trend.first().date.toEpochDay()
         val end = (state.windowEnd ?: state.trend.last().date).toEpochDay()
@@ -283,7 +293,15 @@ private fun BodyTrendChart(
                     pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f)),
                 )
             }
-            goalLayout?.let { layout ->
+            goalText?.let { text ->
+                // Una línea que nunca pasa del ancho de la gráfica: un margen de fechas largo se corta con elipsis, no por la izquierda.
+                val layout = measurer.measure(
+                    text = text,
+                    style = goalStyle,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    constraints = Constraints(maxWidth = (right - left).toInt().coerceAtLeast(0)),
+                )
                 // Con línea, el texto va encima de ella; sin línea (objetivo fuera de la escala), arriba a la derecha.
                 val textTop = if (inside) yOf(goal) - layout.size.height - 3.dp.toPx() else 2.dp.toPx()
                 drawText(layout, topLeft = Offset(right - layout.size.width, textTop))
@@ -292,11 +310,12 @@ private fun BodyTrendChart(
     }
 }
 
-/** «Objetivo 72 kg» y, si el ritmo lo permite, «· ≈ abril». Null sin objetivo de peso. */
+/** «Objetivo 72 kg» y, si el ritmo lo permite, «· ≈ abril» o, si el margen cambia de mes, «· abr – jun». Null sin objetivo de peso. */
 private fun bodyGoalText(state: HomeBodyState): String? {
     val goal = state.goalKg ?: return null
     val weight = formatDecimalEs(goal, if (goal % 1.0 == 0.0) 0 else 1)
-    return "Objetivo $weight kg" + (state.goalMonth?.let { " · ≈ $it" } ?: "")
+    val date = state.goalMonthRange ?: state.goalMonth?.let { "≈ $it" }
+    return "Objetivo $weight kg" + (date?.let { " · $it" } ?: "")
 }
 
 /** Un dato pequeño de Cuerpo: su cifra con la unidad (si la tiene), su nombre y el destino de la pantalla de progreso. */
