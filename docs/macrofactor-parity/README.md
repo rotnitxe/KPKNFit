@@ -56,7 +56,7 @@ Archivos calientes con un único dueño por paquete (no se tocan fuera de él): 
 | ID | Estado | Commits | Notas |
 |---|---|---|---|
 | H1 | **hecho y revisado** (20-oct 22:40) | `9ada85629`, `d20e0de52` | 222 tests en verde (33 suites, XML). Quita `addNutritionLog`; `addLog`/creatina esperan a Room y avisan si falla; `unreadableRows` + cuarentena por fila (registros, plantillas, planes); «olvidar aprendizaje» ya no borra plantillas en cuarentena. **Pendiente para P2-D:** `SettingsViewModel.kt:210` exporta plantillas en bloque (una ilegible puede romper la exportación) y la cuarentena en copias de seguridad sin verificar. |
-| N1 | pendiente | | |
+| N1 | **hecho y revisado** (21-oct 00:05) | `942c4facd`, `acd7685d0`, `43f7df2d6` | 57 tests en verde (XML contados por mí), 0 `@Ignore`. 2 rondas de parámetros (solo se tocó el ruido de pendiente); umbrales D7 intactos y protocolo fijado antes de ajustar. **Márgenes estrechos**: MAE 146,19 de 150 (agua σ 1,0 kg, pesaje diario) y sesgo S3 9,22 de 10: otras dinámicas pueden superarlos. Sin coeficientes prohibidos (grep limpio). Notas para N2: `classifyDays` exige UN `DayObservation` por día; `PartialDaySuggester` usa `ExpenditureParams.V1`; banda ≈ ±300 kcal con ingesta de 2.400. |
 | T2 | pendiente | | |
 | T1 | pendiente | | |
 | N2a | pendiente | | |
