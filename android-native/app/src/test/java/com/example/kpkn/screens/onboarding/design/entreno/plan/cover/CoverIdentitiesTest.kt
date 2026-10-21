@@ -20,7 +20,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * La tabla de identidades de las portadas: los 30 «a medida», los 47 del catálogo que se listan, sus reglas (vecinos, fondos, estilos y
+ * La tabla de identidades de las portadas: los 30 «a medida», los 48 del catálogo que se listan, sus reglas (vecinos, fondos, estilos y
  * acentos) y la identidad de respaldo de Home.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -30,10 +30,10 @@ class CoverIdentitiesTest {
     /** Los 30 ids «a medida» tal como los lista la tabla editorial (ver `PlanEditorialTable`). */
     private val generatedIds = PlanEditorialTable.byId.keys.filter { it.startsWith("generated:") }.sorted()
 
-    /** Los programas del catálogo que se listan (la biblioteca y el planificador): 47. */
+    /** Los programas del catálogo que se listan (la biblioteca y el planificador): 48. */
     private val listedIds = PersonalizedPlanCatalog.listedEntries().map { it.id }.sorted()
 
-    /** Las 77 portadas con identidad propia: los «a medida» y el catálogo. */
+    /** Las 78 portadas con identidad propia: los «a medida» y el catálogo. */
     private val allIds = generatedIds + listedIds
 
     private fun identityOf(id: String): CoverIdentity = assignedCoverIdentity(id)!!
@@ -57,7 +57,7 @@ class CoverIdentitiesTest {
 
     @Test
     fun everyListedProgramHasItsOwnIdentity() {
-        assertEquals(47, listedIds.size)
+        assertEquals(48, listedIds.size)
         for (id in listedIds) assertNotNull(id, assignedCoverIdentity(id))
         assertEquals(allIds.toSet(), assignedCoverProgramIds)
     }

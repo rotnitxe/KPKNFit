@@ -60,6 +60,8 @@ class ProtocolAuditTest {
             "kpkn-rts-style",
             "kpkn-sbs-rtf",
             "nsuns-531-lp-4d",
+            // CAL6: APRE de Mann son 12 semanas sin descarga programada (el XRM se reajusta cada semana) y lo declara con una exención C5.
+            "apre-mann",
         )
 
         @BeforeClass

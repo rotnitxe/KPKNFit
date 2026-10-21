@@ -1292,16 +1292,24 @@ class ProtocolRecipeFidelityTest {
     fun the_recipes_changed_in_b_s6_carry_content_version_2_and_the_untouched_ones_stay_at_1() {
         // `contentVersion` es parte de la identidad (recipeId, contentVersion, ocurrencia, día, slot) de los programas NUEVOS; los activados
         // conservan su snapshot de la versión 1 en `Program.sourceRecipe`. Ninguna otra prueba fija el número de una receta publicada.
+        // CAL5: 5/3/1 (reinicio), nSuns (press militar con su 1+), Juggernaut (reps sobre el estándar), GZCLP (etapas), Cube y Lilliebridge (AMRAP de
+        // registro explícito) pasan a la versión 3, The Rippler a la 2 y las tres plantillas `power-*` a la 3 (AMRAP calibrador).
         val bumped = listOf(
-            "madcow-5x5", "texas-method-3d", "texas-method-4d", "kpkn-native-sbd-4", "lilliebridge", "smolov", "smolov-jr", "wendler-531-bbb",
-            "wendler-531-fsl", "nsuns-531-lp-4d", "kpkn-ppl-6", "kpkn-rp-style", "kpkn-rts-style", "kpkn-sbs-rtf", "candito-6", "gzcl-uhf-9",
-            "tsa-9", "calgary-16", "gzclp", "gzcl-jt-2", "cube-method", "westside-conjugate", "sheiko-29-32", "juggernaut-2",
+            "madcow-5x5", "texas-method-3d", "texas-method-4d", "kpkn-native-sbd-4", "smolov", "smolov-jr",
+            "kpkn-ppl-6", "kpkn-rp-style", "kpkn-rts-style", "kpkn-sbs-rtf", "candito-6", "gzcl-uhf-9",
+            "tsa-9", "calgary-16", "gzcl-jt-2", "westside-conjugate", "sheiko-29-32",
         )
         bumped.forEach { id -> assertEquals("$id: contentVersion", 2, recipeOf(id).contentVersion) }
-        listOf("gzcl-rippler", "coan-phillipi-dl", "korte-3x3", "phul-verified", "phat-verified").forEach { id ->
+        listOf(
+            "lilliebridge", "wendler-531-bbb", "wendler-531-fsl", "nsuns-531-lp-4d", "gzclp", "cube-method", "juggernaut-2",
+        ).forEach { id -> assertEquals("$id: contentVersion", 3, recipeOf(id).contentVersion) }
+        assertEquals("gzcl-rippler: AMRAP de registro", 2, recipeOf("gzcl-rippler").contentVersion)
+        listOf("coan-phillipi-dl", "korte-3x3", "phul-verified", "phat-verified", "apre-mann").forEach { id ->
             assertEquals("$id: sin cambios de contenido", 1, recipeOf(id).contentVersion)
         }
-        PROGRAM_TEMPLATES.mapNotNull { it.recipe }.forEach { assertEquals("${it.id}: contentVersion", 2, it.contentVersion) }
+        PROGRAM_TEMPLATES.mapNotNull { it.recipe }.forEach {
+            assertEquals("${it.id}: contentVersion", if (it.id.startsWith("power-")) 3 else 2, it.contentVersion)
+        }
         AuthoredPhulPhatRecipes.all.forEach { assertEquals("${it.id}: contentVersion", 2, it.contentVersion) }
     }
 

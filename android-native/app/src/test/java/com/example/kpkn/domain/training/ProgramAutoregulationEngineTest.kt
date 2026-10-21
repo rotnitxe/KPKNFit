@@ -823,12 +823,15 @@ class ProgramAutoregulationEngineTest {
     }
 
     @Test
-    fun recipes_with_a_rule_or_the_hook_keep_proposing_from_their_amrap() {
-        // Contraste con H-05: las recetas publicadas con regla o con gancho (nSuns, GZCLP, 5/3/1, Juggernaut, SBS, J&T) siguen proponiendo.
-        listOf("nsuns-531-lp-4d", "gzclp", "wendler-531-bbb", "juggernaut-2", "kpkn-sbs-rtf", "gzcl-jt-2").forEach { id ->
+    fun only_the_rules_that_translate_the_amrap_into_a_weekly_tm_change_keep_proposing_from_it() {
+        // CAL5: nSuns (tabla en kilos), el estilo SBS (porcentaje por repetición) y APRE (XRM de la semana siguiente) proponen por la vía semanal.
+        listOf("nsuns-531-lp-4d", "kpkn-sbs-rtf", "apre-mann").forEach { id ->
             assertTrue("$id: su AMRAP mueve el TM", ProgramAutoregulationEngine.amrapMovesTm(PROTOCOL_LIBRARY.first { it.id == id }.recipe!!))
         }
-        assertFalse(ProgramAutoregulationEngine.amrapMovesTm(PROTOCOL_LIBRARY.first { it.id == "kpkn-rts-style" }.recipe!!))
+        // 5/3/1 (la serie «+» no mueve el TM), GZCLP y Juggernaut (actúan al cerrar ciclo u ola) y J&T (lo mide el e1RM del RM) no.
+        listOf("wendler-531-bbb", "wendler-531-fsl", "gzclp", "juggernaut-2", "gzcl-jt-2", "kpkn-rts-style").forEach { id ->
+            assertFalse("$id: su AMRAP no propone un cambio de TM por la vía semanal", ProgramAutoregulationEngine.amrapMovesTm(PROTOCOL_LIBRARY.first { it.id == id }.recipe!!))
+        }
     }
 
     // ─── B.S6 parte 2a · DEC-w3-07: la propuesta de variante técnica se retira ───────────────────
@@ -865,10 +868,10 @@ class ProgramAutoregulationEngineTest {
             amrapHits = listOf(AmrapHit(LiftSlot.SQUAT, 95.0, prescribedReps = 5, actualReps = 1, meanRpe = 9.4)),
         )
 
+        // CAL5: con la regla de repeticiones (estilo SBS) un AMRAP corto baja el TM; la tabla de nSuns ya no define bajadas.
         fun proposalsFor(joint: Boolean) = ProgramAutoregulationEngine.evaluate(
             program = program,
             completedWeek = firstWeek(program),
-        // CAL5: con la regla de repeticiones (estilo SBS) un AMRAP corto baja el TM; la tabla de nSuns ya no define bajadas.
             logs = emptyList(),
             recipe = recipe().copy(progression = ProgressionRule.RepTargetDrivenTm()),
             signals = signals.copy(repeatedJointPain = joint),

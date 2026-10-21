@@ -539,7 +539,7 @@ class PlanCatalogEditorialContractTest {
 
     @Test
     fun hidden_entries_stay_in_the_catalog_but_not_in_the_listed_entries() {
-        // `entries()` conserva las 85 (programas ya activados, `lookup`, ruta histórica del personalizador y los
+        // `entries()` conserva las 86 (programas ya activados, `lookup`, ruta histórica del personalizador y los
         // programas «a medida» del asistente, con sus variantes).
         assertEquals(EXPECTED_ENTRIES, entries.size)
         val hidden = HIDDEN_HISTORICALS + GENERATED
@@ -549,7 +549,7 @@ class PlanCatalogEditorialContractTest {
             entries.filterNot { it.listed }.map { it.id }.toSet(),
         )
 
-        // `listedEntries()` ofrece 47: las mismas sin las treinta y ocho ocultas, en el mismo orden.
+        // `listedEntries()` ofrece 48: las mismas sin las treinta y ocho ocultas, en el mismo orden.
         val listed = PersonalizedPlanCatalog.listedEntries()
         assertEquals(EXPECTED_ENTRIES - hidden.size, listed.size)
         assertEquals(entries.filter { it.id !in hidden }.map { it.id }, listed.map { it.id })
@@ -647,8 +647,8 @@ class PlanCatalogEditorialContractTest {
     )
 
     private companion object {
-        /** 55 del catálogo de planes + los 10 programas «a medida» del generador y sus 20 variantes (Entreno v2, punto 12). */
-        const val EXPECTED_ENTRIES = 85
+        /** 56 del catálogo de planes (CAL6 añadió APRE de Mann) + los 10 programas «a medida» del generador y sus 20 variantes (Entreno v2, punto 12). */
+        const val EXPECTED_ENTRIES = 86
 
         /** Entreno v2: los programas «a medida» del generador (semana simple y variantes), sin listar: los ofrece solo el asistente. */
         val GENERATED = (PersonalizedPlanCatalog.GENERATED_IDS + PersonalizedPlanCatalog.GENERATED_VARIANT_IDS).toSet()

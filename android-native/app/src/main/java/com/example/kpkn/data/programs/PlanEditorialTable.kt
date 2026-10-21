@@ -757,6 +757,21 @@ internal object PlanEditorialTable {
             ),
         )
         add(
+            "protocol:apre-mann",
+            thirdParty(
+                displayName = "APRE de Mann",
+                summary = "12 semanas, 3 días por semana: sentadilla, banca y peso muerto con cuatro series cada uno. " +
+                    "Las dos primeras son ligeras y las dos últimas van al máximo de repeticiones: la tercera ajusta " +
+                    "el peso de la cuarta y la cuarta, el de la semana siguiente. Las repeticiones con mala técnica " +
+                    "no cuentan. El plan pasa de 10 a 6 y a 3 repeticiones.",
+                rank = 442,
+                level = CatalogLevel.INTERMEDIATE,
+                methodName = "APRE",
+                authors = "Bryan Mann",
+                terms = setOf(PlanTerm.AMRAP, PlanTerm.TM, PlanTerm.SBD),
+            ),
+        )
+        add(
             "protocol:candito-6",
             thirdParty(
                 displayName = "Candito 6 semanas",

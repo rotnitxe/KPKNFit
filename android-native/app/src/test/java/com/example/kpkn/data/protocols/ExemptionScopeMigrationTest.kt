@@ -101,6 +101,8 @@ class ExemptionScopeMigrationTest {
         // peso muerto sumo (sentadilla) y el de sentadilla frontal (peso muerto) cuelgan de su T1 de otro patrón: C8 por slot.
         "nsuns-531-lp-4d" to listOf(
             "C1_SET_RANGE" to "Banca/OHP/t1",
+            // CAL5: la banca de volumen (9 series) es el T2 del primer día; el T1 es el press militar pesado.
+            "C1_SET_RANGE" to "Banca/OHP/t2",
             "C1_SET_RANGE" to "Sentadilla/Sumo/t1",
             "C1_SET_RANGE" to "Banca/Cerrado/t1",
             "C1_SET_RANGE" to "Peso muerto/Frontal/t1",
@@ -128,6 +130,7 @@ class ExemptionScopeMigrationTest {
         "gzcl-jt-2" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         "gzcl-rippler" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         "gzcl-uhf-9" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
+        "apre-mann" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         "cube-method" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         "calgary-16" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID to phulAuthoredLegacy,

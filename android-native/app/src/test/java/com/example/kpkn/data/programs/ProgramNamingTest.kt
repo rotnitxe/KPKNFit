@@ -175,7 +175,7 @@ class ProgramNamingTest {
          * 85 entradas menos las 38 ocultas (D2, D1 y punto 12): los cinco nativos, strength-cardio, PHUL/PHAT anteriores y los
          * treinta «a medida» (diez semanas simples y veinte variantes en bloques o periodizadas).
          */
-        const val EXPECTED_LISTED = 47
+        const val EXPECTED_LISTED = 48
         const val MAX_NAME = 48
 
         val ENGLISH_LEVEL = Regex("""\b(beginner|intermediate|advanced)\b""", RegexOption.IGNORE_CASE)
