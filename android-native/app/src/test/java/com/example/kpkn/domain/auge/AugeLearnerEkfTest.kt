@@ -36,6 +36,8 @@ class AugeLearnerEkfTest {
         val rng = Random(42)
         val channels = listOf("cns", "spinal", "pectorales")
         var acortamientos = 0
+        var admitidos = 0
+        var censurados = 0
         var totalCasos = 0
 
         for (i in 1..300) {
@@ -84,12 +86,34 @@ class AugeLearnerEkfTest {
             val finalMean = res.cache.parameterStates[key]?.mean ?: m
             val tauAfter = exp(finalMean)
 
+            when (res.outcome.status) {
+                AugeObservationStatus.ADMITTED -> {
+                    admitidos++
+                    if (abs(tauBefore - AugeParameters.LEARNER_TAU_MAX_H) < 1e-9) {
+                        assertTrue(
+                            "En el límite superior (τ=$tauBefore) τ' no puede crecer, pero fue $tauAfter",
+                            tauAfter <= tauBefore + 1e-12,
+                        )
+                    } else {
+                        assertTrue(
+                            "Un caso ADMITIDO con y < h debe alargar τ estrictamente " +
+                                "(τ=$tauBefore → $tauAfter, m=ln(τ) inicial $m)",
+                            tauAfter > tauBefore,
+                        )
+                    }
+                }
+                AugeObservationStatus.CENSORED -> censurados++
+                AugeObservationStatus.REJECTED -> Unit
+            }
+
             if (tauAfter < tauBefore - 1e-12) {
                 acortamientos++
             }
             totalCasos++
         }
 
+        assertEquals("Admitidos + censurados deben sumar el total", totalCasos, admitidos + censurados)
+        assertTrue("La prueba necesita casos admitidos reales (admitidos=$admitidos)", admitidos >= 100)
         assertEquals("0 acortamientos de τ para y < h sobre $totalCasos casos", 0, acortamientos)
     }
 
