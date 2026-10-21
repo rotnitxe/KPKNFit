@@ -136,6 +136,12 @@ data class LoggedFood(
     val isUncertain: Boolean = false,
     val caffeineMg: Double = 0.0,
     val creatineG: Double = 0.0,
+    /**
+     * N4: el registro nació de una entrada rápida (solo kcal y macros que la persona escribió, sin alimento detrás). Cuenta para los
+     * totales del día, pero sus micronutrientes (fibra, azúcar, sodio, potasio, lista) son DESCONOCIDOS, no ceros: la lógica de
+     * cobertura debe saltarse el alimento (`MealReuse.micronutrientsKnown`). Valor por defecto: los registros viejos se leen igual.
+     */
+    val isQuickEntry: Boolean = false,
 )
 
 // ─── NutritionLog ─────────────────────────────────────────────────────────────
