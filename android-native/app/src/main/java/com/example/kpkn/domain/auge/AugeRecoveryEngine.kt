@@ -596,7 +596,6 @@ object AugeRecoveryEngine {
                 missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.MUSCLE_STRESS_UNITS,
-                plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
             ))
             recipe.forEachCompleted(
                 exercises = log.completedExercises,
@@ -710,7 +709,6 @@ object AugeRecoveryEngine {
             missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
             cardioHandling = RecipeOptions.CardioHandling.LEGACY_STRENGTH,
             softCapUnits = RecipeOptions.SoftCapUnits.NONE,
-            plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
         ))
         recipe.forEachCompleted(
             exercises = log.completedExercises,
@@ -783,7 +781,6 @@ object AugeRecoveryEngine {
                 missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.LOG_PERCENT,
-                plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
             ))
             recipe.forEachCompleted(
                 exercises = log.completedExercises,
@@ -973,7 +970,6 @@ object AugeRecoveryEngine {
                 missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.LOG_PERCENT,
-                plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
             ))
             recipe.forEachCompleted(
                 exercises = log.completedExercises,

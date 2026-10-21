@@ -15,7 +15,6 @@ internal data class RecipeOptions(
     val missingCatalog: MissingCatalog,
     val cardioHandling: CardioHandling,
     val softCapUnits: SoftCapUnits,
-    val plannedSetIds: PlannedSetIds,
 ) {
     enum class RestSource { SUPERSET_OR_EXERCISE, EXERCISE, PLANNED_OR_90, PLANNED_OR_SETTINGS }
     enum class VolumeCounting { UNILATERAL_HALVES_ROUNDED, EFFECTIVE_SET_COUNT }
@@ -26,7 +25,6 @@ internal data class RecipeOptions(
     enum class MissingCatalog { HEURISTIC, SKIP }
     enum class CardioHandling { CONSUMER_HOOK, LEGACY_STRENGTH }
     enum class SoftCapUnits { CHANNEL_PERCENT, MUSCLE_STRESS_UNITS, LOG_PERCENT, NONE }
-    enum class PlannedSetIds { EMPTY, PRESERVE }
 }
 
 internal data class AdjustedSetDrain(
@@ -131,7 +129,7 @@ internal class SessionDrainRecipe(
                 ))
             },
             effectiveSets = { ex -> ex.sets.filterNot { it.isIneffective } },
-            complete = { ex, set -> plannedSet(ex, set, options.plannedSetIds) },
+            complete = { ex, set -> plannedSet(ex, set) },
             onCardio = onCardio,
             onSet = onSet,
         )
@@ -269,7 +267,7 @@ internal class SessionDrainRecipe(
         fun conserveCardio(drain: Double): Double = drain * AugeUtils.SESSION_CONSERVATION_FACTOR
 
         /** Adaptación histórica: las técnicas y la duración planificadas no se añaden a la serie sintética. */
-        fun plannedSet(exercise: Exercise, set: ExerciseSet, ids: RecipeOptions.PlannedSetIds): CompletedSet {
+        fun plannedSet(exercise: Exercise, set: ExerciseSet): CompletedSet {
             val percentage = set.targetPercentageRM
             val reference = exercise.reference1RM
             val weight = if (exercise.trainingMode == TrainingMode.RM && percentage != null && reference != null && reference > 0.0) {
@@ -278,7 +276,7 @@ internal class SessionDrainRecipe(
                 set.weight ?: 60.0
             }
             return CompletedSet(
-                id = if (ids == RecipeOptions.PlannedSetIds.EMPTY) "" else set.id,
+                id = set.id,
                 weight = weight,
                 reps = set.plannedRepAnchor() ?: 8,
                 rpe = set.targetRPE,

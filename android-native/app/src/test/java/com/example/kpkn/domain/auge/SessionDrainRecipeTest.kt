@@ -20,7 +20,6 @@ class SessionDrainRecipeTest {
         missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
         cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
         softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
-        plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
     )
 
     private fun recipe(
@@ -231,14 +230,16 @@ class SessionDrainRecipeTest {
         assertEquals(kilos.adjusted, libras.adjusted)
     }
 
-    @Test fun identidadSinteticaVaciaOPreservadaNoCambiaLaCarga() {
+    @Test fun identidadSinteticaSeConservaSinCambiarLaCarga() {
         val ex = plannedExercise()
         val set = ex.sets.single()
-        val empty = SessionDrainRecipe.plannedSet(ex, set, RecipeOptions.PlannedSetIds.EMPTY)
-        val preserved = SessionDrainRecipe.plannedSet(ex, set, RecipeOptions.PlannedSetIds.PRESERVE)
-        assertEquals("", empty.id)
+        val preserved = SessionDrainRecipe.plannedSet(ex, set)
         assertEquals(set.id, preserved.id)
-        assertEquals(empty, preserved.copy(id = ""))
+        val metrics = completed(options()).single().context.metrics
+        val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(fixtures.settings)
+        val emptyDrain = AugeFatigueEngine.calculateSetBatteryDrain(preserved.copy(id = ""), metrics, tanks)
+        val preservedDrain = AugeFatigueEngine.calculateSetBatteryDrain(preserved, metrics, tanks)
+        assertEquals(emptyDrain, preservedDrain)
     }
 
     @Test fun adaptadorConservaSesentaKilosOchoRepsRirYFalloSinAnadirTecnicas() {
@@ -246,21 +247,21 @@ class SessionDrainRecipeTest {
             "default", targetRIR = 3, intensityMode = IntensityMode.RIR,
             targetDuration = 60, dropSets = listOf(DropSetData(30.0, 5)), restPauses = listOf(RestPauseData(15, 2)),
         )
-        val actual = SessionDrainRecipe.plannedSet(plannedExercise(), set, RecipeOptions.PlannedSetIds.PRESERVE)
+        val actual = SessionDrainRecipe.plannedSet(plannedExercise(), set)
         assertEquals(60.0, actual.weight, 0.0)
         assertEquals(8, actual.reps)
         assertEquals(3, requireNotNull(actual.rir))
         assertEquals(3.0, requireNotNull(actual.actualIntensityValue), 0.0)
         assertTrue(actual.timeSeconds == null)
         assertTrue(actual.dropSets.isEmpty() && actual.restPauses.isEmpty())
-        val failure = SessionDrainRecipe.plannedSet(plannedExercise(), set.copy(intensityMode = IntensityMode.FAILURE), RecipeOptions.PlannedSetIds.PRESERVE)
+        val failure = SessionDrainRecipe.plannedSet(plannedExercise(), set.copy(intensityMode = IntensityMode.FAILURE))
         assertTrue(failure.isFailure)
     }
 
     @Test fun adaptadorRmUsaPorcentajeYReferenciaSoloCuandoCorresponde() {
         val ex = plannedExercise().copy(trainingMode = TrainingMode.RM, reference1RM = 200.0)
         val set = ex.sets.single().copy(targetPercentageRM = 75.0, weight = 20.0)
-        fun weight(exercise: Exercise) = SessionDrainRecipe.plannedSet(exercise, set, RecipeOptions.PlannedSetIds.PRESERVE).weight
+        fun weight(exercise: Exercise) = SessionDrainRecipe.plannedSet(exercise, set).weight
         assertEquals(150.0, weight(ex), 0.0)
         assertEquals(20.0, weight(ex.copy(reference1RM = 0.0)), 0.0)
         assertEquals(20.0, weight(ex.copy(trainingMode = TrainingMode.REPS)), 0.0)
