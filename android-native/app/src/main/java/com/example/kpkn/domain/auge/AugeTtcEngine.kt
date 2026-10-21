@@ -211,6 +211,7 @@ object AugeTtcEngine {
         feedbacks: List<PostSessionFeedback> = emptyList(),
         wellbeing: DailyWellbeingLog? = null,
         nowMs: Long = AugeClock.nowMs(),
+        zone: java.time.ZoneId = java.time.ZoneId.systemDefault(),
     ): Map<ArticularBattery, ArticularBatteryState> {
         val now = nowMs
         val tenDaysMs = 10L * 24 * 3600 * 1000
@@ -337,7 +338,7 @@ object AugeTtcEngine {
         val unresolvedStress = ArticularBattery.entries.associateWith { 0.0 }.toMutableMap()
         for (fb in feedbacks) {
             val fbDateMs = try {
-                SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(fb.date)?.time ?: 0L
+                SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone(zone) }.parse(fb.date)?.time ?: 0L
             } catch (_: Exception) { 0L }
             if (fbDateMs <= 0L) continue
             val hoursSince = max(0.0, (now - fbDateMs) / 3_600_000.0)

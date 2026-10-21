@@ -89,37 +89,19 @@ class AugeRecoveryEngineRingTest {
             exerciseDb = exerciseDb,
             automaticImpact = impact,
             nowOverrideMs = ahora,
+            zone = java.time.ZoneId.of("UTC"),
         )
-        val homeMuscles = AugeRecoveryEngine.getPerMuscleBatteries(
-            history = listOf(previewLog),
+        val inputs = AugeSnapshotInputs(
+            history = listOf(previewLog.copy(muscularImpactV2 = impact)),
             wellbeing = null,
             settings = settings,
             exerciseDb = exerciseDb,
-            nowOverrideMs = ahora,
+            nowMs = ahora,
+            zone = java.time.ZoneId.of("UTC"),
         )
-        val homeBatteries = AugeRecoveryEngine.calculateGlobalBatteries(
-            history = listOf(previewLog),
-            wellbeing = null,
-            settings = settings,
-            exerciseDb = exerciseDb,
-            precomputedMuscles = homeMuscles,
-            nowOverrideMs = ahora,
-        )
-        val baseMuscles = AugeRecoveryEngine.getPerMuscleBatteries(
-            history = emptyList(),
-            wellbeing = null,
-            settings = settings,
-            exerciseDb = exerciseDb,
-            nowOverrideMs = ahora,
-        )
-        val baseBatteries = AugeRecoveryEngine.calculateGlobalBatteries(
-            history = emptyList(),
-            wellbeing = null,
-            settings = settings,
-            exerciseDb = exerciseDb,
-            precomputedMuscles = baseMuscles,
-            nowOverrideMs = ahora,
-        )
+        // Home incluye la sesión, su V2 y sus articulares; no una variante sin articulaciones.
+        val homeBatteries = AugeSnapshotComputer.compute(inputs).batteries
+        val baseBatteries = AugeSnapshotComputer.compute(inputs.copy(history = emptyList())).batteries
         assertEquals(homeBatteries.muscular, preview.muscular)
         val subtracted = (baseBatteries.muscular - impact.globalMuscularDrain).coerceIn(0, 100)
         assertTrue(

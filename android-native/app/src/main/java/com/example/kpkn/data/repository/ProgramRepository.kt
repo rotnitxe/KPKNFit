@@ -8,9 +8,10 @@ import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.ExerciseNicknameResolver
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.domain.auge.AugeClock
-import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.AugeRecoveryEngine
-import com.example.kpkn.domain.auge.AugeTtcEngine
+import com.example.kpkn.domain.auge.AugeSnapshotComputer
+import com.example.kpkn.domain.auge.AugeSnapshotInputs
+import com.example.kpkn.domain.auge.AugeSnapshotCore
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.domain.auge.AxialLoadMonitor
 import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.auge.SystemicLoadMonitor
@@ -1156,74 +1157,26 @@ class ProgramRepository private constructor(
 
     private suspend fun computeAugeSnapshot(history: List<WorkoutLog>): AugeTransitionSnapshot? {
         val context = appContext ?: return null
-        return runCatching {
-            val augeRepo = AugeRepository.getInstance(context)
-            val wellbeing = augeRepo.getTodayWellbeing() ?: augeRepo.getActiveWellbeingWithManualOverrides()
-            val feedbacks = augeRepo.getPostSessionFeedbacks()
-            val sleepLogs = augeRepo.getLastNSleepLogs(7)
-            val adaptiveCache = augeRepo.getAdaptiveCache()
-            val nutritionLogs = runCatching { NutritionRepository.getInstance().nutritionLogs.value }.getOrDefault(emptyList())
-            val exerciseDb = exerciseCatalogSnapshot().associateBy { it.id.lowercase() }
+        return try {
             val settings = _settings.value
-            // Un solo corte para todo el cálculo: baterías, articular, conteo de sesiones y monitores lo comparten.
             val evaluationNowMs = AugeClock.nowMs()
-            val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
-                history = history,
-                wellbeing = wellbeing,
-                settings = settings,
-                exerciseDb = exerciseDb,
-                sleepLogs = sleepLogs,
-                nutritionLogs = nutritionLogs,
-                feedbacks = feedbacks,
-                adaptiveCache = adaptiveCache,
-                nowOverrideMs = evaluationNowMs,
+            val inputs = loadAugeSnapshotInputs(
+                AugeRepository.getInstance(context), NutritionRepository.getInstance(), history, settings,
+                evaluationNowMs, java.time.ZoneId.systemDefault(),
             )
-            val articular = AugeTtcEngine.calculateArticularBatteries(
-                history, exerciseDb, feedbacks, wellbeing,
-                nowMs = evaluationNowMs,
-            )
-            val batteries = AugeRecoveryEngine.calculateGlobalBatteries(
-                history = history,
-                wellbeing = wellbeing,
-                settings = settings,
-                exerciseDb = exerciseDb,
-                sleepLogs = sleepLogs,
-                nutritionLogs = nutritionLogs,
-                feedbacks = feedbacks,
-                adaptiveCache = adaptiveCache,
-                precomputedMuscles = muscles,
-                articularBatteries = articular,
-                nowOverrideMs = evaluationNowMs,
-            )
-            val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
-                batteries = batteries,
-                perMuscle = muscles,
-                articularBatteries = articular,
-                wellbeing = wellbeing,
-                sleepLogs = sleepLogs,
-                recentSessionCount = AugeRecoveryEngine.recentSessionCount(history, evaluationNowMs),
-            )
-            val verdict = AugeRecoveryEngine.calculateDailyReadiness(dashboard, wellbeing)
-            val twoWeeksAgo = evaluationNowMs - 14L * 24 * 3600_000
-            val cumFatigue = history
-                .filter { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) >= twoWeeksAgo }
-                .sumOf { log ->
-                    AugeFatigueEngine.calculateCompletedSessionStress(
-                        completedExercises = log.completedExercises,
-                        exerciseDb = exerciseDb,
-                        settings = settings,
-                        adaptiveCache = adaptiveCache,
-                        durationMinutes = log.durationMinutes,
-                    )
-                }
+            val core = withContext(Dispatchers.Default) { computeProgramAugeSnapshot(inputs) }
+            val exerciseDb = inputs.exerciseDb
+            val adaptiveCache = inputs.adaptiveCache
+            val wellbeing = inputs.wellbeing
+            val feedbacks = inputs.feedbacks
             val axial = AxialLoadMonitor.evaluate(history, exerciseDb, evaluationNowMs)
             val systemic = SystemicLoadMonitor.evaluate(history, exerciseDb, settings, adaptiveCache, evaluationNowMs)
             val advisory = LoadAdvisoryEngine.evaluate(axial, systemic, adaptiveCache, evaluationNowMs)
             val topLevel = advisory.advisories.maxByOrNull { LoadAdvisoryEngine.rank(it.level) }?.level
                 ?: LoadAdvisoryLevel.NONE
             AugeTransitionSnapshot(
-                readinessScore = verdict.score,
-                cumulativeFatigue = cumFatigue.takeIf { it > 0.0 } ?: batteries.cnc.toDouble(),
+                readinessScore = core.readiness.score,
+                cumulativeFatigue = core.cumulativeFatigue,
                 stressLevel = wellbeing?.stressLevel,
                 advisoryLevel = topLevel,
                 feedbacks = feedbacks,
@@ -1233,7 +1186,20 @@ class ProgramRepository private constructor(
                     fb.muscleFeedback.values.any { it.jointPain } || fb.unresolvedDiscomfortIds.isNotEmpty()
                 } >= 2,
             )
-        }.getOrNull()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            KpknDiagnosticLogger.event(
+                namespace = "auge",
+                name = "program_snapshot_failed",
+                fields = mapOf(
+                    "historyCount" to history.size,
+                    "exceptionType" to e.javaClass.name,
+                    "exceptionMessage" to e.message,
+                ),
+            )
+            null
+        }
     }
 
     fun getLogsForProgram(programId: String): List<WorkoutLog> =
@@ -2394,3 +2360,6 @@ sealed class StartWorkoutResult {
 class ProgramWriteConflictException(val programId: String) : IllegalStateException(
     "El programa cambió mientras se guardaba. Revisa los cambios y vuelve a guardar.",
 )
+
+/** Entrada de cálculo del programa; usa el mismo núcleo y las mismas entradas que Home. */
+internal fun computeProgramAugeSnapshot(inputs: AugeSnapshotInputs): AugeSnapshotCore = AugeSnapshotComputer.compute(inputs)

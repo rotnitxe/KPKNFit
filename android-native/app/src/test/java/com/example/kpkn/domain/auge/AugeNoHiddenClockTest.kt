@@ -43,42 +43,6 @@ class AugeNoHiddenClockTest {
             "metadato de cuándo se calculó el EMA de estrés del mesociclo; no entra en ninguna cifra",
         ),
         Permitido(
-            "AugeRecoveryEngine.kt", "nowMs", "private fun nowMs() = AugeClock.nowMs()", 1,
-            "atajo privado al origen único",
-        ),
-        Permitido(
-            "AugeRecoveryEngine.kt", "recentSessionCount", "nowMs: Long = nowMs()", 1,
-            "valor por defecto de un parámetro público: quien tenga un instante lo pasa",
-        ),
-        Permitido(
-            "AugeRecoveryEngine.kt", "calculateMuscleBattery", "nowOverride ?: nowMs()", 1,
-            "solo cae al reloj cuando no se inyecta el instante; sus llamadores internos pasan el suyo",
-        ),
-        Permitido(
-            "AugeRecoveryEngine.kt", "calculateSystemicFatigue", "nowOverride ?: nowMs()", 1,
-            "solo cae al reloj cuando no se inyecta el instante",
-        ),
-        Permitido(
-            "AugeRecoveryEngine.kt", "calculateSpinalBattery", "nowOverride ?: nowMs()", 1,
-            "solo cae al reloj cuando no se inyecta el instante",
-        ),
-        Permitido(
-            "AugeRecoveryEngine.kt", "calculateGlobalBatteries", "nowOverrideMs ?: nowMs()", 1,
-            "solo cae al reloj cuando no se inyecta el instante; lo resuelve una vez y lo pasa a todo lo demás",
-        ),
-        Permitido(
-            "AugeRecoveryEngine.kt", "getPerMuscleBatteries", "nowOverrideMs ?: nowMs()", 1,
-            "solo cae al reloj cuando no se inyecta el instante; lo resuelve una vez y lo pasa a todo lo demás",
-        ),
-        Permitido(
-            "AugeRecoveryEngine.kt", "previewPostSessionBatteries", "nowOverrideMs ?: nowMs()", 1,
-            "solo cae al reloj cuando no se inyecta el instante; lo resuelve una vez y lo pasa a todo lo demás",
-        ),
-        Permitido(
-            "AugeRecoveryEngine.kt", "getNutritionMultiplier", "LocalDate.now()", 1,
-            "pendiente de 2.3 (entradas explícitas del snapshot)",
-        ),
-        Permitido(
             "AugeTtcEngine.kt", "calculateArticularBatteries", "nowMs: Long = AugeClock.nowMs()", 1,
             "valor por defecto del parámetro de instante",
         ),
@@ -166,6 +130,16 @@ class AugeNoHiddenClockTest {
         val candidatas = listOf(File(relativa), File("app/$relativa"), File("android-native/app/$relativa"))
         return candidatas.firstOrNull { it.isDirectory }
             ?: throw AssertionError("No encuentro domain/auge desde ${File(".").absoluteFile}")
+    }
+
+    @Test
+    fun snapshotAndRecoveryDoNotImportRepositoriesOrAndroid() {
+        val domain = carpetaDelDominio()
+        val forbiddenImport = Regex("""(?m)^\s*import\s+(android\.|com\.example\.kpkn\.data\.repository\.)""")
+        listOf("AugeSnapshotComputer.kt", "AugeRecoveryEngine.kt").forEach { name ->
+            val source = File(domain, name).readText(Charsets.UTF_8)
+            assertTrue("$name vuelve a depender de repositorios o Android", !forbiddenImport.containsMatchIn(source))
+        }
     }
 
     @Test

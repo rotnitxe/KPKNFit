@@ -2,7 +2,6 @@ package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.*
-import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.domain.auge.AugeFatigueEngine.calculateSetBatteryDrain
 import com.example.kpkn.domain.auge.AugeFatigueEngine.getDynamicAugeMetrics
 import com.example.kpkn.domain.auge.AugeFatigueEngine.isSetEffective
@@ -12,7 +11,6 @@ import com.example.kpkn.domain.auge.AugeUtils.logDateMs
 import com.example.kpkn.domain.auge.AugeUtils.physiologicalFloor
 import com.example.kpkn.domain.auge.AugeUtils.decelerateBattery
 import com.example.kpkn.domain.auge.AugeUtils.batteryPercent
-import com.example.kpkn.domain.nutrition.resolveDayGoalsByDate
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -68,8 +66,6 @@ object AugeRecoveryEngine {
         .replace("á","a").replace("é","e").replace("í","i")
         .replace("ó","o").replace("ú","u").replace("ü","u")
 
-    private fun nowMs() = AugeClock.nowMs()
-
     private fun recoveryBand(score: Int): RecoveryBand = RecoveryBands.band(score)
 
     private fun confidenceLabel(score: Int): String = when {
@@ -82,12 +78,12 @@ object AugeRecoveryEngine {
         RecoveryBands.action(id, score)
 
 
-    private fun parseWellbeingDate(dateStr: String): Long = try {
+    private fun parseWellbeingDate(dateStr: String, zone: ZoneId): Long = try {
         val ld = LocalDate.parse(dateStr.take(10))
-        ld.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        ld.atStartOfDay(zone).toInstant().toEpochMilli()
     } catch (e: Exception) { 0L }
 
-    private fun manualBatteryAnchorMs(wellbeing: DailyWellbeingLog?): Long {
+    private fun manualBatteryAnchorMs(wellbeing: DailyWellbeingLog?, zone: ZoneId): Long {
         if (wellbeing == null) return 0L
         return wellbeing.manualBatteryAnchorMs
             ?: if (wellbeing.manualNeuralBattery != null
@@ -95,30 +91,30 @@ object AugeRecoveryEngine {
                 || wellbeing.manualSpinalBattery != null
                 || wellbeing.manualMuscleBatteries.isNotEmpty()
                 || wellbeing.manualMuscleOverridesV2.isNotEmpty()
-            ) parseWellbeingDate(wellbeing.date)
-            else wellbeing.date.let { parseWellbeingDate(it) }
+            ) parseWellbeingDate(wellbeing.date, zone)
+            else wellbeing.date.let { parseWellbeingDate(it, zone) }
     }
 
     /**
      * Instante de la ancla manual más reciente del bienestar (global o por músculo V2); 0 si no tiene ninguna.
      * Un log anterior a ella se evalúa sin el estado de hoy (R-09).
      */
-    private fun latestManualAnchorMs(wellbeing: DailyWellbeingLog?): Long {
+    private fun latestManualAnchorMs(wellbeing: DailyWellbeingLog?, zone: ZoneId): Long {
         if (wellbeing == null) return 0L
         val hasGlobalManual = wellbeing.manualNeuralBattery != null ||
             wellbeing.manualMuscularBattery != null ||
             wellbeing.manualSpinalBattery != null ||
             wellbeing.manualMuscleBatteries.isNotEmpty()
-        val global = wellbeing.manualBatteryAnchorMs ?: if (hasGlobalManual) manualBatteryAnchorMs(wellbeing) else 0L
+        val global = wellbeing.manualBatteryAnchorMs ?: if (hasGlobalManual) manualBatteryAnchorMs(wellbeing, zone) else 0L
         val perMuscle = wellbeing.manualMuscleOverridesV2.values.maxOfOrNull { it.anchorEpochMs } ?: 0L
         return max(global, perMuscle)
     }
 
     /** Solo los ajustes que ya existían pueden sustituir la evidencia inicial. */
-    private fun hasManualMuscularAnchorsAt(wellbeing: DailyWellbeingLog?, now: Long): Boolean {
+    private fun hasManualMuscularAnchorsAt(wellbeing: DailyWellbeingLog?, now: Long, zone: ZoneId): Boolean {
         if (wellbeing == null) return false
         val globalMuscular = (wellbeing.manualMuscularBattery != null ||
-            wellbeing.manualMuscleBatteries.isNotEmpty()) && manualBatteryAnchorMs(wellbeing) <= now
+            wellbeing.manualMuscleBatteries.isNotEmpty()) && manualBatteryAnchorMs(wellbeing, zone) <= now
         return globalMuscular || wellbeing.manualMuscleOverridesV2.values.any { it.anchorEpochMs <= now }
     }
 
@@ -335,7 +331,7 @@ object AugeRecoveryEngine {
             log.muscularImpactV2?.perMuscle?.values?.sumOf { it.stressUnits } ?: 0.0
         }
 
-    fun recentSessionCount(history: List<WorkoutLog>, nowMs: Long = nowMs()): Int {
+    fun recentSessionCount(history: List<WorkoutLog>, nowMs: Long): Int {
         val cutoff = nowMs - 28L * 24 * 3600_000L
         return history.count { log ->
             val ms = logDateMs(log)
@@ -486,9 +482,10 @@ object AugeRecoveryEngine {
         feedbacks: List<PostSessionFeedback> = emptyList(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
         precomputedCapacity: Double? = null,
-        nowOverride: Long? = null,
+        nowOverride: Long,
+        zone: ZoneId = ZoneId.systemDefault(),
     ): MuscleRecoveryStatus {
-        val now = nowOverride ?: nowMs()
+        val now = nowOverride
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
         val capacity = precomputedCapacity ?: calculateUserWorkCapacity(
             muscleName, history, settings, exerciseDb, now, adaptiveCache,
@@ -508,7 +505,7 @@ object AugeRecoveryEngine {
         var multiplier = nutritionMultiplier
 
         val acuteFeedbacks = feedbacks.filter { fb ->
-            val fbMs = parseWellbeingDate(fb.date)
+            val fbMs = parseWellbeingDate(fb.date, zone)
             fbMs == 0L || (now - fbMs) <= ACUTE_FEEDBACK_WINDOW_MS
         }
         val feedbackPenaltyPct = calculateMuscleFeedbackPenaltyPct(muscleName, acuteFeedbacks)
@@ -534,7 +531,7 @@ object AugeRecoveryEngine {
             ?.takeIf { it.anchorEpochMs <= now }
         val manualScore = manualOverrideV2?.battery
             ?: wellbeing?.manualMuscleBatteries?.let { lookupMuscleScore(it, muscleName) }
-        val anchorMs = manualOverrideV2?.anchorEpochMs ?: manualBatteryAnchorMs(wellbeing)
+        val anchorMs = manualOverrideV2?.anchorEpochMs ?: manualBatteryAnchorMs(wellbeing, zone)
         val hoursSinceAnchor = max(0.0, (now - anchorMs) / 3_600_000.0)
         var accumulatedFatigue = 0.0
 
@@ -724,9 +721,10 @@ object AugeRecoveryEngine {
         sleepLogs: List<SleepLog> = emptyList(),
         feedbacks: List<PostSessionFeedback> = emptyList(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
-        nowOverride: Long? = null,
+        nowOverride: Long,
+        zone: ZoneId = ZoneId.systemDefault(),
     ): Triple<Int, Int, Int> { // Triple(cnsBattery, gymLoad, lifeLoad)
-        val now = nowOverride ?: nowMs()
+        val now = nowOverride
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
         val baseTau = adaptiveCache.cnsRecoveryHours ?: AugeParameters.DEFAULT_TAU_ENERGY_H
         val feedbackPenalty = calculateSystemFeedbackPenaltyPct(feedbacks)
@@ -736,7 +734,7 @@ object AugeRecoveryEngine {
         val last10Days = now - 10L * 24 * 3600 * 1000
 
         val manualNeural = wellbeing?.manualNeuralBattery
-        val anchorMs = manualBatteryAnchorMs(wellbeing)
+        val anchorMs = manualBatteryAnchorMs(wellbeing, zone)
         val hoursSinceAnchor = max(0.0, (now - anchorMs) / 3_600_000.0)
         var accumulatedGymLoad = 0.0
 
@@ -819,11 +817,12 @@ object AugeRecoveryEngine {
         erectorsCapacity: Double? = null,
         latsCapacity: Double? = null,
         trapsCapacity: Double? = null,
-        nowOverride: Long? = null,
+        nowOverride: Long,
+        zone: ZoneId = ZoneId.systemDefault(),
     ): Double {
-        val erectors = calculateMuscleBattery("Erectores Espinales", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, erectorsCapacity, nowOverride).recoveryScore.toDouble()
-        val lats = calculateMuscleBattery("Dorsales", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, latsCapacity, nowOverride).recoveryScore.toDouble()
-        val traps = calculateMuscleBattery("Trapecio", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, trapsCapacity, nowOverride).recoveryScore.toDouble()
+        val erectors = calculateMuscleBattery("Erectores Espinales", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, erectorsCapacity, nowOverride, zone).recoveryScore.toDouble()
+        val lats = calculateMuscleBattery("Dorsales", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, latsCapacity, nowOverride, zone).recoveryScore.toDouble()
+        val traps = calculateMuscleBattery("Trapecio", history, wellbeing, settings, exerciseDb, nutritionMultiplier, sleepLogs, feedbacks, adaptiveCache, trapsCapacity, nowOverride, zone).recoveryScore.toDouble()
         // Lumbar maps to Erectores. Guard muscles: erectores/lumbar, dorsales, trapecio.
         val spf = (erectors * 0.45) + (lats * 0.30) + (traps * 0.25)
 
@@ -842,19 +841,21 @@ object AugeRecoveryEngine {
         nutritionLogs: List<NutritionLog> = emptyList(),
         feedbacks: List<PostSessionFeedback> = emptyList(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
-        nowOverride: Long? = null,
+        nowOverride: Long,
+        zone: ZoneId = ZoneId.systemDefault(),
+        nutritionContext: NutritionRecoveryContext = NutritionRecoveryContext(),
     ): Int {
-        val now = nowOverride ?: nowMs()
+        val now = nowOverride
         val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
         val tauHours = adaptiveCache.spinalRecoveryHours ?: AugeParameters.DEFAULT_TAU_SPINAL_H
         val spinalCap = (100 - physiologicalFloor(settings).spinal).coerceAtLeast(5).toDouble()
         val last10Days = now - 10L * 24 * 3600 * 1000
 
         val manualSpinal = wellbeing?.manualSpinalBattery
-        val anchorMs = manualBatteryAnchorMs(wellbeing)
+        val anchorMs = manualBatteryAnchorMs(wellbeing, zone)
         val hoursSinceAnchor = max(0.0, (now - anchorMs) / 3_600_000.0)
         // Ancla más reciente del bienestar: un log anterior a ella se evalúa sin el estado de hoy (R-09 b).
-        val latestAnchorMs = latestManualAnchorMs(wellbeing)
+        val latestAnchorMs = latestManualAnchorMs(wellbeing, zone)
         var accumulatedSpinalLoad = 0.0
 
         // Un ajuste manual posterior al instante evaluado aún no existía: no se aplica. Un registro posterior
@@ -875,7 +876,7 @@ object AugeRecoveryEngine {
         }
 
         val stressLevel = wellbeing?.stressLevel ?: 3
-        val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
+        val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel, nutritionContext, now, zone)
 
         val completionIso = Instant.ofEpochMilli(now).toString()
         val erectorsCapacity = AugeMuscleCapacityEngine.calculateUserWorkCapacity(
@@ -912,7 +913,7 @@ object AugeRecoveryEngine {
             val historyUpToLog = history.filter { logDateMs(it) < logTime }
             val feedbacksUpToLog = feedbacks.filter { fb ->
                 try {
-                    val fbDateMs = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(fb.date)?.time ?: 0L
+                    val fbDateMs = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone(zone) }.parse(fb.date)?.time ?: 0L
                     fbDateMs <= logTime
                 } catch (_: Exception) { false }
             }
@@ -931,6 +932,7 @@ object AugeRecoveryEngine {
                 latsCapacity = latsCapacity,
                 trapsCapacity = trapsCapacity,
                 nowOverride = logTime,
+                zone = zone,
             )
 
             var sessionSpinalLoad = 0.0
@@ -992,11 +994,13 @@ object AugeRecoveryEngine {
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
         precomputedMuscles: Map<String, MuscleRecoveryStatus>? = null,
         articularBatteries: Map<ArticularBattery, ArticularBatteryState> = emptyMap(),
-        nowOverrideMs: Long? = null,
+        nowOverrideMs: Long,
+        zone: ZoneId = ZoneId.systemDefault(),
+        nutritionContext: NutritionRecoveryContext = NutritionRecoveryContext(),
     ): GlobalBatteries {
-        val evaluationNow = nowOverrideMs ?: nowMs()
+        val evaluationNow = nowOverrideMs
         val stressLevel = wellbeing?.stressLevel ?: 3
-        val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
+        val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel, nutritionContext, evaluationNow, zone)
 
         val gatedPillarBatteries = PILLAR_MUSCLES.mapNotNull { muscleName ->
             val muscleScore = if (precomputedMuscles != null) {
@@ -1013,6 +1017,7 @@ object AugeRecoveryEngine {
                     feedbacks = feedbacks,
                     adaptiveCache = adaptiveCache,
                     nowOverride = evaluationNow,
+                    zone = zone,
                 ).recoveryScore
             } ?: return@mapNotNull null
 
@@ -1032,12 +1037,12 @@ object AugeRecoveryEngine {
 
         // El ajuste muscular global tampoco existe antes de su ancla: se usa el cálculo automático.
         val manualMuscular = wellbeing?.manualMuscularBattery?.takeIf {
-            manualBatteryAnchorMs(wellbeing) <= evaluationNow
+            manualBatteryAnchorMs(wellbeing, zone) <= evaluationNow
         }
         val muscularAvg = if (manualMuscular != null) {
             // Same anchor + temporal decay semantics as neural/spinal — do not freeze raw value all day
             val manualBattery = manualMuscular.coerceIn(0, 100).toDouble()
-            val anchorMs = manualBatteryAnchorMs(wellbeing)
+            val anchorMs = manualBatteryAnchorMs(wellbeing, zone)
             val hoursSinceAnchor = max(0.0, (evaluationNow - anchorMs) / 3_600_000.0)
             val baseTau = adaptiveCache.personalizedRecoveryHours.values
                 .takeIf { it.isNotEmpty() }
@@ -1063,7 +1068,7 @@ object AugeRecoveryEngine {
         val muscularWithAcwr = if (manualMuscular != null) {
             muscularAvg.toDouble()
         } else {
-            // El factor de ACWR se evalúa en el mismo instante que el resto del cálculo (nowOverrideMs ?: reloj).
+            // ACWR comparte el instante explícito del resto del cálculo.
             applyMuscularAcwr(muscularAvg.toDouble(), history, evaluationNow)
         }
 
@@ -1076,6 +1081,7 @@ object AugeRecoveryEngine {
             feedbacks = feedbacks,
             adaptiveCache = adaptiveCache,
             nowOverride = evaluationNow,
+            zone = zone,
         )
         val spinalBattery = calculateSpinalBattery(
             history = history,
@@ -1084,9 +1090,11 @@ object AugeRecoveryEngine {
             exerciseDb = exerciseDb,
             sleepLogs = sleepLogs,
             nutritionLogs = nutritionLogs,
+            nutritionContext = nutritionContext,
             feedbacks = feedbacks,
             adaptiveCache = adaptiveCache,
             nowOverride = evaluationNow,
+            zone = zone,
         )
 
         val avgMuscleDelta = if (adaptiveCache.muscleDeltas.isNotEmpty()) {
@@ -1126,11 +1134,12 @@ object AugeRecoveryEngine {
                 evidence = settings.initialRecoveryEvidence,
                 nowMs = evaluationNow,
                 workoutLogs = history,
+                zone = zone,
             ),
         )
         // Las anclas futuras tampoco pueden desactivar una estimación inicial que sí existía.
-        val globalAnchorExists = manualBatteryAnchorMs(wellbeing) <= evaluationNow
-        val muscularEstimated = initialContribution.isEstimated && !hasManualMuscularAnchorsAt(wellbeing, evaluationNow)
+        val globalAnchorExists = manualBatteryAnchorMs(wellbeing, zone) <= evaluationNow
+        val muscularEstimated = initialContribution.isEstimated && !hasManualMuscularAnchorsAt(wellbeing, evaluationNow, zone)
         val systemEstimated = initialContribution.isEstimated && (wellbeing?.manualNeuralBattery == null || !globalAnchorExists)
         val structureEstimated = initialContribution.isEstimated && (wellbeing?.manualSpinalBattery == null || !globalAnchorExists)
         val estimated = muscularEstimated || systemEstimated || structureEstimated
@@ -1173,14 +1182,15 @@ object AugeRecoveryEngine {
         nutritionLogs: List<NutritionLog> = emptyList(),
         feedbacks: List<PostSessionFeedback> = emptyList(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
-        nowOverrideMs: Long? = null,
+        nowOverrideMs: Long,
         zone: ZoneId = ZoneId.systemDefault(),
+        nutritionContext: NutritionRecoveryContext = NutritionRecoveryContext(),
     ): Map<String, MuscleRecoveryStatus> {
+        val evaluationNow = nowOverrideMs
         val stressLevel = wellbeing?.stressLevel ?: 3
-        val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel)
+        val nutritionMultiplier = getNutritionMultiplier(settings, nutritionLogs, stressLevel, nutritionContext, evaluationNow, zone)
 
         // Optimización O(N): Truncar historia a los últimos 30 días (fatiga anterior a 30 días es < 0.001%)
-        val evaluationNow = nowOverrideMs ?: nowMs()
         val thirtyDaysAgo = evaluationNow - 30L * 24 * 3600_000L
         // A finish preview is evaluated at its frozen instant. A log at that
         // instant is not allowed to increase the capacity used to measure itself.
@@ -1208,7 +1218,7 @@ object AugeRecoveryEngine {
         // Evidencia v2 de RINGS (E3a): cada pilar con carga resta su parte con la misma combinación del global.
         // Se omite con ajustes manuales musculares, como calculateGlobalBatteries, para no contar dos veces.
         // Un ajuste posterior al corte no sustituye la evidencia inicial de los pilares.
-        val hasManualMuscularAnchors = hasManualMuscularAnchorsAt(wellbeing, evaluationNow)
+        val hasManualMuscularAnchors = hasManualMuscularAnchorsAt(wellbeing, evaluationNow, zone)
         val initialByPillar = if (hasManualMuscularAnchors) {
             emptyMap<String, Int>()
         } else {
@@ -1237,6 +1247,7 @@ object AugeRecoveryEngine {
                 adaptiveCache = adaptiveCache,
                 precomputedCapacity = precomputedCapacities[muscle],
                 nowOverride = evaluationNow,
+                zone = zone,
             )
             val initial = initialByPillar[muscle] ?: return@associateWith status
             combineWithInitialEvidence(status, initial, muscularFloor)
@@ -1428,26 +1439,19 @@ object AugeRecoveryEngine {
 
     fun getNutritionMultiplier(
         settings: Settings,
-        nutritionLogs: List<NutritionLog> = emptyList(),
-        stressLevel: Int = 3,
+        nutritionLogs: List<NutritionLog>,
+        stressLevel: Int,
+        context: NutritionRecoveryContext,
+        nowMs: Long,
+        zone: ZoneId,
     ): Double {
         if (!settings.algorithmSettings.augeEnableNutritionTracking) return 1.0
-        val repo = runCatching { NutritionRepository.getInstance() }.getOrNull()
-        val today = LocalDate.now()
-        // Objetivos de la ventana de análisis resueltos por fecha con el
-        // resolvedor canónico: el snapshot histórico del día manda sobre el
-        // plan actual. Sin metas, el motor devuelve el multiplicador neutro.
-        val goalsByDate = resolveDayGoalsByDate(
-            dates = (0L until 7L).map { today.minusDays(it) },
-            settings = settings,
-            activePlan = repo?.activeNutritionPlan,
-            snapshots = repo?.dailyGoalSnapshots?.value.orEmpty(),
-            today = today,
-        )
         return NutritionRecoveryEngine.computeNutritionRecoveryMultiplier(
             nutritionLogs = nutritionLogs,
-            goalsByDate = goalsByDate,
+            goalsByDate = context.goalsByDate,
             stressLevel = stressLevel,
+            nowMs = nowMs,
+            zone = zone,
         ).recoveryTimeMultiplier
     }
 
@@ -1456,11 +1460,8 @@ object AugeRecoveryEngine {
 
     // ─── Post-Session Preview (finish-sheet ↔ home-screen consistency) ─────────
 
-    /**
-     * Calcula el estado de baterías **después** de agregar un log transitorio
-     * al historial existente. Usa exactamente las mismas fórmulas que el home.
-     * Todo se evalúa en [nowOverrideMs] (o el reloj si no se pasa); la articular de «mañana» se recalcula a +24 h.
-     */
+    /** Vista previa = Home con el log transitorio (y su V2) dentro, en el instante congelado. */
+    @Suppress("UNUSED_PARAMETER")
     fun previewPostSessionBatteries(
         baseHistory: List<WorkoutLog>,
         previewLog: WorkoutLog,
@@ -1471,158 +1472,57 @@ object AugeRecoveryEngine {
         nutritionLogs: List<NutritionLog> = emptyList(),
         feedbacks: List<PostSessionFeedback> = emptyList(),
         adaptiveCache: AugeAdaptiveCache = AugeAdaptiveCache(),
+        // Compatibilidad: el computador recalcula siempre la articular con la sesión incluida.
         articularBatteries: Map<ArticularBattery, ArticularBatteryState> = emptyMap(),
-        nowOverrideMs: Long? = null,
+        nowOverrideMs: Long,
         finishOperationId: String? = null,
         completionInstantIso: String? = null,
         inputHash: String? = null,
         automaticImpact: MuscularSessionImpactV2? = null,
+        nutritionContext: NutritionRecoveryContext = NutritionRecoveryContext(),
+        zone: ZoneId = ZoneId.systemDefault(),
     ): PostSessionPreview {
-        // Un solo instante para toda la vista previa: ninguna sub-evaluación vuelve a leer el reloj a mitad de camino.
-        val evaluationNow = nowOverrideMs ?: nowMs()
-        val historyWithPreview = baseHistory + previewLog
-        val muscles = getPerMuscleBatteries(
-            history = historyWithPreview,
-            wellbeing = wellbeing,
-            settings = settings,
-            exerciseDb = exerciseDb,
-            sleepLogs = sleepLogs,
-            nutritionLogs = nutritionLogs,
-            feedbacks = feedbacks,
-            adaptiveCache = adaptiveCache,
-            nowOverrideMs = evaluationNow,
-        )
-        val batteries = calculateGlobalBatteries(
-            history = historyWithPreview,
-            wellbeing = wellbeing,
-            settings = settings,
-            exerciseDb = exerciseDb,
-            sleepLogs = sleepLogs,
-            nutritionLogs = nutritionLogs,
-            feedbacks = feedbacks,
-            adaptiveCache = adaptiveCache,
-            precomputedMuscles = muscles,
-            articularBatteries = articularBatteries,
-            nowOverrideMs = evaluationNow,
-        )
-        // Calcular baterías base (sin la sesión preview) para derivar drains netos
-        val baseMuscles = getPerMuscleBatteries(
+        val evaluationNow = nowOverrideMs
+        val impact = automaticImpact ?: previewLog.muscularImpactV2
+        val closedLog = previewLog.copy(muscularImpactV2 = impact)
+        val inputs = AugeSnapshotInputs(
             history = baseHistory,
             wellbeing = wellbeing,
             settings = settings,
             exerciseDb = exerciseDb,
+            nowMs = evaluationNow,
+            zone = zone,
             sleepLogs = sleepLogs,
             nutritionLogs = nutritionLogs,
             feedbacks = feedbacks,
             adaptiveCache = adaptiveCache,
-            nowOverrideMs = evaluationNow,
+            nutritionContext = nutritionContext,
         )
-        val baseBatteries = calculateGlobalBatteries(
-            history = baseHistory,
-            wellbeing = wellbeing,
-            settings = settings,
-            exerciseDb = exerciseDb,
-            sleepLogs = sleepLogs,
-            nutritionLogs = nutritionLogs,
-            feedbacks = feedbacks,
-            adaptiveCache = adaptiveCache,
-            precomputedMuscles = baseMuscles,
-            articularBatteries = articularBatteries,
-            nowOverrideMs = evaluationNow,
-        )
-        val resolvedMuscles = if (automaticImpact == null) {
-            muscles
-        } else {
-            muscles.toMutableMap().apply {
-                automaticImpact.perMuscle.forEach { (muscle, impact) ->
-                    val base = baseMuscles[muscle]
-                    val score = ((base?.recoveryScore ?: 100) - impact.immediateDrainPct.roundToInt())
-                        .coerceIn(physiologicalFloor(settings).muscular, 100)
-                    put(
-                        muscle,
-                        MuscleRecoveryStatus(
-                            muscleName = muscle,
-                            recoveryScore = score,
-                            hoursToRecovery = base?.hoursToRecovery ?: 0,
-                            hoursSinceLastSession = 0,
-                            effectiveSets = base?.effectiveSets ?: 0,
-                            status = when {
-                                score >= 95 -> RecoveryStatus.FRESH
-                                score >= 85 -> RecoveryStatus.OPTIMAL
-                                score >= 40 -> RecoveryStatus.RECOVERING
-                                else -> RecoveryStatus.EXHAUSTED
-                            },
-                        ),
-                    )
-                }
-            }
-        }
-        val resolvedMuscularBattery = batteries.muscular.coerceIn(
-            physiologicalFloor(settings).muscular,
-            100,
-        )
-        val (artFloor, guardScores) = structureInputs(resolvedMuscles, articularBatteries)
-        val blendedSpinal = structureRingScore(batteries.spinal, artFloor, guardScores)
-        val (baseArtFloor, baseGuard) = structureInputs(baseMuscles, articularBatteries)
-        val baseBlendedSpinal = structureRingScore(baseBatteries.spinal, baseArtFloor, baseGuard)
-        val tomorrowMs = evaluationNow + 24L * 3_600_000L
-        // La articular de mañana se mide a ahora + 24 h y con la sesión previsualizada ya dentro (antes se reutilizaba
-        // la de ahora). Sin articulares de entrada (pruebas) tampoco se inventan.
-        val tomorrowArticular = if (articularBatteries.isEmpty()) {
-            articularBatteries
-        } else {
-            AugeTtcEngine.calculateArticularBatteries(
-                history = historyWithPreview,
-                exerciseDb = exerciseDb,
-                feedbacks = feedbacks,
-                wellbeing = wellbeing,
-                nowMs = tomorrowMs,
-            )
-        }
-        val tomorrowMuscles = getPerMuscleBatteries(
-            history = historyWithPreview,
-            wellbeing = wellbeing,
-            settings = settings,
-            exerciseDb = exerciseDb,
-            sleepLogs = sleepLogs,
-            nutritionLogs = nutritionLogs,
-            feedbacks = feedbacks,
-            adaptiveCache = adaptiveCache,
-            nowOverrideMs = tomorrowMs,
-        )
-        val tomorrowBatteries = calculateGlobalBatteries(
-            history = historyWithPreview,
-            wellbeing = wellbeing,
-            settings = settings,
-            exerciseDb = exerciseDb,
-            sleepLogs = sleepLogs,
-            nutritionLogs = nutritionLogs,
-            feedbacks = feedbacks,
-            adaptiveCache = adaptiveCache,
-            precomputedMuscles = tomorrowMuscles,
-            articularBatteries = tomorrowArticular,
-            nowOverrideMs = tomorrowMs,
-        )
-        val (tomArt, tomGuard) = structureInputs(tomorrowMuscles, tomorrowArticular)
+        val base = AugeSnapshotComputer.compute(inputs)
+        val closedInputs = inputs.copy(history = baseHistory + closedLog)
+        val closed = AugeSnapshotComputer.compute(closedInputs)
+        val tomorrow = AugeSnapshotComputer.compute(closedInputs.copy(nowMs = evaluationNow + 24L * 3_600_000L))
+        val structure = closed.dashboard.channelScore(RecoveryChannelId.STRUCTURE, closed.batteries.spinal)
+        val baseStructure = base.dashboard.channelScore(RecoveryChannelId.STRUCTURE, base.batteries.spinal)
         return PostSessionPreview(
-            neural = batteries.cnc,
-            spinal = blendedSpinal,
-            muscular = resolvedMuscularBattery,
-            perMuscle = resolvedMuscles,
-            globalCnsDrain = (baseBatteries.cnc - batteries.cnc).coerceIn(0, 100),
-            globalMuscularDrain = (baseBatteries.muscular - batteries.muscular).coerceIn(0, 100),
-            globalSpinalDrain = (baseBlendedSpinal - blendedSpinal).coerceIn(0, 100),
-            spinalRaw = batteries.spinal,
-            tomorrowNeural = tomorrowBatteries.cnc,
-            tomorrowSpinal = structureRingScore(tomorrowBatteries.spinal, tomArt, tomGuard),
-            preSessionMuscular = baseBatteries.muscular,
-            preSessionNeural = baseBatteries.cnc,
-            preSessionSpinal = baseBlendedSpinal,
+            neural = closed.batteries.cnc,
+            spinal = structure,
+            muscular = closed.batteries.muscular,
+            perMuscle = closed.perMuscle,
+            globalCnsDrain = (base.batteries.cnc - closed.batteries.cnc).coerceIn(0, 100),
+            globalMuscularDrain = (base.batteries.muscular - closed.batteries.muscular).coerceIn(0, 100),
+            globalSpinalDrain = (baseStructure - structure).coerceIn(0, 100),
+            spinalRaw = closed.batteries.spinal,
+            tomorrowNeural = tomorrow.batteries.cnc,
+            tomorrowSpinal = tomorrow.dashboard.channelScore(RecoveryChannelId.STRUCTURE, tomorrow.batteries.spinal),
+            preSessionMuscular = base.batteries.muscular,
+            preSessionNeural = base.batteries.cnc,
+            preSessionSpinal = baseStructure,
             finishOperationId = finishOperationId,
             completionInstantIso = completionInstantIso,
             inputHash = inputHash,
-            automaticImpact = automaticImpact,
-            involvedVolumeMuscles = automaticImpact?.involvedVolumeMuscles.orEmpty(),
+            automaticImpact = impact,
+            involvedVolumeMuscles = impact?.involvedVolumeMuscles.orEmpty(),
         )
     }
 }
