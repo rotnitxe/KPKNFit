@@ -10,6 +10,7 @@ import com.example.kpkn.data.models.VideoAnalysisStatus
 import com.example.kpkn.data.models.VideoAnalysisSummary
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
+import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -97,10 +98,37 @@ class TechniqueHubViewModelTest {
         assertEquals(TechniqueVideoSettings(false, false, 400, 300), vm.uiState.value.settings)
     }
 
+    @Test fun recentVideosKeepStatesMediaAndLiveProgressWhileCountsUseAllFinishedAnalyses() = runTest {
+        source.summaries.value = listOf(
+            VideoAnalysisExerciseRow("bench_press", "Banca", 12, 2_000L),
+            VideoAnalysisExerciseRow("squat", "Sentadilla", 4, 1_000L),
+        )
+        source.recent.value = List(12) { index -> summary("v$index", VideoAnalysisStatus.RUNNING).copy(progressPct = 42) }
+        source.media.value = listOf(video("v0").copy(thumbPath = "/thumb.png"))
+        source.trendRows = listOf(
+            summary("older").copy(recordedAtMs = 1_000L, confidence = CountConfidence.ALTA, repCount = 10),
+            summary("latest").copy(recordedAtMs = 2_000L, confidence = CountConfidence.MEDIA, repCount = 8),
+        )
+        val vm = create()
+        advanceUntilIdle()
+        val state = vm.uiState.value
+        assertEquals(16, state.analyzedVideoCount)
+        assertEquals(2, state.exercises.size)
+        assertEquals(10, state.recentVideos.size)
+        assertEquals("/thumb.png", state.recentVideos.first().media?.thumbPath)
+        assertEquals("latest", state.exercises.first().latestConclusion?.mediaId)
+        assertEquals(CountConfidence.MEDIA, state.exercises.first().latestConclusion?.confidence)
+        source.recent.value = source.recent.value.map { it.copy(progressPct = 73) }
+        advanceUntilIdle()
+        assertEquals(73, vm.uiState.value.recentVideos.first().analysis.progressPct)
+        assertEquals(16, vm.uiState.value.analyzedVideoCount)
+    }
+
     private class FakeSource : TechniqueHubSource {
         override val summaries = MutableStateFlow<List<VideoAnalysisExerciseRow>>(emptyList())
         override val media = MutableStateFlow<List<WorkoutMedia>>(emptyList())
         override val settings = MutableStateFlow(Settings())
+        override val recent = MutableStateFlow<List<VideoAnalysisSummary>>(emptyList())
         val rows = mutableMapOf<String, VideoAnalysisSummary>()
         val requested = mutableListOf<String>()
         var trendRows: List<VideoAnalysisSummary> = emptyList()
