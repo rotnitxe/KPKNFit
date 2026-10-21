@@ -82,9 +82,6 @@ object AugeFatigueEngine {
     }
 
 
-    private fun applySoftCap(drain: Double, accumulated: Double, cap: Double): Double =
-        AugeUtils.applySessionSoftCap(drain, accumulated, cap)
-
     // ─── Tanques de batería personalizados ───────────────────────────────────
 
     fun calculatePersonalizedBatteryTanks(settings: Settings): BatteryTanks {
@@ -555,8 +552,6 @@ object AugeFatigueEngine {
         var totalCns: Double = 0.0,
         var totalMuscular: Double = 0.0,
         var totalSpinal: Double = 0.0,
-        var accumulatedDrain: Double = 0.0,
-        val muscleVolumeMap: MutableMap<String, Double> = mutableMapOf(),
         val perMuscleMuscular: MutableMap<String, Double> = mutableMapOf(),
     )
 
@@ -585,53 +580,44 @@ object AugeFatigueEngine {
         }
     }
 
+    private fun sessionDrainRecipe(
+        settings: Settings,
+        tanks: BatteryTanks,
+        adaptiveCache: AugeAdaptiveCache,
+        exerciseDb: Map<String, ExerciseMuscleInfo>,
+        options: RecipeOptions,
+    ): SessionDrainRecipe = SessionDrainRecipe(
+        settings = settings,
+        tanks = tanks,
+        adaptiveCache = adaptiveCache,
+        options = options,
+        resolveInfo = { identity ->
+            resolveCatalogExerciseInfoInIndex(
+                index = exerciseDb,
+                catalogConfigurationId = identity.catalogConfigurationId,
+                exerciseDbId = identity.exerciseDbId,
+                exerciseId = identity.exerciseId,
+                exerciseName = identity.exerciseName,
+            )
+        },
+    )
+
     private fun aggregateSetIntoSessionDrain(
         acc: AggregateDrainAcc,
-        set: CompletedSet,
-        metrics: AugeMetrics,
-        tanks: BatteryTanks,
-        restTime: Int,
-        densityMult: Double,
-        primaryPillar: String,
-        involvementWeights: List<Pair<String, Double>>,
-        muscleMult: Double,
-        cnsMult: Double,
-        spinalMult: Double,
-        weightUnit: WeightUnit,
+        adjusted: AdjustedSetDrain,
+        context: RecipeExerciseContext,
+        recipe: SessionDrainRecipe,
         muscularCap: Double,
         cnsCap: Double,
         spinalCap: Double,
-        spinalAxialGate: Double = 1.0,
     ) {
-        val conservationFactor = AugeUtils.SESSION_CONSERVATION_FACTOR
-        val decayK = AugeUtils.SESSION_DECAY_K
-        var accumulated = acc.muscleVolumeMap[primaryPillar] ?: 0.0
-        accumulated += if (set.side != null) 0.5 else 1.0
-        val drain = calculateSetBatteryDrain(
-            set = set,
-            metrics = metrics,
-            tanks = tanks,
-            accumulatedSets = accumulated.roundToInt(),
-            restTime = restTime,
-            densityMultiplier = densityMult,
-            cnsMultiplier = cnsMult,
-            spinalMultiplier = spinalMult,
-            muscleMultiplier = muscleMult,
-            weightUnit = weightUnit,
-        )
-        val diminishingFactor = 1.0 / (1.0 + decayK * (acc.accumulatedDrain / 100.0))
-        val adjustedMuscular = drain.muscularDrainPct * conservationFactor * diminishingFactor
-        val adjustedCns = drain.cnsDrainPct * conservationFactor * diminishingFactor
-        val adjustedSpinal = drain.spinalDrainPct * conservationFactor * diminishingFactor * spinalAxialGate
-        val cappedMuscular = applySoftCap(adjustedMuscular, acc.totalMuscular, muscularCap)
-        val cappedCns = applySoftCap(adjustedCns, acc.totalCns, cnsCap)
-        val cappedSpinal = applySoftCap(adjustedSpinal, acc.totalSpinal, spinalCap)
+        val cappedMuscular = recipe.softCap(adjusted.muscular, acc.totalMuscular, muscularCap)
+        val cappedCns = recipe.softCap(adjusted.cns, acc.totalCns, cnsCap)
+        val cappedSpinal = recipe.softCap(adjusted.spinal, acc.totalSpinal, spinalCap)
         acc.totalMuscular += cappedMuscular
         acc.totalCns += cappedCns
         acc.totalSpinal += cappedSpinal
-        acc.accumulatedDrain += (adjustedMuscular + adjustedCns + adjustedSpinal) / 3.0
-        attributeMuscularDrain(acc, cappedMuscular, primaryPillar, involvementWeights)
-        acc.muscleVolumeMap[primaryPillar] = accumulated
+        attributeMuscularDrain(acc, cappedMuscular, context.primaryMuscle, involvementWeightsFor(context.involvedMuscles))
     }
 
     private fun finalizeSessionDrain(
@@ -677,82 +663,59 @@ object AugeFatigueEngine {
         val muscularCap = (100 - floor.muscular).coerceAtLeast(5).toDouble()
         val cnsCap = (100 - floor.cns).coerceAtLeast(5).toDouble()
         val spinalCap = (100 - floor.spinal).coerceAtLeast(5).toDouble()
-        val weightUnit = settings.weightUnit
-        val remappedMultipliers = remapMuscleMultiplierMapToPillars(adaptiveCache.muscleDrainMultipliers)
         val acc = AggregateDrainAcc()
+        val recipe = sessionDrainRecipe(
+            settings = settings,
+            tanks = tanks,
+            adaptiveCache = adaptiveCache,
+            exerciseDb = exerciseDb,
+            options = RecipeOptions(
+                restSource = RecipeOptions.RestSource.SUPERSET_OR_EXERCISE,
+                volumeCounting = RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED,
+                axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION,
+                muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
+                densitySource = RecipeOptions.DensitySource.COMPLETED_METADATA,
+                primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
+                missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
+                cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
+                softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
+                weightUnitSource = RecipeOptions.WeightUnitSource.SETTINGS,
+                plannedSetIds = RecipeOptions.PlannedSetIds.PRESERVE,
+            ),
+        )
 
-        completedExercises.forEach { ex ->
-            ex.cardioDetails?.let { cardio ->
+        recipe.forEachCompleted(
+            exercises = completedExercises,
+            onCardio = cardio@ { ex ->
+                val cardio = ex.cardioDetails ?: return@cardio
                 val duration = ex.sets.sumOf { it.timeSeconds ?: 0 }
                     .takeIf { it > 0 }
-                    ?: return@forEach
+                    ?: return@cardio
                 val rpe = ex.sets.firstOrNull { (it.timeSeconds ?: 0) > 0 }?.rpe ?: cardio.resolvedRpe()
                 val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
-                val cns = applySoftCap(cardioDrain.cns * adaptiveCache.cnsDrainMultiplier, acc.totalCns, cnsCap)
-                val muscular = applySoftCap(cardioDrain.muscular, acc.totalMuscular, muscularCap)
-                val spinal = applySoftCap(cardioDrain.spinal * adaptiveCache.spinalDrainMultiplier, acc.totalSpinal, spinalCap)
+                val cns = recipe.softCap(cardioDrain.cns * adaptiveCache.cnsDrainMultiplier, acc.totalCns, cnsCap)
+                val muscular = recipe.softCap(cardioDrain.muscular, acc.totalMuscular, muscularCap)
+                val spinal = recipe.softCap(cardioDrain.spinal * adaptiveCache.spinalDrainMultiplier, acc.totalSpinal, spinalCap)
                 acc.totalCns += cns
                 acc.totalMuscular += muscular
                 acc.totalSpinal += spinal
-                acc.accumulatedDrain += (cns + muscular + spinal) / 3.0
+                recipe.accumulatedDrain += (cns + muscular + spinal) / 3.0
                 cardioDrain.muscleDrains.forEach { (pillar, value) ->
                     acc.perMuscleMuscular[pillar] = (acc.perMuscleMuscular[pillar] ?: 0.0) + value
                 }
-                return@forEach
-            }
-            val dbInfo = resolveCatalogExerciseInfoInIndex(
-                index = exerciseDb,
-                catalogConfigurationId = ex.catalogConfigurationId,
-                exerciseDbId = ex.exerciseDbId,
-                exerciseId = ex.exerciseId,
-                exerciseName = ex.exerciseName,
-            )
-            val metrics = getDynamicAugeMetrics(ex.exerciseName, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
-            val densityMult = getDensityMultiplierForExercise(
-                supersetId = ex.supersetId,
-                restTime = ex.supersetRestBetween ?: ex.restTime,
-                supersetExerciseCount = ex.supersetExerciseCount,
-                supersetRounds = ex.supersetRounds,
-                supersetRestAfter = ex.supersetRestAfter,
-            )
-            // Completed logs carry the chip-adjusted snapshot. Fall back to the
-            // catalog only for logs created before chip metadata was persisted.
-            val involved = resolveInvolvedMuscles(
-                exerciseName = ex.exerciseName,
-                snapshot = ex.effectiveMuscles,
-                dbInfo = dbInfo,
-            )
-            val primaryMuscle = involved
-                .find { it.role == MuscleRole.PRIMARY }
-                ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
-                ?: involved.firstOrNull()?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
-                ?: ""
-            val involvementWeights = involvementWeightsFor(involved)
-            val muscleMult = lookupMuscleDrainMultiplier(remappedMultipliers, primaryMuscle)
-            val axialGate = spinalAxialGate(dbInfo?.axialLoadFactor)
-
-            ex.sets.forEach { s ->
-                if (!isSetEffective(s)) return@forEach
+            },
+            onSet = { _, _, context, _, adjusted, _ ->
                 aggregateSetIntoSessionDrain(
                     acc = acc,
-                    set = s,
-                    metrics = metrics,
-                    tanks = tanks,
-                    restTime = ex.supersetRestBetween ?: ex.restTime,
-                    densityMult = densityMult,
-                    primaryPillar = primaryMuscle,
-                    involvementWeights = involvementWeights,
-                    muscleMult = muscleMult,
-                    cnsMult = adaptiveCache.cnsDrainMultiplier,
-                    spinalMult = adaptiveCache.spinalDrainMultiplier,
-                    weightUnit = weightUnit,
+                    adjusted = adjusted,
+                    context = context,
+                    recipe = recipe,
                     muscularCap = muscularCap,
                     cnsCap = cnsCap,
                     spinalCap = spinalCap,
-                    spinalAxialGate = axialGate,
                 )
-            }
-        }
+            },
+        )
 
         val hardSets = completedExercises.flatMap { it.sets }
             .count { isSetEffective(it) && getEffectiveRPE(it) >= 8.0 }
@@ -843,95 +806,60 @@ object AugeFatigueEngine {
         val muscularCap = (100 - floor.muscular).coerceAtLeast(5).toDouble()
         val cnsCap = (100 - floor.cns).coerceAtLeast(5).toDouble()
         val spinalCap = (100 - floor.spinal).coerceAtLeast(5).toDouble()
-        val weightUnit = settings.weightUnit
-        val remappedMultipliers = remapMuscleMultiplierMapToPillars(adaptiveCache.muscleDrainMultipliers)
         val acc = AggregateDrainAcc()
+        val recipe = sessionDrainRecipe(
+            settings = settings,
+            tanks = tanks,
+            adaptiveCache = adaptiveCache,
+            exerciseDb = exerciseDb,
+            options = RecipeOptions(
+                restSource = RecipeOptions.RestSource.PLANNED_OR_90,
+                volumeCounting = RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED,
+                axialGatePosition = RecipeOptions.AxialGatePosition.BEFORE_ACCUMULATION,
+                muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
+                densitySource = RecipeOptions.DensitySource.PLANNED_LEGACY_SUPERSET,
+                primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
+                missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
+                cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
+                softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
+                weightUnitSource = RecipeOptions.WeightUnitSource.SETTINGS,
+                plannedSetIds = RecipeOptions.PlannedSetIds.EMPTY,
+            ),
+        )
 
         val exercises = session.exercises + session.parts.flatMap { it.exercises }
 
-        exercises.forEach { ex ->
-            ex.cardioDetails?.let { cardio ->
+        recipe.forEachPlanned(
+            exercises = exercises,
+            onCardio = cardio@ { ex ->
+                val cardio = ex.cardioDetails ?: return@cardio
                 val duration = cardio.effectiveDurationSeconds().coerceAtLeast(0)
                 if (duration > 0) {
                     val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, cardio.resolvedRpe(), settings)
-                    val cns = applySoftCap(cardioDrain.cns * adaptiveCache.cnsDrainMultiplier, acc.totalCns, cnsCap)
-                    val muscular = applySoftCap(cardioDrain.muscular, acc.totalMuscular, muscularCap)
-                    val spinal = applySoftCap(cardioDrain.spinal * adaptiveCache.spinalDrainMultiplier, acc.totalSpinal, spinalCap)
+                    val cns = recipe.softCap(cardioDrain.cns * adaptiveCache.cnsDrainMultiplier, acc.totalCns, cnsCap)
+                    val muscular = recipe.softCap(cardioDrain.muscular, acc.totalMuscular, muscularCap)
+                    val spinal = recipe.softCap(cardioDrain.spinal * adaptiveCache.spinalDrainMultiplier, acc.totalSpinal, spinalCap)
                     acc.totalCns += cns
                     acc.totalMuscular += muscular
                     acc.totalSpinal += spinal
-                    acc.accumulatedDrain += (cns + muscular + spinal) / 3.0
+                    recipe.accumulatedDrain += (cns + muscular + spinal) / 3.0
                     cardioDrain.muscleDrains.forEach { (pillar, value) ->
                         acc.perMuscleMuscular[pillar] = (acc.perMuscleMuscular[pillar] ?: 0.0) + value
                     }
                 }
-                return@forEach
-            }
-            val dbInfo = resolveCatalogExerciseInfoInIndex(
-                index = exerciseDb,
-                catalogConfigurationId = ex.catalogConfigurationId,
-                exerciseDbId = ex.exerciseDbId,
-                exerciseId = ex.exerciseId,
-                exerciseName = ex.name,
-            )
-            val metrics = getDynamicAugeMetrics(ex.name, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
-            val densityMult = getDensityMultiplierForExercise(ex.supersetId, ex.restTime ?: 90)
-            val involved = resolveInvolvedMuscles(
-                exerciseName = ex.name,
-                snapshot = ex.effectiveMuscles,
-                dbInfo = dbInfo,
-            )
-            val primaryMuscle = involved
-                .find { it.role == MuscleRole.PRIMARY }
-                ?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
-                ?: involved.firstOrNull()?.let { getAugeMusclePillarId(it.muscle, it.emphasis) }
-                ?: ""
-            val involvementWeights = involvementWeightsFor(involved)
-            val muscleMult = lookupMuscleDrainMultiplier(remappedMultipliers, primaryMuscle)
-            val axialGate = spinalAxialGate(dbInfo?.axialLoadFactor)
-
-            ex.sets.forEach { s ->
-                if (s.isIneffective) return@forEach
-                val calculatedWeight = if (ex.trainingMode == TrainingMode.RM && s.targetPercentageRM != null && ex.reference1RM != null && ex.reference1RM!! > 0.0) {
-                    (s.targetPercentageRM / 100.0) * ex.reference1RM!!
-                } else {
-                    s.weight ?: 60.0
-                }
-                // Planned sets are modeled as bilateral equivalents (no L/R side on targets).
-                val syntheticSet = CompletedSet(
-                    id = "",
-                    weight = calculatedWeight,
-                    reps = s.plannedRepAnchor() ?: 8,
-                    rpe = s.targetRPE,
-                    rir = s.targetRIR,
-                    actualIntensityMode = s.intensityMode,
-                    actualIntensityValue = when (s.intensityMode) {
-                        IntensityMode.RPE -> s.targetRPE
-                        IntensityMode.RIR -> s.targetRIR?.toDouble()
-                        else -> null
-                    },
-                    isFailure = s.isFailure || s.intensityMode == IntensityMode.FAILURE,
-                )
+            },
+            onSet = { _, _, context, _, adjusted, _ ->
                 aggregateSetIntoSessionDrain(
                     acc = acc,
-                    set = syntheticSet,
-                    metrics = metrics,
-                    tanks = tanks,
-                    restTime = ex.restTime ?: 90,
-                    densityMult = densityMult,
-                    primaryPillar = primaryMuscle,
-                    involvementWeights = involvementWeights,
-                    muscleMult = muscleMult,
-                    cnsMult = adaptiveCache.cnsDrainMultiplier,
-                    spinalMult = adaptiveCache.spinalDrainMultiplier,
-                    weightUnit = weightUnit,
+                    adjusted = adjusted,
+                    context = context,
+                    recipe = recipe,
                     muscularCap = muscularCap,
                     cnsCap = cnsCap,
                     spinalCap = spinalCap,
-                    spinalAxialGate = axialGate,
                 )
-            }
-        }
+            },
+        )
 
         val hardSets = exercises.sumOf { ex ->
             ex.sets.count { s ->
