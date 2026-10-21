@@ -4,7 +4,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.roundToInt
 
-/** Cada consumidor fija sus decisiones históricas; ninguna combinación es canónica en 2.2a. */
+/** Decisiones que aún difieren entre consumidores; se revisan en 2.2b2. */
 internal data class RecipeOptions(
     val restSource: RestSource,
     val volumeCounting: VolumeCounting,
@@ -12,17 +12,16 @@ internal data class RecipeOptions(
     val muscleMultiplierSource: MuscleMultiplierSource,
     val densitySource: DensitySource,
     val primaryMuscleSource: PrimaryMuscleSource,
-    val missingCatalog: MissingCatalog,
     val cardioHandling: CardioHandling,
     val softCapUnits: SoftCapUnits,
 ) {
     enum class RestSource { SUPERSET_OR_EXERCISE, EXERCISE, PLANNED_OR_90, PLANNED_OR_SETTINGS }
     enum class VolumeCounting { UNILATERAL_HALVES_ROUNDED, EFFECTIVE_SET_COUNT }
     enum class AxialGatePosition { BEFORE_ACCUMULATION, AFTER_ACCUMULATION, NOT_APPLIED }
+    /** Se elimina en 3.1 junto con el campo zombi del caché; no activar calibraciones antiguas. */
     enum class MuscleMultiplierSource { REMAPPED_PILLARS, DIRECT_KEYS, NONE }
     enum class DensitySource { COMPLETED_METADATA, PLANNED_LEGACY_SUPERSET, PLANNED_GROUP_OR_LEGACY }
     enum class PrimaryMuscleSource { SNAPSHOT_PILLAR, CATALOG_VOLUME_GROUP }
-    enum class MissingCatalog { HEURISTIC, SKIP }
     enum class CardioHandling { CONSUMER_HOOK, LEGACY_STRENGTH }
     enum class SoftCapUnits { CHANNEL_PERCENT, MUSCLE_STRESS_UNITS, LOG_PERCENT, NONE }
 }
@@ -201,7 +200,6 @@ internal class SessionDrainRecipe(
 
     private fun contextFor(input: ExerciseInput): RecipeExerciseContext? {
         val info = resolveInfo(input.identity)
-        if (info == null && options.missingCatalog == RecipeOptions.MissingCatalog.SKIP) return null
         val metrics = AugeFatigueEngine.getDynamicAugeMetrics(input.identity.exerciseName, info?.equipment, info) ?: AugeMetrics()
         val involved = AugeFatigueEngine.resolveInvolvedMuscles(input.identity.exerciseName, input.snapshot, info)
         val primary = when (options.primaryMuscleSource) {

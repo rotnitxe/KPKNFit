@@ -522,7 +522,6 @@ internal fun computeSessionAugeComputation(
             muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
             densitySource = RecipeOptions.DensitySource.PLANNED_GROUP_OR_LEGACY,
             primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.CATALOG_VOLUME_GROUP,
-            missingCatalog = RecipeOptions.MissingCatalog.SKIP,
             cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
             softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
         ),
@@ -565,7 +564,7 @@ internal fun computeSessionAugeComputation(
                 suggestion = exerciseSuggestionForInsight(cardioDrain.muscular, cardioDrain.cns, cardioDrain.spinal),
             )
         }
-        val info = resolveExerciseInfo(exercise, exerciseIndex) ?: return@mapNotNull null
+        val info = resolveExerciseInfo(exercise, exerciseIndex)
         val validSets = exercise.validAugeSets()
         if (validSets.isEmpty()) return@mapNotNull null
         val musclesForVolume = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
@@ -610,7 +609,7 @@ internal fun computeSessionAugeComputation(
                     }
                 }
 
-                totalSpinalLoad += info.axialLoadFactor ?: 0.0
+                totalSpinalLoad += info?.axialLoadFactor ?: 0.0
                 val axialGate = context.axialGate
                 muscular += drain.muscularDrainPct
                 cns += drain.cnsDrainPct
@@ -668,7 +667,7 @@ internal fun computeSessionAugeComputation(
             if (validSets.any { it.isFailure || it.intensityMode == IntensityMode.FAILURE }) ctx.usesFailure = true
         }
 
-        val name = info.name.lowercase()
+        val name = (info?.name ?: exercise.name).lowercase()
         if (name.contains("press francés") || name.contains("press frances") || name.contains("rompecráneos") || name.contains("rompecraneos") || name.contains("extensión en polea") || name.contains("extension en polea")) {
             elbowStress += validSets.size
         }

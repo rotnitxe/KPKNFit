@@ -17,7 +17,6 @@ class SessionDrainRecipeTest {
         muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
         densitySource = RecipeOptions.DensitySource.COMPLETED_METADATA,
         primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
-        missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
         cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
         softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
     )
@@ -199,13 +198,12 @@ class SessionDrainRecipeTest {
         assertEquals(listOf(1, 2), catalog.map { it.count })
     }
 
-    @Test fun fichaAusenteSeOmiteOSigueLaHeuristica() {
+    @Test fun fichaAusenteSiempreUsaHeuristicaYCuentaUnaSerie() {
         val ex = exercise().copy(exerciseId = "unknown", exerciseDbId = null, exerciseName = "Movimiento propio")
         val heuristic = completed(options(), listOf(ex))
-        val skipped = completed(options().copy(missingCatalog = RecipeOptions.MissingCatalog.SKIP), listOf(ex))
         assertEquals(1, heuristic.size)
         assertTrue(heuristic.single().raw.muscularDrainPct > 0.0)
-        assertTrue(skipped.isEmpty())
+        assertEquals(1, heuristic.single().count)
     }
 
     @Test fun cardioSeDelegaAlConsumidorOSeProcesaComoFuerzaLegacy() {

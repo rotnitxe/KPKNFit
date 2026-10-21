@@ -593,7 +593,6 @@ object AugeRecoveryEngine {
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
                 densitySource = RecipeOptions.DensitySource.COMPLETED_METADATA,
                 primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
-                missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.MUSCLE_STRESS_UNITS,
             ))
@@ -706,7 +705,6 @@ object AugeRecoveryEngine {
             muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
             densitySource = RecipeOptions.DensitySource.COMPLETED_METADATA,
             primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
-            missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
             cardioHandling = RecipeOptions.CardioHandling.LEGACY_STRENGTH,
             softCapUnits = RecipeOptions.SoftCapUnits.NONE,
         ))
@@ -778,7 +776,6 @@ object AugeRecoveryEngine {
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
                 densitySource = RecipeOptions.DensitySource.COMPLETED_METADATA,
                 primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
-                missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.LOG_PERCENT,
             ))
@@ -967,7 +964,6 @@ object AugeRecoveryEngine {
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
                 densitySource = RecipeOptions.DensitySource.COMPLETED_METADATA,
                 primaryMuscleSource = RecipeOptions.PrimaryMuscleSource.SNAPSHOT_PILLAR,
-                missingCatalog = RecipeOptions.MissingCatalog.HEURISTIC,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.LOG_PERCENT,
             ))
