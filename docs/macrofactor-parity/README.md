@@ -1,7 +1,7 @@
 # Ola MFP · paridad con lo mejor de MacroFactor
 
 **Base:** `artifacts/macrofactor-reverse-engineering-20261020/INFORME_FINAL.md` (HEAD de partida `8ac57c9d4` de master).
-**Rama:** `feat/macrofactor-parity`, worktree `C:\kw\mfp`. **Orquesta:** Claude. **Escribe:** Codex CLI (Sol 6.1 Max), uno a la vez, compilando por `gradle_solo.sh`.
+**Rama:** `feat/macrofactor-parity`, worktree `C:\kw\mfp`. **Orquesta:** Claude. **Escribe:** Codex CLI (Sol 6.1 Max), uno a la vez, compilando por `mfp_gradle.sh` (cola por orden de llegada; `gradle_solo.sh` pudo morir de inanición, ver COMUN.md).
 **Regla de la ola:** solo se trae lo que KPKN no tiene o tiene mal/básico. Lo que ya iguala o supera (AUGE, catálogo por configuraciones, generador, descarga, calentamiento, reparto semanal, registro local) no se toca.
 
 ## Decisiones tomadas (con su razón)

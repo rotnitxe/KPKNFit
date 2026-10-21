@@ -13,7 +13,7 @@ Quedan los 4 tuyos, todos con la MISMA aserción: `assertFalse(layouts.single().
    Si en el paso 1 descubres que SÍ hay un recorte real (la caja del texto es más estrecha que su anchura natural), arregla el diseño de la fila (p. ej. quita `softWrap = false` o deja que la columna tome su anchura intrínseca) en vez de relajar la medida.
 3. Deja el render guardando sus PNG antes de las aserciones (ya lo hace); mira otra vez los dos PNG y confirma que no cambió nada visual.
 
-## Corrida única de verificación (por `gradle_solo.sh`)
+## Corrida única de verificación (por `mfp_gradle.sh`)
 Filtros: `com.example.kpkn.screens.programdetail.*`, `com.example.kpkn.render.ProgramVolumeT2RenderSheetTest`, `com.example.kpkn.screens.home.VolumeConsumersTest`, `com.example.kpkn.domain.training.VolumeAccountingContractTest`, `com.example.kpkn.domain.training.TrainingWindowTest`, `com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest`. Esperado: TODO en verde. Cuenta los XML por suite.
 
 ## Reglas y entrega

@@ -4,7 +4,7 @@ Protocolo en `README.md` (D12). Aquí, el procedimiento paso a paso y qué se co
 
 ## 1. Compilar e instalar
 1. Compilar (una sola compilación a la vez, por la cola global):
-   `bash /c/kw/tools/gradle_solo.sh /c/kw/mfp/android-native -I C:/kw/tools/mfp-suffix.init.gradle :app:assembleBaseDebug > /c/kw/logs/mfp-apk-<n>.log 2>&1`
+   `bash /c/kw/tools/mfp_gradle.sh /c/kw/mfp/android-native -I C:/kw/tools/mfp-suffix.init.gradle :app:assembleBaseDebug > /c/kw/logs/mfp-apk-<n>.log 2>&1`
    APK: `android-native/app/build/outputs/apk/base/debug/app-base-debug.apk` (applicationId `com.example.kpkn.mfp`).
 2. Estado del teléfono, sin tocar nada: `python C:\kw\tools\mfp_phone.py --check` → debe decir APTO.
 3. Instalar y abrir la primera actividad en una sola sesión corta con `mfp_phone.py --apk … --actions "launch:…"` (comprueba con aapt2 que el paquete es `.mfp`).

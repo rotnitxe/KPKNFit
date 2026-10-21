@@ -11,7 +11,7 @@ Arregla el **diseño de la fila**, no el test:
 ## 2. Lo que NO debes arreglar (lo verifica el orquestador)
 Tu corrida ancha tuvo 22 fallos de editor/catálogo (`SessionEditorManualOverrideTest`, `SessionEditorAutoSaveTest`, `ExerciseCatalogImageCoverageTest`, `CatalogDetailContentTest`). Sospecho que son de ENTORNO: este worktree no tenía la carpeta `catalog/` de la raíz del repo (varios tests leen `catalog/exercises/...`), y acabo de añadirla (ya existe en `C:\kw\mfp\catalog`). **No toques esos tests ni su código.** Solo inclúyelos en la corrida de abajo y repórtame su resultado tal cual.
 
-## Corrida única (por `gradle_solo.sh`, como siempre)
+## Corrida única (por `mfp_gradle.sh`, como siempre)
 Un solo comando con estos filtros: `com.example.kpkn.screens.programdetail.*`, `com.example.kpkn.render.ProgramVolumeT2RenderSheetTest`, `com.example.kpkn.screens.home.VolumeConsumersTest`, `com.example.kpkn.domain.training.VolumeAccountingContractTest`, `com.example.kpkn.domain.training.TrainingWindowTest`, `com.example.kpkn.screens.sessioneditor.SessionEditorManualOverrideTest`, `com.example.kpkn.screens.sessioneditor.SessionEditorAutoSaveTest`, `com.example.kpkn.screens.sessioneditor.components.ExerciseCatalogImageCoverageTest`, `com.example.kpkn.screens.sessioneditor.components.CatalogDetailContentTest`, `com.example.kpkn.data.ExerciseDatabaseLoadTest`, `com.example.kpkn.data.ExerciseDbAuditTest`, con `KPKN_RENDER_DIR` para el render. Cuenta los tests de los XML (por suite) y dime cuáles fallan, si alguno.
 
 ## Reglas y entrega

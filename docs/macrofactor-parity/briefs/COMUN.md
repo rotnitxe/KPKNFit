@@ -19,8 +19,9 @@ La ola aplica el informe `artifacts/macrofactor-reverse-engineering-20261020/INF
 6. El código que vas a tocar y sus vecinos, ANTES de editar. Imita el estilo, el nombre y la densidad de comentarios del código cercano.
 
 ## Reglas que no se rompen
-- **Gradle:** SOLO por `gradle_solo.sh` (espera a que no haya otra compilación Android viva en la máquina). Formato, con la salida a un log:
-  `bash /c/kw/tools/gradle_solo.sh /c/kw/mfp/android-native <tareas…> > /c/kw/logs/mfp-<ID>-<n>.log 2>&1`
+- **Gradle:** SOLO por `mfp_gradle.sh` (entra en la cola global por ORDEN DE LLEGADA: una sola compilación a la vez en toda la máquina). Formato, con la salida a un log:
+  `bash /c/kw/tools/mfp_gradle.sh /c/kw/mfp/android-native <tareas…> > /c/kw/logs/mfp-<ID>-<n>.log 2>&1`
+  - **Esperar turno NO es un fallo.** Otras sesiones también compilan y la cola avanza sola (el log dice «puesto N en la cola»): espera, aunque tarde una hora o más. Si la llamada agota el `timeout` de tu herramienta mientras sigue en cola, REPITE la misma llamada. Solo paras si el log lleva más de 3 horas sin avanzar o dice que la ranura está huérfana. NUNCA te rindas ni cierres el paquete sin haber ejecutado los tests de tu brief: «sin verificar» no es un resultado aceptable.
   - Flavor **base** únicamente: `:app:compileBaseDebugKotlin`, `:app:testBaseDebugUnitTest --tests "<filtro>"`, `:app:assembleBaseDebug`.
   - Dale a la herramienta de shell un `timeout` ≥ 3 600 000 ms, en primer plano. La primera compilación de este worktree puede tardar 20–40 min (frío + cola); las siguientes, menos.
   - Agrupa tus ediciones antes de compilar; corre solo los tests de lo que tocas (`--tests`), no la suite entera, salvo que tu brief lo pida.
