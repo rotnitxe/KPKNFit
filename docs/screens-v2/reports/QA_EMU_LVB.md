@@ -41,3 +41,11 @@
 2. RM a 740 dp: con el editor de % abierto, la tarjeta tapa la parte baja del texto del relator, y el deslizador de % usa un amarillo puro que no es de la paleta (energía #F7CF73).
 3. Solo RPE: los chips de reps arrancan en «0 1 2»; deberían centrarse en un valor útil (objetivo, última serie o 8).
 4. Distancia y Personalizado: «Objetivo 40 m» queda pegado a «METROS RECORRIDOS» / «CANTIDAD REALIZADA»; falta separación.
+
+## Verificación de LV-AF en el emulador (APK `081180f04`)
+
+El paquete `screens.workout` completo: **193 pruebas, 11 fallos**. Son exactamente las del alcance de LV-BF (4 commits guiados y 7 heredadas).
+
+- **Historia desde la cabecera:** ahora pasa. La hoja «Compartir» se ve completa (`21-story-from-live-header.png`).
+- **Registro rápido:** pasa.
+- **Línea tras registrar:** marca «1/4 · ✓S1 · S2».
