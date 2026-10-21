@@ -157,6 +157,14 @@ class SessionDrainRecipeTest {
         assertTrue(remapped.raw.muscularDrainPct > none.raw.muscularDrainPct)
     }
 
+    @Test fun migracionV2YV3ConservaMultiplicadoresMuscularesNoVacios() {
+        listOf(2, 3).forEach { version ->
+            val migrated = AugeAdaptiveCacheMigration.migrate(fixtures.cache, version)
+            assertEquals(fixtures.cache.muscleDrainMultipliers, migrated.muscleDrainMultipliers)
+            assertEquals(1.07, migrated.muscleDrainMultipliers.getValue("pectorales"), 0.0)
+        }
+    }
+
     @Test fun densidadConservaMetadatosCompletosIdLegacyOIdDeGrupo() {
         val ex = exercise().copy(
             supersetId = "ss", supersetExerciseCount = 3, supersetRounds = 5,

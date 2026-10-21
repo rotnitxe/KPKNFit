@@ -3,6 +3,7 @@ package com.example.kpkn.domain.auge
 import com.example.kpkn.data.models.*
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,28 +26,54 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
     @After fun restaurarZona() { TimeZone.setDefault(previousZone) }
 
     @Test fun conservaResultadosDeLasFuncionesPublicas() {
+        assertEquals(caseId, expectedSnapshots.getValue(caseId), snapshot(SessionDrainCharacterizationFixtures.cache))
+    }
+
+    @Test fun remapearLaCacheNoVaciaPuedeCambiarLosAnillosLegacy() {
+        val cache = SessionDrainCharacterizationFixtures.cache
+        val original = snapshot(cache)
+        val remapped = snapshot(cache.copy(muscleDrainMultipliers = remapMuscleMultiplierMapToPillars(cache.muscleDrainMultipliers)))
+        // Cierre, predictor y estrés ya remapean; los tres primeros consumidores no deben moverse.
+        assertEquals(original.lines().take(5), remapped.lines().take(5))
+        val expectedChange = when (caseId) {
+            "superserie" -> Triple("history[0][Pectorales]", 91, 92)
+            "cardio" -> Triple("history[6][Pectorales]", 97, 98)
+            else -> null
+        }
+        if (expectedChange != null) {
+            val (key, before, after) = expectedChange
+            val originalLine = original.lines().single { it.startsWith("$key=") }
+            val remappedLine = remapped.lines().single { it.startsWith("$key=") }
+            assertNotEquals(originalLine, remappedLine)
+            assertEquals(originalLine.replace("recoveryScore=$before", "recoveryScore=$after"), remappedLine)
+        } else {
+            assertEquals(original, remapped)
+        }
+        if (original != remapped) println("[2.2b1][$caseId]\n$remapped\n[/2.2b1]")
+    }
+
+    private fun snapshot(cache: AugeAdaptiveCache): String {
         val f = SessionDrainCharacterizationFixtures
         val exercises = f.completed.getValue(caseId)
-        val breakdown = AugeFatigueEngine.calculateCompletedSessionDrainBreakdown(exercises, f.db, f.settings, f.cache)
+        val breakdown = AugeFatigueEngine.calculateCompletedSessionDrainBreakdown(exercises, f.db, f.settings, cache)
         val log = f.log(caseId, f.baseMs)
         val history = listOf(log, f.log("axial", f.baseMs - 18 * f.hourMs), f.log("superserie", f.baseMs - 52 * f.hourMs))
         val actual = buildString {
             appendLine("global=${breakdown.global};muscles=${breakdown.perMuscleMuscular.toSortedMap()}")
             f.muscles.forEach { muscle ->
-                appendLine("stress[$muscle]=${f.number(AugeRecoveryEngine.calculateMuscleSessionStress(muscle, log, f.settings, f.db, f.cache))}")
+                appendLine("stress[$muscle]=${f.number(AugeRecoveryEngine.calculateMuscleSessionStress(muscle, log, f.settings, f.db, cache))}")
             }
-            appendLine("predicted=${AugeFatigueEngine.calculateAdjustedPredictedDrain(f.planned.getValue(caseId), f.db, f.settings, f.cache)}")
+            appendLine("predicted=${AugeFatigueEngine.calculateAdjustedPredictedDrain(f.planned.getValue(caseId), f.db, f.settings, cache)}")
             listOf(0, 6, 24).forEach { hours ->
                 val now = f.baseMs + hours * f.hourMs
-                appendLine("history[$hours].energy=${AugeRecoveryEngine.calculateSystemicFatigue(history, null, f.settings, f.db, adaptiveCache = f.cache, nowOverride = now)}")
-                appendLine("history[$hours].spinal=${AugeRecoveryEngine.calculateSpinalBattery(history, null, f.settings, f.db, adaptiveCache = f.cache, nowOverride = now)}")
+                appendLine("history[$hours].energy=${AugeRecoveryEngine.calculateSystemicFatigue(history, null, f.settings, f.db, adaptiveCache = cache, nowOverride = now)}")
+                appendLine("history[$hours].spinal=${AugeRecoveryEngine.calculateSpinalBattery(history, null, f.settings, f.db, adaptiveCache = cache, nowOverride = now)}")
                 f.muscles.forEach { muscle ->
-                    appendLine("history[$hours][$muscle]=${AugeRecoveryEngine.calculateMuscleBattery(muscle, history, null, f.settings, f.db, adaptiveCache = f.cache, nowOverride = now)}")
+                    appendLine("history[$hours][$muscle]=${AugeRecoveryEngine.calculateMuscleBattery(muscle, history, null, f.settings, f.db, adaptiveCache = cache, nowOverride = now)}")
                 }
             }
         }.trimEnd()
-        val expected = expectedSnapshots.getValue(caseId)
-        assertEquals(caseId, expected, actual)
+        return actual
     }
 
     companion object {
