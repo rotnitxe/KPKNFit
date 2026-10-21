@@ -64,6 +64,10 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
         @JvmStatic @Parameterized.Parameters(name = "{0}")
         fun cases(): List<Array<String>> = SessionDrainCharacterizationFixtures.completed.keys.map { arrayOf(it) }
 
+        // Re-anclado por D3 (2.6): el progresivo neural usa series duras globales; muscular, espinal,
+        // estrés y recuperación muscular no cambian. Antes→después (cns global / cns predicho):
+        // unilateral 49/61→49/61 (energía 74→73) · superserie 74/65→78/72 · cardio 43/41→47/45 ·
+        // tecnicas 68/54→69/56 · axial 60/52→72/63 · sin-ficha 52/48→63/58 · filtrado-rir 25/33→24/30.
         private val expectedSnapshots = mapOf(
             "unilateral" to """
                 global=PredictedDrain(cns=49, muscular=35, spinal=8);muscles={Cuádriceps=22, Erectores Espinales=2, Glúteos=11}
@@ -71,7 +75,7 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
                 stress[Cuádriceps]=391.113734[4645588161757267631]
                 stress[Erectores Espinales]=51.086907[4632386660220545572]
                 predicted=PredictedDrain(cns=61, muscular=40, spinal=9)
-                history[0].energy=(74, 26, 0)
+                history[0].energy=(73, 27, 0)
                 history[0].spinal=92
                 history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=52, effectiveSets=5, status=FRESH)
                 history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=93, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)
@@ -88,17 +92,17 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
                 history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
             """.trimIndent(),
             "superserie" to """
-                global=PredictedDrain(cns=74, muscular=63, spinal=8);muscles={Bíceps=4, Deltoides=8, Dorsales=7, Erectores Espinales=3, Pectorales=22, Trapecio=4, Tríceps=17}
+                global=PredictedDrain(cns=78, muscular=63, spinal=8);muscles={Bíceps=4, Deltoides=8, Dorsales=7, Erectores Espinales=3, Pectorales=22, Trapecio=4, Tríceps=17}
                 stress[Pectorales]=435.036287[4646360855486290297]
                 stress[Cuádriceps]=0.000000[0]
                 stress[Erectores Espinales]=149.137377[4639451321545973837]
-                predicted=PredictedDrain(cns=65, muscular=62, spinal=8)
-                history[0].energy=(66, 34, 0)
+                predicted=PredictedDrain(cns=72, muscular=62, spinal=8)
+                history[0].energy=(63, 37, 0)
                 history[0].spinal=92
                 history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=92, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)
                 history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
                 history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=94, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=OPTIMAL)
-                history[6].energy=(78, 22, 0)
+                history[6].energy=(76, 24, 0)
                 history[6].spinal=95
                 history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=93, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=10, status=OPTIMAL)
                 history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
@@ -110,17 +114,17 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
                 history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
             """.trimIndent(),
             "cardio" to """
-                global=PredictedDrain(cns=43, muscular=37, spinal=8);muscles={Bíceps=1, Core=1, Cuádriceps=12, Deltoides=3, Dorsales=1, Erectores Espinales=4, Glúteos=5, Pectorales=7, Tríceps=3}
+                global=PredictedDrain(cns=47, muscular=37, spinal=8);muscles={Bíceps=1, Core=1, Cuádriceps=12, Deltoides=3, Dorsales=1, Erectores Espinales=4, Glúteos=5, Pectorales=7, Tríceps=3}
                 stress[Pectorales]=136.811569[4639017645706880716]
                 stress[Cuádriceps]=217.237446[4641847379680810466]
                 stress[Erectores Espinales]=86.894978[4635815107430125954]
-                predicted=PredictedDrain(cns=41, muscular=38, spinal=8)
-                history[0].energy=(76, 24, 0)
+                predicted=PredictedDrain(cns=45, muscular=38, spinal=8)
+                history[0].energy=(74, 26, 0)
                 history[0].spinal=92
                 history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=7, status=FRESH)
                 history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=4, status=FRESH)
                 history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)
-                history[6].energy=(85, 15, 0)
+                history[6].energy=(83, 17, 0)
                 history[6].spinal=95
                 history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=7, status=FRESH)
                 history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=4, status=FRESH)
@@ -132,17 +136,17 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
                 history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
             """.trimIndent(),
             "tecnicas" to """
-                global=PredictedDrain(cns=68, muscular=65, spinal=8);muscles={Bíceps=1, Deltoides=12, Dorsales=1, Erectores Espinales=0, Pectorales=34, Trapecio=1, Tríceps=16}
+                global=PredictedDrain(cns=69, muscular=65, spinal=8);muscles={Bíceps=1, Deltoides=12, Dorsales=1, Erectores Espinales=0, Pectorales=34, Trapecio=1, Tríceps=16}
                 stress[Pectorales]=894.370356[4651078180666694269]
                 stress[Cuádriceps]=0.000000[0]
                 stress[Erectores Espinales]=56.656157[4633170462572054565]
-                predicted=PredictedDrain(cns=54, muscular=48, spinal=8)
-                history[0].energy=(68, 32, 0)
+                predicted=PredictedDrain(cns=56, muscular=48, spinal=8)
+                history[0].energy=(67, 33, 0)
                 history[0].spinal=96
                 history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=84, hoursToRecovery=7, hoursSinceLastSession=0, effectiveSets=9, status=RECOVERING)
                 history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
                 history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)
-                history[6].energy=(79, 21, 0)
+                history[6].energy=(78, 22, 0)
                 history[6].spinal=98
                 history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=87, hoursToRecovery=4, hoursSinceLastSession=6, effectiveSets=9, status=OPTIMAL)
                 history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
@@ -154,56 +158,56 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
                 history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
             """.trimIndent(),
             "axial" to """
-                global=PredictedDrain(cns=60, muscular=39, spinal=9);muscles={Bíceps=3, Deltoides=7, Dorsales=5, Erectores Espinales=5, Glúteos=3, Isquiosurales=5, Trapecio=8, Tríceps=3}
+                global=PredictedDrain(cns=72, muscular=39, spinal=9);muscles={Bíceps=3, Deltoides=7, Dorsales=5, Erectores Espinales=5, Glúteos=3, Isquiosurales=5, Trapecio=8, Tríceps=3}
                 stress[Pectorales]=0.000000[0]
                 stress[Cuádriceps]=0.000000[0]
                 stress[Erectores Espinales]=144.706160[4639295411931985620]
-                predicted=PredictedDrain(cns=52, muscular=39, spinal=9)
-                history[0].energy=(70, 30, 0)
+                predicted=PredictedDrain(cns=63, muscular=39, spinal=9)
+                history[0].energy=(66, 34, 0)
                 history[0].spinal=88
                 history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=52, effectiveSets=5, status=FRESH)
                 history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
                 history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)
-                history[6].energy=(81, 19, 0)
+                history[6].energy=(77, 23, 0)
                 history[6].spinal=92
                 history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=58, effectiveSets=5, status=FRESH)
                 history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
                 history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=10, status=FRESH)
-                history[24].energy=(95, 5, 0)
+                history[24].energy=(94, 6, 0)
                 history[24].spinal=99
                 history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=76, effectiveSets=5, status=FRESH)
                 history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
                 history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=10, status=FRESH)
             """.trimIndent(),
             "sin-ficha" to """
-                global=PredictedDrain(cns=52, muscular=45, spinal=12);muscles={Deltoides=1, Erectores Espinales=4, Glúteos=5, Isquiosurales=10, Pectorales=4, Tríceps=2}
+                global=PredictedDrain(cns=63, muscular=45, spinal=12);muscles={Deltoides=1, Erectores Espinales=4, Glúteos=5, Isquiosurales=10, Pectorales=4, Tríceps=2}
                 stress[Pectorales]=107.458480[4637262135232925318]
                 stress[Cuádriceps]=0.000000[0]
                 stress[Erectores Espinales]=90.609185[4636076471478565756]
-                predicted=PredictedDrain(cns=48, muscular=45, spinal=12)
-                history[0].energy=(73, 27, 0)
+                predicted=PredictedDrain(cns=58, muscular=45, spinal=12)
+                history[0].energy=(69, 31, 0)
                 history[0].spinal=86
                 history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=7, status=FRESH)
                 history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
                 history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)
-                history[6].energy=(83, 17, 0)
+                history[6].energy=(80, 20, 0)
                 history[6].spinal=90
                 history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=7, status=FRESH)
                 history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
                 history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)
-                history[24].energy=(96, 4, 0)
+                history[24].energy=(95, 5, 0)
                 history[24].spinal=99
                 history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=99, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=7, status=FRESH)
                 history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
                 history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
             """.trimIndent(),
             "filtrado-rir" to """
-                global=PredictedDrain(cns=25, muscular=17, spinal=0);muscles={Deltoides=3, Pectorales=9, Tríceps=4}
+                global=PredictedDrain(cns=24, muscular=17, spinal=0);muscles={Deltoides=3, Pectorales=9, Tríceps=4}
                 stress[Pectorales]=176.146317[4640401614125111016]
                 stress[Cuádriceps]=0.000000[0]
                 stress[Erectores Espinales]=0.000000[0]
-                predicted=PredictedDrain(cns=33, muscular=20, spinal=0)
-                history[0].energy=(83, 17, 0)
+                predicted=PredictedDrain(cns=30, muscular=20, spinal=0)
+                history[0].energy=(82, 18, 0)
                 history[0].spinal=98
                 history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=8, status=FRESH)
                 history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
