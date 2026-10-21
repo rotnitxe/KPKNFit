@@ -131,6 +131,7 @@ sealed class KpknRoute(val route: String) {
     }
 
     object Settings : KpknRoute("settings")
+    object EquipmentInventory : KpknRoute("settings/equipment-inventory")
     object SettingsGeneral : KpknRoute("settings/general")
     object SettingsProfile : KpknRoute("settings/profile")
     object SettingsNutrition : KpknRoute("settings/nutrition")

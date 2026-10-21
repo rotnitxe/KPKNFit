@@ -541,6 +541,7 @@ fun KPKNApp(
         // quedar tapado por la bottom bar.
         currentRoute?.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE) == true ||
         currentRoute == KpknRoute.ImportProgram.route ||
+        currentRoute == KpknRoute.EquipmentInventory.route ||
         currentRoute == KpknRoute.CompetitionDetail.route ||
         resolvedRoute?.startsWith("competition/") == true
     val primaryProgramId = activeProgram?.id ?: allPrograms.firstOrNull()?.id
@@ -1395,6 +1396,12 @@ private fun KPKNNavGraph(
                 onBack = { navController.popBackStack() },
                 healthConnectAvailable = healthConnectRouteAvailable(),
                 onOpenHealthConnect = { navController.navigate(KpknRoute.HealthConnect.route) },
+                onOpenEquipmentInventory = { navController.navigate(KpknRoute.EquipmentInventory.route) },
+            )
+        }
+        composable(KpknRoute.EquipmentInventory.route) {
+            com.example.kpkn.screens.settings.equipment.EquipmentInventoryRoute(
+                onBack = { navController.popBackStack() },
             )
         }
         composable(KpknRoute.NutritionCalibration.route) {

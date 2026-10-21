@@ -82,6 +82,7 @@ fun SettingsScreen(
     healthConnectAvailable: Boolean = false,
     onOpenHealthConnect: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel { SettingsViewModel() },
+    onOpenEquipmentInventory: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -206,6 +207,18 @@ fun SettingsScreen(
         ) {
             item {
                 SettingsIntroCard()
+            }
+            item {
+                SettingsBlockTitle("Material")
+                SettingsCard {
+                    SettingsActionRow(
+                        icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Training,
+                        title = "Mi material",
+                        description = "Barra, discos y cargas disponibles en tu gimnasio.",
+                        actionLabel = "Editar",
+                        onClick = onOpenEquipmentInventory,
+                    )
+                }
             }
             item {
                 SettingsBlockTitle("Permisos")
