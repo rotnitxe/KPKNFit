@@ -11,6 +11,10 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.time.Instant
+import java.time.LocalDate
+import com.example.kpkn.domain.nutrition.expenditure.DayMark
+import com.example.kpkn.domain.nutrition.expenditure.DayMarkEntry
+import com.example.kpkn.domain.nutrition.expenditure.DayMarkSource
 import java.text.Normalizer
 
 internal val dbJson = Json {
@@ -502,7 +506,7 @@ fun ExerciseMuscleInfo.toEntity(
 
 fun CustomExerciseEntity.toExerciseMuscleInfo(): ExerciseMuscleInfo = dbJson.decodeFromString<ExerciseMuscleInfo>(data)
 
-@Entity(tableName = "global_foods", indices = [Index("name"), Index("normalizedName"), Index("normalizedBrand")])
+@Entity(tableName = "global_foods", indices = [Index("name"), Index("normalizedName"), Index("normalizedBrand"), Index("sourceRecordId")])
 data class GlobalFoodEntity(
     @PrimaryKey val foodId: String,
     val name: String,
@@ -636,6 +640,36 @@ data class NutritionCalibrationProfileEntity(
     val schemaVersion: Int = 1,
     val data: String = "{}",
     val updatedAt: Long = 0L,
+)
+
+/** v30: solo existe una fila si la persona declaró el estado del día. */
+@Entity(tableName = "nutrition_day_marks")
+data class NutritionDayMarkEntity(
+    @PrimaryKey val date: String,
+    val mark: String,
+    val source: String,
+    val updatedAt: String,
+)
+
+fun DayMarkEntry.toEntity() = NutritionDayMarkEntity(date.toString(), mark.name, source.name, updatedAt.toString())
+
+fun NutritionDayMarkEntity.toDayMarkEntry(): DayMarkEntry {
+    val day = LocalDate.parse(date)
+    require(day.toString() == date)
+    val declared = DayMark.valueOf(mark)
+    require(declared != DayMark.NONE)
+    return DayMarkEntry(day, declared, DayMarkSource.valueOf(source), Instant.parse(updatedAt))
+}
+
+/** v30: instantánea de la decisión semanal; N2b gestiona su ciclo de vida. */
+@Entity(tableName = "nutrition_checkins")
+data class NutritionCheckInEntity(
+    @PrimaryKey val weekKey: String,
+    val status: String,
+    val decidedAt: String?,
+    val proposalJson: String?,
+    val appliedPlanId: String?,
+    val updatedAt: String,
 )
 
 /**

@@ -32,6 +32,8 @@ object BackupTableManifest {
         "auge_feedback" to Category.USER_DATA,
         "auge_adaptive_cache" to Category.USER_DATA,
         "nutrition_logs" to Category.USER_DATA,
+        "nutrition_day_marks" to Category.USER_DATA,
+        "nutrition_checkins" to Category.USER_DATA,
         "nutrition_plans" to Category.USER_DATA,
         "nutrition_active_state" to Category.USER_DATA,
         "body_observations" to Category.USER_DATA,
@@ -100,6 +102,7 @@ object BackupTableManifest {
         hasWorkoutMediaSection: Boolean,
         hasCalibrationSection: Boolean,
         hasSetupSection: Boolean = false,
+        hasNutritionDayStateSection: Boolean = false,
     ): List<String> {
         val tables = coreJsonBackedTables.filterNot { table ->
             (table == "setup_drafts" || table == "setup_commit_receipts") && !(schemaVersion >= 6 && hasSetupSection)
@@ -120,6 +123,9 @@ object BackupTableManifest {
             }
             if (hasWorkoutMediaSection) tables += "workout_media"
             if (hasCalibrationSection) tables += "nutrition_calibration_profile"
+        }
+        if (schemaVersion >= 6 && hasNutritionDayStateSection) {
+            tables += listOf("nutrition_day_marks", "nutrition_checkins")
         }
         return tables.distinct()
     }

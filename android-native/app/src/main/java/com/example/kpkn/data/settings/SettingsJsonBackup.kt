@@ -8,6 +8,8 @@ import com.example.kpkn.data.db.SetupCommitReceiptEntity
 import com.example.kpkn.data.db.SetupDraftEntity
 import com.example.kpkn.data.db.NutritionActiveStateEntity
 import com.example.kpkn.data.db.NutritionCalibrationProfileEntity
+import com.example.kpkn.data.db.NutritionDayMarkEntity
+import com.example.kpkn.data.db.NutritionCheckInEntity
 import com.example.kpkn.data.db.dbJson
 import com.example.kpkn.data.db.toCompetitionRecord
 import com.example.kpkn.data.db.toContextPerformanceStateV2
@@ -155,6 +157,11 @@ object SettingsJsonBackup {
             includesSetupSection = true,
             setupDrafts = setupDrafts,
             setupCommitReceipts = setupCommitReceipts,
+            includesNutritionDayStateSection = true,
+            nutritionDayMarks = db.nutritionDao().getAllDayMarks().map { NutritionDayMarkBackup(it.date, it.mark, it.source, it.updatedAt) },
+            nutritionCheckIns = db.nutritionDao().getAllCheckIns().map {
+                NutritionCheckInBackup(it.weekKey, it.status, it.decidedAt, it.proposalJson, it.appliedPlanId, it.updatedAt)
+            },
         )
     }
 
@@ -172,6 +179,8 @@ object SettingsJsonBackup {
         }
         val v5 = payload.schemaVersion >= 5
         val hasSetup = payload.schemaVersion >= 6 && payload.includesSetupSection
+        // Extensión aditiva de v6: copias antiguas sin esta sección conservan las declaraciones locales.
+        val hasDayState = payload.schemaVersion >= 6 && payload.includesNutritionDayStateSection
         val tablesToClear = BackupTableManifest.tablesToClearForImport(
             schemaVersion = payload.schemaVersion,
             hasCompetitionSection = v5 && payload.includesCompetitionSection,
@@ -180,6 +189,7 @@ object SettingsJsonBackup {
             hasWorkoutMediaSection = v5 && payload.includesWorkoutMediaSection,
             hasCalibrationSection = v5 && payload.includesCalibrationSection,
             hasSetupSection = hasSetup,
+            hasNutritionDayStateSection = hasDayState,
         )
         val settingsProfileToken = when {
             payload.profilePhotoJpegBase64 != null -> ProfilePhotoStore.STORAGE_TOKEN
@@ -217,6 +227,10 @@ object SettingsJsonBackup {
                 .forEach { db.bodyProgressDao().upsertGoal(it.toEntity()) }
             payload.dailyGoalSnapshots.forEach {
                 db.nutritionDao().insertDailyGoalSnapshot(it.toEntity())
+            }
+            if (hasDayState) {
+                payload.nutritionDayMarks.forEach { db.nutritionDao().upsertDayMark(it.toEntity()) }
+                payload.nutritionCheckIns.forEach { db.nutritionDao().upsertCheckIn(it.toEntity()) }
             }
             payload.sessionTemplates.forEach { db.sessionTemplateDao().upsert(it.toEntity()) }
             payload.customExercises.forEach { db.customExerciseDao().upsert(it.toEntity()) }
@@ -352,7 +366,28 @@ data class SettingsExportPayload(
     val includesSetupSection: Boolean = false,
     val setupDrafts: List<SetupDraftBackup> = emptyList(),
     val setupCommitReceipts: List<SetupCommitReceiptBackup> = emptyList(),
+    val includesNutritionDayStateSection: Boolean = false,
+    val nutritionDayMarks: List<NutritionDayMarkBackup> = emptyList(),
+    val nutritionCheckIns: List<NutritionCheckInBackup> = emptyList(),
 )
+
+/** Copia fiel de las filas: conserva incluso una declaración en cuarentena. */
+@Serializable
+data class NutritionDayMarkBackup(val date: String, val mark: String, val source: String, val updatedAt: String) {
+    fun toEntity() = NutritionDayMarkEntity(date, mark, source, updatedAt)
+}
+
+@Serializable
+data class NutritionCheckInBackup(
+    val weekKey: String,
+    val status: String,
+    val decidedAt: String?,
+    val proposalJson: String?,
+    val appliedPlanId: String?,
+    val updatedAt: String,
+) {
+    fun toEntity() = NutritionCheckInEntity(weekKey, status, decidedAt, proposalJson, appliedPlanId, updatedAt)
+}
 
 @Serializable
 data class SetupDraftBackup(

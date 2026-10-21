@@ -65,8 +65,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         SetupCommitReceiptEntity::class,
         // Técnica en vídeo: caché del análisis, hija de workout_media con CASCADE (v29)
         VideoAnalysisEntity::class,
+        NutritionDayMarkEntity::class,
+        NutritionCheckInEntity::class,
     ],
-    version = 29,
+    version = 30,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -778,6 +780,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_26_27,
                     MIGRATION_27_28,
                     videoAnalysisMigration(28),
+                    nutritionDayStateMigration(29),
                 )
                 .addCallback(GlobalFoodsFtsHygiene)
                 .build()

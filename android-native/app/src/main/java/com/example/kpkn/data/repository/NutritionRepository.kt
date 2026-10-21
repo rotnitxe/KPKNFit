@@ -27,6 +27,10 @@ import com.example.kpkn.domain.nutrition.FoodLearningConfirmation
 import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardEngine
 import com.example.kpkn.domain.nutrition.dailyGoalSnapshotOf
 import com.example.kpkn.domain.nutrition.planDayTargetForDate
+import com.example.kpkn.domain.nutrition.expenditure.DayMark
+import com.example.kpkn.domain.nutrition.expenditure.DayMarkEntry
+import com.example.kpkn.domain.nutrition.expenditure.DayMarkSource
+import com.example.kpkn.domain.nutrition.expenditure.validateDayMark
 import androidx.room.withTransaction
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
@@ -198,6 +202,35 @@ class NutritionRepository private constructor(
 
     private val _nutritionLogs = MutableStateFlow<List<NutritionLog>>(emptyList())
     val nutritionLogs: StateFlow<List<NutritionLog>> = _nutritionLogs.asStateFlow()
+
+    private val _dayMarks = MutableStateFlow<Map<LocalDate, DayMarkEntry>>(emptyMap())
+    val dayMarks: StateFlow<Map<LocalDate, DayMarkEntry>> = _dayMarks.asStateFlow()
+
+    /** Valida contra Room bajo el mismo candado que las comidas; publica solo después del commit. */
+    suspend fun setDayMark(date: LocalDate, mark: DayMark, source: DayMarkSource = DayMarkSource.USER) = foodSaveMutex.withLock {
+        withContext(Dispatchers.IO) {
+            val entry = DayMarkEntry(date, mark, source, Instant.now())
+            db.withTransaction {
+                val meals = db.nutritionDao().getLogsForDayPrefix(date.toString()).map { row ->
+                    try { row.toNutritionLog() }
+                    catch (error: Exception) {
+                        if (error is CancellationException) throw error
+                        throw IllegalArgumentException("Hay un registro ilegible: revisa las comidas de este día.")
+                    }
+                }
+                validateDayMark(date, mark, meals, LocalDate.now())
+                db.nutritionDao().upsertDayMark(entry.toEntity())
+            }
+            _dayMarks.update { it + (date to entry) }
+        }
+    }
+
+    suspend fun clearDayMark(date: LocalDate) = foodSaveMutex.withLock {
+        withContext(Dispatchers.IO) {
+            db.withTransaction { db.nutritionDao().deleteDayMark(date.toString()) }
+            _dayMarks.update { it - date }
+        }
+    }
 
     private val _unreadableRows = MutableStateFlow<List<UnreadableNutritionRow>>(emptyList())
     /** Diagnóstico de la última lectura de cada tabla, sin incluir el contenido de las filas. */
@@ -1122,8 +1155,10 @@ class NutritionRepository private constructor(
                 val snapshots = dao.getAllDailyGoalSnapshots().mapNotNull { it.toDailyGoalSnapshot() }
                 val plans = decodeUserRows(dao.getAllPlans(), "nutrition_plans", { it.id }) { it.toNutritionPlan() }
                 val activeId = dao.getActiveState()?.activePlanId
+                val marks = decodeUserRows(dao.getAllDayMarks(), "nutrition_day_marks", { it.date }) { it.toDayMarkEntry() }
 
                 _nutritionLogs.value = logs
+                _dayMarks.value = marks.associateBy { it.date }
                 _mealTemplates.value = templates
                 _foodQueryLearning.value = learning
                 _dailyGoalSnapshots.value = snapshots

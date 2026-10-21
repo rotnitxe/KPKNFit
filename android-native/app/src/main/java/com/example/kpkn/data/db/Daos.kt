@@ -278,6 +278,24 @@ data class GlobalFoodUsage(val foodId: String, val usageCount: Int, val lastUsed
 
 @Dao
 interface NutritionDao {
+    @Query("SELECT * FROM nutrition_day_marks ORDER BY date")
+    suspend fun getAllDayMarks(): List<NutritionDayMarkEntity>
+
+    @Upsert
+    suspend fun upsertDayMark(entity: NutritionDayMarkEntity)
+
+    @Query("DELETE FROM nutrition_day_marks WHERE date = :date")
+    suspend fun deleteDayMark(date: String)
+
+    @Query("SELECT * FROM nutrition_checkins ORDER BY weekKey")
+    suspend fun getAllCheckIns(): List<NutritionCheckInEntity>
+
+    @Query("SELECT * FROM nutrition_checkins WHERE weekKey = :weekKey LIMIT 1")
+    suspend fun getCheckIn(weekKey: String): NutritionCheckInEntity?
+
+    @Upsert
+    suspend fun upsertCheckIn(entity: NutritionCheckInEntity)
+
     // NutritionLog
     @Query("SELECT * FROM nutrition_logs ORDER BY date DESC")
     suspend fun getAllLogs(): List<NutritionLogEntity>
