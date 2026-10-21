@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.data.models.RecoveryBand
+import com.example.kpkn.domain.auge.RecoveryBands
+
 data class CoachMessage(
     val key: String,
     val title: String,
@@ -14,7 +17,7 @@ enum class CoachAction { REDUCE_INTENSITY, SKIP_EXERCISE, EXTEND_REST, STAY_THE_
 
 object WorkoutCoachMessages {
     enum class DrainLevel { XS, LOW, AVERAGE, HIGH }
-    enum class ReadinessLevel { XS, LOW, AVERAGE, HIGH }
+    enum class ReadinessLevel { UNKNOWN, XS, LOW, AVERAGE, HIGH }
 
     private data class CoachKey(
         val drain: DrainLevel,
@@ -154,11 +157,12 @@ object WorkoutCoachMessages {
             weightedDrainPct >= 1.5 -> DrainLevel.LOW
             else -> DrainLevel.XS
         }
-        val readinessLevel = when (readinessScore) {
-            null, in 80..100 -> ReadinessLevel.HIGH
-            in 60..79 -> ReadinessLevel.AVERAGE
-            in 40..59 -> ReadinessLevel.LOW
-            else -> ReadinessLevel.XS
+        val readinessLevel = when (readinessScore?.let { RecoveryBands.band(it) }) {
+            null -> ReadinessLevel.UNKNOWN
+            RecoveryBand.HIGH -> ReadinessLevel.HIGH
+            RecoveryBand.NORMAL -> ReadinessLevel.AVERAGE
+            RecoveryBand.MODERATE -> ReadinessLevel.LOW
+            RecoveryBand.LOW, RecoveryBand.CRITICAL -> ReadinessLevel.XS
         }
         val phase = when {
             sessionProgress < 0.33 -> SessionPhase.EARLY

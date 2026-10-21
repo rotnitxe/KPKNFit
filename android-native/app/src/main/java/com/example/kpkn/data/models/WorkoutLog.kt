@@ -11,7 +11,8 @@ data class WorkoutLog(
     val date: String, // ISO-8601: "2025-03-23T10:00:00.000Z"
     val durationMinutes: Int,
     val completedExercises: List<CompletedExercise> = emptyList(),
-    val fatigueLevel: Int? = null,         // 1–10
+    /** Fatiga al cierre; los flujos actuales la infieren del esfuerzo en una escala 1–5. */
+    val fatigueLevel: Int? = null,
     val discomforts: List<String> = emptyList(),
     val notes: String? = null,
     val totalVolume: Double = 0.0,         // kg × reps total
@@ -22,7 +23,8 @@ data class WorkoutLog(
     val weekId: String? = null,
     val macroIndex: Int? = null,
     val mesoIndex: Int? = null,
-    val clarityRating: Int? = null,        // 1–10: mental clarity / freshness
+    /** Claridad mental reportada (1–10); null cuando no se preguntó. */
+    val clarityRating: Int? = null,
     val environmentTags: List<String> = emptyList(), // e.g. "gym", "casa", "cansado", "buen sueño"
     val stillPresentDiscomfortIds: List<String> = emptyList(),
     val planDeviations: List<PlanDeviation> = emptyList(), // deviations from planned session

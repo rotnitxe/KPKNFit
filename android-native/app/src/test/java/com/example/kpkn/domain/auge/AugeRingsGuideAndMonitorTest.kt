@@ -24,6 +24,10 @@ class RecoveryBandsSingleSourceTest {
         assertEquals(RecoveryBands.NORMAL_MIN, ExerciseReadinessEngine.ADJUSTMENT_THRESHOLD)
         assertEquals(RecoveryBands.colorArgb(90), RecoveryBands.colorArgb(70))
         assertTrue(RecoveryBands.colorArgb(40) != RecoveryBands.colorArgb(90))
+        assertEquals(
+            "La estimación de Columna es alta. Mantén una técnica controlada.",
+            RecoveryBands.action(RecoveryChannelId.STRUCTURE, RecoveryBands.HIGH_MIN),
+        )
     }
 }
 
@@ -107,7 +111,7 @@ class LoadAdvisorySessionContextTest {
             channel = RecoveryChannelId.STRUCTURE,
             level = LoadAdvisoryLevel.ADJUST,
             title = "Columna pide un respiro",
-            body = "Llevas 4 días axiales en 7. Hoy baja 10–15 % en sentadilla o peso muerto, o cambia uno por una variante menos axial.",
+            body = "Carga axial reciente: 4 de los últimos 7 días. Ajusta la carga axial hoy: reduce o sustituye sentadilla o peso muerto por una variante menos axial.",
             weekKey = "2026-W37",
         )
         val upcoming = listOf(
@@ -122,10 +126,11 @@ class LoadAdvisorySessionContextTest {
         val adjusted = LoadAdvisoryEngine.contextualize(base, upcoming, catalog)
         assertTrue(adjusted.body.contains("Sentadilla alta"))
         assertTrue(adjusted.body.contains("Peso muerto"))
-        assertTrue(adjusted.body.startsWith("Llevas 4 días axiales en 7."))
+        assertTrue(adjusted.body.startsWith("Carga axial reciente: 4 de los últimos 7 días."))
+        assertTrue(adjusted.body.contains("Ajusta la carga axial"))
         assertTrue(!adjusted.body.contains("sentadilla o peso muerto"))
         assertTrue(adjusted.body.contains("Hack squat"))
-        assertEquals("Columna: hoy −10 % en Sentadilla alta", LoadAdvisoryEngine.badgeLabel(adjusted, upcoming))
+        assertEquals("Columna: Ajusta la carga axial en Sentadilla alta", LoadAdvisoryEngine.badgeLabel(adjusted, upcoming))
     }
 
     @Test

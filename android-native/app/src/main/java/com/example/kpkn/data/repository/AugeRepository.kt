@@ -17,6 +17,10 @@ import java.time.Instant
 import java.time.ZoneId
 import java.util.UUID
 
+/** Caché sin fila persistida: no hay una actualización pendiente que anunciar. */
+internal fun adaptiveCacheWhenEntityIsMissing(): AugeAdaptiveCache =
+    AugeAdaptiveCache(modelUpdateNoticeShown = true)
+
 /**
  * AugeRepository — Persistent storage para datos del sistema AUGE.
  * Migrado de SharedPreferences a Room para consistencia con ProgramRepository.
@@ -160,7 +164,7 @@ class AugeRepository private constructor(context: Context) {
                 priority = com.example.kpkn.data.diagnostics.TelemetryPriority.CRITICAL,
             )
         }
-        entity?.toAdaptiveCache() ?: AugeAdaptiveCache()
+        entity?.toAdaptiveCache() ?: adaptiveCacheWhenEntityIsMissing()
     }
 
     suspend fun saveAdaptiveCache(cache: AugeAdaptiveCache) = withContext(Dispatchers.IO) {

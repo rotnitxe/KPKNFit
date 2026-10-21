@@ -82,7 +82,7 @@ object RecoveryBands {
             RecoveryBand.CRITICAL -> "Haz una sesión ligera o técnica."
         }
         RecoveryChannelId.STRUCTURE -> when (band(score)) {
-            RecoveryBand.HIGH -> "Toleras bien carga axial y tensión conectiva."
+            RecoveryBand.HIGH -> "La estimación de Columna es alta. Mantén una técnica controlada."
             RecoveryBand.NORMAL -> "Carga estructural normal con buena técnica."
             RecoveryBand.MODERATE -> "Conviene moderar impacto axial y variantes agresivas."
             RecoveryBand.LOW -> "Usa variantes estables o menos compresivas."
