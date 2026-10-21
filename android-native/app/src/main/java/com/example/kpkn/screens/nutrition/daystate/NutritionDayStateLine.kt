@@ -47,7 +47,7 @@ fun NutritionDayStateLine(
                     when {
                         state.saving -> "Guardando…"
                         state.suggested -> "Revisar"
-                        state.mark == DayMark.NONE -> "· Marcar"
+                        state.mark == DayMark.NONE -> "Marcar"
                         else -> "Cambiar"
                     },
                     style = KpknType.caption, color = WizardColors.textMuted,

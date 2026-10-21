@@ -22,6 +22,8 @@ class NutritionDayStateUiTest {
         var opened = false
         rule.setContent { NutritionDayStateLine(NutritionDayStateSamples.state("unmarked"), { opened = true }, {}, {}) }
         rule.onNodeWithText("Día sin marcar").assertExists()
+        rule.onNodeWithText("Marcar").assertExists()
+        rule.onNodeWithText("· Marcar").assertDoesNotExist()
         rule.onNodeWithTag("nutrition-day-state").assertHasClickAction().assertHeightIsAtLeast(48.dp).performClick()
         assertTrue(opened)
     }

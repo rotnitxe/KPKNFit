@@ -10,21 +10,12 @@ import java.util.Locale
 
 object DatabaseBackupHelper {
 
-    /**
-     * Copia con el WAL confirmado: la consulta del checkpoint es diferida y hay que leer su cursor.
-     * API paralela para no cambiar la salida de [createSnapshot] en sus consumidores heredados.
-     */
-    fun createCommittedSnapshot(context: Context): String {
-        KpknDatabase.getInstance(context).openHelper.writableDatabase.query("PRAGMA wal_checkpoint(FULL)").use { cursor ->
-            check(cursor.moveToFirst() && cursor.getInt(0) == 0) { "No se pudo confirmar la base de datos para la copia." }
-        }
-        return createSnapshot(context)
-    }
-
     fun createSnapshot(context: Context): String {
         val db = KpknDatabase.getInstance(context)
-        // Checkpoint completo para asegurar que todos los logs WAL se consoliden en el archivo .db principal
-        db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(FULL)").close()
+        // La consulta es diferida: leer el cursor ejecuta el checkpoint antes de copiar el archivo.
+        db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(FULL)").use { cursor ->
+            check(cursor.moveToFirst() && cursor.getInt(0) == 0) { "No se pudo confirmar la base de datos para la copia." }
+        }
 
         val dbFile = context.getDatabasePath("kpkn.db")
         if (!dbFile.exists()) {

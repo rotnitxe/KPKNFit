@@ -90,7 +90,7 @@ class NutritionDayStateBackupTest {
             val db = KpknDatabase.getInstance(context)
             db.nutritionDao().upsertDayMark(mark)
             db.nutritionDao().upsertCheckIn(checkin)
-            snapshot = File(File(context.filesDir, "snapshots"), DatabaseBackupHelper.createCommittedSnapshot(context))
+            snapshot = File(File(context.filesDir, "snapshots"), DatabaseBackupHelper.createSnapshot(context))
             db.nutritionDao().deleteDayMark(mark.date)
             db.openHelper.writableDatabase.execSQL("DELETE FROM nutrition_checkins")
             DatabaseBackupHelper.restoreSnapshot(context, snapshot)

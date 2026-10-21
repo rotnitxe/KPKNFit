@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.nutrition.daystate.*
@@ -59,6 +60,7 @@ class NutritionDayStateRenderSheetTest {
             }
         } }
         rule.waitForIdle()
+        if (name == "unmarked") rule.onNodeWithText("Marcar").assertExists()
         val bounds = rule.onNodeWithTag("day-state-sheet").fetchSemanticsNode().boundsInRoot
         val view = hostView!!
         val full = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
