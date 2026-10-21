@@ -262,21 +262,14 @@ object GzclProtocols {
     /** Fuente de los métodos GZCL (J&T, Rippler y UHF 9): `sourceUrl` de sus exenciones C5. */
     private const val GZCL_URL = "https://gzclmethod.com/"
 
-    private fun t1Stage(week: Int): List<SetRecipe> {
-        val stage = ((week - 1) / 4).coerceIn(0, 2)
-        return when (stage) {
-            0 -> repeatPercentSets(5, 3, 85.0, 240, amrapLast = true)
-            1 -> repeatPercentSets(6, 2, 90.0, 240, amrapLast = true)
-            else -> repeatPercentSets(10, 1, 95.0, 240, amrapLast = true)
-        }
-    }
+    /**
+     * CAL5 (Lefever, RES1 §6): la receta trae la ETAPA 1 del T1 (5 series de 3 al 85 % del TM, la última al máximo: «3x5+» en la
+     * notación del autor) y del T2 (3 series de 10 al 65 %). Las etapas 2 (T1 6×2+, T2 3×8) y 3 (T1 10×1+, T2 3×6) llevan la MISMA
+     * carga y las escribe `GzclpProgression` como receta efectiva del ciclo nuevo cuando no se completa el volumen base.
+     */
+    private fun t1Stage(@Suppress("UNUSED_PARAMETER") week: Int): List<SetRecipe> = repeatPercentSets(5, 3, 85.0, 240, amrapLast = true)
 
-    private fun t2Stage(week: Int): List<SetRecipe> {
-        val stage = ((week - 1) / 4).coerceIn(0, 2)
-        val reps = listOf(10, 8, 6)[stage]
-        val pct = listOf(65.0, 70.0, 75.0)[stage]
-        return repeatPercentSets(3, reps, pct, 120)
-    }
+    private fun t2Stage(@Suppress("UNUSED_PARAMETER") week: Int): List<SetRecipe> = repeatPercentSets(3, 10, 65.0, 120)
 
     fun gzclpRecipe(): TrainingPlanRecipe {
         val days = listOf(
@@ -317,13 +310,14 @@ object GzclProtocols {
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
             // L-09 (B.S6): la subida lineal por sesión de GZCLP no cabe en 4 semanas idénticas; se aproxima con la subida del
-            // TM al cerrar el ciclo (la propia del método por ciclo). El AMRAP corto de la última serie del T1 puede bajarlo.
-            progression = ProgressionRule.CycleIncrement(2.5, 5.0),
+            // TM al cerrar el ciclo (la propia del método por ciclo). CAL5: el T1 que no completa su volumen base pasa a la
+            // etapa siguiente con la misma carga (y no sube el TM); la AMRAP del T1 no cambia la carga y cuenta como mucho 10.
+            progression = ProgressionRule.StagedVolume(upperKg = 2.5, lowerKg = 5.0, t1AmrapCap = 10, t3RaiseReps = 25),
             claimedDaysPerWeek = 4,
             claimedLevel = "intermedio",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
             repeats = true,
-            contentVersion = 2,
+            contentVersion = 3,
         )
     }
 
@@ -331,9 +325,11 @@ object GzclProtocols {
         id = "gzclp",
         name = "GZCLP",
         emoji = "🏗️",
-        description = "4 días, 4 semanas que se repiten: T1 5×3+ al 85 % del TM (la última serie al máximo), T2 3×10 al 65 % y T3 de 15 a 20 " +
-            "repeticiones; el TM sube 2,5 kg (banca y press) o 5 kg (sentadilla y peso muerto) al cerrar cada ciclo. " +
-            "Es solo la etapa 1 del método: sin cambio de etapa ni reinicio por fallo.",
+        description = "4 días, 4 semanas que se repiten: T1 5×3+ al 85 % del TM (la última serie al máximo, que no cambia la carga y cuenta " +
+            "hasta 10 repeticiones), T2 3×10 al 65 % y T3 de 15 a 20 repeticiones (sube cuando la última serie llega a 25). Si en un ciclo no " +
+            "completas el volumen base de un levantamiento, pasa a 6×2+ y luego a 10×1+ con la misma carga (el T2, a 3×8 y 3×6) y su TM no sube; " +
+            "si lo completas, sube 2,5 kg (banca y press) o 5 kg al cerrar el ciclo. Tras la etapa 3 sin completar toca probar un 5RM nuevo " +
+            "y reiniciar al 85 % de ese 5RM.",
         author = "Cody Lefever",
         tags = listOf("powerlifting", "intermedio", "4 días", "4 semanas", "AMRAP", "%"),
         blocks = listOf(ProtocolBlock("Etapa T1", 4, "Acumulación", 65, 85)),

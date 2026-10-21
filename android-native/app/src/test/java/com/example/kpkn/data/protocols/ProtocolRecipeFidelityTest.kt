@@ -699,16 +699,19 @@ class ProtocolRecipeFidelityTest {
                 assertTrue("$label: T3 de 15 a 20 repeticiones", t3a.sets.all { it.repsMin == 15 && it.repsMax == 20 })
             }
         }
-        assertEquals(ProgressionRule.CycleIncrement(upperKg = 2.5, lowerKg = 5.0), recipe.progression)
+        // CAL5: la regla de GZCLP son sus etapas (el T1 que no completa su volumen base pasa de 5×3+ a 6×2+ y a 10×1+ con la misma carga).
+        assertEquals(ProgressionRule.StagedVolume(upperKg = 2.5, lowerKg = 5.0, t1AmrapCap = 10, t3RaiseReps = 25), recipe.progression)
         val description = protocol.description
         listOf(
             "4 días, 4 semanas",
             "T1 5×3+ al 85 % del TM",
             "T2 3×10 al 65 %",
             "T3 de 15 a 20 repeticiones",
+            "6×2+",
+            "10×1+",
             "2,5 kg (banca y press)",
-            "5 kg (sentadilla y peso muerto)",
-            "sin cambio de etapa ni reinicio por fallo",
+            "llega a 25",
+            "5RM",
         ).forEach { fragment ->
             assertTrue("la descripción de GZCLP debe decir «$fragment»: $description", description.contains(fragment))
         }

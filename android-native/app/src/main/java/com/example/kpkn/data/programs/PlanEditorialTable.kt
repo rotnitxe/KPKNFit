@@ -744,11 +744,11 @@ internal object PlanEditorialTable {
             "protocol:gzclp",
             thirdParty(
                 displayName = "GZCLP",
-                summary = "Ciclos de 4 semanas con 4 días: cada día un levantamiento principal (5 series de 3, la " +
-                    "última al máximo de repeticiones), uno complementario de 3×10 y accesorios de 15 a 20 " +
-                    "repeticiones. Es solo la primera etapa del método de Cody Lefever. Tu máximo de " +
-                    "entrenamiento sube al cerrar cada ciclo (2,5 kg banca y press, 5 kg sentadilla y peso " +
-                    "muerto), más despacio que el método original.",
+                summary = "Ciclos de 4 semanas con 4 días: un levantamiento principal (5 series de 3, la última al " +
+                    "máximo de repeticiones, hasta 10), uno complementario de 3×10 y accesorios. Si no completas " +
+                    "las repeticiones de un levantamiento, pasa a 6 series de 2 y luego a 10 de 1, con la misma " +
+                    "carga y sin subir su máximo de entrenamiento. Si las completas, ese máximo sube 2,5 kg " +
+                    "(banca y press) o 5 kg por ciclo.",
                 rank = 430,
                 level = CatalogLevel.INTERMEDIATE,
                 methodName = "GZCLP",
