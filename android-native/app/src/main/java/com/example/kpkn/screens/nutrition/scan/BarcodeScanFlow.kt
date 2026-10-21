@@ -25,6 +25,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.kpkn.data.models.BarcodeLookup
 import com.example.kpkn.data.models.FoodItem
@@ -98,6 +100,18 @@ fun BarcodeScanFlow(
         )
     }
     DisposableEffect(model) { onDispose { model.close() } }
+    // Al volver de Ajustes el permiso puede haberse concedido sin pasar por la petición: se vuelve a leer. Con [initialAccess] fijado
+    // (vistas previas y harness) lo decide quien llama y no se toca.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, model, initialAccess) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && initialAccess == null) {
+                model.onPermissionRechecked(hasCameraPermission(context))
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     val state by model.state.collectAsState()
     val torchAvailable by model.torchAvailable.collectAsState()
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->

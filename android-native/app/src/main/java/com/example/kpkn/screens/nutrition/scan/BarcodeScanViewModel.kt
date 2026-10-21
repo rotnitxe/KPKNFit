@@ -82,6 +82,22 @@ class BarcodeScanViewModel(
         syncCamera()
     }
 
+    /**
+     * Al volver a la pantalla (p. ej. desde Ajustes, donde el permiso se pudo conceder sin pasar por la petición) se vuelve a leer. Solo
+     * cambia si el permiso cambió: concedido pasa a «concedido»; revocado con la pantalla abierta, a «denegado». Sin decidir se queda igual.
+     */
+    fun onPermissionRechecked(granted: Boolean) {
+        val current = mutableState.value.access
+        val next = when {
+            granted -> CameraAccess.GRANTED
+            current == CameraAccess.GRANTED -> CameraAccess.DENIED
+            else -> current
+        }
+        if (next == current) return
+        mutableState.update { it.copy(access = next) }
+        syncCamera()
+    }
+
     /** La persona prefiere teclear el código. */
     fun showManualEntry() {
         mutableState.update { it.copy(manualRequested = true, manualError = null, notice = null) }

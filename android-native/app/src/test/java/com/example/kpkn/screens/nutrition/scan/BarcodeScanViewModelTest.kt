@@ -133,6 +133,32 @@ class BarcodeScanViewModelTest {
         assertFalse(source.running)
     }
 
+    @Test fun `al volver con el permiso concedido en Ajustes el visor arranca`() {
+        val vm = model(CameraAccess.ASK)
+        vm.onPermissionResult(false)
+        assertTrue(vm.state.value.manualOnly)
+        vm.onPermissionRechecked(true)
+        assertEquals(CameraAccess.GRANTED, vm.state.value.access)
+        assertFalse(vm.state.value.manualOnly)
+        assertTrue("con el permiso concedido la cámara vuelve a arrancar", source.running)
+    }
+
+    @Test fun `si el permiso se revoca con la pantalla abierta la camara se para y queda la entrada manual`() {
+        val vm = model(CameraAccess.GRANTED)
+        assertTrue(source.running)
+        vm.onPermissionRechecked(false)
+        assertEquals(CameraAccess.DENIED, vm.state.value.access)
+        assertTrue(vm.state.value.showManual)
+        assertFalse(source.running)
+    }
+
+    @Test fun `volver sin permiso y sin haberlo decidido no cambia nada`() {
+        val vm = model(CameraAccess.ASK)
+        vm.onPermissionRechecked(false)
+        assertEquals(CameraAccess.ASK, vm.state.value.access)
+        assertFalse(source.running)
+    }
+
     @Test fun `con el permiso denegado el codigo tecleado se valida y se busca`() {
         answer = { BarcodeLookup.Found(leche, BarcodeOrigin.CATALOGO) }
         val vm = model(CameraAccess.ASK)
