@@ -27,6 +27,7 @@ import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.screens.workout.RecordActionHolder
 import com.example.kpkn.screens.workout.SetAdvancedFeedback
 import com.example.kpkn.screens.workout.RecordSetResult
+import com.example.kpkn.screens.workout.LiveSessionCardFrame
 import com.example.kpkn.ui.theme.KPKNTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -55,29 +56,35 @@ class Lv8SetCardDeviceTest {
             CompositionLocalProvider(LocalDensity provides Density(density, fontScale)) {
                 KPKNTheme {
                     Box(Modifier.fillMaxSize()) {
-                        Box(Modifier.width(272.dp).testTag("lv8-device-card")) {
-                            SetInputCardV2(
-                                exercise = Exercise(id = "lv8-ex", name = "Press banca", sets = listOf(set), trackRom = rom),
-                                setIndex = 0, currentSet = set, ghostSet = null, weightSuggestion = null,
-                                initialBodyWeight = 80.0, recordActionHolder = holder, recordActionPageKey = "lv8-device",
-                                onShowHistory = {}, onSetBodyWeight = {},
-                                onExecutionError = if (executionCallback) ({ effort ->
-                                    recorded += effort.actualIntensityValue
-                                    feedback += effort
-                                }) else null,
-                                onRecordV2 = { _, _, _, value, intensity, advanced, _, _, _, done ->
-                                    recorded += intensity
-                                    recordedValues += value
-                                    feedback += advanced
-                                    done(RecordSetResult.Created("lv8-ex_0"))
-                                },
-                            )
+                        Box(Modifier.width(312.dp).testTag("lv8-device-card")) {
+                            LiveSessionCardFrame {
+                                SetInputCardV2(
+                                    exercise = Exercise(id = "lv8-ex", name = "Press banca", sets = listOf(set), trackRom = rom),
+                                    setIndex = 0, currentSet = set, ghostSet = null, weightSuggestion = null,
+                                    initialBodyWeight = 80.0, recordActionHolder = holder, recordActionPageKey = "lv8-device",
+                                    onShowHistory = {}, onSetBodyWeight = {},
+                                    onExecutionError = if (executionCallback) ({ effort ->
+                                        recorded += effort.actualIntensityValue
+                                        feedback += effort
+                                    }) else null,
+                                    onRecordV2 = { _, _, _, value, intensity, advanced, _, _, _, done ->
+                                        recorded += intensity
+                                        recordedValues += value
+                                        feedback += advanced
+                                        done(RecordSetResult.Created("lv8-ex_0"))
+                                    },
+                                )
+                            }
                         }
                     }
                 }
             }
         }
         rule.waitForIdle()
+        val frame = rule.onNodeWithTag("live-card-frame").fetchSemanticsNode().boundsInRoot
+        val density = rule.activity.resources.displayMetrics.density
+        assertEquals("Marco de producción de 312 dp", 312f, frame.width / density, .5f)
+        assertEquals("Alto de producción de 425 dp", 425f, frame.height / density, .5f)
     }
 
     private fun record() {

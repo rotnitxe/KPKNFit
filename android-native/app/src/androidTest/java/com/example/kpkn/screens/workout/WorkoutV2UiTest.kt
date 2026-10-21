@@ -7,6 +7,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.longClick
@@ -61,6 +66,7 @@ class WorkoutV2UiTest {
 
     @Test
     fun time_mode_exposes_timer_control_and_expected_sections() {
+        var clockMillis = 1_000L
         composeRule.setContent {
             MaterialTheme {
                 SetInputCardV2(
@@ -90,15 +96,23 @@ class WorkoutV2UiTest {
                     onShowHistory = {},
                     onSetBodyWeight = {},
                     initialBodyWeight = 82.0,
+                    clockNowMillis = { clockMillis },
                     recordActionHolder = RecordActionHolder(),
                     onRecordV2 = { _, _, _, _, _, _, _, _, _, _ -> },
                 )
             }
         }
 
+        composeRule.onNodeWithText("CRONÓMETRO DE LA SERIE").assertIsDisplayed()
+        composeRule.onNodeWithText("Objetivo 0:45").assertIsDisplayed()
+        composeRule.onNodeWithTag("live-quantity-input").assertTextEquals("0:00")
         composeRule.onNodeWithContentDescription("Iniciar").performClick()
-        composeRule.onNodeWithContentDescription("Detener")
-        composeRule.onNodeWithText("Tiempo objetivo")
+        composeRule.onNodeWithContentDescription("Detener").assertIsDisplayed()
+        composeRule.onNodeWithTag("live-quantity-input").assertIsNotEnabled()
+        composeRule.runOnIdle { clockMillis += 10_000 }
+        composeRule.onNodeWithContentDescription("Detener").performClick()
+        composeRule.onNodeWithTag("live-quantity-input").assertIsEnabled().assertTextEquals("0:10")
+        composeRule.onNodeWithContentDescription("Iniciar").assertIsDisplayed()
     }
 
     @Test
