@@ -119,6 +119,9 @@ data class RingAdjustLevel(
     val value: Int,
     val before: Int,
     val edited: Boolean = value != before,
+    val valueKnown: Boolean = true,
+    val beforeKnown: Boolean = true,
+    val estimated: Boolean = false,
 )
 
 /**
@@ -697,12 +700,18 @@ fun RingAdjustPanel(
                         value = energy.value,
                         before = energy.before,
                         onValueChange = onEnergyChange,
+                        valueKnown = energy.valueKnown,
+                        beforeKnown = energy.beforeKnown,
+                        estimated = energy.estimated,
                     )
                     RingChannel.COLUMNA -> EnergyColumnAdjust(
                         channel = RingChannel.COLUMNA,
                         value = spine.value,
                         before = spine.before,
                         onValueChange = onSpineChange,
+                        valueKnown = spine.valueKnown,
+                        beforeKnown = spine.beforeKnown,
+                        estimated = spine.estimated,
                     )
                     RingChannel.MUSCULOS -> MuscleBodyAdjust(
                         values = muscles.values,

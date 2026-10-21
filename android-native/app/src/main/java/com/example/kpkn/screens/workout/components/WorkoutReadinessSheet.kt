@@ -218,8 +218,22 @@ fun WorkoutReadinessSheet(
         RingAdjustPanel(
             initialChannel = channel,
             onDismiss = { adjustChannel = null },
-            energy = RingAdjustLevel(value = state.neural, before = readinessNeuralStart, edited = state.userEditedNeural),
-            spine = RingAdjustLevel(value = state.spinal, before = readinessSpinalStart, edited = state.userEditedSpinal),
+            energy = RingAdjustLevel(
+                value = state.neural,
+                before = readinessNeuralStart,
+                edited = state.userEditedNeural,
+                valueKnown = augeSnapshot?.coverage?.system?.hasData != false,
+                beforeKnown = augeSnapshot?.coverage?.system?.hasData != false,
+                estimated = augeSnapshot?.coverage?.system?.isEstimated == true,
+            ),
+            spine = RingAdjustLevel(
+                value = state.spinal,
+                before = readinessSpinalStart,
+                edited = state.userEditedSpinal,
+                valueKnown = augeSnapshot?.coverage?.structure?.hasData != false,
+                beforeKnown = augeSnapshot?.coverage?.structure?.hasData != false,
+                estimated = augeSnapshot?.coverage?.structure?.isEstimated == true,
+            ),
             muscles = RingAdjustMuscles(
                 values = bodyValues,
                 before = bodyBefore,
