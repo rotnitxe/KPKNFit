@@ -571,7 +571,7 @@ class TrainingPlanRecipeJsonCompatTest {
         // `dbJson` (el codec real de Room) tiene `encodeDefaults` activo: escribe `scope` y los incrementos
         // de TopSetPr. Lo guardado antes de B.S3, sin esos campos, se lee igual con los valores por defecto.
         assertEquals(
-            """{"type":"cycle_increment","upperKg":2.5,"lowerKg":5.0,"scope":"CYCLE"}""",
+            """{"type":"cycle_increment","upperKg":2.5,"lowerKg":5.0,"scope":"CYCLE","resetAfterFrozenCycles":0,"resetPercent":10.0}""",
             dbJson.encodeToString(ProgressionRule.serializer(), ProgressionRule.CycleIncrement(2.5, 5.0)),
         )
         assertEquals(

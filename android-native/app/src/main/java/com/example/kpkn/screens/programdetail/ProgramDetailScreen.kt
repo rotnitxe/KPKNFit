@@ -1157,3 +1157,6 @@ internal fun usesTrainingMax(recipe: com.example.kpkn.data.protocols.TrainingPla
     }
 }
 
+        is com.example.kpkn.data.protocols.ProgressionRule.RepsOverStandardTm,
+        is com.example.kpkn.data.protocols.ProgressionRule.StagedVolume,
+        is com.example.kpkn.data.protocols.ProgressionRule.ApreXrm,

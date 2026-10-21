@@ -357,6 +357,9 @@ object RecipeContractPolicy {
         }
         val needsAmrap = rule is ProgressionRule.AmrapDrivenTm ||
             rule is ProgressionRule.RepTargetDrivenTm ||
+            rule is ProgressionRule.RepsOverStandardTm ||
+            rule is ProgressionRule.StagedVolume ||
+            rule is ProgressionRule.ApreXrm ||
             recipe.autoregulationHooks.any { it.kind == AutoregulationHookKind.AMRAP_TM }
         val needsTopSet = rule is ProgressionRule.TopSetPr
         if (needsAmrap && !hasMarkedSet(recipe) { set -> set.amrap }) {
@@ -536,6 +539,7 @@ object RecipeContractPolicy {
         val progression = recipe.progression
         if (progression is ProgressionRule.WeeklyKg ||
             progression is ProgressionRule.CycleIncrement ||
+            progression is ProgressionRule.StagedVolume ||
             recipe.nativeProgression != null
         ) {
             return emptyList()

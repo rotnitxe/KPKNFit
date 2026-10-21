@@ -25,6 +25,7 @@ import com.example.kpkn.data.models.isSimpleCalendarizedProgram
 import com.example.kpkn.data.models.isSimpleLinearProgram
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.protocols.LiftSlot
+import com.example.kpkn.data.protocols.ProgressionRule
 
 /**
  * Motor de progreso para programas Simples: avanza semana y ciclo por instancia,
@@ -704,6 +705,16 @@ object ProgramProgressEngine {
         )
     }
 
+            // CAL5 (Juggernaut): el AMRAP de realización de la ola que se cierra decide el TM nuevo: reps sobre el estándar.
+            evidence = if (recipe.progression is ProgressionRule.RepsOverStandardTm) {
+                AuthoredProgressionEngine.CloseEvidence(
+                    amrapHits = closingWeeks.flatMap { week ->
+                        ProgramAutoregulationEngine.collectAmrapHits(week, logs, cycleNumber, program.id, runId, recipe)
+                    },
+                )
+            } else {
+                AuthoredProgressionEngine.CloseEvidence()
+            },
     /**
      * Semanas del bloque que se deja al resolver una puerta (descarga o test de 1RM): el bloque en el que
      * quedó el cursor al levantarla (`runState.blockId`), o, si ese id falta en un estado antiguo, el de
@@ -1264,9 +1275,13 @@ object ProgramProgressEngine {
         // B.S4: un levantamiento con un AMRAP corto en el ciclo que se cierra no sube su TM. Se lee de los
         // registros de ESE ciclo (`cycleNumber` es el cerrado) y de las semanas tal como se entrenaron.
         val cycleRecipe = program.sourceRecipe
-        val shortAmrapLifts: Set<LiftSlot> = if (cycleRecipe != null && AuthoredProgressionEngine.appliesAtCycleClose(cycleRecipe.progression)) {
+        val closingWeeks = currentInstances.mapNotNull { instance -> hierarchy.locateWeek(instance.templateWeekId)?.week }
+        val closesByCycle = cycleRecipe != null && AuthoredProgressionEngine.appliesAtCycleClose(cycleRecipe.progression)
+        val shortAmrapLifts: Set<LiftSlot> = if (cycleRecipe != null && closesByCycle) {
             ProgramAutoregulationEngine.shortAmrapLifts(
-                weeks = currentInstances.mapNotNull { instance -> hierarchy.locateWeek(instance.templateWeekId)?.week },
+        // CAL5: además, la regla de cada método lee lo registrado en el ciclo que se cierra: 5/3/1 cuenta los ciclos congelados
+        // seguidos (reinicio −10 %) y GZCLP el volumen que completó cada T1 y T2 (etapas).
+                weeks = closingWeeks,
                 logs = logs,
                 cycleNumber = cycleNumber,
                 programId = program.id,
@@ -1279,6 +1294,36 @@ object ProgramProgressEngine {
         val authored = AuthoredProgressionEngine.applyAtCycleClose(
             program = updatedProgram,
             newCycle = newCycle,
+        val closeEvidence: AuthoredProgressionEngine.CloseEvidence = if (cycleRecipe == null) {
+            AuthoredProgressionEngine.CloseEvidence()
+        } else when (val rule = cycleRecipe.progression) {
+            is ProgressionRule.CycleIncrement ->
+                if (rule.resetAfterFrozenCycles > 0 && shortAmrapLifts.isNotEmpty()) {
+                    AuthoredProgressionEngine.CloseEvidence(
+                        frozenStreaks = ProgramAutoregulationEngine.frozenCycleStreaks(
+                            weeks = closingWeeks,
+                            logs = logs,
+                            closingCycle = cycleNumber,
+                            programId = program.id,
+                            runId = runId,
+                            recipe = cycleRecipe,
+                        ),
+                    )
+                } else {
+                    AuthoredProgressionEngine.CloseEvidence()
+                }
+            is ProgressionRule.StagedVolume -> AuthoredProgressionEngine.CloseEvidence(
+                gzclpChecks = ProgramAutoregulationEngine.collectGzclpTierChecks(
+                    weeks = closingWeeks,
+                    logs = logs,
+                    cycleNumber = cycleNumber,
+                    programId = program.id,
+                    runId = runId,
+                    recipe = cycleRecipe,
+                ),
+            )
+            else -> AuthoredProgressionEngine.CloseEvidence()
+        }
             firstWeekOccurrence = firstOccurrence,
             metadata = compositionMetadata ?: CompositionMetadataHolder.current,
             inventory = inventory,
@@ -1286,6 +1331,7 @@ object ProgramProgressEngine {
         )
 
         return ProgressAdvanceResult(
+            evidence = closeEvidence,
             program = authored,
             activeState = activeState?.copy(
                 currentWeekId = firstInstance?.instanceId ?: activeState.currentWeekId,

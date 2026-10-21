@@ -90,13 +90,14 @@ class ProgramAutoregulationEngineTest {
 
     @Test
     fun shortAmrap_proposes_adjust_tm_down() {
+        // CAL5: la tabla de nSuns no define bajadas; la regla de repeticiones (estilo SBS) sí baja el TM por cada repetición que falta.
         val program = materialized()
         val week = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
         val proposals = ProgramAutoregulationEngine.evaluate(
             program = program,
             completedWeek = week,
             logs = emptyList(),
-            recipe = recipe(),
+            recipe = recipe().copy(progression = ProgressionRule.RepTargetDrivenTm()),
             signals = WeeklyAutoregulationSignals(
                 amrapHits = listOf(AmrapHit(LiftSlot.SQUAT, 95.0, prescribedReps = 5, actualReps = 1, meanRpe = 9.4)),
                 readinessScore = 38,
@@ -302,13 +303,13 @@ class ProgramAutoregulationEngineTest {
                 )
             }
         }
-        // Y la bajada de AmrapDrivenTm es el 2,5 % (su tabla en kilos no define bajadas).
-        val down = ProgramAutoregulationEngine.amrapTmChange(
-            ProgressionRule.AmrapDrivenTm(),
-            AmrapHit(LiftSlot.SQUAT, 95.0, prescribedReps = 5, actualReps = 1),
-        )!!
-        assertEquals(-2.5, down.percentDelta!!, 1e-9)
-        assertNull(down.kgDelta)
+        // CAL5: la tabla de nSuns (`AmrapDrivenTm`) va de «0-1 repeticiones: sin subida» y no define bajadas: un AMRAP corto ya no baja el TM un 2,5 %.
+        assertNull(
+            ProgramAutoregulationEngine.amrapTmChange(
+                ProgressionRule.AmrapDrivenTm(),
+                AmrapHit(LiftSlot.SQUAT, 95.0, prescribedReps = 5, actualReps = 1),
+            ),
+        )
     }
 
     @Test
@@ -327,7 +328,7 @@ class ProgramAutoregulationEngineTest {
         // Lo corto es quedarse por debajo del objetivo, también al 95 % (3+ con una sola repetición baja el TM un 2,5 %).
         val short = AmrapHit(LiftSlot.DEADLIFT, 95.0, prescribedReps = 3, actualReps = 1)
         assertTrue(ProgramAutoregulationEngine.isShortAmrap(short))
-        assertEquals(-2.5, ProgramAutoregulationEngine.amrapTmChange(ProgressionRule.AmrapDrivenTm(), short)!!.percentDelta!!, 1e-9)
+        assertNull("CAL5: sin bajada", ProgramAutoregulationEngine.amrapTmChange(ProgressionRule.AmrapDrivenTm(), short))
         // Sin mínimo declarado el AMRAP nunca es corto.
         assertFalse(ProgramAutoregulationEngine.isShortAmrap(AmrapHit(LiftSlot.DEADLIFT, 95.0, prescribedReps = 0, actualReps = 0)))
     }
@@ -368,10 +369,10 @@ class ProgramAutoregulationEngineTest {
         // Hasta con un AMRAP corto: sin levantamiento no hay TM que bajar.
         assertTrue(amrapProposals(rule, AmrapHit(null, 95.0, prescribedReps = 5, actualReps = 1)).isEmpty())
 
-        // Una serie hecha con menos del 97,5 % de la carga prescrita no sube el TM, pero sí puede bajarlo.
+        // Una serie hecha con menos del 97,5 % de la carga prescrita no sube el TM (y, con la tabla de nSuns, tampoco lo baja).
         assertNull(ProgramAutoregulationEngine.amrapTmChange(rule, AmrapHit(LiftSlot.SQUAT, 95.0, 1, 5, weightRatio = 0.9)))
         assertEquals(5.0, ProgramAutoregulationEngine.amrapTmChange(rule, AmrapHit(LiftSlot.SQUAT, 95.0, 1, 5, weightRatio = 0.98))!!.kgDelta!!, 1e-9)
-        assertEquals(-2.5, ProgramAutoregulationEngine.amrapTmChange(rule, AmrapHit(LiftSlot.SQUAT, 95.0, 5, 1, weightRatio = 0.9))!!.percentDelta!!, 1e-9)
+        assertNull(ProgramAutoregulationEngine.amrapTmChange(rule, AmrapHit(LiftSlot.SQUAT, 95.0, 5, 1, weightRatio = 0.9)))
     }
 
     @Test
@@ -809,10 +810,12 @@ class ProgramAutoregulationEngineTest {
             assertTrue("${recipe.id}: un AMRAP corto no baja el TM", adjustments(recipe, short).isEmpty())
             assertTrue("${recipe.id}: uno largo tampoco lo sube", adjustments(recipe, long).isEmpty())
 
-            // Con una regla de progresión, o con el gancho `AMRAP_TM`, el MISMO AMRAP corto sí propone bajar el TM un 2,5 %.
-            val withRule = adjustments(recipe.copy(progression = ProgressionRule.CycleIncrement(2.5, 5.0)), short).single()
+            // Con una regla de progresión genérica (aquí `TopSetPr`), o con el gancho `AMRAP_TM`, el MISMO AMRAP corto sí propone bajar el TM un 2,5 %.
+            // CAL5: la regla de ciclo de 5/3/1 (`CycleIncrement`) ya no lo baja: lo congela al cerrar el ciclo.
+            val withRule = adjustments(recipe.copy(progression = ProgressionRule.TopSetPr()), short).single()
             assertEquals(lift.name, withRule.liftSlot)
             assertEquals(-2.5, withRule.percentDelta!!, 1e-9)
+            assertTrue(adjustments(recipe.copy(progression = ProgressionRule.CycleIncrement(2.5, 5.0)), short).isEmpty())
             val hooked = recipe.copy(autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)))
             assertTrue(ProgramAutoregulationEngine.amrapMovesTm(hooked))
             assertEquals(-2.5, adjustments(hooked, short).single().percentDelta!!, 1e-9)
@@ -865,8 +868,9 @@ class ProgramAutoregulationEngineTest {
         fun proposalsFor(joint: Boolean) = ProgramAutoregulationEngine.evaluate(
             program = program,
             completedWeek = firstWeek(program),
+        // CAL5: con la regla de repeticiones (estilo SBS) un AMRAP corto baja el TM; la tabla de nSuns ya no define bajadas.
             logs = emptyList(),
-            recipe = recipe(),
+            recipe = recipe().copy(progression = ProgressionRule.RepTargetDrivenTm()),
             signals = signals.copy(repeatedJointPain = joint),
         )
 

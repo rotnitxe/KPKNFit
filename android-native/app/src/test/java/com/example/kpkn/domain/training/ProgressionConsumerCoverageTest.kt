@@ -41,6 +41,11 @@ class ProgressionConsumerCoverageTest {
         is ProgressionRule.TopSetPr -> Consumer.AUTOREGULATION
         is ProgressionRule.WeeklyPercent -> Consumer.PENDING
         ProgressionRule.RepMaxAutoregulated -> Consumer.AUTOREGULATION
+        // CAL5: Juggernaut (reps sobre el estándar al entrar en la ola) y GZCLP (etapas al cerrar el ciclo) las consume el motor de autor.
+        is ProgressionRule.RepsOverStandardTm -> Consumer.AUTHOR_ENGINE
+        is ProgressionRule.StagedVolume -> Consumer.AUTHOR_ENGINE
+        // CAL6: APRE propone el XRM de la semana siguiente como una propuesta de TM de `ProgramAutoregulationEngine`.
+        is ProgressionRule.ApreXrm -> Consumer.AUTOREGULATION
     }
 
     /** Una instancia de cada regla (y de cada alcance de `CycleIncrement`). */
@@ -54,6 +59,9 @@ class ProgressionConsumerCoverageTest {
         ProgressionRule.TopSetPr(),
         ProgressionRule.WeeklyPercent(2.5),
         ProgressionRule.RepMaxAutoregulated,
+        ProgressionRule.RepsOverStandardTm(),
+        ProgressionRule.StagedVolume(),
+        ProgressionRule.ApreXrm(),
     )
 
     /**
