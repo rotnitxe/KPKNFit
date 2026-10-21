@@ -1,47 +1,55 @@
-# Tests que YA FALLAN en la base 5d0abc72f (corridas base de Codex, 21-oct): Clase.método. Heredados: no son de ningún paquete de la ola.
-# Cobertura parcial (screens.workout.*, sessioneditor.* y afines); se completa con la corrida final contra master.
-CatalogDetailContentTest.verTodosDespliegaLosMusculosQueFaltan
-LiveExerciseOptionsUiTest.everyOptionOfAStrengthExerciseCallsItsOwnFunction
-LiveExerciseOptionsUiTest.removingFromTheSessionIsDisabledWhenItIsTheOnlyExercise
-LiveLayerDismissTest.theNoteTypedInTheSummaryIsKeptWhenTheSummaryIsClosed
-LiveOptionsLargeFontTest.atNormalSizeTheTilesGoThreePerRowAndTheFooterPillsShareALine
-LiveOptionsLargeFontTest.theStrengthOptionsKeepEveryLabelWholeAtOneHundredAndThirtyPercent
-LiveOptionsLargeFontTest.withLargeLetterTheTilesGoTwoPerRowAndTheFooterPillsStack
-SessionEditorAutoSaveTest.aBlockedSaveKeepsTheTextAndRetriesOnTheNextPass
-SessionEditorAutoSaveTest.aChangeReachesTheProgramOnlyAfterTheQuietPeriod
-SessionEditorAutoSaveTest.leavingTheEditorSavesThePendingChangeWithoutWaiting
-SessionEditorManualOverrideTest.applyToNewItemsComesFromRoomAndGatesTheRestoredExtras
-SessionEditorManualOverrideTest.cancelledCallerAfterRoomCommitStillAcknowledgesDraftAndDoesNotRepeatAppend
-SessionEditorManualOverrideTest.compoundAndIsolationOverridesSurviveReopenAndDriveNewExercises
-SessionEditorManualOverrideTest.discardAfterPreferenceFailureRestoresTheConfirmedExtrasAndRoomCoreWithoutARedundantWrite
-SessionEditorManualOverrideTest.editorRecoveryDoesNotRepublishAfterANewerProgramWriteReservation
-SessionEditorManualOverrideTest.globalScopeAndExtrasSurviveSaveAndReopenWhileRoomKeepsOnlyTheEightCoreFields
-SessionEditorManualOverrideTest.mesocycleSaveCopiesTheCoreThroughTheCloneAndTheExtrasBestEffortKeepingTheClonesOwnPreferences
-SessionEditorManualOverrideTest.postCommitExceptionBeforeCachePublication_recoversRoomAndRetryDoesNotAppendAgain
-SessionEditorManualOverrideTest.preferenceFailureAfterRoomCommitKeepsConsumedTransferAndExtrasAndRetryDoesNotAppend
-SessionEditorManualOverrideTest.preferenceFailureAfterRoomTransferCommitLeavesTransferClearedDraftAndRetryDoesNotAppend
-SessionEditorManualOverrideTest.real_room_write_failure_keeps_editor_transfer_and_retry_appends_once
-SessionEditorManualOverrideTest.roomFailureLeavesPreferencesUntouchedKeepsTheTransferAndRetryAppendsOnce
-SessionEditorManualOverrideTest.saveSession_marks_the_manual_override_in_the_same_mutation_and_rebuild_preserves_it
-SessionEditorManualOverrideTest.sessionOnlySaveDoesNotTouchTheCloneRecords
-SessionEditorManualOverrideTest.stagedAppendTransferSurvivesViewModelRecreationAndIsAppliedOnce
-SessionEditorManualOverrideTest.variantBTransferUsesLatestVariantAtSaveAndFreezesTheDestinationRecipeDay
-SetExecutionCardCompactTest.cifraCargaEscritaYMarcadorVacio
-SetExecutionCardCompactTest.flechasPaginadorCompactas
-WorkoutReadinessSheetAdjustTest.Restablecer en Musculos devuelve todos a su valor y quita las marcas
-WorkoutReadinessSheetAdjustTest.ajustar Energia y confirmar entrega solo Energia
-WorkoutReadinessSheetAdjustTest.con la voz encendida salen Manos libres y Musica y cambiar de modo avisa
-WorkoutReadinessSheetAdjustTest.el estado previo conserva su titulo, la torre, la leyenda y el aviso
-WorkoutReadinessSheetAdjustTest.el i abre la explicacion de la voz
-WorkoutReadinessSheetAdjustTest.la Columna se entrega en la escala visible y solo si se edito
-WorkoutReadinessSheetAdjustTest.la voz sale en una fila con su interruptor y sin modos mientras esta apagada
-WorkoutReadinessSheetAdjustTest.los musculos de hoy salen marcados y los demas tambien se pueden tocar
-WorkoutReadinessSheetAdjustTest.pulsar el modo ya elegido no lo cambia
-WorkoutReadinessSheetAdjustTest.recrear conserva los valores y las marcas de los musculos ajustados
-WorkoutReadinessSheetAdjustTest.restablecer devuelve el canal a su valor automatico y deja de ser ajuste manual
-WorkoutReadinessSheetAdjustTest.tocar la leyenda de un anillo abre el ajuste en ese canal
-WorkoutReadinessSheetAdjustTest.tocar un anillo de la torre tambien abre el ajuste
-WorkoutReadinessSheetAdjustTest.un ajuste que vuelve al valor de partida con los botones sigue contando como editado hasta restablecer
-WorkoutReadinessSheetAdjustTest.un musculo de hoy se ajusta en el cuerpo y sale como editado
-WorkoutReadinessSheetAdjustTest.un musculo que no es de hoy se entrega como editado sin mover el promedio de los de hoy
-WorkoutReadinessSheetCompactTest.hojaDeEstadoNoTieneTextoSuperiorNiLasTresExplicaciones
+# Tests que FALLAN en master (8ac57c9d4) en la corrida COMPLETA del 21-oct-2026 14:58 (worktree mfpbase): 12.032 tests, 1.396 suites, 51 fallos, 551 omitidos, 1 h 16 min.
+# Son heredados: ningún paquete de la ola los arregla ni se le imputan. Formato: nombre completo (clase.método); mfp_verify.py también entiende «Clase.método».
+# Grupos: sesión en vivo, editor y catálogo (26, los mismos que Codex vio en 5d0abc72f), análisis de técnica por vídeo y su hoja de render (VT), anillos (RingDetailSheetTest, RingsResultStepTest), TrainingMaxContentTest, CatalogCarouselSettleTest.
+# Intermitentes (NO se incluyen abajo): SessionEditorAutoSaveTest (3) y SessionEditorManualOverrideTest (16) fallaron en una corrida FILTRADA de Codex sobre 5d0abc72f, pero pasan en las corridas completas de master y de la rama (3/3 y 30/30). Si fallan en tu corrida, se investigan.
+com.example.kpkn.data.repository.VideoAnalysisRepositoryTest.markState_creates_a_row_from_the_media_and_never_for_a_media_that_is_gone
+com.example.kpkn.domain.biomechanics.golden.GoldenRepCountTest.availableTuningFixturesProduceDiagnosticReport
+com.example.kpkn.domain.biomechanics.golden.GoldenRepCountTest.completeFrozenCompatibleManifestMeetsAcceptance
+com.example.kpkn.domain.biomechanics.golden.GoldenRepCountTest.pilotTracesReplayWithoutDatasetAcceptance
+com.example.kpkn.domain.biomechanics.golden.GoldenTimingTest.availableReliableTuningTurnsProduceDiagnosticReport
+com.example.kpkn.domain.biomechanics.golden.GoldenTimingTest.completeReservedReliableTurnsAreWithin250Milliseconds
+com.example.kpkn.domain.biomechanics.golden.GoldenVelocityDiagnosticsTest.tuningVelocityCoverageAndDurationErrorDiagnostic
+com.example.kpkn.domain.biomechanics.metrics.ObservationsTest.theBarAheadOfTheMidfootInARomanianDeadliftNeedsTheCalibratedPlate
+com.example.kpkn.domain.biomechanics.metrics.ObservationsTest.theBenchFlagsAnAtypicalPathAShorterRepAndTheContactPoint
+com.example.kpkn.domain.biomechanics.vision.PlateTrackerVelocityTest.theMeanConcentricVelocityFromTheTrackedPlateIsWithinTheToleranceAt60And30Fps
+com.example.kpkn.render.TechniqueHubRenderSheetTest.hubData100
+com.example.kpkn.render.TechniqueHubRenderSheetTest.hubData130
+com.example.kpkn.render.TechniqueHubRenderSheetTest.hubEmpty100
+com.example.kpkn.render.TechniqueHubRenderSheetTest.hubEmpty130
+com.example.kpkn.render.TechniqueHubRenderSheetTest.import130
+com.example.kpkn.render.TechniqueHubRenderSheetTest.settings100
+com.example.kpkn.render.TechniqueHubRenderSheetTest.settings130
+com.example.kpkn.screens.home.RingDetailSheetTest.Ajustar abre la hoja de ajuste en ese canal y sin pestañas
+com.example.kpkn.screens.home.RingDetailSheetTest.Musculos abre el cuerpo y guarda cada musculo por su pilar
+com.example.kpkn.screens.home.RingDetailSheetTest.mover el anillo activa Guardar ajuste
+com.example.kpkn.screens.home.RingDetailSheetTest.sin personalBaseline sale el texto de 4 sesiones
+com.example.kpkn.screens.onboarding.rings.RingsResultStepTest.sin dato ni estimacion el cuerpo no inventa un 100
+com.example.kpkn.screens.programs.TrainingMaxContentTest.saveStaysDisabledWithoutAnyMaximum
+com.example.kpkn.screens.sessioneditor.components.CatalogCarouselSettleTest.abrirLaFichaConUnImplementoElegidoTampocoAvisa
+com.example.kpkn.screens.sessioneditor.components.CatalogDetailContentTest.verTodosDespliegaLosMusculosQueFaltan
+com.example.kpkn.screens.technique.compare.TechniqueCompareViewModelTest.media_with_sidecar_reports_computes_full_differences
+com.example.kpkn.screens.workout.LiveExerciseOptionsUiTest.everyOptionOfAStrengthExerciseCallsItsOwnFunction
+com.example.kpkn.screens.workout.LiveExerciseOptionsUiTest.removingFromTheSessionIsDisabledWhenItIsTheOnlyExercise
+com.example.kpkn.screens.workout.LiveLayerDismissTest.theNoteTypedInTheSummaryIsKeptWhenTheSummaryIsClosed
+com.example.kpkn.screens.workout.LiveOptionsLargeFontTest.atNormalSizeTheTilesGoThreePerRowAndTheFooterPillsShareALine
+com.example.kpkn.screens.workout.LiveOptionsLargeFontTest.theStrengthOptionsKeepEveryLabelWholeAtOneHundredAndThirtyPercent
+com.example.kpkn.screens.workout.LiveOptionsLargeFontTest.withLargeLetterTheTilesGoTwoPerRowAndTheFooterPillsStack
+com.example.kpkn.screens.workout.components.SetExecutionCardCompactTest.cifraCargaEscritaYMarcadorVacio
+com.example.kpkn.screens.workout.components.SetExecutionCardCompactTest.flechasPaginadorCompactas
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.Restablecer en Musculos devuelve todos a su valor y quita las marcas
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.ajustar Energia y confirmar entrega solo Energia
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.con la voz encendida salen Manos libres y Musica y cambiar de modo avisa
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.el estado previo conserva su titulo, la torre, la leyenda y el aviso
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.el i abre la explicacion de la voz
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.la Columna se entrega en la escala visible y solo si se edito
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.la voz sale en una fila con su interruptor y sin modos mientras esta apagada
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.los musculos de hoy salen marcados y los demas tambien se pueden tocar
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.pulsar el modo ya elegido no lo cambia
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.recrear conserva los valores y las marcas de los musculos ajustados
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.restablecer devuelve el canal a su valor automatico y deja de ser ajuste manual
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.tocar la leyenda de un anillo abre el ajuste en ese canal
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.tocar un anillo de la torre tambien abre el ajuste
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.un ajuste que vuelve al valor de partida con los botones sigue contando como editado hasta restablecer
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.un musculo de hoy se ajusta en el cuerpo y sale como editado
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetAdjustTest.un musculo que no es de hoy se entrega como editado sin mover el promedio de los de hoy
+com.example.kpkn.screens.workout.components.WorkoutReadinessSheetCompactTest.hojaDeEstadoNoTieneTextoSuperiorNiLasTresExplicaciones

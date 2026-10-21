@@ -73,6 +73,8 @@ Archivos calientes con un único dueño por paquete (no se tocan fuera de él): 
 
 ## Estado
 
+**Línea base de rojos, certificada (21-oct 14:58):** corrida COMPLETA de master `8ac57c9d4` en `C:\kw\mfpbase` (12.032 tests, 1.396 suites, 1 h 16 min): **51 fallos heredados** y 551 omitidos, listados en `ROJOS_BASE.txt` (la comparan `mfp_verify.py --baseline` y los agentes). Incluye los rojos que T2 dejó «a certificar» (`RingDetailSheetTest` ×4 y `CatalogDetailContentTest.verTodosDespliegaLosMusculosQueFaltan`). Los 26 rojos que veía la rama en la corrida de T3 son todos de esa lista; `SessionEditorAutoSaveTest` y `SessionEditorManualOverrideTest`, que fallaron en una corrida FILTRADA de Codex, pasan en las corridas completas (intermitentes). La corrida FINAL de la ola, completa, se compara contra esta lista.
+
 | ID | Estado | Commits | Notas |
 |---|---|---|---|
 | H1 | **hecho y revisado** (20-oct 22:40) | `9ada85629`, `d20e0de52` | 222 tests en verde (33 suites, XML). Quita `addNutritionLog`; `addLog`/creatina esperan a Room y avisan si falla; `unreadableRows` + cuarentena por fila (registros, plantillas, planes); «olvidar aprendizaje» ya no borra plantillas en cuarentena. **Pendiente para P2-D:** `SettingsViewModel.kt:210` exporta plantillas en bloque (una ilegible puede romper la exportación) y la cuarentena en copias de seguridad sin verificar. |
