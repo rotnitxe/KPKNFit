@@ -7,7 +7,7 @@ clases, métodos y constantes. Lo que no se pudo verificar lleva «sin confirmar
 Herramientas: REA 6.5.0 (apktool 3.0.3 para recursos; el JAR de JADX 0.7.1 de REA, usado por su API para volcar únicamente las clases
 `com.my.jump.lab.*` y `defpackage.*`), LLVM del NDK 27 (`llvm-strings`, `llvm-nm`, `llvm-readelf`) para lo nativo y scripts Python
 propios con `-I` para el XAPK, los DEX y los modelos TFLite (en `C:\kw\re\_scripts\myjumplab\`). Pruebas pequeñas en
-`artifacts/myjumplab-re-20261020/` (inventarios JSON, manifiesto y cadenas decodificadas, lista de clases DEX, forma de los modelos,
+`C:/kw/re/evidencias/myjumplab-re-20261020/` (inventarios JSON, manifiesto y cadenas decodificadas, lista de clases DEX, forma de los modelos,
 símbolos nativos; 3,9 MB).
 
 ---
@@ -52,7 +52,7 @@ De OpenCV la app solo usa, en código propio, `Imgproc.matchTemplate` (TM_CCOEFF
 **Bibliotecas de terceros relevantes y licencia:** OpenCV 4.14.0 (Apache-2.0); MediaPipe Tasks (Apache-2.0); ZXing core + ZXing
 Android Embedded de JourneyApps (Apache-2.0; se usa para el QR de migración); AAChartCore-Kotlin (gráficos; MIT) que embebe
 **Highcharts** (`assets/AAHighcharts.js`, licencia comercial, no reutilizable sin licencia); Glide (BSD/MIT/Apache); Gson, kotlinx.serialization,
-gRPC + protobuf (Firestore). Las versiones de AndroidX exactas están en `artifacts/.../apk_inventory.json` y en el informe de
+gRPC + protobuf (Firestore). Las versiones de AndroidX exactas están en `C:/kw/re/evidencias/myjumplab-re-20261020/apk_inventory.json` y en el informe de
 `META-INF/*.version`.
 
 **Permisos y sensores.** `CAMERA`, `INTERNET`, `ACCESS_NETWORK_STATE`, `READ/WRITE_EXTERNAL_STORAGE` (solo hasta API 32/28),
@@ -414,9 +414,9 @@ Rutas dentro del árbol descompilado `C:\kw\re\myjumplab\jadx\com\my\jump\lab\` 
 | Exportar y compartir | `menu/ExportDataFragment` (`.csv`, cabeceras `EXPORT_*`); `presentation/utils/BitmapUtils` (`shareImage`, `shareRunImages`, `mergeBitmaps`, `takeScreenshotWithPixelCopy`); `OverlayView.draw` (sin dibujo efectivo) |
 | Ajustes | `data/GlobalSettings.java` (`plateSize 0.45f`, `defaultV1 10f`, `defaultTargetVelocity 1f`, `orangeT 1f`, `redT 1.5f`, `hz 200`, `countdown`) |
 | Datos y nube | `data/RoomDB_Impl` (tablas), `data/firebase/FirebaseDataSource`, `data/sync/SmartSyncManager`, `SyncWorker`, `DataRestoreManager`; `whatsnew/WhatsNewCatalog` |
-| Nativo | `artifacts/.../native_libs.txt` (versión de OpenCV, módulos JNI, grafos de MediaPipe, NEEDED); `mediapipe_tasks_jni_exports.txt` |
-| Modelos | `artifacts/.../models_info.txt` |
-| Manifiesto y cadenas | `artifacts/.../resources/manifest.json`, `strings.txt` |
+| Nativo | `C:/kw/re/evidencias/myjumplab-re-20261020/native_libs.txt` (versión de OpenCV, módulos JNI, grafos de MediaPipe, NEEDED); `mediapipe_tasks_jni_exports.txt` |
+| Modelos | `C:/kw/re/evidencias/myjumplab-re-20261020/models_info.txt` |
+| Manifiesto y cadenas | `C:/kw/re/evidencias/myjumplab-re-20261020/resources/manifest.json`, `strings.txt` |
 
 Sin confirmar: la justificación del factor (1 − 5/fps); el origen de los coeficientes 0,90043/0,14319; el «×10» del impulso; el
 parámetro «fricción» del modo manual; el área frontal al cuadrado en el rozamiento del esprint; la versión exacta de MediaPipe y de

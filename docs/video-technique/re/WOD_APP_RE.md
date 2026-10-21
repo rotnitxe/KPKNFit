@@ -1,6 +1,6 @@
 # WOD App 18.0.6 · ingeniería inversa estática (20-oct-2026)
 
-Informe del encargo `briefs/RE_COMUN.md`. Análisis solo estático del archivo `C:\Users\valen\Downloads\WOD+App_18.0.6_APKPure.apk`. No se ejecutó ni se instaló nada del APK, no se usó adb, Gradle ni emuladores, y no se descargó ningún archivo (solo se leyeron páginas web públicas, citadas al final). Las pruebas pequeñas están en `C:\Users\valen\Documents\KPKNFit\artifacts\wodapp-re-20261020\` (576 KB) y los scripts en `C:\kw\re\_scripts\wodapp\`.
+Informe del encargo `briefs/RE_COMUN.md`. Análisis solo estático del archivo `C:\Users\valen\Downloads\WOD+App_18.0.6_APKPure.apk`. No se ejecutó ni se instaló nada del APK, no se usó adb, Gradle ni emuladores, y no se descargó ningún archivo (solo se leyeron páginas web públicas, citadas al final). Las pruebas pequeñas están en `C:/kw/re/evidencias/wodapp-re-20261020\` (576 KB) y los scripts en `C:\kw\re\_scripts\wodapp\`.
 
 ## 0. Dictamen en diez líneas
 

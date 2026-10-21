@@ -46,7 +46,7 @@ reutilizarlos. Los nombres de clase o método aparecen solo como evidencia.
 | `assets/metadata.yaml` | 231 | `b01f9b5be65f54099231a7f4b76308026a8514a1dade667ce0d754e3fbaaab22` |
 | `assets/catalyst_exercises.json` | 94.972 | `f59862cec3f13ccd96c5d6f0e776d90e5e2d22d1438237bd8313a6151180fea4` |
 
-Los SHA-256 de los demás splits, bibliotecas nativas y DEX están en `artifacts/wl-analysis-re-20261020/hashes-sha256.txt`.
+Los SHA-256 de los demás splits, bibliotecas nativas y DEX están en `C:/kw/re/evidencias/wl-analysis-re-20261020/hashes-sha256.txt`.
 
 ### 1.2 Arquitectura
 - **Kotlin + Jetpack Compose** (Material 3), navegación Compose, Koin (inyección), corrutinas y Flow, WorkManager, DataStore.
@@ -615,7 +615,7 @@ quietas). Esfuerzo: S ≤ 2 días, M ≤ 1 semana, L > 1 semana.
 | `compute` / `compare`; `Java_…PHasher_*`; `Java_…ColorBarFinder_detectNative` | 0x40660 / 0x40a4a; 0x40af8, 0x40a68; 0x40bd4 | pHash; «color» = pHash |
 | `Java_…YoloBarFinder_init0` / `detect0` / `finish0` | 0x40c50 / 0x40c52 / 0x40c5c | Cuerpos vacíos (2–10 B) |
 
-**Pruebas guardadas** en `C:\Users\valen\Documents\KPKNFit\artifacts\wl-analysis-re-20261020\` (186 KB):
+**Pruebas guardadas** en `C:/kw/re/evidencias/wl-analysis-re-20261020\` (186 KB):
 - `findings-summary.json`: síntesis estructurada propia;
 - `hashes-sha256.txt`, `xapk-inventory.json`, `base-apk-inventory.json`, `armv7-apk-inventory.json`;
 - `dex-app-classes.json`;
@@ -661,3 +661,6 @@ No se guardó pseudocódigo ni código descompilado. Los identificadores E01–E
   procesos java ni Ghidra míos.
 - **Nota de entorno:** un gancho de seguridad impide escribir con la herramienta de edición en la copia principal del repo. Como
   `artifacts/` está en `.gitignore` y el brief fija esa ruta, las pruebas se copiaron allí con `cp`.
+
+> Nota del orquestador (20-oct): las pruebas de esta ronda se movieron de `artifacts/` (dentro de la copia principal del repo, que no
+> debe tocarse) a `C:/kw/re/evidencias/wl-analysis-re-20261020/`. Las del 17-oct siguen en `artifacts/wl-analysis-re-20261017/`.

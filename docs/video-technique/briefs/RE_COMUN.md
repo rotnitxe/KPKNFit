@@ -37,7 +37,7 @@ preciso y estable, y ofrecer al máximo las métricas interesantes para atletas 
   - Antes de lanzarlas, comprueba que hay ≥ 6 GB de RAM libre (`Get-CimInstance Win32_OperatingSystem`, `FreePhysicalMemory`).
   - No dejes procesos vivos (java, Ghidra) al terminar.
   - **Al terminar,** borra lo voluminoso de `C:\kw\re\<app>\` (DEX descompilados, proyectos de Ghidra). Conserva en
-    `C:\Users\valen\Documents\KPKNFit\artifacts\<app>-re-20261020\` solo las pruebas pequeñas: inventarios, JSON y listados de
+    `C:/kw/re/evidencias/<app>-re-20261020\` solo las pruebas pequeñas: inventarios, JSON y listados de
     símbolos, < 50 MB en total.
 - **Prohibido:**
   - descargar nada, salvo leer páginas web públicas (papers, documentación) para contrastar lo hallado;
