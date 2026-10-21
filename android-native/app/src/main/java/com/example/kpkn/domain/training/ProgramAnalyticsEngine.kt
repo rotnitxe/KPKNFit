@@ -14,6 +14,7 @@ import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
+import com.example.kpkn.domain.performance.StrengthModel
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -622,8 +623,7 @@ object ProgramAnalyticsEngine {
 
     private fun CompletedSet.estimatedE1rm(): Double? {
         if (skipped || reps <= 0 || weight <= 0.0) return null
-        val safeReps = reps.coerceAtMost(36)
-        return weight * 36.0 / (37.0 - safeReps)
+        return StrengthModel.estimate1RM(this).takeIf { it > 0.0 }
     }
 
     private fun Map<String, Double>.toMuscleMetrics(explanation: String): List<MuscleMetric> =

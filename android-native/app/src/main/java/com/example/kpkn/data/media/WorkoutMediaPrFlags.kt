@@ -1,10 +1,10 @@
 package com.example.kpkn.data.media
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.SessionMilestone
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutLog
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import kotlin.math.abs
 
 /**
@@ -29,7 +29,7 @@ object WorkoutMediaPrFlags {
             .maxByOrNull { it.value }
             ?: return false
         if (set.weight <= 0.0 || set.reps <= 0) return false
-        val e1rm = calculateHybrid1RM(set.weight, set.reps)
+        val e1rm = StrengthModel.estimate1RM(set)
         return abs(e1rm - milestone.value) <= 0.05
     }
 

@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import com.example.kpkn.domain.performance.StrengthModel
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -64,7 +65,6 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.calculations.calculateEstimatedMetric
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -156,7 +156,7 @@ internal fun ExerciseEditorCard(
             when (exercise.trainingMode) {
                 TrainingMode.REPS,
                 TrainingMode.RM,
-                -> calculateHybrid1RM(weight, reps)
+                -> StrengthModel.estimate1RM(weight, reps)
                 TrainingMode.TIME,
                 TrainingMode.DISTANCE,
                 TrainingMode.CUSTOM,

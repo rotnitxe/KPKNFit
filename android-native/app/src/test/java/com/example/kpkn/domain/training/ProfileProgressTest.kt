@@ -50,7 +50,7 @@ class ProfileProgressTest {
         assertEquals(1, result.size)
         assertEquals("Press banca", result.single().name)
         assertEquals(100.0, result.single().goal1RM!!, 0.001)
-        assertEquals(110.0, result.single().bestEstimated1RM!!, 0.01)
+        assertEquals(105.9, result.single().bestEstimated1RM!!, 0.01)
         assertEquals(1, result.single().sessions)
         assertEquals(1.0f, result.single().progressFraction!!, 0.01f)
     }
@@ -142,7 +142,7 @@ class ProfileProgressTest {
 
         val result = buildStarredExerciseProgress(listOf(program), listOf(smith, libre))
         assertEquals(1, result.size)
-        assertEquals(121.0, result.single().bestEstimated1RM!!, 0.01)
+        assertEquals(116.5, result.single().bestEstimated1RM!!, 0.01)
         assertEquals(2, result.single().sessions)
     }
 

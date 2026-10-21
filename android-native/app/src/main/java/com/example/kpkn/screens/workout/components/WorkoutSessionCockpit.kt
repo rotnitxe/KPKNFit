@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout.components
 
+import com.example.kpkn.domain.performance.StrengthModel
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -85,7 +86,6 @@ import com.example.kpkn.data.models.SessionChecklistItem
 import com.example.kpkn.data.models.SessionEnergySummary
 import com.example.kpkn.data.models.SessionMilestone
 import com.example.kpkn.data.models.WorkoutMedia
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.screens.workout.WorkoutRmCalcContent
 import com.example.kpkn.screens.workout.WorkoutMediaCaptureController
 import com.example.kpkn.screens.workout.sessionCalorieStatus
@@ -302,7 +302,7 @@ private fun CockpitOverviewPage(
                     }
                     .values
                     .filter { !it.isWarmup && !it.skipped && (it.weight ?: 0.0) > 0 && it.reps > 0 }
-                    .maxOfOrNull { calculateHybrid1RM(it.weight ?: 0.0, it.reps) }
+                    .maxOfOrNull { StrengthModel.estimate1RM(it) }
                     ?: 0.0
                 val progress = (bestE1rm / goal).toFloat().coerceIn(0f, 1f)
                 Surface(

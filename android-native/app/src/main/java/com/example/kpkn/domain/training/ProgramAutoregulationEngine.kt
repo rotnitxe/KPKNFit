@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.AutoregulationAuditEntry
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.AutoregulationProposal
@@ -28,7 +29,6 @@ import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.domain.auge.LoadAdvisoryEngine
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.text.SpanishPlurals
 import kotlin.math.abs
 import kotlin.math.floor
@@ -57,7 +57,7 @@ data class TopSetHit(
 
 /**
  * Una serie al máximo (base `REP_MAX`) del levantamiento de competición, para `RepMaxAutoregulated`.
- * [estimatedOneRmKg] sale de `calculateHybrid1RM` con la carga y las repeticiones de la serie.
+ * [estimatedOneRmKg] sale de `StrengthModel.estimate1RM` con la carga y las repeticiones de la serie.
  */
 data class RepMaxHit(
     val liftSlot: LiftSlot,
@@ -661,7 +661,7 @@ object ProgramAutoregulationEngine {
                             liftSlot = lift,
                             weightKg = weight,
                             reps = reps,
-                            estimatedOneRmKg = calculateHybrid1RM(weight, reps, isAmrap = pair.performed.amrapPerformed),
+                            estimatedOneRmKg = StrengthModel.estimate1RM(pair.performed),
                         )
                     }
             }
@@ -790,7 +790,7 @@ object ProgramAutoregulationEngine {
         weekLogs.flatMap { it.completedExercises }.forEach { exercise ->
             val slot = liftSlotFromConfigurationId(exercise.catalogConfigurationId ?: exercise.exerciseDbId) ?: return@forEach
             exercise.sets.filter { !it.isWarmup && it.weight > 0 && it.reps > 0 }.forEach { set ->
-                val e1 = calculateHybrid1RM(set.weight, set.reps, isAmrap = set.amrapPerformed)
+                val e1 = StrengthModel.estimate1RM(set)
                 acc[slot] = maxOf(acc[slot] ?: 0.0, e1)
             }
         }
@@ -802,7 +802,7 @@ object ProgramAutoregulationEngine {
         logs.flatMap { it.completedExercises }.forEach { exercise ->
             val slot = liftSlotFromConfigurationId(exercise.catalogConfigurationId ?: exercise.exerciseDbId) ?: return@forEach
             exercise.sets.filter { !it.isWarmup && it.weight > 0 && it.reps > 0 }.forEach { set ->
-                val e1 = calculateHybrid1RM(set.weight, set.reps, isAmrap = set.amrapPerformed)
+                val e1 = StrengthModel.estimate1RM(set)
                 acc[slot] = maxOf(acc[slot] ?: 0.0, e1)
             }
         }

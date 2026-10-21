@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout.components
 
 import androidx.compose.animation.AnimatedVisibility
+import com.example.kpkn.domain.performance.StrengthModel
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -908,7 +909,7 @@ internal fun SetInputCardV2(
         currentSet.targetPercentageRM != null -> {
             val baseText = ghostSet?.let { ghost ->
                 if (ghost.weight > 0 && ghost.reps > 0 && ghost.reps < 37) {
-                    val ghost1RM = ghost.weight / (1.0278 - 0.0278 * ghost.reps)
+                    val ghost1RM = StrengthModel.estimate1RM(ghost)
                     ((currentSet.targetPercentageRM / 100.0) * ghost1RM * 2).toLong() / 2.0
                 } else {
                     ghost.weight.takeIf { it > 0 }
@@ -3486,7 +3487,7 @@ internal fun SetInputCardV2(
         val rm1 = lastHomologatedResultV3?.estimatedRm
             ?: ghostSet?.let { ghost ->
                 if (ghost.weight > 0 && ghost.reps > 0 && ghost.reps < 37) {
-                    ghost.weight / (1.0278 - 0.0278 * ghost.reps)
+                    StrengthModel.estimate1RM(ghost)
                 } else {
                     null
                 }

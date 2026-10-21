@@ -1,10 +1,10 @@
 package com.example.kpkn.domain.energy
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
-import com.example.kpkn.domain.calculations.calculateWeightFrom1RMAndIntensity
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.templates.SessionTemplateQualityRules
 import kotlin.math.min
@@ -200,7 +200,7 @@ object TrainingEnergyEngine {
                     source = ResolvedLoadSource.PERCENT_1RM,
                 )
             }
-            calculateWeightFrom1RMAndIntensity(reference, set)?.takeIf { it > 0.0 }?.let { raw ->
+            StrengthModel.weightFor(reference, set)?.takeIf { it > 0.0 }?.let { raw ->
                 return ResolvedPlannedLoad(raw, ResolvedLoadSource.ONE_RM_INTENSITY)
             }
             calculateSuggestedLoad(exercise, set)?.takeIf { it > 0.0 }?.let { raw ->

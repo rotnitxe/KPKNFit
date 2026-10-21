@@ -1,9 +1,13 @@
 package com.example.kpkn.domain.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.plannedRepAnchor
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -42,6 +46,31 @@ object LoadSuggestionEngine {
             2 -> 0.6
             else -> 0.5
         }
+
+    /** El conteo solo reduce cargas en back-off/drop; las series rectas dependen del rendimiento. */
+    fun contextualFatigueFactor(priorCompletedCount: Int, isBackOff: Boolean): Double =
+        if (isBackOff) fatigueFactorForPriorCompletedSets(priorCompletedCount) else 1.0
+
+    /** Compara capacidades con el mismo modelo y esfuerzo; carga/e1RM no es una señal de fatiga. */
+    fun performanceRatio(actual: CompletedSet, planned: ExerciseSet): Double? {
+        val mode = resolvedLoadMode(actual)
+        if (mode == LoadModeV2.ASSISTED || mode == LoadModeV2.BODYWEIGHT) return null
+        if (actual.recordedPayloadV3?.unitMode?.let { it != UnitModeV2.REPS } == true) return null
+        val reps = planned.plannedRepAnchor() ?: return null
+        val plannedLoad = planned.weight ?: planned.consolidatedWeight
+        val expectedLoad = if (mode == LoadModeV2.LASTRE && plannedLoad != null) {
+            actual.recordedPayloadV3?.bodyWeightSnapshot?.let { it + plannedLoad } ?: actual.weight
+        } else plannedLoad ?: actual.weight
+        val hasEffort = actual.rir != null || actual.rpe != null || actual.actualIntensityValue != null ||
+            actual.recordedPayloadV3?.actualIntensityValue != null || actual.isFailure || actual.isFailedSet
+        val expected = StrengthModel.estimate1RM(
+            expectedLoad, reps,
+            rir = planned.targetRIR.takeIf { hasEffort }, rpe = planned.targetRPE.takeIf { hasEffort },
+            toFailure = planned.isFailure || planned.isAmrap || planned.intensityMode == IntensityMode.FAILURE ||
+                planned.intensityMode == IntensityMode.AMRAP || planned.intensityMode == IntensityMode.SOLO_RM,
+        ).takeIf { it > 0.0 } ?: return null
+        return StrengthModel.estimate1RM(actual).takeIf { it > 0.0 }?.div(expected)
+    }
 
     fun tagMultiplier(tag: String?): Double {
         if (tag.isNullOrBlank()) return 1.0
@@ -94,12 +123,10 @@ object LoadSuggestionEngine {
     fun estimatedCapacity(set: CompletedSet): Double? {
         val mode = resolvedLoadMode(set)
         if (mode == LoadModeV2.ASSISTED || mode == LoadModeV2.BODYWEIGHT) return null
-        set.homologatedResultV3?.estimatedRm?.takeIf { it > 0.0 }?.let { return it }
-        return if (set.weight > 0.0 && set.reps in 1..36) {
-            calculateHybrid1RM(set.weight, set.reps)
-        } else {
-            null
+        if (set.recordedPayloadV3?.unitMode?.let { it != UnitModeV2.REPS } == true) {
+            return set.homologatedResultV3?.estimatedRm?.takeIf { it > 0.0 }
         }
+        return StrengthModel.estimate1RM(set).takeIf { it > 0.0 }
     }
 
     /**

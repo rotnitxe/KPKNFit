@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -22,7 +23,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import com.example.kpkn.data.programs.ProgramCoverRepository
 import com.example.kpkn.data.programs.programCoverEntryIdOf
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.ui.components.rings.TowerRingValues
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -165,7 +165,7 @@ private class StoryDrawing(val canvas:Canvas,val blurred:Bitmap,context:Context)
         val best=lift.best
         text(best?.let{if(it.weight==0.0)"${it.reps} reps"else "${finishNumber(it.weight)} kg"}?:"Sin serie comparable",36f,220f,if(best==null)23f else 46f,bold=true,display=best!=null)
         val effort=best?.let(::finishActualRir)?.let{" · RIR ${finishNumber(it)}"}.orEmpty()
-        text(best?.let{if(it.weight==0.0)"Peso corporal$effort"else "× ${it.reps} reps$effort · 1RM estimado ${finishNumber(calculateHybrid1RM(it.weight,it.reps),0)} kg"}.orEmpty(),36f,244f,12f,color=MUTED)
+        text(best?.let{if(it.weight==0.0)"Peso corporal$effort"else "× ${it.reps} reps$effort · 1RM estimado ${finishNumber(StrengthModel.estimate1RM(it),0)} kg"}.orEmpty(),36f,244f,12f,color=MUTED)
         val points=lift.history.map{it.weight}+listOfNotNull(best?.weight)
         val dates=lift.history.mapNotNull{runCatching{LocalDate.parse(it.date.take(10))}.getOrNull()}+listOfNotNull(data.presentation.today.takeIf{best!=null})
         graph(points,RectF(36f,264f,324f,414f),dates.takeIf{it.size==points.size})

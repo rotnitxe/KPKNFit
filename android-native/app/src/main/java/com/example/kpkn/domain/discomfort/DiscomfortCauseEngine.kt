@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.discomfort
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG
@@ -15,7 +16,6 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.ArticularBattery
 import com.example.kpkn.domain.auge.AugeTtcEngine
 import com.example.kpkn.domain.auge.AugeUtils
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.training.VolumeCalculator
 import java.time.Instant
 import java.util.Locale
@@ -797,7 +797,7 @@ object DiscomfortCauseEngine {
             .filter { completed -> keysOf(completed).any { it in keys } }
             .flatMap { it.sets.asSequence() }
             .filter { !it.isWarmup && !it.skipped }
-            .maxOfOrNull { calculateHybrid1RM(it.weight, it.reps) } ?: 0.0
+            .maxOfOrNull { StrengthModel.estimate1RM(it) } ?: 0.0
     }
 
     /** Carga máxima de la última sesión anterior a [DiscomfortHistory.now] con ese ejercicio. */

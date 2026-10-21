@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
@@ -8,7 +9,6 @@ import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.workout.BaseLoadPolicy
@@ -479,7 +479,7 @@ class WorkoutLoadSuggestionController(
 
         val referenceRm = exercise.reference1RM?.takeIf { it > 0.0 }
             ?: exercise.prFor1RM?.takeIf { it.weight > 0.0 && it.reps > 0 }?.let {
-                calculateHybrid1RM(it.weight, it.reps)
+                StrengthModel.estimate1RM(it.weight, it.reps)
             }
         val plannedPercent = exercise.sets.firstOrNull()?.targetPercentageRM?.takeIf { it > 0.0 }
         if (referenceRm != null && plannedPercent != null) {
@@ -549,10 +549,12 @@ class WorkoutLoadSuggestionController(
             .filter { it.completedSet.side == side || side == null }
             .filter { !it.completedSet.skipped }
 
-        val bestRatio = exerciseHistory.mapNotNull { performanceRatioForSet(it.completedSet) }.maxOrNull()
-        val worstRatio = exerciseHistory.mapNotNull { performanceRatioForSet(it.completedSet) }.minOrNull()
+        fun ratio(snapshot: SessionExerciseSetSnapshot): Double? = exercise.sets.getOrNull(snapshot.setIndex)
+            ?.let { LoadSuggestionEngine.performanceRatio(snapshot.completedSet, it) }
+        val bestRatio = exerciseHistory.mapNotNull(::ratio).maxOrNull()
+        val worstRatio = exerciseHistory.mapNotNull(::ratio).minOrNull()
         val latestCompletedSet = exerciseHistory.lastOrNull()?.completedSet
-        val latestRatio = latestCompletedSet?.let(::performanceRatioForSet)
+        val latestRatio = exerciseHistory.lastOrNull()?.let(::ratio)
         val severePerformanceDrop = latestCompletedSet != null && (
             latestCompletedSet.failureReason == "execution_error" ||
                 (latestCompletedSet.isPartial && (latestRatio ?: 1.0) <= 0.85) ||
@@ -675,7 +677,8 @@ class WorkoutLoadSuggestionController(
             }
             .count()
 
-        return LoadSuggestionEngine.fatigueFactorForPriorCompletedSets(priorCompletedCount)
+        val isBackOff = exercise.sets.getOrNull(setIdx)?.isDropSet == true || activeTag?.trim()?.equals("back-off", ignoreCase = true) == true
+        return LoadSuggestionEngine.contextualFatigueFactor(priorCompletedCount, isBackOff)
     }
 
     private fun computeSessionImprovementAdjustment(
@@ -712,16 +715,6 @@ class WorkoutLoadSuggestionController(
             }
         }
         return 1.0
-    }
-
-    private fun performanceRatioForSet(set: CompletedSet): Double? {
-        val estimatedRm = estimatedSessionCapacity(set)?.takeIf { it > 0.0 } ?: return null
-        val payload = set.recordedPayloadV3
-        val actualLoad = when {
-            payload?.loadInputMode == LoadModeV2.ASSISTED -> payload.assistedLoad ?: set.weight
-            else -> payload?.externalLoad ?: set.weight
-        }.takeIf { it > 0.0 } ?: return null
-        return actualLoad / estimatedRm
     }
 
     private fun manualOverrideForSet(exerciseId: String, setIdx: Int, side: String? = null): Double? {

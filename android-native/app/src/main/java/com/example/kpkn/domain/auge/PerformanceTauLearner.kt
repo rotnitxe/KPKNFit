@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.auge
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.AugeAdaptiveCache
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
@@ -9,7 +10,6 @@ import com.example.kpkn.data.models.RecoveryLearningObservation
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.performance.PerformanceRangeCalculator
 import kotlin.math.abs
 
@@ -446,9 +446,9 @@ object PerformanceTauLearner {
             if (!sides.containsAll(listOf("left", "right"))) return null
             return sets.groupBy { it.side!!.lowercase() }
                 .values
-                .maxOf { sideSets -> sideSets.maxOf { calculateHybrid1RM(it.weight, it.reps) } }
+                .maxOf { sideSets -> sideSets.maxOf { StrengthModel.estimate1RM(it) } }
         }
-        return sets.maxOf { calculateHybrid1RM(it.weight, it.reps) }
+        return sets.maxOf { StrengthModel.estimate1RM(it) }
     }
 
     private fun previousMuscleStimulus(

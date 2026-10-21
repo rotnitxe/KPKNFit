@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -81,7 +82,6 @@ import androidx.compose.ui.draw.clip
 import com.example.kpkn.data.models.PrReference
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.screens.sessioneditor.components.ExerciseSmartLoadDialog
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.data.models.WorkoutContextProfile
@@ -1185,7 +1185,7 @@ internal fun localPrEstimated1RM(weightText: String, repsText: String, trainingM
     return if (trainingMode == TrainingMode.TIME || trainingMode == TrainingMode.DISTANCE || trainingMode == TrainingMode.CUSTOM) {
         calculateGeneralizedCapacity(w, r.toDouble())
     } else {
-        calculateHybrid1RM(w, r)
+        StrengthModel.estimate1RM(w, r)
     }
 }
 

@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import com.example.kpkn.domain.performance.StrengthModel
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -44,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateEstimatedMetric
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.exercises.*
@@ -267,7 +267,7 @@ internal fun SupersetSmartLoadDialog(
                                 val reps = prRepsInput.safeIntOrNull()
                                 onUpdateExercise { current ->
                                     if (weight != null && weight > 0 && reps != null && reps > 0) {
-                                        current.copy(prFor1RM = PrReference(weight, reps), reference1RM = calculateHybrid1RM(weight, reps))
+                                        current.copy(prFor1RM = PrReference(weight, reps), reference1RM = StrengthModel.estimate1RM(weight, reps))
                                     } else {
                                         current.copy(prFor1RM = null)
                                     }
@@ -285,7 +285,7 @@ internal fun SupersetSmartLoadDialog(
                                 val reps = input.safeIntOrNull()
                                 onUpdateExercise { current ->
                                     if (weight != null && weight > 0 && reps != null && reps > 0) {
-                                        current.copy(prFor1RM = PrReference(weight, reps), reference1RM = calculateHybrid1RM(weight, reps))
+                                        current.copy(prFor1RM = PrReference(weight, reps), reference1RM = StrengthModel.estimate1RM(weight, reps))
                                     } else {
                                         current.copy(prFor1RM = null)
                                     }

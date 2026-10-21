@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.BorderStroke
@@ -23,8 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
-import com.example.kpkn.domain.calculations.calculateWeightFrom1RM
 import java.util.Locale
 import kotlin.math.roundToInt
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -549,10 +548,10 @@ internal fun WorkoutExerciseSetupContent(
 
 /**
  * Cargas de la tabla RM (1 a 10 repeticiones) a partir del 1RM que muestra la calculadora (LR0): la inversa de la misma fórmula
- * (calculateHybrid1RM), así la fila «1 RM» es ese 1RM y las demás bajan de forma monótona. Pura; la prueba es WorkoutRmTableTest.
+ * (StrengthModel), así la fila «1 RM» es ese 1RM y las demás bajan de forma monótona. Pura; la prueba es WorkoutRmTableTest.
  */
 internal fun rmTableLoads(estimated1RM: Double): List<Pair<Int, Double>> =
-    (1..10).map { reps -> reps to calculateWeightFrom1RM(estimated1RM, reps) }
+    (1..10).map { reps -> reps to StrengthModel.weightFor(estimated1RM, reps) }
 
 @Composable
 internal fun WorkoutRmCalcContent(
@@ -581,7 +580,7 @@ internal fun WorkoutRmCalcContent(
     }
     val rmResult = remember(effectiveLoad, rmRepsText) {
         val r = rmRepsText.toIntOrNull() ?: 0
-        if (effectiveLoad > 0 && r > 0) calculateHybrid1RM(effectiveLoad, r) else null
+        if (effectiveLoad > 0 && r > 0) StrengthModel.estimate1RM(effectiveLoad, r) else null
     }
     val rmTable = remember(rmResult, isAssisted, isLastre, bodyWeight) {
         if (rmResult == null) emptyList()

@@ -1,8 +1,8 @@
 package com.example.kpkn.screens.sessioneditor
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.LoadBasis
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.calculations.suggestRestSeconds
@@ -557,9 +557,7 @@ internal fun Exercise.resolveSharedPerformance(history: List<WorkoutLog>): Share
     if (completedSets.isEmpty()) return null
 
     fun estimatedRm(set: CompletedSet): Double =
-        set.homologatedResultV3?.estimatedRm
-            ?.takeIf { it > 0.0 }
-            ?: calculateHybrid1RM(set.weight, set.reps)
+        StrengthModel.estimate1RM(set)
 
     val bestSet = completedSets.maxByOrNull { (_, set) -> estimatedRm(set) } ?: return null
     val latestSet = completedSets.maxByOrNull { (date, _) -> date }?.second

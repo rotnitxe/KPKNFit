@@ -1,7 +1,7 @@
 package com.example.kpkn.domain.training.generator
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.PrReference
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.onboarding.AvoidGroup
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.LiftVariants
@@ -68,7 +68,7 @@ internal object VariantPools {
      */
     fun equivalentOneRm(ctx: GenContext, lift: LiftMark, kg: Double): Double {
         val reps = ctx.request.markReps[lift] ?: 1
-        val base = if (reps > 1) calculateHybrid1RM(kg, reps) else kg
+        val base = if (reps > 1) StrengthModel.estimate1RM(kg, reps) else kg
         val chosen = ctx.request.liftVariants[lift] ?: return base
         return base / factorOf(chosen)
     }
