@@ -53,7 +53,11 @@ class MuscleVolumePanelRenderSheetTest {
     @get:Rule val rule = createComposeRule()
     private var view: View? = null
 
+    /** Lo primero de cada prueba: sin `KPKN_RENDER_DIR` no se dibuja nada y la prueba se salta (no falla). */
+    private fun onlyWhenAsked() = assumeTrue("sin KPKN_RENDER_DIR no se dibuja nada", System.getenv("KPKN_RENDER_DIR") != null)
+
     private fun render(name: String, scale: Float) {
+        onlyWhenAsked()
         val state = MuscleVolumePanelSamples.byName(name)
         rule.setContent {
             KPKNTheme {
