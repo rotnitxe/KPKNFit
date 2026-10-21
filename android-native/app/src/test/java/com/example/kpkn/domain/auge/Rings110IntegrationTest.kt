@@ -47,6 +47,7 @@ class Rings110IntegrationTest {
             id = "w1",
             date = "2026-10-21",
             manualMuscularBattery = 65,
+            manualMuscularAnchorMs = now,
             capturedFields = setOf("muscular"),
         )
         val inputs = AugeSnapshotInputs(
