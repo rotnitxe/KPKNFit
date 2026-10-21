@@ -976,7 +976,12 @@ internal fun SetInputCardV2(
         )?.toString()
     }.orEmpty()
     val isTimeMode = resolvedPlannedUnitMode == UnitModeV2.TIME
-    val initialValueGhost = if (resolvedPlannedUnitMode != UnitModeV2.REPS || liveMode == LiveSetCardMode.SOLO_RPE) "0" else plannedValueGhost
+    val initialValueGhost = when {
+        liveMode == LiveSetCardMode.SOLO_RPE -> sequenceOf(plannedRepRange?.max, currentSet.plannedTargetV2?.toInt(), ghostSet?.reps)
+            .firstOrNull { it != null && it > 0 }?.toString() ?: "8"
+        resolvedPlannedUnitMode != UnitModeV2.REPS -> "0"
+        else -> plannedValueGhost
+    }
     val basePlannedTarget = when (resolvedPlannedUnitMode) {
         UnitModeV2.TIME -> currentSet.targetDuration ?: currentSet.plannedTargetV2?.toInt()
         UnitModeV2.DISTANCE,

@@ -113,6 +113,9 @@ android {
 
     // Esquemas Room exportados como assets para MigrationTestHelper (androidTest + JVM)
     sourceSets {
+        // The same UI contracts run under Robolectric and in the orchestrator's APK.
+        getByName("test").kotlin.srcDir("src/sharedTest/java")
+        getByName("androidTest").kotlin.srcDir("src/sharedTest/java")
         // The manifest of the catalog CSV (generateFoodDataManifest, WP-S10) is an asset of every variant: food_data/manifest.json.
         getByName("main").assets.srcDir(foodDataManifestDir.get().asFile)
         getByName("androidTest").assets.srcDir("$projectDir/schemas")

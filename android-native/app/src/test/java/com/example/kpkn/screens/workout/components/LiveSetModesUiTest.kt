@@ -59,7 +59,7 @@ class LiveSetModesUiTest {
     private val records = mutableListOf<Recorded>()
 
     private fun show(initial: TrainingMode, height: Int = 880, font: Float = 1f, initialDraft: WorkoutSetDraft? = null,
-        transform: (Exercise) -> Exercise = { it }, extension: Boolean = false, completed: CompletedSet? = null) {
+        transform: (Exercise) -> Exercise = { it }, extension: Boolean = false, completed: CompletedSet? = null, ghost: CompletedSet? = null) {
         mode.value = initial
         rule.setContent {
             density = LocalDensity.current.density
@@ -72,7 +72,7 @@ class LiveSetModesUiTest {
                         Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 156.dp).width(312.dp)) {
                             LiveSessionCardFrame {
                                 key(mode.value, rom.value) {
-                                    SetInputCardV2(exercise, 0, set, null,
+                                    SetInputCardV2(exercise, 0, set, ghost,
                                         sessionCompletedSet = completed,
                                         weightSuggestion = WeightSuggestion(88.0, "histórico"), previousSessionFirstSetWeight = 90.0,
                                         onShowHistory = {}, onSetBodyWeight = {}, initialBodyWeight = 80.0,
@@ -216,16 +216,41 @@ class LiveSetModesUiTest {
         show(TrainingMode.SOLO_RPE)
         rule.onNodeWithTag("quick_suggestion_chip_0").assertDoesNotExist()
         assertEquals("", rule.onNodeWithTag("live-actual-load").fetchSemanticsNode().config[SemanticsProperties.EditableText].text)
-        assertEquals("0", draft?.valueText)
+        assertEquals("10", draft?.valueText)
+        rule.onNodeWithText("10").assertIsDisplayed()
         rule.onNodeWithContentDescription("Cambiar tipo de carga").performClick()
         rule.onNodeWithTag("quick_suggestion_menu_1").assertDoesNotExist()
         rule.onNodeWithText("Carga").performClick()
-        rule.onNodeWithText("2").performClick()
+        rule.onNodeWithText("11").performClick()
         mark(); record(); assertTrue(records.isEmpty())
         rule.onNodeWithTag("live-actual-load").performTextReplacement("12.5")
         record()
-        val result = records.single(); assertEquals(12.5, result.weight, 0.0); assertEquals(2.0, result.value, 0.0)
+        val result = records.single(); assertEquals(12.5, result.weight, 0.0); assertEquals(11.0, result.value, 0.0)
         assertEquals(IntensityMode.RPE, result.advanced.actualIntensityMode); assertEquals(8.0, result.effort!!, 0.0)
+    }
+    @Test fun soloRpeUsesThePreviousRepsWhenNoPositiveGoalExists() {
+        show(TrainingMode.SOLO_RPE, ghost = CompletedSet("previous", weight = 25.0, reps = 6),
+            transform = { e -> e.copy(sets = e.sets.map { it.copy(targetReps = 0) }) })
+        assertEquals("6", draft?.valueText)
+        assertEquals("", draft?.weightText)
+        rule.onNodeWithText("6").assertIsDisplayed()
+    }
+    @Test fun soloRpeFallsBackToEightRepsWithoutChoosingAnEffortOrLoad() {
+        show(TrainingMode.SOLO_RPE, transform = { e -> e.copy(sets = e.sets.map { it.copy(targetReps = null) }) })
+        assertEquals("8", draft?.valueText)
+        assertEquals("", draft?.weightText)
+        record()
+        assertTrue(records.isEmpty())
+    }
+    @Test fun soloRpeKeepsRestoredActualRepsOverTheGoal() {
+        show(TrainingMode.SOLO_RPE, initialDraft = WorkoutSetDraft(valueText = "12", weightText = "15", isDirty = true))
+        assertEquals("12", draft?.valueText)
+        rule.onNodeWithText("12").assertIsDisplayed()
+    }
+    @Test fun soloRpeReopensTheRecordedRepsOverTheGoal() {
+        show(TrainingMode.SOLO_RPE, completed = CompletedSet("mode-exercise_0", weight = 15.0, reps = 5))
+        assertEquals("5", draft?.valueText)
+        rule.onNodeWithText("5").assertIsDisplayed()
     }
     @Test fun quickLoadsRemainAvailableInRmAndDistanceWithoutChangingActualQuantities() {
         show(TrainingMode.RM)

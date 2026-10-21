@@ -17,6 +17,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -26,7 +28,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -481,6 +482,7 @@ private fun RelatorTextLine(
         lineHeight = WorkoutLiveRelatorLineHeight,
         hyphens = Hyphens.None,
         lineBreak = LineBreak.Simple,
+        textAlign = TextAlign.Center,
     )
     val effectiveStyle = if (reduceMotion) {
         baseStyle.copy(color = Color(0xFFF2EEE6).copy(alpha = 0.80f))
@@ -488,7 +490,7 @@ private fun RelatorTextLine(
         baseStyle.copy(brush = shimmerBrush)
     }
 
-    Text(
+    BasicText(
         text = annotated,
         modifier = Modifier
             .fillMaxWidth()
@@ -543,7 +545,7 @@ private fun RelatorTextLine(
         maxLines = WorkoutLiveRelatorMaxLines,
         softWrap = true,
         overflow = TextOverflow.Ellipsis,
-        textAlign = TextAlign.Center,
+        autoSize = TextAutoSize.StepBased(minFontSize = 11.sp, maxFontSize = WorkoutLiveRelatorFontSp, stepSize = .5.sp),
         onTextLayout = { layout -> layoutResult = layout },
     )
 }

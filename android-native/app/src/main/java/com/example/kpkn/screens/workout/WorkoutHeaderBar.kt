@@ -511,12 +511,13 @@ internal fun WorkoutHeaderBar(
             }
         }
 
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides if (compactHeader) 44.dp else LocalMinimumInteractiveComponentSize.current) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .onSizeChanged { headerContentHeightPx = it.height }
                 .windowInsetsPadding(statusBarInsets)
-                .padding(start = 12.dp, end = 12.dp, top = if (compactHeader) 4.dp else 10.dp, bottom = if (compactHeader) 2.dp else 7.dp)
+                .padding(start = 12.dp, end = 12.dp, top = if (compactHeader) 0.dp else 10.dp, bottom = if (compactHeader) 0.dp else 7.dp)
                 .testTag("live-session-header"),
             verticalArrangement = Arrangement.spacedBy(if (compactHeader) 0.dp else 3.dp),
         ) {
@@ -528,10 +529,7 @@ internal fun WorkoutHeaderBar(
                 Column(modifier = Modifier.weight(1f)) {
                     val titleGlyphs = workoutHeaderTitleGlyphCount(exerciseName, exerciseChips)
                     val titleLengthScale = workoutHeaderTitleFontScale(titleGlyphs)
-                    val titleBase = KpknType.title.copy(fontSize = 20.sp, lineHeight = 24.sp)
-                    val titleSlotHeight = with(density) {
-                        titleBase.lineHeight.toDp()
-                    }
+                    val titleBase = KpknType.title.copy(fontSize = if (compactHeader) 18.sp else 20.sp, lineHeight = if (compactHeader) 20.sp else 24.sp)
                     val reducedMotion = wizardReducedMotion()
                     val titleAnnotated = remember(exerciseName, exerciseChips) {
                         buildAnnotatedString {
@@ -550,6 +548,10 @@ internal fun WorkoutHeaderBar(
                     val measurer = rememberTextMeasurer()
                     val textLayout = remember(titleAnnotated, titleStyle, measurer) {
                         measurer.measure(titleAnnotated, style = titleStyle, maxLines = 1, softWrap = false)
+                    }
+                    // Font metrics can exceed the nominal line height (notably the compact title).
+                    val titleSlotHeight = with(density) {
+                        maxOf(titleBase.lineHeight.toDp(), textLayout.size.height.toDp())
                     }
 
                     BoxWithConstraints(
@@ -584,7 +586,7 @@ internal fun WorkoutHeaderBar(
                         val effectiveMoving = isMoving || forcedMarqueeMoving
 
                         // Fundido de 16 dp en el borde derecho, y en el izquierdo mientras se mueve (LV1 punto 1)
-                        val fadeModifier = if (useMarquee) {
+                        val fadeModifier = if (useMarquee && effectiveMoving) {
                             Modifier
                                 .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
                                 .drawWithContent {
@@ -619,13 +621,13 @@ internal fun WorkoutHeaderBar(
                             Text(
                                 text = titleAnnotated,
                                 modifier = Modifier
-                                    .wrapContentWidth(Alignment.Start, unbounded = true)
+                                    .then(if (useMarquee && effectiveMoving) Modifier.wrapContentWidth(Alignment.Start, unbounded = true) else Modifier.fillMaxWidth())
                                     .graphicsLayer { translationX = -titleOffset.value }
                                     .then(if (useMarquee) Modifier.testTag("workout_header_title_marquee") else Modifier),
                                 style = titleStyle,
                                 maxLines = 1,
                                 softWrap = false,
-                                overflow = TextOverflow.Clip,
+                                overflow = if (useMarquee && effectiveMoving) TextOverflow.Clip else TextOverflow.Ellipsis,
                             )
                         }
 
@@ -636,7 +638,7 @@ internal fun WorkoutHeaderBar(
                             if (!groupName.isNullOrBlank()) append("$groupName · ")
                             append(sessionName)
                         },
-                        style = KpknType.caption.scaledBy(typeScale),
+                        style = (if (compactHeader) KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp) else KpknType.caption).scaledBy(typeScale),
                         color = WizardColors.textMuted,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -651,16 +653,16 @@ internal fun WorkoutHeaderBar(
                             icon = KpknLineIcons.Book,
                             contentDescription = "Historia de la sesión",
                             onClick = onStoryClick,
-                            modifier = Modifier.testTag("workout-story-header"),
+                            modifier = Modifier.then(if (compactHeader) Modifier.size(44.dp) else Modifier).testTag("workout-story-header"),
                         )
                     }
                     onToggleVoice?.let { toggle ->
                         KpknIconButton(KpknLineIcons.Mic, if (voiceSessionEnabled) "Desactivar voz" else "Activar voz", toggle,
-                            modifier = Modifier.testTag("workout-voice-header"), filled = voiceSessionEnabled)
+                            modifier = Modifier.then(if (compactHeader) Modifier.size(44.dp) else Modifier).testTag("workout-voice-header"), filled = voiceSessionEnabled)
                     }
                     onMoreClick?.let { more ->
                         KpknIconButton(KpknLineIcons.More, "Más opciones de sesión", more,
-                            modifier = Modifier.testTag("workout-more-header"))
+                            modifier = Modifier.then(if (compactHeader) Modifier.size(44.dp) else Modifier).testTag("workout-more-header"))
                     }
                 }
             }
@@ -825,6 +827,7 @@ internal fun WorkoutHeaderBar(
                     }
                 }
             }
+        }
         }
     }
 }

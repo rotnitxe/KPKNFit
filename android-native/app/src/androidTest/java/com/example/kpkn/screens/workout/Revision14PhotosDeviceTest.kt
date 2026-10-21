@@ -115,7 +115,10 @@ class Revision14PhotosDeviceTest {
             rule.onNodeWithContentDescription("Sentadilla", useUnmergedTree = true).performTouchInput { click() }
             rule.onNodeWithContentDescription("Cerrar foto").assertIsDisplayed()
             capture("07-finish-photo-viewer")
-            rule.onNodeWithText("Siguiente").performClick()
+            rule.onNodeWithTag("workout-photo-image").assertContentDescriptionEquals("Sentadilla")
+            rule.onNodeWithContentDescription("Foto siguiente").assertIsDisplayed().performClick()
+            rule.onNodeWithTag("workout-photo-image").assertContentDescriptionEquals("Peso muerto rumano")
+            rule.onNodeWithText("2/2").assertIsDisplayed()
             capture("08-finish-photo-viewer-next")
             rule.onNodeWithContentDescription("Cerrar foto").performClick()
             rule.onNodeWithTag("finish-page-3", useUnmergedTree = true).assertIsDisplayed()

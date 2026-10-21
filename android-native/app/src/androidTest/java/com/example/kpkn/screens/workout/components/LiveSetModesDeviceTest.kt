@@ -17,6 +17,8 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -57,6 +59,8 @@ class LiveSetModesDeviceTest {
     @Test fun custom740() = render(TrainingMode.CUSTOM, 740)
     @Test fun rom880() = render(TrainingMode.REPS, 880, true)
     @Test fun rom740() = render(TrainingMode.REPS, 740, true)
+    @Test fun rmLinkedEditor740() = render(TrainingMode.RM, 740, editRm = true)
+    @Test fun rmLinkedEditor740WithLargeText() = render(TrainingMode.RM, 740, font = 1.3f, editRm = true)
 
     private fun exercise(mode: TrainingMode, rom: Boolean): Exercise {
         val set = ExerciseSet("lv-b-set", targetReps = 7,
@@ -71,13 +75,13 @@ class LiveSetModesDeviceTest {
             trainingMode = mode, customUnit = "brazadas".takeIf { mode == TrainingMode.CUSTOM }, reference1RM = 125.0.takeIf { mode == TrainingMode.RM },
             trackRom = rom, sets = listOf(set))
     }
-    private fun show(mode: TrainingMode, height: Int, rom: Boolean = false) {
+    private fun show(mode: TrainingMode, height: Int, rom: Boolean = false, font: Float = 1f) {
         val exercise = exercise(mode, rom)
         val snapshot = LiveSetStepperSnapshot(List(4) { index -> TimelineElement.BilateralSet(pageIndex = index, label = "S${index + 1}",
             state = if (index == 0) WorkoutSetCardVisualState.ACTIVE else WorkoutSetCardVisualState.FUTURE) }, 0, 0, 4, null, true)
         rule.setContent {
             density = LocalDensity.current.density
-            CompositionLocalProvider(LocalWizardReducedMotion provides true, LocalKpknOverlayHost provides null,
+            CompositionLocalProvider(LocalDensity provides Density(density, font), LocalWizardReducedMotion provides true, LocalKpknOverlayHost provides null,
                 LocalLiveSessionCompactLayout provides (height < 800)) {
                 KPKNTheme { MaterialTheme {
                     Box(Modifier.requiredSize(360.dp, height.dp).background(Color.Black).testTag("lv-b-device-scene")) {
@@ -114,11 +118,13 @@ class LiveSetModesDeviceTest {
         rule.waitForIdle()
     }
     @OptIn(ExperimentalTestApi::class)
-    private fun render(mode: TrainingMode, height: Int, rom: Boolean = false) {
-        show(mode, height, rom)
+    private fun render(mode: TrainingMode, height: Int, rom: Boolean = false, font: Float = 1f, editRm: Boolean = false) {
+        show(mode, height, rom, font)
+        if (editRm) rule.onNodeWithTag("live-rm-edit").performClick()
         val frame = rule.onNodeWithTag("live-card-frame").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val actions = rule.onNodeWithTag("live-card-actions").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val line = rule.onNodeWithTag("live-session-line").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        if (editRm) rule.onNodeWithTag(EffortSliderTag).performScrollTo()
         val effort = rule.onNodeWithTag(EffortSliderTag).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         assertEquals(312f, frame.width / density, .5f); assertEquals(425f, frame.height / density, .5f)
         assertEquals(44f, actions.height / density, .5f); assertEquals(44f, effort.height / density, .5f)
@@ -126,10 +132,18 @@ class LiveSetModesDeviceTest {
         assertEquals(112f, line.height / density, .5f)
         assertTrue(actions.left >= frame.left && actions.right <= frame.right && actions.bottom <= frame.bottom + 1)
         assertEquals(12f, (line.top - frame.bottom) / density, .5f)
+        val narrator = rule.onNodeWithText("Registra el resultado realizado de tu serie.", useUnmergedTree = true).assertIsDisplayed()
+        val layouts = mutableListOf<TextLayoutResult>()
+        narrator.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        val layout = layouts.single()
+        assertTrue(layout.getLineBottom(layout.lineCount - 1) <= layout.size.height + 1f)
+        assertTrue(narrator.fetchSemanticsNode().boundsInRoot.bottom <= frame.top)
         if (rom) rule.onNodeWithTag("live-rom-slider").assertIsDisplayed()
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val folder = File(context.getExternalFilesDir(null), "lv-b-renders").apply { mkdirs() }
-        val name = "lv-b-${if (rom) "rom" else mode.name.lowercase()}-$height"
+        if (editRm) rule.onNodeWithTag("live-rm-percent").performScrollTo()
+        val name = "lv-b-${if (rom) "rom" else if (editRm) "rm-editor" else mode.name.lowercase()}-$height" +
+            if (font == 1f) "" else "-${(font * 100).toInt()}"
         val bitmap = rule.onNodeWithTag("lv-b-device-scene").captureToImage().asAndroidBitmap()
         File(folder, "$name.png").outputStream().use { assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
         File(folder, "$name-medidas.txt").writeText("card=${frame.width / density}x${frame.height / density}; actions=${actions.height / density}; line=${line.height / density}; effort=${effort.height / density}")

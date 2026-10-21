@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.ui.components.KpknDropdownMenu
 import com.example.kpkn.ui.design.KpknSurface
@@ -112,6 +113,7 @@ internal fun LiveQuantityInput(
     Column(Modifier.fillMaxWidth().testTag("live-quantity")) {
         if (target != null && target > 0 && !isTime) {
             Text("Objetivo ${target.toLiveNumberString()} $suffix", style = KpknType.caption, color = WizardColors.textMuted)
+            Spacer(Modifier.height(6.dp))
         }
         ModeLabel(when (unit) {
             UnitModeV2.TIME -> "TIEMPO REALIZADO · min:s"
@@ -223,7 +225,11 @@ internal fun LiveRmFocus(
                 LiveModeNumberField(actualWeight, onWeight, "live-rm-weight", "Peso enlazado en kg", Modifier.fillMaxWidth(), placeholder = values.weight?.toLiveNumberString() ?: fallbackWeight ?: "—", sizeSp = 22)
             }
         }
-        Slider(value = values.percent.toFloat(), onValueChange = { onPercent(it.toDouble()) }, valueRange = minOf(40f, values.percent.toFloat())..maxOf(100f, values.percent.toFloat()), modifier = Modifier.height(44.dp).testTag("live-rm-slider"))
+        Slider(value = values.percent.toFloat(), onValueChange = { onPercent(it.toDouble()) }, valueRange = minOf(40f, values.percent.toFloat())..maxOf(100f, values.percent.toFloat()),
+            colors = SliderDefaults.colors(thumbColor = SymbolPalette.energia, activeTrackColor = SymbolPalette.energia,
+                inactiveTrackColor = SymbolPalette.energia.copy(alpha = .16f), activeTickColor = KpknSurface.canvas,
+                inactiveTickColor = SymbolPalette.energia.copy(alpha = .4f)),
+            modifier = Modifier.height(44.dp).testTag("live-rm-slider"))
         ModeLabel("REFERENCIA 1RM · kg")
         LiveModeNumberField(values.oneRm?.toLiveNumberString().orEmpty(), { it.replace(',', '.').toDoubleOrNull()?.takeIf { n -> n.isFinite() && n > 0 }?.let(onReference) }, "live-rm-reference", "Referencia de 1RM en kg", Modifier.fillMaxWidth(), preserveEntryWhileFocused = true)
     } else {
