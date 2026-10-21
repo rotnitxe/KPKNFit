@@ -35,7 +35,9 @@
 
 ## Paquetes, orden y propiedad de archivos calientes
 
-Orden de ejecución (serie): **H1 → N1 → T2 → T1 → N2a → N2b → T6 → T3 → T4 → T5a → T5b → N3 → N4 → P2-Na → P2-Nb → P2-Ta → P2-Tb → P2-D → P2-E → P2-F**.
+Orden de ejecución (serie, reordenado el 21-oct): **H1 → N1 → T2 → T1 → N2a → N2b → T3 → T4 → T5a → T5b → N3 → N4 → P2-Na → P2-Nb → P2-D → P2-E → P2-F → T6 → P2-Ta → P2-Tb**.
+
+**Por qué T6, P2-Ta y P2-Tb van al final:** la ola `screens-v2` (otra sesión, worktree `C:\kw\u11`, rama `feat/screens-v2`, desde el mismo master) está rediseñando la sesión en vivo, el editor y el catálogo (106 archivos de producción cambiados a 21-oct; p. ej. `SetExecutionCard.kt` con 464 líneas tocadas, `SetCardTechniqueBack.kt`, `WorkoutSetRecorder.kt`, `ExercisePickerV2Catalog.kt`, `WorkoutStructureSheetsHost.kt`). T6 (selector de reemplazo), P2-Ta (tarjeta de la serie y editor) y P2-Tb (`WorkoutSetRecorder`) tocan esos mismos archivos: si se hacen al final, quizá esa rama ya esté fusionada en master y se implementan sobre la interfaz nueva en vez de rehacer el trabajo. Si no lo está, se hacen sobre la base actual con cambios mínimos y aditivos y se avisa del choque. **Choque previsible aunque se reordene** (archivos tocados por las dos olas): `domain/calculations/Calculations.kt` (T3), `domain/workout/LoadSuggestionEngine.kt` (T3), `domain/training/NativeWorkoutProgressionRuntime.kt` (T1 ya, T4) y `screens/workout/WorkoutLoadSuggestionController.kt` (T3); son pocas líneas por lado, pero habrá que resolver al fusionar.
 
 | ID | Qué | Depende de | Prio. |
 |---|---|---|---|
