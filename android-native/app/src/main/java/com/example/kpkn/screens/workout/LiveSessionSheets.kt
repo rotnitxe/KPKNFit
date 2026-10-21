@@ -62,6 +62,7 @@ internal fun LiveSessionSheetsHost(
     onDestination: (LiveSessionDestination?) -> Unit,
     exercises: List<Exercise> = emptyList(),
     completedSets: Map<String, CompletedSet> = emptyMap(),
+    calibratedLoads: Map<String, Double> = emptyMap(),
     completedExercises: List<CompletedExercise> = emptyList(),
     omittedSetKeys: Set<String> = emptySet(),
     currentExerciseId: String? = null,
@@ -111,6 +112,7 @@ internal fun LiveSessionSheetsHost(
                     LiveSessionDestination.ROUTE -> CockpitSessionSummary(
                         exercises, completedSets, completedExercises, omittedSetKeys, currentExerciseId, supersetGroups,
                         liveEnergySummary, bodyWeight, startTimeMs, targetMinutes, ringPreview,
+                        calibratedLoads = calibratedLoads,
                         onSelectExercise = { onSelectExercise(it); onDestination(null) },
                         onSelectSuperset = { onSelectSuperset(it); onDestination(null) },
                         onOpenExerciseOptions = { onDestination(null); onOpenExerciseOptions(it) },

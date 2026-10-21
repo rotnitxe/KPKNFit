@@ -1,4 +1,5 @@
 package com.example.kpkn.screens.workout
+import androidx.compose.foundation.layout.heightIn
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -225,6 +226,7 @@ internal fun FinishWorkoutSheet(
     sessionMilestones: List<SessionMilestone> = emptyList(),
     sessionSavedNotes: List<SessionSavedNote> = emptyList(),
     sessionChecklist: List<SessionChecklistItem> = emptyList(),
+    calibrationDecisions: List<com.example.kpkn.data.models.CalibrationDecisionRecord> = emptyList(),
     onSaveSessionNote: (String) -> Unit = {},
     onAddChecklistItem: (String) -> Unit = {},
     onToggleChecklistItem: (String) -> Unit = {},
@@ -512,6 +514,12 @@ internal fun FinishWorkoutSheet(
             onBack = dismissKeepingNotes, onSave = { if (emptySessionGuidance == null && !isFinishingWorkout) executeConfirm() },
             onShare = { showShare = true },
             warnings = {
+                if (calibrationDecisions.isNotEmpty()) Column(Modifier.fillMaxWidth().heightIn(max = 112.dp).verticalScroll(rememberScrollState())) {
+                    calibrationSummaryLines(calibrationDecisions).forEach { line ->
+                        Text(line, color = FinishCream, style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.semantics(mergeDescendants = true) { }.testTag("finish-calibration-line"))
+                    }
+                }
                 if (emptySessionGuidance != null) Text(emptySessionGuidance, color = Color(0xFFF2EEE6),
                     style = MaterialTheme.typography.bodySmall, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
                 if (pendingSeriesNotice != null) PendingSeriesNoticeCard(pendingSeriesNotice, onContinuePendingSeries)
