@@ -21,7 +21,7 @@ Estados tomados de [`ESTADO.md`](../../rings-v4/ESTADO.md) (última actualizaci�
 | F-03 | P1 | Las ediciones por músculo se pierden al recrear la Activity | 1.6 | integrado |
 | F-04 | P1 | Bienestar: procedencia, medianoche y copias reenviadas | 1.2a/1.2b | integrado |
 | F-05 | P2 | `recompute` sin `try/catch`; cancelación y claves UTC/local | 1.1 | integrado |
-| F-06 | P2 | Cierre en dos fases: el log y los anillos no son atómicos | 1.2a/1.2b | integrado |
+| F-06 | P2 | Cierre en dos fases: el log y los anillos no son atómicos | 1.2a/1.2b; 3.3 (límite) | parcial: la edición ya no se pierde por recreación, pero las dos fases siguen sin ser una transacción |
 | F-10 | P0 | Inversión de τ sesgada por construcción | 3.2–3.3 | pendiente |
 | F-11 | P1 | Actualizador con α global, sin zona muerta ni prior | 3.2 | pendiente |
 | F-12 | P1 | Aprendizaje por rendimiento con orden invertido y trinquete | 3.4 | pendiente |
@@ -36,7 +36,7 @@ Estados tomados de [`ESTADO.md`](../../rings-v4/ESTADO.md) (última actualizaci�
 | F-26 | P1 | Blend articular solo en el global de Músculos | D1 → 2.6 | pendiente |
 | F-27 | P2 | Evaluaciones no causales y reloj real en el dominio | 1.7 | integrado |
 | F-28 | P1 | «Sin datos» se presenta como 100 % afirmativo | 1.10/1.10v2 | pendiente |
-| F-30 | P1 | Doble normalización por tanque y escalas arbitrarias | 2.1; D5 → 2.6 | integrado |
+| F-30 | P1 | Doble normalización por tanque y escalas arbitrarias | 2.1; D5 → 2.6 | parcial: registro integrado (2.1); escalas explícitas en 2.6 |
 | F-31 | P1 | Editor ≠ finish ≠ Home | 2.2a–2.2b2 | integrado |
 | F-32 | P1 | El SNC acumula por músculo; Energía casi plana | 2.6 (D3/D4) | pendiente |
 | F-33 | P1 | Drenaje muscular saturante y dos motores de capacidad | 2.6; 4.2 | pendiente |
