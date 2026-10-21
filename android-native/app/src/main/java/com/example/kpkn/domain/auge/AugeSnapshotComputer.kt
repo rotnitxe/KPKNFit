@@ -38,6 +38,7 @@ data class AugeSnapshotCore(
     val articular: Map<ArticularBattery, ArticularBatteryState>,
     val cumulativeFatigue: Double,
     val coverage: RingsCoverage,
+    val continuous: AugeContinuousReading = AugeContinuousReading.NEUTRAL,
 )
 
 /** Mismas entradas ⇒ misma instantánea. No carga datos, aprende parámetros ni consulta el reloj. */
@@ -53,22 +54,27 @@ object AugeSnapshotComputer {
             if (date == null || date == log.date) log else log.copy(date = date)
         },
     )) {
-        val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
+        val muscleDetails = AugeRecoveryEngine.getPerMuscleBatteryDetails(
             history, wellbeing, settings, exerciseDb, sleepLogs, nutritionLogs, feedbacks, adaptiveCache,
             nowOverrideMs = nowMs, zone = zone, nutritionContext = nutritionContext,
         )
+        val muscles = muscleDetails.mapValues { it.value.status }
         val articular = AugeTtcEngine.calculateArticularBatteries(
             history, exerciseDb, feedbacks, wellbeing, nowMs = nowMs, zone = zone,
         )
-        val batteries = AugeRecoveryEngine.calculateGlobalBatteries(
+        val globalDetail = AugeRecoveryEngine.calculateGlobalBatteriesDetail(
             history, wellbeing, settings, exerciseDb, sleepLogs, nutritionLogs, feedbacks, adaptiveCache,
             precomputedMuscles = muscles, articularBatteries = articular,
             nowOverrideMs = nowMs, zone = zone, nutritionContext = nutritionContext,
+            precomputedMuscleDetails = muscleDetails,
         )
-        val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
+        val batteries = globalDetail.batteries
+        val dashboardDetail = AugeRecoveryEngine.calculateRecoveryDashboardDetail(
             batteries, muscles, articular, wellbeing, sleepLogs,
             recentSessionCount = AugeRecoveryEngine.recentSessionCount(history, nowMs),
+            spinalExact = globalDetail.finalSpinalExact,
         )
+        val dashboard = dashboardDetail.dashboard
         val twoWeeksAgo = nowMs - 14L * 24 * 3_600_000L
         val cumulativeFatigue = history.filter { AugeUtils.logDateMs(it) >= twoWeeksAgo }.sumOf { log ->
             AugeFatigueEngine.calculateCompletedSessionStress(
@@ -79,10 +85,41 @@ object AugeSnapshotComputer {
                 durationMinutes = log.durationMinutes,
             )
         }
+        val floors = AugeUtils.physiologicalFloor(settings)
+        val continuous = AugeContinuousReading(
+            energy = AugeChannelReading(
+                exact = globalDetail.energyExact,
+                atFloor = globalDetail.energyExact <= floors.cns + 1e-9,
+                blocked = false,
+            ),
+            spineRaw = AugeChannelReading(
+                exact = globalDetail.spineRawExact,
+                atFloor = globalDetail.spineRawExact <= floors.spinal + 1e-9,
+                blocked = false,
+            ),
+            spineShown = AugeChannelReading(
+                exact = dashboardDetail.structureExact,
+                atFloor = dashboardDetail.structureExact <= floors.spinal + 1e-9,
+                blocked = dashboardDetail.structureBlocked,
+            ),
+            musclesGlobal = AugeChannelReading(
+                exact = globalDetail.musclesGlobalExact,
+                atFloor = globalDetail.musclesGlobalExact <= floors.muscular + 1e-9,
+                blocked = globalDetail.musclesGlobalBlocked,
+            ),
+            perMuscle = muscleDetails.mapValues { (_, detail) ->
+                AugeChannelReading(
+                    exact = detail.exact,
+                    atFloor = detail.exact <= detail.floor + 1e-9,
+                    blocked = detail.domsCapped || detail.discomfortPenaltyApplied,
+                )
+            },
+        )
         AugeSnapshotCore(
             batteries, muscles, dashboard, AugeRecoveryEngine.calculateDailyReadiness(dashboard, wellbeing),
             articular, cumulativeFatigue,
             computeSnapshotCoverage(history, settings, wellbeing, dashboard, batteries, nowMs, zone),
+            continuous,
         )
     }
 }
