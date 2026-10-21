@@ -549,12 +549,10 @@ class WorkoutLoadSuggestionController(
             .filter { it.completedSet.side == side || side == null }
             .filter { !it.completedSet.skipped }
 
-        fun ratio(snapshot: SessionExerciseSetSnapshot): Double? = exercise.sets.getOrNull(snapshot.setIndex)
-            ?.let { LoadSuggestionEngine.performanceRatio(snapshot.completedSet, it) }
-        val bestRatio = exerciseHistory.mapNotNull(::ratio).maxOrNull()
-        val worstRatio = exerciseHistory.mapNotNull(::ratio).minOrNull()
+        val bestRatio = exerciseHistory.mapNotNull { performanceRatioForSet(it.completedSet) }.maxOrNull()
+        val worstRatio = exerciseHistory.mapNotNull { performanceRatioForSet(it.completedSet) }.minOrNull()
         val latestCompletedSet = exerciseHistory.lastOrNull()?.completedSet
-        val latestRatio = exerciseHistory.lastOrNull()?.let(::ratio)
+        val latestRatio = latestCompletedSet?.let(::performanceRatioForSet)
         val severePerformanceDrop = latestCompletedSet != null && (
             latestCompletedSet.failureReason == "execution_error" ||
                 (latestCompletedSet.isPartial && (latestRatio ?: 1.0) <= 0.85) ||
@@ -665,7 +663,7 @@ class WorkoutLoadSuggestionController(
         activeTag: String?,
         side: String?,
     ): Double {
-        val priorCompletedCount = completedSessionSetsForExercise(exercise, activeTag)
+        val priorSets = completedSessionSetsForExercise(exercise, activeTag)
             .asSequence()
             .filter { snapshot -> snapshot.setIndex < setIdx }
             .filter { snapshot -> !snapshot.completedSet.skipped }
@@ -675,10 +673,15 @@ class WorkoutLoadSuggestionController(
                     else -> snapshot.completedSet.side == null
                 }
             }
-            .count()
+            .toList()
 
         val isBackOff = exercise.sets.getOrNull(setIdx)?.isDropSet == true || activeTag?.trim()?.equals("back-off", ignoreCase = true) == true
-        return LoadSuggestionEngine.contextualFatigueFactor(priorCompletedCount, isBackOff)
+        // Solo para series rectas: capacidad real frente a la planificada de la última serie previa.
+        val capacityRatio = priorSets.maxByOrNull { it.setIndex }?.let { snapshot ->
+            exercise.sets.getOrNull(snapshot.setIndex)
+                ?.let { LoadSuggestionEngine.performanceRatio(snapshot.completedSet, it) }
+        }
+        return LoadSuggestionEngine.contextualFatigueFactor(priorSets.size, isBackOff, capacityRatio)
     }
 
     private fun computeSessionImprovementAdjustment(
@@ -715,6 +718,16 @@ class WorkoutLoadSuggestionController(
             }
         }
         return 1.0
+    }
+
+    private fun performanceRatioForSet(set: CompletedSet): Double? {
+        val estimatedRm = estimatedSessionCapacity(set)?.takeIf { it > 0.0 } ?: return null
+        val payload = set.recordedPayloadV3
+        val actualLoad = when {
+            payload?.loadInputMode == LoadModeV2.ASSISTED -> payload.assistedLoad ?: set.weight
+            else -> payload?.externalLoad ?: set.weight
+        }.takeIf { it > 0.0 } ?: return null
+        return actualLoad / estimatedRm
     }
 
     private fun manualOverrideForSet(exerciseId: String, setIdx: Int, side: String? = null): Double? {

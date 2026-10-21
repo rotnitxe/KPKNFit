@@ -70,7 +70,9 @@ internal fun SetAdjustmentOverlay(
             ?: (averageErm?.let { erm ->
                 val plannedReps = currentSet.plannedRepAnchor()
                 if (plannedReps != null && plannedReps > 0) {
-                    StrengthModel.weightFor(erm, currentSet)
+                    StrengthModel.weightFor(erm, plannedReps, rir = currentSet.targetRIR, rpe = currentSet.targetRPE,
+                        toFailure = currentSet.isFailure || currentSet.isAmrap || currentSet.intensityMode == IntensityMode.FAILURE ||
+                            currentSet.intensityMode == IntensityMode.AMRAP || currentSet.intensityMode == IntensityMode.SOLO_RM)
                 } else null
             })
             ?: 0.0

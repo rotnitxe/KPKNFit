@@ -557,7 +557,9 @@ internal fun Exercise.resolveSharedPerformance(history: List<WorkoutLog>): Share
     if (completedSets.isEmpty()) return null
 
     fun estimatedRm(set: CompletedSet): Double =
-        StrengthModel.estimate1RM(set)
+        set.homologatedResultV3?.estimatedRm
+            ?.takeIf { it > 0.0 }
+            ?: StrengthModel.estimate1RM(set)
 
     val bestSet = completedSets.maxByOrNull { (_, set) -> estimatedRm(set) } ?: return null
     val latestSet = completedSets.maxByOrNull { (date, _) -> date }?.second

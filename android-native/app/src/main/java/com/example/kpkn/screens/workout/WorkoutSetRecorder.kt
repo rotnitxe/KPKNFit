@@ -72,6 +72,8 @@ class WorkoutSetRecorder(
         fun inferPlannedTarget(set: com.example.kpkn.data.models.ExerciseSet, unitMode: UnitModeV2): Double?
         fun inferPlannedIntensity(set: com.example.kpkn.data.models.ExerciseSet): Double?
         suspend fun evaluateSetEntryV3(entry: SetEntryV2): WorkoutPerformanceHomologationEngine.EvaluationResult
+        suspend fun evaluateSetEntryV3(entry: SetEntryV2, actualIntensityMode: IntensityMode? = null): WorkoutPerformanceHomologationEngine.EvaluationResult =
+            evaluateSetEntryV3(entry)
         fun workoutStepPositions(state: WorkoutUiState): List<WorkoutStep>
         fun recomputeLiveEnergy(
             completedSets: Map<String, CompletedSet>,
@@ -398,7 +400,7 @@ class WorkoutSetRecorder(
                 state.featureFlags.workoutV2LoadModes ||
                 state.featureFlags.workoutV3UnifiedFlow
             ) {
-                scope.async(Dispatchers.Default) { ports.evaluateSetEntryV3(entry) }.await()
+                scope.async(Dispatchers.Default) { ports.evaluateSetEntryV3(entry, actualIntensityMode) }.await()
             } else {
                 null
             }

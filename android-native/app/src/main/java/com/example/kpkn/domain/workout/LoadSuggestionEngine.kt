@@ -47,9 +47,24 @@ object LoadSuggestionEngine {
             else -> 0.5
         }
 
-    /** El conteo solo reduce cargas en back-off/drop; las series rectas dependen del rendimiento. */
-    fun contextualFatigueFactor(priorCompletedCount: Int, isBackOff: Boolean): Double =
-        if (isBackOff) fatigueFactorForPriorCompletedSets(priorCompletedCount) else 1.0
+    /** Umbral de caída de capacidad (real frente a planificada) que cuenta como fatiga real; el mismo de «Fatiga detectada». */
+    const val CAPACITY_DROP_RATIO = 0.97
+
+    /**
+     * Factor de fatiga por series previas. Back-off/drop conserva la reducción por conteo.
+     * En series rectas el conteo solo se aplica si la última serie previa rindió claramente
+     * por debajo de lo planificado ([capacityRatio], de [performanceRatio]) o si no hay
+     * comparación posible (se mantiene el comportamiento heredado); si cumplió el plan, la carga se mantiene.
+     */
+    fun contextualFatigueFactor(priorCompletedCount: Int, isBackOff: Boolean, capacityRatio: Double? = null): Double {
+        val legacy = fatigueFactorForPriorCompletedSets(priorCompletedCount)
+        return when {
+            isBackOff -> legacy
+            capacityRatio == null -> legacy
+            capacityRatio <= CAPACITY_DROP_RATIO -> legacy
+            else -> 1.0
+        }
+    }
 
     /** Compara capacidades con el mismo modelo y esfuerzo; carga/e1RM no es una señal de fatiga. */
     fun performanceRatio(actual: CompletedSet, planned: ExerciseSet): Double? {
@@ -123,10 +138,13 @@ object LoadSuggestionEngine {
     fun estimatedCapacity(set: CompletedSet): Double? {
         val mode = resolvedLoadMode(set)
         if (mode == LoadModeV2.ASSISTED || mode == LoadModeV2.BODYWEIGHT) return null
-        if (set.recordedPayloadV3?.unitMode?.let { it != UnitModeV2.REPS } == true) {
-            return set.homologatedResultV3?.estimatedRm?.takeIf { it > 0.0 }
+        set.homologatedResultV3?.estimatedRm?.takeIf { it > 0.0 }?.let { return it }
+        // Sin valor guardado: modelo único con el esfuerzo registrado, con el mismo rango de repeticiones de siempre.
+        return if (set.weight > 0.0 && set.reps in 1..36) {
+            StrengthModel.estimate1RM(set).takeIf { it > 0.0 }
+        } else {
+            null
         }
-        return StrengthModel.estimate1RM(set).takeIf { it > 0.0 }
     }
 
     /**

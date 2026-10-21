@@ -343,6 +343,8 @@ class WorkoutViewModel(
                 this@WorkoutViewModel.inferPlannedTarget(set, unitMode)
             override fun inferPlannedIntensity(set: ExerciseSet) = this@WorkoutViewModel.inferPlannedIntensity(set)
             override suspend fun evaluateSetEntryV3(entry: SetEntryV2) = this@WorkoutViewModel.evaluateSetEntryV3(entry)
+            override suspend fun evaluateSetEntryV3(entry: SetEntryV2, actualIntensityMode: IntensityMode?) =
+                this@WorkoutViewModel.evaluateSetEntryV3(entry, actualIntensityMode)
             override fun workoutStepPositions(state: WorkoutUiState) = this@WorkoutViewModel.workoutStepPositions(state)
             override fun recomputeLiveEnergy(
                 completedSets: Map<String, CompletedSet>,
@@ -1583,7 +1585,7 @@ class WorkoutViewModel(
 
     private fun globalPerformanceKey(entry: SetEntryV2): String = entry.resolvedCanonicalExerciseId()
 
-    private fun evaluateSetEntryV3(entry: SetEntryV2): WorkoutPerformanceHomologationEngine.EvaluationResult {
+    private fun evaluateSetEntryV3(entry: SetEntryV2, actualIntensityMode: IntensityMode? = null): WorkoutPerformanceHomologationEngine.EvaluationResult {
         val previousContext = _uiState.value.contextualPerformanceCache[entry.contextKey]
             ?: repository.getContextPerformanceState(entry.contextKey)
         val previousGlobal = _uiState.value.globalPerformanceCache[globalPerformanceKey(entry)]
@@ -1592,6 +1594,7 @@ class WorkoutViewModel(
             entry = entry,
             previous = previousContext,
             previousGlobal = previousGlobal,
+            actualIntensityMode = actualIntensityMode,
         )
         val canonicalId = entry.resolvedCanonicalExerciseId()
         val rangeData = performanceRangeStore.getCached(canonicalId)

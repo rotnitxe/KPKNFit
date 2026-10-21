@@ -13,7 +13,8 @@ enum class StrengthRegion { UNSPECIFIED, UPPER, LOWER }
 
 /**
  * Modelo único strength-v1: curva híbrida histórica sobre reps + RIR, hasta 50.
- * Sin reserva registrada se usa RIR 0; el RIR explícito prevalece sobre el RPE.
+ * Estimación sin reserva registrada: RIR 0; prescripción sin esfuerzo declarado: RIR 2, heredado.
+ * El RIR explícito prevalece sobre el RPE.
  * Fallo, AMRAP y solo RM usan RIR 0, sin bonificación por AMRAP.
  * Las cargas se redondean a 0,1 kg, salvo la repetición única sin reserva,
  * que conserva exactamente la carga histórica. Solo proyecta; no modifica registros.
@@ -100,14 +101,19 @@ object StrengthModel {
         )
     }
 
-    /** Prescribe una serie planificada sin inventar RIR cuando no está declarado. */
+    /**
+     * Prescribe una serie planificada con la convención heredada: fallo, AMRAP y solo RM (por
+     * [IntensityMode]) usan las repeticiones planificadas; si no, RIR objetivo, o RPE objetivo
+     * como 10 − RPE (parte entera); sin esfuerzo declarado, RIR 2. Los indicadores sueltos
+     * `isFailure`/`isAmrap` no cuentan, como en la función heredada.
+     */
     fun weightFor(e1rm: Double, set: ExerciseSet, region: StrengthRegion = StrengthRegion.UNSPECIFIED): Double? {
         return weightFor(
             e1rm = e1rm,
             reps = set.plannedRepAnchor() ?: return null,
-            rir = set.targetRIR,
+            rir = set.targetRIR ?: 2.takeIf { set.targetRPE == null },
             rpe = set.targetRPE,
-            toFailure = set.isFailure || set.isAmrap || set.intensityMode == IntensityMode.FAILURE ||
+            toFailure = set.intensityMode == IntensityMode.FAILURE ||
                 set.intensityMode == IntensityMode.AMRAP || set.intensityMode == IntensityMode.SOLO_RM,
             region = region,
         ).takeIf { it > 0.0 }

@@ -37,8 +37,8 @@ fun exerciseHistorySummary(history: List<WorkoutLog>, identityKeys: Set<String>,
             .flatMap { ex -> ex.sets.filter { !it.isWarmup && !it.skipped && (it.reps > 0 || (it.timeSeconds ?: 0) > 0) }.map { day to it } }
     }
     val last = matching.maxOfOrNull { it.first } ?: return null
-    fun estimate(set: CompletedSet): Double? = if (set.reps > 0 && set.weight > 0) StrengthModel.estimate1RM(set).takeIf { it > 0 }
-        else set.homologatedResultV3?.estimatedRm?.takeIf { it.isFinite() && it > 0 }
+    fun estimate(set: CompletedSet): Double? = set.homologatedResultV3?.estimatedRm?.takeIf { it.isFinite() && it > 0 }
+        ?: if (set.weight.isFinite() && set.weight > 0 && set.reps > 0) StrengthModel.estimate1RM(set).takeIf { it.isFinite() && it > 0 } else null
     val best = matching.mapNotNull { (_, set) -> estimate(set)?.let { set to it } }.maxByOrNull { it.second }
     return ExerciseHistorySummary(best?.first, best?.second, last)
 }
