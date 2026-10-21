@@ -23,8 +23,10 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withTimeout
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
+import com.example.kpkn.data.db.AugeAdaptiveCacheEntity
+import com.example.kpkn.data.db.toAdaptiveCache
+import com.example.kpkn.data.db.toEntity
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
