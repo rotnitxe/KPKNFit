@@ -45,6 +45,7 @@ La ola aplica el informe `artifacts/macrofactor-reverse-engineering-20261020/INF
   - Va en un commit aparte (`debug(mfp): …`) y su informe lista el nombre de la actividad y sus extras, para que el orquestador la lance con `--actions "launch:<Nombre>HarnessActivity|--es|state|full"`.
   - Código solo de depuración: nada de esto entra en `main/`.
 - **Disco y procesos:** no borres nada fuera de tu worktree; si `C:` baja de 15 GB libres, para y dilo; no dejes procesos tuyos vivos.
+- **Rojos previos conocidos de master (no son tuyos; no los toques ni los cuentes como fallo tuyo):** `RingDetailSheetTest` (4 tests: busca la etiqueta `home-ring-adjust-summary`, que no existe en producción de master) y `CatalogDetailContentTest.verTodosDespliegaLosMusculosQueFaltan` (busca «Trapecio» tras «Ver todos»). Tu worktree incluye `catalog/` (varios tests leen `catalog/exercises/...`); si un test de catálogo o del editor falla con `FileNotFoundException`, avisa en vez de arreglarlo. Cualquier OTRO fallo, antes de parar comprueba si lo causa tu cambio (¿tocaste código por el que pasa?). Solo si es tuyo y no lo resuelves en 3 intentos, PARA y descríbelo.
 - **Tope de intentos:** si algo sigue fallando tras 3 intentos, PARA y descríbelo en el informe con el log. No des vueltas.
 
 ## Clean-room (obligatorio)
