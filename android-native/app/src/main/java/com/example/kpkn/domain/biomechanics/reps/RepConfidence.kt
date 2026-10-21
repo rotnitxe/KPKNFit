@@ -69,6 +69,12 @@ object RepFlags {
  * - Ciclos dudosos (n_amb > 0) con TODOS los ciclos completos: si la serie sería ALTA salvo por la duda, es MEDIA. Con algún
  *   ciclo parcial o fallido, o con menos evidencia, sigue en BAJA: la duda puede cambiar el número de completas.
  * - Encuadre recortado sin desplazamiento ([SegmentationResult.captureLimited]): como mucho MEDIA.
+ *
+ * M3: la duda «por ruido» no es la duda «por amplitud». Un dudoso que no puede cambiar el número de completas
+ * ([AmbiguityItem.isCountPreserving]: un rizo del reposo, o un giro junto a un hueco corto) no fuerza BAJA si TODOS los dudosos
+ * lo son y es el único problema de la serie (sin otros movimientos descartados que el ruido, la dejada o la recolocación):
+ * cuesta un nivel (nunca ALTA) y la puntuación, sin la penalización 0,8^n_amb, decide entre MEDIA y BAJA. Los ciclos cerca
+ * del 0,70, los giros en huecos largos y los lados que no coinciden siguen forzando BAJA. Ver `CountReliabilityTuning`.
  */
 object RepConfidence {
     fun score(
@@ -112,12 +118,25 @@ object RepConfidence {
         }
         val nAmb = seg.ambiguousCycles
         val evidence = countEvidence(series, seg, tuning)
-        val repeatedScore = sqrt(cTrack) * cView *
-            (tuning.snrWeight * cSnr + tuning.ampWeight * cAmp + tuning.rhythmWeight * cRhy) *
-            tuning.ambiguityPenalty.pow(nAmb)
+        val reliability = tuning.metrics.countReliability
+        val unpenalizedScore = sqrt(cTrack) * cView *
+            (tuning.snrWeight * cSnr + tuning.ampWeight * cAmp + tuning.rhythmWeight * cRhy)
+        val repeatedScore = unpenalizedScore * tuning.ambiguityPenalty.pow(nAmb)
+        // M3: todos los dudosos conservan el número (ver AmbiguityItem.isCountPreserving) y no hay otros descartes que los
+        // admitidos. Las segmentaciones sin desglose (hechas a mano) no cuentan.
+        val preservingHeight = reliability.preservingAmbiguityHeight
+        val allowedDiscards = reliability.preservingAmbiguityDiscards
+        val countPreservingAmbiguity = preservingHeight != null && nAmb > reliability.maxOfferedAmbiguousCycles &&
+            seg.ambiguity.size == nAmb &&
+            seg.ambiguity.all { it.isCountPreserving(preservingHeight, reliability.preservingAmbiguityGapS) } &&
+            (allowedDiscards == null || seg.discarded.all { it.reason in allowedDiscards })
         // For a single/double, do not invent a CV. Complete observed excursions bounded by measured rest use
         // tracking and SNR directly; the neutral cAmp/cRhy remain explicit in the diagnostic breakdown.
-        val score = if (evidence.closedShortSet && cTrack == 1.0 && cSnr == 1.0) sqrt(cTrack) * cView * cSnr else repeatedScore
+        val score = when {
+            evidence.closedShortSet && cTrack == 1.0 && cSnr == 1.0 -> sqrt(cTrack) * cView * cSnr
+            countPreservingAmbiguity && !reliability.preservingAmbiguityPenalized -> unpenalizedScore
+            else -> repeatedScore
+        }
 
         val polarityFlipped = seg.polarityFlipped || AnalysisFlag.POLARITY_FLIPPED in flags
         val sideCap = seg.sideMode == SideMode.NEAR_ONLY || AnalysisFlag.SIDE_UNKNOWN in flags ||
@@ -125,7 +144,7 @@ object RepConfidence {
         // Todo lo que ALTA exige, salvo la ausencia de ciclos dudosos.
         val altaEvidence = AnalysisFlag.LEGACY_TRACK !in flags && AnalysisFlag.MULTI_PERSON !in flags && !polarityFlipped &&
             !sideCap && view.kind in profile.countViews && !seg.captureLimited
-        val ambiguityCostsOneLevel = nAmb > tuning.metrics.countReliability.maxOfferedAmbiguousCycles &&
+        val ambiguityCostsOneLevel = nAmb > reliability.maxOfferedAmbiguousCycles &&
             seg.cycles.all { it.kind == RepKind.FULL } && score >= tuning.altaScore && altaEvidence
         val forced = when {
             fulls.isEmpty() -> "no_full_reps"
@@ -135,10 +154,11 @@ object RepConfidence {
             view.kind !in profile.countViews && view.kind != ViewKind.OBLIQUE -> "unsupported_view"
             evidence.censoredStart -> "censored_start"
             evidence.censoredReturn -> "censored_return"
-            nAmb > tuning.metrics.countReliability.maxOfferedAmbiguousCycles && !ambiguityCostsOneLevel -> "ambiguous_cycles"
+            nAmb > reliability.maxOfferedAmbiguousCycles && !ambiguityCostsOneLevel && !countPreservingAmbiguity -> "ambiguous_cycles"
             fulls.size < tuning.minCvReps && seg.cycles.any { it.kind != RepKind.FULL } -> "uncertain_partial_cycles"
             else -> null
         }
+        // ALTA sigue exigiendo cero dudosos, también de reposo.
         val altaAllowed = nAmb == 0 && altaEvidence
         val level = when {
             forced != null -> CountConfidence.BAJA

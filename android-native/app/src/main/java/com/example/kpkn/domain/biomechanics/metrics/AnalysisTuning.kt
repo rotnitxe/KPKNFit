@@ -375,6 +375,25 @@ data class CountReliabilityTuning(
     val maxClippedFraction: Double = 0.50,
     /** Coherent travel of both planted feet, P95–P5 in BH. LOFO candidates: 0.10–0.50 BH. */
     val maxCommonFootTravelBh: Double = 0.20,
+    /**
+     * M3: dudas «por ruido» que no pueden cambiar el número de completas (`AmbiguityItem.isCountPreserving`). Si TODOS los
+     * dudosos de una serie lo son y es su único problema, cuestan un nivel (como mucho MEDIA, nunca ALTA) en vez de forzar BAJA.
+     * - Altura: un parcial cerca del 0,30 o un pico por poco con el pico a menos de 0,3·Afull sobre el reposo (por debajo del
+     *   umbral de parcial: no puede ser el giro de una completa). `null` apaga la regla.
+     * - Hueco: un giro junto a un tramo rellenado de como mucho 0,25 s, el límite de los huecos cortos del §4.8 (se rellenan
+     *   incluso para medir). En el ajuste, el 73 % de los giros en hueco caen en tramos de ≤ 0,25 s.
+     * - Sin penalización 0,8^n_amb: esas dudas no cambian el conteo.
+     * - Único problema: el segmentador no descartó ningún movimiento salvo ruido, la dejada o la recolocación final; un
+     *   movimiento descartado como caminar, barra en horizontal o preparación puede esconder una repetición.
+     * Validación cruzada dejando un fold fuera (candidatos: altura 0,3/0,5; hueco 0,10–0,30 s; descartes: solo ruido, estos o
+     * cualquiera; con y sin penalizar): las cuatro rotaciones eligen 0,3, 0,25 s y sin penalizar; en los descartes, tres eligen
+     * este conjunto y una cualquiera, y se usa el más conservador. En G1 y G2 la altura 0,3 y la 0,5 dan lo mismo.
+     */
+    val preservingAmbiguityHeight: Double? = 0.3,
+    val preservingAmbiguityGapS: Double = 0.25,
+    val preservingAmbiguityPenalized: Boolean = false,
+    /** Descartes admitidos (motivos de `DiscardedCycle`); `null`: cualquiera. */
+    val preservingAmbiguityDiscards: Set<String>? = setOf("noise", "setdown", "rerack"),
 )
 
 /**

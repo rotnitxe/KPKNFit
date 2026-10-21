@@ -67,6 +67,37 @@ data class RepCycle(
 data class DiscardedCycle(val peak: Int, val reason: String)
 
 /**
+ * Por qué un ciclo cuenta como dudoso (n_amb, §6). M3 los separa porque no todos pueden cambiar el número de completas:
+ * - [NEAR_FULL]: recorrido a cerca del 0,70; el ciclo puede pasar de completo a parcial o al revés (duda por amplitud).
+ * - [NEAR_PARTIAL]: recorrido cerca del 0,30; solo puede pasar de ruido a parcial.
+ * - [TURN_IN_GAP]: el giro cae junto a un hueco rellenado; un hueco largo puede esconder un valle o un pico.
+ * - [PROMINENCE]: un pico con la prominencia a ±15 % del umbral de picos, aceptado o rechazado por poco.
+ * - [SIDES]: los dos lados cuentan distinto.
+ */
+enum class AmbiguityKind { NEAR_FULL, NEAR_PARTIAL, TURN_IN_GAP, PROMINENCE, SIDES }
+
+/**
+ * Un ciclo dudoso: su tipo, la altura de su pico sobre el reposo en fracciones de Afull (e = (rd[p] − Lrest)/Afull; NaN si
+ * no tiene pico propio, como [AmbiguityKind.SIDES]) y, en un giro en hueco, la duración del tramo rellenado más largo que
+ * toca la ventana del giro ([gapS], en segundos; 0 en los demás tipos).
+ */
+data class AmbiguityItem(val kind: AmbiguityKind, val height: Double, val gapS: Double = 0.0) {
+    /**
+     * Un dudoso que no puede cambiar el número de repeticiones completas (duda «por ruido»):
+     * - un parcial cerca del 0,30 o un pico por poco cuyo pico queda a menos de [maxHeight]·Afull sobre el reposo: es un rizo
+     *   del reposo, no un giro (una completa necesita a ≥ 0,70);
+     * - un giro junto a un hueco de como mucho [maxGapS]: el ciclo se ve a los dos lados del hueco, y en tan poco tiempo no cabe
+     *   la bajada y la subida de una repetición; a lo sumo recorta un poco el pico, y eso ya lo vigila [NEAR_FULL].
+     * Un ciclo cerca del 0,70, un giro en un hueco largo o dos lados que no coinciden sí pueden cambiarlo.
+     */
+    fun isCountPreserving(maxHeight: Double, maxGapS: Double): Boolean = when (kind) {
+        AmbiguityKind.NEAR_PARTIAL, AmbiguityKind.PROMINENCE -> height.isFinite() && height < maxHeight
+        AmbiguityKind.TURN_IN_GAP -> gapS <= maxGapS
+        AmbiguityKind.NEAR_FULL, AmbiguityKind.SIDES -> false
+    }
+}
+
+/**
  * Resultado de segmentar una serie (§6).
  *
  * @property activeWindow de la salida de la primera FULL a la llegada de la última; `null` sin FULL.
@@ -82,6 +113,8 @@ data class DiscardedCycle(val peak: Int, val reason: String)
  *   del umbral de picos, o con el giro dentro de un hueco rellenado; más 1 si los dos lados cuentan distinto (BOTH_SYNC).
  * @property captureLimited una región requerida del cuerpo quedó fuera del encuadre, sin desplazamiento: los ciclos se
  *   conservan solo porque su evidencia sería ALTA, y la confianza no pasa de MEDIA.
+ * @property ambiguity los ciclos dudosos uno a uno, con su tipo y su altura (M3). Vacía en las segmentaciones hechas a mano
+ *   de las pruebas: entonces solo cuenta [ambiguousCycles].
  */
 data class SegmentationResult(
     val cycles: List<RepCycle>,
@@ -98,6 +131,7 @@ data class SegmentationResult(
     val noRepsReason: String?,
     val ambiguousCycles: Int = 0,
     val captureLimited: Boolean = false,
+    val ambiguity: List<AmbiguityItem> = emptyList(),
 ) {
     val fullCount: Int get() = cycles.count { it.kind == RepKind.FULL }
     val partialCount: Int get() = cycles.count { it.kind == RepKind.PARTIAL }
@@ -564,6 +598,7 @@ object RepSegmenter {
                 flipped = pl.flipped || pr.flipped,
                 ambiguous = pl.ambiguous + pr.ambiguous,
                 cuts = main.cuts,
+                ambiguity = pl.ambiguity + pr.ambiguity,
             )
             return combined.toResult(SideMode.ALTERNATING, counts, null, main.cuts)
         }
@@ -705,6 +740,7 @@ object RepSegmenter {
         val ambiguous: Int = 0,
         val cuts: IntArray = IntArray(0),
         val flipSuggested: Boolean = false,
+        val ambiguity: List<AmbiguityItem> = emptyList(),
     ) {
         fun countOf(kind: RepKind): Int = cycles.count { it.kind == kind }
 
@@ -754,6 +790,7 @@ object RepSegmenter {
                     else -> null
                 },
                 ambiguousCycles = ambiguous + extraAmbiguous,
+                ambiguity = ambiguity + List(extraAmbiguous) { AmbiguityItem(AmbiguityKind.SIDES, Double.NaN) },
             )
         }
     }
@@ -912,7 +949,8 @@ object RepSegmenter {
                 val last = fulls.last()
                 (if (first.vL >= 0) first.vL else first.peak)..(if (last.vR >= 0) last.vR else last.peak)
             }
-            val ambiguous = countAmbiguous(cands, peaks.map { it.index to it.prominence }, extended.map { it.index to it.prominence }, threshold)
+            val ambiguity = countAmbiguous(cands, peaks.map { it.index to it.prominence }, extended.map { it.index to it.prominence }, threshold)
+            log { "dudosos: " + ambiguity.joinToString { "%s(%.2f;%.2f)".format(java.util.Locale.ROOT, it.kind, it.height, it.gapS) } }
             return Pass(
                 cycles = kept,
                 discarded = discarded,
@@ -923,9 +961,10 @@ object RepSegmenter {
                 aFull = aFull,
                 lRest = lRest,
                 reason = if (kept.isEmpty()) "no_valid_cycles" else null,
-                ambiguous = ambiguous,
+                ambiguous = ambiguity.size,
                 cuts = cuts,
                 flipSuggested = flipSuggested,
+                ambiguity = ambiguity,
             )
         }
 
@@ -1063,6 +1102,29 @@ object RepSegmenter {
             val w = max(1, (tuning.turnGapWindowS * fs).roundToInt())
             for (k in max(0, peak - w)..min(n - 1, peak + w)) if (series.filled[k]) return true
             return false
+        }
+
+        /** Segundos del tramo rellenado contiguo más largo que toca la ventana del giro de [peak] (0 si no hay ninguno). */
+        private fun gapAroundTurn(peak: Int): Double {
+            val filled = series.filled
+            val last = min(n, filled.size) - 1
+            val w = max(1, (tuning.turnGapWindowS * fs).roundToInt())
+            var longest = 0
+            var k = max(0, peak - w)
+            val hi = min(last, peak + w)
+            while (k <= hi) {
+                if (!filled[k]) {
+                    k++
+                    continue
+                }
+                var a = k
+                while (a - 1 >= 0 && filled[a - 1]) a--
+                var b = k
+                while (b + 1 <= last && filled[b + 1]) b++
+                longest = max(longest, b - a + 1)
+                k = b + 1
+            }
+            return longest / fs
         }
 
         // ---- paso 5: no-repeticiones ----
@@ -1394,24 +1456,33 @@ object RepSegmenter {
 
         /**
          * Ciclos dudosos: a cerca de los umbrales (en las franjas [0,22; 0,38] y [0,62; 0,78]), giro en un hueco rellenado, o
-         * un pico cuya prominencia queda a ±15 % del umbral de picos (aceptado o rechazado por poco).
+         * un pico cuya prominencia queda a ±15 % del umbral de picos (aceptado o rechazado por poco). Cada uno con su tipo, la
+         * altura de su pico sobre el reposo y, en un giro en hueco, la duración del hueco (M3); el número de dudosos es el de
+         * siempre.
          */
         private fun countAmbiguous(
             cands: List<Cand>,
             accepted: List<Pair<Int, Double>>,
             extended: List<Pair<Int, Double>>,
             threshold: Double,
-        ): Int {
+        ): List<AmbiguityItem> {
             val margin = tuning.ambiguityMargin
-            var count = 0
+            val items = ArrayList<AmbiguityItem>()
             val counted = HashSet<Int>()
             for (c in cands) {
                 if (!c.alive && c.discard != "noise") continue
                 if (c.a.isNaN()) continue
                 val nearPartial = abs(c.a - tuning.partialFraction) <= margin
                 val nearFull = abs(c.a - tuning.fullFraction) <= margin
-                if (nearPartial || nearFull || (c.alive && c.turnInGap)) {
-                    count++
+                val kind = when {
+                    nearFull -> AmbiguityKind.NEAR_FULL
+                    c.alive && c.turnInGap -> AmbiguityKind.TURN_IN_GAP
+                    nearPartial -> AmbiguityKind.NEAR_PARTIAL
+                    else -> null
+                }
+                if (kind != null) {
+                    val gap = if (kind == AmbiguityKind.TURN_IN_GAP) gapAroundTurn(c.peak) else 0.0
+                    items.add(AmbiguityItem(kind, c.e, gap))
                     counted.add(c.peak)
                 }
             }
@@ -1419,9 +1490,11 @@ object RepSegmenter {
             val high = threshold * (1.0 + tuning.prominenceBorderline)
             for ((peak, prominence) in accepted + extended) {
                 if (prominence < low || prominence > high) continue
-                if (counted.add(peak)) count++
+                if (!counted.add(peak)) continue
+                val height = if (peak in rd.indices && aFull > 0.0) (rd[peak] - lRest) / aFull else Double.NaN
+                items.add(AmbiguityItem(AmbiguityKind.PROMINENCE, height))
             }
-            return count
+            return items
         }
     }
 
