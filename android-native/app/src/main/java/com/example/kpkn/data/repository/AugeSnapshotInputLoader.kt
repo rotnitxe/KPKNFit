@@ -19,12 +19,7 @@ internal suspend fun loadAugeSnapshotInputs(
     nowMs: Long,
     zone: ZoneId,
 ): AugeSnapshotInputs {
-    val today = auge.getTodayWellbeing()
-    val active = auge.getActiveWellbeingWithManualOverrides()
-    val todayHasManual = today != null && (today.manualNeuralBattery != null ||
-        today.manualSpinalBattery != null || today.manualMuscularBattery != null ||
-        today.manualMuscleBatteries.isNotEmpty() || today.manualMuscleOverridesV2.isNotEmpty())
-    val wellbeing = if (active != null && !todayHasManual) active else today
+    val wellbeing = auge.getEffectiveManualAnchors(nowMs, zone)
     val cache = auge.getAdaptiveCache()
     return AugeSnapshotInputs(
         history = history,

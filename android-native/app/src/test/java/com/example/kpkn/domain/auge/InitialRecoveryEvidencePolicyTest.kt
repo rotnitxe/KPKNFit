@@ -10,6 +10,8 @@ import com.example.kpkn.data.models.InitialRecoverySensations
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.DailyWellbeingLog
+import com.example.kpkn.data.models.MuscleRecoveryStatus
+import com.example.kpkn.data.models.RecoveryStatus
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
@@ -17,6 +19,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.ZoneId
 
 class InitialRecoveryEvidencePolicyTest {
     private val now = 1_700_000_000_000L
@@ -285,6 +288,24 @@ class InitialRecoveryEvidencePolicyTest {
         assertEquals(35, result.muscular)
         assertEquals("Ajuste manual", result.sourceLabel)
         assertNull(result.sourceConfidence)
+    }
+
+    @Test
+    fun aRealBatteryOfSixtyAndIndependentInitialSixtyComposeToThirtySix() {
+        // Dos cargas R = −C·ln(0,6): 100·exp(−2R/C) = 36. Antes la resta daba 20, elevado a 22 por el suelo de ENTHUSIAST.
+        val evidence = InitialEvidenceCompositionTest.evidence(now, muscular = emptyMap()).copy(
+            estimatorVersion = 1, muscularScore = 60, systemScore = 60, structureScore = 60,
+        )
+        val pillars = AugeParameters.PILLARS.associateWith { muscle ->
+            MuscleRecoveryStatus(muscle, 60, 0, -1, 0, RecoveryStatus.RECOVERING)
+        }
+        val batteries = AugeRecoveryEngine.calculateGlobalBatteries(
+            emptyList(), null, Settings(initialRecoveryEvidence = evidence), precomputedMuscles = pillars,
+            nowOverrideMs = now, zone = ZoneId.of("UTC"),
+        )
+        assertEquals(36, batteries.muscular)
+        assertEquals(60, batteries.cnc)
+        assertEquals(60, batteries.spinal)
     }
 
     private fun iso(ms: Long): String = java.time.Instant.ofEpochMilli(ms).toString()

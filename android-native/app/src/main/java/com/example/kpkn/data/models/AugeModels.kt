@@ -31,6 +31,14 @@ data class DailyWellbeingLog(
     val preWorkoutDiscomforts: List<String> = emptyList(),
     val source: WellbeingSource = WellbeingSource.DAILY_CHECK_IN,
     val capturedFields: Set<String> = emptySet(),
+    /** Anclas independientes; los JSON anteriores conservan el respaldo común. */
+    val manualNeuralAnchorMs: Long? = null,
+    val manualSpinalAnchorMs: Long? = null,
+    val manualMuscularAnchorMs: Long? = null,
+    val manualMuscleAnchorMs: Map<String, Long> = emptyMap(),
+    /** Restablecimientos persistentes: impiden recuperar ajustes de filas anteriores. */
+    val manualBatteryResetMs: Map<RecoveryChannelId, Long> = emptyMap(),
+    val manualMuscleResetMs: Map<String, Long> = emptyMap(),
 )
 
 @Serializable

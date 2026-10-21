@@ -153,7 +153,11 @@ class AugeWellbeingProvenanceTest {
         )
         // Solo cambian los campos del gesto (Energía y su ancla): todo lo demás de la fila queda como estaba.
         assertEquals(
-            onboarding.copy(manualNeuralBattery = 60, manualBatteryAnchorMs = saved.manualBatteryAnchorMs),
+            onboarding.copy(
+                manualNeuralBattery = 60, manualBatteryAnchorMs = saved.manualBatteryAnchorMs,
+                manualNeuralAnchorMs = saved.manualBatteryAnchorMs,
+                manualMuscleAnchorMs = mapOf("Pectorales" to FIXED_ANCHOR_MS),
+            ),
             saved,
         )
     }
@@ -189,6 +193,7 @@ class AugeWellbeingProvenanceTest {
             onboarding.copy(
                 manualMuscleBatteries = emptyMap(),
                 manualBatteryAnchorMs = FIXED_ANCHOR_MS,
+                manualNeuralAnchorMs = FIXED_ANCHOR_MS,
                 manualMuscleOverridesV2 = saved.manualMuscleOverridesV2,
             ),
             saved,
@@ -259,7 +264,11 @@ class AugeWellbeingProvenanceTest {
             (saved.manualBatteryAnchorMs ?: 0L) > (stored.manualBatteryAnchorMs ?: 0L),
         )
         assertEquals(
-            stored.copy(manualNeuralBattery = EDITED_NEURAL, manualBatteryAnchorMs = saved.manualBatteryAnchorMs),
+            stored.copy(
+                manualNeuralBattery = EDITED_NEURAL, manualBatteryAnchorMs = saved.manualBatteryAnchorMs,
+                manualNeuralAnchorMs = saved.manualBatteryAnchorMs,
+                manualMuscleAnchorMs = mapOf("Pectorales" to requireNotNull(stored.manualBatteryAnchorMs)),
+            ),
             saved,
         )
     }
