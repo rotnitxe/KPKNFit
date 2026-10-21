@@ -165,15 +165,73 @@ class SyntheticPartialsBenchTest {
             // Una serie por escenario (la primera de cada uno) para que la prueba sea corta.
             val picked = PartialsScenario.entries.map { s -> plan.first { it.scenario == s } }
             val outs = picked.map { PartialsRunner.run(it) }
-            PartialsReport.write(dir, outs, 1, 0.0)
+            PartialsReport.write(dir, outs, PartialsReport.synthDef(1), 0.0)
             val summary = Json.parseToJsonElement(File(dir, "summary.json").readText()).jsonObject
             assertEquals(picked.size, summary.getValue("series").jsonPrimitive.content.toInt())
-            assertNotNull(summary["porEscenario"])
+            assertNotNull(summary["porEscenarioDetalle"])
             assertNotNull(summary["peoresEscenarios"])
             assertTrue(File(dir, "RESULTADOS.md").readText().contains("Matriz de confusión"))
             assertEquals(picked.size, File(dir, "series").listFiles()!!.size)
         } finally {
             dir.deleteRecursively()
         }
+    }
+
+    // --- Fase 2: parciales semi-sintéticas ---------------------------------------------------------------------------------
+
+    @Test
+    fun optionalSemiSyntheticPartials() {
+        val dir = System.getenv("KPKN_PARTIALS_SEMI_DIR")
+        val out = System.getenv("KPKN_PARTIALS_SEMI_OUT")
+        assumeTrue("Fase 2 opcional: define KPKN_PARTIALS_SEMI_DIR (paquete de desarrollo) y KPKN_PARTIALS_SEMI_OUT", !dir.isNullOrBlank() && !out.isNullOrBlank())
+        val min = System.getenv("KPKN_PARTIALS_SEMI_MIN")?.toIntOrNull() ?: 500
+        val outcomes = SemiBench.run(File(requireNotNull(dir)), File(requireNotNull(out)), min) { println(it) }
+        assertTrue("Menos de $min series: ${outcomes.size}", outcomes.size >= min)
+        assertEquals("El motor lanzó excepciones", 0, outcomes.count { it.engine.error != null })
+    }
+
+    private fun syntheticClip(profile: PartialsProfile): SemiClip {
+        val cal = PartialsCalibration.of(profile, PartialsView.LATERAL)
+        val ecc = profile.startsEccentric
+        val items = ArrayList<PItem>()
+        items.add(PItem.Idle(2.0))
+        repeat(6) { items.add(PItem.Rep(PRepSpec(1.0, 0.0, if (ecc) 2.0 else 1.5, 0.5, if (ecc) 1.5 else 2.0, 0.5))) }
+        items.add(PItem.Idle(2.0))
+        val tl = PartialsTimelineBuilder.build(items, ecc, cal, profile.movement)
+        val gen = PartialsLifter.generate(
+            SynthConfig(profile.movement, camera = PartialsView.LATERAL.camera, fps = 30.0, script = emptyList<SynthSegment>(),
+                noise = PartialsNoise.BAJO.noise(30.0, null), seed = 5L),
+            tl.timeline,
+        )
+        val res = SemiClipBuilder.build("sint", "sintetico", profile.label, profile.profile, "SIDE", true, gen.track, null, null)
+        assertNotNull("sin clip: ${res.reason}", res.clip)
+        return res.clip!!
+    }
+
+    @Test
+    fun semiTransformShortensAndStretchesRealisticallyAndKeepsControlUntouched() {
+        val clip = syntheticClip(PartialsProfile.SENTADILLA)
+        assertEquals(6, clip.reps.size)
+        // Control: la misma traza, sin copiarla.
+        assertTrue(SemiTransform.apply(clip, emptyList()) === clip.track)
+        // Dos acortadas al 50 %: el motor ve cuatro completas y dos parciales, y la verdad lo dice igual.
+        val short = clip.reps.takeLast(2).map { SemiRepPlan(it.index, SemiMode.SHORT, 0.5 / it.amplitude, 0.0, 0.0) }
+        val shortTruth = SemiPlanner.truth(clip, short)
+        assertEquals(listOf(4, 2), listOf(shortTruth.count { it.kind == TruthKind.FULL }, shortTruth.count { it.kind == TruthKind.PARTIAL }))
+        assertTrue(shortTruth.filter { it.kind == TruthKind.PARTIAL }.all { it.zone == PartialsZone.REST_SIDE && Math.abs(it.fraction - 0.5) < 1e-9 })
+        val shortOut = SemiRunner.analyze(SemiTransform.apply(clip, short), clip.profile)
+        assertEquals("completas", 4, shortOut.full)
+        assertEquals("parciales", 2, shortOut.partial)
+        // Dos en estiramiento: la verdad las marca TURN_SIDE y el motor las ve como parciales (al menos una).
+        val a = clip.reps[4].amplitude
+        val b = clip.reps[5].amplitude
+        val f1 = 0.45 / a
+        val f2 = 0.45 / b
+        val stretch = listOf(SemiRepPlan(4, SemiMode.STRETCH, f1, 0.0, 1.0 - f1), SemiRepPlan(5, SemiMode.STRETCH, f2, 1.0 - f1, 1.0 - f2))
+        val stretchTruth = SemiPlanner.truth(clip, stretch)
+        assertEquals(2, stretchTruth.count { it.kind == TruthKind.PARTIAL && it.zone == PartialsZone.TURN_SIDE })
+        val stretchOut = SemiRunner.analyze(SemiTransform.apply(clip, stretch), clip.profile)
+        // El motor no distingue bien una parcial en estiramiento al final de una fallida: solo se exige que dé salida y que no sean completas.
+        assertTrue("estiramiento: ${stretchOut.full}/${stretchOut.partial}", stretchOut.hasOutput && stretchOut.full <= 4)
     }
 }

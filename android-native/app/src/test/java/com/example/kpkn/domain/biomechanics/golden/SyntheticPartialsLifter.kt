@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.biomechanics.golden
 
 import com.example.kpkn.domain.biomechanics.kinematics.Side
+import com.example.kpkn.domain.biomechanics.kinematics.ViewKind
 import com.example.kpkn.domain.biomechanics.pose.PoseEngineInfo
 import com.example.kpkn.domain.biomechanics.pose.PoseFrameV2
 import com.example.kpkn.domain.biomechanics.pose.PoseLandmark
@@ -61,10 +62,10 @@ internal enum class PartialsProfile(val label: String, val movement: SynthMoveme
 }
 
 /** La vista de la cámara: lateral (ψ = 90°), frontal (0°) y oblicua (45°). */
-internal enum class PartialsView(val label: String, val yawDeg: Double) {
-    LATERAL("lateral", 90.0),
-    FRONTAL("frontal", 0.0),
-    OBLICUA("oblicua", 45.0),
+internal enum class PartialsView(val label: String, val yawDeg: Double, val kind: ViewKind) {
+    LATERAL("lateral", 90.0, ViewKind.SIDE),
+    FRONTAL("frontal", 0.0, ViewKind.FRONT),
+    OBLICUA("oblicua", 45.0, ViewKind.OBLIQUE),
     ;
 
     val camera: SynthCamera get() = SynthCamera(yawDeg = yawDeg)

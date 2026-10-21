@@ -85,6 +85,25 @@ internal data class PartialsSeriesSpec(
 
 internal enum class CutKind { START, END }
 
+/** Etiquetas de una serie para agrupar en el informe (clave de dimensión → valor) y campos propios para su JSON. */
+internal class SeriesMeta(val id: String, val dims: Map<String, String>, val extra: JsonObject = JsonObject(emptyMap()))
+
+internal fun PartialsSeriesSpec.supportedView(): Boolean = view.kind in profile.profile.countViews
+
+internal fun PartialsSeriesSpec.meta() = SeriesMeta(
+    id,
+    linkedMapOf(
+        "escenario" to scenario.label, "perfil" to profile.label, "vista" to view.label, "fps" to fps.toInt().toString(),
+        "ruido" to noise.label, "hueco" to (if (gap) "con_hueco" else "sin_hueco"),
+        "arranque" to (if (profile.startsEccentric) "excentrica_primero" else "concentrica_primero"),
+        "vistaSoportada" to (if (supportedView()) "soportada" else "no_soportada"),
+    ),
+    buildJsonObject {
+        put("movimiento", profile.movement.name); put("perfilMotor", profile.profileId.name); put("hueco", gap)
+        put("semilla", seed); put("variante", variant)
+    },
+)
+
 internal class ScriptBuild(val items: List<PItem>, val cut: CutKind?)
 
 /** Los guiones de cada escenario. */
@@ -305,7 +324,7 @@ internal class EngineOut(
 }
 
 internal class PartialsOutcome(
-    val spec: PartialsSeriesSpec,
+    val meta: SeriesMeta,
     val truthAll: List<PTruthRep>,
     /** Las repeticiones de la verdad que cuentan (visibles en el vídeo recortado). */
     val truth: List<PTruthRep>,
@@ -388,7 +407,7 @@ internal object PartialsRunner {
             val c = engine.reps[e].turnCenterUs
             cut && matches[e] < 0 && (c - (t0 * 1e6).toLong() <= BORDER_US || (t1 * 1e6).toLong() - c <= BORDER_US)
         }
-        return PartialsOutcome(spec, all, visible, if (cut) t0 to t1 else null, engine, matches, border, track.frames.size,
+        return PartialsOutcome(spec.meta(), all, visible, if (cut) t0 to t1 else null, engine, matches, border, track.frames.size,
             (System.nanoTime() - started) / 1_000_000)
     }
 
@@ -520,6 +539,17 @@ internal class Tally {
     }
 }
 
+internal class DimDef(val key: String, val jsonName: String, val title: String)
+
+internal class ReportDef(
+    val title: String,
+    val intro: String,
+    val dims: List<DimDef>,
+    val notes: List<String>,
+    val methodText: String,
+    val metaJson: JsonObject,
+)
+
 internal object PartialsReport {
     private val pretty = Json { prettyPrint = true }
 
@@ -606,16 +636,6 @@ internal object PartialsReport {
         put("ofrecidaErronea", num(ratio(t.offeredWrong, t.offered)))
     }
 
-    private val DIMENSIONS: List<Pair<String, (PartialsOutcome) -> String>> = listOf(
-        "porEscenario" to { o: PartialsOutcome -> o.spec.scenario.label },
-        "porPerfil" to { o: PartialsOutcome -> o.spec.profile.label },
-        "porVista" to { o: PartialsOutcome -> o.spec.view.label },
-        "porFps" to { o: PartialsOutcome -> o.spec.fps.toInt().toString() },
-        "porRuido" to { o: PartialsOutcome -> o.spec.noise.label },
-        "porHueco" to { o: PartialsOutcome -> if (o.spec.gap) "con_hueco" else "sin_hueco" },
-        "porArranque" to { o: PartialsOutcome -> if (o.spec.profile.startsEccentric) "excentrica_primero" else "concentrica_primero" },
-    )
-
     private fun groups(outs: List<PartialsOutcome>, key: (PartialsOutcome) -> String): Map<String, Tally> =
         outs.groupBy(key).toSortedMap().mapValues { tally(it.value) }
 
@@ -658,34 +678,41 @@ internal object PartialsReport {
         })
     }
 
-    fun summaryJson(outs: List<PartialsOutcome>, variants: Int, elapsedS: Double): JsonObject = buildJsonObject {
+    private fun dim(o: PartialsOutcome, key: String): String = o.meta.dims[key] ?: "?"
+
+    private fun supported(outs: List<PartialsOutcome>) = outs.filter { dim(it, "vistaSoportada") == "soportada" }
+
+    fun summaryJson(outs: List<PartialsOutcome>, def: ReportDef, elapsedS: Double): JsonObject = buildJsonObject {
         put("generado", Instant.now().toString())
         put("engineVersion", TechniqueAnalysisEngine.ENGINE_VERSION)
-        put("semilla", PartialsPlan.SEED)
-        put("variantes", variants)
+        put("fase", def.title)
+        for ((k, v) in def.metaJson) put(k, v)
         put("series", outs.size)
         put("segundos", elapsedS)
         put("global", tallyJson(tally(outs)))
-        for ((name, key) in DIMENSIONS) put(name, buildJsonObject { for ((k, t) in groups(outs, key)) put(k, compactJson(t)) })
-        put("porEscenarioDetalle", buildJsonObject { for ((k, t) in groups(outs) { it.spec.scenario.label }) put(k, tallyJson(t)) })
+        put("globalVistasSoportadas", tallyJson(tally(supported(outs))))
+        for (d in def.dims) put(d.jsonName, buildJsonObject { for ((k, t) in groups(outs) { dim(it, d.key) }) put(k, compactJson(t)) })
+        put("porEscenarioDetalle", buildJsonObject { for ((k, t) in groups(outs) { dim(it, "escenario") }) put(k, tallyJson(t)) })
         put("bandasDeFraccion", bands(outs))
         val withTruthPartials = outs.filter { it.truthPartial > 0 }
         val without = outs.filter { it.truthPartial == 0 }
         put("seriesConParcialesEnLaVerdad", tallyJson(tally(withTruthPartials)))
         put("seriesSinParcialesEnLaVerdad", tallyJson(tally(without)))
         put("peoresEscenarios", JsonArray(worst(outs).map { (k, t) -> buildJsonObject { put("escenario", k); put("detalle", compactJson(t)) } }))
-        put("notas", JsonArray(NOTES.map { JsonPrimitive(it) }))
+        put("notas", JsonArray((COMMON_NOTES + def.notes).map { JsonPrimitive(it) }))
     }
 
+    /** Los cinco escenarios con peor serie exacta, solo con las series de vista soportada (si no hay, con todas). */
     private fun worst(outs: List<PartialsOutcome>): List<Pair<String, Tally>> =
-        groups(outs) { it.spec.scenario.label }.entries.sortedBy { ratio(it.value.seriesExact, it.value.n) }.take(5).map { it.key to it.value }
+        groups(supported(outs).ifEmpty { outs }) { dim(it, "escenario") }.entries.sortedBy { ratio(it.value.seriesExact, it.value.n) }.take(5).map { it.key to it.value }
 
-    private val NOTES = listOf(
+    private val COMMON_NOTES = listOf(
         "Verdad por repetición: a = min(subida, bajada) en fracción de la señal de conteo limpia, relativa a una repetición completa de referencia (1,0). FULL si a >= 0,70, PARTIAL si 0,30 <= a < 0,70, FAILED si la concentrica se estanca.",
         "La fracción de recorrido es de SEÑAL (la que mide el motor), calibrada por perfil y vista; la fracción en el ÁNGULO principal va aparte en cada serie (angleFraction).",
         "Zona de una parcial: TURN_SIDE si su techo llega al 85 % o más de la señal (cerca del giro, sin volver al reposo), REST_SIDE si sale del reposo y no lo alcanza. Estiramiento/acortada depende del arranque (E: giro = estiramiento; C: reposo = estiramiento).",
         "Los parciales pegados al giro al final del vídeo acaban con el atleta parado en el valle (sin vuelta al reposo): si volviera al reposo, su bajada sería de 100 % y el motor vería una completa.",
         "Una serie hecha solo de parciales no tiene referencia de repetición completa dentro del vídeo: el motor la normaliza contra sí misma.",
+        "«Vista soportada»: la vista de la cámara está entre las `countViews` del perfil del motor; en las demás el motor no promete contar, y sus fallos no son un defecto del conteo de parciales.",
         "Emparejamiento: un giro del motor corresponde a la repetición de la verdad más cercana cuyo intervalo salida-llegada (± 0,4 s) lo contiene; los giros sin pareja son sobrantes (a menos de 1 s del borde de un vídeo recortado se cuentan aparte).",
     )
 
@@ -711,12 +738,12 @@ internal object PartialsReport {
         "precisión parciales", "exhaustividad parciales", "fantasmas", "completa→parcial", "sin salida",
     )
 
-    fun markdown(outs: List<PartialsOutcome>, variants: Int, elapsedS: Double): String = buildString {
+    fun markdown(outs: List<PartialsOutcome>, def: ReportDef, elapsedS: Double): String = buildString {
         val all = tally(outs)
-        append("# Banco sintético de repeticiones parciales\n\n")
-        append("Motor: `TechniqueAnalysisEngine` versión ${TechniqueAnalysisEngine.ENGINE_VERSION}, semilla ${PartialsPlan.SEED}, ")
-        append("${outs.size} series (${variants} variantes por escenario × perfil × vista), ${String.format(Locale.ROOT, "%.0f", elapsedS)} s de corrida.\n\n")
-        append("Cada serie lleva la verdad por repetición (tipo, zona, fracción de recorrido) y se pasa por el motor como el evaluador del banco real. ")
+        append("# ").append(def.title).append("\n\n")
+        append("Motor: `TechniqueAnalysisEngine` versión ${TechniqueAnalysisEngine.ENGINE_VERSION}, ${outs.size} series, ")
+        append("${String.format(Locale.ROOT, "%.0f", elapsedS)} s de corrida.\n\n")
+        append(def.intro).append("\n\n")
         append("Cifras sobre TODAS las series, con «sin salida» contado como fallo, salvo donde se diga lo contrario.\n\n")
 
         append("## 1. Cifras globales\n\n")
@@ -732,6 +759,11 @@ internal object PartialsReport {
             listOf("repeticiones de la verdad bien clasificadas", pctOf(all.repsCorrect, all.truthReps)),
             listOf("errores del motor (excepciones)", all.errors.toString()),
         )))
+        append("\n")
+        append("### Según la vista sea una de las que el perfil soporta\n\n")
+        val sup = outs.filter { dim(it, "vistaSoportada") == "soportada" }
+        val nosup = outs.filter { dim(it, "vistaSoportada") != "soportada" }
+        append(table(COMPACT_HEADERS, listOf(compactRow("todas", all), compactRow("vista soportada", tally(sup)), compactRow("vista NO soportada", tally(nosup)))))
         append("\n")
 
         append("## 2. Matriz de confusión por repetición\n\n")
@@ -764,25 +796,19 @@ internal object PartialsReport {
         append("\nLa zona no existe hoy en el informe del motor (solo `partialKind`); queda anotada en la verdad de cada serie (`zone`, `muscleZone`).\n\n")
 
         append("## 4. Por escenario\n\n")
-        append(table(COMPACT_HEADERS, groups(outs) { it.spec.scenario.label }.map { (k, t) -> compactRow(k, t) }))
+        append(table(COMPACT_HEADERS, groups(outs) { dim(it, "escenario") }.map { (k, t) -> compactRow(k, t) }))
         append("\n")
         append("### Los cinco escenarios donde peor sale la serie exacta\n\n")
         append(table(COMPACT_HEADERS, worst(outs).map { (k, t) -> compactRow(k, t) }))
         append("\n")
-        for ((title, key) in listOf<Pair<String, (PartialsOutcome) -> String>>(
-            "## 5. Por perfil" to { o: PartialsOutcome -> o.spec.profile.label },
-            "## 6. Por vista" to { o: PartialsOutcome -> o.spec.view.label },
-            "## 7. Por cadencia (fps)" to { o: PartialsOutcome -> o.spec.fps.toInt().toString() },
-            "## 8. Por nivel de ruido" to { o: PartialsOutcome -> o.spec.noise.label },
-            "## 9. Con y sin hueco de puntos" to { o: PartialsOutcome -> if (o.spec.gap) "con hueco" else "sin hueco" },
-            "## 10. Por arranque del movimiento" to { o: PartialsOutcome -> if (o.spec.profile.startsEccentric) "excéntrica primero (sentadilla, banca, rumano)" else "concéntrica primero (curl, jalón, press militar, máquina)" },
-        )) {
-            append(title).append("\n\n")
-            append(table(COMPACT_HEADERS, groups(outs, key).map { (k, t) -> compactRow(k, t) }))
+        var section = 5
+        for (d in def.dims) {
+            append("## ${section++}. ${d.title}\n\n")
+            append(table(COMPACT_HEADERS, groups(outs) { dim(it, d.key) }.map { (k, t) -> compactRow(k, t) }))
             append("\n")
         }
 
-        append("## 11. Confianza frente a acierto\n\n")
+        append("## ${section++}. Confianza frente a acierto\n\n")
         append(table(listOf("nivel", "series", "serie exacta", "FULL exacto", "PARTIAL exacto"),
             listOf("ALTA", "MEDIA", "BAJA", "SIN_SALIDA").map { lvl ->
                 val a = all.level[lvl] ?: IntArray(5)
@@ -790,7 +816,7 @@ internal object PartialsReport {
             }))
         append("\nOfrecidas (ALTA o MEDIA): ${pctOf(all.offered, all.n)} de las series; de ellas, con la serie mal contada: ${pctOf(all.offeredWrong, all.offered)}.\n\n")
 
-        append("## 12. Parciales por tramo de recorrido y zona\n\n")
+        append("## ${section++}. Parciales por tramo de recorrido y zona\n\n")
         append("Recorrido de la parcial = a de la verdad (fracción de la señal). Se cuentan solo las repeticiones de la verdad.\n\n")
         val partialRows = ArrayList<List<String>>()
         for ((lo, hi) in listOf(0.30 to 0.40, 0.40 to 0.50, 0.50 to 0.60, 0.60 to 0.70)) {
@@ -833,42 +859,53 @@ internal object PartialsReport {
         append(table(listOf("recorrido", "n", "como completa", "como parcial", "omitidas", "como fallida"), fullRows))
         append("\n")
 
-        append("## 13. Método y límites\n\n")
-        for (n in NOTES) append("- ").append(n).append('\n')
-        append("- Escenarios: ")
-        append(PartialsScenario.entries.joinToString("; ") { "`${it.label}` (${it.description})" })
-        append(".\n")
-        append("- Perfiles: ")
-        append(PartialsProfile.entries.joinToString(", ") { "${it.label} (${it.movement.name} → ${it.profileId.name})" })
-        append(". Vistas: lateral ψ = 90°, frontal 0°, oblicua 45°. Ruido: bajo (σ 0,002 FH), medio (0,004), alto (0,008, 3 % de fotogramas perdidos); ")
-        append("hueco: 0,45 s con todos los puntos de mala calidad en un tercio de las series.\n")
+        append("## ${section}. Método y límites\n\n")
+        for (n in COMMON_NOTES + def.notes) append("- ").append(n).append('\n')
+        append(def.methodText)
     }
 
-    fun write(outDir: File, outs: List<PartialsOutcome>, variants: Int, elapsedS: Double) {
+    fun synthDef(variants: Int) = ReportDef(
+        title = "Banco sintético de repeticiones parciales (fase 1)",
+        intro = "${PartialsPlan.plan(variants).size} series (13 escenarios × 7 perfiles × 3 vistas × $variants variantes, semilla ${PartialsPlan.SEED}). " +
+            "Cada serie sale del generador sintético con la verdad por repetición (tipo, zona, fracción de recorrido) y se pasa por el motor como el evaluador del banco real.",
+        dims = listOf(
+            DimDef("perfil", "porPerfil", "Por perfil"), DimDef("vista", "porVista", "Por vista"), DimDef("fps", "porFps", "Por cadencia (fps)"),
+            DimDef("ruido", "porRuido", "Por nivel de ruido"), DimDef("hueco", "porHueco", "Con y sin hueco de puntos"),
+            DimDef("arranque", "porArranque", "Por arranque del movimiento (excéntrica primero: sentadilla, banca, rumano; concéntrica primero: curl, jalón, press militar, máquina)"),
+            DimDef("vistaSoportada", "porVistaSoportada", "Por vista soportada o no por el perfil"),
+        ),
+        notes = listOf(
+            "Escenarios: " + PartialsScenario.entries.joinToString("; ") { "`${it.label}` (${it.description})" } + ".",
+            "Perfiles: " + PartialsProfile.entries.joinToString(", ") { "${it.label} (${it.movement.name} → ${it.profileId.name})" } +
+                ". Vistas: lateral ψ = 90°, frontal 0°, oblicua 45°. Ruido: bajo (σ 0,002 FH), medio (0,004), alto (0,008, 3 % de fotogramas perdidos); hueco: 0,45 s con todos los puntos de mala calidad en un tercio de las series.",
+        ),
+        methodText = "",
+        metaJson = buildJsonObject { put("semilla", PartialsPlan.SEED); put("variantes", variants) },
+    )
+
+    fun write(outDir: File, outs: List<PartialsOutcome>, def: ReportDef, elapsedS: Double) {
         outDir.mkdirs()
-        File(outDir, "summary.json").writeText(pretty.encodeToString(JsonElement.serializer(), summaryJson(outs, variants, elapsedS)), Charsets.UTF_8)
-        File(outDir, "RESULTADOS.md").writeText(markdown(outs, variants, elapsedS), Charsets.UTF_8)
+        File(outDir, "summary.json").writeText(pretty.encodeToString(JsonElement.serializer(), summaryJson(outs, def, elapsedS)), Charsets.UTF_8)
+        File(outDir, "RESULTADOS.md").writeText(markdown(outs, def, elapsedS), Charsets.UTF_8)
         val seriesDir = File(outDir, "series")
         seriesDir.mkdirs()
-        for (o in outs) File(seriesDir, o.spec.id + ".json").writeText(seriesJson(o).toString(), Charsets.UTF_8)
+        for (o in outs) File(seriesDir, o.meta.id + ".json").writeText(seriesJson(o).toString(), Charsets.UTF_8)
     }
 
     fun seriesJson(o: PartialsOutcome): JsonObject = buildJsonObject {
-        val s = o.spec
-        put("id", s.id)
-        put("escenario", s.scenario.label); put("perfil", s.profile.label); put("movimiento", s.profile.movement.name)
-        put("perfilMotor", s.profile.profileId.name); put("vista", s.view.label); put("fps", s.fps); put("ruido", s.noise.label)
-        put("hueco", s.gap); put("semilla", s.seed); put("variante", s.variant); put("fotogramas", o.frames)
-        put("arranque", if (s.profile.startsEccentric) "E" else "C")
+        put("id", o.meta.id)
+        put("etiquetas", buildJsonObject { for ((k, v) in o.meta.dims) put(k, v) })
+        for ((k, v) in o.meta.extra) put(k, v)
+        put("fotogramas", o.frames)
         put("recorteS", o.cutWindowS?.let { JsonArray(listOf(JsonPrimitive(it.first), JsonPrimitive(it.second))) } ?: JsonNull)
         put("verdad", buildJsonObject {
             put("full", o.truthFull); put("partial", o.truthPartial); put("failed", o.truthFailed)
             put("repeticiones", buildJsonArray {
                 for (r in o.truthAll) add(buildJsonObject {
                     put("indice", r.index); put("visible", r.visible); put("tipo", r.kind.name); put("zona", r.zone.name)
-                    put("zonaMuscular", r.muscleZone); put("techo", r.hi); put("vallePrevio", r.valleyBefore); put("valleSiguiente", r.valleyAfter)
+                    put("zonaMuscular", r.muscleZone); put("techo", num(r.hi)); put("vallePrevio", r.valleyBefore); put("valleSiguiente", r.valleyAfter)
                     put("subida", r.upFraction); put("bajada", num(r.downFraction)); put("fraccionDeRecorrido", r.fraction)
-                    put("fraccionEnAngulo", r.angleFraction)
+                    put("fraccionEnAngulo", num(r.angleFraction))
                     put("salidaUs", r.departUs); put("giroInicioUs", r.turnStartUs); put("giroFinUs", r.turnEndUs); put("llegadaUs", r.arriveUs)
                 })
             })
@@ -908,7 +945,7 @@ internal object PartialsBench {
             if (i % 100 == 99) log("[parciales] ${i + 1}/${plan.size}")
         }
         val elapsed = (System.nanoTime() - started) / 1e9
-        PartialsReport.write(outDir, outs, variants, elapsed)
+        PartialsReport.write(outDir, outs, PartialsReport.synthDef(variants), elapsed)
         return outs
     }
 }
