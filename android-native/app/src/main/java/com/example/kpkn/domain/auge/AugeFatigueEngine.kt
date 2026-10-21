@@ -674,7 +674,6 @@ object AugeFatigueEngine {
             adaptiveCache = adaptiveCache,
             exerciseDb = exerciseDb,
             options = RecipeOptions(
-                volumeCounting = RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
@@ -820,7 +819,6 @@ object AugeFatigueEngine {
             adaptiveCache = adaptiveCache,
             exerciseDb = exerciseDb,
             options = RecipeOptions(
-                volumeCounting = RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,

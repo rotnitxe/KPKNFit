@@ -587,7 +587,6 @@ object AugeRecoveryEngine {
             }
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-                volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.MUSCLE_STRESS_UNITS,
@@ -695,7 +694,6 @@ object AugeRecoveryEngine {
         var sessionMuscleStress = 0.0
 
         val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-            volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
             muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS,
             cardioHandling = RecipeOptions.CardioHandling.LEGACY_STRENGTH,
             softCapUnits = RecipeOptions.SoftCapUnits.NONE,
@@ -762,7 +760,6 @@ object AugeRecoveryEngine {
             var sessionSoftAccum = 0.0
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-                volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.LOG_PERCENT,
@@ -940,7 +937,6 @@ object AugeRecoveryEngine {
             var sessionSoftAccum = 0.0
 
             val recipe = sessionDrainRecipe(settings, tanks, adaptiveCache, exerciseDb, RecipeOptions(
-                volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
                 muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.DIRECT_KEYS,
                 cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
                 softCapUnits = RecipeOptions.SoftCapUnits.LOG_PERCENT,

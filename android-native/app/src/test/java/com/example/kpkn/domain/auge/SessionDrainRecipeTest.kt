@@ -11,7 +11,6 @@ class SessionDrainRecipeTest {
     private val fixtures = SessionDrainCharacterizationFixtures
 
     private fun options() = RecipeOptions(
-        volumeCounting = RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT,
         muscleMultiplierSource = RecipeOptions.MuscleMultiplierSource.NONE,
         cardioHandling = RecipeOptions.CardioHandling.CONSUMER_HOOK,
         softCapUnits = RecipeOptions.SoftCapUnits.CHANNEL_PERCENT,
@@ -123,15 +122,28 @@ class SessionDrainRecipeTest {
         assertEquals(1.3, target.context.densityMultiplier, 0.0)
     }
 
-    @Test fun conteoUnilateralUsaMitadesRedondeadasOEnteros() {
+    @Test fun conteoUnilateralSiempreUsaMitadesRedondeadas() {
         val ex = exercise(List(4) { i ->
             CompletedSet("lr-$i", weight = 24.0, reps = 4, rpe = 7.0, side = if (i % 2 == 0) "left" else "right")
         })
-        val integer = completed(options(), listOf(ex))
-        val halves = completed(options().copy(volumeCounting = RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED), listOf(ex))
-        assertEquals(listOf(1, 2, 3, 4), integer.map { it.count })
+        val halves = completed(options(), listOf(ex))
         assertEquals(listOf(1, 1, 2, 2), halves.map { it.count })
-        assertNotEquals(integer[1].raw, halves[1].raw)
+        assertEquals(halves[0].raw, halves[1].raw)
+        assertEquals(halves[2].raw, halves[3].raw)
+        assertNotEquals(halves[1].raw, halves[2].raw)
+    }
+
+    @Test fun mitadesPersistenEntreEjerciciosYLlamadasYNoCuentanCalentamientos() {
+        val left = CompletedSet("left", weight = 24.0, reps = 4, rpe = 7.0, side = "left")
+        val right = left.copy(id = "right", side = "right")
+        val recipe = recipe(options())
+        val seen = mutableListOf<Int>()
+        fun visit(exercises: List<CompletedExercise>) = recipe.forEachCompleted(
+            exercises, onCardio = {}, onSet = { _, _, _, _, _, count -> seen += count },
+        )
+        visit(listOf(exercise(listOf(left, right.copy(id = "warmup", isWarmup = true)))))
+        visit(listOf(exercise(listOf(right)), exercise(listOf(left.copy(side = null), left))))
+        assertEquals(listOf(1, 1, 2, 3), seen)
     }
 
     @Test fun puertaAxialSoloAfectaAlAcumuladoEspinal() {
@@ -333,9 +345,7 @@ class SessionDrainRecipeTest {
         }
         listOf("axial", "unilateral", "superserie").forEach { id ->
             var index = 0
-            val choices = options().copy(
-                volumeCounting = RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED,
-            )
+            val choices = options()
             recipe(choices).forEachCompleted(
                 fixtures.completed.getValue(id), onCardio = {},
                 onSet = { _, set, context, raw, adjusted, count ->

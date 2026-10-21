@@ -115,6 +115,15 @@ def by_channel(rows):
             for channel in ("Músculos", "Energía", "Columna", "Panel/mixto")}
 
 
+def summarize(rows):
+    result = {"Total": dict(campos_distintos=len(rows), **stats([d for row in rows for d in row["deltas"]]))}
+    for category in "ABCDE":
+        selected = [r for r in rows if r["caso"].startswith(category)]
+        result[category] = dict(campos_distintos=len(selected), **stats([d for r in selected for d in r["deltas"]]))
+    result.update(by_channel(rows))
+    return result
+
+
 def independent(trace, per_channel):
     """Recurrencia Python independiente: ningún import del motor ni del verificador anterior."""
     sessions = defaultdict(list)
@@ -274,13 +283,20 @@ def reanchor_pins(data):
 
 def markdown(evidence):
     lines = ["# Tablas completas de 2.2b2", "", f"Base: `{BASE}`. Generado por `check_2_2b2.py` desde JUnit y el máster.", "",
-             "Máximo/media: deltas absolutos sobre números distintos, excluyendo ceros y bits de Double. El máster incluye porcentajes, horas y confianza; los campos completos conservan su unidad. Los cuatro canales de resumen separan Músculos, Energía, Columna y panel mixto.", ""]
+             "Máximo/media: deltas absolutos sobre números distintos, excluyendo ceros y bits de Double. El máster incluye porcentajes, horas y confianza; los campos completos conservan su unidad. Un campo multicanal cuenta en cada canal que cambia; panel/mixto recoge el global del dashboard.", ""]
     escape = lambda value: str(value).replace("|", "&#124;").replace("\n", "<br>")
     def table(headers, rows):
         lines.append("| " + " | ".join(headers) + " |")
         lines.append("|" + "|".join("---" for _ in headers) + "|")
         lines.extend("| " + " | ".join(escape(v) for v in row) + " |" for row in rows)
         lines.append("")
+    if "total" in evidence:
+        lines += ["## Comparación acumulada: base → resultado actual", ""]
+        table(["Agrupación", "Campos distintos", "Números distintos", "Máximo", "Media"],
+              [[key, value["campos_distintos"], value["numeros_distintos"], value["maximo"], f"{value['media']:.6f}"]
+               for key, value in evidence["total"]["resumen"].items()])
+        table(["Caso", "Instante", "Campo", "Antes", "Después"],
+              [[r["caso"], r["instante"], r["campo"], r["antes"], r["despues"]] for r in evidence["total"]["golden"]])
     for stage, data in evidence["stages"].items():
         lines += [f"## {stage}", "", f"Pruebas: `{data['tests']}`. Recálculo independiente: `{data['python']}`.", ""]
         if stage == "base":
@@ -318,6 +334,17 @@ def markdown(evidence):
               "Para x′ = x + a/(1 + 0,0065x), las derivadas son ∂x′/∂x = 1 − 0,0065a/(1 + 0,0065x)² y ∂x′/∂a = 1/(1 + 0,0065x). Ambas son positivas con x≥0 y 0,0065a<1. Músculos/Energía tienen a≤0,85·32=27,2 (producto ≤0,1768); Columna conserva su tope real 35: a≤29,75 (≤0,193375). La puerta axial [0,1] no aumenta ese límite. La inducción sobre las series elimina la realimentación cruzada de F-60. Los bonos históricos siguen fuera de la recurrencia y preceden a los topes; no se recalibra ninguna constante.", "",
               "SessionDrainBoundsTest conserva 32/32/35 y sus cinco pruebas. No se cambian Room, JSON, capacidad, estrés local V2, progresión muscular/neural, SPF, fallback ni el algoritmo de aprendizaje. La unificación del conteo solo modifica el argumento accumulatedSets por pilar. El planificador no materializa side: el editor adopta el mismo contador, sin inventar lados ni cambiar su volumen de UI.", "",
               "El contrafactual zombi gana diferencias de redondeo tras F-60; se re-ancla su prueba sin aplicar remapeos. La tabla de impacto usa las sesiones existentes C01/C04, con cargas distintas: no aísla causalmente la frecuencia (F-32 sigue para 2.6).", ""]
+    if "volumen" in evidence["stages"]:
+        lines += ["## Opciones restantes y retirada de opciones constantes", ""]
+        table(["Decisión", "Antes", "Después", "Motivo"], [
+            ["axialGatePosition", "Antes / después / no aplicada", "Sin opción; puerta antes del acumulado", "Columna acumula lo que aplica"],
+            ["volumeCounting", "Mitades o enteros por consumidor", "Sin opción; mitades unilaterales redondeadas", "Una progresión por pilar en A–F"],
+            ["cardioHandling", "Gancho o fuerza legacy", "Igual", "C conserva el respaldo de estrés del aprendiz sin V2; los otros consumidores mantienen reparto y conservación de cardio"],
+            ["softCapUnits", "Canal / estrés / log / ninguno", "Igual", "A/P/F: porcentaje; B: unidades de estrés; C: estrés sin tope; D/E: porcentaje por log"],
+            ["muscleMultiplierSource", "Remapeado / directo / ninguno", "Igual", "Estado zombi reservado a 3.1; no se modifica"],
+        ])
+        if "verificacion_final" in evidence:
+            lines += ["Limpieza final de comentarios/opciones constantes: 0 campos, máximo 0, media 0. La corrida 5 comprueba sin regenerar que máster, caracterizaciones, pines, aprendiz y series siguen exactos tras esa limpieza.", ""]
     lines += ["## Ejecuciones y reproducción", "", "Base antes de editar producción; tres bloques numéricos con regeneración; verificación final sin regeneración. Los fallos de captura son snapshots anteriores, detallados en el JSON.", ""]
     rows = []
     for n, (stage, data) in enumerate(evidence["stages"].items(), 1):
@@ -347,6 +374,13 @@ def markdown(evidence):
     TABLES.write_text("\n".join(lines), encoding="utf-8")
 
 
+def save(evidence):
+    rows = golden_changes(original(GOLDEN), read(ROOT/GOLDEN))
+    evidence["total"] = dict(golden=rows, resumen=summarize(rows))
+    REPORT.write_text(json.dumps(evidence, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
+    markdown(evidence)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stage", choices=("base", "canales", "axial", "volumen"))
@@ -365,8 +399,7 @@ def main():
         latest["contrafactual_zombi"] = actual["contrafactual_zombi"]
         if "golden" in latest:
             latest["resumen"].update(by_channel(latest["golden"]))
-        REPORT.write_text(json.dumps(evidence, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
-        markdown(evidence)
+        save(evidence)
         print("Diagnósticos actualizados; se conservan las comparaciones antes→después.")
         return
     if args.verify:
@@ -379,8 +412,7 @@ def main():
         for key in ("impacto", "series", "aprendiz", "pines", "realismo", "paridad"):
             assert latest[key] == actual[key], key
         evidence["verificacion_final"] = actual["tests"]
-        REPORT.write_text(json.dumps(evidence, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
-        markdown(evidence)
+        save(evidence)
         print("Verificación final: recurso, capturas, aprendiz, pines y recálculo Python coinciden; 0 fallos.")
         print(json.dumps(actual["python"], ensure_ascii=False))
         return
@@ -396,11 +428,7 @@ def main():
         previous = next(reversed(evidence["stages"].values()))
         candidate = read(ROOT/"android-native/app/build/auge-golden/expected.txt")
         data["golden"] = golden_changes(read(ROOT/GOLDEN), candidate)
-        data["resumen"] = {"Total": dict(campos_distintos=len(data["golden"]), **stats([d for row in data["golden"] for d in row["deltas"]]))}
-        for category in "ABCDE":
-            rows = [r for r in data["golden"] if r["caso"].startswith(category)]
-            data["resumen"][category] = dict(campos_distintos=len(rows), **stats([d for r in rows for d in r["deltas"]]))
-        data["resumen"].update(by_channel(data["golden"]))
+        data["resumen"] = summarize(data["golden"])
         assert all(row["campo"] != "v2" for row in data["golden"]), "El estrés local V2 queda fuera de 2.2b2"
         if args.stage == "axial":
             assert data["resumen"]["Músculos"]["numeros_distintos"] == 0, "La puerta axial contaminó Músculos"
@@ -422,8 +450,7 @@ def main():
         (ROOT/GOLDEN).write_text(candidate, encoding="utf-8")
     data["golden_sha256"] = hashlib.sha256(candidate.encode()).hexdigest()
     evidence["stages"][args.stage] = data
-    REPORT.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    markdown(evidence)
+    save(evidence)
     print(json.dumps(dict(stage=args.stage, tests=data["tests"], resumen=data.get("resumen"), python=data["python"]), ensure_ascii=False))
 
 

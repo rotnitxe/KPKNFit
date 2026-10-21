@@ -5,13 +5,11 @@ import kotlin.math.roundToInt
 
 /** Decisiones pendientes de 2.2b2, salvo el estado muscular zombi que se retira en 3.1. */
 internal data class RecipeOptions(
-    val volumeCounting: VolumeCounting,
     /** Se elimina en 3.1 junto con el campo zombi del caché; conserva sus tres variantes hasta entonces. */
     val muscleMultiplierSource: MuscleMultiplierSource,
     val cardioHandling: CardioHandling,
     val softCapUnits: SoftCapUnits,
 ) {
-    enum class VolumeCounting { UNILATERAL_HALVES_ROUNDED, EFFECTIVE_SET_COUNT }
     /** Se elimina en 3.1 junto con el campo zombi del caché; no activar calibraciones antiguas. */
     enum class MuscleMultiplierSource { REMAPPED_PILLARS, DIRECT_KEYS, NONE }
     enum class CardioHandling { CONSUMER_HOOK, LEGACY_STRENGTH }
@@ -73,7 +71,6 @@ internal class SessionDrainRecipe(
         ) // Los topes siguen aplicándose únicamente en cada consumidor.
     } // B–E mantienen sus ganchos históricos sin esta realimentación de cardio.
 
-    private val integerVolume = mutableMapOf<String, Int>()
     private val halfVolume = mutableMapOf<String, Double>()
     private val muscleMultipliers = when (options.muscleMultiplierSource) {
         RecipeOptions.MuscleMultiplierSource.REMAPPED_PILLARS ->
@@ -157,20 +154,11 @@ internal class SessionDrainRecipe(
                 continue
             }
             val context = prepare(exercise)
-            var integerCount = integerVolume[context.primaryMuscle] ?: 0
             var halfCount = halfVolume[context.primaryMuscle] ?: 0.0
             for (sourceSet in effectiveSets(exercise)) {
                 val set = complete(exercise, sourceSet)
-                val accumulatedSets = when (options.volumeCounting) {
-                    RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED -> {
-                        halfCount += if (set.side != null) 0.5 else 1.0
-                        halfCount.roundToInt()
-                    }
-                    RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT -> {
-                        integerCount += 1
-                        integerCount
-                    }
-                }
+                halfCount += if (set.side != null) 0.5 else 1.0 // Una pareja de lados equivale a una serie por pilar.
+                val accumulatedSets = halfCount.roundToInt() // El multiplicador progresivo recibe el mismo conteo en A–F.
                 val drain = AugeFatigueEngine.calculateSetBatteryDrain(
                     set = set,
                     metrics = context.metrics,
@@ -188,10 +176,7 @@ internal class SessionDrainRecipe(
                 val adjusted = withHeavySingleBonus(base, set)
                 onSet(exercise, sourceSet, context, drain, adjusted, accumulatedSets)
             }
-            when (options.volumeCounting) {
-                RecipeOptions.VolumeCounting.UNILATERAL_HALVES_ROUNDED -> halfVolume[context.primaryMuscle] = halfCount
-                RecipeOptions.VolumeCounting.EFFECTIVE_SET_COUNT -> integerVolume[context.primaryMuscle] = integerCount
-            }
+            halfVolume[context.primaryMuscle] = halfCount // Conserva también las mitades entre ejercicios del mismo pilar.
         }
     }
 

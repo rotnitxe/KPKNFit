@@ -4935,6 +4935,3366 @@
         }
       ],
       "golden_sha256": "ddbc1c3477432c63e757903893b8f19b9161446c2d9c2e1cc5986dfddd450c0a"
+    },
+    "volumen": {
+      "stage": "volumen",
+      "tests": {
+        "tests": 126,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "classes": 15,
+        "seconds": 42.0
+      },
+      "fallos": [
+        {
+          "prueba": "com.example.kpkn.domain.auge.SessionDrainRecipeCharacterizationTest.conservaResultadosDeLasFuncionesPublicas[unilateral]",
+          "mensaje": "org.junit.ComparisonFailure: unilateral expected:<..."
+        }
+      ],
+      "snapshots": {
+        "domain": {
+          "unilateral": "global=PredictedDrain(cns=52, muscular=38, spinal=8);muscles={Cuádriceps=24, Erectores Espinales=2, Glúteos=12}\nstress[Pectorales]=0.000000[0]\nstress[Cuádriceps]=436.761771[4646391210519028833]\nstress[Erectores Espinales]=56.640717[4633168289503428970]\npredicted=PredictedDrain(cns=62, muscular=44, spinal=8)\nhistory[0].energy=(73, 27, 0)\nhistory[0].spinal=93\nhistory[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=52, effectiveSets=5, status=FRESH)\nhistory[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=92, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)\nhistory[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)\nhistory[6].energy=(83, 17, 0)\nhistory[6].spinal=95\nhistory[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=58, effectiveSets=5, status=FRESH)\nhistory[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=93, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=10, status=OPTIMAL)\nhistory[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)\nhistory[24].energy=(96, 4, 0)\nhistory[24].spinal=99\nhistory[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=76, effectiveSets=5, status=FRESH)\nhistory[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=10, status=FRESH)\nhistory[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)",
+          "superserie": "global=PredictedDrain(cns=76, muscular=63, spinal=8);muscles={Bíceps=4, Deltoides=7, Dorsales=7, Erectores Espinales=3, Pectorales=21, Trapecio=4, Tríceps=17}\nstress[Pectorales]=427.120359[4646221597017423559]\nstress[Cuádriceps]=0.000000[0]\nstress[Erectores Espinales]=149.659043[4639469676023058532]\npredicted=PredictedDrain(cns=66, muscular=62, spinal=8)\nhistory[0].energy=(65, 35, 0)\nhistory[0].spinal=92\nhistory[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=91, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)\nhistory[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=OPTIMAL)\nhistory[6].energy=(77, 23, 0)\nhistory[6].spinal=95\nhistory[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=93, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=10, status=OPTIMAL)\nhistory[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)\nhistory[24].energy=(94, 6, 0)\nhistory[24].spinal=99\nhistory[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=10, status=FRESH)\nhistory[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)",
+          "cardio": "global=PredictedDrain(cns=46, muscular=39, spinal=8);muscles={Bíceps=1, Core=1, Cuádriceps=13, Deltoides=3, Dorsales=1, Erectores Espinales=5, Glúteos=6, Pectorales=7, Tríceps=3}\nstress[Pectorales]=134.132469[4638923383268379190]\nstress[Cuádriceps]=244.638559[4642811470647100307]\nstress[Erectores Espinales]=97.855424[4636586380203157828]\npredicted=PredictedDrain(cns=44, muscular=40, spinal=8)\nhistory[0].energy=(75, 25, 0)\nhistory[0].spinal=92\nhistory[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=7, status=FRESH)\nhistory[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=4, status=OPTIMAL)\nhistory[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)\nhistory[6].energy=(84, 16, 0)\nhistory[6].spinal=95\nhistory[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=7, status=FRESH)\nhistory[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=4, status=FRESH)\nhistory[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)\nhistory[24].energy=(96, 4, 0)\nhistory[24].spinal=99\nhistory[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=99, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=7, status=FRESH)\nhistory[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=4, status=FRESH)\nhistory[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)",
+          "tecnicas": "global=PredictedDrain(cns=68, muscular=65, spinal=8);muscles={Bíceps=1, Deltoides=12, Dorsales=1, Erectores Espinales=0, Pectorales=34, Trapecio=1, Tríceps=16}\nstress[Pectorales]=894.370356[4651078180666694269]\nstress[Cuádriceps]=0.000000[0]\nstress[Erectores Espinales]=56.656157[4633170462572054565]\npredicted=PredictedDrain(cns=56, muscular=47, spinal=8)\nhistory[0].energy=(68, 32, 0)\nhistory[0].spinal=96\nhistory[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=84, hoursToRecovery=7, hoursSinceLastSession=0, effectiveSets=9, status=RECOVERING)\nhistory[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)\nhistory[6].energy=(79, 21, 0)\nhistory[6].spinal=98\nhistory[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=87, hoursToRecovery=4, hoursSinceLastSession=6, effectiveSets=9, status=OPTIMAL)\nhistory[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)\nhistory[24].energy=(95, 5, 0)\nhistory[24].spinal=99\nhistory[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=92, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=9, status=OPTIMAL)\nhistory[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)",
+          "axial": "global=PredictedDrain(cns=63, muscular=39, spinal=9);muscles={Bíceps=3, Deltoides=7, Dorsales=5, Erectores Espinales=5, Glúteos=3, Isquiosurales=5, Trapecio=8, Tríceps=3}\nstress[Pectorales]=0.000000[0]\nstress[Cuádriceps]=0.000000[0]\nstress[Erectores Espinales]=144.706160[4639295411931985620]\npredicted=PredictedDrain(cns=55, muscular=39, spinal=9)\nhistory[0].energy=(69, 31, 0)\nhistory[0].spinal=89\nhistory[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=52, effectiveSets=5, status=FRESH)\nhistory[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)\nhistory[6].energy=(80, 20, 0)\nhistory[6].spinal=92\nhistory[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=58, effectiveSets=5, status=FRESH)\nhistory[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=10, status=FRESH)\nhistory[24].energy=(95, 5, 0)\nhistory[24].spinal=99\nhistory[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=76, effectiveSets=5, status=FRESH)\nhistory[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=10, status=FRESH)",
+          "sin-ficha": "global=PredictedDrain(cns=55, muscular=45, spinal=11);muscles={Deltoides=1, Erectores Espinales=4, Glúteos=5, Isquiosurales=10, Pectorales=3, Tríceps=2}\nstress[Pectorales]=105.337215[4637112864461977824]\nstress[Cuádriceps]=0.000000[0]\nstress[Erectores Espinales]=90.609185[4636076471478565756]\npredicted=PredictedDrain(cns=51, muscular=45, spinal=11)\nhistory[0].energy=(72, 28, 0)\nhistory[0].spinal=87\nhistory[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=7, status=FRESH)\nhistory[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)\nhistory[6].energy=(82, 18, 0)\nhistory[6].spinal=91\nhistory[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=7, status=FRESH)\nhistory[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)\nhistory[24].energy=(96, 4, 0)\nhistory[24].spinal=99\nhistory[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=99, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=7, status=FRESH)\nhistory[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)",
+          "filtrado-rir": "global=PredictedDrain(cns=28, muscular=16, spinal=0);muscles={Deltoides=3, Pectorales=9, Tríceps=4}\nstress[Pectorales]=172.744439[4640281921184542002]\nstress[Cuádriceps]=0.000000[0]\nstress[Erectores Espinales]=0.000000[0]\npredicted=PredictedDrain(cns=36, muscular=19, spinal=0)\nhistory[0].energy=(82, 18, 0)\nhistory[0].spinal=98\nhistory[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=8, status=FRESH)\nhistory[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=18, effectiveSets=5, status=FRESH)\nhistory[6].energy=(88, 12, 0)\nhistory[6].spinal=99\nhistory[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=8, status=FRESH)\nhistory[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)\nhistory[24].energy=(97, 3, 0)\nhistory[24].spinal=100\nhistory[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=8, status=FRESH)\nhistory[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)\nhistory[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=99, hoursToRecovery=0, hoursSinceLastSession=42, effectiveSets=5, status=FRESH)"
+        },
+        "editor": {
+          "unilateral": "drain=PredictedDrain(cns=61, muscular=40, spinal=9)\nmuscular={Cuádriceps=27, Erectores Espinales=1, Glúteos=13}\nenergy={Cuádriceps=39, Erectores Espinales=2, Glúteos=20}\nspinal={Cuádriceps=3, Erectores Espinales=1, Glúteos=2}\ninsights=[SessionEditorAugeExerciseInsight(exerciseId=lunge-uni, name=Zancada, muscular=56, cns=95, spinal=1, total=51, suggestion=Carga neural elevada. Reducir RPE o %1RM deja más margen para el resto de la sesión.), SessionEditorAugeExerciseInsight(exerciseId=squat, name=Sentadilla, muscular=7, cns=61, spinal=5, total=24, suggestion=null)]\nsets=10;duration=33;difficulty=5;rpe=8.500000[4620974692658839552];axial=4.400000[4616639978017495450];elbow=0;knee=0\nvolume={Cuádriceps=AugeVolumeAccumulator(flat=10.0, effective=10.0, fail=0.0), Erectores Espinales=AugeVolumeAccumulator(flat=0.8, effective=0.8, fail=0.0), Glúteos=AugeVolumeAccumulator(flat=5.0, effective=5.0, fail=0.0)}\nroles={Cuádriceps=MuscleRoleBreakdown(primary=10.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), Erectores Espinales=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=2.0, neutralizer=0.0), Glúteos=MuscleRoleBreakdown(primary=0.0, secondary=10.0, stabilizer=0.0, neutralizer=0.0)}\nrecommendations={Cuádriceps=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=false, usesFailure=false), Erectores Espinales=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=false, usesFailure=false), Glúteos=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=false, usesFailure=false)}",
+          "superserie": "drain=PredictedDrain(cns=65, muscular=62, spinal=8)\nmuscular={Bíceps=4, Deltoides=7, Dorsales=7, Erectores Espinales=3, Pectorales=20, Trapecio=4, Tríceps=17}\nenergy={Bíceps=3, Deltoides=9, Dorsales=6, Erectores Espinales=2, Pectorales=26, Trapecio=3, Tríceps=17}\nspinal={Bíceps=1, Dorsales=1, Erectores Espinales=0, Trapecio=1}\ninsights=[SessionEditorAugeExerciseInsight(exerciseId=bench, name=Press banca, muscular=52, cns=75, spinal=0, total=42, suggestion=null), SessionEditorAugeExerciseInsight(exerciseId=row, name=Remo, muscular=56, cns=68, spinal=3, total=42, suggestion=null), SessionEditorAugeExerciseInsight(exerciseId=incline, name=Press inclinado, muscular=49, cns=64, spinal=0, total=38, suggestion=null)]\nsets=15;duration=18;difficulty=5;rpe=8.500000[4620974692658839552];axial=3.000000[4613937818241073152];elbow=0;knee=0\nvolume={Bíceps=AugeVolumeAccumulator(flat=2.5, effective=2.5, fail=0.0), Deltoides=AugeVolumeAccumulator(flat=1.75, effective=1.75, fail=0.0), Dorsales=AugeVolumeAccumulator(flat=5.0, effective=5.0, fail=0.0), Erectores Espinales=AugeVolumeAccumulator(flat=2.0, effective=2.0, fail=0.0), Pectorales=AugeVolumeAccumulator(flat=5.0, effective=5.0, fail=0.0), Trapecio=AugeVolumeAccumulator(flat=2.5, effective=2.5, fail=0.0), Tríceps=AugeVolumeAccumulator(flat=5.750000000000001, effective=5.750000000000001, fail=0.0)}\nroles={Bíceps=MuscleRoleBreakdown(primary=0.0, secondary=5.0, stabilizer=0.0, neutralizer=0.0), Deltoides=MuscleRoleBreakdown(primary=0.0, secondary=5.0, stabilizer=0.0, neutralizer=0.0), Dorsales=MuscleRoleBreakdown(primary=5.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), Erectores Espinales=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=5.0, neutralizer=0.0), Pectorales=MuscleRoleBreakdown(primary=5.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), Trapecio=MuscleRoleBreakdown(primary=0.0, secondary=5.0, stabilizer=0.0, neutralizer=0.0), Tríceps=MuscleRoleBreakdown(primary=5.0, secondary=5.0, stabilizer=0.0, neutralizer=0.0)}\nrecommendations={Bíceps=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=false, usesFailure=false), Deltoides=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=false, usesFailure=false), Dorsales=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=false, usesFailure=false), Erectores Espinales=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=false, usesFailure=false), Pectorales=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=false, usesFailure=false), Trapecio=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=false, usesFailure=false), Tríceps=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=false, usesFailure=false)}",
+          "cardio": "drain=PredictedDrain(cns=4, muscular=5, spinal=1)\nmuscular={Bíceps=1, Core=1, Cuádriceps=2, Dorsales=2}\nenergy={Bíceps=1, Core=1, Cuádriceps=2, Dorsales=2}\nspinal={Bíceps=0, Core=0, Cuádriceps=0, Dorsales=0}\ninsights=[SessionEditorAugeExerciseInsight(exerciseId=row-cardio, name=Remo cardio, muscular=5, cns=5, spinal=1, total=4, suggestion=null)]\nsets=1;duration=16;difficulty=4;rpe=8.000000[4620693217682128896];axial=0.698011[4604462346979622614];elbow=0;knee=0\nvolume={}\nroles={}\nrecommendations={}",
+          "axial": "drain=PredictedDrain(cns=52, muscular=39, spinal=9)\nmuscular={Bíceps=3, Deltoides=7, Dorsales=5, Erectores Espinales=5, Glúteos=3, Isquiosurales=5, Trapecio=8, Tríceps=3}\nenergy={Bíceps=1, Deltoides=9, Dorsales=2, Erectores Espinales=8, Glúteos=6, Isquiosurales=11, Trapecio=10, Tríceps=4}\nspinal={Bíceps=0, Deltoides=1, Dorsales=0, Erectores Espinales=1, Glúteos=1, Isquiosurales=1, Trapecio=1, Tríceps=0}\ninsights=[SessionEditorAugeExerciseInsight(exerciseId=deadlift, name=Peso muerto, muscular=17, cns=33, spinal=4, total=18, suggestion=null), SessionEditorAugeExerciseInsight(exerciseId=ohp, name=Press militar, muscular=21, cns=36, spinal=1, total=19, suggestion=null), SessionEditorAugeExerciseInsight(exerciseId=row, name=Remo, muscular=22, cns=25, spinal=1, total=16, suggestion=null)]\nsets=12;duration=52;difficulty=9;rpe=9.375000[4621467273868083200];axial=8.800000[4621143577644865945];elbow=0;knee=0\nvolume={Bíceps=AugeVolumeAccumulator(flat=1.5, effective=1.5, fail=0.0), Deltoides=AugeVolumeAccumulator(flat=4.0, effective=4.0, fail=4.0), Dorsales=AugeVolumeAccumulator(flat=3.0, effective=3.0, fail=0.0), Erectores Espinales=AugeVolumeAccumulator(flat=4.2, effective=4.2, fail=3.0), Glúteos=AugeVolumeAccumulator(flat=2.5, effective=2.5, fail=2.5), Isquiosurales=AugeVolumeAccumulator(flat=5.0, effective=5.0, fail=5.0), Trapecio=AugeVolumeAccumulator(flat=5.5, effective=5.5, fail=4.0), Tríceps=AugeVolumeAccumulator(flat=1.8, effective=1.8, fail=1.8)}\nroles={Bíceps=MuscleRoleBreakdown(primary=0.0, secondary=3.0, stabilizer=0.0, neutralizer=0.0), Deltoides=MuscleRoleBreakdown(primary=4.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), Dorsales=MuscleRoleBreakdown(primary=3.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), Erectores Espinales=MuscleRoleBreakdown(primary=0.0, secondary=5.0, stabilizer=3.0, neutralizer=0.0), Glúteos=MuscleRoleBreakdown(primary=0.0, secondary=5.0, stabilizer=0.0, neutralizer=0.0), Isquiosurales=MuscleRoleBreakdown(primary=5.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), Trapecio=MuscleRoleBreakdown(primary=0.0, secondary=7.0, stabilizer=5.0, neutralizer=0.0), Tríceps=MuscleRoleBreakdown(primary=0.0, secondary=4.0, stabilizer=0.0, neutralizer=0.0)}\nrecommendations={Bíceps=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=true, usesRir=false, usesFailure=false), Deltoides=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=true, usesRir=false, usesFailure=false), Dorsales=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=true, usesRir=false, usesFailure=false), Erectores Espinales=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=true, usesRir=false, usesFailure=false), Glúteos=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=true, usesRir=false, usesFailure=false), Isquiosurales=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=true, usesRir=false, usesFailure=false), Trapecio=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=true, usesRir=false, usesFailure=false), Tríceps=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=true, usesRir=false, usesFailure=false)}",
+          "sin-ficha": "drain=PredictedDrain(cns=48, muscular=45, spinal=12)\nmuscular={Deltoides=1, Pectorales=4, Tríceps=2}\nenergy={Deltoides=1, Pectorales=3, Tríceps=1}\nspinal={}\ninsights=[SessionEditorAugeExerciseInsight(exerciseId=custom, name=Movimiento propio, muscular=26, cns=32, spinal=2, total=20, suggestion=null), SessionEditorAugeExerciseInsight(exerciseId=hinge, name=Peso muerto custom, muscular=32, cns=37, spinal=6, total=25, suggestion=null), SessionEditorAugeExerciseInsight(exerciseId=bench, name=Press banca, muscular=16, cns=19, spinal=0, total=12, suggestion=null)]\nsets=9;duration=23;difficulty=5;rpe=8.500000[4620974692658839552];axial=0.000000[0];elbow=0;knee=0\nvolume={Deltoides=AugeVolumeAccumulator(flat=0.7, effective=0.7, fail=0.0), Pectorales=AugeVolumeAccumulator(flat=2.0, effective=2.0, fail=0.0), Tríceps=AugeVolumeAccumulator(flat=0.9, effective=0.9, fail=0.0)}\nroles={Deltoides=MuscleRoleBreakdown(primary=0.0, secondary=2.0, stabilizer=0.0, neutralizer=0.0), Pectorales=MuscleRoleBreakdown(primary=2.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), Tríceps=MuscleRoleBreakdown(primary=0.0, secondary=2.0, stabilizer=0.0, neutralizer=0.0)}\nrecommendations={Deltoides=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=false, usesFailure=false), Pectorales=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=false, usesFailure=false), Tríceps=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=false, usesFailure=false)}",
+          "filtrado-rir": "drain=PredictedDrain(cns=33, muscular=20, spinal=0)\nmuscular={Deltoides=4, Pectorales=11, Tríceps=5}\nenergy={Deltoides=7, Pectorales=19, Tríceps=8}\nspinal={}\ninsights=[SessionEditorAugeExerciseInsight(exerciseId=bench, name=Press banca, muscular=26, cns=47, spinal=0, total=24, suggestion=null)]\nsets=4;duration=19;difficulty=4;rpe=7.225000[4619820645254325862];axial=0.000000[0];elbow=0;knee=0\nvolume={Deltoides=AugeVolumeAccumulator(flat=1.4, effective=1.12, fail=0.0), Pectorales=AugeVolumeAccumulator(flat=4.0, effective=3.2, fail=0.0), Tríceps=AugeVolumeAccumulator(flat=1.8, effective=1.44, fail=0.0)}\nroles={Deltoides=MuscleRoleBreakdown(primary=0.0, secondary=4.0, stabilizer=0.0, neutralizer=0.0), Pectorales=MuscleRoleBreakdown(primary=4.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), Tríceps=MuscleRoleBreakdown(primary=0.0, secondary=4.0, stabilizer=0.0, neutralizer=0.0)}\nrecommendations={Deltoides=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=true, usesFailure=false), Pectorales=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=true, usesFailure=false), Tríceps=MuscleRecommendationContext(breakdown=MuscleRoleBreakdown(primary=0.0, secondary=0.0, stabilizer=0.0, neutralizer=0.0), usesPercent=false, usesRir=true, usesFailure=false)}"
+        }
+      },
+      "impacto": [
+        "[2.2b2-impact]|pecho|0|91|78|99",
+        "[2.2b2-impact]|pecho|24|97|97|100",
+        "[2.2b2-impact]|pecho|48|100|100|100",
+        "[2.2b2-impact]|pecho|72|100|100|100",
+        "[2.2b2-impact]|pierna-pesada|0|90|78|90",
+        "[2.2b2-impact]|pierna-pesada|24|94|97|99",
+        "[2.2b2-impact]|pierna-pesada|48|98|100|100",
+        "[2.2b2-impact]|pierna-pesada|72|99|100|100",
+        "[2.2b2-impact]|cuerpo-completo|0|84|74|89",
+        "[2.2b2-impact]|cuerpo-completo|24|92|96|99",
+        "[2.2b2-impact]|cuerpo-completo|48|98|99|100",
+        "[2.2b2-impact]|cuerpo-completo|72|99|100|100",
+        "[2.2b2-impact]|un-dia-duro|0|84|74|89",
+        "[2.2b2-impact]|un-dia-duro|24|92|96|99",
+        "[2.2b2-impact]|un-dia-duro|48|98|99|100",
+        "[2.2b2-impact]|un-dia-duro|72|99|100|100",
+        "[2.2b2-impact]|cinco-dias-duros|0|86|75|98",
+        "[2.2b2-impact]|cinco-dias-duros|24|95|96|100",
+        "[2.2b2-impact]|cinco-dias-duros|48|99|99|100",
+        "[2.2b2-impact]|cinco-dias-duros|72|100|100|100",
+        "[2.2b2-impact]|cardio-largo|0|98|91|92",
+        "[2.2b2-impact]|cardio-largo|24|99|99|99",
+        "[2.2b2-impact]|cardio-largo|48|100|100|100",
+        "[2.2b2-impact]|cardio-largo|72|100|100|100"
+      ],
+      "series": [
+        "[2.2b2-set]|axial|0|Isquiosurales|bilateral|1|1.0|1.15|3.3230794435534015|6.176228460745714|0.6203230377399073|2.8246175270203913|6.037263320378935|0.5272745820789212",
+        "[2.2b2-set]|axial|1|Isquiosurales|bilateral|2|1.0|1.15|3.489233415731072|6.515921026086728|0.6544408048156019|2.9123771189115017|6.1591403770499635|0.5543746841738277",
+        "[2.2b2-set]|axial|2|Isquiosurales|bilateral|3|1.0|1.15|3.6553873879087413|7.170906512615423|0.720225707246166|2.9953801601055643|6.5575112435193645|0.6079177515250271",
+        "[2.2b2-set]|axial|3|Isquiosurales|bilateral|4|1.0|1.15|3.3230794435534015|8.040992934193499|0.807614743380427|2.6729024196557987|7.106752106774533|0.6790154580769305",
+        "[2.2b2-set]|axial|4|Isquiosurales|bilateral|5|1.0|1.15|2.9907714991980616|9.088816276372716|0.9128551765617011|2.366701975407577|7.751315910478727|0.7641620250001081",
+        "[2.2b2-set]|axial|5|Deltoides|bilateral|1|0.5|1.15|4.965436615240394|8.732755984322525|0.48999369590650943|3.87384297154355|7.173451173852899|0.2040914395826107",
+        "[2.2b2-set]|axial|6|Deltoides|bilateral|2|0.5|1.15|5.213708446002414|9.213057563460264|0.5169433491813674|3.9756533149051942|7.318627224102423|0.21503689494486258",
+        "[2.2b2-set]|axial|7|Deltoides|bilateral|3|0.5|1.15|5.461980276764435|10.139161327833845|0.5689068996473369|4.070602435226507|7.7923488318297895|0.23632925778896471",
+        "[2.2b2-set]|axial|8|Deltoides|bilateral|4|0.5|1.15|4.965436615240394|11.369402801769915|0.6379355737284178|3.6166465504910286|8.445387377232315|0.2646071148630287",
+        "[2.2b2-set]|axial|9|Dorsales|bilateral|1|0.6|1.0|7.094931877753999|8.487949875190141|0.6481450698183476|5.065651499579002|5.290687590108714|0.32206962186798194",
+        "[2.2b2-set]|axial|10|Dorsales|bilateral|2|0.6|1.0|7.4496784716416995|8.954787118325598|0.6837930486583568|5.175783556403229|5.444377446996857|0.33909179885639484",
+        "[2.2b2-set]|axial|11|Dorsales|bilateral|3|0.6|1.0|7.804425065529398|9.854929335208768|0.752528461636407|5.277136076706535|5.843730898519726|0.37237950608085824",
+        "[2.2b2-set]|unilateral|0|Cuádriceps|left|1|0.3|1.0|4.0130021515841205|4.499578662463694|0.1700559018335166|3.411051828846502|3.82464186309414|0.04336425496754673",
+        "[2.2b2-set]|unilateral|1|Cuádriceps|right|1|0.3|1.0|4.0130021515841205|4.499578662463694|0.1700559018335166|3.337063012059795|3.7318670070078763|0.04335203543088111",
+        "[2.2b2-set]|unilateral|2|Cuádriceps|left|2|0.3|1.0|4.213652259163327|4.747055488899197|0.17940897643436|3.4311066588157617|3.846087693072992|0.045723516661394285",
+        "[2.2b2-set]|unilateral|3|Cuádriceps|right|2|0.3|1.0|4.213652259163327|4.747055488899197|0.17940897643436|3.35933427067554|3.756571793520553|0.04570993918983617",
+        "[2.2b2-set]|unilateral|4|Cuádriceps|left|3|0.3|1.0|4.4143023667425325|5.22423322578817|0.19744330730593093|3.448671782530818|4.042292582214657|0.050289809104261736",
+        "[2.2b2-set]|unilateral|5|Cuádriceps|right|3|0.3|1.0|4.4143023667425325|5.22423322578817|0.19744330730593093|3.379052268088026|3.947866956409163|0.05027339455567258",
+        "[2.2b2-set]|unilateral|6|Cuádriceps|left|4|0.3|1.0|4.0130021515841205|5.858118827966723|0.2214002143463632|3.012283299138687|4.328142647205519|0.056354960086731846",
+        "[2.2b2-set]|unilateral|7|Cuádriceps|right|4|0.3|1.0|4.0130021515841205|5.858118827966723|0.2214002143463632|2.9610836085447683|4.224831129813808|0.05633436171884889",
+        "[2.2b2-set]|unilateral|8|Cuádriceps|bilateral|5|1.0|1.0|9.480717583117487|19.86447427138162|1.5023027659141688|6.880598479620794|13.999911844293718|1.273716869132391",
+        "[2.2b2-set]|unilateral|9|Cuádriceps|bilateral|6|1.0|1.0|8.427304518326654|22.494940081267902|1.7012386153027443|5.891128149629496|14.741518808216158|1.4305693780581845",
+        "[2.2b2-set]|superserie|0|Pectorales|bilateral|1|0.0|1.0|11.277197735469489|18.29774046177054|0.5463778491718316|9.585618075149066|15.553079392504959|0.0",
+        "[2.2b2-set]|superserie|1|Pectorales|bilateral|2|0.0|1.0|11.841057622242964|19.30411618716792|0.5764286308762823|9.474571428500882|14.901982589964359|0.0",
+        "[2.2b2-set]|superserie|2|Pectorales|bilateral|3|0.0|1.0|12.404917509016437|21.24458107037295|0.6343716884627734|9.381850827346657|15.073896892631184|0.0",
+        "[2.2b2-set]|superserie|3|Pectorales|bilateral|4|0.0|1.0|11.277197735469489|23.822305586642557|0.7113435735924962|8.089994416570445|15.624942021074517|0.0",
+        "[2.2b2-set]|superserie|4|Pectorales|bilateral|5|0.0|1.0|10.14947796192254|26.926594828343525|0.8040388920462435|6.9715939393786535|16.37753114601411|0.0",
+        "[2.2b2-set]|superserie|5|Dorsales|bilateral|1|0.6|1.0|11.982022593936332|16.729362707904492|1.0927556983436633|7.939607825034211|9.455046754735562|0.5573054061552682",
+        "[2.2b2-set]|superserie|6|Dorsales|bilateral|2|0.6|1.0|12.581123723633148|17.649477656839238|1.1528572617525645|8.014169016147804|9.583454664485329|0.5858350248218935",
+        "[2.2b2-set]|superserie|7|Dorsales|bilateral|3|0.6|1.0|13.180224853329964|19.423616978626697|1.2687433769255467|8.080352107069766|10.143164036947486|0.6422866671582387",
+        "[2.2b2-set]|superserie|8|Dorsales|bilateral|4|0.6|1.0|11.982022593936332|21.78039367921605|1.4226871471849925|7.077659199280098|10.931123391647311|0.7172466002099538",
+        "[2.2b2-set]|superserie|9|Dorsales|bilateral|5|0.6|1.0|10.7838203345427|24.618600985914078|1.608077784092487|6.172556223353022|11.858083428081981|0.8069920247390897",
+        "[2.2b2-set]|superserie|10|Tríceps|bilateral|1|0.0|1.0|10.572372877002648|15.68377753866046|0.46832387071871295|5.89232728748308|7.238280164198203|0.0",
+        "[2.2b2-set]|superserie|11|Tríceps|bilateral|2|0.0|1.0|11.10099152085278|16.546385303286783|0.494081683608242|6.035378215828569|7.446169397023571|0.0",
+        "[2.2b2-set]|superserie|12|Tríceps|bilateral|3|0.0|1.0|11.629610164702914|18.209640917462526|0.5437471615395201|6.168007272399006|7.989925520419439|0.0",
+        "[2.2b2-set]|superserie|13|Tríceps|bilateral|4|0.0|1.0|10.572372877002648|20.419119074265048|0.6097230630792826|5.470430679192141|8.725468181590012|0.0",
+        "[2.2b2-set]|superserie|14|Tríceps|bilateral|5|0.0|1.0|9.515135589302384|23.07993842429445|0.6891761931824941|4.81907691246217|9.589077304811683|0.0"
+      ],
+      "python": {
+        "axial": {
+          "series": 12,
+          "comparaciones": 36,
+          "error_maximo": 1.7763568394002505e-15,
+          "acumulados": [
+            44.82729560595588,
+            72.5281851227722,
+            5.086350134839518
+          ]
+        },
+        "unilateral": {
+          "series": 10,
+          "comparaciones": 30,
+          "error_maximo": 1.7763568394002505e-15,
+          "acumulados": [
+            39.111373357950185,
+            60.44373232484858,
+            3.0956885189057486
+          ]
+        },
+        "superserie": {
+          "series": 15,
+          "comparaciones": 45,
+          "error_maximo": 1.7763568394002505e-15,
+          "acumulados": [
+            109.17319342519558,
+            170.4912248861297,
+            3.309665723084444
+          ]
+        }
+      },
+      "aprendiz": [
+        "[SIM-F11] 1.ª observación de Cuádriceps: Δτ con contador 0 = 9.00 h; con contador 40 = 0.90 h (cociente 0.10)",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=pectorales tras 8 observaciones propias tauVerdadero=48.0 usuarios=20 MAE=7.3 h sesgo=6.5 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=pectorales tras 16 observaciones propias tauVerdadero=48.0 usuarios=20 MAE=7.7 h sesgo=7.4 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=pectorales tras 30 observaciones propias tauVerdadero=48.0 usuarios=13 MAE=9.9 h sesgo=9.5 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=cns tras 8 observaciones propias tauVerdadero=36.0 usuarios=20 MAE=3.7 h sesgo=-2.7 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=cns tras 16 observaciones propias tauVerdadero=36.0 usuarios=20 MAE=4.0 h sesgo=-3.4 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=cns tras 30 observaciones propias tauVerdadero=36.0 usuarios=20 MAE=3.7 h sesgo=-3.5 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=spinal tras 8 observaciones propias tauVerdadero=52.0 usuarios=20 MAE=15.8 h sesgo=15.6 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=spinal tras 16 observaciones propias tauVerdadero=52.0 usuarios=20 MAE=19.0 h sesgo=19.0 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=spinal tras 30 observaciones propias tauVerdadero=52.0 usuarios=20 MAE=22.0 h sesgo=22.0 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=pectorales tras 60 gestos tauVerdadero=48.0 MAE=7.8 h sesgo=7.4 h obsMedias=18.2",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=pectorales tras 100 gestos tauVerdadero=48.0 MAE=9.2 h sesgo=9.0 h obsMedias=30.3",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=cns tras 60 gestos tauVerdadero=36.0 MAE=3.1 h sesgo=-3.1 h obsMedias=60.0",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=cns tras 100 gestos tauVerdadero=36.0 MAE=3.4 h sesgo=-3.4 h obsMedias=100.0",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=spinal tras 60 gestos tauVerdadero=52.0 MAE=28.2 h sesgo=28.2 h obsMedias=60.0",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto\" parámetro=spinal tras 100 gestos tauVerdadero=52.0 MAE=36.6 h sesgo=36.6 h obsMedias=100.0",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales tras 8 observaciones propias tauVerdadero=60.0 usuarios=20 MAE=4.8 h sesgo=-4.6 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales tras 16 observaciones propias tauVerdadero=60.0 usuarios=20 MAE=3.8 h sesgo=-2.8 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales tras 30 observaciones propias tauVerdadero=60.0 usuarios=13 MAE=2.8 h sesgo=-1.1 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns tras 8 observaciones propias tauVerdadero=45.0 usuarios=20 MAE=10.9 h sesgo=-10.9 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns tras 16 observaciones propias tauVerdadero=45.0 usuarios=20 MAE=11.2 h sesgo=-11.2 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns tras 30 observaciones propias tauVerdadero=45.0 usuarios=20 MAE=11.3 h sesgo=-11.3 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal tras 8 observaciones propias tauVerdadero=65.0 usuarios=20 MAE=8.1 h sesgo=5.4 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal tras 16 observaciones propias tauVerdadero=65.0 usuarios=20 MAE=11.2 h sesgo=11.0 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal tras 30 observaciones propias tauVerdadero=65.0 usuarios=20 MAE=15.2 h sesgo=15.2 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales tras 60 gestos tauVerdadero=60.0 MAE=3.7 h sesgo=-2.3 h obsMedias=18.2",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales tras 100 gestos tauVerdadero=60.0 MAE=3.0 h sesgo=-0.7 h obsMedias=30.3",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns tras 60 gestos tauVerdadero=45.0 MAE=10.8 h sesgo=-10.8 h obsMedias=60.0",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns tras 100 gestos tauVerdadero=45.0 MAE=9.7 h sesgo=-9.7 h obsMedias=100.0",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal tras 60 gestos tauVerdadero=65.0 MAE=21.2 h sesgo=21.2 h obsMedias=60.0",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal tras 100 gestos tauVerdadero=65.0 MAE=29.1 h sesgo=29.1 h obsMedias=100.0",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales tras 8 observaciones propias tauVerdadero=36.0 usuarios=20 MAE=17.6 h sesgo=17.6 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales tras 16 observaciones propias tauVerdadero=36.0 usuarios=20 MAE=18.1 h sesgo=18.1 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales tras 30 observaciones propias tauVerdadero=36.0 usuarios=13 MAE=19.1 h sesgo=19.1 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns tras 8 observaciones propias tauVerdadero=27.0 usuarios=20 MAE=5.2 h sesgo=5.0 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns tras 16 observaciones propias tauVerdadero=27.0 usuarios=20 MAE=4.2 h sesgo=4.0 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns tras 30 observaciones propias tauVerdadero=27.0 usuarios=20 MAE=3.5 h sesgo=3.1 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal tras 8 observaciones propias tauVerdadero=39.0 usuarios=20 MAE=29.1 h sesgo=29.1 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal tras 16 observaciones propias tauVerdadero=39.0 usuarios=20 MAE=33.5 h sesgo=33.5 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal tras 30 observaciones propias tauVerdadero=39.0 usuarios=20 MAE=36.3 h sesgo=36.3 h",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales tras 60 gestos tauVerdadero=36.0 MAE=18.0 h sesgo=18.0 h obsMedias=18.2",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales tras 100 gestos tauVerdadero=36.0 MAE=18.8 h sesgo=18.8 h obsMedias=30.3",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns tras 60 gestos tauVerdadero=27.0 MAE=2.8 h sesgo=2.4 h obsMedias=60.0",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns tras 100 gestos tauVerdadero=27.0 MAE=2.3 h sesgo=2.0 h obsMedias=100.0",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal tras 60 gestos tauVerdadero=39.0 MAE=40.7 h sesgo=40.7 h obsMedias=60.0",
+        "[SIM-BUCLE-LARGO] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal tras 100 gestos tauVerdadero=39.0 MAE=47.5 h sesgo=47.5 h obsMedias=100.0",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales tras 8 observaciones propias tauVerdadero=48.0 usuarios=20 MAE=7.9 h sesgo=7.2 h",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales tras 16 observaciones propias tauVerdadero=48.0 usuarios=20 MAE=8.5 h sesgo=8.1 h",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales tras 30 observaciones propias tauVerdadero=48.0 usuarios=13 MAE=10.5 h sesgo=10.3 h",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=cns tras 8 observaciones propias tauVerdadero=36.0 usuarios=20 MAE=3.7 h sesgo=-0.7 h",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=cns tras 16 observaciones propias tauVerdadero=36.0 usuarios=20 MAE=3.5 h sesgo=-1.0 h",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=cns tras 30 observaciones propias tauVerdadero=36.0 usuarios=20 MAE=3.1 h sesgo=-1.1 h",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal tras 8 observaciones propias tauVerdadero=52.0 usuarios=20 MAE=16.8 h sesgo=16.8 h",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal tras 16 observaciones propias tauVerdadero=52.0 usuarios=20 MAE=20.8 h sesgo=20.8 h",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal tras 30 observaciones propias tauVerdadero=52.0 usuarios=20 MAE=24.2 h sesgo=24.2 h",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales tras 60 gestos tauVerdadero=48.0 MAE=8.6 h sesgo=8.1 h obsMedias=18.2",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales tras 100 gestos tauVerdadero=48.0 MAE=10.1 h sesgo=10.0 h obsMedias=30.3",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=cns tras 60 gestos tauVerdadero=36.0 MAE=2.3 h sesgo=-0.5 h obsMedias=60.0",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=cns tras 100 gestos tauVerdadero=36.0 MAE=1.8 h sesgo=-0.5 h obsMedias=100.0",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal tras 60 gestos tauVerdadero=52.0 MAE=32.5 h sesgo=32.5 h obsMedias=60.0",
+        "[SIM-BUCLE-LARGO] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal tras 100 gestos tauVerdadero=52.0 MAE=43.9 h sesgo=43.9 h obsMedias=100.0",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=pequeña h=8 batería=92 estrés=11.0 X=0.12 tauImplícito=37.5 cociente=1.56",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=pequeña h=12 batería=94 estrés=11.0 X=0.12 tauImplícito=29.6 cociente=1.23",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=pequeña h=24 batería=97 estrés=11.0 X=0.12 tauImplícito=27.6 cociente=1.15",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=pequeña h=48 batería=100 estrés=11.0 X=0.12 tauImplícito=52.4 cociente=2.19",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=pequeña h=8 batería=91 estrés=11.0 X=0.12 tauImplícito=59.3 cociente=1.65",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=pequeña h=12 batería=92 estrés=11.0 X=0.12 tauImplícito=56.2 cociente=1.56",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=pequeña h=24 batería=95 estrés=11.0 X=0.12 tauImplícito=45.5 cociente=1.26",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=pequeña h=48 batería=100 estrés=11.0 X=0.12 tauImplícito=52.4 cociente=1.46",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=pequeña h=8 batería=90 estrés=11.0 X=0.12 tauImplícito=124.0 cociente=2.58",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=pequeña h=12 batería=91 estrés=11.0 X=0.12 tauImplícito=89.0 cociente=1.85",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=pequeña h=24 batería=94 estrés=11.0 X=0.12 tauImplícito=59.2 cociente=1.23",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=pequeña h=48 batería=99 estrés=11.0 X=0.12 tauImplícito=52.4 cociente=1.09",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=pequeña h=8 batería=90 estrés=11.0 X=0.12 tauImplícito=124.0 cociente=1.72",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=pequeña h=12 batería=90 estrés=11.0 X=0.12 tauImplícito=186.1 cociente=2.58",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=pequeña h=24 batería=92 estrés=11.0 X=0.12 tauImplícito=112.4 cociente=1.56",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=pequeña h=48 batería=98 estrés=11.0 X=0.12 tauImplícito=73.7 cociente=1.02",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=media h=8 batería=81 estrés=26.8 X=0.31 tauImplícito=34.8 cociente=1.45",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=media h=12 batería=85 estrés=26.8 X=0.31 tauImplícito=31.0 cociente=1.29",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=media h=24 batería=93 estrés=26.8 X=0.31 tauImplícito=26.8 cociente=1.12",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=media h=48 batería=100 estrés=26.8 X=0.31 tauImplícito=38.3 cociente=1.59",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=media h=8 batería=78 estrés=26.8 X=0.31 tauImplícito=60.8 cociente=1.69",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=media h=12 batería=81 estrés=26.8 X=0.31 tauImplícito=52.3 cociente=1.45",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=media h=24 batería=88 estrés=26.8 X=0.31 tauImplícito=44.7 cociente=1.24",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=media h=48 batería=99 estrés=26.8 X=0.31 tauImplícito=38.3 cociente=1.06",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=media h=8 batería=76 estrés=26.8 X=0.31 tauImplícito=108.7 cociente=2.26",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=media h=12 batería=79 estrés=26.8 X=0.31 tauImplícito=73.7 cociente=1.54",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=media h=24 batería=85 estrés=26.8 X=0.31 tauImplícito=62.0 cociente=1.29",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=media h=48 batería=98 estrés=26.8 X=0.31 tauImplícito=48.5 cociente=1.01",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=media h=8 batería=75 estrés=26.8 X=0.31 tauImplícito=172.6 cociente=2.40",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=media h=12 batería=76 estrés=26.8 X=0.31 tauImplícito=163.1 cociente=2.26",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=media h=24 batería=81 estrés=26.8 X=0.31 tauImplícito=104.5 cociente=1.45",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=media h=48 batería=94 estrés=26.8 X=0.31 tauImplícito=84.1 cociente=1.17",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=grande h=8 batería=68 estrés=43.4 X=0.57 tauImplícito=39.4 cociente=1.64",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=grande h=12 batería=74 estrés=43.4 X=0.57 tauImplícito=35.1 cociente=1.46",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=grande h=24 batería=87 estrés=43.4 X=0.57 tauImplícito=29.8 cociente=1.24",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=grande h=48 batería=100 estrés=43.4 X=0.57 tauImplícito=33.4 cociente=1.39",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=grande h=8 batería=64 estrés=43.4 X=0.57 tauImplícito=64.2 cociente=1.78",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=grande h=12 batería=68 estrés=43.4 X=0.57 tauImplícito=59.1 cociente=1.64",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=grande h=24 batería=79 estrés=43.4 X=0.57 tauImplícito=49.5 cociente=1.38",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=grande h=48 batería=98 estrés=43.4 X=0.57 tauImplícito=40.9 cociente=1.14",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=grande h=8 batería=61 estrés=43.4 X=0.57 tauImplícito=112.5 cociente=2.34",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=grande h=12 batería=65 estrés=43.4 X=0.57 tauImplícito=83.7 cociente=1.74",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=grande h=24 batería=74 estrés=43.4 X=0.57 tauImplícito=70.2 cociente=1.46",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=grande h=48 batería=96 estrés=43.4 X=0.57 tauImplícito=52.8 cociente=1.10",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=grande h=8 batería=59 estrés=43.4 X=0.57 tauImplícito=200.0 cociente=2.78",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=grande h=12 batería=61 estrés=43.4 X=0.57 tauImplícito=168.7 cociente=2.34",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=grande h=24 batería=68 estrés=43.4 X=0.57 tauImplícito=118.1 cociente=1.64",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=grande h=48 batería=90 estrés=43.4 X=0.57 tauImplícito=85.7 cociente=1.19",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=muy grande h=8 batería=59 estrés=54.2 X=0.78 tauImplícito=42.9 cociente=1.79",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=muy grande h=12 batería=66 estrés=54.2 X=0.78 tauImplícito=38.5 cociente=1.61",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=muy grande h=24 batería=82 estrés=54.2 X=0.78 tauImplícito=32.6 cociente=1.36",
+        "[SIM-INV-RATIO] canal=músculo tau=24.0 tamaño=muy grande h=48 batería=100 estrés=54.2 X=0.78 tauImplícito=31.5 cociente=1.31",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=muy grande h=8 batería=54 estrés=54.2 X=0.78 tauImplícito=73.1 cociente=2.03",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=muy grande h=12 batería=59 estrés=54.2 X=0.78 tauImplícito=64.4 cociente=1.79",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=muy grande h=24 batería=73 estrés=54.2 X=0.78 tauImplícito=51.6 cociente=1.43",
+        "[SIM-INV-RATIO] canal=músculo tau=36.0 tamaño=muy grande h=48 batería=97 estrés=54.2 X=0.78 tauImplícito=43.5 cociente=1.21",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=muy grande h=8 batería=51 estrés=54.2 X=0.78 tauImplícito=118.9 cociente=2.48",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=muy grande h=12 batería=55 estrés=54.2 X=0.78 tauImplícito=96.7 cociente=2.01",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=muy grande h=24 batería=66 estrés=54.2 X=0.78 tauImplícito=77.1 cociente=1.61",
+        "[SIM-INV-RATIO] canal=músculo tau=48.0 tamaño=muy grande h=48 batería=94 estrés=54.2 X=0.78 tauImplícito=57.2 cociente=1.19",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=muy grande h=8 batería=48 estrés=54.2 X=0.78 tauImplícito=200.0 cociente=2.78",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=muy grande h=12 batería=51 estrés=54.2 X=0.78 tauImplícito=178.3 cociente=2.48",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=muy grande h=24 batería=59 estrés=54.2 X=0.78 tauImplícito=128.8 cociente=1.79",
+        "[SIM-INV-RATIO] canal=músculo tau=72.0 tamaño=muy grande h=48 batería=86 estrés=54.2 X=0.78 tauImplícito=93.0 cociente=1.29",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=pequeña h=8 batería=96 estrés=18.0 tauImplícito=15.9 cociente=0.44",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=pequeña h=8 batería=98 estrés=3.0 tauImplícito=59.1 cociente=1.14",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=pequeña h=12 batería=97 estrés=18.0 tauImplícito=20.1 cociente=0.56",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=pequeña h=12 batería=98 estrés=3.0 tauImplícito=88.7 cociente=1.70",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=pequeña h=24 batería=99 estrés=18.0 tauImplícito=24.9 cociente=0.69",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=pequeña h=24 batería=100 estrés=3.0 tauImplícito=114.5 cociente=2.20",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=pequeña h=48 batería=100 estrés=18.0 tauImplícito=49.7 cociente=1.38",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=pequeña h=48 batería=100 estrés=3.0 tauImplícito=180.0 cociente=3.46",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=media h=8 batería=90 estrés=45.0 tauImplícito=15.9 cociente=0.44",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=media h=8 batería=93 estrés=11.0 tauImplícito=53.0 cociente=1.02",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=media h=12 batería=93 estrés=45.0 tauImplícito=19.3 cociente=0.54",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=media h=12 batería=94 estrés=11.0 tauImplícito=59.3 cociente=1.14",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=media h=24 batería=97 estrés=45.0 tauImplícito=26.5 cociente=0.74",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=media h=24 batería=99 estrés=11.0 tauImplícito=52.5 cociente=1.01",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=media h=48 batería=100 estrés=45.0 tauImplícito=37.8 cociente=1.05",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=media h=48 batería=100 estrés=11.0 tauImplícito=82.5 cociente=1.59",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=grande h=8 batería=88 estrés=54.0 tauImplícito=15.9 cociente=0.44",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=grande h=8 batería=88 estrés=18.0 tauImplícito=59.1 cociente=1.14",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=grande h=12 batería=91 estrés=54.0 tauImplícito=20.1 cociente=0.56",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=grande h=12 batería=90 estrés=18.0 tauImplícito=61.2 cociente=1.18",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=grande h=24 batería=97 estrés=54.0 tauImplícito=24.9 cociente=0.69",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=grande h=24 batería=98 estrés=18.0 tauImplícito=57.3 cociente=1.10",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=grande h=48 batería=100 estrés=54.0 tauImplícito=36.0 cociente=1.00",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=grande h=48 batería=100 estrés=18.0 tauImplícito=68.4 cociente=1.32",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=muy grande h=8 batería=86 estrés=65.0 tauImplícito=15.6 cociente=0.43",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=muy grande h=8 batería=80 estrés=29.0 tauImplícito=64.5 cociente=1.24",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=muy grande h=12 batería=90 estrés=65.0 tauImplícito=19.2 cociente=0.53",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=muy grande h=12 batería=84 estrés=29.0 tauImplícito=60.4 cociente=1.16",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=muy grande h=24 batería=96 estrés=65.0 tauImplícito=25.8 cociente=0.72",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=muy grande h=24 batería=97 estrés=29.0 tauImplícito=55.5 cociente=1.07",
+        "[SIM-INV-RATIO] canal=Energía tau=36.0 tamaño=muy grande h=48 batería=99 estrés=65.0 tauImplícito=34.4 cociente=0.96",
+        "[SIM-INV-RATIO] canal=Columna tau=52.0 tamaño=muy grande h=48 batería=99 estrés=29.0 tauImplícito=58.7 cociente=1.13",
+        "[SIM-INV-RATIO] RESUMEN músculo  8h: ×1.45–×2.78  12h: ×1.23–×2.58  24h: ×1.12–×1.79  48h: ×1.01–×2.19",
+        "[SIM-INV-RATIO] RESUMEN Energía  8h: ×0.43–×0.44  12h: ×0.53–×0.56  24h: ×0.69–×0.74  48h: ×0.96–×1.38",
+        "[SIM-INV-RATIO] RESUMEN Columna  8h: ×1.02–×1.24  12h: ×1.14–×1.70  24h: ×1.01–×2.20  48h: ×1.13–×3.46",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=pectorales n=8 tauVerdadero=48.0 usuarios=60 MAE=5.7 h (11.9 % del τ) sesgo=4.7 h obsMedias=2.4",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=pectorales n=16 tauVerdadero=48.0 usuarios=60 MAE=6.6 h (13.7 % del τ) sesgo=5.9 h obsMedias=4.9",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=pectorales n=30 tauVerdadero=48.0 usuarios=60 MAE=7.3 h (15.2 % del τ) sesgo=6.9 h obsMedias=9.4",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=cns n=8 tauVerdadero=36.0 usuarios=60 MAE=3.7 h (10.4 % del τ) sesgo=-3.0 h obsMedias=8.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=cns n=16 tauVerdadero=36.0 usuarios=60 MAE=4.0 h (11.1 % del τ) sesgo=-3.5 h obsMedias=16.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=cns n=30 tauVerdadero=36.0 usuarios=60 MAE=3.7 h (10.4 % del τ) sesgo=-3.6 h obsMedias=30.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=spinal n=8 tauVerdadero=52.0 usuarios=60 MAE=16.3 h (31.4 % del τ) sesgo=16.3 h obsMedias=8.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=spinal n=16 tauVerdadero=52.0 usuarios=60 MAE=19.8 h (38.1 % del τ) sesgo=19.8 h obsMedias=16.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" parámetro=spinal n=30 tauVerdadero=52.0 usuarios=60 MAE=22.9 h (44.1 % del τ) sesgo=22.9 h obsMedias=30.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[pectorales]: 67.5 % (268 de 397 contadas, 453 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[energía]: 51.1 % (542 de 1061 contadas, 1316 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[columna]: 67.6 % (804 de 1190 contadas, 1223 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[todos los músculos]: 67.8 % (2370 de 3493 contadas, 3919 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" alejan[todos los parámetros]: 64.7 % (3716 de 5744 contadas, 6458 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" guarda de planta (sentido == predicho ⇒ no se aprende): MUSCLE: planta 1481 de 5400 (27.4 %)  ENERGY: planta 484 de 1800 (26.9 %)  SPINAL: planta 574 de 1800 (31.9 %)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" actualizaciones de τ por usuario en 30 gestos: 107.6",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" cociente implícito/verdadero con ruido [pectorales]: 8-30 h: ×NaN (n=0)  30-60 h: ×1.80 (n=421)  >60 h: ×3.45 (n=32)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" cociente implícito/verdadero con ruido [energía]: 8-30 h: ×0.70 (n=821)  30-60 h: ×1.36 (n=291)  >60 h: ×2.08 (n=204)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto\" cociente implícito/verdadero con ruido [columna]: 8-30 h: ×1.93 (n=790)  30-60 h: ×3.14 (n=255)  >60 h: ×3.51 (n=178)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales n=8 tauVerdadero=60.0 usuarios=60 MAE=7.0 h (11.7 % del τ) sesgo=-7.0 h obsMedias=2.4",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales n=16 tauVerdadero=60.0 usuarios=60 MAE=5.9 h (9.9 % del τ) sesgo=-5.7 h obsMedias=4.9",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=pectorales n=30 tauVerdadero=60.0 usuarios=60 MAE=5.2 h (8.6 % del τ) sesgo=-4.4 h obsMedias=9.4",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns n=8 tauVerdadero=45.0 usuarios=60 MAE=8.8 h (19.6 % del τ) sesgo=-8.8 h obsMedias=8.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns n=16 tauVerdadero=45.0 usuarios=60 MAE=9.2 h (20.4 % del τ) sesgo=-9.2 h obsMedias=16.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=cns n=30 tauVerdadero=45.0 usuarios=60 MAE=9.4 h (20.9 % del τ) sesgo=-9.4 h obsMedias=30.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal n=8 tauVerdadero=65.0 usuarios=60 MAE=7.3 h (11.2 % del τ) sesgo=4.1 h obsMedias=8.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal n=16 tauVerdadero=65.0 usuarios=60 MAE=10.6 h (16.3 % del τ) sesgo=9.7 h obsMedias=16.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" parámetro=spinal n=30 tauVerdadero=65.0 usuarios=60 MAE=14.3 h (22.0 % del τ) sesgo=14.2 h obsMedias=30.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[pectorales]: 33.9 % (139 de 410 contadas, 467 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[energía]: 53.4 % (722 de 1352 contadas, 1367 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[columna]: 58.8 % (687 de 1168 contadas, 1270 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[todos los músculos]: 36.2 % (1302 de 3593 contadas, 4042 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" alejan[todos los parámetros]: 44.3 % (2711 de 6113 contadas, 6679 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" guarda de planta (sentido == predicho ⇒ no se aprende): MUSCLE: planta 1358 de 5400 (25.1 %)  ENERGY: planta 433 de 1800 (24.1 %)  SPINAL: planta 526 de 1800 (29.2 %)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" actualizaciones de τ por usuario en 30 gestos: 111.3",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" cociente implícito/verdadero con ruido [pectorales]: 8-30 h: ×NaN (n=0)  30-60 h: ×1.58 (n=437)  >60 h: ×2.94 (n=30)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" cociente implícito/verdadero con ruido [energía]: 8-30 h: ×0.65 (n=812)  30-60 h: ×1.07 (n=350)  >60 h: ×1.68 (n=205)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 1,25\" cociente implícito/verdadero con ruido [columna]: 8-30 h: ×1.64 (n=794)  30-60 h: ×2.46 (n=275)  >60 h: ×2.80 (n=201)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales n=8 tauVerdadero=36.0 usuarios=60 MAE=16.0 h (44.4 % del τ) sesgo=16.0 h obsMedias=2.4",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales n=16 tauVerdadero=36.0 usuarios=60 MAE=16.8 h (46.7 % del τ) sesgo=16.8 h obsMedias=4.9",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=pectorales n=30 tauVerdadero=36.0 usuarios=60 MAE=17.4 h (48.4 % del τ) sesgo=17.4 h obsMedias=9.4",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns n=8 tauVerdadero=27.0 usuarios=60 MAE=4.6 h (17.1 % del τ) sesgo=4.4 h obsMedias=8.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns n=16 tauVerdadero=27.0 usuarios=60 MAE=4.0 h (14.9 % del τ) sesgo=3.7 h obsMedias=16.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=cns n=30 tauVerdadero=27.0 usuarios=60 MAE=3.4 h (12.7 % del τ) sesgo=3.0 h obsMedias=30.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal n=8 tauVerdadero=39.0 usuarios=60 MAE=27.0 h (69.1 % del τ) sesgo=27.0 h obsMedias=8.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal n=16 tauVerdadero=39.0 usuarios=60 MAE=30.8 h (78.9 % del τ) sesgo=30.8 h obsMedias=16.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" parámetro=spinal n=30 tauVerdadero=39.0 usuarios=60 MAE=34.5 h (88.6 % del τ) sesgo=34.5 h obsMedias=30.0",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[pectorales]: 61.9 % (288 de 465 contadas, 465 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[energía]: 42.6 % (435 de 1022 contadas, 1254 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[columna]: 67.3 % (837 de 1243 contadas, 1243 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[todos los músculos]: 60.2 % (2400 de 3985 contadas, 4025 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" alejan[todos los parámetros]: 58.8 % (3672 de 6250 contadas, 6522 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" guarda de planta (sentido == predicho ⇒ no se aprende): MUSCLE: planta 1375 de 5400 (25.5 %)  ENERGY: planta 546 de 1800 (30.3 %)  SPINAL: planta 556 de 1800 (30.9 %)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" actualizaciones de τ por usuario en 30 gestos: 108.7",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" cociente implícito/verdadero con ruido [pectorales]: 8-30 h: ×NaN (n=0)  30-60 h: ×2.08 (n=429)  >60 h: ×4.96 (n=36)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" cociente implícito/verdadero con ruido [energía]: 8-30 h: ×0.83 (n=828)  30-60 h: ×1.78 (n=232)  >60 h: ×2.83 (n=194)",
+        "[SIM-BUCLE] escenario=\"tau verdadero = defecto x 0,75\" cociente implícito/verdadero con ruido [columna]: 8-30 h: ×2.47 (n=790)  30-60 h: ×4.23 (n=264)  >60 h: ×4.61 (n=189)",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales n=8 tauVerdadero=48.0 usuarios=60 MAE=5.9 h (12.4 % del τ) sesgo=4.9 h obsMedias=2.4",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales n=16 tauVerdadero=48.0 usuarios=60 MAE=6.8 h (14.2 % del τ) sesgo=6.2 h obsMedias=4.9",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=pectorales n=30 tauVerdadero=48.0 usuarios=60 MAE=7.7 h (16.1 % del τ) sesgo=7.2 h obsMedias=9.4",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=cns n=8 tauVerdadero=36.0 usuarios=60 MAE=3.6 h (10.1 % del τ) sesgo=-1.2 h obsMedias=8.0",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=cns n=16 tauVerdadero=36.0 usuarios=60 MAE=3.5 h (9.6 % del τ) sesgo=-1.4 h obsMedias=16.0",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=cns n=30 tauVerdadero=36.0 usuarios=60 MAE=2.9 h (8.1 % del τ) sesgo=-1.3 h obsMedias=30.0",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal n=8 tauVerdadero=52.0 usuarios=60 MAE=16.8 h (32.4 % del τ) sesgo=16.8 h obsMedias=8.0",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal n=16 tauVerdadero=52.0 usuarios=60 MAE=21.1 h (40.6 % del τ) sesgo=21.1 h obsMedias=16.0",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" parámetro=spinal n=30 tauVerdadero=52.0 usuarios=60 MAE=25.1 h (48.2 % del τ) sesgo=25.1 h obsMedias=30.0",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[pectorales]: 68.7 % (288 de 419 contadas, 474 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[energía]: 47.9 % (484 de 1011 contadas, 1384 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[columna]: 68.7 % (871 de 1268 contadas, 1297 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[todos los músculos]: 67.8 % (2511 de 3706 contadas, 4095 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" alejan[todos los parámetros]: 64.6 % (3866 de 5985 contadas, 6776 actualizaciones)",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" guarda de planta (sentido == predicho ⇒ no se aprende): MUSCLE: planta 1305 de 5400 (24.2 %)  ENERGY: planta 416 de 1800 (23.1 %)  SPINAL: planta 500 de 1800 (27.8 %)",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" actualizaciones de τ por usuario en 30 gestos: 112.9",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" cociente implícito/verdadero con ruido [pectorales]: 8-30 h: ×NaN (n=0)  30-60 h: ×2.08 (n=441)  >60 h: ×3.86 (n=33)",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" cociente implícito/verdadero con ruido [energía]: 8-30 h: ×0.77 (n=843)  30-60 h: ×1.55 (n=329)  >60 h: ×2.59 (n=212)",
+        "[SIM-BUCLE] escenario=\"usuario ruidoso sigma=7\" cociente implícito/verdadero con ruido [columna]: 8-30 h: ×2.13 (n=827)  30-60 h: ×3.28 (n=275)  >60 h: ×3.59 (n=195)",
+        "[SIM-F11] referencia aprendiz congelado ×1,25 @30: pectorales MAE 12.0 h  cns MAE 9.0 h  spinal MAE 13.0 h",
+        "[SIM-F11] Pectorales a 24 h: τ=12 → 95, τ=18 → 95, τ=48 → 85; Energía a 8 h: τ=12 → 97, τ=18 → 95",
+        "[SIM-F11] 1 punto de diferencia (74 sentido, 75 predicho): τ(Cuádriceps) 72,0 → 81.00"
+      ],
+      "pines": [
+        "[PIN] t=0h energyHard=81 spinalHard=93 chestHard=73 energyLight=91 chestLight=93",
+        "[PIN] t=12h energyHard=93 spinalHard=96 chestHard=80 energyLight=96 chestLight=95",
+        "[PIN] t=24h energyHard=97 spinalHard=99 chestHard=86 energyLight=99 chestLight=96",
+        "[PIN] t=48h energyHard=100 spinalHard=100 chestHard=98 energyLight=100 chestLight=99",
+        "[PIN] t=72h energyHard=100 spinalHard=100 chestHard=100 energyLight=100 chestLight=100",
+        "[PIN] energy 1x=88 3x=86 5x=86"
+      ],
+      "realismo": [
+        "[PIN] hard=80 light=90",
+        "[PIN] extreme 6-day hard Pectorales=70",
+        "[PIN] chestHard immediate Pectorales=80 (expected 78-86 post ×10 capacity)",
+        "[PIN] capacity floor: single=80 withHistory=80",
+        "[PIN] chestHard 24h Pectorales=90 (expected 88-93 post-fix)",
+        "[PIN] fullbody Pectorales=90",
+        "[PIN] fullbody Cuádriceps=91",
+        "[PIN] fullbody Dorsales=92"
+      ],
+      "invariantes": [
+        "[SIM-INV] rango/suelos: valores comprobados=20679 violaciones=0",
+        "[SIM-INV] monotonía: pares sin sesión nueva=288 comparaciones=9216 subidas estrictas=3222 violaciones=0 caída máxima=0",
+        "[SIM-INV] monotonía del drenaje: cadenas=42 comparaciones=4046 violaciones=0",
+        "[SIM-INV] conformidad ruta rápida: instantes=5 comparaciones=105 discrepancias=0",
+        "[SIM-INV] ACWR: muestras nulas=174 no nulas=165 violaciones=0"
+      ],
+      "paridad": [
+        "[SIM-PARIDAD] RESUMEN variante=real puntos=42 máx|Δ| por músculo=3(Deltoides L1#5 Empuje) muscular=4 energía=0 columnaCruda=0 estructura=1 global=4 Δmúsculo>1 en 20 de 42",
+        "[SIM-PARIDAD] RESUMEN variante=pesada puntos=42 máx|Δ| por músculo=4(Deltoides L1#5 Empuje) muscular=7 energía=0 columnaCruda=0 estructura=1 global=7 Δmúsculo>1 en 33 de 42",
+        "[SIM-PARIDAD] RESUMEN variante=ligera puntos=42 máx|Δ| por músculo=2(Glúteos L1#4 Piernas) muscular=2 energía=0 columnaCruda=0 estructura=1 global=2 Δmúsculo>1 en 10 de 42",
+        "[SIM-PARIDAD] RESUMEN GLOBAL puntos=126 máx|Δ|=7 Δ medio por músculo=0.23"
+      ],
+      "contrafactual_zombi": [
+        {
+          "caso": "superserie",
+          "antes": "history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=91, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)",
+          "despues": "history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=92, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)"
+        },
+        {
+          "caso": "superserie",
+          "antes": "history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=OPTIMAL)",
+          "despues": "history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=94, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=OPTIMAL)"
+        },
+        {
+          "caso": "cardio",
+          "antes": "history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=7, status=FRESH)",
+          "despues": "history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=7, status=FRESH)"
+        },
+        {
+          "caso": "sin-ficha",
+          "antes": "history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=7, status=FRESH)",
+          "despues": "history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=7, status=FRESH)"
+        }
+      ],
+      "golden": [
+        {
+          "caso": "A09",
+          "instante": "t=0h",
+          "campo": "rings",
+          "antes": "rings=97,87,99",
+          "despues": "rings=97,89,99",
+          "deltas": [
+            2.0
+          ]
+        },
+        {
+          "caso": "A09",
+          "instante": "t=0h",
+          "campo": "energy",
+          "antes": "energy=bat:87,gym:13,life:0",
+          "despues": "energy=bat:89,gym:11,life:0",
+          "deltas": [
+            2.0,
+            2.0
+          ]
+        },
+        {
+          "caso": "A09",
+          "instante": "t=0h",
+          "campo": "dash",
+          "antes": "dash=overall:94;conf:Baja;MUSCULAR:97/HIGH/52;STRUCTURE:99/HIGH/44;SYSTEM:87/HIGH/44",
+          "despues": "dash=overall:94;conf:Baja;MUSCULAR:97/HIGH/52;STRUCTURE:99/HIGH/44;SYSTEM:89/HIGH/44",
+          "deltas": [
+            2.0
+          ]
+        },
+        {
+          "caso": "A09",
+          "instante": "t=6h",
+          "campo": "rings",
+          "antes": "rings=98,92,99",
+          "despues": "rings=98,93,100",
+          "deltas": [
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "caso": "A09",
+          "instante": "t=6h",
+          "campo": "energy",
+          "antes": "energy=bat:92,gym:8,life:0",
+          "despues": "energy=bat:93,gym:7,life:0",
+          "deltas": [
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "caso": "A09",
+          "instante": "t=6h",
+          "campo": "spinal",
+          "antes": "spinal=99",
+          "despues": "spinal=100",
+          "deltas": [
+            1.0
+          ]
+        },
+        {
+          "caso": "A09",
+          "instante": "t=6h",
+          "campo": "dash",
+          "antes": "dash=overall:96;conf:Baja;MUSCULAR:98/HIGH/52;STRUCTURE:99/HIGH/44;SYSTEM:92/HIGH/44",
+          "despues": "dash=overall:97;conf:Baja;MUSCULAR:98/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:93/HIGH/44",
+          "deltas": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "caso": "A09",
+          "instante": "t=12h",
+          "campo": "rings",
+          "antes": "rings=98,95,100",
+          "despues": "rings=98,96,100",
+          "deltas": [
+            1.0
+          ]
+        },
+        {
+          "caso": "A09",
+          "instante": "t=12h",
+          "campo": "energy",
+          "antes": "energy=bat:95,gym:5,life:0",
+          "despues": "energy=bat:96,gym:4,life:0",
+          "deltas": [
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "caso": "A09",
+          "instante": "t=12h",
+          "campo": "dash",
+          "antes": "dash=overall:97;conf:Baja;MUSCULAR:98/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:95/HIGH/44",
+          "despues": "dash=overall:98;conf:Baja;MUSCULAR:98/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:96/HIGH/44",
+          "deltas": [
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "caso": "A09",
+          "instante": "t=24h",
+          "campo": "rings",
+          "antes": "rings=98,98,100",
+          "despues": "rings=98,99,100",
+          "deltas": [
+            1.0
+          ]
+        },
+        {
+          "caso": "A09",
+          "instante": "t=24h",
+          "campo": "energy",
+          "antes": "energy=bat:98,gym:2,life:0",
+          "despues": "energy=bat:99,gym:1,life:0",
+          "deltas": [
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "caso": "A09",
+          "instante": "t=24h",
+          "campo": "dash",
+          "antes": "dash=overall:99;conf:Baja;MUSCULAR:98/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:98/HIGH/44",
+          "despues": "dash=overall:99;conf:Baja;MUSCULAR:98/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:99/HIGH/44",
+          "deltas": [
+            1.0
+          ]
+        }
+      ],
+      "resumen": {
+        "Total": {
+          "campos_distintos": 13,
+          "numeros_distintos": 21,
+          "maximo": 2.0,
+          "media": 1.1904761904761905
+        },
+        "A": {
+          "campos_distintos": 13,
+          "numeros_distintos": 21,
+          "maximo": 2.0,
+          "media": 1.1904761904761905
+        },
+        "B": {
+          "campos_distintos": 0,
+          "numeros_distintos": 0,
+          "maximo": 0,
+          "media": 0.0
+        },
+        "C": {
+          "campos_distintos": 0,
+          "numeros_distintos": 0,
+          "maximo": 0,
+          "media": 0.0
+        },
+        "D": {
+          "campos_distintos": 0,
+          "numeros_distintos": 0,
+          "maximo": 0,
+          "media": 0.0
+        },
+        "E": {
+          "campos_distintos": 0,
+          "numeros_distintos": 0,
+          "maximo": 0,
+          "media": 0.0
+        },
+        "Músculos": {
+          "campos_distintos": 0,
+          "numeros_distintos": 0,
+          "maximo": 0,
+          "media": 0.0
+        },
+        "Energía": {
+          "campos_distintos": 12,
+          "numeros_distintos": 16,
+          "maximo": 2.0,
+          "media": 1.25
+        },
+        "Columna": {
+          "campos_distintos": 3,
+          "numeros_distintos": 3,
+          "maximo": 1.0,
+          "media": 1.0
+        },
+        "Panel/mixto": {
+          "campos_distintos": 2,
+          "numeros_distintos": 2,
+          "maximo": 1.0,
+          "media": 1.0
+        }
+      },
+      "caracterizaciones": [
+        {
+          "caso": "domain/unilateral",
+          "antes": "stress[Cuádriceps]=309.052421[4644144523880311924]",
+          "despues": "stress[Cuádriceps]=436.761771[4646391210519028833]"
+        },
+        {
+          "caso": "domain/unilateral",
+          "antes": "stress[Erectores Espinales]=23.405114[4627281171721953750]",
+          "despues": "stress[Erectores Espinales]=56.640717[4633168289503428970]"
+        },
+        {
+          "caso": "domain/unilateral",
+          "antes": "history[0].energy=(70, 30, 0)",
+          "despues": "history[0].energy=(73, 27, 0)"
+        },
+        {
+          "caso": "domain/unilateral",
+          "antes": "history[0].spinal=90",
+          "despues": "history[0].spinal=93"
+        },
+        {
+          "caso": "domain/unilateral",
+          "antes": "history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=94, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)",
+          "despues": "history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=92, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)"
+        },
+        {
+          "caso": "domain/unilateral",
+          "antes": "history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)",
+          "despues": "history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)"
+        },
+        {
+          "caso": "domain/unilateral",
+          "antes": "history[6].energy=(80, 20, 0)",
+          "despues": "history[6].energy=(83, 17, 0)"
+        },
+        {
+          "caso": "domain/unilateral",
+          "antes": "history[6].spinal=93",
+          "despues": "history[6].spinal=95"
+        },
+        {
+          "caso": "domain/unilateral",
+          "antes": "history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=10, status=OPTIMAL)",
+          "despues": "history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=93, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=10, status=OPTIMAL)"
+        },
+        {
+          "caso": "domain/unilateral",
+          "antes": "history[24].energy=(95, 5, 0)",
+          "despues": "history[24].energy=(96, 4, 0)"
+        },
+        {
+          "caso": "domain/unilateral",
+          "antes": "history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=10, status=FRESH)",
+          "despues": "history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=10, status=FRESH)"
+        }
+      ],
+      "cambios_pines": [],
+      "cambios_realismo": [],
+      "cambios_aprendiz": [],
+      "reanclajes": [],
+      "golden_sha256": "780b6adbb416866b8aceac385f71f2bf93ca48e8d029ed5f28dc2622dad70f0d"
+    }
+  },
+  "total": {
+    "golden": [
+      {
+        "caso": "A01",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:57,spinal:9,muscular:61",
+        "despues": "drain=cns:56,spinal:10,muscular:59",
+        "deltas": [
+          1.0,
+          1.0,
+          2.0
+        ]
+      },
+      {
+        "caso": "A01",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:25;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:4",
+        "despues": "pm=Cuádriceps:24;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:4",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A01",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=61",
+        "despues": "v2global=59",
+        "deltas": [
+          2.0
+        ]
+      },
+      {
+        "caso": "A01",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=90,77,91",
+        "despues": "rings=90,78,90",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A01",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:77,gym:23,life:0",
+        "despues": "energy=bat:78,gym:22,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A01",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=91",
+        "despues": "spinal=90",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A01",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:85;conf:Baja;MUSCULAR:90/HIGH/52;STRUCTURE:91/HIGH/44;SYSTEM:77/NORMAL/44",
+        "despues": "dash=overall:85;conf:Baja;MUSCULAR:90/HIGH/52;STRUCTURE:90/HIGH/44;SYSTEM:78/NORMAL/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A02",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:57,spinal:8,muscular:59",
+        "despues": "drain=cns:56,spinal:8,muscular:58",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A02",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=59",
+        "despues": "v2global=58",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A02",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=91,77,99",
+        "despues": "rings=91,78,99",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A02",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:77,gym:23,life:0",
+        "despues": "energy=bat:78,gym:22,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A02",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:87;conf:Baja;MUSCULAR:91/HIGH/52;STRUCTURE:98/HIGH/44;SYSTEM:77/NORMAL/44",
+        "despues": "dash=overall:88;conf:Baja;MUSCULAR:91/HIGH/52;STRUCTURE:98/HIGH/44;SYSTEM:78/NORMAL/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A02",
+        "instante": "t=6h",
+        "campo": "rings",
+        "antes": "rings=93,85,99",
+        "despues": "rings=93,86,99",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A02",
+        "instante": "t=6h",
+        "campo": "energy",
+        "antes": "energy=bat:85,gym:15,life:0",
+        "despues": "energy=bat:86,gym:14,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A02",
+        "instante": "t=6h",
+        "campo": "dash",
+        "antes": "dash=overall:91;conf:Baja;MUSCULAR:93/HIGH/52;STRUCTURE:98/HIGH/44;SYSTEM:85/HIGH/44",
+        "despues": "dash=overall:91;conf:Baja;MUSCULAR:93/HIGH/52;STRUCTURE:98/HIGH/44;SYSTEM:86/HIGH/44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A02",
+        "instante": "t=12h",
+        "campo": "rings",
+        "antes": "rings=94,91,100",
+        "despues": "rings=94,91,99",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A02",
+        "instante": "t=12h",
+        "campo": "spinal",
+        "antes": "spinal=100",
+        "despues": "spinal=99",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A02",
+        "instante": "t=12h",
+        "campo": "dash",
+        "antes": "dash=overall:94;conf:Baja;MUSCULAR:94/HIGH/52;STRUCTURE:99/HIGH/44;SYSTEM:91/HIGH/44",
+        "despues": "dash=overall:94;conf:Baja;MUSCULAR:94/HIGH/52;STRUCTURE:98/HIGH/44;SYSTEM:91/HIGH/44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A03",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:54,spinal:8,muscular:55",
+        "despues": "drain=cns:52,spinal:8,muscular:54",
+        "deltas": [
+          2.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A03",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Bíceps:11;Dorsales:15;Erectores Espinales:9;Glúteos:4;Isquiosurales:8;Trapecio:8",
+        "despues": "pm=Bíceps:11;Dorsales:14;Erectores Espinales:9;Glúteos:4;Isquiosurales:8;Trapecio:8",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A03",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=55",
+        "despues": "v2global=54",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A03",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=91,78,93",
+        "despues": "rings=91,79,93",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A03",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:78,gym:22,life:0",
+        "despues": "energy=bat:79,gym:21,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A03",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:86;conf:Baja;MUSCULAR:91/HIGH/52;STRUCTURE:90/HIGH/44;SYSTEM:78/NORMAL/44",
+        "despues": "dash=overall:86;conf:Baja;MUSCULAR:91/HIGH/52;STRUCTURE:90/HIGH/44;SYSTEM:79/NORMAL/44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A03",
+        "instante": "t=6h",
+        "campo": "rings",
+        "antes": "rings=93,86,95",
+        "despues": "rings=93,87,95",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A03",
+        "instante": "t=6h",
+        "campo": "energy",
+        "antes": "energy=bat:86,gym:14,life:0",
+        "despues": "energy=bat:87,gym:13,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A03",
+        "instante": "t=6h",
+        "campo": "dash",
+        "antes": "dash=overall:90;conf:Baja;MUSCULAR:93/HIGH/52;STRUCTURE:92/HIGH/44;SYSTEM:86/HIGH/44",
+        "despues": "dash=overall:90;conf:Baja;MUSCULAR:93/HIGH/52;STRUCTURE:92/HIGH/44;SYSTEM:87/HIGH/44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A03",
+        "instante": "t=12h",
+        "campo": "rings",
+        "antes": "rings=94,91,96",
+        "despues": "rings=94,92,96",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A03",
+        "instante": "t=12h",
+        "campo": "energy",
+        "antes": "energy=bat:91,gym:9,life:0",
+        "despues": "energy=bat:92,gym:8,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A03",
+        "instante": "t=12h",
+        "campo": "dash",
+        "antes": "dash=overall:93;conf:Baja;MUSCULAR:94/HIGH/52;STRUCTURE:93/HIGH/44;SYSTEM:91/HIGH/44",
+        "despues": "dash=overall:93;conf:Baja;MUSCULAR:94/HIGH/52;STRUCTURE:93/HIGH/44;SYSTEM:92/HIGH/44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A04",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:22,spinal:0,muscular:25",
+        "despues": "drain=cns:22,spinal:0,muscular:24",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A04",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=25",
+        "despues": "v2global=24",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A04",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=97,90,100",
+        "despues": "rings=97,91,100",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A04",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:90,gym:10,life:0",
+        "despues": "energy=bat:91,gym:9,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A04",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:95;conf:Baja;MUSCULAR:97/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:90/HIGH/44",
+        "despues": "dash=overall:95;conf:Baja;MUSCULAR:97/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:91/HIGH/44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A05",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:45,spinal:0,muscular:33",
+        "despues": "drain=cns:43,spinal:0,muscular:32",
+        "deltas": [
+          2.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A05",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Bíceps:34",
+        "despues": "pm=Bíceps:33",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A05",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=33",
+        "despues": "v2global=32",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A05",
+        "instante": "t=6h",
+        "campo": "rings",
+        "antes": "rings=99,88,100",
+        "despues": "rings=99,89,100",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A05",
+        "instante": "t=6h",
+        "campo": "energy",
+        "antes": "energy=bat:88,gym:12,life:0",
+        "despues": "energy=bat:89,gym:11,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A05",
+        "instante": "t=6h",
+        "campo": "dash",
+        "antes": "dash=overall:95;conf:Baja;MUSCULAR:99/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:88/HIGH/44",
+        "despues": "dash=overall:95;conf:Baja;MUSCULAR:99/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:89/HIGH/44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:70,spinal:13,muscular:66",
+        "despues": "drain=cns:68,spinal:19,muscular:64",
+        "deltas": [
+          2.0,
+          6.0,
+          2.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:43;Erectores Espinales:1;Glúteos:19;Isquiosurales:3",
+        "despues": "pm=Cuádriceps:42;Erectores Espinales:1;Glúteos:19;Isquiosurales:4",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=66",
+        "despues": "v2global=64",
+        "deltas": [
+          2.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=87,73,86",
+        "despues": "rings=87,74,81",
+        "deltas": [
+          1.0,
+          5.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:73,gym:27,life:0",
+        "despues": "energy=bat:74,gym:26,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=86",
+        "despues": "spinal=81",
+        "deltas": [
+          5.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:81;conf:Baja;MUSCULAR:87/HIGH/52;STRUCTURE:86/HIGH/44;SYSTEM:73/NORMAL/44",
+        "despues": "dash=overall:80;conf:Baja;MUSCULAR:87/HIGH/52;STRUCTURE:81/NORMAL/44;SYSTEM:74/NORMAL/44",
+        "deltas": [
+          1.0,
+          5.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "t=6h",
+        "campo": "rings",
+        "antes": "rings=88,83,90",
+        "despues": "rings=88,83,86",
+        "deltas": [
+          4.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "t=6h",
+        "campo": "spinal",
+        "antes": "spinal=90",
+        "despues": "spinal=86",
+        "deltas": [
+          4.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "t=6h",
+        "campo": "dash",
+        "antes": "dash=overall:87;conf:Baja;MUSCULAR:88/HIGH/52;STRUCTURE:90/HIGH/44;SYSTEM:83/NORMAL/44",
+        "despues": "dash=overall:86;conf:Baja;MUSCULAR:88/HIGH/52;STRUCTURE:86/HIGH/44;SYSTEM:83/NORMAL/44",
+        "deltas": [
+          1.0,
+          4.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "t=12h",
+        "campo": "rings",
+        "antes": "rings=89,89,93",
+        "despues": "rings=89,89,90",
+        "deltas": [
+          3.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "t=12h",
+        "campo": "spinal",
+        "antes": "spinal=93",
+        "despues": "spinal=90",
+        "deltas": [
+          3.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "t=12h",
+        "campo": "dash",
+        "antes": "dash=overall:90;conf:Baja;MUSCULAR:89/HIGH/52;STRUCTURE:93/HIGH/44;SYSTEM:89/HIGH/44",
+        "despues": "dash=overall:89;conf:Baja;MUSCULAR:89/HIGH/52;STRUCTURE:90/HIGH/44;SYSTEM:89/HIGH/44",
+        "deltas": [
+          1.0,
+          3.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "t=24h",
+        "campo": "rings",
+        "antes": "rings=91,96,99",
+        "despues": "rings=91,96,98",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "t=24h",
+        "campo": "spinal",
+        "antes": "spinal=99",
+        "despues": "spinal=98",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A06",
+        "instante": "t=24h",
+        "campo": "dash",
+        "antes": "dash=overall:95;conf:Baja;MUSCULAR:91/HIGH/52;STRUCTURE:98/HIGH/44;SYSTEM:96/HIGH/44",
+        "despues": "dash=overall:95;conf:Baja;MUSCULAR:91/HIGH/52;STRUCTURE:97/HIGH/44;SYSTEM:96/HIGH/44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A07",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:50,spinal:0,muscular:45",
+        "despues": "drain=cns:48,spinal:0,muscular:44",
+        "deltas": [
+          2.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A07",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=45",
+        "despues": "v2global=44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A07",
+        "instante": "t=6h",
+        "campo": "rings",
+        "antes": "rings=96,87,100",
+        "despues": "rings=96,88,100",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A07",
+        "instante": "t=6h",
+        "campo": "energy",
+        "antes": "energy=bat:87,gym:13,life:0",
+        "despues": "energy=bat:88,gym:12,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A07",
+        "instante": "t=6h",
+        "campo": "dash",
+        "antes": "dash=overall:93;conf:Baja;MUSCULAR:96/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:87/HIGH/44",
+        "despues": "dash=overall:94;conf:Baja;MUSCULAR:96/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:88/HIGH/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A08",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:56,spinal:8,muscular:52",
+        "despues": "drain=cns:55,spinal:8,muscular:51",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A08",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Bíceps:4;Deltoides:7;Dorsales:7;Erectores Espinales:3;Pectorales:20;Trapecio:4;Tríceps:9",
+        "despues": "pm=Bíceps:4;Deltoides:7;Dorsales:7;Erectores Espinales:3;Pectorales:19;Trapecio:4;Tríceps:9",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A08",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=52",
+        "despues": "v2global=51",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A08",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=94,78,97",
+        "despues": "rings=94,78,96",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A08",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=97",
+        "despues": "spinal=96",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A08",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:88;conf:Baja;MUSCULAR:94/HIGH/52;STRUCTURE:95/HIGH/44;SYSTEM:78/NORMAL/44",
+        "despues": "dash=overall:88;conf:Baja;MUSCULAR:94/HIGH/52;STRUCTURE:94/HIGH/44;SYSTEM:78/NORMAL/44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A08",
+        "instante": "t=6h",
+        "campo": "rings",
+        "antes": "rings=95,86,98",
+        "despues": "rings=95,86,97",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A08",
+        "instante": "t=6h",
+        "campo": "spinal",
+        "antes": "spinal=98",
+        "despues": "spinal=97",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A08",
+        "instante": "t=6h",
+        "campo": "dash",
+        "antes": "dash=overall:92;conf:Baja;MUSCULAR:95/HIGH/52;STRUCTURE:96/HIGH/44;SYSTEM:86/HIGH/44",
+        "despues": "dash=overall:91;conf:Baja;MUSCULAR:95/HIGH/52;STRUCTURE:95/HIGH/44;SYSTEM:86/HIGH/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:25,spinal:8,muscular:31",
+        "despues": "drain=cns:24,spinal:8,muscular:30",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:21;Glúteos:10",
+        "despues": "pm=Cuádriceps:20;Glúteos:10",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=31",
+        "despues": "v2global=30",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=97,87,99",
+        "despues": "rings=97,89,99",
+        "deltas": [
+          2.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:87,gym:13,life:0",
+        "despues": "energy=bat:89,gym:11,life:0",
+        "deltas": [
+          2.0,
+          2.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:94;conf:Baja;MUSCULAR:97/HIGH/52;STRUCTURE:99/HIGH/44;SYSTEM:87/HIGH/44",
+        "despues": "dash=overall:94;conf:Baja;MUSCULAR:97/HIGH/52;STRUCTURE:99/HIGH/44;SYSTEM:89/HIGH/44",
+        "deltas": [
+          2.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "t=6h",
+        "campo": "rings",
+        "antes": "rings=98,92,99",
+        "despues": "rings=98,93,100",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "t=6h",
+        "campo": "energy",
+        "antes": "energy=bat:92,gym:8,life:0",
+        "despues": "energy=bat:93,gym:7,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "t=6h",
+        "campo": "spinal",
+        "antes": "spinal=99",
+        "despues": "spinal=100",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "t=6h",
+        "campo": "dash",
+        "antes": "dash=overall:96;conf:Baja;MUSCULAR:98/HIGH/52;STRUCTURE:99/HIGH/44;SYSTEM:92/HIGH/44",
+        "despues": "dash=overall:97;conf:Baja;MUSCULAR:98/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:93/HIGH/44",
+        "deltas": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "t=12h",
+        "campo": "rings",
+        "antes": "rings=98,95,100",
+        "despues": "rings=98,96,100",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "t=12h",
+        "campo": "energy",
+        "antes": "energy=bat:95,gym:5,life:0",
+        "despues": "energy=bat:96,gym:4,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "t=12h",
+        "campo": "dash",
+        "antes": "dash=overall:97;conf:Baja;MUSCULAR:98/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:95/HIGH/44",
+        "despues": "dash=overall:98;conf:Baja;MUSCULAR:98/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:96/HIGH/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "t=24h",
+        "campo": "rings",
+        "antes": "rings=98,98,100",
+        "despues": "rings=98,99,100",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "t=24h",
+        "campo": "energy",
+        "antes": "energy=bat:98,gym:2,life:0",
+        "despues": "energy=bat:99,gym:1,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A09",
+        "instante": "t=24h",
+        "campo": "dash",
+        "antes": "dash=overall:99;conf:Baja;MUSCULAR:98/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:98/HIGH/44",
+        "despues": "dash=overall:99;conf:Baja;MUSCULAR:98/HIGH/52;STRUCTURE:100/HIGH/44;SYSTEM:99/HIGH/44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A10",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:31,spinal:8,muscular:41",
+        "despues": "drain=cns:30,spinal:8,muscular:40",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A10",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Abdomen:4;Bíceps:10;Core:8;Dorsales:20",
+        "despues": "pm=Abdomen:4;Bíceps:9;Core:8;Dorsales:19",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "A10",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=41",
+        "despues": "v2global=40",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A12",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:19,spinal:0,muscular:22",
+        "despues": "drain=cns:18,spinal:0,muscular:22",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "A12",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Deltoides:4;Pectorales:13;Tríceps:6",
+        "despues": "pm=Deltoides:4;Pectorales:12;Tríceps:6",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B01",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:63,spinal:8,muscular:75",
+        "despues": "drain=cns:63,spinal:8,muscular:73",
+        "deltas": [
+          2.0
+        ]
+      },
+      {
+        "caso": "B01",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:25;Deltoides:4;Erectores Espinales:11;Glúteos:16;Isquiosurales:7;Pantorrillas:5;Pectorales:4;Trapecio:1;Tríceps:3",
+        "despues": "pm=Cuádriceps:24;Deltoides:4;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:5;Pectorales:4;Trapecio:1;Tríceps:3",
+        "deltas": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B01",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=75",
+        "despues": "v2global=73",
+        "deltas": [
+          2.0
+        ]
+      },
+      {
+        "caso": "B02",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:71,spinal:10,muscular:67",
+        "despues": "drain=cns:69,spinal:12,muscular:66",
+        "deltas": [
+          2.0,
+          2.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B02",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:20;Deltoides:4;Erectores Espinales:9;Glúteos:13;Isquiosurales:7;Pantorrillas:6;Pectorales:4;Trapecio:1;Tríceps:4",
+        "despues": "pm=Cuádriceps:20;Deltoides:4;Erectores Espinales:9;Glúteos:13;Isquiosurales:7;Pantorrillas:5;Pectorales:4;Trapecio:1;Tríceps:4",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B02",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=67",
+        "despues": "v2global=66",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B02",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=94,72,89",
+        "despues": "rings=94,72,88",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B02",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=89",
+        "despues": "spinal=88",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B02",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:84;conf:Baja;MUSCULAR:94/HIGH/52;STRUCTURE:89/HIGH/44;SYSTEM:72/NORMAL/44",
+        "despues": "dash=overall:84;conf:Baja;MUSCULAR:94/HIGH/52;STRUCTURE:88/HIGH/44;SYSTEM:72/NORMAL/44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B02",
+        "instante": "t=12h",
+        "campo": "rings",
+        "antes": "rings=96,88,94",
+        "despues": "rings=96,89,94",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B02",
+        "instante": "t=12h",
+        "campo": "energy",
+        "antes": "energy=bat:88,gym:12,life:0",
+        "despues": "energy=bat:89,gym:11,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B02",
+        "instante": "t=12h",
+        "campo": "dash",
+        "antes": "dash=overall:92;conf:Baja;MUSCULAR:96/HIGH/52;STRUCTURE:94/HIGH/44;SYSTEM:88/HIGH/44",
+        "despues": "dash=overall:93;conf:Baja;MUSCULAR:96/HIGH/52;STRUCTURE:94/HIGH/44;SYSTEM:89/HIGH/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B03",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:71,spinal:10,muscular:67",
+        "despues": "drain=cns:69,spinal:12,muscular:66",
+        "deltas": [
+          2.0,
+          2.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B03",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:20;Deltoides:4;Erectores Espinales:9;Glúteos:13;Isquiosurales:7;Pantorrillas:6;Pectorales:4;Trapecio:1;Tríceps:4",
+        "despues": "pm=Cuádriceps:20;Deltoides:4;Erectores Espinales:9;Glúteos:13;Isquiosurales:7;Pantorrillas:5;Pectorales:4;Trapecio:1;Tríceps:4",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B03",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=67",
+        "despues": "v2global=66",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B03",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=94,72,89",
+        "despues": "rings=94,72,88",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B03",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=89",
+        "despues": "spinal=88",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B03",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:84;conf:Baja;MUSCULAR:94/HIGH/52;STRUCTURE:89/HIGH/44;SYSTEM:72/NORMAL/44",
+        "despues": "dash=overall:84;conf:Baja;MUSCULAR:94/HIGH/52;STRUCTURE:88/HIGH/44;SYSTEM:72/NORMAL/44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B03",
+        "instante": "t=12h",
+        "campo": "rings",
+        "antes": "rings=96,88,94",
+        "despues": "rings=96,89,94",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B03",
+        "instante": "t=12h",
+        "campo": "energy",
+        "antes": "energy=bat:88,gym:12,life:0",
+        "despues": "energy=bat:89,gym:11,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B03",
+        "instante": "t=12h",
+        "campo": "dash",
+        "antes": "dash=overall:92;conf:Baja;MUSCULAR:96/HIGH/52;STRUCTURE:94/HIGH/44;SYSTEM:88/HIGH/44",
+        "despues": "dash=overall:93;conf:Baja;MUSCULAR:96/HIGH/52;STRUCTURE:94/HIGH/44;SYSTEM:89/HIGH/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B04",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:63,spinal:8,muscular:75",
+        "despues": "drain=cns:63,spinal:8,muscular:73",
+        "deltas": [
+          2.0
+        ]
+      },
+      {
+        "caso": "B04",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:25;Deltoides:4;Erectores Espinales:11;Glúteos:16;Isquiosurales:7;Pantorrillas:5;Pectorales:4;Trapecio:1;Tríceps:3",
+        "despues": "pm=Cuádriceps:24;Deltoides:4;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:5;Pectorales:4;Trapecio:1;Tríceps:3",
+        "deltas": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B04",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=75",
+        "despues": "v2global=73",
+        "deltas": [
+          2.0
+        ]
+      },
+      {
+        "caso": "B05",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:67,spinal:8,muscular:70",
+        "despues": "drain=cns:65,spinal:9,muscular:69",
+        "deltas": [
+          2.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B05",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:23;Deltoides:4;Erectores Espinales:10;Glúteos:15;Isquiosurales:6;Pantorrillas:5;Pectorales:3;Trapecio:1;Tríceps:3",
+        "despues": "pm=Cuádriceps:23;Deltoides:4;Erectores Espinales:10;Glúteos:14;Isquiosurales:6;Pantorrillas:5;Pectorales:3;Trapecio:1;Tríceps:3",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B05",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=70",
+        "despues": "v2global=69",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B05",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=88,76,92",
+        "despues": "rings=88,77,91",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B05",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:76,gym:24,life:0",
+        "despues": "energy=bat:77,gym:23,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B05",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=92",
+        "despues": "spinal=91",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B05",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:84;conf:Baja;MUSCULAR:88/HIGH/52;STRUCTURE:92/HIGH/44;SYSTEM:76/NORMAL/44",
+        "despues": "dash=overall:84;conf:Baja;MUSCULAR:88/HIGH/52;STRUCTURE:91/HIGH/44;SYSTEM:77/NORMAL/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B05",
+        "instante": "t=12h",
+        "campo": "rings",
+        "antes": "rings=91,91,96",
+        "despues": "rings=91,91,95",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B05",
+        "instante": "t=12h",
+        "campo": "spinal",
+        "antes": "spinal=96",
+        "despues": "spinal=95",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B05",
+        "instante": "t=12h",
+        "campo": "dash",
+        "antes": "dash=overall:92;conf:Baja;MUSCULAR:91/HIGH/52;STRUCTURE:96/HIGH/44;SYSTEM:91/HIGH/44",
+        "despues": "dash=overall:92;conf:Baja;MUSCULAR:91/HIGH/52;STRUCTURE:95/HIGH/44;SYSTEM:91/HIGH/44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B06",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:66,spinal:8,muscular:70",
+        "despues": "drain=cns:65,spinal:9,muscular:69",
+        "deltas": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B06",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:23;Deltoides:4;Erectores Espinales:10;Glúteos:15;Isquiosurales:6;Pantorrillas:5;Pectorales:3;Trapecio:1;Tríceps:3",
+        "despues": "pm=Cuádriceps:23;Deltoides:4;Erectores Espinales:10;Glúteos:14;Isquiosurales:6;Pantorrillas:5;Pectorales:3;Trapecio:1;Tríceps:3",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B06",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=70",
+        "despues": "v2global=69",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B06",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=88,76,92",
+        "despues": "rings=88,77,91",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B06",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:76,gym:24,life:0",
+        "despues": "energy=bat:77,gym:23,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B06",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=92",
+        "despues": "spinal=91",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B06",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:84;conf:Baja;MUSCULAR:88/HIGH/52;STRUCTURE:92/HIGH/44;SYSTEM:76/NORMAL/44",
+        "despues": "dash=overall:84;conf:Baja;MUSCULAR:88/HIGH/52;STRUCTURE:91/HIGH/44;SYSTEM:77/NORMAL/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B06",
+        "instante": "t=12h",
+        "campo": "rings",
+        "antes": "rings=92,91,96",
+        "despues": "rings=92,91,95",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B06",
+        "instante": "t=12h",
+        "campo": "spinal",
+        "antes": "spinal=96",
+        "despues": "spinal=95",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B06",
+        "instante": "t=12h",
+        "campo": "dash",
+        "antes": "dash=overall:93;conf:Baja;MUSCULAR:92/HIGH/52;STRUCTURE:96/HIGH/44;SYSTEM:91/HIGH/44",
+        "despues": "dash=overall:92;conf:Baja;MUSCULAR:92/HIGH/52;STRUCTURE:95/HIGH/44;SYSTEM:91/HIGH/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B07",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:66,spinal:8,muscular:70",
+        "despues": "drain=cns:65,spinal:9,muscular:69",
+        "deltas": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B07",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:23;Deltoides:4;Erectores Espinales:10;Glúteos:15;Isquiosurales:6;Pantorrillas:5;Pectorales:3;Trapecio:1;Tríceps:3",
+        "despues": "pm=Cuádriceps:23;Deltoides:4;Erectores Espinales:10;Glúteos:14;Isquiosurales:6;Pantorrillas:5;Pectorales:3;Trapecio:1;Tríceps:3",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B07",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=70",
+        "despues": "v2global=69",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B07",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=88,76,92",
+        "despues": "rings=88,77,91",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B07",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:76,gym:24,life:0",
+        "despues": "energy=bat:77,gym:23,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B07",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=92",
+        "despues": "spinal=91",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B07",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:84;conf:Baja;MUSCULAR:88/HIGH/52;STRUCTURE:92/HIGH/44;SYSTEM:76/NORMAL/44",
+        "despues": "dash=overall:84;conf:Baja;MUSCULAR:88/HIGH/52;STRUCTURE:91/HIGH/44;SYSTEM:77/NORMAL/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "B07",
+        "instante": "t=12h",
+        "campo": "rings",
+        "antes": "rings=92,91,96",
+        "despues": "rings=92,91,95",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B07",
+        "instante": "t=12h",
+        "campo": "spinal",
+        "antes": "spinal=96",
+        "despues": "spinal=95",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "B07",
+        "instante": "t=12h",
+        "campo": "dash",
+        "antes": "dash=overall:93;conf:Baja;MUSCULAR:92/HIGH/52;STRUCTURE:96/HIGH/44;SYSTEM:91/HIGH/44",
+        "despues": "dash=overall:92;conf:Baja;MUSCULAR:92/HIGH/52;STRUCTURE:95/HIGH/44;SYSTEM:91/HIGH/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C01",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:67,spinal:9,muscular:71",
+        "despues": "drain=cns:66,spinal:11,muscular:69",
+        "deltas": [
+          1.0,
+          2.0,
+          2.0
+        ]
+      },
+      {
+        "caso": "C01",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:25;Deltoides:3;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:4;Pectorales:3;Trapecio:1;Tríceps:3",
+        "despues": "pm=Cuádriceps:24;Deltoides:3;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:4;Pectorales:3;Trapecio:1;Tríceps:3",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C01",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=71",
+        "despues": "v2global=69",
+        "deltas": [
+          2.0
+        ]
+      },
+      {
+        "caso": "C01",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=84,74,90",
+        "despues": "rings=84,74,89",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C01",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=90",
+        "despues": "spinal=89",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C01",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:82;conf:Baja;MUSCULAR:84/NORMAL/52;STRUCTURE:90/HIGH/44;SYSTEM:74/NORMAL/44",
+        "despues": "dash=overall:81;conf:Baja;MUSCULAR:84/NORMAL/52;STRUCTURE:89/HIGH/44;SYSTEM:74/NORMAL/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C01",
+        "instante": "t=12h",
+        "campo": "rings",
+        "antes": "rings=89,89,95",
+        "despues": "rings=89,90,94",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C01",
+        "instante": "t=12h",
+        "campo": "energy",
+        "antes": "energy=bat:89,gym:11,life:0",
+        "despues": "energy=bat:90,gym:10,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C01",
+        "instante": "t=12h",
+        "campo": "spinal",
+        "antes": "spinal=95",
+        "despues": "spinal=94",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C01",
+        "instante": "t=12h",
+        "campo": "dash",
+        "antes": "dash=overall:91;conf:Baja;MUSCULAR:89/HIGH/52;STRUCTURE:95/HIGH/44;SYSTEM:89/HIGH/44",
+        "despues": "dash=overall:91;conf:Baja;MUSCULAR:89/HIGH/52;STRUCTURE:94/HIGH/44;SYSTEM:90/HIGH/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C02",
+        "instante": "session#2",
+        "campo": "drain",
+        "antes": "drain=cns:57,spinal:8,muscular:59",
+        "despues": "drain=cns:56,spinal:8,muscular:58",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C02",
+        "instante": "session#2",
+        "campo": "v2global",
+        "antes": "v2global=59",
+        "despues": "v2global=58",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C03",
+        "instante": "session#3",
+        "campo": "drain",
+        "antes": "drain=cns:54,spinal:8,muscular:55",
+        "despues": "drain=cns:52,spinal:8,muscular:54",
+        "deltas": [
+          2.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C03",
+        "instante": "session#3",
+        "campo": "pm",
+        "antes": "pm=Bíceps:11;Dorsales:15;Erectores Espinales:9;Glúteos:4;Isquiosurales:8;Trapecio:8",
+        "despues": "pm=Bíceps:11;Dorsales:14;Erectores Espinales:9;Glúteos:4;Isquiosurales:8;Trapecio:8",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C03",
+        "instante": "session#3",
+        "campo": "v2global",
+        "antes": "v2global=55",
+        "despues": "v2global=54",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C03",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=88,75,93",
+        "despues": "rings=88,76,92",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C03",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:75,gym:25,life:0",
+        "despues": "energy=bat:76,gym:24,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C03",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=93",
+        "despues": "spinal=92",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C03",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:83;conf:Baja;MUSCULAR:88/HIGH/52;STRUCTURE:90/HIGH/44;SYSTEM:75/NORMAL/44",
+        "despues": "dash=overall:84;conf:Baja;MUSCULAR:88/HIGH/52;STRUCTURE:90/HIGH/44;SYSTEM:76/NORMAL/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C04",
+        "instante": "session#5",
+        "campo": "drain",
+        "antes": "drain=cns:57,spinal:8,muscular:59",
+        "despues": "drain=cns:56,spinal:8,muscular:58",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C04",
+        "instante": "session#5",
+        "campo": "v2global",
+        "antes": "v2global=59",
+        "despues": "v2global=58",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C04",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=86,74,98",
+        "despues": "rings=86,75,98",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C04",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:74,gym:26,life:0",
+        "despues": "energy=bat:75,gym:25,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C04",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:84;conf:Media;MUSCULAR:86/HIGH/66;STRUCTURE:96/HIGH/58;SYSTEM:74/NORMAL/58",
+        "despues": "dash=overall:84;conf:Media;MUSCULAR:86/HIGH/66;STRUCTURE:96/HIGH/58;SYSTEM:75/NORMAL/58",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C05",
+        "instante": "session#7",
+        "campo": "drain",
+        "antes": "drain=cns:57,spinal:9,muscular:61",
+        "despues": "drain=cns:56,spinal:10,muscular:59",
+        "deltas": [
+          1.0,
+          1.0,
+          2.0
+        ]
+      },
+      {
+        "caso": "C05",
+        "instante": "session#7",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:25;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:4",
+        "despues": "pm=Cuádriceps:24;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:4",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C05",
+        "instante": "session#7",
+        "campo": "v2global",
+        "antes": "v2global=61",
+        "despues": "v2global=59",
+        "deltas": [
+          2.0
+        ]
+      },
+      {
+        "caso": "C05",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=87,74,90",
+        "despues": "rings=87,75,89",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C05",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:74,gym:26,life:0",
+        "despues": "energy=bat:75,gym:25,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C05",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=90",
+        "despues": "spinal=89",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C05",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:82;conf:Media;MUSCULAR:87/HIGH/66;STRUCTURE:89/HIGH/58;SYSTEM:74/NORMAL/58",
+        "despues": "dash=overall:83;conf:Media;MUSCULAR:87/HIGH/66;STRUCTURE:89/HIGH/58;SYSTEM:75/NORMAL/58",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C05",
+        "instante": "t=12h",
+        "campo": "rings",
+        "antes": "rings=91,90,95",
+        "despues": "rings=91,90,94",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C05",
+        "instante": "t=12h",
+        "campo": "spinal",
+        "antes": "spinal=95",
+        "despues": "spinal=94",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C06",
+        "instante": "session#2",
+        "campo": "drain",
+        "antes": "drain=cns:57,spinal:9,muscular:61",
+        "despues": "drain=cns:56,spinal:10,muscular:59",
+        "deltas": [
+          1.0,
+          1.0,
+          2.0
+        ]
+      },
+      {
+        "caso": "C06",
+        "instante": "session#2",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:25;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:4",
+        "despues": "pm=Cuádriceps:24;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:4",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C06",
+        "instante": "session#2",
+        "campo": "v2global",
+        "antes": "v2global=61",
+        "despues": "v2global=59",
+        "deltas": [
+          2.0
+        ]
+      },
+      {
+        "caso": "C06",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=86,75,90",
+        "despues": "rings=86,75,89",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C06",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=90",
+        "despues": "spinal=89",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C06",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:83;conf:Baja;MUSCULAR:86/HIGH/52;STRUCTURE:90/HIGH/44;SYSTEM:75/NORMAL/44",
+        "despues": "dash=overall:82;conf:Baja;MUSCULAR:86/HIGH/52;STRUCTURE:89/HIGH/44;SYSTEM:75/NORMAL/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C06",
+        "instante": "t=12h",
+        "campo": "rings",
+        "antes": "rings=90,90,95",
+        "despues": "rings=90,90,94",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C06",
+        "instante": "t=12h",
+        "campo": "spinal",
+        "antes": "spinal=95",
+        "despues": "spinal=94",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C07",
+        "instante": "session#24",
+        "campo": "drain",
+        "antes": "drain=cns:54,spinal:8,muscular:55",
+        "despues": "drain=cns:52,spinal:8,muscular:54",
+        "deltas": [
+          2.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C07",
+        "instante": "session#24",
+        "campo": "pm",
+        "antes": "pm=Bíceps:11;Dorsales:15;Erectores Espinales:9;Glúteos:4;Isquiosurales:8;Trapecio:8",
+        "despues": "pm=Bíceps:11;Dorsales:14;Erectores Espinales:9;Glúteos:4;Isquiosurales:8;Trapecio:8",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C07",
+        "instante": "session#24",
+        "campo": "v2global",
+        "antes": "v2global=55",
+        "despues": "v2global=54",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C07",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=91,78,93",
+        "despues": "rings=91,79,93",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C07",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:78,gym:22,life:0",
+        "despues": "energy=bat:79,gym:21,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C07",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:86;conf:Media;MUSCULAR:91/HIGH/78;STRUCTURE:90/HIGH/70;SYSTEM:78/NORMAL/70",
+        "despues": "dash=overall:86;conf:Media;MUSCULAR:91/HIGH/78;STRUCTURE:90/HIGH/70;SYSTEM:79/NORMAL/70",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C08",
+        "instante": "session#5",
+        "campo": "drain",
+        "antes": "drain=cns:22,spinal:0,muscular:25",
+        "despues": "drain=cns:22,spinal:0,muscular:24",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C08",
+        "instante": "session#5",
+        "campo": "v2global",
+        "antes": "v2global=25",
+        "despues": "v2global=24",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C08",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=97,90,100",
+        "despues": "rings=97,91,100",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C08",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:90,gym:10,life:0",
+        "despues": "energy=bat:91,gym:9,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C08",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:95;conf:Media;MUSCULAR:97/HIGH/66;STRUCTURE:100/HIGH/58;SYSTEM:90/HIGH/58",
+        "despues": "dash=overall:95;conf:Media;MUSCULAR:97/HIGH/66;STRUCTURE:100/HIGH/58;SYSTEM:91/HIGH/58",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C09",
+        "instante": "session#19",
+        "campo": "drain",
+        "antes": "drain=cns:74,spinal:22,muscular:70",
+        "despues": "drain=cns:74,spinal:32,muscular:69",
+        "deltas": [
+          10.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C09",
+        "instante": "session#19",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:44;Erectores Espinales:1;Glúteos:20;Isquiosurales:4;Pantorrillas:1",
+        "despues": "pm=Cuádriceps:43;Erectores Espinales:1;Glúteos:20;Isquiosurales:5;Pantorrillas:2",
+        "deltas": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C09",
+        "instante": "session#19",
+        "campo": "v2global",
+        "antes": "v2global=70",
+        "despues": "v2global=69",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C09",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=80,71,77",
+        "despues": "rings=80,71,68",
+        "deltas": [
+          9.0
+        ]
+      },
+      {
+        "caso": "C09",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=77",
+        "despues": "spinal=68",
+        "deltas": [
+          9.0
+        ]
+      },
+      {
+        "caso": "C09",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:76;conf:Media;MUSCULAR:80/NORMAL/78;STRUCTURE:77/NORMAL/70;SYSTEM:71/NORMAL/70",
+        "despues": "dash=overall:73;conf:Media;MUSCULAR:80/NORMAL/78;STRUCTURE:68/MODERATE/70;SYSTEM:71/NORMAL/70",
+        "deltas": [
+          3.0,
+          9.0
+        ]
+      },
+      {
+        "caso": "C09",
+        "instante": "t=12h",
+        "campo": "rings",
+        "antes": "rings=82,88,88",
+        "despues": "rings=82,88,82",
+        "deltas": [
+          6.0
+        ]
+      },
+      {
+        "caso": "C09",
+        "instante": "t=12h",
+        "campo": "spinal",
+        "antes": "spinal=88",
+        "despues": "spinal=82",
+        "deltas": [
+          6.0
+        ]
+      },
+      {
+        "caso": "C09",
+        "instante": "t=12h",
+        "campo": "dash",
+        "antes": "dash=overall:86;conf:Media;MUSCULAR:82/NORMAL/78;STRUCTURE:88/HIGH/70;SYSTEM:88/HIGH/70",
+        "despues": "dash=overall:84;conf:Media;MUSCULAR:82/NORMAL/78;STRUCTURE:82/NORMAL/70;SYSTEM:88/HIGH/70",
+        "deltas": [
+          2.0,
+          6.0
+        ]
+      },
+      {
+        "caso": "C09",
+        "instante": "t=24h",
+        "campo": "rings",
+        "antes": "rings=84,95,98",
+        "despues": "rings=84,96,97",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C09",
+        "instante": "t=24h",
+        "campo": "energy",
+        "antes": "energy=bat:95,gym:5,life:0",
+        "despues": "energy=bat:96,gym:4,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "C09",
+        "instante": "t=24h",
+        "campo": "spinal",
+        "antes": "spinal=98",
+        "despues": "spinal=97",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "C09",
+        "instante": "t=24h",
+        "campo": "dash",
+        "antes": "dash=overall:91;conf:Media;MUSCULAR:84/NORMAL/78;STRUCTURE:95/HIGH/70;SYSTEM:95/HIGH/70",
+        "despues": "dash=overall:91;conf:Media;MUSCULAR:84/NORMAL/78;STRUCTURE:94/HIGH/70;SYSTEM:96/HIGH/70",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "D01",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:57,spinal:9,muscular:61",
+        "despues": "drain=cns:56,spinal:10,muscular:59",
+        "deltas": [
+          1.0,
+          1.0,
+          2.0
+        ]
+      },
+      {
+        "caso": "D01",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:25;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:4",
+        "despues": "pm=Cuádriceps:24;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:4",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "D01",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=61",
+        "despues": "v2global=59",
+        "deltas": [
+          2.0
+        ]
+      },
+      {
+        "caso": "D01",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=90,77,91",
+        "despues": "rings=90,78,90",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "D01",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:77,gym:23,life:0",
+        "despues": "energy=bat:78,gym:22,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "D01",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=91",
+        "despues": "spinal=90",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "D01",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:85;conf:Baja;MUSCULAR:90/HIGH/52;STRUCTURE:91/HIGH/44;SYSTEM:77/NORMAL/52",
+        "despues": "dash=overall:85;conf:Baja;MUSCULAR:90/HIGH/52;STRUCTURE:90/HIGH/44;SYSTEM:78/NORMAL/52",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "D02",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:57,spinal:9,muscular:61",
+        "despues": "drain=cns:56,spinal:10,muscular:59",
+        "deltas": [
+          1.0,
+          1.0,
+          2.0
+        ]
+      },
+      {
+        "caso": "D02",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:25;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:4",
+        "despues": "pm=Cuádriceps:24;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:4",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "D02",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=61",
+        "despues": "v2global=59",
+        "deltas": [
+          2.0
+        ]
+      },
+      {
+        "caso": "D02",
+        "instante": "t=0h",
+        "campo": "rings",
+        "antes": "rings=90,77,91",
+        "despues": "rings=90,78,90",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "D02",
+        "instante": "t=0h",
+        "campo": "energy",
+        "antes": "energy=bat:77,gym:23,life:0",
+        "despues": "energy=bat:78,gym:22,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "D02",
+        "instante": "t=0h",
+        "campo": "spinal",
+        "antes": "spinal=91",
+        "despues": "spinal=90",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "D02",
+        "instante": "t=0h",
+        "campo": "dash",
+        "antes": "dash=overall:85;conf:Baja;MUSCULAR:90/HIGH/52;STRUCTURE:91/HIGH/44;SYSTEM:77/NORMAL/52",
+        "despues": "dash=overall:85;conf:Baja;MUSCULAR:90/HIGH/52;STRUCTURE:90/HIGH/44;SYSTEM:78/NORMAL/52",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "D02",
+        "instante": "t=2h",
+        "campo": "rings",
+        "antes": "rings=91,80,92",
+        "despues": "rings=91,81,91",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "D02",
+        "instante": "t=2h",
+        "campo": "energy",
+        "antes": "energy=bat:80,gym:20,life:0",
+        "despues": "energy=bat:81,gym:19,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "D02",
+        "instante": "t=2h",
+        "campo": "spinal",
+        "antes": "spinal=92",
+        "despues": "spinal=91",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "D02",
+        "instante": "t=2h",
+        "campo": "dash",
+        "antes": "dash=overall:87;conf:Baja;MUSCULAR:91/HIGH/52;STRUCTURE:92/HIGH/44;SYSTEM:80/NORMAL/52",
+        "despues": "dash=overall:87;conf:Baja;MUSCULAR:91/HIGH/52;STRUCTURE:91/HIGH/44;SYSTEM:81/NORMAL/52",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "D02",
+        "instante": "t=17h",
+        "campo": "rings",
+        "antes": "rings=92,94,98",
+        "despues": "rings=92,94,97",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "D02",
+        "instante": "t=17h",
+        "campo": "spinal",
+        "antes": "spinal=98",
+        "despues": "spinal=97",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "D04",
+        "instante": "session#1",
+        "campo": "drain",
+        "antes": "drain=cns:57,spinal:9,muscular:61",
+        "despues": "drain=cns:56,spinal:10,muscular:59",
+        "deltas": [
+          1.0,
+          1.0,
+          2.0
+        ]
+      },
+      {
+        "caso": "D04",
+        "instante": "session#1",
+        "campo": "pm",
+        "antes": "pm=Cuádriceps:25;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:4",
+        "despues": "pm=Cuádriceps:24;Erectores Espinales:11;Glúteos:15;Isquiosurales:6;Pantorrillas:4",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "D04",
+        "instante": "session#1",
+        "campo": "v2global",
+        "antes": "v2global=61",
+        "despues": "v2global=59",
+        "deltas": [
+          2.0
+        ]
+      },
+      {
+        "caso": "D04",
+        "instante": "t=6h",
+        "campo": "rings",
+        "antes": "rings=88,75,90",
+        "despues": "rings=88,76,89",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "D04",
+        "instante": "t=6h",
+        "campo": "energy",
+        "antes": "energy=bat:77,gym:23,life:0",
+        "despues": "energy=bat:78,gym:22,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "D04",
+        "instante": "t=6h",
+        "campo": "spinal",
+        "antes": "spinal=91",
+        "despues": "spinal=90",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "D04",
+        "instante": "t=6h",
+        "campo": "dash",
+        "antes": "dash=overall:83;conf:Baja;MUSCULAR:88/HIGH/52;STRUCTURE:90/HIGH/44;SYSTEM:75/NORMAL/44",
+        "despues": "dash=overall:83;conf:Baja;MUSCULAR:88/HIGH/52;STRUCTURE:89/HIGH/44;SYSTEM:76/NORMAL/44",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "D04",
+        "instante": "t=24h",
+        "campo": "rings",
+        "antes": "rings=92,94,98",
+        "despues": "rings=92,95,98",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "D04",
+        "instante": "t=24h",
+        "campo": "energy",
+        "antes": "energy=bat:94,gym:6,life:0",
+        "despues": "energy=bat:95,gym:5,life:0",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "D04",
+        "instante": "t=24h",
+        "campo": "dash",
+        "antes": "dash=overall:94;conf:Baja;MUSCULAR:92/HIGH/52;STRUCTURE:97/HIGH/44;SYSTEM:94/HIGH/44",
+        "despues": "dash=overall:94;conf:Baja;MUSCULAR:92/HIGH/52;STRUCTURE:97/HIGH/44;SYSTEM:95/HIGH/44",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "E01",
+        "instante": "preview",
+        "campo": "neural",
+        "antes": "neural=74 spinal=96 muscular=86",
+        "despues": "neural=75 spinal=96 muscular=86",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "E01",
+        "instante": "preview",
+        "campo": "drains",
+        "antes": "drains=cns:22,spinal:0,muscular:7",
+        "despues": "drains=cns:21,spinal:0,muscular:7",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "E02",
+        "instante": "preview",
+        "campo": "neural",
+        "antes": "neural=77 spinal=91 muscular=90",
+        "despues": "neural=78 spinal=90 muscular=90",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "E02",
+        "instante": "preview",
+        "campo": "drains",
+        "antes": "drains=cns:23,spinal:9,muscular:10",
+        "despues": "drains=cns:22,spinal:10,muscular:10",
+        "deltas": [
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "caso": "E02",
+        "instante": "preview",
+        "campo": "raw",
+        "antes": "raw=91",
+        "despues": "raw=90",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "E03",
+        "instante": "preview",
+        "campo": "neural",
+        "antes": "neural=78 spinal=91 muscular=91",
+        "despues": "neural=79 spinal=91 muscular=91",
+        "deltas": [
+          1.0
+        ]
+      },
+      {
+        "caso": "E03",
+        "instante": "preview",
+        "campo": "drains",
+        "antes": "drains=cns:22,spinal:9,muscular:8",
+        "despues": "drains=cns:21,spinal:9,muscular:8",
+        "deltas": [
+          1.0
+        ]
+      }
+    ],
+    "resumen": {
+      "Total": {
+        "campos_distintos": 248,
+        "numeros_distintos": 371,
+        "maximo": 10.0,
+        "media": 1.320754716981132
+      },
+      "A": {
+        "campos_distintos": 92,
+        "numeros_distintos": 133,
+        "maximo": 6.0,
+        "media": 1.330827067669173
+      },
+      "B": {
+        "campos_distintos": 54,
+        "numeros_distintos": 83,
+        "maximo": 2.0,
+        "media": 1.108433734939759
+      },
+      "C": {
+        "campos_distintos": 65,
+        "numeros_distintos": 97,
+        "maximo": 10.0,
+        "media": 1.6185567010309279
+      },
+      "D": {
+        "campos_distintos": 30,
+        "numeros_distintos": 49,
+        "maximo": 2.0,
+        "media": 1.1224489795918366
+      },
+      "E": {
+        "campos_distintos": 7,
+        "numeros_distintos": 9,
+        "maximo": 1.0,
+        "media": 1.0
+      },
+      "Músculos": {
+        "campos_distintos": 82,
+        "numeros_distintos": 90,
+        "maximo": 2.0,
+        "media": 1.2222222222222223
+      },
+      "Energía": {
+        "campos_distintos": 124,
+        "numeros_distintos": 155,
+        "maximo": 2.0,
+        "media": 1.0838709677419356
+      },
+      "Columna": {
+        "campos_distintos": 108,
+        "numeros_distintos": 108,
+        "maximo": 10.0,
+        "media": 1.7685185185185186
+      },
+      "Panel/mixto": {
+        "campos_distintos": 18,
+        "numeros_distintos": 18,
+        "maximo": 3.0,
+        "media": 1.1666666666666667
+      }
     }
   }
 }
