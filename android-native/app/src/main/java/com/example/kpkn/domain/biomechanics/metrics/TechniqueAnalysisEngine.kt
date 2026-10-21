@@ -13,7 +13,9 @@ import com.example.kpkn.domain.biomechanics.reps.RepCycle
 import com.example.kpkn.domain.biomechanics.reps.RepFlags
 import com.example.kpkn.domain.biomechanics.reps.NativePlatePhases
 import com.example.kpkn.domain.biomechanics.reps.RepSegmenter
+import com.example.kpkn.domain.biomechanics.reps.SegmentationResult
 import com.example.kpkn.domain.biomechanics.reps.TrackPreparation
+import com.example.kpkn.domain.biomechanics.signal.RobustStats
 import com.example.kpkn.domain.biomechanics.vbt.CalibratedVelocity
 import com.example.kpkn.domain.biomechanics.vbt.PlateScale
 import com.example.kpkn.domain.biomechanics.vbt.PlateScaleResult
@@ -22,7 +24,9 @@ import kotlin.math.max
 /**
  * Lo que el motor necesita de un vídeo (§3.6): la traza de pose, la del disco si la hay, el perfil que lo mide, y los datos de la
  * serie. [loadKg] y [userHeightCm] los usa VT3b (m/s y carga-velocidad); [setHints] son los nombres de `SetTechniqueV2`
- * (`REST_PAUSE`, `PARTIALS`…) que ayudan a contar.
+ * (`REST_PAUSE`, `PARTIALS`…) que ayudan a contar. [rangeReference] (M4) es la referencia de recorrido, opcional: la amplitud
+ * de una repetición completa medida en series anteriores (PERSONAL) o en el perfil (PROFILE), en la misma señal de conteo;
+ * con ella se ve una serie hecha solo de parciales.
  */
 data class TechniqueAnalysisInput(
     val pose: PoseTrackV2,
@@ -32,6 +36,7 @@ data class TechniqueAnalysisInput(
     val userHeightCm: Double?,
     val setHints: Set<String>,
     val tuning: AnalysisTuning = AnalysisTuning.DEFAULT,
+    val rangeReference: RangeReference? = null,
 )
 
 /**
@@ -53,7 +58,7 @@ data class TechniqueAnalysisInput(
  * Las observaciones de técnica (`Observations`) se calculan al final, sobre el informe ya armado.
  */
 object TechniqueAnalysisEngine {
-    const val ENGINE_VERSION = 8
+    const val ENGINE_VERSION = 9
 
     /** Unidad de las cifras de trayectoria sin calibrar: porcentaje del recorrido vertical de la barra (ROM_v). */
     const val PERCENT_ROM = "%ROM"
@@ -71,7 +76,7 @@ object TechniqueAnalysisEngine {
             is CountSeriesResult.NoSignal -> return noSignalReport(input, prepared, built.reason)
         }
         val series = ok.series
-        val seg = RepSegmenter.segment(series, profile, input.setHints, tuning, prepared)
+        val seg = RepSegmenter.segment(series, profile, input.setHints, tuning, prepared, input.rangeReference)
         val countFlags = RepFlags.of(prepared, series, seg)
         val confidence = RepConfidence.score(series, seg, prepared.view, profile, countFlags, tuning)
 
@@ -191,6 +196,11 @@ object TechniqueAnalysisEngine {
             sourceFps = sourceFps(input.pose, analyzedFps),
             noRepsReason = seg.noRepsReason,
             romSlopeDegPerRep = round(rom.slopeDegPerRep, 2),
+            countSignal = if (series.source == CountSeriesBuilder.SOURCE_PLATE) profile.plateSignal else profile.poseSignal,
+            countUnit = series.unit,
+            fullAmplitude = fullAmplitude(seg),
+            rangeReference = seg.reference,
+            partialConfidence = if (ctx.cycles.isNotEmpty()) RepConfidence.partialLevel(seg, confidence, tuning) else null,
         )
         // Las observaciones salen del informe ya armado (hechos con su cifra y su repetición, como mucho 3).
         val observations = Observations.evaluate(report, prepared, profile, report.scale ?: ScaleInfo.NONE, tuning, ctx, path, input.setHints)
@@ -291,7 +301,16 @@ object TechniqueAnalysisEngine {
             trunkRangeDeg = round(trunk.rangeDeg, 1),
             trunkEarlyDeltaDeg = round(trunk.earlyDeltaDeg, 1),
             trunkMaxDeg = round(trunk.maxDeg, 1),
+            zone = cycle.zone,
+            amplitude = round(cycle.amplitude, 4),
         )
+    }
+
+    /** M4: la mediana del recorrido de las FULL en la unidad de la señal (la referencia PERSONAL de las series siguientes). */
+    private fun fullAmplitude(seg: SegmentationResult): Double? {
+        val values = seg.cycles.filter { it.kind == RepKind.FULL && it.amplitude.isFinite() }.map { it.amplitude }
+        if (values.isEmpty()) return null
+        return round(RobustStats.median(values.toDoubleArray()), 4)
     }
 
     /** `value` como porcentaje de `reference`; `null` si falta alguno. */

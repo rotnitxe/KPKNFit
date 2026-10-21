@@ -2,7 +2,9 @@ package com.example.kpkn.domain.biomechanics.metrics
 
 import com.example.kpkn.domain.biomechanics.kinematics.ViewKind
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
+import com.example.kpkn.domain.biomechanics.profiles.CountSignal
 import com.example.kpkn.domain.biomechanics.profiles.ProfileTier
+import com.example.kpkn.domain.biomechanics.reps.SignalUnit
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -180,6 +182,36 @@ class SetTechniqueReportTest {
         assertEquals(null, back.romSlopeDegPerRep)
         assertEquals(null, back.reps.first().trunkMaxDeg)
         assertEquals(fullReport().copy(noRepsReason = null, romSlopeDegPerRep = null, reps = fullReport().reps.map { it.copy(trunkMaxDeg = null) }), back)
+    }
+
+    /** M4: la zona y el recorrido de cada repetición, la señal, la amplitud completa, la referencia y la confianza de las parciales. */
+    private fun m4Report(): SetTechniqueReport {
+        val base = fullReport()
+        return base.copy(
+            reps = base.reps.map { if (it.kind == RepKind.PARTIAL) it.copy(zone = PartialZone.STRETCHED, amplitude = 0.142) else it.copy(amplitude = 0.251) },
+            countSignal = CountSignal.DROP_HIP_MID,
+            countUnit = SignalUnit.BODY_HEIGHTS,
+            fullAmplitude = 0.251,
+            rangeReference = RangeReferenceUse(RangeReferenceSource.PERSONAL, 0.26, 3, applied = true),
+            partialConfidence = CountConfidence.MEDIA,
+        )
+    }
+
+    @Test
+    fun theFieldsAddedByM4SurviveTheRoundTripAndAnOldReportStillReads() {
+        val report = m4Report()
+        assertEquals(report, roundTrip(report))
+        assertEquals(report, roundTrip(report, Json { encodeDefaults = false }))
+        val text = sidecar.encodeToString(SetTechniqueReport.serializer(), report)
+        for (name in listOf("\"STRETCHED\"", "\"DROP_HIP_MID\"", "\"BODY_HEIGHTS\"", "\"PERSONAL\"")) assertTrue("falta $name", name in text)
+        // Un analysis.json anterior a M4 (sin esos campos) se lee con sus valores por defecto.
+        val old = Json.encodeToString(SetTechniqueReport.serializer(), fullReport())
+        assertFalse("countSignal" in old || "partialConfidence" in old || "\"zone\"" in old)
+        val back = Json { ignoreUnknownKeys = true }.decodeFromString(SetTechniqueReport.serializer(), old)
+        assertEquals(fullReport(), back)
+        assertEquals(null, back.partialConfidence)
+        assertEquals(null, back.rangeReference)
+        assertEquals(null, back.reps.first().zone)
     }
 
     @Test

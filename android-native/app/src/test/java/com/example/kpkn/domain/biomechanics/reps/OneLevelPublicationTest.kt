@@ -77,10 +77,12 @@ class OneLevelPublicationTest {
     }
 
     @Test fun anAmbiguousPartialNextToTheFullThresholdStillOffersNoNumber() {
-        // Al 66 %: parcial dentro de la franja dudosa, podría ser una completa más.
+        // Al 66 %: dentro de la franja dudosa, podría ser una completa más. M4: aislada entre completas y sin una caída clara
+        // (por encima del 0,58), cuenta como completa dudosa (SHORT_FULL); la duda sigue dejando la serie sin número.
         val series = fiveReps(third = 0.66)
         val seg = RepSegmenter.segment(series, pushUp, emptySet())
-        assertEquals(RepTestSupport.summary(seg), Triple(4, 1, 0), RepTestSupport.counts(seg))
+        assertEquals(RepTestSupport.summary(seg), Triple(5, 0, 0), RepTestSupport.counts(seg))
+        assertTrue(RepTestSupport.summary(seg), seg.ambiguity.any { it.kind == AmbiguityKind.SHORT_FULL })
         val b = RepConfidence.score(series, seg, side, pushUp, emptySet())
         assertEquals(CountConfidence.BAJA, b.level)
         assertEquals("ambiguous_cycles", b.forcedLowReason)

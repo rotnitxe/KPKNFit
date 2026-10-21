@@ -4,6 +4,10 @@ import com.example.kpkn.domain.biomechanics.kinematics.Side
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisTuning
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.domain.biomechanics.metrics.PartialKind
+import com.example.kpkn.domain.biomechanics.metrics.PartialZone
+import com.example.kpkn.domain.biomechanics.metrics.RangeReference
+import com.example.kpkn.domain.biomechanics.metrics.RangeReferenceSource
+import com.example.kpkn.domain.biomechanics.metrics.RangeReferenceUse
 import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfile
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
@@ -43,8 +47,10 @@ enum class SideMode {
 /**
  * Una repetición detectada. [leftValley], [peak] y [rightValley] son índices de la serie: el reposo anterior, el giro
  * (extremo lejano) y el reposo posterior (`null` si la serie acaba antes de volver). [amplitudeFraction] es a =
- * min(aUp, aDn): el recorrido relativo a la amplitud de una repetición completa. [miniSet] numera las mini-series
- * (0 si no hay descansos largos entre repeticiones).
+ * min(aUp, aDn): el recorrido relativo a la amplitud de una repetición completa (la de la serie o, si es mayor, la de la
+ * referencia de recorrido, M4). [miniSet] numera las mini-series (0 si no hay descansos largos entre repeticiones).
+ * [zone] (M4): la zona muscular de una PARTIAL. [amplitude] (M4): el recorrido en la unidad de la señal (a por la amplitud
+ * completa); NaN en las segmentaciones hechas a mano de las pruebas.
  */
 data class RepCycle(
     val index: Int,
@@ -57,12 +63,16 @@ data class RepCycle(
     val amplitudeFraction: Double,
     val turnInGap: Boolean,
     val miniSet: Int = 0,
+    val zone: PartialZone? = null,
+    val amplitude: Double = Double.NaN,
 )
 
 /**
  * Un pico que NO es repetición. [reason]: `noise` (recorrido < 30 %), `nonrep_walk` (caminando), `nonrep_horizontal` (la
  * barra va en horizontal: sacarla, caminar con ella, recolocarla), `setup` (preparación o recogida), `rerack` (recolocar
- * la barra tras la serie) y `setdown` (dejar la barra abajo al fallar o acabar).
+ * la barra tras la serie), `setdown` (dejar la barra abajo al fallar o acabar) y `censored` (M4: un ciclo cortado por el
+ * principio o el final del vídeo mientras la señal aún se movía; no se sabe cómo acabó y la confianza lo trata como borde
+ * censurado).
  */
 data class DiscardedCycle(val peak: Int, val reason: String)
 
@@ -73,8 +83,10 @@ data class DiscardedCycle(val peak: Int, val reason: String)
  * - [TURN_IN_GAP]: el giro cae junto a un hueco rellenado; un hueco largo puede esconder un valle o un pico.
  * - [PROMINENCE]: un pico con la prominencia a ±15 % del umbral de picos, aceptado o rechazado por poco.
  * - [SIDES]: los dos lados cuentan distinto.
+ * - [SHORT_FULL] (M4): un ciclo más corto que el 0,70 que se cuenta como completo porque su caída no es clara (sin una
+ *   referencia estable, o aislado entre dos completas y cerca del 0,70): puede ser una parcial.
  */
-enum class AmbiguityKind { NEAR_FULL, NEAR_PARTIAL, TURN_IN_GAP, PROMINENCE, SIDES }
+enum class AmbiguityKind { NEAR_FULL, NEAR_PARTIAL, TURN_IN_GAP, PROMINENCE, SIDES, SHORT_FULL }
 
 /**
  * Un ciclo dudoso: su tipo, la altura de su pico sobre el reposo en fracciones de Afull (e = (rd[p] − Lrest)/Afull; NaN si
@@ -93,7 +105,44 @@ data class AmbiguityItem(val kind: AmbiguityKind, val height: Double, val gapS: 
     fun isCountPreserving(maxHeight: Double, maxGapS: Double): Boolean = when (kind) {
         AmbiguityKind.NEAR_PARTIAL, AmbiguityKind.PROMINENCE -> height.isFinite() && height < maxHeight
         AmbiguityKind.TURN_IN_GAP -> gapS <= maxGapS
-        AmbiguityKind.NEAR_FULL, AmbiguityKind.SIDES -> false
+        AmbiguityKind.NEAR_FULL, AmbiguityKind.SIDES, AmbiguityKind.SHORT_FULL -> false
+    }
+}
+
+/**
+ * Lo que sostiene (o no) el número de parciales de una serie (M4), para su confianza propia (`RepConfidence.partialLevel`).
+ *
+ * @property stableReference la amplitud completa con la que se clasificó es estable: la de fuera (referencia de recorrido)
+ *   o la de la serie con al menos `PartialsTuning.minStableFull` completas.
+ * @property referenceApplied la referencia de fuera superó la amplitud de la serie y se clasificó contra ella.
+ * @property externalSource el origen de esa referencia, si se aplicó.
+ * @property margin el margen que se exigió a una parcial aislada entre dos completas (en fracción de la amplitud completa).
+ * @property borderline parciales cerca de un umbral (en la franja de dudosos, `ambiguityMargin`, del 0,30 o del 0,70).
+ * @property shortFull ciclos cortos contados como completos por no tener una caída clara (pueden ser parciales).
+ * @property fullCycles completas de la serie en las que se apoya la referencia interna.
+ */
+data class PartialEvidence(
+    val stableReference: Boolean,
+    val referenceApplied: Boolean = false,
+    val externalSource: RangeReferenceSource? = null,
+    val margin: Double = Double.NaN,
+    val borderline: Int = 0,
+    val shortFull: Int = 0,
+    val fullCycles: Int = 0,
+) {
+    operator fun plus(other: PartialEvidence) = PartialEvidence(
+        stableReference = stableReference && other.stableReference,
+        referenceApplied = referenceApplied || other.referenceApplied,
+        externalSource = externalSource ?: other.externalSource,
+        margin = if (margin.isNaN()) other.margin else if (other.margin.isNaN()) margin else max(margin, other.margin),
+        borderline = borderline + other.borderline,
+        shortFull = shortFull + other.shortFull,
+        fullCycles = min(fullCycles, other.fullCycles),
+    )
+
+    companion object {
+        /** Sin desglose (segmentaciones hechas a mano o series sin ciclos): no sostiene parciales por sí mismo. */
+        val NONE = PartialEvidence(stableReference = false)
     }
 }
 
@@ -115,6 +164,10 @@ data class AmbiguityItem(val kind: AmbiguityKind, val height: Double, val gapS: 
  *   conservan solo porque su evidencia sería ALTA, y la confianza no pasa de MEDIA.
  * @property ambiguity los ciclos dudosos uno a uno, con su tipo y su altura (M3). Vacía en las segmentaciones hechas a mano
  *   de las pruebas: entonces solo cuenta [ambiguousCycles].
+ * @property rangeAmplitude (M4) la amplitud completa con la que se clasificó: [aFull], o la referencia de recorrido si es
+ *   mayor. NaN en las segmentaciones hechas a mano: entonces vale [aFull].
+ * @property reference (M4) la referencia de recorrido que se recibió y si se aplicó.
+ * @property partialEvidence (M4) lo que sostiene el número de parciales.
  */
 data class SegmentationResult(
     val cycles: List<RepCycle>,
@@ -132,10 +185,19 @@ data class SegmentationResult(
     val ambiguousCycles: Int = 0,
     val captureLimited: Boolean = false,
     val ambiguity: List<AmbiguityItem> = emptyList(),
+    val rangeAmplitude: Double = Double.NaN,
+    val reference: RangeReferenceUse? = null,
+    val partialEvidence: PartialEvidence = PartialEvidence.NONE,
 ) {
     val fullCount: Int get() = cycles.count { it.kind == RepKind.FULL }
     val partialCount: Int get() = cycles.count { it.kind == RepKind.PARTIAL }
     val failedCount: Int get() = cycles.count { it.kind == RepKind.FAILED }
+
+    /** La amplitud completa con la que se clasificó (ver [rangeAmplitude]). */
+    val classificationAmplitude: Double get() = if (rangeAmplitude.isFinite() && rangeAmplitude > 0.0) rangeAmplitude else aFull
+
+    /** La referencia de fuera superó la amplitud de la serie y la clasificación se hizo contra ella. */
+    val referenceApplied: Boolean get() = reference?.applied == true
 }
 
 /**
@@ -506,14 +568,20 @@ object RepSegmenter {
         trace?.invoke(message())
     }
 
+    /**
+     * Segmenta la serie. [reference] (M4) es la referencia de recorrido, si la hay: se usa si se midió en la misma señal (y en
+     * la misma vista, si la dice) y su amplitud supera la de la propia serie.
+     */
     fun segment(
         series: CountSeries,
         profile: AnalysisProfile,
         hints: Set<String>,
         tuning: AnalysisTuning = AnalysisTuning.DEFAULT,
         prepared: PreparedTrack? = null,
+        reference: RangeReference? = null,
     ): SegmentationResult {
-        val result = segmentSignal(series, profile, hints, tuning)
+        val range = reference?.let { rangeInputOf(it, series, profile, prepared, tuning) }
+        val result = segmentSignal(series, profile, hints, tuning, range)
         if (result.activeWindow == null) return result
         if (prepared == null) return result // Hand-built signal tests have no capture geometry.
         // Walkout/setup before the first repetition does not establish camera motion during the set.
@@ -530,18 +598,45 @@ object RepSegmenter {
             activeWindow = null, miniSets = 0, perSideCounts = emptyMap(), noRepsReason = "poor_capture")
     }
 
+    /**
+     * La referencia de recorrido comprobada para esta serie (M4). No se usa si su amplitud no es válida (`invalid`), si se
+     * midió con otra señal de conteo (`signal`: otra unidad, o el disco frente a la pose) o, si la señal es un ángulo o un
+     * cociente, en otra vista (`view`: en 2D cambian con la vista; un desplazamiento en alturas de cuerpo, no). Una referencia
+     * del perfil (PROFILE) cuenta por `PartialsTuning.profileReferenceTrust` de su amplitud: es de la población, no de la
+     * persona.
+     */
+    private fun rangeInputOf(
+        reference: RangeReference,
+        series: CountSeries,
+        profile: AnalysisProfile,
+        prepared: PreparedTrack?,
+        tuning: AnalysisTuning,
+    ): RangeInput {
+        val signal = if (series.source == CountSeriesBuilder.SOURCE_PLATE) profile.plateSignal else profile.poseSignal
+        val reason = when {
+            !(reference.amplitude.isFinite() && reference.amplitude > 0.0) -> "invalid"
+            reference.signal != signal -> "signal"
+            reference.view != null && prepared != null && series.unit != SignalUnit.BODY_HEIGHTS &&
+                reference.view != prepared.view.kind -> "view"
+            else -> null
+        }
+        val trust = if (reference.source == RangeReferenceSource.PERSONAL) 1.0 else tuning.metrics.partials.profileReferenceTrust
+        return RangeInput(if (reason == null) reference.amplitude * trust else Double.NaN, reference, reason)
+    }
+
     private fun segmentSignal(
         series: CountSeries,
         profile: AnalysisProfile,
         hints: Set<String>,
         tuning: AnalysisTuning,
+        range: RangeInput?,
     ): SegmentationResult {
         val sides = series.perSide
         val canSplit = profile.perSide && series.source == CountSeriesBuilder.SOURCE_POSE &&
             sides != null && sides.containsKey(Side.LEFT) && sides.containsKey(Side.RIGHT)
-        if (canSplit) return segmentBySide(series, sides!!.getValue(Side.LEFT), sides.getValue(Side.RIGHT), profile, hints, tuning)
+        if (canSplit) return segmentBySide(series, sides!!.getValue(Side.LEFT), sides.getValue(Side.RIGHT), profile, hints, tuning, range)
 
-        val pass = analyzeWithPolarity(series, series.r, profile, hints, tuning)
+        val pass = analyzeWithPolarity(series, series.r, profile, hints, tuning, range)
         val mode = if (profile.perSide && series.source == CountSeriesBuilder.SOURCE_POSE) SideMode.NEAR_ONLY else SideMode.NOT_APPLICABLE
         return pass.toResult(mode, emptyMap(), null, pass.cuts)
     }
@@ -557,10 +652,11 @@ object RepSegmenter {
         profile: AnalysisProfile,
         hints: Set<String>,
         tuning: AnalysisTuning,
+        range: RangeInput?,
     ): SegmentationResult {
-        val pl = analyzeWithPolarity(series, left, profile, hints, tuning)
-        val pr = analyzeWithPolarity(series, right, profile, hints, tuning)
-        val main = analyzeWithPolarity(series, series.r, profile, hints, tuning)
+        val pl = analyzeWithPolarity(series, left, profile, hints, tuning, range)
+        val pr = analyzeWithPolarity(series, right, profile, hints, tuning, range)
+        val main = analyzeWithPolarity(series, series.r, profile, hints, tuning, range)
         val fullL = pl.countOf(RepKind.FULL)
         val fullR = pr.countOf(RepKind.FULL)
         val counts = mapOf(Side.LEFT to fullL, Side.RIGHT to fullR)
@@ -599,6 +695,10 @@ object RepSegmenter {
                 ambiguous = pl.ambiguous + pr.ambiguous,
                 cuts = main.cuts,
                 ambiguity = pl.ambiguity + pr.ambiguity,
+                aRange = main.aRange,
+                range = range,
+                referenceApplied = pl.referenceApplied || pr.referenceApplied,
+                evidence = pl.evidence + pr.evidence,
             )
             return combined.toResult(SideMode.ALTERNATING, counts, null, main.cuts)
         }
@@ -677,11 +777,12 @@ object RepSegmenter {
         profile: AnalysisProfile,
         hints: Set<String>,
         tuning: AnalysisTuning,
+        range: RangeInput?,
     ): Pass {
-        val first = Analyzer(series, r, profile, hints, tuning).run()
+        val first = Analyzer(series, r, profile, hints, tuning, range, flipped = false).run()
         if (!first.flipSuggested) return first
         val flipped = DoubleArray(r.size) { -r[it] }
-        val second = Analyzer(series, flipped, profile, hints, tuning).run()
+        val second = Analyzer(series, flipped, profile, hints, tuning, range, flipped = true).run()
         // Darle la vuelta solo vale si deja repeticiones completas: si no, el reposo estaba bien y era una serie con pausas largas.
         return if (second.countOf(RepKind.FULL) > 0) second.copy(flipped = true) else first
     }
@@ -689,6 +790,11 @@ object RepSegmenter {
     // ------------------------------------------------------------------------------------------------------------
     // Estructuras internas
     // ------------------------------------------------------------------------------------------------------------
+
+    /** La referencia de recorrido comprobada (M4): [trusted] es la amplitud que se usa (NaN si no vale) y [reason] por qué no. */
+    private class RangeInput(val trusted: Double, val reference: RangeReference, val reason: String?) {
+        fun use(applied: Boolean) = RangeReferenceUse(reference.source, reference.amplitude, reference.seriesCount, applied, reason)
+    }
 
     /** Un ciclo candidato: un pico con sus valles, su clase y por qué se descarta, si se descarta. */
     private class Cand(val peak: Int, val prominence: Double, var vL: Int, var vR: Int) {
@@ -702,6 +808,14 @@ object RepSegmenter {
         var turnInGap = false
         var miniSet = 0
         var side: Side? = null
+
+        /** M4: zona muscular (solo PARTIAL), recorrido en la unidad de la señal, y si es una completa dudosa (SHORT_FULL). */
+        var zone: PartialZone? = null
+        var amplitude = Double.NaN
+        var shortFull = false
+
+        /** M4: apartado como ruido por estrecho; si su giro cae junto a un hueco, conserva la duda TURN_IN_GAP. */
+        var narrow = false
 
         /** Centro temporal del ciclo (índice fraccionario): el punto medio de lo que rd supera de la mitad del recorrido. */
         var centre = Double.NaN
@@ -721,6 +835,7 @@ object RepSegmenter {
             c.aUp = aUp; c.aDn = aDn; c.a = a; c.e = e
             c.kind = kind; c.partial = partial; c.discard = discard
             c.turnInGap = turnInGap; c.miniSet = miniSet; c.side = side; c.centre = centre
+            c.zone = zone; c.amplitude = amplitude; c.shortFull = shortFull; c.narrow = narrow
             return c
         }
     }
@@ -741,6 +856,10 @@ object RepSegmenter {
         val cuts: IntArray = IntArray(0),
         val flipSuggested: Boolean = false,
         val ambiguity: List<AmbiguityItem> = emptyList(),
+        val aRange: Double = Double.NaN,
+        val range: RangeInput? = null,
+        val referenceApplied: Boolean = false,
+        val evidence: PartialEvidence = PartialEvidence.NONE,
     ) {
         fun countOf(kind: RepKind): Int = cycles.count { it.kind == kind }
 
@@ -767,11 +886,14 @@ object RepSegmenter {
                         amplitudeFraction = c.a,
                         turnInGap = c.turnInGap,
                         miniSet = mini,
+                        zone = if (c.kind == RepKind.PARTIAL) c.zone else null,
+                        amplitude = c.amplitude,
                     ),
                 )
             }
             val hasReps = out.isNotEmpty()
-            val hasFull = out.any { it.kind == RepKind.FULL }
+            // M4: una serie solo de parciales sostenida por la referencia de fuera tiene repeticiones aunque ninguna sea completa.
+            val hasFull = out.any { it.kind == RepKind.FULL } || (referenceApplied && out.any { it.kind == RepKind.PARTIAL })
             return SegmentationResult(
                 cycles = out,
                 discarded = discarded,
@@ -791,6 +913,9 @@ object RepSegmenter {
                 },
                 ambiguousCycles = ambiguous + extraAmbiguous,
                 ambiguity = ambiguity + List(extraAmbiguous) { AmbiguityItem(AmbiguityKind.SIDES, Double.NaN) },
+                rangeAmplitude = aRange,
+                reference = range?.use(referenceApplied),
+                partialEvidence = evidence,
             )
         }
     }
@@ -799,22 +924,35 @@ object RepSegmenter {
     // Pasos 1 a 8 sobre una señal
     // ------------------------------------------------------------------------------------------------------------
 
+    /**
+     * Pasos 1 a 8 sobre una señal. [range] (M4) es la referencia de recorrido comprobada; [flipped] dice si [r] es la señal
+     * al revés (la zona muscular de una parcial se da en el sentido del perfil, no en el de la señal analizada).
+     */
     private class Analyzer(
         private val series: CountSeries,
         private val r: DoubleArray,
         private val profile: AnalysisProfile,
         private val hints: Set<String>,
         private val tuning: AnalysisTuning,
+        private val range: RangeInput? = null,
+        private val flipped: Boolean = false,
     ) {
         private val fs = series.fs
         private val n = r.size
         private val startsEccentric = profile.startPhase == StartPhase.ECCENTRIC_FIRST
+        private val partials = tuning.metrics.partials
         private var rd = DoubleArray(0)
         private var pieces = DoubleArray(0)
         private var aFull = 0.0
         private var lRest = 0.0
         private var sigma = 0.0
         private var restBand = 0.0
+
+        /** M4: la amplitud completa con la que se clasifica (la de la serie o la de la referencia, la mayor) y el reposo de la zona. */
+        private var aRange = 0.0
+        private var referenceApplied = false
+        private var anchor = 0.0
+        private var evidence = PartialEvidence.NONE
 
         fun run(): Pass {
             var valid = 0
@@ -896,29 +1034,41 @@ object RepSegmenter {
             for (c in cands) if (c.prominence >= tuning.topProminence * aRef) topHeights.add(rd[c.peak] - lRest)
             aFull = if (topHeights.isEmpty()) Double.NaN else RobustStats.median(topHeights.toDoubleArray())
             if (!(aFull > 0.0) || lRest.isNaN()) return empty("low_amplitude", t0)
+            // M4 · referencia de recorrido: la amplitud de una repetición completa es la mayor entre la de la propia serie y la
+            // de fuera (con la confianza de su origen), si la serie se queda claramente corta frente a ella (`referenceGate`). Así
+            // una serie hecha solo de parciales no se mide contra sí misma, y una de completas algo cortas no cambia.
+            val trusted = range?.trusted ?: Double.NaN
+            aRange = if (trusted.isFinite() && trusted > aFull && aFull < partials.referenceGate * trusted) trusted else aFull
+            referenceApplied = aRange > aFull
             val minAmplitude = if (series.source == CountSeriesBuilder.SOURCE_PLATE) {
                 profile.plateMinAmplitude ?: profile.minAmplitude
             } else {
                 profile.minAmplitude
             }
-            if (aFull < minAmplitude) return empty("low_amplitude", t0, keepAmplitude = true)
+            // La amplitud mínima del perfil es la de una completa: con la referencia aplicada se mide en ella (las parciales de
+            // una serie solo de parciales pueden quedar por debajo); el movimiento de la serie sigue teniendo que salir del ruido.
+            if (aRange < minAmplitude) return empty("low_amplitude", t0, keepAmplitude = true)
             if (aFull < tuning.minAmplitudeSigmas * sigma) return empty("low_snr", t0, keepAmplitude = true)
             restBand = min(max(tuning.restBandFraction * aFull, tuning.restBandSigmas * sigma), tuning.restBandMaxFraction * aFull)
             log { "aRef=%.4f aFull=%.4f lRest=%.4f sigma=%.4f t0=%s picos=%d banda=%.4f".format(aRef, aFull, lRest, sigma, t0, m, restBand) }
+            if (range != null) log { "referencia: amplitud=%.4f aplicada=%s motivo=%s".format(range.trusted, referenceApplied, range.reason) }
 
-            // 5 · clase de cada ciclo.
+            // 5 · clase de cada ciclo (a y e en fracciones de la amplitud completa con la que se clasifica).
             for (c in cands) {
-                c.aUp = if (c.vL >= 0) (rd[c.peak] - rd[c.vL]) / aFull else Double.NaN
-                c.aDn = if (c.vR >= 0) (rd[c.peak] - rd[c.vR]) / aFull else Double.NaN
+                c.aUp = if (c.vL >= 0) (rd[c.peak] - rd[c.vL]) / aRange else Double.NaN
+                c.aDn = if (c.vR >= 0) (rd[c.peak] - rd[c.vR]) / aRange else Double.NaN
                 c.a = when {
                     !c.aUp.isNaN() && !c.aDn.isNaN() -> min(c.aUp, c.aDn)
                     !c.aUp.isNaN() -> c.aUp
                     else -> c.aDn
                 }
-                c.e = (rd[c.peak] - lRest) / aFull
                 c.turnInGap = filledNear(c.peak)
             }
             markNonReps(cands)
+            // Con la referencia aplicada, el reposo de la zona es el nivel más bajo de los valles: en una serie de parciales en
+            // estiramiento los valles quedan lejos del reposo y su mediana (Lrest) no lo es. Sin ella, Lrest como siempre.
+            anchor = if (referenceApplied) min(lRest, lowestValley(cands)) else lRest
+            for (c in cands) c.e = (rd[c.peak] - anchor) / aRange
             val lastIndex = cands.indexOfLast { it.alive || it.discard == "noise" }
             classify(cands, lastIndex)
             for (c in cands) c.centre = centreOf(c)
@@ -933,6 +1083,10 @@ object RepSegmenter {
             dropOversizedEdges(cands)
             applyWindow(cands, tMed)
 
+            // 6b · M4: parciales que no se sostienen (bordes censurados, referencia estable y parciales aisladas), ya sin la
+            // preparación ni el re-rack.
+            gatePartials(cands)
+
             // 8 · mini-series.
             val cuts = findCuts(cands)
 
@@ -941,12 +1095,20 @@ object RepSegmenter {
 
             val kept = cands.filter { it.alive }.sortedBy { it.peak }
             val discarded = cands.filter { !it.alive }.map { DiscardedCycle(it.peak, it.discard!!) }
+            // M4: la zona de cada parcial y el recorrido de cada ciclo en la unidad de la señal.
+            for (c in kept) {
+                c.amplitude = if (c.a.isFinite()) c.a * aRange else Double.NaN
+                if (c.kind == RepKind.PARTIAL) assignZone(c) else c.zone = null
+            }
             val fulls = kept.filter { it.kind == RepKind.FULL }
-            val activeWindow = if (fulls.isEmpty()) {
+            // Sin completas, la ventana activa es la de las parciales si la referencia de fuera las sostiene (una serie solo de
+            // parciales); si no, no hay ventana.
+            val windowCycles = if (fulls.isNotEmpty()) fulls else if (referenceApplied) kept.filter { it.kind == RepKind.PARTIAL } else emptyList()
+            val activeWindow = if (windowCycles.isEmpty()) {
                 null
             } else {
-                val first = fulls.first()
-                val last = fulls.last()
+                val first = windowCycles.first()
+                val last = windowCycles.last()
                 (if (first.vL >= 0) first.vL else first.peak)..(if (last.vR >= 0) last.vR else last.peak)
             }
             val ambiguity = countAmbiguous(cands, peaks.map { it.index to it.prominence }, extended.map { it.index to it.prominence }, threshold)
@@ -965,6 +1127,10 @@ object RepSegmenter {
                 cuts = cuts,
                 flipSuggested = flipSuggested,
                 ambiguity = ambiguity,
+                aRange = aRange,
+                range = range,
+                referenceApplied = referenceApplied,
+                evidence = evidence,
             )
         }
 
@@ -1080,6 +1246,7 @@ object RepSegmenter {
             aFull = if (keepAmplitude) aFull else 0.0,
             lRest = if (keepAmplitude) lRest else 0.0,
             reason = reason,
+            range = range,
         )
 
         /** Índice del mínimo de rd en [from, to) ignorando NaN; −1 si no hay muestras válidas. */
@@ -1191,14 +1358,17 @@ object RepSegmenter {
             }
         }
 
-        /** Arranque C: un intento a medio camino que se para es FAILED; el último ciclo llega a FULL con subir y sostener. */
+        /**
+         * Arranque C: un intento a medio camino que se para es FAILED; el último ciclo llega a FULL con subir y sostener. M4: no si
+         * volvió entre el 30 y el 70 % ([returnedPartway]): no acabó en el bloqueo, y se juzga por su recorrido.
+         */
         private fun classifyConcentricStart(cands: List<Cand>, lastIndex: Int) {
             val fullRise = medianFullRiseSamples(cands)
             for ((i, c) in cands.withIndex()) {
                 if (!c.alive && c.discard != "noise") continue
                 // Último ciclo: subió lo suficiente y se sostuvo arriba (o la serie acaba antes de volver) → FULL.
                 if (i == lastIndex && c.kind != RepKind.FULL && !c.aUp.isNaN() && c.aUp >= tuning.fullFraction &&
-                    (c.vR < 0 || sustainedTop(c.peak))
+                    (c.vR < 0 || sustainedTop(c.peak)) && !returnedPartway(c)
                 ) {
                     c.kind = RepKind.FULL
                     c.partial = null
@@ -1228,6 +1398,9 @@ object RepSegmenter {
          * Arranque E: el fallo solo se ve al final. Si el ciclo llega al extremo lejano (aUp ≥ 0,70) y no vuelve (aDn < 0,70)
          * pero lo intenta (≥ 0,15·A) y el intento se queda parado ≥ 0,5 s, es FAILED; la bajada que sigue es la dejada de la
          * barra y se ignora (SETDOWN). Si es el último ciclo y no vuelve ni a la mitad, también se ignora.
+         *
+         * M4: una fallida acaba la serie ([failureEndsTheSet]): un rebote parado que sigue con otros se juzga por su recorrido.
+         * Y el último ciclo que vuelve al menos el 30 % ([returnedPartway]) no es una dejada: se juzga por su recorrido.
          */
         private fun classifyEccentricStart(cands: List<Cand>, lastIndex: Int) {
             for ((i, c) in cands.withIndex()) {
@@ -1238,16 +1411,262 @@ object RepSegmenter {
                 val attempted = !back.isNaN() && back >= tuning.failedAttemptFraction
                 val valleyStall = if (attempted) valleyStallSamples(c, cands.getOrNull(i + 1)) else 0.0
                 log { "FAILED(E)? p=%d vuelta=%.2f parada=%.1f".format(c.peak, back, valleyStall) }
-                if (attempted && valleyStall >= tuning.failedValleyStallS * fs) {
+                if (attempted && valleyStall >= tuning.failedValleyStallS * fs && failureEndsTheSet(cands, i)) {
                     c.discard = null
                     c.kind = RepKind.FAILED
                     c.partial = null
                     c.a = back
                     cands.getOrNull(i + 1)?.let { next -> if (next.alive || next.discard == "noise") next.drop("setdown") }
-                } else if (i == lastIndex && (back.isNaN() || back < tuning.setdownReturnBelow)) {
+                } else if (i == lastIndex && (back.isNaN() || back < tuning.setdownReturnBelow) && !returnedPartway(c)) {
                     c.drop("setdown")
                 }
             }
+        }
+
+        /**
+         * M4: una fallida con arranque E acaba la serie. Si la serie acaba en la parada, es una fallida (§6). Si la sigue un
+         * ciclo, ese ciclo es la dejada: no vuelve solo a medias (eso sería otro rebote de un tren de parciales en
+         * estiramiento) y tras él no queda ninguna repetición viva. Si no, la parada era la de un rebote y se juzga por su
+         * recorrido.
+         */
+        private fun failureEndsTheSet(cands: List<Cand>, i: Int): Boolean {
+            if (!partials.failedNeedsSetdown) return true
+            val next = cands.getOrNull(i + 1) ?: return true
+            val nextBack = next.aDn
+            if (!nextBack.isNaN() && nextBack >= tuning.partialFraction && nextBack < tuning.fullFraction) return false
+            for (k in i + 2 until cands.size) if (cands[k].alive) return false
+            return true
+        }
+
+        /**
+         * M4: el último ciclo [c] volvió entre el 30 y el 70 %: no acaba en el giro (un bloqueo con arranque C) ni sin intentar
+         * volver (una dejada con arranque E), así que se juzga por su recorrido. Si la serie se corta mientras aún volvía, lo
+         * decide el borde censurado (`gatePartials`).
+         */
+        private fun returnedPartway(c: Cand): Boolean =
+            partials.lastReturnByAmplitude && c.vR >= 0 && !c.aDn.isNaN() &&
+                c.aDn >= tuning.partialFraction && c.aDn < tuning.fullFraction
+
+        // ---- paso 5b (M4): parciales que no se sostienen ----
+
+        /**
+         * M4: tras la clase por recorrido, una PARTIAL solo queda si su caída es clara:
+         * 1. Borde censurado ([censorEdges]): el primer o el último ciclo, cortado por el vídeo mientras se movía, no se juzga por
+         *    el lado cortado.
+         * 1b. Parcial estrecha ([dropNarrowPartials]): un bache de ruido, no cuenta.
+         * 2. Referencia estable: sin referencia de recorrido aplicada, hacen falta al menos `minStableFull` completas; con menos,
+         *    la amplitud completa sale de un solo ciclo (una preparación, un pico raro) y ninguna parcial se sostiene.
+         * 3. Parcial aislada entre dos completas: necesita a ≤ fullFraction − `sandwichMargin`. Una repetición algo más corta en
+         *    mitad de una serie de completas suele ser una medida (un giro mal visto, un cambio de postura), no una parcial.
+         * Lo que no se sostiene cuenta como completa dudosa (SHORT_FULL): la confianza lo sabe.
+         */
+        private fun gatePartials(cands: List<Cand>) {
+            val alive = cands.filter { it.alive && it.kind != null }
+            if (alive.isEmpty()) {
+                evidence = PartialEvidence(stableReference = referenceApplied, referenceApplied = referenceApplied,
+                    externalSource = if (referenceApplied) range?.reference?.source else null)
+                return
+            }
+            if (partials.censorEdges) censorEdges(alive)
+            if (partials.minPartialWidth > 0.0) dropNarrowPartials(alive.filter { it.alive })
+            val live = alive.filter { it.alive }
+            val fulls = live.count { it.kind == RepKind.FULL }
+            val stable = referenceApplied || fulls >= partials.minStableFull
+            if (!stable) for (c in live) if (c.kind == RepKind.PARTIAL) toShortFull(c)
+            for ((i, c) in live.withIndex()) {
+                if (c.kind != RepKind.PARTIAL) continue
+                val before = live.getOrNull(i - 1)
+                val after = live.getOrNull(i + 1)
+                val sandwiched = before != null && after != null && before.kind == RepKind.FULL && after.kind == RepKind.FULL &&
+                    !before.shortFull && !after.shortFull
+                if (sandwiched && c.a > tuning.fullFraction - partials.sandwichMargin) toShortFull(c)
+            }
+            val partialCycles = live.filter { it.kind == RepKind.PARTIAL }
+            val borderline = partialCycles.count {
+                it.a > tuning.fullFraction - tuning.ambiguityMargin || it.a < tuning.partialFraction + tuning.ambiguityMargin
+            }
+            evidence = PartialEvidence(
+                stableReference = stable,
+                referenceApplied = referenceApplied,
+                externalSource = if (referenceApplied) range?.reference?.source else null,
+                margin = partials.sandwichMargin,
+                borderline = borderline,
+                shortFull = live.count { it.shortFull },
+                fullCycles = fulls,
+            )
+            log {
+                "parciales M4: estable=%s completas=%d dudosas=%s limite=%d".format(
+                    stable, fulls, live.filter { it.shortFull }.map { it.peak }, borderline,
+                )
+            }
+        }
+
+        /**
+         * M4 · parcial estrecha: más estrecha a media altura que `minPartialWidth` por la anchura mediana de las completas (o de
+         * todos los ciclos vivos, si hay menos de dos completas y al menos tres ciclos) es un bache de ruido, no una repetición.
+         * Los ciclos con el giro junto a un hueco rellenado no entran en la referencia (la forma del pico la pone el relleno); si
+         * uno de ellos se aparta por estrecho, conserva su duda (TURN_IN_GAP): puede ser una repetición real mal vista, y la
+         * confianza no debe subir por haberlo apartado.
+         */
+        private fun dropNarrowPartials(live: List<Cand>) {
+            val measurable = live.filter { it.alive && !it.turnInGap }
+            var widths = measurable.filter { it.kind == RepKind.FULL && !it.shortFull }.map(::halfHeightWidth).filter { !it.isNaN() }
+            if (widths.size < 2) {
+                widths = measurable.map(::halfHeightWidth).filter { !it.isNaN() }
+                if (widths.size < 3) return
+            }
+            val reference = RobustStats.median(widths.toDoubleArray())
+            for (c in live) {
+                if (!c.alive || c.kind != RepKind.PARTIAL) continue
+                val width = halfHeightWidth(c)
+                if (!width.isNaN() && width < partials.minPartialWidth * reference) {
+                    c.drop("noise")
+                    c.narrow = true
+                }
+            }
+        }
+
+        /** Anchura de [c] a media altura entre su valle más alto y el pico, en muestras, sin pasar de sus valles; NaN sin medida. */
+        private fun halfHeightWidth(c: Cand): Double {
+            val top = rd[c.peak]
+            val left = if (c.vL >= 0) rd[c.vL] else Double.NaN
+            val right = if (c.vR >= 0) rd[c.vR] else Double.NaN
+            val valley = when {
+                left.isNaN() -> right
+                right.isNaN() -> left
+                else -> max(left, right)
+            }
+            if (top.isNaN() || valley.isNaN()) return Double.NaN
+            val level = valley + 0.5 * (top - valley)
+            var lo = c.peak
+            while (lo - 1 >= 0 && !rd[lo - 1].isNaN() && rd[lo - 1] >= level && (c.vL < 0 || lo - 1 >= c.vL)) lo--
+            var hi = c.peak
+            while (hi + 1 < n && !rd[hi + 1].isNaN() && rd[hi + 1] >= level && (c.vR < 0 || hi + 1 <= c.vR)) hi++
+            return (hi - lo + 1).toDouble()
+        }
+
+        /** Una parcial que no se sostiene pasa a completa dudosa (SHORT_FULL): cuenta como repetición y la confianza lo sabe. */
+        private fun toShortFull(c: Cand) {
+            c.kind = RepKind.FULL
+            c.partial = null
+            c.zone = null
+            c.shortFull = true
+        }
+
+        /**
+         * M4 · borde censurado. El último ciclo vivo es PARCIAL solo por su vuelta (aDn < aUp), su valle está en el final de la
+         * serie (a ≤ `censorEdgeS`) y la señal aún bajaba: la velocidad media de los últimos `censorWindowS` es al menos
+         * `censorSpeedRatio` de la máxima de la vuelta. El vídeo cortó la vuelta y no se sabe cómo acababa:
+         * - con arranque C y la subida completa (aUp ≥ 0,70), cuenta como completa (la concéntrica se vio entera);
+         * - con arranque E y la bajada completa (aUp ≥ 0,70), no cuenta: le falta la concéntrica, que es la vuelta. Queda
+         *   descartado como `censored` y la confianza lo trata como borde censurado;
+         * - si la ida ya era corta (aUp < 0,70), se juzga por ella.
+         * Lo mismo al principio, con la ida cortada (aUp < aDn) y la señal ya subiendo: no cuenta (su salida no se vio).
+         * Si el vecino es otra parcial (un tren de parciales), sigue la pauta del vecino y se juzga por su recorrido.
+         */
+        private fun censorEdges(alive: List<Cand>) {
+            val window = max(1, (partials.censorWindowS * fs).roundToInt())
+            val edge = max(1, (partials.censorEdgeS * fs).roundToInt())
+            val first = alive.first()
+            if (first.kind == RepKind.PARTIAL && first.vL >= 0 && !first.aUp.isNaN() && (first.aDn.isNaN() || first.aUp < first.aDn)) {
+                val firstValid = firstValidIndex()
+                val neighbour = alive.getOrNull(1)
+                val train = neighbour != null && neighbour.kind == RepKind.PARTIAL
+                if (!train && first.vL - firstValid <= edge && departureSpeedRatio(first, firstValid, window) >= partials.censorSpeedRatio) {
+                    first.drop("censored")
+                }
+            }
+            val stillAlive = alive.filter { it.alive }
+            val last = stillAlive.lastOrNull() ?: return
+            if (last.kind != RepKind.PARTIAL || last.vR < 0 || last.aDn.isNaN() || (!last.aUp.isNaN() && last.aDn >= last.aUp)) return
+            val neighbour = stillAlive.getOrNull(stillAlive.size - 2)
+            if (neighbour != null && neighbour.kind == RepKind.PARTIAL) return
+            val lastValid = lastValidIndex()
+            if (lastValid - last.vR > edge || !(returnSpeedRatio(last, lastValid, window) >= partials.censorSpeedRatio)) return
+            when {
+                !last.aUp.isNaN() && last.aUp >= tuning.fullFraction -> if (startsEccentric) {
+                    last.drop("censored")
+                } else {
+                    last.kind = RepKind.FULL
+                    last.partial = null
+                    last.a = last.aUp
+                }
+                !last.aUp.isNaN() && last.aUp >= tuning.partialFraction -> last.a = last.aUp
+                else -> last.drop("noise")
+            }
+        }
+
+        /** Velocidad media de bajada de rd en los últimos [window] datos frente a la máxima de la vuelta de [c]; NaN sin vuelta. */
+        private fun returnSpeedRatio(c: Cand, lastValid: Int, window: Int): Double {
+            var peakSpeed = 0.0
+            var endSum = 0.0
+            var endCount = 0
+            for (k in c.peak until lastValid) {
+                val a = rd[k]
+                val b = rd[k + 1]
+                if (a.isNaN() || b.isNaN()) continue
+                val v = (a - b) * fs
+                if (v > peakSpeed) peakSpeed = v
+                if (k >= lastValid - window) { endSum += v; endCount++ }
+            }
+            return if (peakSpeed > 0.0 && endCount > 0) endSum / endCount / peakSpeed else Double.NaN
+        }
+
+        /** Velocidad media de subida de rd en los primeros [window] datos frente a la máxima de la ida de [c]; NaN sin ida. */
+        private fun departureSpeedRatio(c: Cand, firstValid: Int, window: Int): Double {
+            var peakSpeed = 0.0
+            var startSum = 0.0
+            var startCount = 0
+            for (k in firstValid until c.peak) {
+                val a = rd[k]
+                val b = rd[k + 1]
+                if (a.isNaN() || b.isNaN()) continue
+                val v = (b - a) * fs
+                if (v > peakSpeed) peakSpeed = v
+                if (k < firstValid + window) { startSum += v; startCount++ }
+            }
+            return if (peakSpeed > 0.0 && startCount > 0) startSum / startCount / peakSpeed else Double.NaN
+        }
+
+        private fun firstValidIndex(): Int {
+            var k = 0
+            while (k < n - 1 && rd[k].isNaN()) k++
+            return k
+        }
+
+        /** El nivel más bajo de los valles de los ciclos vivos (el reposo de la zona con la referencia aplicada). */
+        private fun lowestValley(cands: List<Cand>): Double {
+            var low = Double.POSITIVE_INFINITY
+            for (c in cands) {
+                if (!c.alive) continue
+                if (c.vL >= 0 && rd[c.vL] < low) low = rd[c.vL]
+                if (c.vR >= 0 && rd[c.vR] < low) low = rd[c.vR]
+            }
+            return if (low.isFinite()) low else lRest
+        }
+
+        /**
+         * M4 · zona de una parcial: sale del extremo que no alcanza. turnGap = lo que le falta al pico para llegar al giro y
+         * restGap = lo que el valle de su lado corto queda por encima del reposo, los dos en fracciones de la amplitud completa.
+         * Si se queda más lejos del reposo que del giro, está del lado del giro (FAR_END); si no, del lado del reposo (REST_END).
+         * Con la señal al revés, el giro de la señal es el reposo del perfil. La excéntrica acaba en el estiramiento: con
+         * arranque E el giro del perfil es la zona estirada y el reposo la acortada; con arranque C, al revés.
+         */
+        private fun assignZone(c: Cand) {
+            val top = rd[c.peak]
+            val left = if (c.vL >= 0) rd[c.vL] else Double.NaN
+            val right = if (c.vR >= 0) rd[c.vR] else Double.NaN
+            val valley = when {
+                left.isNaN() -> right
+                right.isNaN() -> left
+                else -> max(left, right)
+            }
+            val turnGap = (anchor + aRange - top) / aRange
+            val restGap = if (valley.isNaN()) 0.0 else (valley - anchor) / aRange
+            val turnSide = restGap > turnGap
+            c.partial = if (turnSide) PartialKind.FAR_END else PartialKind.REST_END
+            val profileTurnSide = if (flipped) !turnSide else turnSide
+            c.zone = if (profileTurnSide == startsEccentric) PartialZone.STRETCHED else PartialZone.SHORTENED
         }
 
         /** Sube y se sostiene arriba (≥ 70 % de la amplitud) al menos 0,3 s alrededor del giro. */
@@ -1475,8 +1894,9 @@ object RepSegmenter {
                 val nearPartial = abs(c.a - tuning.partialFraction) <= margin
                 val nearFull = abs(c.a - tuning.fullFraction) <= margin
                 val kind = when {
+                    c.alive && c.shortFull -> AmbiguityKind.SHORT_FULL
                     nearFull -> AmbiguityKind.NEAR_FULL
-                    c.alive && c.turnInGap -> AmbiguityKind.TURN_IN_GAP
+                    (c.alive || c.narrow) && c.turnInGap -> AmbiguityKind.TURN_IN_GAP
                     nearPartial -> AmbiguityKind.NEAR_PARTIAL
                     else -> null
                 }

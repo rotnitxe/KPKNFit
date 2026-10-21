@@ -26,8 +26,11 @@ internal fun countEvidence(series: CountSeries, seg: SegmentationResult, tuning:
     fun edge(from: Int, to: Int): Double = RobustStats.median(raw.copyOfRange(from, to))
     val startLevel = edge(0, window)
     // A discarded first rise can be an incomplete repetition; it must not silently disappear from confidence.
-    val censoredStart = startLevel > seg.lRest + tuning.partialFraction * seg.aFull &&
-        seg.discarded.any { it.reason == "setup" && it.peak < seg.cycles.first().peak }
+    // M4: neither can a cycle the video cut while it still moved (discarded as `censored`) at either edge.
+    val censoredBefore = seg.discarded.any { it.reason == "censored" && it.peak < seg.cycles.first().peak }
+    val censoredAfter = seg.discarded.any { it.reason == "censored" && it.peak > seg.cycles.last().peak }
+    val censoredStart = censoredBefore || (startLevel > seg.lRest + tuning.partialFraction * seg.aFull &&
+        seg.discarded.any { it.reason == "setup" && it.peak < seg.cycles.first().peak })
     fun resting(from: Int, to: Int): Boolean {
         if (to <= from) return false
         var lo = Double.POSITIVE_INFINITY
@@ -41,8 +44,8 @@ internal fun countEvidence(series: CountSeries, seg: SegmentationResult, tuning:
         return edge(from, to) <= seg.lRest + band && hi - lo <= band
     }
     val closedShort = fulls.size < tuning.minCvReps && seg.cycles.all { it.kind == RepKind.FULL && !it.turnInGap } &&
-        seg.ambiguousCycles == 0 && !censoredStart && returned &&
+        seg.ambiguousCycles == 0 && !censoredStart && returned && !censoredAfter &&
         series.r.indices.all { series.r[it].isFinite() && !series.filled[it] && !series.weak[it] } &&
         resting(0, window) && resting(series.size - window, series.size)
-    return RepCountEvidence(censoredStart, !returned, closedShort)
+    return RepCountEvidence(censoredStart, !returned || censoredAfter, closedShort)
 }

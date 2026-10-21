@@ -164,6 +164,8 @@ internal fun fullBankSignalDiagnostics(prepared: PreparedTrack, built: CountSeri
     })
     // M3: dudosos por tipo, reposo en los extremos y D42.1 (puntos «world»).
     put("m3", fullBankM3Diagnostics(prepared, built, profile))
+    // M4: conteo y confianzas con cada variante de las reglas de parciales (validación cruzada con la confianza exacta).
+    put("m4", fullBankM4Diagnostics(prepared, built, profile))
 }
 
 /** Por región del cuerpo: fracción de fotogramas con pose con algún punto de la región fuera de [0, 1]. */
