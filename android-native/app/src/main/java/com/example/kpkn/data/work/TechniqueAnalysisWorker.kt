@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
+import androidx.work.WorkInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.example.kpkn.R
@@ -25,7 +26,9 @@ import com.example.kpkn.data.repository.techniqueLoadKg
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import com.example.kpkn.domain.biomechanics.profiles.ExerciseRef
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 
@@ -65,7 +68,18 @@ class TechniqueAnalysisWorker(
             if (discardIfUnwanted(repository, mediaId)) return Result.success()
             AnalysisGate.mutex.withLock { runLocked(repository, mediaId, mode) }
         } catch (cancelled: CancellationException) {
-            // Cancelado por el sistema (se reintentará) o al borrar el medio: la fila queda como estaba.
+            val status = rowStatusOnStop(stopReason)
+            if (status != null) {
+                // WorkManager lo reprograma y el analizador conserva su punto de control. Room debe terminar la escritura
+                // aunque el contexto del Worker ya esté cancelado; al borrar el medio no se crea ninguna fila.
+                withContext(NonCancellable) {
+                    try {
+                        repository.markState(mediaId, status, 0)
+                    } catch (error: Exception) {
+                        Log.w(TAG, "No se pudo devolver $mediaId a la cola tras el paro del sistema (motivo=$stopReason).", error)
+                    }
+                }
+            }
             throw cancelled
         } catch (error: Exception) {
             Log.w(TAG, "El Worker de análisis de $mediaId falló por un error inesperado.", error)
@@ -214,7 +228,12 @@ class TechniqueAnalysisWorker(
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {
-            Log.w(TAG, "No se pudo pasar a primer plano; el análisis sigue sin aviso.", error)
+            Log.w(
+                TAG,
+                "No se pudo pasar a primer plano; el análisis sigue sin aviso. " +
+                    "API=${Build.VERSION.SDK_INT}, motivo=${error.javaClass.simpleName}: ${error.message}",
+                error,
+            )
             false
         }
     }
@@ -224,8 +243,13 @@ class TechniqueAnalysisWorker(
             setForeground(foregroundInfoFor(percent))
         } catch (cancelled: CancellationException) {
             throw cancelled
-        } catch (_: Exception) {
-            // El aviso es una cortesía: si el sistema lo niega, el análisis sigue.
+        } catch (error: Exception) {
+            Log.w(
+                TAG,
+                "No se pudo actualizar el aviso; el análisis sigue. " +
+                    "API=${Build.VERSION.SDK_INT}, motivo=${error.javaClass.simpleName}: ${error.message}",
+                error,
+            )
         }
     }
 
@@ -319,6 +343,16 @@ class TechniqueAnalysisWorker(
 
         private const val TAG = "TechniqueWorker"
         private const val REQUEST_CODE_OPEN = 507
+
+        /**
+         * El sistema volverá a programar el trabajo: la fila espera en cola. Incluye el límite del servicio en primer plano
+         * (WorkManager 2.11.2: SystemForegroundDispatcher.onTimeout → STOP_REASON_FOREGROUND_SERVICE_TIMEOUT).
+         * La cancelación de la app y un motivo desconocido conservan el comportamiento anterior.
+         */
+        internal fun rowStatusOnStop(stopReason: Int): VideoAnalysisStatus? = when (stopReason) {
+            WorkInfo.STOP_REASON_CANCELLED_BY_APP, WorkInfo.STOP_REASON_UNKNOWN -> null
+            else -> VideoAnalysisStatus.QUEUED
+        }
 
         /**
          * Tipo del servicio en primer plano: MEDIA_PROCESSING desde la API 35, DATA_SYNC de la 29 a la 34, y ninguno antes de
