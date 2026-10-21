@@ -46,4 +46,16 @@ class ShortSetCountingTest {
         assertEquals(CountConfidence.BAJA, confidence.level)
         assertEquals("censored_return", confidence.forcedLowReason)
     }
+
+    @Test fun interpolatedSupportAwayFromTheTurnCannotCertifyAShortSet() {
+        val b = SignalBuilder().hold(0.3).rep(up = 0.5, top = 0.2, down = 0.5, rest = 0.1).hold(0.3)
+        val filled = BooleanArray(b.size).also { it[15] = true }
+        val series = b.series(filled = filled)
+        val profile = RepTestSupport.eccentricProfile()
+        val seg = RepSegmenter.segment(series, profile, emptySet())
+        assertEquals(RepTestSupport.summary(seg), 1, seg.fullCount)
+        val confidence = RepConfidence.score(series, seg,
+            ViewEstimate(ViewKind.SIDE, 90.0, 90.0, 90.0, true), profile, emptySet())
+        assertNotEquals(CountConfidence.ALTA, confidence.level)
+    }
 }

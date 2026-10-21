@@ -348,18 +348,18 @@ data class MetricsTuning(
 
 /**
  * M2: conservative leave-one-fold-out calibration on development folds 0–3.
- * A quarter second resolves several measured samples at the supported 20 Hz minimum. A short set needs both
- * boundaries inside 10% of its observed excursion with no gaps or weak samples. Ambiguous cycles do not offer a number.
+ * The 0.12 s boundary window and 5% rest band are the grouped-CV refit of the recorded window/band grid.
+ * A short set needs both boundaries at rest with no gaps or weak samples. Ambiguous cycles do not offer a number.
  * No dataset identity or truth is available to these checks.
  */
 data class CountReliabilityTuning(
-    val boundaryWindowS: Double = 0.25,
-    val shortRestFraction: Double = 0.10,
+    val boundaryWindowS: Double = 0.12,
+    val shortRestFraction: Double = 0.05,
     val maxOfferedAmbiguousCycles: Int = 0,
     /** A required body region outside the image for most frames cannot certify a complete set. */
     val maxClippedFraction: Double = 0.50,
     /** Coherent travel of both planted feet, P95–P5 in BH. LOFO candidates: 0.10–0.50 BH. */
-    val maxCommonFootTravelBh: Double = 0.10,
+    val maxCommonFootTravelBh: Double = 0.20,
 )
 
 /**
