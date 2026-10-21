@@ -77,3 +77,15 @@ Rutas cortas: `K/` = `android-native/app/src/main/java/com/example/kpkn/` · `T/
 1. Commits (hash y mensaje). 2. Archivos tocados y firmas públicas nuevas o cambiadas. 3. Qué probaste: comando exacto y la línea de
 `count_tests.py` (pruebas/fallos/omitidas), y las rutas de los logs. 4. Cambios que necesitas en archivos fuera de tu lista.
 5. Cifras que cambiaron respecto a la base (antes → después), si las hubo. 6. Riesgos, dudas y lo que no hiciste.
+
+## Si eres Codex (desde el 2026-10-20 los paquetes los ejecuta Codex CLI, un agente a la vez)
+Lo de arriba sigue valiendo, salvo estas diferencias (mandan sobre lo anterior):
+- **Gradle**: usa `gradle_solo.sh` (espera a que no haya otra compilación Android viva; la RAM libre ronda 5–6 GB y cada build usa ~4,5 GB), en PRIMER plano y con un tiempo máximo de la herramienta ≥ 3 600 000 ms por corrida. Desde PowerShell no hay `bash` en el PATH:
+  `& 'C:\Program Files\Git\bin\bash.exe' -c "bash /c/kw/tools/gradle_solo.sh /c/kw/<worktree>/android-native :app:compileBaseDebugKotlin :app:testBaseDebugUnitTest --tests 'com.example.kpkn.…' > /c/kw/logs/r4-<paquete>-<n>.log 2>&1"`.
+  Lee el final del log al terminar. Sigue prohibido `--stop`, `clean`, matar procesos java y la suite entera.
+- **Prohibido** crear un `GRADLE_USER_HOME` paralelo, definir `JAVA_TOOL_OPTIONS` o tocar `~/.gradle`. Si Gradle dice «Timeout waiting to lock» o el candado es de otra sesión, **para y cuéntalo en el informe**; no lo esquives.
+- No uses teléfono ni `adb` ni emuladores. Nada de red salvo lo que pida el brief. Sin `push`.
+- **Disco**: ya hay holgura (≈270 GB), pero no dejes restos de varios GB (volcados, copias del repo, APK); borra tus temporales al terminar.
+- Firma de los commits: `Co-Authored-By: Codex <noreply@openai.com>` (reemplaza a la de Claude del apartado Git).
+- **Informe**: tu último mensaje es el informe final (formato de arriba, en español) y además lo escribes en `docs/rings-v4/reports/<ID>.md` dentro de tu worktree (commit aparte de documentación).
+- Eres el ejecutor de más criterio de la ola: si un brief y el código no cuadran, razona la causa raíz, elige la opción más conservadora y repórtala; no inventes APIs y no amplíes el alcance.
