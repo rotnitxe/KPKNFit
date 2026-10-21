@@ -96,4 +96,56 @@ class AugeAdaptiveCacheJsonTest {
         assertEquals(200, Json.parseToJsonElement(encoded).jsonObject.getValue("observations").jsonArray.size)
         assertEquals((2..201).map { "$it" }, AugeAdaptiveCacheMigration.toAdaptiveCache(encoded).observations.map { it.id })
     }
+
+    @Test fun enumDesconocidoEnOutcomeSeCoaccionaSinCaerAJsonIlegible() {
+        val raw = """{
+            "schemaVersion": 4,
+            "observations": [
+                {
+                    "id": "obs-1",
+                    "parameterKey": "cns",
+                    "y": 50.0,
+                    "predicted": 60.0,
+                    "deltaHours": 8.0,
+                    "source": "manual",
+                    "tauUsedHours": 36.0,
+                    "observedAtMs": 1700000000000,
+                    "paramsVersion": 1,
+                    "outcome": {"status": "FUTURO_DESCONOCIDO"}
+                }
+            ],
+            "dismissedAdvisoryKeys": ["a|week"],
+            "lastAdvisoryLevelByChannel": {"cns": "WATCH"}
+        }"""
+        val result = AugeAdaptiveCacheMigration.decodeAdaptiveCache(raw)
+        assertFalse("No debe caer a unreadable_json", result.diagnostics.contains("unreadable_json"))
+        assertEquals(setOf("a|week"), result.cache.dismissedAdvisoryKeys)
+        assertEquals(mapOf("cns" to "WATCH"), result.cache.lastAdvisoryLevelByChannel)
+        assertEquals(1, result.cache.observations.size)
+        assertEquals(AugeObservationStatus.ADMITTED, result.cache.observations[0].outcome.status)
+    }
+
+    @Test fun campoNoNuloConNullEnObjetoAnidadoSeCoaccionaSinCaerAJsonIlegible() {
+        val raw = """{
+            "schemaVersion": 4,
+            "parameterStates": {
+                "cns": {
+                    "mean": 3.2,
+                    "variance": null,
+                    "n": null
+                }
+            },
+            "dismissedAdvisoryKeys": ["b|week"],
+            "lastAdvisoryLevelByChannel": {"spinal": "WARNING"}
+        }"""
+        val result = AugeAdaptiveCacheMigration.decodeAdaptiveCache(raw)
+        assertFalse("No debe caer a unreadable_json", result.diagnostics.contains("unreadable_json"))
+        assertEquals(setOf("b|week"), result.cache.dismissedAdvisoryKeys)
+        assertEquals(mapOf("spinal" to "WARNING"), result.cache.lastAdvisoryLevelByChannel)
+        val state = result.cache.parameterStates["cns"]
+        assertNotNull(state)
+        assertEquals(3.2, state!!.mean, 1e-6)
+        assertEquals(0.1225, state.variance, 1e-6)
+        assertEquals(0, state.n)
+    }
 }
