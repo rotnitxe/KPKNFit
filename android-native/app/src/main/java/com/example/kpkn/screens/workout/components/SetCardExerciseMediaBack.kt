@@ -926,7 +926,7 @@ private fun VideoThumbBadgeOverlay(badge: VideoThumbBadge, modifier: Modifier = 
             }
         } else {
             val text = when (badge) {
-                is VideoThumbBadge.Reps -> if (badge.approximate) "≈${badge.count}" else "${badge.count}"
+                is VideoThumbBadge.Reps -> if (badge.approximate) com.example.kpkn.screens.workout.design.approxCount(badge.count) else "${badge.count}"
                 VideoThumbBadge.Inconclusive -> "?"
                 VideoThumbBadge.Failed -> "!"
                 else -> ""
