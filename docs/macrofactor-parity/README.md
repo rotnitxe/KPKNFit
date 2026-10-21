@@ -21,6 +21,11 @@
 | D10 | Diferidos al final y con permiso: vocabulario controlado de acciones articulares (S11) y gobernanza de `catalogRevision` (H-i). | Tocan el catálogo aprobado, que tiene su propio plan de re-curaduría. |
 | D11 | Un solo agente escribe/compila a la vez. Los paquetes de solo lectura pueden ir en paralelo. | Orden del usuario del 20-oct (RAM). |
 | D12 | QA visual: hojas de render PNG por paquete (Codex) + revisión del orquestador en el Flip5 con una variante propia **`com.example.kpkn.mfp`** (init script `C:\kw\tools\mfp-suffix.init.gradle`, ejecutor `C:\kw\tools\mfp_phone.py`), al cerrar cada paquete de UI. | Orden del usuario del 20-oct (noche): puedo probar en el Flip siempre que no afecte a la prueba en segundo plano de otro agente; otra app = otros datos, sin roce. |
+| D13 | Myo-reps = preset de rest-pause con marca de variante; no se añade un `TechniqueType` nuevo. | ~140 usos de rest-pause y `when` exhaustivos; mismo registro, fatiga y volumen que rest-pause, sin inventar una equivalencia. |
+| D14 | G13 y G6 del informe (contexto histórico y masa magra en el punto de partida) NO se implementan. | Sin datos reales no se puede validar un multiplicador, y el informe pide descartarlo si el banco no lo demuestra; los multiplicadores del informe son de otra app y están prohibidos como constantes. |
+| D15 | Micronutrientes («sin dato» ≠ 0) se resuelve **sin tocar importador ni Room**: por presencia en `micronutrients` y por cobertura. Separar «cero» de «desconocido» en el catálogo se propone aparte. | El catálogo de ~80 MB no se reimporta en esta ola. |
+| D16 | La búsqueda de alimentos (`LIKE`) no cambia: el ítem D8 del informe pide medir p95 en el dispositivo antes de decidir un FTS. La medición va en P2-F. | Criterio del propio informe. |
+| D17 | La foto de etiqueta (ítem D10 del informe) va en P2-E como **experimental**: imagen de galería + OCR ya incluido + pantalla de revisión; nunca guarda sin que la persona lo confirme. | Sin cámara, sin permisos nuevos; se prueba con textos de etiqueta escritos a mano. |
 
 ### Protocolo de QA en el Flip5 (D12)
 - **Aislamiento:** solo `com.example.kpkn.mfp`. Nunca `.dbg` (el banco de vídeos corre como servicio en primer plano ahí), nunca `.vtqa`, ni la app de producción. No toco el candado `C:\kw\phone.lock` (lo tiene el banco), no hago `adb kill-server` ni `logcat -c`, y solo lanzo comandos sobre mi paquete y lecturas de `dumpsys`.
@@ -30,7 +35,7 @@
 
 ## Paquetes, orden y propiedad de archivos calientes
 
-Orden de ejecución (serie): **H1 → N1 → T2 → T1 → N2a → N2b → T6 → T3 → T4 → T5a → T5b → N3 → N4 → P2-N → P2-T → P2-D**.
+Orden de ejecución (serie): **H1 → N1 → T2 → T1 → N2a → N2b → T6 → T3 → T4 → T5a → T5b → N3 → N4 → P2-Na → P2-Nb → P2-Ta → P2-Tb → P2-D → P2-E → P2-F**.
 
 | ID | Qué | Depende de | Prio. |
 |---|---|---|---|
@@ -47,7 +52,13 @@ Orden de ejecución (serie): **H1 → N1 → T2 → T1 → N2a → N2b → T6 �
 | T5b | Progreso por ejercicio + récords | T3, T5a | P1 |
 | N3 | Escáner de códigos + búsqueda por código + alimentos propios | N2a, H1 | P1 |
 | N4 | Reutilización del diario (copiar, repetir, plantillas, entrada rápida) | N2a, N3 | P1 |
-| P2-N / P2-T / P2-D | Resto de P2 agrupado (nutrición / entrenamiento / datos) | según | P2 |
+| P2-Na | Recetas con rendimiento, favoritos y hora de la comida, copia de seguridad de preferencias, exportación robusta | N3, N4 | P2 |
+| P2-Nb | Estado de nutrientes, cobertura, contribuyentes y metas DRI | P2-Na, N3 | P2 |
+| P2-Ta | Myo-reps (preset de rest-pause) y discos por lado en la tarjeta | T1, T3 | P2 |
+| P2-Tb | Verificación del calentamiento y de la descarga nativa; interruptores de entrenamiento con UI | T1 | P2 |
+| P2-D | Tendencia como cifra del peso + fecha robusta, exportación CSV, hábitos, código huérfano documentado | N1, N2a/b, P2-Na | P2 (la fecha, P1) |
+| P2-E | Etiqueta nutricional por foto de galería (experimental) | N3 | P2 |
+| P2-F | Medición de la búsqueda de alimentos en el dispositivo (p95) | N3, P2-Na | P2 |
 
 Archivos calientes con un único dueño por paquete (no se tocan fuera de él): `data/db/*` (N2a, luego N3), `navigation/Navigation.kt` y `MainActivity.kt` (el paquete en curso; bloques nuevos solamente), `NutritionRepository.kt`, `NutritionScreen.kt`, `NutritionViewModel.kt`.
 
@@ -59,7 +70,7 @@ Archivos calientes con un único dueño por paquete (no se tocan fuera de él): 
 | N1 | **hecho y revisado** (21-oct 00:05) | `942c4facd`, `acd7685d0`, `43f7df2d6` | 57 tests en verde (XML contados por mí), 0 `@Ignore`. 2 rondas de parámetros (solo se tocó el ruido de pendiente); umbrales D7 intactos y protocolo fijado antes de ajustar. **Márgenes estrechos**: MAE 146,19 de 150 (agua σ 1,0 kg, pesaje diario) y sesgo S3 9,22 de 10: otras dinámicas pueden superarlos. Sin coeficientes prohibidos (grep limpio). Notas para N2: `classifyDays` exige UN `DayObservation` por día; `PartialDaySuggester` usa `ExpenditureParams.V1`; banda ≈ ±300 kcal con ingesta de 2.400. |
 | T2 | **hecho y revisado** (21-oct 04:30) | `780dc09ab`, `c3b6e0aae`, `ed0076ec0`, `3440da1d8`, `85190bc70` | 351/351 tests en verde (32 suites, XML contados por mí). Ventana común + contabilidad por ocurrencia/rol con API canónica NUEVA; las 11 funciones heredadas (generador, plantillas, editor, molestias) quedan **idénticas a la base** (verificado con `C:\kw	ools\mfp_legacy_compare.py`). Costó 3 rondas de corrección: (1) T2 había cambiado la semántica heredada y reescrito un test del generador; (2) unidad «series/sem» apilada en la fila; (3) la aserción `hasVisualOverflow` era un artefacto de Robolectric y se sustituyó por criterios reales (una línea, sin truncar, dentro de la fila). **Verificado en el Flip5 (21-oct 05:58, variante `.mfp`):** pestaña Volumen con plan y «Real» en la misma unidad (series/sem, apilada), y el desglose de Dorsales suma 4+4+3+3 = 14 = lo mostrado. **Rojos previos conocidos:** `RingDetailSheetTest` (4) y `CatalogDetailContentTest.verTodosDespliegaLosMusculosQueFaltan` (1), a certificar con una corrida base al final. |
 | T1 | **hecho y revisado** (21-oct 05:45; pendiente de QA en dispositivo) | `d8ee900c0`, `a5c1e1494`, `61d66215f`, `02a8d3b77` | 1.753/1.753 tests en verde (167 suites, XML contados por mí; 39 nuevos). Pantalla «Mi material» (Ajustes → Material) con barra, discos por lado, mancuernas (rango), kettlebells, máquinas, material auxiliar, 3 plantillas y guardado explícito durable; el runtime nativo recibe ya el inventario resuelto. Cambios en archivos existentes mínimos y aditivos (`ProgramRepository`, `SettingsScreen`, `Navigation`, `MainActivity`). Vista previa `EquipmentHarnessActivity` (`state=empty|commercial|error`). **Verificado en el Flip5 (21-oct 05:58):** fila en Ajustes → Material, plantilla «Gimnasio comercial», resumen 20–335 kg correcto, guardar y reabrir persisten; «Guardar»/«Descartar» van fijos abajo (la hoja de render de cuerpo completo no lo mostraba). **Pendiente de pulido (opcional):** resumir los rangos de mancuernas consecutivas en una sola pastilla; las 6 capturas PNG se guardaron dentro de `src/test/.../render/equipment/` (≈0,9 MB) y habrá que sacarlas del árbol en la limpieza final. |
-| N2a | pendiente | | |
+| N2a | **en curso** (Codex, 21-oct) | | |
 | N2b | pendiente | | |
 | T6 | pendiente | | |
 | T3 | pendiente | | |
@@ -68,6 +79,10 @@ Archivos calientes con un único dueño por paquete (no se tocan fuera de él): 
 | T5b | pendiente | | |
 | N3 | pendiente | | |
 | N4 | pendiente | | |
-| P2-N | pendiente | | |
-| P2-T | pendiente | | |
-| P2-D | pendiente | | |
+| P2-Na | pendiente (brief y prompt listos) | | |
+| P2-Nb | pendiente (brief y prompt listos) | | |
+| P2-Ta | pendiente (brief y prompt listos) | | |
+| P2-Tb | pendiente (brief y prompt listos) | | |
+| P2-D | pendiente (brief y prompt listos) | | |
+| P2-E | pendiente (brief tras N3) | | |
+| P2-F | pendiente (brief tras N3) | | |
