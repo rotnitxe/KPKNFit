@@ -41,6 +41,7 @@ class NutritionCheckinRenderSheetTest {
     @get:Rule val rule = createComposeRule()
     private var host: View? = null
     private fun render(name: String, scale: Float) {
+        assumeTrue(System.getenv("KPKN_RENDER_DIR") != null)
         rule.setContent { KPKNTheme {
             host = LocalView.current
             val base = LocalDensity.current

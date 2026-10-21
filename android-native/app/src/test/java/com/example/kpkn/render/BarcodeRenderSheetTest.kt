@@ -79,6 +79,8 @@ class BarcodeRenderSheetTest {
     }
 
     private fun render(name: String, scale: Float, heightDp: Int, content: @Composable (Modifier) -> Unit) {
+        // Segunda guarda: sin la variable, ninguna prueba de la clase llega a dibujar (ni revienta con el `!!` de más abajo).
+        assumeTrue(System.getenv("KPKN_RENDER_DIR") != null)
         rule.setContent {
             KPKNTheme {
                 host = LocalView.current
