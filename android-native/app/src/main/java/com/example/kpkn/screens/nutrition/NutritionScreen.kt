@@ -17,6 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.*
+import com.example.kpkn.domain.nutrition.expenditure.DayMark
+import com.example.kpkn.screens.nutrition.daystate.NutritionDayStateLine
+import com.example.kpkn.screens.nutrition.daystate.NutritionDayStateSheet
 import com.example.kpkn.screens.nutrition.components.CreatineSaturationOverlay
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.screens.nutrition.components.MealTypeSaver
@@ -79,12 +82,14 @@ fun NutritionScreen(
     onOpenPendingDraft: (draftId: String) -> Unit = {},
 ) {
     val dailyTotals by viewModel.dailyTotals.collectAsState()
+    val dayState by viewModel.dayState.collectAsState()
     val goals by viewModel.goals.collectAsState()
     // Recorrido de Nutrición: se lanza al montar la pantalla (su ViewModel no expone señal de carga). Visto = no arranca.
     val tourHost = LocalKpknOverlayHost.current
     LaunchedEffect(Unit) { tourHost?.startTour(TourIds.NUTRITION, TourScripts.nutrition) }
     val mealGroups by viewModel.mealGroups.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
+    var showDayState by rememberSaveable(selectedDate) { mutableStateOf(false) }
     val today by viewModel.today.collectAsState()
     val activePlan by viewModel.activePlan.collectAsState()
     val foodDatabase by viewModel.foodDatabase.collectAsState()
@@ -273,6 +278,18 @@ fun NutritionScreen(
                     )
                 }
 
+                if (userStateLoaded) {
+                    item {
+                        NutritionDayStateLine(
+                            state = dayState,
+                            onOpen = { showDayState = true },
+                            onAcceptSuggestion = { viewModel.acceptPartialDaySuggestion() },
+                            onRejectSuggestion = { viewModel.rejectPartialDaySuggestion() },
+                            modifier = Modifier.padding(horizontal = 24.dp),
+                        )
+                    }
+                }
+
                 // Avisos: la pauta a medias de un profesional, en un módulo teñido de energía.
                 pendingNutritionSetupDraftId?.let { pendingDraftId ->
                     item {
@@ -372,6 +389,18 @@ fun NutritionScreen(
                 .navigationBarsPadding()
                 .padding(bottom = 160.dp),
         ) { data -> KpknSnackbar(data) }
+    }
+
+    if (showDayState) {
+        NutritionDayStateSheet(
+            state = dayState,
+            onSelect = { mark ->
+                if (mark == DayMark.NONE) viewModel.clearDayMark() else viewModel.setDayMark(mark)
+                showDayState = false
+            },
+            onDismiss = { showDayState = false },
+            hazeState = nutritionHazeState,
+        )
     }
 
     // El menú de una fila (N2): fuera de la pantalla, sobre todo lo demás. Duplicar, mover o eliminar cierran el menú.

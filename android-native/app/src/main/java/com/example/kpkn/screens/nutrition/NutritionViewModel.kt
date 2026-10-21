@@ -7,6 +7,10 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.nutrition.*
+import com.example.kpkn.domain.nutrition.expenditure.DayMark
+import com.example.kpkn.domain.nutrition.expenditure.DayMarkSource
+import com.example.kpkn.screens.nutrition.daystate.NutritionDayState
+import com.example.kpkn.screens.nutrition.daystate.nutritionDayState
 import com.example.kpkn.domain.time.ActivityLocalDate
 import com.example.kpkn.domain.training.AppClock
 import com.example.kpkn.domain.training.SystemAppClock
@@ -608,6 +612,43 @@ class NutritionViewModel(
             } catch (error: Exception) {
                 android.util.Log.w("NutritionViewModel", "No se pudo mover la comida", error)
                 _uiMessage.value = "No se pudo mover la comida. Inténtalo de nuevo."
+            }
+        }
+    }
+
+    private val _dayMarkSaving = MutableStateFlow(false)
+    val dayMarks = nutritionRepo.dayMarks
+
+    val dayState: StateFlow<NutritionDayState> = combine(
+        nutritionLogs, dayMarks, _selectedDate, _today, _dayMarkSaving,
+    ) { logs, marks, selected, today, saving ->
+        val date = runCatching { LocalDate.parse(selected) }.getOrNull()
+        if (date == null) NutritionDayState(today, editable = false)
+        else nutritionDayState(logs, marks, date, today).copy(saving = saving)
+    }.flowOn(computeDispatcher).stateIn(viewModelScope, SharingStarted.Lazily, NutritionDayState(_today.value))
+
+    fun setDayMark(mark: DayMark, source: DayMarkSource = DayMarkSource.USER): Job = changeDayMark(mark, source)
+    fun clearDayMark(): Job = changeDayMark(null, DayMarkSource.USER)
+    fun acceptPartialDaySuggestion(): Job = setDayMark(DayMark.PARTIAL, DayMarkSource.REVIEW_ACCEPTED)
+    fun rejectPartialDaySuggestion(): Job = setDayMark(DayMark.COMPLETE_CONFIRMED, DayMarkSource.REVIEW_REJECTED)
+
+    private fun changeDayMark(mark: DayMark?, source: DayMarkSource): Job {
+        val selected = _selectedDate.value
+        return viewModelScope.launch {
+            if (_dayMarkSaving.value) return@launch
+            _dayMarkSaving.value = true
+            try {
+                val date = LocalDate.parse(selected)
+                require(!date.isAfter(_today.value)) { "No puedes marcar un día futuro." }
+                withContext(NonCancellable) {
+                    if (mark == null) nutritionRepo.clearDayMark(date) else nutritionRepo.setDayMark(date, mark, source)
+                }
+            } catch (error: Exception) {
+                if (error is CancellationException) currentCoroutineContext().ensureActive()
+                _uiMessage.value = if (error is IllegalArgumentException) error.message
+                    else "No se pudo guardar el estado del día. Inténtalo de nuevo."
+            } finally {
+                _dayMarkSaving.value = false
             }
         }
     }
