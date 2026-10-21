@@ -126,6 +126,10 @@ Entrada: la serie calibradora registrada, las series pendientes del ejercicio, l
   4. carga ajustada por la serie 3.
   - El XRM sale del 1RM con la equivalencia de Mann: 10RM = 75 %, 6RM = 83 %, 3RM = 92 %.
   - Las reps de la serie 4 proponen el XRM de la próxima semana.
+  - **Decisión del 21-oct (riesgo 9 de PROG):** en un bloque APRE la serie 4 sale de la tabla de Mann (`Apre.set4LoadKg`), igual que en la receta `apre-mann`, y no del factor del calibrador (CAL2), por fidelidad a la fuente.
+    - La serie 3 es AMRAP con mínimo = XRM, nunca `CALIBRATOR`.
+    - El bloque lleva un marcador APRE con su variante, sin cambiar el esquema de Room.
+    - La aplicación en vivo de S3→S4 con Mann es un paquete aparte, posterior, sobre la tarjeta V7.
 - **Preservar el AMRAP al guardar:** el guardado del editor ya no quita el propósito de series de recetas en modo RM (INV1 §6-10, AUD3 §9-1).
 - **Importador:** «5+», «3x5+» y «AMRAP» marcan `SetPurpose.AMRAP` con el mínimo (INV1 §6-11).
 
