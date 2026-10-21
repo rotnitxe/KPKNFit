@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.BodyObservation
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.PlanDirection
 import com.example.kpkn.domain.nutrition.expenditure.WeightObservation
+import com.example.kpkn.domain.nutrition.expenditure.WeightTrendPoint
 import com.example.kpkn.domain.nutrition.expenditure.WeightTrendEstimator
 import com.example.kpkn.domain.nutrition.expenditure.WeightTrendParams
 import java.time.LocalDate
@@ -62,10 +63,28 @@ data class BodyWeightTrendSnapshot(
 /** Ritmo semanal (kg, negativo = baja) con su error estándar, ya mezclado con el del plan si hace falta. */
 data class TrendRate(val kgPerWeek: Double, val stdErrKgPerWeek: Double)
 
+/** Días con pesaje (mediana diaria, hasta [today]) y los puntos del estimador, uno por día de calendario hasta el último pesaje. */
+private class TrendRun(val days: List<BodyMetricPoint>, val points: List<WeightTrendPoint>)
+
+/** Null con menos de 2 días con pesaje: un solo pesaje es un dato, no una tendencia. */
+private fun runWeightTrend(
+    observations: List<BodyObservation>,
+    zone: ZoneId,
+    today: LocalDate,
+    params: WeightTrendParams,
+): TrendRun? {
+    val days = bodyDailySeries(observations.filter { it.metric == BodyMetric.WEIGHT }, zone)
+        .filter { !it.date.isAfter(today) }
+    if (days.size < 2) return null
+    val points = WeightTrendEstimator(params)
+        .estimate(days.map { WeightObservation(it.date, it.value) }, days.first().date, days.last().date)
+    return if (points.isEmpty()) null else TrendRun(days, points)
+}
+
 /**
  * Tendencia del peso hasta [today]: la mediana diaria de cada día local (la de `bodyDailySeries`, pesajes inválidos fuera)
  * pasa por el estimador de N1 con [BODY_WEIGHT_TREND_PARAMS]. Los pesajes posteriores a [today] se ignoran. Con menos de
- * 2 días con pesaje no hay tendencia (null): un solo pesaje es un dato, no una tendencia.
+ * 2 días con pesaje no hay tendencia (null).
  *
  * La tendencia llega hasta el día del último pesaje; no se extrapola a hoy (nada de números que nadie midió).
  */
@@ -75,23 +94,54 @@ fun bodyWeightTrendSnapshot(
     today: LocalDate,
     params: WeightTrendParams = BODY_WEIGHT_TREND_PARAMS,
 ): BodyWeightTrendSnapshot? {
-    val days = bodyDailySeries(observations.filter { it.metric == BodyMetric.WEIGHT }, zone)
-        .filter { !it.date.isAfter(today) }
-    if (days.size < 2) return null
-    val first = days.first()
-    val last = days.last()
-    val point = WeightTrendEstimator(params)
-        .estimate(days.map { WeightObservation(it.date, it.value) }, first.date, last.date)
-        .lastOrNull() ?: return null
-    val hasSlope = !point.isProvisional && days.size >= MIN_WEIGH_IN_DAYS_FOR_SLOPE
+    val run = runWeightTrend(observations, zone, today, params) ?: return null
+    val point = run.points.last()
+    val hasSlope = !point.isProvisional && run.days.size >= MIN_WEIGH_IN_DAYS_FOR_SLOPE
     return BodyWeightTrendSnapshot(
         trendKg = point.trendKg,
         slopeKgPerWeek = if (hasSlope) point.slopeKgPerDay * DAYS_PER_WEEK else null,
         slopeStdErrKgPerWeek = if (hasSlope) point.slopeStdErrKgPerDay * DAYS_PER_WEEK else null,
-        lastWeighIn = last,
+        lastWeighIn = run.days.last(),
         isProvisional = point.isProvisional,
-        daysOfData = (ChronoUnit.DAYS.between(first.date, last.date) + 1).toInt(),
+        daysOfData = (ChronoUnit.DAYS.between(run.days.first().date, run.days.last().date) + 1).toInt(),
     )
+}
+
+/**
+ * La serie diaria de la tendencia (un punto por día de calendario, del primer al último pesaje) con el mismo estimador y los
+ * mismos parámetros que [bodyWeightTrendSnapshot]: su último punto es exactamente la cifra de la tendencia. Vacía con menos
+ * de 2 días con pesaje.
+ */
+fun bodyWeightTrendSeries(
+    observations: List<BodyObservation>,
+    zone: ZoneId,
+    today: LocalDate,
+    params: WeightTrendParams = BODY_WEIGHT_TREND_PARAMS,
+): List<BodyMetricPoint> = runWeightTrend(observations, zone, today, params)
+    ?.points?.map { BodyMetricPoint(it.date, it.trendKg, emptyList()) }
+    ?: emptyList()
+
+/**
+ * Línea de tendencia de la gráfica del peso: la serie de la tendencia recortada a los días desde [firstVisibleDay] (null = todo);
+ * si no hay tendencia (menos de 2 días con pesaje o nada en el rango), la EWMA de siempre sobre [weightSeries].
+ */
+fun weightChartTrend(
+    trendSeries: List<BodyMetricPoint>,
+    weightSeries: List<BodyMetricPoint>,
+    firstVisibleDay: LocalDate?,
+): List<BodyMetricPoint> {
+    val visible = trendSeries.filter { firstVisibleDay == null || !it.date.isBefore(firstVisibleDay) }
+    return if (visible.isEmpty()) ewmaTrend(weightSeries) else visible
+}
+
+/**
+ * Cambio de la tendencia: su último punto menos el del día [since] o, si ese día no está en la serie, el del día con dato más
+ * cercano (a igual distancia, el anterior). Null con la serie vacía.
+ */
+fun bodyTrendChange(series: List<BodyMetricPoint>, since: LocalDate): Double? {
+    val last = series.lastOrNull() ?: return null
+    val start = series.minByOrNull { kotlin.math.abs(ChronoUnit.DAYS.between(it.date, since)) } ?: return null
+    return last.value - start.value
 }
 
 /** Peso del ritmo medido en la mezcla con el plan: 0 hasta el día 3 de datos, 1 desde el 14 y lineal entre ambos. */

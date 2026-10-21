@@ -261,6 +261,8 @@ data class BodyWeightSummary(
     val trendProgressPercent: Int? = null,
     /** Fecha estimada con la pendiente robusta (mezclada con el plan al inicio) y su margen. */
     val etaRange: EtaRange? = null,
+    /** Cambio por tendencia: la de hoy menos la del primer día del rango (o del día con dato más cercano); null sin tendencia. */
+    val trendChange: Double? = null,
 )
 
 /**
@@ -289,6 +291,7 @@ fun summarizeWeight(
     val snapshot = bodyWeightTrendSnapshot(observations, zone, today)
     val trendKg = snapshot?.trendKg
     val trendRate = blendedTrendRate(snapshot, planWeeklyRateKg)
+    val trendChange = rangeStart?.let { bodyTrendChange(bodyWeightTrendSeries(observations, zone, today), it.date) }
     return BodyWeightSummary(
         current = current,
         currentDate = last?.let { bodyLocalDate(it, zone) },
@@ -312,5 +315,6 @@ fun summarizeWeight(
             null
         },
         etaRange = goalEtaRange(trendKg, target, trendRate?.kgPerWeek, trendRate?.stdErrKgPerWeek, today),
+        trendChange = trendChange,
     )
 }
