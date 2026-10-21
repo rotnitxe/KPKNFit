@@ -32,6 +32,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.data.models.WeightUnit
+import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.screens.onboarding.design.entreno.MarksMath
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.CoverStudioArt
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram
+import com.example.kpkn.screens.programdetail.components.HeroCoverKind
+import com.example.kpkn.screens.programdetail.components.heroCoverKind
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -110,43 +117,12 @@ fun ProgramsScreen(
             contentPadding = PaddingValues(bottom = 120.dp.adapt(programsAdapt)),
         ) {
             item {
-                Row(
+                ProgramsHeader(
+                    onNew = { showCreateSheet = true },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp.adapt(programsAdapt), vertical = 24.dp.adapt(programsAdapt)),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = "PROGRAMAS",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            text = "Gestiona tus planes de entrenamiento",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Button(
-                        onClick = { showCreateSheet = true },
-                        modifier = Modifier.wrapContentWidth(),
-                        shape = MaterialTheme.shapes.extraLarge,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                        ),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text("Nuevo", fontWeight = FontWeight.Black, fontSize = 12.sp)
-                    }
-                }
+                )
             }
 
             if (activeProgram != null) {
@@ -298,10 +274,13 @@ fun ProgramsScreen(
             },
         )
     }
+    // La unidad de los máximos es la de Ajustes, una sola en toda la app.
+    val settings by ProgramRepository.getInstance().settings.collectAsState()
     protocolForTm?.let { protocol ->
         TrainingMaxWizard(
             initial = viewModel.estimatedProfileFromHistory(),
             trainingMaxPercent = protocol.recipe?.trainingMaxPercent ?: 0.90,
+            unit = if (settings.weightUnit == WeightUnit.LBS) MarksMath.UNIT_LB else MarksMath.UNIT_KG,
             onDismiss = {
                 val id = viewModel.createProgramFromProtocol(protocol.id)
                 protocolForTm = null
@@ -413,6 +392,10 @@ private fun ActiveProgramCard(
     val coverWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.roundToPx() }
     val cover = rememberProgramCover(programCoverEntryIdOf(program.coverImage), coverWidthPx)
     val coverPainter = remember(cover) { cover?.let { BitmapPainter(it) } }
+    // Portada de estudio (`kpkn-studio://`): la misma que pinta la cabecera de Program Detail (P7). Lo demás sigue como antes.
+    val studioIdentity = remember(program.id, program.structureTemplateId, program.coverImage) {
+        if (heroCoverKind(program.coverImage, hasBundledCover = false) != HeroCoverKind.STUDIO) null else coverIdentityForProgram(program)
+    }
 
     val pulseAlpha by rememberInfiniteTransition(label = "pulse").animateFloat(
         initialValue = 0.4f,
@@ -439,69 +422,119 @@ private fun ActiveProgramCard(
             ),
             colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         ) {
-            Column(
-                modifier = Modifier
-                    .background(programCoverBrush(program.coverImage))
-                    .then(
-                        if (coverPainter == null) {
-                            Modifier
-                        } else {
-                            // Foto recortada y, encima, un velo negro del 35 % al 85 % para leer el texto.
-                            Modifier
-                                .paint(coverPainter, sizeToIntrinsics = false, contentScale = ContentScale.Crop)
-                                .background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.35f), Color.Black.copy(alpha = 0.85f))))
-                        },
-                    )
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+            Box(modifier = Modifier.background(programCoverBrush(program.coverImage))) {
+                studioIdentity?.let { identity ->
+                    CoverStudioArt(identity = identity, modifier = Modifier.matchParentSize(), animate = false, reduced = true)
+                }
+                Column(
+                    modifier = Modifier
+                        .then(
+                            if (coverPainter == null) {
+                                Modifier
+                            } else {
+                                // Foto recortada y, encima, un velo negro del 35 % al 85 % para leer el texto.
+                                Modifier
+                                    .paint(coverPainter, sizeToIntrinsics = false, contentScale = ContentScale.Crop)
+                                    .background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.35f), Color.Black.copy(alpha = 0.85f))))
+                            },
+                        )
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(
-                                MaterialTheme.colorScheme.tertiary.copy(alpha = pulseAlpha)
-                            ),
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    MaterialTheme.colorScheme.tertiary.copy(alpha = pulseAlpha)
+                                ),
+                        )
+                        Text(
+                            text = if (isPaused) "PAUSADO" else "EJECUTANDO AHORA",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            color = if (isPaused) Color(0xFFFBBF24) else MaterialTheme.colorScheme.tertiary,
+                            letterSpacing = 1.sp,
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = program.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = if (isPaused) "Reanudar" else "Continuar",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = if (isPaused) Modifier.clickable(onClick = onResume) else Modifier,
+                        )
+                    }
+
                     Text(
-                        text = if (isPaused) "PAUSADO" else "EJECUTANDO AHORA",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = if (isPaused) Color(0xFFFBBF24) else MaterialTheme.colorScheme.tertiary,
-                        letterSpacing = 1.sp,
+                        text = "${pluralSemanas(stats.weeks)} · ${pluralSesiones(stats.sessions)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.78f),
                     )
                 }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = program.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = if (isPaused) "Reanudar" else "Continuar",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = if (isPaused) Modifier.clickable(onClick = onResume) else Modifier,
-                    )
-                }
-
-                Text(
-                    text = "${stats.weeks} semanas · ${stats.sessions} sesiones",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.78f),
-                )
             }
+        }
+    }
+}
+
+/**
+ * La cabecera de Programas: el título y «+ Nuevo». Va en una línea mientras cabe; con letra grande, «+ Nuevo» baja a su propia
+ * fila. El título no se parte por dentro de la palabra.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun ProgramsHeader(onNew: () -> Unit, modifier: Modifier = Modifier) {
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column {
+            Text(
+                text = "PROGRAMAS",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                softWrap = false,
+            )
+            Text(
+                text = "Gestiona tus planes de entrenamiento",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Button(
+            onClick = onNew,
+            modifier = Modifier.wrapContentWidth(),
+            shape = MaterialTheme.shapes.extraLarge,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+            ),
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(4.dp))
+            Text("Nuevo", fontWeight = FontWeight.Black, fontSize = 12.sp)
         }
     }
 }
@@ -514,6 +547,10 @@ private fun InactiveProgramCard(
     onLongPress: () -> Unit,
 ) {
     val stats = viewModel.getProgramStats(program)
+    // Portada de estudio (`kpkn-studio://`): la misma que pinta la cabecera de Program Detail (P7). Lo demás sigue como antes.
+    val studioIdentity = remember(program.id, program.structureTemplateId, program.coverImage) {
+        if (heroCoverKind(program.coverImage, hasBundledCover = false) != HeroCoverKind.STUDIO) null else coverIdentityForProgram(program)
+    }
 
     SwipeToDeleteCard(
         onDelete = { viewModel.deleteProgram(program.id) },
@@ -530,36 +567,40 @@ private fun InactiveProgramCard(
             ),
             colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(programCoverBrush(program.coverImage))
-                    .padding(24.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+            Box(modifier = Modifier.background(programCoverBrush(program.coverImage))) {
+                studioIdentity?.let { identity ->
+                    CoverStudioArt(identity = identity, modifier = Modifier.matchParentSize(), animate = false, reduced = true)
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(
-                        text = program.name,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                    )
-                    Text(
-                        text = "${stats.weeks} semanas · ${stats.sessions} sesiones",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.78f),
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(
+                            text = program.name,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                        )
+                        Text(
+                            text = "${pluralSemanas(stats.weeks)} · ${pluralSesiones(stats.sessions)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.78f),
+                        )
+                    }
+
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowRight,
+                        contentDescription = "Ver detalles",
+                        tint = Color.White.copy(alpha = 0.78f),
                     )
                 }
-
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowRight,
-                    contentDescription = "Ver detalles",
-                    tint = Color.White.copy(alpha = 0.78f),
-                )
             }
         }
     }

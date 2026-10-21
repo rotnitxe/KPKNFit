@@ -7,22 +7,22 @@ object HistoryObserver : RelatorObserver {
         val lines = buildList {
             if (history.lastSessionSets.isNotEmpty()) {
                 val summary = history.lastSessionSets.take(4).joinToString(" · ") { set ->
-                    "${formatRelatorKg(set.weightKg)}×${set.reps}"
+                    relatorSetMark(set.weightKg, set.reps)
                 }
-                add("Última vez {ex} (serie ${context.setIndex + 1}): $summary.")
-                add("La sesión previa de {ex} cerró $summary.")
+                add("La última vez de {ex}, en la serie ${context.setIndex + 1}: $summary.")
+                add("La sesión previa de {ex} cerró con $summary.")
                 val first = history.lastSessionSets.first()
-                add("Arrancaste {ex} a ${formatRelatorKg(first.weightKg)}×${first.reps} la última vez.")
+                add("Arrancaste {ex} con ${relatorSetMark(first.weightKg, first.reps)} la última vez.")
             }
             if (history.trendThreeSessionsKg.size >= 2) {
                 val trend = history.trendThreeSessionsKg.joinToString(" → ") { formatRelatorKg(it) }
-                add("Tendencia de {ex} (3 sesiones): $trend kg.")
+                add("Tendencia de {ex} en 3 sesiones: $trend kg.")
                 val delta = history.trendThreeSessionsKg.last() - history.trendThreeSessionsKg.first()
                 add(
                     if (delta >= 0) {
-                        "{ex} lleva ${formatRelatorKg(delta)} kg de subida en 3 sesiones."
+                        "{ex} sube ${relatorKg(delta)} en 3 sesiones."
                     } else {
-                        "{ex} bajó ${formatRelatorKg(-delta)} kg en 3 sesiones; hoy prioriza calidad."
+                        "{ex} baja ${relatorKg(-delta)} en 3 sesiones; hoy prioriza la calidad."
                     },
                 )
             }
@@ -30,9 +30,9 @@ object HistoryObserver : RelatorObserver {
                 val best = formatRelatorKg(history.bestEstimatedRmKg)
                 add(
                     if (gap <= 0.0) {
-                        "Estás en tu mejor marca de {ex} (~$best kg e1RM)."
+                        "Estás en tu mejor marca de {ex} (~$best kg e1RM)."
                     } else {
-                        "A ${formatRelatorKg(gap)} kg de tu mejor marca de {ex} (~$best kg)."
+                        "A ${relatorKg(gap)} de tu mejor marca de {ex} (~$best kg)."
                     },
                 )
             }
@@ -42,7 +42,7 @@ object HistoryObserver : RelatorObserver {
                 topic = RelatorTopic.HISTORY,
                 priority = 40,
                 relevance = 0.7,
-                lines = padVariants(lines),
+                lines = realVariants(lines),
                 fingerprintBase = "HISTORY:${context.progress.completedWorkingSets}",
                 actions = listOf(
                     RelatorActionSpec(
@@ -53,7 +53,6 @@ object HistoryObserver : RelatorObserver {
                     ),
                 ),
                 cooldownSets = 2,
-                openers = listOf("Dato", "Hoy"),
             ),
         )
     }

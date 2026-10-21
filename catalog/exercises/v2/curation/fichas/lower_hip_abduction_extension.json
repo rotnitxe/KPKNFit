@@ -22,12 +22,14 @@
             ]
           },
           "glutes_patada_gluteo_lateral__dumbbells": {
-            "description": "Con mancuernas, la pierna se aleja hacia el costado con la cadera nivelada y el torso sin balanceo. El glúteo medio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "description": "Tumbado de lado, la pierna superior se separa de la inferior mientras una mano mantiene una mancuerna sobre el lateral del muslo. La pelvis conserva su orientación y el tronco permanece apoyado.",
             "executionCues": [
-              "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Eleva la pierna superior sin girar la pelvis ni lanzar el peso.",
+              "Desciende despacio manteniendo la mancuerna controlada por la mano."
             ],
             "setupCues": [
-              "Preparación: Mancuerna en la cadera o el tobillo: apertura lateral con carga libre."
+              "Túmbate de lado con el cuerpo alineado y apoya la cabeza.",
+              "Coloca una mancuerna sobre la cara externa del muslo superior y sujétala con la mano para que no ruede."
             ]
           }
         },

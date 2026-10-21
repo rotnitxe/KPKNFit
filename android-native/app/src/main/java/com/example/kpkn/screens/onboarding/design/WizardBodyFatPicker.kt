@@ -46,8 +46,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.nutrition.bodyFatDescriptor
 import com.example.kpkn.domain.nutrition.physiqueSliderPositionForBodyFat
-import com.example.kpkn.screens.nutrition.WizardFemaleFrames
-import com.example.kpkn.screens.nutrition.WizardMaleFrames
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 

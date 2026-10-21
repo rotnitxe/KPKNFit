@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.*
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -22,6 +23,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -31,6 +33,9 @@ import org.robolectric.annotation.Config
 @Config(manifest = Config.NONE, sdk = [34])
 @OptIn(ExperimentalCoroutinesApi::class)
 class NativeWorkoutProgressionRuntimeTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     private val mainDispatcher = UnconfinedTestDispatcher()
 
     @Before

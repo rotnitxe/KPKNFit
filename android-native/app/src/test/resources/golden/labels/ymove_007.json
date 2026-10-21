@@ -1,0 +1,79 @@
+{
+  "id": "ymove_007",
+  "durationS": 19.12,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Sentadilla goblet con mancuerna",
+  "exerciseDetail": "Sentadilla goblet con mancuerna (la mancuerna sostenida en vertical contra el pecho con las dos manos), sentadilla profunda",
+  "suggestedProfile": "SQUAT",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.7,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 5.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 8.8,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 12.2,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 16.1,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    17.0
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 17.0,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 5.ª sentadilla (16,1 s) sube y el sujeto permanece de pie quieto hasta los 19,12 s (~2 s sin repeticiones al final)"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio con fondo blanco liso (ORB y ECC no tienen rasgos fiables): los zapatos plantados, seguidos con plantilla, se desplazan x 0..5 px e y 0..4 px en el encuadre 360x640 durante todo el clip (máx. 1,4% del ancho)"
+  },
+  "softWarnings": []
+}

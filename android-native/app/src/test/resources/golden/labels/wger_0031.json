@@ -1,0 +1,91 @@
+{
+  "id": "wger_0031",
+  "durationS": 17.083,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Zancada estática con mancuernas, frontal",
+  "exerciseDetail": "Zancada estática (sentadilla dividida) con mancuernas colgando a los lados, vista frontal exacta por un pasillo del gimnasio",
+  "suggestedProfile": "LUNGE",
+  "view": "FRONT",
+  "people": 2,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 7,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      7,
+      7
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.0,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 3.8,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 6.1,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 8.3,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 10.8,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 13.4,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 16.0,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.8,
+    17.0
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 8.3,
+      "kind": "BACKGROUND_PERSONS",
+      "description": "otra persona cruza por el lado derecho del encuadre (8,3-10,0 s) sin tapar al sujeto; a 9,5 s su tronco llena el borde derecho"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,8-17,0 s: recorrido acumulado p2p 2,2% en x y 2,9% en y, escala 1,00-1,01, velocidad media 0,57 %/s (máx. 1,0% en 1 s)"
+  },
+  "softWarnings": [
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)"
+  ]
+}

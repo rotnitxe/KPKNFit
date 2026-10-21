@@ -30,7 +30,7 @@ import kotlin.math.abs
  *   resuelve en el motor (`PlanMaterializer.realizeWarmupLoads` contra el
  *   inventario guardado en Settings, con [WarmupFeasibility] viajando en el
  *   plan), nunca como material ilimitado inventado.
- * - [orderPriorities] es la bolsa de orden (máximo 2 puntos por músculo, 5 en
+ * - [orderPriorities] es la bolsa de orden (máximo 2 puntos por músculo, 6 en
  *   total, sin negativos): solo orden de ejercicios; jamás ejercicios, series,
  *   repeticiones, intensidades, frecuencia ni volumen.
  * - [autoregulationMode] nace en PROPOSE. AUTO solo es válido tras una
@@ -80,7 +80,7 @@ data class TrainingOptions(
             reasons += "La bolsa de prioridades no puede contener músculos vacíos."
         }
         if (orderPointsFromBag(orderPriorities) == null) {
-            reasons += "La bolsa de prioridades de orden no es válida: máximo 2 puntos por músculo, 5 en total y ningún punto negativo."
+            reasons += "La bolsa de prioridades de orden no es válida: máximo 2 puntos por músculo, 6 en total y ningún punto negativo."
         }
         warmup.orEmpty().forEachIndexed { index, step ->
             val percent = step.percent

@@ -6,29 +6,27 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.NativeWheelPicker
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSheetTokens
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
 import kotlin.math.roundToInt
 
 internal enum class CardioMagnitudeKind {
@@ -196,7 +194,7 @@ internal fun CardioDistanceWheelDialog(
     CardioWheelDialogScaffold(
         title = title,
         accentColor = accentColor,
-        preview = if (km == 0 && tenths == 0) "Sin distancia" else "$km.$tenths km",
+        preview = if (km == 0 && tenths == 0) "Sin distancia" else "$km,$tenths km",
         onDismiss = onDismiss,
         onConfirm = {
             val value = km + tenths / 10.0
@@ -318,7 +316,7 @@ internal fun CardioTenthsWheelDialog(
     CardioWheelDialogScaffold(
         title = title,
         accentColor = accentColor,
-        preview = "$whole.$tenths $unit",
+        preview = "$whole,$tenths $unit",
         onDismiss = onDismiss,
         onConfirm = {
             val value = whole + tenths / 10.0
@@ -360,43 +358,22 @@ private fun CardioWheelDialogScaffold(
 ) {
     KpknAlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title, fontWeight = FontWeight.Black) },
+        title = { Text(title, style = KpknType.dialogTitle, color = WizardColors.text) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 content()
                 Text(
                     preview,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
+                    style = KpknType.metricM,
                     color = accentColor,
                 )
             }
         },
         confirmButton = {
-            FilledTonalButton(onClick = onConfirm) { Text("Aplicar") }
+            KpknPrimaryPill(text = "Aplicar", onClick = onConfirm)
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            KpknTextAction(text = "Cancelar", onClick = onDismiss)
         },
     )
-}
-
-@Composable
-internal fun rememberCardioMagnitudePicker(): CardioMagnitudePickerState {
-    var kind by remember { mutableStateOf<CardioMagnitudeKind?>(null) }
-    return remember {
-        CardioMagnitudePickerState(
-            kindProvider = { kind },
-            setKind = { kind = it },
-        )
-    }
-}
-
-internal class CardioMagnitudePickerState(
-    private val kindProvider: () -> CardioMagnitudeKind?,
-    private val setKind: (CardioMagnitudeKind?) -> Unit,
-) {
-    val kind: CardioMagnitudeKind? get() = kindProvider()
-    fun dismiss() = setKind(null)
-    fun open(kind: CardioMagnitudeKind) = setKind(kind)
 }

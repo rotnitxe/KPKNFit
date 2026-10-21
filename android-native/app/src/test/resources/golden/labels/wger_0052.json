@@ -1,0 +1,90 @@
+{
+  "id": "wger_0052",
+  "durationS": 13.017,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Curl Scott a un brazo con mancuerna",
+  "exerciseDetail": "Curl en banco Scott a un brazo con mancuerna (el brazo apoyado en el pupitre, el sujeto inclinado hacia delante), visto desde delante y a un lado con cámara de mano",
+  "suggestedProfile": "CURL",
+  "view": "OBLIQUE",
+  "people": 3,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 3,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      3,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 3.7,
+      "side": null,
+      "windowS": [
+        3.2,
+        4.2
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.9,
+      "side": null,
+      "windowS": [
+        7.5,
+        8.3
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 12.7,
+      "side": null,
+      "windowS": [
+        12.3,
+        13.0
+      ]
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    13.0
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con la mancuerna ya arriba (pico a ~0,0 s) y baja primero: ese pico inicial no cuenta como repetición completa (rango 3-4)"
+    },
+    {
+      "timeS": 13.0,
+      "kind": "TRUNCATED_END",
+      "description": "la 3.ª repetición llega arriba a ~12,7 s y el clip termina a los 13,0 s con la mancuerna aún arriba"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-13,0 s: recorrido acumulado p2p 3,4% en x y 7,4% en y, escala 1,00-1,09, velocidad media 1,42 %/s (máx. 3,4% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-13,0 s: recorrido acumulado p2p 3,4% en x y 7,4% en y, escala 1,00-1,09, velocidad media 1,42 %/s (máx. 3,4% en 1 s)",
+    "varias personas: 3 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 3-4 (ver edgeEvents)"
+  ]
+}

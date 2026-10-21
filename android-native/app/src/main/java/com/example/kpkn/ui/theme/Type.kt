@@ -2,17 +2,17 @@ package com.example.kpkn.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.screens.onboarding.design.WizardFonts
 
-private val KpknSans = FontFamily.SansSerif
+/** Letra de cuerpo y de etiquetas de la app: Inter (`WizardFonts.body`), la misma de las pantallas rediseñadas. */
+private val KpknSans = WizardFonts.body
 
 /**
- * Compact app-wide type scale.  The product uses a restrained sans family for
- * reading text; the brand face (Syne, [Syne]) is reserved for display, headline
- * and title roles, where it carries the identity. Hierarchy still comes from
+ * Compact app-wide type scale.  The product reads in Inter (`WizardFonts.body`), a restrained sans family; the brand face
+ * (Syne, [Syne]) is reserved for display, headline and title roles, where it carries the identity. Hierarchy still comes from
  * weight, spacing and contrast rather than oversized headings.
  */
 val Typography = Typography(

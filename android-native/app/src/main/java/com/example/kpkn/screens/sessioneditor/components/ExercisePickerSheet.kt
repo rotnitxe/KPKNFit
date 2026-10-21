@@ -110,6 +110,7 @@ internal fun ExercisePickerSheet(
     editingCatalogDefinitionId: String? = null,
     editingCatalogConfigurationId: String? = null,
     targetGroupName: String? = null,
+    replacement: CatalogReplacementContext? = null,
 ) {
     val v2Context = LocalContext.current
     val v2Repository = remember(v2Context) { ApprovedAssetExerciseCatalogRepositoryV2(v2Context) }
@@ -131,6 +132,7 @@ internal fun ExercisePickerSheet(
         initialCatalogDefinitionId = editingCatalogDefinitionId,
         initialCatalogConfigurationId = editingCatalogConfigurationId,
         targetGroupName = targetGroupName,
+        replacement = replacement,
     )
     return
     val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()

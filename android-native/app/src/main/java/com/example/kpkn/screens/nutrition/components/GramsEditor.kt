@@ -10,9 +10,8 @@ import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,18 +26,21 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.nutrition.GramsSliderSpec
 import com.example.kpkn.domain.nutrition.ResolvedTag
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.design.KpknTextField
+import com.example.kpkn.ui.design.KpknType
 
 /** Gramos que se asumen si la tarjeta aún no trae masa (la tarjeta visible siempre la trae). */
 private const val FALLBACK_GRAMS = 100.0
 
 /**
- * Gramos de una tarjeta de alimento: slider + campo numérico (WP-U10 / C8).
+ * Gramos de una fila de alimento: slider + campo numérico (WP-U10 / C8). Con la piel KPKN de N3b: el campo es un `KpknTextField` con la
+ * «g» al final, el slider lleva los colores de la marca y el rótulo va en `caption`. La lógica no cambia.
  *
  * - El tope del slider sale de un ancla leída UNA vez por tarjeta ([GramsSliderSpec.maxFor]);
  *   nunca del valor que se arrastra, así el pulgar no se escapa.
@@ -94,17 +96,15 @@ internal fun GramsEditor(
         ) {
             Text(
                 text = "Gramos",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.ExtraBold,
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
             )
-            OutlinedTextField(
+            KpknTextField(
                 value = typedText ?: shownLabel,
                 onValueChange = { typedText = GramsSliderSpec.sanitizeInput(it) },
                 modifier = Modifier
-                    .width(120.dp)
-                    .onFocusChanged { if (!it.isFocused) commitTypedGrams() },
-                textStyle = MaterialTheme.typography.bodyMedium,
-                suffix = { Text("g") },
+                    .width(132.dp)
+                    .onFocusChanged { if (!it.hasFocus) commitTypedGrams() },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -116,6 +116,7 @@ internal fun GramsEditor(
                         focusManager.clearFocus()
                     },
                 ),
+                trailing = { Text(text = "g", style = KpknType.unit, color = WizardColors.textMuted) },
             )
         }
         Slider(
@@ -133,6 +134,11 @@ internal fun GramsEditor(
                 }
             },
             valueRange = GramsSliderSpec.MIN_GRAMS.toFloat()..gramsMax,
+            colors = SliderDefaults.colors(
+                thumbColor = WizardColors.text,
+                activeTrackColor = WizardColors.text,
+                inactiveTrackColor = WizardColors.textFaint.copy(alpha = 0.35f),
+            ),
             modifier = Modifier.semantics {
                 contentDescription = "Gramos de ${tag.tag}"
                 stateDescription = "$shownLabel gramos"

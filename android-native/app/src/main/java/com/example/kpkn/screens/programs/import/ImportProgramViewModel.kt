@@ -38,6 +38,9 @@ import kotlinx.coroutines.withContext
 /** Aviso del límite Free al guardar un programa importado de más de una semana o de más de cinco sesiones. */
 internal const val IMPORT_PRO_NOTICE = "Los programas de más de una semana o de más de 5 sesiones son de KPKN Pro."
 
+/** Lo que dice la revisión, y el aviso al guardar, cuando no hay ningún día de entrenamiento elegido. */
+internal const val IMPORT_WEEKDAYS_MISSING = "Elige al menos un día de entrenamiento."
+
 /** Lo que muestra la pantalla «Importar programa» (Programas → Nuevo programa → Importar). */
 data class ImportProgramState(
     val imported: ImportedProgramDraft? = null,
@@ -52,6 +55,8 @@ data class ImportProgramState(
     val importKnownPlanId: String? = null,
     /** «Seguir con mi archivo»: el aviso del programa de KPKN no vuelve a salir para esta lectura. */
     val importKnownDismissed: Boolean = false,
+    /** Días de entrenamiento con los que se reparten las sesiones al guardar (ISO: 1 = lunes). Al leer, la selección inicial. */
+    val weekdays: Set<Int> = emptySet(),
     val busy: Boolean = false,
     /** Lo que se muestra mientras se lee: «Leyendo la página N de M…», «Leyendo la foto…» o «Leyendo el programa…». */
     val progress: String? = null,
@@ -197,6 +202,14 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
         _state.value = _state.value.copy(importKnownDismissed = true)
     }
 
+    /** Marca o desmarca un día de entrenamiento (ISO: 1 = lunes). Es una elección, no una edición: no pasa por deshacer. */
+    fun toggleWeekday(day: Int) {
+        if (day !in 1..7) return
+        _state.update { current ->
+            current.copy(weekdays = if (day in current.weekdays) current.weekdays - day else current.weekdays + day)
+        }
+    }
+
     suspend fun suggestions(rawName: String): List<ExerciseNameCandidate> =
         withContext(Dispatchers.Default) { ImportCatalogLookup.suggestions(loadedCatalog(), rawName) }.also(::rememberNames)
 
@@ -208,8 +221,9 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
             .also { displayNames.putAll(it) }
 
     /**
-     * Guarda el programa importado si la revisión final está limpia y el nivel lo permite. Devuelve el id guardado, o null
-     * con el aviso que toca: el primer problema de la revisión, o [IMPORT_PRO_NOTICE] si el límite Free lo rechaza.
+     * Guarda el programa importado si la revisión final está limpia, hay días de entrenamiento y el nivel lo permite. Devuelve el
+     * id guardado, o null con el aviso que toca: el primer problema de la revisión, [IMPORT_WEEKDAYS_MISSING] o
+     * [IMPORT_PRO_NOTICE] si el límite Free lo rechaza.
      */
     suspend fun save(level: PlanLevel): String? {
         val current = _state.value
@@ -222,10 +236,14 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
             reportError(importIssueLine(first, imported))
             return null
         }
+        if (current.weekdays.isEmpty()) {
+            reportError(IMPORT_WEEKDAYS_MISSING)
+            return null
+        }
         val program = ImportedProgramBuilder.build(
             draft = imported.copy(title = current.title),
             resolved = current.resolutions,
-            weekdays = emptyList(),
+            weekdays = current.weekdays.sorted(),
             programId = "import-${UUID.randomUUID()}",
             catalog = loadedCatalog(),
         )
@@ -277,6 +295,7 @@ class ImportProgramViewModel(application: Application) : AndroidViewModel(applic
                     title = parsed.title.ifBlank { defaultTitle },
                     resolutions = confident,
                     importKnownPlanId = known?.planId,
+                    weekdays = importInitialWeekdays(importSessionsPerWeek(parsed)),
                 )
             } catch (cancel: CancellationException) {
                 throw cancel

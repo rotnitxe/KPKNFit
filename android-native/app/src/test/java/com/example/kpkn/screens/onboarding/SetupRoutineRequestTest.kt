@@ -62,7 +62,7 @@ class SetupRoutineRequestTest {
 
     @Test
     fun what_the_person_declared_reaches_the_generator() {
-        val symbols = setOf(MuscleSymbol.TRICEPS, MuscleSymbol.CHEST, MuscleSymbol.GLUTES)
+        val symbols = setOf(MuscleSymbol.ARMS, MuscleSymbol.CHEST, MuscleSymbol.GLUTES)
         val draft = base.copy(
             trainingOptions = base.trainingOptions.copy(orderPriorities = MuscleSymbols.orderBagOf(symbols)),
             capabilities = mapOf(CapabilitySkill.PULL_UP to CapabilityLevel.SOME),
@@ -70,7 +70,7 @@ class SetupRoutineRequestTest {
             planVariantSeed = 3,
         )
         val request = draft.routineRequest(RoutineMode.GENERAL_STRENGTH_MUSCLE, catalog)
-        assertEquals("músculos en el orden del contrato", listOf(MuscleSymbol.CHEST, MuscleSymbol.TRICEPS, MuscleSymbol.GLUTES), request.priorityMuscles)
+        assertEquals("músculos en el orden del contrato", listOf(MuscleSymbol.CHEST, MuscleSymbol.ARMS, MuscleSymbol.GLUTES), request.priorityMuscles)
         assertEquals(draft.capabilities, request.capabilities)
         assertEquals("todas las marcas, no solo las de powerlifting", draft.liftMarks, request.marks)
         assertEquals(3, request.variantSeed)

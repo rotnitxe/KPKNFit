@@ -15,6 +15,7 @@ enum class CatalogLaunchOrigin {
     REPLACEMENT,
     SUPERSET,
     MOBILITY,
+    TECHNIQUE,
 }
 
 @Serializable
@@ -52,6 +53,16 @@ data class CatalogLaunchRequest(
     val targetGroupName: String? = null,
     val selectedExerciseIds: List<String> = emptyList(),
     val initialQuery: String = "",
+    /**
+     * Nombre con el que la persona ve el ejercicio que se reemplaza (LV5). Solo lo usa la tarjeta «Reemplazando» del catálogo; no entra
+     * en la validación del resultado. Los pedidos antiguos lo decodifican como nulo.
+     */
+    val targetExerciseName: String? = null,
+    /**
+     * Lo que se mantiene del plan al reemplazar, ya dicho («4 × 4–6 · RIR 2»). Lo calcula quien abre el catálogo con la dosis del
+     * ejercicio; el catálogo solo lo enseña en la tarjeta «Reemplazando» y en la nota de abajo. Nulo en los pedidos antiguos.
+     */
+    val targetPlanSummary: String? = null,
 )
 
 @Serializable
@@ -142,6 +153,9 @@ data class CatalogResult(
     fun isValidFor(request: CatalogLaunchRequest): Boolean {
         if (!matches(request)) return false
         if (contractVersion !in LEGACY_CONTRACT_VERSION..CURRENT_CONTRACT_VERSION) return false
+        if (request.origin == CatalogLaunchOrigin.TECHNIQUE &&
+            (request.selectionMode != CatalogSelectionMode.SINGLE || targetExerciseId != null)
+        ) return false
         if (canceled) return true
         if (selectedExerciseIds.isEmpty()) return false
         if (selectedConfigurationIds.isNotEmpty() && selectedConfigurationIds.size != selectedExerciseIds.size) return false

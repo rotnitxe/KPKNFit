@@ -9,6 +9,8 @@ import android.os.SystemClock
 import com.example.kpkn.data.models.VoiceCaptureMode
 import com.example.kpkn.data.models.VoiceNoiseProfile
 import java.util.concurrent.atomic.AtomicLong
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -33,9 +35,14 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
     @Volatile private var activeRequested = false
     @Volatile private var binding = false
     @Volatile private var failedTerminal = false
+    // Absence of a binder proves idle only before any capture, or after an acknowledged stop.
+    // Failed/connecting teardown must not become a successful second stop just because unbind cleared fields.
+    @Volatile private var stopUnconfirmed = false
+    @Volatile private var captureDispatched = false
+    @Volatile private var stopConnection: CompletableDeferred<IWorkoutVoiceEngineService?>? = null
     /** True mientras se fuerza el reinicio por cuelgue; el onStopped se trata como muerte. */
     @Volatile private var forceRestartInProgress = false
-    private var generation = 0L
+    @Volatile private var generation = 0L
     private var holdMicRouteAcrossPause = true
     private var currentStage = VoicePipelineStage.LISTENING
     private var currentGrammar = WorkoutVoiceGrammarBuilder.build(currentStage, null)
@@ -174,6 +181,10 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
                 return
             }
             activeRequested = false
+            generation = generationCounter.incrementAndGet()
+            stopUnconfirmed = false
+            captureDispatched = false
+            unbind()
             publishStopped()
             if (userRequested) WorkoutVoiceRuntime.notifyRemoteStop()
         }
@@ -193,12 +204,19 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+            // Android may deliver a connection after its pending bind was cancelled.
+            // Keep a late, never-started endpoint from surviving as a stale generation.
+            if (!binding && !activeRequested && !captureDispatched) {
+                runCatching { appContext.unbindService(this) }
+                return
+            }
             binding = false
             val service = IWorkoutVoiceEngineService.Stub.asInterface(binder)
             remote = service
             runCatching { binder?.linkToDeath(deathRecipient, 0) }
             runCatching { service.registerCallback(callback, generation) }
                 .onFailure { handleBinderDeath() }
+            stopConnection?.complete(service)
             if (activeRequested && !failedTerminal) sendStart()
         }
 
@@ -235,6 +253,7 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
         this.captureMode = captureMode
         if (!activeRequested) generation = generationCounter.incrementAndGet()
         activeRequested = true
+        stopUnconfirmed = true
         failedTerminal = false
         _captureState.value = VoiceCaptureState.STARTING
         if (remote == null) ensureBound() else sendStart()
@@ -256,46 +275,107 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
 
     override fun pause() {
         if (!activeRequested || failedTerminal) return
+        val requestedGeneration = generation
+        val endpoint = remote ?: return
+        val releaseMic = !holdMicRouteAcrossPause
         clientScope.launch(Dispatchers.IO) {
-            runCatching { remote?.pause(generation, !holdMicRouteAcrossPause) }
-                .onFailure { handleBinderDeath() }
+            if (!ownsCapture(requestedGeneration, endpoint)) return@launch
+            runCatching { endpoint.pause(requestedGeneration, releaseMic) }
+                .onFailure { if (ownsCapture(requestedGeneration, endpoint)) handleBinderDeath() }
         }
     }
 
     override suspend fun pauseAndAwait(releaseMic: Boolean, timeoutMs: Long): Boolean {
         if (!activeRequested || failedTerminal) return false
-        return withContext(Dispatchers.IO) {
-            runCatching { remote?.pause(generation, releaseMic) == true }
-                .onFailure { handleBinderDeath() }
+        val requestedGeneration = generation
+        val endpoint = remote ?: return false
+        val paused = withContext(Dispatchers.IO) {
+            if (!ownsCapture(requestedGeneration, endpoint)) return@withContext false
+            runCatching { endpoint.pause(requestedGeneration, releaseMic) }
+                .onFailure { if (ownsCapture(requestedGeneration, endpoint)) handleBinderDeath() }
                 .getOrDefault(false)
         }
+        // An ACK for an old capture cannot confirm a replacement, including while returning to Main.
+        return paused && ownsCapture(requestedGeneration, endpoint)
     }
 
     override fun resumeDecoderAfterTts(delayMs: Long) {
         if (!activeRequested || failedTerminal) return
+        val requestedGeneration = generation
+        val requestedEndpoint = remote
         clientScope.launch {
             if (delayMs > 0) delay(delayMs)
-            runCatching { remote?.resume(generation, 0L) }.onFailure { handleBinderDeath() }
+            // Initial binding may finish during the delay; it must still belong to this capture.
+            val endpoint = requestedEndpoint ?: remote ?: return@launch
+            if (!ownsCapture(requestedGeneration, endpoint)) return@launch
+            runCatching { endpoint.resume(requestedGeneration, 0L) }
+                .onFailure { if (ownsCapture(requestedGeneration, endpoint)) handleBinderDeath() }
         }
     }
 
-    override fun stop() {
-        val previous = generation
+    private fun ownsCapture(expectedGeneration: Long, endpoint: IWorkoutVoiceEngineService): Boolean =
+        activeRequested && !failedTerminal && generation == expectedGeneration && remote === endpoint
+
+    private fun finishConfirmedStop() {
         activeRequested = false
+        captureDispatched = false
+        stopUnconfirmed = false
         generation = generationCounter.incrementAndGet()
-        runCatching { remote?.stop(previous) }
         unbind()
         publishStopped()
     }
 
+    override fun stop() {
+        // A bind alone never owns capture: sendStart is the only place that dispatches it.
+        if (!captureDispatched) { finishConfirmedStop(); return }
+        val previous = generation
+        val endpoint = remote
+        activeRequested = false
+        stopUnconfirmed = true
+        val stopped = runCatching { endpoint?.stop(previous) == true }.getOrDefault(false)
+        if (stopped) finishConfirmedStop() else {
+            // Keep uncertainty, but discard a rejected/dead endpoint so retry can bind and register afresh.
+            unbind()
+            publishStopped()
+        }
+    }
+
     override suspend fun stopAndAwait(timeoutMs: Long): Boolean {
+        if (!captureDispatched) { finishConfirmedStop(); return true }
         val previous = generation
         activeRequested = false
-        val stopped = withContext(Dispatchers.IO) { runCatching { remote?.stop(previous) == true }.getOrDefault(false) }
-        generation = generationCounter.incrementAndGet()
-        unbind()
-        publishStopped()
+        stopUnconfirmed = true
+        // Reconnect for STOP only: onServiceConnected registers the generation but activeRequested=false forbids START.
+        val endpoint = remote ?: awaitStopEndpoint(timeoutMs)
+        fun confirmedIdle() = !activeRequested && !binding && remote == null && !captureDispatched && !stopUnconfirmed
+        if (generation != previous || activeRequested) return confirmedIdle()
+        if (endpoint == null) return false
+        val stopped = withContext(Dispatchers.IO) {
+            runCatching { endpoint.stop(previous) }.getOrDefault(false)
+        }
+        // A newer start/stop may have run while IPC suspended. Never unbind a replacement capture.
+        if (generation != previous || activeRequested) return confirmedIdle()
+        if (stopped) finishConfirmedStop() else {
+            unbind()
+            publishStopped()
+        }
         return stopped
+    }
+
+    private suspend fun awaitStopEndpoint(timeoutMs: Long): IWorkoutVoiceEngineService? {
+        remote?.let { return it }
+        val waitingGeneration = generation
+        val pending = CompletableDeferred<IWorkoutVoiceEngineService?>()
+        stopConnection = pending
+        return try {
+            ensureBound()
+            remote?.let { pending.complete(it) }
+            if (!binding && remote == null) pending.complete(null)
+            withTimeoutOrNull(timeoutMs.coerceAtLeast(1L)) { pending.await() }
+        } finally {
+            if (stopConnection === pending) stopConnection = null
+            if (remote == null && generation == waitingGeneration && !activeRequested) unbind()
+        }
     }
 
     /**
@@ -311,6 +391,7 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
     override fun recover() {
         failedTerminal = false
         activeRequested = true
+        stopUnconfirmed = true
         binding = false
         _captureState.value = VoiceCaptureState.STARTING
         if (remote == null) {
@@ -388,14 +469,16 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
 
     private fun sendStart() {
         runCatching {
-            remote?.start(
+            val endpoint = remote ?: error("Binder de voz no disponible")
+            captureDispatched = true
+            endpoint.start(
                 generation,
                 holdMicRouteAcrossPause,
                 currentGrammar,
                 currentStage.ordinal,
                 noiseProfile.ordinal,
                 captureMode.ordinal,
-            ) ?: error("Binder de voz no disponible")
+            )
         }.onFailure { handleBinderDeath() }
         // Re-aplicar el flag AEC SIEMPRE (true o false) para corregir un valor stale
         // del proceso anterior (fix M4).
@@ -404,6 +487,7 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
     }
 
     private fun handleBinderDeath() {
+        stopConnection?.complete(null)
         if (forceRestartInProgress) forceRestartInProgress = false
         // El usuario apagó la voz o ya se declaró terminal: no hay nada que recuperar.
         if (!activeRequested || failedTerminal) return

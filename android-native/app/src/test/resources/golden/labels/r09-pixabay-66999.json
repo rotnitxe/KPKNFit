@@ -1,0 +1,94 @@
+{
+  "id": "r09-pixabay-66999",
+  "durationS": 24.34,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Press de banca con barra",
+  "exerciseDetail": "Press de banca con barra (banco plano o ligeramente declinado, con rack)",
+  "suggestedProfile": "BENCH",
+  "view": "LYING",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 7,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      7,
+      7
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 8.3,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 10.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 12.2,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 14.4,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 16.6,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 19.1,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 21.8,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    6.5,
+    24.3
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-6,5 s: se tumba en el banco (las piernas suben y bajan hasta ~3 s), se coloca y saca la barra del rack hacia 6,5-7,0 s; sin repeticiones"
+    },
+    {
+      "timeS": 23.4,
+      "kind": "TRUNCATED_END",
+      "description": "tras el 7.º bloqueo (~23,2 s) empieza a bajar la barra y el clip termina a 24,3 s a media bajada, sin llegar al pecho: no cuenta"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": []
+}

@@ -25,6 +25,10 @@ Single-activity app: `MainActivity.kt` hosts a Compose `NavHost` + bottom naviga
 | `settings/health-connect` (health flavor only) | Health Connect route via `addHealthConnectRoute` |
 | `competitions`, `competition/{competitionId}` | `screens/competitions/CompetitionScreen.kt` |
 | `profile` | `screens/profile/ProfileScreen.kt` |
+| `technique` | `screens/technique/hub/TechniqueHubScreen.kt` (gallery import and recording/analysis settings) |
+| `technique/analysis/{mediaId}` | `screens/technique/analysis/TechniqueAnalysisScreen.kt` |
+| `technique/trends/{exerciseKey}` | `screens/technique/trends/TechniqueTrendsScreen.kt` |
+| `technique/compare/{mediaA}/{mediaB}` | `screens/technique/compare/TechniqueCompareScreen.kt` |
 | `wikilab/exercises`, `/exercise-creator`, `/exercise/{exerciseId}` | `screens/wikilab/*` |
 | `wikilab/muscles`, `/muscle/{muscleId}` | `screens/wikilab/MuscleCategoryScreen.kt`, `MuscleGroupDetailScreen.kt` |
 | `wikilab/joints`, `/joint/{jointId}` | `screens/wikilab/JointsListScreen.kt`, `JointDetailScreen.kt` |
@@ -42,53 +46,72 @@ Deep links: `kpkn://` and `https://kpkn.fit` handled by `navigation/DeepLinkRout
 
 ## 🏠 1. Home Screen (`screens/home/HomeScreen.kt` & `HomeViewModel.kt`)
 
-The Home Screen is the default landing page. It orchestrates user state, highlights daily tasks, and provides entrance gateways to the rest of the application.
+The Home screen is the default landing page. Since Home v1 it uses the wizard's identity: a black surface, the warm ink of the brand, Syne for titles and figures and Inter for reading. It is built only from `WizardColors`, `WizardTypography`, `WizardSpacing` and `SymbolPalette`, plus Home's own pieces in `screens/home/design/`. Sections are separated by air (`HomeSectionGap`, 40 dp), not by cards.
 
 ```
 +-----------------------------------------------------+
-| Greeting, Vitals Alert & Active Program Status      |
+| Masthead: date, greeting, avatar, active program    |  glass top bar appears when it scrolls away
+| Week strip: 7 days from the program's start day     |
 +-----------------------------------------------------+
-|                                                     |
-|                 (   MY RINGS   )                    |
-|          Muscular, CNS, Spinal Batteries            |
-|                                                     |
+| Session hero: today's session, rest, other day,     |
+| no program, competition, countdown                  |
+| Muscle rings: one per muscle of the session         |
 +-----------------------------------------------------+
-| Today's Workout Session Launcher / Deload Alert     |
+| RINGS: tower + three channel rows, (i) introduction |  detail = glass sheet
 +-----------------------------------------------------+
-| Compact WikiLab Preview | Water Log & Shortcuts     |
+| Notices (no box), only when there is something      |
+| Nutrition today: macro rings + four meals           |  day overlay (glass)
+| Body: weight trend, % fat, % muscle, IMC and FFMI   |
 +-----------------------------------------------------+
+| Your programs: 3:4 posters, active first, "Nuevo"   |
+| Learn: concept of the day, "Leer"                   |
++-----------------------------------------------------+
+  Bottom bar (MainActivity, I7): active tab in ink, muscle dot
 ```
 
-### 1.1 UI Component breakdown (all in `screens/home/`)
+### 1.1 Order of the page
 
-1.  **`HomeHeaderSection.kt`:**
-    *   Greets user based on daytime.
-    *   Displays active program indicators, microcycle number, and a deload notice if `shouldSuggestAutoDeload` is true in `AugeSnapshot`.
-2.  **`HomeRingsSection.kt` (Concentric Rings Canvas):**
-    *   Uses a custom canvas to draw 3 concentric progress rings:
-        *   **Outer (Green/Red):** Muscular Battery (overall muscle recovery score).
-        *   **Middle (Blue):** CNS Battery (neurological/fatigue score).
-        *   **Inner (Orange/Purple):** Spinal Battery (structural score).
-    *   Displays overall readiness percentage in the center of the rings, with action recommendations (e.g. "Optimal Readiness: volume normal and good execution").
-3.  **`HomeSessionSection.kt`:**
-    *   Loads the scheduled session template for the day.
-    *   If a session is active, it shows a blinking "Active Session in Progress" banner.
-    *   If there is unresolved workout feedback, it shows a warning sheet card urging the user to fill out the recovery feedback.
-4.  **`HomeCardsSection.kt` / `HomeProgramsSection.kt`:**
-    *   Grid items acting as gateways to `Nutrition`, `WikiLab`, `Profile`, and `Settings`; active program quick launcher (`CreateProgramCard.kt` when no program exists).
-5.  **`HomeCornersSection.kt`:**
-    *   A compact utility area with water trackers and motivational triggers.
-6.  **`HomeWikiLabSection.kt` / `AnimatedIconBackground.kt`:**
-    *   Compact WikiLab preview and decorative animated backgrounds.
+`HomeWithProgram` in `HomeScreen.kt` is the `LazyColumn`. Its items, top to bottom:
 
-### 1.2 State Flows (`HomeViewModel.kt`)
+1. `HomeMasthead` (`screens/home/design/HomeMasthead.kt`): `homeDateLine`, `HomeMastheadState`, profile button.
+2. `HomeWeekStrip` (`design/HomeWeekStrip.kt`): only with an active program and days.
+3. `HomeSessionSection` (`screens/home/HomeSessionSection.kt`): a pager of `HomeSessionHero` (`design/HomeSessionHero.kt`), with the muscle rings of `HomeMuscleGauges` (`design/HomeMuscleGauges.kt`) below.
+4. `HomeRingsSection` (`screens/home/HomeRingsSection.kt`): the tower (`ui/components/rings/KpknTowerRings`) and one `HomeRingRow` per channel (`design/HomeRingRow.kt`). The (i) opens `RingsIntroOverlay` in review mode. The detail is `RingDetailSheet.kt`, with `HomeRingRange`, `HomeRingMuscleGrid` and `HomeRingSparkline` in `design/`.
+5. `HomeNotice` (`design/HomeNotice.kt`): the auto-deload advisory and the overtraining notice. Each one appears only when it applies.
+6. `HomeNutritionToday` (`design/HomeNutritionToday.kt`, state in `screens/home/HomeNutritionState.kt`) and `HomeBodyToday` (`design/HomeBodyToday.kt`, state in `screens/home/HomeBodyState.kt`).
+7. `HomeProgramsSection` (`screens/home/HomeProgramsSection.kt`): posters with `fitPosterTitleSp` and `posterTitleOneLine`, so no title breaks inside a word.
+8. `HomeWikiLabSection` (`screens/home/HomeWikiLabSection.kt`): the «APRENDE» concept of the day.
 
-*   **State Exposed:** `homeState: StateFlow<HomeState>`
-    *   `HomeState` contains: `activeProgram`, `currentSession`, `augeSnapshot`, `pendingQuestionnaire`, `isLoading`.
-*   **User Interactions / Events:**
-    *   `onWaterIncrement()`: Increments water count.
-    *   `onRefreshAuge()`: Force recalculates Auge snapshot decay factors.
-    *   `onStartSession(sessionId)`: Launches the live workout tracker.
+Two overlays hang from the root glass host, not from the list:
+
+- `HomeTopBar` (`HomeScreen.kt`): the glass bar. Its opacity comes from `homeBarAlphaFor`, so it appears only when the masthead leaves the screen. Glass is kept for what floats (this bar, the bottom bar, the day overlay and the sheets); the page itself stays black and continuous.
+- `NutritionTodayGlassOverlay` (`HomeScreen.kt`): «Comidas de hoy». Each meal is a row without a box (type, foods and kcal, with a hairline between rows) and «Registrar comida» is the primary pill.
+
+### 1.2 Shared pieces (`screens/home/design/`)
+
+- `HomeDesign.kt`: `HomeSectionGap`, `HomeSectionLabel` (eyebrow in `textMuted`), `HomeSectionAction` (text action, 48 dp), `HomePrimaryPill` (56 dp, ink) and `HomeSecondaryPill`, `HomeTypography` (the Home-only styles, all at 13 sp or more), `Modifier.homeEntrance(index)` (first time per process only) and `HomeDateSaver`.
+- `HomeReveal.kt` and `HomeFigures.kt`: a figure counts up, and a stroke draws, only the first time the process shows them. With reduced motion, the final value.
+- `HomeGlyphButton.kt`: the (i) and close glyphs, in ink.
+
+### 1.3 State (`HomeViewModel.kt`)
+
+- `uiState: StateFlow<HomeUiState>`: name, greeting, active program, today's sessions, primary session, rest day, competition, daily calorie goal, today's nutrition totals, overtrained muscles and programs.
+- `bodyToday: StateFlow<HomeBodyState>`, the daily goals (`dailyCalorieGoal`, `dailyProteinGoal`, `dailyCarbGoal`, `dailyFatGoal`), `todayNutritionTotals`, `competitionDatePromptProgramId` and `onboardingState`.
+- `heightCm` is the real height from the profile, or null. It is never a default, so the IMC and the FFMI appear only with a real height.
+- Program sheet and volume calibration state (`showCreateProgramSheet`, `pending*`).
+- Honesty rule: without data the page shows «—», «Sin calibrar» or «Sin objetivo». Nothing is invented.
+
+### 1.4 Tests
+
+- Domain (JVM): `HomeWeekResolverTest`, `HomeSessionResolverTest`, `HomeCompetitionResolverTest`, `HomeBodyStateTest`.
+- UI (Robolectric): `HomeProgramsSectionTest`, `HomeRingsSectionTest`, `RingDetailSheetTest`, `HomeNutritionTodayTest`, `HomeSessionHeroTest`, `HomeWeekStripTest`, `CompetitionDatePromptTest`.
+- Render sheets (`src/test/java/com/example/kpkn/render/`): they write PNG only when `KPKN_RENDER_DIR` is set. `HomeTopRenderSheetTest`, `HomeHeroRenderSheetTest`, `HomeRingsRenderSheetTest`, `HomeCardsRenderSheetTest`, `HomeProgramsRenderSheetTest`, `HomeBarsRenderSheetTest` (the bars) and `HomeFullRenderSheetTest` (the whole page, four cases, 100 % and 130 %).
+- Shared sample data: `src/test/java/com/example/kpkn/screens/home/HomeSamples.kt` (`pageCases()` for the full page).
+
+### 1.5 Known gaps
+
+- Still on Material colours and typography, outside the page body: the recovery recommendation dialog in `HomeScreen.kt` (`KpknAlertDialog`, with `MaterialTheme`) and the «Conceptos clave» screens (`ConceptosClaveScreen.kt`, `ConceptoClaveAccordion.kt`), which MainActivity still opens.
+- `SingleRingCanvas` (in `HomeRingsSection.kt`) has no caller inside Home, but four sessioneditor files still import it. It stays until those imports are removed.
 
 ---
 
@@ -243,6 +266,12 @@ Shows the physiological diagnostic overview from the AUGE Engine.
 *   **Glassmorphism:** Haze library effects wired in `MainActivity.kt`.
 
 ---
+
+## Video technique
+
+Profile and the media viewer open the technique hub/analysis destinations. The hub groups analyzed exercises and only schedules old videos on explicit request. Gallery import uses the system photo picker, the catalog's TECHNIQUE/SINGLE result contract, optional load and a persisted import draft. Capture is hosted full-screen by the live workout rather than a separate navigation route.
+
+Analysis exposes available repetition, timing, ROM and calibrated plate metrics with the synchronized overlay player. Trends require exact configuration identity for load–velocity estimates; comparison aligns the first repetition and preserves each video's coordinate scale. ViewModels publish read-only StateFlow and keep media/sidecar work off the UI thread. Validation and device limitations are recorded in `video-technique/ESTADO.md`; these mappings do not assert that acceptance gates passed.
 
 ## 🛠️ 7. Swift (iOS) Presentation Parity Strategy
 

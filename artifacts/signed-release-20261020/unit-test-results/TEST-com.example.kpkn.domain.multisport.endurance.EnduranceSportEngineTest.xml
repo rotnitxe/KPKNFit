@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:57.971Z" hostname="VF" time="0.043">
+  <properties/>
+  <testcase name="runningPaceAndSpeedExposeTheirUnitsAndUseMovingTime" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.011"/>
+  <testcase name="missingIsNotZeroAndInvalidatedSegmentsDoNotProduceMetrics" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.001"/>
+  <testcase name="triathlonTotalsUseTheOrderedSegmentsAndIncludeTransitionsOnce" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.001"/>
+  <testcase name="planDurationIsOnlyReturnedWhenExplicitlyAuthored" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.006"/>
+  <testcase name="genericMeanPowerToManualFtpRatioRequiresFullDeclaredCoverage" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.008"/>
+  <testcase name="weightedMeanUsesElapsedIntervalWeightsInsteadOfArithmeticSampleMean" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.001"/>
+  <testcase name="engineBindsPayloadAndEnvelopeAndAcceptsJsonRoundTrip" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.004"/>
+  <testcase name="zoneThresholdsMustBeOrderedAndNonOverlapping" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.003"/>
+  <testcase name="sampleTimestampsMustBeStrictlyIncreasingAndInsideDeclaredCoverage" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.001"/>
+  <testcase name="swimLapsRemainExplicitAndDoNotInferDistanceFromLapCount" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.004"/>
+  <testcase name="comparabilityRequiresMatchingContextDistancesSequenceAndCompleteQuality" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.001"/>
+  <testcase name="unitAndSampleValidationRejectsWrongCadenceDimensionAndNonFiniteValues" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.0"/>
+  <testcase name="invalidatedMeasurementsArePreservedButNotSummarized" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.0"/>
+  <testcase name="weightedPowerUsesOnlyCoveredAdjacentIntervalsAndDoesNotExtrapolateTail" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.001"/>
+  <testcase name="zoneTimesDoNotBridgeLongGapsOrExtendTheLastSample" classname="com.example.kpkn.domain.multisport.endurance.EnduranceSportEngineTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

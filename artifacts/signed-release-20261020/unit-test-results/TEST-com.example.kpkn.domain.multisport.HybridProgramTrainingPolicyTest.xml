@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.multisport.HybridProgramTrainingPolicyTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:57.662Z" hostname="VF" time="0.019">
+  <properties/>
+  <testcase name="programAdapterPersistsAssessmentAndNewDeclarationsParticipateInFreshness" classname="com.example.kpkn.domain.multisport.HybridProgramTrainingPolicyTest" time="0.002"/>
+  <testcase name="unknownDeclaredSessionIsRejectedAsTypedPolicyInput" classname="com.example.kpkn.domain.multisport.HybridProgramTrainingPolicyTest" time="0.005"/>
+  <testcase name="aLargeLegacySessionBudgetDoesNotSatisfyWeeklyTrainingMinutes" classname="com.example.kpkn.domain.multisport.HybridProgramTrainingPolicyTest" time="0.002"/>
+  <testcase name="snapshotsDetachDeclarationListsAndRetainProvenance" classname="com.example.kpkn.domain.multisport.HybridProgramTrainingPolicyTest" time="0.002"/>
+  <testcase name="twoDistinctWeeksUseTheirOwnExplicitConfigurationWithoutFilteringUnknownIds" classname="com.example.kpkn.domain.multisport.HybridProgramTrainingPolicyTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

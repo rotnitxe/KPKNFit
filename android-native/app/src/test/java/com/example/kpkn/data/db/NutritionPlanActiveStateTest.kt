@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.onboarding.SetupCommitCoordinator
 import com.example.kpkn.data.onboarding.SetupCommitRequest
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -13,6 +14,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -27,6 +29,9 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class NutritionPlanActiveStateTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     private lateinit var db: KpknDatabase
 
     @Before

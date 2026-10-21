@@ -1,77 +1,59 @@
 package com.example.kpkn.screens.programdetail.components
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import com.example.kpkn.screens.programdetail.MuscleOvertrainingStatus
-import com.example.kpkn.data.models.WorkoutLog
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.clickable
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
-import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.models.AthleteProfileScore
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.VolumeRecommendation
+import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.models.isSimpleTemporalProgram
+import com.example.kpkn.screens.programdetail.design.volumeScopeLabelOf
+import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
+import com.example.kpkn.domain.exercises.MuscleHeadResolution
+import com.example.kpkn.domain.exercises.exerciseDisplayName
 import com.example.kpkn.domain.training.CanonicalMuscleVolumeEntry
 import com.example.kpkn.domain.training.DiscomfortEntry
 import com.example.kpkn.domain.training.ExerciseDiscomfortAssociationEntry
 import com.example.kpkn.domain.training.ProgramAnalyticsReport
 import com.example.kpkn.domain.training.VolumeCalculator
-import com.example.kpkn.domain.exercises.MuscleHeadResolution
-import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
-import com.example.kpkn.domain.exercises.exerciseDisplayName
-import java.time.LocalDate
+import com.example.kpkn.screens.programdetail.MuscleOvertrainingStatus
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeAssociation
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeBreakdown
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeCalibrationInvite
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeCountControls
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeDiscomfort
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeInactive
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeLine
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeModule
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeMuscle
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeNoSessions
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeScope
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeSubMuscle
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeSummaryModule
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeZones
+import com.example.kpkn.screens.programdetail.design.programVolumeSplit
+import com.example.kpkn.screens.programdetail.parseIsoDateExact
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import java.util.Locale
 import kotlin.math.max
-import com.example.kpkn.ui.components.KpknDropdownMenu
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 
 internal data class CanonicalMuscleVolumeUi(
     val muscleId: String,
@@ -121,7 +103,11 @@ private val canonicalMuscleCatalog = listOf(
     "Romboides",
 )
 
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * Pestaña Volumen de Program Detail (P4). La lógica de volumen no cambia: alcances, objetivos personalizados, conteo de series, sobrecarga
+ * y desglose se calculan igual. Lo que cambia es cómo se pinta: un módulo con una fila por músculo (barra por zonas, estado y desglose),
+ * un resumen con el reparto y las molestias, y los vacíos honestos.
+ */
 @Composable
 fun VolumeView(
     program: Program,
@@ -180,6 +166,97 @@ fun VolumeView(
     val topMuscle = remember(canonicalVolumes) { canonicalVolumes.maxByOrNull { it.weeklySets } }
 
     var showCalibrationSheet by rememberSaveable { mutableStateOf(false) }
+    var expandedMuscleName by rememberSaveable(program.id) { mutableStateOf<String?>(null) }
+
+    // Los alcances tienen tipo (Semana, Bloque, Programa): el selector recorre los de un mismo tipo y el segmento cambia de tipo.
+    val scopeKinds = remember(volumeScopeOptions) { volumeScopeOptions.map { it.kindKey() }.distinct() }
+    val selectedKey = selectedVolumeScope?.kindKey()
+    val selectedKind = selectedKey?.let { scopeKinds.indexOf(it) }?.coerceAtLeast(0) ?: 0
+    val optionsOfKind = volumeScopeOptions.filter { it.kindKey() == selectedKey }
+    val position = optionsOfKind.indexOfFirst { it.id == selectedVolumeScope?.id }
+
+    // Prioridades del usuario (bolsa de orden del programa, por músculo): van delante; luego, por series.
+    val priorityByMuscle = remember(program.planOrderPriorities) {
+        program.planOrderPriorities.orEmpty().entries
+            .groupBy { VolumeCalculator.normalizeCanonicalMuscleGroup(it.key) }
+            .mapValues { (_, entries) -> entries.sumOf { it.value }.toDouble() }
+    }
+    val muscleRows = remember(canonicalVolumes, personalizedTargets, isVolumeCalibrated, completedVolumes, muscleCdbsStatus, priorityByMuscle) {
+        val fallbackMax = max(canonicalVolumes.maxOfOrNull { it.weeklySets } ?: 0.0, 1.0)
+        canonicalVolumes
+            .sortedWith(
+                compareByDescending<CanonicalMuscleVolumeUi> { priorityByMuscle[it.muscleName] ?: 0.0 }
+                    .thenByDescending { it.weeklySets },
+            )
+            .map { entry ->
+                val target = if (isVolumeCalibrated) personalizedTargets[entry.muscleName] else null
+                val zones = target?.let { ProgramVolumeZones(it.minEffective, it.maxAdaptive, it.maxRecoverable) }
+                val canonicalName = VolumeCalculator.normalizeCanonicalMuscleGroup(entry.muscleName)
+                val status = muscleCdbsStatus[canonicalName]
+                val completed = completedVolumes.find { it.muscleName == canonicalName }?.weeklySets ?: 0.0
+                ProgramVolumeMuscle(
+                    name = entry.muscleName,
+                    sets = entry.weeklySets,
+                    zones = zones,
+                    real = completed.takeIf { it > 0.0 },
+                    overtrained = status?.isOvertrained == true,
+                    overreaching = status?.isOverreaching == true,
+                    scaleMax = if (zones != null) {
+                        max(entry.weeklySets, zones.maxRecoverable.toDouble()).coerceAtLeast(1.0)
+                    } else {
+                        fallbackMax.coerceAtLeast(1.0)
+                    },
+                )
+            }
+    }
+
+    // El desglose solo se calcula para la fila desplegada.
+    val breakdown = remember(expandedMuscleName, selectedVolumeScope, indirectMode, adjustVolumeByIntensity) {
+        expandedMuscleName?.let { muscle ->
+            val weeks = selectedVolumeScope?.weeks ?: emptyList()
+            val averageByWeek = selectedVolumeScope?.averageByWeek ?: false
+            val divisor = if (averageByWeek) weeks.size.coerceAtLeast(1).toDouble() else 1.0
+            ProgramVolumeBreakdown(
+                exercises = calculateExerciseBreakdownForMuscle(muscle, weeks, averageByWeek, indirectMode)
+                    .map { ProgramVolumeLine(name = it.exerciseName, sets = it.weeklySetsContribution) },
+                subMuscles = calculateSubMuscleBreakdown(
+                    canonicalMuscle = muscle,
+                    sessions = weeks.flatMap { it.sessions },
+                    exerciseIndex = catalogExerciseIndex(),
+                    divisor = divisor,
+                    indirectMode = indirectMode,
+                    adjustByIntensity = adjustVolumeByIntensity,
+                ).map { sub ->
+                    ProgramVolumeSubMuscle(
+                        name = sub.subMuscleName,
+                        sets = sub.weeklySets,
+                        exercises = sub.exercises.map { ProgramVolumeLine(name = it.first, sets = it.second) },
+                    )
+                },
+            )
+        }
+    }
+
+    val split = remember(canonicalVolumes) {
+        programVolumeSplit(canonicalVolumes.map { it.muscleName to it.weeklySets })
+    }
+    val discomfortRows = remember(programDiscomforts) {
+        programDiscomforts.take(4).map { ProgramVolumeDiscomfort(name = it.name, count = it.count) }
+    }
+    val associationRows = remember(exerciseDiscomfortAssociations) {
+        exerciseDiscomfortAssociations.take(6).map {
+            ProgramVolumeAssociation(exercise = it.exerciseName, discomfort = it.discomfortLabel, count = it.count)
+        }
+    }
+
+    val scope = ProgramVolumeScope(
+        label = volumeScopeLabelOf(selectedVolumeScope?.label ?: "Sin alcance", simpleProgram = program.isSimpleProgram),
+        detail = selectedVolumeScope?.detail.orEmpty(),
+        kinds = scopeKinds.map(::volumeKindLabel),
+        selectedKind = selectedKind,
+        canPrevious = position > 0,
+        canNext = position >= 0 && position < optionsOfKind.lastIndex,
+    )
 
     Column(
         modifier = modifier
@@ -187,127 +264,64 @@ fun VolumeView(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            text = "Volumen planificado",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 0.4.sp,
-        )
-        Text(
-            text = selectedVolumeScope?.detail
-                ?: "Visualiza tus series efectivas por semana usando los contadores de volumen de cada sesión.",
-            fontSize = 11.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            lineHeight = 16.sp,
-        )
-
         if (!isProgramActive) {
-            VolumeStateCard(
-                title = "Activa tu programa para ver volumen",
-                body = "Cuando el programa esté activo, KPKN usará tu estructura para mostrar cómo se reparte el volumen por músculo.",
-                buttonLabel = "Activar programa",
-                onAction = onActivateProgram,
-            )
+            ProgramVolumeInactive(onActivate = onActivateProgram)
             Spacer(Modifier.height(120.dp))
             return@Column
         }
 
         if (!hasCreatedSessions) {
-            VolumeStateCard(
-                title = "Todavía no hay sesiones creadas",
-                body = "Primero crea al menos una sesión dentro de tu semana para que podamos representar tu volumen planificado por músculo.",
-                buttonLabel = "Ir a crear sesión",
-                onAction = onGoCreateSession,
-            )
+            ProgramVolumeNoSessions(onAddSession = onGoCreateSession)
             Spacer(Modifier.height(120.dp))
             return@Column
         }
 
         if (!isVolumeCalibrated || program.athleteProfileScore == null) {
-            VolumeCalibrationInvitationCard(
+            ProgramVolumeCalibrationInvite(
                 onCalibrate = { showCalibrationSheet = true },
+                note = if (!isVolumeCalibrated) "Sin calibrar: las zonas aparecen al calibrar" else null,
             )
         }
 
-        if (volumeScopeOptions.size > 1 && selectedVolumeScope != null) {
-            VolumeScopeSelector(
-                options = volumeScopeOptions,
-                selected = selectedVolumeScope,
-                onSelect = { selectedVolumeScopeId = it.id },
-            )
-        }
-
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = "Alcance del volumen",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    IndirectModeChip(label = "Directo", mode = 0, selected = indirectMode, onSelect = { indirectMode = it })
-                    IndirectModeChip(label = "+Secundario", mode = 1, selected = indirectMode, onSelect = { indirectMode = it })
-                    IndirectModeChip(label = "+Estabilizador", mode = 2, selected = indirectMode, onSelect = { indirectMode = it })
+        ProgramVolumeModule(
+            muscles = muscleRows,
+            scope = scope,
+            onSelectKind = { index ->
+                scopeKinds.getOrNull(index)?.let { key ->
+                    volumeScopeOptions.firstOrNull { it.kindKey() == key }?.let { selectedVolumeScopeId = it.id }
                 }
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Ajustar por fatiga",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
+            },
+            onPreviousScope = {
+                if (position > 0) selectedVolumeScopeId = optionsOfKind[position - 1].id
+            },
+            onNextScope = {
+                if (position in 0 until optionsOfKind.lastIndex) selectedVolumeScopeId = optionsOfKind[position + 1].id
+            },
+            expandedMuscle = expandedMuscleName,
+            onToggleMuscle = { name -> expandedMuscleName = if (expandedMuscleName == name) null else name },
+            breakdown = breakdown,
+            onCalibrate = { showCalibrationSheet = true },
+            controls = {
+                ProgramVolumeCountControls(
+                    indirectMode = indirectMode,
+                    onIndirectMode = { indirectMode = it },
+                    adjustByIntensity = adjustVolumeByIntensity,
+                    onAdjustByIntensity = { adjustVolumeByIntensity = it },
                 )
-                Box(
-                    modifier = Modifier.width(52.dp).height(32.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    androidx.compose.material3.Switch(
-                        checked = adjustVolumeByIntensity,
-                        onCheckedChange = { adjustVolumeByIntensity = it },
-                        modifier = Modifier.scale(0.8f)
-                    )
-                }
-            }
-        }
+            },
+        )
 
-        CanonicalVolumeBarsCard(
-            canonicalVolumes = canonicalVolumes,
-            personalizedTargets = personalizedTargets,
-            isVolumeCalibrated = isVolumeCalibrated,
-            selectedVolumeScope = selectedVolumeScope,
-            indirectMode = indirectMode,
-            adjustByIntensity = adjustVolumeByIntensity,
-            completedVolumes = completedVolumes,
-            muscleCdbsStatus = muscleCdbsStatus,
+        ProgramVolumeSummaryModule(
+            totalSets = totalWeeklySets,
+            activeMuscles = activeMuscles,
+            topMuscle = topMuscle?.muscleName,
+            split = split,
+            discomforts = discomfortRows,
+            associations = associationRows,
         )
 
         analyticsReport?.let { report ->
             VolumeAnalyticsCard(report = report)
-        }
-
-        VolumeSummaryStrip(
-            totalWeeklySets = totalWeeklySets,
-            activeMuscles = activeMuscles,
-            topMuscle = topMuscle,
-        )
-
-        if (programDiscomforts.isNotEmpty()) {
-            CompactDiscomfortWidget(discomforts = programDiscomforts)
-        }
-
-        if (exerciseDiscomfortAssociations.isNotEmpty()) {
-            ExerciseDiscomfortAssociationWidget(associations = exerciseDiscomfortAssociations)
         }
 
         Spacer(Modifier.height(120.dp))
@@ -325,731 +339,14 @@ fun VolumeView(
     }
 }
 
-@Composable
-private fun VolumeScopeSelector(
-    options: List<VolumeScopeOption>,
-    selected: VolumeScopeOption,
-    onSelect: (VolumeScopeOption) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
+/** Tipo de un alcance según su identificador: programa completo, bloque o semana. */
+private fun VolumeScopeOption.kindKey(): String = id.substringBefore(':')
 
-    Box(modifier = Modifier.fillMaxWidth()) {
-        OutlinedButton(
-            onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.Start,
-            ) {
-                Text(selected.label, fontWeight = FontWeight.Black, fontSize = 13.sp)
-                Text(
-                    selected.detail,
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 13.sp,
-                )
-            }
-            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
-        }
-        KpknDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth(0.92f),
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(option.label, fontWeight = FontWeight.SemiBold)
-                            Text(
-                                option.detail,
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                lineHeight = 13.sp,
-                            )
-                        }
-                    },
-                    onClick = {
-                        onSelect(option)
-                        expanded = false
-                    },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ExerciseDiscomfortAssociationWidget(
-    associations: List<ExerciseDiscomfortAssociationEntry>,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Text(
-                text = "Asociación molestias por ejercicio",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Black,
-            )
-            associations.take(6).forEach { entry ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = entry.exerciseName,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                        )
-                        Text(
-                            text = entry.discomfortLabel,
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Text(
-                        text = "x${entry.count}",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun VolumeStateCard(
-    title: String,
-    body: String,
-    buttonLabel: String,
-    onAction: () -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.26f)),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Text(
-                text = "Volumen",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Black,
-            )
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                listOf(0.82f, 0.62f, 0.44f).forEachIndexed { index, widthFraction ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(widthFraction)
-                            .height(10.dp)
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(
-                                when (index) {
-                                    0 -> MaterialTheme.colorScheme.primary.copy(alpha = 0.42f)
-                                    1 -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.34f)
-                                    else -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.30f)
-                                },
-                            ),
-                    )
-                }
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = title,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = body,
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 16.sp,
-                )
-            }
-
-            Button(
-                onClick = onAction,
-                shape = RoundedCornerShape(16.dp),
-            ) {
-                Text(buttonLabel, fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@Composable
-private fun VolumeCalibrationInvitationCard(
-    onCalibrate: () -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.42f)),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = "Calibra tu volumen",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Black,
-            )
-            Text(
-                text = "Para decirte si un músculo está quedándose corto, en rango ideal o pasado de volumen, primero necesitamos tu calibración personalizada.",
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 16.sp,
-            )
-            Button(
-                onClick = onCalibrate,
-                shape = RoundedCornerShape(16.dp),
-            ) {
-                Text("Calibrar volumen", fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@Composable
-private fun CanonicalVolumeBarsCard(
-    canonicalVolumes: List<CanonicalMuscleVolumeUi>,
-    personalizedTargets: Map<String, PersonalizedVolumeTarget>,
-    isVolumeCalibrated: Boolean,
-    selectedVolumeScope: VolumeScopeOption?,
-    indirectMode: Int,
-    adjustByIntensity: Boolean,
-    completedVolumes: List<CanonicalMuscleVolumeEntry> = emptyList(),
-    muscleCdbsStatus: Map<String, MuscleOvertrainingStatus> = emptyMap(),
-) {
-    val maxWeeklySets = remember(canonicalVolumes) {
-        max(canonicalVolumes.maxOfOrNull { it.weeklySets } ?: 0.0, 1.0)
-    }
-
-    val anatomicalRegions = remember {
-        listOf(
-            "Espalda" to listOf("Dorsales", "Trapecio", "Romboides", "Erectores Espinales"),
-            "Pecho" to listOf("Pectorales"),
-            "Hombros" to listOf("Deltoides", "Cuello"),
-            "Brazos" to listOf("Bíceps", "Tríceps", "Antebrazo"),
-            "Piernas" to listOf("Cuádriceps", "Isquiosurales", "Glúteos", "Pantorrillas", "Aductores"),
-            "Core" to listOf("Abdomen", "Core")
-        )
-    }
-
-    var expandedRegions by remember { mutableStateOf(setOf("Espalda", "Pecho", "Hombros", "Brazos", "Piernas", "Core")) }
-    var expandedMuscleName by remember { mutableStateOf<String?>(null) }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.26f)),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Text(
-                text = "Gráficos por músculo",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Black,
-            )
-            Text(
-                text = if (isVolumeCalibrated) {
-                    "Cada barra compara tus series semanales contra tu rango ideal de volumen."
-                } else {
-                    "Cada barra representa tus series efectivas promedio por semana. Calibra tu volumen para ver rangos personalizados."
-                },
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 16.sp,
-            )
-
-            anatomicalRegions.forEach { (regionName, musclesInRegion) ->
-                val entriesInRegion = canonicalVolumes.filter { it.muscleName in musclesInRegion }
-                val regionTotalSets = entriesInRegion.sumOf { it.weeklySets }
-                val isExpanded = expandedRegions.contains(regionName)
-
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Region Header
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f))
-                            .clickable {
-                                expandedRegions = if (isExpanded) {
-                                    expandedRegions - regionName
-                                } else {
-                                    expandedRegions + regionName
-                                }
-                            }
-                            .padding(horizontal = 14.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = regionName,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                            ) {
-                                Text(
-                                    text = "${formatOneDecimal(regionTotalSets)} series",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (isExpanded) "Colapsar" else "Desplegar",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.rotate(if (isExpanded) 180f else 0f)
-                        )
-                    }
-
-                    // Region Muscles List
-                    if (isExpanded) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 4.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            entriesInRegion
-                                .sortedByDescending { it.weeklySets }
-                                .forEach { entry ->
-                                    val isMuscleExpanded = expandedMuscleName == entry.muscleName
-                                    val canonicalName = VolumeCalculator.normalizeCanonicalMuscleGroup(entry.muscleName)
-                                    val completedSets = completedVolumes.find { it.muscleName == canonicalName }?.weeklySets ?: 0.0
-                                    val overtrainingStatus: MuscleOvertrainingStatus? = muscleCdbsStatus[canonicalName]
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .clickable {
-                                                expandedMuscleName = if (isMuscleExpanded) null else entry.muscleName
-                                            }
-                                            .padding(vertical = 4.dp)
-                                    ) {
-                                        CanonicalMuscleBarRow(
-                                            entry = entry,
-                                            target = personalizedTargets[entry.muscleName],
-                                            fallbackMaxWeeklySets = maxWeeklySets,
-                                            isVolumeCalibrated = isVolumeCalibrated,
-                                            completedSets = completedSets,
-                                            overtrainingStatus = overtrainingStatus,
-                                        )
-
-                                        if (isMuscleExpanded) {
-                                            SubMuscleBreakdownList(
-                                                muscleName = entry.muscleName,
-                                                weeks = selectedVolumeScope?.weeks ?: emptyList(),
-                                                averageByWeek = selectedVolumeScope?.averageByWeek ?: false,
-                                                indirectMode = indirectMode,
-                                                adjustByIntensity = adjustByIntensity,
-                                            )
-                                            ExerciseBreakdownList(
-                                                muscleName = entry.muscleName,
-                                                weeks = selectedVolumeScope?.weeks ?: emptyList(),
-                                                averageByWeek = selectedVolumeScope?.averageByWeek ?: false,
-                                                indirectMode = indirectMode,
-                                            )
-                                        }
-                                    }
-                                }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CanonicalMuscleBarRow(
-    entry: CanonicalMuscleVolumeUi,
-    target: PersonalizedVolumeTarget?,
-    fallbackMaxWeeklySets: Double,
-    isVolumeCalibrated: Boolean,
-    completedSets: Double = 0.0,
-    overtrainingStatus: MuscleOvertrainingStatus? = null,
-) {
-    val scaleMax = when {
-        isVolumeCalibrated && target != null -> max(entry.weeklySets, target.maxRecoverable.toDouble()).coerceAtLeast(1.0)
-        else -> fallbackMaxWeeklySets.coerceAtLeast(1.0)
-    }
-    val currentFraction = (entry.weeklySets / scaleMax).toFloat().coerceIn(0f, 1f)
-    val completedFraction = (completedSets / scaleMax).toFloat().coerceIn(0f, 1f)
-    val minFraction = if (target != null) (target.minEffective / scaleMax).toFloat().coerceIn(0f, 1f) else 0f
-    val idealFraction = if (target != null) (target.maxAdaptive / scaleMax).toFloat().coerceIn(0f, 1f) else 0f
-
-    val progressColor = when {
-        !isVolumeCalibrated || target == null -> MaterialTheme.colorScheme.primary
-        entry.weeklySets <= 0.0 -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-        overtrainingStatus != null && overtrainingStatus.isOvertrained -> Color(0xFFEF4444) // Rojo / carga muy alta
-        overtrainingStatus != null && overtrainingStatus.isOverreaching -> Color(0xFFF97316) // Naranja / Sobreachance Funcional
-        entry.weeklySets < target.minEffective -> Color(0xFFEAB308) // Amarillo / Subentrenado
-        entry.weeklySets <= target.maxAdaptive -> Color(0xFF10B981) // Verde / Óptimo
-        entry.weeklySets <= target.maxRecoverable -> Color(0xFFF97316) // Naranja / Alto tolerable
-        else -> Color(0xFFEF4444) // Rojo fallback
-    }
-
-    val statusText = when {
-        overtrainingStatus != null && overtrainingStatus.isOvertrained -> "Posible exceso de volumen"
-        overtrainingStatus != null && overtrainingStatus.isOverreaching -> "Sobreachance"
-        else -> buildMuscleStatusText(
-            weeklySets = entry.weeklySets,
-            target = target,
-            isVolumeCalibrated = isVolumeCalibrated,
-        )
-    }
-
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = entry.muscleName,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                text = statusText,
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
-        // Planificado (Teórico)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)),
-        ) {
-            if (isVolumeCalibrated && target != null) {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    Spacer(modifier = Modifier.weight(minFraction.coerceAtLeast(0.001f)))
-                    Box(
-                        modifier = Modifier
-                            .weight((idealFraction - minFraction).coerceAtLeast(0.001f))
-                            .fillMaxHeight()
-                            .background(Color(0xFF10B981).copy(alpha = 0.08f))
-                    )
-                    Spacer(modifier = Modifier.weight((1f - idealFraction).coerceAtLeast(0.001f)))
-                }
-            }
-            if (currentFraction > 0f) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(currentFraction)
-                        .fillMaxHeight()
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(progressColor)
-                )
-            }
-        }
-
-        // Real completado (Doble Barra)
-        if (completedSets > 0.0) {
-            Spacer(modifier = Modifier.height(2.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f)),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(completedFraction)
-                        .fillMaxHeight()
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(progressColor.copy(alpha = 0.7f))
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Plan: ${formatOneDecimal(entry.weeklySets)}",
-                    fontSize = 9.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                )
-                Text(
-                    text = "Real: ${formatOneDecimal(completedSets)}",
-                    fontSize = 9.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ExerciseBreakdownList(
-    muscleName: String,
-    weeks: List<ProgramWeek>,
-    averageByWeek: Boolean,
-    indirectMode: Int = 0,
-) {
-    val breakdown = remember(muscleName, weeks, averageByWeek, indirectMode) {
-        calculateExerciseBreakdownForMuscle(muscleName, weeks, averageByWeek, indirectMode)
-    }
-
-    if (breakdown.isEmpty()) {
-        Text(
-            text = "Sin ejercicios registrados para este músculo en este alcance.",
-            fontSize = 11.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp)
-        )
-    } else {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, top = 4.dp, bottom = 6.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Text(
-                text = "Ejercicios que aportan volumen:",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            breakdown.forEach { item ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = item.exerciseName,
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = "${formatOneDecimal(item.weeklySetsContribution)} series/sem",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun VolumeSummaryStrip(
-    totalWeeklySets: Double,
-    activeMuscles: Int,
-    topMuscle: CanonicalMuscleVolumeUi?,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        SummaryMetricCard(
-            modifier = Modifier.weight(1f),
-            label = "Series/sem",
-            value = formatOneDecimal(totalWeeklySets),
-        )
-        SummaryMetricCard(
-            modifier = Modifier.weight(1f),
-            label = "Músculos activos",
-            value = activeMuscles.toString(),
-        )
-        SummaryMetricCard(
-            modifier = Modifier.weight(1f),
-            label = "Más cargado",
-            value = topMuscle?.muscleName ?: "Sin datos",
-        )
-    }
-}
-
-@Composable
-private fun SummaryMetricCard(
-    modifier: Modifier,
-    label: String,
-    value: String,
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Text(
-                text = label,
-                fontSize = 10.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                text = value,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Black,
-                lineHeight = 18.sp,
-            )
-        }
-    }
-}
-
-@Composable
-private fun VolumeTagRow(
-    label: String,
-    value: String,
-    intensity: Float,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row(
-            modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(10.dp)
-                    .height(10.dp)
-                    .clip(CircleShape)
-                    .background(heatColorForIntensity(intensity)),
-            )
-            Text(
-                text = label,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
-        Text(
-            text = value,
-            fontSize = 11.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun CompactDiscomfortWidget(discomforts: List<DiscomfortEntry>) {
-    val trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Text(
-                text = "Molestias recientes",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Black,
-            )
-            discomforts.take(4).forEach { entry ->
-                val intensity = (entry.count / 5f).coerceIn(0f, 1f)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = entry.name,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                    )
-                    Canvas(
-                        modifier = Modifier
-                            .width(70.dp)
-                            .height(10.dp)
-                    ) {
-                        drawLine(
-                            color = trackColor,
-                            start = androidx.compose.ui.geometry.Offset(0f, size.height / 2f),
-                            end = androidx.compose.ui.geometry.Offset(size.width, size.height / 2f),
-                            strokeWidth = size.height,
-                            cap = StrokeCap.Round,
-                        )
-                        drawLine(
-                            color = heatColorForIntensity(intensity),
-                            start = androidx.compose.ui.geometry.Offset(0f, size.height / 2f),
-                            end = androidx.compose.ui.geometry.Offset(size.width * intensity, size.height / 2f),
-                            strokeWidth = size.height,
-                            cap = StrokeCap.Round,
-                        )
-                    }
-                }
-            }
-        }
-    }
+/** Rótulo del tipo de alcance en el segmento. */
+private fun volumeKindLabel(key: String): String = when (key) {
+    "macro" -> "Programa"
+    "block" -> "Bloque"
+    else -> "Semana"
 }
 
 private fun mergeCanonicalVolumeCatalog(
@@ -1085,7 +382,7 @@ private fun buildVolumeScopeOptions(program: Program): List<VolumeScopeOption> {
     val options = mutableListOf<VolumeScopeOption>()
     options += VolumeScopeOption(
         id = "macro:average",
-        label = "Macrociclo completo",
+        label = "Programa completo",
         detail = "Promedio semanal de ${indexedWeeks.size} semanas.",
         weeks = indexedWeeks.map { it.week },
         averageByWeek = true,
@@ -1138,7 +435,7 @@ private fun Program.indexedVolumeWeeks(): List<IndexedVolumeWeek> {
     return result
 }
 private fun weekScopeName(week: ProgramWeek): String {
-    val date = week.startDate?.let(::parseIsoDateOrNull)?.format(monthDayFormatter)
+    val date = week.startDate?.let(::parseIsoDateExact)?.format(monthDayFormatter)
     return if (date != null && !week.name.contains(date)) {
         "${week.name} · $date"
     } else {
@@ -1264,76 +561,10 @@ private fun calculateExerciseBreakdownForMuscle(
         .sortedByDescending { it.weeklySetsContribution }
 }
 
-private fun heatIntensityForMuscle(
-    weeklySets: Double,
-    target: PersonalizedVolumeTarget?,
-    maxWeeklySets: Double,
-    isVolumeCalibrated: Boolean,
-): Float {
-    if (!isVolumeCalibrated || target == null) {
-        return (weeklySets / maxWeeklySets).toFloat().coerceIn(0f, 1f)
-    }
-
-    val min = target.minEffective.toDouble().coerceAtLeast(1.0)
-    val ideal = target.maxAdaptive.toDouble().coerceAtLeast(min)
-    val recoverable = target.maxRecoverable.toDouble().coerceAtLeast(ideal + 1.0)
-
-    return when {
-        weeklySets <= 0.0 -> 0f
-        weeklySets < min -> (0.16f + ((weeklySets / min) * 0.22f).toFloat()).coerceIn(0f, 0.38f)
-        weeklySets <= ideal -> {
-            val fraction = ((weeklySets - min) / (ideal - min).coerceAtLeast(1.0)).toFloat()
-            (0.48f + fraction * 0.16f).coerceIn(0.48f, 0.68f)
-        }
-        weeklySets <= recoverable -> {
-            val fraction = ((weeklySets - ideal) / (recoverable - ideal).coerceAtLeast(1.0)).toFloat()
-            (0.78f + fraction * 0.14f).coerceIn(0.78f, 0.92f)
-        }
-        else -> 1f
-    }
-}
-
-internal fun buildMuscleStatusText(
-    weeklySets: Double,
-    target: PersonalizedVolumeTarget?,
-    isVolumeCalibrated: Boolean,
-): String {
-    if (!isVolumeCalibrated || target == null) {
-        return "${formatOneDecimal(weeklySets)} series/sem"
-    }
-
-    val status = when {
-        weeklySets < target.minEffective -> "Subentrenado"
-        weeklySets == target.minEffective.toDouble() -> "Base mínima"
-        weeklySets <= target.maxAdaptive -> "Rango ideal"
-        weeklySets <= target.maxRecoverable -> "Alto tolerable"
-        else -> "Sobreentreno"
-    }
-    return "$status · ${formatOneDecimal(weeklySets)} series/sem"
-}
-
-private fun heatColorForIntensity(intensity: Float): Color {
-    val clamped = intensity.coerceIn(0f, 1f)
-    val low = Color(0xFFFACC15)
-    val mid = Color(0xFFF97316)
-    val high = Color(0xFFEF4444)
-    val baseColor = if (clamped < 0.5f) {
-        lerp(low, mid, clamped / 0.5f)
-    } else {
-        lerp(mid, high, (clamped - 0.5f) / 0.5f)
-    }
-    return baseColor.copy(alpha = 0.28f + (clamped * 0.42f))
-}
-
 private val monthDayFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd", Locale.US)
 
-private fun parseIsoDateOrNull(raw: String): LocalDate? = try {
-    LocalDate.parse(raw)
-} catch (_: DateTimeParseException) {
-    null
-}
-
 private fun formatOneDecimal(value: Double): String = String.format(Locale.US, "%.1f", value)
+
 private data class SubMuscleContribution(
     val subMuscleName: String,
     val weeklySets: Double,
@@ -1410,51 +641,6 @@ private fun roleIncludedInMode(
     com.example.kpkn.data.models.MuscleRole.NEUTRALIZER -> false
 }
 
-@Composable
-private fun IndirectModeChip(
-    label: String,
-    mode: Int,
-    selected: Int,
-    onSelect: (Int) -> Unit,
-) {
-    val isSelected = selected == mode
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(999.dp))
-            .background(
-                if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
-                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-            )
-            .clickable { onSelect(mode) }
-            .padding(horizontal = 10.dp, vertical = 5.dp),
-    ) {
-        Text(
-            text = label,
-            fontSize = 10.sp,
-            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-private fun buildDisplayContributions(
-    involvedMuscles: List<com.example.kpkn.data.models.InvolvedMuscle>,
-    indirectMode: Int
-): Map<String, Double> {
-    val grouped = linkedMapOf<String, Double>()
-    involvedMuscles.forEach { involvement ->
-        if (roleIncludedInMode(involvement.role, indirectMode)) {
-            val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
-            val contribution = com.example.kpkn.data.models.resolveMuscleVolumeContribution(involvement)
-            val current = grouped[canonical] ?: 0.0
-            if (contribution > current) {
-                grouped[canonical] = contribution
-            }
-        }
-    }
-    return grouped.filterValues { it > 0.0 }
-}
-
 private fun calculateSubMuscleBreakdown(
     canonicalMuscle: String,
     sessions: List<com.example.kpkn.data.models.Session>,
@@ -1471,9 +657,9 @@ private fun calculateSubMuscleBreakdown(
         "Pantorrillas" -> listOf("Gastrocnemio", "Sóleo")
         else -> return emptyList()
     }
-    
+
     val subMuscleVolumes = targetSubMuscles.associateWith { mutableMapOf<String, Double>() }.toMutableMap()
-    
+
     for (session in sessions) {
         for (exercise in session.allExercises()) {
             val effectiveSets = countDisplaySets(exercise.sets, adjustByIntensity)
@@ -1499,7 +685,7 @@ private fun calculateSubMuscleBreakdown(
             }
         }
     }
-    
+
     return targetSubMuscles.map { subName ->
         val exerciseMap = subMuscleVolumes[subName] ?: emptyMap()
         val totalSets = exerciseMap.values.sum()
@@ -1511,88 +697,5 @@ private fun calculateSubMuscleBreakdown(
                 .filter { it.second > 0.0 }
                 .sortedByDescending { it.second }
         )
-    }
-}
-
-@Composable
-private fun SubMuscleBreakdownList(
-    muscleName: String,
-    weeks: List<ProgramWeek>,
-    averageByWeek: Boolean,
-    indirectMode: Int = 0,
-    adjustByIntensity: Boolean,
-) {
-    val exerciseIndex = catalogExerciseIndex()
-    val divisor = if (averageByWeek) weeks.size.coerceAtLeast(1).toDouble() else 1.0
-    val subMuscleBreakdown = remember(muscleName, weeks, averageByWeek, indirectMode, adjustByIntensity, exerciseIndex) {
-        calculateSubMuscleBreakdown(muscleName, weeks.flatMap { it.sessions }, exerciseIndex, divisor, indirectMode, adjustByIntensity)
-    }
-    if (subMuscleBreakdown.isEmpty()) return
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp, top = 4.dp, bottom = 6.dp)
-            .background(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
-                shape = RoundedCornerShape(12.dp)
-            )
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        subMuscleBreakdown.forEach { sub ->
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = sub.subMuscleName,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = "${formatOneDecimal(sub.weeklySets)} series/sem",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                
-                if (sub.exercises.isEmpty()) {
-                    Text(
-                        text = "  Sin ejercicios registrados para esta cabeza.",
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                    )
-                } else {
-                    sub.exercises.forEach { (exName, exSets) ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(start = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "• $exName",
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                text = "${formatOneDecimal(exSets)} series/sem",
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                }
-            }
-        }
     }
 }

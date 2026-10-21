@@ -1,22 +1,12 @@
 package com.example.kpkn.screens.workout
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import com.example.kpkn.ui.components.KpknAlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,22 +18,33 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioExecutionStatus
 import com.example.kpkn.data.models.CardioTimerState
 import com.example.kpkn.data.models.CompletedSet
-import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.domain.cardio.CardioGuideEngine
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
+import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.services.cardio.CardioGpsState
 import com.example.kpkn.services.cardio.CardioGpsStatus
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @Composable
 internal fun CardioLiveCard(
@@ -106,45 +107,49 @@ internal fun CardioLiveCard(
 
     // Cardio occupies its own stage rather than imitating a strength-set card:
     // the timer, interval context and telemetry stay readable edge-to-edge.
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color(0xFF111214))
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+    // LR1c1: la tarjeta es un `module` (la misma piel que la serie); dentro, el relleno y el scroll de siempre.
+    KpknModule(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(0.dp),
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         com.example.kpkn.domain.cardio.CardioPrescriptionFormatter.typeLabel(details.type).uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = accentColor,
+                        style = KpknType.eyebrow,
+                        color = WizardColors.textMuted,
                     )
                     Text(
                         com.example.kpkn.domain.cardio.CardioPrescriptionFormatter.sentence(details),
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleSmall,
+                        style = KpknType.bodyStrong,
+                        color = WizardColors.text,
                     )
                 }
             }
             val liveNow = remember(details, timerElapsedSeconds) {
                 com.example.kpkn.domain.cardio.CardioPrescriptionFormatter.liveNowNext(details, timerElapsedSeconds)
             }
+            // Los estados, en la piel nueva: el trabajo en el acento; la recuperación, en la columna; el calentamiento y el enfriamiento, en `ok`.
             val phaseColor = when (liveNow.phase) {
                 com.example.kpkn.data.models.CardioBlockType.WORK -> accentColor
-                com.example.kpkn.data.models.CardioBlockType.RECOVER -> Color(0xFF38BDF8)
+                com.example.kpkn.data.models.CardioBlockType.RECOVER -> SymbolPalette.columna
                 com.example.kpkn.data.models.CardioBlockType.WARMUP,
                 com.example.kpkn.data.models.CardioBlockType.COOLDOWN,
-                -> Color(0xFF10B981)
+                -> SymbolPalette.ok
                 null -> accentColor
             }
-            Surface(shape = RoundedCornerShape(16.dp), color = phaseColor.copy(alpha = 0.16f)) {
-                Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Ahora · ${liveNow.nowLabel}", color = phaseColor, fontWeight = FontWeight.Black)
-                    liveNow.nextLabel?.let { Text("Siguiente · $it", color = Color.White.copy(alpha = 0.78f), style = MaterialTheme.typography.labelMedium) }
+            // Aviso teñido con el color de la fase: relleno del acento al 8 % y filete al 24 %.
+            KpknModule(accent = phaseColor, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Ahora · ${liveNow.nowLabel}", style = KpknType.bodyStrong, color = phaseColor)
+                    liveNow.nextLabel?.let { Text("Siguiente · $it", style = KpknType.caption, color = WizardColors.textMuted) }
                 }
             }
 
@@ -153,7 +158,7 @@ internal fun CardioLiveCard(
                     .fillMaxWidth()
                     .heightIn(min = 184.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(Color.White.copy(alpha = 0.025f))
+                    .background(KpknSurface.inset)
                     .padding(vertical = 14.dp),
                 contentAlignment = Alignment.Center,
             ) {
@@ -185,8 +190,8 @@ internal fun CardioLiveCard(
                     CardioExecutionStatus.RECORDED -> "Cardio registrado · ${formatCardioTime(timerElapsedSeconds)}"
                     CardioExecutionStatus.READY -> "Listo · objetivo ${formatCardioTime(plannedDurationSeconds)}"
                 },
-                color = if (status == CardioExecutionStatus.RUNNING) accentColor else Color.White.copy(alpha = 0.72f),
-                fontWeight = FontWeight.Bold,
+                style = KpknType.bodyStrong,
+                color = if (status == CardioExecutionStatus.RUNNING) accentColor else WizardColors.textMuted,
             )
 
             if (gpsMode) {
@@ -195,13 +200,13 @@ internal fun CardioLiveCard(
                         CardioGpsStatus.RECORDING -> "Señal GPS activa · ${formatCardioDistance(recordedDistanceKm)} · ${formatCardioTime(durationSeconds)}"
                         CardioGpsStatus.SIGNAL_LOST -> "Señal GPS perdida · puedes continuar o registrar manualmente"
                         CardioGpsStatus.PAUSED -> "GPS pausado · ${formatCardioDistance(recordedDistanceKm)}"
-                        CardioGpsStatus.REQUESTING_PERMISSION -> "Solicitando permiso y señal de ubicación..."
+                        CardioGpsStatus.REQUESTING_PERMISSION -> "Solicitando permiso y señal de ubicación…"
                         CardioGpsStatus.PERMISSION_DENIED -> "Permiso denegado · registro manual disponible"
                         CardioGpsStatus.LOCATION_DISABLED -> "Ubicación desactivada · registro manual disponible"
                         else -> "GPS listo · el registro manual sigue disponible"
                     },
-                    color = if (gpsState?.status == CardioGpsStatus.RECORDING) accentColor else Color.White.copy(alpha = 0.7f),
-                    fontWeight = FontWeight.Bold,
+                    style = KpknType.body,
+                    color = if (gpsState?.status == CardioGpsStatus.RECORDING) accentColor else WizardColors.textMuted,
                 )
             }
 
@@ -209,9 +214,8 @@ internal fun CardioLiveCard(
                 Text(
                     "Objetivo: RPE ${formatCardioRpe(guide.rpeTargetExact)}/10 · ${CardioGuideEngine.rpeAnchor(guide.rpeTargetExact)}" +
                         (guide.hrPercentRef?.let { " · $it" } ?: ""),
-                    color = accentColor,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
                 )
             }
 
@@ -220,7 +224,16 @@ internal fun CardioLiveCard(
                 CardioGpsStatus.LOCATION_DISABLED,
             )
 
-            Button(
+            KpknPrimaryPill(
+                text = when {
+                    gpsMode && !isGpsDeniedOrDisabled && gpsState?.status == CardioGpsStatus.RECORDING -> "Pausar GPS"
+                    gpsMode && !isGpsDeniedOrDisabled && gpsState?.status == CardioGpsStatus.SIGNAL_LOST -> "Pausar y conservar datos"
+                    gpsMode && !isGpsDeniedOrDisabled && gpsState?.status == CardioGpsStatus.PAUSED -> "Reanudar GPS"
+                    gpsMode && !isGpsDeniedOrDisabled -> "Iniciar GPS"
+                    status == CardioExecutionStatus.RUNNING -> "Pausar"
+                    status == CardioExecutionStatus.PAUSED -> "Reanudar"
+                    else -> "Iniciar"
+                },
                 onClick = {
                     if (gpsMode && !isGpsDeniedOrDisabled) {
                         when (gpsState?.status) {
@@ -238,44 +251,20 @@ internal fun CardioLiveCard(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = gpsState?.status != CardioGpsStatus.REQUESTING_PERMISSION &&
                     status !in setOf(CardioExecutionStatus.AWAITING_CONFIRMATION, CardioExecutionStatus.RECORDED),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = accentColor.copy(alpha = 0.76f),
-                    contentColor = Color.White,
-                ),
-            ) {
-                Text(
-                    when {
-                        gpsMode && !isGpsDeniedOrDisabled && gpsState?.status == CardioGpsStatus.RECORDING -> "Pausar GPS"
-                        gpsMode && !isGpsDeniedOrDisabled && gpsState?.status == CardioGpsStatus.SIGNAL_LOST -> "Pausar y conservar datos"
-                        gpsMode && !isGpsDeniedOrDisabled && gpsState?.status == CardioGpsStatus.PAUSED -> "Reanudar GPS"
-                        gpsMode && !isGpsDeniedOrDisabled -> "Iniciar GPS"
-                        status == CardioExecutionStatus.RUNNING -> "Pausar"
-                        status == CardioExecutionStatus.PAUSED -> "Reanudar"
-                        else -> "Iniciar"
-                    },
-                )
-            }
+            )
 
             if (details.hasIntervals() && status in setOf(CardioExecutionStatus.RUNNING, CardioExecutionStatus.PAUSED)) {
-                TextButton(
-                    onClick = onSkipBlock,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Completar bloque", color = accentColor, fontWeight = FontWeight.Bold)
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    KpknTextAction(text = "Completar bloque", onClick = onSkipBlock)
                 }
             }
 
             if (isGpsDeniedOrDisabled) {
-                TextButton(
+                KpknTextAction(
+                    text = "Reintentar permiso de ubicación / GPS",
                     onClick = onRequestGps,
                     modifier = Modifier.align(Alignment.CenterHorizontally),
-                ) {
-                    Text(
-                        "Reintentar permiso de ubicación / GPS",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = accentColor,
-                    )
-                }
+                )
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
@@ -303,42 +292,39 @@ internal fun CardioLiveCard(
             if (gpsMode) {
                 Text(
                     "Distancia ${formatCardioDistance(recordedDistanceKm)} · ritmo ${formatCardioPace(gpsState?.paceSecondsPerKm)}",
-                    color = accentColor.copy(alpha = 0.88f),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
                 )
                 val splits = gpsState?.kmSplitPaces.orEmpty()
                 if (splits.isNotEmpty()) {
                     Text(
                         splits.mapIndexed { index, pace -> "km ${index + 1} ${formatCardioPace(pace)}" }.joinToString(" · "),
-                        color = Color.White.copy(alpha = 0.72f),
-                        style = MaterialTheme.typography.labelSmall,
+                        style = KpknType.caption,
+                        color = WizardColors.textFaint,
                     )
                 }
             }
             val hasManualInput = (distanceKm != null && distanceKm > 0.0) || (heartRate != null) || (durationSeconds > 0)
             val canRecord = (status !in setOf(CardioExecutionStatus.READY, CardioExecutionStatus.RECORDED)) ||
                 (hasManualInput && status != CardioExecutionStatus.RECORDED)
-            Button(
+            KpknPrimaryPill(
+                text = if (completedSet == null) "Finalizar y registrar" else "Actualizar cardio",
                 onClick = {
                     onRequestRecord(durationSeconds, recordedDistanceKm, heartRate)
                     showRecordConfirmation = true
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = canRecord,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = accentColor.copy(alpha = 0.92f),
-                    contentColor = Color.White,
-                ),
-            ) { Text(if (completedSet == null) "Finalizar y registrar" else "Actualizar cardio") }
+            )
             if (gpsMode) {
                 Text(
                     "Si se deniega el permiso o se pierde la señal, puedes registrar duración, distancia y FC manualmente.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.58f),
+                    style = KpknType.caption,
+                    color = WizardColors.textFaint,
                 )
             }
         }
+    }
 
     if (showDistancePicker) {
         com.example.kpkn.screens.sessioneditor.components.CardioDistanceWheelDialog(
@@ -431,61 +417,48 @@ private fun CardioMetricCircle(
             progress = { progress },
             modifier = Modifier.matchParentSize(),
             color = accentColor,
-            trackColor = accentColor.copy(alpha = 0.16f),
+            trackColor = Color.White.copy(alpha = 0.08f),
             strokeWidth = 8.dp,
         )
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.62f))
-            Text(value, fontWeight = FontWeight.Black, color = Color.White)
+            Text(label.uppercase(Locale("es")), style = KpknType.eyebrow, color = WizardColors.textMuted)
+            // El reloj en Syne con cifras tabulares, como el descanso; encoge si no cabe en el aro.
+            CardioClockText(
+                text = value,
+                maxFontSize = 28.sp,
+                // Margen dentro del aro: el reloj encoge para caber en el hueco interior, sin pisar el trazo.
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
         }
     }
 }
 
+/**
+ * Reloj del aro del cardio (LR1c1): Syne ExtraBold con cifras tabulares, como `RestClockText`, pero con un mínimo de 12 sp: en el 130 %
+ * el texto encoge lo necesario para caber en el hueco del aro, en vez de salirse por los lados.
+ */
 @Composable
-private fun CardioLiveAccentField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    accentColor: Color,
+private fun CardioClockText(
+    text: String,
+    maxFontSize: TextUnit,
     modifier: Modifier = Modifier,
-    readOnly: Boolean = false,
-    trailingIcon: (@Composable (() -> Unit))? = null,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
 ) {
-    var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(14.dp)
-    BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier
-            .clip(shape)
-            .background(accentColor.copy(alpha = if (focused) 0.14f else 0.08f))
-            .border(1.dp, accentColor.copy(alpha = if (focused) 0.95f else 0.56f), shape)
-            .onFocusChanged { focused = it.isFocused }
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        readOnly = readOnly,
-        singleLine = true,
-        keyboardOptions = keyboardOptions,
-        textStyle = MaterialTheme.typography.bodySmall.copy(color = Color.White, fontWeight = FontWeight.Bold),
-        cursorBrush = SolidColor(accentColor),
-        decorationBox = { innerTextField ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (focused) accentColor else accentColor.copy(alpha = 0.82f),
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Box(modifier = Modifier.fillMaxWidth().heightIn(min = 22.dp)) { innerTextField() }
-                }
-                trailingIcon?.invoke()
-            }
-        },
+    val autoSize = remember(maxFontSize) {
+        TextAutoSize.StepBased(minFontSize = 12.sp, maxFontSize = maxFontSize, stepSize = 1.sp)
+    }
+    BasicText(
+        text = text,
+        modifier = modifier,
+        style = TextStyle(
+            fontFamily = WizardFonts.display,
+            fontWeight = FontWeight.ExtraBold,
+            color = WizardColors.text,
+            textAlign = TextAlign.Center,
+            fontFeatureSettings = "'lnum' 1, 'tnum' 1",
+        ),
+        maxLines = 1,
+        softWrap = false,
+        autoSize = autoSize,
     )
 }
 

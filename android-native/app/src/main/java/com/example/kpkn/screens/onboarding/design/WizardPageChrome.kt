@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -39,6 +41,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
@@ -216,6 +220,9 @@ fun WizardTopScrim(height: Dp, modifier: Modifier = Modifier) {
  * Sigue al teclado (`imePadding`) y a la barra de navegación. `setup-continue` identifica el
  * único CTA y el nodo publica `Role.Button` con el estado real (deshabilitado de verdad, no
  * solo atenuado) para TalkBack y para las pruebas.
+ *
+ * Con el botón habilitado, al confirmar suelta el foco y cierra el teclado antes de avisar: el
+ * paso siguiente no queda tapado por el teclado del anterior.
  */
 @Composable
 fun WizardDock(
@@ -227,9 +234,14 @@ fun WizardDock(
     note: String? = null,
     /** Con texto, el botón es una píldora que lo muestra («Activar y entrar a KPKN»); sin él, el círculo con el check. */
     textLabel: String? = null,
+    /** Acción secundaria opcional («Omitir»): texto a la izquierda del dock, sin caja. Sin [onSecondary], no se pinta. */
+    secondaryLabel: String? = null,
+    onSecondary: (() -> Unit)? = null,
 ) {
     val density = LocalDensity.current
     val navBottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     Box(modifier = modifier.fillMaxWidth().imePadding()) {
         Box(
             modifier = Modifier
@@ -250,7 +262,31 @@ fun WizardDock(
                 .navigationBarsPadding()
                 .padding(bottom = 16.dp),
         ) {
-            WizardDockButton(enabled = enabled, label = label, textLabel = textLabel, onClick = onClick)
+            WizardDockButton(
+                enabled = enabled,
+                label = label,
+                textLabel = textLabel,
+                // Deshabilitado, el botón no llama a esta lambda: el foco se queda donde estaba.
+                onClick = {
+                    focusManager.clearFocus(force = true)
+                    keyboardController?.hide()
+                    onClick()
+                },
+            )
+        }
+        if (secondaryLabel != null && onSecondary != null) {
+            // A la izquierda y a la altura del círculo: el check conserva su sitio.
+            TextButton(
+                onClick = onSecondary,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .navigationBarsPadding()
+                    .padding(start = 8.dp, bottom = 24.dp)
+                    .defaultMinSize(minHeight = WizardSpacing.touchTarget)
+                    .testTag("setup-dock-secondary"),
+            ) {
+                Text(text = secondaryLabel, style = WizardTypography.controlLabel, color = WizardColors.text)
+            }
         }
         if (note != null) {
             // El aviso va justo encima del botón, sea círculo o píldora.

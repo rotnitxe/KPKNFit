@@ -1,0 +1,84 @@
+{
+  "id": "ymove_016",
+  "durationS": 25.76,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Elevación lateral a un brazo en polea",
+  "exerciseDetail": "Elevación lateral a un brazo en polea baja (el brazo derecho del sujeto, el más alejado de la torre, sube cruzando el cable hasta la horizontal), de pie de frente a la cámara con la otra mano apoyada en el montante",
+  "suggestedProfile": "RAISE",
+  "view": "FRONT",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 6,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      6,
+      6
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.7,
+      "side": "right"
+    },
+    {
+      "index": 2,
+      "turnaroundS": 6.1,
+      "side": "right"
+    },
+    {
+      "index": 3,
+      "turnaroundS": 10.2,
+      "side": "right"
+    },
+    {
+      "index": 4,
+      "turnaroundS": 14.3,
+      "side": "right"
+    },
+    {
+      "index": 5,
+      "turnaroundS": 18.7,
+      "side": "right"
+    },
+    {
+      "index": 6,
+      "turnaroundS": 23.5,
+      "side": "right"
+    }
+  ],
+  "activeWindowS": [
+    0.6,
+    25.0
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 25.0,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 6.ª elevación (23,5 s) el brazo baja hasta ~25,3 s y el clip termina a los 25,76 s con el brazo abajo (sin una 7.ª repetición)"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio: ECC (traslación contra la mediana temporal sobre el fondo que el sujeto nunca cubre): desplazamiento máx. 0,21% en x y 0,12% en y del encuadre en toda la ventana"
+  },
+  "softWarnings": []
+}

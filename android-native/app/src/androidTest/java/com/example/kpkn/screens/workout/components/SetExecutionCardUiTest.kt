@@ -2,15 +2,15 @@ package com.example.kpkn.screens.workout.components
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
@@ -29,7 +29,6 @@ import com.example.kpkn.screens.workout.WorkoutTechniqueDraftKind
 import com.example.kpkn.screens.workout.WorkoutTechniqueMainCaptureDraft
 import com.example.kpkn.screens.workout.WorkoutTechniqueProgressDraft
 import com.example.kpkn.screens.workout.WeightSuggestion
-import com.example.kpkn.services.workout.VoiceSessionState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -105,58 +104,6 @@ class SetExecutionCardUiTest {
     }
 
     @Test
-    fun commandDockShowsIconOnlyCompleteFabAndMicAppendage() {
-        composeRule.setContent {
-            MaterialTheme {
-                val completed = remember { mutableStateOf(false) }
-                val voice = remember { mutableStateOf(false) }
-                WorkoutCommandDock(
-                    exercise = bilateralExercise(),
-                    setIndex = 0,
-                    activeSide = null,
-                    isUnilateral = false,
-                    voiceSessionEnabled = false,
-                    voiceSessionState = VoiceSessionState(),
-                    onToggleVoice = { voice.value = true },
-                    onPrimaryAction = { completed.value = true },
-                )
-                if (completed.value) androidx.compose.material3.Text("completed")
-                if (voice.value) androidx.compose.material3.Text("voice")
-            }
-        }
-
-        composeRule.onNodeWithText("Completar S1").assertDoesNotExist()
-        composeRule.onNodeWithContentDescription("Completar serie").performClick()
-        composeRule.onNodeWithContentDescription("Activar control por voz").performClick()
-        composeRule.onNodeWithText("completed").assertExists()
-        composeRule.onNodeWithText("voice").assertExists()
-    }
-
-    @Test
-    fun commandDockIgnoresCompleteTapWhileRecording() {
-        composeRule.setContent {
-            MaterialTheme {
-                val completed = remember { mutableStateOf(false) }
-                WorkoutCommandDock(
-                    exercise = bilateralExercise(),
-                    setIndex = 0,
-                    activeSide = null,
-                    isUnilateral = false,
-                    voiceSessionEnabled = false,
-                    voiceSessionState = VoiceSessionState(),
-                    onToggleVoice = {},
-                    onPrimaryAction = { completed.value = true },
-                    primaryActionEnabled = false,
-                )
-                if (completed.value) androidx.compose.material3.Text("completed")
-            }
-        }
-
-        composeRule.onNodeWithContentDescription("Registrando serie").performClick()
-        composeRule.onNodeWithText("completed").assertDoesNotExist()
-    }
-
-    @Test
     fun recordActionUsesActiveUnilateralSideOnly() {
         var recordedSide: String? = null
         val holder = RecordActionHolder()
@@ -183,6 +130,7 @@ class SetExecutionCardUiTest {
             }
         }
 
+        markEffort()
         composeRule.runOnIdle { holder.action?.invoke() }
         composeRule.runOnIdle { assertEquals("right", recordedSide) }
     }
@@ -232,6 +180,7 @@ class SetExecutionCardUiTest {
             }
         }
 
+        markEffort()
         composeRule.runOnIdle {
             holder.actionForPage("${exercise.id}:0:B")?.invoke()
         }
@@ -240,6 +189,10 @@ class SetExecutionCardUiTest {
             assertEquals(1, activeSet.intValue)
             assertNull(holder.actionForPage("${exercise.id}:0:B"))
             assertNotNull(holder.actionForPage("${exercise.id}:1:B"))
+        }
+        // La serie 2 empieza sin marcar: registrar exige su propio esfuerzo (LV8).
+        markEffort()
+        composeRule.runOnIdle {
             holder.actionForPage("${exercise.id}:1:B")?.invoke()
         }
         composeRule.waitForIdle()
@@ -558,9 +511,16 @@ class SetExecutionCardUiTest {
                 )
             }
         }
+        markEffort()
         composeRule.runOnIdle { holder.action?.invoke() }
         composeRule.waitForIdle()
         return requireNotNull(recorded) { "The record action never reached onRecordV2" }
+    }
+
+    /** Registrar una serie exige haber marcado el esfuerzo (LV8): marca el más bajo del slider, como lo haría la accesibilidad. */
+    private fun markEffort() {
+        composeRule.onNodeWithTag(EffortSliderTag).performSemanticsAction(SemanticsActions.SetProgress) { it(0f) }
+        composeRule.waitForIdle()
     }
 
     private fun guidedExpectedFeedback(

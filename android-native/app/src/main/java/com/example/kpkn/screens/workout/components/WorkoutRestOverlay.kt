@@ -14,26 +14,50 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.example.kpkn.data.workout.RestGameRecordStore
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.kpknHazeEffect
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
 import java.util.Locale
 
 import com.example.kpkn.data.models.*
 import com.example.kpkn.screens.workout.*
 
-/**
- * Rest timer overlay focused on countdown controls and the last completed set.
+/** Fullscreen/card rest share the controller clock. Shape is selected once per real rest by the host.
+ * No shape selector or relator is mounted here. The first-use acknowledgement is persisted by the host;
+ * entering, leaving or restarting any arcade game never changes rest time or its service.
  */
 @Composable
 internal fun RestTimerOverlay(
@@ -55,20 +79,38 @@ internal fun RestTimerOverlay(
     onWarmupEffort: ((Double) -> Unit)? = null,
     postExerciseFeedbackContent: (@Composable () -> Unit)? = null,
     feedbackExerciseCount: Int = 0,
+    feedbackTitle: String? = null,
+    feedbackAfter: String? = null,
     onMinimize: (() -> Unit)? = null,
     relatorText: String? = null,
     relatorPhaseKey: String = "",
     relatorActions: List<RelatorAssistAction> = emptyList(),
     onRelatorAction: (RelatorAssistAction) -> Unit = {},
+    shape: RestClockShape = RestClockShape.TOWER,
+    onShapeChange: (RestClockShape) -> Unit = {},
+    headline: RestHeadline? = null,
+    nextSet: RestNextSetSummary? = null,
+    recordStore: RestGameRecordStore? = null,
+    clockActive: Boolean = true,
+    initiallyPlaying: Boolean = false,
+    gameEngine: RestGameEngine? = null,
+    showIntro: Boolean = false,
+    onIntroDone: () -> Unit = {},
+    videoSlot: (@Composable () -> Unit)? = null,
+
 ) {
-    val totalSeconds = state.activeSeconds.coerceAtLeast(1)
-    val timerProgress = (remainingSeconds.toFloat() / totalSeconds).coerceIn(0f, 1f)
+    // El total es el del descanso entero (con los ajustes de ±15 s): así la forma no vuelve a cero al ajustar el tiempo.
+    val totalSeconds = state.totalRestSeconds().coerceAtLeast(remainingSeconds).coerceAtLeast(1)
+    val progress = RestClockMath.progress(totalSeconds, remainingSeconds)
     val hasFeedback = postExerciseFeedbackContent != null
+    var playing by rememberSaveable(state.startedAtMs) { mutableStateOf(initiallyPlaying) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .kpknHazeEffect(hazeState)
+            // Velo negro al 92 % sobre la tarjeta de detrás: lo de debajo no se transparenta (LR1a).
+            .background(KpknSurface.canvas.copy(alpha = 0.92f))
             // The rest layer is modal.  Consume taps in its transparent
             // margins too, otherwise a touch can fall through to the media
             // card and open Photos/camera after "Saltar descanso".
@@ -79,7 +121,9 @@ internal fun RestTimerOverlay(
             )
             .zIndex(6f),
     ) {
-        AnimatedContent(
+        if (showIntro) {
+            RestFirstExperience(onDone = onIntroDone, animationsOn = clockActive)
+        } else AnimatedContent(
             targetState = hasFeedback,
             transitionSpec = {
                 (if (targetState) {
@@ -96,681 +140,505 @@ internal fun RestTimerOverlay(
                 FeedbackContent(
                     state = state,
                     remainingSeconds = remainingSeconds,
-                    timerProgress = timerProgress,
+                    progress = progress,
                     sessionAccentColor = sessionAccentColor,
                     pendingRestSuggestion = pendingRestSuggestion,
                     isAdaptiveActive = isAdaptiveActive,
-                    onDecrease = onDecrease,
-                    onIncrease = onIncrease,
+                    onSkip = onSkip,
                     onUseAdaptive = onUseAdaptive,
                     postExerciseFeedbackContent = postExerciseFeedbackContent ?: {},
                     feedbackExerciseCount = feedbackExerciseCount,
+                    title = feedbackTitle ?: state.exerciseName,
+                    after = feedbackAfter,
                     showTimerChrome = remainingSeconds > 0,
+                    onMinimize = onMinimize,
                     relatorText = relatorText,
                     relatorPhaseKey = relatorPhaseKey,
                     relatorActions = relatorActions,
                     onRelatorAction = onRelatorAction,
+                    shape = shape,
+                    clockActive = clockActive,
+                    videoSlot = videoSlot,
                 )
             } else {
-                NormalRestContent(
-                    state = state,
-                    remainingSeconds = remainingSeconds,
-                    timerProgress = timerProgress,
-                    sessionAccentColor = sessionAccentColor,
-                    hazeState = hazeState,
-                    pendingRestSuggestion = pendingRestSuggestion,
-                    lastSetOutcome = lastSetOutcome,
-                    lastCompletedSet = lastCompletedSet,
-                    lastCompletedSets = lastCompletedSets,
-                    isAdaptiveActive = isAdaptiveActive,
-                    onDecrease = onDecrease,
-                    onIncrease = onIncrease,
-                    onSkip = onSkip,
-                    skipExerciseLabel = skipExerciseLabel,
-                    onSkipExercise = onSkipExercise,
-                    onUseAdaptive = onUseAdaptive,
-                    onMinimize = onMinimize,
-                    onWarmupEffort = onWarmupEffort,
-                    relatorText = relatorText,
-                    relatorPhaseKey = relatorPhaseKey,
-                    relatorActions = relatorActions,
-                    onRelatorAction = onRelatorAction,
-                )
+                AnimatedContent(
+                    targetState = playing,
+                    transitionSpec = { fadeIn(tween(200)) togetherWith fadeOut(tween(160)) },
+                    label = "rest-game-transition",
+                ) { isPlaying ->
+                    if (isPlaying) {
+                        // El juego vive dentro de la misma superficie. El descanso manda: al llegar a 0 esta capa deja de componerse y
+                        // el juego se cierra con ella; «Saltar descanso» desde aquí es el mismo onSkip.
+                        RestGameFullScreen(
+                            remainingSeconds = remainingSeconds,
+                            totalSeconds = totalSeconds,
+                            nextSet = nextSet,
+                            onBack = { playing = false },
+                            onSkip = onSkip,
+                            recordStore = recordStore,
+                            engine = gameEngine,
+                            running = clockActive,
+                        )
+                    } else {
+                        NormalRestContent(
+                            state = state,
+                            remainingSeconds = remainingSeconds,
+                            totalSeconds = totalSeconds,
+                            progress = progress,
+                            pendingRestSuggestion = pendingRestSuggestion,
+                            lastSetOutcome = lastSetOutcome,
+                            lastCompletedSet = lastCompletedSet,
+                            lastCompletedSets = lastCompletedSets,
+                            isAdaptiveActive = isAdaptiveActive,
+                            sessionAccentColor = sessionAccentColor,
+                            onDecrease = onDecrease,
+                            onIncrease = onIncrease,
+                            onSkip = onSkip,
+                            skipExerciseLabel = skipExerciseLabel,
+                            onSkipExercise = onSkipExercise,
+                            onUseAdaptive = onUseAdaptive,
+                            onMinimize = onMinimize,
+                            relatorText = relatorText,
+                            relatorPhaseKey = relatorPhaseKey,
+                            relatorActions = relatorActions,
+                            onRelatorAction = onRelatorAction,
+                            shape = shape,
+                            onShapeChange = onShapeChange,
+                            headline = headline,
+                            onPlay = { playing = true },
+                            clockActive = clockActive,
+                            videoSlot = videoSlot,
+                        )
+                    }
+                }
             }
         }
     }
 }
 
+/** El tiempo del descanso con su etiqueta: «DESCANSO», «2:41» y «de 4:09 · sugerido». Lo lee TalkBack como una sola frase. */
+@Composable
+private fun RestTimeReadout(
+    state: WorkoutRestModalState,
+    remainingSeconds: Int,
+    totalSeconds: Int,
+    isAdaptiveActive: Boolean,
+    maxFontSize: TextUnit,
+    modifier: Modifier = Modifier,
+    showTotal: Boolean = true,
+) {
+    val safeRemaining = remainingSeconds.coerceAtLeast(0)
+    val totalLabel = buildString {
+        append("de ").append(formatRestClock(totalSeconds))
+        when {
+            isAdaptiveActive -> append(" · sugerido")
+            state.isManualOverride -> append(" · manual")
+        }
+    }
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = if (remainingSeconds < 0) "TIEMPO EXTRA" else restKindText(state.kind).uppercase(),
+            style = KpknType.eyebrow,
+            color = WizardColors.textMuted,
+        )
+        RestClockText(
+            text = (if (remainingSeconds < 0) "+" else "") + formatRestClock(kotlin.math.abs(remainingSeconds)),
+            maxFontSize = maxFontSize,
+            modifier = Modifier.semantics { contentDescription = if (remainingSeconds < 0) "Tiempo extra, ${kotlin.math.abs(remainingSeconds)} segundos" else RestClockMath.spokenRemaining(safeRemaining) },
+        )
+        if (showTotal) {
+            Text(
+                text = totalLabel,
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+            )
+        }
+    }
+}
+
+/**
+ * El descanso cuando hay feedback pendiente (LV6, F2): arriba lo de siempre (el relator y el descanso sugerido), la cabecera con la
+ * forma de RINGS pequeña («Sentadilla trasera», «Ejercicio terminado · Descanso 2:38 · después, la superserie») y, debajo, el panel
+ * del feedback, que reparte el resto del alto y deja «Saltar descanso» y «Guardar» fijos abajo. Si la persona minimiza, la tarjeta del
+ * descanso lleva el mismo feedback en compacto (B3).
+ */
 @Composable
 private fun FeedbackContent(
     state: WorkoutRestModalState,
     remainingSeconds: Int,
-    timerProgress: Float,
+    progress: Float,
     sessionAccentColor: Color,
     pendingRestSuggestion: PendingRestSuggestion?,
     isAdaptiveActive: Boolean,
-    onDecrease: () -> Unit,
-    onIncrease: () -> Unit,
+    onSkip: () -> Unit,
     onUseAdaptive: (() -> Unit)?,
     postExerciseFeedbackContent: @Composable () -> Unit,
     feedbackExerciseCount: Int = 0,
+    title: String,
+    after: String?,
     showTimerChrome: Boolean = true,
+    onMinimize: (() -> Unit)? = null,
     relatorText: String? = null,
     relatorPhaseKey: String = "",
     relatorActions: List<RelatorAssistAction> = emptyList(),
     onRelatorAction: (RelatorAssistAction) -> Unit = {},
+    shape: RestClockShape = RestClockShape.TOWER,
+    clockActive: Boolean = true,
+    videoSlot: (@Composable () -> Unit)? = null,
 ) {
-    val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
             .navigationBarsPadding()
-            .verticalScroll(scrollState)
-            .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 24.dp),
+            .padding(
+                start = WorkoutUiTokens.ScreenHorizontalPadding,
+                end = WorkoutUiTokens.ScreenHorizontalPadding,
+                top = 8.dp,
+                bottom = 16.dp,
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        RestOverlayRelatorLine(
-            text = relatorText,
-            phaseKey = relatorPhaseKey,
-            actions = relatorActions,
-            onAction = onRelatorAction,
-            accentColor = sessionAccentColor,
-        )
 
-        // ─── ADAPTIVE REST SUGGESTION AT TOP ───
+        // El descanso sugerido sigue arriba, como siempre.
         if (pendingRestSuggestion != null && !isAdaptiveActive && onUseAdaptive != null) {
-            OutlinedButton(
+            RestFigureModule(
+                title = "Descanso sugerido",
+                value = formatRestClock(pendingRestSuggestion.adaptiveSeconds),
+                modifier = Modifier.fillMaxWidth(),
+                sparkle = true,
                 onClick = onUseAdaptive,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 44.dp),
-                shape = WorkoutUiTokens.InnerCardShape,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = sessionAccentColor),
-                border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.4f)),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        text = "Descanso sugerido",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Black,
-                        color = sessionAccentColor,
-                    )
-                    Text(
-                        text = formatTime(pendingRestSuggestion.adaptiveSeconds),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.72f),
-                    )
-                }
-            }
+            )
+            Spacer(Modifier.height(10.dp))
         }
 
-        if (showTimerChrome) {
-            Spacer(Modifier.height(8.dp))
-
-            // Shrink ANIMADO: entra con el tamaño del timer de descanso normal (204.dp)
-            // y colapsa a su tamaño compacto mientras aparece el panel de feedback.
-            val shrinkTargetSize = if (feedbackExerciseCount <= 1) 152.dp else 132.dp
-            val shrinkTargetStroke = if (feedbackExerciseCount <= 1) 7.dp else 6.dp
-            val shrinkTargetFontSp = if (feedbackExerciseCount <= 1) 34f else 30f
-            var shrinkStarted by remember { mutableStateOf(false) }
-            LaunchedEffect(Unit) { shrinkStarted = true }
-            val timerSize by animateDpAsState(
-                targetValue = if (shrinkStarted) shrinkTargetSize else 204.dp,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                ),
-                label = "rest-timer-shrink",
-            )
-            val strokeWidth by animateDpAsState(
-                targetValue = if (shrinkStarted) shrinkTargetStroke else 8.dp,
-                label = "rest-timer-stroke",
-            )
-            val fontSize = animateFloatAsState(
-                targetValue = if (shrinkStarted) shrinkTargetFontSp else 45f,
-                label = "rest-timer-font",
-            ).value.sp
-
-            Box(
-                modifier = Modifier.size(timerSize),
-                contentAlignment = Alignment.Center,
-            ) {
-                Canvas(modifier = Modifier.matchParentSize()) {
-                    val sw = strokeWidth.toPx()
-                    val center = Offset(size.width / 2f, size.height / 2f)
-                    val outerRadius = (size.minDimension - sw) / 2f
-                    val outerRect = Size(outerRadius * 2f, outerRadius * 2f)
-
-                    drawArc(
-                        color = Color.White.copy(alpha = 0.08f),
-                        startAngle = -90f,
-                        sweepAngle = 360f,
-                        useCenter = false,
-                        topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                        size = outerRect,
-                        style = Stroke(sw, cap = StrokeCap.Round),
-                    )
-
-                    drawArc(
-                        color = sessionAccentColor,
-                        startAngle = -90f,
-                        sweepAngle = 360f * timerProgress,
-                        useCenter = false,
-                        topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                        size = outerRect,
-                        style = Stroke(sw, cap = StrokeCap.Round),
-                    )
-                }
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Text(
-                        text = formatTime(remainingSeconds.coerceAtLeast(0)),
-                        style = MaterialTheme.typography.displayMedium,
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                        fontSize = fontSize,
-                    )
-                    if (!state.notificationsEnabled) {
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            text = "Sin notificaciones el aviso es solo sonoro.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.7f),
-                        )
-                    }
-                    if (!state.exactAlarmGranted) {
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = "Sin alarma exacta el aviso puede retrasarse con la pantalla apagada.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.7f),
-                        )
-                    }
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = when (state.kind) {
-                            RestTimerKind.SUPERSET_INTRA -> "superserie"
-                            RestTimerKind.SUPERSET_ROUND -> "siguiente ronda"
-                            RestTimerKind.WARMUP -> "aproximación"
-                            RestTimerKind.BETWEEN_SIDES -> "entre lados"
-                            RestTimerKind.STANDARD -> "descanso"
-                        }.uppercase(),
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                        color = Color.White.copy(alpha = 0.45f),
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 2.sp,
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
+        val subtitle = buildString {
+            append(if (feedbackExerciseCount > 1) "Superserie terminada" else "Ejercicio terminado")
+            if (showTimerChrome) append(" · Descanso ").append(formatRestClock(remainingSeconds.coerceAtLeast(0)))
+            if (!after.isNullOrBlank()) append(" · después, ").append(after)
         }
+        FeedbackHeader(
+            title = title,
+            subtitle = subtitle,
+            shape = shape,
+            progress = progress,
+            clockActive = clockActive,
+            showClock = showTimerChrome,
+            onMinimize = onMinimize.takeIf { showTimerChrome },
+        )
+        if (showTimerChrome && !state.notificationsEnabled) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "Sin notificaciones el aviso es solo sonoro.",
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+            )
+        }
+        if (showTimerChrome && !state.exactAlarmGranted) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "Sin alarma exacta el aviso puede retrasarse con la pantalla apagada.",
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+            )
+        }
+        videoSlot?.invoke()
+        Spacer(Modifier.height(14.dp))
 
-        postExerciseFeedbackContent()
+        // El panel reparte el resto del alto: lo de en medio se desplaza y los botones quedan fijos abajo.
+        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            CompositionLocalProvider(
+                LocalFeedbackBounded provides true,
+                LocalFeedbackRestSkip provides onSkip.takeIf { showTimerChrome },
+            ) {
+                postExerciseFeedbackContent()
+            }
+        }
     }
 }
 
+/**
+ * La cabecera del feedback (F2): la forma de RINGS pequeña (la misma del descanso, sin corredor), el ejercicio que se acaba de terminar
+ * con su línea («Ejercicio terminado · Descanso 2:38 · después, …») y, mientras el descanso corre, la flecha para minimizar (la tarjeta
+ * del descanso lleva entonces el feedback en compacto).
+ */
+@Composable
+private fun FeedbackHeader(
+    title: String,
+    subtitle: String,
+    shape: RestClockShape,
+    progress: Float,
+    clockActive: Boolean,
+    showClock: Boolean,
+    onMinimize: (() -> Unit)?,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (showClock) {
+            RestRingsClock(
+                shape = shape,
+                progress = progress,
+                animationsOn = clockActive,
+                runnerScale = 0f,
+                modifier = Modifier.size(width = 54.dp, height = 48.dp),
+            )
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = subtitle,
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (onMinimize != null) {
+            KpknIconButton(
+                icon = KpknLineIcons.ChevronDown,
+                contentDescription = "Minimizar",
+                onClick = onMinimize,
+            )
+        }
+    }
+}
+
+/**
+ * El descanso normal (F1). Todo lo de siempre sigue a mano: minimizar, el relator, ajustar el tiempo, saltar, la última serie, el
+ * plan y el descanso sugerido, saltar las series que quedan. Lo que cambia es el reloj: la forma de RINGS con su corredor.
+ */
 @Composable
 private fun NormalRestContent(
     state: WorkoutRestModalState,
     remainingSeconds: Int,
-    timerProgress: Float,
-    sessionAccentColor: Color,
-    hazeState: HazeState,
+    totalSeconds: Int,
+    progress: Float,
     pendingRestSuggestion: PendingRestSuggestion?,
     lastSetOutcome: SetOutcomeV2?,
     lastCompletedSet: CompletedSet?,
     lastCompletedSets: List<Pair<String, CompletedSet>>,
     isAdaptiveActive: Boolean,
+    sessionAccentColor: Color,
     onDecrease: () -> Unit,
     onIncrease: () -> Unit,
     onSkip: () -> Unit,
     skipExerciseLabel: String?,
     onSkipExercise: (() -> Unit)?,
     onUseAdaptive: (() -> Unit)?,
-    onMinimize: (() -> Unit)? = null,
-    onWarmupEffort: ((Double) -> Unit)? = null,
-    relatorText: String? = null,
-    relatorPhaseKey: String = "",
-    relatorActions: List<RelatorAssistAction> = emptyList(),
-    onRelatorAction: (RelatorAssistAction) -> Unit = {},
+    onMinimize: (() -> Unit)?,
+    relatorText: String?,
+    relatorPhaseKey: String,
+    relatorActions: List<RelatorAssistAction>,
+    onRelatorAction: (RelatorAssistAction) -> Unit,
+    shape: RestClockShape,
+    onShapeChange: (RestClockShape) -> Unit,
+    headline: RestHeadline?,
+    onPlay: () -> Unit,
+    clockActive: Boolean,
+    videoSlot: (@Composable () -> Unit)? = null,
 ) {
-    Column(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
-            .navigationBarsPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = WorkoutUiTokens.ScreenHorizontalPadding, vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(20.dp),
+            .navigationBarsPadding(),
     ) {
-        Spacer(Modifier.height(10.dp))
-
-        RestOverlayRelatorLine(
-            text = relatorText,
-            phaseKey = relatorPhaseKey,
-            actions = relatorActions,
-            onAction = onRelatorAction,
-            accentColor = sessionAccentColor,
-        )
-
-        if (onMinimize != null) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                IconButton(
-                    onClick = onMinimize,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(Color.White.copy(alpha = 0.08f), CircleShape)
-                        .border(1.dp, Color.White.copy(alpha = 0.06f), CircleShape),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Minimizar",
-                        tint = Color.White.copy(alpha = 0.7f),
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-        }
-
-        Box(
-            modifier = Modifier.size(204.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Canvas(modifier = Modifier.matchParentSize()) {
-                val sw = 8.dp.toPx()
-                val center = Offset(size.width / 2f, size.height / 2f)
-
-                val outerRadius = (size.minDimension - sw) / 2f
-                val outerRect = Size(outerRadius * 2f, outerRadius * 2f)
-
-                drawArc(
-                    color = Color.White.copy(alpha = 0.08f),
-                    startAngle = -90f,
-                    sweepAngle = 360f,
-                    useCenter = false,
-                    topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                    size = outerRect,
-                    style = Stroke(sw, cap = StrokeCap.Round),
-                )
-
-                drawArc(
-                    color = sessionAccentColor,
-                    startAngle = -90f,
-                    sweepAngle = 360f * timerProgress,
-                    useCenter = false,
-                    topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                    size = outerRect,
-                    style = Stroke(sw, cap = StrokeCap.Round),
-                )
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(24.dp)
-            ) {
-                Text(
-                    text = formatTime(remainingSeconds.coerceAtLeast(0)),
-                    style = MaterialTheme.typography.displayMedium,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White,
-                    fontSize = 46.sp,
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = when (state.kind) {
-                        RestTimerKind.SUPERSET_INTRA -> "superserie"
-                        RestTimerKind.SUPERSET_ROUND -> "siguiente ronda"
-                        RestTimerKind.WARMUP -> "aproximación"
-                        RestTimerKind.BETWEEN_SIDES -> "entre lados"
-                        RestTimerKind.STANDARD -> "descanso"
-                    }.uppercase(),
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                    color = Color.White.copy(alpha = 0.45f),
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 2.sp,
-                )
-
-                if (state.exerciseName.isNotBlank()) {
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = state.exerciseName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = sessionAccentColor.copy(alpha = 0.85f),
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.widthIn(max = 140.dp)
-                    )
-                }
-            }
-        }
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(
-                onClick = onDecrease,
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
-                    .border(1.dp, Color.White.copy(alpha = 0.06f), CircleShape),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Remove,
-                    contentDescription = "Restar 15 segundos",
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-
-            Surface(
-                shape = WorkoutUiTokens.ChipShape,
-                color = Color.White.copy(alpha = 0.06f),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
-            ) {
-                Text(
-                    text = "Ajustar tiempo",
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.7f)
-                )
-            }
-
-            IconButton(
-                onClick = onIncrease,
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
-                    .border(1.dp, Color.White.copy(alpha = 0.06f), CircleShape),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Sumar 15 segundos",
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-
-
-
-
-        if (lastCompletedSets.isNotEmpty()) {
-            lastCompletedSets.forEach { (exerciseName, set) ->
-                WorkoutGlassSurface(
-                    modifier = Modifier.fillMaxWidth(),
-                    // Nested inside the full-screen glass; use the solid frosted fallback.
-                    hazeState = null,
-                    shape = WorkoutUiTokens.InnerCardShape,
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.History,
-                            contentDescription = null,
-                            tint = sessionAccentColor.copy(alpha = 0.82f),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(2.dp)
-                        ) {
-                            val loadStr = if (set.weight > 0.0) "${formatWeight(set.weight)} kg" else "Peso corporal"
-                            val valueStr = if (set.timeSeconds != null) "${set.timeSeconds}s" else "${set.reps} reps"
-                            Text(
-                                text = exerciseName,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White.copy(alpha = 0.48f)
-                            )
-                            Text(
-                                text = "$loadStr x $valueStr",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White.copy(alpha = 0.86f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            val outcome = lastSetOutcome ?: set.setOutcomeV2
-                            if (outcome?.isContextPr == true || outcome?.isGlobalPr == true) {
-                                RestTinyBadge("Récord", Color(0xFFFFD740))
-                            }
-                            if (set.isFailure || set.isFailedSet) {
-                                RestTinyBadge("Fallo", Color(0xFFFF5252))
-                            }
-                            if (set.dropSets.isNotEmpty()) {
-                                RestTinyBadge("Drop", Color(0xFF40C4FF))
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            val referenceSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet
-            val referenceOutcome = lastSetOutcome ?: referenceSet?.setOutcomeV2
-            if (referenceSet != null) {
-                WorkoutGlassSurface(
-                    modifier = Modifier.fillMaxWidth(),
-                    // Nested inside the full-screen glass; use the solid frosted fallback.
-                    hazeState = null,
-                    shape = WorkoutUiTokens.InnerCardShape,
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.History,
-                            contentDescription = null,
-                            tint = sessionAccentColor.copy(alpha = 0.82f),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(2.dp)
-                        ) {
-                            val loadStr = if (referenceSet.weight > 0.0) "${formatWeight(referenceSet.weight)} kg" else "Peso corporal"
-                            val valueStr = if (referenceSet.timeSeconds != null) "${referenceSet.timeSeconds}s" else "${referenceSet.reps} reps"
-                            Text(
-                                text = "Último set",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White.copy(alpha = 0.48f)
-                            )
-                            Text(
-                                text = "$loadStr x $valueStr",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White.copy(alpha = 0.86f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (referenceOutcome?.isContextPr == true || referenceOutcome?.isGlobalPr == true) {
-                                RestTinyBadge("Récord", Color(0xFFFFD740))
-                            }
-                            if (referenceSet.isFailure || referenceSet.isFailedSet) {
-                                RestTinyBadge("Fallo", Color(0xFFFF5252))
-                            }
-                            if (referenceSet.dropSets.isNotEmpty()) {
-                                RestTinyBadge("Drop", Color(0xFF40C4FF))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (pendingRestSuggestion != null) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    shape = WorkoutUiTokens.InnerCardShape,
-                    color = if (isAdaptiveActive) Color.White.copy(alpha = 0.05f) else sessionAccentColor.copy(alpha = 0.10f),
-                    border = BorderStroke(1.dp, if (isAdaptiveActive) Color.White.copy(alpha = 0.15f) else sessionAccentColor.copy(alpha = 0.25f)),
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Text(
-                            text = if (isAdaptiveActive) "DESCANSO DINÁMICO" else "PLAN DE SESIÓN",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                            fontWeight = FontWeight.Black,
-                            color = if (isAdaptiveActive) Color.White.copy(alpha = 0.5f) else sessionAccentColor
-                        )
-                        if (state.isManualOverride) {
-                            Text(
-                                text = "Manual",
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White.copy(alpha = 0.62f),
-                            )
-                        }
-                        Text(
-                            text = formatTime(state.plannedSeconds),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = Color.White
-                        )
-                    }
-                }
-
-                if (!isAdaptiveActive && onUseAdaptive != null) {
-                    OutlinedButton(
-                        onClick = onUseAdaptive,
-                        modifier = Modifier
-                            .weight(1f)
-                            .heightIn(min = 52.dp),
-                        shape = WorkoutUiTokens.InnerCardShape,
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = sessionAccentColor),
-                        border = BorderStroke(1.dp, sessionAccentColor.copy(alpha = 0.4f)),
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.AutoAwesome,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(12.dp)
-                                )
-                                Text(
-                                    text = "Descanso sugerido",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Black
-                                )
-                            }
-                            Spacer(Modifier.height(1.dp))
-                            Text(
-                                text = formatTime(pendingRestSuggestion.adaptiveSeconds),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Black
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        Spacer(Modifier.height(8.dp))
-
+        // La forma toma lo que cabe: entre 210 y 300 dp según el alto de la pantalla.
+        val shapeHeight = (maxHeight * 0.30f).coerceIn(210.dp, 300.dp)
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(
+                    start = WorkoutUiTokens.ScreenHorizontalPadding,
+                    end = WorkoutUiTokens.ScreenHorizontalPadding,
+                    top = 8.dp,
+                    bottom = 24.dp,
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            WorkoutPrimaryActionButton(
-                text = "Saltar descanso",
-                onClick = onSkip,
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = Color.White,
-                contentColor = Color.Black,
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = Color.Black
-                    )
+            // El bloque de F1 va 8 dp más adentro que lo de debajo (el módulo de la última serie, el plan y el sugerido conservan su ancho de
+            // siempre: «DESCANSO SUGERIDO» tiene que seguir cabiendo en dos líneas con la letra al 130 %).
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                // Asa de minimizar a la izquierda y, al lado, el ejercicio de la serie que acabas de hacer (F1).
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (onMinimize != null) {
+                        KpknIconButton(
+                            icon = KpknLineIcons.ChevronDown,
+                            contentDescription = "Minimizar",
+                            onClick = onMinimize,
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = headline?.title ?: state.exerciseName,
+                            style = KpknType.bodyStrong,
+                            color = WizardColors.text,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        headline?.subtitle?.let { subtitle ->
+                            Text(
+                                text = subtitle,
+                                style = KpknType.caption,
+                                color = WizardColors.textMuted,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
                 }
-            )
 
-            if (onSkipExercise != null) {
-                OutlinedButton(
-                    onClick = onSkipExercise,
+                videoSlot?.invoke()
+
+                Spacer(Modifier.height(18.dp))
+                RestPlayHighlight(onClick = onPlay, animationsOn = clockActive)
+
+                Spacer(Modifier.height(12.dp))
+
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 48.dp),
-                    shape = WorkoutUiTokens.ChipShape,
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color.White.copy(alpha = 0.7f),
-                    ),
-                    border = BorderStroke(1.5.dp, Color.White.copy(alpha = 0.16f)),
+                        .testTag("lr1g-aro"),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.SkipNext,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = Color.White.copy(alpha = 0.7f)
+                    RestRingsClock(
+                        shape = shape,
+                        progress = progress,
+                        overtime = remainingSeconds < 0,
+                        animationsOn = clockActive,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(shapeHeight),
+                    )
+                    RestTimeReadout(
+                        state = state,
+                        remainingSeconds = remainingSeconds,
+                        totalSeconds = totalSeconds,
+                        isAdaptiveActive = isAdaptiveActive,
+                        maxFontSize = 52.sp,
+                    )
+                }
+
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = "Ajustar tiempo",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RestStepPill(
+                        text = "−15 s",
+                        contentDescription = "Restar 15 segundos",
+                        onClick = onDecrease,
+                        modifier = Modifier.weight(1f),
+                    )
+                    RestSkipPill(
+                        text = "Saltar descanso",
+                        onClick = onSkip,
+                        modifier = Modifier.weight(1.8f),
+                    )
+                    RestStepPill(
+                        text = "+15 s",
+                        contentDescription = "Sumar 15 segundos",
+                        onClick = onIncrease,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+
+            }
+
+            Spacer(Modifier.height(12.dp))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                if (lastCompletedSets.isNotEmpty()) {
+                    lastCompletedSets.forEach { (exerciseName, set) ->
+                        RestLastSetModule(
+                            title = exerciseName,
+                            titleIsEyebrow = false,
+                            set = set,
+                            outcome = lastSetOutcome ?: set.setOutcomeV2,
                         )
-                        Text(
-                            text = skipExerciseLabel ?: "Saltar series restantes e ir al siguiente ejercicio",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false)
+                    }
+                } else {
+                    val referenceSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet
+                    val referenceOutcome = lastSetOutcome ?: referenceSet?.setOutcomeV2
+                    if (referenceSet != null) {
+                        RestLastSetModule(
+                            title = "Última serie",
+                            titleIsEyebrow = true,
+                            set = referenceSet,
+                            outcome = referenceOutcome,
                         )
                     }
                 }
-            }
-        }
 
-        Spacer(Modifier.height(16.dp))
+                if (pendingRestSuggestion != null) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        RestFigureModule(
+                            title = if (isAdaptiveActive) "DESCANSO DINÁMICO" else "PLAN DE SESIÓN",
+                            value = formatRestClock(state.plannedSeconds),
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            footnote = if (state.isManualOverride) "Manual" else null,
+                        )
+
+                        if (!isAdaptiveActive && onUseAdaptive != null) {
+                            RestFigureModule(
+                                title = "Descanso sugerido",
+                                value = formatRestClock(pendingRestSuggestion.adaptiveSeconds),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight(),
+                                sparkle = true,
+                                onClick = onUseAdaptive,
+                            )
+                        }
+                    }
+                }
+
+                if (onSkipExercise != null) {
+                    RestSecondaryPill(
+                        text = skipExerciseLabel ?: "Saltar series restantes e ir al siguiente ejercicio",
+                        icon = Icons.Default.SkipNext,
+                        onClick = onSkipExercise,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+        }
     }
 }
 
@@ -812,18 +680,230 @@ private fun RestTinyBadge(
     }
 }
 
+/**
+ * Módulo de una cifra del descanso (LR1a): eyebrow en `textMuted`, cifra en `metricM` sin cero delante. Con [sparkle] lleva el
+ * acento en su icono; con [onClick] es un botón entero. [footnote] es una línea opcional entre el eyebrow y la cifra.
+ */
+@Composable
+private fun RestFigureModule(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    footnote: String? = null,
+    sparkle: Boolean = false,
+    onClick: (() -> Unit)? = null,
+) {
+    KpknModule(
+        modifier = modifier,
+        onClick = onClick,
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            if (sparkle) {
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = SymbolPalette.musculo,
+                )
+            }
+            Text(
+                text = title.uppercase(Locale("es")),
+                // Espaciado de letra algo menor para que «DESCANSO SUGERIDO» quepa en dos líneas al 130 % (LR1a).
+                style = KpknType.eyebrow.copy(letterSpacing = 0.8.sp),
+                color = WizardColors.textMuted,
+                // Hasta dos líneas: «PLAN DE SESIÓN» y «DESCANSO SUGERIDO» se parten entre palabras al 130 % de letra.
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (footnote != null) {
+            Text(
+                text = footnote,
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+            )
+        }
+        Text(
+            text = value,
+            style = KpknType.metricM,
+            color = WizardColors.text,
+            maxLines = 1,
+        )
+    }
+}
+
+/**
+ * Última serie del descanso (LR1a): módulo de una fila con el icono de historial, el título y la cifra «kg × reps» con coma y
+ * espacios inseparables. Las marcas (récord, fallo, drop) siguen como estaban.
+ */
+@Composable
+private fun RestLastSetModule(
+    title: String,
+    titleIsEyebrow: Boolean,
+    set: CompletedSet,
+    outcome: SetOutcomeV2?,
+) {
+    val loadStr = if (set.weight > 0.0) "${formatWeight(set.weight)} kg" else "Peso corporal"
+    val valueStr = if (set.timeSeconds != null) "${set.timeSeconds}s" else "${set.reps} reps"
+    // Espacios inseparables: la cifra no se parte al ajustarse (KPKN_UI_V2 §5).
+    val figure = "$loadStr × $valueStr".replace(' ', ' ')
+    KpknModule(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(
+                imageVector = KpknLineIcons.History,
+                contentDescription = null,
+                tint = WizardColors.textMuted,
+                modifier = Modifier.size(18.dp),
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    text = if (titleIsEyebrow) title.uppercase(Locale("es")) else title,
+                    style = if (titleIsEyebrow) KpknType.eyebrow else KpknType.caption,
+                    color = WizardColors.textMuted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = figure,
+                    style = KpknType.bodyStrong.copy(fontFeatureSettings = "'tnum' 1"),
+                    color = WizardColors.text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (outcome?.isContextPr == true || outcome?.isGlobalPr == true) {
+                    RestTinyBadge("Récord", Color(0xFFFFD740))
+                }
+                if (set.isFailure || set.isFailedSet) {
+                    RestTinyBadge("Fallo", Color(0xFFFF5252))
+                }
+                if (set.dropSets.isNotEmpty()) {
+                    RestTinyBadge("Drop", Color(0xFF40C4FF))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Tiempo del descanso en UNA sola línea: si «m:ss» no cabe con [maxFontSize], la letra encoge (mínimo 20 sp) hasta que quepa.
+ * Nunca se parte ni se corta con puntos suspensivos. Syne ExtraBold con cifras tabulares, como `metricXL` (LR1a).
+ */
+@Composable
+internal fun RestClockText(
+    text: String,
+    maxFontSize: TextUnit,
+    modifier: Modifier = Modifier,
+) {
+    // Tamaño automático de la original (TextAutoSize): la mayor letra de 20 a la máxima que cabe en una línea (LR1a).
+    val autoSize = remember(maxFontSize) {
+        TextAutoSize.StepBased(minFontSize = 20.sp, maxFontSize = maxFontSize, stepSize = 1.sp)
+    }
+    BasicText(
+        text = text,
+        modifier = modifier,
+        style = TextStyle(
+            fontFamily = WizardFonts.display,
+            fontWeight = FontWeight.ExtraBold,
+            color = WizardColors.text,
+            textAlign = TextAlign.Center,
+            fontFeatureSettings = "'lnum' 1, 'tnum' 1",
+        ),
+        maxLines = 1,
+        softWrap = false,
+        autoSize = autoSize,
+    )
+}
+
+/**
+ * «Saltar series restantes…» (LR1a): píldora secundaria con borde de tinta al 24 %, Inter SemiBold 14 y el icono delante, en el mismo
+ * sitio. Una línea con elipsis, como antes. Sin ripple.
+ */
+@Composable
+private fun RestSecondaryPill(
+    text: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .defaultMinSize(minHeight = 48.dp)
+            .clip(KpknShape.pill)
+            .border(1.dp, WizardColors.text.copy(alpha = 0.24f), KpknShape.pill)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                role = Role.Button,
+                onClick = onClick,
+            )
+            .padding(horizontal = 18.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = WizardColors.text,
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = text,
+                style = KpknType.action,
+                color = WizardColors.text,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
 // Helpers
 private fun formatTime(seconds: Int): String {
     val min = seconds / 60
     val sec = seconds % 60
-    return String.format(Locale.getDefault(), "%02d:%02d", min, sec)
+    return String.format(Locale.forLanguageTag("es"), "%02d:%02d", min, sec)
+}
+
+/** Cronómetro del descanso sin cero delante de los minutos: «3:00», no «03:00» (LR1a). */
+private fun formatRestClock(seconds: Int): String {
+    val min = seconds / 60
+    val sec = seconds % 60
+    return String.format(Locale.forLanguageTag("es"), "%d:%02d", min, sec)
+}
+
+/** Nombre del tipo de descanso, en minúsculas (el llamante lo pasa a mayúsculas donde toca). */
+private fun restKindText(kind: RestTimerKind): String = when (kind) {
+    RestTimerKind.SUPERSET_INTRA -> "superserie"
+    RestTimerKind.SUPERSET_ROUND -> "siguiente ronda"
+    RestTimerKind.WARMUP -> "aproximación"
+    RestTimerKind.BETWEEN_SIDES -> "entre lados"
+    RestTimerKind.STANDARD -> "descanso"
 }
 
 private fun formatWeight(weight: Double): String {
     return if (weight % 1.0 == 0.0) {
         weight.toInt().toString()
     } else {
-        String.format(Locale.getDefault(), "%.1f", weight)
+        String.format(Locale.forLanguageTag("es"), "%.1f", weight)
     }
 }
 
@@ -832,7 +912,7 @@ private fun formatIntensity(intensity: Double): String {
     return if (intensity % 1.0 == 0.0) {
         intensity.toInt().toString()
     } else {
-        String.format(Locale.getDefault(), "%.1f", intensity)
+        String.format(Locale.forLanguageTag("es"), "%.1f", intensity)
     }
 }
 

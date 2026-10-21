@@ -1,0 +1,79 @@
+{
+  "id": "ymove_012",
+  "durationS": 18.28,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Jalón al pecho en polea",
+  "exerciseDetail": "Jalón al pecho en polea alta con agarre estrecho (asa corta), sentada en el banco con la espalda recta y los brazos extendidos arriba entre repeticiones",
+  "suggestedProfile": "PULL_VERTICAL",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.1,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 5.8,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 9.4,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 12.7,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 16.2,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.8,
+    17.5
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 18.2,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 5.ª repetición (16,2 s) los brazos vuelven a extenderse arriba (17,2-18,0 s) y el clip termina a los 18,28 s"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio: ECC (traslación contra la mediana temporal sobre el fondo que el sujeto nunca cubre): desplazamiento máx. 0,22% en x y 0,03% en y del encuadre en toda la ventana"
+  },
+  "softWarnings": []
+}

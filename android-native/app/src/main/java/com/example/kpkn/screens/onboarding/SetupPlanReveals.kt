@@ -61,6 +61,8 @@ data class SetupPlanRevealDay(
  * Un ejercicio de un día de la semana tipo: [instanceId] es su identidad en el programa (la que usan las sustituciones),
  * [name] el que se ve y [setsLabel] «4 × 6–8» (null sin datos). [swappable] dice si tiene identidad de catálogo y no es cardio;
  * [swappedConfigId] es la configuración que lo sustituye, si la persona lo cambió (`exerciseOverrides`).
+ * [catalogRevision], [catalogDefinitionId] y [catalogConfigurationId] son la identidad del catálogo del ejercicio original (la
+ * ficha del detalle los resuelve; null si no la tiene).
  */
 data class SetupPlanRevealExercise(
     val instanceId: String,
@@ -68,6 +70,9 @@ data class SetupPlanRevealExercise(
     val setsLabel: String?,
     val swappable: Boolean,
     val swappedConfigId: String? = null,
+    val catalogRevision: String? = null,
+    val catalogDefinitionId: String? = null,
+    val catalogConfigurationId: String? = null,
 )
 
 /** Un tramo de la estructura del programa («Acumulación · Semanas 1–5 · …»). */
@@ -387,12 +392,18 @@ internal object SetupPlanReveals {
     fun dayOf(session: Session): Int? =
         session.dayOfWeek?.takeIf { it in 1..7 } ?: session.assignedDays.firstOrNull { it in 1..7 }
 
-    /** Un ejercicio de la semana tipo: se puede cambiar si tiene identidad de catálogo y no es cardio. */
+    /**
+     * Un ejercicio de la semana tipo: se puede cambiar si tiene identidad de catálogo y no es cardio. Copia también su identidad
+     * de catálogo, que la ficha del detalle necesita para enseñar lo que el catálogo dice de él.
+     */
     fun exerciseOf(exercise: Exercise): SetupPlanRevealExercise = SetupPlanRevealExercise(
         instanceId = exercise.id,
         name = exercise.name,
         setsLabel = setsLabelOf(exercise),
         swappable = exercise.catalogConfigurationId != null && exercise.cardioDetails == null,
+        catalogRevision = exercise.catalogRevision,
+        catalogDefinitionId = exercise.catalogDefinitionId,
+        catalogConfigurationId = exercise.catalogConfigurationId,
     )
 
     /** «4 × 6–8» con las series y las repeticiones del primer set, como la revisión final; null si no hay cifras que dar. */

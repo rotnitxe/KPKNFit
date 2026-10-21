@@ -19,6 +19,7 @@ import com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes
 import com.example.kpkn.domain.onboarding.AuthoredPlanFixtures.Gear
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.ProgramExecutionContract
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -27,6 +28,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.BeforeClass
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -42,6 +44,9 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class AuthoredPlansActivationParityTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
 
     companion object {
         @BeforeClass

@@ -1,0 +1,95 @@
+{
+  "id": "r04-pexels-20559800",
+  "durationS": 41.94,
+  "width": 720,
+  "height": 1280,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Peso muerto convencional con barra",
+  "exerciseDetail": "Peso muerto convencional con barra (series a parada: la barra vuelve al suelo y se reajusta entre repeticiones)",
+  "suggestedProfile": "DEADLIFT",
+  "view": "SIDE",
+  "people": 4,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 4.6,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 11.9,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 19.7,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 28.0,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 39.5,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    2.8,
+    41.9
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-3,0 s: agachado en la posición de salida con la barra en el suelo, ajustando caderas y espalda (sin tirar); la 1.ª tracción empieza hacia 3,0 s"
+    },
+    {
+      "timeS": 6.0,
+      "kind": "LONG_PAUSE",
+      "description": "pausas con la barra en el suelo de ~4-9 s entre repeticiones (6,0-10,5 / 13,5-18,0 / 21,0-26,5 / 29,5-37,5 s), con micro-movimientos de reajuste"
+    },
+    {
+      "timeS": 41.5,
+      "kind": "TRUNCATED_END",
+      "description": "tras el bloqueo de la 5.ª repetición (39,0-40,2 s) baja la barra y la apoya en el suelo hacia 41,6 s; el clip termina a 41,94 s"
+    }
+  ],
+  "caveats": [
+    "lleva mascarilla: la mitad inferior de la cara está tapada (se ven ojos, frente y perfil)",
+    "repeticiones espaciadas (7-12 s por ciclo, con 4-9 s de pausa con la barra en el suelo): sirve para probar que el contador no cuenta los reajustes de la posición de salida (el torso sube y baja ligeramente en cada pausa)",
+    "hasta 4 personas distinguibles a la vez (el levantador y 3 más, pequeñas y/o desenfocadas): una mujer sentada en una esterilla abajo a la izquierda (visible casi todo el clip, con mascarilla), un hombre con auriculares y camiseta negra que cruza el encuadre en ~23,5-25,0 s, otra figura oscura de pie al fondo (~24 s) y otra persona con un disco a la izquierda hacia ~35,5 s"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "varias personas: 4 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)"
+  ]
+}

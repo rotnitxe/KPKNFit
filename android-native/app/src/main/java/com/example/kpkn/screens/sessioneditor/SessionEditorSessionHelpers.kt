@@ -9,6 +9,13 @@ import com.example.kpkn.domain.calculations.suggestRestSeconds
 import com.example.kpkn.domain.exercises.TechnicalAspectEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import com.example.kpkn.domain.training.generator.ExKind
+import com.example.kpkn.domain.training.generator.ItemRole
+import com.example.kpkn.domain.training.generator.Prescriber
+import com.example.kpkn.domain.training.generator.Rx
+import com.example.kpkn.domain.training.generator.RoutineLevel
+import com.example.kpkn.domain.training.generator.RoutineMode
+import com.example.kpkn.domain.training.generator.RoutinePattern
 import com.example.kpkn.domain.workout.SupersetRules
 import java.time.LocalDate
 import java.util.UUID
@@ -35,6 +42,7 @@ internal fun createExerciseFromInfo(info: ExerciseMuscleInfo, history: List<Work
             null
         }
 
+        val prescription = newExerciseRx(info)
         return Exercise(
             id = occurrenceId,
             name = info.name,
@@ -48,8 +56,9 @@ internal fun createExerciseFromInfo(info: ExerciseMuscleInfo, history: List<Work
             selectedAspects = variantResult?.selectedAspects,
             effectiveMuscles = effectiveMuscles,
             trainingMode = trainingMode,
-            restTime = suggestRestSeconds(3, 8.0),
-            sets = listOf(
+            // SE11: un aislamiento o un compuesto entra con la prescripción del generador; el resto, como antes.
+            restTime = prescription?.rest ?: suggestRestSeconds(3, 8.0),
+            sets = prescription?.let { rx -> newExerciseSets(rx) } ?: listOf(
                 ExerciseSet(
                     id = UUID.randomUUID().toString(),
                     targetReps = if (info.category.equals("Fuerza", true)) 5 else 8,
@@ -68,6 +77,38 @@ internal fun createExerciseFromInfo(info: ExerciseMuscleInfo, history: List<Work
             selectedMovementPattern = info.movementPattern,
         ).withSharedPerformanceFromHistory(history)
     }
+
+/**
+ * Prescripción de un ejercicio añadido (SE11): un aislamiento o un compuesto entra con lo que le daría el generador para su papel
+ * de accesorio. El editor no conoce el nivel de la persona, así que usa el intermedio. Los demás tipos no cambian (null).
+ */
+internal fun newExerciseRx(info: ExerciseMuscleInfo): Rx? {
+    val kind = when {
+        com.example.kpkn.domain.templates.SessionTemplateQualityRules.isCompound(info) -> ExKind.COMPOUND
+        com.example.kpkn.domain.templates.SessionTemplateQualityRules.isIsolation(info) -> ExKind.ISOLATION
+        else -> return null
+    }
+    // El patrón solo cambia la prescripción de la pantorrilla (más repeticiones); en lo demás no pesa. Se mira el nombre.
+    val calf = listOf("pantorrilla", "gemelo", "talon").any { info.name.contains(it, ignoreCase = true) }
+    return Prescriber.rx(
+        kind = kind,
+        role = ItemRole.ACCESSORY,
+        level = RoutineLevel.INTERMEDIATE,
+        mode = RoutineMode.GENERAL_STRENGTH_MUSCLE,
+        pattern = if (calf) RoutinePattern.CALF else RoutinePattern.QUAD_ISOLATION,
+    )
+}
+
+/** Series de un ejercicio añadido con su prescripción (SE11): el mismo rango, RIR y número de series que el generador. */
+internal fun newExerciseSets(rx: Rx): List<ExerciseSet> = List(rx.baseSets) {
+    ExerciseSet(
+        id = UUID.randomUUID().toString(),
+        targetReps = rx.repMax,
+        targetRepsRange = RepRange(rx.repMin, rx.repMax).takeIf { rx.repMin != rx.repMax },
+        targetRIR = rx.rir,
+        intensityMode = IntensityMode.RIR,
+    )
+}
 
 internal fun Exercise.withSessionEditorDefaults(
     defaults: SessionEditorRuleDefaults,
@@ -128,26 +169,6 @@ internal fun Exercise.withSessionEditorDefaults(
             sets = nextSets,
         )
     }
-
-internal fun createBlankExercise(): Exercise {
-    val customId = "custom:${UUID.randomUUID()}"
-    return Exercise(
-        id = UUID.randomUUID().toString(),
-        name = "",
-        exerciseDbId = customId,
-        exerciseId = customId,
-        canonicalExerciseId = customId,
-        exerciseFamilyId = customId,
-        trainingMode = TrainingMode.REPS,
-        restTime = 90,
-        sets = listOf(
-            ExerciseSet(
-                id = UUID.randomUUID().toString(),
-                targetReps = 8,
-            ),
-        ),
-    )
-}
 
 internal fun Session.inferredEditorRuleDefaults(): SessionEditorRuleDefaults {
     val sessionExercises = allExercises()
@@ -590,11 +611,10 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
         else -> when (exercise.trainingMode) {
             // En el editor, RM no programa intensidad de esfuerzo (solo %RM).
             // intensityMode=null: no usar LOAD como "modo de reporte".
+            // SE11: el rango, el RIR y el RPE de la serie (la prescripción híbrida del generador) se conservan: normalizar
+            // no borra lo que la persona no ha tocado. Solo se quita el marcador de intensidad que no es el %.
             TrainingMode.RM -> copy(
-                intensityMode = null,
-                targetRepsRange = null,
-                targetRPE = null,
-                targetRIR = null,
+                intensityMode = if (intensityMode == IntensityMode.SOLO_RM) IntensityMode.SOLO_RM else null,
                 isFailure = false,
                 isAmrap = false,
                 targetPercentageRM = if (usesExplicitTmPercent) {
@@ -621,8 +641,23 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
             }
         }
     }
-    val autoWeight = calculateSuggestedLoad(exercise, normalized)
-    return normalized.copy(weight = if (usesExplicitTmPercent) autoWeight else autoWeight ?: normalized.weight)
+    return normalized.copy(weight = normalizedLoadKg(exercise, normalized))
+}
+
+/**
+ * Carga que deja normalizar una serie (ER2a y ER2c). En %RM con carga externa (sin TM), la guardada manda si hay %RM y carga > 0; si
+ * falta, la de su %RM con [rmSetLoadKg]. En el resto, la calculada, y si no hay cálculo, la que ya tenía. `this` es la serie de partida
+ * y [normalized] la ya normalizada. La comparten `normalizeSet` y el motor de reglas, para que aplicar reglas y guardar den la misma
+ * carga. El cambio explícito de %RM, de referencia o a RM la recalcula en `withExplicitRmLoads` (SessionEditorRmLoads.kt).
+ */
+internal fun ExerciseSet.normalizedLoadKg(exercise: Exercise, normalized: ExerciseSet): Double? {
+    val usesExplicitTmPercent = exercise.trainingMode == TrainingMode.RM && usesExternalTrainingMax()
+    val plainRm = exercise.trainingMode == TrainingMode.RM && !usesExplicitTmPercent &&
+        (normalized.loadModeV2 ?: LoadModeV2.LOAD) == LoadModeV2.LOAD
+    val autoWeight = if (plainRm) rmSetLoadKg(exercise, normalized) else calculateSuggestedLoad(exercise, normalized)
+    val savedRmKg = weight?.takeIf { plainRm && targetPercentageRM != null && it > 0.0 }
+    val computedKg = if (usesExplicitTmPercent) autoWeight else autoWeight ?: normalized.weight
+    return savedRmKg ?: computedKg
 }
 
 internal fun createNextSetTemplate(exercise: Exercise, template: ExerciseSet): ExerciseSet {
@@ -640,6 +675,8 @@ internal fun createNextSetTemplate(exercise: Exercise, template: ExerciseSet): E
     return base.copy(
         targetPercentageRM = ((template.targetPercentageRM ?: 100.0) - fatigueDrop).coerceAtLeast(45.0),
         intensityMode = null,
+        // ER2a: la carga copiada es la de la serie anterior; esta tiene otro %RM, así que su carga la calcula normalizar.
+        weight = null,
     )
 }
 
@@ -722,9 +759,3 @@ internal fun resolveWeekDayDate(week: ProgramWeek, dayOfWeek: Int): LocalDate? {
 
 internal fun String?.toLocalDateOrNull(): LocalDate? =
     this?.takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
-
-internal fun defaultCompetitionSportType(mode: ProgramMode): CompetitionTemplateType = when (mode) {
-    ProgramMode.POWERLIFTING -> CompetitionTemplateType.POWERLIFTING
-    ProgramMode.HYPERTROPHY -> CompetitionTemplateType.BODYBUILDING
-    ProgramMode.POWERBUILDING -> CompetitionTemplateType.POWERLIFTING
-}

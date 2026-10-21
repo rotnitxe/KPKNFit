@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.domain.entitlements.PlanLevel
@@ -17,6 +18,7 @@ import com.example.kpkn.ui.entitlements.LocalPlan
 import java.io.File
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -40,11 +42,21 @@ class ImportProgramScreenTest {
     private val app: Application = ApplicationProvider.getApplicationContext()
     private val saved = mutableListOf<Program>()
 
+    /** Cada VM va al store de la prueba: [tearDown] lo limpia y cancela su viewModelScope antes de que acabe la prueba. */
+    private val viewModelStore = ViewModelStore()
+    private var nextViewModelKey = 0
+
     private fun newViewModel(): ImportProgramViewModel = ImportProgramViewModel(app).also { vm ->
         vm.saveProgram = { program ->
             saved += program
             Result.success(Unit)
         }
+        viewModelStore.put("import-${nextViewModelKey++}", vm)
+    }
+
+    @After
+    fun tearDown() {
+        viewModelStore.clear()
     }
 
     /** Dos semanas: una hoja por semana, cada una con una sentadilla. */

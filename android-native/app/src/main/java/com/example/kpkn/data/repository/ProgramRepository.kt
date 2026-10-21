@@ -41,10 +41,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import androidx.room.Room
 import androidx.room.withTransaction
+import kotlin.time.Duration.Companion.seconds
 import java.util.Calendar
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -2365,7 +2367,8 @@ class ProgramRepository private constructor(
             INSTANCE ?: error("ProgramRepository not initialized — call init(context) first.")
 
         internal fun closeInstance() {
-            INSTANCE?.let { runBlocking { it.repositoryJob.cancelAndJoin() } }
+            // Espera acotada: un hijo encolado en Main (este mismo hilo, bloqueado aquí) no terminaría nunca.
+            INSTANCE?.let { runBlocking { withTimeoutOrNull(2.seconds) { it.repositoryJob.cancelAndJoin() } } }
             INSTANCE?.takeIf { it.ownsDatabase }?.db?.close()
             INSTANCE = null
             appContext = null

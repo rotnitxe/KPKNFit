@@ -28,7 +28,8 @@
               "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Eleva las puntas de ambos pies hacia las espinillas conservando los talones apoyados.",
+                "Devuelve las puntas hacia el suelo despacio, utilizando únicamente el peso del cuerpo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
@@ -168,7 +169,7 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia."
+                "Colócate de pie con ambos talones apoyados y las rodillas ligeramente desbloqueadas."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.2,

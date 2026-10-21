@@ -1,0 +1,78 @@
+{
+  "id": "g20-pexels-5245518",
+  "durationS": 14.88,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 50.0,
+  "fpsMeasured": 50.0,
+  "usable": true,
+  "exercise": "Fondos en paralelas",
+  "exerciseDetail": "Fondos en paralelas con peso corporal en un parque de calistenia: baja hasta ~90° de codo y sube a brazos rectos, ~4,1 s por repetición con un breve apoyo arriba",
+  "suggestedProfile": "DIP",
+  "view": "FRONT",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 3,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      3,
+      3
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 3.0,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.1,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 11.3,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    1.3,
+    14.9
+  ],
+  "frameIntervalS": {
+    "min": 0.02,
+    "median": 0.02,
+    "max": 0.02
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-1,3 s: se coloca en apoyo (baja un poco y sube hasta quedar con los brazos rectos); la 1.ª bajada empieza hacia 1,6 s"
+    },
+    {
+      "timeS": 13.3,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 3.ª subida queda arriba con los brazos rectos (13,3-14,9 s) hasta el final del clip, sin iniciar otra bajada"
+    }
+  ],
+  "caveats": [
+    "el archivo es de 50 fps pero cada fotograma está repetido dos veces (movimiento real a 25 fps)",
+    "encuadre de cabeza a cadera: las piernas quedan fuera de cuadro; una barra amarilla cruza el lado derecho del encuadre sin tapar al atleta",
+    "el atleta hace muecas y habla a cámara; clip de 14,9 s con 3 repeticiones"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija a ras de una barra (oscilación ≤4% del encuadre)"
+  },
+  "softWarnings": []
+}

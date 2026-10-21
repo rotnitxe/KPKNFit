@@ -178,6 +178,7 @@ internal object ImportExerciseAliases {
         "dl" to alias("conventional_deadlift"),
         "trap bar deadlift" to withEquipment("conventional_deadlift", "hex_bar"),
         "hex bar deadlift" to withEquipment("conventional_deadlift", "hex_bar"),
+        "peso muerto con barra hexagonal" to withEquipment("conventional_deadlift", "hex_bar"),
         "sumo deadlift" to alias("sumo_deadlift"),
         "peso muerto sumo" to alias("sumo_deadlift"),
         "romanian deadlift" to alias("romanian_deadlift"),
@@ -233,10 +234,10 @@ internal object ImportExerciseAliases {
         "swing con kettlebell a dos manos" to alias("hams_swing_kettlebell_dos_manos"),
         "swing con kettlebell a una mano" to alias("hams_swing_kettlebell_unilateral"),
 
-        // Halterofilia
+        // Halterofilia: «clean», «cargada», «snatch» y «arranque» a secas son la cargada y el arranque completos (sentadilla).
         "power clean" to alias("power_clean"),
-        "clean" to alias("power_clean"),
-        "cargada" to alias("power_clean"),
+        "clean" to alias("squat_clean"),
+        "cargada" to alias("squat_clean"),
         "cargada de potencia" to alias("power_clean"),
         "hang power clean" to alias("hang_power_clean"),
         "hang clean" to alias("hang_power_clean"),
@@ -244,8 +245,8 @@ internal object ImportExerciseAliases {
         "squat clean" to alias("squat_clean"),
         "cargada en sentadilla" to alias("squat_clean"),
         "power snatch" to alias("power_snatch"),
-        "snatch" to alias("power_snatch"),
-        "arranque" to alias("power_snatch"),
+        "snatch" to alias("squat_snatch"),
+        "arranque" to alias("squat_snatch"),
         "arranque de potencia" to alias("power_snatch"),
         "hang snatch" to alias("hang_power_snatch"),
         "hang power snatch" to alias("hang_power_snatch"),
@@ -267,9 +268,20 @@ internal object ImportExerciseAliases {
         "bent over row" to alias("conventional_row"),
         "bent row" to alias("conventional_row"),
         "bb row" to withEquipment("conventional_row", "barbell"),
+        "barbell row" to withConfiguration("conventional_row", "conventional_row__barbell"),
+        "remo con barra inclinado" to withConfiguration("conventional_row", "conventional_row__barbell"),
+        "remo inclinado con barra" to withConfiguration("conventional_row", "conventional_row__barbell"),
         "db row" to withEquipment("conventional_row", "dumbbells"),
-        "seated row" to withEquipment("conventional_row", "cable"),
-        "remo sentado" to withEquipment("conventional_row", "cable"),
+        // Remo sentado en polea (H5b): Remo Gironda, sentado frente a la polea baja. El Remo Convencional en polea es de pie.
+        "seated row" to alias("gironda_row"),
+        "remo sentado" to alias("gironda_row"),
+        "remo sentado en polea" to alias("gironda_row"),
+        "remo en polea sentado" to alias("gironda_row"),
+        "seated cable row" to alias("gironda_row"),
+        // Remo sentado en máquina: el de pecho apoyado en máquina, sentado frente a la almohadilla.
+        "seated machine row" to withConfiguration("chest_supported_row", "chest_supported_row__machine__medium"),
+        "seated row machine" to withConfiguration("chest_supported_row", "chest_supported_row__machine__medium"),
+        "remo sentado en maquina" to withConfiguration("chest_supported_row", "chest_supported_row__machine__medium"),
         "one arm row" to withEquipment("conventional_row", "dumbbells"),
         "single arm row" to withEquipment("conventional_row", "dumbbells"),
         "pendlay row" to alias("pendlay_row"),
@@ -310,6 +322,7 @@ internal object ImportExerciseAliases {
         "front lat pulldown" to alias("lat_pulldown"),
         "wide grip lat pulldown" to alias("lat_pulldown"),
         "close grip lat pulldown" to alias("close_grip_lat_pulldown"),
+        "close grip pulldown" to alias("close_grip_lat_pulldown"),
         "narrow grip pulldown" to alias("close_grip_lat_pulldown"),
         "jalon agarre cerrado" to alias("close_grip_lat_pulldown"),
         "jalon con triangulo" to alias("close_grip_lat_pulldown"),
@@ -384,6 +397,7 @@ internal object ImportExerciseAliases {
         "overhead triceps extension" to alias("overhead_triceps_extension"),
         "overhead extension" to alias("overhead_triceps_extension"),
         "extension de triceps overhead" to alias("overhead_triceps_extension"),
+        "extension de triceps sobre la cabeza" to alias("overhead_triceps_extension"),
         "skullcrusher" to alias("skullcrusher"),
         "skull crusher" to alias("skullcrusher"),
         "lying triceps extension" to alias("skullcrusher"),
@@ -439,6 +453,9 @@ internal object ImportExerciseAliases {
         "apertura" to alias("flat_chest_fly"),
         "aperturas planas" to alias("flat_chest_fly"),
         "pec deck" to withEquipment("flat_chest_fly", "machine"),
+        // Cable fly y aperturas en polea: la configuración de polea, nunca la de mancuernas (H5b).
+        "cable fly" to withEquipment("flat_chest_fly", "cable"),
+        "aperturas en polea" to withEquipment("flat_chest_fly", "cable"),
         "incline fly" to alias("incline_chest_fly"),
         "aperturas inclinadas" to alias("incline_chest_fly"),
         "decline fly" to alias("decline_chest_fly"),
@@ -483,7 +500,10 @@ internal object ImportExerciseAliases {
         "calf raise" to alias("calf_raise"),
         "calves raise" to alias("calf_raise"),
         "standing calf raise" to alias("calf_raise"),
+        "gemelos de pie" to alias("calf_raise"),
         "seated calf raise" to withConfiguration("calf_raise", "calf_raise__bilateral__seated_machine"),
+        "gemelos sentado" to withConfiguration("calf_raise", "calf_raise__bilateral__seated_machine"),
+        "gemelos sentado en maquina" to withConfiguration("calf_raise", "calf_raise__bilateral__seated_machine"),
         "donkey calf raise" to withConfiguration("calf_raise", "calf_raise__bilateral__donkey_machine"),
         "leg press calf raise" to withConfiguration("calf_raise", "calf_raise__bilateral__leg_press_machine"),
         "gemelos" to alias("calf_raise"),
@@ -494,9 +514,14 @@ internal object ImportExerciseAliases {
         "hip abduction" to alias("hip_abduction"),
         "abduccion de cadera" to alias("hip_abduction"),
         "abductor" to alias("hip_abduction"),
+        "abductores en maquina" to alias("hip_abduction"),
+        "abductor machine" to withEquipment("hip_abduction", "machine"),
         "hip adduction" to alias("hip_adduction"),
         "aduccion de cadera" to alias("hip_adduction"),
         "adductor" to alias("hip_adduction"),
+        "aductores" to alias("hip_adduction"),
+        "aductores en maquina" to alias("hip_adduction"),
+        "adductor machine" to withEquipment("hip_adduction", "machine"),
         "forward lunge" to alias("forward_lunge"),
         "lunge" to alias("forward_lunge"),
         "lunges" to alias("forward_lunge"),
@@ -504,6 +529,7 @@ internal object ImportExerciseAliases {
         "zancada frontal" to alias("forward_lunge"),
         "walking lunge" to alias("walking_lunge"),
         "zancada caminando" to alias("walking_lunge"),
+        "zancada andando" to alias("walking_lunge"),
         "reverse lunge" to alias("reverse_lunge"),
         "zancada inversa" to alias("reverse_lunge"),
         "step up" to alias("step_up"),
@@ -579,6 +605,50 @@ internal object ImportExerciseAliases {
         "neck lateral flexion" to alias("neck_flexion_lateral_cuello"),
     )
 
+    /**
+     * Propuesta v6 de H6b: alias nuevos de confianza alta (Anexo B del análisis, sin «pull over» y con «1 arm db row»).
+     * Solo los usa la segunda pasada del emparejador; la primera sigue con [entries], como antes.
+     */
+    val entriesV6: List<Pair<String, ImportExerciseAlias>> = listOf(
+        "incline bench" to alias("incline_bench_press"),
+        "incline db" to withEquipment("incline_bench_press", "dumbbells"),
+        "incline dumbbell fly" to withEquipment("incline_chest_fly", "dumbbells"),
+        "deadlift up to knees" to alias("deadlift_to_knees"),
+        "good morning sitting" to alias("good_morning_seated"),
+        "good morning standing" to alias("good_morning"),
+        "bicep curl" to alias("standing_biceps_curl"),
+        "barbell curl" to withEquipment("standing_biceps_curl", "barbell"),
+        "dip triceps version" to alias("triceps_fondos_entre_bancos"),
+        "triceps dip" to alias("triceps_fondos_entre_bancos"),
+        "bent over one arm row" to withEquipment("conventional_row", "dumbbells"),
+        "ssb squat" to withConfiguration("high_bar_back_squat", "high_bar_back_squat__safety_bar"),
+        "safety bar squat" to withConfiguration("high_bar_back_squat", "high_bar_back_squat__safety_bar"),
+        "leg ext" to alias("quads_extension_cuadriceps"),
+        "back ext" to alias("back_extension_lumbar"),
+        "wide grip pull up" to withConfiguration("pull_up", "pull_up__pronated__wide"),
+        "cable rope pushdown" to withEquipment("triceps_pushdown", "cable"),
+        "band pressdown" to withConfiguration("triceps_pushdown", "triceps_pushdown__bilateral__band"),
+        "flat bench" to alias("bench_press"),
+        "close grip bench" to alias("close_grip_bench_press"),
+        "calf press" to withConfiguration("calf_raise", "calf_raise__bilateral__leg_press_machine"),
+        "ab wheel rollout" to alias("core_rueda_abdominal"),
+        "bent over rear delt raise" to withEquipment("rear_delt_raise", "dumbbells"),
+        "pause bench" to alias("paused_bench_press"),
+        "bodyweight box squat" to alias("quads_sentadilla_cajon"),
+        "calf raise smith machine" to withEquipment("calf_raise", "smith_machine"),
+        "stiff legged deadlift" to alias("stiff_leg_deadlift"),
+        "pull down" to alias("lat_pulldown"),
+        // «1 arm db row» se guarda sin el «1»: la limpieza de notación quita las cifras antes de buscar alias.
+        "arm db row" to withEquipment("conventional_row", "dumbbells"),
+    )
+
+    /** Frases de la propuesta v6 que no amplían el vocabulario de la comprobación de nombres (así se midió, H6 §3). */
+    private val VOCABULARY_LEFT_OUT: Set<String> = setOf("pull down", "stiff legged deadlift")
+
+    /** Frases que cuentan como palabras conocidas al comprobar un nombre (guarda G1). */
+    val vocabularyPhrases: List<String> =
+        (entries + entriesV6.filterNot { it.first in VOCABULARY_LEFT_OUT }).map { it.first }
+
     /** Clave completa: normalización del emparejador sin palabras vacías; conserva las palabras de material. */
     fun fullKey(text: String): String =
         words(text).filter { it !in IMPORT_STOP_WORDS }.joinToString(" ") { ExerciseMatchLexicon.stem(it) }
@@ -596,6 +666,31 @@ internal object ImportExerciseAliases {
         // «press» con mancuernas: banca o de hombros según la hoja; sin alias, sale «Elegir».
         if (core == "press" && words(name).any { it in AMBIGUOUS_PRESS_MATERIALS }) return null
         return byKey[core]
+    }
+
+    /** Clave del importador: sin palabras vacías y con el stem de plural (solo lo usa la segunda pasada). */
+    private fun importKey(text: String): String =
+        words(text).filter { it !in IMPORT_STOP_WORDS }.joinToString(" ") { ImportNameNormalizer.pluralStem(it) }
+
+    /** Clave del importador sin palabras de material. */
+    private fun importCoreKey(text: String): String =
+        words(text).filter { it !in IMPORT_STOP_WORDS && it !in MATERIAL_WORDS }
+            .joinToString(" ") { ImportNameNormalizer.pluralStem(it) }
+
+    private val byImportKey: Map<String, ImportExerciseAlias> =
+        (entries + entriesV6).associate { (phrase, alias) -> importKey(phrase) to alias }
+
+    /**
+     * Alias para la segunda pasada: como [lookup], pero con el stem de plural y los alias de la propuesta v6. La primera
+     * pasada no lo usa, así que los nombres que ya reconoce no cambian.
+     */
+    fun lookupForImport(name: String): ImportExerciseAlias? {
+        byImportKey[importKey(name)]?.let { return it }
+        val core = importCoreKey(name)
+        if (core.isEmpty()) return null
+        // «press» con mancuernas: banca o de hombros según la hoja; sin alias, sale «Elegir».
+        if (core == "press" && words(name).any { it in AMBIGUOUS_PRESS_MATERIALS }) return null
+        return byImportKey[core]
     }
 
     private val byKey: Map<String, ImportExerciseAlias> =

@@ -1,0 +1,106 @@
+{
+  "id": "ymove_023",
+  "durationS": 15.567,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Curl femoral tumbado en máquina",
+  "exerciseDetail": "Curl femoral tumbado (prone leg curl) en máquina con rodillo, visto de lado a la altura del extremo de los pies",
+  "suggestedProfile": "LEG_CURL",
+  "view": "LYING",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": false,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      6
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 3.1,
+      "side": null,
+      "windowS": [
+        2.5,
+        3.7
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 6.1,
+      "side": null,
+      "windowS": [
+        5.5,
+        6.6
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 9.0,
+      "side": null,
+      "windowS": [
+        8.5,
+        9.5
+      ]
+    },
+    {
+      "index": 4,
+      "turnaroundS": 11.65,
+      "side": null,
+      "windowS": [
+        11.3,
+        12.0
+      ]
+    },
+    {
+      "index": 5,
+      "turnaroundS": 14.25,
+      "side": null,
+      "windowS": [
+        13.8,
+        14.7
+      ]
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    15.2
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con las piernas en máxima flexión (final de una repetición ya hecha: pico de flexión a ~0,0 s) y baja primero: ese pico inicial no cuenta como repetición completa (rango 5-6)"
+    },
+    {
+      "timeS": 15.5,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 5.ª flexión (14,3 s) las piernas bajan y el clip termina a los 15,57 s casi extendidas"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio: ECC (traslación contra la mediana temporal sobre el fondo que el sujeto nunca cubre): desplazamiento máx. 0,30% en x y 0,29% en y del encuadre en toda la ventana"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 5-6 (ver edgeEvents)"
+  ]
+}

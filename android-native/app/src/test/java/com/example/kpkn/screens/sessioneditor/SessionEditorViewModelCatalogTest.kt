@@ -13,6 +13,7 @@ import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -24,7 +25,9 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -34,6 +37,9 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class SessionEditorViewModelCatalogTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ProgramRepository
@@ -120,7 +126,8 @@ class SessionEditorViewModelCatalogTest {
 
         val exercise = vm.uiState.value.session!!.exercises.single()
         assertEquals(TrainingMode.REPS, exercise.trainingMode)
-        assertNull(exercise.sets.single().targetPercentageRM)
-        assertNull(exercise.sets.single().intensityMode)
+        // SE11: un ejercicio de fuerza nuevo trae la prescripción del generador (RIR), no un %RM.
+        assertTrue(exercise.sets.all { it.targetPercentageRM == null })
+        assertTrue(exercise.sets.all { it.targetRIR == 2 })
     }
 }

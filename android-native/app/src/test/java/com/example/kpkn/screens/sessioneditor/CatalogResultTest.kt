@@ -135,9 +135,9 @@ class CatalogResultTest {
 
     @Test
     fun format_catalog_superset_rest_label_formats_seconds_and_minutes_correctly() {
-        assertEquals("0s", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(0))
-        assertEquals("30s", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(30))
-        assertEquals("60s", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(60))
+        assertEquals("0 s", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(0))
+        assertEquals("30 s", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(30))
+        assertEquals("1:00", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(60))
         assertEquals("1:30", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(90))
         assertEquals("2:00", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(120))
         assertEquals("3:00", com.example.kpkn.screens.sessioneditor.components.formatCatalogSupersetRestLabel(180))

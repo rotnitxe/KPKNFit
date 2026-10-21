@@ -73,6 +73,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -100,6 +101,9 @@ import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.PostSessionPreview
 import com.example.kpkn.data.models.RingStartSnapshot
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SessionMilestone
+import com.example.kpkn.data.models.SessionSavedNote
+import com.example.kpkn.data.models.SessionChecklistItem
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.SessionDiscomfortSummary
 import com.example.kpkn.domain.auge.SessionIntensityResult
@@ -213,6 +217,18 @@ internal fun FinishWorkoutSheet(
     onDismiss: () -> Unit,
     onShare: () -> Unit,
     onSummaryReady: (WorkoutSessionSummary) -> Unit,
+    /** La nota que la persona llevaba escrita al cerrar el resumen sin guardar (LV4, 15): pasa a la sesión y vuelve al reabrirlo. */
+    onNotesDraft: (String) -> Unit = {},
+    presentation: FinishPresentationContext = FinishPresentationContext(),
+    onStoryPrepared: (WorkoutStoryData, WorkoutStoryOptions) -> Unit = { _, _ -> },
+    sessionMilestones: List<SessionMilestone> = emptyList(),
+    sessionSavedNotes: List<SessionSavedNote> = emptyList(),
+    sessionChecklist: List<SessionChecklistItem> = emptyList(),
+    onSaveSessionNote: (String) -> Unit = {},
+    onAddChecklistItem: (String) -> Unit = {},
+    onToggleChecklistItem: (String) -> Unit = {},
+    onRemoveChecklistItem: (String) -> Unit = {},
+    onOpenSessionAlbum: (() -> Unit)? = null,
 ) {
     val neuralSeed = postSessionPreview.neural.coerceIn(0, 100)
     val spinalSeed = postSessionPreview.spinal.coerceIn(0, 100)
@@ -271,8 +287,16 @@ internal fun FinishWorkoutSheet(
     }
 
     var showMuscleSetsBreakdown by remember { mutableStateOf(false) }
+    var adjustChannel by remember { mutableStateOf<RingChannel?>(null) }
+    var showShare by remember { mutableStateOf(false) }
+    val finishPagesState = rememberSaveableStateHolder()
     var additionalDiscomfortNote by rememberSaveable { mutableStateOf("") }
     var notes by rememberSaveable(initialSessionNotes) { mutableStateOf(initialSessionNotes) }
+    // Cerrar el resumen sin guardar (Atrás, tocar fuera o «Volver») no tira lo escrito: la nota pasa a la sesión (LV4, 15).
+    val dismissKeepingNotes: () -> Unit = {
+        if (notes != initialSessionNotes) onNotesDraft(notes)
+        onDismiss()
+    }
     var selectedDiscomforts by rememberSaveable {
         mutableStateOf(
             postExerciseFeedbackByExerciseId
@@ -288,6 +312,7 @@ internal fun FinishWorkoutSheet(
         mutableStateOf(selectedDiscomforts.associateWith { true })
     }
     var shareToStory by rememberSaveable { mutableStateOf(false) }
+    var storyOptions by rememberSaveable(stateSaver = storyOptionsSaver) { mutableStateOf(WorkoutStoryOptions()) }
 
     LaunchedEffect(voiceFinalNotes) {
         if (voiceFinalNotes != null) {
@@ -357,7 +382,15 @@ internal fun FinishWorkoutSheet(
     }
 
     // Explicit back / scrim / drag closes finish sheet (does not abandon the workout).
-    BackHandler(enabled = true) { onDismiss() }
+    BackHandler(enabled = true) {
+        when {
+            adjustChannel != null -> adjustChannel = null
+            showShare -> showShare = false
+            showDiscomfortAccordion -> showDiscomfortAccordion = false
+            showMuscleSetsBreakdown -> showMuscleSetsBreakdown = false
+            else -> dismissKeepingNotes()
+        }
+    }
 
     val executeConfirm = {
         val muscularAdjustment = if (editedMuscleKeys.isEmpty()) {
@@ -381,6 +414,11 @@ internal fun FinishWorkoutSheet(
             .mapNotNull { id -> DISCOMFORT_CATALOG_BY_ID[id]?.label }
             .distinct()
 
+        if (shareToStory) onStoryPrepared(WorkoutStoryData(session.name, presentation, durationMinutes, totalVolume, totalSets,
+            finishAverageRir(completedExercises), sessionIntensityResult.displayLabel,
+            TowerRingValues(musculos = derivedMuscularFinal, energia = neuralFinal, columna = spinalFinal),
+            buildFinishLiftProgress(completedExercises, presentation.history)), storyOptions)
+        if (notes.isNotBlank() && sessionSavedNotes.lastOrNull()?.text != notes) onSaveSessionNote(notes)
         onConfirm(
             notes,
             inferredFatigue,
@@ -426,249 +464,90 @@ internal fun FinishWorkoutSheet(
         )
     }
 
-    KpknSheet(
-        onDismissRequest = onDismiss,
-        stableHeightFraction = 0.86f,
-        hazeState = hazeState,
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxSize(),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                    .drawWithContent {
-                        drawContent()
-                        drawRect(
-                            brush = Brush.verticalGradient(
-                                colorStops = arrayOf(
-                                    0.0f to Color.Black,
-                                    0.85f to Color.Black,
-                                    1.0f to Color.Transparent,
-                                ),
-                            ),
-                            blendMode = BlendMode.DstIn,
-                        )
-                    }
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 20.dp)
-                    .padding(bottom = 90.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text(
-                    text = "RESUMEN DE ENTRENAMIENTO",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = 1.5.sp,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-
-                Text(
-                    text = session.name,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White,
-                )
-
-                if (emptySessionGuidance != null) {
-                    Surface(
-                        shape = RoundedCornerShape(14.dp),
-                        color = Color(0xFFFFCA28).copy(alpha = 0.14f),
-                        border = BorderStroke(1.dp, Color(0xFFFFCA28).copy(alpha = 0.55f)),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .semantics { liveRegion = LiveRegionMode.Polite },
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = null,
-                                tint = Color(0xFFFFCA28),
-                                modifier = Modifier.size(20.dp),
-                            )
-                            Text(
-                                text = emptySessionGuidance,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.White,
-                            )
-                        }
-                    }
-                }
-
-                if (pendingSeriesNotice != null) {
-                    PendingSeriesNoticeCard(
-                        notice = pendingSeriesNotice,
-                        onContinue = onContinuePendingSeries,
-                    )
-                }
-
-                // 1. CLUSTER DE RINGS + DRENAJE DE LA SESIÓN
-                FinishDrainRingsBlock(
-                    muscular = derivedMuscularFinal,
-                    neural = neuralFinal,
-                    spinal = spinalFinal,
-                    muscularDrain = postSessionPreview.globalMuscularDrain,
-                    neuralDrain = postSessionPreview.globalCnsDrain,
-                    spinalDrain = postSessionPreview.globalSpinalDrain,
-                )
-                if (postSessionPreview.tomorrowNeural != null || postSessionPreview.tomorrowSpinal != null) {
-                    Text(
-                        text = "Mañana: Energía ~${postSessionPreview.tomorrowNeural ?: "—"} %, Columna ~${postSessionPreview.tomorrowSpinal ?: "—"} %",
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-
-                // 2. ACCORDEÓN COLAPSABLE DE AJUSTES (RECALIBRAR RINGS)
-                var isAdjustExpanded by rememberSaveable { mutableStateOf(false) }
-                Surface(
-                    onClick = { isAdjustExpanded = !isAdjustExpanded },
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(Modifier.width(10.dp))
-                            Column {
-                                Text(
-                                    text = "Recalibrar Rings",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = "Ajustar valores finales de recuperación",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                        Icon(
-                            imageVector = if (isAdjustExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (isAdjustExpanded) "Contraer" else "Expandir",
-                            tint = Color.White
-                        )
-                    }
-                }
-
-                AnimatedVisibility(
-                    visible = isAdjustExpanded,
-                    enter = expandVertically(),
-                    exit = shrinkVertically()
-                ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.Top
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = "Arrastra verticalmente sobre los RINGS para modificar Energía (SNC) y Columna (Spinal). Desliza horizontalmente sobre las barras para ajustar la frescura muscular final.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Justify
-                            )
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(14.dp),
-                        ) {
-                            AdjustableRingCompact(
-                                modifier = Modifier.weight(1f),
-                                title = "Energía",
-                                value = neuralFinal,
-                                ringColor = KpknRingColors.of(RingChannel.ENERGIA),
-                                ringSize = 120,
-                                onValueChange = {
-                                    neuralFinal = it
-                                    neuralEdited = true
-                                },
-                            )
-                            AdjustableRingCompact(
-                                modifier = Modifier.weight(1f),
-                                title = "Columna",
-                                value = spinalFinal,
-                                ringColor = KpknRingColors.of(RingChannel.COLUMNA),
-                                ringSize = 120,
-                                onValueChange = {
-                                    spinalFinal = it
-                                    spinalEdited = true
-                                },
-                            )
-                        }
-
-                        if (muscleFinal.isNotEmpty()) {
-                            Text(
-                                text = "Desgaste final por Músculo",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Black,
-                                color = Color.White,
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
-                            FlowRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                maxItemsInEachRow = 2,
-                            ) {
-                                muscleFinal.keys.sortedByDescending { sessionMuscleVolumeByRoleSets[it] ?: 0.0 }.forEach { muscleId ->
-                                    val start = postSessionPreview.perMuscle[muscleId]?.recoveryScore?.coerceIn(0, 100) ?: 100
-                                    val current = muscleFinal[muscleId]?.coerceIn(0, 100) ?: start
-                                    MinimalMuscleSlider(
-                                        modifier = Modifier.weight(1f),
-                                        muscleLabel = muscleId,
-                                        value = current,
-                                        onValueChange = { updated ->
-                                            muscleFinal[muscleId] = updated
-                                            musclesEdited = muscleFinal[muscleId] != muscleSeed[muscleId]
-                                                || muscleFinal.any { (key, value) -> value != muscleSeed[key] }
-                                        },
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
+    // El efecto no depende de la página visible: confirmar por voz funciona también en Notas.
+    LaunchedEffect(voiceFinalConfirmTriggered) {
+        if (voiceFinalConfirmTriggered && !isFinishingWorkout) executeConfirm()
+    }
+    val lifts = remember(completedExercises, presentation.history) { buildFinishLiftProgress(completedExercises, presentation.history) }
+    val tonnage = remember(presentation.history, session.id) {
+        presentation.history.filter { it.sessionId == session.id && (presentation.program == null || it.programId == presentation.program.id) }
+            .sortedBy { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) }.takeLast(24).map { it.totalVolume }
+    }
+    val values = TowerRingValues(musculos = derivedMuscularFinal, energia = neuralFinal, columna = spinalFinal)
+    val before = TowerRingValues(
+        musculos = postSessionPreview.preSessionMuscular ?: (postSessionPreview.muscular + postSessionPreview.globalMuscularDrain).coerceIn(0, 100),
+        energia = postSessionPreview.preSessionNeural ?: (postSessionPreview.neural + postSessionPreview.globalCnsDrain).coerceIn(0, 100),
+        columna = postSessionPreview.preSessionSpinal ?: (postSessionPreview.spinal + postSessionPreview.globalSpinalDrain).coerceIn(0, 100),
+    )
+    val sessionHistory = remember(presentation.history, session.id, presentation.program?.id) {
+        presentation.history.filter { it.sessionId == session.id && (presentation.program == null || it.programId == presentation.program.id) }
+    }
+    val story = WorkoutStoryData(session.name, presentation, durationMinutes, totalVolume, totalSets,
+        finishAverageRir(completedExercises), sessionIntensityResult.displayLabel, values, lifts)
+    KpknSheet(onDismissRequest = {
+        when { adjustChannel != null -> adjustChannel = null; showShare -> showShare = false; else -> dismissKeepingNotes() }
+    }, stableHeightFraction = 0.95f, maxHeightFraction = 0.95f, hazeState = hazeState) {
+        if (adjustChannel != null) {
+            adjustChannel?.let { channel ->
+        com.example.kpkn.ui.components.rings.RingAdjustPanel(
+            initialChannel = channel, title = "Ajusta cómo terminas", onDismiss = { adjustChannel = null },
+            energy = com.example.kpkn.ui.components.rings.RingAdjustLevel(neuralFinal, neuralSeed, neuralEdited),
+            spine = com.example.kpkn.ui.components.rings.RingAdjustLevel(spinalFinal, spinalSeed, spinalEdited),
+            muscles = com.example.kpkn.ui.components.rings.RingAdjustMuscles(muscleFinal.toMap(), muscleSeed, muscleSeed.keys, editedMuscleKeys),
+            onEnergyChange = { neuralFinal = it; neuralEdited = it != neuralSeed },
+            onSpineChange = { spinalFinal = it; spinalEdited = it != spinalSeed },
+            onMuscleChange = { id, value -> muscleFinal[id] = value; musclesEdited = true },
+            onEnergyReset = { neuralFinal = neuralSeed; neuralEdited = false },
+            onSpineReset = { spinalFinal = spinalSeed; spinalEdited = false },
+            onMusclesReset = { muscleFinal.clear(); muscleFinal.putAll(muscleSeed); musclesEdited = false },
+        )
+    }
+        } else if (showShare) {
+            WorkoutStorySheet(story, hazeState, storyOptions, onOptionsChange = { storyOptions = it },
+                shareAfterSave = shareToStory, onShareAfterSaveChange = { shareToStory = it }, onDismiss = { showShare = false }, embedded = true)
+        } else finishPagesState.SaveableStateProvider("finish-pages") {
+        FinishPagerLayout(
+            sessionName = session.name, saving = isFinishingWorkout, saveDescription = emptySessionGuidance,
+            onBack = dismissKeepingNotes, onSave = { if (emptySessionGuidance == null && !isFinishingWorkout) executeConfirm() },
+            onShare = { showShare = true },
+            warnings = {
+                if (emptySessionGuidance != null) Text(emptySessionGuidance, color = Color(0xFFF2EEE6),
+                    style = MaterialTheme.typography.bodySmall, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+                if (pendingSeriesNotice != null) PendingSeriesNoticeCard(pendingSeriesNotice, onContinuePendingSeries)
+                if (hasGenericIntensityFallback) Text("Se usó intensidad genérica en ejercicios sin RPE percibido. Registra la intensidad para mejorar las estimaciones de recuperación.",
+                    style = MaterialTheme.typography.labelSmall, color = Color(0xFFF2EEE6))
+            },
+            today = {
+                FinishTodayPage(values, before,
+                    listOf(postSessionPreview.globalMuscularDrain, postSessionPreview.globalCnsDrain, postSessionPreview.globalSpinalDrain),
+                    onRing = { adjustChannel = it },
+                    metrics = listOf("Duración" to "$durationMinutes min", "Series" to "$totalSets", "Tonelaje" to "${finishNumber(totalVolume, 0)} kg",
+                        "RIR medio" to (finishAverageRir(completedExercises)?.let { finishNumber(it) } ?: "—"),
+                        "Marcas" to "${presentation.records}", "Gasto ≈" to (presentation.calories?.let { "$it kcal" } ?: "—")),
+                    onDetails = { showMuscleSetsBreakdown = true })
+            },
+            lifts = { FinishLiftsPage(lifts, session.name, tonnage, totalVolume, sessionIntensityResult.displayLabel,
+                if (postExerciseFeedbackByExerciseId.isEmpty()) "Sin registro" else "${finishNumber(averageTechnique)}/10") },
+            notes = {
+                FinishNotesPage(note = notes, onNote = { notes = it; onNotesDraft(it) }, date = presentation.today.toString(),
+                    savedNotes = sessionSavedNotes, history = sessionHistory,
+                    checklist = sessionChecklist, onAddTask = onAddChecklistItem, onToggleTask = onToggleChecklistItem,
+                    onRemoveTask = onRemoveChecklistItem, discomfortCount = selectedDiscomforts.size,
+                    onDiscomforts = { showDiscomfortAccordion = true })
+            },
+            milestones = { FinishMilestonesPage(sessionMilestones, sessionHistory, lifts, onEvolution = { exerciseId ->
+                storyOptions = storyOptions.copy(template = WorkoutStoryTemplate.EXERCISE, exerciseId = exerciseId)
+                showShare = true
+            }) },
+            photos = { FinishPhotosPage(presentation.photos, onOpenSessionAlbum, onCreateStory = {
+                storyOptions = storyOptions.copy(template = WorkoutStoryTemplate.PHOTOS)
+                showShare = true
+            }, sessionDate = presentation.today.toString()) },
+        )
+        }
+    }
+    if (showMuscleSetsBreakdown) KpknSheet(onDismissRequest = { showMuscleSetsBreakdown = false }, stableHeightFraction = 0.72f, hazeState = hazeState) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp)) {
                 // 3. COLLAPSIBLE GENERAL SESSION STATS
                 Surface(
                     onClick = { showMuscleSetsBreakdown = !showMuscleSetsBreakdown },
@@ -694,7 +573,7 @@ internal fun FinishWorkoutSheet(
                             Text(
                                 text = if (showMuscleSetsBreakdown) "Ocultar detalles" else "Ver detalles",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = FinishCream,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -715,7 +594,7 @@ internal fun FinishWorkoutSheet(
                                     Text(split, color = Color.White.copy(alpha = 0.7f), style = MaterialTheme.typography.labelSmall)
                                 }
                                 line.augeLine?.let {
-                                    Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    Text(it, color = FinishCream, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -780,48 +659,10 @@ internal fun FinishWorkoutSheet(
                     }
                 }
 
-                if (hasGenericIntensityFallback) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.15f),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f))
-                    ) {
-                        Text(
-                            text = "Se usó intensidad genérica en ejercicios sin RPE percibido. Registra la intensidad para mejorar las estimaciones de recuperación.",
-                            modifier = Modifier.padding(12.dp),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer,
-                        )
-                    }
-                }
-
-                // 4. METRICS ROW
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    val intensityColor = when {
-                        sessionIntensityResult.adjustedNumericValue >= 8.0 -> Color(0xFF66BB6A)
-                        sessionIntensityResult.adjustedNumericValue >= 5.0 -> Color(0xFFFFCA28)
-                        else -> Color(0xFFEF5350)
-                    }
-                    MetricValueCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Intensidad",
-                        value = sessionIntensityResult.displayLabel,
-                        subtitle = "Intensidad global de la sesión",
-                        valueColor = intensityColor
-                    )
-                    MetricValueCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Técnica",
-                        value = "${"%.1f".format(averageTechnique)}/10",
-                        subtitle = "Calidad prom.",
-                        valueColor = Color.White
-                    )
-                }
-
+        }
+    }
+    if (showDiscomfortAccordion) KpknSheet(onDismissRequest = { showDiscomfortAccordion = false }, stableHeightFraction = 0.82f, hazeState = hazeState) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp)) {
                 // 5. MOLESTIAS (ACORDEÓN)
                 Surface(
                     onClick = { showDiscomfortAccordion = !showDiscomfortAccordion },
@@ -928,7 +769,7 @@ internal fun FinishWorkoutSheet(
                                     modifier = Modifier.fillMaxWidth(),
                                     textStyle = MaterialTheme.typography.bodySmall,
                                     colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        focusedBorderColor = FinishCream,
                                         unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
                                     ),
                                     leadingIcon = {
@@ -1009,7 +850,7 @@ internal fun FinishWorkoutSheet(
                                     modifier = Modifier.fillMaxWidth(),
                                     textStyle = MaterialTheme.typography.bodySmall,
                                     colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        focusedBorderColor = FinishCream,
                                         unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
                                     ),
                                 )
@@ -1018,124 +859,10 @@ internal fun FinishWorkoutSheet(
                     }
                 }
 
-                // 6. NOTAS RÁPIDAS
-                OutlinedTextField(
-                    value = notes,
-                    onValueChange = { notes = it },
-                    label = { Text("Nota rápida de la sesión (opcional)") },
-                    maxLines = 3,
-                    modifier = Modifier.fillMaxWidth(),
-                    textStyle = MaterialTheme.typography.bodySmall,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.15f)
-                    ),
-                )
-                LaunchedEffect(voiceFinalConfirmTriggered) {
-                    if (voiceFinalConfirmTriggered) {
-                        executeConfirm()
-                    }
-                }
-                Spacer(Modifier.height(100.dp))
-            }
-
-            // 7. STICKY ACTION DOCK (DarkMica chrome; confirm FAB stays solid primary CTA)
-            val dockHaze = LocalHazeState.current
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .zIndex(1f)
-                    .padding(horizontal = 12.dp, vertical = 10.dp)
-                    .kpknGlassOrFallback(dockHaze, RoundedCornerShape(28.dp))
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-            ) {
-                // Independent alignments keep the 64dp check geometrically
-                // centered even when the compact right button is wider than
-                // the 48dp share control.
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    // Left: 48dp circular share button
-                    Surface(
-                        onClick = onShare,
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .size(48.dp),
-                        shape = CircleShape,
-                        color = Color(0xFFE1306C),
-                        contentColor = Color.White,
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = "Compartir en Instagram Stories",
-                                modifier = Modifier.size(22.dp),
-                            )
-                        }
-                    }
-
-                    // Center: 64dp circular confirm button
-                    FloatingActionButton(
-                        onClick = { if (!isFinishingWorkout) executeConfirm() },
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(64.dp)
-                            .semantics {
-                                // Keep the label ("Guardar y terminar entrenamiento") and
-                                // announce why the save is currently blocked.
-                                emptySessionGuidance?.let { stateDescription = it }
-                            },
-                        shape = CircleShape,
-                        containerColor = if (isFinishingWorkout) Color(0xFF444444) else MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                    ) {
-                        if (isFinishingWorkout) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(28.dp),
-                                color = MaterialTheme.colorScheme.primary,
-                                strokeWidth = 3.dp,
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "Guardar y terminar entrenamiento",
-                                modifier = Modifier.size(32.dp),
-                            )
-                        }
-                    }
-
-                    // Right: Compact ← Volver button
-                    Surface(
-                        onClick = onDismiss,
-                        shape = RoundedCornerShape(999.dp),
-                        color = Color.White.copy(alpha = 0.12f),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp),
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Volver al entrenamiento",
-                                tint = Color.White,
-                                modifier = Modifier.size(16.dp),
-                            )
-                            Text(
-                                text = "Volver",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                            )
-                        }
-                    }
-                }
-            }
         }
     }
+
+
 }
 
 /**
@@ -1147,7 +874,7 @@ private fun PendingSeriesNoticeCard(
     notice: PendingSeriesNotice,
     onContinue: () -> Unit,
 ) {
-    val amber = Color(0xFFFFCA28)
+    val amber = Color(0xFFF2EEE6)
     Surface(
         shape = RoundedCornerShape(14.dp),
         color = amber.copy(alpha = 0.14f),

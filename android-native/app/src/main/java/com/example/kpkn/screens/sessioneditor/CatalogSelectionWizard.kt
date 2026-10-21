@@ -1,39 +1,16 @@
 package com.example.kpkn.screens.sessioneditor
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import com.example.kpkn.ui.components.KpknSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,36 +19,48 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.kpkn.data.models.AspectOption
+import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledge
+import com.example.kpkn.data.exercises.catalogv2.canonicalMuscleKnowledgeForVolumeLabel
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
-import com.example.kpkn.data.models.ModifierType
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.TechnicalAspect
+import com.example.kpkn.data.preferences.PreferenceStores
 import com.example.kpkn.domain.exercises.TechnicalAspectEngine
 import com.example.kpkn.domain.exercises.VariantGroup
 import com.example.kpkn.domain.exercises.VariantGroupIndex
-import com.example.kpkn.data.preferences.PreferenceStores
-import com.example.kpkn.data.exercises.catalogv2.canonicalMuscleKnowledgeForVolumeLabel
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.screens.sessioneditor.components.formatSeriesEquivalent
+import com.example.kpkn.screens.sessioneditor.components.formatVolumePercent
 import com.example.kpkn.ui.components.CanonicalKnowledgeOverlay
+import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknProgressBar
+import com.example.kpkn.ui.design.KpknRadioRow
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknTopRow
+import com.example.kpkn.ui.design.KpknType
 
+/** Pasos del asistente (SE6b): 1 la variante, 2 los aspectos técnicos y 3 los músculos que resultan. */
+private const val WIZARD_STEPS = 3
+
+/**
+ * Asistente de variantes y aspectos técnicos (SE6b): una hoja KPKN con el eyebrow «Paso 1 de 3», el título en `title`, las opciones en
+ * filas de radio y «Atrás» y «Siguiente» como píldoras. Un ejercicio sin grupo de variantes se confirma solo, como antes.
+ */
 @Composable
 fun CatalogSelectionWizard(
     initialExercise: ExerciseMuscleInfo,
     onConfirm: (selectedVariant: ExerciseMuscleInfo, selectedAspects: Map<String, String>) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val prefStore = remember { PreferenceStores.variantPreferences(context) }
-
     val group = remember(initialExercise) {
         initialExercise.variantGroupId?.let { VariantGroupIndex.getGroup(it) }
     }
@@ -83,8 +72,31 @@ fun CatalogSelectionWizard(
         return
     }
 
-    // Opens DIRECTLY on Step 1 (Technical Aspects for selected exercise)
-    var step by remember { mutableStateOf(1) }
+    KpknSheet(onDismissRequest = onDismiss) {
+        CatalogSelectionWizardContent(
+            group = group,
+            initialExercise = initialExercise,
+            onConfirm = onConfirm,
+            onDismiss = onDismiss,
+        )
+    }
+}
+
+/**
+ * El cuerpo del asistente, suelto para los tests y la hoja de render. Guarda el paso, la variante y los aspectos; las preferencias de la
+ * variante y de los aspectos se guardan al cambiarlas, como antes.
+ */
+@Composable
+internal fun CatalogSelectionWizardContent(
+    group: VariantGroup,
+    initialExercise: ExerciseMuscleInfo,
+    onConfirm: (selectedVariant: ExerciseMuscleInfo, selectedAspects: Map<String, String>) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    val prefStore = remember { PreferenceStores.variantPreferences(context) }
+
+    var step by remember { mutableStateOf(0) }
     var selectedVariant by remember { mutableStateOf(initialExercise) }
     val savedAspects = remember(group, selectedVariant) {
         prefStore.loadAspectDefaults(group.id)
@@ -100,43 +112,48 @@ fun CatalogSelectionWizard(
         computeEffective(selectedVariant, selectedAspects)
     }
 
-    KpknSheet(
-        onDismissRequest = onDismiss,
-    ) {
+    val stepTitle = when (step) {
+        0 -> "Elige la variante"
+        1 -> "Ajusta los aspectos técnicos"
+        else -> "Así queda el enfoque muscular"
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        KpknTopRow(
+            onBack = null,
+            actions = {
+                KpknIconButton(
+                    icon = KpknLineIcons.Close,
+                    contentDescription = "Cerrar",
+                    onClick = onDismiss,
+                )
+            },
+        )
         Column(
             modifier = Modifier
+                .weight(1f, fill = false)
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 24.dp)
-                .animateContentSize(),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Header Sobrio y Profesional
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = selectedVariant.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = "Configuración técnica y biomecánica",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar")
-                }
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = "Paso ${step + 1} de $WIZARD_STEPS",
+                    style = KpknType.eyebrow,
+                    color = WizardColors.textMuted,
+                )
+                Text(
+                    text = stepTitle,
+                    style = KpknType.title,
+                    color = WizardColors.text,
+                )
+                Text(
+                    text = selectedVariant.name,
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
             }
-
-            Spacer(Modifier.height(14.dp))
-
             when (step) {
                 0 -> VariantSelectorStep(
                     group = group,
@@ -148,62 +165,50 @@ fun CatalogSelectionWizard(
                         if (variantDefaults.isNotEmpty()) {
                             selectedAspects = variantDefaults
                         }
-                        step = 1
                     },
                 )
                 1 -> TechnicalAspectsStep(
                     variant = selectedVariant,
                     selectedAspects = selectedAspects,
-                    effectiveResult = effectiveResult,
                     onAspectChange = { id, optId ->
                         val updated = selectedAspects + (id to optId)
                         selectedAspects = updated
                         prefStore.saveAspectDefaults(group.id, updated)
                     },
                 )
+                else -> MuscleActivationPreview(
+                    baseMuscles = selectedVariant.involvedMuscles,
+                    effectiveMuscles = effectiveResult.effectiveMuscles,
+                )
             }
+        }
 
-            Spacer(Modifier.height(14.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-            Spacer(Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (step > 0) {
-                    TextButton(
-                        onClick = { step = 0 },
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Text("Cambiar Variante", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-                    }
-                } else {
-                    Spacer(Modifier.width(1.dp))
-                }
-
-                if (step < 1) {
-                    Button(
-                        onClick = { step = 1 },
-                        enabled = selectedVariant.variantGroupId != null,
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    ) {
-                        Text("Ajustes Técnicos →", fontWeight = FontWeight.Bold)
-                    }
-                } else {
-                    Button(
-                        onClick = { onConfirm(selectedVariant, selectedAspects) },
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        modifier = Modifier.height(42.dp)
-                    ) {
-                        Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("Aplicar Ejercicio", fontWeight = FontWeight.Bold)
-                    }
-                }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (step > 0) {
+                KpknTextAction(
+                    text = "Atrás",
+                    onClick = { step -= 1 },
+                )
+            }
+            if (step < WIZARD_STEPS - 1) {
+                KpknPrimaryPill(
+                    text = "Siguiente",
+                    onClick = { step += 1 },
+                    modifier = Modifier.weight(1f),
+                    enabled = step != 0 || selectedVariant.variantGroupId != null,
+                )
+            } else {
+                KpknPrimaryPill(
+                    text = "Aplicar ejercicio",
+                    onClick = { onConfirm(selectedVariant, selectedAspects) },
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
     }
@@ -234,315 +239,154 @@ private fun computeEffective(
     )
 }
 
+/** Paso 1 (SE6b): las variantes del grupo, una fila de radio cada una, con sus músculos principales. */
 @Composable
 private fun VariantSelectorStep(
     group: VariantGroup,
     selectedVariant: ExerciseMuscleInfo,
     onSelect: (ExerciseMuscleInfo) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(320.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        group.variants.forEach { variant ->
-            val isSelected = variant.id == selectedVariant.id
-            val primaryMuscles = variant.involvedMuscles
-                .filter { it.role == MuscleRole.PRIMARY }
-                .map { it.muscle }
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable { onSelect(variant) },
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isSelected)
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                    else
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                ),
-                border = if (isSelected)
-                    androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
-                else
-                    androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)),
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(
-                            text = variant.variantName ?: variant.name,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Text(
-                            text = primaryMuscles.joinToString(" · "),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    if (isSelected) {
-                        Icon(
-                            Icons.Default.Check,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
+    KpknModule {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            group.variants.forEach { variant ->
+                val primaryMuscles = variant.involvedMuscles
+                    .filter { it.role == MuscleRole.PRIMARY }
+                    .map { it.muscle }
+                KpknRadioRow(
+                    selected = variant.id == selectedVariant.id,
+                    title = variant.variantName ?: variant.name,
+                    subtitle = primaryMuscles.takeIf { it.isNotEmpty() }?.joinToString(" · "),
+                    onClick = { onSelect(variant) },
+                )
             }
         }
     }
 }
 
+/** Paso 2 (SE6b): cada aspecto técnico en su módulo, con sus opciones como filas de radio y su explicación debajo. */
 @Composable
 private fun TechnicalAspectsStep(
     variant: ExerciseMuscleInfo,
     selectedAspects: Map<String, String>,
-    effectiveResult: TechnicalAspectEngine.EffectiveMuscleResult,
     onAspectChange: (aspectId: String, optionId: String) -> Unit,
 ) {
     val aspects = variant.catalogOptionAxes.orEmpty()
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(400.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        // Aspectos Técnicos con Segmented Controls Visibles simultáneamente
+    if (aspects.isEmpty()) {
+        Text(
+            text = "Este ejercicio no tiene aspectos técnicos que ajustar.",
+            style = KpknType.body,
+            color = WizardColors.textMuted,
+        )
+        return
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         aspects.forEach { aspect ->
-            AspectSelectorCard(
+            AspectSelectorModule(
                 aspect = aspect,
                 selectedOptionId = selectedAspects[aspect.id],
                 onSelect = { optId -> onAspectChange(aspect.id, optId) },
             )
         }
-
-        // Vista sobria de Enfoque Muscular Resultante Dinámico
-        MuscleActivationPreview(
-            baseMuscles = variant.involvedMuscles,
-            effectiveMuscles = effectiveResult.effectiveMuscles,
-        )
     }
 }
 
 @Composable
-private fun AspectSelectorCard(
+private fun AspectSelectorModule(
     aspect: TechnicalAspect,
     selectedOptionId: String?,
     onSelect: (String) -> Unit,
 ) {
     val selectedId = selectedOptionId ?: aspect.defaultOptionId
         ?: aspect.options.firstOrNull()?.id
-    val selectedOption = aspect.options.firstOrNull { it.id == selectedId }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f))
-            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f), RoundedCornerShape(14.dp))
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(
-            text = aspect.name,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-        )
-
-        // Segmented Control de Ancho Total - TODAS las opciones visibles al instante sin carrusel ni scroll horizontal
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f))
-                .padding(3.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
+    KpknModule {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = aspect.name,
+                style = KpknType.bodyStrong,
+                color = WizardColors.text,
+            )
             aspect.options.forEach { option ->
-                val isOptSelected = option.id == selectedId
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { onSelect(option.id) },
-                    shape = RoundedCornerShape(8.dp),
-                    color = if (isOptSelected)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        Color.Transparent,
-                ) {
-                    Text(
-                        text = option.name,
-                        modifier = Modifier.padding(vertical = 7.dp, horizontal = 4.dp),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = if (isOptSelected) MaterialTheme.colorScheme.onPrimary
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = if (isOptSelected) FontWeight.Bold else FontWeight.Medium,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-        }
-
-        // Descripción concisa y seria de la opción activa
-        selectedOption?.let { opt ->
-            if (!opt.description.isNullOrBlank()) {
-                Text(
-                    text = opt.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                KpknRadioRow(
+                    selected = option.id == selectedId,
+                    title = option.name,
+                    subtitle = option.description?.takeIf { it.isNotBlank() },
+                    onClick = { onSelect(option.id) },
                 )
             }
         }
     }
 }
 
+/**
+ * Paso 3 (SE6b): el enfoque muscular resultante. Cada músculo con su papel, su aporte por una serie y una barra en su color; los que
+ * tienen definición canónica se abren al tocarlos.
+ */
 @Composable
 internal fun MuscleActivationPreview(
     baseMuscles: List<InvolvedMuscle>,
     effectiveMuscles: List<InvolvedMuscle>,
 ) {
-    var selectedKnowledge by remember { mutableStateOf<com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledge?>(null) }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
-        ),
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-        ),
-    ) {
-        Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Enfoque Muscular Resultante",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = "Actualizado en tiempo real",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-
-            // Lista dinámica ordenada por dominancia muscular resultante
+    var selectedKnowledge by remember { mutableStateOf<CanonicalKnowledge?>(null) }
+    KpknModule {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
             effectiveMuscles.forEach { muscle ->
                 val baseEntry = baseMuscles.firstOrNull { it.muscle == muscle.muscle }
                 val effVC = muscle.volumeContribution ?: 0.0
                 val roleChanged = baseEntry?.role != muscle.role
                 val knowledge = canonicalMuscleKnowledgeForVolumeLabel(muscle.muscle)
-
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(9.dp))
-                        .clickable(enabled = knowledge != null) {
-                            selectedKnowledge = knowledge
-                        },
-                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                        .then(
+                            if (knowledge != null) {
+                                Modifier.clickable(role = Role.Button, onClick = { selectedKnowledge = knowledge })
+                            } else {
+                                Modifier
+                            },
+                        ),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = muscle.muscle,
+                            style = KpknType.bodyStrong,
+                            color = WizardColors.text,
+                            modifier = Modifier.weight(1f),
+                        )
+                        if (roleChanged) {
                             Text(
-                                text = muscle.muscle,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
+                                text = "Cambio de rol",
+                                style = KpknType.caption,
+                                color = SymbolPalette.energia,
                             )
+                            Spacer(Modifier.width(8.dp))
                         }
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            if (roleChanged) {
-                                Surface(
-                                    shape = RoundedCornerShape(4.dp),
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-                                ) {
-                                    Text(
-                                        text = "Cambio de Rol",
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                            Text(
-                                text = formatRoleLabel(muscle.role),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                text = "${"%.1f".format(effVC)} serie · ${"%.0f".format(effVC.coerceIn(0.0, 1.0) * 100)}%",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                        }
-                    }
-
-                    // Barra visual de intensidad proporcional
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .fillMaxWidth(effVC.toFloat().coerceIn(0.1f, 1.0f))
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.42f))
+                        Text(
+                            text = formatRoleLabel(muscle.role),
+                            style = KpknType.caption,
+                            color = WizardColors.textMuted,
                         )
                     }
+                    Text(
+                        text = "${formatSeriesEquivalent(effVC)} · ${formatVolumePercent(effVC)}",
+                        style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
+                        color = WizardColors.textMuted,
+                    )
+                    KpknProgressBar(
+                        progress = effVC.toFloat(),
+                        color = SymbolPalette.musculo,
+                        height = 6.dp,
+                    )
                 }
             }
         }
     }
-        selectedKnowledge?.let { knowledge ->
-            CanonicalKnowledgeOverlay(
-                knowledge = knowledge,
-                onDismiss = { selectedKnowledge = null },
-            )
-        }
+    selectedKnowledge?.let { knowledge ->
+        CanonicalKnowledgeOverlay(
+            knowledge = knowledge,
+            onDismiss = { selectedKnowledge = null },
+        )
     }
 }
 

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Relator: la acción es parte del relato</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+@keyframes shim{0%{background-position:390px 0}55%,100%{background-position:-390px 0}}
+.shim{background-image:linear-gradient(100deg,rgba(242,238,230,.58) 0px,rgba(242,238,230,.58) 300px,#FFFFFF 390px,rgba(242,238,230,.58) 480px,rgba(242,238,230,.58) 780px);background-size:780px 100%;background-attachment:fixed;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shim 5.4s ease-in-out infinite}
+.act{background-image:linear-gradient(100deg,#EDE6DA 0px,#EDE6DA 300px,#FFFFFF 390px,#EDE6DA 480px,#EDE6DA 780px);font-weight:600;text-decoration:underline dotted rgba(244,154,110,.9);text-decoration-thickness:2px;text-underline-offset:5px;border:none;padding:0;margin:0;font:inherit;font-weight:600;cursor:pointer}
+.fast{animation-duration:1.4s}
+@keyframes walkX{from{transform:translateX(-70px)}to{transform:translateX(250px)}}
+.walk{animation:walkX 1.9s linear forwards}
+@keyframes legA{0%,100%{transform:rotate(22deg)}50%{transform:rotate(-22deg)}}
+@keyframes legB{0%,100%{transform:rotate(-22deg)}50%{transform:rotate(22deg)}}
+.la{animation:legA .38s ease-in-out infinite}
+.lb{animation:legB .38s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.bob{animation:bob .38s ease-in-out infinite}
+@keyframes wrench{0%,100%{transform:rotate(-30deg)}50%{transform:rotate(25deg)}}
+.wr{animation:wrench .45s ease-in-out infinite}
+@keyframes spark{0%{transform:scale(.2);opacity:1}100%{transform:scale(1.6);opacity:0}}
+.sp{animation:spark .9s ease-out forwards}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+.pop{animation:pop .5s ease-out}
+@media (prefers-reduced-motion: reduce){.shim,.walk,.la,.lb,.bob,.wr,.sp,.pop{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden;">
+  <div style="position: absolute; left: 0; top: 0; width: 390px; height: 190px; background: radial-gradient(120% 90% at 85% 0%, rgba(244,154,110,0.24) 0%, rgba(244,154,110,0) 60%);"></div>
+  <div style="position: relative; padding: 22px 20px 0 20px;">
+    <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 24px;">Sentadilla Trasera con…</div>
+    <div style="font-size: 13px; color: rgba(242,238,230,0.62); margin-top: 2px;">Principal · Pierna A</div>
+    <div style="display: flex; gap: 8px; margin-top: 12px;">
+      <span style="height: 30px; padding: 0 12px; border-radius: 15px; background: rgba(17,17,17,0.85); border: 1px solid rgba(242,238,230,0.08); display: flex; align-items: center; font-size: 13px; font-weight: 600;">32:10 / 1:00:00</span>
+      <span style="height: 30px; padding: 0 12px; border-radius: 15px; background: rgba(17,17,17,0.85); border: 1px solid rgba(242,238,230,0.08); display: flex; align-items: center; font-size: 13px; font-weight: 600;">80 %</span>
+    </div>
+  </div>
+
+  <div style="position: relative; margin-top: 14px; height: 92px;">
+    <div style="padding: 0 26px; text-align: center; font-size: 15px; line-height: 23px;">
+      <sc-if value="{{isIdle}}" hint-placeholder-val="{{true}}">
+        <span class="shim">Tu última serie fue limpia, así que </span><button class="shim act" onClick="{{apply}}">subamos a 95 kg</button><span class="shim"> para esta.</span>
+      </sc-if>
+      <sc-if value="{{isWorking}}" hint-placeholder-val="{{false}}">
+        <span class="shim fast">El equipo está cargando los discos de 95 kg…</span>
+      </sc-if>
+      <sc-if value="{{isDone}}" hint-placeholder-val="{{false}}">
+        <span class="shim">Listo: la serie 1 va con 95 kg. Si te arrepientes, </span><button class="shim act" onClick="{{undo}}">vuelve a 92,5</button><span class="shim">.</span>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{isWorking}}" hint-placeholder-val="{{false}}">
+      <svg style="position: absolute; left: 0; bottom: 0;" width="390" height="46" viewBox="0 0 390 46" aria-hidden="true">
+        <line x1="0" y1="42" x2="390" y2="42" stroke="rgba(242,238,230,0.10)" stroke-width="1"></line>
+        <g class="walk">
+          <g transform="translate(40 38)">
+            <g class="bob">
+              <circle cx="0" cy="-27" r="3.6" fill="none" stroke="#F2EEE6" stroke-width="1.8"></circle>
+              <line x1="0" y1="-23" x2="0" y2="-12" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round"></line>
+              <line x1="0" y1="-20" x2="9" y2="-17" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round"></line>
+            </g>
+            <g transform="translate(0 -12)"><line class="la" x1="0" y1="0" x2="0" y2="12" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round"></line><line class="lb" x1="0" y1="0" x2="0" y2="12" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round"></line></g>
+          </g>
+          <g class="bob"><circle cx="58" cy="21" r="8" fill="none" stroke="#F49A6E" stroke-width="2.2"></circle><circle cx="58" cy="21" r="2" fill="#F49A6E"></circle></g>
+          <g transform="translate(76 38)">
+            <g class="bob">
+              <circle cx="0" cy="-27" r="3.6" fill="none" stroke="#F2EEE6" stroke-width="1.8"></circle>
+              <line x1="0" y1="-23" x2="0" y2="-12" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round"></line>
+              <line x1="0" y1="-20" x2="-9" y2="-17" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round"></line>
+            </g>
+            <g transform="translate(0 -12)"><line class="lb" x1="0" y1="0" x2="0" y2="12" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round"></line><line class="la" x1="0" y1="0" x2="0" y2="12" stroke="#F2EEE6" stroke-width="1.8" stroke-linecap="round"></line></g>
+          </g>
+        </g>
+        <g transform="translate(336 38)">
+          <circle cx="0" cy="-27" r="3.6" fill="none" stroke="#F7CF73" stroke-width="1.8"></circle>
+          <line x1="0" y1="-23" x2="0" y2="-12" stroke="#F7CF73" stroke-width="1.8" stroke-linecap="round"></line>
+          <line x1="0" y1="-12" x2="-5" y2="0" stroke="#F7CF73" stroke-width="1.8" stroke-linecap="round"></line>
+          <line x1="0" y1="-12" x2="5" y2="0" stroke="#F7CF73" stroke-width="1.8" stroke-linecap="round"></line>
+          <g transform="translate(0 -19)"><g class="wr"><line x1="0" y1="0" x2="-11" y2="4" stroke="#F7CF73" stroke-width="1.8" stroke-linecap="round"></line><circle cx="-12" cy="4.4" r="2.2" fill="none" stroke="#F7CF73" stroke-width="1.5"></circle></g></g>
+        </g>
+      </svg>
+    </sc-if>
+    <sc-if value="{{isDone}}" hint-placeholder-val="{{false}}">
+      <svg style="position: absolute; left: 155px; bottom: 0;" width="80" height="46" viewBox="0 0 80 46" aria-hidden="true">
+        <g transform="translate(40 26)"><circle class="sp" cx="0" cy="0" r="10" fill="none" stroke="#F7CF73" stroke-width="1.6" style="transform-box: fill-box; transform-origin: center;"></circle></g>
+        <g transform="translate(40 26)" stroke="#43D18C" stroke-width="2" stroke-linecap="round"><line x1="-14" y1="0" x2="-20" y2="0"></line><line x1="14" y1="0" x2="20" y2="0"></line><line x1="0" y1="-14" x2="0" y2="-20"></line><line x1="10" y1="-10" x2="14" y2="-14"></line><line x1="-10" y1="-10" x2="-14" y2="-14"></line></g>
+      </svg>
+    </sc-if>
+  </div>
+
+  <div style="position: relative; margin: 10px 16px 0 16px; border-radius: 28px; background: #111111; border: 1px solid rgba(242,238,230,0.07); overflow: hidden;">
+    <div style="background: #1B1B1B; padding: 16px; border-bottom: 1px solid rgba(242,238,230,0.06);">
+      <div style="font-size: 12px; font-weight: 600; letter-spacing: 1.6px; color: rgba(242,238,230,0.62);">CARGA (kg)</div>
+      <div class="{{numClass}}" style="font-family: Syne, sans-serif; font-weight: 700; font-size: 34px; line-height: 44px; text-align: center; margin-top: 4px;">{{load}}</div>
+    </div>
+    <div style="height: 300px;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { phase: 'idle', pop: 0 };
+    this.timer = null;
+  }
+  componentWillUnmount() {
+    if (this.timer) clearTimeout(this.timer);
+  }
+  renderVals() {
+    const phase = this.state.phase;
+    return {
+      isIdle: phase === 'idle',
+      isWorking: phase === 'working',
+      isDone: phase === 'done',
+      load: phase === 'done' ? '95' : '92,5',
+      numClass: phase === 'done' ? 'pop' : '',
+      apply: () => {
+        if (this.state.phase !== 'idle') return;
+        this.setState({ phase: 'working' });
+        this.timer = setTimeout(() => this.setState({ phase: 'done' }), 1950);
+      },
+      undo: () => {
+        if (this.timer) clearTimeout(this.timer);
+        this.setState({ phase: 'idle' });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

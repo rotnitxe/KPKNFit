@@ -6,10 +6,12 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -28,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -36,6 +39,11 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.PlannedTechnique
 import com.example.kpkn.data.models.TechniqueType
 import com.example.kpkn.domain.workout.ScheduledTechniqueDefaults
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknSetFormat
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknType
 import java.util.UUID
 
 /** Canonical rest-pause defaults — not user-configurable in the editor. */
@@ -67,7 +75,9 @@ internal fun InlineSetRowTechniqueChips(
     set: ExerciseSet,
     onUpdate: ((ExerciseSet) -> ExerciseSet) -> Unit,
     onConfigExpandedChange: (Boolean) -> Unit = {},
+    presentation: SetRowPresentation = SetRowPresentation.Card,
 ) {
+    val listSkin = presentation == SetRowPresentation.List
     val currentTechniques = set.plannedIntensityTechniques
     val hasDropSet = currentTechniques.any { it.type == TechniqueType.DROP_SET }
     val hasRestPause = currentTechniques.any { it.type == TechniqueType.REST_PAUSE }
@@ -92,7 +102,8 @@ internal fun InlineSetRowTechniqueChips(
             TechniqueToggleChip(
                 label = "Drop-set",
                 selected = hasDropSet,
-                modifier = Modifier.weight(1f),
+                modifier = if (listSkin) Modifier else Modifier.weight(1f),
+                listSkin = listSkin,
                 onClick = {
                     if (hasDropSet) {
                         onUpdate { current ->
@@ -139,7 +150,8 @@ internal fun InlineSetRowTechniqueChips(
             TechniqueToggleChip(
                 label = "Rest-pause",
                 selected = hasRestPause,
-                modifier = Modifier.weight(1f),
+                modifier = if (listSkin) Modifier else Modifier.weight(1f),
+                listSkin = listSkin,
                 onClick = {
                     if (hasRestPause) {
                         onUpdate { current ->
@@ -193,11 +205,11 @@ internal fun InlineSetRowTechniqueChips(
                     ?: dsTechnique.params["weightPcts"]?.split(",")?.size
                     ?: DropSetPlanDefaults.DefaultDrops)
                     .coerceIn(DropSetPlanDefaults.MinDrops, DropSetPlanDefaults.MaxDrops)
-                TechniqueConfigPanel(title = "Drop-set programado") {
+                TechniqueConfigPanel(title = "Drop-set programado", listSkin = listSkin) {
                     Text(
                         "¿Cuántos drops después de la serie normal?",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.62f),
+                        style = if (listSkin) KpknType.caption else MaterialTheme.typography.labelSmall,
+                        color = if (listSkin) WizardColors.textMuted else Color.White.copy(alpha = 0.62f),
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -208,6 +220,7 @@ internal fun InlineSetRowTechniqueChips(
                                 label = "$n",
                                 selected = dropCount == n,
                                 modifier = Modifier.weight(1f),
+                                listSkin = listSkin,
                                 onClick = {
                                     onUpdate { current ->
                                         val updated = dsTechnique.copy(
@@ -229,8 +242,8 @@ internal fun InlineSetRowTechniqueChips(
                     }
                     Text(
                         "En vivo: sin descanso · peso bajado para ~${RestPausePlanDefaults.Reps} reps",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.45f),
+                        style = if (listSkin) KpknType.caption else MaterialTheme.typography.labelSmall,
+                        color = if (listSkin) WizardColors.textMuted else Color.White.copy(alpha = 0.45f),
                     )
                 }
             }
@@ -245,11 +258,11 @@ internal fun InlineSetRowTechniqueChips(
             if (rpTechnique != null) {
                 val rpCount = (rpTechnique.params["count"]?.toIntOrNull() ?: RestPausePlanDefaults.DefaultCount)
                     .coerceIn(RestPausePlanDefaults.MinCount, RestPausePlanDefaults.MaxCount)
-                TechniqueConfigPanel(title = "Rest-pause programado") {
+                TechniqueConfigPanel(title = "Rest-pause programado", listSkin = listSkin) {
                     Text(
                         "¿Cuántas mini-series tras la principal?",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.62f),
+                        style = if (listSkin) KpknType.caption else MaterialTheme.typography.labelSmall,
+                        color = if (listSkin) WizardColors.textMuted else Color.White.copy(alpha = 0.62f),
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -260,6 +273,7 @@ internal fun InlineSetRowTechniqueChips(
                                 label = "$n",
                                 selected = rpCount == n,
                                 modifier = Modifier.weight(1f),
+                                listSkin = listSkin,
                                 onClick = {
                                     onUpdate { current ->
                                         val updated = rpTechnique.copy(
@@ -281,9 +295,9 @@ internal fun InlineSetRowTechniqueChips(
                         }
                     }
                     Text(
-                        "Pausa fija ${RestPausePlanDefaults.PauseSeconds}s · ${RestPausePlanDefaults.Reps} reps · $rpCount mini-series",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.45f),
+                        "Pausa fija ${KpknSetFormat.doseTime(RestPausePlanDefaults.PauseSeconds)} · ${RestPausePlanDefaults.Reps} reps · $rpCount miniseries",
+                        style = if (listSkin) KpknType.caption else MaterialTheme.typography.labelSmall,
+                        color = if (listSkin) WizardColors.textMuted else Color.White.copy(alpha = 0.45f),
                     )
                 }
             }
@@ -296,8 +310,13 @@ private fun TechniqueToggleChip(
     label: String,
     selected: Boolean,
     modifier: Modifier = Modifier,
+    listSkin: Boolean,
     onClick: () -> Unit,
 ) {
+    if (listSkin) {
+        KpknChip(text = label, selected = selected, onClick = onClick, modifier = modifier)
+        return
+    }
     Surface(
         modifier = modifier
             .heightIn(min = 40.dp)
@@ -341,8 +360,22 @@ private fun TechniqueToggleChip(
 @Composable
 private fun TechniqueConfigPanel(
     title: String,
+    listSkin: Boolean,
     content: @Composable () -> Unit,
 ) {
+    if (listSkin) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(KpknSurface.inset, RoundedCornerShape(16.dp))
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(title, style = KpknType.bodyStrong, color = WizardColors.text)
+            content()
+        }
+        return
+    }
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -369,8 +402,13 @@ private fun TechniqueStepChip(
     label: String,
     selected: Boolean,
     modifier: Modifier = Modifier,
+    listSkin: Boolean,
     onClick: () -> Unit,
 ) {
+    if (listSkin) {
+        KpknChip(text = label, selected = selected, onClick = onClick, modifier = modifier)
+        return
+    }
     Surface(
         modifier = modifier
             .heightIn(min = 36.dp)

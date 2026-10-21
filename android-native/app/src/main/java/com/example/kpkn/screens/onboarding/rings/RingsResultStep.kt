@@ -22,7 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -42,6 +42,8 @@ import com.example.kpkn.screens.onboarding.SetupWizardViewModel
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.ui.components.rings.EnergyColumnAdjust
+import com.example.kpkn.ui.components.rings.MuscleBodyAdjust
 import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.components.rings.KpknTowerRings
 import com.example.kpkn.ui.components.rings.RingChannel
@@ -66,8 +68,8 @@ internal val RINGS_MUSCLE_GROUPS: List<Pair<String, List<String>>> = listOf(
 
 /**
  * Paso `RINGS_RESULT` («Tus RINGS»): la torre con los mismos valores que Inicio, una línea por anillo con de dónde sale, los
- * deslizadores de Energía y Columna y, desplegable, un deslizador por músculo. Sustituye a las filas con botones de edición:
- * la lista de pasos de arriba ya permite volver.
+ * ajustes oficiales G5 de Energía y Columna y, desplegable, el cuerpo G6 por músculo. Los valores sin datos siguen sin calibrar;
+ * los callbacks de guardado del wizard solo se llaman al confirmar un gesto, nunca por cada movimiento.
  */
 @Composable
 internal fun RingsResultStep(state: SetupWizardState, vm: SetupWizardViewModel, modifier: Modifier = Modifier) {
@@ -81,7 +83,9 @@ internal fun RingsResultStep(state: SetupWizardState, vm: SetupWizardViewModel, 
         onCommitChannel = { channel, value -> vm.setRingsManual(channel, value) },
         onCommitMuscle = { pillar, value -> vm.setMuscleManual(pillar, value) },
         onResetMuscles = { vm.resetMuscleManual() },
+        onResetMuscle = { pillar -> vm.resetMuscleManual(pillar) },
         onRetry = { vm.retryFailedOperation(SetupRetryOperation.RINGS_PREVIEW) },
+        onResetChannel = { channel -> vm.setRingsManual(channel, null) },
         modifier = modifier,
     )
 }
@@ -101,15 +105,19 @@ internal fun RingsResultBody(
     onCommitChannel: (String, Int) -> Unit,
     onCommitMuscle: (String, Int) -> Unit,
     onResetMuscles: () -> Unit,
+    onResetMuscle: (String) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
     initiallyExpanded: Boolean = false,
+    onResetChannel: (String) -> Unit = {},
 ) {
     val manualRings = answers?.manualRings.orEmpty()
     val manualMuscles = answers?.manualMusclesV2.orEmpty()
     // Arrastres en curso: la torre y el número siguen al dedo sin tocar el borrador (ni animar la torre).
     var dragEnergy by remember { mutableStateOf<Int?>(null) }
     var dragColumna by remember { mutableStateOf<Int?>(null) }
+    // Músculo en arrastre: la figura responde al dedo antes de confirmar el cambio.
+    var dragMuscle by remember { mutableStateOf<Pair<String, Int>?>(null) }
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     val preview = ringsTowerValues(coverage)
     val tower = TowerRingValues(
@@ -156,9 +164,8 @@ internal fun RingsResultBody(
 
         val energyEstimate = coverage?.system?.score
         val energyPerson = dragEnergy ?: manualRings["energia"]
-        AdjustRow(
-            name = "Energía",
-            accent = KpknRingColors.energia,
+        OfficialChannelAdjust(
+            channel = RingChannel.ENERGIA,
             tag = "rings-result-energia",
             person = energyPerson,
             estimate = energyEstimate,
@@ -167,12 +174,13 @@ internal fun RingsResultBody(
                 dragEnergy = null
                 onCommitChannel("energia", value)
             },
+            onReset = { dragEnergy = null; onResetChannel("energia") },
+            canReset = "energia" in manualRings,
         )
         val columnaEstimate = coverage?.structure?.score
         val columnaPerson = dragColumna ?: manualRings["columna"]
-        AdjustRow(
-            name = "Columna",
-            accent = KpknRingColors.columna,
+        OfficialChannelAdjust(
+            channel = RingChannel.COLUMNA,
             tag = "rings-result-columna",
             person = columnaPerson,
             estimate = columnaEstimate,
@@ -181,6 +189,8 @@ internal fun RingsResultBody(
                 dragColumna = null
                 onCommitChannel("columna", value)
             },
+            onReset = { dragColumna = null; onResetChannel("columna") },
+            canReset = "columna" in manualRings,
         )
         // La nota solo aparece si algún anillo o algún deslizador todavía no tiene dato.
         val someUncalibrated = coverage == null ||
@@ -196,41 +206,34 @@ internal fun RingsResultBody(
 
         RingsQuestionDivider()
 
-        MusclesToggle(expanded = expanded, onClick = { expanded = !expanded })
+        MusclesToggle(
+            expanded = expanded,
+            onClick = {
+                expanded = !expanded
+                if (!expanded) dragMuscle = null
+            },
+        )
         if (expanded) {
             Column(
                 modifier = Modifier.fillMaxWidth().testTag("rings-result-muscles"),
                 verticalArrangement = Arrangement.spacedBy(WizardSpacing.sectionGap),
             ) {
-                RINGS_MUSCLE_GROUPS.forEach { (group, pillars) ->
-                    Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.titleGap)) {
-                        Text(text = group, style = WizardTypography.controlLabel, color = WizardColors.textMuted)
-                        pillars.forEach { pillar ->
-                            MuscleAdjustRow(
-                                pillar = pillar,
-                                manual = manualMuscles[pillar],
-                                estimate = muscleEstimates[pillar],
-                                onCommit = { value -> onCommitMuscle(pillar, value) },
-                            )
-                        }
-                    }
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth().heightIn(min = WizardSpacing.touchTarget),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    TextButton(
-                        onClick = onResetMuscles,
-                        enabled = manualMuscles.isNotEmpty(),
-                        modifier = Modifier.heightIn(min = WizardSpacing.touchTarget).testTag("rings-result-reset"),
-                    ) {
-                        Text(
-                            text = "Restablecer",
-                            style = WizardTypography.controlLabel,
-                            color = if (manualMuscles.isNotEmpty()) WizardColors.text else WizardColors.textFaint,
-                        )
-                    }
-                }
+                MuscleBodyAdjust(
+                    values = muscleEstimates + manualMuscles + (dragMuscle?.let { mapOf(it) }.orEmpty()),
+                    before = muscleEstimates,
+                    onValueChange = { pillar, value -> dragMuscle = pillar to value },
+                    onValueCommit = { pillar, value ->
+                        dragMuscle = null
+                        onCommitMuscle(pillar, value)
+                    },
+                    onResetSelected = { pillar -> dragMuscle = null; onResetMuscle(pillar) },
+                    edited = manualMuscles.keys,
+                    onReset = { dragMuscle = null; onResetMuscles() },
+                    resetEnabled = manualMuscles.isNotEmpty(),
+                    boxedSelection = false,
+                    estimated = muscleEstimates.keys - manualMuscles.keys - setOfNotNull(dragMuscle?.first),
+                    onInteractionCancel = { dragMuscle = null },
+                )
                 Text(
                     text = "Tus ajustes mandan sobre la estimación.",
                     style = WizardTypography.note,
@@ -250,71 +253,6 @@ internal fun ringsTowerValues(coverage: RingsCoverage?): TowerRingValues = Tower
     musculos = coverage?.muscular?.score,
     energia = coverage?.system?.score,
 )
-
-/** Un deslizador por pilar: su arrastre en curso vive aquí y no toca el borrador hasta soltar. */
-@Composable
-private fun MuscleAdjustRow(pillar: String, manual: Int?, estimate: Int?, onCommit: (Int) -> Unit) {
-    var drag by remember(pillar) { mutableStateOf<Int?>(null) }
-    AdjustRow(
-        name = ringsPillarLabel(pillar),
-        accent = KpknRingColors.musculos,
-        tag = "rings-result-muscle-$pillar",
-        person = drag ?: manual,
-        estimate = estimate,
-        onPreview = { drag = it },
-        onCommit = { value ->
-            drag = null
-            onCommit(value)
-        },
-    )
-}
-
-/**
- * Un deslizador con su nombre y su valor. [person] es el dato de la persona (o su arrastre en curso); sin él se muestra la
- * [estimate] atenuada y, si tampoco hay estimación, «Sin calibrar» a mitad de recorrido. Nunca un 100 % afirmativo.
- */
-@Composable
-private fun AdjustRow(
-    name: String,
-    accent: Color,
-    tag: String,
-    person: Int?,
-    estimate: Int?,
-    onPreview: (Int?) -> Unit,
-    onCommit: (Int) -> Unit,
-) {
-    val shown = person ?: estimate ?: NeutralStart
-    val dimmed = person == null
-    val stateText = when {
-        person != null -> "$person %"
-        estimate != null -> "Estimación $estimate %"
-        else -> "Sin calibrar"
-    }
-    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(text = name, style = WizardTypography.controlLabel, color = WizardColors.text, modifier = Modifier.weight(1f))
-            Text(
-                text = stateText,
-                style = WizardTypography.header,
-                color = if (dimmed) WizardColors.textMuted else WizardColors.text,
-            )
-        }
-        RingsChannelSlider(
-            accent = accent,
-            name = name,
-            value = shown,
-            onPreview = onPreview,
-            onCommit = onCommit,
-            tag = tag,
-            dimmed = dimmed,
-            stateText = stateText,
-        )
-    }
-}
 
 /** Acción de texto que despliega los músculos: 48 dp de área de toque y el estado dicho a TalkBack. */
 @Composable
@@ -337,6 +275,34 @@ private fun MusclesToggle(expanded: Boolean, onClick: () -> Unit) {
         Spacer(Modifier.width(12.dp))
         Chevron(expanded)
     }
+}
+
+/** G5 en la página larga: nunca convierte un valor desconocido en un porcentaje ni guarda durante el arrastre. */
+@Composable
+private fun OfficialChannelAdjust(
+    channel: RingChannel,
+    tag: String,
+    person: Int?,
+    estimate: Int?,
+    onPreview: (Int?) -> Unit,
+    onCommit: (Int) -> Unit,
+    onReset: () -> Unit,
+    canReset: Boolean,
+) {
+    EnergyColumnAdjust(
+        channel = channel,
+        value = person ?: estimate ?: NeutralStart,
+        before = estimate ?: NeutralStart,
+        valueKnown = person != null || estimate != null,
+        estimated = person == null && estimate != null,
+        beforeKnown = estimate != null,
+        onValueChange = onPreview,
+        onValueCommit = onCommit,
+        onReset = onReset,
+        resetEnabled = canReset,
+        dialTag = tag,
+        onInteractionCancel = { onPreview(null) },
+    )
 }
 
 /** Chevron con la tinta de la marca: hacia abajo si está plegado y hacia arriba si está desplegado. */

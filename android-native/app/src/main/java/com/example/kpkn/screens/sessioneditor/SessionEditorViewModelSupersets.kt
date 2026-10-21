@@ -1,54 +1,8 @@
 package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.exercises.normalizedIdentityFields
-import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
-import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.workout.SupersetRules
 import java.util.UUID
-
-fun SessionEditorViewModel.linkExerciseWithNext(partId: String?, exerciseId: String) = updateSession { session ->
-    val sourceExercises = if (partId == null) session.exercises else session.parts.firstOrNull { it.id == partId }?.exercises
-        ?: return@updateSession session
-    val currentIndex = sourceExercises.indexOfFirst { it.id == exerciseId }
-    if (currentIndex < 0 || currentIndex >= sourceExercises.lastIndex) return@updateSession session
-
-    val current = sourceExercises[currentIndex]
-    val next = sourceExercises[currentIndex + 1]
-    SupersetRules.createSuperset(
-        session = session,
-        groupId = current.supersetGroupRefOrLegacyId() ?: next.supersetGroupRefOrLegacyId() ?: UUID.randomUUID().toString(),
-        exerciseIds = listOf(current.id, next.id),
-        restBetweenExercises = current.supersetRestBetween ?: next.supersetRestBetween ?: 60,
-        restAfterSuperset = current.supersetRestAfter ?: next.supersetRestAfter ?: 120,
-        anchorPartId = partId,
-        anchorExerciseId = current.id,
-    )
-}
-
-fun SessionEditorViewModel.unlinkExerciseFromSuperset(partId: String?, exerciseId: String) = updateSession { session ->
-    val sourceExercises = partId?.let { id ->
-        session.parts.firstOrNull { it.id == id }?.exercises
-    } ?: session.exercises
-    val target = sourceExercises.firstOrNull { it.id == exerciseId }
-        ?: session.allExercises().firstOrNull { it.id == exerciseId }
-        ?: return@updateSession session
-    val groupId = target.supersetGroupRefOrLegacyId() ?: return@updateSession session
-
-    SupersetRules.removeExercise(session, groupId, exerciseId)
-}
-
-fun SessionEditorViewModel.linkExercisesAsSuperset(partId: String?, exerciseIds: List<String>) = updateSession { session ->
-    SupersetRules.createSuperset(
-        session = session,
-        groupId = UUID.randomUUID().toString(),
-        exerciseIds = exerciseIds,
-        restBetweenExercises = 60,
-        restAfterSuperset = 120,
-        anchorPartId = partId,
-        anchorExerciseId = exerciseIds.firstOrNull(),
-    )
-}
 
 fun SessionEditorViewModel.updateSupersetRestBetween(partId: String?, supersetId: String, restSeconds: Int) = updateSession { session ->
     SupersetRules.updateRest(session, supersetId, restBetweenExercises = restSeconds)
@@ -251,31 +205,6 @@ fun SessionEditorViewModel.updateSupersetOrder(groupId: String, newOrder: List<S
     )
 }
 
-fun SessionEditorViewModel.addExerciseToSuperset(groupId: String, partId: String?, exerciseId: String) = updateSession { session ->
-    val group = session.supersetGroups.firstOrNull { it.id == groupId } ?: return@updateSession session
-    val updater: (List<Exercise>) -> List<Exercise> = { exercises ->
-        exercises.map { ex ->
-            if (ex.id == exerciseId) ex.copy(
-                supersetGroupRef = groupId,
-                supersetId = groupId,
-                supersetRestBetween = group.restBetweenExercises,
-                supersetRestAfter = group.restAfterSuperset,
-            ) else ex
-        }
-    }
-    val updatedGroup = group.copy(exerciseOrder = group.exerciseOrder + exerciseId)
-    if (partId == null) {
-        session.copy(exercises = updater(session.exercises), supersetGroups = session.supersetGroups.map { if (it.id == groupId) updatedGroup else it })
-    } else {
-        session.copy(
-            parts = session.parts.map { part ->
-                if (part.id == partId) part.copy(exercises = updater(part.exercises)) else part
-            },
-            supersetGroups = session.supersetGroups.map { if (it.id == groupId) updatedGroup else it },
-        )
-    }
-}
-
 fun SessionEditorViewModel.removeExerciseFromSupersetGroup(groupId: String, partId: String?, exerciseId: String) = updateSession { session ->
     SupersetRules.removeExercise(session, groupId, exerciseId)
 }
@@ -300,10 +229,6 @@ fun SessionEditorViewModel.toggleSupersetOptional(groupId: String) = updateSessi
     )
 }
 
-fun SessionEditorViewModel.moveSupersetGroupToPart(groupId: String, targetPartId: String?, targetIndex: Int?) = updateSession { session ->
-    SupersetRules.moveGroup(session, groupId, targetPartId, targetIndex)
-}
-
 fun SessionEditorViewModel.triggerQuickActionCreateSuperset() {
     val state = currentUiState
     val exerciseId = state.quickActionsExerciseId ?: return
@@ -323,36 +248,5 @@ fun SessionEditorViewModel.triggerQuickActionManageSuperset() {
             quickActionsExerciseId = null,
         )
     }
-}
-
-fun SessionEditorViewModel.moveExerciseFreely(fromPartId: String?, fromIndex: Int, toPartId: String?, toIndex: Int) = updateSession { session ->
-    val sourceExercises = if (fromPartId == null) session.exercises
-    else session.parts.firstOrNull { it.id == fromPartId }?.exercises ?: return@updateSession session
-    if (fromIndex !in sourceExercises.indices) return@updateSession session
-
-    val exercise = sourceExercises[fromIndex]
-    val sourceWithout = sourceExercises.toMutableList().also { it.removeAt(fromIndex) }
-
-    var updatedSession = if (fromPartId == null) {
-        session.copy(exercises = sourceWithout)
-    } else {
-        session.copy(parts = session.parts.map { part ->
-            if (part.id == fromPartId) part.copy(exercises = sourceWithout) else part
-        })
-    }
-
-    val targetExercises = if (toPartId == null) updatedSession.exercises
-    else updatedSession.parts.firstOrNull { it.id == toPartId }?.exercises ?: return@updateSession session
-    val insertIndex = toIndex.coerceIn(0, targetExercises.size)
-    val targetWith = targetExercises.toMutableList().also { it.add(insertIndex, exercise) }
-
-    updatedSession = if (toPartId == null) {
-        updatedSession.copy(exercises = targetWith)
-    } else {
-        updatedSession.copy(parts = updatedSession.parts.map { part ->
-            if (part.id == toPartId) part.copy(exercises = targetWith) else part
-        })
-    }
-    updatedSession
 }
 

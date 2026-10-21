@@ -13,11 +13,13 @@ import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
+import com.example.kpkn.testsupport.RoomTestRule
 import org.json.JSONObject
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -27,6 +29,9 @@ import java.io.File
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 class WorkoutMediaSessionAssociationTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
     private val context: Context get() = ApplicationProvider.getApplicationContext()
     private val databases = mutableListOf<KpknDatabase>()
 

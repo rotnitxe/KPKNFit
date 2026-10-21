@@ -26,7 +26,7 @@ class RelatorPlanAwareTest {
         val lines = planLines(ctx)
         assertTrue(
             lines,
-            lines.contains("AMRAP de {ex}: para con 1 limpia en reserva salvo PR; con 4 o 5 reps el TM sube 5 kg y con 6 o más, 7,5 kg."),
+            lines.contains("AMRAP de {ex}: 1 limpia en reserva salvo PR. TM +5\u00A0kg con 4-5 reps; +7,5\u00A0kg con 6+."),
         )
         assertFalse("ya no promete la subida fija de 2,5 kg con 5 reps", lines.contains("≥5 reps"))
 
@@ -38,7 +38,7 @@ class RelatorPlanAwareTest {
             progression = ProgressionRule.AmrapDrivenTm(fourToFiveKg = 3.0, sixPlusKg = 6.0),
             targetPercentageRm = 95.0,
         )
-        assertTrue(planLines(custom).contains("con 4 o 5 reps el TM sube 3 kg y con 6 o más, 6 kg."))
+        assertTrue(planLines(custom).contains("TM +3\u00A0kg con 4-5 reps; +6\u00A0kg con 6+."))
 
         // Si la tabla solo sube con 6 o más, solo se promete eso.
         val onlySix = relatorContext(
@@ -48,7 +48,7 @@ class RelatorPlanAwareTest {
             progression = ProgressionRule.AmrapDrivenTm(fourToFiveKg = 0.0, sixPlusKg = 7.5),
             targetPercentageRm = 90.0,
         )
-        assertTrue(planLines(onlySix).contains("con 6 o más reps el TM sube 7,5 kg."))
+        assertTrue(planLines(onlySix).contains("TM +7,5\u00A0kg con 6+ reps."))
     }
 
     @Test
@@ -64,7 +64,7 @@ class RelatorPlanAwareTest {
         )
         val lightLines = planLines(light)
         assertTrue(lightLines, lightLines.contains(generic))
-        assertFalse(lightLines, lightLines.contains("el TM sube"))
+        assertFalse(lightLines, lightLines.contains("TM +"))
 
         val threshold = relatorContext(
             protocolId = null,
@@ -73,7 +73,7 @@ class RelatorPlanAwareTest {
             progression = ProgressionRule.AmrapDrivenTm(),
             targetPercentageRm = 85.0,
         )
-        assertTrue(planLines(threshold).contains("el TM sube 5 kg"))
+        assertTrue(planLines(threshold).contains("TM +5\u00A0kg"))
         val justBelow = relatorContext(
             protocolId = null,
             protocolName = null,
@@ -81,7 +81,7 @@ class RelatorPlanAwareTest {
             progression = ProgressionRule.AmrapDrivenTm(),
             targetPercentageRm = 84.9,
         )
-        assertFalse(planLines(justBelow).contains("el TM sube"))
+        assertFalse(planLines(justBelow).contains("TM +"))
     }
 
     @Test
@@ -94,7 +94,7 @@ class RelatorPlanAwareTest {
             targetPercentageRm = 75.0,
         )
         assertTrue(
-            planLines(ctx).contains("AMRAP de {ex}: cada rep sobre el objetivo sube el TM un 0,5 %; si te faltan 2 o más, baja un 1 % por rep."),
+            planLines(ctx).contains("AMRAP de {ex}: cada rep extra sube el TM 0,5\u00A0%. Si faltan 2 o más, baja 1\u00A0% por rep."),
         )
     }
 

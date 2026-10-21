@@ -325,7 +325,7 @@ class WorkoutVoiceForegroundService : Service() {
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setContentIntent(KpknDeepLinks.pendingActivityIntent(this, REQUEST_CODE_OPEN, "training"))
+            .setContentIntent(KpknDeepLinks.pendingActivityIntent(this, REQUEST_CODE_OPEN, currentWorkoutNotificationPath()))
             .addAction(
                 0,
                 getString(R.string.notif_voice_ongoing_stop),

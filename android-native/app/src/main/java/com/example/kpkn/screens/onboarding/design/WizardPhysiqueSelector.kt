@@ -42,9 +42,6 @@ import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.bodyFatForSliderPos
 import com.example.kpkn.domain.nutrition.physiqueDescForSliderPos
 import com.example.kpkn.domain.nutrition.physiqueLabelForSliderPos
-import com.example.kpkn.screens.nutrition.VerticalPhysiqueSlider
-import com.example.kpkn.screens.nutrition.WizardFemaleFrames
-import com.example.kpkn.screens.nutrition.WizardMaleFrames
 import kotlin.math.roundToInt
 
 /** Procedencia del dato de grasa corporal. La imagen nunca es una medición. */

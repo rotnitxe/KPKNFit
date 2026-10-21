@@ -87,12 +87,6 @@ class TimelineRailProgressTest {
     }
 
     @Test
-    fun restLiveCardStaysVisibleWhenOverlayIsMinimized() {
-        assertTrue(shouldRenderRestLiveCard(isOverlayMinimized = false))
-        assertTrue(shouldRenderRestLiveCard(isOverlayMinimized = true))
-    }
-
-    @Test
     fun restLiveCardUsesSameWrapSlotAsSeriesCards() {
         assertTrue(livePagerCardAllowsContentExpansion(LivePageType.REST))
         assertTrue(livePagerCardAllowsContentExpansion(LivePageType.NORMAL))

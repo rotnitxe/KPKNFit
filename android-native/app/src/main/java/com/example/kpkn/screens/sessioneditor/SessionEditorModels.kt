@@ -331,6 +331,8 @@ data class SessionEditorUiState(
     val ghostExerciseCards: List<com.example.kpkn.domain.sessionassistant.GhostExerciseCard> = emptyList(),
     // ─── Multi-session & Navigation ────────────────────────────────────────────
     val snackbarMessage: String? = null,
+    // Borrado de un ejercicio que espera el «Deshacer» de la lista (ER1b).
+    val pendingExerciseRemoval: PendingExerciseRemoval? = null,
     val hasActiveLoops: Boolean = false,
     // ─── Exercise Picker Selection ─────────────────────────────────────────────
     val selectedExercisesIds: Set<String> = emptySet(),

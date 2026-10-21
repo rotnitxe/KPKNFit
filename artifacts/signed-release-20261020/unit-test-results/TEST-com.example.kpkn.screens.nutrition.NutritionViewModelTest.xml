@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.nutrition.NutritionViewModelTest" tests="30" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:07:06.643Z" hostname="VF" time="10.146">
+  <properties/>
+  <testcase name="energy balance consumes final accounting while retaining nonfinal quality" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.596"/>
+  <testcase name="an explicitly selected past date is kept when midnight passes" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.341"/>
+  <testcase name="duplicate log creates new log" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.35"/>
+  <testcase name="daily totals compute correctly" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.342"/>
+  <testcase name="refreshing within the same day changes nothing" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.347"/>
+  <testcase name="history series is anchored on the view model today and rolls with it" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.352"/>
+  <testcase name="a second delete takes the place of the pending undo" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.346"/>
+  <testcase name="a new delete opens its own undo window instead of inheriting the old one" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.345"/>
+  <testcase name="energy balance ignores workouts with unparseable dates instead of crashing" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.345"/>
+  <testcase name="an undo nobody uses expires on its own and the delete stays final" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.318"/>
+  <testcase name="reselecting today re-enables following" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.32"/>
+  <testcase name="goals show explicit zeros from the plan as zero not as absence" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.355"/>
+  <testcase name="delete then undo restores the same log id" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.335"/>
+  <testcase name="activating a different plan the same day replaces todays stored goal" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.328"/>
+  <testcase name="deleting a log that is not there leaves nothing to undo and no message" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.318"/>
+  <testcase name="delete log removes it" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.321"/>
+  <testcase name="activate plan changes active" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.325"/>
+  <testcase name="a failed restore keeps the undo pending and tells the user" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.359"/>
+  <testcase name="create plan sets active" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.319"/>
+  <testcase name="dismissing the undo makes the delete final" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.308"/>
+  <testcase name="meal groups filter by meal type" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.313"/>
+  <testcase name="updateLog does not swallow a failed write" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.322"/>
+  <testcase name="midnight ticker moves today without any screen call" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.343"/>
+  <testcase name="goals without plan or settings are absent instead of default values" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.322"/>
+  <testcase name="history trend and creatine are computed on the injected compute dispatcher" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.305"/>
+  <testcase name="what the screen reads at once never leaves the caller thread" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.324"/>
+  <testcase name="updateLog replaces the log under its own id and keeps the day totals right" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.316"/>
+  <testcase name="set selected date updates state" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.329"/>
+  <testcase name="add log increases today logs" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.305"/>
+  <testcase name="selected date follows today across a simulated midnight" classname="com.example.kpkn.screens.nutrition.NutritionViewModelTest" time="0.296"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

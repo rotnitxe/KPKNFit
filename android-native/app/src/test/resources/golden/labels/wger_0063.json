@@ -1,0 +1,82 @@
+{
+  "id": "wger_0063",
+  "durationS": 10.867,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Press francés con barra Z (vista cenital)",
+  "exerciseDetail": "Press francés (skull crusher) con barra Z sin discos en banco plano, visto desde arriba y detrás de la cabeza (POV cenital)",
+  "suggestedProfile": "TRICEPS_EXTENDED_REST",
+  "view": "LYING",
+  "people": 2,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.4,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 3.3,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 5.5,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 7.6,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 9.8,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    10.3
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 10.3,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 5.ª repetición (fondo a 9,8 s) los brazos suben y la cámara se mueve en el último medio segundo (10,4-10,9 s)"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-10,3 s: recorrido acumulado p2p 1,8% en x y 4,6% en y, escala 1,00-1,01, velocidad media 0,95 %/s (máx. 3,0% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-10,3 s: recorrido acumulado p2p 1,8% en x y 4,6% en y, escala 1,00-1,01, velocidad media 0,95 %/s (máx. 3,0% en 1 s)",
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)"
+  ]
+}

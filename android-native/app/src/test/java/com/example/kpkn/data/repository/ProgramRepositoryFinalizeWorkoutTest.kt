@@ -1,5 +1,6 @@
 package com.example.kpkn.data.repository
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
@@ -51,6 +52,7 @@ class ProgramRepositoryFinalizeWorkoutTest {
 
     @org.junit.Before
     fun setUp() {
+        SyncRoomExecutor.install()
         // Repository bootstrap publishes readiness on Dispatchers.Main. Robolectric's
         // paused looper otherwise leaves the test waiting forever before Room assertions.
         Dispatchers.setMain(mainDispatcher)
@@ -61,6 +63,7 @@ class ProgramRepositoryFinalizeWorkoutTest {
         ProgramRepository.closeInstance()
         KpknDatabase.closeInstance()
         Dispatchers.resetMain()
+        SyncRoomExecutor.uninstall()
     }
 
     @Test

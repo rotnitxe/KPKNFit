@@ -10,14 +10,23 @@ import org.junit.Test
 class MuscleGridLogicTest {
 
     @Test
-    fun `la cuadricula trae los once musculos una sola vez y en filas de tres`() {
+    fun `la cuadricula trae los diez musculos una sola vez y en filas de tres, dos, tres y dos`() {
         val order = MuscleGridLogic.gridOrder
-        assertEquals(11, order.size)
+        assertEquals(10, order.size)
         assertEquals(MuscleSymbol.entries.toSet(), order.toSet())
-        assertEquals(11, order.distinct().size)
+        assertEquals(10, order.distinct().size)
         assertEquals(3, MuscleGridLogic.COLUMNS)
-        // 3 + 3 + 3 + 2: la última fila es la incompleta, que se centra al dibujarla.
-        assertEquals(listOf(3, 3, 3, 2), order.chunked(MuscleGridLogic.COLUMNS).map { it.size })
+        // 3 + 2 + 3 + 2: las filas de dos van centradas bajo las de tres.
+        assertEquals(listOf(3, 2, 3, 2), MuscleGridLogic.gridRows.map { it.size })
+        assertEquals(
+            listOf(
+                listOf(MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS),
+                listOf(MuscleSymbol.ARMS, MuscleSymbol.FOREARMS),
+                listOf(MuscleSymbol.ABS, MuscleSymbol.GLUTES, MuscleSymbol.QUADS),
+                listOf(MuscleSymbol.HAMSTRINGS, MuscleSymbol.CALVES),
+            ),
+            MuscleGridLogic.gridRows,
+        )
     }
 
     @Test
@@ -30,7 +39,7 @@ class MuscleGridLogicTest {
     @Test
     fun `con el tope alcanzado los nuevos se rechazan pero los elegidos se pueden quitar`() {
         val full = setOf(
-            MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.BICEPS, MuscleSymbol.TRICEPS,
+            MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.ARMS, MuscleSymbol.FOREARMS,
         )
         assertTrue(MuscleGridLogic.isCapped(full, 5))
         assertEquals(MuscleGridLogic.Tap.REJECT, MuscleGridLogic.tap(full, MuscleSymbol.ABS, 5))

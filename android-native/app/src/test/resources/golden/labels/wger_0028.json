@@ -1,0 +1,72 @@
+{
+  "id": "wger_0028",
+  "durationS": 16.099,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 59.94,
+  "fpsMeasured": 59.94,
+  "usable": true,
+  "exercise": "Sentadilla frontal con barra",
+  "exerciseDetail": "Sentadilla frontal con barra en un rack (barra sobre los hombros por delante), vista oblicua desde atrás y a un lado",
+  "suggestedProfile": "SQUAT",
+  "view": "OBLIQUE",
+  "people": 2,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 3,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      3,
+      3
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 6.0,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 10.5,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 14.4,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    3.0,
+    16.0
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-3 s: de pie con la barra en posición frontal antes de bajar"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 3,0-16,0 s: recorrido acumulado p2p 1,8% en x y 7,5% en y, escala 0,95-1,00, velocidad media 1,23 %/s (máx. 3,0% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 3,0-16,0 s: recorrido acumulado p2p 1,8% en x y 7,5% en y, escala 0,95-1,00, velocidad media 1,23 %/s (máx. 3,0% en 1 s)",
+    "varias personas: 2 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)"
+  ]
+}

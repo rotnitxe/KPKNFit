@@ -1,0 +1,125 @@
+{
+  "id": "r02-pixabay-67000",
+  "durationS": 19.113,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Remo con barra inclinado",
+  "exerciseDetail": "Remo con barra inclinado (torso a ~45°, barra pegada a las piernas, tipo Pendlay/touch-and-go sin pausa larga abajo)",
+  "suggestedProfile": "ROW",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 12,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      12,
+      13
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.63,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 3.93,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 5.27,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 6.67,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 8.13,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 9.53,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 10.97,
+      "side": null
+    },
+    {
+      "index": 8,
+      "turnaroundS": 12.33,
+      "side": null
+    },
+    {
+      "index": 9,
+      "turnaroundS": 13.7,
+      "side": null
+    },
+    {
+      "index": 10,
+      "turnaroundS": 15.1,
+      "side": null
+    },
+    {
+      "index": 11,
+      "turnaroundS": 16.53,
+      "side": null
+    },
+    {
+      "index": 12,
+      "turnaroundS": 17.83,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    1.2,
+    19.1
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "SETUP",
+      "description": "0-2,0 s: inclinado con la barra en el suelo (0,0 s), la levanta con brazos rectos hasta la altura de la rodilla (pico de flujo en 1,17 s, torso ~60°) y la baja a ras de suelo (2,0 s): es un arranque tipo peso muerto, no un remo, y no se cuenta (un contador de peso muerto sumaría 1 más: 13)"
+    },
+    {
+      "timeS": 19.1,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 12.ª repetición (17,83 s) baja la barra (18,4 s) y el clip termina a 19,11 s sin otra repetición"
+    }
+  ],
+  "caveats": [
+    "el manifiesto/página lo llamaba 'peso muerto' pero es un remo con barra inclinado: tras un arranque tipo peso muerto desde el suelo (0-1,2 s) hace 12 remos continuos con el torso fijo a ~45° y la barra a ras de suelo entre repeticiones",
+    "ritmo rápido (~1,4 s por repetición): con muestreo de 2 fps los ciclos se ven aliasados, hay que contarlos a ≥5 fps",
+    "los instantes de giro están medidos con el seguimiento del disco y el flujo óptico y verificados a 5 fps (±0,2 s)"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 12-13 (ver edgeEvents)"
+  ]
+}

@@ -138,9 +138,12 @@ class UltraFastEngineTest {
         val session = Session(id = "s", name = "test", exercises = listOf(ex))
         val result = UltraFastEngine.apply(session, idx)
         val transformed = result.transformedExercises.first()
-        assertEquals(1, transformed.sets.size)
-        assertTrue(transformed.sets.first().isRestPause)
-        assertFalse(transformed.sets.first().isDropSet)
+        assertEquals(ex.sets.map { it.id }, transformed.sets.map { it.id })
+        assertEquals(4, transformed.sets.size)
+        assertTrue(transformed.sets.all { it.isRestPause && it.restPauses.size == 2 })
+        assertTrue(transformed.sets.none { it.isDropSet })
+        assertEquals(4, result.preview.perExercise.single().afterSets)
+        assertFalse(result.preview.perExercise.single().wasReduced)
     }
 
     @Test
@@ -150,9 +153,12 @@ class UltraFastEngineTest {
         val session = Session(id = "s", name = "test", exercises = listOf(ex))
         val result = UltraFastEngine.apply(session, idx)
         val transformed = result.transformedExercises.first()
-        assertEquals(1, transformed.sets.size)
-        assertTrue(transformed.sets.first().isDropSet)
-        assertEquals(com.example.kpkn.domain.workout.SetTechniqueScope.VOLUME_REPLACED, transformed.sets.first().techniqueScope())
+        assertEquals(ex.sets.map { it.id }, transformed.sets.map { it.id })
+        assertEquals(4, transformed.sets.size)
+        assertTrue(transformed.sets.all { it.isDropSet && it.dropSets.size == 2 })
+        assertTrue(transformed.sets.all { it.techniqueScope() == com.example.kpkn.domain.workout.SetTechniqueScope.VOLUME_REPLACED })
+        assertEquals(4, result.preview.perExercise.single().afterSets)
+        assertFalse(result.preview.perExercise.single().wasReduced)
     }
 
     @Test
@@ -343,8 +349,9 @@ class UltraFastEngineTest {
         val idx = mapOf("curl polea baja" to info("curl polea baja", "Curl polea baja", equipment = "polea", type = "Aislamiento", primaryMuscles = listOf("Bíceps")))
         val result = UltraFastEngine.apply(Session(id = "s", name = "test", exercises = listOf(ex)), idx)
         val transformed = result.transformedExercises.first()
-        assertEquals(1, transformed.sets.size)
-        assertTrue(transformed.sets.first().isRestPause)
+        assertEquals(ex.sets.map { it.id }, transformed.sets.map { it.id })
+        assertEquals(4, transformed.sets.size)
+        assertTrue(transformed.sets.all { it.isRestPause })
         assertEquals(45, transformed.restTime)
     }
 
@@ -354,7 +361,8 @@ class UltraFastEngineTest {
         val idx = mapOf("aperturas pec deck" to info("aperturas pec deck", "Aperturas pec deck", equipment = "machine", type = "Aislamiento", primaryMuscles = listOf("Pectorales")))
         val result = UltraFastEngine.apply(Session(id = "s", name = "test", exercises = listOf(ex)), idx)
         assertEquals(45, result.transformedExercises.first().restTime)
-        assertTrue(result.transformedExercises.first().sets.first().isDropSet)
+        assertEquals(ex.sets.map { it.id }, result.transformedExercises.first().sets.map { it.id })
+        assertTrue(result.transformedExercises.first().sets.all { it.isDropSet })
     }
 
     @Test
@@ -425,7 +433,7 @@ class UltraFastEngineTest {
     }
 
     @Test
-    fun customSetCountsReachApply() {
+    fun customSetCountCannotReduceDensifiedSeries() {
         val ex = exercise("ex1", "Curl polea baja", 4)
         val idx = mapOf(
             "curl polea baja" to info(
@@ -438,7 +446,19 @@ class UltraFastEngineTest {
         )
         val session = Session(id = "s", name = "test", exercises = listOf(ex))
         val result = UltraFastEngine.apply(session, idx, customSetCounts = mapOf("ex1" to 3))
-        assertEquals(3, result.transformedExercises.first().sets.size)
+        assertEquals(4, result.transformedExercises.first().sets.size)
+        assertEquals(ex.sets.map { it.id }, result.transformedExercises.first().sets.map { it.id })
         assertTrue(result.transformedExercises.first().sets.all { it.isRestPause })
+    }
+
+    @Test
+    fun customSetCountsReachApplyForNormalSeries() {
+        val ex = exercise("ex1", "Sentadilla barra alta", 4)
+        val session = Session(id = "s", name = "test", exercises = listOf(ex))
+        val result = UltraFastEngine.apply(session, emptyMap(), customSetCounts = mapOf("ex1" to 3))
+        val transformed = result.transformedExercises.single()
+        assertEquals(3, transformed.sets.size)
+        assertEquals(ex.sets.take(3).map { it.id }, transformed.sets.map { it.id })
+        assertTrue(transformed.sets.none { it.isDropSet || it.isRestPause })
     }
 }

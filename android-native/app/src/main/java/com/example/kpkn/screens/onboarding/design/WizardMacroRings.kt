@@ -147,6 +147,8 @@ fun WizardMacroRings(
     appeared: Boolean,
     reducedMotion: Boolean,
     modifier: Modifier = Modifier,
+    /** Con `false` no se pinta la cifra central ni su caption (Home la muestra aparte, a la derecha del anillo). */
+    showCenter: Boolean = true,
 ) {
     val spec: AnimationSpec<Float> =
         if (reducedMotion) snap() else tween(durationMillis = RING_MILLIS, easing = FastOutSlowInEasing)
@@ -228,19 +230,21 @@ fun WizardMacroRings(
                 )
             }
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = kcalText,
-                style = heroStyle(heroSize),
-                color = WizardColors.text,
-                maxLines = 1,
-            )
-            Text(
-                text = caption,
-                style = WizardTypography.note,
-                color = WizardColors.textMuted,
-                maxLines = 1,
-            )
+        if (showCenter) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = kcalText,
+                    style = heroStyle(heroSize),
+                    color = WizardColors.text,
+                    maxLines = 1,
+                )
+                Text(
+                    text = caption,
+                    style = WizardTypography.note,
+                    color = WizardColors.textMuted,
+                    maxLines = 1,
+                )
+            }
         }
     }
 }

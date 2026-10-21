@@ -62,7 +62,7 @@
                 }
               ],
               "kineticChain": "POSTERIOR",
-              "laterality": "BILATERAL",
+              "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "hip_extension_abduction",
               "performanceProfileId": "glutes_patada_gluteo_polea_diagonal__cable__patada_de_gluteos_diagonal_en_polea",
@@ -121,7 +121,7 @@
                   "bodyRegion": "LOWER",
                   "equipmentId": "cable",
                   "kineticChain": "POSTERIOR",
-                  "laterality": "BILATERAL",
+                  "laterality": "UNILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "hip_extension_abduction",
                   "relevantJoints": [

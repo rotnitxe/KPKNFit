@@ -2,66 +2,55 @@ package com.example.kpkn.screens.nutrition
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.kpkn.ui.components.LocalKpknOverlayHost
-import com.example.kpkn.ui.tour.TourAnchors
-import com.example.kpkn.ui.tour.TourIds
-import com.example.kpkn.ui.tour.TourScripts
-import com.example.kpkn.ui.tour.tourAnchor
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.kpkn.ui.adapt.LocalViewportAdapt
-import com.example.kpkn.ui.adapt.adapt
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.*
+import com.example.kpkn.screens.nutrition.components.CreatineSaturationOverlay
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.screens.nutrition.components.MealTypeSaver
-import com.example.kpkn.screens.nutrition.components.SupplementTrackingCard
-import com.example.kpkn.screens.nutrition.components.CreatineSaturationOverlay
+import com.example.kpkn.screens.nutrition.design.NutritionDayModule
+import com.example.kpkn.screens.nutrition.design.NutritionFoodMenu
+import com.example.kpkn.screens.nutrition.design.NutritionHeader
+import com.example.kpkn.screens.nutrition.design.NutritionLogIsland
+import com.example.kpkn.screens.nutrition.design.NutritionMealModule
+import com.example.kpkn.screens.nutrition.design.NutritionSupplementsModule
+import com.example.kpkn.screens.nutrition.design.NutritionTopIsland
+import com.example.kpkn.screens.nutrition.design.NutritionWeekTrendModule
+import com.example.kpkn.screens.nutrition.design.buildNutritionWeekBars
+import com.example.kpkn.screens.nutrition.design.nutritionIslandSubtitle
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSnackbar
+import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.components.SnackbarType
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.showKpknSnackbar
-import com.example.kpkn.ui.components.LocalHazeState
-import com.example.kpkn.ui.components.kpknGlass
-import com.example.kpkn.ui.components.kpknGlassOrFallback
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknStatusVeil
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.ui.design.kpknEntrance
+import com.example.kpkn.ui.design.rememberIslandVisible
+import com.example.kpkn.ui.adapt.LocalViewportAdapt
+import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.ui.locale.LocaleManager
-import com.example.kpkn.ui.theme.MacroColors
+import com.example.kpkn.ui.tour.TourIds
+import com.example.kpkn.ui.tour.TourScripts
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import java.time.LocalDate
@@ -69,26 +58,11 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
-/** Lado mínimo de una zona táctil (WP-U17): los controles de 24-36 dp se llevan a este tamaño. */
-private val MIN_TOUCH_TARGET = 40.dp
-
-private val PROTEIN_COLOR = MacroColors.protein
-private val CARBS_COLOR = MacroColors.carbs
-private val FATS_COLOR = MacroColors.fat
-private val CALORIES_COLOR = MacroColors.calories
-private val TEAL = Color(0xFF009688)
-
-private val MEAL_ICONS = mapOf(
-    MealType.BREAKFAST to Icons.Default.FreeBreakfast,
-    MealType.LUNCH to Icons.Default.LunchDining,
-    MealType.DINNER to Icons.Default.DinnerDining,
-    MealType.SNACK to Icons.Default.Fastfood,
-)
-private val MEAL_LABELS = mapOf(
-    MealType.BREAKFAST to "Desayuno",
-    MealType.LUNCH to "Almuerzo",
-    MealType.DINNER to "Cena",
-    MealType.SNACK to "Snack",
+/** El menú de una fila abierto: el registro, dónde se midió la fila y si «Mover a…» está desplegado. */
+private data class NutritionFoodMenuState(
+    val log: NutritionLog,
+    val anchor: Rect,
+    val moveExpanded: Boolean = false,
 )
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -98,7 +72,6 @@ private val MEAL_LABELS = mapOf(
 @Composable
 fun NutritionScreen(
     viewModel: NutritionViewModel = viewModel { NutritionViewModel() },
-    onNavigateToBodyProgress: (() -> Unit)? = null,
     onNavigateToMealHistory: (() -> Unit)? = null,
     /** Editor directo del plan: creación y edición, nunca un wizard. */
     onNavigateToPlanEditor: (planId: String?) -> Unit = { _ -> },
@@ -107,7 +80,6 @@ fun NutritionScreen(
 ) {
     val dailyTotals by viewModel.dailyTotals.collectAsState()
     val goals by viewModel.goals.collectAsState()
-    val macroRingPct by viewModel.macroRingPct.collectAsState()
     // Recorrido de Nutrición: se lanza al montar la pantalla (su ViewModel no expone señal de carga). Visto = no arranca.
     val tourHost = LocalKpknOverlayHost.current
     LaunchedEffect(Unit) { tourHost?.startTour(TourIds.NUTRITION, TourScripts.nutrition) }
@@ -132,6 +104,12 @@ fun NutritionScreen(
     val settings by remember { com.example.kpkn.data.repository.ProgramRepository.getInstance().settings }
         .collectAsState(initial = com.example.kpkn.data.models.Settings())
     val nutritionRepo = remember { com.example.kpkn.data.repository.NutritionRepository.getInstance() }
+    // Raíz de Nutrición (N1): carga del estado del usuario, tira de «Tu día», racha de creatina y la isla al salir la cabecera.
+    val userStateLoaded by viewModel.userStateLoaded.collectAsState()
+    val weekStrip by viewModel.weekStrip.collectAsState()
+    val creatineStreakDays by viewModel.creatineStreakDays.collectAsState()
+    val listState = rememberLazyListState()
+    val islandVisible = rememberIslandVisible(listState, afterItemIndex = 0)
 
     // WP-U7 (C5): si la hoja del logger estaba abierta, tras la muerte del proceso se reabre con su borrador
     // (la semilla vive en el SavedStateHandle del FoodLoggerViewModel); por eso estos tres estados se guardan.
@@ -175,8 +153,33 @@ fun NutritionScreen(
             }
         }.getOrNull()
     }
-    
+
     val nutritionHazeState = remember { HazeState() }
+    // Fecha de la cabecera y de la isla («Hoy» o la fecha elegida): siempre en español, sea cual sea el idioma del sistema.
+    val dateLabel = remember(selectedDate) { nutritionHeroDateLabel(selectedDate) }
+    // La isla «Registrar comida» y el «+» de la isla superior usan la misma regla: sin plan, pide crear uno.
+    val openFoodLogger: () -> Unit = {
+        if (!isFoodLoggingAvailable(settings, activePlan != null)) {
+            showPlanRequiredDialog = true
+        } else {
+            foodLoggerInitialDescription = null
+            foodLoggerInitialTab = 0
+            viewModel.requestFoodLoggerOpen(tab = 0)
+        }
+    }
+    // El «+» de una comida abre el registro en esa comida (la misma acción que tenía el acceso rápido de hoy).
+    val openLoggerFor: (MealType) -> Unit = { meal ->
+        selectedMealForLogger = meal
+        foodLoggerInitialDescription = null
+        foodLoggerInitialTab = 0
+        viewModel.requestFoodLoggerOpen(tab = 0, mealType = meal)
+    }
+    // Los siete días de «Últimos 7 días»: la tendencia (kcal y meta) cruzada con las bandas del historial (mínimo y máximo).
+    val weekBars = remember(trendData, historySeries, today) {
+        buildNutritionWeekBars(trendData, historySeries, today.toString())
+    }
+    // El menú de una fila (N2): abierto desde la pulsación larga; «Mover a…» se despliega dentro del mismo menú.
+    var foodMenu by remember { mutableStateOf<NutritionFoodMenuState?>(null) }
 
     LaunchedEffect(sharedDescription) {
         if (!sharedDescription.isNullOrBlank()) {
@@ -234,195 +237,134 @@ fun NutritionScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
+                .background(KpknSurface.canvas)
                 .hazeSource(state = nutritionHazeState),
         ) {
             val nutritionAdapt = LocalViewportAdapt.current
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
+                // Deja aire bajo el último módulo para que la isla «Registrar comida» no lo tape.
                 contentPadding = PaddingValues(bottom = 160.dp.adapt(nutritionAdapt)),
             ) {
                 item {
-                    NutritionHeroHeader(
-                        macroRingPct = macroRingPct,
-                        dailyTotals = dailyTotals,
-                        goals = goals,
-                        selectedDate = selectedDate,
+                    NutritionHeader(
+                        dateLabel = dateLabel,
+                        loaded = userStateLoaded,
+                        hasActivePlan = activePlan != null,
                         onEditPlan = { onNavigateToPlanEditor(activePlan?.id) },
                         onCreatePlan = { onNavigateToPlanEditor(null) },
-                        hasActivePlan = activePlan != null,
+                        modifier = Modifier.kpknEntrance("nutrition", 0),
                     )
                 }
 
+                item {
+                    NutritionDayModule(
+                        loaded = userStateLoaded,
+                        days = weekStrip,
+                        selectedDate = selectedDate,
+                        totals = dailyTotals,
+                        goals = goals,
+                        hasActivePlan = activePlan != null,
+                        onSelectDate = { viewModel.setSelectedDate(it) },
+                        onDefineGoals = { onNavigateToPlanEditor(null) },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp).kpknEntrance("nutrition", 1),
+                        trainingBurnKcal = dailyEnergyBalance.trainingBurnKcal,
+                    )
+                }
+
+                // Avisos: la pauta a medias de un profesional, en un módulo teñido de energía.
                 pendingNutritionSetupDraftId?.let { pendingDraftId ->
                     item {
-                        androidx.compose.material3.Surface(
-                            color = CALORIES_COLOR.copy(alpha = 0.16f),
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                                .clickable(role = Role.Button) { onOpenPendingDraft(pendingDraftId) },
+                        KpknModule(
+                            accent = SymbolPalette.energia,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp).kpknEntrance("nutrition", 2),
                         ) {
-                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(
-                                    "Tienes indicaciones de un profesional a medias",
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                                Text(
-                                    "Completa macros y calorías cuando quieras; no se borraron.",
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                                TextButton(onClick = { onOpenPendingDraft(pendingDraftId) }) {
-                                    Text("Completar ahora", color = CALORIES_COLOR)
-                                }
-                            }
+                            Text(
+                                "Tienes indicaciones de un profesional a medias",
+                                style = KpknType.bodyStrong,
+                                color = WizardColors.text,
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                "Completa macros y calorías cuando quieras; no se borraron.",
+                                style = KpknType.caption,
+                                color = WizardColors.textMuted,
+                            )
+                            Spacer(Modifier.height(10.dp))
+                            KpknTextAction(
+                                text = "Completar ahora",
+                                onClick = { onOpenPendingDraft(pendingDraftId) },
+                                icon = KpknLineIcons.ChevronRight,
+                            )
                         }
                     }
                 }
 
+                // Un módulo por comida (N2): el bloque entero cambia con la fecha, como «Tu día».
                 item {
-                    DailyEnergyBalanceCard(
-                        balance = dailyEnergyBalance,
-                        hasGoal = (goals as? DayGoalsResult.Present)?.goals?.hasGoals == true,
+                    NutritionMealsBlock(
+                        selectedDate = selectedDate,
+                        mealGroups = mealGroups,
+                        onAdd = openLoggerFor,
+                        onOpenLog = { log -> viewModel.requestFoodLoggerOpen(tab = 0, editLogId = log.id) },
+                        onLongPressLog = { log, anchor -> foodMenu = NutritionFoodMenuState(log = log, anchor = anchor) },
                     )
                 }
 
-                if (dailyTotals.calories > 0) {
-                    item {
-                        MacroBarsSection(dailyTotals = dailyTotals)
-                    }
-                }
-
                 item {
-                    SupplementTrackingCard(
+                    NutritionSupplementsModule(
+                        loaded = userStateLoaded,
                         caffeineMg = dailyTotals.caffeineMg,
                         caffeineLimits = caffeineLimits,
                         creatineTodayG = creatineToday,
-                        creatineSaturation = creatineSaturation,
-                        onCreatineCardClick = { viewModel.openCreatineTracker() },
+                        creatineTargetG = creatineSaturation.dailyTargetGrams.coerceAtLeast(1.0),
+                        creatineStreakDays = creatineStreakDays,
+                        isToday = selectedDate == today.toString(),
                         onQuickAddCreatine = { viewModel.quickAddCreatine() },
+                        onOpenCreatine = { viewModel.openCreatineTracker() },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp).kpknEntrance("nutrition", 4),
                     )
                 }
 
                 item {
-                    DateSelector(
+                    NutritionWeekTrendModule(
+                        bars = weekBars,
                         selectedDate = selectedDate,
-                        today = today,
-                        onDateChange = { viewModel.setSelectedDate(it) },
+                        onSelectDate = { viewModel.setSelectedDate(it) },
+                        onOpenHistory = onNavigateToMealHistory,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp).kpknEntrance("nutrition", 9),
                     )
-                }
-
-                item {
-                    QuickAddBar(
-                        onMealTypeClick = { meal ->
-                            selectedMealForLogger = meal
-                            foodLoggerInitialDescription = null
-                            foodLoggerInitialTab = 0
-                            viewModel.requestFoodLoggerOpen(tab = 0, mealType = meal)
-                        },
-                    )
-                }
-
-                val mealOrder = listOf(MealType.BREAKFAST, MealType.LUNCH, MealType.DINNER, MealType.SNACK)
-                items(mealOrder) { mealType ->
-                    val group = mealGroups.find { it.mealType == mealType }
-                    MealGroupCard(
-                        mealType = mealType,
-                        group = group,
-                        onDelete = { viewModel.deleteLog(it) },
-                        onEdit = { viewModel.requestFoodLoggerOpen(tab = 0, editLogId = it) },
-                        onAddFood = {
-                            selectedMealForLogger = mealType
-                            foodLoggerInitialDescription = null
-                            foodLoggerInitialTab = 0
-                            viewModel.requestFoodLoggerOpen(tab = 0, mealType = mealType)
-                        },
-                    )
-                }
-
-                if (onNavigateToMealHistory != null) {
-                    item {
-                        TextButton(
-                            onClick = onNavigateToMealHistory,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp.adapt(nutritionAdapt)).tourAnchor(TourAnchors.NUTRITION_HISTORIAL),
-                        ) {
-                            Icon(Icons.Default.History, null, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text("Ver historial de comidas", style = MaterialTheme.typography.labelMedium)
-                        }
-                    }
-                }
-
-                if (trendData.isNotEmpty()) {
-                    item {
-                        CalorieTrendChart(
-                            trendData = trendData,
-                        )
-                    }
-                }
-                if (historySeries.points.isNotEmpty()) {
-                    item { NutritionHistoryCoverageCard(historySeries) }
                 }
             }
         }
 
-        val pillShape = RoundedCornerShape(999.dp)
-        Box(
+        // Velo bajo la barra de estado: por encima de la lista y por debajo de las islas.
+        KpknStatusVeil(modifier = Modifier.align(Alignment.TopCenter))
+
+        // Isla superior: aparece cuando la cabecera sale de la vista. Sin «+»: el registro vive en la isla de abajo.
+        NutritionTopIsland(
+            visible = islandVisible,
+            title = if (selectedDate == today.toString()) "Hoy" else dateLabel,
+            subtitle = nutritionIslandSubtitle(
+                loaded = userStateLoaded,
+                kcal = kotlin.math.round(dailyTotals.calories).toInt(),
+                kcalGoal = (goals as? DayGoalsResult.Present)?.goals?.calorieGoal?.takeIf { it > 0 },
+                estimate = dailyTotals.isEstimate,
+            ),
+        )
+
+        // Isla «Registrar comida» (N2): sobre la barra inferior de 64 dp, con 8 dp sobre la barra de gestos y 12 dp de aire.
+        NutritionLogIsland(
+            hazeState = nutritionHazeState,
+            onClick = openFoodLogger,
             modifier = Modifier
-                .align(Alignment.BottomEnd)
+                .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
-                .padding(end = 16.dp, bottom = 106.dp)
-                .kpknGlass(hazeState = nutritionHazeState, shape = pillShape)
-                .tourAnchor(TourAnchors.NUTRITION_REGISTRO)
-                .clickable(role = Role.Button) {
-                    // En modo «solo registro» el registro de alimentos sigue
-                    // disponible aunque no haya plan activo.
-                    if (!isFoodLoggingAvailable(settings, activePlan != null)) {
-                        showPlanRequiredDialog = true
-                    } else {
-                        // C12: sin comida elegida, la solicitud deja que el logger proponga la de la hora.
-                        foodLoggerInitialDescription = null
-                        foodLoggerInitialTab = 0
-                        viewModel.requestFoodLoggerOpen(tab = 0)
-                    }
-                }
-                .padding(horizontal = 18.dp, vertical = 12.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color.White.copy(alpha = 0.12f),
-                    modifier = Modifier.size(26.dp),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            // El texto de al lado ya dice «Registrar comida»: así TalkBack no lo lee dos veces.
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                }
-                Spacer(Modifier.width(10.dp))
-                Text(
-                    text = "Registrar comida",
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = Color.White,
-                    letterSpacing = 0.2.sp,
-                )
-            }
-        }
+                .padding(bottom = 84.dp),
+        )
 
-        // WP-U11: el aviso de «Deshacer» vive sobre el botón de registrar, nunca debajo de él.
+        // WP-U11: el aviso de «Deshacer» vive sobre la isla de registrar, nunca debajo de ella.
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
@@ -430,6 +372,20 @@ fun NutritionScreen(
                 .navigationBarsPadding()
                 .padding(bottom = 160.dp),
         ) { data -> KpknSnackbar(data) }
+    }
+
+    // El menú de una fila (N2): fuera de la pantalla, sobre todo lo demás. Duplicar, mover o eliminar cierran el menú.
+    foodMenu?.let { menu ->
+        NutritionFoodMenu(
+            anchor = menu.anchor,
+            moveExpanded = menu.moveExpanded,
+            otherMeals = MealSlots.mealOrder.filter { it != menu.log.mealType },
+            onDuplicate = { viewModel.duplicateLog(menu.log) },
+            onToggleMove = { foodMenu = menu.copy(moveExpanded = !menu.moveExpanded) },
+            onMove = { meal -> viewModel.moveLog(menu.log.id, meal) },
+            onDelete = { viewModel.deleteLog(menu.log.id) },
+            onDismiss = { foodMenu = null },
+        )
     }
 
     // ── Food Logger Drawer ───────────────────────────────────────────────────
@@ -483,26 +439,66 @@ fun NutritionScreen(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// HERO HEADER — Central ring + macro summary
-// ═══════════════════════════════════════════════════════════════════════
+/**
+ * Los cuatro módulos de comida (N2) en el orden de [MealSlots.mealOrder]. Al cambiar de día, el bloque entero cambia con `AnimatedContent`:
+ * fundido cruzado de 220 ms y 12 dp en el sentido del cambio; con movimiento reducido, solo fundido de 120 ms.
+ */
+@Composable
+private fun NutritionMealsBlock(
+    selectedDate: String,
+    mealGroups: List<MealGroup>,
+    onAdd: (MealType) -> Unit,
+    onOpenLog: (NutritionLog) -> Unit,
+    onLongPressLog: (NutritionLog, Rect) -> Unit,
+) {
+    val reduced = wizardReducedMotion()
+    val slidePx = with(LocalDensity.current) { 12.dp.roundToPx() }
+    AnimatedContent(
+        targetState = selectedDate,
+        modifier = Modifier.fillMaxWidth(),
+        transitionSpec = {
+            val forward = targetState >= initialState
+            if (reduced) {
+                fadeIn(animationSpec = tween(durationMillis = 120)) togetherWith
+                    fadeOut(animationSpec = tween(durationMillis = 120))
+            } else {
+                (fadeIn(animationSpec = tween(durationMillis = 220)) +
+                    slideInHorizontally(animationSpec = tween(durationMillis = 220)) { if (forward) slidePx else -slidePx }) togetherWith
+                    fadeOut(animationSpec = tween(durationMillis = 220))
+            }
+        },
+        label = "nutritionMeals",
+    ) { _ ->
+        Column(modifier = Modifier.fillMaxWidth()) {
+            MealSlots.mealOrder.forEachIndexed { index, mealType ->
+                val group = mealGroups.find { it.mealType == mealType }
+                NutritionMealModule(
+                    mealType = mealType,
+                    logs = group?.logs.orEmpty(),
+                    totals = group?.totals ?: DailyMacroTotals(),
+                    onAdd = { onAdd(mealType) },
+                    onOpenLog = onOpenLog,
+                    onLongPressLog = onLongPressLog,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp).kpknEntrance("nutrition", 5 + index),
+                )
+            }
+        }
+    }
+}
 
 /**
- * La fecha del encabezado: «Jueves, 2 de octubre» en español, «Thursday, October 2» en inglés y, en cualquier otro idioma,
- * la fecha larga de ese idioma. Cada idioma arma su propio orden: el «de» solo existe en español. Si [selectedDate] no es
- * una fecha válida se muestra tal cual.
+ * La fecha del encabezado: «Miércoles 14 de octubre», con el mismo formato que Inicio (la pantalla la pone en mayúsculas por estilo).
+ * Siempre en español, con independencia del idioma del sistema. Si [selectedDate] no es una fecha válida se muestra tal cual.
  */
-internal fun nutritionHeroDateLabel(selectedDate: String, locale: Locale): String =
+internal fun nutritionHeroDateLabel(selectedDate: String): String =
     try {
-        val formatter = when (locale.language) {
-            "es" -> DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", locale)
-            "en" -> DateTimeFormatter.ofPattern("EEEE, MMMM d", locale)
-            else -> DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)
-        }
-        LocalDate.parse(selectedDate).format(formatter).replaceFirstChar { it.titlecase(locale) }
+        LocalDate.parse(selectedDate).format(NUTRITION_DATE_FORMAT).replaceFirstChar { it.titlecase(NUTRITION_DATE_LOCALE) }
     } catch (_: Exception) {
         selectedDate
     }
+
+private val NUTRITION_DATE_LOCALE: Locale = Locale.forLanguageTag("es")
+private val NUTRITION_DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", NUTRITION_DATE_LOCALE)
 
 /**
  * Guardar la comida abierta es una edición si lo que se guarda lleva el id de la comida que se abrió para editar. El id
@@ -511,932 +507,3 @@ internal fun nutritionHeroDateLabel(selectedDate: String, locale: Locale): Strin
  */
 internal fun isEditSave(editingLogId: String?, saved: NutritionLog): Boolean =
     editingLogId != null && saved.id == editingLogId
-
-@Composable
-private fun NutritionHeroHeader(
-    macroRingPct: MacroRingPct,
-    dailyTotals: DailyMacroTotals,
-    goals: DayGoalsResult,
-    selectedDate: String,
-    onEditPlan: () -> Unit,
-    onCreatePlan: () -> Unit,
-    hasActivePlan: Boolean,
-) {
-    // El idioma efectivo de la app (no el del dispositivo) decide palabras y orden: sin «Thursday, 2 de October».
-    val locale = LocaleManager.getEffectiveLocale(LocalContext.current)
-    val dateLabel = remember(selectedDate, locale) { nutritionHeroDateLabel(selectedDate, locale) }
-
-    // Ausencia explícita de metas: sin anillos de objetivos y sin números
-    // inventados. Un 0 explícito se muestra como 0.
-    val dayGoals = (goals as? DayGoalsResult.Present)?.goals
-    val hasGoals = dayGoals?.hasGoals == true
-    val calRemaining = dayGoals?.calorieGoal?.let { it - dailyTotals.calories.toInt() }
-    // Un total incierto es un centro estimado: se marca «≈» y no se presenta como exacto (C22).
-    val approx = NutritionDisplayFormat.approxPrefix(dailyTotals.isEstimate)
-    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        TEAL.copy(alpha = 0.10f),
-                        Color.Transparent,
-                    )
-                )
-            )
-            .padding(start = 20.dp, end = 20.dp, top = topInset + 16.dp, bottom = 16.dp),
-    ) {
-        Column {
-            // Top row: date + actions
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column {
-                    Text(
-                        dateLabel,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        "Nutrición",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Black,
-                    )
-                }
-                if (hasActivePlan) {
-                    IconButton(onClick = if (hasActivePlan) onEditPlan else onCreatePlan, modifier = Modifier.size(MIN_TOUCH_TARGET).tourAnchor(TourAnchors.NUTRITION_PLAN)) {
-                        Icon(
-                            if (hasActivePlan) Icons.Default.Edit else Icons.Default.Add,
-                            if (hasActivePlan) "Editar plan" else "Crear plan",
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(20.dp))
-
-            // Central ring + surrounding stats
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .then(if (!hasGoals) Modifier.blur(10.dp) else Modifier),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(modifier = Modifier.size(130.dp).tourAnchor(TourAnchors.NUTRITION_ANILLOS)) {
-                            // Sin metas no hay anillo de objetivos: 0.0 y
-                            // nunca un porcentaje fabricado.
-                            AnimatedMacroRing(
-                                caloriesPct = macroRingPct.calories,
-                                proteinPct = macroRingPct.protein,
-                                carbsPct = macroRingPct.carbs,
-                                fatsPct = macroRingPct.fats,
-                            )
-                        }
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            NutritionDisplayFormat.kcalValue(dailyTotals),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = CALORIES_COLOR,
-                        )
-                        Text(
-                            dayGoals?.calorieGoal?.let { "/ $it kcal" } ?: "sin objetivos",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        NutritionDisplayFormat.kcalRangeLabel(dailyTotals)?.let { range ->
-                            Text(
-                                range,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-
-                    Spacer(Modifier.width(16.dp))
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        MacroDetailRow(
-                            label = "Proteína",
-                            current = dailyTotals.protein,
-                            goal = dayGoals?.proteinGoal,
-                            unit = "g",
-                            color = PROTEIN_COLOR,
-                            approximate = dailyTotals.isEstimate,
-                        )
-                        MacroDetailRow(
-                            label = "Carbohidratos",
-                            current = dailyTotals.carbs,
-                            goal = dayGoals?.carbGoal,
-                            unit = "g",
-                            color = CARBS_COLOR,
-                            approximate = dailyTotals.isEstimate,
-                        )
-                        MacroDetailRow(
-                            label = "Grasas",
-                            current = dailyTotals.fats,
-                            goal = dayGoals?.fatGoal,
-                            unit = "g",
-                            color = FATS_COLOR,
-                            approximate = dailyTotals.isEstimate,
-                        )
-
-                        Spacer(Modifier.height(4.dp))
-
-                        val remainColor = when {
-                            calRemaining == null -> MaterialTheme.colorScheme.onSurface
-                            calRemaining >= 0 -> TEAL
-                            else -> Color(0xFFE53935)
-                        }
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = remainColor.copy(alpha = if (calRemaining != null) 0.10f else 0.08f),
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Icon(
-                                    when {
-                                        calRemaining == null -> Icons.Default.AutoAwesome
-                                        calRemaining >= 0 -> Icons.Default.CheckCircle
-                                        else -> Icons.Default.Warning
-                                    },
-                                    null,
-                                    tint = remainColor,
-                                    modifier = Modifier.size(14.dp),
-                                )
-                                Spacer(Modifier.width(6.dp))
-                                Text(
-                                    when {
-                                        calRemaining == null -> "Sin objetivos para este día"
-                                        calRemaining >= 0 -> "$approx$calRemaining kcal restantes"
-                                        else -> "$approx${-calRemaining} kcal de más"
-                                    },
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = remainColor,
-                                )
-                            }
-                        }
-                    }
-                }
-
-                if (!hasGoals) {
-                    val absence = (goals as? DayGoalsResult.Absent)?.reason
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text(
-                            "Sin objetivos",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Black,
-                            textAlign = TextAlign.Center,
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            when (absence) {
-                                GoalsAbsence.TRACKING_ONLY ->
-                                    "Solo seguimiento: este día no tiene metas definidas y no se inventa ninguna."
-                                GoalsAbsence.NO_GOAL, null ->
-                                    "No hay metas registradas para este día; se muestran los registros sin objetivo."
-                            },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                        )
-                        if (!hasActivePlan) {
-                            Spacer(Modifier.height(14.dp))
-                            Button(
-                                onClick = onCreatePlan,
-                                shape = RoundedCornerShape(14.dp),
-                            ) {
-                                Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(8.dp))
-                                Text("Crear plan de alimentación")
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// MACRO DETAIL ROW — label + progress bar + value
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun MacroDetailRow(
-    label: String,
-    current: Double,
-    goal: Int?,
-    unit: String,
-    color: Color,
-    margin: Double? = null,
-    /** El total viene de alimentos inciertos: el valor se muestra con «≈» y no como exacto. */
-    approximate: Boolean = false,
-) {
-    // Sin meta (null) o meta 0 no hay barra de objetivo; el 0 explícito sí se
-    // muestra como 0 en el valor.
-    val approx = NutritionDisplayFormat.approxPrefix(approximate)
-    val pct = if (goal != null && goal > 0) (current / goal).coerceIn(0.0, 1.2) else 0.0
-    val trackColor = if (color == MaterialTheme.colorScheme.onSurface) {
-        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f)
-    } else {
-        color.copy(alpha = 0.12f)
-    }
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(8.dp).clip(CircleShape).background(color))
-                Spacer(Modifier.width(6.dp))
-                Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
-            }
-            Text(
-                goal?.let { "$approx${current.toInt()} / $it $unit" } ?: "$approx${current.toInt()} $unit · sin meta",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = if (pct > 1.0 && color != MaterialTheme.colorScheme.onSurface) Color(0xFFE53935) else MaterialTheme.colorScheme.onSurface,
-            )
-        }
-        if (margin != null && margin > 0.0) {
-            Text(
-                text = "+${formatSignedMargin(margin)} / -${formatSignedMargin(margin)} $unit",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
-                modifier = Modifier.padding(start = 14.dp, top = 1.dp),
-            )
-        }
-        Spacer(Modifier.height(3.dp))
-        // Progress bar
-        Canvas(
-            modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))
-        ) {
-            drawRoundRect(
-                color = trackColor,
-                cornerRadius = CornerRadius(3.dp.toPx()),
-            )
-            val filledWidth = (size.width * pct.coerceAtMost(1.0)).toFloat()
-            if (filledWidth > 0f) {
-                drawRoundRect(
-                    color = color,
-                    size = Size(filledWidth, size.height),
-                    cornerRadius = CornerRadius(3.dp.toPx()),
-                )
-            }
-        }
-    }
-}
-
-private fun formatSignedMargin(value: Double): String {
-    return if (value >= 10.0) {
-        value.toInt().toString()
-    } else {
-        "%.1f".format(value)
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// ANIMATED MACRO RING
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun AnimatedMacroRing(
-    caloriesPct: Double,
-    proteinPct: Double,
-    carbsPct: Double,
-    fatsPct: Double,
-) {
-    val animSpec = tween<Float>(durationMillis = 800, easing = FastOutSlowInEasing)
-    val aCal by animateFloatAsState(caloriesPct.coerceIn(0.0, 1.2).toFloat(), animSpec, label = "cal")
-    val aPro by animateFloatAsState(proteinPct.coerceIn(0.0, 1.2).toFloat(), animSpec, label = "pro")
-    val aCar by animateFloatAsState(carbsPct.coerceIn(0.0, 1.2).toFloat(), animSpec, label = "car")
-    val aFat by animateFloatAsState(fatsPct.coerceIn(0.0, 1.2).toFloat(), animSpec, label = "fat")
-
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val strokeW = 10.dp.toPx()
-        val gap = 3.dp.toPx()
-        val cx = size.width / 2
-        val cy = size.height / 2
-        val outerR = (size.minDimension / 2) - strokeW / 2
-        val r2 = outerR - strokeW - gap
-        val r3 = r2 - strokeW - gap
-        val r4 = r3 - strokeW - gap
-
-        fun ring(radius: Float, pct: Float, color: Color) {
-            val d = radius * 2
-            drawArc(color.copy(alpha = 0.10f), 0f, 360f, false,
-                Offset(cx - radius, cy - radius), Size(d, d),
-                style = Stroke(strokeW, cap = StrokeCap.Round))
-            if (pct > 0f) {
-                drawArc(color, -90f, (360f * pct.coerceAtMost(1f)), false,
-                    Offset(cx - radius, cy - radius), Size(d, d),
-                    style = Stroke(strokeW, cap = StrokeCap.Round))
-            }
-        }
-
-        ring(outerR, aCal, CALORIES_COLOR)
-        ring(r2, aPro, PROTEIN_COLOR)
-        ring(r3, aCar, CARBS_COLOR)
-        ring(r4, aFat, FATS_COLOR)
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// DATE SELECTOR
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun DateSelector(
-    selectedDate: String,
-    today: java.time.LocalDate,
-    onDateChange: (String) -> Unit,
-) {
-    // C1: «hoy» viene del ViewModel y las fechas se reconstruyen cuando cambia (medianoche
-    // con la app viva); antes se congelaba con LocalDate.now() en la primera composición.
-    val dates = remember(today) { (-3..3).map { today.plusDays(it.toLong()).toString() } }
-    val todayKey = today.toString()
-
-    LazyRow(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).selectableGroup(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        items(dates) { date ->
-            val isSelected = date == selectedDate
-            val isToday = date == todayKey
-            val d = try { java.time.LocalDate.parse(date) } catch (_: Exception) { today }
-            val dayName = d.format(java.time.format.DateTimeFormatter.ofPattern("EEE", java.util.Locale.getDefault()))
-            val dayNum = d.dayOfMonth.toString()
-
-            Surface(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(14.dp))
-                    .clickable(role = Role.Tab) { onDateChange(date) }
-                    .semantics { selected = isSelected },
-                shape = RoundedCornerShape(14.dp),
-                color = when {
-                    isSelected -> TEAL
-                    else -> MaterialTheme.colorScheme.surfaceContainerHigh
-                },
-                tonalElevation = if (isSelected) 0.dp else 1.dp,
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(
-                        dayName.replaceFirstChar { it.uppercase() },
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        dayNum,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
-                    )
-                    if (isToday) {
-                        Box(
-                            Modifier.size(5.dp)
-                                .clip(CircleShape)
-                                .background(if (isSelected) Color.White else TEAL)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// QUICK ADD BAR
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun QuickAddBar(onMealTypeClick: (MealType) -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = TEAL.copy(alpha = 0.08f)),
-        border = BorderStroke(1.dp, TEAL.copy(alpha = 0.20f)),
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                "REGISTRO RÁPIDO",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 1.sp,
-                color = TEAL,
-            )
-            Spacer(Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                MealType.entries.forEach { meal ->
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable(role = Role.Button) { onMealTypeClick(meal) },
-                        shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFF1E1E26),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(vertical = 10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            Icon(
-                                MEAL_ICONS[meal] ?: Icons.Default.Add,
-                                null,
-                                tint = TEAL,
-                                modifier = Modifier.size(20.dp),
-                            )
-                            Spacer(Modifier.height(2.dp))
-                            Text(
-                                MEAL_LABELS[meal] ?: "",
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// MACRO BARS SECTION
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun MacroBarsSection(dailyTotals: DailyMacroTotals) {
-    val totalCal = dailyTotals.protein * 4 + dailyTotals.carbs * 4 + dailyTotals.fats * 9
-    val protPct = if (totalCal > 0) (dailyTotals.protein * 4 / totalCal) else 0.0
-    val carbPct = if (totalCal > 0) (dailyTotals.carbs * 4 / totalCal) else 0.0
-    val fatPct = if (totalCal > 0) (dailyTotals.fats * 9 / totalCal) else 0.0
-
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF16161C)),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Text(
-                "DISTRIBUCIÓN CALÓRICA",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 1.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(10.dp))
-
-            // Stacked bar
-            if (totalCal > 0) {
-                Canvas(modifier = Modifier.fillMaxWidth().height(14.dp).clip(RoundedCornerShape(7.dp))) {
-                    drawRoundRect(Color.Gray.copy(alpha = 0.08f), cornerRadius = CornerRadius(7.dp.toPx()))
-                    var x = 0f
-                    val segments = listOf(protPct to PROTEIN_COLOR, carbPct to CARBS_COLOR, fatPct to FATS_COLOR)
-                    segments.forEach { (pct, color) ->
-                        val w = (size.width * pct).toFloat()
-                        if (w > 0f) {
-                            drawRect(color, Offset(x, 0f), Size(w, size.height))
-                            x += w
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DailyEnergyBalanceCard(balance: DailyEnergyBalance, hasGoal: Boolean) {
-    val statusColor = when {
-        !hasGoal -> Color(0xFF78909C)
-        balance.status == DailyEnergyStatus.DEFICIT -> Color(0xFFEF5350)
-        balance.status == DailyEnergyStatus.MAINTENANCE -> Color(0xFF22C55E)
-        else -> Color(0xFF7E57C2)
-    }
-    val statusLabel = when {
-        !hasGoal -> "Sin objetivos"
-        balance.status == DailyEnergyStatus.DEFICIT -> "Déficit"
-        balance.status == DailyEnergyStatus.MAINTENANCE -> "Mantención"
-        else -> "Superávit"
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = statusColor.copy(alpha = 0.08f)),
-        border = BorderStroke(1.dp, statusColor.copy(alpha = 0.20f)),
-    ) {
-        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Consumido", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("${balance.consumedKcal}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Entreno", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("-${balance.trainingBurnKcal}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Ingesta", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("${balance.consumedKcal}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-                }
-            }
-
-            val maxForBar = maxOf(balance.targetKcal * 2, balance.consumedKcal.coerceAtLeast(1))
-            val netFraction = if (maxForBar > 0) balance.consumedKcal.toFloat() / maxForBar.toFloat() else 0f
-            val targetFraction = if (maxForBar > 0) balance.targetKcal.toFloat() / maxForBar.toFloat() else 0f
-
-            Canvas(
-                modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp))
-            ) {
-                drawRoundRect(Color.Gray.copy(alpha = 0.12f), cornerRadius = CornerRadius(5.dp.toPx()))
-
-                val netW = (size.width * netFraction).coerceAtMost(size.width)
-                if (netW > 0f) {
-                    drawRoundRect(statusColor.copy(alpha = 0.7f), topLeft = Offset.Zero, size = Size(netW, size.height), cornerRadius = CornerRadius(5.dp.toPx()))
-                }
-
-                // Marcador de meta solo con meta real; sin objetivos no se
-                // dibuja ningún marcador inventado.
-                if (hasGoal && balance.targetKcal > 0) {
-                    val targetX = (size.width * targetFraction).coerceIn(2.dp.toPx(), size.width - 2.dp.toPx())
-                    drawLine(Color.White, Offset(targetX, 0f), Offset(targetX, size.height), strokeWidth = 3.dp.toPx())
-                    drawLine(Color(0xFF333333), Offset(targetX, 0f), Offset(targetX, size.height), strokeWidth = 1.5.dp.toPx())
-                }
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    if (hasGoal && balance.targetKcal > 0) "Meta: ${balance.targetKcal} kcal" else "Sin objetivos para este día",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        statusLabel,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = statusColor,
-                    )
-                    if (hasGoal && balance.targetKcal > 0) {
-                        Text(
-                            " · ${if (balance.deltaFromTarget >= 0) "+" else ""}${balance.deltaFromTarget} kcal",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = statusColor.copy(alpha = 0.8f),
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// MEAL GROUP CARD
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun MealGroupCard(
-    mealType: MealType,
-    group: MealGroup?,
-    onDelete: (String) -> Unit,
-    onEdit: (String) -> Unit,
-    onAddFood: () -> Unit,
-) {
-    val label = MEAL_LABELS[mealType] ?: mealType.name
-    val icon = MEAL_ICONS[mealType] ?: Icons.Default.Restaurant
-    val logs = group?.logs ?: emptyList()
-    val totals = group?.totals ?: DailyMacroTotals()
-    var expanded by remember { mutableStateOf(true) }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 3.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF16161C)),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            // Header
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClickLabel = if (expanded) "Contraer" else "Expandir", role = Role.Button) { expanded = !expanded },
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = TEAL.copy(alpha = 0.10f),
-                        modifier = Modifier.size(36.dp),
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(icon, null, tint = TEAL, modifier = Modifier.size(18.dp))
-                        }
-                    }
-                    Spacer(Modifier.width(10.dp))
-                    Column {
-                        Text(
-                            label,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        if (logs.isNotEmpty()) {
-                            Text(
-                                "${NutritionDisplayFormat.kcalLabel(totals)} · P ${kotlin.math.round(totals.protein).toInt()}g · C ${kotlin.math.round(totals.carbs).toInt()}g · G ${kotlin.math.round(totals.fats).toInt()}g",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        } else {
-                            Text(
-                                "Sin registros",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (logs.isNotEmpty()) {
-                        Surface(
-                            shape = CircleShape,
-                            color = TEAL.copy(alpha = 0.12f),
-                        ) {
-                            Text(
-                                "${logs.size}",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Black,
-                                color = TEAL,
-                            )
-                        }
-                        Spacer(Modifier.width(4.dp))
-                    }
-                    IconButton(onClick = onAddFood, modifier = Modifier.size(MIN_TOUCH_TARGET)) {
-                        Icon(Icons.Default.Add, "Agregar comida a $label", tint = TEAL, modifier = Modifier.size(18.dp))
-                    }
-                }
-            }
-
-            // Entries
-            AnimatedVisibility(visible = expanded && logs.isNotEmpty()) {
-                Column(modifier = Modifier.padding(top = 8.dp)) {
-                    logs.forEach { log ->
-                        LogEntry(log = log, onDelete = onDelete, onEdit = onEdit)
-                        if (log != logs.last()) Spacer(Modifier.height(4.dp))
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// LOG ENTRY
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun LogEntry(log: NutritionLog, onDelete: (String) -> Unit, onEdit: (String) -> Unit) {
-    val foodNames = log.foods.joinToString(", ") { it.foodName }.ifEmpty { "Comida registrada" }
-    val pro = log.foods.sumOf { it.protein }
-    val car = log.foods.sumOf { it.carbs }
-    val fat = log.foods.sumOf { it.fats }
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            // WP-U11 (C9): tocar la fila abre la comida para editarla; el icono de eliminar sigue siendo su propio botón.
-            .clickable(onClickLabel = "Editar", role = Role.Button) { onEdit(log.id) },
-        shape = RoundedCornerShape(10.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        Row(
-            modifier = Modifier.padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    foodNames,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    "${NutritionDisplayFormat.logKcalSummary(log)} · P${kotlin.math.round(pro).toInt()} C${kotlin.math.round(car).toInt()} G${kotlin.math.round(fat).toInt()}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                log.foods.mapNotNull { it.nutritionReferenceNote }.distinct().forEach { note ->
-                    Text(note, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                if (log.notes != null) {
-                    Text(
-                        log.notes,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-            // WP-U11 (C9): zona táctil de 40 dp (eran 28) y un nombre que dice qué comida se elimina.
-            IconButton(onClick = { onDelete(log.id) }, modifier = Modifier.size(40.dp)) {
-                Icon(
-                    Icons.Default.Close,
-                    "Eliminar comida: $foodNames",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// CALORIE TREND CHART
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun CalorieTrendChart(
-    trendData: List<TrendPoint>,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF16161C)),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Text(
-                "TENDENCIA DE CALORÍAS",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 1.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                "Últimos ${trendData.size} días",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            // Cada punto lleva su propia meta por fecha; un día sin meta no
-            // arrastra ningún default.
-            val maxCal = maxOf(
-                trendData.filter { it.hasData }.maxOfOrNull { it.calories } ?: 0.0,
-                trendData.mapNotNull { it.goal }.maxOrNull() ?: 0.0,
-            ) * 1.15
-
-            val surfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-
-            val barCount = trendData.size
-
-            Canvas(
-                modifier = Modifier.fillMaxWidth().height(120.dp)
-            ) {
-                if (trendData.isEmpty() || maxCal <= 0) return@Canvas
-
-                val w = size.width
-                val h = size.height
-                val slotWidth = w / barCount
-                val barPadding = slotWidth * 0.15f
-                val barWidth = slotWidth - barPadding * 2
-
-                // Línea de objetivo por fecha: solo para los días con meta.
-                trendData.forEachIndexed { i, point ->
-                    val goalKcal = point.goal ?: return@forEachIndexed
-                    val slotX = i * slotWidth
-                    val goalY = h - (goalKcal / maxCal * h).toFloat()
-                    drawLine(
-                        color = surfaceVariant.copy(alpha = 0.3f),
-                        start = Offset(slotX, goalY),
-                        end = Offset(slotX + slotWidth, goalY),
-                        strokeWidth = 1.5.dp.toPx(),
-                        pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(
-                            floatArrayOf(8f, 6f)
-                        ),
-                    )
-                }
-
-                trendData.forEachIndexed { i, point ->
-                    val slotX = i * slotWidth
-                    val x = slotX + barPadding
-                    if (!point.hasData) {
-                        drawLine(
-                            color = surfaceVariant.copy(alpha = 0.35f),
-                            start = androidx.compose.ui.geometry.Offset(x + barWidth / 2f, h - 3f),
-                            end = androidx.compose.ui.geometry.Offset(x + barWidth / 2f, h - 14f),
-                            strokeWidth = 2f,
-                            pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(3f, 3f)),
-                        )
-                        return@forEachIndexed
-                    }
-                    val barH = (point.calories / maxCal * h).toFloat().coerceAtLeast(4f)
-                    val y = h - barH
-                    val overGoal = point.goal?.let { point.calories > it } ?: false
-                    val barColor = if (overGoal) Color(0xFFE53935).copy(alpha = 0.7f) else TEAL.copy(alpha = 0.7f)
-
-                    drawRoundRect(
-                        color = barColor,
-                        topLeft = Offset(x, y),
-                        size = Size(barWidth, barH),
-                        cornerRadius = CornerRadius(4.dp.toPx()),
-                    )
-                }
-            }
-
-            // Day labels — each gets equal slot to align with bars
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-            ) {
-                trendData.forEach { point ->
-                    val dayLabel = try {
-                        java.time.LocalDate.parse(point.date)
-                            .format(java.time.format.DateTimeFormatter.ofPattern("E", java.util.Locale.getDefault()))
-                            .take(2)
-                    } catch (_: Exception) { "?" }
-                    Text(
-                        dayLabel,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun NutritionHistoryCoverageCard(series: NutritionHistorySeries) {
-    val uncertain = series.points.filter { point ->
-        point.intakeCaloriesMin != null && point.intakeCaloriesMax != null &&
-            point.intakeCaloriesMin != point.intakeCaloriesMax
-    }
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF16161C)),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
-    ) {
-        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Text("HISTÓRICO", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
-            Text("Cobertura: ${series.coverage.label}", style = MaterialTheme.typography.bodySmall)
-            Text(
-                if (uncertain.isEmpty()) "Sin rangos inciertos en este periodo."
-                else "Los días con alimentos inciertos conservan su banda mínima–máxima.",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            series.averageCaloriesOnRegisteredDays?.let { average ->
-                Text("Promedio registrado: ${kotlin.math.round(average).toInt()} kcal", style = MaterialTheme.typography.labelSmall)
-            }
-        }
-    }
-}

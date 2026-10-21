@@ -6,8 +6,6 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
-import com.example.kpkn.domain.body.goalProgressPercent
-import com.example.kpkn.domain.body.latestValidByMetric
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.domain.time.ActivityLocalDate
 import com.example.kpkn.domain.training.AppClock
@@ -68,7 +66,6 @@ class NutritionViewModel(
     val nutritionLogs = nutritionRepo.nutritionLogs
     val nutritionPlans = nutritionRepo.nutritionPlans
     val foodDatabase = nutritionRepo.foodDatabase
-    val mealTemplates: StateFlow<List<MealTemplate>> = nutritionRepo.mealTemplates
     val historySeries: StateFlow<NutritionHistorySeries> = combine(
         nutritionLogs,
         nutritionRepo.dailyGoalSnapshots,
@@ -237,37 +234,6 @@ class NutritionViewModel(
 
     val mealGroups: StateFlow<List<MealGroup>> = todayLogs
         .map { computeMealGroups(it) }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    // ─── Derived: Macro Ring Percentages ─────────────────────────────────────
-
-    val macroRingPct: StateFlow<MacroRingPct> = combine(
-        dailyTotals, goals
-    ) { totals, g ->
-        val dayGoals = (g as? DayGoalsResult.Present)?.goals
-        computeMacroRingPct(
-            totals,
-            dayGoals?.calorieGoal,
-            dayGoals?.proteinGoal,
-            dayGoals?.carbGoal,
-            dayGoals?.fatGoal,
-        )
-    }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, MacroRingPct())
-
-    val nutrientProgress: StateFlow<List<NutrientProgress>> = combine(
-        dailyTotals,
-        goals,
-    ) { totals, g ->
-        when (g) {
-            // Sin metas no hay filas de progreso: nada que medir y ningún
-            // default que enseñar.
-            is DayGoalsResult.Absent -> emptyList<NutrientProgress>()
-            is DayGoalsResult.Present -> nutrientProgressRows(totals, g.goals)
-        }
-    }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -501,21 +467,6 @@ class NutritionViewModel(
         }
     }
 
-    fun createPlan(plan: NutritionPlan) {
-        val vitals = programRepo.settings.value.userVitals
-        val latest = latestValidByMetric(nutritionRepo.bodyProgressRepository.observations.value)
-        val withStart = plan.copy(
-            startValue = plan.startValue ?: when (plan.typedBodyGoal?.metric ?: plan.goalType) {
-                GoalMetric.WEIGHT -> latest[BodyMetric.WEIGHT]?.valueSi ?: vitals.weight
-                GoalMetric.BODY_FAT -> latest[BodyMetric.BODY_FAT_PERCENT]?.valueSi ?: vitals.bodyFatPercentage
-                GoalMetric.MUSCLE_MASS -> latest[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi ?: vitals.muscleMassPercentage
-            },
-        )
-        nutritionRepo.addNutritionPlan(withStart)
-        nutritionRepo.activatePlan(withStart.id)
-        applyPlanToSettings(withStart)
-    }
-
     fun activatePlan(planId: String) {
         nutritionRepo.activatePlan(planId)
         nutritionRepo.nutritionPlans.value.find { it.id == planId }?.let { plan ->
@@ -526,29 +477,6 @@ class NutritionViewModel(
     fun syncActivePlanGoalsToSettings() {
         activePlan.value?.let { applyPlanToSettings(it) }
     }
-
-    // ─── Progress Calculation ───────────────────────────────────────────────
-
-    val progressPct: StateFlow<Int> = combine(
-        activePlan, programRepo.settings, nutritionRepo.bodyProgressRepository.observations,
-    ) { plan, settings, observations ->
-        if (plan == null) return@combine 0
-        val metric = plan.typedBodyGoal?.metric ?: plan.goalType
-        val latest = latestValidByMetric(observations)
-        val current = when (metric) {
-            GoalMetric.WEIGHT -> latest[BodyMetric.WEIGHT]?.valueSi
-            GoalMetric.BODY_FAT -> latest[BodyMetric.BODY_FAT_PERCENT]?.valueSi
-            GoalMetric.MUSCLE_MASS -> latest[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi
-        } ?: return@combine 0
-        val target = plan.typedBodyGoal?.targetValueSi
-            ?: plan.primaryGoal?.value?.takeIf { it > 0.0 }
-            ?: plan.goalValue.takeIf { it > 0.0 }
-            ?: return@combine 0
-        val start = plan.startValue ?: current
-        goalProgressPercent(start, current, target)
-    }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
     val dailyEnergyBalance: StateFlow<DailyEnergyBalance> = combine(
         combine(dailyTotals, programRepo.history, _selectedDate) { totals, history, date ->
@@ -607,40 +535,68 @@ class NutritionViewModel(
         }
     }
 
+    // ─── Raíz de Nutrición (N1): carga, tira de «Tu día» y racha de creatina ───
+
     /**
-     * Filas de progreso solo para metas presentes. Un campo sin meta (null)
-     * no genera fila: nada de defaults inventados; un 0 explícito sí se
-     * muestra como 0.
+     * True cuando el repositorio ya publicó el estado del usuario (planes, comidas y metas). Lo hace al final de su primera fase,
+     * justo antes de publicar el catálogo de alimentos, así que un catálogo no vacío marca la carga. Hasta entonces «sin objetivos»
+     * no es un dato y la raíz pinta un esqueleto.
      */
-    private fun nutrientProgressRows(totals: DailyMacroTotals, goals: MacroGoals): List<NutrientProgress> {
-        data class Row(
-            val key: String,
-            val label: String,
-            val consumed: Double,
-            val goal: Int?,
-            val unit: String,
-            val showOverages: Boolean,
-        )
-        return listOf(
-            Row("calories", "Calorias", totals.calories, goals.calorieGoal, "kcal", goals.showOverages),
-            Row("protein", "Proteina", totals.protein, goals.proteinGoal, "g", goals.showOverages),
-            Row("carbs", "Carbohidratos", totals.carbs, goals.carbGoal, "g", goals.showOverages),
-            Row("fats", "Grasas", totals.fats, goals.fatGoal, "g", goals.showOverages),
-            Row("fiber", "Fibra", totals.fiber, goals.fiberGoal, "g", true),
-            Row("sugar", "Azucar", totals.sugar, goals.sugarLimit, "g", true),
-            Row("sodium", "Sodio", totals.sodiumMg, goals.sodiumLimitMg, "mg", true),
-            Row("potassium", "Potasio", totals.potassiumMg, goals.potassiumGoalMg, "mg", goals.showOverages),
-            Row("hydration", "Agua", totals.waterMl, goals.hydrationGoalMl, "ml", goals.showOverages),
-        ).mapNotNull { row ->
-            row.goal?.let { goal ->
-                NutrientProgress(
-                    key = row.key,
-                    label = row.label,
-                    consumed = row.consumed,
-                    goal = goal.toDouble(),
-                    unit = row.unit,
-                    showOverages = row.showOverages,
-                )
+    val userStateLoaded: StateFlow<Boolean> = nutritionRepo.foodDatabase
+        .map { it.isNotEmpty() }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
+
+    /**
+     * Los siete días de «Tu día», de hoy −3 a hoy +3 (el mismo rango que tenía el selector de fecha). Cada día lleva sus kcal
+     * registradas (sin lo planificado) y su meta de kcal, que queda null si no la hay: no se inventa.
+     */
+    val weekStrip: StateFlow<List<NutritionWeekDay>> = combine(
+        nutritionLogs,
+        programRepo.settings,
+        activePlan,
+        nutritionRepo.dailyGoalSnapshots,
+        _today,
+    ) { logs, settings, plan, snapshots, end ->
+        val dates = (-3L..3L).map { end.plusDays(it) }
+        val goals = resolveDayGoalsByDate(dates, settings, plan, snapshots, end)
+        val logsByDay = logs.groupBy { it.date.take(10) }
+        dates.map { date ->
+            NutritionWeekDay(
+                date = date.toString(),
+                kcal = kotlin.math.round(computeDailyTotals(logsByDay[date.toString()].orEmpty()).calories).toInt(),
+                kcalGoal = (goals[date] as? DayGoalsResult.Present)?.goals?.calorieGoal?.takeIf { it > 0 },
+                isToday = date == end,
+            )
+        }
+    }
+        .flowOn(computeDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    /** Días seguidos con creatina registrada, contados desde el día elegido (ver [countCreatineStreak]). */
+    val creatineStreakDays: StateFlow<Int> = combine(nutritionLogs, _selectedDate) { logs, date ->
+        countCreatineStreak(logs, date)
+    }
+        .distinctUntilChanged()
+        .flowOn(computeDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
+    /**
+     * Cambia la comida de un registro («Mover a…» del menú de la fila, N2) sin tocar nada más: mismo id, fecha y alimentos. Se escribe con
+     * `updateNutritionLog`; un fallo avisa por [uiMessage] en vez de quedarse callado.
+     */
+    fun moveLog(logId: String, mealType: MealType) {
+        val log = nutritionRepo.nutritionLogs.value.firstOrNull { it.id == logId } ?: return
+        if (log.mealType == mealType) return
+        val moved = log.copy(mealType = mealType)
+        viewModelScope.launch {
+            try {
+                withContext(NonCancellable) { nutritionRepo.updateNutritionLog(moved) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                android.util.Log.w("NutritionViewModel", "No se pudo mover la comida", error)
+                _uiMessage.value = "No se pudo mover la comida. Inténtalo de nuevo."
             }
         }
     }
@@ -658,3 +614,31 @@ internal fun settingsWithPlanGoals(current: Settings, plan: NutritionPlan, objec
         dailyFatGoal = plan.fatGoal.takeIf { it > 0 } ?: current.dailyFatGoal,
         calorieGoalObjective = objective,
     )
+
+/** Un día de la tira de «Tu día»: su fecha ISO, sus kcal registradas y su meta de kcal (null = sin meta). */
+data class NutritionWeekDay(
+    val date: String,
+    val kcal: Int,
+    val kcalGoal: Int?,
+    val isToday: Boolean,
+)
+
+/**
+ * Días seguidos con creatina registrada (sin lo planificado), hacia atrás desde [fromDate]. Si ese día aún no tiene creatina, la racha
+ * cuenta desde el día anterior: sigue viva hasta que acaba el día. 0 si no hay racha o la fecha no se lee.
+ */
+internal fun countCreatineStreak(logs: List<NutritionLog>, fromDate: String): Int {
+    val start = runCatching { LocalDate.parse(fromDate.take(10)) }.getOrNull() ?: return 0
+    val daysWithCreatine = logs
+        .asSequence()
+        .filter { it.status != NutritionStatus.PLANNED && it.foods.any { food -> food.creatineG > 0.0 } }
+        .map { it.date.take(10) }
+        .toSet()
+    var day = if (start.toString() in daysWithCreatine) start else start.minusDays(1)
+    var streak = 0
+    while (day.toString() in daysWithCreatine) {
+        streak++
+        day = day.minusDays(1)
+    }
+    return streak
+}

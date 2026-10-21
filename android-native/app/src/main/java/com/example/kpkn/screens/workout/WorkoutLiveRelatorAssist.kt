@@ -51,12 +51,16 @@ data class RelatorAssistAction(
     val weightKg: Double? = null,
     val restSeconds: Int? = null,
     val loadDeltaPercent: Double? = null,
+    val undoPreviousLoad: Boolean = false,
 )
 
 data class RelatorAssistAck(
     val kind: RelatorAssistActionKind,
     val applied: Boolean,
     val detail: String = "",
+    val appliedWeightKg: Double? = null,
+    val previousWeightKg: Double? = null,
+    val canUndoLoad: Boolean = false,
 )
 
 /**
@@ -384,7 +388,7 @@ private fun gapSupersetOffer(ctx: RelatorAssistContext): RelatorAssistOffer? {
     val shortName = shortAssistName(partner.name)
     return RelatorAssistOffer(
         kind = RelatorAssistKind.GAP_SUPERSET,
-        text = "En esta ronda falta $shortName. Ve a $shortName, o márcala omitida.",
+        text = "Ve a $shortName, que falta en esta ronda, o márcala omitida.",
         actions = listOf(
             RelatorAssistAction(
                 kind = RelatorAssistActionKind.JUMP_TO_SET,
@@ -483,9 +487,9 @@ private fun timeCrunchOffer(ctx: RelatorAssistContext): RelatorAssistOffer? {
         )
     }
     val text = if (ctx.ultraFastApplied) {
-        "Te quedan $minutes min. Convierte a dropsets, o reduce series a la mitad."
+        "Quedan $minutes\u00A0min. Convierte a dropsets o reduce series a la mitad."
     } else {
-        "Te quedan $minutes min. Prueba el modo Ultrarrápido, o Convierte a dropsets / reduce series a la mitad."
+        "Quedan $minutes\u00A0min. Convierte a dropsets, reduce series a la mitad o usa el modo Ultrarrápido."
     }
     return RelatorAssistOffer(
         kind = RelatorAssistKind.TIME,
@@ -508,7 +512,7 @@ private fun mobilityOffer(ctx: RelatorAssistContext): RelatorAssistOffer? {
     }
     return RelatorAssistOffer(
         kind = RelatorAssistKind.MOBILITY,
-        text = "Añade $span a la movilidad de {ex}, $why.",
+        text = "Añade $span a la movilidad, $why.",
         actions = listOf(
             RelatorAssistAction(
                 kind = RelatorAssistActionKind.ADD_MOBILITY,

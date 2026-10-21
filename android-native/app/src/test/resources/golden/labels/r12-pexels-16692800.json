@@ -1,0 +1,111 @@
+{
+  "id": "r12-pexels-16692800",
+  "durationS": 24.042,
+  "width": 720,
+  "height": 1280,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Dominada pronada estricta",
+  "exerciseDetail": "Dominadas pronadas estrictas en barra al aire libre",
+  "suggestedProfile": "PULL_VERTICAL",
+  "view": "BACK",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 6,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      6,
+      6
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.1,
+      "side": null,
+      "windowS": [
+        1.7,
+        2.5
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 5.6,
+      "side": null,
+      "windowS": [
+        5.2,
+        6.4
+      ]
+    },
+    {
+      "index": 3,
+      "turnaroundS": 9.8,
+      "side": null,
+      "windowS": [
+        9.2,
+        10.5
+      ]
+    },
+    {
+      "index": 4,
+      "turnaroundS": 14.0,
+      "side": null,
+      "windowS": [
+        13.5,
+        14.6
+      ]
+    },
+    {
+      "index": 5,
+      "turnaroundS": 18.4,
+      "side": null,
+      "windowS": [
+        17.9,
+        19.1
+      ]
+    },
+    {
+      "index": 6,
+      "turnaroundS": 22.6,
+      "side": null,
+      "windowS": [
+        22.0,
+        23.3
+      ]
+    }
+  ],
+  "activeWindowS": [
+    0.1,
+    23.9
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 24.0,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 6.ª dominada (top 22,6 s) el clip termina (24,0 s) con el atleta bajando, sin completar la extensión"
+    }
+  ],
+  "caveats": [
+    "el cielo nublado y brillante deja la silueta con buen contraste, pero la figura es relativamente pequeña (~250 px de ancho útil en 720)",
+    "ritmo con parada abajo de ~1 s (cuelga con los codos algo flexionados) y arriba de ~0,5 s"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": []
+}

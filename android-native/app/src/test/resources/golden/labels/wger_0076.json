@@ -1,0 +1,77 @@
+{
+  "id": "wger_0076",
+  "durationS": 10.2,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 30.0,
+  "usable": true,
+  "exercise": "Patada de tríceps con mancuerna a un brazo",
+  "exerciseDetail": "Patada de tríceps con mancuerna a un brazo, de pie con el tronco inclinado y la otra mano apoyada en un banco inclinado, vista lateral (mismo gimnasio y sujeto que 0075)",
+  "suggestedProfile": "TRICEPS_FLEXED_REST",
+  "view": "SIDE",
+  "people": 3,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 4,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      4,
+      4
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.0,
+      "side": "left"
+    },
+    {
+      "index": 2,
+      "turnaroundS": 3.1,
+      "side": "left"
+    },
+    {
+      "index": 3,
+      "turnaroundS": 5.4,
+      "side": "left"
+    },
+    {
+      "index": 4,
+      "turnaroundS": 7.7,
+      "side": "left"
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    9.0
+  ],
+  "frameIntervalS": {
+    "min": 0.0333,
+    "median": 0.0333,
+    "max": 0.0333
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 9.6,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 4.ª extensión (7,7 s) baja la mancuerna y desde ~9,6 s la cámara de mano se mueve hacia arriba: el clip termina a los 10,2 s"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-9,0 s: recorrido acumulado p2p 2,2% en x y 4,5% en y, escala 1,00-1,01, velocidad media 1,23 %/s (máx. 2,1% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre el fondo, zona del sujeto excluida en 0,0-9,0 s: recorrido acumulado p2p 2,2% en x y 4,5% en y, escala 1,00-1,01, velocidad media 1,23 %/s (máx. 2,1% en 1 s)",
+    "varias personas: 3 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)"
+  ]
+}

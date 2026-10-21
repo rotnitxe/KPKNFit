@@ -38,7 +38,6 @@ import com.example.kpkn.domain.nutrition.withCalories
 import com.example.kpkn.domain.nutrition.withMacro
 import com.example.kpkn.domain.nutrition.withProvenance
 import com.example.kpkn.domain.nutrition.NutritionEditorDayTarget
-import com.example.kpkn.domain.nutrition.NutritionDistributionStatus
 import com.example.kpkn.domain.nutrition.WEEKLY_FORECAST_KEY
 import com.example.kpkn.domain.nutrition.NutritionTrainingCalendarAdapter
 import com.example.kpkn.domain.nutrition.NutritionTrainingCalendarInput
@@ -81,9 +80,6 @@ data class NutritionPlanEditorUiState(
     val isDirty: Boolean = false,
     val isSaving: Boolean = false,
     val isSaved: Boolean = false,
-    val savedPlanId: String? = null,
-    /** Estado explícito del reparto semanal vigente ([NutritionDayDistribution]). */
-    val distributionStatus: NutritionDistributionStatus? = null,
     /**
      * Calorías que ya tiene FIJADAS hoy el plan que se edita; null si hoy aún no
      * está fijado. Con valor, lo que se guarde en este plan vale desde mañana (la
@@ -92,6 +88,8 @@ data class NutritionPlanEditorUiState(
     val todayGoalFixedKcal: Int? = null,
     /** Identificador de idempotencia de la operación de edición en curso. */
     val activeCommitId: String? = null,
+    /** Base del plan tal como se cargó (null si es un plan nuevo): el «antes» del cambio que muestra «Guardar». */
+    val originalBase: NutritionEditorBase? = null,
 )
 
 /**
@@ -186,6 +184,7 @@ class NutritionPlanEditorViewModel(
                 it.copy(
                     isLoading = false,
                     draft = draft,
+                    originalBase = draft.base.takeIf { draft.planId != null },
                 )
             }
             refreshCalendarExpenditures()
@@ -271,21 +270,20 @@ class NutritionPlanEditorViewModel(
         viewModelScope.launch {
             val outcome = withContext(Dispatchers.IO) { runCatching { commit(draft, commitId) } }
             outcome.fold(
-                onSuccess = { result ->
+                onSuccess = { _ ->
                     _uiState.update {
                         it.copy(
                             isSaving = false,
                             isSaved = true,
-                            savedPlanId = result.planId,
                             errors = emptyMap(),
                         )
                     }
                 },
-                onFailure = { error ->
+                onFailure = { _ ->
                     _uiState.update {
                         it.copy(
                             isSaving = false,
-                            errors = it.errors + ("commit" to (error.message ?: "No se pudo guardar el plan")),
+                            errors = it.errors + ("commit" to "No se pudo guardar el plan. Inténtalo de nuevo."),
                         )
                     }
                 },
@@ -433,7 +431,6 @@ class NutritionPlanEditorViewModel(
                 recommendation = recommendation,
                 base = base,
                 weeklyTargets = targets,
-                distributionStatus = distribution?.status,
                 todayGoalFixedKcal = fixedEvidence[today]?.calorieTargetKcal
                     ?.takeIf { draft.mode == NutritionPlanEditorMode.ACTIVE_PLAN },
                 errors = if (it.errors.containsKey("commit")) it.errors else editorErrorsOf(draft, base),

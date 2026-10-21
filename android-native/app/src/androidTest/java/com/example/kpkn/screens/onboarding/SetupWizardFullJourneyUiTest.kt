@@ -833,7 +833,9 @@ class SetupWizardFullJourneyUiTest {
                     SetupStepId.NUTRITION_WEIGH_INS,
                 ) { clickOption(SetupStepId.NUTRITION_DISTRIBUTION, "Uniforme todos los días") }
                 answerAndContinue(SetupStepId.NUTRITION_WEIGH_INS, SetupStepId.NUTRITION_RESULT) {
-                    clickOption(SetupStepId.NUTRITION_WEIGH_INS, "No añadir pesajes")
+                    val before = vm.state.value.draft.revision
+                    composeRule.onNodeWithTag("setup-dock-secondary").performClick()
+                    awaitState("«Omitir» de los pesajes persistido") { it.draft.revision > before }
                 }
                 awaitNutritionPrepared()
                 val manual = checkNotNull(vm.state.value.nutritionPlanPreview) { "plan manual preparado" }
@@ -875,7 +877,9 @@ class SetupWizardFullJourneyUiTest {
                     SetupStepId.NUTRITION_WEIGH_INS,
                 ) { clickOption(SetupStepId.NUTRITION_DISTRIBUTION, "Uniforme todos los días") }
                 answerAndContinue(SetupStepId.NUTRITION_WEIGH_INS, SetupStepId.NUTRITION_RESULT) {
-                    clickOption(SetupStepId.NUTRITION_WEIGH_INS, "No añadir pesajes")
+                    val before = vm.state.value.draft.revision
+                    composeRule.onNodeWithTag("setup-dock-secondary").performClick()
+                    awaitState("«Omitir» de los pesajes persistido") { it.draft.revision > before }
                 }
                 awaitNutritionPrepared()
                 // La recomendación automática exige ≥19 años (edad 30), sexo de

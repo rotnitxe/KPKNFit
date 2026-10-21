@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.testsupport.SyncRoomExecutor
 import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
@@ -97,6 +98,7 @@ class EntrenoDeclarationEffectTest {
 
     @Before
     fun setUp() {
+        SyncRoomExecutor.install()
         Dispatchers.setMain(dispatcher)
         app = ApplicationProvider.getApplicationContext()
         ProgramRepository.closeInstance()
@@ -113,6 +115,7 @@ class EntrenoDeclarationEffectTest {
         NutritionRepository.closeInstance()
         KpknDatabase.closeInstance()
         Dispatchers.resetMain()
+        SyncRoomExecutor.uninstall()
     }
 
     // ═════════════════════════════════════════════════════════════════════════════════════════

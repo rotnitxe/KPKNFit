@@ -63,7 +63,7 @@ object MacroValidator {
             if (input.carbs > 0 && range.carbsMax > 0) {
                 val deviation = calculateDeviation(input.carbs, range.carbsMin, range.carbsMax)
                 if (deviation > 0.5) {
-                    warnings.add("Carbohidratos fuera de rango esperado (${range.carbsMin.toInt()}-${range.carbsMax.toInt()}g)")
+                    warnings.add("Hidratos fuera de rango esperado (${range.carbsMin.toInt()}-${range.carbsMax.toInt()}g)")
                 }
             }
 
@@ -87,7 +87,7 @@ object MacroValidator {
             wasAdjusted = true
         }
         if (input.carbs > 800) {
-            warnings.add("Carbohidratos extremadamente altos (>800g)")
+            warnings.add("Hidratos extremadamente altos (>800g)")
             adjustedCarbs = 800.0
             wasAdjusted = true
         }

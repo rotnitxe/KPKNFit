@@ -1,0 +1,76 @@
+{
+  "id": "wger_0005",
+  "durationS": 13.217,
+  "width": 640,
+  "height": 360,
+  "rotation": 0,
+  "fpsNominal": 60.0,
+  "fpsMeasured": 60.0,
+  "usable": true,
+  "exercise": "Elevación lateral a un brazo en polea",
+  "exerciseDetail": "Elevación lateral a un brazo en polea baja (el brazo derecho del sujeto sube desde delante del muslo hasta la horizontal), de pie frente a la cámara",
+  "suggestedProfile": "RAISE",
+  "view": "OBLIQUE",
+  "people": 4,
+  "fullBodyVisible": false,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 5,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      5,
+      5
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.1,
+      "side": "right"
+    },
+    {
+      "index": 2,
+      "turnaroundS": 4.5,
+      "side": "right"
+    },
+    {
+      "index": 3,
+      "turnaroundS": 7.0,
+      "side": "right"
+    },
+    {
+      "index": 4,
+      "turnaroundS": 9.4,
+      "side": "right"
+    },
+    {
+      "index": 5,
+      "turnaroundS": 11.8,
+      "side": "right"
+    }
+  ],
+  "activeWindowS": [
+    0.8,
+    12.5
+  ],
+  "frameIntervalS": {
+    "min": 0.0167,
+    "median": 0.0167,
+    "max": 0.0167
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "SLOW_DRIFT",
+    "note": "deriva suave de mano. Medido con ORB+RANSAC sobre franja superior, franja izquierda y franja inferior (sin el sujeto ni las personas del centro) en 0,8-12,5 s: recorrido acumulado p2p 7,7% en x y 7,9% en y, escala 0,94-1,05, velocidad media 1,84 %/s (máx. 3,3% en 1 s)"
+  },
+  "softWarnings": [
+    "cámara con deriva lenta: deriva suave de mano. Medido con ORB+RANSAC sobre franja superior, franja izquierda y franja inferior (sin el sujeto ni las personas del centro) en 0,8-12,5 s: recorrido acumulado p2p 7,7% en x y 7,9% en y, escala 0,94-1,05, velocidad media 1,84 %/s (máx. 3,3% en 1 s)",
+    "varias personas: 4 distinguibles (el sujeto domina el encuadre; las demás son pequeñas o están al fondo)"
+  ]
+}

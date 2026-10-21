@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Etiquetas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Syne:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2EEE6}a:hover{color:#ffffff}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #000000; color: #F2EEE6; font-family: Inter, sans-serif; position: relative; overflow: hidden;">
+  <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.55);"></div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #0E0E0E; border-top-left-radius: 28px; border-top-right-radius: 28px; border-top: 1px solid rgba(242,238,230,0.08); padding: 10px 16px 24px 16px; display: flex; flex-direction: column; gap: 16px;">
+    <div style="align-self: center; width: 36px; height: 4px; border-radius: 2px; background: rgba(242,238,230,0.22);"></div>
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="font-family: Syne, sans-serif; font-weight: 700; font-size: 20px;">Etiquetas</div>
+      <button style="height: 32px; padding: 0 14px; border-radius: 16px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600;">Listo</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 18px; background: #000000;">
+      <button style="height: 30px; border-radius: 15px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Esta serie</button>
+      <button style="height: 30px; border-radius: 15px; border: none; background: transparent; color: rgba(242,238,230,0.62); font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Ejercicio</button>
+      <button style="height: 30px; border-radius: 15px; border: none; background: transparent; color: rgba(242,238,230,0.62); font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;">Sesión</button>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <button style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid #F2EEE6; background: rgba(242,238,230,0.08); color: #F2EEE6; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 4px; background: #F49A6E;"></span>Pesado hoy<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></button>
+      <button style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid rgba(242,238,230,0.12); background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 13px; display: flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 4px; background: #43D18C;"></span>Técnica limpia</button>
+      <button style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid rgba(242,238,230,0.12); background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 13px; display: flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 4px; background: #EF6F64;"></span>Molestia rodilla</button>
+      <button style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid rgba(242,238,230,0.12); background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 13px; display: flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 4px; background: #C9B8FF;"></span>Poco sueño</button>
+      <button style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid rgba(242,238,230,0.12); background: transparent; color: #F2EEE6; font-family: Inter, sans-serif; font-size: 13px; display: flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 4px; background: #8FB2FF;"></span>Con compañero</button>
+    </div>
+
+    <div style="border-radius: 20px; background: #161616; padding: 10px; display: flex; flex-direction: column; gap: 10px;">
+      <label style="display: flex; align-items: center; gap: 8px;">
+        <span style="position: absolute; left: -9999px;">Nombre de la etiqueta nueva</span>
+        <input type="text" placeholder="Nueva etiqueta" style="flex: 1; height: 38px; border-radius: 19px; border: 1px solid rgba(242,238,230,0.10); background: #0B0B0B; color: #F2EEE6; padding: 0 14px; font-family: Inter, sans-serif; font-size: 14px;">
+        <button style="height: 38px; padding: 0 14px; border-radius: 19px; border: none; background: #F2EEE6; color: #0B0B0B; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600;">Crear</button>
+      </label>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 12px; color: rgba(242,238,230,0.55);">Color</span>
+        <button aria-label="Color melocotón" style="width: 22px; height: 22px; border-radius: 11px; border: 2px solid #F2EEE6; background: #F49A6E; padding: 0;"></button>
+        <button aria-label="Color amarillo" style="width: 22px; height: 22px; border-radius: 11px; border: none; background: #F7CF73; padding: 0;"></button>
+        <button aria-label="Color azul" style="width: 22px; height: 22px; border-radius: 11px; border: none; background: #8FB2FF; padding: 0;"></button>
+        <button aria-label="Color lila" style="width: 22px; height: 22px; border-radius: 11px; border: none; background: #C9B8FF; padding: 0;"></button>
+        <button aria-label="Color verde" style="width: 22px; height: 22px; border-radius: 11px; border: none; background: #43D18C; padding: 0;"></button>
+      </div>
+    </div>
+
+    <div style="font-size: 12px; color: rgba(242,238,230,0.45);">Las etiquetas aparecen en el historial del ejercicio y filtran tus marcas.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

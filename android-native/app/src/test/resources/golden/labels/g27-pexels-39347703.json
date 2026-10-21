@@ -1,0 +1,106 @@
+{
+  "id": "g27-pexels-39347703",
+  "durationS": 24.48,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Hiperextensión con disco",
+  "exerciseDetail": "Hiperextensión (extensión de espalda) en banco a 45° con un disco olímpico sostenido con las manos: baja el torso hasta casi el suelo y sube hasta ~45-60° sobre la horizontal; 6 repeticiones con carga de ~1,9 s",
+  "suggestedProfile": "BACK_EXTENSION",
+  "view": "OBLIQUE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 6,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      6,
+      7
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 5.9,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 7.7,
+      "side": null
+    },
+    {
+      "index": 3,
+      "turnaroundS": 9.4,
+      "side": null
+    },
+    {
+      "index": 4,
+      "turnaroundS": 11.2,
+      "side": null
+    },
+    {
+      "index": 5,
+      "turnaroundS": 13.1,
+      "side": null
+    },
+    {
+      "index": 6,
+      "turnaroundS": 15.1,
+      "side": null
+    },
+    {
+      "index": 7,
+      "turnaroundS": 17.0,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    5.0,
+    17.0
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "BOTTOM",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "EMPTY_SCENE",
+      "description": "0-3,0 s: la máquina vacía; 21,0-24,5 s: escena vacía otra vez (se puede usar como cola de falsos positivos)"
+    },
+    {
+      "timeS": 3.0,
+      "kind": "SETUP",
+      "description": "3,0-5,2 s: entra, se sube a la máquina y se coloca (torso erguido a 4,6 s); baja a coger el disco del suelo en 5,2-5,9 s"
+    },
+    {
+      "timeS": 17.0,
+      "kind": "TRANSITION",
+      "description": "17,0-18,2 s: deja el disco en el suelo y sube sin carga (último ascenso a 18,0 s); no se cuenta (un contador que cuente toda subida marcaría 7); 18,2-20,5 s se baja de la máquina y sale del encuadre"
+    }
+  ],
+  "caveats": [
+    "el atleta es pequeño (~35% de la altura del encuadre), queda parcialmente en sombra con haces de luz que lo atraviesan y no se le ve la cara",
+    "el 7.º ascenso (17,4-18,0 s) es sin carga y sirve para bajarse de la máquina: rango aceptable 6-7",
+    "escena vacía de 0 a 3,0 s y de 21 a 24,5 s",
+    "plano cinematográfico oscuro (etiquetas «Dark Gym/Gym Aesthetic») pero con cámara fija"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija (deriva <0,5%) pese al plano cinematográfico oscuro con haces de luz"
+  },
+  "softWarnings": [
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 6-7 (ver edgeEvents)"
+  ]
+}

@@ -9,12 +9,14 @@ import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.models.NutritionTrackingChoice
 import com.example.kpkn.data.models.Settings
+import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -37,6 +39,9 @@ import java.time.ZonedDateTime
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = Application::class)
 class NutritionReminderSchedulingTest {
+
+    @get:Rule
+    val roomRule = RoomTestRule()
 
     private val context: Context get() = ApplicationProvider.getApplicationContext()
     private lateinit var db: KpknDatabase

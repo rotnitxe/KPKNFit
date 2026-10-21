@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.multisport.games.GameSportEngineTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-20T04:06:58.187Z" hostname="VF" time="0.037">
+  <properties/>
+  <testcase name="snapshotsAndPayloadJsonRoundTripThroughRegistry" classname="com.example.kpkn.domain.multisport.games.GameSportEngineTest" time="0.015"/>
+  <testcase name="completedPartialRetiredAndWalkoverRemainDistinctStates" classname="com.example.kpkn.domain.multisport.games.GameSportEngineTest" time="0.003"/>
+  <testcase name="teamIntervalsRejectOverlapAndOnlyCompleteCaptureProducesTime" classname="com.example.kpkn.domain.multisport.games.GameSportEngineTest" time="0.008"/>
+  <testcase name="comparisonRequiresMatchingContextAndFormatSnapshots" classname="com.example.kpkn.domain.multisport.games.GameSportEngineTest" time="0.0"/>
+  <testcase name="teamRpeMustBeFiniteAndSourceAndSnapshotAreRequired" classname="com.example.kpkn.domain.multisport.games.GameSportEngineTest" time="0.0"/>
+  <testcase name="unknownClockOrPauseCaptureDoesNotInventActivePlayingTime" classname="com.example.kpkn.domain.multisport.games.GameSportEngineTest" time="0.001"/>
+  <testcase name="pointSequenceDerivesServeAndBreakpointOnlyFromCompleteExplicitEvidence" classname="com.example.kpkn.domain.multisport.games.GameSportEngineTest" time="0.004"/>
+  <testcase name="tennisAndPadelAcceptExplicitNonDefaultFormatsAndEnforceEnvelopeSport" classname="com.example.kpkn.domain.multisport.games.GameSportEngineTest" time="0.001"/>
+  <testcase name="racketAndTeamObservationsHaveTheirOwnPurposeContracts" classname="com.example.kpkn.domain.multisport.games.GameSportEngineTest" time="0.003"/>
+  <testcase name="servePercentagesNeedExplicitKnownDenominatorsAndValidCounts" classname="com.example.kpkn.domain.multisport.games.GameSportEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

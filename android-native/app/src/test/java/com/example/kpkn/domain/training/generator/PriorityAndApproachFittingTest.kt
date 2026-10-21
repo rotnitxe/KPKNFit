@@ -122,7 +122,7 @@ class PriorityAndApproachFittingTest {
     @Test
     fun when_time_cannot_hold_the_priority_the_routine_says_so_and_never_cuts_a_set_the_priority_still_has_to_spare() {
         // 30 min por sesión con cuatro prioridades: no caben todas las series que piden; lo que se recorta lo dice una nota.
-        val priorities = listOf(MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.BICEPS)
+        val priorities = listOf(MuscleSymbol.CHEST, MuscleSymbol.BACK, MuscleSymbol.SHOULDERS, MuscleSymbol.ARMS)
         val routine = RoutineGenerator.generate(
             s.request(s.gym, RoutineMode.GENERAL_STRENGTH_MUSCLE, RoutineLevel.INTERMEDIATE, 4, 30, priorities = priorities),
         )

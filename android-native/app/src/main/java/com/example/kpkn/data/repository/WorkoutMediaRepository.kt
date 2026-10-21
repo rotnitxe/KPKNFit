@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.system.Os
+import android.util.Log
 import android.annotation.TargetApi
 import android.content.Intent
 import androidx.room.withTransaction
@@ -24,10 +25,14 @@ import com.example.kpkn.data.media.WorkoutMediaLegacyImporter
 import com.example.kpkn.data.media.WorkoutMediaStore
 import com.example.kpkn.data.media.WorkoutMediaThumbnailer
 import com.example.kpkn.data.media.PoseTrajectoryAnalysis
+import com.example.kpkn.data.media.technique.AnalysisMode
+import com.example.kpkn.data.media.technique.TechniqueSidecars
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.SessionMilestone
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
+import com.example.kpkn.data.work.TechniqueAnalysisScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
@@ -71,6 +76,10 @@ class WorkoutMediaRepository(
     }
     private val captureJournal: WorkoutMediaCaptureJournal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         WorkoutMediaCaptureJournal(appContext.filesDir)
+    }
+    /** El análisis de técnica en vídeo sobre la misma base y el mismo almacén que este repositorio. */
+    private val analysis: VideoAnalysisRepository by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        VideoAnalysisRepository.forDatabase(appContext, db, this@WorkoutMediaRepository.store)
     }
     private val inFlightLock = Any()
     private val inFlight = mutableMapOf<String, Deferred<WorkoutMedia?>>()
@@ -447,6 +456,32 @@ class WorkoutMediaRepository(
         db.workoutMediaDao().getByCanonicalExerciseId(canonicalExerciseId).map { it.toWorkoutMedia() }
     }
 
+    /**
+     * Álbum de un ejercicio (LV8): los medios de ese ejercicio ENTRE sesiones, por todas las claves con las que se pudo guardar
+     * (`canonicalExerciseId`: la canónica, la del catálogo o el id del ejercicio), sin repetir y del más reciente al más antiguo.
+     */
+    suspend fun listForExerciseKeys(keys: List<String>): List<WorkoutMedia> = withContext(Dispatchers.IO) {
+        keys.map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .flatMap { key -> listForExercise(key) }
+            .distinctBy { it.id }
+            .sortedByDescending { it.createdAtMs }
+    }
+
+    /** Lee el esfuerzo desde el log asociado a cada medio, sin duplicar consultas por sesión. */
+    suspend fun effortLabelsForMedia(items: List<WorkoutMedia>): Map<String, String> = withContext(Dispatchers.IO) {
+        val associations = items.mapNotNull { it.sessionKey }.distinct().associateWith { key ->
+            db.workoutMediaSessionAssociationDao().getBySessionKey(key)?.workoutLogId
+        }
+        val logIds = items.associate { item -> item.id to (associations[item.sessionKey] ?: item.workoutLogId) }
+        val logs = logIds.values.filterNotNull().distinct().associateWith { id -> db.workoutLogDao().getById(id)?.toWorkoutLog() }
+        items.mapNotNull { item ->
+            val log = logs[logIds[item.id]] ?: return@mapNotNull null
+            com.example.kpkn.data.media.ExerciseAlbumModel.effortForLog(item, log)?.let { item.id to it }
+        }.toMap()
+    }
+
     suspend fun prHighlights(fromMs: Long, toMs: Long): List<WorkoutMedia> = withContext(Dispatchers.IO) {
         db.workoutMediaDao().getPrHighlights(fromMs, toMs).map { it.toWorkoutMedia() }
     }
@@ -475,6 +510,87 @@ class WorkoutMediaRepository(
         WorkoutMediaPrFlags.idsToMark(media, completedSets, milestones).forEach { id ->
             db.workoutMediaDao().setPr(id, true)
         }
+    }
+
+    // Actualizaciones dirigidas (v29): cambian solo sus columnas. Nunca `upsert(media.copy(...))` ni REPLACE para esto: la
+    // lectura-modificación-escritura de la fila entera pisa lo que otro escritor cambió entre medias, y REPLACE borraría la
+    // fila y, por la cascada, su análisis de técnica.
+
+    /** Guarda (o quita, con `null`) la ruta de la traza de pose del medio. `false` si el medio ya no existe. */
+    suspend fun setPoseTrackPath(id: String, path: String?): Boolean = withContext(Dispatchers.IO) {
+        db.workoutMediaDao().setPoseTrackPath(id, path) > 0
+    }
+
+    /** Las repeticiones y los kg de la serie del medio (su «foto» al grabar). `false` si el medio ya no existe. */
+    suspend fun setSetSnapshot(id: String, reps: Int?, weightKg: Double?): Boolean = withContext(Dispatchers.IO) {
+        db.workoutMediaDao().setSetSnapshot(id, reps, weightKg) > 0
+    }
+
+    /**
+     * Pone al día las repeticiones y los kg de los VÍDEOS de la sesión con las series ya registradas (`completedSets`,
+     * con las claves de `workoutSetKey`), por ejemplo tras «Corregir N reps». El lado del vídeo es «left», «right» o `null`.
+     *
+     * Solo cambia un vídeo cuando su serie está registrada y trae un dato distinto: una serie omitida o sin repeticiones
+     * o sin carga (peso corporal) deja intacta la «foto» que ya tenía el vídeo. Cero completas con parciales positivas
+     * sí actualiza las reps de una serie REPS. Devuelve cuántos vídeos cambiaron.
+     */
+    suspend fun syncSetSnapshots(sessionKey: String, completedSets: Map<String, CompletedSet>): Int =
+        withContext(Dispatchers.IO) {
+            if (sessionKey.isBlank() || completedSets.isEmpty()) return@withContext 0
+            db.withTransaction {
+                val dao = db.workoutMediaDao()
+                var updated = 0
+                for (row in dao.getBySessionKey(sessionKey)) {
+                    if (row.kind != WorkoutMediaKind.VIDEO.name) continue
+                    val exerciseId = row.exerciseId?.takeIf { it.isNotBlank() } ?: continue
+                    val setIndex = row.setIndex ?: continue
+                    val set = lookupCompletedSet(completedSets, exerciseId, setIndex, row.side) ?: continue
+                    if (set.skipped) continue
+                    val isRepSet = set.recordedPayloadV3?.unitMode?.let { it == UnitModeV2.REPS }
+                        ?: (set.timeSeconds == null && set.distanceKm == null)
+                    val partialOnly = isRepSet && set.reps == 0 && (set.partialReps ?: 0) > 0
+                    val reps = set.reps.takeIf { it > 0 || partialOnly } ?: row.reps
+                    val weightKg = set.weight.takeIf { it > 0.0 } ?: row.weightKg
+                    if (reps == row.reps && weightKg == row.weightKg) continue
+                    updated += dao.setSetSnapshot(row.id, reps, weightKg)
+                }
+                updated
+            }
+        }
+
+    /**
+     * Asigna el ejercicio (y su definición y configuración del catálogo) a un medio, p. ej. a un vídeo de la galería.
+     * No toca su fila de análisis: quien reasigna un vídeo ya analizado debe pedir un RECOMPUTE para que el informe se
+     * mida con el perfil del ejercicio nuevo. `false` si el medio ya no existe.
+     */
+    suspend fun assignExercise(
+        mediaId: String,
+        exerciseId: String?,
+        canonicalExerciseId: String?,
+        exerciseName: String?,
+        catalogDefinitionId: String?,
+        catalogConfigurationId: String?,
+    ): Boolean = withContext(Dispatchers.IO) {
+        db.workoutMediaDao().setExerciseAssignment(
+            id = mediaId,
+            exerciseId = exerciseId?.takeIf { it.isNotBlank() },
+            canonicalExerciseId = canonicalExerciseId?.takeIf { it.isNotBlank() },
+            exerciseName = exerciseName?.trim()?.takeIf { it.isNotEmpty() },
+            definitionId = catalogDefinitionId?.takeIf { it.isNotBlank() },
+            configurationId = catalogConfigurationId?.takeIf { it.isNotBlank() },
+        ) > 0
+    }
+
+    /** La serie registrada de un vídeo: con su lado, y si no, la clave sin lado (igual que las marcas de PR). */
+    private fun lookupCompletedSet(
+        completedSets: Map<String, CompletedSet>,
+        exerciseId: String,
+        setIndex: Int,
+        side: String?,
+    ): CompletedSet? {
+        completedSets[WorkoutMediaPrFlags.completedSetKey(exerciseId, setIndex, side)]?.let { return it }
+        if (side.isNullOrBlank()) return null
+        return completedSets[WorkoutMediaPrFlags.completedSetKey(exerciseId, setIndex, null)]
     }
 
     suspend fun ingestFile(
@@ -534,7 +650,7 @@ class WorkoutMediaRepository(
             val attempt = MediaPersistenceOwner.reserveAttempt(id)
             lateinit var deferred: Deferred<WorkoutMedia?>
             deferred = MediaPersistenceOwner.scope.async(start = CoroutineStart.LAZY) {
-                try {
+                val saved = try {
                     work().also { MediaPersistenceOwner.clearPendingIfCurrent(id, attempt) }
                 } catch (cancelled: CancellationException) {
                     publishCaptureFailure(entry, failureMessage, attempt)
@@ -547,6 +663,9 @@ class WorkoutMediaRepository(
                         if (inFlight[id] === deferred) inFlight.remove(id)
                     }
                 }
+                // Fuera del try: encolar el análisis nunca convierte una captura ya guardada en un fallo de captura.
+                if (saved != null) scheduleTechniqueAnalysis(saved, imported = entry.sourceUri != null)
+                saved
             }
             inFlight[id] = deferred
             deferred.start()
@@ -566,6 +685,42 @@ class WorkoutMediaRepository(
         val durableEntry = runCatching { captureJournal.read(entry.media.id) }.getOrNull() ?: entry
         MediaPersistenceOwner.recordFailureIfCurrent(entry.media.id, attempt, durableEntry, failureMessage)
     }
+
+    /**
+     * Encola el análisis de técnica AUTOMÁTICO (FULL, urgente: el usuario espera el resultado) de un VÍDEO recién guardado: lo
+     * graba la cámara (`submitFinalizedVideoCapture`) o llega de la galería (`submitUriCapture`), y los dos pasan por
+     * `enqueueTracked`.
+     *
+     * Solo si el ajuste «Analizar la técnica de los vídeos» está activo, el vídeo es de un ejercicio (un vídeo suelto, sin
+     * ejercicio, no tiene nada que medir) y aún no tiene análisis: es idempotente, así que reintentar o recuperar una captura
+     * ya guardada no lo repite. No es una petición explícita: si el ajuste se apaga antes de que corra, el Worker lo descarta y
+     * deja la fila como estaría sin él (la borra, o la rehace desde su sidecar). Nada de lo que falle aquí rompe el guardado: se
+     * anota y se sigue.
+     */
+    private suspend fun scheduleTechniqueAnalysis(media: WorkoutMedia, imported: Boolean) {
+        if (media.kind != WorkoutMediaKind.VIDEO || !media.hasExerciseContext()) return
+        try {
+            if (!analysis.readSettings().techniqueVideo.analyzeVideos) return
+            if (db.videoAnalysisDao().getByMedia(media.id) != null) return
+            TechniqueAnalysisScheduler.enqueue(
+                appContext,
+                media.id,
+                AnalysisMode.FULL,
+                userInitiated = true,
+                imported = imported,
+                explicit = false,
+                repository = analysis,
+            )
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            Log.w(TAG, "No se pudo encolar el análisis de técnica de ${media.id}.", error)
+        }
+    }
+
+    private fun WorkoutMedia.hasExerciseContext(): Boolean =
+        listOf(exerciseId, canonicalExerciseId, catalogDefinitionId, catalogConfigurationId, exerciseName)
+            .any { !it.isNullOrBlank() }
 
     private suspend fun persistJournalEntry(entry: WorkoutMediaCaptureJournalEntry): WorkoutMedia {
         check(entry.readyToIngest) { "La captura todavía no terminó." }
@@ -932,18 +1087,50 @@ class WorkoutMediaRepository(
         else -> "No se pudo guardar la foto. Podés reintentar."
     }
 
-    suspend fun delete(id: String) = withContext(Dispatchers.IO) {
-        val existing = db.workoutMediaDao().getById(id)
-        db.workoutMediaDao().delete(id)
-        existing?.filePath?.let { store.deleteManaged(it) }
-        existing?.thumbPath?.let { store.deleteManaged(it) }
-        existing?.poseTrackPath?.let { store.deleteManaged(it) }
-        existing?.filePath?.let { path ->
-            store.deleteManaged(PoseTrajectoryAnalysis.sidecarFile(File(path)).absolutePath)
+    /** El álbum general conserva el borrado aceptado aunque se cierre la hoja o el ViewModel de la sesión. */
+    fun deleteAlbumMediaAsync(items: List<WorkoutMedia>): Deferred<Unit> = MediaPersistenceOwner.scope.async {
+        items.forEach { delete(it.id) }
+    }
+
+    /**
+     * Borra el medio, su fila de análisis de técnica y todos sus archivos: el vídeo, la miniatura, la traza de pose y
+     * los sidecars del análisis (`pose2`, `bar`, `analysis`, `capture`, `part` y sus temporales).
+     *
+     * El análisis se borra de forma explícita y ANTES que el medio, en la misma transacción: la cascada lo haría igual,
+     * pero así no depende de que las claves foráneas estén activas. Las filas van antes que los archivos: un corte a
+     * medias deja archivos huérfanos (que `reconcile()` limpia), nunca un medio que apunta a un archivo que ya no está.
+     */
+    suspend fun delete(id: String) {
+        withContext(Dispatchers.IO) {
+            // Antes de borrar nada: un análisis en curso no debe volver a escribir sidecars de un medio que se va.
+            cancelTechniqueAnalysis(id)
+            val existing = db.workoutMediaDao().getById(id)
+            db.withTransaction {
+                db.videoAnalysisDao().delete(id)
+                db.workoutMediaDao().delete(id)
+            }
+            existing?.filePath?.let { store.deleteManaged(it) }
+            existing?.thumbPath?.let { store.deleteManaged(it) }
+            existing?.poseTrackPath?.let { store.deleteManaged(it) }
+            existing?.filePath?.let { path ->
+                val video = File(path)
+                store.deleteManaged(PoseTrajectoryAnalysis.sidecarFile(video).absolutePath)
+                TechniqueSidecars.deleteAll(video, store::isManagedPath)
+            }
+        }
+    }
+
+    private fun cancelTechniqueAnalysis(id: String) {
+        try {
+            TechniqueAnalysisScheduler.cancel(appContext, id)
+        } catch (error: Exception) {
+            // Borrar un medio no depende de que la cola esté lista.
+            Log.w(TAG, "No se pudo cancelar el análisis de técnica de $id.", error)
         }
     }
 
     companion object {
+        private const val TAG = "WorkoutMediaRepo"
         private val VIDEO_EXTENSIONS = setOf("mp4", "webm", "mov", "m4v", "3gp")
         private val TEMPORARY_EXTENSIONS = setOf("pending", "capturing", "tmp", "part")
         private val PHOTO_EXTENSIONS = setOf(

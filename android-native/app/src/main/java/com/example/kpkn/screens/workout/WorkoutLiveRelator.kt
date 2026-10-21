@@ -7,9 +7,7 @@ import com.example.kpkn.domain.concepts.RelatorConceptCue
 import com.example.kpkn.domain.concepts.RelatorConceptSignals
 import com.example.kpkn.domain.concepts.pickRelatorConceptCue
 
-internal const val RELATOR_MAX_LINE_CHARS = 140 // two-line visual budget; UI wraps, copy keeps the name
-internal const val RELATOR_DEBOUNCE_MS = 400L
-internal const val RELATOR_IDLE_ROTATE_MS = 28_000L
+internal const val RELATOR_MAX_LINE_CHARS = 90 // una idea por frase, como mucho 90 caracteres (LR1g)
 internal const val RELATOR_ASSIST_CONFIRM_MS = 3_500L
 
 internal enum class RelatorPhase {
@@ -188,6 +186,7 @@ internal data class RelatorResolution(
     val fingerprint: String? = null,
     val spokenConceptId: String? = null,
     val topic: String? = null,
+    val silentAnimation: RelatorSilentAnimation = RelatorSilentAnimation.NONE,
 )
 
 internal object WorkoutLiveRelator {
@@ -447,6 +446,12 @@ private fun line(
         voice,
         mustKeep = actions.map { it.clickableSpan() },
     )
+    val silent = when {
+        rendered.isBlank() && snapshot.phase == RelatorPhase.REST -> RelatorSilentAnimation.REST_BREATHING
+        snapshot.shouldSpeakPr() && snapshot.prHint?.isStar == true -> RelatorSilentAnimation.RECORD_CELEBRATION
+        snapshot.phase == RelatorPhase.WARMUP && snapshot.setIndex == 0 && snapshot.warmupCount == 0 -> RelatorSilentAnimation.PREPARATION_SQUAT
+        else -> RelatorSilentAnimation.NONE
+    }
     return RelatorResolution(
         text = rendered,
         holdPrevious = false,
@@ -454,6 +459,7 @@ private fun line(
         actions = actions,
         fingerprint = fingerprint,
         spokenConceptId = spokenConceptId,
+        silentAnimation = silent,
     )
 }
 

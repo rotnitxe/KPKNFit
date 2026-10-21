@@ -29,13 +29,15 @@ internal fun ImportReview(
     onEdit: (ImportEditOp) -> Unit,
     onShowWarnings: () -> Unit,
     onRestart: () -> Unit,
+    /** Sin ningún día de entrenamiento elegido (solo en la app): la revisión lo pide y el programa no se guarda. */
+    weekdaysMissing: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier.fillMaxWidth().testTag("import-review"),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        if (issues.isEmpty()) {
+        if (issues.isEmpty() && !weekdaysMissing) {
             Text(importReadyLine(imported), style = WizardTypography.controlLabel, color = SymbolPalette.ok)
         } else {
             Text("Falta revisar", style = WizardTypography.controlLabel, color = WizardColors.text)
@@ -44,6 +46,14 @@ internal fun ImportReview(
                     Text(importIssueLine(issue, imported), style = WizardTypography.bodySmall, color = WizardColors.text)
                     ReviewAction(issue = issue, onOpenExercise = onOpenExercise, onEdit = onEdit, onShowWarnings = onShowWarnings, onRestart = onRestart)
                 }
+            }
+            if (weekdaysMissing) {
+                Text(
+                    IMPORT_WEEKDAYS_MISSING,
+                    style = WizardTypography.bodySmall,
+                    color = WizardColors.text,
+                    modifier = Modifier.testTag("import-review-weekdays"),
+                )
             }
         }
     }

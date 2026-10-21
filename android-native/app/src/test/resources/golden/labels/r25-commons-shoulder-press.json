@@ -1,0 +1,82 @@
+{
+  "id": "r25-commons-shoulder-press",
+  "durationS": 6.9,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 29.999,
+  "usable": true,
+  "exercise": "Press militar de pie con barra",
+  "exerciseDetail": "Press militar de pie con barra (strict press, barra delante y sobre la cabeza)",
+  "suggestedProfile": "OHP",
+  "view": "BACK",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "ECCENTRIC_FIRST",
+  "reps": {
+    "full": 2,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      1,
+      3
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 3.65,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 6.4,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.0,
+    6.9
+  ],
+  "frameIntervalS": {
+    "min": 0.033,
+    "median": 0.033,
+    "max": 0.034
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TRUNCATED_START",
+      "description": "el clip empieza con la barra en bloqueo arriba (0-1,0 s) y baja primero hasta los hombros (fondo ~2,3 s): ese descenso no tiene subida previa en el clip"
+    },
+    {
+      "timeS": 0.93,
+      "kind": "OVERLAY",
+      "description": "rótulo 'SHOULDER PRESS' (caja blanca con sombra roja, abajo a la derecha) de 0,93 a 5,50 s; no tapa al sujeto"
+    },
+    {
+      "timeS": 6.9,
+      "kind": "TRUNCATED_END",
+      "description": "tras la 2.ª subida la barra queda en bloqueo arriba de ~6,0 s al final del clip (6,9 s) sin descenso: el giro (≈6,4 s, centro del bloqueo visible) no tiene su descenso"
+    }
+  ],
+  "caveats": [
+    "rótulo 'SHOULDER PRESS' sobre fondo blanco abajo a la derecha de 0,93 a 5,5 s (4,6 s de 6,9 s): no tapa a la persona ni a la barra",
+    "clip muy corto (6,9 s) con 1 ciclo completo; empieza en bloqueo arriba y termina en bloqueo arriba",
+    "la cara no se ve (de espaldas); el torso queda cortado por el borde inferior a la altura de la cintura"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "texto superpuesto largo: rótulo 'SHOULDER PRESS' de 0.9 a 5.5 s (66% del clip); no tapa al sujeto",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 1-3 (ver edgeEvents)",
+    "clip muy corto (6.9 s)"
+  ]
+}

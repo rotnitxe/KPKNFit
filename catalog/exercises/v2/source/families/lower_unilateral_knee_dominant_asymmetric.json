@@ -82,7 +82,7 @@
                 }
               ],
               "kineticChain": "ANTERIOR",
-              "laterality": "BILATERAL",
+              "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant_asymmetric",
               "performanceProfileId": "quads_sentadilla_bulgara_jefferson__barbell__sentadilla_bulgara_jefferson",
@@ -177,7 +177,7 @@
                   "bodyRegion": "LOWER",
                   "equipmentId": "barbell",
                   "kineticChain": "ANTERIOR",
-                  "laterality": "BILATERAL",
+                  "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant_asymmetric",
                   "relevantJoints": [

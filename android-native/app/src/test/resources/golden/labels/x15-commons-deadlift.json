@@ -1,0 +1,88 @@
+{
+  "id": "x15-commons-deadlift",
+  "durationS": 7.4,
+  "width": 1280,
+  "height": 720,
+  "rotation": 0,
+  "fpsNominal": 30.0,
+  "fpsMeasured": 29.999,
+  "usable": true,
+  "exercise": "Peso muerto convencional con barra",
+  "exerciseDetail": "Peso muerto convencional con barra desde el suelo, en rack de potencia (demostración de estudio, FitnessScape; bisagra de cadera pronunciada con rodillas algo flexionadas)",
+  "suggestedProfile": "DEADLIFT",
+  "view": "BACK",
+  "people": 1,
+  "fullBodyVisible": false,
+  "faceVisible": false,
+  "plateVisible": true,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 2,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      1,
+      2
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 2.4,
+      "side": null
+    },
+    {
+      "index": 2,
+      "turnaroundS": 6.2,
+      "side": null
+    }
+  ],
+  "activeWindowS": [
+    0.9,
+    7.4
+  ],
+  "frameIntervalS": {
+    "min": 0.033,
+    "median": 0.033,
+    "max": 0.034
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 0.0,
+      "kind": "TITLE_CARD",
+      "description": "el fotograma 0,00 s es casi todo rojo (89,7%) y los 4 siguientes (0,03-0,10 s) llevan una cuña roja de ~3%: transición de entrada, decreciente hasta ~0,2 s"
+    },
+    {
+      "timeS": 0.93,
+      "kind": "OVERLAY",
+      "description": "rótulo 'DEADLIFT' (caja blanca con sombra roja, abajo a la derecha) de 0,93 a 5,50 s; roza el disco derecho en ~1,0-1,5 s y ~4,0-5,0 s"
+    },
+    {
+      "timeS": 6.8,
+      "kind": "TRUNCATED_END",
+      "description": "tras el 2.º bloqueo (5,6-6,8 s) empieza a bajar la barra y el clip termina a 7,4 s con la barra a la altura de las rodillas, sin volver al suelo: un contador que exige la bajada completa cuenta solo 1"
+    },
+    {
+      "timeS": 7.33,
+      "kind": "TITLE_CARD",
+      "description": "cuña roja diminuta (0,3%) de la transición de salida en los 2 últimos fotogramas (7,33-7,37 s)"
+    }
+  ],
+  "caveats": [
+    "rótulo 'DEADLIFT' sobre fondo blanco abajo a la derecha de 0,93 a 5,5 s (4,6 s de 7,4 s); en 1,0-1,5 y 4,0-5,0 s roza el disco derecho",
+    "la parte superior de la cabeza toca/rebasa el borde superior del encuadre en el bloqueo (2,4 y 6,2 s)",
+    "clip muy corto (7,4 s) con solo 2 repeticiones; la 2.ª no llega a completar la bajada",
+    "bloqueos largos de ~1,2-1,6 s: el instante exacto del giro es ambiguo (±0,4 s)"
+  ],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija"
+  },
+  "softWarnings": [
+    "texto superpuesto largo: rótulo 'DEADLIFT' de 0.9 a 5.5 s (62% del clip); no tapa al sujeto (roza el disco/las piernas en algún instante)",
+    "recuento ambiguo por medio ciclo en el borde del clip o por repeticiones dudosas: rango aceptable 1-2 (ver edgeEvents)",
+    "clip muy corto (7.4 s)"
+  ]
+}

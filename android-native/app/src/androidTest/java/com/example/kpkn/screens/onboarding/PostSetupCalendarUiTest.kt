@@ -14,11 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.click
-import androidx.compose.ui.test.hasAnySibling
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasInsertTextAtCursorAction
-import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -69,7 +70,6 @@ import com.example.kpkn.domain.nutrition.decodeWeeklyForecastDocument
 import com.example.kpkn.domain.nutrition.encodeWeeklyForecast
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.screens.programdetail.ProgramDetailViewModel
-import com.example.kpkn.screens.programdetail.components.DAYS_OF_WEEK
 import com.example.kpkn.screens.programdetail.components.DayView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -87,7 +87,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.Instant
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 /**
@@ -314,14 +313,10 @@ class PostSetupCalendarUiTest {
         val weekBefore = findWeek(programBefore, fixture.weekId)
 
         val viewModel = mountRealDayView(fixture)
-        val originalHeader = dayHeader(fixture.requiredDate)
-        scrollDayHeaderIntoView(originalHeader)
-        // El rótulo de fecha tiene su propio `clickable` (abre «Fecha de
-        // entrenamiento») dentro de la fila que alterna la expansión: el nodo
-        // fusionado es la fila entera y su centro puede caer fuera del rótulo.
-        // Se pulsa el propio Text por el árbol sin fusionar (como `expandDay`
-        // hace con el círculo del día).
-        composeRule.onNodeWithText(originalHeader, useUnmergedTree = true).performClick()
+        scrollDayHeaderIntoView(dayHeaderTag(fixture.requiredDate))
+        // La columna de fecha de un día con calendario tiene su propia etiqueta y su clickable («Fecha de entrenamiento»).
+        // Se pulsa esa columna, no el centro de la fila: la fila entera alterna la expansión del día.
+        composeRule.onNodeWithTag(dayDateTag(fixture.requiredDate)).performClick()
         composeRule.onNodeWithText("Fecha de entrenamiento").assertIsDisplayed()
         composeRule.onNode(hasInsertTextAtCursorAction())
             .performTextReplacement(fixture.movedRequiredDate.toString())
@@ -378,9 +373,9 @@ class PostSetupCalendarUiTest {
         expandDay(fixture.optionalADate)
         composeRule.onNodeWithText("Optional A $runId").assertIsDisplayed()
         composeRule.onNodeWithText("Optional B $runId").assertIsDisplayed()
-        val confirmA = optionalConfirmationAction("Optional A $runId", "Confirmar sesión opcional")
+        val confirmA = optionalConfirmationAction(fixture.optionalAId, "Confirmar sesión opcional")
         confirmA.assertIsDisplayed()
-        optionalConfirmationAction("Optional B $runId", "Retirar confirmación de sesión opcional")
+        optionalConfirmationAction(fixture.optionalBId, "Retirar confirmación de sesión opcional")
             .assertIsDisplayed()
         confirmA.performClick()
 
@@ -398,9 +393,9 @@ class PostSetupCalendarUiTest {
             listOf(preconfirmedB, OptionalSessionConfirmation(fixture.optionalADate.toString(), fixture.optionalAId)),
             confirmedProgram.optionalSessionConfirmations,
         )
-        optionalConfirmationAction("Optional A $runId", "Retirar confirmación de sesión opcional")
+        optionalConfirmationAction(fixture.optionalAId, "Retirar confirmación de sesión opcional")
             .assertIsDisplayed()
-        optionalConfirmationAction("Optional B $runId", "Retirar confirmación de sesión opcional")
+        optionalConfirmationAction(fixture.optionalBId, "Retirar confirmación de sesión opcional")
             .assertIsDisplayed()
 
         val confirmedPlan = awaitRoomPlan(fixture.planId) { saved ->
@@ -414,14 +409,14 @@ class PostSetupCalendarUiTest {
             confirmedForecast.days.first { it.date == fixture.optionalADate },
         )
 
-        optionalConfirmationAction("Optional A $runId", "Retirar confirmación de sesión opcional")
+        optionalConfirmationAction(fixture.optionalAId, "Retirar confirmación de sesión opcional")
             .performClick()
         val undoneProgram = awaitRoomProgram(fixture.programId) { saved ->
             saved.optionalSessionConfirmations == listOf(preconfirmedB)
         }
         assertEquals("Retirar A conserva la confirmación durable de B", listOf(preconfirmedB), undoneProgram.optionalSessionConfirmations)
-        optionalConfirmationAction("Optional A $runId", "Confirmar sesión opcional").assertIsDisplayed()
-        optionalConfirmationAction("Optional B $runId", "Retirar confirmación de sesión opcional").assertIsDisplayed()
+        optionalConfirmationAction(fixture.optionalAId, "Confirmar sesión opcional").assertIsDisplayed()
+        optionalConfirmationAction(fixture.optionalBId, "Retirar confirmación de sesión opcional").assertIsDisplayed()
 
         val undonePlan = awaitRoomPlan(fixture.planId) { saved ->
             forecastDocument(saved)?.revision?.let { it > confirmedForecast.revision } == true
@@ -771,29 +766,28 @@ class PostSetupCalendarUiTest {
      * contenedor con scroll más cercano por la acción `ScrollBy` hasta dejar el
      * propio nodo visible, y la aserción posterior exige que lo esté de verdad.
      */
-    private fun scrollDayHeaderIntoView(header: String) {
-        composeRule.onNodeWithText(header).performScrollTo()
-        composeRule.onNodeWithText(header).assertIsDisplayed()
+    private fun scrollDayHeaderIntoView(tag: String) {
+        composeRule.onNodeWithTag(tag).performScrollTo()
+        composeRule.onNodeWithTag(tag).assertIsDisplayed()
     }
+
+    /** La cabecera de un día (la fila que se despliega al tocarla) lleva la etiqueta `programday-header-<número del día>`. */
+    private fun dayHeaderTag(date: LocalDate): String = "programday-header-${date.dayOfWeek.value}"
+
+    /** La columna de fecha de un día con calendario lleva la etiqueta `programday-date-<número del día>`. */
+    private fun dayDateTag(date: LocalDate): String = "programday-date-${date.dayOfWeek.value}"
 
     private fun expandDay(date: LocalDate) {
-        val header = dayHeader(date)
-        scrollDayHeaderIntoView(header)
-        val shortDay = DAYS_OF_WEEK[date.dayOfWeek.value - 1].short
-        composeRule.onNodeWithText(shortDay, useUnmergedTree = true)
-            .performTouchInput { click() }
+        val tag = dayHeaderTag(date)
+        scrollDayHeaderIntoView(tag)
+        composeRule.onNodeWithTag(tag).performTouchInput { click() }
     }
 
-    /** Selecciona la acción de confirmación que comparte tarjeta con la sesión nombrada. */
-    private fun optionalConfirmationAction(sessionName: String, contentDescription: String) =
+    /** La acción de confirmación de una sesión opcional vive dentro de su bloque de sesión (etiqueta `programsession-<id>`). */
+    private fun optionalConfirmationAction(sessionId: String, contentDescription: String) =
         composeRule.onNode(
-            hasContentDescription(contentDescription) and hasAnySibling(hasText(sessionName)),
+            hasContentDescription(contentDescription) and hasAnyAncestor(hasTestTag("programsession-$sessionId")),
         )
-
-    private fun dayHeader(date: LocalDate): String {
-        val day = DAYS_OF_WEEK[date.dayOfWeek.value - 1]
-        return "${day.name} · ${date.format(DateTimeFormatter.ofPattern("dd/MM"))}"
-    }
 
     private fun assertForecastBudgetAndFrozenDays(
         fixtureToday: LocalDate,

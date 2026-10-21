@@ -2,8 +2,6 @@ package com.example.kpkn.screens.onboarding
 
 import android.app.AlarmManager
 import android.content.Context
-import androidx.arch.core.executor.ArchTaskExecutor
-import androidx.arch.core.executor.TaskExecutor
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.Block
@@ -26,6 +24,9 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.services.competition.CompetitionReminderManager
+import com.example.kpkn.testsupport.SyncRoomExecutor
+import com.example.kpkn.testsupport.awaitRepositoryScope
+import com.example.kpkn.testsupport.cerrarBaseDeRepositorioDePrueba
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -63,28 +64,27 @@ class CompetitionActivationTest {
     /** Viernes 20 de noviembre de 2026: su semana va del lunes 16 al domingo 22. */
     private val meet = LocalDate.of(2026, 11, 20)
 
+    /** Repositorio de competición de la prueba en curso: sus escrituras son fire-and-forget y se esperan al cerrar. */
+    private var competitionsDeLaPrueba: CompetitionRepository? = null
+
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        // Room refresca sus tablas en el hilo de disco. Con ejecutores directos cada refresco termina dentro de la escritura:
-        // si quedara en vuelo, cerrar la base lo dejaría fallando en `arch_disk_io` y la excepción caería en la prueba siguiente.
-        ArchTaskExecutor.getInstance().setDelegate(DirectTaskExecutor)
+        // Room refresca sus tablas en el hilo que escribe: con el delegado síncrono ningún refresco queda en `arch_disk_io`.
+        SyncRoomExecutor.install()
     }
 
     @After
-    fun tearDown() {
+    fun tearDown(): Unit = runBlocking {
+        // Orden: primero los repositorios. La escritura de competición de `upsert` va en el scope del repositorio (fire-and-forget):
+        // se espera mientras el delegado sigue síncrono; después se cierran las bases y, al final, el delegado y Main.
         ProgramRepository.closeInstance()
+        competitionsDeLaPrueba?.let { awaitRepositoryScope(it) }
+        competitionsDeLaPrueba?.let { cerrarBaseDeRepositorioDePrueba(it) }
         CompetitionRepository.closeInstance()
         KpknDatabase.closeInstance()
-        ArchTaskExecutor.getInstance().setDelegate(null)
+        SyncRoomExecutor.uninstall()
         Dispatchers.resetMain()
-    }
-
-    /** Ejecuta en el hilo que llama: ningún refresco de Room queda en segundo plano al terminar la prueba. */
-    private object DirectTaskExecutor : TaskExecutor() {
-        override fun executeOnDiskIO(runnable: Runnable) = runnable.run()
-        override fun postToMainThread(runnable: Runnable) = runnable.run()
-        override fun isMainThread(): Boolean = true
     }
 
     /** Quien compite (powerlifting, experiencia avanzada) con la fecha dada. */
@@ -212,6 +212,7 @@ class CompetitionActivationTest {
     /** Repositorios de prueba en memoria, listos para escribir. */
     private suspend fun startRepositories(): CompetitionRepository {
         val competitions = CompetitionRepository.initForTests(context)
+        competitionsDeLaPrueba = competitions
         withTimeout(10_000) { competitions.isReady.first { it } }
         val programs = ProgramRepository.initForTests(context)
         withTimeout(10_000) { programs.isReady.first { it } }

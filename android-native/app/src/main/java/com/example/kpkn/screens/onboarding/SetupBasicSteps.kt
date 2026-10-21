@@ -34,6 +34,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.StrokeCap
@@ -52,6 +54,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -72,12 +75,15 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -172,12 +178,18 @@ private fun SetupAliasAndAge(
     state: SetupWizardState,
     vm: SetupWizardViewModel,
 ) {
+    // «Siguiente» del alias lleva el foco a la fecha. La fecha no confirma el paso: eso sigue siendo el check.
+    val birthDateFocus = remember { FocusRequester() }
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(WizardSpacing.sectionGap),
     ) {
-        SetupLabeledField(label = "Alias") { AliasField(state = state, vm = vm) }
-        SetupLabeledField(label = "Fecha de nacimiento") { BirthDateField(state = state, vm = vm) }
+        SetupLabeledField(label = "Alias") {
+            AliasField(state = state, vm = vm, onNext = { birthDateFocus.requestFocus() })
+        }
+        SetupLabeledField(label = "Fecha de nacimiento") {
+            BirthDateField(state = state, vm = vm, focus = birthDateFocus)
+        }
     }
 }
 
@@ -233,6 +245,7 @@ private val SETUP_FIELD_MIN_HEIGHT = 64.dp
 private fun AliasField(
     state: SetupWizardState,
     vm: SetupWizardViewModel,
+    onNext: () -> Unit,
 ) {
     var text by rememberSaveable(state.draft.draftId, state.draft.commitId) {
         mutableStateOf(state.draft.inputTexts[SetupStepId.NAME.name] ?: state.draft.name)
@@ -255,7 +268,8 @@ private fun AliasField(
         textStyle = style,
         cursorBrush = SolidColor(WizardColors.text),
         singleLine = true,
-        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next),
+        keyboardActions = KeyboardActions(onNext = { onNext() }),
         interactionSource = interaction,
         modifier = Modifier
             .fillMaxWidth()
@@ -283,11 +297,13 @@ private const val ALIAS_FONT_MIN_SP = 24f
 private const val ALIAS_FONT_SHRINK_SP_PER_CHAR = 0.5f
 
 @Composable
-private fun BirthDateField(state: SetupWizardState, vm: SetupWizardViewModel) {
+private fun BirthDateField(state: SetupWizardState, vm: SetupWizardViewModel, focus: FocusRequester) {
     var digits by rememberSaveable(state.draft.draftId) {
         mutableStateOf(state.draft.inputTexts["birthDate"].orEmpty().filter(Char::isDigit).take(8))
     }
     val age = ageYearsFromBirthDigits(digits)
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val style = WizardTypography.controlValue.copy(color = WizardColors.text)
@@ -312,10 +328,16 @@ private fun BirthDateField(state: SetupWizardState, vm: SetupWizardViewModel) {
             textStyle = style,
             cursorBrush = SolidColor(WizardColors.text),
             singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = {
+                // «Listo» cierra el teclado y suelta el foco; no confirma el paso.
+                focusManager.clearFocus()
+                keyboardController?.hide()
+            }),
             interactionSource = interaction,
             modifier = Modifier
                 .fillMaxWidth()
+                .focusRequester(focus)
                 .testTag("setup-birth-date"),
             decorationBox = { inner ->
                 SetupFieldFrame(focused = focused) {

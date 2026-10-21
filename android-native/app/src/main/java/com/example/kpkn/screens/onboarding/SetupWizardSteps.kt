@@ -101,10 +101,10 @@ internal fun wizardPageCopy(
             } else {
                 WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
             }
-        // Powerlifting pide sus tres básicos como tales; powerbuilding, el título del catálogo («¿Cuáles son tus variantes…?»).
+        // Powerlifting pregunta solo sentadilla y peso muerto; powerbuilding, el título del catálogo («¿Cuáles son tus variantes…?»).
         SetupStepId.TRAINING_VARIANTS ->
             if (goalProfile == TrainingGoalProfile.POWERLIFTING) {
-                WizardPageCopy("Tus tres básicos", "Elige cómo los haces: así armamos tus sesiones.")
+                WizardPageCopy("Tu estilo en sentadilla y peso muerto", "Elige cómo los haces: así armamos tus sesiones.")
             } else {
                 WizardPageCopy(definition?.title ?: page.name, definition?.subtitle)
             }

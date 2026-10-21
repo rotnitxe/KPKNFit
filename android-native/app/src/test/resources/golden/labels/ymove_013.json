@@ -1,0 +1,74 @@
+{
+  "id": "ymove_013",
+  "durationS": 8.24,
+  "width": 360,
+  "height": 640,
+  "rotation": 0,
+  "fpsNominal": 25.0,
+  "fpsMeasured": 25.0,
+  "usable": true,
+  "exercise": "Remo sentado en polea con agarre en V",
+  "exerciseDetail": "Remo sentado en polea baja con agarre en V cerrado (asa en V), sentada con las piernas casi estiradas y la espalda erguida al tirar",
+  "suggestedProfile": "ROW",
+  "view": "SIDE",
+  "people": 1,
+  "fullBodyVisible": true,
+  "faceVisible": true,
+  "plateVisible": false,
+  "startPhase": "CONCENTRIC_FIRST",
+  "reps": {
+    "full": 2,
+    "partial": 0,
+    "failed": 0,
+    "uncertain": false,
+    "acceptableRange": [
+      2,
+      2
+    ]
+  },
+  "repTimesS": [
+    {
+      "index": 1,
+      "turnaroundS": 1.7,
+      "side": null,
+      "windowS": [
+        1.2,
+        2.2
+      ]
+    },
+    {
+      "index": 2,
+      "turnaroundS": 5.6,
+      "side": null,
+      "windowS": [
+        5.0,
+        6.2
+      ]
+    }
+  ],
+  "activeWindowS": [
+    0.6,
+    7.0
+  ],
+  "frameIntervalS": {
+    "min": 0.04,
+    "median": 0.04,
+    "max": 0.04
+  },
+  "turnaroundKind": "TOP",
+  "edgeEvents": [
+    {
+      "timeS": 8.2,
+      "kind": "TRUNCATED_END",
+      "description": "tras el 2.º tirón (5,6 s) los brazos vuelven a extenderse hacia delante (6,6-7,5 s) y el clip termina a los 8,24 s"
+    }
+  ],
+  "caveats": [],
+  "cameraMotion": {
+    "class": "STATIC",
+    "note": "cámara fija de estudio: ECC (traslación contra la mediana temporal sobre el fondo que el sujeto nunca cubre): desplazamiento máx. 0,09% en x y 0,02% en y del encuadre en toda la ventana"
+  },
+  "softWarnings": [
+    "muy pocas repeticiones (2): clip de demostración"
+  ]
+}

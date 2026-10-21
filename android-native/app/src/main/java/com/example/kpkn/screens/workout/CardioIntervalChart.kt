@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.CardioBlockType
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.domain.cardio.CardioIntervalEngine
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 
 @Composable
 fun CardioIntervalChart(
@@ -113,10 +114,11 @@ fun CardioIntervalChart(
                             val weight = (block.durationSeconds.toFloat() / totalDuration.toFloat()).coerceAtLeast(0.04f)
 
                             val barColor = when (block.type) {
-                                CardioBlockType.WARMUP -> Color(0xFF6F8E7D).copy(alpha = if (isPast) 0.24f else 0.68f)
+                                // Lo que no es esfuerzo va en blanco al 12 % (KPKN LS5b), como en la línea de tiempo.
+                                CardioBlockType.WARMUP -> Color.White.copy(alpha = if (isPast) 0.06f else 0.12f)
                                 CardioBlockType.WORK -> if (isCurrent) accentColor else accentColor.copy(alpha = if (isPast) 0.28f else 0.92f)
-                                CardioBlockType.RECOVER -> Color(0xFF6C8792).copy(alpha = if (isPast) 0.22f else 0.72f)
-                                CardioBlockType.COOLDOWN -> Color(0xFF7C8C7B).copy(alpha = if (isPast) 0.22f else 0.52f)
+                                CardioBlockType.RECOVER -> Color.White.copy(alpha = if (isPast) 0.06f else 0.12f)
+                                CardioBlockType.COOLDOWN -> Color.White.copy(alpha = if (isPast) 0.06f else 0.12f)
                             }
                             val borderColor = if (isCurrent) Color.White.copy(alpha = 0.95f) else Color.Transparent
 
@@ -210,10 +212,10 @@ fun CardioIntervalChart(
                             val heightFraction = (rawVal / maxVal).coerceIn(0.18, 1.0)
                             val widthForDuration = (block.durationSeconds / 8).coerceIn(12, 44)
                             val barColor = when (block.type) {
-                                CardioBlockType.WARMUP -> Color(0xFF6F8E7D).copy(alpha = if (isPast) 0.24f else 0.68f)
+                                CardioBlockType.WARMUP -> Color.White.copy(alpha = if (isPast) 0.06f else 0.12f)
                                 CardioBlockType.WORK -> if (isCurrent) accentColor else accentColor.copy(alpha = if (isPast) 0.28f else 0.92f)
-                                CardioBlockType.RECOVER -> Color(0xFF6C8792).copy(alpha = if (isPast) 0.22f else 0.72f)
-                                CardioBlockType.COOLDOWN -> Color(0xFF7C8C7B).copy(alpha = if (isPast) 0.22f else 0.52f)
+                                CardioBlockType.RECOVER -> Color.White.copy(alpha = if (isPast) 0.06f else 0.12f)
+                                CardioBlockType.COOLDOWN -> Color.White.copy(alpha = if (isPast) 0.06f else 0.12f)
                             }
                             val borderColor = if (isCurrent) Color.White.copy(alpha = 0.95f) else Color.Transparent
 
@@ -323,7 +325,7 @@ fun CardioIntervalChart(
                         if (nxtVal.isNotEmpty()) Text(nxtVal, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.62f))
                     }
                 } else if (progress.isComplete) {
-                    Text("¡Circuito completo!", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = Color(0xFF10B981))
+                    Text("¡Circuito completo!", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = SymbolPalette.ok)
                 }
             }
             Text(
