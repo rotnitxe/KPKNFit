@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.nutrition.customfood
 
 import com.example.kpkn.data.models.FoodItem
+import com.example.kpkn.data.models.Micronutrient
 import com.example.kpkn.domain.nutrition.FoodIdentity
 import com.example.kpkn.domain.nutrition.NutrientBasis
 import org.junit.Assert.assertEquals
@@ -140,6 +141,21 @@ class CustomFoodFormTest {
         assertEquals("Galletas de avena y miel", edited.name)
         assertNull("el nombre normalizado se recalcula al guardar", edited.normalizedName)
         assertEquals("custom_1", edited.id)
+    }
+
+    @Test fun `editar el sodio no borra los demas micronutrientes del alimento`() {
+        // Base a mano: potasio 400 mg y sodio 50 mg (el formulario solo muestra el sodio).
+        val base = validate(ok).food!!.copy(
+            micronutrients = listOf(Micronutrient("Potasio", 400.0, "mg"), Micronutrient("Sodio", 50.0, "mg")),
+        )
+        val form = CustomFoodValidator.fromFood(base)
+        assertEquals("50", form.sodiumMg)
+        val subido = validate(form.copy(sodiumMg = "80"), base = base).food!!
+        assertEquals(400.0, subido.micronutrients.single { it.name == "Potasio" }.amount, 0.0)
+        assertEquals(80.0, subido.micronutrients.single { it.name == "Sodio" }.amount, 0.0)
+        assertEquals(2, subido.micronutrients.size)
+        val vaciado = validate(form.copy(sodiumMg = ""), base = base).food!!
+        assertEquals(listOf(Micronutrient("Potasio", 400.0, "mg")), vaciado.micronutrients)
     }
 
     @Test fun `el formulario de un alimento guardado reproduce sus datos`() {

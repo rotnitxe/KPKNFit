@@ -79,7 +79,8 @@ object CustomFoodValidator {
 
     /**
      * Valida [form]. Con [id] y, si se edita, el alimento anterior en [base] (conserva lo que el formulario no edita: uso,
-     * última vez, etiquetas). Un código de barras válido se guarda en su forma canónica de 13 dígitos.
+     * última vez, etiquetas y los micronutrientes distintos del sodio). Un código de barras válido se guarda en su forma canónica de
+     * 13 dígitos.
      */
     fun validate(form: CustomFoodForm, id: String, base: FoodItem? = null): CustomFoodValidation {
         val errors = linkedMapOf<CustomFoodField, String>()
@@ -160,7 +161,7 @@ object CustomFoodValidator {
             isCustom = true,
             isAiInferred = false,
             carbBreakdown = if ((fiber ?: 0.0) > 0.0 || (sugar ?: 0.0) > 0.0) CarbBreakdown(fiber = fiber ?: 0.0, sugar = sugar ?: 0.0) else null,
-            micronutrients = if ((sodium ?: 0.0) > 0.0) listOf(Micronutrient("Sodio", sodium!!, "mg")) else emptyList(),
+            micronutrients = micronutrientsConSodio(seed.micronutrients, sodium),
             tags = if (zeroEnergy) listOf(NutrientBasis.ZERO_ENERGY_TAG) else emptyList(),
             source = "custom",
             sourceRecordId = barcode,
@@ -187,6 +188,15 @@ object CustomFoodValidator {
         sugar = food.carbBreakdown?.sugar?.takeIf { it > 0.0 }?.let { format(it) }.orEmpty(),
         sodiumMg = food.micronutrients.firstOrNull { it.name.equals("Sodio", ignoreCase = true) }?.amount?.let { format(it) }.orEmpty(),
     )
+
+    /**
+     * Los micronutrientes del alimento base sin el sodio, más el sodio que escribió la persona (si escribió uno mayor que 0). Así
+     * editar o vaciar el sodio no borra el potasio, el calcio… que el formulario no muestra.
+     */
+    private fun micronutrientsConSodio(base: List<Micronutrient>, sodiumMg: Double?): List<Micronutrient> {
+        val otros = base.filterNot { it.name.equals("Sodio", ignoreCase = true) }
+        return if (sodiumMg != null && sodiumMg > 0.0) otros + Micronutrient("Sodio", sodiumMg, "mg") else otros
+    }
 
     private fun required(text: String, field: CustomFoodField, max: Double, unit: String, errors: MutableMap<CustomFoodField, String>): Double? {
         if (text.isBlank()) {
