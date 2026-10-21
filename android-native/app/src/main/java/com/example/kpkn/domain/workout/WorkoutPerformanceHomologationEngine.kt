@@ -22,6 +22,10 @@ import kotlin.math.sqrt
 object WorkoutPerformanceHomologationEngine {
 
     private const val EWMA_ALPHA = 0.35
+    /** Capacity references reuse the contextual history smoothing, never its volume/score cache. */
+    fun capacityHistoryEwma(capacities: List<Double>): Double? = capacities
+        .filter { it.isFinite() && it > 0.0 }.takeIf { it.isNotEmpty() }
+        ?.reduce { previous, capacity -> EWMA_ALPHA * capacity + (1 - EWMA_ALPHA) * previous }
     private const val DEFAULT_STD = 6.0
     private const val MIN_SCORE = 0.0
     private const val MAX_SCORE = 100.0

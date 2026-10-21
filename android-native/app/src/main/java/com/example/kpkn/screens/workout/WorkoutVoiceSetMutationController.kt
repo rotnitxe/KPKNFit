@@ -79,6 +79,7 @@ internal class WorkoutVoiceSetMutationController(
     private val refreshLoadSuggestions: ((WorkoutUiState, String) -> Unit)? = null,
     private val gateWaitMs: Long = DEFAULT_GATE_WAIT_MS,
     private val clock: () -> Long = System::currentTimeMillis,
+    private val refreshCalibrations: suspend (WorkoutUiState, WorkoutUiState) -> WorkoutUiState = { _, next -> next },
 ) {
     private val gateSequence = AtomicLong(0L)
 
@@ -234,9 +235,11 @@ internal class WorkoutVoiceSetMutationController(
                     null
                 }
             }
+            val calibrated = refreshCalibrations(captured, ready.transform(captured))
             val apply: (WorkoutUiState) -> WorkoutUiState = { state ->
                 val next = ready.transform(state)
-                if (energy != null) next.copy(liveEnergySummary = energy) else next
+                next.copy(calibrationDecisions = calibrated.calibrationDecisions,
+                    liveEnergySummary = energy ?: next.liveEnergySummary)
             }
             val candidate = apply(captured)
             val publish: () -> Unit = {
