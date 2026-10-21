@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
@@ -11,6 +13,7 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
+import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -150,12 +153,16 @@ object ProgramAnalyticsEngine {
         program: Program,
         logs: List<WorkoutLog>,
         exerciseCatalog: List<ExerciseMuscleInfo>,
+        exerciseIndex: Map<String, ExerciseMuscleInfo> = catalogExerciseIndex(),
     ): ProgramAnalyticsReport {
-        val catalog = exerciseCatalog.associateBy { it.id.lowercase() }
+        val catalog = exerciseCatalog.associateBy { it.id.lowercase() } + exerciseIndex.mapKeys { it.key.lowercase() }
         val plannedRows = program.plannedExercises().map { it.infoFrom(catalog) }
         val completedRows = logs.flatMap { log -> log.completedExercises.map { CompletedExerciseRow(log, it, it.infoFrom(catalog)) } }
 
-        val coverage = buildCoverage(plannedRows)
+        val weeks = ProgramHierarchyIndex(program).orderedWeeks().map { it.week }
+        val window = TrainingWindow.forProgramScope(program, weeks, averageByWeek = true)
+        val volume = VolumeCalculator.calculateVolume(weeks.flatMap { it.sessions }, catalog, window.weekDivisor)
+        val coverage = buildCoverage(plannedRows, volume, window.weekDivisor, catalog)
         val balance = buildBalance(plannedRows)
         val fatigue = buildFatigue(plannedRows, completedRows)
         val efficiency = buildEfficiency(plannedRows, completedRows, logs)
@@ -174,13 +181,15 @@ object ProgramAnalyticsEngine {
         )
     }
 
-    private fun buildCoverage(rows: List<PlannedExerciseRow>): CoverageAnalytics {
-        val setsByMuscle = mutableMapOf<String, Double>()
+    private fun buildCoverage(
+        rows: List<PlannedExerciseRow>,
+        volume: TrainingVolumeResult,
+        divisor: Double,
+        catalog: Map<String, ExerciseMuscleInfo>,
+    ): CoverageAnalytics {
+        val setsByMuscle = volume.muscles.mapValues { it.value.sets }
         val repsByMuscle = mutableMapOf<String, Double>()
         val timeByMuscle = mutableMapOf<String, Double>()
-        val directByMuscle = mutableMapOf<String, Double>()
-        val secondaryByMuscle = mutableMapOf<String, Double>()
-        val stabilizerByMuscle = mutableMapOf<String, Double>()
         val stabilityBuckets = mutableMapOf<String, Double>()
         var stabilityDemand = 0.0
 
@@ -194,33 +203,11 @@ object ProgramAnalyticsEngine {
             val stabilityLabel = stabilityBucketLabel(stability)
             stabilityBuckets[stabilityLabel] = stabilityBuckets.orZero(stabilityLabel) + sets
             stabilityDemand += stability * sets
-            val relevantMuscles = effectiveVolumeMuscles(row.exercise.effectiveMuscles, row.info)
+            val relevantMuscles = ExerciseMuscleResolver.effectiveMusclesForVolume(row.exercise, catalog)
             val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(relevantMuscles)
             contributions.forEach { (canonical, contribution) ->
-                setsByMuscle[canonical] = setsByMuscle.orZero(canonical) + sets * contribution
-                repsByMuscle[canonical] = repsByMuscle.orZero(canonical) + sets * targetReps * contribution
-                timeByMuscle[canonical] = timeByMuscle.orZero(canonical) + estimatedMinutes * contribution
-            }
-            // Role-separated volume, mirroring VolumeCalculator: max contribution per
-            // canonical per role within one exercise, then summed across exercises.
-            val perExercise = mutableMapOf<String, MutableMap<MuscleRole, Double>>()
-            relevantMuscles.forEach { m ->
-                val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(m.muscle, m.emphasis)
-                if (canonical.isBlank()) return@forEach
-                val contribution = resolveMuscleVolumeContribution(m)
-                val byRole = perExercise.getOrPut(canonical) { mutableMapOf() }
-                val existing = byRole[m.role] ?: 0.0
-                if (contribution > existing) byRole[m.role] = contribution
-            }
-            perExercise.forEach { (canonical, byRole) ->
-                byRole.forEach { (role, contribution) ->
-                    when (role) {
-                        MuscleRole.PRIMARY -> directByMuscle[canonical] = directByMuscle.orZero(canonical) + sets * contribution
-                        MuscleRole.SECONDARY -> secondaryByMuscle[canonical] = secondaryByMuscle.orZero(canonical) + sets * contribution
-                        MuscleRole.STABILIZER -> stabilizerByMuscle[canonical] = stabilizerByMuscle.orZero(canonical) + sets * contribution
-                        MuscleRole.NEUTRALIZER -> Unit
-                    }
-                }
+                repsByMuscle[canonical] = repsByMuscle.orZero(canonical) + sets * targetReps * contribution / divisor
+                timeByMuscle[canonical] = timeByMuscle.orZero(canonical) + estimatedMinutes * contribution / divisor
             }
         }
 
@@ -229,23 +216,21 @@ object ProgramAnalyticsEngine {
         return CoverageAnalytics(
             musclesByWeeklySets = setsByMuscle.toMuscleMetrics("series semanales planificadas"),
             forgottenMuscles = forgotten,
-            repsByMuscle = repsByMuscle.toMuscleMetrics("repeticiones planificadas ponderadas"),
-            timeMinutesByMuscle = timeByMuscle.toMuscleMetrics("minutos estimados por descansos y series"),
-            directIndirectByMuscle = (directByMuscle.keys + secondaryByMuscle.keys + stabilizerByMuscle.keys)
-                .distinct()
-                .sorted()
-                .map { muscle ->
+            repsByMuscle = repsByMuscle.toMuscleMetrics("repeticiones semanales planificadas ponderadas"),
+            timeMinutesByMuscle = timeByMuscle.toMuscleMetrics("minutos semanales estimados por descansos y series"),
+            directIndirectByMuscle = volume.muscles.toSortedMap()
+                .map { (muscle, entry) ->
                     DirectIndirectMetric(
                         muscle = muscle,
-                        directSets = directByMuscle.orZero(muscle).round1(),
-                        secondarySets = secondaryByMuscle.orZero(muscle).round1(),
-                        stabilizerSets = stabilizerByMuscle.orZero(muscle).round1(),
-                        explanation = "Primarios vs secundarios vs estabilizadores desde ExerciseMuscleInfo.",
+                        directSets = entry.roles.directSets.round1(),
+                        secondarySets = entry.roles.secondarySets.round1(),
+                        stabilizerSets = entry.roles.stabilizerSets.round1(),
+                        explanation = "Promedio semanal por rol del aporte máximo de cada ejecución.",
                     )
                 },
             unilateralExerciseRatio = rows.count { it.exercise.isEffectivelyUnilateral() }.toDouble() / plannedCount,
             stabilityDemand = (stabilityDemand / rows.sumOf { it.exercise.effectiveSetCount() }.coerceAtLeast(1)).round2(),
-            stabilityDistribution = stabilityBuckets.toNamedMetrics("series por demanda de estabilidad"),
+            stabilityDistribution = stabilityBuckets.mapValues { it.value / divisor }.toNamedMetrics("series semanales por demanda de estabilidad"),
             strengthSpecificityRatio = rows.count { it.exercise.isCompetitionLift || it.info?.tier.equals("T1", true) }.toDouble() / plannedCount,
             emptyReason = if (rows.isEmpty()) "No hay ejercicios planificados para analizar." else null,
         )
@@ -623,14 +608,12 @@ object ProgramAnalyticsEngine {
             }
 
     private fun PlannedExerciseRow.infoFrom(catalog: Map<String, ExerciseMuscleInfo>): PlannedExerciseRow =
-        copy(info = exercise.exerciseDbId?.lowercase()?.let { catalog[it] }
-            ?: exercise.canonicalExerciseId?.lowercase()?.let { catalog[it] }
-            ?: exercise.exerciseId?.lowercase()?.let { catalog[it] })
+        copy(info = ExerciseMuscleResolver.resolveCatalogInfo(exercise, catalog)
+            ?: exercise.canonicalExerciseId?.lowercase()?.let { catalog[it] })
 
     private fun CompletedExercise.infoFrom(catalog: Map<String, ExerciseMuscleInfo>): ExerciseMuscleInfo? =
-        exerciseDbId?.lowercase()?.let { catalog[it] }
+        resolveCatalogExerciseInfoInIndex(catalog, catalogConfigurationId, exerciseDbId, exerciseId, exerciseName)
             ?: canonicalExerciseId?.lowercase()?.let { catalog[it] }
-            ?: exerciseId.lowercase().let { catalog[it] }
 
     private fun Exercise.effectiveSetCount(): Int {
         val counted = sets.count { !it.isIneffective && ((it.plannedRepAnchor() ?: 0) > 0 || (it.weight ?: 0.0) > 0.0) }
