@@ -828,7 +828,7 @@ class SessionEditorDragController {
             // group" target, so a member can be pulled out even when dropped
             // immediately after the group.
             val targetListForGroup = exerciseListFor(session, toNullablePartId(targetPartId))
-            frozenExerciseBounds
+            val hitByCard = frozenExerciseBounds
                 .filterKeys { it.startsWith("$targetPartId|") }
                 .entries
                 .firstOrNull { (_, bounds) -> pointer.y >= bounds.top && pointer.y <= bounds.bottom }
@@ -837,6 +837,12 @@ class SessionEditorDragController {
                 ?.let { hitExerciseId ->
                     targetListForGroup.firstOrNull { it.id == hitExerciseId }?.supersetGroupRefOrLegacyId()
                 }
+            // Un ejercicio que no es miembro de ninguna superserie y se suelta sobre una ya formada (ED-A · A3) entra en ella aunque el dedo
+            // caiga en la raya entre dos miembros: no hay «sacar» que proteger, así que vale todo el bloque.
+            val draggedIsMember = exerciseListFor(session, toNullablePartId(currentPartId))
+                .firstOrNull { it.id == activeExerciseId }
+                ?.supersetGroupRefOrLegacyId() != null
+            hitByCard ?: if (draggedIsMember) null else supersetBlockHit(targetPartId, targetListForGroup, pointer.y)
         } else {
             null
         }
@@ -891,6 +897,18 @@ class SessionEditorDragController {
             pointerY < boundary - EXERCISE_DROP_HYSTERESIS_PX
         }
         return if (crossed) rawTargetIndex else previousIndex
+    }
+
+    /** La superserie de [targetList] cuyo bloque (de su primer a su último miembro, con las rayas entre ellos) contiene la altura [pointerY]. */
+    private fun supersetBlockHit(targetPartId: String, targetList: List<Exercise>, pointerY: Float): String? {
+        val byGroup = targetList
+            .mapNotNull { exercise -> exercise.supersetGroupRefOrLegacyId()?.let { it to exercise } }
+            .groupBy({ it.first }, { it.second })
+        return byGroup.entries.firstOrNull { (_, members) ->
+            if (members.size < 2) return@firstOrNull false
+            val block = unionRects(members.mapNotNull { frozenExerciseBounds["$targetPartId|${it.id}"] }) ?: return@firstOrNull false
+            pointerY >= block.top && pointerY <= block.bottom
+        }?.key
     }
 
     private fun draggedIdsFor(session: Session, sourcePartId: String, activeExerciseId: String): Set<String> {

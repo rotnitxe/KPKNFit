@@ -37,6 +37,7 @@ import com.example.kpkn.screens.sessioneditor.components.SessionEditorSpace
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorSpaceOption
 import com.example.kpkn.screens.sessioneditor.components.SupersetGroupEditorCard
 import com.example.kpkn.screens.sessioneditor.design.SessionEditorDashedAddButton
+import com.example.kpkn.screens.sessioneditor.design.SessionEditorOutsideDropZone
 import com.example.kpkn.screens.sessioneditor.design.SessionExerciseUndoNotice
 import com.example.kpkn.screens.sessioneditor.design.SessionGroupLabel
 import com.example.kpkn.screens.sessioneditor.design.SessionModuleEdge
@@ -66,6 +67,9 @@ internal fun SessionEditorListItem(
     exerciseDropTargetKey: String?,
     exerciseDropTargetPartId: String?,
     exerciseDropTargetIndex: Int?,
+    exerciseDropTargetGroupId: String? = null,
+    draggingExercisePartId: String? = null,
+    dropPlan: SessionEditorDropPlan? = null,
     draggingPartId: String?,
     partDropTargetId: String?,
     pendingAutoExpandExerciseId: String?,
@@ -87,6 +91,10 @@ internal fun SessionEditorListItem(
     }
     // El ejercicio cuyo borrado espera el «Deshacer» (ER1b): su fila se cambia por el aviso mientras tanto.
     val pendingRemovalId = uiState.pendingExerciseRemoval?.exerciseId
+    // Durante un arrastre, el módulo de destino (si no es el de origen) lleva el filete en tinta y la superserie de destino, el suyo (ED-A · A3).
+    fun moduleIsDropTarget(partId: String): Boolean =
+        draggingExerciseId != null && exerciseDropTargetPartId == partId && draggingExercisePartId != partId
+    val supersetDropTargetId = exerciseDropTargetGroupId.takeIf { draggingExerciseId != null }
     when (listItem) {
         is SessionListItem.PartHeader -> {
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
@@ -101,7 +109,7 @@ internal fun SessionEditorListItem(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
                     )
                 }
-                SessionModuleSlot(edge = listItem.edge) {
+                SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id)) {
                     GroupEditorCard(
                         part = part,
                         collapsed = isCollapsed,
@@ -134,11 +142,8 @@ internal fun SessionEditorListItem(
             val exercise = session.exercises.firstOrNull { it.id == listItem.exerciseId } ?: return
             val itemHeight = (dragController.frozenExerciseBounds["__loose__|${exercise.id}"]
                 ?: dragController.exerciseBounds["__loose__|${exercise.id}"])?.height ?: 88f
-            val shiftY = if (draggingExerciseId != null) {
-                dragController.calculateProjectedShift(session, "__loose__", listItem.indexInLoose, exercise.id, itemHeight)
-            } else {
-                0f
-            }
+            // ED-A · A3: la lista no se desplaza mientras se arrastra; el destino se ve con su señal.
+            val shiftY = 0f
             val isLooseInsertBefore = exerciseDropTargetPartId == "__loose__" &&
                 exerciseDropTargetIndex == listItem.indexInLoose &&
                 draggingExerciseId != null &&
@@ -160,7 +165,7 @@ internal fun SessionEditorListItem(
                         .fillMaxWidth()
                         .graphicsLayer { translationY = shiftY },
                 ) {
-                    SessionModuleSlot(edge = listItem.edge) {
+                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget("__loose__")) {
                         LooseExerciseItem(
                             exercise = exercise,
                             index = listItem.indexInLoose,
@@ -196,11 +201,8 @@ internal fun SessionEditorListItem(
             val exercise = part.exercises.firstOrNull { it.id == listItem.exerciseId } ?: return
             val itemHeight = (dragController.frozenExerciseBounds["${part.id}|${exercise.id}"]
                 ?: dragController.exerciseBounds["${part.id}|${exercise.id}"])?.height ?: 88f
-            val shiftY = if (draggingExerciseId != null) {
-                dragController.calculateProjectedShift(session, part.id, listItem.indexInPart, exercise.id, itemHeight)
-            } else {
-                0f
-            }
+            // ED-A · A3: la lista no se desplaza mientras se arrastra; el destino se ve con su señal.
+            val shiftY = 0f
             val isPartInsertBefore = exerciseDropTargetPartId == part.id &&
                 exerciseDropTargetIndex == listItem.indexInPart &&
                 draggingExerciseId != null &&
@@ -222,7 +224,7 @@ internal fun SessionEditorListItem(
                         .fillMaxWidth()
                         .graphicsLayer { translationY = shiftY },
                 ) {
-                    SessionModuleSlot(edge = listItem.edge) {
+                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id)) {
                         PartExerciseItem(
                             exercise = exercise,
                             part = part,
@@ -262,11 +264,8 @@ internal fun SessionEditorListItem(
             val firstId = supersetMembers.first().id
             val itemHeight = (dragController.frozenExerciseBounds["__loose__|$firstId"]
                 ?: dragController.exerciseBounds["__loose__|$firstId"])?.height ?: 88f
-            val looseSupersetShiftY = if (draggingExerciseId != null) {
-                dragController.calculateProjectedShift(session, "__loose__", listItem.indexInLoose, firstId, itemHeight)
-            } else {
-                0f
-            }
+            // ED-A · A3: la lista no se desplaza mientras se arrastra; el destino se ve con su señal.
+            val looseSupersetShiftY = 0f
             val isLooseSupersetInsertBefore = exerciseDropTargetPartId == "__loose__" &&
                 exerciseDropTargetIndex == listItem.indexInLoose &&
                 draggingExerciseId != null &&
@@ -288,7 +287,7 @@ internal fun SessionEditorListItem(
                         .fillMaxWidth()
                         .graphicsLayer { translationY = looseSupersetShiftY },
                 ) {
-                    SessionModuleSlot(edge = listItem.edge) {
+                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget("__loose__")) {
                         LooseSupersetItem(
                             supersetGroup = supersetGroup,
                             supersetMembers = supersetMembers,
@@ -313,6 +312,7 @@ internal fun SessionEditorListItem(
                             viewModel = viewModel,
                             shiftYForBounds = looseSupersetShiftY,
                             collapsedPartIds = uiState.collapsedPartIds,
+                            isSupersetDropTarget = supersetDropTargetId == supersetGroup.id,
                             pendingRemovalId = pendingRemovalId,
                         )
                     }
@@ -330,11 +330,8 @@ internal fun SessionEditorListItem(
             val firstId = supersetMembers.first().id
             val itemHeight = (dragController.frozenExerciseBounds["${part.id}|$firstId"]
                 ?: dragController.exerciseBounds["${part.id}|$firstId"])?.height ?: 88f
-            val partSupersetShiftY = if (draggingExerciseId != null) {
-                dragController.calculateProjectedShift(session, part.id, listItem.indexInPart, firstId, itemHeight)
-            } else {
-                0f
-            }
+            // ED-A · A3: la lista no se desplaza mientras se arrastra; el destino se ve con su señal.
+            val partSupersetShiftY = 0f
             val isPartSupersetInsertBefore = exerciseDropTargetPartId == part.id &&
                 exerciseDropTargetIndex == listItem.indexInPart &&
                 draggingExerciseId != null &&
@@ -356,7 +353,7 @@ internal fun SessionEditorListItem(
                         .fillMaxWidth()
                         .graphicsLayer { translationY = partSupersetShiftY },
                 ) {
-                    SessionModuleSlot(edge = listItem.edge) {
+                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id)) {
                         PartSupersetItem(
                             supersetGroup = supersetGroup,
                             supersetMembers = supersetMembers,
@@ -381,6 +378,7 @@ internal fun SessionEditorListItem(
                             viewModel = viewModel,
                             shiftYForBounds = partSupersetShiftY,
                             collapsedPartIds = uiState.collapsedPartIds,
+                            isSupersetDropTarget = supersetDropTargetId == supersetGroup.id,
                             pendingRemovalId = pendingRemovalId,
                         )
                     }
@@ -397,17 +395,19 @@ internal fun SessionEditorListItem(
                 visible = isDropTargetAtEndOfLoose,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
             )
+            // Sin ejercicios sueltos, «Sin grupo» no tiene sitio donde verse: su señal aparece sobre el primer grupo (ED-A · A3).
+            SessionEditorOutsideDropZone(
+                visible = draggingExerciseId != null &&
+                    session.exercises.isEmpty() &&
+                    dropPlan?.kind == SessionEditorDropKind.OUT_OF_GROUP,
+            )
         }
 
         is SessionListItem.PartAddExercise -> {
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
             val displayName = part.name.trim().ifBlank { "este grupo" }
             val isCardioSpace = part.isCardioPart()
-            val footerShiftY = if (draggingExerciseId != null) {
-                dragController.projectedFooterShiftFor(part.id, part.exercises.size)
-            } else {
-                0f
-            }
+            val footerShiftY = 0f
             val isDropTargetAtEnd = exerciseDropTargetPartId == part.id &&
                 exerciseDropTargetIndex != null &&
                 exerciseDropTargetIndex >= part.exercises.size &&
@@ -433,7 +433,7 @@ internal fun SessionEditorListItem(
                         onPartContentBoundsReport(part.id, rect)
                     },
             ) {
-                SessionModuleSlot(edge = listItem.edge) {
+                SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id)) {
                     if (isCardioSpace) {
                         KpknTextAction(
                             text = "Añadir cardio",
@@ -848,6 +848,7 @@ private fun LooseSupersetItem(
     shiftYForBounds: Float = 0f,
     collapsedPartIds: Set<String> = emptySet(),
     pendingRemovalId: String? = null,
+    isSupersetDropTarget: Boolean = false,
 ) {
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
@@ -860,6 +861,7 @@ private fun LooseSupersetItem(
         accentHex = accentHex,
         partId = null,
         isDragging = draggingExerciseId == firstMember.id,
+        isDropTarget = isSupersetDropTarget,
         modifier = Modifier,
         onBoundsChange = { rect ->
             val key = "$partId|${firstMember.id}"
@@ -1004,6 +1006,7 @@ private fun PartSupersetItem(
     shiftYForBounds: Float = 0f,
     collapsedPartIds: Set<String> = emptySet(),
     pendingRemovalId: String? = null,
+    isSupersetDropTarget: Boolean = false,
 ) {
     val accentHex = resolveExerciseAccentHex(session, part.color)
     val coverAccentHex = resolveCoverAccentId(session.background)
@@ -1015,6 +1018,7 @@ private fun PartSupersetItem(
         accentHex = accentHex,
         partId = part.id,
         isDragging = draggingExerciseId == firstMember.id,
+        isDropTarget = isSupersetDropTarget,
         modifier = Modifier,
         onBoundsChange = { rect ->
             val key = "${part.id}|${firstMember.id}"

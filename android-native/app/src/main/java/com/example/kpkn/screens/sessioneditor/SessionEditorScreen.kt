@@ -101,6 +101,7 @@ import com.example.kpkn.screens.sessioneditor.frame.isRedundantWhileSaveBlocked
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorLoadErrorState
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorLoadingState
 import com.example.kpkn.screens.sessioneditor.frame.sessionFrameSummaryChips
+import com.example.kpkn.screens.sessioneditor.design.SessionEditorDropHintBanner
 import com.example.kpkn.screens.sessioneditor.frame.frameVariantName
 import com.example.kpkn.screens.sessioneditor.frame.frameWeekOrder
 import com.example.kpkn.screens.sessioneditor.frame.neighbourSessionDay
@@ -112,6 +113,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
@@ -416,6 +418,15 @@ fun SessionEditorScreen(
     }
 
     fun beginExerciseDrag(partId: String, exerciseId: String, pointerWindow: Offset) {
+        // ED-A · A3: la cabecera de una superserie mueve el bloque entero; un ejercicio que no es de ninguna superserie se arrastra solo,
+        // para poder soltarlo sobre una ya formada.
+        val container = if (partId == SessionEditorDragController.LOOSE_PART_ID) {
+            session?.exercises
+        } else {
+            session?.parts?.firstOrNull { it.id == partId }?.exercises
+        }
+        val groupId = container?.firstOrNull { it.id == exerciseId }?.supersetGroupRefOrLegacyId()
+        val isSupersetBlock = groupId != null && (container?.count { it.supersetGroupRefOrLegacyId() == groupId } ?: 0) >= 2
         dragController.beginExerciseDrag(
             partId = partId,
             exerciseId = exerciseId,
@@ -424,6 +435,7 @@ fun SessionEditorScreen(
             pointerStartWindow = pointerWindow,
             session = session,
             collapsedPartIds = uiState.collapsedPartIds,
+            dragScope = if (isSupersetBlock) ExerciseDragScope.BLOCK else ExerciseDragScope.INDIVIDUAL,
         )
     }
 
@@ -504,6 +516,21 @@ fun SessionEditorScreen(
         sessionListItems.drop(1)
     }
     val allExercisesForUi = remember(session.exercises, session.parts) { session.allExercises() }
+    // ED-A · A3: qué pasaría si se soltara ahora el ejercicio que se arrastra; lo pinta el aviso de arriba y las señales de la lista.
+    val dropPlan = if (draggingExerciseId != null) {
+        planExerciseDrop(
+            session = session,
+            sourcePartId = draggingExercisePartId,
+            exerciseId = draggingExerciseId,
+            scope = dragController.draggingExerciseScope,
+            targetPartId = exerciseDropTargetPartId,
+            targetIndex = exerciseDropTargetIndex,
+            targetGroupId = dragUi.exerciseDropTargetGroupId,
+            outOfRange = exerciseDropOutOfRange,
+        )
+    } else {
+        null
+    }
 
     // Auto-scroll al ejercicio recién añadido (índice = Hero + offset en scrollable)
     LaunchedEffect(pendingAutoExpandExerciseId) {
@@ -768,6 +795,9 @@ fun SessionEditorScreen(
                     exerciseDropTargetKey = exerciseDropTargetKey,
                     exerciseDropTargetPartId = exerciseDropTargetPartId,
                     exerciseDropTargetIndex = exerciseDropTargetIndex,
+                    exerciseDropTargetGroupId = dragUi.exerciseDropTargetGroupId,
+                    draggingExercisePartId = draggingExercisePartId,
+                    dropPlan = dropPlan,
                     draggingPartId = draggingPartId,
                     partDropTargetId = partDropTargetId,
                     pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
@@ -895,6 +925,14 @@ fun SessionEditorScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 72.dp)
+                .zIndex(510f),
+        )
+        SessionEditorDropHintBanner(
+            plan = dropPlan?.takeIf { !exerciseDropOutOfRange },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(top = 60.dp)
                 .zIndex(510f),
         )
         val draggingPart = draggingPartId?.let { id -> groupedParts.firstOrNull { it.id == id } }
