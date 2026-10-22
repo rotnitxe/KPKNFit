@@ -289,7 +289,8 @@ class MealReuseScreensTest {
         val quickFood = QuickEntry.validate(QuickEntryForm(name = "Pizza", kcal = "500"), "q").food!!
         val quickLog = NutritionLog(id = "Q", date = "${today}T12:00:00.000Z", mealType = MealType.DINNER, foods = listOf(quickFood))
         rule.setContent { NutritionFoodRow(log = quickLog, onOpen = {}, onLongPress = {}) }
-        rule.onNodeWithTag("quick-entry-tag").assertExists()
+        rule.onNodeWithTag("quick-entry-tag", useUnmergedTree = true).assertExists()
+        rule.onNodeWithContentDescription("Entrada rápida").assertExists()
         rule.onNodeWithText("Pizza").assertExists()
     }
 

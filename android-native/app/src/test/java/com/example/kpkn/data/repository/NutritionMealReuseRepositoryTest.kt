@@ -139,10 +139,15 @@ class NutritionMealReuseRepositoryTest {
     @Test
     fun `un fallo de Room al guardar una plantilla no la publica`() = runBlocking {
         val db = KpknDatabase.createInMemory(context)
-        val repo = repository(db)
-        closeDatabase(db)
-        assertTrue(runCatching { repo.saveMealTemplate(template()) }.isFailure)
-        assertTrue(repo.mealTemplates.value.isEmpty())
+        try {
+            val repo = repository(db)
+            db.openHelper.writableDatabase.execSQL(
+                "CREATE TRIGGER fallo_plantilla BEFORE INSERT ON nutrition_templates BEGIN SELECT RAISE(ABORT, 'fallo simulado'); END",
+            )
+            assertTrue(runCatching { repo.saveMealTemplate(template()) }.isFailure)
+            assertTrue(repo.mealTemplates.value.isEmpty())
+            assertTrue(db.nutritionDao().getAllTemplates().isEmpty())
+        } finally { closeDatabase(db) }
     }
 
     @Test
