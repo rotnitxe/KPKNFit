@@ -1,41 +1,42 @@
-ED-B · Ejercicio y series en el editor — base y estado (PARCIAL)
+# ED-B · Ejercicio y series en el editor
 
-Sesión de 2026-10-22 (relevo de la ola screens-v2). No se ha implementado ningún tablero nuevo. Este informe deja la base tras la fusión `db5aa08cf`, la clasificación de fallos de la corrida base y el diseño de B2 ya extraído del tablero, para continuar sin repetir trabajo.
+Implementación y comprobaciones automáticas terminadas el 22-oct-2026, continuando íntegramente el diff recibido sobre `107446d52` / `db5aa08cf`. La comprobación visual en emulador corresponde a la QA final de la ola; no se declara realizada aquí.
 
-## Corrida base (edb-3)
+## Cambios
 
-- Comando: `bash /c/kw/tools/gradle_slot.sh /c/kw/u14/android-native "-Dorg.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=2g -Dfile.encoding=UTF-8" :app:compileBaseDebugKotlin :app:compileBaseDebugAndroidTestKotlin :app:testBaseDebugUnitTest --tests "com.example.kpkn.screens.sessioneditor.*" --tests "com.example.kpkn.domain.training.*" --tests "com.example.kpkn.domain.calculations.*"`
-- Log: `C:\kw\logs\edb-3.log` (22 min 15 s, BUILD FAILED). El intento previo `edb-2` no llegó a compilar: faltaba `import com.example.kpkn.ui.design.KpknSetFormat` en `SessionEditorControls.kt` (usa `KpknSetFormat.doseTime` en el stepper de descansos del diff). Corregido.
-- Resultado: **2407 tests, 9 fallos**, clasificados:
+| Tablero | Resultado |
+|---|---|
+| B1/B5 | Lateralidad en ⋯, indicador discreto y orden L/R. Se conservan las dosis de cada lado. |
+| B2 | Fichas reales de 85 × 76 dp y un foco con número, flechas, carga de lectura, descanso propio de la serie y acciones. Drop-set/rest-pause solo tras FALLO y «¿Vas más allá del fallo?». Salir de FALLO limpia esas técnicas y conserva el descanso. |
+| B3 | Porcentaje, reps estimadas y peso enlazados. Referencias separadas de 1RM/TM, ausencia explícita y edición de 1RM o PR. Editar un porcentaje conserva el RIR/rango de una receta; cambiar explícitamente de modo aplica las reglas del modo confirmado. |
+| B3b | AMRAP/Calibrador, mínimo nullable, alcance, ayuda y vista previa del mismo ejercicio y lado. La carga mostrada procede del lado seleccionado. |
+| B3c–B3f | Solo RPE sin carga fija; minutos/segundos y prueba de cronómetro; distancia con pasos de 5 m; cantidad personalizada con pasos de una unidad. Una carga guardada no inventa un RPE. |
+| B4 | Elegir un modo lo marca; confirmar lo aplica. |
+| B7 | Una hoja para descanso de series y entre lados, con atajos y ±15 s. |
+| B8/B9 | Opciones, lateralidad, unidad, carga inteligente, meta y confirmaciones en hojas, conservando sus validaciones y callbacks. |
+| Bloque APRE | APRE 3/6/10 según Mann; confirmación antes de sustituir las series. S3 es AMRAP. El JSON guarda la variante y los cuatro IDs. Los ejercicios unilaterales reciben cuatro pares L/R completos. |
 
-| Fallo | Origen | Qué hacer |
-|---|---|---|
-| `ExerciseOptionsBarComposeTest.laHojaDeLateralidadHaceLoMismoQueToggledBilateralUnilateral` | **Real (diff previo)** | El clic en «Unilateral» de la hoja no llega a `onUpdateExercise`: el assert da `expected:<Exercise(... isUnilateral=true, unilateralMode=UNILATERAL_PAIRED ...)> but was:<null>`. El menú «Lateralidad: Bilateral» y la hoja sí se abren; el problema está en el `clickable` de la opción o en cómo la prueba lo pulsa (`LateralitySheetBody`, `ExerciseOptionsBar.kt:185-191`). |
-| `SessionExerciseDoseTest.dosisDeFuerzaConRangoPorcentajeRirYDescanso` | Pruebas | El diff pone espacio no separable en «RIR»/«RPE»/«por lado» (retoque ED-A); las aserciones buscan espacio normal. Adaptar las pruebas. |
-| `SessionExerciseDoseTest.unilateralAcabaConPorLado` | Pruebas | Ídem («por lado»). |
-| `SessionExerciseDoseTest.unaSuperserieNoRepiteElDescanso` | Pruebas | Ídem. |
-| `SessionListBehaviorTest.laFilaPlegadaTieneSuDosis` | Pruebas | Ídem. |
-| `SessionListBehaviorTest.unaFilaUnilateralEscribePorLado` | Pruebas | Ídem. |
-| `ExerciseSetListComposeTest.enUnilateralSinLadoDerechoSeOfreceAnadirD` | Pruebas | B5: I/D pasó a L/R; la prueba pide «Añadir D» → adaptar a «Añadir R». |
-| `ExerciseCatalogImageCoverageTest` ×2 | Entorno | Checkout disperso (ya documentado en el brief). |
+`restAfterSeconds = null` hereda el descanso del ejercicio. El bloque APRE conserva sus cargas al normalizar. No se infiere un TM. La aplicación en vivo de S3/S4 sigue siendo el paquete CAL4-V de la fase 4.
 
-## Qué hay en el worktree (sin commitear, continuar y no descartar)
+En RM, el porcentaje y la referencia continúan siendo comunes a ambos lados, según el contrato existente de `withExplicitRmLoads`. El foco muestra también la carga del lado seleccionado y avisa de ese alcance; no se inventa un porcentaje independiente que el modelo no guarda. Los RIR distintos de L/R se conservan al recalcular cargas.
 
-- Diff de **B1, B4, B5, B7, B8 y el espacio no separable**: `SessionEditorControls.kt`, `SessionExerciseDose.kt`, `ExerciseEditorCard.kt`, `ExerciseOptionsBar.kt`, `ExerciseSetList.kt` (289+/41−), más `ExerciseOptionsBarComposeTest.kt` actualizado al tablero (lateralidad en ⋯, «Orden L/R»). Incluye la corrección del import de `KpknSetFormat`.
-- No se commitea porque la ola no commitea trabajo a medias y porque 7 de los 9 fallos vienen de ahí.
+## Verificación
 
-## B2 ya diseñado (sin implementar)
+| Corrida | Evidencia |
+|---|---|
+| `C:/kw/logs/edb-9.log` | 39 pruebas, 0 fallos; 4 min 7 s. Mismos clics físicos y aserciones con `GraphicsMode.NATIVE`. |
+| `C:/kw/logs/edb-10.log` | 55 pruebas, 0 fallos; 3 min 48 s. Dosis, lista, AMRAP, cargas RM, estado de fila y 25 escenas de render. |
+| `C:/kw/logs/edb-11.log` | 55 pruebas, 1 fallo de selección ambigua: «40 kg» estaba tanto en la ficha como en el foco. RM unilateral y APRE unilateral pasan. |
+| `C:/kw/logs/edb-12.log` | **55 pruebas, 0 fallos**, 7 min 16 s. 17 de focos, 5 de opciones, 20 de lista y 13 escenas de render. La nueva aserción AMRAP se acota al foco mediante su ancestro, manteniendo los valores esperados y comprobando después la persistencia del mínimo y los lados. |
+| `C:/kw/logs/edb-apre-jvm-1.log` | **15 pruebas JVM, 0 fallos/errores/omitidos**. Log completo: `C:/kw/logs/kpknjvm-u14-20261022-172539.log`. Tablas APRE 3/6/10, S3 AMRAP y prescripción. Commit de dominio/JSON: `b6c79f1ed`. |
 
-Fuente: tablero `B2-FocoSerie.dc.html` (accesible en `…\claude\...\kpkn_editor_design\project\`; ojo, un relevo anterior decía que no lo era).
+Las corridas 4–8 documentaban la transición desde el diff recibido. La clasificación inicial de un clic de lateralidad como fallo real de la app queda corregida por el contraste de edb-9: cambiar únicamente las tres clases de pruebas al renderizador nativo resuelve los cinco fallos de clic sin cambiar sus callbacks ni sustituir los clics por acciones semánticas. Las expectativas de espacio no separable y L/R se adaptaron al diseño; el RPE de cardio conserva su texto original.
 
-1. **Foco de serie** (solo lo de la serie): cabecera «Serie n de total» + flechas anterior/siguiente, tipo de carga, **carga de solo lectura** (el tablero la enseña como `output`, no como campo), «Reps / rango» editable, el valor de intensidad según modo, el segmentado de intensidad (RIR / RPE / Fallo), «Descanso de esta serie» con −/+ de 15 s y las acciones («Aplicar a todas», «Duplicar», «Subir», «Bajar», «Eliminar»). Lateralidad, modo y carga inteligente quedan fuera (ya lo están: viven en `ExerciseOptionsBar`).
-2. **Drop-set y rest-pause solo a FALLO**, detrás de «¿Vas más allá del fallo?», como mini tarjetas con su configuración (ya existen en `InlineSetRowTechniqueChips`). Implementación: envolver `TechniqueSection()` (`InlineSetRow.kt`, línea ~921) con una puerta `if (!set.isFailure) return` y el rótulo encima de los chips.
-3. **«Descanso de esta serie»**: el modelo ya tiene `ExerciseSet.restAfterSeconds` (null = usar el del ejercicio). Enlazar el stepper a ese campo; **no toca Room**.
-4. **Pruebas**: adaptar `ExerciseSetListComposeTest.openedRowShows` (quitar «Drop-set»/«Rest-pause» de las series que no están a FALLO) y añadir las de la puerta (no aparecen sin FALLO; aparecen con la pregunta cuando `intensityMode = FAILURE`).
+Renders en `C:/kw/shots/edb`: 26 PNG de `EdbRenderSheetTest` (13 escenas a 100/130 %, viewport final de 360 × 880) y 26 del arnés existente de ejercicio completo, de 360 dp de ancho y altura natural. Se revisaron focos, RM, AMRAP, Solo RPE, tiempo, distancia, modos, descansos, opciones y APRE. **Hay recortes variables en algunas capturas de Canvas de Robolectric**, aunque la aserción geométrica de cabecera visible pasa y las escenas de altura natural muestran el contenido completo. Esas capturas no acreditan la QA visual definitiva: comprobar expresamente las cabeceras de los focos en el emulador, también al 130 %.
 
-## Riesgos de integración
+## Límites e integración
 
-- **ED-C (u18)** toca el bloque de preparación de `ExerciseEditorCard`; B2 no lo toca.
-- **ED-D (u17)** trabaja superseries y cardio; el espacio no separable toca textos compartidos («por lado»), coordinar con sus pruebas.
-- **LV-C (u11)** cambió `ExerciseEditorExpanded.kt` y `PreparationCarouselCards.kt` al carrusel `warmupTargetLoadKg`; al fusionar ED-B con u11 habrá que mezclar sobre eso.
-- Estas pruebas son Robolectric/Compose: **no** pasan por el carril JVM (`kpkn_jvm.sh`); la verificación es `:app:testBaseDebugUnitTest` por la cola Android, y los renders con los `*RenderSheetTest` (`KPKN_RENDER_DIR=C:\kw\shots\edb`).
+- Room congelado: no se modificaron entidades, migraciones, base ni esquemas. `Exercise.apreBlock` es metadata opcional del JSON existente.
+- G debe adoptar los focos RM/AMRAP nuevos al integrar su editor de series; no reintroducir sus controles antiguos.
+- ED-C conserva la misma pieza `SessionEditorSeriesChip.kt` y la base única de calentamiento de LV-C. Mezclar sobre los cambios de `ExerciseEditorExpanded.kt` y `PreparationCarouselCards.kt` de u11.
+- Sin emulador, APK, merge ni push en este paquete. La QA y la entrega siguen los gates del plan.

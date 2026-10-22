@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -20,14 +21,20 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
-/** ER1c1, R1 §4.2: la barra de opciones del ejercicio, la hoja de los 7 modos y el módulo «Lados». */
+/** ER1c1, R1 §4.2 más los tableros B1/B5/B8: la barra de opciones, la lateralidad en ⋯ con su hoja, la hoja de los 7 modos y el módulo «Lados». */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h2000dp-xxhdpi")
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h880dp-mdpi")
 class ExerciseOptionsBarComposeTest {
 
     @get:Rule
     val rule = createComposeRule()
+
+    private fun setEditorContent(content: @androidx.compose.runtime.Composable () -> Unit) {
+        rule.setContent { EditorOverlayTestHost(content) }
+    }
 
     private val press = Exercise(
         id = "press",
@@ -39,7 +46,7 @@ class ExerciseOptionsBarComposeTest {
     @Test
     fun laHojaDeModosTieneLosSieteModosYElegirUnoLoDevuelve() {
         var picked: TrainingMode? = null
-        rule.setContent {
+        setEditorContent {
             ExerciseModeSheetBody(current = TrainingMode.REPS, onSelect = { picked = it })
         }
         listOf("Reps", "AMRAP", "RM", "Solo RPE", "Tiempo", "Distancia", "Personalizado").forEach { label ->
@@ -49,9 +56,10 @@ class ExerciseOptionsBarComposeTest {
         assertEquals(TrainingMode.TIME, picked)
     }
 
+    /** B1/B8: la barra lleva Modo y Descanso; la lateralidad ya no es un alternador fijo, vive en el menú ⋯ y abre su hoja. */
     @Test
-    fun laBarraMuestraModoDescansoYElAlternadorBilateralUnilateral() {
-        rule.setContent {
+    fun laBarraMuestraModoYDescansoYLaLateralidadViveEnElMenu() {
+        setEditorContent {
             val local = rememberExerciseEditorLocalState(press)
             ExerciseOptionsBar(
                 exercise = press,
@@ -72,14 +80,21 @@ class ExerciseOptionsBarComposeTest {
         }
         rule.onNodeWithText("Modo: Reps ▾").assertExists()
         rule.onNodeWithText("Descanso 1:30").assertExists()
+        rule.onNodeWithContentDescription("Más opciones del ejercicio").performClick()
+        rule.mainClock.advanceTimeBy(3_000)
+        rule.waitForIdle()
+        rule.onNodeWithText("Lateralidad: Bilateral").assertExists().performClick()
+        rule.mainClock.advanceTimeBy(3_000)
+        rule.waitForIdle()
         rule.onNodeWithText("Bilateral").assertExists()
         rule.onNodeWithText("Unilateral").assertExists()
     }
 
+    /** B1/B8: cambiar a unilateral desde la hoja hace lo mismo que `toggledBilateralUnilateral`. */
     @Test
-    fun elAlternadorUnilateralHaceLoMismoQueToggledBilateralUnilateral() {
+    fun laHojaDeLateralidadHaceLoMismoQueToggledBilateralUnilateral() {
         var result: Exercise? = null
-        rule.setContent {
+        setEditorContent {
             val local = rememberExerciseEditorLocalState(press)
             ExerciseOptionsBar(
                 exercise = press,
@@ -98,7 +113,15 @@ class ExerciseOptionsBarComposeTest {
                 onOpenRest = {},
             )
         }
-        rule.onNodeWithText("Unilateral").performClick()
+        rule.onNodeWithContentDescription("Más opciones del ejercicio").performClick()
+        rule.mainClock.advanceTimeBy(3_000)
+        rule.waitForIdle()
+        rule.onNodeWithText("Lateralidad: Bilateral").performClick()
+        rule.waitForIdle()
+        rule.mainClock.advanceTimeBy(3_000)
+        rule.waitForIdle()
+        rule.onNodeWithText("Unilateral").assertIsDisplayed().performClick()
+        rule.waitForIdle()
         val expected = press.toggledBilateralUnilateral()
         assertEquals(expected, result)
         assertTrue(result!!.isEffectivelyUnilateral())
@@ -106,7 +129,7 @@ class ExerciseOptionsBarComposeTest {
 
     @Test
     fun elMenuDeOpcionesReuneRomRelacionSuperserieUnidadCargaYMeta() {
-        rule.setContent {
+        setEditorContent {
             val local = rememberExerciseEditorLocalState(press)
             ExerciseOptionsBar(
                 exercise = press,
@@ -135,17 +158,18 @@ class ExerciseOptionsBarComposeTest {
     fun elModuloLadosTieneOrdenLadosYDescansoEntreLados() {
         val unilateral = press.toggledBilateralUnilateral()
         var orderToggled: Exercise? = null
-        rule.setContent {
+        setEditorContent {
             SideOptionsModule(
                 exercise = unilateral,
                 onUpdateExercise = { transform -> orderToggled = transform(unilateral) },
                 onOpenSideRest = {},
             )
         }
-        rule.onNodeWithText("Orden I/D").assertExists()
+        // B5: el orden de lados se dice en L/R, nunca I/D.
+        rule.onNodeWithText("Orden L/R").assertExists()
         rule.onNodeWithText("Lados iguales").assertExists()
         rule.onNodeWithText("Entre lados 0:15").assertExists()
-        rule.onNodeWithText("Orden I/D").performClick()
+        rule.onNodeWithText("Orden L/R").performClick()
         assertEquals(
             com.example.kpkn.data.models.UnilateralSideOrder.RIGHT_LEFT,
             orderToggled!!.unilateralSideOrder,
