@@ -97,6 +97,7 @@ class FullBankMmfitReportTest {
             put("foldSplits", JsonArray(splits))
         }
         File(output, "MMFIT_M5_AGREGADOS.json").writeText(FullBankReport.objectText(report))
+        require(results.all { it.processed }) { "Extracción MM-Fit incompleta: revisar MMFIT_M5_AGREGADOS.json" }
     }
 
     /** Contrato sintético: ninguna prueba de esta clase necesita abrir un banco para comprobar el veto al examen. */
