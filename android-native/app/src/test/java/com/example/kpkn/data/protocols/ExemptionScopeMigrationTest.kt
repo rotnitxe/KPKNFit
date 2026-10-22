@@ -136,8 +136,7 @@ class ExemptionScopeMigrationTest {
         // INV: la C10 de APRE (semanas idénticas de cada bloque de cuatro por diseño, tabla de Mann) con el
         // equivalente antiguo del glob anclado «w*»: el contains "w" cubre w1…w12 igual que el anclado.
         "apre-mann" to listOf("C5_DELOAD_REQUIRED" to "recipe", "C10_IDENTICAL_WEEKS" to "w"),
-        "cube-method" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
-        "calgary-16" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
+        "cube-method" to listOf("C5_DELOAD_REQUIRED" to "recipe", "W2" to "w7", "W2" to "w8", "W2" to "w9"),
         AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID to phulAuthoredLegacy,
         AuthoredPhulPhatRecipes.PHUL_ADAPTED_ID to phulAuthoredLegacy,
         AuthoredPhulPhatRecipes.PHAT_ORIGINAL_ID to phatAuthoredLegacy,

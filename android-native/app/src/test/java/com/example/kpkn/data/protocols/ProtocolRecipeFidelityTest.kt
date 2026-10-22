@@ -893,6 +893,30 @@ class ProtocolRecipeFidelityTest {
     }
 
     @Test
+    fun calgary_weeks_12_to_15_are_taper() {
+        val recipe = recipeOf("calgary-16")
+        val goals = recipe.weeks.filter { it.weekNumber in 12..15 }.map { it.blockGoal }
+        assertTrue("Calgary w12-15 son taper: $goals", goals.all { it == BlockGoal.TAPER })
+        assertEquals("la semana 16 es el test", BlockGoal.PEAK, recipe.weeks.first { it.weekNumber == 16 }.blockGoal)
+    }
+
+    @Test
+    fun power_12_3_uses_beginner_accessories() {
+        val recipe = templateRecipe("power-12-3")
+        val forbidden = setOf(CatalogIds.DL_DEF, CatalogIds.GHR, CatalogIds.JM, CatalogIds.WHEEL)
+        recipe.weeks.first { it.weekNumber == 1 }.days.forEach { day ->
+            day.slots.forEach { slot ->
+                assertTrue(
+                    "w1/${day.label}/${slot.id}: sin accesorios de intermedio",
+                    slot.lift.configurationId !in forbidden,
+                )
+            }
+            val ids = day.slots.map { it.lift.configurationId }
+            assertEquals("w1/${day.label}: configuraciones sin duplicar", ids.distinct().size, ids.size)
+        }
+    }
+
+    @Test
     fun rts_style_uses_rpe_top_sets_on_all_three_lifts() {
         val recipe = recipeOf("kpkn-rts-style")
         val week1 = recipe.weeks.first { it.weekNumber == 1 }
@@ -1363,11 +1387,11 @@ class ProtocolRecipeFidelityTest {
         val bumped = listOf(
             "madcow-5x5", "texas-method-3d", "texas-method-4d", "kpkn-native-sbd-4", "smolov", "smolov-jr",
             "kpkn-ppl-6", "kpkn-sbs-rtf", "candito-6", "gzcl-uhf-9",
-            "tsa-9", "calgary-16", "gzcl-jt-2", "westside-conjugate", "sheiko-29-32",
+            "tsa-9", "gzcl-jt-2", "westside-conjugate", "sheiko-29-32",
         )
         bumped.forEach { id -> assertEquals("$id: contentVersion", 2, recipeOf(id).contentVersion) }
         listOf(
-            "lilliebridge", "wendler-531-bbb", "wendler-531-fsl", "nsuns-531-lp-4d", "gzclp", "juggernaut-2", "kpkn-rp-style", "kpkn-rts-style",
+            "lilliebridge", "wendler-531-bbb", "wendler-531-fsl", "nsuns-531-lp-4d", "gzclp", "juggernaut-2", "kpkn-rp-style", "kpkn-rts-style", "calgary-16",
         ).forEach { id -> assertEquals("$id: contentVersion", 3, recipeOf(id).contentVersion) }
         assertEquals("cube-method: rotación y AMRAP de registro", 4, recipeOf("cube-method").contentVersion)
         assertEquals("gzcl-rippler: AMRAP de registro", 2, recipeOf("gzcl-rippler").contentVersion)
@@ -1375,7 +1399,7 @@ class ProtocolRecipeFidelityTest {
             assertEquals("$id: sin cambios de contenido", 1, recipeOf(id).contentVersion)
         }
         PROGRAM_TEMPLATES.mapNotNull { it.recipe }.forEach {
-            assertEquals("${it.id}: contentVersion", if (it.id.startsWith("power-")) 3 else 2, it.contentVersion)
+            assertEquals("${it.id}: contentVersion", if (it.id == "power-12-3") 4 else if (it.id.startsWith("power-")) 3 else 2, it.contentVersion)
         }
         AuthoredPhulPhatRecipes.all.forEach { assertEquals("${it.id}: contentVersion", 2, it.contentVersion) }
     }

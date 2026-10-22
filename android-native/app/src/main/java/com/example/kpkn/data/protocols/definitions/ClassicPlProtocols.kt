@@ -433,6 +433,8 @@ object ClassicPlProtocols {
             val goal = when {
                 w <= 4 -> BlockGoal.ACCUMULATION
                 w <= 11 -> BlockGoal.INTENSIFICATION
+                // A-06 (T-14): las semanas 12 a 15 son el taper del método (antes iban como pico); la 16 es el test.
+                w <= 15 -> BlockGoal.TAPER
                 else -> BlockGoal.PEAK
             }
             val rpe = when {
@@ -471,7 +473,8 @@ object ClassicPlProtocols {
                 w == 16 -> LiftScheme(1, 1, 90.0)
                 else -> LiftScheme(2, 1, (sq.pct - 4).coerceAtLeast(80.0), 2, 3, (sq.backPct - 4).coerceAtLeast(70.0))
             }
-            val drop = if (goal == BlockGoal.PEAK) 2 else if (goal == BlockGoal.INTENSIFICATION) 1 else 0
+            // El recorte de accesorios va por semana, no por goal: conserva el reparto anterior (2 desde la 12) aunque el taper cambie de etiqueta.
+            val drop = if (w >= 12) 2 else if (w >= 5) 1 else 0
             // L-05 (B.S6): con el TM al 100 % del 1RM, el volumen de banca de la semana 16 (95 - 8 = 87 %) ya no cabe en 6 repeticiones por
             // Epley (H11b, no exentable). H-02 (B.S6 parte 2b): el viernes de la semana 16, tras los singles de sentadilla (95 %), banca
             // (93 %) y peso muerto (90 %), es un día ligero: banca de volumen al 65 % y sentadilla con pausa al 60 %. Las semanas 1 a 15 no
@@ -507,16 +510,9 @@ object ClassicPlProtocols {
             // L-05 (B.S6): los porcentajes de Calgary son del 1RM, no de un TM del 90 %: TM = 100 % del 1RM.
             recipe = TrainingPlanRecipe(
                 "calgary-16", weeks, 1.0, sbdSlots(), ProgressionRule.None,
-                // B.S6 parte 2b (C5): las semanas 12 a 16 son el taper del propio programa y la 16 es el test; no hay descarga aparte.
-                exemptions = listOf(
-                    RecipeCompositionExemption(
-                        "C5_DELOAD_REQUIRED", "recipe",
-                        "Calgary Barbell 16: las semanas 12 a 16 son el taper del propio programa (top set a RPE 8-9 y test en la semana 16); el método no programa una semana de descarga aparte",
-                        "https://calgarybarbell.com/",
-                    ),
-                ),
+                // A-06 (T-14): las semanas 12 a 15 declaran su taper, así que C5 se cumple de origen y la exención que lo cubría se retira.
                 claimedDaysPerWeek = 4, claimedLevel = "intermedio", autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.RPE_CAP)),
-                contentVersion = 2,
+                contentVersion = 3,
             ),
             fidelitySpec = ProtocolFidelitySpec(
                 16, 4, requiresPercent = true, requiresRpe = true, claimedLevel = "intermedio",

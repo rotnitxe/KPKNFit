@@ -65,6 +65,24 @@ object KpknAdvancedProgramRecipes {
         weekRecipe(weekNumber, blockIndex, blockName, goal, days.inPeakOneRm(goal))
     }
 
+    /**
+     * L-28 (T-14): los accesorios de principiante sustituyen los de intermedio de los arquetipos PL (déficit, pausa, GHR, press JM
+     * y rueda) por variantes más accesibles. [includeBench] = false en el día de banca: `BP_PAUSE → BP` crearía allí dos slots con
+     * la misma configuración (C2). `LEG_CURL` y `PLANK` del plan se llaman aquí `CURL_H` (curl femoral en máquina) y `PLANCHA`.
+     */
+    private fun DayRecipe.beginnerAccessories(includeBench: Boolean = true): DayRecipe = copy(
+        slots = slots.map { s ->
+            when (s.lift.configurationId) {
+                CatalogIds.DL_DEF -> s.copy(lift = s.lift.copy(configurationId = CatalogIds.RDL))
+                CatalogIds.BP_PAUSE -> if (includeBench) s.copy(lift = s.lift.copy(configurationId = CatalogIds.BP)) else s
+                CatalogIds.GHR -> s.copy(lift = s.lift.copy(configurationId = CatalogIds.CURL_H))
+                CatalogIds.JM -> s.copy(lift = s.lift.copy(configurationId = CatalogIds.PUSHDOWN))
+                CatalogIds.WHEEL -> s.copy(lift = s.lift.copy(configurationId = CatalogIds.PLANCHA))
+                else -> s
+            }
+        },
+    )
+
     fun plBeginner12(): TrainingPlanRecipe {
         val weeks = (1..12).map { w ->
             val (block, name, goal, squat, bench, dl) = when {
@@ -80,16 +98,16 @@ object KpknAdvancedProgramRecipes {
                 w, block, name, goal,
                 listOf(
                     // CAL5: el AMRAP del inicio de cada bloque es un calibrador de «próximas sesiones» (canal de propuestas del programa).
-                    DayArchetypes.plSquat(squat, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 1, t1Amrap = w == 1 || w == 5 || w == 9).amrapAsCalibrator(),
-                    DayArchetypes.plBenchHeavy(bench, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 3),
-                    DayArchetypes.plDeadlift(dl, t1Sets = t1Sets.coerceAtMost(3), t1Reps = t1Reps.coerceAtLeast(2), weekday = 5),
+                    DayArchetypes.plSquat(squat, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 1, t1Amrap = w == 1 || w == 5 || w == 9).amrapAsCalibrator().beginnerAccessories(),
+                    DayArchetypes.plBenchHeavy(bench, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 3).beginnerAccessories(includeBench = false),
+                    DayArchetypes.plDeadlift(dl, t1Sets = t1Sets.coerceAtMost(3), t1Reps = t1Reps.coerceAtLeast(2), weekday = 5).beginnerAccessories(),
                 ),
                 deload,
             )
         }
         return TrainingPlanRecipe(
             "power-12-3", weeks, 0.90, sbd,
-            claimedDaysPerWeek = 3, claimedLevel = "principiante", contentVersion = POWER_CONTENT_VERSION,
+            claimedDaysPerWeek = 3, claimedLevel = "principiante", contentVersion = POWER_CONTENT_VERSION + 1,
         )
     }
 

@@ -242,7 +242,7 @@ private val LEGACY_PROTOCOL_INDEX: List<Protocol> = listOf(
         defaultSplit = "pl_classic_4",
     ),
     Protocol(
-        id = "smolov-jr",
+        id = "smolov-jr-legacy",
         name = "Smolov Jr.",
         emoji = "\uD83D\uDCA5",
         description = "Mini ciclo brutal de especialización para un levantamiento. Mucha frecuencia y toneladas de volumen concentrado.",
