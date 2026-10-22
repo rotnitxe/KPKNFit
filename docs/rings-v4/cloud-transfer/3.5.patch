@@ -1,0 +1,579 @@
+diff --git a/android-native/app/src/main/java/com/example/kpkn/data/models/AugeAdaptiveModels.kt b/android-native/app/src/main/java/com/example/kpkn/data/models/AugeAdaptiveModels.kt
+index 64b3c428c0b7f82d16eb494bb80d34144e659f3a..ce7851b668f804642a38b35672d47e296c94c73b 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/data/models/AugeAdaptiveModels.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/data/models/AugeAdaptiveModels.kt
+@@ -43,6 +43,10 @@ data class AugeParameterState(
+     val lastUpdatedAtMs: Long = 0L,
+     val replayWatermarkMs: Long = 0L,
+     val paramsVersion: Int = 1,
++    val skillByScale: Map<String, AugeSkillMetrics> = emptyMap(),
++    val frozen: Boolean = false,
++    val frozenAtMs: Long? = null,
++    val frozenReason: String? = null,
+ )
+ 
+ @Serializable
+@@ -76,4 +80,38 @@ data class AugeObservationRecord(
+     val outcome: AugeObservationOutcome = AugeObservationOutcome(),
+     val priorPredicted: Double? = null,
+     val anchorMs: Long = observedAtMs,
++    val scale: String = "historical_raw",
++)
++
++/** Errores pareados en puntos de bateria; el contador no es n del EKF. */
++@Serializable
++data class AugeSkillValues(
++    val pairedCount: Int = 0,
++    val adaptedError: Double = 0.0,
++    val priorError: Double = 0.0,
++    val bias: Double = 0.0,
++    val lastObservedAtMs: Long = 0L,
++)
++
++@Serializable
++data class AugeSkillMetrics(
++    val values: AugeSkillValues = AugeSkillValues(),
++    val bySource: Map<String, AugeSkillValues> = emptyMap(),
++) {
++    val pairedCount: Int get() = values.pairedCount
++    val adaptedError: Double get() = values.adaptedError
++    val priorError: Double get() = values.priorError
++}
++
++data class AugeRollbackEvent(val parameterKey: String, val observedAtMs: Long, val paramsVersion: Int)
++
++data class AugeModelAccuracy(
++    val parameterKey: String,
++    val scale: String,
++    val metrics: AugeSkillMetrics,
++    val tauHours: Double,
++    val lowerTauHours: Double,
++    val upperTauHours: Double,
++    val updateCount: Int,
++    val frozen: Boolean,
+ )
+diff --git a/android-native/app/src/main/java/com/example/kpkn/data/models/AugeModels.kt b/android-native/app/src/main/java/com/example/kpkn/data/models/AugeModels.kt
+index a84dc12f61289094073a69357995cca769d7639c..af8f4f293b38e722e8b42a7046840988f3e0b723 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/data/models/AugeModels.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/data/models/AugeModels.kt
+@@ -204,6 +204,7 @@ data class AugeSnapshot(
+     val personalBaseline: Map<RecoveryChannelId, IntRange> = emptyMap(),
+     val sparkline: Map<RecoveryChannelId, List<Int>> = emptyMap(),
+     val showModelUpdateNotice: Boolean = false,
++    val modelAccuracy: Map<RecoveryChannelId, List<AugeModelAccuracy>> = emptyMap(),
+     /**
+      * Cobertura POR CANAL calculada por el productor (`AugeViewModel.recompute`,
+      * `computeSnapshotCoverage`) con las mismas entradas y el mismo corte
+diff --git a/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeLearner.kt b/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeLearner.kt
+index 9d618cd6d01bde1867c96ca737702128b7d89e5c..796852df30d5cb42e8f7455646add282054400be 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeLearner.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeLearner.kt
+@@ -31,6 +31,7 @@ data class AugeLearningObservation(
+     val observedAtMs: Long,
+     val relevantLogId: String?,
+     val hoursSinceRelevantLoad: Double,
++    val scale: String = "historical_raw",
+ )
+ 
+ /**
+@@ -52,6 +53,8 @@ data class AugePrediction(
+  */
+ fun interface AugeObservationModel {
+     fun predict(parameterKey: String, lnTau: Double): AugePrediction
++    fun predictPrior(parameterKey: String): AugePrediction =
++        predict(parameterKey, AugeAdaptiveCacheMigration.prior(parameterKey).mean)
+ }
+ 
+ /**
+@@ -109,6 +112,16 @@ object AugeLearner {
+         cache: AugeAdaptiveCache,
+         observation: AugeLearningObservation,
+         model: AugeObservationModel,
++        trackSkill: Boolean = true,
++    ): AugeLearnerResult {
++        val result = updateCore(cache, observation, model)
++        return if (trackSkill) AugeModelSkill.finish(cache, observation, model, result) else result
++    }
++
++    private fun updateCore(
++        cache: AugeAdaptiveCache,
++        observation: AugeLearningObservation,
++        model: AugeObservationModel,
+     ): AugeLearnerResult {
+         val key = AugeAdaptiveCacheMigration.parameterKey(observation.parameterKey)
+ 
+diff --git a/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeLearningObservationModel.kt b/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeLearningObservationModel.kt
+index a8c1d99feb9e4d7126ba165ede5de73618d436ed..6fcb15d021724fdde54c45547b09d687edd826c6 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeLearningObservationModel.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeLearningObservationModel.kt
+@@ -21,12 +21,19 @@ class SnapshotObservationModel(
+     private val scale: ObservationScale,
+ ) : AugeObservationModel {
+ 
+-    override fun predict(parameterKey: String, lnTau: Double): AugePrediction {
++    override fun predict(parameterKey: String, lnTau: Double): AugePrediction =
++        predictWithCache(parameterKey, candidateCache(AugeAdaptiveCacheMigration.parameterKey(parameterKey), exp(lnTau)))
++
++    override fun predictPrior(parameterKey: String): AugePrediction = predictWithCache(parameterKey,
++        inputsBeforeGesture.adaptiveCache.copy(personalizedRecoveryHours = emptyMap(), cnsRecoveryHours = null,
++            spinalRecoveryHours = null, parameterStates = emptyMap()))
++
++    private fun predictWithCache(parameterKey: String, cache: AugeAdaptiveCache): AugePrediction {
+         val key = AugeAdaptiveCacheMigration.parameterKey(parameterKey)
+         val core = AugeSnapshotComputer.compute(
+             inputsBeforeGesture.copy(
+                 nowMs = observedAtMs,
+-                adaptiveCache = candidateCache(key, exp(lnTau)),
++                adaptiveCache = cache,
+             ),
+         )
+         val reading = when (key) {
+diff --git a/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeModelSkill.kt b/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeModelSkill.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..6959b302a871c4384453bba9376940426debe754
+--- /dev/null
++++ b/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeModelSkill.kt
+@@ -0,0 +1,99 @@
++package com.example.kpkn.domain.auge
++
++import com.example.kpkn.data.models.*
++import kotlin.math.abs
++import kotlin.math.exp
++import kotlin.math.sqrt
++
++/** Habilidad pareada antes de aprender; no mezcla escalas ni consulta el reloj. */
++object AugeModelSkill {
++    fun finish(
++        before: AugeAdaptiveCache,
++        observation: AugeLearningObservation,
++        model: AugeObservationModel,
++        result: AugeLearnerResult,
++    ): AugeLearnerResult {
++        if (result.outcome.status == AugeObservationStatus.REJECTED) return result
++        val key = AugeAdaptiveCacheMigration.parameterKey(observation.parameterKey)
++        val prior = AugeAdaptiveCacheMigration.prior(key)
++        val previous = before.parameterStates[key]?.takeIf { it.paramsVersion == AugeParameters.VERSION } ?: prior
++        val id = AugeAdaptiveCacheMigration.observationId(key, observation.anchorMs, observation.y, observation.relevantLogId)
++        val record = result.cache.observations.firstOrNull { it.id == id } ?: return result
++        val eligible = result.outcome.status == AugeObservationStatus.ADMITTED || result.outcome.reason == "zona_muerta"
++        var state = result.cache.parameterStates[key] ?: previous
++        var updatedRecord = record.copy(scale = observation.scale)
++        var rollback = false
++        if (eligible) {
++            val basePrediction = model.predictPrior(key)
++            if (basePrediction.battery.isFinite() && !basePrediction.atFloor && !basePrediction.blocked &&
++                basePrediction.battery < AugeParameters.LEARNER_SATURATION_THRESHOLD
++            ) {
++                val old = previous.skillByScale[observation.scale] ?: AugeSkillMetrics()
++                val nu = observation.y - record.predicted
++                val priorNu = observation.y - basePrediction.battery
++                val metrics = accumulate(old, nu, priorNu, observation.source, observation.observedAtMs)
++                state = state.copy(skillByScale = previous.skillByScale + (observation.scale to metrics))
++                rollback = !previous.frozen && metrics.pairedCount >= AugeParameters.SKILL_MIN_PAIRS &&
++                    metrics.adaptedError > AugeParameters.SKILL_ROLLBACK_RATIO * metrics.priorError
++                updatedRecord = updatedRecord.copy(priorPredicted = basePrediction.battery)
++            }
++        }
++        val frozen = previous.frozen || rollback
++        var outcome = result.outcome
++        if (frozen) {
++            state = state.copy(
++                mean = prior.mean,
++                variance = prior.variance,
++                n = previous.n,
++                lastUpdatedAtMs = previous.lastUpdatedAtMs,
++                frozen = true,
++                frozenAtMs = previous.frozenAtMs ?: observation.observedAtMs,
++                frozenReason = previous.frozenReason ?: "error_superior_al_prior",
++            )
++            if (rollback || outcome.status == AugeObservationStatus.ADMITTED) {
++                outcome = AugeObservationOutcome(AugeObservationStatus.CENSORED, if (rollback) "rollback_al_prior" else "parametro_congelado")
++                updatedRecord = updatedRecord.copy(outcome = outcome)
++            }
++        }
++        var next = result.cache.copy(
++            parameterStates = result.cache.parameterStates + (key to state),
++            observations = result.cache.observations.map { if (it.id == id) updatedRecord else it },
++        )
++        if (frozen) next = when (key) {
++            "cns" -> next.copy(cnsRecoveryHours = exp(prior.mean))
++            "spinal" -> next.copy(spinalRecoveryHours = exp(prior.mean))
++            else -> next.copy(personalizedRecoveryHours = next.personalizedRecoveryHours + (key to exp(prior.mean)))
++        }
++        val detail = if (frozen) result.detail?.copy(meanAfter = prior.mean, varianceAfter = prior.variance) else result.detail
++        return result.copy(cache = next, outcome = outcome, detail = detail)
++    }
++
++    fun accumulate(old: AugeSkillMetrics, nu: Double, priorNu: Double, source: String, atMs: Long): AugeSkillMetrics {
++        require(nu.isFinite() && priorNu.isFinite())
++        fun step(values: AugeSkillValues): AugeSkillValues {
++            fun ewma(previous: Double, value: Double) = if (values.pairedCount == 0) value else
++                (1.0 - AugeParameters.SKILL_EWMA_BETA) * previous + AugeParameters.SKILL_EWMA_BETA * value
++            return AugeSkillValues(values.pairedCount + 1, ewma(values.adaptedError, abs(nu)),
++                ewma(values.priorError, abs(priorNu)), ewma(values.bias, nu), atMs)
++        }
++        val total = step(old.values)
++        return AugeSkillMetrics(total, old.bySource + (source to step(old.bySource[source] ?: AugeSkillValues())))
++    }
++
++    /** Transiciones durables: el llamador emite estos datos solo después del commit de caché. */
++    fun rollbacks(before: AugeAdaptiveCache, after: AugeAdaptiveCache): List<AugeRollbackEvent> =
++        after.parameterStates.mapNotNull { (key, state) ->
++            if (state.frozen && before.parameterStates[key]?.takeIf { it.paramsVersion == state.paramsVersion }?.frozen != true)
++                AugeRollbackEvent(key, state.frozenAtMs ?: state.lastUpdatedAtMs, state.paramsVersion)
++            else null
++        }
++
++    fun presentation(cache: AugeAdaptiveCache): Map<RecoveryChannelId, List<AugeModelAccuracy>> =
++        cache.parameterStates.filterValues { it.paramsVersion == AugeParameters.VERSION }.flatMap { (key, state) ->
++            state.skillByScale.map { (scale, metric) ->
++                val channel = when (key) { "cns" -> RecoveryChannelId.SYSTEM; "spinal" -> RecoveryChannelId.STRUCTURE; else -> RecoveryChannelId.MUSCULAR }
++                channel to AugeModelAccuracy(key, scale, metric, exp(state.mean),
++                    exp(state.mean - 1.96 * sqrt(state.variance)), exp(state.mean + 1.96 * sqrt(state.variance)), state.n, state.frozen)
++            }
++        }.groupBy({ it.first }, { it.second })
++}
+diff --git a/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeParameters.kt b/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeParameters.kt
+index d35429b7c6baba41759a78ff82358ccabd2abbdd..8d9276fb6d9a29f9a38e2221e8145e63f4b5e8da 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeParameters.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeParameters.kt
+@@ -13,6 +13,11 @@ import kotlin.math.max
+  * límites de capacidad, pisos fisiológicos y warps de horas), [AcwrThresholds], [RecoveryBands] y `AugeFatigueEngine.ATHLETE_CAPACITY`.
+  */
+ object AugeParameters {
++    /** EWMA pareada de innovaciones sin recortar (WP 3.5). */
++    const val SKILL_EWMA_BETA = 0.20
++    const val SKILL_MIN_PAIRS = 8
++    const val SKILL_ROLLBACK_RATIO = 1.15
++
+ 
+     /** Versión del registro: súbela cuando cambie CUALQUIER valor o la forma de una política (v2 = D1/D2 de 2.6; D5 no la sube porque es identidad); el caché del aprendiz de fase 3 la usa para invalidar los τ aprendidos. */
+     const val VERSION: Int = 2
+diff --git a/android-native/app/src/main/java/com/example/kpkn/domain/auge/ManualGesture.kt b/android-native/app/src/main/java/com/example/kpkn/domain/auge/ManualGesture.kt
+index 4bb1ba643510a79089cc7d0aff134a944adfaa5f..11892b91ac158bdb6567d654cc3bbe7100ec2056 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/domain/auge/ManualGesture.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/domain/auge/ManualGesture.kt
+@@ -79,6 +79,7 @@ data class ManualTargetOutcome(
+ data class ManualGestureEvaluation(
+     val cache: AugeAdaptiveCache,
+     val outcomes: List<ManualTargetOutcome>,
++    val rollbacks: List<com.example.kpkn.data.models.AugeRollbackEvent> = emptyList(),
+ ) {
+     /** Claves cuyo gesto ya estaba persistido (registro del anillo o marca de agua): no se reevalúan ni reanclan. */
+     val duplicates: Set<String> get() = outcomes.filter { it.status == ManualTargetStatus.DUPLICATE }.map { it.key }.toSet()
+@@ -287,6 +288,7 @@ object ManualGestureLearning {
+                 observedAtMs = command.observedAtMs,
+                 relevantLogId = load.logId,
+                 hoursSinceRelevantLoad = load.hours,
++                scale = "shown",
+             )
+             val result = try {
+                 AugeLearner.update(cache, observation, model)
+@@ -318,7 +320,7 @@ object ManualGestureLearning {
+                 priorState.n, after.n, priorTau, exp(after.mean),
+             )
+         }
+-        return ManualGestureEvaluation(cache, outcomes)
++        return ManualGestureEvaluation(cache, outcomes, AugeModelSkill.rollbacks(base, cache))
+     }
+ 
+     // ─── Sesión relevante ─────────────────────────────────────────────────────────────────────
+@@ -416,6 +418,9 @@ object ManualGestureLearning {
+     /** Memoiza h(θ): el aprendiz reevalúa el mismo punto (prior, media, extremos) y cada evaluación recorre el motor. */
+     private class MemoModel(private val inner: AugeObservationModel) : AugeObservationModel {
+         private val cache = HashMap<Pair<String, Double>, AugePrediction>()
++        private val priors = HashMap<String, AugePrediction>()
++        override fun predictPrior(parameterKey: String): AugePrediction =
++            priors.getOrPut(parameterKey) { inner.predictPrior(parameterKey) }
+         override fun predict(parameterKey: String, lnTau: Double): AugePrediction =
+             cache.getOrPut(parameterKey to lnTau) { inner.predict(parameterKey, lnTau) }
+     }
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/auge/AugeViewModel.kt b/android-native/app/src/main/java/com/example/kpkn/screens/auge/AugeViewModel.kt
+index 7ba034bf9f6b962c9a336a8e5d9a3547265eef32..efb03a216090503d14d96a62f8b82df6c21b2713 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/auge/AugeViewModel.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/auge/AugeViewModel.kt
+@@ -343,6 +343,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
+             personalBaseline = personalBaseline,
+             sparkline = sparkline,
+             showModelUpdateNotice = !adaptiveCache.modelUpdateNoticeShown,
++            modelAccuracy = com.example.kpkn.domain.auge.AugeModelSkill.presentation(adaptiveCache),
+             coverage = coverage,
+         )
+         KpknDiagnosticLogger.event(
+@@ -480,6 +481,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
+         )
+ 
+     private fun logGestureOutcomes(origin: String, observedAtMs: Long, evaluation: ManualGestureEvaluation) {
++        logModelRollbacks(evaluation.rollbacks)
+         evaluation.outcomes.forEach { outcome ->
+             KpknDiagnosticLogger.event(
+                 namespace = "auge",
+@@ -501,6 +503,14 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
+         }
+     }
+ 
++    private fun logModelRollbacks(events: List<AugeRollbackEvent>) {
++        events.forEach { event ->
++            KpknDiagnosticLogger.event(namespace = "auge", name = "model_rollback_to_prior",
++                fields = mapOf("parameterKey" to event.parameterKey, "observedAtMs" to event.observedAtMs,
++                    "paramsVersion" to event.paramsVersion))
++        }
++    }
++
+     private fun logGestureFailure(name: String, e: Exception) {
+         KpknDiagnosticLogger.event(
+             namespace = "auge",
+@@ -848,6 +858,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
+                     finishedLogId = newest.id,
+                 )
+                 augeRepo.saveAdaptiveCache(applied)
++                logModelRollbacks(com.example.kpkn.domain.auge.AugeModelSkill.rollbacks(currentCache, applied))
+                 applied
+             }
+             result.diagnostics.forEach { diagnostic ->
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/home/AugeModelAccuracyCard.kt b/android-native/app/src/main/java/com/example/kpkn/screens/home/AugeModelAccuracyCard.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..a72ff77cc10bb68c04ce70345ace749538c0b373
+--- /dev/null
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/home/AugeModelAccuracyCard.kt
+@@ -0,0 +1,51 @@
++package com.example.kpkn.screens.home
++
++import androidx.compose.foundation.layout.Arrangement
++import androidx.compose.foundation.layout.Column
++import androidx.compose.foundation.layout.fillMaxWidth
++import androidx.compose.material3.Text
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.platform.testTag
++import androidx.compose.ui.unit.dp
++import com.example.kpkn.data.models.AugeModelAccuracy
++import com.example.kpkn.screens.onboarding.design.WizardColors
++import com.example.kpkn.ui.design.KpknType
++import java.util.Locale
++import kotlin.math.abs
++
++/** Lectura del mismo snapshot que los anillos; abrir o recomponer no realiza ninguna escritura. */
++@Composable
++internal fun AugeModelAccuracyCard(entries: List<AugeModelAccuracy>, modifier: Modifier = Modifier) {
++    fun points(value: Double) = String.format(Locale.getDefault(), "%.1f", value)
++    Column(modifier.fillMaxWidth().testTag("auge-model-accuracy"), verticalArrangement = Arrangement.spacedBy(6.dp)) {
++        Text("Precisión del modelo", style = KpknType.bodyStrong, color = WizardColors.text)
++        Text("Tu recuperación", style = KpknType.caption, color = WizardColors.textMuted)
++        if (entries.isEmpty()) {
++            Text("Sin datos suficientes", style = KpknType.body, color = WizardColors.text)
++            Text("Aún estamos reuniendo referencias sobre tu recuperación", style = KpknType.caption, color = WizardColors.textMuted)
++            Text("Estimación base", style = KpknType.caption, color = WizardColors.textMuted)
++        }
++        entries.sortedWith(compareBy({ it.parameterKey }, { it.scale })).forEach { entry ->
++            val values = entry.metrics.values
++            val label = when (entry.parameterKey) { "cns" -> "Energía"; "spinal" -> "Columna"; else -> entry.parameterKey.replaceFirstChar { it.uppercase() } }
++            val scale = if (entry.scale == "shown") "escala mostrada" else "escala del modelo"
++            Text("$label · $scale · ${values.pairedCount} referencias válidas", style = KpknType.caption, color = WizardColors.text)
++            if (values.pairedCount < 8) Text("Aún estamos reuniendo referencias sobre tu recuperación", style = KpknType.caption, color = WizardColors.textMuted)
++            else {
++                Text("Error medio reciente: ${points(values.adaptedError)} puntos de batería", style = KpknType.body, color = WizardColors.text)
++                val direction = if (values.bias >= 0.0) "por encima" else "por debajo"
++                Text("Tus referencias suelen estar ${points(abs(values.bias))} puntos $direction de la estimación", style = KpknType.caption, color = WizardColors.textMuted)
++            }
++            val sources = entry.metrics.bySource.entries.sortedBy { it.key }.joinToString(" · ") { (source, metric) ->
++                "${when (source) { "manual" -> "Sensación manual"; "e1rm" -> "Rendimiento e1RM"; "delta_rpe" -> "Esfuerzo RPE"; else -> source }}: ${metric.pairedCount}"
++            }
++            Text(sources, style = KpknType.caption, color = WizardColors.textMuted)
++            val date = java.time.Instant.ofEpochMilli(values.lastObservedAtMs).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
++            Text("Última referencia: $date · ${entry.updateCount} actualizaciones del modelo", style = KpknType.caption, color = WizardColors.textMuted)
++            if (entry.frozen) Text("Estamos usando la estimación base porque se ajusta mejor a tus últimas referencias", style = KpknType.caption, color = WizardColors.textMuted)
++            else if (entry.updateCount == 0) Text("Estimación base", style = KpknType.caption, color = WizardColors.textMuted)
++            else Text("τ estimado: ${points(entry.tauHours)} h · intervalo del modelo: ${points(entry.lowerTauHours)}–${points(entry.upperTauHours)} h", style = KpknType.caption, color = WizardColors.textMuted)
++        }
++    }
++}
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/home/RingDetailSheet.kt b/android-native/app/src/main/java/com/example/kpkn/screens/home/RingDetailSheet.kt
+index 976b33a55007ab6fa202c25d1da0eff11ccc18e9..d7e358ef7bcd071325718ebddf30a458095f9d4c 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/home/RingDetailSheet.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/home/RingDetailSheet.kt
+@@ -247,6 +247,7 @@ fun RingDetailSheet(
+                         }, filled = true, enabled = changed, modifier = Modifier.weight(1f).testTag("home-ring-save"))
+                     }
+                 }
++                AugeModelAccuracyCard(snapshot.modelAccuracy[channel].orEmpty())
+                 if (showModelUpdateNotice) Text("Modelo actualizado", style = KpknType.caption, color = WizardColors.textMuted)
+                 Text("${snapshot.dashboard.confidenceLabel}${(dataLabel ?: snapshot.dashboard.dataLabel)?.let { " · $it" }.orEmpty()}", style = KpknType.caption, color = WizardColors.textFaint)
+             }
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeLearnerRollbackTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeLearnerRollbackTest.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..3b4d379ae44fbab7ef34abd6e0c42b2939a412b1
+--- /dev/null
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeLearnerRollbackTest.kt
+@@ -0,0 +1,123 @@
++package com.example.kpkn.domain.auge
++
++import com.example.kpkn.data.models.*
++import kotlinx.serialization.encodeToString
++import kotlinx.serialization.json.Json
++import org.junit.Assert.*
++import org.junit.Test
++import java.time.ZoneId
++import kotlin.math.exp
++import kotlin.math.ln
++
++class AugeLearnerRollbackTest {
++    private val base = AugeSyntheticUserHarness.BASE_START_MS
++    private val key = "cns"
++    private val prior = AugeAdaptiveCacheMigration.prior(key)
++    private val toy = AugeObservationModel { _, theta -> AugePrediction(100.0 - 10.0 * theta) }
++
++    private fun observation(index: Int, y: Double, source: String = "manual", parameter: String = key) =
++        AugeLearningObservation(parameter, y, 5.0, source, base + index * 1000L, base + index * 1000L, "log", 24.0)
++
++    private fun wrongCache() = AugeAdaptiveCache(cnsRecoveryHours = 120.0,
++        parameterStates = mapOf(key to prior.copy(mean = ln(120.0), variance = 0.0)))
++
++    @Test fun ewma_initializesFromTheFirstPair_andSeparatesSourcesAndScales() {
++        val first = AugeModelSkill.accumulate(AugeSkillMetrics(), 10.0, 8.0, "manual", base)
++        val second = AugeModelSkill.accumulate(first, -5.0, -4.0, "e1rm", base + 1)
++        assertEquals(9.0, second.values.adaptedError, 1e-12)
++        assertEquals(7.0, second.values.bias, 1e-12)
++        assertEquals(7.2, second.values.priorError, 1e-12)
++        assertEquals(10.0, second.bySource.getValue("manual").adaptedError, 1e-12)
++        assertEquals(5.0, second.bySource.getValue("e1rm").adaptedError, 1e-12)
++        assertEquals(2, second.pairedCount)
++        assertTrue(AugeModelSkill.presentation(AugeAdaptiveCache()).isEmpty())
++    }
++
++    @Test fun rollback_isOnTheEighthPair_forManualAndPerformance_andPersistsAcrossRingOverflow() {
++        for (source in listOf("manual", "e1rm", "delta_rpe")) {
++            var cache = wrongCache()
++            val y = toy.predictPrior(key).battery + 1.0
++            var transitions = 0
++            for (index in 1..220) {
++                val before = cache
++                cache = AugeLearner.update(cache, observation(index, y, source), toy).cache
++                transitions += AugeModelSkill.rollbacks(before, cache).size
++                if (index < 8) assertFalse(cache.parameterStates.getValue(key).frozen)
++                if (index == 8) {
++                    assertTrue(cache.parameterStates.getValue(key).frozen)
++                    val state = cache.parameterStates.getValue(key)
++                    assertEquals(prior.mean, state.mean, 1e-12)
++                    assertEquals(prior.variance, state.variance, 1e-12)
++                    cache = Json.decodeFromString<AugeAdaptiveCache>(Json.encodeToString(cache))
++                }
++                if (index >= 8) assertEquals(exp(prior.mean), cache.cnsRecoveryHours!!, 1e-12)
++            }
++            assertEquals(1, transitions)
++            val frozenState = cache.parameterStates.getValue(key)
++            val replay = AugeLearner.update(cache, observation(1, y, source), toy)
++            assertEquals(cache, replay.cache)
++            assertEquals(220, frozenState.skillByScale.getValue("historical_raw").pairedCount)
++            assertTrue(AugeModelSkill.rollbacks(cache, replay.cache).isEmpty())
++            val other = AugeLearner.update(cache, observation(221, 50.0, parameter = "spinal"), toy)
++            assertEquals(AugeObservationStatus.ADMITTED, other.outcome.status)
++            assertFalse(other.cache.parameterStates.getValue("spinal").frozen)
++        }
++    }
++
++    @Test fun exactFifteenPercentBoundary_andZeroPriorError_areNotHiddenByEpsilon() {
++        fun evaluate(adapted: Double, priorError: Double): AugeParameterState {
++            // Con varianza cero h es constante; se prueba la frontera sin que el entrenamiento mueva h.
++            val y = 60.0
++            val model = object : AugeObservationModel {
++                override fun predict(parameterKey: String, lnTau: Double) = AugePrediction(y - adapted - (lnTau - prior.mean))
++                override fun predictPrior(parameterKey: String) = AugePrediction(y - priorError)
++            }
++            var cache = AugeAdaptiveCache(parameterStates = mapOf(key to prior.copy(variance = 0.0)))
++            repeat(8) { index -> cache = AugeLearner.update(cache, observation(index + 1, y), model).cache }
++            return cache.parameterStates.getValue(key)
++        }
++        assertFalse(evaluate(11.5, 10.0).frozen)
++        assertTrue(evaluate(11.5001, 10.0).frozen)
++        assertFalse(evaluate(0.0, 0.0).frozen)
++        assertTrue(evaluate(1.0, 0.0).frozen)
++    }
++
++    @Test fun censoredAndDuplicateObservations_doNotChangeSkill_andVersionsDoNotMix() {
++        var cache = wrongCache()
++        val first = observation(1, 75.0)
++        cache = AugeLearner.update(cache, first, toy).cache
++        val metric = cache.parameterStates.getValue(key).skillByScale
++        assertEquals(cache, AugeLearner.update(cache, first, toy).cache)
++        for ((index, obs) in listOf(
++            observation(2, 100.0), observation(3, 75.0).copy(hoursSinceRelevantLoad = 7.99),
++        ).withIndex()) {
++            cache = AugeLearner.update(cache, obs, toy).cache
++            assertEquals("censura $index", metric, cache.parameterStates.getValue(key).skillByScale)
++        }
++        val incompatible = cache.copy(parameterStates = mapOf(key to cache.parameterStates.getValue(key).copy(paramsVersion = AugeParameters.VERSION + 1)))
++        val reset = AugeLearner.update(incompatible, observation(4, toy.predictPrior(key).battery + 1.0), toy).cache
++        assertEquals(1, reset.parameterStates.getValue(key).skillByScale.getValue("historical_raw").pairedCount)
++    }
++
++    @Test fun realEngine_adversarialOverconfidentPosterior_rollsBackBeforeTheNewAnchor() {
++        val at = base + 24L * AugeSyntheticUserHarness.HOUR_MS
++        val exercises = listOf(AugeSyntheticUserHarness.completedExercise("sim-banca", 16, 8, 70.0, 9.0, 120, "adverso"))
++        val log = AugeSyntheticUserHarness.logFor("adverso", "Sesión", exercises, base, 60, emptyList(), Settings())
++        var cache = wrongCache()
++        var transitions = 0
++        repeat(18) { index ->
++            val inputs = AugeSnapshotInputs(listOf(log), null, Settings(), AugeSyntheticUserHarness.exerciseDb,
++                at + index * 1000L, ZoneId.of("UTC"), adaptiveCache = cache)
++            val model = SnapshotObservationModel(inputs, inputs.nowMs, ObservationScale.HISTORICAL_RAW)
++            val y = model.predictPrior(key).battery + 0.5
++            val before = cache
++            val result = AugeLearner.update(cache, observation(index + 1, y).copy(anchorMs = inputs.nowMs,
++                observedAtMs = inputs.nowMs, relevantLogId = log.id), model)
++            cache = result.cache
++            transitions += AugeModelSkill.rollbacks(before, cache).size
++        }
++        assertEquals(1, transitions)
++        assertTrue(cache.parameterStates.getValue(key).frozen)
++        assertEquals(exp(prior.mean), cache.cnsRecoveryHours!!, 1e-12)
++    }
++}
+diff --git a/android-native/app/src/test/java/com/example/kpkn/screens/home/AugeModelAccuracyCardTest.kt b/android-native/app/src/test/java/com/example/kpkn/screens/home/AugeModelAccuracyCardTest.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..3d2db36559115698074f0791a1d5bdd2b09dd119
+--- /dev/null
++++ b/android-native/app/src/test/java/com/example/kpkn/screens/home/AugeModelAccuracyCardTest.kt
+@@ -0,0 +1,42 @@
++package com.example.kpkn.screens.home
++
++import android.app.Application
++import androidx.compose.runtime.mutableStateOf
++import androidx.compose.ui.semantics.SemanticsActions
++import androidx.compose.ui.test.*
++import androidx.compose.ui.test.junit4.createComposeRule
++import com.example.kpkn.data.models.*
++import org.junit.Rule
++import org.junit.Test
++import org.junit.runner.RunWith
++import org.robolectric.RobolectricTestRunner
++import org.robolectric.annotation.Config
++
++@RunWith(RobolectricTestRunner::class)
++@Config(sdk = [34], application = Application::class)
++class AugeModelAccuracyCardTest {
++    @get:Rule val rule = createComposeRule()
++
++    @Test fun noDataDoesNotClaimPrecisionOrExposeParameterControls() {
++        rule.setContent { AugeModelAccuracyCard(emptyList()) }
++        rule.onNodeWithText("Sin datos suficientes").assertExists()
++        rule.onNodeWithText("Estimación base").assertExists()
++        rule.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.SetText)).assertCountEquals(0)
++        rule.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress)).assertCountEquals(0)
++        rule.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.OnClick)).assertCountEquals(0)
++    }
++
++    @Test fun measuredAndFrozenStatesRemainReadOnlyAfterRecomposition() {
++        val entry = AugeModelAccuracy("cns", "shown", AugeSkillMetrics(
++            AugeSkillValues(8, 12.0, 10.0, -3.0, 1760000000000L),
++            mapOf("manual" to AugeSkillValues(8, 12.0, 10.0, -3.0, 1760000000000L))),
++            36.0, 24.0, 48.0, 7, false)
++        val entries = mutableStateOf(listOf(entry))
++        rule.setContent { AugeModelAccuracyCard(entries.value) }
++        rule.onNodeWithText("τ estimado:", substring = true).assertExists()
++        rule.onNodeWithText("Error medio reciente:", substring = true).assertExists()
++        rule.runOnIdle { entries.value = listOf(entry.copy(frozen = true)) }
++        rule.onNodeWithText("Estamos usando la estimación base porque se ajusta mejor a tus últimas referencias").assertExists()
++        rule.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.OnClick)).assertCountEquals(0)
++    }
++}

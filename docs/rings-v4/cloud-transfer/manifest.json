@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-22",
+  "base": "ebf870f9248cca7544fed1ff66452c44a61f2b70",
+  "branch": "codex/rings-v4-cloud-20261022",
+  "packages": [
+    {
+      "package": "3.2c-2",
+      "worktree": "r4l",
+      "source_head": "f80b251c4bd0da0e81ad86877a556bf614259bb6",
+      "patch": "docs/rings-v4/cloud-transfer/3.2c-2.patch",
+      "sha256": "fcb20873ad530a64c30bd54475c9ff3d3cbdf299e0e776e77766417d4d83f299",
+      "files": [
+        "android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeLearnerSimulationTest.kt",
+        "android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeRingsAudit2026Test.kt",
+        "android-native/app/src/test/java/com/example/kpkn/domain/auge/EkfSimLearner.kt"
+      ],
+      "status": "WIP sin validar, no integrado"
+    },
+    {
+      "package": "2.4",
+      "worktree": "v3c",
+      "source_head": "f80b251c4bd0da0e81ad86877a556bf614259bb6",
+      "patch": "docs/rings-v4/cloud-transfer/2.4.patch",
+      "sha256": "742d28c55992db0451e17a7c3cd0b1e0ac33f239f699cd6486eb384546a1e340",
+      "files": [
+        "android-native/app/src/main/java/com/example/kpkn/data/models/AugeModels.kt",
+        "android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeProjection.kt",
+        "android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeRecoveryEngine.kt",
+        "android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeTtcEngine.kt",
+        "android-native/app/src/main/java/com/example/kpkn/domain/auge/RecoveryBands.kt",
+        "android-native/app/src/main/java/com/example/kpkn/screens/auge/AugeViewModel.kt",
+        "android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeParametersConsistencyTest.kt",
+        "android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeProjectionOracleTest.kt",
+        "android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeProjectionTest.kt",
+        "android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeRingsGuideAndMonitorTest.kt",
+        "android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeTtcRecoveryHoursTest.kt",
+        "android-native/app/src/test/java/com/example/kpkn/domain/auge/SessionDrainRecipeCharacterizationTest.kt"
+      ],
+      "status": "WIP sin validar, no integrado"
+    },
+    {
+      "package": "3.5",
+      "worktree": "r4e",
+      "source_head": "b02467685b3331b7790f447d99d4c644fea4f4b7",
+      "patch": "docs/rings-v4/cloud-transfer/3.5.patch",
+      "sha256": "dd8ceca8eef90e442cdb3a03e2068e055113cc74ef2ee395e12bd5570a03df88",
+      "files": [
+        "android-native/app/src/main/java/com/example/kpkn/data/models/AugeAdaptiveModels.kt",
+        "android-native/app/src/main/java/com/example/kpkn/data/models/AugeModels.kt",
+        "android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeLearner.kt",
+        "android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeLearningObservationModel.kt",
+        "android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeModelSkill.kt",
+        "android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeParameters.kt",
+        "android-native/app/src/main/java/com/example/kpkn/domain/auge/ManualGesture.kt",
+        "android-native/app/src/main/java/com/example/kpkn/screens/auge/AugeViewModel.kt",
+        "android-native/app/src/main/java/com/example/kpkn/screens/home/AugeModelAccuracyCard.kt",
+        "android-native/app/src/main/java/com/example/kpkn/screens/home/RingDetailSheet.kt",
+        "android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeLearnerRollbackTest.kt",
+        "android-native/app/src/test/java/com/example/kpkn/screens/home/AugeModelAccuracyCardTest.kt"
+      ],
+      "status": "WIP sin validar, no integrado"
+    }
+  ],
+  "validation": "Todas las corridas del relevo se cancelaron por peticion del usuario. No hay nuevas compuertas completas.",
+  "portable_harness": "tools/rings-jvm/run.sh (JDK 17; dependencias descargables en cloud; no se ha ejecutado en este traslado)"
+}

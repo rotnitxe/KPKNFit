@@ -1,0 +1,954 @@
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeLearnerSimulationTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeLearnerSimulationTest.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..f2739d09bb24c175473af12dbe438b40c94d95d2
+--- /dev/null
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeLearnerSimulationTest.kt
+@@ -0,0 +1,662 @@
++package com.example.kpkn.domain.auge
++
++import com.example.kpkn.data.models.AugeAdaptiveCache
++import com.example.kpkn.data.models.AugeObservationStatus
++import com.example.kpkn.data.models.CompletedExercise
++import com.example.kpkn.data.models.DailyWellbeingLog
++import com.example.kpkn.data.models.Settings
++import com.example.kpkn.data.models.WorkoutLog
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertNull
++import org.junit.Assert.assertTrue
++import org.junit.Test
++import java.time.Instant
++import java.time.ZoneId
++import java.util.Locale
++import kotlin.math.PI
++import kotlin.math.abs
++import kotlin.math.cos
++import kotlin.math.exp
++import kotlin.math.ln
++import kotlin.math.roundToInt
++import kotlin.math.sqrt
++import kotlin.random.Random
++
++/**
++ * Pruebas de simulación del aprendiz EKF ([AugeLearner] vía [EkfSimLearner]):
++ *
++ * Validación numérica con el motor real de los criterios del plan 6.6 y brief 3.2:
++ * - (a) Sin deriva: τ verdadero = prior ⇒ |sesgo de τ|/τ ≤ 0,05 tras 30 observaciones propias;
++ *       y = h sin ruido ⇒ 0 cambio de media/P/n.
++ * - (b) Convergencia: 200 usuarios por escenario, τ verdadero = prior × {0,75; 1,25}, σ = 5,
++ *       8 observaciones informativas separadas ≥ 2 días con Δt entre 12 y 72 h (calendario fijo):
++ *       mediana de |ln(τ̂/τ)| ≤ 0,15 y p75 ≤ 0,25, estrictamente mejores que el EMA.
++ * - (g) Apilado: historias con 2 y 3 sesiones separadas 24 h: |sesgo|/τ ≤ 0,10 y ningún ajuste
++ *       basado solo en la última carga.
++ * - Familia «Columna mostrada»: bloqueo articular censura («piso_o_bloqueo») y τ no cambia.
++ * - Comparación honesta con la referencia EMA vigente en los 4 escenarios de la auditoría.
++ */
++class AugeLearnerSimulationTest {
++
++    private companion object {
++        const val HOUR_MS = AugeSyntheticUserHarness.HOUR_MS
++        const val DAY_MS = AugeSyntheticUserHarness.DAY_MS
++        val ZONE: ZoneId = ZoneId.of("UTC")
++        val exerciseDb = AugeSyntheticUserHarness.exerciseDb
++        val settings = Settings()
++
++        fun f1(v: Double): String = String.format(Locale.ROOT, "%.1f", v)
++        fun f2(v: Double): String = String.format(Locale.ROOT, "%.2f", v)
++        fun f4(v: Double): String = String.format(Locale.ROOT, "%.4f", v)
++
++        fun gaussian(rng: Random): Double {
++            val u1 = rng.nextDouble().coerceAtLeast(1e-12)
++            val u2 = rng.nextDouble()
++            return sqrt(-2.0 * ln(u1)) * cos(2.0 * PI * u2)
++        }
++
++        fun percentile(sortedValues: List<Double>, p: Double): Double {
++            if (sortedValues.isEmpty()) return Double.NaN
++            val idx = (p / 100.0) * (sortedValues.size - 1)
++            val lower = idx.toInt()
++            val upper = minOf(lower + 1, sortedValues.size - 1)
++            val weight = idx - lower
++            return sortedValues[lower] * (1.0 - weight) + sortedValues[upper] * weight
++        }
++    }
++
++    private fun benchSession(
++        id: String,
++        completionMs: Long,
++        priorHistory: List<WorkoutLog> = emptyList(),
++    ): WorkoutLog {
++        val exercises = listOf(
++            AugeSyntheticUserHarness.completedExercise("sim-banca", 4, 8, 70.0, 8.5, 120, "$id-b"),
++            AugeSyntheticUserHarness.completedExercise("sim-inclinado", 3, 10, 26.0, 8.0, 120, "$id-i"),
++        )
++        return AugeSyntheticUserHarness.logFor(
++            id = id,
++            sessionName = "Empuje",
++            exercises = exercises,
++            completionMs = completionMs,
++            durationMinutes = 50,
++            priorHistory = priorHistory,
++            settings = settings,
++        )
++    }
++
++    private fun squatSession(
++        id: String,
++        completionMs: Long,
++        priorHistory: List<WorkoutLog> = emptyList(),
++    ): WorkoutLog {
++        val exercises = listOf(
++            AugeSyntheticUserHarness.completedExercise("sim-sentadilla", 4, 6, 100.0, 8.0, 180, "$id-sq"),
++            AugeSyntheticUserHarness.completedExercise("sim-rdl", 3, 8, 80.0, 8.0, 150, "$id-rdl"),
++        )
++        return AugeSyntheticUserHarness.logFor(
++            id = id,
++            sessionName = "Piernas",
++            exercises = exercises,
++            completionMs = completionMs,
++            durationMinutes = 55,
++            priorHistory = priorHistory,
++            settings = settings,
++        )
++    }
++
++    // ═══════════════════════════════════════════════════════════════════════════
++    // CRITERIO (a): Sin deriva
++    // ═══════════════════════════════════════════════════════════════════════════
++
++    @Test
++    fun criterioA_sinRuidoYIgualH_ceroCambioMediaP_N() {
++        val baseMs = AugeSyntheticUserHarness.BASE_START_MS
++        val log = benchSession("log1", baseMs)
++        val tObs = baseMs + 24L * HOUR_MS
++
++        val inputs = AugeSnapshotInputs(
++            history = listOf(log),
++            wellbeing = null,
++            settings = settings,
++            exerciseDb = exerciseDb,
++            nowMs = tObs,
++            zone = ZONE,
++        )
++        val model = SnapshotObservationModel(inputs, tObs, ObservationScale.HISTORICAL_RAW)
++
++        val paramsToTest = listOf("cns", "spinal", "Pectorales")
++        for (param in paramsToTest) {
++            val key = AugeAdaptiveCacheMigration.parameterKey(param)
++            val prior = AugeAdaptiveCacheMigration.prior(key)
++            val pred = model.predict(key, prior.mean)
++
++            // Sin ruido: y = h exactamente
++            val obs = AugeLearningObservation(
++                parameterKey = key,
++                y = pred.battery,
++                sigma = AugeParameters.LEARNER_SIGMA_MANUAL,
++                source = "manual",
++                anchorMs = tObs,
++                observedAtMs = tObs,
++                relevantLogId = log.id,
++                hoursSinceRelevantLoad = 24.0,
++            )
++
++            val initialCache = AugeAdaptiveCache()
++            val result = AugeLearner.update(initialCache, obs, model)
++
++            assertEquals("$key debe ser censurada por zona muerta", AugeObservationStatus.CENSORED, result.outcome.status)
++            assertEquals("$key motivo de censura", "zona_muerta", result.outcome.reason)
++            val stateAfter = result.cache.parameterStates.getValue(key)
++            assertEquals("media de $key no cambia", prior.mean, stateAfter.mean, 1e-9)
++            assertEquals("varianza de $key no cambia", prior.variance, stateAfter.variance, 1e-9)
++            assertEquals("n de $key es 0", 0, stateAfter.n)
++            assertEquals("tau de $key no cambia", AugeLearnerSimulator.defaultTau(key), AugeLearnerSimulator.tauOf(result.cache, key), 1e-9)
++        }
++    }
++
++    @Test
++    fun criterioA_sinDeriva_tauVerdaderoIgualPrior_sesgoMenor5PctTras30Obs() {
++        val scenario = AugeLearnerSimulator.SCENARIOS[0] // "tau verdadero = defecto", factor 1.0, sigma 4.0
++        val users = AugeSyntheticUserHarness.learnerUsers()
++        println("[CRITERIO-A] Evaluando sin deriva con ${users.size} usuarios (modo full=${AugeSyntheticUserHarness.isFullMode()})...")
++
++        val runs = AugeLearnerSimulator.runPopulation(
++            users = users,
++            scenarios = listOf(scenario),
++            gestures = 30,
++            learnerFactory = { EkfSimLearner() },
++        ).getValue(scenario.name)
++
++        // En 30 gestos, el canal de Energía (cns) recibe 30 observaciones propias
++        val cnsMetrics = AugeLearnerSimulator.metricsByOwnObservations(runs, scenario, listOf("cns"), milestones = listOf(30))
++        val cnsObs30 = cnsMetrics.firstOrNull { it.n == 30 }
++        requireNotNull(cnsObs30) { "No se obtuvieron métricas de CNS a 30 observaciones propias" }
++
++        val cnsBiasPct = abs(cnsObs30.bias) / cnsObs30.trueTau
++        println(
++            "[CRITERIO-A] CNS tras 30 obs propias: trueTau=${f1(cnsObs30.trueTau)} h, " +
++                "MAE=${f2(cnsObs30.mae)} h, sesgo=${f2(cnsObs30.bias)} h (|sesgo|/τ=${f4(cnsBiasPct)}), " +
++                "usuarios=${cnsObs30.users}",
++        )
++
++        // Publicar error por usuario y n admitido
++        val errorsPerUser = runs.mapNotNull { it.tauAtOwnObs["cns"]?.get(30) }.map { it - cnsObs30.trueTau }
++        println("[CRITERIO-A] Errores por usuario en CNS (primeros 10): ${errorsPerUser.take(10).map { f2(it) }}")
++        assertTrue(
++            "Criterio (a) Sin deriva: CNS |sesgo|/τ debe ser <= 0,05 (medido: ${f4(cnsBiasPct)})",
++            cnsBiasPct <= 0.05,
++        )
++    }
++
++    @Test
++    fun criterioA_sinDeriva_pectoralesYColumna_30ObsPropias() {
++        // En una corrida con suficientes gestos (100 gestos, 26 semanas), Pectorales y Columna alcanzan 30 obs propias
++        val scenario = AugeLearnerSimulator.SCENARIOS[0]
++        val users = AugeSyntheticUserHarness.learnerUsers(count = if (AugeSyntheticUserHarness.isFullMode()) 60 else 20, weeks = 26)
++        println("[CRITERIO-A-LARGO] Evaluando Pectorales y Columna a 30 obs propias con ${users.size} usuarios...")
++
++        val runs = AugeLearnerSimulator.runPopulation(
++            users = users,
++            scenarios = listOf(scenario),
++            gestures = 100,
++            learnerFactory = { EkfSimLearner() },
++        ).getValue(scenario.name)
++
++        val muscleParam = AugeLearnerSimulator.muscleParam("Pectorales")
++        val spinalParam = AugeLearnerSimulator.SPINAL
++        val params = listOf(muscleParam, spinalParam)
++
++        val metrics = AugeLearnerSimulator.metricsByOwnObservations(runs, scenario, params, milestones = listOf(30))
++        for (m in metrics) {
++            val biasPct = abs(m.bias) / m.trueTau
++            println(
++                "[CRITERIO-A-LARGO] ${m.param} tras 30 obs propias: trueTau=${f1(m.trueTau)} h, " +
++                    "MAE=${f2(m.mae)} h, sesgo=${f2(m.bias)} h (|sesgo|/τ=${f4(biasPct)}), usuarios=${m.users}",
++            )
++            assertTrue(
++                "Criterio (a) Sin deriva ${m.param}: |sesgo|/τ debe ser <= 0,05 (medido: ${f4(biasPct)})",
++                biasPct <= 0.05,
++            )
++        }
++    }
++
++    // ═══════════════════════════════════════════════════════════════════════════
++    // CRITERIO (b): Convergencia (200 usuarios por escenario)
++    // ═══════════════════════════════════════════════════════════════════════════
++
++    @Test
++    fun criterioB_convergencia_200UsuariosPorEscenario() {
++        val factors = listOf(0.75, 1.25)
++        val userCount = 200
++        val muscle = "Pectorales"
++        val muscleKey = AugeAdaptiveCacheMigration.parameterKey(muscle)
++        val priorTau = AugeParameters.baseTauHours(muscleKey)
++        val sigmaNoise = 5.0
++
++        for (factor in factors) {
++            val trueTau = priorTau * factor
++            val lnTrue = ln(trueTau)
++
++            println("\n[CRITERIO-B] === Escenario factor $factor (τ verdadero = ${f1(trueTau)} h, prior = ${f1(priorTau)} h) ===")
++
++            // Simulación paralela de 200 usuarios con calendario fijado por semilla
++            val userResults = AugeSyntheticUserHarness.parallelMap((0 until userCount).toList()) { userIndex ->
++                val rng = Random(seed = 100_000L * (if (factor > 1.0) 2 else 1) + 7919L * userIndex)
++
++                val ekfLearner = EkfSimLearner()
++                val emaLearner = CurrentEmaLearner()
++
++                val history = ArrayList<WorkoutLog>()
++                val baseMs = AugeSyntheticUserHarness.BASE_START_MS
++
++                // 8 sesiones informativas separadas ≥ 2 días (72 h) con Δt entre 12 y 72 h
++                for (k in 0 until 8) {
++                    val sessionStart = baseMs + k * 3L * DAY_MS
++                    val sessionEnd = sessionStart + 50 * 60_000L
++                    val sessionLog = benchSession("u$userIndex-s$k", sessionEnd, history)
++                    history.add(sessionLog)
++
++                    // Calendario fijado por semilla: Δt entre 12 y 72 h tras la sesión
++                    val deltaTHours = 12.0 + rng.nextDouble() * 60.0
++                    val obsTime = sessionEnd + (deltaTHours * HOUR_MS).toLong()
++
++                    // Modelo de verdad
++                    val trueInputs = AugeSnapshotInputs(
++                        history = history,
++                        wellbeing = null,
++                        settings = settings,
++                        exerciseDb = exerciseDb,
++                        nowMs = obsTime,
++                        zone = ZONE,
++                    )
++                    val trueModel = SnapshotObservationModel(trueInputs, obsTime, ObservationScale.HISTORICAL_RAW)
++                    val trueVal = trueModel.predict(muscleKey, lnTrue).battery
++
++                    // Sentido con ruido σ = 5.0
++                    val felt = (trueVal + sigmaNoise * gaussian(rng)).roundToInt().coerceIn(0, 100)
++
++                    // Predicción para EMA
++                    val capacity = AugeLearnerSimulator.muscleCapacity(settings, exerciseDb, muscle, history, obsTime)
++                    val emaPred = AugeLearnerSimulator.muscleBattery(settings, exerciseDb, muscle, history, obsTime, emaLearner.cache(), capacity)
++
++                    val gesture = SimGesture(
++                        tiempoMs = obsTime,
++                        observaciones = listOf(
++                            SimObservation(SimChannel.MUSCLE, muscle, felt, emaPred),
++                        ),
++                        historial = history,
++                        ajustes = settings,
++                        exerciseDb = exerciseDb,
++                        zona = ZONE,
++                    )
++
++                    ekfLearner.onGesture(gesture)
++                    emaLearner.onGesture(gesture)
++                }
++
++                val tauEkf = AugeLearnerSimulator.tauOf(ekfLearner.cache(), muscleKey)
++                val tauEma = AugeLearnerSimulator.tauOf(emaLearner.cache(), muscleKey)
++
++                val errEkf = abs(ln(tauEkf / trueTau))
++                val errEma = abs(ln(tauEma / trueTau))
++
++                Pair(errEkf, errEma)
++            }
++
++            val ekfErrors = userResults.map { it.first }.sorted()
++            val emaErrors = userResults.map { it.second }.sorted()
++
++            val p50Ekf = percentile(ekfErrors, 50.0)
++            val p75Ekf = percentile(ekfErrors, 75.0)
++            val p90Ekf = percentile(ekfErrors, 90.0)
++            val pct15Ekf = ekfErrors.count { it <= 0.15 } * 100.0 / userCount
++
++            val p50Ema = percentile(emaErrors, 50.0)
++            val p75Ema = percentile(emaErrors, 75.0)
++            val p90Ema = percentile(emaErrors, 90.0)
++            val pct15Ema = emaErrors.count { it <= 0.15 } * 100.0 / userCount
++
++            println("[CRITERIO-B] factor=$factor EKF: p50=${f4(p50Ekf)}, p75=${f4(p75Ekf)}, p90=${f4(p90Ekf)}, %<=0.15=${f1(pct15Ekf)}%")
++            println("[CRITERIO-B] factor=$factor EMA: p50=${f4(p50Ema)}, p75=${f4(p75Ema)}, p90=${f4(p90Ema)}, %<=0.15=${f1(pct15Ema)}%")
++
++            assertTrue("Criterio (b) factor=$factor: mediana EKF <= 0,15 (medida: ${f4(p50Ekf)})", p50Ekf <= 0.15)
++            assertTrue("Criterio (b) factor=$factor: p75 EKF <= 0,25 (medida: ${f4(p75Ekf)})", p75Ekf <= 0.25)
++            assertTrue("Criterio (b) factor=$factor: mediana EKF estrictamente mejor que EMA ($p50Ekf vs $p50Ema)", p50Ekf < p50Ema)
++            assertTrue("Criterio (b) factor=$factor: p75 EKF estrictamente mejor que EMA ($p75Ekf vs $p75Ema)", p75Ekf < p75Ema)
++        }
++    }
++
++    // ═══════════════════════════════════════════════════════════════════════════
++    // CRITERIO (g): Apilado (historias de 2 y 3 sesiones separadas 24 h)
++    // ═══════════════════════════════════════════════════════════════════════════
++
++    @Test
++    fun criterioG_apilado_sesionesSeparadas24h_sesgoMenor10PctYNingunAjusteSoloUltimaCarga() {
++        val muscle = "Pectorales"
++        val muscleKey = AugeAdaptiveCacheMigration.parameterKey(muscle)
++        val trueTau = 48.0
++        val baseMs = AugeSyntheticUserHarness.BASE_START_MS
++
++        // Caso 1: 2 sesiones separadas 24 h
++        val s1_1 = benchSession("s1-1", baseMs)
++        val s1_2 = benchSession("s1-2", baseMs + 24L * HOUR_MS, listOf(s1_1))
++        val history2 = listOf(s1_1, s1_2)
++        val tObs2 = baseMs + 48L * HOUR_MS // 24 h tras la última sesión
++
++        val inputs2 = AugeSnapshotInputs(history2, null, settings, exerciseDb, tObs2, ZONE)
++        val model2 = SnapshotObservationModel(inputs2, tObs2, ObservationScale.HISTORICAL_RAW)
++        val y2 = model2.predict(muscleKey, ln(trueTau)).battery
++
++        val obs2 = AugeLearningObservation(
++            parameterKey = muscleKey,
++            y = y2,
++            sigma = AugeParameters.LEARNER_SIGMA_MANUAL,
++            source = "manual",
++            anchorMs = tObs2,
++            observedAtMs = tObs2,
++            relevantLogId = s1_2.id,
++            hoursSinceRelevantLoad = 24.0,
++        )
++        val res2 = AugeLearner.update(AugeAdaptiveCache(), obs2, model2)
++        val tauLearned2 = exp(res2.cache.parameterStates[muscleKey]?.mean ?: ln(trueTau))
++        val biasPct2 = abs(tauLearned2 - trueTau) / trueTau
++        println("[CRITERIO-G] 2 sesiones: trueTau=$trueTau h, tauLearned=${f2(tauLearned2)} h, biasPct=${f4(biasPct2)}")
++        assertTrue("Criterio (g) 2 sesiones |sesgo|/τ <= 0,10 (medido: $biasPct2)", biasPct2 <= 0.10)
++
++        // Caso 2: 3 sesiones separadas 24 h
++        val s2_1 = benchSession("s2-1", baseMs)
++        val s2_2 = benchSession("s2-2", baseMs + 24L * HOUR_MS, listOf(s2_1))
++        val s2_3 = benchSession("s2-3", baseMs + 48L * HOUR_MS, listOf(s2_1, s2_2))
++        val history3 = listOf(s2_1, s2_2, s2_3)
++        val tObs3 = baseMs + 72L * HOUR_MS // 24 h tras la última sesión
++
++        val inputs3 = AugeSnapshotInputs(history3, null, settings, exerciseDb, tObs3, ZONE)
++        val model3 = SnapshotObservationModel(inputs3, tObs3, ObservationScale.HISTORICAL_RAW)
++        val y3 = model3.predict(muscleKey, ln(trueTau)).battery
++
++        val obs3 = AugeLearningObservation(
++            parameterKey = muscleKey,
++            y = y3,
++            sigma = AugeParameters.LEARNER_SIGMA_MANUAL,
++            source = "manual",
++            anchorMs = tObs3,
++            observedAtMs = tObs3,
++            relevantLogId = s2_3.id,
++            hoursSinceRelevantLoad = 24.0,
++        )
++        val res3 = AugeLearner.update(AugeAdaptiveCache(), obs3, model3)
++        val tauLearned3 = exp(res3.cache.parameterStates[muscleKey]?.mean ?: ln(trueTau))
++        val biasPct3 = abs(tauLearned3 - trueTau) / trueTau
++        println("[CRITERIO-G] 3 sesiones: trueTau=$trueTau h, tauLearned=${f2(tauLearned3)} h, biasPct=${f4(biasPct3)}")
++        assertTrue("Criterio (g) 3 sesiones |sesgo|/τ <= 0,10 (medido: $biasPct3)", biasPct3 <= 0.10)
++
++        // Comprobación: un ajuste basado solo en la última carga sufriría un sesgo severo
++        val lastStress = s2_3.muscularImpactV2?.perMuscle?.getValue("Pectorales")?.stressUnits ?: 100.0
++        val naiveObs = com.example.kpkn.data.models.RecoveryLearningObservation(
++            muscle = "Pectorales",
++            predictedBattery = 75,
++            actualBattery = y3.roundToInt(),
++            sessionStress = lastStress,
++            hoursSinceSession = 24.0,
++        )
++        val impliedNaive = LegacyEmaReference.deriveImpliedRecoveryTime(naiveObs)
++        if (impliedNaive != null) {
++            val naiveBiasPct = abs(impliedNaive - trueTau) / trueTau
++            println("[CRITERIO-G] Inversión ingenua basada solo en última carga: implied=${f2(impliedNaive)} h, biasPct=${f4(naiveBiasPct)}")
++            assertTrue("La inversión ingenua sobre la última carga debe desviar fuertemente", naiveBiasPct > 0.20)
++        }
++    }
++
++    // ═══════════════════════════════════════════════════════════════════════════
++    // FAMILIA «Columna mostrada» (ObservationScale.SHOWN)
++    // ═══════════════════════════════════════════════════════════════════════════
++
++    @Test
++    fun familiaColumnaMostrada_bloqueoArticularCensuraYNingunCambioDeTau() {
++        val baseMs = AugeSyntheticUserHarness.BASE_START_MS
++        val log = squatSession("sq1", baseMs)
++        val tObs = baseMs + 24L * HOUR_MS
++
++        val inputs = AugeSnapshotInputs(
++            history = listOf(log),
++            wellbeing = DailyWellbeingLog(
++                id = "wb1",
++                date = "2026-09-12",
++                preWorkoutDiscomforts = listOf("lumbar"),
++            ),
++            settings = settings,
++            exerciseDb = exerciseDb,
++            nowMs = tObs,
++            zone = ZONE,
++        )
++
++        // Con ObservationScale.SHOWN, el término articular fija el mínimo (blocked es true)
++        val modelShown = SnapshotObservationModel(inputs, tObs, ObservationScale.SHOWN)
++        val pred = modelShown.predict("spinal", ln(52.0))
++
++        println("[COLUMNA-MOSTRADA] pred battery=${f2(pred.battery)}, atFloor=${pred.atFloor}, blocked=${pred.blocked}")
++        assertTrue("El término articular debe bloquear la Columna mostrada", pred.blocked)
++
++        val obs = AugeLearningObservation(
++            parameterKey = "spinal",
++            y = 60.0,
++            sigma = AugeParameters.LEARNER_SIGMA_MANUAL,
++            source = "manual",
++            anchorMs = tObs,
++            observedAtMs = tObs,
++            relevantLogId = log.id,
++            hoursSinceRelevantLoad = 24.0,
++        )
++
++        val initialCache = AugeAdaptiveCache(spinalRecoveryHours = 52.0)
++        val res = AugeLearner.update(initialCache, obs, modelShown)
++
++        assertEquals("Debe ser censurada por piso_o_bloqueo", AugeObservationStatus.CENSORED, res.outcome.status)
++        assertEquals("Motivo piso_o_bloqueo", "piso_o_bloqueo", res.outcome.reason)
++        assertEquals("τ de columna no cambia cuando hay bloqueo", 52.0, res.cache.spinalRecoveryHours ?: 52.0, 1e-9)
++    }
++
++    // ═══════════════════════════════════════════════════════════════════════════
++    // COMPARACIÓN HONESTA: EMA vigente vs EKF (4 escenarios)
++    // ═══════════════════════════════════════════════════════════════════════════
++
++    @Test
++    fun comparacionHonesta_referenciaEmaVigenteVsEkf_cuatroEscenarios() {
++        val users = AugeSyntheticUserHarness.learnerUsers()
++        println("\n[COMPARACION-HONESTA] Iniciando corrida con ${users.size} usuarios y 4 escenarios...")
++
++        val muscleParam = AugeLearnerSimulator.muscleParam("Pectorales")
++        val cnsParam = AugeLearnerSimulator.CNS
++        val spinalParam = AugeLearnerSimulator.SPINAL
++        val trackedParams = listOf(muscleParam, cnsParam, spinalParam)
++        val gestureMilestones = listOf(8, 16, 30)
++        val ownObsMilestones = listOf(8, 16, 30)
++
++        val ekfLearnersByScenario = HashMap<String, List<EkfSimLearner>>()
++        val ekfRunsByScenario = HashMap<String, List<SimUserRun>>()
++        val emaRunsByScenario = HashMap<String, List<SimUserRun>>()
++
++        for (scenario in AugeLearnerSimulator.SCENARIOS) {
++            val scenarioLearners = java.util.Collections.synchronizedList(ArrayList<EkfSimLearner>())
++            val ekfRuns = AugeLearnerSimulator.runPopulation(
++                users = users,
++                scenarios = listOf(scenario),
++                gestures = 30,
++                learnerFactory = {
++                    val l = EkfSimLearner()
++                    scenarioLearners.add(l)
++                    l
++                },
++            ).getValue(scenario.name)
++            ekfRunsByScenario[scenario.name] = ekfRuns
++            ekfLearnersByScenario[scenario.name] = scenarioLearners
++
++            val emaRuns = AugeLearnerSimulator.runPopulation(
++                users = users,
++                scenarios = listOf(scenario),
++                gestures = 30,
++                learnerFactory = { CurrentEmaLearner() },
++            ).getValue(scenario.name)
++            emaRunsByScenario[scenario.name] = emaRuns
++        }
++
++        val ref22b2 = mapOf(
++            AugeLearnerSimulator.SCENARIOS[0].name to mapOf(muscleParam to "7,3 / +6,9", cnsParam to "3,7 / −3,6", spinalParam to "22,9 / +22,9"),
++            AugeLearnerSimulator.SCENARIOS[1].name to mapOf(muscleParam to "5,2 / −4,4", cnsParam to "9,4 / −9,4", spinalParam to "14,3 / +14,2"),
++            AugeLearnerSimulator.SCENARIOS[2].name to mapOf(muscleParam to "17,4 / +17,4", cnsParam to "3,4 / +3,0", spinalParam to "34,5 / +34,5"),
++            AugeLearnerSimulator.SCENARIOS[3].name to mapOf(muscleParam to "7,7 / +7,2", cnsParam to "2,9 / −1,3", spinalParam to "25,1 / +25,1"),
++        )
++
++        val reportBuilder = StringBuilder()
++        reportBuilder.append("# Tablas comparativas · Paquete 3.2 (AugeLearner EKF vs EMA vigente)\n\n")
++        reportBuilder.append("Población: ${users.size} usuarios sintéticos, 4 escenarios, 30 gestos.\n")
++        reportBuilder.append("Referencia publicada (2.2b2) → EMA con motor vigente → EKF.\n\n")
++
++        reportBuilder.append("## 1. Resumen comparativo a 30 gestos\n\n")
++        reportBuilder.append("| Escenario | Parámetro | Ref 2.2b2 MAE/sesgo | EMA vigente MAE/sesgo | EKF MAE/sesgo | MAE% EKF | Away% EMA→EKF | n admitido | Censuras |\n")
++        reportBuilder.append("|---|---|---|---|---|---|---|---|---|\n")
++
++        for (scenario in AugeLearnerSimulator.SCENARIOS) {
++            val emaRuns = emaRunsByScenario.getValue(scenario.name)
++            val ekfRuns = ekfRunsByScenario.getValue(scenario.name)
++            val ekfLearners = ekfLearnersByScenario.getValue(scenario.name)
++
++            val emaMetrics30 = AugeLearnerSimulator.metrics(emaRuns, scenario, trackedParams, milestones = listOf(30)).associateBy { it.param }
++            val ekfMetrics30 = AugeLearnerSimulator.metrics(ekfRuns, scenario, trackedParams, milestones = listOf(30)).associateBy { it.param }
++
++            val emaAway = AugeLearnerSimulator.awayStats(emaRuns, scenario) { trackedParams.contains(it) }
++            val ekfAway = AugeLearnerSimulator.awayStats(ekfRuns, scenario) { trackedParams.contains(it) }
++
++            println("\n--- Escenario: ${scenario.name} ---")
++            println("Away stats: EMA=${f1(emaAway.pct)}% (${emaAway.away}/${emaAway.counted}) -> EKF=${f1(ekfAway.pct)}% (${ekfAway.away}/${ekfAway.counted})")
++
++            for (param in trackedParams) {
++                val emaM = emaMetrics30.getValue(param)
++                val ekfM = ekfMetrics30.getValue(param)
++                val refStr = ref22b2[scenario.name]?.get(param) ?: "-"
++                val maePctEkf = (ekfM.mae / ekfM.trueTau) * 100.0
++
++                val signEkf = if (ekfM.bias >= 0) "+" else ""
++                val signEma = if (emaM.bias >= 0) "+" else ""
++
++                val meanAdmitted = ekfLearners.map { it.admittedAtGestures[param]?.get(30) ?: (it.admittedByParam[param] ?: 0) }.average()
++                val meanCensored = ekfLearners.map { it.censoredAtGestures[param]?.get(30) ?: (it.censoredByParam[param] ?: 0) }.average()
++
++                println(
++                    "[$param] Ref 2.2b2: $refStr | EMA: ${f1(emaM.mae)} / $signEma${f1(emaM.bias)} h | " +
++                        "EKF: ${f1(ekfM.mae)} / $signEkf${f1(ekfM.bias)} h (MAE%=${f1(maePctEkf)}%) | n_adm=${f1(meanAdmitted)} cens=${f1(meanCensored)}",
++                )
++
++                reportBuilder.append(
++                    "| ${scenario.name} | $param | $refStr | ${f1(emaM.mae)} / $signEma${f1(emaM.bias)} h | " +
++                        "${f1(ekfM.mae)} / $signEkf${f1(ekfM.bias)} h | ${f1(maePctEkf)}% | ${f1(emaAway.pct)}% → ${f1(ekfAway.pct)}% | ${f1(meanAdmitted)} | ${f1(meanCensored)} |\n",
++                )
++
++                // En τ = prior: sesgo <= 5% de trueTau y MAE EKF < MAE EMA
++                if (scenario.tauFactor == 1.0 && scenario.noiseSigma == 4.0) {
++                    val biasPct = abs(ekfM.bias) / ekfM.trueTau
++                    assertTrue(
++                        "$param en τ=defecto |sesgo|/τ debe ser <= 0,05 (medido: ${f4(biasPct)})",
++                        biasPct <= 0.05,
++                    )
++                    assertTrue(
++                        "$param en τ=defecto MAE EKF debe ser menor que EMA (${ekfM.mae} < ${emaM.mae})",
++                        ekfM.mae < emaM.mae,
++                    )
++                } else {
++                    // En los demás escenarios: MAE EKF menor que EMA
++                    assertTrue(
++                        "$param en ${scenario.name} MAE EKF debe ser menor que EMA (${ekfM.mae} < ${emaM.mae})",
++                        ekfM.mae < emaM.mae,
++                    )
++                }
++            }
++        }
++
++        reportBuilder.append("\n## 2. Desglose por hitos de gestos (@8, @16, @30)\n\n")
++        reportBuilder.append("| Escenario | Parámetro | Hito gestos | MAE EMA (h) | Sesgo EMA (h) | MAE EKF (h) | Sesgo EKF (h) | MAE% EKF | n adm EKF | Cens EKF |\n")
++        reportBuilder.append("|---|---|---|---|---|---|---|---|---|---|\n")
++
++        for (scenario in AugeLearnerSimulator.SCENARIOS) {
++            val emaRuns = emaRunsByScenario.getValue(scenario.name)
++            val ekfRuns = ekfRunsByScenario.getValue(scenario.name)
++            val ekfLearners = ekfLearnersByScenario.getValue(scenario.name)
++
++            val emaMetrics = AugeLearnerSimulator.metrics(emaRuns, scenario, trackedParams, milestones = gestureMilestones)
++                .groupBy { it.param }
++            val ekfMetrics = AugeLearnerSimulator.metrics(ekfRuns, scenario, trackedParams, milestones = gestureMilestones)
++                .groupBy { it.param }
++
++            for (param in trackedParams) {
++                for (n in gestureMilestones) {
++                    val emaM = emaMetrics[param]?.firstOrNull { it.n == n }
++                    val ekfM = ekfMetrics[param]?.firstOrNull { it.n == n }
++                    if (emaM != null && ekfM != null) {
++                        val signEkf = if (ekfM.bias >= 0) "+" else ""
++                        val signEma = if (emaM.bias >= 0) "+" else ""
++                        val maePct = (ekfM.mae / ekfM.trueTau) * 100.0
++                        val nAdm = ekfLearners.map { it.admittedAtGestures[param]?.get(n) ?: (it.admittedByParam[param] ?: 0) }.average()
++                        val cens = ekfLearners.map { it.censoredAtGestures[param]?.get(n) ?: (it.censoredByParam[param] ?: 0) }.average()
++                        reportBuilder.append(
++                            "| ${scenario.name} | $param | @$n | ${f1(emaM.mae)} | $signEma${f1(emaM.bias)} | " +
++                                "${f1(ekfM.mae)} | $signEkf${f1(ekfM.bias)} | ${f1(maePct)}% | ${f1(nAdm)} | ${f1(cens)} |\n",
++                        )
++                    }
++                }
++            }
++        }
++
++        reportBuilder.append("\n## 3. Desglose por observaciones propias presentadas (@8, @16, @30)\n\n")
++        reportBuilder.append("| Escenario | Parámetro | Hito obs propias | MAE EMA (h) | Sesgo EMA (h) | MAE EKF (h) | Sesgo EKF (h) | MAE% EKF | n adm EKF | Cens EKF |\n")
++        reportBuilder.append("|---|---|---|---|---|---|---|---|---|---|\n")
++
++        for (scenario in AugeLearnerSimulator.SCENARIOS) {
++            val emaRuns = emaRunsByScenario.getValue(scenario.name)
++            val ekfRuns = ekfRunsByScenario.getValue(scenario.name)
++            val ekfLearners = ekfLearnersByScenario.getValue(scenario.name)
++
++            val emaMetricsOwn = AugeLearnerSimulator.metricsByOwnObservations(emaRuns, scenario, trackedParams, milestones = ownObsMilestones)
++                .groupBy { it.param }
++            val ekfMetricsOwn = AugeLearnerSimulator.metricsByOwnObservations(ekfRuns, scenario, trackedParams, milestones = ownObsMilestones)
++                .groupBy { it.param }
++
++            for (param in trackedParams) {
++                for (n in ownObsMilestones) {
++                    val emaM = emaMetricsOwn[param]?.firstOrNull { it.n == n }
++                    val ekfM = ekfMetricsOwn[param]?.firstOrNull { it.n == n }
++                    if (emaM != null && ekfM != null) {
++                        val signEkf = if (ekfM.bias >= 0) "+" else ""
++                        val signEma = if (emaM.bias >= 0) "+" else ""
++                        val maePct = (ekfM.mae / ekfM.trueTau) * 100.0
++                        val nAdm = ekfLearners.mapNotNull { it.admittedAtOwnObs[param]?.get(n) }.let { if (it.isEmpty()) 0.0 else it.average() }
++                        val cens = ekfLearners.mapNotNull { it.censoredAtOwnObs[param]?.get(n) }.let { if (it.isEmpty()) 0.0 else it.average() }
++                        reportBuilder.append(
++                            "| ${scenario.name} | $param | @$n obs | ${f1(emaM.mae)} | $signEma${f1(emaM.bias)} | " +
++                                "${f1(ekfM.mae)} | $signEkf${f1(ekfM.bias)} | ${f1(maePct)}% | ${f1(nAdm)} | ${f1(cens)} |\n",
++                        )
++                    }
++                }
++            }
++        }
++
++        reportBuilder.append("\n## 4. Motivos de censura del filtro EKF acumulados\n\n")
++        reportBuilder.append("| Escenario | Parámetro | Presentadas | Admitidas | Censuradas | Tasa de censura |\n")
++        reportBuilder.append("|---|---|---|---|---|---|\n")
++
++        for (scenario in AugeLearnerSimulator.SCENARIOS) {
++            val ekfLearners = ekfLearnersByScenario.getValue(scenario.name)
++            for (param in trackedParams) {
++                val pres = ekfLearners.sumOf { it.presentedByParam[param] ?: 0 }
++                val adm = ekfLearners.sumOf { it.admittedByParam[param] ?: 0 }
++                val cens = ekfLearners.sumOf { it.censoredByParam[param] ?: 0 }
++                val rate = if (pres > 0) (cens.toDouble() / pres) * 100.0 else 0.0
++                reportBuilder.append("| ${scenario.name} | $param | $pres | $adm | $cens | ${f1(rate)}% |\n")
++            }
++        }
++
++        val reportStr = reportBuilder.toString()
++        println(reportStr)
++    }
++}
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeRingsAudit2026Test.kt b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeRingsAudit2026Test.kt
+index fc1ad9c92246699a8b4f0510a349c03f2090575f..709f5408aaad7b987f60223ee908d965db430ee1 100644
+--- a/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeRingsAudit2026Test.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeRingsAudit2026Test.kt
+@@ -46,26 +46,43 @@ class SpinalWarpContinuityTest {
+ class SystemTauRoundTripTest {
+     @Test
+     fun cnsObservationRoundTripsForwardDecay() {
+-        val tau = 36.0
+-        val hours = 24.0
+-        val stress = 40.0
+-        val remaining = exp(-AugeUtils.TAU_K_95 * hours / tau)
+-        val actual = (100.0 - stress * remaining).toInt()
+-        val obs = RecoveryLearningObservation(
+-            muscle = "cns",
+-            predictedBattery = actual,
+-            actualBattery = actual,
+-            sessionStress = stress,
+-            hoursSinceSession = hours,
++        val now = Instant.parse("2026-09-12T18:00:00Z").toEpochMilli()
++        val log = axialLog("sq", now - 24 * 3_600_000L)
++        val inputs = AugeSnapshotInputs(
++            history = listOf(log),
++            wellbeing = null,
++            settings = Settings(),
++            exerciseDb = AxialFixtures.db,
++            nowMs = now,
++            zone = java.time.ZoneId.of("UTC"),
+         )
+-        val (newTau, _) = AugeAdaptiveEngine.updateSystemRecoveryHours(
+-            currentCnsTau = tau,
+-            currentSpinalTau = 52.0,
+-            cnsObservation = obs,
+-            spinalObservation = null,
+-            totalObservations = 8,
++        val model = SnapshotObservationModel(inputs, now, ObservationScale.HISTORICAL_RAW)
++        val priorTau = AugeParameters.DEFAULT_TAU_ENERGY_H
++        val trueTau = 48.0
++        val yTrue = model.predict("cns", kotlin.math.ln(trueTau)).battery
++
++        val obs = AugeLearningObservation(
++            parameterKey = "cns",
++            y = yTrue,
++            sigma = AugeParameters.LEARNER_SIGMA_MANUAL,
++            source = "manual",
++            anchorMs = now,
++            observedAtMs = now,
++            relevantLogId = log.id,
++            hoursSinceRelevantLoad = 24.0,
++        )
++        val initialCache = AugeAdaptiveCache()
++        val result = AugeLearner.update(initialCache, obs, model)
++
++        assertEquals(com.example.kpkn.data.models.AugeObservationStatus.ADMITTED, result.outcome.status)
++        val state = result.cache.parameterStates.getValue("cns")
++        val learnedTau = kotlin.math.exp(state.mean)
++        assertTrue(
++            "El aprendiz debe acercarse a trueTau=$trueTau (antes=$priorTau, después=$learnedTau)",
++            kotlin.math.abs(state.mean - kotlin.math.ln(trueTau)) <
++                kotlin.math.abs(kotlin.math.ln(priorTau) - kotlin.math.ln(trueTau)),
+         )
+-        assertEquals(tau, newTau!!, tau * 0.05)
++        assertTrue(learnedTau > priorTau)
+     }
+ }
+ 
+@@ -261,11 +278,11 @@ class TauObservationCapTest {
+             sessionStress = 40.0,
+             hoursSinceSession = 48.0,
+         )
+-        val next = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(mapOf("pectorales" to start), obs, 0)
++        val next = LegacyEmaReference.updatePersonalizedRecoveryHours(mapOf("pectorales" to start), obs, 0)
+         val tau = next.getValue("pectorales")
+         assertTrue(tau <= start * 1.25 + 0.01)
+         assertTrue(tau >= start * 0.75 - 0.01)
+-        val capped = AugeAdaptiveEngine.capObservationTau(200.0, start)
++        val capped = LegacyEmaReference.capObservationTau(200.0, start)
+         assertEquals(start * 1.25, capped, 0.01)
+     }
+ }
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/auge/EkfSimLearner.kt b/android-native/app/src/test/java/com/example/kpkn/domain/auge/EkfSimLearner.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..a9ee417b3c4c23ecf65c4dd6a564ebd96fc2a233
+--- /dev/null
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/auge/EkfSimLearner.kt
+@@ -0,0 +1,200 @@
++package com.example.kpkn.domain.auge
++
++import com.example.kpkn.data.models.AugeAdaptiveCache
++import com.example.kpkn.data.models.AugeObservationStatus
++import com.example.kpkn.data.models.ExerciseMuscleInfo
++import com.example.kpkn.data.models.Settings
++import com.example.kpkn.data.models.WorkoutLog
++
++/**
++ * Adaptador del aprendiz EKF ([AugeLearner]) a la interfaz [SimLearner] del simulador.
++ *
++ * Por cada gesto construye un [SnapshotObservationModel] con las entradas causales anteriores al gesto
++ * ([SimGesture.historial], [SimGesture.ajustes], [SimGesture.exerciseDb], [SimGesture.zona]) y el caché
++ * previo del aprendiz, sin el ancla del propio gesto.
++ *
++ * Todas las observaciones del gesto comparten ese contexto anterior, combinando sus posteriores
++ * independientes sin pisarse.
++ *
++ * La escala por defecto es [ObservationScale.HISTORICAL_RAW], que preserva la familia histórica
++ * con Columna CRUDA (`continuous.spineRaw`) comparable con la línea base de 2.2b2.
++ */
++class EkfSimLearner(
++    initial: AugeAdaptiveCache = AugeAdaptiveCache(),
++    private val scale: ObservationScale = ObservationScale.HISTORICAL_RAW,
++) : SimLearner {
++
++    private var current: AugeAdaptiveCache = initial
++
++    /** Diagnósticos del último gesto procesado (para inspección y auditoría de pruebas). */
++    var lastResults: List<AugeLearnerResult> = emptyList()
++        private set
++
++    /** Observaciones presentadas por clave (incluye las que el filtro censura). */
++    val presentedByParam: MutableMap<String, Int> = HashMap()
++
++    /** Observaciones ADMITIDAS por clave (n del posterior), para publicar n junto a las métricas. */
++    val admittedByParam: MutableMap<String, Int> = HashMap()
++
++    /** Observaciones CENSURADAS por clave, con el motivo del último rechazo. */
++    val censoredByParam: MutableMap<String, Int> = HashMap()
++    val censoredReasons: MutableMap<String, Int> = HashMap()
++    val censoredAtOwnObs: MutableMap<String, MutableMap<Int, Int>> = HashMap()
++    val admittedAtGestures: MutableMap<String, MutableMap<Int, Int>> = HashMap()
++    val censoredAtGestures: MutableMap<String, MutableMap<Int, Int>> = HashMap()
++    private var gestureCount = 0
++
++    /** n ADMITIDO al alcanzar 8/16/30 observaciones propias presentadas, por clave (diagnóstico de las compuertas). */
++    val admittedAtOwnObs: MutableMap<String, MutableMap<Int, Int>> = HashMap()
++
++    private companion object {
++        val OWN_OBS_MILESTONES = listOf(8, 16, 30)
++    }
++
++    override fun cache(): AugeAdaptiveCache = current
++
++    override fun onGesture(gesto: SimGesture) {
++        val cacheBeforeGesture = current
++        val inputsAntesDelGesto = AugeSnapshotInputs(
++            history = gesto.historial,
++            wellbeing = null,
++            settings = gesto.ajustes,
++            exerciseDb = gesto.exerciseDb,
++            nowMs = gesto.tiempoMs,
++            zone = gesto.zona,
++            adaptiveCache = cacheBeforeGesture,
++        )
++        val model = SnapshotObservationModel(
++            inputsBeforeGesture = inputsAntesDelGesto,
++            observedAtMs = gesto.tiempoMs,
++            scale = scale,
++        )
++
++        var runningCache = current
++        val results = ArrayList<AugeLearnerResult>(gesto.observaciones.size)
++
++        for (obs in gesto.observaciones) {
++            val canonicalKey = when (obs.channel) {
++                SimChannel.ENERGY -> "cns"
++                SimChannel.SPINAL -> "spinal"
++                SimChannel.MUSCLE -> AugeAdaptiveCacheMigration.parameterKey(obs.muscle)
++            }
++
++            val relevantLog = findRelevantLog(gesto, obs.channel, canonicalKey)
++            val hoursSince = if (relevantLog != null) {
++                val logMs = AugeUtils.logDateMs(relevantLog)
++                if (logMs > 0L && logMs <= gesto.tiempoMs) {
++                    (gesto.tiempoMs - logMs) / 3_600_000.0
++                } else {
++                    AugeParameters.LEARNER_WINDOW_MAX_HOURS + 1.0
++                }
++            } else {
++                AugeParameters.LEARNER_WINDOW_MAX_HOURS + 1.0
++            }
++
++            val learningObs = AugeLearningObservation(
++                parameterKey = canonicalKey,
++                y = obs.sentido.toDouble(),
++                sigma = AugeParameters.LEARNER_SIGMA_MANUAL,
++                source = "manual",
++                anchorMs = gesto.tiempoMs,
++                observedAtMs = gesto.tiempoMs,
++                relevantLogId = relevantLog?.id,
++                hoursSinceRelevantLoad = hoursSince,
++            )
++
++            val result = AugeLearner.update(runningCache, learningObs, model)
++            runningCache = result.cache
++            results += result
++        }
++
++        current = runningCache
++        lastResults = results
++
++        // Diagnóstico: presentadas, admitidas y censuradas por clave (mismo orden que las observaciones).
++        gesto.observaciones.forEachIndexed { index, obs ->
++            val key = keyOf(obs.channel, obs.muscle)
++            val presented = (presentedByParam[key] ?: 0) + 1
++            presentedByParam[key] = presented
++            when (results.getOrNull(index)?.outcome?.status) {
++                AugeObservationStatus.ADMITTED -> admittedByParam[key] = (admittedByParam[key] ?: 0) + 1
++                AugeObservationStatus.CENSORED -> {
++                    censoredByParam[key] = (censoredByParam[key] ?: 0) + 1
++                    val reason = results[index].outcome.reason ?: "sin_motivo"
++                    censoredReasons[reason] = (censoredReasons[reason] ?: 0) + 1
++                }
++                else -> Unit
++            }
++            if (presented in OWN_OBS_MILESTONES) {
++                admittedAtOwnObs.getOrPut(key) { HashMap() }[presented] =
++                    runningCache.parameterStates[key]?.n ?: 0
++                censoredAtOwnObs.getOrPut(key) { HashMap() }[presented] =
++                    censoredByParam[key] ?: 0
++            }
++        }
++
++        gestureCount++
++        if (gestureCount in OWN_OBS_MILESTONES) {
++            val allKeys = (listOf("cns", "spinal", "pectorales") + runningCache.personalizedRecoveryHours.keys + presentedByParam.keys).distinct()
++            for (key in allKeys) {
++                admittedAtGestures.getOrPut(key) { HashMap() }[gestureCount] =
++                    runningCache.parameterStates[key]?.n ?: 0
++                censoredAtGestures.getOrPut(key) { HashMap() }[gestureCount] =
++                    censoredByParam[key] ?: 0
++            }
++        }
++    }
++
++    private fun keyOf(channel: SimChannel, muscle: String): String = when (channel) {
++        SimChannel.ENERGY -> "cns"
++        SimChannel.SPINAL -> "spinal"
++        SimChannel.MUSCLE -> AugeAdaptiveCacheMigration.parameterKey(muscle)
++    }
++
++    private fun findRelevantLog(
++        gesto: SimGesture,
++        channel: SimChannel,
++        canonicalKey: String,
++    ): WorkoutLog? = when (channel) {
++        SimChannel.ENERGY -> gesto.historial
++            .filter { val ms = AugeUtils.logDateMs(it); ms > 0L && ms <= gesto.tiempoMs }
++            .maxByOrNull { AugeUtils.logDateMs(it) }
++        SimChannel.SPINAL -> gesto.historial
++            .filter {
++                val ms = AugeUtils.logDateMs(it)
++                ms > 0L && ms <= gesto.tiempoMs &&
++                    PerformanceTauLearner.sessionHasAxialStimulus(it.completedExercises, gesto.exerciseDb)
++            }
++            .maxByOrNull { AugeUtils.logDateMs(it) }
++        SimChannel.MUSCLE -> gesto.historial
++            .filter {
++                val ms = AugeUtils.logDateMs(it)
++                ms > 0L && ms <= gesto.tiempoMs &&
++                    sessionTrainedMuscle(it, canonicalKey, gesto.ajustes, gesto.exerciseDb)
++            }
++            .maxByOrNull { AugeUtils.logDateMs(it) }
++    }
++
++    private fun sessionTrainedMuscle(
++        log: WorkoutLog,
++        canonicalKey: String,
++        settings: Settings,
++        exerciseDb: Map<String, ExerciseMuscleInfo>,
++    ): Boolean {
++        val impact = log.muscularImpactV2?.perMuscle?.entries
++            ?.firstOrNull { AugeAdaptiveCacheMigration.parameterKey(it.key) == canonicalKey }
++            ?.value
++        val fromImpact = impact?.immediateDrainPct?.takeIf { it > 0.0 }
++            ?: impact?.stressUnits?.takeIf { it > 0.0 }
++        if (fromImpact != null) return true
++        if (log.muscularImpactV2 != null) return false
++        val computed = AugeRecoveryEngine.calculateMuscleSessionStress(
++            muscleName = canonicalKey,
++            log = log,
++            settings = settings,
++            exerciseDb = exerciseDb,
++            adaptiveCache = AugeAdaptiveCache(),
++        )
++        return computed > 0.0
++    }
++}

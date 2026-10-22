@@ -1,0 +1,1493 @@
+diff --git a/android-native/app/src/main/java/com/example/kpkn/data/models/AugeModels.kt b/android-native/app/src/main/java/com/example/kpkn/data/models/AugeModels.kt
+index 4eabc20d0eb89d8b7ce184daab877b9c83a36e9a..e69d266ead4de541c517a28a92f256f4cd35c4cd 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/data/models/AugeModels.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/data/models/AugeModels.kt
+@@ -128,7 +128,7 @@ data class ManualMuscleBatteryOverride(
+ data class MuscleRecoveryStatus(
+     val muscleName: String,
+     val recoveryScore: Int,           // 0-100
+-    val hoursToRecovery: Int,
++    val hoursToRecovery: Int? = null,
+     val hoursSinceLastSession: Int,
+     val effectiveSets: Int,
+     val status: RecoveryStatus,
+@@ -265,6 +265,39 @@ data class SleepRecommendation(
+     val reasons: List<String>,
+ )
+ 
++// ─── AugeProjection Types ──────────────────────────────────────────────────
++
++sealed class ProjectionTarget {
++    data class Channel(val channelId: RecoveryChannelId) : ProjectionTarget()
++    data class Muscle(val muscleName: String) : ProjectionTarget()
++    data class Articular(val articularBattery: ArticularBattery) : ProjectionTarget()
++}
++
++sealed class ProjectionResult {
++    data class Reached(val hours: Double) : ProjectionResult() {
++        fun toRoundedHours(): Int = kotlin.math.round(hours).toInt()
++    }
++
++    sealed class NotEstimable(val reason: String) : ProjectionResult() {
++        object NoData : NotEstimable("Sin datos o cobertura suficiente")
++        object UnknownTarget : NotEstimable("Objetivo no encontrado en el modelo")
++        object Blocked : NotEstimable("Bloqueo persistente que impide alcanzar el umbral")
++        object NoCrossingWithinHorizon : NotEstimable("El score no cruza el umbral en el horizonte de 336 h")
++    }
++
++    val hoursOrNull: Double?
++        get() = when (this) {
++            is Reached -> hours
++            is NotEstimable -> null
++        }
++
++    val roundedHoursOrNull: Int?
++        get() = when (this) {
++            is Reached -> toRoundedHours()
++            is NotEstimable -> null
++        }
++}
++
+ // ─── TTC / Articular Battery ──────────────────────────────────────────────────
+ 
+ enum class ArticularBattery { SHOULDER, ELBOW, KNEE, HIP, ANKLE, CERVICAL, LUMBAR }
+@@ -273,7 +306,7 @@ enum class ArticularStatus { OPTIMAL, RECOVERING, EXHAUSTED }
+ 
+ data class ArticularBatteryState(
+     val recoveryScore: Int = 100,         // 0-100
+-    val estimatedHoursToRecovery: Int = 0,
++    val estimatedHoursToRecovery: Int? = null,
+     val status: ArticularStatus = ArticularStatus.OPTIMAL,
+     val accumulatedStress: Double = 0.0,
+ )
+diff --git a/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeProjection.kt b/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeProjection.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..25396f9c2a387fff501654580e46f929ff62f41c
+--- /dev/null
++++ b/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeProjection.kt
+@@ -0,0 +1,310 @@
++package com.example.kpkn.domain.auge
++
++import com.example.kpkn.data.models.*
++import java.time.LocalDate
++import java.time.OffsetDateTime
++import java.time.ZonedDateTime
++import kotlin.math.roundToLong
++
++/**
++ * AugeProjection — Tiempo real hasta un umbral de recuperación sobre el mismo motor (WP 2.4, F-22 / R-05).
++ *
++ * Evalúa hacia adelante instantes futuros mediante [AugeSnapshotComputer.compute] con entradas congeladas en t0.
++ * Barrido ordenado con paso de 0,25 h (15 min) hasta un horizonte de 336 h (14 d) y bisección final con ancho
++ * de intervalo <= 0,125 h (7,5 min).
++ */
++object AugeProjection {
++    /** Horizonte de simulación: 14 días (336 horas). */
++    const val HORIZON_HOURS: Double = 336.0
++
++    /** Paso del barrido cronológico ordenado: 15 minutos (0,25 horas). */
++    const val SWEEP_STEP_HOURS: Double = 0.25
++
++    /** Tolerancia máxima del ancho de bisección: 7,5 minutos (0,125 horas). */
++    const val BISECTION_TOLERANCE_HOURS: Double = 0.125
++
++    /** Umbral de compatibilidad histórica para los campos heredados (90 %). */
++    const val COMPATIBILITY_THRESHOLD: Int = 90
++
++    /** Umbral objetivo para la banda «Normal» de recuperación (70 %). */
++    val NORMAL_THRESHOLD: Int = RecoveryBands.NORMAL_MIN
++
++    /**
++     * Calcula el tiempo real (Double, horas) desde [inputs.nowMs] hasta que [target] cruce [threshold].
++     */
++    fun timeToThreshold(
++        inputs: AugeSnapshotInputs,
++        target: ProjectionTarget,
++        threshold: Int = COMPATIBILITY_THRESHOLD,
++    ): ProjectionResult {
++        val evaluator = AugeProjectionEvaluator(inputs)
++        return evaluator.projectTarget(target, threshold)
++    }
++
++    /**
++     * Proyecta múltiples solicitudes compartiendo el caché de evaluaciones temporales.
++     */
++    fun projectMultiple(
++        inputs: AugeSnapshotInputs,
++        requests: List<Pair<ProjectionTarget, Int>>,
++    ): Map<Pair<ProjectionTarget, Int>, ProjectionResult> {
++        val evaluator = AugeProjectionEvaluator(inputs)
++        return requests.associateWith { (target, threshold) ->
++            evaluator.projectTarget(target, threshold)
++        }
++    }
++
++    /**
++     * Proyecta las horas hasta el estado Normal (umbral 70) para los tres canales mostrados de Home.
++     * Devuelve horas enteras redondeadas, o null si el canal no es estimable o no cruza dentro del horizonte.
++     */
++    fun projectHoursToNormal(
++        inputs: AugeSnapshotInputs,
++    ): Map<RecoveryChannelId, Int?> {
++        val evaluator = AugeProjectionEvaluator(inputs)
++        return RecoveryChannelId.entries.associateWith { channel ->
++            evaluator.projectTarget(ProjectionTarget.Channel(channel), NORMAL_THRESHOLD).roundedHoursOrNull
++        }
++    }
++
++    /**
++     * Enriquece una instantánea base poblando los campos de compatibilidad [MuscleRecoveryStatus.hoursToRecovery]
++     * y [ArticularBatteryState.estimatedHoursToRecovery] proyectados al umbral de compatibilidad 90 %.
++     */
++    fun enrichSnapshotCore(
++        core: AugeSnapshotCore,
++        inputs: AugeSnapshotInputs,
++    ): AugeSnapshotCore {
++        return AugeProjectionEvaluator(inputs, initialCore = core).enrichSnapshotCore(core)
++    }
++
++    fun enrichMuscleStatuses(
++        muscles: Map<String, MuscleRecoveryStatus>,
++        inputs: AugeSnapshotInputs,
++        threshold: Int = COMPATIBILITY_THRESHOLD,
++    ): Map<String, MuscleRecoveryStatus> {
++        val evaluator = AugeProjectionEvaluator(inputs)
++        return muscles.mapValues { (name, status) ->
++            val res = evaluator.projectTarget(ProjectionTarget.Muscle(name), threshold)
++            status.copy(hoursToRecovery = res.roundedHoursOrNull)
++        }
++    }
++
++    fun enrichArticularStates(
++        articular: Map<ArticularBattery, ArticularBatteryState>,
++        inputs: AugeSnapshotInputs,
++        threshold: Int = COMPATIBILITY_THRESHOLD,
++    ): Map<ArticularBattery, ArticularBatteryState> {
++        val evaluator = AugeProjectionEvaluator(inputs)
++        return articular.mapValues { (battery, state) ->
++            val res = evaluator.projectTarget(ProjectionTarget.Articular(battery), threshold)
++            state.copy(estimatedHoursToRecovery = res.roundedHoursOrNull)
++        }
++    }
++}
++
++/**
++ * Evaluador de proyección con congelación causal en t0 y memoización por instante.
++ */
++class AugeProjectionEvaluator(
++    private val originalInputs: AugeSnapshotInputs,
++    initialCore: AugeSnapshotCore? = null,
++) {
++    private val t0: Long = originalInputs.nowMs
++
++    /**
++     * Congela la historia y los eventos que existían en t0:
++     * un log o feedback fechado después de t0 no empieza a contar al avanzar la simulación.
++     */
++    val frozenInputs: AugeSnapshotInputs = originalInputs.copy(
++        history = originalInputs.history.filter { val at = AugeUtils.logDateMs(it); at > 0L && at <= t0 },
++        feedbacks = originalInputs.feedbacks.filter { fb ->
++            val ms = runCatching { OffsetDateTime.parse(fb.date).toInstant().toEpochMilli() }
++                .recoverCatching { ZonedDateTime.parse(fb.date).toInstant().toEpochMilli() }
++                .recoverCatching { LocalDate.parse(fb.date.take(10)).atStartOfDay(originalInputs.zone).toInstant().toEpochMilli() }
++                .getOrNull()
++            ms == null || ms <= t0
++        },
++        sleepLogs = originalInputs.sleepLogs.filter { sl ->
++            val ms = runCatching { LocalDate.parse(sl.date.take(10)).atStartOfDay(originalInputs.zone).toInstant().toEpochMilli() }
++                .getOrNull()
++            ms == null || ms <= t0
++        },
++        nutritionLogs = originalInputs.nutritionLogs.filter { nl ->
++            val ms = runCatching { LocalDate.parse(nl.date.take(10)).atStartOfDay(originalInputs.zone).toInstant().toEpochMilli() }
++                .getOrNull()
++            ms == null || ms <= t0
++        },
++    )
++
++    private val evaluationCache: MutableMap<Long, AugeSnapshotCore> = mutableMapOf()
++
++    fun enrichSnapshotCore(core: AugeSnapshotCore): AugeSnapshotCore = core.copy(
++        perMuscle = core.perMuscle.mapValues { (name, status) -> status.copy(hoursToRecovery =
++            projectTarget(ProjectionTarget.Muscle(name), AugeProjection.COMPATIBILITY_THRESHOLD).roundedHoursOrNull) },
++        articular = core.articular.mapValues { (joint, state) -> state.copy(estimatedHoursToRecovery =
++            projectTarget(ProjectionTarget.Articular(joint), AugeProjection.COMPATIBILITY_THRESHOLD).roundedHoursOrNull) },
++    )
++
++    fun hoursToNormal(): Map<RecoveryChannelId, Int?> = RecoveryChannelId.entries.associateWith {
++        projectTarget(ProjectionTarget.Channel(it), RecoveryBands.NORMAL_MIN).roundedHoursOrNull
++    }
++
++    /** Cortes conocidos del motor, mas los instantes anterior/posterior de cada discontinuidad. */
++    private val sweepTimes: List<Double> by lazy {
++        val times = sortedSetOf(0.0, AugeProjection.HORIZON_HOURS)
++        for (step in 1..(AugeProjection.HORIZON_HOURS / AugeProjection.SWEEP_STEP_HOURS).toInt())
++            times += step * AugeProjection.SWEEP_STEP_HOURS
++        fun event(at: Long) {
++            for (offset in listOf(-1L, 0L, 1L)) {
++                val h = (at + offset - t0) / 3_600_000.0
++                if (h > 0.0 && h <= AugeProjection.HORIZON_HOURS) times += h
++            }
++        }
++        frozenInputs.history.forEach { log ->
++            val at = AugeUtils.logDateMs(log)
++            for (h in listOf(8L, 12L, 18L, 24L, 48L, 72L, 168L, 336L, 672L, 720L)) event(at + h * 3_600_000L)
++        }
++        frozenInputs.settings.initialRecoveryEvidence?.let { event(it.expiresAtMs) }
++        val firstDay = java.time.Instant.ofEpochMilli(t0).atZone(frozenInputs.zone).toLocalDate()
++        for (day in 1L..15L) event(firstDay.plusDays(day).atStartOfDay(frozenInputs.zone).toInstant().toEpochMilli())
++        times.toList()
++    }
++
++    init {
++        if (initialCore != null) {
++            evaluationCache[t0] = initialCore
++        }
++    }
++
++    /**
++     * Evalúa el motor en el desplazamiento [deltaHours] desde t0.
++     */
++    fun evaluate(deltaHours: Double): AugeSnapshotCore {
++        val deltaMs = (deltaHours * 3_600_000.0).roundToLong()
++        val targetMs = t0 + deltaMs
++        return evaluationCache.getOrPut(targetMs) {
++            AugeSnapshotComputer.compute(frozenInputs.copy(nowMs = targetMs))
++        }
++    }
++
++    /**
++     * Extrae el score mostrado correspondiente a [target] en [core].
++     */
++    fun scoreFor(core: AugeSnapshotCore, target: ProjectionTarget): Int? = when (target) {
++        is ProjectionTarget.Channel -> when (target.channelId) {
++            RecoveryChannelId.MUSCULAR -> core.dashboard.channelScore(RecoveryChannelId.MUSCULAR, core.batteries.muscular)
++            RecoveryChannelId.SYSTEM -> core.dashboard.channelScore(RecoveryChannelId.SYSTEM, core.batteries.cnc)
++            RecoveryChannelId.STRUCTURE -> core.dashboard.channelScore(RecoveryChannelId.STRUCTURE, core.batteries.spinal)
++        }
++        is ProjectionTarget.Muscle -> lookupMuscleValue(core.perMuscle, target.muscleName)?.recoveryScore
++        is ProjectionTarget.Articular -> core.articular[target.articularBattery]?.recoveryScore
++    }
++
++    /**
++     * Comprueba la cobertura o existencia de datos para [target] en t0.
++     */
++    private fun checkDataAvailability(core0: AugeSnapshotCore, target: ProjectionTarget): ProjectionResult.NotEstimable? {
++        when (target) {
++            is ProjectionTarget.Channel -> {
++                val coverage = core0.coverage.channel(target.channelId)
++                if (!coverage.hasData) {
++                    return ProjectionResult.NotEstimable.NoData
++                }
++            }
++            is ProjectionTarget.Muscle -> {
++                val status = lookupMuscleValue(core0.perMuscle, target.muscleName)
++                    ?: return ProjectionResult.NotEstimable.UnknownTarget
++                val hasSession = status.hoursSinceLastSession >= 0
++                val hasManualAnchor = frozenInputs.wellbeing?.let { wellbeing ->
++                    lookupMuscleValue(wellbeing.manualMuscleOverridesV2, target.muscleName) != null ||
++                        lookupMuscleValue(wellbeing.manualMuscleBatteries, target.muscleName) != null
++                } == true
++                val hasInitialEvidence = frozenInputs.settings.initialRecoveryEvidence?.let { ev ->
++                    InitialRecoveryEvidencePolicy.resolve(
++                        InitialRecoveryPolicyInput(ev, t0, frozenInputs.history, frozenInputs.zone)
++                    ).muscular != null
++                } ?: false
++                if (!hasSession && !hasManualAnchor && !hasInitialEvidence) {
++                    return ProjectionResult.NotEstimable.NoData
++                }
++            }
++            is ProjectionTarget.Articular -> {
++                val state = core0.articular[target.articularBattery]
++                    ?: return ProjectionResult.NotEstimable.UnknownTarget
++                val hasSession = frozenInputs.history.isNotEmpty()
++                val hasStress = state.accumulatedStress > 0.0
++                if (!hasSession && !hasStress) {
++                    return ProjectionResult.NotEstimable.NoData
++                }
++            }
++        }
++        return null
++    }
++
++    /**
++     * Proyecta el tiempo hasta [threshold] para [target].
++     */
++    fun projectTarget(target: ProjectionTarget, threshold: Int): ProjectionResult {
++        require(threshold in 0..100) { "Umbral fuera de 0..100" }
++        val core0 = evaluate(0.0)
++        val notEstimable = checkDataAvailability(core0, target)
++        if (notEstimable != null) return notEstimable
++
++        val score0 = scoreFor(core0, target) ?: return ProjectionResult.NotEstimable.UnknownTarget
++        if (score0 >= threshold) {
++            return ProjectionResult.Reached(0.0)
++        }
++
++        // Barrido cronológico ordenado con paso SWEEP_STEP_HOURS
++        var tPrev = 0.0
++        var tCurrent = AugeProjection.SWEEP_STEP_HOURS
++        var crossed = false
++
++        for (candidate in sweepTimes.drop(1)) {
++            tCurrent = candidate
++            val core = evaluate(tCurrent)
++            val s = scoreFor(core, target) ?: return ProjectionResult.NotEstimable.UnknownTarget
++            if (s >= threshold) {
++                crossed = true
++                break
++            }
++            tPrev = tCurrent
++        }
++
++        if (!crossed) {
++            // Comprobar si hay un bloqueo persistente (ej. DOMS/molestia insuperable)
++            val isBlocked = when (target) {
++                is ProjectionTarget.Muscle -> core0.continuous.perMuscle[target.muscleName]?.blocked == true
++                is ProjectionTarget.Channel -> when (target.channelId) {
++                    RecoveryChannelId.STRUCTURE -> core0.continuous.spineShown.blocked
++                    RecoveryChannelId.MUSCULAR -> core0.continuous.musclesGlobal.blocked
++                    RecoveryChannelId.SYSTEM -> false
++                }
++                is ProjectionTarget.Articular -> false
++            }
++            return if (isBlocked) {
++                ProjectionResult.NotEstimable.Blocked
++            } else {
++                ProjectionResult.NotEstimable.NoCrossingWithinHorizon
++            }
++        }
++
++        // Bisección en [tPrev, tCurrent] hasta ancho <= BISECTION_TOLERANCE_HOURS
++        var a = tPrev
++        var b = tCurrent
++        while ((b - a) > AugeProjection.BISECTION_TOLERANCE_HOURS + 1e-9) {
++            val mid = (a + b) / 2.0
++            val midCore = evaluate(mid)
++            val midScore = scoreFor(midCore, target) ?: return ProjectionResult.NotEstimable.UnknownTarget
++            if (midScore >= threshold) {
++                b = mid
++            } else {
++                a = mid
++            }
++        }
++
++        // La respuesta es el extremo superior del intervalo que satisface el predicado (b).
++        return ProjectionResult.Reached(b)
++    }
++}
+diff --git a/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeRecoveryEngine.kt b/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeRecoveryEngine.kt
+index 28266ce69c508499b7526a571e5399f986f73e3a..0ffcf7bcaa823112523fd0228ce353cdaee98eb1 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeRecoveryEngine.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeRecoveryEngine.kt
+@@ -727,13 +727,7 @@ object AugeRecoveryEngine {
+         val domsCapped = battery > domsCap
+         battery = min(battery, domsCap)
+ 
+-        var hoursToRecovery = 0
+-        if (battery < 90 && accumulatedFatigue > 0) {
+-            val targetFatigue = -AugeParameters.C_MUSCLE * ln(0.9) * capacity / 100.0
+-            if (accumulatedFatigue > targetFatigue) {
+-                hoursToRecovery = max(0.0, -ln(targetFatigue / accumulatedFatigue) / k).toInt()
+-            }
+-        }
++        // Las horas de recuperación hasta el umbral se calculan en AugeProjection (WP 2.4).
+ 
+         val floor = physiologicalFloor(settings).muscular.toDouble()
+         // Pre-workout discomfort is a readiness signal now, not only a τ stretch
+@@ -754,7 +748,7 @@ object AugeRecoveryEngine {
+                 muscleName             = muscleName,
+                 // Se redondea (≥ 99,5 ⇒ 100): truncar dejaba el 99 durante días y sesgaba toda cifra −0,5.
+                 recoveryScore          = batteryPercent(battery),
+-                hoursToRecovery        = hoursToRecovery,
++                hoursToRecovery        = null,
+                 hoursSinceLastSession  = if (lastSessionDate > 0) ((now - lastSessionDate) / 3_600_000).toInt() else -1,
+                 effectiveSets          = effectiveSetsCount,
+                 status                 = status,
+diff --git a/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeTtcEngine.kt b/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeTtcEngine.kt
+index 9593b2e263a9def43b37ffcfc58390ca4fbffff6..1c94b06b298dbd1465667fe696ada243ab363fd5 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeTtcEngine.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeTtcEngine.kt
+@@ -369,15 +369,11 @@ object AugeTtcEngine {
+                 battery < 85.0 -> ArticularStatus.RECOVERING
+                 else           -> ArticularStatus.OPTIMAL
+             }
+-            val hoursToRecovery: Int = if (battery < 90.0 && acc > 0.0) {
+-                val targetStress = ((100.0 - 90.0) / 100.0) * TENDON_CAPACITY_BASE
+-                val kFinal = 2.0 / latestSessionRecoveryHours
+-                max(0, (-ln(targetStress / totalAcc) / kFinal).toInt())
+-            } else 0
++            // Las horas de recuperación estimadas hasta el umbral se calculan en AugeProjection (WP 2.4).
+ 
+             ArticularBatteryState(
+                 recoveryScore = score,
+-                estimatedHoursToRecovery = hoursToRecovery,
++                estimatedHoursToRecovery = null,
+                 status = status,
+                 accumulatedStress = totalAcc,
+             )
+diff --git a/android-native/app/src/main/java/com/example/kpkn/domain/auge/RecoveryBands.kt b/android-native/app/src/main/java/com/example/kpkn/domain/auge/RecoveryBands.kt
+index 29b386f3e659f587054c4dd9b208ae3ea650f650..3544797f20d49549860a241dad66ee0b4299cabb 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/domain/auge/RecoveryBands.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/domain/auge/RecoveryBands.kt
+@@ -133,20 +133,6 @@ object RecoveryBands {
+         RecoveryBand.LOW, RecoveryBand.CRITICAL -> 0xFFEF4444
+     }
+ 
+-    fun hoursUntilNormal(
+-        score: Int,
+-        tauHours: Double,
+-        warpedHoursAlready: Double = 0.0,
+-    ): Int? {
+-        if (score >= NORMAL_MIN) return 0
+-        val fatigue = (100.0 - score).coerceIn(1.0, 99.9)
+-        val targetFatigue = 100.0 - NORMAL_MIN
+-        if (fatigue <= targetFatigue) return 0
+-        val k = AugeUtils.TAU_K_95 / tauHours.coerceAtLeast(1.0)
+-        val remainingEffective = -kotlin.math.ln(targetFatigue / fatigue) / k
+-        val hours = (remainingEffective - warpedHoursAlready).coerceAtLeast(0.0)
+-        return hours.roundToInt().coerceAtLeast(1)
+-    }
+-
+-    private fun Double.roundToInt(): Int = kotlin.math.round(this).toInt()
++    // hoursUntilNormal fue retirado de producción (WP 2.4); la estimación a NORMAL_MIN (70)
++    // se realiza en tiempo real sobre el evaluador continuo mediante AugeProjection.projectHoursToNormal.
+ }
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/auge/AugeViewModel.kt b/android-native/app/src/main/java/com/example/kpkn/screens/auge/AugeViewModel.kt
+index 01fb0702852d83afc54b46096177b22845d09b63..15f21ab97c63393ef2957432611532e0d960560c 100644
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/auge/AugeViewModel.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/auge/AugeViewModel.kt
+@@ -19,6 +19,7 @@ import com.example.kpkn.data.repository.augeRecoveryContext
+ import com.example.kpkn.domain.auge.AugeAdaptiveEngine
+ import com.example.kpkn.domain.auge.AugeFatigueEngine
+ import com.example.kpkn.domain.auge.AugeMuscleCapacityEngine
++import com.example.kpkn.domain.auge.AugeProjectionEvaluator
+ import com.example.kpkn.domain.auge.AugeParameters
+ import com.example.kpkn.domain.auge.AugeRecoveryEngine
+ import com.example.kpkn.domain.auge.AugeSnapshotComputer
+@@ -269,9 +270,14 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
+             nutritionContext = nutritionRepo.augeRecoveryContext(settings, evaluationNowMs, loaded.zone),
+         )
+         val exerciseDb = inputs.exerciseDb
+-        val (batteries, perMuscle, dashboard, readiness, articular, cumulativeFatigue, coverage) = withContext(Dispatchers.Default) {
++        val baseCore = withContext(Dispatchers.Default) {
+             computeHomeAugeSnapshot(inputs)
+         }
++        val projection = AugeProjectionEvaluator(inputs, initialCore = baseCore)
++        val enrichedCore = withContext(Dispatchers.Default) {
++            projection.enrichSnapshotCore(baseCore)
++        }
++        val (batteries, perMuscle, dashboard, readiness, articular, cumulativeFatigue, coverage) = enrichedCore
+ 
+         // Mismo corte de evaluación para las entradas relacionadas del snapshot:
+         // un solo instante por recompute, así lo publicado es atómico (baterías,
+@@ -298,17 +304,9 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
+         val snapshots = history
+             .sortedBy { AugeUtils.logDateMs(it) }
+             .mapNotNull { it.ringStartSnapshot?.takeUnless { snapshot -> snapshot.isInitialEstimate } }
+-        val hoursToNormal = mapOf(
+-            RecoveryChannelId.MUSCULAR to muscularHoursToNormal(batteries.muscular, perMuscle),
+-            RecoveryChannelId.SYSTEM to RecoveryBands.hoursUntilNormal(
+-                batteries.cnc,
+-                adaptiveCache.cnsRecoveryHours ?: AugeParameters.DEFAULT_TAU_ENERGY_H,
+-            ),
+-            RecoveryChannelId.STRUCTURE to RecoveryBands.hoursUntilNormal(
+-                dashboard.channelScore(RecoveryChannelId.STRUCTURE, batteries.spinal),
+-                adaptiveCache.spinalRecoveryHours ?: AugeParameters.DEFAULT_TAU_SPINAL_H,
+-            ),
+-        )
++        val hoursToNormal = withContext(Dispatchers.Default) {
++            projection.hoursToNormal()
++        }
+         val personalBaseline = RecoveryChannelId.entries.mapNotNull { channel ->
+             AxialLoadMonitor.personalBaseline(snapshots, channel)?.let { channel to it }
+         }.toMap()
+@@ -1060,16 +1058,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
+         }
+     }
+ 
+-    private fun muscularHoursToNormal(
+-        muscularScore: Int,
+-        perMuscle: Map<String, MuscleRecoveryStatus>,
+-    ): Int? {
+-        if (muscularScore >= RecoveryBands.NORMAL_MIN) return 0
+-        return perMuscle.values
+-            .filter { it.recoveryScore < RecoveryBands.NORMAL_MIN }
+-            .minOfOrNull { it.hoursToRecovery }
+-            ?: RecoveryBands.hoursUntilNormal(muscularScore, AugeParameters.DEFAULT_TAU_GLOBAL_MUSCLE_H)
+-    }
++
+ 
+     private fun lastSessionDrainOrNull(log: WorkoutLog): PredictedDrain? {
+         return runCatching {
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeParametersConsistencyTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeParametersConsistencyTest.kt
+index 7be2c91f59d4162b97d92a5bc52898b1d2169ab2..f022aa04979c51a8994fe845ec399e2653ad5d18 100644
+--- a/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeParametersConsistencyTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeParametersConsistencyTest.kt
+@@ -303,19 +303,12 @@ class AugeParametersConsistencyTest {
+     }
+ 
+     @Test
+-    fun lasHorasParaRecuperarseDelMusculoUsanCMuscle() {
+-        // Pectorales (τ 48 h) recién entrenados: carga residual 750; el objetivo (90 % de batería) es −C·ln 0,9 · capacidad / 100.
++    fun lasHorasSonAusentesHastaProyectarElMotor() {
+         val estado = AugeRecoveryEngine.calculateMuscleBattery(
+             muscleName = "Pectorales", history = listOf(sesionV2("Pectorales", ESTRES)), wellbeing = null,
+             settings = Settings(), precomputedCapacity = CAPACIDAD, nowOverride = ORIGEN,
+         )
+-        fun horasAMano(c: Double): Int {
+-            val objetivo = -c * ln(0.9) * CAPACIDAD / 100.0
+-            val k = AugeParameters.TAU_K_95 / AugeParameters.baseTauHours("Pectorales")
+-            return max(0.0, -ln(objetivo / ESTRES) / k).toInt()
+-        }
+-        assertEquals(horasAMano(AugeParameters.C_MUSCLE), estado.hoursToRecovery)
+-        assertTrue(horasAMano(AugeParameters.C_MUSCLE * 1.2) != horasAMano(AugeParameters.C_MUSCLE))
++        org.junit.Assert.assertNull(estado.hoursToRecovery)
+     }
+ 
+     @Test
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeProjectionOracleTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeProjectionOracleTest.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..9429978cdd38339c34542e3c8d77bead0d7bbf65
+--- /dev/null
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeProjectionOracleTest.kt
+@@ -0,0 +1,349 @@
++package com.example.kpkn.domain.auge
++
++import com.example.kpkn.data.models.*
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertNotNull
++import org.junit.Assert.assertTrue
++import org.junit.Test
++import java.time.Instant
++import java.time.ZoneId
++import kotlin.math.abs
++import kotlin.math.roundToLong
++
++/**
++ * AugeProjectionOracleTest — Oráculo numérico independiente de AugeProjection (WP 2.4).
++ *
++ * El oráculo NO usa bisección ni fórmulas analíticas: barre el motor directamente cada 5 minutos (1/12 h)
++ * desde t0 hasta el primer cruce con el score mostrado del motor, sin llamar a AugeProjection.
++ * Exige error absoluto <= 0,5 h en TODOS los casos estimables de la matriz mínima y publica máximo y media.
++ */
++class AugeProjectionOracleTest {
++    private val zone = ZoneId.of("UTC")
++    private val baseTime = Instant.parse("2026-04-10T10:00:00Z").toEpochMilli()
++
++    data class OracleResult(
++        val target: ProjectionTarget,
++        val threshold: Int,
++        val oracleHours: Double,
++        val projectionHours: Double,
++        val errorHours: Double,
++        val fixtureDescription: String,
++    )
++
++    private val recordedResults = mutableListOf<OracleResult>()
++
++    /**
++     * Barre el motor cada 5 min (1/12 h) sin llamar a AugeProjection.
++     */
++    private fun oracleFirstCrossing(
++        inputs: AugeSnapshotInputs,
++        target: ProjectionTarget,
++        threshold: Int,
++        maxHours: Double = 120.0, // Horizonte suficiente para los fixtures de prueba
++        stepHours: Double = 5.0 / 60.0, // 5 minutos exactos
++    ): Double? {
++        val t0 = inputs.nowMs
++        val frozen = inputs.copy(history = inputs.history.filter { AugeUtils.logDateMs(it) <= t0 })
++        val core0 = AugeSnapshotComputer.compute(frozen)
++        val score0 = scoreFor(core0, target) ?: return null
++        if (score0 >= threshold) return 0.0
++
++        var t = stepHours
++        while (t <= maxHours + 1e-9) {
++            val deltaMs = (t * 3_600_000.0).roundToLong()
++            val core = AugeSnapshotComputer.compute(frozen.copy(nowMs = t0 + deltaMs))
++            val s = scoreFor(core, target) ?: return null
++            if (s >= threshold) {
++                return t
++            }
++            t += stepHours
++        }
++        return null
++    }
++
++    private fun scoreFor(core: AugeSnapshotCore, target: ProjectionTarget): Int? = when (target) {
++        is ProjectionTarget.Channel -> when (target.channelId) {
++            RecoveryChannelId.MUSCULAR -> core.dashboard.channelScore(RecoveryChannelId.MUSCULAR, core.batteries.muscular)
++            RecoveryChannelId.SYSTEM -> core.dashboard.channelScore(RecoveryChannelId.SYSTEM, core.batteries.cnc)
++            RecoveryChannelId.STRUCTURE -> core.dashboard.channelScore(RecoveryChannelId.STRUCTURE, core.batteries.spinal)
++        }
++        is ProjectionTarget.Muscle -> core.perMuscle[target.muscleName]?.recoveryScore
++        is ProjectionTarget.Articular -> core.articular[target.articularBattery]?.recoveryScore
++    }
++
++    private fun testCase(
++        inputs: AugeSnapshotInputs,
++        target: ProjectionTarget,
++        threshold: Int,
++        description: String,
++        maxSweepHours: Double = 120.0,
++    ) {
++        val oracle = oracleFirstCrossing(inputs, target, threshold, maxHours = maxSweepHours)
++        assertNotNull("El oráculo debe encontrar un cruce para $target al umbral $threshold en '$description'", oracle)
++        val oracleHours = oracle!!
++
++        val proj = AugeProjection.timeToThreshold(inputs, target, threshold)
++        assertTrue("AugeProjection debe alcanzar el umbral en '$description', fue $proj", proj is ProjectionResult.Reached)
++        val projHours = (proj as ProjectionResult.Reached).hours
++
++        val err = abs(projHours - oracleHours)
++        assertTrue(
++            "Error $err > 0.5 h en '$description' para $target umbral $threshold (proj=$projHours, oracle=$oracleHours)",
++            err <= 0.5,
++        )
++
++        recordedResults.add(
++            OracleResult(target, threshold, oracleHours, projHours, err, description)
++        )
++    }
++
++    // ─── Fixtures ────────────────────────────────────────────────────────────
++
++    private fun legWorkout(dateMs: Long): WorkoutLog {
++        return WorkoutLog(
++            id = "leg-$dateMs",
++            date = Instant.ofEpochMilli(dateMs).toString(),
++            sessionId = "legs",
++            sessionName = "Piernas Pesadas",
++            programId = "p1",
++            durationMinutes = 60,
++            completedExercises = listOf(
++                CompletedExercise(
++                    exerciseId = "squat",
++                    exerciseDbId = "squat",
++                    exerciseName = "Sentadilla con Barra",
++                    sets = List(5) { i -> CompletedSet("s$i", reps = 5, weight = 120.0, rpe = 9.0) },
++                ),
++            ),
++        )
++    }
++
++    private fun benchWorkout(dateMs: Long): WorkoutLog {
++        return WorkoutLog(
++            id = "bench-$dateMs",
++            date = Instant.ofEpochMilli(dateMs).toString(),
++            sessionId = "push",
++            sessionName = "Banca Pesada",
++            programId = "p1",
++            durationMinutes = 50,
++            completedExercises = listOf(
++                CompletedExercise(
++                    exerciseId = "bench",
++                    exerciseDbId = "bench",
++                    exerciseName = "Press de Banca",
++                    sets = List(5) { i -> CompletedSet("b$i", reps = 5, weight = 100.0, rpe = 9.0) },
++                ),
++            ),
++        )
++    }
++
++    private val squatBenchDb: Map<String, ExerciseMuscleInfo> = mapOf(
++        "squat" to ExerciseMuscleInfo(
++            id = "squat", name = "Sentadilla con Barra", equipment = "barbell",
++            involvedMuscles = listOf(
++                InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY),
++                InvolvedMuscle("Glúteos", MuscleRole.SECONDARY),
++                InvolvedMuscle("Erectores Espinales", MuscleRole.SECONDARY),
++            ),
++        ),
++        "bench" to ExerciseMuscleInfo(
++            id = "bench", name = "Press de Banca", equipment = "barbell",
++            involvedMuscles = listOf(
++                InvolvedMuscle("Pectorales", MuscleRole.PRIMARY),
++                InvolvedMuscle("Tríceps", MuscleRole.SECONDARY),
++                InvolvedMuscle("Deltoides Anterior", MuscleRole.SECONDARY),
++            ),
++        ),
++    )
++
++    // ─── Matriz Mínima de Casos ──────────────────────────────────────────────
++
++    @Test
++    fun oracleMatrix_allTargets_allThresholds_withinTolerance() {
++        val t0 = baseTime
++
++        // 1. Sesión individual de piernas terminada hace 3 horas
++        val logLegs = legWorkout(t0 - 3L * 3_600_000L)
++        val inputsSingle = AugeSnapshotInputs(
++            history = listOf(logLegs),
++            wellbeing = null,
++            settings = Settings(),
++            exerciseDb = squatBenchDb,
++            nowMs = t0,
++            zone = zone,
++        )
++
++        // Cuádriceps (perfil lento 72 h), Glúteos (72 h), Energía (SYSTEM), Columna (STRUCTURE), Músculos (MUSCULAR)
++        testCase(inputsSingle, ProjectionTarget.Muscle("Cuádriceps"), 70, "1 sesión piernas, Cuádriceps umbral 70")
++        testCase(inputsSingle, ProjectionTarget.Muscle("Cuádriceps"), 85, "1 sesión piernas, Cuádriceps umbral 85")
++        testCase(inputsSingle, ProjectionTarget.Muscle("Cuádriceps"), 90, "1 sesión piernas, Cuádriceps umbral 90")
++
++        testCase(inputsSingle, ProjectionTarget.Channel(RecoveryChannelId.SYSTEM), 70, "1 sesión piernas, Energía umbral 70")
++        testCase(inputsSingle, ProjectionTarget.Channel(RecoveryChannelId.SYSTEM), 85, "1 sesión piernas, Energía umbral 85")
++        testCase(inputsSingle, ProjectionTarget.Channel(RecoveryChannelId.SYSTEM), 90, "1 sesión piernas, Energía umbral 90")
++
++        testCase(inputsSingle, ProjectionTarget.Channel(RecoveryChannelId.STRUCTURE), 70, "1 sesión piernas, Columna umbral 70")
++        testCase(inputsSingle, ProjectionTarget.Channel(RecoveryChannelId.STRUCTURE), 85, "1 sesión piernas, Columna umbral 85")
++        testCase(inputsSingle, ProjectionTarget.Channel(RecoveryChannelId.STRUCTURE), 90, "1 sesión piernas, Columna umbral 90")
++
++        testCase(inputsSingle, ProjectionTarget.Channel(RecoveryChannelId.MUSCULAR), 70, "1 sesión piernas, Músculos umbral 70")
++        testCase(inputsSingle, ProjectionTarget.Channel(RecoveryChannelId.MUSCULAR), 85, "1 sesión piernas, Músculos umbral 85")
++        testCase(inputsSingle, ProjectionTarget.Channel(RecoveryChannelId.MUSCULAR), 90, "1 sesión piernas, Músculos umbral 90")
++
++        // 2. Sesión de torso (Pectorales perfil medio 48 h)
++        val logBench = benchWorkout(t0 - 4L * 3_600_000L)
++        val inputsBench = AugeSnapshotInputs(
++            history = listOf(logBench),
++            wellbeing = null,
++            settings = Settings(),
++            exerciseDb = squatBenchDb,
++            nowMs = t0,
++            zone = zone,
++        )
++        testCase(inputsBench, ProjectionTarget.Muscle("Pectorales"), 70, "1 sesión banca, Pectorales umbral 70")
++        testCase(inputsBench, ProjectionTarget.Muscle("Pectorales"), 85, "1 sesión banca, Pectorales umbral 85")
++        testCase(inputsBench, ProjectionTarget.Muscle("Pectorales"), 90, "1 sesión banca, Pectorales umbral 90")
++
++        // 3. Dos sesiones apiladas a 24 h
++        val logStack1 = legWorkout(t0 - 27L * 3_600_000L)
++        val logStack2 = legWorkout(t0 - 3L * 3_600_000L)
++        val inputsStacked = AugeSnapshotInputs(
++            history = listOf(logStack1, logStack2),
++            wellbeing = null,
++            settings = Settings(),
++            exerciseDb = squatBenchDb,
++            nowMs = t0,
++            zone = zone,
++        )
++        testCase(inputsStacked, ProjectionTarget.Muscle("Cuádriceps"), 85, "2 sesiones apiladas, Cuádriceps umbral 85")
++        testCase(inputsStacked, ProjectionTarget.Channel(RecoveryChannelId.MUSCULAR), 85, "2 sesiones apiladas, Músculos umbral 85")
++        testCase(inputsStacked, ProjectionTarget.Channel(RecoveryChannelId.SYSTEM), 85, "2 sesiones apiladas, Energía umbral 85")
++
++        // 4. Parámetros τ modificados en adaptiveCache
++        val modifiedCache = AugeAdaptiveCache(
++            cnsRecoveryHours = 36.0,
++            spinalRecoveryHours = 56.0,
++        )
++        val inputsCustomTau = inputsSingle.copy(adaptiveCache = modifiedCache)
++        testCase(inputsCustomTau, ProjectionTarget.Channel(RecoveryChannelId.SYSTEM), 85, "τ adaptativo custom, Energía umbral 85")
++        testCase(inputsCustomTau, ProjectionTarget.Channel(RecoveryChannelId.STRUCTURE), 85, "τ adaptativo custom, Columna umbral 85")
++
++        // 5. Con ancla manual previa (2.5) y evidencia inicial
++        val anchorMs = t0 - 18L * 3_600_000L
++        val wellbeingAnchor = DailyWellbeingLog(
++            id = "wb-1",
++            date = Instant.ofEpochMilli(anchorMs).atZone(zone).toLocalDate().toString(),
++            manualBatteryAnchorMs = anchorMs,
++            manualNeuralBattery = 65,
++            manualSpinalBattery = 60,
++        )
++        val inputsAnchor = inputsSingle.copy(wellbeing = wellbeingAnchor)
++        testCase(inputsAnchor, ProjectionTarget.Channel(RecoveryChannelId.SYSTEM), 85, "Con ancla previa, Energía umbral 85")
++        testCase(inputsAnchor, ProjectionTarget.Channel(RecoveryChannelId.STRUCTURE), 85, "Con ancla previa, Columna umbral 85")
++
++        // Resumen estadístico del oráculo
++        val count = recordedResults.size
++        assertTrue("Debe haber casos registrados en la matriz", count >= 15)
++        val maxErr = recordedResults.maxOf { it.errorHours }
++        val avgErr = recordedResults.map { it.errorHours }.average()
++
++        println("=================================================================")
++        println("[ORÁCULO PROYECCIÓN 2.4] Casos evaluados: $count")
++        println("[ORÁCULO PROYECCIÓN 2.4] Error máximo: ${String.format("%.4f", maxErr)} h (límite <= 0.5 h)")
++        println("[ORÁCULO PROYECCIÓN 2.4] Error medio:  ${String.format("%.4f", avgErr)} h")
++        println("=================================================================")
++
++        assertTrue("Error máximo debe ser <= 0.5 h, fue $maxErr", maxErr <= 0.5)
++
++        // Verificar que cada target tiene n > 0 cruces comprobados
++        val targetsWithCrossings = recordedResults.map { it.target }.toSet()
++        assertTrue(targetsWithCrossings.contains(ProjectionTarget.Channel(RecoveryChannelId.SYSTEM)))
++        assertTrue(targetsWithCrossings.contains(ProjectionTarget.Channel(RecoveryChannelId.STRUCTURE)))
++        assertTrue(targetsWithCrossings.contains(ProjectionTarget.Channel(RecoveryChannelId.MUSCULAR)))
++        assertTrue(targetsWithCrossings.contains(ProjectionTarget.Muscle("Pectorales")))
++        assertTrue(targetsWithCrossings.contains(ProjectionTarget.Muscle("Cuádriceps")))
++    }
++
++    @Test
++    fun structureShownDiffersFromRawAndProjectionFollowsShown() {
++        // Columna con guardia articular y muscular donde el score mostrado difiere del crudo
++        val t0 = baseTime
++        val log = legWorkout(t0 - 4L * 3_600_000L)
++        val inputs = AugeSnapshotInputs(
++            history = listOf(log),
++            wellbeing = null,
++            settings = Settings(),
++            exerciseDb = squatBenchDb,
++            nowMs = t0,
++            zone = zone,
++        )
++        val core0 = AugeSnapshotComputer.compute(inputs)
++        val rawSpinal = core0.batteries.spinal
++        val shownSpinal = core0.dashboard.channelScore(RecoveryChannelId.STRUCTURE, rawSpinal)
++
++        // En sentadilla pesada, la protección articular y muscular hace que Columna mostrada difiera
++        val proj = AugeProjection.timeToThreshold(inputs, ProjectionTarget.Channel(RecoveryChannelId.STRUCTURE), 85)
++        assertTrue(proj is ProjectionResult.Reached)
++
++        // Verificamos que el cruce proyectado satisface la Columna MOSTRADA en ese instante
++        val hours = (proj as ProjectionResult.Reached).hours
++        val coreAtCrossing = AugeSnapshotComputer.compute(inputs.copy(nowMs = t0 + (hours * 3_600_000.0).roundToLong()))
++        val shownAtCrossing = coreAtCrossing.dashboard.channelScore(RecoveryChannelId.STRUCTURE, coreAtCrossing.batteries.spinal)
++        assertTrue("En el cruce la Columna mostrada debe ser >= 85, fue $shownAtCrossing", shownAtCrossing >= 85)
++    }
++
++    @Test
++    fun muscularGlobalThreshold70DoesNotEqualFirstPillarTo90() {
++        // Músculos global a 70 vs primer pilar a 90
++        val t0 = baseTime
++        val log = legWorkout(t0 - 2L * 3_600_000L)
++        val inputs = AugeSnapshotInputs(
++            history = listOf(log),
++            wellbeing = null,
++            settings = Settings(),
++            exerciseDb = squatBenchDb,
++            nowMs = t0,
++            zone = zone,
++        )
++        val projGlobal70 = AugeProjection.timeToThreshold(inputs, ProjectionTarget.Channel(RecoveryChannelId.MUSCULAR), 70)
++        val projQuads90 = AugeProjection.timeToThreshold(inputs, ProjectionTarget.Muscle("Cuádriceps"), 90)
++
++        assertTrue(projGlobal70 is ProjectionResult.Reached)
++        assertTrue(projQuads90 is ProjectionResult.Reached)
++
++        val hGlobal = (projGlobal70 as ProjectionResult.Reached).hours
++        val hQuads = (projQuads90 as ProjectionResult.Reached).hours
++
++        // Global a 70 (normal) se alcanza mucho antes que Cuádriceps a 90
++        assertTrue("Global 70 ($hGlobal) no debe ser igual a Cuádriceps 90 ($hQuads)", abs(hGlobal - hQuads) > 1.0)
++    }
++
++    @Test
++    fun boundaryConditionsAndInvariants() {
++        val t0 = baseTime
++        val log = legWorkout(t0 - 12L * 3_600_000L) // Borde exacto a 12 h
++        val inputs = AugeSnapshotInputs(
++            history = listOf(log),
++            wellbeing = null,
++            settings = Settings(),
++            exerciseDb = squatBenchDb,
++            nowMs = t0,
++            zone = zone,
++        )
++
++        // 1. Repetibilidad exacta: mismas entradas ⇒ igualdad exacta
++        val p1 = AugeProjection.timeToThreshold(inputs, ProjectionTarget.Muscle("Cuádriceps"), 90)
++        val p2 = AugeProjection.timeToThreshold(inputs, ProjectionTarget.Muscle("Cuádriceps"), 90)
++        assertEquals(p1, p2)
++
++        // 2. Umbral 100 bajo cuantización: alcanza 100 dentro del horizonte
++        val p100 = AugeProjection.timeToThreshold(inputs, ProjectionTarget.Muscle("Cuádriceps"), 100)
++        assertTrue("Alcanza 100 dentro del horizonte de 336 h", p100 is ProjectionResult.Reached)
++
++        // 3. Añadir log futuro tras nowMs produce 0 cambios
++        val futureLog = legWorkout(t0 + 24L * 3_600_000L)
++        val inputsWithFuture = inputs.copy(history = listOf(log, futureLog))
++        val pFuture = AugeProjection.timeToThreshold(inputsWithFuture, ProjectionTarget.Muscle("Cuádriceps"), 90)
++        assertEquals(p1, pFuture)
++    }
++}
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeProjectionTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeProjectionTest.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..89c00fe57b871961e50d9d883cbde65b3e7e06e4
+--- /dev/null
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeProjectionTest.kt
+@@ -0,0 +1,170 @@
++package com.example.kpkn.domain.auge
++
++import com.example.kpkn.data.models.*
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertNotNull
++import org.junit.Assert.assertNull
++import org.junit.Assert.assertTrue
++import org.junit.Test
++import java.time.Instant
++import java.time.ZoneId
++
++class AugeProjectionTest {
++    private val zone = ZoneId.of("UTC")
++    private val t0 = Instant.parse("2026-03-01T12:00:00Z").toEpochMilli()
++
++    private fun baseInputs(history: List<WorkoutLog> = emptyList(), wellbeing: DailyWellbeingLog? = null): AugeSnapshotInputs {
++        return AugeSnapshotInputs(
++            history = history,
++            wellbeing = wellbeing,
++            settings = Settings(),
++            exerciseDb = AugeGoldenCorpus.EXERCISE_DB,
++            nowMs = t0,
++            zone = zone,
++        )
++    }
++
++    @Test
++    fun alreadyAtOrAboveThresholdReturnsZeroHours() {
++        // Con una sesión hace 7 días, el músculo ya está recuperado al 100 %.
++        val sessionMs = t0 - 7L * 24 * 3_600_000L
++        val log = WorkoutLog(
++            id = "w1", date = Instant.ofEpochMilli(sessionMs).toString(), sessionId = "s1", sessionName = "Pecho",
++            programId = "p1", durationMinutes = 45,
++            completedExercises = AugeRealSessionFixtures.completedExercises,
++        )
++        val inputs = baseInputs(history = listOf(log))
++        val res = AugeProjection.timeToThreshold(inputs, ProjectionTarget.Muscle("Pectorales"), threshold = 90)
++
++        assertTrue("Debe ser Reached pero fue $res", res is ProjectionResult.Reached)
++        assertEquals(0.0, (res as ProjectionResult.Reached).hours, 0.0)
++        assertEquals(0, res.toRoundedHours())
++        assertEquals(0, res.roundedHoursOrNull)
++    }
++
++    @Test
++    fun noDataReturnsExplicitNotEstimableNoDataNeverZero() {
++        val inputs = baseInputs(history = emptyList(), wellbeing = null)
++        val resChannel = AugeProjection.timeToThreshold(inputs, ProjectionTarget.Channel(RecoveryChannelId.SYSTEM), threshold = 70)
++        assertEquals(ProjectionResult.NotEstimable.NoData, resChannel)
++        assertNull(resChannel.hoursOrNull)
++        assertNull(resChannel.roundedHoursOrNull)
++
++        val resMuscle = AugeProjection.timeToThreshold(inputs, ProjectionTarget.Muscle("Pectorales"), threshold = 90)
++        assertEquals(ProjectionResult.NotEstimable.NoData, resMuscle)
++        assertNull(resMuscle.hoursOrNull)
++        assertNull(resMuscle.roundedHoursOrNull)
++
++        val resArticular = AugeProjection.timeToThreshold(inputs, ProjectionTarget.Articular(ArticularBattery.SHOULDER), threshold = 90)
++        assertEquals(ProjectionResult.NotEstimable.NoData, resArticular)
++    }
++
++    @Test
++    fun unknownTargetReturnsUnknownTarget() {
++        val sessionMs = t0 - 2L * 3_600_000L
++        val log = WorkoutLog(
++            id = "w1", date = Instant.ofEpochMilli(sessionMs).toString(), sessionId = "s1", sessionName = "Pecho",
++            programId = "p1", durationMinutes = 45,
++            completedExercises = AugeRealSessionFixtures.completedExercises,
++        )
++        val inputs = baseInputs(history = listOf(log))
++        val res = AugeProjection.timeToThreshold(inputs, ProjectionTarget.Muscle("MusculoInexistente"), threshold = 90)
++        assertEquals(ProjectionResult.NotEstimable.UnknownTarget, res)
++    }
++
++    @Test
++    fun recentSessionFindsFirstCrossingWithBisectionTolerance() {
++        // Sesión reciente (hace 2 horas) con fatiga en Pectorales.
++        val sessionMs = t0 - 2L * 3_600_000L
++        val log = WorkoutLog(
++            id = "w1", date = Instant.ofEpochMilli(sessionMs).toString(), sessionId = "s1", sessionName = "Pecho",
++            programId = "p1", durationMinutes = 45,
++            completedExercises = AugeRealSessionFixtures.completedExercises,
++        )
++        val inputs = baseInputs(history = listOf(log))
++        val evaluator = AugeProjectionEvaluator(inputs)
++        val core0 = evaluator.evaluate(0.0)
++        val initialScore = core0.perMuscle["Pectorales"]?.recoveryScore ?: 100
++        assertTrue("El score inicial debe estar bajo 90, fue $initialScore", initialScore < 90)
++
++        val res = AugeProjection.timeToThreshold(inputs, ProjectionTarget.Muscle("Pectorales"), threshold = 90)
++        assertTrue("Debe ser Reached pero fue $res", res is ProjectionResult.Reached)
++        val hours = (res as ProjectionResult.Reached).hours
++        assertTrue("Las horas deben ser positivas: $hours", hours > 0.0)
++        assertTrue("Las horas deben ser menores a 336 h: $hours", hours < 336.0)
++
++        // Verificar que en t = hours el score efectivamente cumple el umbral
++        val coreCrossing = evaluator.evaluate(hours)
++        val scoreCrossing = coreCrossing.perMuscle["Pectorales"]?.recoveryScore ?: 0
++        assertTrue("En el cruce ($hours h) el score debe ser >= 90, fue $scoreCrossing", scoreCrossing >= 90)
++
++        // Y un pelo antes del ancho de bisección (hours - 0.125 - 1e-4) aún no lo cumplía (o estaba en el borde)
++        if (hours > AugeProjection.BISECTION_TOLERANCE_HOURS) {
++            val coreBefore = evaluator.evaluate(hours - AugeProjection.BISECTION_TOLERANCE_HOURS - 1e-4)
++            val scoreBefore = coreBefore.perMuscle["Pectorales"]?.recoveryScore ?: 0
++            assertTrue("Antes del intervalo el score debe ser <= 90, fue $scoreBefore", scoreBefore <= 90)
++        }
++    }
++
++    @Test
++    fun futureLogAfterNowMsDoesNotAffectProjection() {
++        val sessionPast = t0 - 2L * 3_600_000L
++        val logPast = WorkoutLog(
++            id = "past", date = Instant.ofEpochMilli(sessionPast).toString(), sessionId = "s1", sessionName = "Pecho",
++            programId = "p1", durationMinutes = 45,
++            completedExercises = AugeRealSessionFixtures.completedExercises,
++        )
++        val sessionFuture = t0 + 10L * 3_600_000L
++        val logFuture = WorkoutLog(
++            id = "future", date = Instant.ofEpochMilli(sessionFuture).toString(), sessionId = "s2", sessionName = "Futuro",
++            programId = "p1", durationMinutes = 45,
++            completedExercises = AugeRealSessionFixtures.completedExercises,
++        )
++
++        val inputsWithoutFuture = baseInputs(history = listOf(logPast))
++        val inputsWithFuture = baseInputs(history = listOf(logPast, logFuture))
++
++        val res1 = AugeProjection.timeToThreshold(inputsWithoutFuture, ProjectionTarget.Muscle("Pectorales"), threshold = 90)
++        val res2 = AugeProjection.timeToThreshold(inputsWithFuture, ProjectionTarget.Muscle("Pectorales"), threshold = 90)
++
++        assertEquals(res1, res2)
++    }
++
++    @Test
++    fun projectHoursToNormalComputesAllThreeChannels() {
++        val sessionMs = t0 - 4L * 3_600_000L
++        val log = WorkoutLog(
++            id = "w1", date = Instant.ofEpochMilli(sessionMs).toString(), sessionId = "s1", sessionName = "Pecho",
++            programId = "p1", durationMinutes = 60,
++            completedExercises = AugeRealSessionFixtures.completedExercises,
++        )
++        val inputs = baseInputs(history = listOf(log))
++        val hoursToNormal = AugeProjection.projectHoursToNormal(inputs)
++
++        assertEquals(3, hoursToNormal.size)
++        assertTrue(hoursToNormal.containsKey(RecoveryChannelId.MUSCULAR))
++        assertTrue(hoursToNormal.containsKey(RecoveryChannelId.SYSTEM))
++        assertTrue(hoursToNormal.containsKey(RecoveryChannelId.STRUCTURE))
++    }
++
++    @Test
++    fun enrichSnapshotCorePopulatesHoursToRecoveryAndEstimatedHours() {
++        val sessionMs = t0 - 4L * 3_600_000L
++        val log = WorkoutLog(
++            id = "w1", date = Instant.ofEpochMilli(sessionMs).toString(), sessionId = "s1", sessionName = "Pecho",
++            programId = "p1", durationMinutes = 60,
++            completedExercises = AugeRealSessionFixtures.completedExercises,
++        )
++        val inputs = baseInputs(history = listOf(log))
++        val core = AugeSnapshotComputer.compute(inputs)
++
++        val enriched = AugeProjection.enrichSnapshotCore(core, inputs)
++        val pecs = enriched.perMuscle["Pectorales"]
++        assertNotNull(pecs)
++        assertTrue("hoursToRecovery debe poblarse", pecs!!.hoursToRecovery != null)
++
++        val shoulder = enriched.articular[ArticularBattery.SHOULDER]
++        assertNotNull(shoulder)
++        assertTrue("estimatedHoursToRecovery debe poblarse", shoulder!!.estimatedHoursToRecovery != null)
++    }
++}
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeRingsGuideAndMonitorTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeRingsGuideAndMonitorTest.kt
+index 47b5db7fc612d2ded38256266fc98a8ac9a21345..fb8a50d849d4a71563298ff47cb7355d014284b7 100644
+--- a/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeRingsGuideAndMonitorTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeRingsGuideAndMonitorTest.kt
+@@ -32,11 +32,19 @@ class RecoveryBandsSingleSourceTest {
+ }
+ 
+ class RingProjectionTest {
+-    @Test
+-    fun hoursUntilNormalIsZeroAtOrAbove70AndPositiveBelow() {
+-        assertEquals(0, RecoveryBands.hoursUntilNormal(80, 36.0))
+-        val hours = RecoveryBands.hoursUntilNormal(50, 36.0)
+-        assertTrue("hours=$hours", hours != null && hours > 0)
++    @Test fun hoursToNormalUseTheForwardEngineAndExplicitCoverage() {
++        val at = java.time.Instant.parse("2026-04-10T10:00:00Z").toEpochMilli()
++        fun inputs(value: Int) = AugeSnapshotInputs(emptyList(),
++            com.example.kpkn.data.models.DailyWellbeingLog("wb", "2026-04-10", manualNeuralBattery = value,
++                manualBatteryAnchorMs = at, manualNeuralAnchorMs = at),
++            com.example.kpkn.data.models.Settings(), emptyMap(), at, java.time.ZoneId.of("UTC"))
++        val target = com.example.kpkn.data.models.ProjectionTarget.Channel(RecoveryChannelId.SYSTEM)
++        val ready = AugeProjection.timeToThreshold(inputs(80), target, RecoveryBands.NORMAL_MIN)
++        assertEquals(0.0, requireNotNull(ready.hoursOrNull), 0.0)
++        val recovering = AugeProjection.timeToThreshold(inputs(50), target, RecoveryBands.NORMAL_MIN)
++        assertTrue(requireNotNull(recovering.hoursOrNull) > 0.0)
++        val absent = AugeProjection.timeToThreshold(inputs(50).copy(wellbeing = null), target, RecoveryBands.NORMAL_MIN)
++        assertNull(absent.hoursOrNull)
+     }
+ }
+ 
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeTtcRecoveryHoursTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeTtcRecoveryHoursTest.kt
+index 1f493d58cff13198dbf8abc43baf5d9d0bb4a8b8..d22edf7214f218df05da577e7db6639a8e352b53 100644
+--- a/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeTtcRecoveryHoursTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/auge/AugeTtcRecoveryHoursTest.kt
+@@ -1,142 +1,39 @@
+ package com.example.kpkn.domain.auge
+ 
+-import com.example.kpkn.data.models.ArticularBattery
+-import com.example.kpkn.data.models.CompletedExercise
+-import com.example.kpkn.data.models.CompletedSet
+-import com.example.kpkn.data.models.ExerciseMuscleInfo
+-import com.example.kpkn.data.models.InvolvedMuscle
+-import com.example.kpkn.data.models.MuscleRole
+-import com.example.kpkn.data.models.WorkoutLog
+-import org.junit.Assert.assertTrue
++import com.example.kpkn.data.models.*
++import org.junit.Assert.*
+ import org.junit.Test
+-import kotlin.math.ln
++import java.time.ZoneId
++import kotlin.math.abs
++import kotlin.math.roundToLong
+ 
++/** Oraculo directo cada cinco minutos: horas reales, sin invertir una exponencial aproximada. */
+ class AugeTtcRecoveryHoursTest {
+-
+-    /** Reloj explícito (WP 1.7): lunes 2025-03-03 10:00 UTC, mucho antes de hoy. Ninguna prueba lee el reloj real. */
+-    private val ahora = java.time.Instant.parse("2025-03-03T10:00:00Z").toEpochMilli()
+-
+-    @Test
+-    fun hoursToRecovery_usesSameKAsDecay_whenAvgTtcAboveThree() {
+-        val now = ahora
+-        val logDate = java.time.Instant.ofEpochMilli(now - 6L * 3600_000L).toString()
+-        val snatchDb = mapOf(
+-            "snatch" to ExerciseMuscleInfo(
+-                id = "snatch",
+-                name = "Arrancada",
+-                equipment = "barbell",
+-                involvedMuscles = listOf(InvolvedMuscle("Deltoides", MuscleRole.PRIMARY)),
+-            ),
+-        )
+-        val log = WorkoutLog(
+-            id = "oly",
+-            date = logDate,
+-            sessionId = "s",
+-            sessionName = "Oly",
+-            programId = "p",
+-            durationMinutes = 60,
+-            completedExercises = listOf(
+-                CompletedExercise(
+-                    exerciseId = "snatch",
+-                    exerciseDbId = "snatch",
+-                    exerciseName = "Arrancada",
+-                    sets = List(8) { index ->
+-                        CompletedSet(id = "s$index", reps = 3, weight = 80.0, rpe = 10.0)
+-                    },
+-                ),
+-            ),
+-        )
+-        val batteries = AugeTtcEngine.calculateArticularBatteries(
+-            history = listOf(log),
+-            exerciseDb = snatchDb,
+-            nowMs = now,
+-        )
+-        val shoulder = batteries[ArticularBattery.SHOULDER]!!
+-        assertTrue(shoulder.accumulatedStress > 0.0)
+-        assertTrue(shoulder.estimatedHoursToRecovery > 0)
+-
+-        val totalAcc = shoulder.accumulatedStress
+-        val targetStress = ((100.0 - 90.0) / 100.0) * 80.0 // TENDON_CAPACITY_BASE
+-        val k60 = 2.0 / 60.0
+-        val expectedHours = (-ln(targetStress / totalAcc) / k60).toInt().coerceAtLeast(0)
+-        assertEquals(expectedHours, shoulder.estimatedHoursToRecovery)
+-    }
+-
+-    @Test
+-    fun hoursToRecovery_highTtcTakesLongerThanStandardK() {
+-        val now = ahora
+-        val logDate = java.time.Instant.ofEpochMilli(now - 6L * 3600_000L).toString()
+-        val snatchDb = mapOf(
+-            "snatch" to ExerciseMuscleInfo(
+-                id = "snatch",
+-                name = "Arrancada",
+-                equipment = "barbell",
+-                involvedMuscles = listOf(InvolvedMuscle("Deltoides", MuscleRole.PRIMARY)),
+-            ),
+-        )
+-        val curlDb = mapOf(
+-            "curl" to ExerciseMuscleInfo(
+-                id = "curl",
+-                name = "Curl",
+-                equipment = "dumbbell",
+-                involvedMuscles = listOf(InvolvedMuscle("Bíceps", MuscleRole.PRIMARY)),
+-            ),
+-        )
+-        val heavySets = List(8) { index ->
+-            CompletedSet(id = "s$index", reps = 3, weight = 80.0, rpe = 10.0)
++    @Test fun projectedArticularHoursMatchTheFirstForwardCrossing() {
++        val base = AugeSyntheticUserHarness.BASE_START_MS
++        val exercises = listOf(AugeSyntheticUserHarness.completedExercise("sim-banca", 16, 8, 70.0, 9.0, 120, "ttc"))
++        val log = AugeSyntheticUserHarness.logFor("ttc", "Empuje", exercises, base, 60, emptyList(), Settings())
++        val inputs = AugeSnapshotInputs(listOf(log), null, Settings(), AugeSyntheticUserHarness.exerciseDb,
++            base + 6L * AugeSyntheticUserHarness.HOUR_MS, ZoneId.of("UTC"))
++        val core = AugeSnapshotComputer.compute(inputs)
++        assertNull(core.articular.getValue(ArticularBattery.SHOULDER).estimatedHoursToRecovery)
++        // 99 garantiza un cruce real incluso si la articulacion ya estaba por encima de 90.
++        val threshold = 99
++        assertTrue(core.articular.getValue(ArticularBattery.SHOULDER).recoveryScore < threshold)
++        val result = AugeProjection.timeToThreshold(inputs, ProjectionTarget.Articular(ArticularBattery.SHOULDER), threshold)
++        val projected = requireNotNull(result.hoursOrNull)
++        var oracle: Double? = null
++        for (step in 1..4032) {
++            val hours = step / 12.0
++            val future = AugeSnapshotComputer.compute(inputs.copy(nowMs = inputs.nowMs + (hours * 3_600_000.0).roundToLong()))
++            if (future.articular.getValue(ArticularBattery.SHOULDER).recoveryScore >= threshold) {
++                oracle = hours
++                break
++            }
+         }
+-        val highTtc = AugeTtcEngine.calculateArticularBatteries(
+-            history = listOf(
+-                WorkoutLog(
+-                    id = "oly",
+-                    date = logDate,
+-                    sessionId = "s",
+-                    sessionName = "Oly",
+-                    programId = "p",
+-                    durationMinutes = 60,
+-                    completedExercises = listOf(
+-                        CompletedExercise(
+-                            exerciseId = "snatch",
+-                            exerciseDbId = "snatch",
+-                            exerciseName = "Arrancada",
+-                            sets = heavySets,
+-                        ),
+-                    ),
+-                ),
+-            ),
+-            exerciseDb = snatchDb,
+-            nowMs = now,
+-        )[ArticularBattery.SHOULDER]!!
+-
+-        val lowTtc = AugeTtcEngine.calculateArticularBatteries(
+-            history = listOf(
+-                WorkoutLog(
+-                    id = "iso",
+-                    date = logDate,
+-                    sessionId = "s",
+-                    sessionName = "Iso",
+-                    programId = "p",
+-                    durationMinutes = 60,
+-                    completedExercises = listOf(
+-                        CompletedExercise(
+-                            exerciseId = "curl",
+-                            exerciseDbId = "curl",
+-                            exerciseName = "Curl",
+-                            sets = heavySets,
+-                        ),
+-                    ),
+-                ),
+-            ),
+-            exerciseDb = curlDb,
+-            nowMs = now,
+-        )[ArticularBattery.SHOULDER]!!
+-
+-        if (highTtc.estimatedHoursToRecovery > 0 && lowTtc.estimatedHoursToRecovery > 0) {
+-            assertTrue(highTtc.estimatedHoursToRecovery >= lowTtc.estimatedHoursToRecovery)
+-        }
+-    }
+-
+-    private fun assertEquals(expected: Int, actual: Int) {
+-        org.junit.Assert.assertEquals(expected, actual)
++        assertTrue(projected > 0.0)
++        assertTrue(abs(projected - requireNotNull(oracle)) <= 0.5)
++        val enriched = AugeProjection.enrichSnapshotCore(core, inputs)
++        assertNotNull(enriched.articular.getValue(ArticularBattery.SHOULDER).estimatedHoursToRecovery)
+     }
+ }
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/auge/SessionDrainRecipeCharacterizationTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/auge/SessionDrainRecipeCharacterizationTest.kt
+index 14f5f2791a23bd12260b27530d38fae29a92d58b..50f0a4c6e5853be3bde64bc3575ffc2a133c214d 100644
+--- a/android-native/app/src/test/java/com/example/kpkn/domain/auge/SessionDrainRecipeCharacterizationTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/auge/SessionDrainRecipeCharacterizationTest.kt
+@@ -77,19 +77,19 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
+                 predicted=PredictedDrain(cns=61, muscular=40, spinal=9)
+                 history[0].energy=(73, 27, 0)
+                 history[0].spinal=92
+-                history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=52, effectiveSets=5, status=FRESH)
+-                history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=93, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)
+-                history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)
++                history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=52, effectiveSets=5, status=FRESH)
++                history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=93, hoursToRecovery=null, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)
++                history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=null, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)
+                 history[6].energy=(83, 17, 0)
+                 history[6].spinal=95
+-                history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=58, effectiveSets=5, status=FRESH)
+-                history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=94, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=10, status=OPTIMAL)
+-                history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)
++                history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=58, effectiveSets=5, status=FRESH)
++                history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=94, hoursToRecovery=null, hoursSinceLastSession=6, effectiveSets=10, status=OPTIMAL)
++                history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=null, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)
+                 history[24].energy=(96, 4, 0)
+                 history[24].spinal=99
+-                history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=76, effectiveSets=5, status=FRESH)
+-                history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=10, status=FRESH)
+-                history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
++                history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=76, effectiveSets=5, status=FRESH)
++                history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=96, hoursToRecovery=null, hoursSinceLastSession=24, effectiveSets=10, status=FRESH)
++                history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=null, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
+             """.trimIndent(),
+             "superserie" to """
+                 global=PredictedDrain(cns=78, muscular=63, spinal=8);muscles={Bíceps=4, Deltoides=8, Dorsales=7, Erectores Espinales=3, Pectorales=22, Trapecio=4, Tríceps=17}
+@@ -99,19 +99,19 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
+                 predicted=PredictedDrain(cns=72, muscular=62, spinal=8)
+                 history[0].energy=(63, 37, 0)
+                 history[0].spinal=92
+-                history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=92, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)
+-                history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=94, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=OPTIMAL)
++                history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=92, hoursToRecovery=null, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)
++                history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=94, hoursToRecovery=null, hoursSinceLastSession=0, effectiveSets=5, status=OPTIMAL)
+                 history[6].energy=(76, 24, 0)
+                 history[6].spinal=95
+-                history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=93, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=10, status=OPTIMAL)
+-                history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)
++                history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=93, hoursToRecovery=null, hoursSinceLastSession=6, effectiveSets=10, status=OPTIMAL)
++                history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=null, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)
+                 history[24].energy=(94, 6, 0)
+                 history[24].spinal=99
+-                history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=10, status=FRESH)
+-                history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
++                history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=96, hoursToRecovery=null, hoursSinceLastSession=24, effectiveSets=10, status=FRESH)
++                history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=null, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
+             """.trimIndent(),
+             "cardio" to """
+                 global=PredictedDrain(cns=47, muscular=37, spinal=8);muscles={Bíceps=1, Core=1, Cuádriceps=12, Deltoides=3, Dorsales=1, Erectores Espinales=4, Glúteos=5, Pectorales=7, Tríceps=3}
+@@ -121,19 +121,19 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
+                 predicted=PredictedDrain(cns=45, muscular=38, spinal=8)
+                 history[0].energy=(74, 26, 0)
+                 history[0].spinal=92
+-                history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=7, status=FRESH)
+-                history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=4, status=FRESH)
+-                history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)
++                history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=97, hoursToRecovery=null, hoursSinceLastSession=0, effectiveSets=7, status=FRESH)
++                history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=95, hoursToRecovery=null, hoursSinceLastSession=0, effectiveSets=4, status=FRESH)
++                history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=null, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)
+                 history[6].energy=(83, 17, 0)
+                 history[6].spinal=95
+-                history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=7, status=FRESH)
+-                history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=4, status=FRESH)
+-                history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)
++                history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=null, hoursSinceLastSession=6, effectiveSets=7, status=FRESH)
++                history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=96, hoursToRecovery=null, hoursSinceLastSession=6, effectiveSets=4, status=FRESH)
++                history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=null, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)
+                 history[24].energy=(96, 4, 0)
+                 history[24].spinal=99
+-                history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=99, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=7, status=FRESH)
+-                history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=4, status=FRESH)
+-                history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
++                history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=99, hoursToRecovery=null, hoursSinceLastSession=24, effectiveSets=7, status=FRESH)
++                history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=97, hoursToRecovery=null, hoursSinceLastSession=24, effectiveSets=4, status=FRESH)
++                history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=null, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
+             """.trimIndent(),
+             "tecnicas" to """
+                 global=PredictedDrain(cns=69, muscular=65, spinal=8);muscles={Bíceps=1, Deltoides=12, Dorsales=1, Erectores Espinales=0, Pectorales=34, Trapecio=1, Tríceps=16}
+@@ -143,19 +143,19 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
+                 predicted=PredictedDrain(cns=56, muscular=48, spinal=8)
+                 history[0].energy=(67, 33, 0)
+                 history[0].spinal=96
+-                history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=84, hoursToRecovery=7, hoursSinceLastSession=0, effectiveSets=9, status=RECOVERING)
+-                history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)
++                history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=84, hoursToRecovery=null, hoursSinceLastSession=0, effectiveSets=9, status=RECOVERING)
++                history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=null, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)
+                 history[6].energy=(78, 22, 0)
+                 history[6].spinal=98
+-                history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=87, hoursToRecovery=4, hoursSinceLastSession=6, effectiveSets=9, status=OPTIMAL)
+-                history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)
++                history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=87, hoursToRecovery=null, hoursSinceLastSession=6, effectiveSets=9, status=OPTIMAL)
++                history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=null, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)
+                 history[24].energy=(95, 5, 0)
+                 history[24].spinal=99
+-                history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=92, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=9, status=OPTIMAL)
+-                history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
++                history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=92, hoursToRecovery=null, hoursSinceLastSession=24, effectiveSets=9, status=OPTIMAL)
++                history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=null, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
+             """.trimIndent(),
+             "axial" to """
+                 global=PredictedDrain(cns=72, muscular=39, spinal=9);muscles={Bíceps=3, Deltoides=7, Dorsales=5, Erectores Espinales=5, Glúteos=3, Isquiosurales=5, Trapecio=8, Tríceps=3}
+@@ -165,19 +165,19 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
+                 predicted=PredictedDrain(cns=63, muscular=39, spinal=9)
+                 history[0].energy=(66, 34, 0)
+                 history[0].spinal=88
+-                history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=52, effectiveSets=5, status=FRESH)
+-                history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)
++                history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=52, effectiveSets=5, status=FRESH)
++                history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=null, hoursSinceLastSession=0, effectiveSets=10, status=OPTIMAL)
+                 history[6].energy=(77, 23, 0)
+                 history[6].spinal=92
+-                history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=58, effectiveSets=5, status=FRESH)
+-                history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=10, status=FRESH)
++                history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=58, effectiveSets=5, status=FRESH)
++                history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=95, hoursToRecovery=null, hoursSinceLastSession=6, effectiveSets=10, status=FRESH)
+                 history[24].energy=(94, 6, 0)
+                 history[24].spinal=99
+-                history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=76, effectiveSets=5, status=FRESH)
+-                history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=10, status=FRESH)
++                history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=76, effectiveSets=5, status=FRESH)
++                history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=null, hoursSinceLastSession=24, effectiveSets=10, status=FRESH)
+             """.trimIndent(),
+             "sin-ficha" to """
+                 global=PredictedDrain(cns=63, muscular=45, spinal=12);muscles={Deltoides=1, Erectores Espinales=4, Glúteos=5, Isquiosurales=10, Pectorales=4, Tríceps=2}
+@@ -187,19 +187,19 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
+                 predicted=PredictedDrain(cns=58, muscular=45, spinal=12)
+                 history[0].energy=(69, 31, 0)
+                 history[0].spinal=86
+-                history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=7, status=FRESH)
+-                history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)
++                history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=null, hoursSinceLastSession=0, effectiveSets=7, status=FRESH)
++                history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=null, hoursSinceLastSession=0, effectiveSets=5, status=FRESH)
+                 history[6].energy=(80, 20, 0)
+                 history[6].spinal=90
+-                history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=7, status=FRESH)
+-                history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)
++                history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=null, hoursSinceLastSession=6, effectiveSets=7, status=FRESH)
++                history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=96, hoursToRecovery=null, hoursSinceLastSession=6, effectiveSets=5, status=FRESH)
+                 history[24].energy=(95, 5, 0)
+                 history[24].spinal=99
+-                history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=99, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=7, status=FRESH)
+-                history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
++                history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=99, hoursToRecovery=null, hoursSinceLastSession=24, effectiveSets=7, status=FRESH)
++                history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=null, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
+             """.trimIndent(),
+             "filtrado-rir" to """
+                 global=PredictedDrain(cns=24, muscular=17, spinal=0);muscles={Deltoides=3, Pectorales=9, Tríceps=4}
+@@ -209,19 +209,19 @@ class SessionDrainRecipeCharacterizationTest(private val caseId: String) {
+                 predicted=PredictedDrain(cns=30, muscular=20, spinal=0)
+                 history[0].energy=(82, 18, 0)
+                 history[0].spinal=98
+-                history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=96, hoursToRecovery=0, hoursSinceLastSession=0, effectiveSets=8, status=FRESH)
+-                history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=18, effectiveSets=5, status=FRESH)
++                history[0][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=96, hoursToRecovery=null, hoursSinceLastSession=0, effectiveSets=8, status=FRESH)
++                history[0][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[0][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=97, hoursToRecovery=null, hoursSinceLastSession=18, effectiveSets=5, status=FRESH)
+                 history[6].energy=(89, 11, 0)
+                 history[6].spinal=99
+-                history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=97, hoursToRecovery=0, hoursSinceLastSession=6, effectiveSets=8, status=FRESH)
+-                history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
++                history[6][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=97, hoursToRecovery=null, hoursSinceLastSession=6, effectiveSets=8, status=FRESH)
++                history[6][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[6][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=98, hoursToRecovery=null, hoursSinceLastSession=24, effectiveSets=5, status=FRESH)
+                 history[24].energy=(97, 3, 0)
+                 history[24].spinal=100
+-                history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=0, hoursSinceLastSession=24, effectiveSets=8, status=FRESH)
+-                history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=0, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
+-                history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=99, hoursToRecovery=0, hoursSinceLastSession=42, effectiveSets=5, status=FRESH)
++                history[24][Pectorales]=MuscleRecoveryStatus(muscleName=Pectorales, recoveryScore=98, hoursToRecovery=null, hoursSinceLastSession=24, effectiveSets=8, status=FRESH)
++                history[24][Cuádriceps]=MuscleRecoveryStatus(muscleName=Cuádriceps, recoveryScore=100, hoursToRecovery=null, hoursSinceLastSession=-1, effectiveSets=0, status=FRESH)
++                history[24][Erectores Espinales]=MuscleRecoveryStatus(muscleName=Erectores Espinales, recoveryScore=99, hoursToRecovery=null, hoursSinceLastSession=42, effectiveSets=5, status=FRESH)
+             """.trimIndent(),
+         )
+     }

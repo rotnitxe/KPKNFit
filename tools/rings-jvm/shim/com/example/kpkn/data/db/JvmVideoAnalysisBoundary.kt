@@ -1,0 +1,52 @@
+package com.example.kpkn.data.db
+
+import r4.jvm.unavailable
+
+// Signature only; using a Room entity in this harness is an error.
+class VideoAnalysisEntity(
+    val mediaId: String,
+    val status: String,
+    val progressPct: Int,
+    val errorCode: String? = null,
+    val engineVersion: Int,
+    val poseVersion: Int,
+    val poseEngine: String? = null,
+    val profileId: String? = null,
+    val exerciseKey: String,
+    val configurationKey: String? = null,
+    val exerciseName: String? = null,
+    val setKey: String? = null,
+    val loadKg: Double? = null,
+    val recordedAtMs: Long,
+    val sourceFps: Double? = null,
+    val analyzedFps: Double? = null,
+    val viewKind: String? = null,
+    val confidence: String? = null,
+    val repCount: Int? = null,
+    val partialReps: Int? = null,
+    val failedReps: Int? = null,
+    val tutMs: Long? = null,
+    val tempoEccMs: Int? = null,
+    val tempoPauseAfterEccMs: Int? = null,
+    val tempoConMs: Int? = null,
+    val tempoPauseAfterConMs: Int? = null,
+    val romMeanDeg: Double? = null,
+    val romCvPct: Double? = null,
+    val velocityUnit: String? = null,
+    val velocityLossPct: Double? = null,
+    val mcvFirst: Double? = null,
+    val mcvBest: Double? = null,
+    val mcvLast: Double? = null,
+    val peakBest: Double? = null,
+    val scaleSource: String? = null,
+    val plateDiameterMm: Int? = null,
+    val barDeviation: Double? = null,
+    val barDeviationUnit: String? = null,
+    val trunkMeanDeg: Double? = null,
+    val flagsJson: String,
+    val reportPath: String? = null,
+    val createdAtMs: Long,
+    val updatedAtMs: Long,
+) {
+    init { unavailable("VideoAnalysisEntity constructor") }
+}
