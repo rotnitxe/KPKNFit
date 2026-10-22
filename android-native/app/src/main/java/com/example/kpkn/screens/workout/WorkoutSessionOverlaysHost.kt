@@ -28,6 +28,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Gender
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.auge.ManualGestureMeta
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
 import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
@@ -92,7 +93,8 @@ internal fun WorkoutSessionOverlaysHost(
                 manualMuscleBatteries = manualMuscleBatteries,
                 invertDisplayedStructure = { augeViewModel.invertDisplayedStructure(it) },
             )
-            augeViewModel.saveWellbeing(log)
+            // La Columna visible viaja con el gesto: `log` ya lleva la cruda, y la `y` del aprendiz es la que ve la persona.
+            augeViewModel.saveWellbeing(log, ManualGestureMeta(displayedSpinal = manualSpinal))
             viewModel.saveReadinessAdjustments(
                 neural = neural,
                 muscular = muscular,
