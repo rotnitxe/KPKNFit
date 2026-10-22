@@ -39,7 +39,7 @@ class AugeParametersConsistencyTest {
 
     @Test
     fun elRegistroFijaLosValoresDelModelo() {
-        assertEquals(1, AugeParameters.VERSION)
+        assertEquals(2, AugeParameters.VERSION)
         assertEquals(24.0, AugeParameters.TAU_FAST_H, 0.0)
         assertEquals(48.0, AugeParameters.TAU_MEDIUM_H, 0.0)
         assertEquals(72.0, AugeParameters.TAU_SLOW_H, 0.0)
@@ -569,7 +569,8 @@ class AugeParametersConsistencyTest {
 
     /**
      * Energía de las carreras [horas] h después, a mano: R = Σ(drenaje·0,85·e^(−k·h)) / capacidad · 100, batería = 100·exp(−R/C).
-     * La capacidad del canal, máx(80; tanque·1,15), se copia del motor: no es un parámetro del registro.
+     * La capacidad del canal, `máx(80; tanque·1,15)`, se escribe suelta aquí como especificación; el motor la lee de
+     * [AugeParameters.energyCapacity].
      */
     private fun energiaAMano(
         horas: Double,

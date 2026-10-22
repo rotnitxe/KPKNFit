@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.auge
 
+import kotlin.math.max
+
 /**
  * AugeParameters — Registro único de los parámetros numéricos del modelo de recuperación de AUGE (WP 2.1, F-61).
  *
@@ -12,8 +14,8 @@ package com.example.kpkn.domain.auge
  */
 object AugeParameters {
 
-    /** Versión del registro: súbela cuando cambie CUALQUIER valor; el caché del aprendiz de fase 3 la usará para invalidar los τ aprendidos. */
-    const val VERSION: Int = 1
+    /** Versión del registro: súbela cuando cambie CUALQUIER valor o la forma de una política (v2 = D1/D2 de 2.6; D5 no la sube porque es identidad); el caché del aprendiz de fase 3 la usa para invalidar los τ aprendidos. */
+    const val VERSION: Int = 2
 
     // ─── τ base por perfil (horas) ───────────────────────────────────────────
 
@@ -113,6 +115,59 @@ object AugeParameters {
 
     /** τ del anillo muscular global en un ajuste manual sin τ aprendidos, en horas del warp muscular. */
     const val DEFAULT_TAU_GLOBAL_MUSCLE_H = 48.0
+
+    // ─── Escalas de capacidad por canal (D5) ─────────────────────────────────
+
+    /**
+     * Factor que lleva el tanque CNS a la capacidad de Energía. Las tres magnitudes del canal viven en unidades
+     * distintas: la salida de una serie (`calculateSetBatteryDrain`, ya en % de drenaje × 10), el acumulado de
+     * sesión (`SessionDrainRecipe`, misma unidad que la anterior) y la carga del anillo que consume
+     * `100·exp(−R/C)`. El tanque de [AugeFatigueEngine.calculatePersonalizedBatteryTanks] se expresa con la escala
+     * de serie y este factor lo alinea con la carga del anillo; no es una recalibración.
+     */
+    const val ENERGY_CAPACITY_FACTOR = 1.15
+
+    /** Mínimo de capacidad de Energía, en unidades de carga del anillo (evita dividir por tanques diminutos). */
+    const val ENERGY_CAPACITY_MIN = 80.0
+
+    /**
+     * Capacidad de Energía para un tanque CNS: `max(80; tanque·1,15)`. La usan el ancla manual y el camino hacia
+     * delante del canal, para que ambos no puedan divergir.
+     */
+    fun energyCapacity(cnsTank: Double): Double =
+        max(ENERGY_CAPACITY_MIN, cnsTank * ENERGY_CAPACITY_FACTOR)
+
+    /**
+     * Factor que lleva el tanque espinal a la capacidad de Columna. El tanque
+     * ([AugeFatigueEngine.calculatePersonalizedBatteryTanks]) está en unidades de serie y el acumulado de sesión
+     * del canal espinal usa la escala del anillo; el factor es el mismo en el ancla y en el forward.
+     */
+    const val SPINAL_CAPACITY_FACTOR = 0.02
+
+    /** Mínimo de capacidad de Columna, en unidades de carga del anillo. */
+    const val SPINAL_CAPACITY_MIN = 70.0
+
+    /** Capacidad de Columna para un tanque espinal: `max(70; tanque·0,02)`. Ancla y forward comparten esta cuenta. */
+    fun spinalCapacity(spinalTank: Double): Double =
+        max(SPINAL_CAPACITY_MIN, spinalTank * SPINAL_CAPACITY_FACTOR)
+
+    // ─── Agregación del global de Músculos (D1/D2) ───────────────────────────
+
+    /**
+     * D1: el global de Músculos agrega los 13 pilares SIN el coeficiente articular
+     * `0,6 + 0,4·articular/100`. La articular sigue pesando en la Columna mostrada ([AugeRecoveryEngine.structureRingScore])
+     * y en el readiness por ejercicio ([ExerciseReadinessEngine]); el coeficiente solo salió del global muscular.
+     */
+    const val MUSCULAR_GLOBAL_APPLIES_ARTICULAR_COEF = false
+
+    /** D2: peso de la media de los 13 pilares en el global de Músculos. */
+    const val MUSCULAR_GLOBAL_MEAN_WEIGHT = 0.85
+
+    /** D2: peso del cuartil inferior de los 13 pilares en el global de Músculos. */
+    const val MUSCULAR_GLOBAL_BOTTOM_WEIGHT = 0.15
+
+    /** D2: fracción que define el cuartil inferior: `max(1; floor(13·0,25)) = 3` pilares. */
+    const val MUSCULAR_GLOBAL_BOTTOM_FRACTION = 0.25
 
     // ─── Constante de recuperación y límites ─────────────────────────────────
 
