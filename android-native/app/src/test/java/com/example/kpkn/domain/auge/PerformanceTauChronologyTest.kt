@@ -17,6 +17,7 @@ import org.junit.Test
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.math.abs
+import kotlin.math.ln
 
 /**
  * Pruebas de cronología y reloj causal para el aprendizaje de rendimiento (paquete 3.4).
