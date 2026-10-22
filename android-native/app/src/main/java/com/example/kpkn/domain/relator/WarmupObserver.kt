@@ -19,9 +19,9 @@ object WarmupObserver : RelatorObserver {
             add("Rampas de {ex} a $kgBit, con el gesto idéntico al de trabajo.")
             add("Si $kgBit se siente pesado, recorta el salto.")
         }
-        val score = context.readiness.dailyScore ?: context.readiness.exerciseScore
-        val highReadiness = score != null && score >= RecoveryBands.HIGH_MIN
-        val timeCrunch = (context.progress.remainingSeconds ?: Int.MAX_VALUE) in 1..480
+        val dailyScore = context.readiness.dailyScore
+        val highReadiness = dailyScore != null && dailyScore >= RecoveryBands.HIGH_MIN
+        val timeCrunch = dailyScore != null && dailyScore >= RecoveryBands.NORMAL_MIN && (context.progress.remainingSeconds ?: Int.MAX_VALUE) in 1..480
         val actions = buildList {
             kg?.let {
                 add(

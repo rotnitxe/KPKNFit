@@ -633,7 +633,11 @@ private fun SelectionRow(
             .semantics {
                 contentDescription = "Ajuste de $label"
                 stateDescription = if (value == null) "Sin datos" else if (estimated) "Estimación ${ringAdjustPercent(value)}" else ringAdjustPercent(value)
-                progressBarRangeInfo = ProgressBarRangeInfo((value ?: RingAdjustMax).toFloat(), 0f..100f, 99)
+                if (value != null) {
+                    progressBarRangeInfo = ProgressBarRangeInfo(value.toFloat(), 0f..100f, 99)
+                } else {
+                    progressBarRangeInfo = ProgressBarRangeInfo.Indeterminate
+                }
                 setProgress { target ->
                     val next = ringAdjustClamp(target.roundToInt())
                     currentOnFine(next)

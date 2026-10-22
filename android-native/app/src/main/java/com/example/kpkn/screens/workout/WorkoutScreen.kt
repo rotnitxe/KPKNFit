@@ -141,7 +141,7 @@ import com.example.kpkn.domain.auge.SessionDiscomfortSummary
 import com.example.kpkn.domain.auge.SessionIntensityEngine
 import com.example.kpkn.domain.auge.SessionIntensityResult
 import com.example.kpkn.domain.auge.getAugeMusclePillarId
-import com.example.kpkn.domain.auge.lookupMuscleScore
+import com.example.kpkn.domain.auge.lookupMuscleValue
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
 import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
@@ -534,9 +534,9 @@ fun WorkoutScreen(
     }
     val sessionMuscleBatteries = remember(perMuscle, sessionRelevantMuscles) {
         sessionRelevantMuscles.associateWith { muscleId ->
-            perMuscle[muscleId]?.recoveryScore
-                ?: lookupMuscleScore(perMuscle.mapValues { it.value.recoveryScore }, muscleId)
-                ?: 100
+            val status = perMuscle[muscleId] ?: lookupMuscleValue(perMuscle, muscleId)
+            val hasData = status != null && (status.hoursSinceLastSession >= 0 || status.hasEvidence || status.recoveryScore < 100)
+            if (hasData) status?.recoveryScore else null
         }
     }
     val sessionMuscleStartingBatteries = remember(
@@ -545,11 +545,10 @@ fun WorkoutScreen(
         uiState.readinessMuscleOverrides,
     ) {
         val overrides = remapMuscleIntMapToPillars(uiState.readinessMuscleOverrides)
-        sessionRelevantMuscles.associateWith { muscleId ->
-            overrides[muscleId]
-                ?: sessionMuscleBatteries[muscleId]
-                ?: 100
-        }
+        sessionRelevantMuscles.mapNotNull { muscleId ->
+            val value = overrides[muscleId] ?: sessionMuscleBatteries[muscleId]
+            value?.let { muscleId to it }
+        }.toMap()
     }
     val readinessNeuralStart = remember(uiState.readinessNeuralOverride, augeSnapshot) {
         (uiState.readinessNeuralOverride

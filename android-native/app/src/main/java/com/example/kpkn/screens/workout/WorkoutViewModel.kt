@@ -4060,14 +4060,14 @@ class WorkoutViewModel(
         snapshot: AugeSnapshot,
         wellbeing: DailyWellbeingLog?,
     ) {
-        val verdict = snapshot.readiness ?: if (!snapshot.isLoading) {
-            AugeRecoveryEngine.calculateDailyReadiness(snapshot.dashboard, wellbeing)
+        val verdict = if (snapshot.isLoading) {
+            snapshot.readiness ?: _uiState.value.dailyReadiness
         } else {
-            null
+            snapshot.readiness
         }
         updateUiState { state ->
             state.copy(
-                dailyReadiness = verdict ?: state.dailyReadiness,
+                dailyReadiness = verdict,
                 todayWellbeing = wellbeing ?: state.todayWellbeing,
                 sleepQuality = wellbeing?.sleepQuality ?: state.sleepQuality,
             )
@@ -7547,7 +7547,7 @@ class WorkoutViewModel(
             neural = state.readinessNeuralOverride,
             spinal = state.readinessSpinalOverride,
             muscular = state.readinessMuscularOverride,
-        )
+        ) ?: state.dailyReadiness?.score
         val message = WorkoutCoachMessages.getMessage(
             weightedDrainPct = weightedDrain,
             readinessScore = readinessScore,

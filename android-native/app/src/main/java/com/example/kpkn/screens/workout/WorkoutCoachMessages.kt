@@ -79,7 +79,7 @@ object WorkoutCoachMessages {
             drain == DrainLevel.HIGH && readiness == ReadinessLevel.HIGH && isLateSession -> CoachMessageComponents(
                 severity = CoachSeverity.INFO,
                 title = "Drenado pero listo",
-                body = "Tu batería está baja pero tu readiness es alta. Recuperas bien. La última serie cuenta.",
+                body = "El esfuerzo de la sesión ya es alto, con buena disponibilidad previa. La última serie cuenta.",
                 action = CoachAction.STAY_THE_COURSE,
             )
             drain == DrainLevel.HIGH && readiness == ReadinessLevel.HIGH && !isLateSession -> CoachMessageComponents(
@@ -108,14 +108,14 @@ object WorkoutCoachMessages {
             )
             drain == DrainLevel.LOW && readiness == ReadinessLevel.HIGH -> CoachMessageComponents(
                 severity = CoachSeverity.SUCCESS,
-                title = "Día óptimo para max effort",
-                body = "Baja fatiga y máxima disponibilidad. Ideal para series pesadas o probar RMs.",
+                title = "Día óptimo para tu carga planificada",
+                body = "Baja fatiga y máxima disponibilidad. Buen momento para trabajar con la intensidad planificada.",
                 action = CoachAction.STAY_THE_COURSE,
             )
             drain == DrainLevel.XS && readiness == ReadinessLevel.HIGH -> CoachMessageComponents(
                 severity = CoachSeverity.SUCCESS,
                 title = "¡Energía al máximo!",
-                body = "Sesión nueva, cuerpo fresco. Perfecto para series pesadas o explorar nuevos límites.",
+                body = "Sesión nueva, cuerpo fresco. Perfecto para seguir el plan de series pesadas.",
                 action = CoachAction.STAY_THE_COURSE,
             )
             drain == DrainLevel.XS && readiness == ReadinessLevel.XS -> CoachMessageComponents(

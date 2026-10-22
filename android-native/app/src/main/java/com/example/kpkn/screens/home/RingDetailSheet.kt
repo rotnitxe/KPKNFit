@@ -123,7 +123,7 @@ fun RingDetailSheet(
     // Músculos del motor con sesión registrada, de menor a mayor. Sin sesión no hay dato y no se listan.
     val muscles = remember(perMuscle) {
         perMuscle.values
-            .filter { it.hoursSinceLastSession >= 0 }
+            .filter { it.hoursSinceLastSession >= 0 || it.hasEvidence || it.recoveryScore < 100 }
             .sortedBy { it.recoveryScore }
             .take(MuscleGridMax)
             .map { HomeRingMuscle(name = it.muscleName, score = it.recoveryScore) }
@@ -218,15 +218,19 @@ fun RingDetailSheet(
                     }
                 }
                 baseline?.let { HomeRingRange(range = it, score = shown, accent = WizardColors.text, key = channel.name) }
-                if (causes.isNotEmpty()) {
-                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        causes.forEachIndexed { index, cause ->
-                            KpknCompactPill(cause.substringBefore(':').take(24), onClick = { selectedCause = index }, filled = selectedCause == index, height = 34.dp)
+                if (channelCoverage.hasData) {
+                    if (causes.isNotEmpty()) {
+                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            causes.forEachIndexed { index, cause ->
+                                KpknCompactPill(cause.substringBefore(':').take(24), onClick = { selectedCause = index }, filled = selectedCause == index, height = 34.dp)
+                            }
                         }
+                        Text(causes[selectedCause.coerceIn(causes.indices)], style = KpknType.caption, color = WizardColors.textMuted)
                     }
-                    Text(causes[selectedCause.coerceIn(causes.indices)], style = KpknType.caption, color = WizardColors.textMuted)
+                    channelSnap?.action?.takeIf { it.isNotBlank() }?.let { Text(it, style = KpknType.body, color = WizardColors.text) }
+                } else {
+                    Text("Sin datos registrados todavía para este canal.", style = KpknType.caption, color = WizardColors.textMuted)
                 }
-                channelSnap?.action?.takeIf { it.isNotBlank() }?.let { Text(it, style = KpknType.body, color = WizardColors.text) }
                 if (isMuscular && muscles.isNotEmpty()) HomeRingMuscleGrid(muscles)
                 advisory?.let {
                     Text(it.title, style = KpknType.bodyStrong, color = WizardColors.text)
@@ -276,7 +280,7 @@ private fun InteractiveRingHistory(values: List<Int>, selected: Int, onSelect: (
  */
 internal fun homeBodyValues(perMuscle: Map<String, MuscleRecoveryStatus>): Map<String, Int> =
     perMuscle.values
-        .filter { it.hoursSinceLastSession >= 0 }
+        .filter { it.hoursSinceLastSession >= 0 || it.hasEvidence || it.recoveryScore < 100 }
         .associate { it.muscleName to it.recoveryScore.coerceIn(0, 100) }
 
 /** Lo que se ha ajustado, en una línea: «Tu ajuste: 60 %» o «2 músculos ajustados». */

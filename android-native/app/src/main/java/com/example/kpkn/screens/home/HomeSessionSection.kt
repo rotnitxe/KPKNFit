@@ -215,7 +215,11 @@ private data class HomeHeroPage(
 /** Los músculos de una página como chips: su % de recuperación, o sin dato («—»). Vacío si la página no los muestra. */
 private fun gaugesFor(page: HomeHeroPage, perMuscle: Map<String, MuscleRecoveryStatus>): List<HomeMuscleGauge> =
     if (page.showsMuscles) {
-        page.muscles.map { HomeMuscleGauge(it, lookupMuscleValue(perMuscle, it)?.recoveryScore) }
+        page.muscles.map { muscleName ->
+            val status = lookupMuscleValue(perMuscle, muscleName)
+            val hasData = status != null && (status.hoursSinceLastSession >= 0 || status.hasEvidence || status.recoveryScore < 100)
+            HomeMuscleGauge(muscleName, if (hasData) status?.recoveryScore else null)
+        }
     } else {
         emptyList()
     }

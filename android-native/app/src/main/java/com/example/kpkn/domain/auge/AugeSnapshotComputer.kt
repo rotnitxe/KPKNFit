@@ -34,7 +34,7 @@ data class AugeSnapshotCore(
     val batteries: GlobalBatteries,
     val perMuscle: Map<String, MuscleRecoveryStatus>,
     val dashboard: RecoveryDashboard,
-    val readiness: AugeReadinessVerdict,
+    val readiness: AugeReadinessVerdict?,
     val articular: Map<ArticularBattery, ArticularBatteryState>,
     val cumulativeFatigue: Double,
     val coverage: RingsCoverage,
@@ -69,10 +69,17 @@ object AugeSnapshotComputer {
             precomputedMuscleDetails = muscleDetails,
         )
         val batteries = globalDetail.batteries
+        val initialDashboard = AugeRecoveryEngine.calculateRecoveryDashboardDetail(
+            batteries, muscles, articular, wellbeing, sleepLogs,
+            recentSessionCount = AugeRecoveryEngine.recentSessionCount(history, nowMs),
+            spinalExact = globalDetail.finalSpinalExact,
+        ).dashboard
+        val coverage = computeSnapshotCoverage(history, settings, wellbeing, initialDashboard, batteries, nowMs, zone)
         val dashboardDetail = AugeRecoveryEngine.calculateRecoveryDashboardDetail(
             batteries, muscles, articular, wellbeing, sleepLogs,
             recentSessionCount = AugeRecoveryEngine.recentSessionCount(history, nowMs),
             spinalExact = globalDetail.finalSpinalExact,
+            coverage = coverage,
         )
         val dashboard = dashboardDetail.dashboard
         val twoWeeksAgo = nowMs - 14L * 24 * 3_600_000L
@@ -84,6 +91,11 @@ object AugeSnapshotComputer {
                 adaptiveCache = adaptiveCache,
                 durationMinutes = log.durationMinutes,
             )
+        }
+        val readiness = if (coverage.hasAnyData) {
+            AugeRecoveryEngine.calculateDailyReadiness(dashboard, wellbeing)
+        } else {
+            null
         }
         val floors = AugeUtils.physiologicalFloor(settings)
         val continuous = AugeContinuousReading(
@@ -121,9 +133,9 @@ object AugeSnapshotComputer {
             },
         )
         AugeSnapshotCore(
-            batteries, muscles, dashboard, AugeRecoveryEngine.calculateDailyReadiness(dashboard, wellbeing),
+            batteries, muscles, dashboard, readiness,
             articular, cumulativeFatigue,
-            computeSnapshotCoverage(history, settings, wellbeing, dashboard, batteries, nowMs, zone),
+            coverage,
             continuous,
         )
     }
