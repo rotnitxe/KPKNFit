@@ -50,13 +50,14 @@ class PerformanceTauChronologyTest {
         id: String,
         ms: Long,
         weight: Double,
+        reps: Int = 1,
         rpe: Double = 8.0,
         context: AugePerformanceContext? = AugePerformanceContext(sessionStartTimeMs = ms, isDeload = false),
     ): WorkoutLog {
         val iso = Instant.ofEpochMilli(ms).toString()
         val sets = listOf(
-            CompletedSet(id = "$id-s1", weight = weight, reps = 5, rpe = rpe),
-            CompletedSet(id = "$id-s2", weight = weight, reps = 5, rpe = rpe),
+            CompletedSet(id = "$id-s1", weight = weight, reps = reps, rpe = rpe),
+            CompletedSet(id = "$id-s2", weight = weight, reps = reps, rpe = rpe),
         )
         return WorkoutLog(
             id = id,
@@ -112,7 +113,10 @@ class PerformanceTauChronologyTest {
         var firstObs: AugeLearningObservation? = null
         var firstCache: AugeAdaptiveCache? = null
 
-        val model = AugeObservationModel { _, _ -> AugePrediction(battery = 70.0) }
+        val model = AugeObservationModel { _, lnTau ->
+            val b = 75.0 - 10.0 * (lnTau - ln(48.0))
+            AugePrediction(battery = b.coerceIn(0.0, 100.0))
+        }
 
         for ((idx, history) in permutations.withIndex()) {
             val result = PerformanceTauLearner.observations(
@@ -272,7 +276,10 @@ class PerformanceTauChronologyTest {
         assertEquals(obs0.relevantLogId, obs5.relevantLogId)
         assertEquals("Δt debe depender de observationAtMs, no de processingNowMs", obs0.hoursSinceRelevantLoad, obs5.hoursSinceRelevantLoad, 1e-12)
 
-        val model = AugeObservationModel { _, _ -> AugePrediction(battery = 70.0) }
+        val model = AugeObservationModel { _, lnTau ->
+            val b = 75.0 - 10.0 * (lnTau - ln(48.0))
+            AugePrediction(battery = b.coerceIn(0.0, 100.0))
+        }
         val c0 = PerformanceTauLearner.applyToCache(AugeAdaptiveCache(), r0, today.id, originMs, model)
         val c5 = PerformanceTauLearner.applyToCache(AugeAdaptiveCache(), r5, today.id, originMs + 5L * 3600_000L, model)
 

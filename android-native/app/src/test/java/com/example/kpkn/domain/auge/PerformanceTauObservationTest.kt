@@ -15,6 +15,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import kotlin.math.ln
 import kotlin.math.sqrt
 
 /**
@@ -211,7 +212,10 @@ class PerformanceTauObservationTest {
             diagnostics = emptyList(),
         )
         val start = AugeAdaptiveCache()
-        val model = AugeObservationModel { _, _ -> AugePrediction(battery = 75.0) }
+        val model = AugeObservationModel { _, lnTau ->
+            val b = 75.0 - 10.0 * (lnTau - ln(48.0))
+            AugePrediction(battery = b.coerceIn(0.0, 100.0))
+        }
         val updated = PerformanceTauLearner.applyToCache(
             cache = start,
             result = result,

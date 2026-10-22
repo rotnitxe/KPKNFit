@@ -50,6 +50,7 @@ class PerformanceTauRobustnessTest {
         weight: Double,
         rpe: Double? = 8.0,
         setsCount: Int = 2,
+        reps: Int = 1,
         context: AugePerformanceContext? = AugePerformanceContext(sessionStartTimeMs = ms, isDeload = false),
         discomforts: List<String> = emptyList(),
         stillPresentDiscomforts: List<String> = emptyList(),
@@ -57,7 +58,7 @@ class PerformanceTauRobustnessTest {
     ): WorkoutLog {
         val iso = Instant.ofEpochMilli(ms).toString()
         val sets = (1..setsCount).map { i ->
-            CompletedSet(id = "$id-s$i", weight = weight, reps = 5, rpe = rpe)
+            CompletedSet(id = "$id-s$i", weight = weight, reps = reps, rpe = rpe)
         }
         return WorkoutLog(
             id = id,
@@ -448,7 +449,10 @@ class PerformanceTauRobustnessTest {
         )
 
         val result = PerformanceTauLearner.observations(input)
-        val model = AugeObservationModel { _, _ -> AugePrediction(battery = 70.0) }
+        val model = AugeObservationModel { _, lnTau ->
+            val b = 75.0 - 10.0 * (lnTau - ln(48.0))
+            AugePrediction(battery = b.coerceIn(0.0, 100.0))
+        }
 
         var cache = AugeAdaptiveCache()
         cache = PerformanceTauLearner.applyToCache(cache, result, today.id, originMs + 3600_000L, model)
