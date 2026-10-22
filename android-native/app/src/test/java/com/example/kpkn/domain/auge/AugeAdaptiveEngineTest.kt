@@ -1,9 +1,15 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.RecoveryLearningObservation
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * Las pruebas de la inversión sesgada y del EMA apuntan ahora a la referencia histórica congelada (`LegacyEmaReference`):
+ * producción las retiró en 3.3 y la comparación contra el EKF (`AugeLearnerBiasCharacterizationTest`) las sigue usando.
+ */
 class AugeAdaptiveEngineTest {
 
     @Test
@@ -17,7 +23,7 @@ class AugeAdaptiveEngineTest {
             sleepQuality = 3,
             stressLevel = 3,
         )
-        val result = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(
+        val result = LegacyEmaReference.updatePersonalizedRecoveryHours(
             current = emptyMap(),
             observation = obs,
             totalObservations = 0,
@@ -38,7 +44,7 @@ class AugeAdaptiveEngineTest {
             sleepQuality = 3,
             stressLevel = 3,
         )
-        val result = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(
+        val result = LegacyEmaReference.updatePersonalizedRecoveryHours(
             current = mapOf("cuádriceps" to 72.0),
             observation = obs,
             totalObservations = 5,
@@ -58,8 +64,8 @@ class AugeAdaptiveEngineTest {
         )
         val fatigued = recovered.copy(actualBattery = 55)
         val start = mapOf("pectorales" to 48.0)
-        val afterRecovered = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(start, recovered, 0)
-        val afterFatigued = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(start, fatigued, 0)
+        val afterRecovered = LegacyEmaReference.updatePersonalizedRecoveryHours(start, recovered, 0)
+        val afterFatigued = LegacyEmaReference.updatePersonalizedRecoveryHours(start, fatigued, 0)
         assertTrue(afterRecovered["pectorales"]!! < afterFatigued["pectorales"]!!)
         assertTrue(afterRecovered["pectorales"]!! < 48.0)
     }
@@ -95,10 +101,18 @@ class AugeAdaptiveEngineTest {
         assertTrue(result!! in 6.0..200.0)
     }
 
-    private fun invokeDeriveImpliedRecoveryTime(obs: RecoveryLearningObservation): Double? {
-        return AugeAdaptiveEngine::class.java
-            .getDeclaredMethod("deriveImpliedRecoveryTime", RecoveryLearningObservation::class.java)
-            .apply { isAccessible = true }
-            .invoke(AugeAdaptiveEngine, obs) as? Double
+    private fun invokeDeriveImpliedRecoveryTime(obs: RecoveryLearningObservation): Double? =
+        LegacyEmaReference.deriveImpliedRecoveryTime(obs)
+
+    // ─── Lo que producción conserva del motor (3.3): solo los alias del prior ─────────────────────
+
+    @Test
+    fun productionKeepsOnlyThePriorAliases_andNoUpdaters() {
+        assertEquals(AugeParameters.LEARNER_WINDOW_MIN_HOURS, AugeAdaptiveEngine.MIN_HOURS_FOR_TAU_LEARNING, 0.0)
+        assertEquals(8.0, AugeAdaptiveEngine.MIN_HOURS_FOR_TAU_LEARNING, 0.0)
+        assertEquals(AugeParameters.baseTauHours("Pectorales"), AugeAdaptiveEngine.defaultRecoveryHours("Pectorales"), 0.0)
+        val declared = AugeAdaptiveEngine::class.java.declaredMethods.map { it.name }.toSet()
+        listOf("deriveImpliedRecoveryTime", "capObservationTau", "updatePersonalizedRecoveryHours", "updateSystemRecoveryHours")
+            .forEach { assertFalse("$it ya no existe en producción", it in declared) }
     }
 }

@@ -85,56 +85,19 @@ object PerformanceTauLearner {
         return PerformanceTauResult(observations = observations, diagnostics = diagnostics)
     }
 
+    /**
+     * Puente NEUTRO y desactivado hasta 3.4: el aprendizaje de rendimiento está suspendido (la inversión sesgada y el
+     * EMA se retiraron en 3.3), así que aplicar observaciones no cambia ningún τ, ni el contador, ni sella el log como
+     * aprendido. [result] se acepta solo para que 3.4 lo sustituya por la extracción de observaciones del EKF sin
+     * tocar a los llamadores; en producción `AugeViewModel` ni siquiera llega aquí con un caché v4.
+     */
+    @Suppress("UNUSED_PARAMETER")
     fun applyToCache(
         cache: AugeAdaptiveCache,
         result: PerformanceTauResult,
         finishedLogId: String,
         nowMs: Long,
-    ): AugeAdaptiveCache {
-        if (result.observations.isEmpty()) {
-            return cache.copy(lastPerformanceLearnLogId = finishedLogId)
-        }
-        var next = cache
-        val total = cache.totalObservations
-        for (obs in result.observations) {
-            when (obs.muscle.lowercase().trim()) {
-                CHANNEL_ENERGY -> {
-                    val (cns, spinal) = AugeAdaptiveEngine.updateSystemRecoveryHours(
-                        currentCnsTau = next.cnsRecoveryHours,
-                        currentSpinalTau = next.spinalRecoveryHours,
-                        cnsObservation = obs,
-                        spinalObservation = null,
-                        totalObservations = total,
-                    )
-                    next = next.copy(cnsRecoveryHours = cns, spinalRecoveryHours = spinal)
-                }
-                CHANNEL_STRUCTURE -> {
-                    val (cns, spinal) = AugeAdaptiveEngine.updateSystemRecoveryHours(
-                        currentCnsTau = next.cnsRecoveryHours,
-                        currentSpinalTau = next.spinalRecoveryHours,
-                        cnsObservation = null,
-                        spinalObservation = obs,
-                        totalObservations = total,
-                    )
-                    next = next.copy(cnsRecoveryHours = cns, spinalRecoveryHours = spinal)
-                }
-                else -> {
-                    next = next.copy(
-                        personalizedRecoveryHours = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(
-                            current = next.personalizedRecoveryHours,
-                            observation = obs,
-                            totalObservations = total,
-                        ),
-                    )
-                }
-            }
-        }
-        return next.copy(
-            totalObservations = total + 1,
-            lastUpdatedMs = nowMs,
-            lastPerformanceLearnLogId = finishedLogId,
-        )
-    }
+    ): AugeAdaptiveCache = cache
 
     fun primaryAugePillarFor(
         exercise: CompletedExercise,
