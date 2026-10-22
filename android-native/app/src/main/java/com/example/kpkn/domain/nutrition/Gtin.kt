@@ -46,9 +46,12 @@ object Gtin {
      * de la izquierda o en su forma corta. Sin repetidos y sin variantes de otra longitud significativa:
      * - la canónica de 13 dígitos (siempre), la de 14 con un cero delante y la de 12 si el 13 empieza por cero (UPC-A);
      * - la de 8 si la forma de 13 empieza por cinco ceros (un EAN-8 con sus ceros delante);
-     * - la misma sin ningún cero a la izquierda.
-     * Nunca incluye el UPC-E tal como se leyó: sus 8 dígitos podrían coincidir con el EAN-8 de OTRO producto. Una forma de 13 que empieza
-     * por cinco ceros procede de 8 dígitos que pueden ser también un UPC-E: lleva además las variantes de su expansión a UPC-A.
+     * - la misma sin ningún cero a la izquierda;
+     * - si el UPC-A de un código que empieza por cero se comprime a un único UPC-E ([upcAToUpcE]), ese UPC-E rellenado a 13 dígitos.
+     * Los 8 dígitos de un UPC-E tal como se leyó nunca son variante: podrían ser el EAN-8 de OTRO producto. Su forma rellenada sí lo es
+     * (última viñeta), porque así se guarda un alimento propio tecleado con esos 8 dígitos y la cámara lee el UPC-A; ese camino comparte
+     * el riesgo de colisión con un EAN-8 de otro producto con los mismos dígitos. Una forma de 13 que empieza por cinco ceros procede de
+     * 8 dígitos que pueden ser también un UPC-E: lleva además las variantes de su expansión a UPC-A.
      * Solo depende de la forma canónica: el mismo producto da las mismas variantes lo teclee el usuario como lo teclee.
      * Vacía si [raw] no es un código válido.
      */
@@ -73,6 +76,9 @@ object Gtin {
                     upcA.trimStart('0').takeIf { it.isNotEmpty() }?.let { add(it) }
                 }
             }
+            // Camino inverso: el UPC-A de la forma canónica (sin su cero) puede ser la expansión de un UPC-E. Ese UPC-E es el que se
+            // teclea a mano y se guarda como su forma de 13 («01234565» → 0000001234565); la cámara lee el UPC-A, así que se busca también.
+            if (e.startsWith("0")) upcAToUpcE(e.drop(1))?.let { add("00000$it") }
         }.distinct()
     }
 
@@ -99,6 +105,41 @@ object Gtin {
      * EAN-8 (con compresión de 5 a 9, todos los UPC-E cuadran también como EAN-8; con las demás, uno de cada cinco).
      */
     fun upcEToUpcA(digits: String): String? = if (digits.length == 8 && digits.all { it in '0'..'9' }) expandUpcE(digits) else null
+
+    /**
+     * La inversa de la expansión: el UPC-E de 8 dígitos (sistema, seis cifras y control) que se expande exactamente a [upcA12], o null.
+     * Cada regla de compresión (cifra 0-2, 3, 4 o 5-9) da un cuerpo de 6 cifras; se devuelve solo si UNA regla lo cumple. Un UPC-A con dos
+     * compresiones posibles (las reglas se solapan y ninguna contiene a la otra, p. ej. 012100000347 → 01203417 o 01213437) no tiene una
+     * preferencia comprobable: en caso de duda, null. El resultado se comprueba reexpandiéndolo con [expandUpcE].
+     */
+    internal fun upcAToUpcE(upcA12: String): String? {
+        if (upcA12.length != 12 || upcA12.any { it !in '0'..'9' }) return null
+        val sistema = upcA12[0]
+        if (sistema != '0' && sistema != '1') return null
+        val fabricante = upcA12.substring(1, 6)
+        val producto = upcA12.substring(6, 11)
+        val control = upcA12[11]
+        val cuerpos = buildList<String> {
+            // Cifra 0, 1 o 2: el fabricante acaba en 000, 100 o 200 y el producto empieza por 00.
+            if (fabricante[2] in "012" && fabricante.endsWith("00") && producto.startsWith("00")) {
+                add(fabricante.substring(0, 2) + producto.substring(2, 5) + fabricante[2])
+            }
+            // Cifra 3: el fabricante acaba en 00 y el producto empieza por 000.
+            if (fabricante.endsWith("00") && producto.startsWith("000")) {
+                add(fabricante.substring(0, 3) + producto.substring(3, 5) + "3")
+            }
+            // Cifra 4: el fabricante acaba en 0 y el producto empieza por 0000.
+            if (fabricante.endsWith("0") && producto.startsWith("0000")) {
+                add(fabricante.substring(0, 4) + producto[4] + "4")
+            }
+            // Cifras 5 a 9: el producto es 0000 seguido de la cifra.
+            if (producto.startsWith("0000") && producto[4] in '5'..'9') {
+                add(fabricante + producto[4])
+            }
+        }
+        if (cuerpos.size != 1) return null
+        return "$sistema${cuerpos[0]}$control".takeIf { expandUpcE(it) == upcA12 }
+    }
 
     private fun expandUpcEUnchecked(digits: String): String? {
         val system = digits[0]

@@ -131,6 +131,36 @@ class GtinTest {
         assertEquals(listOf("7801234567894", "07801234567894"), Gtin.candidates("7801234567894"))
     }
 
+    @Test fun `un UPC-A que se comprime a UPC-E busca tambien el UPC-E tecleado a mano rellenado a 13 digitos`() {
+        // A mano: 012345000065 se comprime a 01234565 (cifra de compresión 6: «12345» + «6») y su forma de 13 es 0000001234565.
+        assertTrue(Gtin.candidates("0012345000065").contains("0000001234565"))
+        assertTrue(Gtin.candidates("012345000065").contains("0000001234565"))
+    }
+
+    @Test fun `un codigo de 8 digitos ya en forma de 13 sigue buscando su UPC-A`() {
+        assertTrue(Gtin.candidates("0000001234565").containsAll(listOf("0012345000065", "012345000065")))
+    }
+
+    @Test fun `un EAN-13 con cero delante que no se comprime no gana variantes extra`() {
+        // A mano: el producto de 036000291452 empieza por 2 y todas las reglas de compresión exigen 0 ahí: no hay UPC-E.
+        assertEquals(listOf("0036000291452", "00036000291452", "036000291452", "36000291452"), Gtin.candidates("0036000291452"))
+    }
+
+    @Test fun `el ida y vuelta de un UPC-E por UPC-A vuelve al mismo codigo de 8 digitos`() {
+        // Vectores a mano: 012345000065 ↔ 01234565 y 042100005264 ↔ 04252614 (ejemplo público de UPC-E).
+        assertEquals("01234565", Gtin.upcAToUpcE("012345000065"))
+        assertEquals("04252614", Gtin.upcAToUpcE("042100005264"))
+        assertEquals("01234565", Gtin.upcAToUpcE(Gtin.upcEToUpcA("01234565")!!))
+        assertEquals("04252614", Gtin.upcAToUpcE(Gtin.upcEToUpcA("04252614")!!))
+        assertNull(Gtin.upcAToUpcE("036000291452"))
+    }
+
+    @Test fun `un UPC-A con dos compresiones posibles no da ninguna y no anade variantes`() {
+        // A mano: 012100000347 se comprime a 01203417 (cifra 1: «120341» + «1») y a 01213437 (cifra 3: «121343» + «3»).
+        assertNull(Gtin.upcAToUpcE("012100000347"))
+        assertEquals(listOf("0012100000347", "00012100000347", "012100000347", "12100000347"), Gtin.candidates("012100000347"))
+    }
+
     @Test fun `el digito de control sale de la regla de pesos 3 y 1 desde la derecha`() {
         assertEquals(1, Gtin.checkDigitFor("400638133393"))
         assertEquals(4, Gtin.checkDigitFor("780123456789"))
