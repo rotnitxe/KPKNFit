@@ -62,5 +62,10 @@
             android:name="com.example.kpkn.debug.TechniqueBenchActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: vista previa de Hábitos con datos en memoria (state=empty|streaks|long_gap); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.HabitsHarnessActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>
