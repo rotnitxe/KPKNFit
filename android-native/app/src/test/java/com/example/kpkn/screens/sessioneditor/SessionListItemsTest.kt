@@ -135,7 +135,7 @@ class SessionListItemsTest {
     }
 
     @Test
-    fun buildSessionListItems_dividersIndicateCanMoveWhenBothSpacesExist() {
+    fun buildSessionListItems_withBothSpacesTheSelectorIsTheOnlyPlacementControl() {
         val looseExercise = Exercise(id = "e1", name = "Press")
         val cardioPart = SessionPart(id = "p2", name = "Espacio de cardio", isCardioGroup = true, exercises = listOf(Exercise(id = "c1", name = "Cinta")))
         val session = Session(id = "s1", name = "Mixto", exercises = listOf(looseExercise), parts = listOf(cardioPart))
@@ -144,8 +144,10 @@ class SessionListItemsTest {
         val cardioDivider = items.filterIsInstance<SessionListItem.CardioDivider>().first()
         val strengthDivider = items.filterIsInstance<SessionListItem.StrengthDivider>().first()
 
-        assertTrue(cardioDivider.canMove)
-        assertTrue(strengthDivider.canMove)
+        // Un solo control (ED-D): el selector está a la vista y los rótulos no ofrecen «Mover…».
+        assertTrue(items.any { it is SessionListItem.CardioPlacement })
+        assertEquals(false, cardioDivider.canMove)
+        assertEquals(false, strengthDivider.canMove)
         assertEquals(false, cardioDivider.showCardioFirst)
     }
 
