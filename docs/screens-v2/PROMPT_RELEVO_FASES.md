@@ -1,65 +1,63 @@
 # PROMPT DE RELEVO POR FASES · ola screens-v2 de KPKN Fit
 
-> Pega este archivo entero como primer mensaje de un agente nuevo (orquestador). Está pensado para que se aplique **todo** lo planificado, fase por fase, sin saltarse nada. Si algo de aquí choca con lo que veas en el repo, manda el repo: compruébalo y anótalo.
+> Pega este archivo entero como primer mensaje de un agente nuevo. Está pensado para que se aplique **todo** lo planificado, fase por fase, sin saltarse nada. Si algo de aquí choca con lo que veas en el repo, manda el repo: compruébalo y anótalo.
 
 ---
 
 ## 0. Quién eres y cómo trabajas
 
-Eres el **orquestador** de la ola screens-v2 de KPKN Fit (Android, Kotlin y Jetpack Compose).
+Eres el **agente único** que termina la ola screens-v2 de KPKN Fit (Android, Kotlin y Jetpack Compose). **Haces todo tú mismo: lees, escribes el código, pruebas, revisas e integras.**
 
-**Idioma:** respondes al usuario **siempre en español**. Commits, informes y briefs también van en español.
+**PROHIBIDO desplegar subagentes de cualquier tipo:**
+- ni la herramienta Agent/Task;
+- ni Workflow;
+- ni OpenCode (`oc_run.sh`), Antigravity (`agy`) ni Codex;
+- ni ningún otro modelo.
 
-**Qué haces tú y qué no:**
-- No escribes código del repo.
-- Escribes briefs (`docs/screens-v2/briefs/<ID>.md`) y documentación.
-- Lanzas agentes, revisas sus diffs, informes y renders, y ejecutas las verificaciones por la cola de Gradle.
-- Integras con `git merge` en `C:\kw\u11` (rama `feat/screens-v2`) y resuelves los conflictos, anotándolos en el commit de la fusión.
+Donde este documento hable de un «paquete», lo implementas tú, uno detrás de otro.
 
-**Agentes, en este orden de preferencia (orden del usuario):**
-1. **Gratuitos Flash de OpenCode:**
-   - `opencode/deepseek-v4.1-flash-free`
-   - `opencode/glm-5.3-flash-free`
-   - `opencode/minimax-m3.1-flash-free`
-   - `opencode/mimo-v2.6-flash-free`, que una vez se cortó por llamadas de herramienta malformadas: úsalo para tareas cortas.
+**Idioma:** respondes al usuario **siempre en español**. Commits, informes y comentarios nuevos también van en español.
 
-   **Nunca Nemotron ni LongCat.** Se lanzan con `bash /c/kw/tools/oc_run.sh <worktree> <archivo-prompt> <prefijo-log> <modelo>`, con `run_in_background`. El log queda en `C:\kw\logs\<prefijo>.log` y el proceso no termina hasta acabar.
-2. Si una tarea necesita más juicio, o un gratuito falla dos veces: **Claude Haiku 5.5**, con `Agent(model: "haiku", effort: "xhigh")`, siguiendo la plantilla de `C:\kw\tools\HAIKU_GUIA.md`.
-3. Sonnet u Opus solo si Haiku falla dos veces por juicio en la misma tarea.
+**Cómo trabajas:**
+- Un paquete cada vez, en su worktree y su rama de hoy (u11–u18).
+- Por cada paquete:
+  1. Lee su brief (`docs/screens-v2/briefs/<ID>.md`) y los tableros que cita.
+  2. Si un agente anterior dejó trabajo a medias, continúa desde `git diff`: no lo descartes.
+  3. Implementa.
+  4. Verifica por la cola de Gradle.
+  5. Haz commits pequeños, uno por tablero.
+  6. Escribe el informe en `docs/screens-v2/reports/<ID>.md`.
+- **Commits:**
+  - terminados en `Co-Authored-By: <tu modelo> <noreply@anthropic.com>`;
+  - `git add` solo de las rutas del paquete, nunca `git add -A`;
+  - `artifacts/` se queda fuera.
+- **Worktrees y fusiones:**
+  - los worktrees nuevos se crean con `bash /c/kw/tools/mkwt.sh <nombre> <rama-base> <rama-nueva>`;
+  - las fusiones se hacen con `git merge` en `C:/kw/u11` (rama `feat/screens-v2`), anotando los conflictos en el commit de la fusión.
+- **Mientras esperas la cola de Gradle**, avanza el siguiente paquete en otro worktree. Nunca lances dos corridas tuyas sobre el mismo worktree.
+- **Revisa tus pantallas** con renders de Robolectric. Ábrelos con Read y compáralos con el tablero antes de dar un tablero por hecho.
 
-Gemini (Antigravity) y Codex no tienen cuota; Codex vuelve el 27-oct a las 12:38.
+**Cuota:**
+- Mira `mcp__ccd_session_mgmt__get_usage` en cada hito.
+- Al llegar al **94 % semanal**:
+  1. Para.
+  2. Commitea lo que compile, o explica lo que dejas sin commitear.
+  3. Actualiza `docs/screens-v2/RELEVO.md`.
+  4. Entrega al usuario el resumen y el prompt de relevo.
 
-**Cuota de Claude:**
-- Mira `mcp__ccd_session_mgmt__get_usage` en cada evento.
-- Al llegar al **94 % semanal**: para todo, actualiza `docs/screens-v2/RELEVO.md` y entrega el resumen y el prompt de relevo.
-
-**Un agente por paquete, cada uno en su worktree.** Los worktrees nuevos se crean con `bash /c/kw/tools/mkwt.sh <nombre> <rama-base> <rama-nueva>`.
-
-**Cola de Gradle v10** (lee `C:\kw\tools\GRADLE_GUIA.md`):
-- Dominio y datos puros: `bash /c/kw/tools/kpkn_jvm.sh <wt> "-PtestInclude=com/example/kpkn/domain/<pkg>/**" --tests "<FQN>"`. Tarda de 30 s a 8 min.
-- Pantallas, render y Room: `bash /c/kw/tools/gradle_slot.sh /c/kw/<wt>/android-native :app:testBaseDebugUnitTest --tests "<clase concreta>" ...`, con **clases concretas**.
-- Compilar: `:app:compileBaseDebugKotlin`.
+**Cola de Gradle v10** (lee `C:/kw/tools/GRADLE_GUIA.md`):
+- **Dominio y datos puros:** `bash /c/kw/tools/kpkn_jvm.sh <wt> "-PtestInclude=com/example/kpkn/domain/<pkg>/**" --tests "<FQN>"`. Tarda de 30 s a 8 min.
+- **Pantallas, render y Room:** `bash /c/kw/tools/gradle_slot.sh /c/kw/<wt>/android-native :app:testBaseDebugUnitTest --tests "<clase concreta>" ...`.
+- **Compilar:** `:app:compileBaseDebugKotlin`.
+- **Cómo esperar:** lanza Gradle en segundo plano con un log en `C:/kw/logs/<id>-<n>.log` y espera con `timeout 540 bash -c 'until grep -qE "BUILD (SUCCESSFUL|FAILED)|RESUMEN" <log>; do sleep 30; done'`, repetido.
 - **Prohibido:**
   - `--stop`;
   - matar java;
   - editar `build.gradle.kts` para filtrar;
-  - pedir `compileBaseDebugAndroidTestKotlin` y suites enteras tipo `screens.workout.* + domain.*`.
-- Estado de la cola: `bash /c/kw/tools/gradle_cola.sh`.
-
-### Bloque común para cada prompt de agente gratuito
-
-Copia `C:/kw/u11/docs/screens-v2/briefs/free_common.md` (versionado). Si ya no existe, usa esto:
-
-- Escribe en español.
-- Trabaja solo en tu worktree.
-- Si hay cambios sin commitear de un agente anterior, continúa desde `git diff`: no los descartes.
-- No termines el turno con trabajo pendiente o con Gradle corriendo. Vigila tú el log con `timeout 540 bash -c 'until grep -qE "BUILD (SUCCESSFUL|FAILED)|RESUMEN" <log>; do sleep 30; done'`, repetido.
-- Como mucho 3 corridas de Gradle. Revisa imports y firmas antes de cada una.
+  - `compileBaseDebugAndroidTestKotlin`;
+  - suites enteras tipo `screens.workout.* + domain.*`.
 - `ExerciseCatalogImageCoverageTest` y `domain.biomechanics.golden`/`metrics` fallan por el entorno (checkout disperso y CRLF): ignóralos.
-- Sin teléfono, sin adb, sin emulador y sin push.
-- Commits pequeños, con `git add` solo de tus rutas, terminados en `Co-Authored-By: <modelo> <noreply@opencode.ai>`.
-- **Room congelado.** Refinar, no quitar. Nada inventado.
-- Informe en `docs/screens-v2/reports/<ID>.md`. Al final, un resumen de 10 líneas.
+- **Estado de la cola:** `bash /c/kw/tools/gradle_cola.sh`.
 
 ### Reglas que nunca se rompen
 
@@ -95,29 +93,34 @@ Todas en `C:\kw\u11\docs\screens-v2\`:
 
 ---
 
-## FASE 1 · Inventario real (sin agentes)
+## FASE 1 · Inventario real
 
 1. Para u11–u18: `git -C /c/kw/<wt> log --oneline -5`, `git status --short` y `git diff --stat`. Compáralo con la tabla de `RELEVO.md` («Estado al parar»).
-2. Comprueba que no quedan procesos de la sesión anterior: `opencode` y `gradle_slot` sobre `kw/u1[1-8]`.
+2. Comprueba que no quedan procesos de la sesión anterior: `opencode` y `gradle_slot` sobre `kw/u1[1-8]`. Si queda alguno, avisa al usuario; no lo mates por tu cuenta.
 3. Escribe al principio de `RELEVO.md` una sección «Inventario <fecha>» con lo encontrado y commitéala.
 
 **Hecho cuando:** sabes, para cada paquete, qué está commiteado, qué está sin commitear y qué falta.
 
 ---
 
-## FASE 2 · Cerrar los paquetes a medias (en paralelo, un agente gratuito por worktree)
+## FASE 2 · Cerrar los paquetes a medias (los haces tú, uno detrás de otro)
 
-Prompt de cada agente: «Eres el agente del paquete <ID>. Brief: `C:/kw/<wt>/docs/screens-v2/briefs/<ID>.md`. Hay trabajo sin commitear de un agente anterior: revisa `git diff`, continúa y termina TODO el brief», seguido del añadido específico de esta lista y del bloque común.
+Por cada paquete:
+1. Lee su brief en `C:/kw/<wt>/docs/screens-v2/briefs/<ID>.md`.
+2. Revisa el `git diff` que dejó el agente anterior.
+3. Termina **TODO** el brief, más el añadido de esta lista.
 
-| ID | Worktree / rama | Modelo sugerido | Añadido específico (va además del brief) |
+Orden recomendado: INV, LV-C, ED-B1, ED-B2, ED-C, ED-D, CAT-A y G. Mientras la cola de Gradle verifica uno, avanza el siguiente.
+
+| ID | Worktree / rama | Estado | Añadido específico (va además del brief) |
 |---|---|---|---|
-| **LV-C** | u11 / `feat/screens-v2` | GLM 5.3 | Ver el detalle debajo de la tabla. |
-| **CAT-A** | u15 / `sv2/catalogo` | DeepSeek | Ver el detalle debajo de la tabla. |
-| **G** | u16 / `sv2/otros` | GLM 5.3 | Brief `G.md`: G1 editar series en vivo, G2 cardio en vivo, G3 importador, G4 «Cambiar» en el asistente con confirmación. Renders a 880 y 740. |
-| **ED-D** | u17 / `sv2/cardio` | MiniMax M3.1 | Brief `ED-D.md`: C2 creador único de superseries, C3 rondas, C4 continuo con avisos, C5 HIIT, C6 intervalos, C7 selector. Los dos retoques ya están en `0943266b8`. Termina C2 y C3 (15 archivos sin commitear). |
-| **ED-C** | u18 / `sv2/prep` | DeepSeek | Brief `ED-C.md`. Ver el detalle debajo de la tabla. |
-| **ED-B** | u14 / `sv2/editor` | GLM 5.3; si falla, Haiku | Brief `ED-B.md`, sin empezar. Es un paquete **grande**: pártelo en ED-B1 y ED-B2 (detalle debajo). |
-| **INV** | u13 / `sv2/programas` | DeepSeek | Prompt en `docs/screens-v2/briefs/free_INV.md`. Ver el detalle debajo de la tabla. |
+| **LV-C** | u11 / `feat/screens-v2` | 18 archivos sin commitear | Ver el detalle debajo de la tabla. |
+| **CAT-A** | u15 / `sv2/catalogo` | 14 archivos sin commitear | Ver el detalle debajo de la tabla. |
+| **G** | u16 / `sv2/otros` | 15 archivos sin commitear | Brief `G.md`: G1 editar series en vivo, G2 cardio en vivo, G3 importador, G4 «Cambiar» en el asistente con confirmación. Renders a 880 y 740. |
+| **ED-D** | u17 / `sv2/cardio` | 1 commit y 15 archivos sin commitear | Brief `ED-D.md`: C2 creador único de superseries, C3 rondas, C4 continuo con avisos, C5 HIIT, C6 intervalos, C7 selector. Los dos retoques ya están en `0943266b8`. Termina C2 y C3 (15 archivos sin commitear). |
+| **ED-C** | u18 / `sv2/prep` | 8 archivos sin commitear | Brief `ED-C.md`. Ver el detalle debajo de la tabla. |
+| **ED-B** | u14 / `sv2/editor` | sin empezar | Brief `ED-B.md`, sin empezar. Es un paquete **grande**: pártelo en ED-B1 y ED-B2 (detalle debajo). |
+| **INV** | u13 / `sv2/programas` | sin empezar | Tarea descrita en `docs/screens-v2/briefs/free_INV.md`. Ver el detalle debajo de la tabla. |
 
 **LV-C (brief `LV-C.md`).** Tres encargos además del brief:
 1. Punto 0 del brief: la voz a 48 dp con 760 dp de alto. Prueba Robolectric al 100 % y al 130 %.
@@ -175,18 +178,18 @@ Además, `VoiceFirstUseDeviceTest.awaitChoicesLoaded` pasa de 5 s a 15 s. Render
   - el guardado conserva el propósito AMRAP de las recetas en modo RM;
   - el importador marca «5+», «3x5+» y «AMRAP».
 
-**INV (prompt en `free_INV.md`).**
+**INV (tarea en `free_INV.md`).**
 - `RecipeContractInventoryTest`: 108 > 100 y 21 > 18 (C10) tras PROG.
 - Por cada hallazgo nuevo, o corregir la receta, o declarar una exención con su fuente (RES1).
 - **Prohibido subir los techos.**
 - Verificar con `kpkn_jvm.sh u13 "-PtestInclude=com/example/kpkn/data/protocols/**,com/example/kpkn/domain/training/**"`.
 - Informe `reports/INV-PROG.md`.
 
-**Revisión tuya de cada entrega:**
-- Lee el informe y `git log`/`git diff --stat`.
+**Antes de dar un paquete por cerrado:**
+- Relee el diff completo, buscando restos, código muerto y textos inventados.
 - Abre al menos 3 renders con Read y compáralos con el tablero.
 - Comprueba en el log o los XML que la verificación pasó.
-- Si algo no cumple, relanza el mismo agente o modelo con la lista exacta de defectos, como mucho 2 veces. Después sube a Haiku.
+- Si algo no cumple el tablero o el brief, corrígelo tú antes de pasar al siguiente.
 
 **Hecho cuando:** los 8 paquetes tienen commits, informe y verificación en verde (salvo los fallos del entorno).
 
@@ -210,7 +213,7 @@ Además, `VoiceFirstUseDeviceTest.awaitChoicesLoaded` pasa de 5 s a 15 s. Render
 - Un snackbar duplicado al confirmar los límites (ED-E con el marco de ED-A).
 - Ya resuelto: en `AugeFatigueEngine`, `plannedSetWeightKg` de MOT respeta el TM.
 
-**Cómo resolverlos:** quédate con lo de las dos ramas, y si la resolución no es trivial, encárgasela a un agente Haiku con el conflicto pegado.
+**Cómo resolverlos:** tú mismo, conservando lo de las dos ramas. Compila después de cada fusión.
 
 **Verificación tras cada fusión:**
 - `:app:compileBaseDebugKotlin`.
@@ -220,16 +223,16 @@ Además, `VoiceFirstUseDeviceTest.awaitChoicesLoaded` pasa de 5 s a 15 s. Render
 - Regresión del área en dos corridas:
   - **JVM:** `kpkn_jvm.sh u11 "-PtestInclude=com/example/kpkn/domain/**,com/example/kpkn/data/protocols/**"`.
   - **Android:** las clases de `screens/workout` y `screens/sessioneditor` de los informes, en grupos de 10 o 15.
-- Tabla de fallos en `reports/INT-1.md`, clasificados como de integración, de antes o del entorno. Arregla con agentes los que sean de integración.
+- Tabla de fallos en `reports/INT-1.md`, clasificados como de integración, de antes o del entorno. Arregla tú los que sean de integración.
 - Actualiza `CLAUDE.md` en u11: «Room **v30**», hoy dice v29.
 
 **Hecho cuando:** las 7 ramas están dentro, todo compila y la regresión está documentada y en verde (salvo el entorno).
 
 ---
 
-## FASE 4 · Paquetes que faltan, en orden y uno por agente
+## FASE 4 · Paquetes que faltan (los implementas tú, en orden)
 
-Cada uno lleva su brief nuevo en `briefs/`. Escríbelo tú con la plantilla de los anteriores: worktree, zonas de los demás, qué leer, qué construir, leyes, pruebas, Gradle, commits e informe. Lanza cada paquete en un worktree nuevo desde `feat/screens-v2`.
+Antes de implementar cada uno, escribe su brief en `briefs/` con la plantilla de los anteriores: qué leer, qué construir, leyes, pruebas e informe. Así queda constancia para un relevo. Trabaja cada paquete en un worktree nuevo desde `feat/screens-v2` y fusiónalo al terminarlo.
 
 1. **CAT-B · Crear ejercicio y fichas** (tableros E7, F1 y F2; AUD1 §3).
    - El motor ya está en MOT. Falta la interfaz del creador E7:
@@ -265,7 +268,7 @@ Cada uno lleva su brief nuevo en `briefs/`. Escríbelo tú con la plantilla de l
      - test de 1RM solo con los levantamientos del programa.
    - Caracterización de RINGS: la fatiga de un AMRAP calibrador frente a una serie normal no cambia los RINGS de forma inesperada.
 
-**Revisión e integración** de cada paquete, igual que en las fases 2 y 3.
+**Verificación e integración** de cada paquete, igual que en las fases 2 y 3.
 
 ---
 
@@ -273,7 +276,7 @@ Cada uno lleva su brief nuevo en `briefs/`. Escríbelo tú con la plantilla de l
 
 1. **APKs:**
    - `bash /c/kw/tools/gradle_slot.sh /c/kw/u11/android-native :app:assembleBaseDebug -I C:/kw/tools/dbg-suffix.init.gradle`.
-   - El APK de pruebas instrumentadas (`assembleBaseDebugAndroidTest`) la cola lo quita. Pídeselo a la sesión que coordina la cola, o usa `KPKN_SLOT_PRIORITY=1` si `GRADLE_GUIA.md` lo permite. Si no, haz la QA a mano.
+   - El APK de pruebas instrumentadas (`assembleBaseDebugAndroidTest`) la cola lo quita. Usa `KPKN_SLOT_PRIORITY=1` solo si `GRADLE_GUIA.md` lo permite. Si no, haz la QA a mano.
    - Copia los APK a `C:\kw\apk\<fecha>\`.
 2. **Emulador `ZFlip5_QA`:**
    - Arranque: `emulator -avd ZFlip5_QA -port 5580 -no-snapshot -no-boot-anim -gpu host -memory 3072`.
@@ -291,7 +294,7 @@ Cada uno lleva su brief nuevo en `briefs/`. Escríbelo tú con la plantilla de l
    - Solo con `python C:\kw\tools\phone_run.py`, la regla de 20 min y la `.dbg`.
    - Nunca toques `com.example.kpkn` ni `.completo`.
    - Haz también la QA pendiente de LQA1.
-5. Informe `reports/QA_FINAL.md`, con una tabla por tablero (ok o defecto, y su captura). Los defectos se arreglan con agentes y se repite la QA del tablero afectado.
+5. Informe `reports/QA_FINAL.md`, con una tabla por tablero (ok o defecto, y su captura). Los defectos los arreglas tú y repites la QA del tablero afectado.
 
 ---
 
