@@ -59,6 +59,9 @@ object NativeWorkoutProgressionRuntime {
     /** T4: reserva objetivo cuando el plan no la declara (misma convención que el modelo de fuerza). */
     private const val DEFAULT_TARGET_RIR = 2
 
+    /** T4: una semana, lo que se ve un aviso informativo; dentro de ese plazo no se repite el mismo aviso. */
+    private const val KEEP_NOTICE_REPEAT_MS = 7L * 24L * 60L * 60L * 1000L
+
     /** `AppliedRecipeProposal.kind` de una variante corporal persistida en la receta efectiva. */
     const val NATIVE_VARIANT_APPLIED_KIND = "NATIVE_BODYWEIGHT_VARIANT"
 
@@ -256,7 +259,7 @@ object NativeWorkoutProgressionRuntime {
                             // T4: par (repeticiones, carga) sobre las cargas montables; null = comportamiento de siempre.
                             val pair = pairedTarget(identity, latest, currentLoad, inventory, equipmentId, increase = true)
                             if (pair != null && pair.change == LoadTargetSelector.Change.KEEP) {
-                                next = appendNoticeOnce(
+                                next = appendKeepNoticeOnce(
                                     next,
                                     proposalId(next.id, identity, recent.map { it.logId }, NativeProgressionProposalKind.INCREASE_LOAD),
                                     NativeProgressionProposalKind.INCREASE_LOAD,
@@ -322,7 +325,7 @@ object NativeWorkoutProgressionRuntime {
                             // T4: par (repeticiones, carga) sobre las cargas montables; null = comportamiento de siempre.
                             val pair = pairedTarget(identity, latest, currentLoad, inventory, equipmentId, increase = false)
                             if (pair != null && pair.change == LoadTargetSelector.Change.KEEP) {
-                                next = appendNoticeOnce(
+                                next = appendKeepNoticeOnce(
                                     next,
                                     proposalId(next.id, identity, recent.map { it.logId }, NativeProgressionProposalKind.REDUCE_LOAD),
                                     NativeProgressionProposalKind.REDUCE_LOAD,
@@ -1565,6 +1568,28 @@ object NativeWorkoutProgressionRuntime {
             identity = identity,
             sourceLogIds = sourceLogIds,
         ))
+    }
+
+    /**
+     * T4: el aviso «mantén la carga» se repetiría cada [exposuresBeforeProposal] sesiones mientras el
+     * escalón siga sin caber; si ya hay uno IGUAL (misma identidad, tipo y texto) de la última semana, no
+     * se vuelve a apilar. Las exposiciones siguen sin consumirse, así que el aviso reaparece solo si
+     * cambia el texto (otro material, otras repeticiones) o pasa la semana.
+     */
+    private fun appendKeepNoticeOnce(
+        program: Program,
+        proposalId: String,
+        kind: NativeProgressionProposalKind,
+        nowMs: Long,
+        reason: String,
+        identity: NativeProgressionIdentity,
+        sourceLogIds: List<String>,
+    ): Program {
+        val repeated = program.nativeProgressionAudit.any {
+            it.userFacingNotice && it.identity == identity && it.kind == kind && it.reason == reason &&
+                nowMs - it.resolvedAtMs in 0 until KEEP_NOTICE_REPEAT_MS
+        }
+        return if (repeated) program else appendNoticeOnce(program, proposalId, kind, nowMs, reason, identity, sourceLogIds)
     }
 
     private fun expire(

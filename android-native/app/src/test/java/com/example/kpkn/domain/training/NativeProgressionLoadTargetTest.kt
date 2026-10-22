@@ -76,14 +76,14 @@ class NativeProgressionLoadTargetTest {
         nativeProgression = NativeProgressionSpec(NativeProgressionStrategy.REP_RANGE_THEN_LOAD, exposuresBeforeProposal = 2),
     )
 
-    private fun materialized(configurationId: String): Program = PlanMaterializer.materialize(
+    private fun materialized(configurationId: String, weeks: Int = 4): Program = PlanMaterializer.materialize(
         program = Program(id = "t4-$configurationId", name = "T4 $configurationId"),
-        recipe = recipeOf("t4-$configurationId", configurationId),
+        recipe = recipeOf("t4-$configurationId", configurationId, weeks),
         metadata = CatalogCompositionTestSupport.metadata,
         strict = false,
     )
 
-    private fun twoExposures(program: Program, loadKg: Double, reps: Int = 12): List<WorkoutLog> = (1..2).map { week ->
+    private fun twoExposures(program: Program, loadKg: Double, reps: Int = 12, count: Int = 2): List<WorkoutLog> = (1..count).map { week ->
         completedLog(
             program = program,
             sessionId = sessionOf(program, week).id,
@@ -137,6 +137,26 @@ class NativeProgressionLoadTargetTest {
                 "Mantén 12 kg por mancuerna y sigue con 12 repeticiones, con 2 en reserva; no se propone un cambio.",
             notice.reason,
         )
+    }
+
+    @Test
+    fun `el aviso de mantener no se apila igual cada dos sesiones y vuelve a avisar pasada la semana`() {
+        val program = materialized(GOBLET, weeks = 6)
+        val stock = EquipmentInventory(dumbbells = listOf(DumbbellPairStock(12.0), DumbbellPairStock(14.0), DumbbellPairStock(16.0)))
+        val first = observe(program, twoExposures(program, 12.0), stock)
+        assertEquals(1, first.nativeProgressionAudit.size)
+
+        val fourLogs = twoExposures(program, 12.0, count = 4)
+        val sameWeek = NativeWorkoutProgressionRuntime.observeCompletedWorkout(
+            program = first, logs = fourLogs, inventory = stock, curatedConfigurations = emptySet(), nowMs = 600L,
+        )
+        assertEquals("mismo aviso dentro de la semana: no se apila", 1, sameWeek.nativeProgressionAudit.size)
+
+        val aWeekLater = NativeWorkoutProgressionRuntime.observeCompletedWorkout(
+            program = first, logs = fourLogs, inventory = stock, curatedConfigurations = emptySet(),
+            nowMs = 500L + 8L * 24L * 60L * 60L * 1000L,
+        )
+        assertEquals("pasada la semana, avisa de nuevo", 2, aWeekLater.nativeProgressionAudit.size)
     }
 
     @Test
