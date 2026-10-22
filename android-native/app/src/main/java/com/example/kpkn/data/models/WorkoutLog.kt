@@ -56,6 +56,15 @@ data class WorkoutLog(
     val calendarBreakId: String? = null,
     /** Rings just before this session (or at finish without this log). */
     val ringStartSnapshot: RingStartSnapshot? = null,
+    /** Contexto de rendimiento congelado al cierre (inicio real, descarga de jerarquía y procedencia). */
+    val performanceContext: AugePerformanceContext? = null,
+)
+
+@Serializable
+data class AugePerformanceContext(
+    val sessionStartTimeMs: Long? = null,
+    val isDeload: Boolean? = null,
+    val deloadOrigin: String? = null,
 )
 
 @Serializable

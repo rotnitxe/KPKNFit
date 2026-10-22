@@ -5,13 +5,13 @@ import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
-import com.example.kpkn.data.models.RecoveryLearningObservation
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.performance.PerformanceRangeCalculator
 import kotlin.math.abs
+import kotlin.math.sqrt
 
 data class PerformanceTauManualTouches(
     val energy: Boolean = false,
@@ -40,23 +40,33 @@ data class PerformanceTauDiagnostic(
     val implied: Int? = null,
     val hoursSince: Double? = null,
     val sessionStress: Double? = null,
+    val baseline: Double? = null,
+    val weight: Double? = null,
+    val effectiveSigma: Double? = null,
 )
 
 data class PerformanceTauResult(
-    val observations: List<RecoveryLearningObservation>,
+    val observations: List<AugeLearningObservation>,
     val diagnostics: List<PerformanceTauDiagnostic>,
 )
 
 /**
- * Builds τ observations from today's performance vs the ring predicted at
- * session start. Does not update drain multipliers.
+ * Adaptador de aprendizaje de rendimiento hacia el filtro EKF único ([AugeLearner]).
+ *
+ * Construye observaciones v4 (con fuente, σ efectiva según peso bilateral, id canónico, instante causal,
+ * escala y contexto causal). La referencia para e1RM y ΔRPE es la mediana de las últimas 3 sesiones comparables
+ * anteriores (excluida la sesión medida). ν < 0 (peor) aporta peso 1; ν > 0 (mejor) peso 0,5 por progresión:
+ * R = σ_fuente² / w, σ_efectiva = σ_fuente / √w.
  */
 object PerformanceTauLearner {
 
     const val MIN_SNAPSHOTS = 3
-    const val NOISE_THRESHOLD = 8
-    const val MIN_HOURS = AugeAdaptiveEngine.MIN_HOURS_FOR_TAU_LEARNING
-    const val MAX_HOURS = 14.0 * 24.0
+    const val MIN_HOURS = AugeParameters.LEARNER_WINDOW_MIN_HOURS
+    const val MAX_HOURS = AugeParameters.LEARNER_WINDOW_MAX_HOURS
+    const val SIGMA_BASE_E1RM = AugeParameters.LEARNER_SIGMA_E1RM
+    const val SIGMA_BASE_DELTA_RPE = AugeParameters.LEARNER_SIGMA_DELTA_RPE
+    const val POSITIVE_WEIGHT = 0.5
+    const val NEGATIVE_WEIGHT = 1.0
     const val RPE_COMPARABLE_SLACK = 1.0
     const val WEIGHT_MATCH_FRACTION = 0.025
     const val REPS_MATCH_DELTA = 2
@@ -74,30 +84,91 @@ object PerformanceTauLearner {
         (dbInfo(exercise = ex, exerciseDb = exerciseDb)?.axialLoadFactor ?: 0.0) >= AXIAL_MIN
     }
 
+    fun hasReportedDiscomfort(log: WorkoutLog): Boolean {
+        val reports = log.postExerciseReports.flatMap { it.discomfortIds }
+        val discomforts = log.discomforts
+        val stillPresent = log.stillPresentDiscomfortIds
+        return (reports + discomforts + stillPresent).any { id ->
+            val trimmed = id.trim()
+            trimmed.isNotEmpty() && !trimmed.equals("none", ignoreCase = true)
+        }
+    }
+
     fun observations(input: PerformanceTauInput): PerformanceTauResult {
         val diagnostics = mutableListOf<PerformanceTauDiagnostic>()
-        val observations = mutableListOf<RecoveryLearningObservation>()
+        val observations = mutableListOf<AugeLearningObservation>()
 
-        collectMuscleObservations(input, observations, diagnostics)
-        collectEnergyObservation(input, observations, diagnostics)
-        collectStructureObservation(input, observations, diagnostics)
+        // 1. Exclusiones previas de la sesión medida (contexto congelado, descarga, molestia)
+        val context = input.today.performanceContext
+        if (context == null) {
+            collectPreExcludedDiagnostics(input, "no_context", diagnostics)
+            return PerformanceTauResult(observations = emptyList(), diagnostics = diagnostics)
+        }
+        if (context.isDeload == true) {
+            collectPreExcludedDiagnostics(input, "deload", diagnostics)
+            return PerformanceTauResult(observations = emptyList(), diagnostics = diagnostics)
+        }
+        if (hasReportedDiscomfort(input.today)) {
+            collectPreExcludedDiagnostics(input, "discomfort", diagnostics)
+            return PerformanceTauResult(observations = emptyList(), diagnostics = diagnostics)
+        }
+
+        // 2. Instante causal de la observación
+        val observationAtMs = context.sessionStartTimeMs ?: AugeUtils.logDateMs(input.today)
+
+        // 3. Historial causal: anterior al inicio de la sesión medida, desempate estable por id ASC
+        val causalHistory = input.historyWithoutToday.filter { log ->
+            log.id != input.today.id &&
+                AugeUtils.logDateMs(log) > 0L &&
+                AugeUtils.logDateMs(log) < observationAtMs
+        }
+
+        // 4. Historial elegible para referencias de 3 sesiones: sin molestias y sin descarga explícita conocida
+        val eligibleReferenceHistory = causalHistory
+            .filter { log ->
+                !hasReportedDiscomfort(log) &&
+                    log.performanceContext?.isDeload != true
+            }
+            .sortedWith(compareBy<WorkoutLog>({ AugeUtils.logDateMs(it) }, { it.id }))
+
+        // 5. Colección de observaciones por canal
+        collectMuscleObservations(input, causalHistory, eligibleReferenceHistory, observationAtMs, observations, diagnostics)
+        collectEnergyObservation(input, causalHistory, eligibleReferenceHistory, observationAtMs, observations, diagnostics)
+        collectStructureObservation(input, causalHistory, eligibleReferenceHistory, observationAtMs, observations, diagnostics)
 
         return PerformanceTauResult(observations = observations, diagnostics = diagnostics)
     }
 
     /**
-     * Puente NEUTRO y desactivado hasta 3.4: el aprendizaje de rendimiento está suspendido (la inversión sesgada y el
-     * EMA se retiraron en 3.3), así que aplicar observaciones no cambia ningún τ, ni el contador, ni sella el log como
-     * aprendido. [result] se acepta solo para que 3.4 lo sustituya por la extracción de observaciones del EKF sin
-     * tocar a los llamadores; en producción `AugeViewModel` ni siquiera llega aquí con un caché v4.
+     * Aplica las observaciones resultantes al caché mediante [AugeLearner.update] y sella [finishedLogId].
      */
-    @Suppress("UNUSED_PARAMETER")
+    fun applyObservations(
+        cache: AugeAdaptiveCache,
+        observations: List<AugeLearningObservation>,
+        model: AugeObservationModel,
+        finishedLogId: String,
+    ): AugeAdaptiveCache {
+        var current = cache
+        for (obs in observations) {
+            val result = AugeLearner.update(current, obs, model)
+            current = result.cache
+        }
+        return current.copy(lastPerformanceLearnLogId = finishedLogId)
+    }
+
+    /**
+     * Puente compatible hacia el EKF v4. Si no se provee un [model], utiliza un evaluador seguro para pruebas aisladas.
+     */
     fun applyToCache(
         cache: AugeAdaptiveCache,
         result: PerformanceTauResult,
         finishedLogId: String,
         nowMs: Long,
-    ): AugeAdaptiveCache = cache
+        model: AugeObservationModel? = null,
+    ): AugeAdaptiveCache {
+        val actualModel = model ?: AugeObservationModel { _, _ -> AugePrediction(battery = 70.0) }
+        return applyObservations(cache, result.observations, actualModel, finishedLogId)
+    }
 
     fun primaryAugePillarFor(
         exercise: CompletedExercise,
@@ -112,9 +183,43 @@ object PerformanceTauLearner {
         exercise.canonicalExerciseId?.takeIf { it.isNotBlank() }
             ?: exercise.exerciseDbId?.takeIf { it.isNotBlank() }
 
+    fun sessionErm(exercise: CompletedExercise): Double? {
+        val sets = workingSets(exercise).filter { it.weight > 0.0 && it.reps > 0 }
+        if (sets.isEmpty()) return null
+        if (sets.all { it.side != null }) {
+            val sides = sets.mapNotNull { it.side?.lowercase() }.toSet()
+            if (!sides.containsAll(listOf("left", "right"))) return null
+            return sets.groupBy { it.side!!.lowercase() }
+                .values
+                .maxOf { sideSets -> sideSets.maxOf { calculateHybrid1RM(it.weight, it.reps) } }
+        }
+        return sets.maxOf { calculateHybrid1RM(it.weight, it.reps) }
+    }
+
+    private fun collectPreExcludedDiagnostics(
+        input: PerformanceTauInput,
+        reason: String,
+        diagnostics: MutableList<PerformanceTauDiagnostic>,
+    ) {
+        val pillars = input.today.completedExercises
+            .filter { it.cardioDetails == null }
+            .mapNotNull { primaryAugePillarFor(it, input.exerciseDb) }
+            .distinct()
+        for (pillar in pillars) {
+            diagnostics += PerformanceTauDiagnostic(channel = pillar, skipReason = reason)
+        }
+        diagnostics += PerformanceTauDiagnostic(channel = CHANNEL_ENERGY, skipReason = reason)
+        if (sessionHasAxialStimulus(input.today.completedExercises, input.exerciseDb)) {
+            diagnostics += PerformanceTauDiagnostic(channel = CHANNEL_STRUCTURE, skipReason = reason)
+        }
+    }
+
     private fun collectMuscleObservations(
         input: PerformanceTauInput,
-        out: MutableList<RecoveryLearningObservation>,
+        causalHistory: List<WorkoutLog>,
+        eligibleReferenceHistory: List<WorkoutLog>,
+        observationAtMs: Long,
+        out: MutableList<AugeLearningObservation>,
         diagnostics: MutableList<PerformanceTauDiagnostic>,
     ) {
         val bestByPillar = linkedMapOf<String, MuscleCandidate>()
@@ -132,45 +237,56 @@ object PerformanceTauLearner {
                 diagnostics += PerformanceTauDiagnostic(channel = pillar, skipReason = "manual_touch")
                 continue
             }
-            val built = buildErmObservation(
-                input = input,
+            val previous = previousMuscleStimulus(causalHistory, pillar, input.exerciseDb, input.settings)
+            val (diag, obs) = buildErmObservation(
+                today = input.today,
                 exercise = candidate.exercise,
                 channel = pillar,
                 predicted = lookupPredictedMuscle(input.predictedMuscles, pillar),
-                previous = previousMuscleStimulus(input.historyWithoutToday, pillar, input.exerciseDb, input.settings),
+                previous = previous,
+                eligibleReferenceHistory = eligibleReferenceHistory,
+                observationAtMs = observationAtMs,
             )
-            appendBuilt(built, out, diagnostics)
+            diagnostics += diag
+            if (obs != null) out += obs
         }
     }
 
     private fun collectEnergyObservation(
         input: PerformanceTauInput,
-        out: MutableList<RecoveryLearningObservation>,
+        causalHistory: List<WorkoutLog>,
+        eligibleReferenceHistory: List<WorkoutLog>,
+        observationAtMs: Long,
+        out: MutableList<AugeLearningObservation>,
         diagnostics: MutableList<PerformanceTauDiagnostic>,
     ) {
         if (input.manual.energy) {
             diagnostics += PerformanceTauDiagnostic(channel = CHANNEL_ENERGY, skipReason = "manual_touch")
             return
         }
-        val previous = previousSystemStimulus(input.historyWithoutToday, input.exerciseDb, input.settings, spinal = false)
-        val matched = matchedRpeDelta(input)
+        val previous = previousSystemStimulus(causalHistory, input.exerciseDb, input.settings, spinal = false)
+
+        // Prioridad determinista a ΔRPE cuando sea válido
+        val matched = matchedRpeDelta(input, eligibleReferenceHistory)
         if (matched != null) {
             val implied = PerformanceImpliedBattery.impliedEnergyFromRpeDelta(input.predictedEnergy, matched)
-            appendBuilt(
-                finalizeObservation(
-                    channel = CHANNEL_ENERGY,
-                    predicted = input.predictedEnergy,
-                    implied = implied,
-                    previous = previous,
-                    nowMs = input.nowMs,
-                    ratio = null,
-                    deltaRpe = matched,
-                ),
-                out,
-                diagnostics,
+            val (diag, obs) = finalizeObservation(
+                channel = CHANNEL_ENERGY,
+                predicted = input.predictedEnergy,
+                implied = implied,
+                previous = previous,
+                observationAtMs = observationAtMs,
+                ratio = null,
+                deltaRpe = matched,
+                source = "delta_rpe",
+                sigmaBase = SIGMA_BASE_DELTA_RPE,
             )
+            diagnostics += diag
+            if (obs != null) out += obs
             return
         }
+
+        // Fallback e1RM para Energía con ejercicio de alto CNC
         val fallback = input.today.completedExercises
             .filter { (dbInfo(it, input.exerciseDb)?.cnc ?: 0.0) >= CNC_FALLBACK }
             .maxByOrNull { primaryContribution(it, input.exerciseDb) }
@@ -178,22 +294,26 @@ object PerformanceTauLearner {
             diagnostics += PerformanceTauDiagnostic(channel = CHANNEL_ENERGY, skipReason = "no_matched_rpe_or_cnc")
             return
         }
-        appendBuilt(
-            buildErmObservation(
-                input = input,
-                exercise = fallback,
-                channel = CHANNEL_ENERGY,
-                predicted = input.predictedEnergy,
-                previous = previous,
-            ),
-            out,
-            diagnostics,
+
+        val (diag, obs) = buildErmObservation(
+            today = input.today,
+            exercise = fallback,
+            channel = CHANNEL_ENERGY,
+            predicted = input.predictedEnergy,
+            previous = previous,
+            eligibleReferenceHistory = eligibleReferenceHistory,
+            observationAtMs = observationAtMs,
         )
+        diagnostics += diag
+        if (obs != null) out += obs
     }
 
     private fun collectStructureObservation(
         input: PerformanceTauInput,
-        out: MutableList<RecoveryLearningObservation>,
+        causalHistory: List<WorkoutLog>,
+        eligibleReferenceHistory: List<WorkoutLog>,
+        observationAtMs: Long,
+        out: MutableList<AugeLearningObservation>,
         diagnostics: MutableList<PerformanceTauDiagnostic>,
     ) {
         if (input.manual.structure) {
@@ -207,52 +327,72 @@ object PerformanceTauLearner {
             diagnostics += PerformanceTauDiagnostic(channel = CHANNEL_STRUCTURE, skipReason = "no_axial_exercise")
             return
         }
-        val previous = previousSystemStimulus(input.historyWithoutToday, input.exerciseDb, input.settings, spinal = true)
-        appendBuilt(
-            buildErmObservation(
-                input = input,
-                exercise = axial,
-                channel = CHANNEL_STRUCTURE,
-                predicted = input.predictedStructure,
-                previous = previous,
-            ),
-            out,
-            diagnostics,
+        val previous = previousSystemStimulus(causalHistory, input.exerciseDb, input.settings, spinal = true)
+        val (diag, obs) = buildErmObservation(
+            today = input.today,
+            exercise = axial,
+            channel = CHANNEL_STRUCTURE,
+            predicted = input.predictedStructure,
+            previous = previous,
+            eligibleReferenceHistory = eligibleReferenceHistory,
+            observationAtMs = observationAtMs,
         )
+        diagnostics += diag
+        if (obs != null) out += obs
     }
 
     private fun buildErmObservation(
-        input: PerformanceTauInput,
+        today: WorkoutLog,
         exercise: CompletedExercise,
         channel: String,
         predicted: Int?,
         previous: PreviousStimulus?,
-    ): PerformanceTauDiagnostic {
+        eligibleReferenceHistory: List<WorkoutLog>,
+        observationAtMs: Long,
+    ): Pair<PerformanceTauDiagnostic, AugeLearningObservation?> {
         if (predicted == null) {
-            return PerformanceTauDiagnostic(channel = channel, skipReason = "no_predicted_battery")
+            return PerformanceTauDiagnostic(channel = channel, skipReason = "no_predicted_battery") to null
         }
-        if (isTechnicallyInvalid(input.today, exercise)) {
-            return PerformanceTauDiagnostic(channel = channel, skipReason = "technical_invalid")
-        }
-        if (!effortComparable(exercise, input.historyWithoutToday, input.exerciseDb)) {
-            return PerformanceTauDiagnostic(channel = channel, skipReason = "rpe_not_comparable")
+        if (isTechnicallyInvalid(today, exercise)) {
+            return PerformanceTauDiagnostic(channel = channel, skipReason = "technical_invalid") to null
         }
         val todayErm = sessionErm(exercise) ?: return PerformanceTauDiagnostic(
             channel = channel,
             skipReason = "no_today_erm",
-        )
-        val baseline = historicalErmBaseline(exercise, input.historyWithoutToday)
-            ?: return PerformanceTauDiagnostic(channel = channel, skipReason = "insufficient_snapshots")
+        ) to null
+
+        // Mediana de las últimas 3 sesiones comparables ANTERIORES ordenadas ASC
+        val sessionErms = mutableListOf<Double>()
+        for (log in eligibleReferenceHistory) {
+            val match = matchingExercises(exercise, log).firstOrNull() ?: continue
+            if (isTechnicallyInvalid(log, match)) continue
+            if (!effortComparable(exercise, match)) continue
+            val erm = sessionErm(match) ?: continue
+            sessionErms += erm
+        }
+
+        if (sessionErms.size < MIN_SNAPSHOTS) {
+            return PerformanceTauDiagnostic(channel = channel, skipReason = "insufficient_snapshots") to null
+        }
+
+        val lastThree = sessionErms.takeLast(MIN_SNAPSHOTS)
+        val baseline = median(lastThree)
+            ?: return PerformanceTauDiagnostic(channel = channel, skipReason = "insufficient_snapshots") to null
+
         val ratio = todayErm / baseline
         val implied = PerformanceImpliedBattery.impliedFromErmRatio(ratio)
+
         return finalizeObservation(
             channel = channel,
             predicted = predicted,
             implied = implied,
             previous = previous,
-            nowMs = input.nowMs,
+            observationAtMs = observationAtMs,
             ratio = ratio,
             deltaRpe = null,
+            source = "e1rm",
+            sigmaBase = SIGMA_BASE_E1RM,
+            baseline = baseline,
         )
     }
 
@@ -261,30 +401,18 @@ object PerformanceTauLearner {
         predicted: Int,
         implied: Int,
         previous: PreviousStimulus?,
-        nowMs: Long,
+        observationAtMs: Long,
         ratio: Double?,
         deltaRpe: Double?,
-    ): PerformanceTauDiagnostic {
-        if (abs(implied - predicted) < NOISE_THRESHOLD) {
-            return PerformanceTauDiagnostic(
-                channel = channel,
-                skipReason = "below_noise_threshold",
-                ratio = ratio,
-                deltaRpe = deltaRpe,
-                predicted = predicted,
-                implied = implied,
-            )
-        }
-        if (implied > predicted) {
-            return PerformanceTauDiagnostic(
-                channel = channel,
-                skipReason = "progression_not_learned",
-                ratio = ratio,
-                deltaRpe = deltaRpe,
-                predicted = predicted,
-                implied = implied,
-            )
-        }
+        source: String,
+        sigmaBase: Double,
+        baseline: Double? = null,
+    ): Pair<PerformanceTauDiagnostic, AugeLearningObservation?> {
+        val diff = implied - predicted
+        // Bilateralidad: ν < 0 (peor) peso 1; ν > 0 (mejor) peso 0,5 por progresión
+        val weight = if (diff > 0) POSITIVE_WEIGHT else NEGATIVE_WEIGHT
+        val effectiveSigma = sigmaBase / sqrt(weight)
+
         if (previous == null || previous.stress <= 0.0) {
             return PerformanceTauDiagnostic(
                 channel = channel,
@@ -293,9 +421,13 @@ object PerformanceTauLearner {
                 deltaRpe = deltaRpe,
                 predicted = predicted,
                 implied = implied,
-            )
+                baseline = baseline,
+                weight = weight,
+                effectiveSigma = effectiveSigma,
+            ) to null
         }
-        val hours = (nowMs - previous.logMs) / 3_600_000.0
+
+        val hours = (observationAtMs - previous.logMs) / 3_600_000.0
         if (hours < MIN_HOURS) {
             return PerformanceTauDiagnostic(
                 channel = channel,
@@ -306,7 +438,10 @@ object PerformanceTauLearner {
                 implied = implied,
                 hoursSince = hours,
                 sessionStress = previous.stress,
-            )
+                baseline = baseline,
+                weight = weight,
+                effectiveSigma = effectiveSigma,
+            ) to null
         }
         if (hours > MAX_HOURS) {
             return PerformanceTauDiagnostic(
@@ -318,9 +453,16 @@ object PerformanceTauLearner {
                 implied = implied,
                 hoursSince = hours,
                 sessionStress = previous.stress,
-            )
+                baseline = baseline,
+                weight = weight,
+                effectiveSigma = effectiveSigma,
+            ) to null
         }
-        return PerformanceTauDiagnostic(
+
+        val channelKey = if (channel == CHANNEL_ENERGY || channel == CHANNEL_STRUCTURE) channel
+            else getAugeMusclePillarId(channel).lowercase()
+
+        val diagnostic = PerformanceTauDiagnostic(
             channel = channel,
             skipReason = null,
             ratio = ratio,
@@ -329,89 +471,82 @@ object PerformanceTauLearner {
             implied = implied,
             hoursSince = hours,
             sessionStress = previous.stress,
+            baseline = baseline,
+            weight = weight,
+            effectiveSigma = effectiveSigma,
         )
+
+        val observation = AugeLearningObservation(
+            parameterKey = channelKey,
+            y = implied.toDouble(),
+            sigma = effectiveSigma,
+            source = source,
+            anchorMs = observationAtMs,
+            observedAtMs = observationAtMs,
+            relevantLogId = previous.logId,
+            hoursSinceRelevantLoad = hours,
+        )
+
+        return diagnostic to observation
     }
 
-    private fun appendBuilt(
-        diagnostic: PerformanceTauDiagnostic,
-        out: MutableList<RecoveryLearningObservation>,
-        diagnostics: MutableList<PerformanceTauDiagnostic>,
-    ) {
-        diagnostics += diagnostic
-        val implied = diagnostic.implied
-        val predicted = diagnostic.predicted
-        val hours = diagnostic.hoursSince
-        val stress = diagnostic.sessionStress
-        if (diagnostic.skipReason != null || implied == null || predicted == null || hours == null || stress == null) {
-            return
-        }
-        out += RecoveryLearningObservation(
-            muscle = diagnostic.channel,
-            predictedBattery = predicted,
-            actualBattery = implied,
-            sessionStress = stress,
-            hoursSinceSession = hours,
-        )
-    }
-
-    private fun matchedRpeDelta(input: PerformanceTauInput): Double? {
+    private fun matchedRpeDelta(
+        input: PerformanceTauInput,
+        eligibleReferenceHistory: List<WorkoutLog>,
+    ): Double? {
         val deltas = mutableListOf<Double>()
         for (exercise in input.today.completedExercises) {
             val info = dbInfo(exercise, input.exerciseDb)
             val cnc = info?.cnc ?: 0.0
             val multiPillar = involvedMuscles(exercise, input.exerciseDb).size > 1
             if (cnc < CNC_MATCHED && !multiPillar) continue
-            val todaySets = workingSets(exercise).filter { it.rpe != null || it.weight > 0 }
-            val histSets = historicalWorkingSets(exercise, input.historyWithoutToday)
+
+            val todaySets = workingSets(exercise).filter { it.rpe != null && it.rpe > 0.0 }
+            if (todaySets.isEmpty()) continue
+
+            val matchingSessions = eligibleReferenceHistory.mapNotNull { log ->
+                val matches = matchingExercises(exercise, log)
+                if (matches.isEmpty()) null else matches.flatMap { workingSets(it) }
+            }
+
             for (todaySet in todaySets) {
-                val todayRpe = effectiveRpe(todaySet) ?: continue
-                val matches = histSets.filter { historic ->
-                    weightsMatch(todaySet.weight, historic.weight) &&
-                        abs(todaySet.reps - historic.reps) <= REPS_MATCH_DELTA
+                val todayRpe = todaySet.rpe ?: continue
+                val sessionRpes = mutableListOf<Double>()
+                for (histSets in matchingSessions) {
+                    val matchingHistSets = histSets.filter { histSet ->
+                        histSet.rpe != null && histSet.rpe > 0.0 &&
+                            weightsMatch(todaySet.weight, histSet.weight) &&
+                            abs(todaySet.reps - histSet.reps) <= REPS_MATCH_DELTA
+                    }
+                    val histSetRpes = matchingHistSets.mapNotNull { it.rpe }
+                    val sessionRpeMedian = median(histSetRpes)
+                    if (sessionRpeMedian != null) {
+                        sessionRpes += sessionRpeMedian
+                    }
                 }
-                val histRpes = matches.mapNotNull { effectiveRpe(it) }
-                val histMedian = median(histRpes) ?: continue
-                deltas += todayRpe - histMedian
+
+                if (sessionRpes.size >= MIN_SNAPSHOTS) {
+                    val lastThree = sessionRpes.takeLast(MIN_SNAPSHOTS)
+                    val histBaselineRpe = median(lastThree)
+                    if (histBaselineRpe != null) {
+                        deltas += (todayRpe - histBaselineRpe)
+                    }
+                }
             }
         }
         return median(deltas)
     }
 
     private fun effortComparable(
-        exercise: CompletedExercise,
-        history: List<WorkoutLog>,
-        exerciseDb: Map<String, ExerciseMuscleInfo>,
+        todayExercise: CompletedExercise,
+        refExercise: CompletedExercise,
     ): Boolean {
-        val todayRpe = median(workingSets(exercise).mapNotNull { effectiveRpe(it) }) ?: return false
-        val histRpe = median(historicalWorkingSets(exercise, history).mapNotNull { effectiveRpe(it) }) ?: return false
-        return todayRpe >= histRpe - RPE_COMPARABLE_SLACK
-    }
-
-    private fun historicalErmBaseline(
-        exercise: CompletedExercise,
-        history: List<WorkoutLog>,
-    ): Double? {
-        val erMs = history.mapNotNull { log ->
-            matchingExercises(exercise, log).mapNotNull { sessionErm(it) }.maxOrNull()
-        }
-        if (erMs.size < MIN_SNAPSHOTS) return null
-        return PerformanceRangeCalculator.computeRange(
-            snapshots = erMs,
-            currentErm = erMs.last(),
-        ).ermRms.takeIf { it > 0.0 }
-    }
-
-    private fun sessionErm(exercise: CompletedExercise): Double? {
-        val sets = workingSets(exercise).filter { it.weight > 0.0 && it.reps > 0 }
-        if (sets.isEmpty()) return null
-        if (sets.all { it.side != null }) {
-            val sides = sets.mapNotNull { it.side?.lowercase() }.toSet()
-            if (!sides.containsAll(listOf("left", "right"))) return null
-            return sets.groupBy { it.side!!.lowercase() }
-                .values
-                .maxOf { sideSets -> sideSets.maxOf { calculateHybrid1RM(it.weight, it.reps) } }
-        }
-        return sets.maxOf { calculateHybrid1RM(it.weight, it.reps) }
+        val todayRpes = workingSets(todayExercise).mapNotNull { it.rpe?.takeIf { rpe -> rpe > 0.0 } }
+        val refRpes = workingSets(refExercise).mapNotNull { it.rpe?.takeIf { rpe -> rpe > 0.0 } }
+        if (todayRpes.isEmpty() || refRpes.isEmpty()) return true
+        val todayMedian = median(todayRpes) ?: return true
+        val refMedian = median(refRpes) ?: return true
+        return todayMedian >= refMedian - RPE_COMPARABLE_SLACK
     }
 
     private fun previousMuscleStimulus(
@@ -426,7 +561,7 @@ object PerformanceTauLearner {
                 if (ms <= 0L) return@mapNotNull null
                 val stress = muscleStress(log, pillar, exerciseDb, settings)
                 if (stress <= 0.0) return@mapNotNull null
-                PreviousStimulus(ms, stress)
+                PreviousStimulus(log.id, ms, stress)
             }
             .maxByOrNull { it.logMs }
     }
@@ -451,7 +586,7 @@ object PerformanceTauLearner {
                 }.getOrNull() ?: return@mapNotNull null
                 val stress = if (spinal) drain.spinal.toDouble() else drain.cns.toDouble()
                 if (stress <= 0.0) return@mapNotNull null
-                PreviousStimulus(ms, stress)
+                PreviousStimulus(log.id, ms, stress)
             }
             .maxByOrNull { it.logMs }
     }
@@ -480,14 +615,7 @@ object PerformanceTauLearner {
     private fun workingSets(exercise: CompletedExercise): List<CompletedSet> =
         exercise.sets.filter { AugeFatigueEngine.isSetEffective(it) }
 
-    private fun historicalWorkingSets(
-        exercise: CompletedExercise,
-        history: List<WorkoutLog>,
-    ): List<CompletedSet> = history.flatMap { log ->
-        matchingExercises(exercise, log).flatMap { workingSets(it) }
-    }
-
-    private fun matchingExercises(
+    fun matchingExercises(
         todayExercise: CompletedExercise,
         log: WorkoutLog,
     ): List<CompletedExercise> {
@@ -549,20 +677,13 @@ object PerformanceTauLearner {
         return abs(a - b) / max <= WEIGHT_MATCH_FRACTION
     }
 
-    private fun effectiveRpe(set: CompletedSet): Double? {
-        val explicit = set.rpe
-        if (explicit != null && explicit > 0.0) return explicit
-        val inferred = AugeFatigueEngine.getEffectiveRPE(set)
-        return inferred.takeIf { it > 0.0 }
-    }
-
     private fun lookupPredictedMuscle(predicted: Map<String, Int>, pillar: String): Int? =
         lookupMuscleScore(predicted, pillar)
 
     private fun manualMuscleTouched(touched: Set<String>, pillar: String): Boolean =
         touched.any { getAugeMusclePillarId(it) == pillar }
 
-    private fun median(values: List<Double>): Double? {
+    fun median(values: List<Double>): Double? {
         if (values.isEmpty()) return null
         val sorted = values.sorted()
         val mid = sorted.size / 2
@@ -576,6 +697,7 @@ object PerformanceTauLearner {
     )
 
     private data class PreviousStimulus(
+        val logId: String,
         val logMs: Long,
         val stress: Double,
     )

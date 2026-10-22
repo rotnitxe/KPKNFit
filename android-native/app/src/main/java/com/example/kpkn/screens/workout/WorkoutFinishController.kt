@@ -3,14 +3,18 @@ package com.example.kpkn.screens.workout
 import android.content.Context
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
+import com.example.kpkn.data.models.AugePerformanceContext
+import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.MuscleAdvance
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.OmittedExercise
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.discomfortLabel
@@ -441,6 +445,7 @@ class WorkoutFinishController(
                         closingFeedback.stillPresentDiscomfortIds +
                             state.postExerciseFeedbackByExerciseId.values.flatMap { it.stillPresentDiscomfortIds }
                         ).distinct(),
+                    performanceContext = resolvePerformanceContext(state, session),
                 ).normalizedIdentityFields()
 
                 val volumeDeltas = if (state.volumeAdvanceHandled) {
@@ -756,6 +761,83 @@ class WorkoutFinishController(
         val start = runCatching { LocalDate.parse(week.startDate) }.getOrNull() ?: return null
         return day?.let { start.plusDays((it - 1).toLong()).toString() } ?: week.startDate
     }
+    private fun resolvePerformanceContext(state: WorkoutUiState, session: Session?): AugePerformanceContext {
+        val startTime = state.startTimeMs.takeIf { it > 0L }
+        val progId = state.programId.takeIf { it.isNotBlank() } ?: programId.takeIf { it.isNotBlank() }
+        if (progId == null) {
+            return AugePerformanceContext(
+                sessionStartTimeMs = startTime,
+                isDeload = false,
+                deloadOrigin = "no_program",
+            )
+        }
+        val program = repository.getProgramById(progId)
+        if (program == null) {
+            return AugePerformanceContext(
+                sessionStartTimeMs = startTime,
+                isDeload = false,
+                deloadOrigin = "no_program",
+            )
+        }
+
+        val weekId = state.weekId ?: session?.let { s ->
+            program.macrocycles.asSequence()
+                .flatMap { it.blocks.asSequence() }
+                .flatMap { it.mesocycles.asSequence() }
+                .flatMap { it.weeks.asSequence() }
+                .firstOrNull { w -> w.sessions.any { it.id == s.id } }?.id
+                ?: program.weeks.firstOrNull { w -> w.sessions.any { it.id == s.id } }?.id
+        }
+
+        // 1. Semana
+        if (weekId != null) {
+            val week = program.macrocycles.asSequence()
+                .flatMap { it.blocks.asSequence() }
+                .flatMap { it.mesocycles.asSequence() }
+                .flatMap { it.weeks.asSequence() }
+                .firstOrNull { it.id == weekId }
+                ?: program.weeks.firstOrNull { it.id == weekId }
+            if (week?.executionKind == WeekExecutionKind.DELOAD) {
+                return AugePerformanceContext(
+                    sessionStartTimeMs = startTime,
+                    isDeload = true,
+                    deloadOrigin = "week_execution_kind",
+                )
+            }
+        }
+
+        // 2. Mesociclo
+        val meso = program.macrocycles.asSequence()
+            .flatMap { it.blocks.asSequence() }
+            .flatMap { it.mesocycles.asSequence() }
+            .firstOrNull { m -> m.weeks.any { it.id == weekId } }
+        if (meso?.goal == MesocycleGoal.DELOAD) {
+            return AugePerformanceContext(
+                sessionStartTimeMs = startTime,
+                isDeload = true,
+                deloadOrigin = "mesocycle_goal",
+            )
+        }
+
+        // 3. Bloque
+        val block = program.macrocycles.asSequence()
+            .flatMap { it.blocks.asSequence() }
+            .firstOrNull { b -> b.mesocycles.any { m -> m.weeks.any { it.id == weekId } } }
+        if (block?.goal == BlockGoal.DELOAD) {
+            return AugePerformanceContext(
+                sessionStartTimeMs = startTime,
+                isDeload = true,
+                deloadOrigin = "block_goal",
+            )
+        }
+
+        return AugePerformanceContext(
+            sessionStartTimeMs = startTime,
+            isDeload = false,
+            deloadOrigin = "hierarchy_normal",
+        )
+    }
+
 }
 
 internal fun computeMuscleSetSurplus(

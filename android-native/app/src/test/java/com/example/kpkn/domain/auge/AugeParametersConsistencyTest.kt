@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.AugeAdaptiveCache
+import com.example.kpkn.data.models.AugePerformanceContext
 import com.example.kpkn.data.models.AugeParameterState
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioType
@@ -246,6 +247,7 @@ class AugeParametersConsistencyTest {
                     perMuscle = claves.associateWith { impacto.perMuscle.getValue("Costales") },
                     involvedVolumeMuscles = claves,
                 ),
+                performanceContext = AugePerformanceContext(sessionStartTimeMs = ORIGEN - horasAtras * HORA_MS, isDeload = false, deloadOrigin = "hierarchy_normal"),
             )
         }
         val resultado = PerformanceTauLearner.observations(
@@ -256,19 +258,13 @@ class AugeParametersConsistencyTest {
                 manual = PerformanceTauManualTouches(energy = true, structure = true),
             ),
         )
-        assertEquals(claves, resultado.observations.map { it.muscle }.toSet())
-        assertEquals(
-            setOf("Costales"),
-            resultado.observations.map { it.muscle }.filter { aprendizDeAntes(it) != AugeAdaptiveEngine.defaultRecoveryHours(it) }.toSet(),
-        )
-        // 3.3: el puente `applyToCache` es neutro hasta 3.4 (antes: prior vacío 24 h → 27 h y un τ guardado de 48 h → 54 h).
-        // Las observaciones siguen llegando con la clave real de Costales; aplicarlas no mueve ningún τ.
+        val obsKeys = resultado.observations.map { it.parameterKey }.toSet()
+        val expectedKeys = claves.map { it.lowercase() }.toSet()
+        assertEquals(expectedKeys, obsKeys)
+        // 3.4: el puente aplica en el EKF v4, registra observaciones y sella lastPerformanceLearnLogId.
         val nuevo = PerformanceTauLearner.applyToCache(AugeAdaptiveCache(), resultado, "hoy", ORIGEN)
-        val guardado = PerformanceTauLearner.applyToCache(
-            AugeAdaptiveCache(personalizedRecoveryHours = mapOf("costales" to 48.0)), resultado, "hoy", ORIGEN,
-        )
-        assertEquals(AugeAdaptiveCache(), nuevo)
-        assertEquals(48.0, guardado.personalizedRecoveryHours.getValue("costales"), 0.0)
+        assertEquals("hoy", nuevo.lastPerformanceLearnLogId)
+        assertTrue(nuevo.observations.isNotEmpty())
     }
 
     @Test

@@ -28,6 +28,9 @@ import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
 import com.example.kpkn.domain.auge.PerformanceTauInput
 import com.example.kpkn.domain.auge.PerformanceTauLearner
+import com.example.kpkn.domain.auge.AugeLearner
+import com.example.kpkn.domain.auge.ObservationScale
+import com.example.kpkn.domain.auge.SnapshotObservationModel
 import com.example.kpkn.domain.auge.ManualGestureEvaluation
 import com.example.kpkn.domain.auge.ManualGestureLearning
 import com.example.kpkn.domain.auge.ManualGestureMeta
@@ -741,8 +744,6 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         feedbacks: List<PostSessionFeedback>,
         lockHeld: Boolean,
     ): AugeAdaptiveCache {
-        // No sellar como aprendido un rendimiento cuyo aprendizaje está suspendido.
-        if (cache.schemaVersion >= 4) return cache
         val newest = history
             .filter { AugeUtils.logDateMs(it) > 0L }
             .maxByOrNull { AugeUtils.logDateMs(it) }
@@ -768,8 +769,34 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                     stamped
                 }
             }
-            val historyWithout = history.filter { it.id != newest.id }
-            val startWellbeing = wellbeingForStartPrediction(wellbeing, newestMs)
+
+            // Exclusiones de la sesión medida (contexto congelado, descarga, molestia)
+            val context = newest.performanceContext
+            if (context == null || context.isDeload == true || PerformanceTauLearner.hasReportedDiscomfort(newest)) {
+                val skipReason = when {
+                    context == null -> "no_context"
+                    context.isDeload == true -> "deload"
+                    else -> "discomfort"
+                }
+                return@runCatching withWriteLock(lockHeld) {
+                    val stamped = readAdaptiveCacheForEngine().copy(lastPerformanceLearnLogId = newest.id)
+                    augeRepo.saveAdaptiveCache(stamped)
+                    KpknDiagnosticLogger.event(
+                        namespace = "auge",
+                        name = "tau_from_performance_skipped",
+                        fields = mapOf(
+                            "logId" to newest.id,
+                            "skipReason" to skipReason,
+                        ),
+                        sessionId = newest.sessionId,
+                    )
+                    stamped
+                }
+            }
+
+            val observationAtMs = context.sessionStartTimeMs ?: newestMs
+            val historyWithout = history.filter { it.id != newest.id && AugeUtils.logDateMs(it) < observationAtMs }
+            val startWellbeing = wellbeingForStartPrediction(wellbeing, observationAtMs)
             val predicted = withContext(Dispatchers.Default) {
                 predictedStartBatteries(
                     historyWithout = historyWithout,
@@ -779,6 +806,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                     nutritionLogs = nutritionLogs,
                     feedbacks = feedbacks,
                     cache = cache,
+                    observationAtMs = observationAtMs,
                 )
             }
             val result = PerformanceTauLearner.observations(
@@ -791,15 +819,33 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                     predictedEnergy = predicted.energy,
                     predictedStructure = predicted.structure,
                     predictedMuscles = predicted.muscles,
-                    manual = manualTouchesFromFinish(wellbeing, newestMs),
+                    manual = manualTouchesFromFinish(wellbeing, observationAtMs),
                 ),
             )
             val next = withWriteLock(lockHeld) {
-                val applied = PerformanceTauLearner.applyToCache(
-                    cache = readAdaptiveCacheForEngine(),
-                    result = result,
+                val currentCache = readAdaptiveCacheForEngine()
+                if (newest.id == currentCache.lastPerformanceLearnLogId) {
+                    return@withWriteLock currentCache
+                }
+                val model = SnapshotObservationModel(
+                    inputsBeforeGesture = AugeSnapshotInputs(
+                        history = historyWithout,
+                        wellbeing = startWellbeing,
+                        settings = settings,
+                        exerciseDb = exerciseDb,
+                        nowMs = observationAtMs,
+                        zone = ZoneId.systemDefault(),
+                        adaptiveCache = currentCache,
+                        nutritionContext = nutritionRepo.augeRecoveryContext(settings, observationAtMs, ZoneId.systemDefault()),
+                    ),
+                    observedAtMs = observationAtMs,
+                    scale = ObservationScale.HISTORICAL_RAW,
+                )
+                val applied = PerformanceTauLearner.applyObservations(
+                    cache = currentCache,
+                    observations = result.observations,
+                    model = model,
                     finishedLogId = newest.id,
-                    nowMs = System.currentTimeMillis(),
                 )
                 augeRepo.saveAdaptiveCache(applied)
                 applied
@@ -861,8 +907,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         nutritionLogs: List<NutritionLog>,
         feedbacks: List<PostSessionFeedback>,
         cache: AugeAdaptiveCache,
+        observationAtMs: Long,
     ): StartPrediction {
-        val nowMs = System.currentTimeMillis()
         val zone = ZoneId.systemDefault()
         val core = computeHomeAugeSnapshot(
             AugeSnapshotInputs(
@@ -870,13 +916,13 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 wellbeing = wellbeing,
                 settings = settings,
                 exerciseDb = exerciseDb,
-                nowMs = nowMs,
+                nowMs = observationAtMs,
                 zone = zone,
                 sleepLogs = sleepLogs,
                 nutritionLogs = nutritionLogs,
                 feedbacks = feedbacks,
                 adaptiveCache = cache,
-                nutritionContext = nutritionRepo.augeRecoveryContext(settings, nowMs, zone),
+                nutritionContext = nutritionRepo.augeRecoveryContext(settings, observationAtMs, zone),
             ),
         )
         return StartPrediction(
@@ -888,32 +934,29 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun wellbeingForStartPrediction(
         wellbeing: DailyWellbeingLog?,
-        finishedMs: Long,
+        observationAtMs: Long,
     ): DailyWellbeingLog? {
         if (wellbeing == null) return null
-        val finishWindowStart = finishedMs - 5L * 60_000L
-        fun finishAnchor(channel: RecoveryChannelId) = wellbeing.manualAnchorMs(channel, ZoneId.systemDefault()) >= finishWindowStart
-        val v2 = wellbeing.manualMuscleOverridesV2.filterValues { it.anchorEpochMs < finishWindowStart }
+        val v2 = wellbeing.manualMuscleOverridesV2.filterValues { it.anchorEpochMs < observationAtMs }
         return wellbeing.copy(
-            manualNeuralBattery = if (finishAnchor(RecoveryChannelId.SYSTEM)) null else wellbeing.manualNeuralBattery,
-            manualSpinalBattery = if (finishAnchor(RecoveryChannelId.STRUCTURE)) null else wellbeing.manualSpinalBattery,
-            manualMuscularBattery = if (finishAnchor(RecoveryChannelId.MUSCULAR)) null else wellbeing.manualMuscularBattery,
-            manualMuscleBatteries = wellbeing.manualMuscleBatteries.filterKeys { wellbeing.legacyMuscleAnchorMs(it, ZoneId.systemDefault()) < finishWindowStart },
+            manualNeuralBattery = if (wellbeing.manualAnchorMs(RecoveryChannelId.SYSTEM, ZoneId.systemDefault()) >= observationAtMs) null else wellbeing.manualNeuralBattery,
+            manualSpinalBattery = if (wellbeing.manualAnchorMs(RecoveryChannelId.STRUCTURE, ZoneId.systemDefault()) >= observationAtMs) null else wellbeing.manualSpinalBattery,
+            manualMuscularBattery = if (wellbeing.manualAnchorMs(RecoveryChannelId.MUSCULAR, ZoneId.systemDefault()) >= observationAtMs) null else wellbeing.manualMuscularBattery,
+            manualMuscleBatteries = wellbeing.manualMuscleBatteries.filterKeys { wellbeing.legacyMuscleAnchorMs(it, ZoneId.systemDefault()) < observationAtMs },
             manualMuscleOverridesV2 = v2,
         )
     }
 
     private fun manualTouchesFromFinish(
         wellbeing: DailyWellbeingLog?,
-        finishedMs: Long,
+        observationAtMs: Long,
     ): PerformanceTauManualTouches {
         if (wellbeing == null) return PerformanceTauManualTouches()
-        val finishWindowStart = finishedMs - 5L * 60_000L
-        fun finishAnchor(channel: RecoveryChannelId) = wellbeing.manualAnchorMs(channel, ZoneId.systemDefault()) >= finishWindowStart
+        fun finishAnchor(channel: RecoveryChannelId) = wellbeing.manualAnchorMs(channel, ZoneId.systemDefault()) >= observationAtMs
         val v2Muscles = wellbeing.manualMuscleOverridesV2
-            .filterValues { it.anchorEpochMs >= finishWindowStart }
+            .filterValues { it.anchorEpochMs >= observationAtMs }
             .keys
-        val v1Muscles = wellbeing.manualMuscleBatteries.keys.filter { wellbeing.legacyMuscleAnchorMs(it, ZoneId.systemDefault()) >= finishWindowStart }.toSet()
+        val v1Muscles = wellbeing.manualMuscleBatteries.keys.filter { wellbeing.legacyMuscleAnchorMs(it, ZoneId.systemDefault()) >= observationAtMs }.toSet()
         return PerformanceTauManualTouches(
             energy = finishAnchor(RecoveryChannelId.SYSTEM) && wellbeing.manualNeuralBattery != null,
             structure = finishAnchor(RecoveryChannelId.STRUCTURE) && wellbeing.manualSpinalBattery != null,
