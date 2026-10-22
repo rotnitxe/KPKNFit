@@ -7,10 +7,20 @@ import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.media.WorkoutMediaStore
 import com.example.kpkn.data.media.technique.AnalysisMode
 import com.example.kpkn.data.media.technique.TechniqueReportSamples
+import com.example.kpkn.data.media.technique.TechniqueSidecars
+import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.repository.VideoAnalysisRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.data.work.TechniqueWorkTestKit
+import com.example.kpkn.domain.biomechanics.bar.BarSample
+import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
+import com.example.kpkn.domain.biomechanics.bar.BarTrack
+import com.example.kpkn.domain.biomechanics.bar.BarTrackCodec
+import com.example.kpkn.domain.biomechanics.bar.PlateSeed
+import com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity
 import com.example.kpkn.domain.biomechanics.metrics.MetricKey
+import com.example.kpkn.domain.biomechanics.metrics.ScaleSource
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -80,6 +90,26 @@ class TechniqueCompareViewModelTest {
         predicate: (TechniqueCompareUiState) -> Boolean = { !it.isLoading },
     ): TechniqueCompareUiState = withTimeout(10_000L) { uiState.first(predicate) }
 
+    private fun writeConfirmedBar(media: WorkoutMedia) {
+        val seed = PlateSeed(tUs = 2_700_000L, cx = 960f, cy = 520f, r = 88f, userConfirmed = true)
+        val track = BarTrack(
+            mediaId = media.id,
+            frameWidth = 1920,
+            frameHeight = 1080,
+            plateDiameterMm = 450,
+            seed = seed,
+            samples = listOf(
+                BarSample(seed.tUs, seed.cx, seed.cy, seed.r, 0.97f, 0.94f, BarSampleSource.HOUGH),
+                BarSample(2_733_333L, 960f, 517f, 88f, 0.96f, 0.91f, BarSampleSource.NCC),
+            ),
+            trackingContinuity = PlateTrackingContinuity.UNINTERRUPTED,
+        )
+        TechniqueSidecars.writeAtomically(
+            TechniqueSidecars.barFile(File(media.filePath)),
+            BarTrackCodec.encode(track),
+        )
+    }
+
     @Test
     fun missing_media_sets_hasError() = runBlocking<Unit> {
         val vm = createViewModel("non-existent-a", "non-existent-b")
@@ -121,6 +151,24 @@ class TechniqueCompareViewModelTest {
     }
 
     @Test
+    fun plate_reports_without_confirmed_bar_sidecars_do_not_publish_mcv() = runBlocking<Unit> {
+        val mediaA = TechniqueWorkTestKit.insertVideo(db, store, "vid-plate-a")
+        val mediaB = TechniqueWorkTestKit.insertVideo(db, store, "vid-plate-b")
+        val report = TechniqueReportSamples.fullReport()
+
+        assertEquals(ScaleSource.PLATE, report.scale?.source)
+        analysis.completeDone(mediaA, report, TechniqueReportSamples.exercise(), mediaA.weightKg, AnalysisMode.FULL)
+        analysis.completeDone(mediaB, report, TechniqueReportSamples.exercise(), mediaB.weightKg, AnalysisMode.FULL)
+        assertFalse(TechniqueSidecars.barFile(File(mediaA.filePath)).exists())
+        assertFalse(TechniqueSidecars.barFile(File(mediaB.filePath)).exists())
+
+        val state = createViewModel(mediaA.id, mediaB.id).awaitState()
+
+        assertFalse(state.hasError)
+        assertTrue(state.metricsTable.none { it.label.contains("MCV") })
+    }
+
+    @Test
     fun media_with_sidecar_reports_computes_full_differences() = runBlocking<Unit> {
         val mediaA = TechniqueWorkTestKit.insertVideo(db, store, "vid-a") {
             it.copy(
@@ -150,6 +198,8 @@ class TechniqueCompareViewModelTest {
 
         analysis.completeDone(mediaA, reportA, TechniqueReportSamples.exercise(), mediaA.weightKg, AnalysisMode.FULL)
         analysis.completeDone(mediaB, reportB, TechniqueReportSamples.exercise(), mediaB.weightKg, AnalysisMode.FULL)
+        writeConfirmedBar(mediaA)
+        writeConfirmedBar(mediaB)
 
         val vm = createViewModel("vid-a", "vid-b")
         val state = vm.awaitState()
@@ -165,5 +215,9 @@ class TechniqueCompareViewModelTest {
 
         val mcvRow = state.metricsTable.find { it.label.contains("MCV") }
         assertNotNull(mcvRow)
+        val publishedMcv = checkNotNull(mcvRow)
+        assertTrue(publishedMcv.valueA != "—")
+        assertTrue(publishedMcv.valueB != "—")
+        assertTrue(publishedMcv.diff != "—")
     }
 }
