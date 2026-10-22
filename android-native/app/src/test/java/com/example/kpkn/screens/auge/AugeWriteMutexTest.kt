@@ -344,11 +344,19 @@ class AugeWriteMutexTest {
         )
     }
 
-    /** Deja el caché como el de un día nuevo: el siguiente recálculo tiene `cacheToPersist != null`. */
+    /**
+     * Deja el caché como el de un día nuevo: el siguiente recálculo tiene `cacheToPersist != null`. Y con el aviso
+     * de modelo pendiente: si ya estuviera mostrado (como en una fila recién creada), la espera de
+     * `markModelUpdateNoticeShown` pasaría sin esperar y no vigilaría el candado.
+     */
     private fun armFirstRecomputeOfTheDay() {
         db {
             augeRepo.saveAdaptiveCache(
-                augeRepo.getAdaptiveCache().copy(lastAdvisoryDay = null, lastAdvisoryLevelByChannel = emptyMap()),
+                augeRepo.getAdaptiveCache().copy(
+                    lastAdvisoryDay = null,
+                    lastAdvisoryLevelByChannel = emptyMap(),
+                    modelUpdateNoticeShown = false,
+                ),
             )
         }
         assertNull("precondición: sin aviso del día", cache().lastAdvisoryDay)
