@@ -76,7 +76,7 @@ private data class M5Bank(
     val manifestHash: String,
     val manifestExpectedCount: Int,
     val packageKind: String?,
-    val packagePartition: String?,
+    val packagePartition: JsonElement?,
     val parentManifestSha256: String?,
     val selectedRows: List<FullBankRow>,
     val validationOnly: Boolean,
@@ -312,6 +312,9 @@ internal fun validateM5ExpectedManifestSha256(actual: String, expected: String) 
     require(M5_SHA256_PATTERN.matches(actual) && actual == expected) { "El manifiesto legacy no coincide con KPKN_M5_LEGACY_MANIFEST_SHA256" }
 }
 
+/** Conserva opaco el metadato de partición; los folds por fila mandan en la membresía de CV. */
+internal fun m5SourcePackagePartition(pkg: JsonObject): JsonElement? = pkg["partition"]
+
 private fun loadM5Bank(name: String, rootArgument: File, expectedManifestSha256: String? = null): M5Bank {
     val root = rootArgument.canonicalFile
     require(root.isDirectory) { "Falta el banco $name" }
@@ -329,12 +332,12 @@ private fun loadM5Bank(name: String, rootArgument: File, expectedManifestSha256:
     val manifestExpectedCount = manifest.getValue("expectedCount").jsonPrimitive.int
     val validationOnly = manifest.b("validationOnly")
     var packageKind: String? = null
-    var packagePartition: String? = null
+    var packagePartition: JsonElement? = null
     var parentManifestSha256: String? = null
     val selected = if (name == "mmfit") {
         val pkg = manifest["package"]?.jsonObject ?: error("MM-Fit exige metadatos package")
         packageKind = pkg.s("kind")
-        packagePartition = pkg.optional("partition")
+        packagePartition = m5SourcePackagePartition(pkg)
         require(packageKind == "mmfit-m5-tune") { "La CV solo acepta package.kind mmfit-m5-tune" }
         val parent = manifest.s("parentManifestSha256")
         require(Regex("[a-f0-9]{64}").matches(parent) && pkg.s("parentManifestSha256") == parent) {
@@ -476,7 +479,7 @@ class FullBankM5CrossValidationTest {
             put("candidateMetricsDescriptiveAllRowsNotForSelection", fullCandidateMetrics)
             put("banks", buildJsonObject { for (bank in banks) put(bank.name, buildJsonObject {
                 put("manifestSha256", bank.manifestHash); put("expectedCount", bank.manifestExpectedCount)
-                put("sourcePackagePartition", bank.packagePartition?.let(::JsonPrimitive) ?: JsonNull)
+                put("sourcePackagePartition", bank.packagePartition ?: JsonNull)
                 put("validationOnly", bank.validationOnly)
                 put("packageKind", bank.packageKind?.let(::JsonPrimitive) ?: JsonNull)
                 put("parentManifestSha256", bank.parentManifestSha256?.let(::JsonPrimitive) ?: JsonNull)
@@ -591,5 +594,22 @@ class FullBankM5CrossValidationTest {
         assertThrows(IllegalArgumentException::class.java) {
             validateM5ExpectedManifestSha256(expected, "A".repeat(64))
         }
+    }
+
+    @Test fun objectPartitionMetadataRoundTripsUnchanged() {
+        // Preserve this source field as opaque metadata; actual fold membership comes from manifest rows.
+        val expected = buildJsonObject {
+            put("folds", JsonArray((0..3).map { JsonPrimitive(it) }))
+            put("rule", "fold = numero de sujeto mod 5")
+        }
+        val sourcePackage = buildJsonObject { put("partition", expected) }
+        val preserved = m5SourcePackagePartition(sourcePackage)
+        assertEquals(expected, preserved)
+
+        val encoded = FullBankReport.objectText(buildJsonObject {
+            put("sourcePackagePartition", preserved ?: JsonNull)
+        })
+        val decoded = FullBankReport.json.parseToJsonElement(encoded).jsonObject.getValue("sourcePackagePartition")
+        assertEquals(expected, decoded)
     }
 }
