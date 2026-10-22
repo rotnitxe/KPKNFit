@@ -91,6 +91,8 @@ data class NativeProgressionProposal(
     val targetLoadKg: Double? = null,
     val explanation: String,
     val createdAtMs: Long,
+    /** Repeticiones del par propuesto; null conserva las propuestas y prescripciones anteriores. */
+    val targetReps: Int? = null,
 )
 
 @Serializable

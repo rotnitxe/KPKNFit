@@ -682,6 +682,11 @@ class NativeWorkoutProgressionRuntimeTest {
         val repository = ProgramRepository.initForTests(context)
         withTimeout(10_000) { repository.isReady.first { it } }
         repository.resetAllStateSync()
+        // El salto comercial de 2,5 kg no cabe en 6-8 reps a 20 kg con T4.
+        // Material explicito para seguir verificando la persistencia de una propuesta alcanzable.
+        repository.updateSettings {
+            it.copy(equipmentInventory = EquipmentInventory(plates = listOf(PlateStock(weightKg = 0.5, countPerSide = 2))))
+        }
 
         val sessions = (1..3).map { nativeSession("durable$it") }
         val weekIds = (1..3).map { "durable-week-$it" }

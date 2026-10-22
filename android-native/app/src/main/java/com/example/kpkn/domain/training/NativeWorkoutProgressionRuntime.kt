@@ -288,6 +288,7 @@ object NativeWorkoutProgressionRuntime {
                                     kind = NativeProgressionProposalKind.INCREASE_LOAD,
                                     recent = recent,
                                     targetLoadKg = target,
+                                    targetReps = pair?.reps,
                                     explanation = NativeProgressionText.loadIncrease(
                                         times = recent.size,
                                         topReps = latest.topReps,
@@ -354,6 +355,7 @@ object NativeWorkoutProgressionRuntime {
                                     kind = NativeProgressionProposalKind.REDUCE_LOAD,
                                     recent = recent,
                                     targetLoadKg = target,
+                                    targetReps = pair?.reps,
                                     explanation = NativeProgressionText.loadReduction(
                                         times = recent.size,
                                         minReps = latest.minReps,
@@ -1464,6 +1466,7 @@ object NativeWorkoutProgressionRuntime {
         recent: List<Exposure>,
         targetConfigurationId: String? = null,
         targetLoadKg: Double? = null,
+        targetReps: Int? = null,
         explanation: String,
         nowMs: Long,
     ) = NativeProgressionProposal(
@@ -1474,6 +1477,7 @@ object NativeWorkoutProgressionRuntime {
         sourceLogIds = recent.map { it.logId },
         targetConfigurationId = targetConfigurationId,
         targetLoadKg = targetLoadKg?.takeIf { it > 0.0 },
+        targetReps = targetReps?.takeIf { it > 0 },
         explanation = explanation,
         createdAtMs = nowMs,
     )
@@ -1619,6 +1623,7 @@ object NativeWorkoutProgressionRuntime {
         val updatedSets = exercise.sets.map { set ->
             if (set.isEmptySlot || set.isCalibrator || set.isTopSet || set.isDropSet || set.isRestPause || set.isAmrap) return@map set
             val target = proposal.targetLoadKg
+            val reps = proposal.targetReps?.takeIf { it > 0 }
             val manualSides = if (requiresManualLoad) {
                 set.manualLoadRequiredSides + side
             } else {
@@ -1630,15 +1635,16 @@ object NativeWorkoutProgressionRuntime {
                     val existingRight = set.rightTarget ?: set.toUnilateralTarget()
                     set.copy(
                         weight = null,
-                        leftTarget = if (proposal.identity.side == "left") existingLeft.copy(weight = target) else existingLeft,
-                        rightTarget = if (proposal.identity.side == "right") existingRight.copy(weight = target) else existingRight,
+                        leftTarget = if (proposal.identity.side == "left") existingLeft.copy(weight = target, targetReps = reps ?: existingLeft.targetReps) else existingLeft,
+                        rightTarget = if (proposal.identity.side == "right") existingRight.copy(weight = target, targetReps = reps ?: existingRight.targetReps) else existingRight,
                         manualLoadRequiredSides = manualSides,
                     )
                 }
                 else -> set.copy(
                     weight = target,
-                    leftTarget = set.leftTarget?.copy(weight = target),
-                    rightTarget = set.rightTarget?.copy(weight = target),
+                    targetReps = reps ?: set.targetReps,
+                    leftTarget = set.leftTarget?.let { it.copy(weight = target, targetReps = reps ?: it.targetReps) },
+                    rightTarget = set.rightTarget?.let { it.copy(weight = target, targetReps = reps ?: it.targetReps) },
                     manualLoadRequiredSides = manualSides,
                 )
             }

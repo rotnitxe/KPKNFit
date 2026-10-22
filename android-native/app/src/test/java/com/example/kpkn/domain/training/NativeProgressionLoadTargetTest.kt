@@ -3,6 +3,7 @@ package com.example.kpkn.domain.training
 import com.example.kpkn.data.models.DumbbellPairStock
 import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.MachineLoadRange
+import com.example.kpkn.data.models.NativeProgressionProposal
 import com.example.kpkn.data.models.NativeProgressionProposalKind
 import com.example.kpkn.data.models.NativeProgressionResolutionStatus
 import com.example.kpkn.data.models.PlateStock
@@ -23,6 +24,9 @@ import com.example.kpkn.domain.training.NativeProgressionTestSupport.completedLo
 import com.example.kpkn.domain.training.NativeProgressionTestSupport.exercisesOf
 import com.example.kpkn.domain.training.NativeProgressionTestSupport.managedOf
 import com.example.kpkn.domain.training.NativeProgressionTestSupport.sessionOf
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -33,7 +37,7 @@ import org.junit.Test
 /**
  * T4 sobre el runtime real: la propuesta de carga lleva el par (repeticiones, kilos) sobre el material
  * declarado; la regla de CUÁNDO subir no cambia; sin material, el texto genérico de siempre; y aceptar
- * escribe solo la carga (el rango de repeticiones del plan, que manda la regla, queda intacto).
+ * escribe la carga y el objetivo de repeticiones (el rango del plan, que manda la regla, queda intacto).
  */
 class NativeProgressionLoadTargetTest {
     companion object {
@@ -112,6 +116,7 @@ class NativeProgressionLoadTargetTest {
 
         assertEquals(NativeProgressionProposalKind.INCREASE_LOAD, proposal.kind)
         assertEquals(22.0, proposal.targetLoadKg!!, 0.0001)
+        assertEquals(8, proposal.targetReps)
         assertEquals(
             "Lo hiciste dos veces con 12 reps en todas las series. " +
                 "Propuesta: subir de 20 a 22 kg por mancuerna y buscar 8 repeticiones con 2 en reserva.",
@@ -223,16 +228,18 @@ class NativeProgressionLoadTargetTest {
     }
 
     @Test
-    fun `aceptar una propuesta con par escribe la carga y deja el rango de repeticiones del plan`() {
+    fun `aceptar una propuesta con par guarda carga y repeticiones sin cambiar el rango del plan`() {
         val program = materialized(GOBLET)
         val logs = twoExposures(program, 20.0)
         val observed = observe(program, logs, everyTwoKilos)
         val proposal = observed.nativeProgressionProposals.single()
+        val restored = Json.decodeFromString<NativeProgressionProposal>(Json.encodeToString(proposal))
+        assertEquals(proposal, restored)
         val rangeBefore = managedOf(program, sessionOf(program, 3).id).single().sets.map { it.targetRepsRange }
 
         val accepted = NativeWorkoutProgressionRuntime.resolveProposal(
-            program = observed,
-            proposalId = proposal.proposalId,
+            program = observed.copy(nativeProgressionProposals = listOf(restored)),
+            proposalId = restored.proposalId,
             accept = true,
             logs = logs,
             ongoingSessionIds = emptySet(),
@@ -241,6 +248,10 @@ class NativeProgressionLoadTargetTest {
         )
         val future = exercisesOf(accepted, sessionOf(accepted, 3).id).single { it.nativeProgressionManaged }
         assertEquals(listOf(22.0, 22.0), future.sets.map { it.weight })
+        assertEquals(listOf(8, 8), future.sets.map { it.targetReps })
+        for (week in 1..2) {
+            assertEquals(sessionOf(program, week), sessionOf(accepted, week))
+        }
         assertEquals("el rango del plan no cambia: manda la regla de cuándo subir", rangeBefore, future.sets.map { it.targetRepsRange })
 
         val again = NativeWorkoutProgressionRuntime.resolveProposal(
@@ -253,6 +264,33 @@ class NativeProgressionLoadTargetTest {
             nowMs = 601L,
         )
         assertEquals("aceptar dos veces no cambia nada", accepted, again)
+    }
+
+    @Test
+    fun `rechazar el par conserva todas las prescripciones y una propuesta antigua no exige repeticiones`() {
+        val program = materialized(GOBLET)
+        val logs = twoExposures(program, 20.0)
+        val observed = observe(program, logs, everyTwoKilos)
+        val proposal = observed.nativeProgressionProposals.single()
+        val rejected = NativeWorkoutProgressionRuntime.resolveProposal(
+            program = observed, proposalId = proposal.proposalId, accept = false,
+            logs = logs, ongoingSessionIds = emptySet(), curatedExercises = emptyMap(), nowMs = 600L,
+        )
+        assertEquals(program.macrocycles, rejected.macrocycles)
+        assertEquals(NativeProgressionResolutionStatus.REJECTED, rejected.nativeProgressionAudit.single().status)
+        val oldJson = Json.encodeToString(proposal.copy(targetReps = null))
+        assertFalse(oldJson.contains("targetReps"))
+        val legacy = Json.decodeFromString<NativeProgressionProposal>(oldJson)
+        assertNull(legacy.targetReps)
+        val legacyAccepted = NativeWorkoutProgressionRuntime.resolveProposal(
+            program = observed.copy(nativeProgressionProposals = listOf(legacy)),
+            proposalId = legacy.proposalId, accept = true, logs = logs,
+            ongoingSessionIds = emptySet(), curatedExercises = emptyMap(), nowMs = 600L,
+        )
+        val before = managedOf(program, sessionOf(program, 3).id).single().sets
+        val after = managedOf(legacyAccepted, sessionOf(legacyAccepted, 3).id).single().sets
+        assertEquals(before.map { it.targetReps }, after.map { it.targetReps })
+        assertEquals(before.map { it.targetRepsRange }, after.map { it.targetRepsRange })
     }
 
     @Test
