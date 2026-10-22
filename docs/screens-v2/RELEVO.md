@@ -16,6 +16,20 @@ Comprobado al arrancar esta sesión, antes de tocar nada:
 - **Rama de integración:** `feat/screens-v2` en u11, con MOT y PROG ya fusionados.
 - **Tableros:** la carpeta temporal del lienzo no es accesible desde este entorno; se trabaja con los briefs, los informes y los renders existentes, y se anota la limitación.
 
+## Inventario 2026-10-22 03:45 (relevo 2: otro agente avanzó)
+
+Comprobado al arrancar esta sesión, después del inventario de las 00:14:
+
+- **Procesos:** no queda ninguna corrida de la ola; la cola v10 tiene el carril ANDROID libre. Sigue vivo un `opencode.exe serve --service` (PID 21332), servicio en segundo plano sin carpeta de trabajo de la ola, y una ranura JVM ajena (`kpkn-jvm-kpkn-programs-audit-periodization`, otra sesión): no se tocan.
+- **u11 · LV-C:** además de los 3 commits de docs (inventario, contexto de diseño, briefs de la fase 4), hay 13 archivos modificados y 5 nuevos sin commitear (936+/361−): `WarmupLoadBase.kt`, `PrepPhaseLiveLogic.kt`, `WarmupLoadBaseTest`, `LiveHeaderTouchTargetsTest`, `PrepLiveCardsUiTest`, `WarmupRecordedLoadBaseVmTest`. Dos corridas sin resultado limpio: `lvc-5` (bash murió en un fork) y `lvc-6` (daemon de Gradle desaparecido durante `compileBaseDebugUnitTestKotlin`). **La verificación sigue pendiente.**
+- **u13 · INV:** limpio, sin empezar; `RecipeContractInventoryTest` sigue en rojo.
+- **u14 · ED-B1:** 5 archivos modificados (275+/36−) más `briefs/ED-B.md` sin commitear. Corrida `edb-1`: 3 fallos en `ExerciseOptionsBarComposeTest` (falta «Orden I/D», «Bilateral», «Unilateral» → B5 L/R a medias).
+- **u15 · CAT-A:** 7 modificados y 6 nuevos de código/pruebas (266+/74−), con `briefs/CAT-A.md` y `reports/CAT-A.md` sin commitear. Corrida `cata-7`: 1 fallo (`e4CreadorConservaRondasDescansosYOrdenAlRecrear`: tras una ronda falta «Configurar superserie»).
+- **u16 · G:** 9 modificados y 4 nuevos (1001+/558−) más `briefs/G.md` sin commitear. Corrida `g-1`: 3 fallos en `WorkoutEditSeriesSheetBoardTest` (`live-edit-focus` no visible, «Serie 1 de 4» ausente, alternador de lateralidad).
+- **u17 · ED-D:** 14 modificados y 4 pruebas nuevas (755+/140−), C2 y C3 a medias. Corrida `edd-1`: 3 fallos (2 en `CardioEditorEddComposeTest`: «GPS en vivo» triplicado y falta «5 bloques · 1 ronda · 17 min»; 1 en `SupersetCreatorC2ComposeTest`: la letra «B» no se muestra).
+- **u18 · ED-C:** 9 modificados y 4 nuevos (313+/247−) más `briefs/ED-C.md` sin commitear. Sin corrida propia registrada hoy.
+- **u12 · ED-E:** sin cambios desde el informe; sigue sin fusionar.
+
 Lo escribe el orquestador (Claude Opus) al acercarse al tope semanal de cuota de Claude. **Copia el prompt de la sección 4 en un agente nuevo.**
 
 ## 1. Qué es esta ola
