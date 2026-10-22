@@ -1,7 +1,7 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.MuscleRecoveryStatus
-import com.example.kpkn.data.models.RecoveryBands
+import com.example.kpkn.domain.auge.RecoveryBands
 import com.example.kpkn.data.models.RecoveryStatus
 import com.example.kpkn.domain.relator.*
 import com.example.kpkn.screens.home.homeBodyValues
