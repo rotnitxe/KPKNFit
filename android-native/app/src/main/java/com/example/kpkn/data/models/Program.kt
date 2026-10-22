@@ -137,6 +137,21 @@ data class Program(
     val hybridAuthoredSources: List<HybridAuthoredSessionSource> = emptyList(),
     /** Grupos realmente evitados al crear el plan; vacío en programas heredados. JSON aditivo, sin migración. */
     val avoidedExerciseGroups: Set<String> = emptySet(),
+    /** Historial de decisiones del programa, compatible con el JSON anterior. */
+    val programDecisions: List<ProgramDecision> = emptyList(),
+)
+
+/** Decisión del sistema o de la persona sobre el programa, con origen y motivo. */
+@Serializable
+data class ProgramDecision(
+    val id: String,
+    val atMs: Long,
+    /** WEEKLY_CHECKIN, BLOCK_REVIEW, CONTINUATION, PROTOCOL, AUTHOR_METHOD, MISSED_SESSION, COMPETITION, MANUAL. */
+    val source: String,
+    val title: String,
+    val detail: String = "",
+    val weekId: String? = null,
+    val blockId: String? = null,
 )
 
 /**
