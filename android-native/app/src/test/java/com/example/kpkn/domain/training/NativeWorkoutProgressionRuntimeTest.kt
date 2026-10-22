@@ -929,7 +929,9 @@ class NativeWorkoutProgressionRuntimeTest {
             equipmentIdOf = { "barbell" },
         ).nativeProgressionProposals.single()
         assertEquals(
-            "Lo hiciste dos veces con 8 reps en todas las series. Propuesta: subir de 20 a 21 kg en total.",
+            // T4: 20 kg x 8 con 2 en reserva -> e1RM 26,7; a 21 kg el modelo da 6 repeticiones (mínimo del rango) con 2 en reserva.
+            "Lo hiciste dos veces con 8 reps en todas las series. " +
+                "Propuesta: subir de 20 a 21 kg en total y buscar 6 repeticiones con 2 en reserva.",
             known.explanation,
         )
 
@@ -972,7 +974,8 @@ class NativeWorkoutProgressionRuntimeTest {
         assertEquals(20.0, proposal.targetLoadKg!!, 0.0001)
         assertEquals(
             "Las últimas dos veces no llegaste a las 6 reps mínimas o terminaste con menos repeticiones en " +
-                "reserva de las previstas. Propuesta: bajar de 22 a 20 kg en total.",
+                // T4: 22 kg x 5 con 2 en reserva -> e1RM 26,4; a 20 kg el modelo da 7 repeticiones con 2 en reserva.
+                "reserva de las previstas. Propuesta: bajar de 22 a 20 kg en total y buscar 7 repeticiones con 2 en reserva.",
             proposal.explanation,
         )
     }
