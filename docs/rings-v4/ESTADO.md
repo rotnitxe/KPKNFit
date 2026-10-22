@@ -1,3 +1,9 @@
+> ACTUALIZACIÓN DEL RELEVO CODEX · 22-oct-2026 (manda sobre las tablas históricas inferiores)
+> - 3.3 y 3.4 fusionados mediante --no-ff: c51fc4615 y b02467685. Correcciones de compilación 8a0846a0b/bd8331746. Android pendiente: r4-33-34-android-codex-1.log.
+> - Contraste limpio master @8ac57c9d4 relanzado al no existir proceso ni entrada antigua: r4-master-contraste-codex-20261022.log.
+> - 3.2c-2 sigue en r4l, sin commit; arnés nuevo r4-32c2-codex-1.log. Se retiró solo su candado huérfano de ayer tras comprobar la ausencia del propietario 1472760.
+> - 3.5 se está implementando en r4e, rama codex/rings-v4-model-skill desde b02467685; todavía sin integrar ni validar. β=0,20, ocho pares, guardia por parámetro sin rearmado automático, según brief cerrado.
+> - 2.4 conserva su WIP en v3c. Master y el árbol principal permanecen intactos; VT no ha sido avisada; no hay validación de teléfono ni permiso de merge a master.
 # Rings v4 · tablero de estado
 
 Lo mantiene el orquestador. Última actualización: **2026-10-21 19:35**. Detalle de decisiones: `DECISIONES_AUTORRESPONDIDAS.md`. Informes por paquete: `reports/<ID>.md`. Convivencia de agentes: `BRIEF_PARALELO.md`.
