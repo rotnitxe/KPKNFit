@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.auge
 
+import android.app.Application
 import android.content.Context
 import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
@@ -38,6 +39,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.time.Instant
+import java.time.LocalDate
 
 /**
  * Pruebas de integración del aprendizaje de rendimiento v4 (paquete 3.4):
@@ -269,7 +271,13 @@ class AugePerformanceLearningIntegrationTest {
     }
 
     private fun startViewModel() {
-        vm = AugeViewModel(ApplicationProvider.getApplicationContext<Application>())
+        vm = AugeViewModel(ApplicationProvider.getApplicationContext<Application>()).also {
+            viewModelStore.put("auge-vm", it)
+        }
+        assertTrue(
+            "el recalculo inicial no publico el snapshot",
+            awaitUntil(SETTLE_MS) { !vm.snapshot.value.isLoading },
+        )
     }
 
     private fun awaitWrites() {
@@ -288,7 +296,7 @@ class AugePerformanceLearningIntegrationTest {
         ms: Long,
         weight: Double,
         discomforts: List<String> = emptyList(),
-        context: AugePerformanceContext?,
+        context: AugePerformanceContext? = null,
     ) = WorkoutLog(
         id = id,
         programId = "prog",
