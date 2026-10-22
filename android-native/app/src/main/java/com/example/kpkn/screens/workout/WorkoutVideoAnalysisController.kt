@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.db.VideoAnalysisSessionRow
+import com.example.kpkn.data.media.technique.PartialSummary
 import com.example.kpkn.data.media.WorkoutMediaSides
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
@@ -12,6 +13,7 @@ import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.repository.VideoAnalysisRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
+import com.example.kpkn.domain.biomechanics.metrics.PartialZone
 import com.example.kpkn.domain.biomechanics.profiles.UnsupportedReasons
 import com.example.kpkn.screens.workout.design.VideoThumbBadge
 import com.example.kpkn.screens.workout.design.videoThumbBadgeFor
@@ -41,7 +43,24 @@ internal data class SetVideoAnalysisUi(val mediaId: String, val state: SetVideoA
 
 internal sealed interface SetVideoAnalysisState {
     data class Analyzing(val progress: Int) : SetVideoAnalysisState
-    data class Suggest(val reps: Int, val partials: Int, val failed: Int, val confidence: CountConfidence, val romPercent: Int? = null) : SetVideoAnalysisState
+    /**
+     * [partials] es el número de parciales que se OFRECE: con la confianza propia de las parciales ([partialConfidence]) BAJA
+     * es 0 y nada se aplica. [partialZone] es la zona común de las parciales, si la hay (solo se nombra con ALTA).
+     */
+    data class Suggest(
+        val reps: Int,
+        val partials: Int,
+        val failed: Int,
+        val confidence: CountConfidence,
+        val romPercent: Int? = null,
+        val partialConfidence: CountConfidence = confidence,
+        val partialZone: PartialZone? = null,
+    ) : SetVideoAnalysisState
+
+    /**
+     * [partials] es el número de parciales que se OFRECE: con la confianza propia de las parciales ([partialConfidence]) BAJA
+     * es [loggedPartials], las que ya había, y «Corregir» no las toca.
+     */
     data class Mismatch(
         val logged: Int,
         val counted: Int,
@@ -49,6 +68,8 @@ internal sealed interface SetVideoAnalysisState {
         val failed: Int,
         val confidence: CountConfidence,
         val loggedPartials: Int = 0,
+        val partialConfidence: CountConfidence = confidence,
+        val partialZone: PartialZone? = null,
     ) : SetVideoAnalysisState {
         val countsDiffer: Boolean get() = logged != counted || loggedPartials != partials
     }
@@ -83,7 +104,7 @@ internal class WorkoutVideoAnalysisController(
     private val mediaRepository: WorkoutMediaRepository,
     ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
-    private data class Entry(val row: VideoAnalysisSessionRow, val summary: VideoAnalysisSummary?)
+    private data class Entry(val row: VideoAnalysisSessionRow, val summary: VideoAnalysisSummary?, val partials: PartialSummary? = null)
     private data class Snapshot(val entries: List<Entry>, val romReferences: Map<String, Double>)
 
     private val snapshots = sessionKeys.distinctUntilChanged().flatMapLatest { key ->
@@ -91,7 +112,12 @@ internal class WorkoutVideoAnalysisController(
     }.mapLatest { rows ->
         val entries = rows.map { row ->
             coroutineContext.ensureActive()
-            Entry(row, repository.getByMedia(row.mediaId))
+            val summary = repository.getByMedia(row.mediaId)
+            // La confianza propia de las parciales y su zona no están en Room: salen del sidecar, y solo si hay parciales.
+            val partials = if (row.status == VideoAnalysisStatus.DONE.name && (row.partialReps ?: 0) > 0) {
+                summary?.reportPath?.let { repository.partialSummaryAt(it) }
+            } else null
+            Entry(row, summary, partials)
         }
         val references = HashMap<String, Double>()
         for (key in entries.mapNotNull { it.summary?.exerciseKey }.distinct()) {
@@ -180,18 +206,26 @@ internal class WorkoutVideoAnalysisController(
         val confidence = CountConfidence.entries.firstOrNull { it.name == row.confidence }
         if (confidence == null || confidence == CountConfidence.BAJA) return SetVideoAnalysisState.Inconclusive
         val count = row.repCount?.takeIf { it >= 0 } ?: return SetVideoAnalysisState.Inconclusive
-        val partials = row.partialReps?.takeIf { it >= 0 } ?: return SetVideoAnalysisState.Inconclusive
+        val detected = row.partialReps?.takeIf { it >= 0 } ?: return SetVideoAnalysisState.Inconclusive
         val failed = row.failedReps?.takeIf { it >= 0 } ?: return SetVideoAnalysisState.Inconclusive
-        if (count == 0 && partials == 0 && failed == 0) return SetVideoAnalysisState.Inconclusive
+        // M4: el número de parciales tiene su propia confianza (sin ella, un informe de antes del motor 9, la de las repeticiones).
+        // Con BAJA no se ofrecen: no entran en la propuesta y, al corregir, se dejan las que ya había.
+        val partialConfidence = entry.partials?.confidence ?: confidence
+        val partialZone = entry.partials?.zone
+        val offered = if (partialConfidence == CountConfidence.BAJA) 0 else detected
+        if (count == 0 && offered == 0 && failed == 0) return SetVideoAnalysisState.Inconclusive
         if (logged != null) {
+            val partials = if (partialConfidence == CountConfidence.BAJA) logged.partialReps ?: 0 else detected
             val sameCounts = logged.reps == count && (logged.partialReps ?: 0) == partials
             if (sameCounts && confidence == CountConfidence.ALTA && (failed == 0 || logged.isFailure)) return SetVideoAnalysisState.Agrees(count)
-            return SetVideoAnalysisState.Mismatch(logged.reps, count, partials, failed, confidence, logged.partialReps ?: 0)
+            return SetVideoAnalysisState.Mismatch(
+                logged.reps, count, partials, failed, confidence, logged.partialReps ?: 0, partialConfidence, partialZone,
+            )
         }
         val reference = entry.summary?.exerciseKey?.let { references[it] }
         val romPercent = if (exercise.trackRom && reference != null) entry.summary?.romMeanDeg
             ?.takeIf { it.isFinite() && it > 0.0 }?.let { (it / reference * 20.0).roundToInt() * 5 } else null
-        return SetVideoAnalysisState.Suggest(count, partials, failed, confidence, romPercent)
+        return SetVideoAnalysisState.Suggest(count, offered, failed, confidence, romPercent, partialConfidence, partialZone)
     }
 
     val videoThumbBadgeByMediaId: StateFlow<Map<String, VideoThumbBadge>> = snapshots.mapLatest { snapshot ->

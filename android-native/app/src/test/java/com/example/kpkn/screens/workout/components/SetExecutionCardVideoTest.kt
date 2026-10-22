@@ -14,6 +14,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.screens.workout.design.WorkoutVideoChipTag
 import com.example.kpkn.screens.workout.design.WorkoutVideoMenuTag
+import com.example.kpkn.screens.workout.design.completedVideoCorrectionPatch
 import com.example.kpkn.screens.workout.*
 import com.example.kpkn.ui.theme.KPKNTheme
 import com.example.kpkn.services.workout.VoiceSetEditPatch
@@ -34,8 +35,11 @@ class SetExecutionCardVideoTest {
     private var recordedValue: Double? = null
     private var recordedAdvanced: SetAdvancedFeedback? = null
     private var draft: WorkoutSetDraft? = null
+    private var correctionPatch: CompletedSetPatch? = null
 
-    private fun show(full: Int, partials: Int, withSuggestion: Boolean = true, unit: UnitModeV2 = UnitModeV2.REPS, confidence: CountConfidence = CountConfidence.ALTA) {
+    private fun show(full: Int, partials: Int, withSuggestion: Boolean = true, unit: UnitModeV2 = UnitModeV2.REPS,
+                     confidence: CountConfidence = CountConfidence.ALTA, partialConfidence: CountConfidence = confidence,
+                     initialPartials: Int? = null) {
         val set = ExerciseSet(id = "s", targetReps = 8, weight = 95.0, targetRIR = 2,
             intensityMode = IntensityMode.RIR, loadModeV2 = LoadModeV2.LOAD, unitModeV2 = unit)
         val exercise = Exercise(id = "e", name = "Sentadilla", sets = listOf(set))
@@ -47,9 +51,10 @@ class SetExecutionCardVideoTest {
                         onShowHistory = {}, onSetBodyWeight = {}, initialBodyWeight = 80.0,
                         recordActionHolder = holder, recordActionPageKey = "page",
                         initialDraft = WorkoutSetDraft(weightText = "95", valueText = if (withSuggestion) "8" else full.toString(),
-                            intensityText = "2", partialReps = if (withSuggestion) null else partials),
+                            intensityText = "2", partialReps = if (withSuggestion) initialPartials else partials),
                         onDraftChange = { value, _ -> draft = value },
-                        videoAnalysis = if (withSuggestion) SetVideoAnalysisUi("v", SetVideoAnalysisState.Suggest(full, partials, 0, confidence)) else null,
+                        videoAnalysis = if (withSuggestion) SetVideoAnalysisUi("v", SetVideoAnalysisState.Suggest(
+                            full, partials, 0, confidence, partialConfidence = partialConfidence)) else null,
                         onRecordV2 = { _, _, _, value, _, advanced, _, _, _, result ->
                             recordedValue = value
                             recordedAdvanced = advanced
@@ -85,6 +90,21 @@ class SetExecutionCardVideoTest {
             assertEquals(7.0, recordedValue!!, 0.0)
             assertEquals(1, recordedAdvanced?.partialReps)
             assertFalse(recordedAdvanced?.reachedFailure == true)
+        }
+    }
+
+    @Test fun use_with_low_partial_confidence_keeps_existing_draft_partials() {
+        show(7, 0, partialConfidence = CountConfidence.BAJA, initialPartials = 3)
+        openMenu()
+        rule.onNodeWithText("Usar").performClick()
+        rule.runOnIdle {
+            assertEquals("7", draft?.valueText)
+            assertEquals(3, draft?.partialReps)
+            holder.actionForPage("page")!!.invoke()
+        }
+        rule.runOnIdle {
+            assertEquals(7.0, recordedValue!!, 0.0)
+            assertEquals(3, recordedAdvanced?.partialReps)
         }
     }
 
@@ -136,7 +156,9 @@ class SetExecutionCardVideoTest {
     private lateinit var completed: MutableState<CompletedSet>
     private val redraw = mutableStateOf(false)
 
-    private fun showCompleted(full: Int = 8, partials: Int = 0, staleDraft: Boolean = true, confidence: CountConfidence = CountConfidence.ALTA) {
+    private fun showCompleted(full: Int = 8, partials: Int = 0, staleDraft: Boolean = true,
+                              confidence: CountConfidence = CountConfidence.ALTA, partialConfidence: CountConfidence = confidence,
+                              useProductionCorrection: Boolean = false) {
         completed = mutableStateOf(CompletedSet(id = "stable-id", weight = 95.0, reps = full,
             partialReps = partials.takeIf { it > 0 }, isPartial = partials > 0,
             actualIntensityMode = IntensityMode.RIR, actualIntensityValue = 2.0, rir = 2))
@@ -155,9 +177,13 @@ class SetExecutionCardVideoTest {
                             intensityText = "2", reachedFailure = false) else null,
                         onDraftChange = { value, _ -> draft = value },
                         videoAnalysis = SetVideoAnalysisUi("v", SetVideoAnalysisState.Mismatch(
-                            logged = 8, counted = 7, partials = 1, failed = 1, confidence = confidence)),
-                        onVideoCorrect = { mismatch -> completed.value = applyCompletedSetPatch(completed.value,
-                            CompletedSetPatch(edit = VoiceSetEditPatch(metricValue = mismatch.counted), partialReps = mismatch.partials)) },
+                            logged = 8, counted = 7, partials = if (partialConfidence == CountConfidence.BAJA) partials else 1,
+                            failed = 1, confidence = confidence, loggedPartials = partials, partialConfidence = partialConfidence)),
+                        onVideoCorrect = { mismatch ->
+                            correctionPatch = if (useProductionCorrection) completedVideoCorrectionPatch(mismatch) else
+                                CompletedSetPatch(edit = VoiceSetEditPatch(metricValue = mismatch.counted), partialReps = mismatch.partials)
+                            completed.value = applyCompletedSetPatch(completed.value, correctionPatch!!)
+                        },
                         onVideoMarkFailure = { completed.value = applyCompletedSetPatch(completed.value,
                             CompletedSetPatch(reachedFailure = true)) },
                         onRecordV2 = { _, _, _, value, _, advanced, _, _, _, result ->
@@ -189,6 +215,17 @@ class SetExecutionCardVideoTest {
             assertEquals(7.0, recordedValue!!, 0.0)
             assertEquals(1, recordedAdvanced?.partialReps)
             assertFalse(recordedAdvanced?.reachedFailure == true)
+        }
+    }
+
+    @Test fun correct_with_low_partial_confidence_keeps_logged_partials() {
+        showCompleted(partials = 3, partialConfidence = CountConfidence.BAJA, useProductionCorrection = true)
+        openMenu()
+        rule.onNodeWithText("Corregir").performClick()
+        rule.runOnIdle {
+            assertEquals(7, completed.value.reps)
+            assertEquals(3, completed.value.partialReps)
+            assertNull(correctionPatch?.partialReps)
         }
     }
 

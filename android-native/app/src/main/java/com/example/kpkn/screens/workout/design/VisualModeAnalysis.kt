@@ -4,10 +4,40 @@ import com.example.kpkn.data.db.VideoAnalysisSessionRow
 import com.example.kpkn.data.media.WorkoutAlbumGrouping
 import com.example.kpkn.data.models.VideoAnalysisStatus
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
+import com.example.kpkn.domain.biomechanics.metrics.PartialZone
 import com.example.kpkn.screens.workout.SetVideoAnalysisState
 
 /** La estimación y su cifra forman una unidad tipográfica (D46). */
 internal fun approxCount(n: Int): String = "≈\u00A0$n"
+
+/** La zona de una parcial, en palabras (M4): la que se queda en la parte de estiramiento o en la acortada. */
+internal fun partialZoneText(zone: PartialZone): String = when (zone) {
+    PartialZone.STRETCHED -> "en estiramiento"
+    PartialZone.SHORTENED -> "acortada"
+}
+
+/**
+ * Las parciales en una frase, con una sola fuente para la sugerencia, la corrección, el Modo visual, el descanso y TalkBack:
+ * - ALTA: «+2 parciales (en estiramiento)»; sin zona común (zonas distintas o ninguna), «+2 parciales».
+ * - MEDIA: «+≈ 2 parciales», sin zona: el número ya es una estimación.
+ * - BAJA, o ninguna parcial: `null`; no se mencionan.
+ */
+internal fun partialsPhrase(partials: Int, confidence: CountConfidence, zone: PartialZone?): String? {
+    if (partials <= 0 || confidence == CountConfidence.BAJA) return null
+    val noun = if (partials == 1) "parcial" else "parciales"
+    return if (confidence == CountConfidence.MEDIA) {
+        "+${approxCount(partials)} $noun"
+    } else {
+        "+$partials $noun" + zone?.let { " (${partialZoneText(it)})" }.orEmpty()
+    }
+}
+
+/** Las parciales en el formato corto del chip y del descanso: «2p» con ALTA, «≈ 2p» con MEDIA, `null` con BAJA. */
+internal fun partialsShort(partials: Int, confidence: CountConfidence): String? = when {
+    partials <= 0 || confidence == CountConfidence.BAJA -> null
+    confidence == CountConfidence.MEDIA -> approxCount(partials) + "p"
+    else -> "${partials}p"
+}
 
 internal sealed interface VideoThumbBadge {
     data class Analyzing(val progress: Int) : VideoThumbBadge
@@ -86,8 +116,8 @@ internal fun fitVisualModeAnalysisText(line: VisualModeAnalysisLine, fits: (Stri
 
 /** Una frase y, cuando procede, una acción explícita dentro de ella. */
 internal fun visualModeAnalysisLine(state: SetVideoAnalysisState, setIndex: Int): VisualModeAnalysisLine {
-    fun extras(partials: Int, failed: Int): String = buildString {
-        if (partials > 0) append(" · +$partials ${if (partials == 1) "parcial" else "parciales"}")
+    fun extras(partials: Int, failed: Int, confidence: CountConfidence, zone: PartialZone?): String = buildString {
+        partialsPhrase(partials, confidence, zone)?.let { append(" · ").append(it) }
         if (failed > 0) append(" · $failed al fallo")
     }
 
@@ -102,7 +132,7 @@ internal fun visualModeAnalysisLine(state: SetVideoAnalysisState, setIndex: Int)
                 val base = if (state.reps == 0 && state.partials == 0 && state.failed > 0) {
                     "El vídeo muestra ${state.failed} ${if (state.failed == 1) "intento" else "intentos"} al fallo"
                 } else {
-                    "El vídeo cuenta ${state.reps}" + extras(state.partials, state.failed)
+                    "El vídeo cuenta ${state.reps}" + extras(state.partials, state.failed, state.partialConfidence, state.partialZone)
                 }
                 VisualModeAnalysisLine(
                     text = "$base · ver análisis",
@@ -111,7 +141,7 @@ internal fun visualModeAnalysisLine(state: SetVideoAnalysisState, setIndex: Int)
                 )
             }
             CountConfidence.MEDIA -> VisualModeAnalysisLine(
-                text = "El vídeo cuenta ${approxCount(state.reps)}" + extras(state.partials, state.failed) + " · revisar",
+                text = "El vídeo cuenta ${approxCount(state.reps)}" + extras(state.partials, state.failed, state.partialConfidence, state.partialZone) + " · revisar",
                 actionLabel = "revisar",
                 action = VisualModeAnalysisAction.OPEN,
             )
@@ -124,7 +154,7 @@ internal fun visualModeAnalysisLine(state: SetVideoAnalysisState, setIndex: Int)
         is SetVideoAnalysisState.Mismatch -> when (state.confidence) {
             CountConfidence.ALTA -> {
                 val base = if (state.countsDiffer) {
-                    "Registraste ${state.logged}${if (state.loggedPartials > 0) " + ${state.loggedPartials} ${if (state.loggedPartials == 1) "parcial" else "parciales"}" else ""}; el vídeo cuenta ${state.counted}" + extras(state.partials, state.failed)
+                    "Registraste ${state.logged}${if (state.loggedPartials > 0) " + ${state.loggedPartials} ${if (state.loggedPartials == 1) "parcial" else "parciales"}" else ""}; el vídeo cuenta ${state.counted}" + extras(state.partials, state.failed, state.partialConfidence, state.partialZone)
                 } else {
                     "El vídeo muestra ${state.failed} ${if (state.failed == 1) "intento" else "intentos"} al fallo"
                 }
@@ -135,7 +165,7 @@ internal fun visualModeAnalysisLine(state: SetVideoAnalysisState, setIndex: Int)
                 )
             }
             CountConfidence.MEDIA -> VisualModeAnalysisLine(
-                text = "El vídeo cuenta ${approxCount(state.counted)}" + extras(state.partials, state.failed) + " · revisar",
+                text = "El vídeo cuenta ${approxCount(state.counted)}" + extras(state.partials, state.failed, state.partialConfidence, state.partialZone) + " · revisar",
                 actionLabel = "revisar",
                 action = VisualModeAnalysisAction.OPEN,
             )

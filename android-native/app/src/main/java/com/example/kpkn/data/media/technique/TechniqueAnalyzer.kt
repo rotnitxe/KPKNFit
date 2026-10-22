@@ -2,6 +2,7 @@ package com.example.kpkn.data.media.technique
 
 import android.content.Context
 import com.example.kpkn.domain.biomechanics.bar.PlateSeed
+import com.example.kpkn.domain.biomechanics.metrics.RangeReference
 import com.example.kpkn.domain.biomechanics.metrics.SetTechniqueReport
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import com.example.kpkn.domain.biomechanics.profiles.ExerciseRef
@@ -21,7 +22,9 @@ enum class AnalysisMode { FULL, RECOMPUTE, PLATE_ONLY }
 /**
  * Lo que el analizador necesita de un vídeo (§3.7). [exercise] es lo que el data layer sabe del ejercicio; [loadKg] la
  * carga de la serie; [plateDiameterMm] y [plateSeed] el disco de calibración; [userHeightCm] la estatura del perfil (escala
- * corporal) y [setHints] los nombres de `SetTechniqueV2` de la serie.
+ * corporal) y [setHints] los nombres de `SetTechniqueV2` de la serie. [rangeReference] (M4) es la referencia PERSONAL de
+ * recorrido, hecha con los análisis anteriores del mismo ejercicio (`null`: ninguna); vale en los tres modos, también en
+ * RECOMPUTE.
  */
 data class TechniqueAnalysisRequest(
     val mediaId: String,
@@ -33,6 +36,7 @@ data class TechniqueAnalysisRequest(
     val plateSeed: PlateSeed?,
     val userHeightCm: Double?,
     val setHints: Set<String>,
+    val rangeReference: RangeReference? = null,
 )
 
 /** Cómo termina un análisis (§3.7). El Worker lo traduce al estado de `video_analysis`. */

@@ -49,6 +49,9 @@ import com.example.kpkn.ui.design.KpknType
 /** Etiqueta de prueba del módulo «Resumen». */
 const val ANALYSIS_SUMMARY_TAG = "analysis-summary"
 
+/** Etiqueta de prueba de la línea de parciales del resumen (M4). */
+const val ANALYSIS_PARTIALS_LINE_TAG = "analysis-partials-line"
+
 /** Etiqueta de prueba de una celda del resumen (`analysis-tile-REPS`, `analysis-tile-VELOCITY_LOSS`…). */
 fun analysisTileTag(id: Enum<*>): String = "analysis-tile-${id.name}"
 
@@ -92,14 +95,25 @@ fun AnalysisSummaryModule(
             }
         }
         val depth = summary.depthLine
-        if (depth != null) {
+        val partials = summary.partialsLine
+        if (depth != null || partials != null) {
             Spacer(Modifier.height(18.dp))
             AnalysisDivider()
             Spacer(Modifier.height(14.dp))
             // «Bajo el paralelo en ≈ 7 de 8 · a la par en 1»: cada parte en su línea (partida a media frase deja un «1» huérfano).
-            depth.split(DEPTH_SEPARATOR).forEachIndexed { index, part ->
+            depth?.split(DEPTH_SEPARATOR)?.forEachIndexed { index, part ->
                 if (index > 0) Spacer(Modifier.height(2.dp))
                 Text(text = part.keepTogether(), style = KpknType.body, color = WizardColors.text)
+            }
+            // «2 parciales en estiramiento (≈ 55 % del recorrido)» (M4): bajo la profundidad, sin partir la estimación de su cifra.
+            if (partials != null) {
+                if (depth != null) Spacer(Modifier.height(8.dp))
+                Text(
+                    text = partials.keepTogether(),
+                    style = KpknType.body,
+                    color = WizardColors.text,
+                    modifier = Modifier.testTag(ANALYSIS_PARTIALS_LINE_TAG),
+                )
             }
         }
     }

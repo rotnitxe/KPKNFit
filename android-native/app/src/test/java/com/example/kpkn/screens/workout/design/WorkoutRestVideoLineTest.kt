@@ -29,12 +29,12 @@ class WorkoutRestVideoLineTest {
     }
 
     @Test fun partials_failure_and_low_confidence_keep_the_visual_mode_meaning() {
-        listOf(CountConfidence.ALTA, CountConfidence.MEDIA).forEach { confidence ->
+        listOf(CountConfidence.ALTA to "+2p", CountConfidence.MEDIA to "+≈\u00A02p").forEach { (confidence, partials) ->
             val state = SetVideoAnalysisState.Mismatch(8, 7, 2, 1, confidence, loggedPartials = 1)
             val line = workoutRestVideoLine(state)
             assertTrue(line.text.contains(workoutVideoRepsText(state).replaceFirst("El vídeo", "el vídeo")))
             assertTrue(line.compactDescription.contains("8+1p"))
-            assertTrue(line.compactDescription.contains("+2p"))
+            assertTrue(line.compactDescription.contains(partials))
             assertTrue(line.compactDescription.contains("1 fallo"))
         }
         listOf(

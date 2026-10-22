@@ -41,6 +41,7 @@ import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
+import com.example.kpkn.domain.biomechanics.metrics.PartialZone
 import com.example.kpkn.screens.workout.SetVideoAnalysisState
 import com.example.kpkn.screens.workout.SetVideoAnalysisUi
 import com.example.kpkn.screens.workout.components.MediaFaceTag
@@ -135,6 +136,10 @@ class LiveCardRenderSheetMediaTest {
             "analizando" to SetVideoAnalysisState.Analyzing(42),
             "alta" to SetVideoAnalysisState.Suggest(8, 1, 0, CountConfidence.ALTA),
             "media" to SetVideoAnalysisState.Suggest(8, 0, 0, CountConfidence.MEDIA),
+            "parciales_estiramiento" to SetVideoAnalysisState.Suggest(8, 2, 0, CountConfidence.ALTA, partialZone = PartialZone.STRETCHED),
+            "parciales_acortada" to SetVideoAnalysisState.Suggest(8, 2, 0, CountConfidence.ALTA, partialZone = PartialZone.SHORTENED),
+            "parciales_media" to SetVideoAnalysisState.Suggest(8, 2, 0, CountConfidence.ALTA, partialConfidence = CountConfidence.MEDIA),
+            "parciales_baja" to SetVideoAnalysisState.Suggest(8, 0, 0, CountConfidence.ALTA, partialConfidence = CountConfidence.BAJA),
             "no_concluyente" to SetVideoAnalysisState.Inconclusive,
             "fallo" to SetVideoAnalysisState.Failed("ERR_CODEC"),
             "sin_soporte" to SetVideoAnalysisState.Unsupported("Este ejercicio todavía no admite análisis de técnica"),
