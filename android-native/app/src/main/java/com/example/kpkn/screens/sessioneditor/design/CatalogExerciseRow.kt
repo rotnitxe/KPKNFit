@@ -45,6 +45,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePattern
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PatternGlyph
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
@@ -72,6 +73,8 @@ internal fun CatalogExerciseRow(
     expandable: Boolean = false,
     expanded: Boolean = false,
     onLongClick: (() -> Unit)? = null,
+    onOpenFicha: (() -> Unit)? = null,
+    selectionOrder: Int? = null,
 ) {
     Row(
         modifier = modifier
@@ -83,6 +86,7 @@ internal fun CatalogExerciseRow(
         Row(
             modifier = Modifier
                 .weight(1f)
+                .heightIn(min = 48.dp)
                 .combinedClickable(
                     role = Role.Button,
                     onClick = onClick,
@@ -100,7 +104,7 @@ internal fun CatalogExerciseRow(
                     text = name,
                     style = KpknType.bodyStrong,
                     color = WizardColors.text,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (!subtitle.isNullOrBlank()) {
@@ -124,10 +128,18 @@ internal fun CatalogExerciseRow(
             }
         }
         Spacer(Modifier.width(8.dp))
+        if (onOpenFicha != null) {
+            KpknIconButton(
+                icon = KpknLineIcons.Info,
+                contentDescription = "Ver ficha de $name",
+                onClick = onOpenFicha,
+            )
+        }
         CatalogSelectionCircle(
             selected = selected,
             label = if (selected) "Quitar $name de la selección" else "Añadir $name a la selección",
             onToggle = onToggleSelection,
+            selectionOrder = selectionOrder,
         )
     }
 }
@@ -204,13 +216,16 @@ internal fun CatalogRowThumbnail(thumbnailResId: Int?, pattern: ExercisePattern)
  * táctil mide 48 dp y lleva [label] para accesibilidad.
  */
 @Composable
-private fun CatalogSelectionCircle(selected: Boolean, label: String, onToggle: () -> Unit) {
+private fun CatalogSelectionCircle(selected: Boolean, label: String, onToggle: () -> Unit, selectionOrder: Int?) {
     val interaction = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
             .size(48.dp)
             .testTag("catalog_row_select")
-            .semantics { contentDescription = label }
+            .semantics {
+                contentDescription = label
+                if (selected && selectionOrder != null) stateDescription = "Orden $selectionOrder"
+            }
             .toggleable(
                 value = selected,
                 role = Role.Checkbox,
@@ -233,7 +248,9 @@ private fun CatalogSelectionCircle(selected: Boolean, label: String, onToggle: (
             contentAlignment = Alignment.Center,
         ) {
             if (selected) {
-                Icon(
+                if (selectionOrder != null) {
+                    Text(text = "$selectionOrder", style = KpknType.bodyStrong, color = WizardColors.ctaContent)
+                } else Icon(
                     imageVector = KpknLineIcons.Check,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
