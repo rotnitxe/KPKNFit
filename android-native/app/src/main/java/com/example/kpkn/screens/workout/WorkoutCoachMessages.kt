@@ -108,7 +108,7 @@ object WorkoutCoachMessages {
             )
             drain == DrainLevel.LOW && readiness == ReadinessLevel.HIGH -> CoachMessageComponents(
                 severity = CoachSeverity.SUCCESS,
-                title = "Día óptimo para max effort",
+                title = "Día óptimo para tu carga planificada",
                 body = "Baja fatiga y máxima disponibilidad. Buen momento para trabajar con la intensidad planificada.",
                 action = CoachAction.STAY_THE_COURSE,
             )
