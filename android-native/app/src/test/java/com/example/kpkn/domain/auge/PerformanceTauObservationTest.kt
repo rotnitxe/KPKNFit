@@ -172,7 +172,9 @@ class PerformanceTauObservationTest {
     }
 
     @Test
-    fun applyToCache_betterThanPredicted_shortensPecsTau() {
+    fun applyToCache_isANeutralBridgeUntilItem34() {
+        // 3.3: el EMA se retiró de producción y el aprendizaje de rendimiento queda suspendido hasta 3.4. Antes esta
+        // observación acortaba el τ de Pectorales por debajo de 48 h, sumaba 1 observación y sellaba el log como aprendido.
         val obs = RecoveryLearningObservation(
             muscle = "Pectorales",
             predictedBattery = 70,
@@ -184,16 +186,17 @@ class PerformanceTauObservationTest {
             observations = listOf(obs),
             diagnostics = emptyList(),
         )
+        val start = AugeAdaptiveCache(personalizedRecoveryHours = mapOf("pectorales" to 48.0))
         val updated = PerformanceTauLearner.applyToCache(
-            cache = AugeAdaptiveCache(personalizedRecoveryHours = mapOf("pectorales" to 48.0)),
+            cache = start,
             result = result,
             finishedLogId = "today",
             nowMs = now.toEpochMilli(),
         )
-        val tau = updated.personalizedRecoveryHours["pectorales"]!!
-        assertTrue(tau < 48.0)
-        assertEquals("today", updated.lastPerformanceLearnLogId)
-        assertEquals(1, updated.totalObservations)
+        assertEquals(start, updated)
+        assertEquals(48.0, updated.personalizedRecoveryHours.getValue("pectorales"), 0.0)
+        assertEquals(null, updated.lastPerformanceLearnLogId)
+        assertEquals(0, updated.totalObservations)
     }
 
     private fun pecsInput(

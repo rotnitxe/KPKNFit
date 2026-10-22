@@ -261,13 +261,14 @@ class AugeParametersConsistencyTest {
             setOf("Costales"),
             resultado.observations.map { it.muscle }.filter { aprendizDeAntes(it) != AugeAdaptiveEngine.defaultRecoveryHours(it) }.toSet(),
         )
-        // La primera observación llega con la clave real: prior vacío 24 h → 27 h; un τ ya guardado en 48 h sigue dando 54 h.
+        // 3.3: el puente `applyToCache` es neutro hasta 3.4 (antes: prior vacío 24 h → 27 h y un τ guardado de 48 h → 54 h).
+        // Las observaciones siguen llegando con la clave real de Costales; aplicarlas no mueve ningún τ.
         val nuevo = PerformanceTauLearner.applyToCache(AugeAdaptiveCache(), resultado, "hoy", ORIGEN)
         val guardado = PerformanceTauLearner.applyToCache(
             AugeAdaptiveCache(personalizedRecoveryHours = mapOf("costales" to 48.0)), resultado, "hoy", ORIGEN,
         )
-        assertEquals(27.0, nuevo.personalizedRecoveryHours.getValue("costales"), 1e-9)
-        assertEquals(54.0, guardado.personalizedRecoveryHours.getValue("costales"), 1e-9)
+        assertEquals(AugeAdaptiveCache(), nuevo)
+        assertEquals(48.0, guardado.personalizedRecoveryHours.getValue("costales"), 0.0)
     }
 
     @Test
@@ -849,22 +850,9 @@ class AugeParametersConsistencyTest {
 
         /**
          * Lo que se decide dejar fuera del registro. Cada entrada nombra archivo, regla y un trozo de la línea, y da el motivo.
-         * Los tres clamps son del aprendiz actual (EMA de `AugeAdaptiveEngine`), que la fase 3 reemplaza: sus límites no son los del
-         * motor (el inferior de músculo y Energía es 12 h, no 18 h), así que 2.1 no los unifica.
+         * Las tres excepciones de los límites del aprendiz EMA de `AugeAdaptiveEngine` se borraron en 3.3 junto con el EMA
+         * (los límites del EKF viven en `AugeParameters.LEARNER_TAU_*`): hoy no queda ninguna copia permitida.
          */
-        val PERMITIDOS = listOf(
-            Permitido(
-                "AugeAdaptiveEngine.kt", "limites-de-tau", "clamp(newTau, 12.0, 144.0)",
-                "límites propios del aprendiz de músculos; lo reemplaza la fase 3",
-            ),
-            Permitido(
-                "AugeAdaptiveEngine.kt", "limites-de-tau", "clamp(it, 12.0, 144.0)",
-                "límites propios del aprendiz de Energía; lo reemplaza la fase 3",
-            ),
-            Permitido(
-                "AugeAdaptiveEngine.kt", "limites-de-tau", "clamp(it, 18.0, 144.0)",
-                "límites propios del aprendiz de Columna; coinciden con el motor pero son del aprendiz actual",
-            ),
-        )
+        val PERMITIDOS = emptyList<Permitido>()
     }
 }

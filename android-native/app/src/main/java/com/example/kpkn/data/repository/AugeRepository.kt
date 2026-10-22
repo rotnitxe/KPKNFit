@@ -1,6 +1,7 @@
 package com.example.kpkn.data.repository
 
 import android.content.Context
+import androidx.room.withTransaction
 import com.example.kpkn.data.db.*
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.models.*
@@ -25,7 +26,8 @@ internal fun adaptiveCacheWhenEntityIsMissing(): AugeAdaptiveCache =
  */
 class AugeRepository private constructor(context: Context) {
 
-    private val dao = KpknDatabase.getInstance(context).augeDao()
+    private val db = KpknDatabase.getInstance(context)
+    private val dao = db.augeDao()
 
     // ─── DailyWellbeingLog ────────────────────────────────────────────────────
 
@@ -45,6 +47,26 @@ class AugeRepository private constructor(context: Context) {
             log
         }
         dao.upsertWellbeing(toSave.toEntity())
+    }
+
+    /**
+     * Gesto manual de AUGE: el bienestar con las anclas nuevas y el caché con los posteriores y los ids procesados se
+     * guardan en UNA transacción Room. Si falla el segundo upsert se revierte el primero y no queda sello de dedupe ni
+     * ancla a medias; el reintento con la misma identidad vuelve a evaluar sobre el estado anterior. Reutiliza la
+     * resolución por fecha/id de [saveWellbeingLog] y la protección de un esquema futuro de [saveAdaptiveCache]
+     * (con caché no escribible solo se guarda el bienestar). La base se queda en su versión: sin migración.
+     */
+    suspend fun saveWellbeingAndCache(log: DailyWellbeingLog, cache: AugeAdaptiveCache): Unit = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            val existing = dao.getWellbeingForDate(log.date)?.toWellbeingLog()
+            val toSave = if (existing != null && existing.id != log.id) log.copy(id = existing.id) else log
+            val stored = dao.getAdaptiveCache()?.decodeAdaptiveCache()
+            dao.upsertWellbeing(toSave.toEntity())
+            if (stored?.writable != false) {
+                dao.upsertAdaptiveCache(com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.normalize(cache).toEntity())
+            }
+            Unit
+        }
     }
 
     suspend fun getTodayWellbeing(): DailyWellbeingLog? = withContext(Dispatchers.IO) {

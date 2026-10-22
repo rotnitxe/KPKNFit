@@ -369,13 +369,16 @@ fun WorkoutScreen(
 
     // ─── Anillos del cierre: la hoja y el cierre por voz comparten UN aplicador ─────────────────────────────
     // La voz guarda la sesión sin pasar por la hoja (P0) y aplica los anillos dictados desde aquí, con el resumen del
-    // cierre mientras la hoja lo muestra; sin resumen, se aplica lo dictado sin predicciones (AUGE no aprende).
+    // cierre mientras la hoja lo muestra; sin resumen se aplica lo dictado y AUGE aprende con su propia predicción previa al gesto.
     val latestFinishPreview = remember { AtomicReference<PostSessionPreview?>(null) }
     val finishRingsOnce = remember { FinishRingsOnce() }
     val applyFinishRings: (SessionClosingFeedback, PostSessionPreview?) -> Unit = remember(viewModel, augeViewModel) {
         { closing, preview ->
-            // Una sola aplicación por sesión: el id del log recién escrito la identifica.
-            if (finishRingsOnce.shouldApply(viewModel.uiState.value.logAlreadyWrittenId ?: closing.finishOperationId)) {
+            // Una sola aplicación por sesión: el id del log recién escrito la identifica. La marca es provisional hasta
+            // que la transacción de bienestar+caché se confirma; si falla se libera y el mismo id puede reintentarse.
+            val loggedId = viewModel.uiState.value.logAlreadyWrittenId
+            val sessionKey = loggedId ?: closing.finishOperationId
+            if (finishRingsOnce.shouldApply(sessionKey)) {
                 val edits = finishRingEdits(closing, preview)
                 if (edits != null) {
                     augeViewModel.applyManualBatteries(
@@ -383,14 +386,16 @@ fun WorkoutScreen(
                         muscular = null,
                         spinal = edits.spinal,
                         perMuscleDelta = edits.muscleDeltas.takeIf { it.isNotEmpty() },
-                        sessionCnsDrain = edits.sessionCnsDrain,
-                        sessionSpinalDrain = edits.sessionSpinalDrain,
-                        sessionMuscleDrain = edits.sessionMuscleDrain,
-                        predictedNeuralBattery = edits.predictedNeural,
-                        predictedSpinalBattery = edits.predictedSpinal,
+                        // Identidad congelada del cierre: su instante de finalización y el log realmente persistido.
+                        manualBatteryAnchorMs = finishObservedAtMs(closing),
                         predictedMuscleBatteries = edits.predictedMuscles,
+                        logId = loggedId,
+                        onPersisted = { persisted ->
+                            if (persisted) finishRingsOnce.markPersisted(sessionKey) else finishRingsOnce.release(sessionKey)
+                        },
                     )
                 } else {
+                    finishRingsOnce.markPersisted(sessionKey)
                     augeViewModel.refresh()
                 }
             }

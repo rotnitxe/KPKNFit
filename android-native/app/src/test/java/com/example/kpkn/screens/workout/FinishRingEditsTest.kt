@@ -74,19 +74,15 @@ class FinishRingEditsTest {
     // ─── b. Energía distinta ──────────────────────────────────────────────────────────────────────
 
     @Test
-    fun neuralChanged_reportsOnlyNeural_withThePreviewPredictionsAndDrains() {
+    fun neuralChanged_reportsOnlyNeural_withThePreviewMusclePredictions() {
         val edits = finishRingEdits(closing(neural = 60, spinal = 70), preview())
 
+        // 3.3: los drenajes del resumen y las predicciones de Energía/Columna ya no viajan: el aprendizaje evalúa la suya.
         assertEquals(
             FinishRingEdits(
                 neural = 60,
                 spinal = null,
                 muscleDeltas = emptyMap(),
-                sessionCnsDrain = 12.0,
-                sessionSpinalDrain = 9.0,
-                sessionMuscleDrain = 20.0,
-                predictedNeural = 80,
-                predictedSpinal = 64,
                 predictedMuscles = mapOf("Pectorales" to 78, "Tríceps" to 86),
             ),
             edits,
@@ -96,13 +92,11 @@ class FinishRingEditsTest {
     // ─── c. Columna distinta ──────────────────────────────────────────────────────────────────────
 
     @Test
-    fun spinalChanged_usesTheRawSpinalAsPrediction() {
+    fun spinalChanged_reportsTheDisplayedValueTheUserSet() {
         val edits = requireNotNull(finishRingEdits(closing(neural = 80, spinal = 55), preview()))
 
         assertNull(edits.neural)
-        assertEquals(55, edits.spinal)
-        assertEquals("la predicción de Columna es la cruda, no la mostrada", 64, edits.predictedSpinal)
-        assertEquals(80, edits.predictedNeural)
+        assertEquals("la y de Columna es la mostrada; la inversión se hace al guardar el estado", 55, edits.spinal)
     }
 
     @Test
@@ -148,8 +142,6 @@ class FinishRingEditsTest {
 
         assertEquals(60, edits.neural)
         assertNull("lo no dictado no es «distinto del resumen»", edits.spinal)
-        assertEquals(80, edits.predictedNeural)
-        assertEquals(64, edits.predictedSpinal)
     }
 
     @Test
@@ -173,7 +165,7 @@ class FinishRingEditsTest {
     // ─── f. Sin resumen (la hoja no estaba abierta) ───────────────────────────────────────────────
 
     @Test
-    fun withoutPreview_dictatedValuesAreAppliedWithoutPredictions() {
+    fun withoutPreview_dictatedValuesAreAppliedWithoutMusclePredictions() {
         val edits = finishRingEdits(closing(neural = 60, spinal = 40), preview = null)
 
         assertEquals(
@@ -181,11 +173,6 @@ class FinishRingEditsTest {
                 neural = 60,
                 spinal = 40,
                 muscleDeltas = emptyMap(),
-                sessionCnsDrain = 0.0,
-                sessionSpinalDrain = 0.0,
-                sessionMuscleDrain = 0.0,
-                predictedNeural = null,
-                predictedSpinal = null,
                 predictedMuscles = emptyMap(),
             ),
             edits,
@@ -198,7 +185,7 @@ class FinishRingEditsTest {
 
         assertNull(edits.neural)
         assertEquals(40, edits.spinal)
-        assertNull(edits.predictedSpinal)
+        assertTrue(edits.predictedMuscles.isEmpty())
     }
 
     @Test
@@ -333,6 +320,48 @@ class FinishRingEditsTest {
         assertTrue(once.shouldApply("log-1"))
         assertFalse("la misma sesión no se aplica dos veces", once.shouldApply("log-1"))
         assertFalse(once.shouldApply("log-1"))
+    }
+
+    @Test
+    fun once_aFailedWriteReleasesTheProvisionalMark_soTheSameIdCanBeRetried() {
+        val once = FinishRingsOnce()
+
+        assertTrue(once.shouldApply("log-1"))
+        assertFalse("en curso: una segunda entrega simultánea no entra", once.shouldApply("log-1"))
+        once.release("log-1")
+        assertTrue("tras el fallo el mismo id puede reintentarse", once.shouldApply("log-1"))
+        once.markPersisted("log-1")
+        assertFalse("persistida: ya no se aplica", once.shouldApply("log-1"))
+    }
+
+    @Test
+    fun once_releasingAPersistedSessionDoesNotReopenIt() {
+        val once = FinishRingsOnce()
+        once.shouldApply("log-1")
+        once.markPersisted("log-1")
+
+        once.release("log-1")
+
+        assertFalse(once.shouldApply("log-1"))
+    }
+
+    @Test
+    fun once_withoutAKeyMarkAndReleaseAreNoOps() {
+        val once = FinishRingsOnce()
+
+        once.markPersisted(null)
+        once.release(" ")
+
+        assertTrue(once.shouldApply(null))
+    }
+
+    @Test
+    fun finishObservedAtMs_readsTheFrozenCompletionInstant() {
+        val frozen = closing(neural = 60).copy(completionInstantIso = "2026-10-21T10:15:30Z")
+
+        assertEquals(java.time.Instant.parse("2026-10-21T10:15:30Z").toEpochMilli(), finishObservedAtMs(frozen))
+        assertNull(finishObservedAtMs(closing(neural = 60)))
+        assertNull(finishObservedAtMs(closing(neural = 60).copy(completionInstantIso = "no-es-una-fecha")))
     }
 
     @Test

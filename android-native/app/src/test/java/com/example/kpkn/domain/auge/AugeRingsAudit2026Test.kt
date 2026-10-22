@@ -58,7 +58,7 @@ class SystemTauRoundTripTest {
             sessionStress = stress,
             hoursSinceSession = hours,
         )
-        val (newTau, _) = AugeAdaptiveEngine.updateSystemRecoveryHours(
+        val (newTau, _) = LegacyEmaReference.updateSystemRecoveryHours(
             currentCnsTau = tau,
             currentSpinalTau = 52.0,
             cnsObservation = obs,
@@ -261,11 +261,11 @@ class TauObservationCapTest {
             sessionStress = 40.0,
             hoursSinceSession = 48.0,
         )
-        val next = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(mapOf("pectorales" to start), obs, 0)
+        val next = LegacyEmaReference.updatePersonalizedRecoveryHours(mapOf("pectorales" to start), obs, 0)
         val tau = next.getValue("pectorales")
         assertTrue(tau <= start * 1.25 + 0.01)
         assertTrue(tau >= start * 0.75 - 0.01)
-        val capped = AugeAdaptiveEngine.capObservationTau(200.0, start)
+        val capped = LegacyEmaReference.capObservationTau(200.0, start)
         assertEquals(start * 1.25, capped, 0.01)
     }
 }

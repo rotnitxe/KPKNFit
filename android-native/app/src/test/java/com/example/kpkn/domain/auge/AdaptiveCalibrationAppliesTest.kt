@@ -8,6 +8,11 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * Contrato de la referencia EMA histórica (`LegacyEmaReference`, copia congelada del aprendiz que 3.3 retiró de
+ * producción). Las invariantes del flujo nuevo (cierre a 0/0,5/7,99/8 h, una observación por objetivo, deltas heredados)
+ * viven en `ManualGestureLearningTest` y en las pruebas de integración de `screens/auge`.
+ */
 class AdaptiveCalibrationAppliesTest {
 
     @Test
@@ -21,7 +26,7 @@ class AdaptiveCalibrationAppliesTest {
             sleepQuality = 4,
             nutritionMultiplier = 1.0,
         )
-        val (newCns, _) = AugeAdaptiveEngine.updateSystemRecoveryHours(
+        val (newCns, _) = LegacyEmaReference.updateSystemRecoveryHours(
             currentCnsTau = 36.0,
             currentSpinalTau = 52.0,
             cnsObservation = obs,
@@ -42,7 +47,7 @@ class AdaptiveCalibrationAppliesTest {
             sleepQuality = 4,
             nutritionMultiplier = 1.0,
         )
-        val (newCns, _) = AugeAdaptiveEngine.updateSystemRecoveryHours(
+        val (newCns, _) = LegacyEmaReference.updateSystemRecoveryHours(
             currentCnsTau = 36.0,
             currentSpinalTau = 52.0,
             cnsObservation = obs,
@@ -64,7 +69,7 @@ class AdaptiveCalibrationAppliesTest {
             hoursSinceSession = 0.25,
             sleepQuality = 4,
         )
-        val (newCns, _) = AugeAdaptiveEngine.updateSystemRecoveryHours(
+        val (newCns, _) = LegacyEmaReference.updateSystemRecoveryHours(
             currentCnsTau = 36.0,
             currentSpinalTau = null,
             cnsObservation = obs,
@@ -116,12 +121,12 @@ class AdaptiveCalibrationAppliesTest {
         val goodSleep = base.copy(sleepQuality = 5)
         val badSleep = base.copy(sleepQuality = 1)
 
-        val tauGood = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(
+        val tauGood = LegacyEmaReference.updatePersonalizedRecoveryHours(
             current = mapOf("pectorales" to 48.0),
             observation = goodSleep,
             totalObservations = 0,
         )["pectorales"]!!
-        val tauBad = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(
+        val tauBad = LegacyEmaReference.updatePersonalizedRecoveryHours(
             current = mapOf("pectorales" to 48.0),
             observation = badSleep,
             totalObservations = 0,

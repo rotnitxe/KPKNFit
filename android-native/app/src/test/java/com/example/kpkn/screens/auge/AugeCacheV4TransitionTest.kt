@@ -96,7 +96,7 @@ class AugeCacheV4TransitionTest {
     }
 
 
-    @Test fun tresGestosPersistenAnclasSinRepoblarEmaYReabrirConservaAvisos() {
+    @Test fun tresGestosPersistenAnclasConUnRegistroPorObjetivoYReabrirConservaAvisosYRegistros() {
         val anchorMs = 1_760_000_000_000L
         db { augeRepo.saveAdaptiveCache(AugeAdaptiveCache(modelUpdateNoticeShown = true, dismissedAdvisoryKeys = setOf("conservar"))) }
         programRepository.addWorkoutLog(WorkoutLog(id = "suspendido", programId = "p", sessionId = "s", sessionName = "prueba",
@@ -105,14 +105,16 @@ class AugeCacheV4TransitionTest {
         startViewModel()
         listOf(40, 50, 60).forEachIndexed { index, value ->
             vm.applyManualBatteries(neural = value, perMuscle = mapOf("Pectorales" to value),
-                manualBatteryAnchorMs = anchorMs + index, predictedNeuralBattery = 80,
-                predictedMuscleBatteries = mapOf("Pectorales" to 80), sessionCnsDrain = 40.0)
+                manualBatteryAnchorMs = anchorMs + index,
+                predictedMuscleBatteries = mapOf("Pectorales" to 80))
             awaitWrites()
             val saved = db { augeRepo.getWellbeingLogs() }.single()
             assertEquals(anchorMs + index, saved.manualBatteryAnchorMs)
             assertEquals(80, saved.manualMuscleOverridesV2.getValue("Pectorales").automaticBatteryAtAnchor)
             assertEquals(value, saved.manualNeuralBattery)
-            assertPrior()
+            // 3.3: el aprendizaje manual v4 está activo, pero el contador histórico y el sello de rendimiento no se tocan
+            // y cada gesto deja un registro por objetivo (Energía y Pectorales).
+            assertBookkeeping(expectedRecords = 2 * (index + 1))
         }
         viewModelStore.clear()
         viewModelStore = ViewModelStore()
@@ -120,7 +122,7 @@ class AugeCacheV4TransitionTest {
         augeRepo = AugeRepository.getInstance(ApplicationProvider.getApplicationContext<Context>())
         startViewModel()
         awaitWrites()
-        assertPrior()
+        assertBookkeeping(expectedRecords = 6)
         assertTrue(db { augeRepo.getAdaptiveCache() }.modelUpdateNoticeShown)
         assertTrue("conservar" in db { augeRepo.getAdaptiveCache() }.dismissedAdvisoryKeys)
     }
@@ -157,12 +159,11 @@ class AugeCacheV4TransitionTest {
         assertEquals(raw, db { augeDatabase.augeDao().getAdaptiveCache() }?.data)
     }
 
-    private fun assertPrior() {
+    private fun assertBookkeeping(expectedRecords: Int) {
         val cache = db { augeRepo.getAdaptiveCache() }
-        assertTrue(cache.personalizedRecoveryHours.isEmpty())
-        assertEquals(null, cache.cnsRecoveryHours)
-        assertEquals(null, cache.spinalRecoveryHours)
-        assertEquals(0, cache.totalObservations)
+        assertEquals("un registro por objetivo y gesto", expectedRecords, cache.observations.size)
+        assertEquals("ids únicos", expectedRecords, cache.observations.map { it.id }.toSet().size)
+        assertEquals("el contador histórico no se toca", 0, cache.totalObservations)
         assertEquals(null, cache.lastPerformanceLearnLogId)
     }
 
