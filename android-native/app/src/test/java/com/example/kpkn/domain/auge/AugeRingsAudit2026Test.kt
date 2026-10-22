@@ -58,7 +58,7 @@ class SystemTauRoundTripTest {
             sessionStress = stress,
             hoursSinceSession = hours,
         )
-        val (newTau, _) = AugeAdaptiveEngine.updateSystemRecoveryHours(
+        val (newTau, _) = LegacyEmaReference.updateSystemRecoveryHours(
             currentCnsTau = tau,
             currentSpinalTau = 52.0,
             cnsObservation = obs,
