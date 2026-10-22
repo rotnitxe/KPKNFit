@@ -48,9 +48,13 @@ com.example.kpkn/
 │                               #   manual constructor DI for repositories/ViewModels
 │
 ├── data/                       # ── DATA LAYER (Android-aware) ──
-│   ├── db/                     # Room: KpknDatabase (v28), Entities, WikiLabEntities,
+│   ├── db/                     # Room: KpknDatabase (v29), VideoAnalysisMigration,
 │   │                           #   PerformanceRange/Snapshot entities, Daos, WikiLabDao,
 │   │                           #   DatabaseBackupHelper (full JSON export/import)
+│   ├── media/                  # WorkoutMediaStore (private videos), technique/ pipeline
+│   │                           #   and sidecars, pose/ MediaPipe, video/ decoder
+│   ├── work/                   # TechniqueAnalysisScheduler/Worker (FULL, RECOMPUTE,
+│   │                           #   PLATE_ONLY through WorkManager)
 │   ├── models/                 # Serializable domain models (Program, Session, WorkoutLog,
 │   │                           #   AugeModels, NutritionModels, WorkoutV2Models, catalogs)
 │   ├── repository/             # Single source of truth: ProgramRepository, AugeRepository,
@@ -85,7 +89,8 @@ com.example.kpkn/
 │   ├── exercises/              # ExerciseIdentity, ExerciseMatchEngine, variant indexing,
 │   │                           #   anatomy insights, filters
 │   ├── sessionassistant/       # SessionAssistantEngine (time optimization suggestions)
-│   ├── biomechanics/           # BiomechanicsEngine (levers, anthropometrics)
+│   ├── biomechanics/           # Pure technique engines: metrics/TechniqueAnalysisEngine,
+│   │                           #   profiles/, kinematics/, reps/ (engine version 9)
 │   ├── calculations/           # PlateCalculator, shared math helpers
 │   ├── storage/                # KeyValueStore (interfaz pura; implementación en data/preferences)
 │   ├── text/                   # SpanishPlurals (singular/plural en textos de interfaz)
@@ -97,7 +102,9 @@ com.example.kpkn/
 │   ├── home/                   # Dashboard: HomeScreen + HomeViewModel + Rings/Header/
 │   │                           #   Session/Cards/Corners/WikiLab sections
 │   ├── workout/                # Live session: WorkoutScreen/ViewModel, set pager, rest
-│   │                           #   overlays, plate visualizer, voice UI, + components/
+│   │                           #   overlays, plate visualizer, voice UI, + components/;
+│   │                           #   technique/ hosts the full-screen recorder
+│   ├── technique/              # Hub, analysis/player, trends and comparison screens
 │   ├── nutrition/              # NutritionScreen/ViewModel, MealHistoryScreen,
 │   │                           #   BodyProgressScreen + components/ (logger drawer, wizard)
 │   ├── programs/               # ProgramsScreen/ViewModel (program list)
@@ -126,6 +133,8 @@ com.example.kpkn/
 └── ui/                         # theme/ (Color, Theme, Type — neon dark design system),
                                 #   components/ (shared composables, icons), locale/ (LocaleManager)
 ```
+
+Video capture stays in `filesDir/workout_media/yyyy-MM/`; `data/media/technique/TechniqueSidecars.kt` defines the adjacent capture, pose, bar, analysis and temporary checkpoint files. `<id>.analysis.json` is authoritative and Room's `video_analysis` row is a rebuildable cache. The M4b UI/data changes for PERSONAL range references and partial confidence/zones are on `vt/m4b` pending integration validation; they add no Room migration. Engine version 9 is present in the integration branch, while M5 tuning and physical-device acceptance remain pending.
 
 ### Bundled Assets — `app/src/main/assets/`
 
