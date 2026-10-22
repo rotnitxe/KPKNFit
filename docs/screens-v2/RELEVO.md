@@ -1,5 +1,21 @@
 # Relevo de la ola screens-v2 (21-oct-2026, noche)
 
+## Inventario 2026-10-22 (relevo por fases)
+
+Comprobado al arrancar esta sesión, antes de tocar nada:
+
+- **Procesos:** no hay `opencode`, `gradle_slot` ni `java` activos; la cola v10 está vacía. Sí sigue vivo un `python.exe` (PID 17668) que mantiene `C:\kw\phone.lock` desde las 00:04; no se ha matado (aviso para el usuario).
+- **u11 · LV-C:** 11 archivos modificados y 6 nuevos sin commitear (≈925 líneas añadidas; `WarmupMobilityLiveCards.kt` es el grueso). Sin compilar. Los tres encargos extra están empezados: `WarmupLoadBase.kt`, textos de tope en `CalibrationEngine.kt` y espera de 15 s en `VoiceFirstUseDeviceTest`.
+- **u12 · MOT + ED-E:** limpio; `f042464ba` más el brief `MOT.md` sin seguimiento. Hecho.
+- **u13 · PROG + FIX-TM:** limpio. INV sin empezar: `RecipeContractInventoryTest` sigue en rojo y no hay cambios.
+- **u14 · ED-A:** hecho y fusionado; ED-B sin empezar (solo `briefs/ED-B.md` sin seguimiento).
+- **u15 · CAT-A:** 7 archivos modificados y 4 nuevos de código/pruebas (≈262 líneas); brief y un informe preliminar. Iba por la prueba de plegado e4.
+- **u16 · G:** 9 archivos modificados y 5 nuevos de código/pruebas (≈1001 líneas); brief sin commitear. Iba a compilar producción.
+- **u17 · ED-D:** 1 commit (retroques) y 11 archivos modificados + 4 pruebas nuevas (≈731 líneas), C2 y C3 a medias. C4–C7 pendientes.
+- **u18 · ED-C:** 4 archivos modificados y 3 nuevos de código/pruebas (≈143 líneas); brief sin commitear.
+- **Rama de integración:** `feat/screens-v2` en u11, con MOT y PROG ya fusionados.
+- **Tableros:** la carpeta temporal del lienzo no es accesible desde este entorno; se trabaja con los briefs, los informes y los renders existentes, y se anota la limitación.
+
 Lo escribe el orquestador (Claude Opus) al acercarse al tope semanal de cuota de Claude. **Copia el prompt de la sección 4 en un agente nuevo.**
 
 ## 1. Qué es esta ola
