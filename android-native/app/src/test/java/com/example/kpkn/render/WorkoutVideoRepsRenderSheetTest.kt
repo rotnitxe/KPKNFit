@@ -396,7 +396,7 @@ class WorkoutVideoRepsRenderSheetTest {
     }
 
     private fun restLines(scale: Float, label: String) {
-        render("video_rest_lines_$label", scale, 920.dp, saveImmediately = false) {
+        render("video_rest_lines_$label", scale, 1240.dp, saveImmediately = false) {
             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 restStates.forEach { (name, state) ->
                     Column {

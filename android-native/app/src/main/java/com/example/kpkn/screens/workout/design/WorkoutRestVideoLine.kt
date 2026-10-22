@@ -173,10 +173,10 @@ private fun RestVideoPhrase(line: RestVideoLine, onAction: (RestVideoAction) -> 
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
     val measurer = rememberTextMeasurer()
     val style = KpknType.caption
-    fun annotated(description: String): AnnotatedString = buildAnnotatedString {
+    fun annotated(description: String, firstActionSeparator: String = " · "): AnnotatedString = buildAnnotatedString {
         append(description)
-        line.actions.forEach { action ->
-            append(" · ")
+        line.actions.forEachIndexed { index, action ->
+            append(if (index == 0) firstActionSeparator else " · ")
             val actionStyle = SpanStyle(fontWeight = FontWeight.SemiBold, color = WizardColors.text, textDecoration = TextDecoration.None)
             withStyle(actionStyle) {
                 withLink(LinkAnnotation.Clickable(
@@ -202,8 +202,19 @@ private fun RestVideoPhrase(line: RestVideoLine, onAction: (RestVideoAction) -> 
     ) {
         // Frase completa cuando cabe; abreviar las repeticiones parciales conserva las acciones y todas las cifras.
         val full = annotated(line.description)
-        val displayed = if (!measurer.measure(full, style, maxLines = 2, constraints = constraints).hasVisualOverflow) full
-            else annotated(line.compactDescription)
+        val compact = annotated(line.compactDescription)
+        val compactOnSecondLine = if (line.actions.isEmpty()) compact
+            else annotated(line.compactDescription, firstActionSeparator = "\n· ")
+        val fullLayout = measurer.measure(full, style, maxLines = 2, constraints = constraints)
+        val compactLayout = measurer.measure(compact, style, maxLines = 2, constraints = constraints)
+        val compactOnSecondLineLayout = measurer.measure(compactOnSecondLine, style, maxLines = 2, constraints = constraints)
+        val compactOnSecondLineStyle = if (compactOnSecondLineLayout.hasVisualOverflow) style.copy(fontSize = 12.sp, lineHeight = 16.sp) else style
+        val displayed = when {
+            !fullLayout.hasVisualOverflow -> full
+            !compactLayout.hasVisualOverflow -> compact
+            else -> compactOnSecondLine
+        }
+        val displayedStyle = if (!fullLayout.hasVisualOverflow || !compactLayout.hasVisualOverflow) style else compactOnSecondLineStyle
         Box(
             Modifier.fillMaxSize().pointerInput(displayed, onAction) {
                 awaitEachGesture {
@@ -223,7 +234,7 @@ private fun RestVideoPhrase(line: RestVideoLine, onAction: (RestVideoAction) -> 
             },
             contentAlignment = Alignment.CenterStart,
         ) {
-            Text(displayed, Modifier.fillMaxWidth(), color = WizardColors.textMuted, style = style,
+            Text(displayed, Modifier.fillMaxWidth(), color = WizardColors.textMuted, style = displayedStyle,
                 maxLines = 2, overflow = TextOverflow.Clip, onTextLayout = { layout = it })
         }
     }
