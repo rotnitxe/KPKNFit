@@ -45,6 +45,22 @@ Hay que añadir un calibrador AMRAP real, fiel a cada programa y **sin propagaci
 
 Después: Program Detail, Nutrición e Inicio.
 
+### Estado al parar (cuota al 94 %)
+
+Todo está parado: los agentes Claude, los de OpenCode y las corridas de Gradle en cola de esta sesión. Nada a medias está commiteado, y lo que no tiene commit sigue en cada worktree:
+
+| Worktree | Trabajo a medias |
+|---|---|
+| u11 · LV-C | 18 archivos, sin compilar. Estaba con la función única de base de las aproximaciones. |
+| u14 · ED-B | GLM no llegó a cambiar código; solo está `briefs/ED-B.md`, sin seguimiento. |
+| u15 · CAT-A | 14 archivos. Ya probaba la protección de plegado (e3 pasaba; iba por e4). |
+| u16 · G | 15 archivos. Iba a compilar producción. |
+| u17 · ED-D | 15 archivos (C2 y C3, superseries). |
+| u18 · ED-C | 8 archivos. |
+| u13 · inventario | DeepSeek no llegó a cambiar nada. `RecipeContractInventoryTest` sigue en rojo. |
+
+Cada agente de relevo arranca con `git diff` en su worktree y lo termina con su brief.
+
 ## 3. Reglas que no se negocian
 
 - **Siempre en español.** Sin push ni fusión en master sin orden del usuario. La firma del APK la hace el orquestador con `C:\kw\tools\signed_release.py`; nunca se piden credenciales.
