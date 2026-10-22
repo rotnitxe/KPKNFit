@@ -1,3 +1,5 @@
+> Actualizacion 22-oct-2026: el usuario autorizo el traslado y la subida de las cinco ramas MFP a Codex Cloud. **No fusionar master ni ejecutar Gradle en su equipo.** Leer primero [CLOUD_HANDOFF.md](CLOUD_HANDOFF.md); el estado de corridas y el prompt historico de este documento quedan subordinados a ese relevo.
+
 # Relevo de la ola MFP (paridad con MacroFactor) · 21-oct-2026 ~23:55
 
 Parada por cuota semanal (94 % usado en «Weekly · all models»; se reinicia el 27-oct 07:00 UTC). El orquestador anterior (Claude Sonnet 5.5) paró los subagentes T4 y N4 y canceló su chequeo de cuota. Este archivo es el traspaso: el prompt de relevo está al final.

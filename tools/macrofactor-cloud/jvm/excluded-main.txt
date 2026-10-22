@@ -1,0 +1,13 @@
+# Excluidos del arnés JVM (relativos a src/main/java). Motivo de cada uno en ../README.md (sección "Qué NO cubre").
+com/example/kpkn/data/exercises/ExerciseDatabase.kt
+com/example/kpkn/data/exercises/ExerciseTechniqueImageLookup.kt
+com/example/kpkn/data/exercises/ReviewedExerciseTechniqueImages.kt
+com/example/kpkn/data/exercises/catalogv2/CatalogV2ProcessCache.kt
+com/example/kpkn/data/exercises/catalogv2/ApprovedAssetExerciseCatalogRepositoryV2.kt
+com/example/kpkn/data/exercises/catalogv2/CanonicalCatalogKnowledge.kt
+com/example/kpkn/data/competitions/CompetitionMediaStore.kt
+com/example/kpkn/data/food/FoodImporter.kt
+com/example/kpkn/data/food/FoodKnowledgeStore.kt
+com/example/kpkn/data/food/DatasetKnowledgeStore.kt
+com/example/kpkn/data/programs/ProgramCoverRepository.kt
+com/example/kpkn/data/models/VideoAnalysisSummary.kt
