@@ -80,14 +80,14 @@ class RingAdjustTest {
         rule.onNodeWithText("ENERGÍA").assertExists()
         rule.onNodeWithTag("ring-adjust-value").assertTextEquals("72\u00A0%")
         rule.onNodeWithTag("ring-adjust-before").assertTextEquals("antes 88\u00A0%")
-        rule.onNodeWithTag("ring-adjust-word").assertTextEquals("Bien, sin más")
+        rule.onNodeWithTag("ring-adjust-word").assertTextEquals("Energía normal")
     }
 
     @Test
     fun `el dial de Columna usa sus propias palabras`() {
         showDial(RingChannel.COLUMNA, initial = 82, before = 82)
         rule.onNodeWithText("COLUMNA").assertExists()
-        rule.onNodeWithTag("ring-adjust-word").assertTextEquals("Espalda descansada")
+        rule.onNodeWithTag("ring-adjust-word").assertTextEquals("Carga normal")
     }
 
     @Test
@@ -277,9 +277,9 @@ class RingAdjustTest {
         rule.onNodeWithTag("ring-adjust-selection-detail").assertTextEquals("92\u00A0% · recuperado")
         selectZone("Cuádriceps")
         rule.onNodeWithTag("ring-adjust-selection-name").assertTextEquals("Cuádriceps")
-        rule.onNodeWithTag("ring-adjust-selection-detail").assertTextEquals("54\u00A0% · cargado")
+        rule.onNodeWithTag("ring-adjust-selection-detail").assertTextEquals("54\u00A0% · algo cargado")
         selectZone("Core")
-        rule.onNodeWithTag("ring-adjust-selection-detail").assertTextEquals("72\u00A0% · algo cargado")
+        rule.onNodeWithTag("ring-adjust-selection-detail").assertTextEquals("72\u00A0% · en rango")
     }
 
     @Test
