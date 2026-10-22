@@ -51,7 +51,8 @@ object NativeProgressionText {
     /**
      * Subida de carga. [fromKg] es la carga con la que se cumplió el criterio y [toKg] la
      * siguiente que el material declarado permite; sin [toKg] el atleta elige la carga. En
-     * asistencia, progresar es asistir MENOS.
+     * asistencia, progresar es asistir MENOS. [targetReps] y [targetRir] (T4) añaden las
+     * repeticiones y la reserva que corresponden a la nueva carga; sin ellos el texto es el de siempre.
      */
     fun loadIncrease(
         times: Int,
@@ -60,6 +61,8 @@ object NativeProgressionText {
         toKg: Double?,
         unit: String,
         assistance: Boolean,
+        targetReps: Int? = null,
+        targetRir: Int? = null,
     ): String {
         val evidence = "Lo hiciste ${timesLabel(times)} ${topRepsClause(topReps)}."
         val proposal = when {
@@ -68,12 +71,15 @@ object NativeProgressionText {
             toKg == null ->
                 "Propuesta: en el próximo entrenamiento elige una carga un poco mayor y deja las mismas repeticiones en reserva."
             assistance -> "Propuesta: bajar la asistencia ${change(fromKg, toKg, unit)}."
-            else -> "Propuesta: subir ${change(fromKg, toKg, unit)}."
+            else -> "Propuesta: subir ${change(fromKg, toKg, unit)}${pairClause(targetReps, targetRir)}."
         }
         return "$evidence $proposal"
     }
 
-    /** Bajada de carga tras quedarse corto con la misma carga. En asistencia, bajar es asistir MÁS. */
+    /**
+     * Bajada de carga tras quedarse corto con la misma carga. En asistencia, bajar es asistir MÁS.
+     * [targetReps] y [targetRir] (T4) añaden las repeticiones y la reserva de la nueva carga.
+     */
     fun loadReduction(
         times: Int,
         minReps: Int?,
@@ -81,6 +87,8 @@ object NativeProgressionText {
         toKg: Double?,
         unit: String,
         assistance: Boolean,
+        targetReps: Int? = null,
+        targetRir: Int? = null,
     ): String {
         val evidence = "${fellShortClause(times, minReps)}."
         val proposal = when {
@@ -89,7 +97,7 @@ object NativeProgressionText {
             toKg == null ->
                 "Propuesta: en el próximo entrenamiento elige una carga un poco menor."
             assistance -> "Propuesta: subir la asistencia ${change(fromKg, toKg, unit)}."
-            else -> "Propuesta: bajar ${change(fromKg, toKg, unit)}."
+            else -> "Propuesta: bajar ${change(fromKg, toKg, unit)}${pairClause(targetReps, targetRir)}."
         }
         return "$evidence $proposal"
     }
@@ -128,6 +136,38 @@ object NativeProgressionText {
         "${fellShortClause(times, minReps)}, pero $detail " +
             "Se mantiene la carga actual; considera una variante más fácil."
 
+    /**
+     * T4: la regla pide subir, pero el siguiente peso que se puede montar ([nextKg]) dejaría las
+     * repeticiones fuera del rango con la reserva objetivo. Se mantiene la carga actual
+     * ([kg]) y se dice qué repeticiones buscar; [repsOverLast] son las de más que la última vez.
+     */
+    fun increaseKeepNotice(
+        times: Int,
+        topReps: Int?,
+        kg: Double,
+        nextKg: Double?,
+        unit: String,
+        reps: Int,
+        reserve: Int,
+        repsOverLast: Int,
+    ): String =
+        "Lo hiciste ${timesLabel(times)} ${topRepsClause(topReps)}, pero ${stepTooBig(nextKg, unit, "superior")} " +
+            "${keepClause(kg, unit, reps, reserve, repsOverLast)}; no se propone un cambio."
+
+    /** T4: la regla pide bajar, pero el siguiente peso más ligero montable ([nextKg]) sería un salto demasiado grande. */
+    fun reduceKeepNotice(
+        times: Int,
+        minReps: Int?,
+        kg: Double,
+        nextKg: Double?,
+        unit: String,
+        reps: Int,
+        reserve: Int,
+        repsOverLast: Int,
+    ): String =
+        "${fellShortClause(times, minReps)}, pero ${stepTooBig(nextKg, unit, "inferior")} " +
+            "${keepClause(kg, unit, reps, reserve, repsOverLast)}; no se propone un cambio."
+
     /** La variante corporal cambia el ejercicio completo, pero el registro fue por lados. */
     fun lateralVariantNotice(): String =
         "La variante corporal se aplica al ejercicio completo, pero se registró por lados; " +
@@ -158,6 +198,36 @@ object NativeProgressionText {
         val lastTimes = if (times <= 1) "La última vez" else "Las últimas ${timesLabel(times)}"
         val minimum = if (minReps != null) "no llegaste a las $minReps reps mínimas" else "no llegaste al mínimo de repeticiones"
         return "$lastTimes $minimum o terminaste con menos repeticiones en reserva de las previstas"
+    }
+
+    /** «1 repetición», «8 repeticiones». */
+    fun repsLabel(reps: Int): String = if (reps == 1) "1 repetición" else "$reps repeticiones"
+
+    /** «y buscar 8 repeticiones con 2 en reserva»; vacío si no hay repeticiones que decir. */
+    private fun pairClause(reps: Int?, reserve: Int?): String =
+        if (reps == null) "" else " y buscar ${repsLabel(reps)}${reserveClause(reserve)}"
+
+    private fun reserveClause(reserve: Int?): String = when {
+        reserve == null -> ""
+        reserve <= 0 -> " sin reserva"
+        else -> " con $reserve en reserva"
+    }
+
+    private fun stepTooBig(nextKg: Double?, unit: String, direction: String): String =
+        if (nextKg != null) "el siguiente peso $direction que puedes montar (${formatKg(nextKg)} $unit) es un salto demasiado grande."
+        else "el siguiente peso $direction que puedes montar es un salto demasiado grande."
+
+    /**
+     * «Mantén 50 kg y busca 1 repetición más» / «Mantén 50 kg y busca 10 repeticiones con 2 en reserva» /
+     * (sin repeticiones nuevas que ganar) «Mantén 50 kg y sigue con 10 repeticiones, con 2 en reserva».
+     */
+    private fun keepClause(kg: Double, unit: String, reps: Int, reserve: Int, repsOverLast: Int): String {
+        val load = "Mantén ${formatKg(kg)} $unit"
+        return when {
+            repsOverLast == 1 -> "$load y busca 1 repetición más"
+            repsOverLast > 1 -> "$load y busca ${repsLabel(reps)}${reserveClause(reserve)}"
+            else -> "$load y sigue con ${repsLabel(reps)},${reserveClause(reserve)}"
+        }
     }
 
     private fun change(fromKg: Double?, toKg: Double, unit: String): String =
