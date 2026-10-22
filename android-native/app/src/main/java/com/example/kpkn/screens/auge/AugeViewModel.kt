@@ -16,8 +16,6 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.loadAugeSnapshotInputs
 import com.example.kpkn.data.repository.augeRecoveryContext
-import com.example.kpkn.domain.auge.AugeAdaptiveEngine
-import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.AugeMuscleCapacityEngine
 import com.example.kpkn.domain.auge.AugeParameters
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
@@ -30,7 +28,14 @@ import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
 import com.example.kpkn.domain.auge.PerformanceTauInput
 import com.example.kpkn.domain.auge.PerformanceTauLearner
+import com.example.kpkn.domain.auge.ManualGestureEvaluation
+import com.example.kpkn.domain.auge.ManualGestureLearning
+import com.example.kpkn.domain.auge.ManualGestureMeta
+import com.example.kpkn.domain.auge.ManualGesturePlan
+import com.example.kpkn.domain.auge.ManualRequest
 import com.example.kpkn.domain.auge.PerformanceTauManualTouches
+import com.example.kpkn.domain.auge.applyManualGestureToRow
+import com.example.kpkn.domain.auge.neutralizeDroppedTargets
 import com.example.kpkn.domain.auge.RecoveryBands
 import com.example.kpkn.domain.auge.SystemicLoadMonitor
 import com.example.kpkn.domain.auge.detectWellbeingEdits
@@ -62,10 +67,6 @@ import java.util.concurrent.atomic.AtomicLong
  * Shared across Home and Workout screens via AndroidViewModel.
  */
 class AugeViewModel(application: Application) : AndroidViewModel(application) {
-
-    private companion object {
-        private const val MAX_HOURS_FOR_TAU_LEARNING = 14.0 * 24.0
-    }
 
     private val augeRepo = AugeRepository.getInstance(application)
     private val programRepo = ProgramRepository.getInstance()
@@ -392,67 +393,117 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
 
     // ─── Public actions ───────────────────────────────────────────────────────
 
-    /** Call when user submits the daily wellbeing log (from ReadinessSheet). */
-    fun saveWellbeing(log: DailyWellbeingLog) {
+    /**
+     * Guarda el bienestar diario (hoja de estado previo). Solo es ajuste lo que cambia lo guardado: una copia no
+     * reancla ni enseña a AUGE. Los ajustes reales pasan por el caso de uso único ([ManualGestureLearning]): una
+     * observación por objetivo realmente cambiado, evaluada sobre las entradas ANTERIORES al gesto, y el bienestar con
+     * sus anclas y el caché con los posteriores se guardan en una sola transacción. [gesture] congela la identidad al
+     * confirmar (instante, log del cierre, Columna visible).
+     */
+    fun saveWellbeing(log: DailyWellbeingLog, gesture: ManualGestureMeta = ManualGestureMeta()) {
+        // El instante del gesto se congela aquí, al confirmar: ningún reintento fabrica otro.
+        val observedAtMs = gesture.observedAtMs ?: System.currentTimeMillis()
         viewModelScope.launch {
             augeWriteMutex.lock()
             try {
-            val pillarMuscles = remapMuscleIntMapToPillars(log.manualMuscleBatteries)
-            val remappedLog = log.copy(manualMuscleBatteries = pillarMuscles)
-            // La fila REAL de hoy, leída al guardar: el anfitrión reutiliza la que leyó al componerse la
-            // pantalla (tras medianoche es la de ayer) y el chequeo previo reenvía los ajustes de hoy
-            // sin que la persona los toque.
-            val storedToday = augeRepo.getTodayWellbeing()?.takeIf { it.date == remappedLog.date }
-            // Solo es ajuste lo que cambia lo guardado: una copia no reinicia el ancla ni enseña a AUGE.
-            val edits = detectWellbeingEdits(storedToday, remappedLog)
-            // Stamp anchor only when real manual overrides are present (not auto-filled predictions)
-            val hasManualOverrides = !edits.isEmpty() || log.manualMuscleOverridesV2.isNotEmpty()
-            val anchoredLog = if (hasManualOverrides) {
-                val now = System.currentTimeMillis()
-                remappedLog.copy(
-                    manualBatteryAnchorMs = now,
-                    manualNeuralAnchorMs = if (edits.neural != null) now else remappedLog.manualNeuralAnchorMs,
-                    manualSpinalAnchorMs = if (edits.spinal != null) now else remappedLog.manualSpinalAnchorMs,
-                    manualMuscularAnchorMs = if (edits.muscular != null) now else remappedLog.manualMuscularAnchorMs,
-                    manualMuscleAnchorMs = remappedLog.manualMuscleAnchorMs + edits.muscles.keys.associateWith { now },
-                )
-            } else {
-                remappedLog.copy(manualBatteryAnchorMs = null)
-            }
-            // El chequeo previo reconstruye la fila sin las anclas V2 del alta y del final
-            // del entreno: se fusiona con lo que ya guarda hoy antes de persistir. El `id` es el de la fila
-            // de hoy, nunca el de otro día (el `upsert` es por `id`).
-            val rowId = storedToday?.id ?: freeWellbeingRowId(anchoredLog)
-            augeRepo.saveWellbeingLog(mergeWellbeingForSave(storedToday, anchoredLog.copy(id = rowId)))
-
-            // Learn τ only when the sensation differs from the live prediction, and only from what the person
-            // actually edited (never from copies). Finish-near-zero hours is rejected inside learnFromManualAdjustment.
-            if (!edits.isEmpty()) {
-                val snapshot = _snapshot.value
-                val predictedNeural = snapshot.batteries.cnc
-                val predictedSpinal = snapshot.batteries.spinal
-                val predictedMuscles = snapshot.perMuscle.mapValues { (_, v) -> v.recoveryScore }
-                learnFromManualAdjustment(
-                    manualNeural = edits.neural?.takeIf { it != predictedNeural },
-                    manualSpinal = edits.spinal?.takeIf { it != predictedSpinal },
-                    manualMuscleBatteries = edits.muscles.filter { (muscle, value) ->
-                        predictedMuscles[muscle] != null && predictedMuscles[muscle] != value
-                    },
-                    sessionCnsDrain = 0.0,
-                    sessionSpinalDrain = 0.0,
-                    sessionMuscleDrain = 0.0,
-                    predictedNeuralBattery = predictedNeural,
-                    predictedSpinalBattery = predictedSpinal,
-                    predictedMuscleBatteries = predictedMuscles,
-                    wellbeing = anchoredLog,
-                )
-            }
-
-            recompute(programRepo.history.value, programRepo.settings.value, lockHeld = true)
+                val pillarMuscles = remapMuscleIntMapToPillars(log.manualMuscleBatteries)
+                val remappedLog = log.copy(manualMuscleBatteries = pillarMuscles)
+                // La fila REAL de hoy, leída al guardar: el anfitrión reutiliza la que leyó al componerse la
+                // pantalla (tras medianoche es la de ayer) y el chequeo previo reenvía los ajustes de hoy
+                // sin que la persona los toque.
+                val storedToday = augeRepo.getTodayWellbeing()?.takeIf { it.date == remappedLog.date }
+                val firstEdits = detectWellbeingEdits(storedToday, remappedLog)
+                var plan: ManualGesturePlan? = null
+                var incoming = remappedLog
+                if (!firstEdits.isEmpty()) {
+                    val inputsBefore = loadInputsBefore(observedAtMs)
+                    val planned = withContext(Dispatchers.Default) {
+                        ManualGestureLearning.plan(
+                            inputsBefore, observedAtMs, gesture.logId,
+                            ManualRequest(
+                                neural = firstEdits.neural,
+                                muscular = firstEdits.muscular,
+                                spinalDisplayed = gesture.displayedSpinal,
+                                spinalStored = firstEdits.spinal,
+                                muscles = firstEdits.muscles,
+                            ),
+                        )
+                    }
+                    plan = planned
+                    // Copias de lo vigente y gestos ya persistidos vuelven a lo guardado: ni reanclan ni enseñan.
+                    incoming = neutralizeDroppedTargets(remappedLog, storedToday, planned.dropped.keys)
+                }
+                val edits = detectWellbeingEdits(storedToday, incoming)
+                // Stamp anchor only when real manual overrides are present (not auto-filled predictions)
+                val hasManualOverrides = !edits.isEmpty() || log.manualMuscleOverridesV2.isNotEmpty()
+                val anchoredLog = if (hasManualOverrides) {
+                    incoming.copy(
+                        manualBatteryAnchorMs = observedAtMs,
+                        manualNeuralAnchorMs = if (edits.neural != null) observedAtMs else incoming.manualNeuralAnchorMs,
+                        manualSpinalAnchorMs = if (edits.spinal != null) observedAtMs else incoming.manualSpinalAnchorMs,
+                        manualMuscularAnchorMs = if (edits.muscular != null) observedAtMs else incoming.manualMuscularAnchorMs,
+                        manualMuscleAnchorMs = incoming.manualMuscleAnchorMs + edits.muscles.keys.associateWith { observedAtMs },
+                    )
+                } else {
+                    incoming.copy(manualBatteryAnchorMs = null)
+                }
+                // El chequeo previo reconstruye la fila sin las anclas V2 del alta y del final
+                // del entreno: se fusiona con lo que ya guarda hoy antes de persistir. El `id` es el de la fila
+                // de hoy, nunca el de otro día (el `upsert` es por `id`).
+                val rowId = storedToday?.id ?: freeWellbeingRowId(anchoredLog)
+                val merged = mergeWellbeingForSave(storedToday, anchoredLog.copy(id = rowId))
+                val evaluation = plan?.takeIf { !edits.isEmpty() }?.evaluation
+                if (evaluation != null) {
+                    augeRepo.saveWellbeingAndCache(merged, evaluation.cache)
+                    logGestureOutcomes("readiness", observedAtMs, evaluation)
+                } else {
+                    augeRepo.saveWellbeingLog(merged)
+                }
+                recompute(programRepo.history.value, programRepo.settings.value, lockHeld = true)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                logGestureFailure("save_wellbeing_failed", e)
             } finally {
                 augeWriteMutex.unlock()
             }
         }
+    }
+
+    /** Entradas anteriores al gesto, releídas bajo el candado: bienestar efectivo, historial y caché persistidos. */
+    private suspend fun loadInputsBefore(observedAtMs: Long): AugeSnapshotInputs =
+        loadAugeSnapshotInputs(
+            augeRepo, nutritionRepo, programRepo.history.value, programRepo.settings.value, observedAtMs, ZoneId.systemDefault(),
+        )
+
+    private fun logGestureOutcomes(origin: String, observedAtMs: Long, evaluation: ManualGestureEvaluation) {
+        evaluation.outcomes.forEach { outcome ->
+            KpknDiagnosticLogger.event(
+                namespace = "auge",
+                name = "manual_gesture_outcome",
+                fields = mapOf(
+                    "origin" to origin,
+                    "key" to outcome.key,
+                    "status" to outcome.status.name,
+                    "reason" to outcome.reason,
+                    "anchorEpochMs" to observedAtMs,
+                    "relevantLogId" to outcome.relevantLogId,
+                    "hoursSinceLoad" to outcome.hoursSinceLoad,
+                    "nBefore" to outcome.nBefore,
+                    "nAfter" to outcome.nAfter,
+                    "tauBefore" to outcome.tauBeforeHours,
+                    "tauAfter" to outcome.tauAfterHours,
+                ),
+            )
+        }
+    }
+
+    private fun logGestureFailure(name: String, e: Exception) {
+        KpknDiagnosticLogger.event(
+            namespace = "auge",
+            name = name,
+            fields = mapOf("exceptionType" to e.javaClass.name, "exceptionMessage" to e.message),
+        )
     }
 
     /**
@@ -576,9 +627,17 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Applies manual battery overrides immediately so Home rings update right away.
-     * Null neural/spinal and empty/null perMuscle leave existing wellbeing overrides untouched
-     * for that channel (opt-in overrides after finish).
+     * Aplica ajustes manuales al instante para que los anillos de Home se actualicen. Un canal nulo y un mapa de
+     * músculos vacío o nulo dejan intactos los ajustes de ese canal (el cierre solo ajusta lo que la persona tocó).
+     *
+     * Es el punto de entrada del caso de uso único ([ManualGestureLearning]) para Home y para el cierre por hoja y por
+     * voz: cada objetivo REALMENTE cambiado (frente al estado vigente V1/V2 fusionado) produce una observación; las
+     * copias idénticas y los gestos ya persistidos no reanclan ni enseñan. [manualBatteryAnchorMs] congela el instante del
+     * gesto (el cierre pasa el de la finalización) y [logId] es el log realmente persistido del cierre. [spinal] es la
+     * Columna que se ve: aquí se invierte, solo para guardar el estado y con los articulares/guardas de las entradas
+     * previas. [predictedMuscleBatteries] es la predicción que vio la persona (para `automaticBatteryAtAnchor`).
+     * [onPersisted] recibe `true` cuando la transacción de bienestar+caché se confirmó y `false` si falló: quien dedupe en
+     * memoria (`FinishRingsOnce`) solo marca «aplicado» con `true`.
      */
     fun applyManualBatteries(
         neural: Int? = null,
@@ -587,231 +646,80 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
         perMuscle: Map<String, Int>? = null,
         perMuscleDelta: Map<String, Int>? = null,
         manualBatteryAnchorMs: Long? = null,
-        sessionCnsDrain: Double = 0.0,
-        sessionSpinalDrain: Double = 0.0,
-        sessionMuscleDrain: Double = 0.0,
-        predictedNeuralBattery: Int? = null,
-        predictedSpinalBattery: Int? = null,
         predictedMuscleBatteries: Map<String, Int> = emptyMap(),
+        logId: String? = null,
+        onPersisted: ((Boolean) -> Unit)? = null,
     ) {
+        // El instante del gesto se congela aquí, al confirmar: ningún reintento fabrica otro.
+        val observedAtMs = manualBatteryAnchorMs ?: System.currentTimeMillis()
         viewModelScope.launch {
-            augeWriteMutex.lock()
+            var persisted = false
             try {
-            val base = augeRepo.getTodayWellbeing()
-            val requestedDelta = perMuscleDelta ?: perMuscle
-            val canonicalDelta = requestedDelta.orEmpty()
-                .mapKeys { VolumeCalculator.normalizeCanonicalMuscleGroup(it.key) }
-                .filterKeys { it.isNotBlank() }
-            val existingPillarMuscles = remapMuscleIntMapToPillars(base?.manualMuscleBatteries.orEmpty())
-            val touchedMuscles = canonicalDelta.isNotEmpty()
-            val touched =
-                neural != null || spinal != null || muscular != null || touchedMuscles
-            val anchor = manualBatteryAnchorMs ?: System.currentTimeMillis()
-            val existingV2 = base?.manualMuscleOverridesV2.orEmpty()
-            val updatedV2 = if (touchedMuscles) {
-                existingV2 + canonicalDelta.mapValues { (muscle, battery) ->
-                    ManualMuscleBatteryOverride(
-                        battery = battery.coerceIn(0, 100),
-                        anchorEpochMs = anchor,
-                        sourceSessionId = null,
-                        automaticBatteryAtAnchor = predictedMuscleBatteries[muscle] ?: 100,
+                augeWriteMutex.lock()
+            } catch (e: CancellationException) {
+                // Cancelado esperando el candado: no hay nada que liberar, pero quien dedupe en memoria debe soltar su marca.
+                onPersisted?.invoke(false)
+                throw e
+            }
+            try {
+                val base = augeRepo.getTodayWellbeing()
+                val requestedDelta = perMuscleDelta ?: perMuscle
+                val canonicalDelta = requestedDelta.orEmpty()
+                    .mapKeys { VolumeCalculator.normalizeCanonicalMuscleGroup(it.key) }
+                    .filterKeys { it.isNotBlank() }
+                val inputsBefore = loadInputsBefore(observedAtMs)
+                val planned = withContext(Dispatchers.Default) {
+                    ManualGestureLearning.plan(
+                        inputsBefore, observedAtMs, logId,
+                        ManualRequest(neural = neural, muscular = muscular, spinalDisplayed = spinal, muscles = canonicalDelta),
                     )
                 }
-            } else {
-                existingV2
-            }
-            // Do not invent a global muscular override from a simple average of per-muscle
-            // values — that freezes the muscular ring and diverges from the engine formula.
-            val invertedSpinal = spinal?.let { invertDisplayedStructure(it) }
-            // Solo cambia lo que este gesto toca: `source`, `capturedFields`, notas, molestias y cualquier
-            // campo futuro de la fila (p. ej. la del alta) se conservan tal cual.
-            val target = base ?: DailyWellbeingLog(id = UUID.randomUUID().toString(), date = LocalDate.now().toString())
-            val updated = target.copy(
-                manualMuscularBattery = muscular?.coerceIn(0, 100) ?: base?.manualMuscularBattery,
-                manualNeuralBattery = neural?.coerceIn(0, 100) ?: base?.manualNeuralBattery,
-                manualSpinalBattery = invertedSpinal?.coerceIn(0, 100) ?: base?.manualSpinalBattery,
-                // Un gesto local conserva los demás músculos legados y sus instantes.
-                manualMuscleBatteries = existingPillarMuscles.filterKeys { key -> canonicalDelta.keys.none { getAugeMusclePillarId(it) == key } },
-                manualBatteryAnchorMs = if (touched) anchor else target.manualBatteryAnchorMs,
-                manualNeuralAnchorMs = if (neural != null) anchor else if (touched && target.manualNeuralBattery != null) target.manualAnchorMs(RecoveryChannelId.SYSTEM, ZoneId.systemDefault()) else target.manualNeuralAnchorMs,
-                manualSpinalAnchorMs = if (spinal != null) anchor else if (touched && target.manualSpinalBattery != null) target.manualAnchorMs(RecoveryChannelId.STRUCTURE, ZoneId.systemDefault()) else target.manualSpinalAnchorMs,
-                manualMuscularAnchorMs = if (muscular != null) anchor else if (touched && target.manualMuscularBattery != null) target.manualAnchorMs(RecoveryChannelId.MUSCULAR, ZoneId.systemDefault()) else target.manualMuscularAnchorMs,
-                manualMuscleAnchorMs = if (touched) existingPillarMuscles.keys
-                    .filter { key -> canonicalDelta.keys.none { getAugeMusclePillarId(it) == key } }
-                    .associateWith { target.legacyMuscleAnchorMs(it, ZoneId.systemDefault()) } else target.manualMuscleAnchorMs,
-                manualMuscleOverridesV2 = updatedV2,
-            )
-            augeRepo.saveWellbeingLog(updated)
-
-            if (touched) {
-                KpknDiagnosticLogger.event(
-                    namespace = "auge",
-                    name = "manual_override_applied",
-                    fields = mapOf(
-                        "channels" to listOfNotNull(
-                            if (neural != null) "neural" else null,
-                            if (muscular != null) "muscular" else null,
-                            if (spinal != null) "spinal" else null,
-                            if (touchedMuscles) "muscle" else null,
+                val accepted = planned.accepted
+                if (!accepted.isEmpty()) {
+                    // No se inventa un ajuste global de Músculos con la media de los músculos sueltos: congelaría el
+                    // anillo muscular y divergiría de la fórmula del motor.
+                    val row = applyManualGestureToRow(
+                        base = base,
+                        newId = UUID.randomUUID().toString(),
+                        date = LocalDate.now().toString(),
+                        accepted = accepted,
+                        anchorMs = observedAtMs,
+                        sourceSessionId = logId,
+                        automaticAtAnchor = { muscle ->
+                            lookupPredictedMuscle(predictedMuscleBatteries, muscle)
+                                ?: planned.predictedMuscles[toAugeAdaptiveMuscleKey(muscle)]
+                        },
+                        zone = ZoneId.systemDefault(),
+                    )
+                    augeRepo.saveWellbeingAndCache(row, planned.evaluation.cache)
+                    KpknDiagnosticLogger.event(
+                        namespace = "auge",
+                        name = "manual_override_applied",
+                        fields = mapOf(
+                            "channels" to listOfNotNull(
+                                if (accepted.neural != null) "neural" else null,
+                                if (accepted.muscular != null) "muscular" else null,
+                                if (accepted.spinalStored != null) "spinal" else null,
+                                if (accepted.muscles.isNotEmpty()) "muscle" else null,
+                            ),
+                            "muscleCount" to accepted.muscles.size,
+                            "anchorEpochMs" to observedAtMs,
+                            "hasAutomaticBaseline" to (predictedMuscleBatteries.isNotEmpty() || planned.predictedMuscles.isNotEmpty()),
                         ),
-                        "muscleCount" to canonicalDelta.size,
-                        "anchorEpochMs" to anchor,
-                        "hasAutomaticBaseline" to predictedMuscleBatteries.isNotEmpty(),
-                    ),
-                )
-            }
-
-            learnFromManualAdjustment(
-                manualNeural = neural,
-                manualSpinal = invertedSpinal,
-                manualMuscleBatteries = canonicalDelta,
-                sessionCnsDrain = sessionCnsDrain,
-                sessionSpinalDrain = sessionSpinalDrain,
-                sessionMuscleDrain = sessionMuscleDrain,
-                predictedNeuralBattery = predictedNeuralBattery,
-                predictedSpinalBattery = predictedSpinalBattery,
-                predictedMuscleBatteries = predictedMuscleBatteries,
-                wellbeing = updated,
-            )
-
-            recompute(programRepo.history.value, programRepo.settings.value, lockHeld = true)
+                    )
+                    logGestureOutcomes("manual", observedAtMs, planned.evaluation)
+                }
+                persisted = true
+                recompute(programRepo.history.value, programRepo.settings.value, lockHeld = true)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                logGestureFailure("manual_gesture_failed", e)
             } finally {
                 augeWriteMutex.unlock()
+                onPersisted?.invoke(persisted)
             }
         }
-    }
-
-    /**
-     * Learns a single parameter (τ) from a sensation that differs from the
-     * prediction. Finish-sheet anchors are persisted before this runs; τ is
-     * refused until [AugeAdaptiveEngine.MIN_HOURS_FOR_TAU_LEARNING] so a 0.5 h
-     * inversion cannot shorten recovery time. Deltas and drain multipliers
-     * are not updated here (one gesture → one parameter).
-     */
-    @Suppress("UNUSED_PARAMETER")
-    private suspend fun learnFromManualAdjustment(
-        manualNeural: Int?,
-        manualSpinal: Int?,
-        manualMuscleBatteries: Map<String, Int>,
-        sessionCnsDrain: Double,
-        sessionSpinalDrain: Double,
-        sessionMuscleDrain: Double,
-        predictedNeuralBattery: Int?,
-        predictedSpinalBattery: Int?,
-        predictedMuscleBatteries: Map<String, Int>,
-        wellbeing: DailyWellbeingLog,
-    ) {
-        // Puente v4: las anclas ya se guardaron; el EMA queda suspendido hasta 3.3/3.4.
-        if (augeRepo.getAdaptiveCache().schemaVersion >= 4) return
-        val hasSystemSignal = (manualNeural != null && predictedNeuralBattery != null && manualNeural != predictedNeuralBattery) ||
-            (manualSpinal != null && predictedSpinalBattery != null && manualSpinal != predictedSpinalBattery)
-        val hasMuscleSignal = manualMuscleBatteries.isNotEmpty()
-        if (!hasSystemSignal && !hasMuscleSignal) return
-
-        val history = programRepo.history.value
-        val lastSession = history
-            .filter {
-                val ms = com.example.kpkn.domain.auge.AugeUtils.logDateMs(it)
-                ms > 0L && ms <= System.currentTimeMillis() + 3_600_000L
-            }
-            .maxByOrNull { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) }
-            ?: return
-        val derivedHoursSince =
-            (System.currentTimeMillis() - com.example.kpkn.domain.auge.AugeUtils.logDateMs(lastSession)) / 3_600_000.0
-        if (derivedHoursSince < AugeAdaptiveEngine.MIN_HOURS_FOR_TAU_LEARNING) return
-        if (derivedHoursSince > MAX_HOURS_FOR_TAU_LEARNING) return
-
-        val cache = augeRepo.getAdaptiveCache()
-        var updatedCache = cache
-        var learned = false
-
-        val lastDrain = lastSessionDrainOrNull(lastSession)
-
-        val cnsStress = sessionCnsDrain.takeIf { it > 0.0 } ?: lastDrain?.cns?.toDouble()
-        val spinalStress = sessionSpinalDrain.takeIf { it > 0.0 } ?: lastDrain?.spinal?.toDouble()
-
-        val cnsObs = if (manualNeural != null && predictedNeuralBattery != null && cnsStress != null && cnsStress > 0.0) {
-            RecoveryLearningObservation(
-                muscle = "cns",
-                predictedBattery = predictedNeuralBattery,
-                actualBattery = manualNeural,
-                sessionStress = cnsStress,
-                hoursSinceSession = derivedHoursSince,
-                sleepQuality = wellbeing.sleepQuality,
-                nutritionMultiplier = 1.0,
-                stressLevel = wellbeing.stressLevel,
-            )
-        } else {
-            null
-        }
-
-        val spinalObs = if (
-            manualSpinal != null &&
-            predictedSpinalBattery != null &&
-            spinalStress != null &&
-            spinalStress > 0.0 &&
-            PerformanceTauLearner.sessionHasAxialStimulus(lastSession.completedExercises, exerciseDb)
-        ) {
-            RecoveryLearningObservation(
-                muscle = "spinal",
-                predictedBattery = predictedSpinalBattery,
-                actualBattery = manualSpinal,
-                sessionStress = spinalStress,
-                hoursSinceSession = derivedHoursSince,
-                sleepQuality = wellbeing.sleepQuality,
-                nutritionMultiplier = 1.0,
-                stressLevel = wellbeing.stressLevel,
-            )
-        } else {
-            null
-        }
-
-        if (cnsObs != null || spinalObs != null) {
-            val (newCnsTau, newSpinalTau) = AugeAdaptiveEngine.updateSystemRecoveryHours(
-                currentCnsTau = updatedCache.cnsRecoveryHours,
-                currentSpinalTau = updatedCache.spinalRecoveryHours,
-                cnsObservation = cnsObs,
-                spinalObservation = spinalObs,
-                totalObservations = cache.totalObservations,
-            )
-            updatedCache = updatedCache.copy(
-                cnsRecoveryHours = newCnsTau,
-                spinalRecoveryHours = newSpinalTau,
-            )
-            learned = true
-        }
-
-        for ((muscle, manualBattery) in manualMuscleBatteries) {
-            val predicted = lookupPredictedMuscle(predictedMuscleBatteries, muscle) ?: continue
-            if (predicted == manualBattery) continue
-            val muscleStress = muscleStressFromLog(lastSession, muscle) ?: continue
-            val obs = RecoveryLearningObservation(
-                muscle = muscle,
-                predictedBattery = predicted,
-                actualBattery = manualBattery.coerceIn(0, 100),
-                sessionStress = muscleStress,
-                hoursSinceSession = derivedHoursSince,
-                sleepQuality = wellbeing.sleepQuality,
-                nutritionMultiplier = 1.0,
-                stressLevel = wellbeing.stressLevel,
-            )
-            val nextHours = AugeAdaptiveEngine.updatePersonalizedRecoveryHours(
-                current = updatedCache.personalizedRecoveryHours,
-                observation = obs,
-                totalObservations = cache.totalObservations,
-            )
-            if (nextHours != updatedCache.personalizedRecoveryHours) {
-                updatedCache = updatedCache.copy(personalizedRecoveryHours = nextHours)
-                learned = true
-            }
-        }
-
-        if (!learned) return
-        updatedCache = updatedCache.copy(
-            totalObservations = cache.totalObservations + 1,
-            lastUpdatedMs = System.currentTimeMillis(),
-        )
-        augeRepo.saveAdaptiveCache(updatedCache)
     }
 
     private val performanceLearnLock = Any()
@@ -821,7 +729,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
      * Aprende τ del rendimiento del último log terminado y sella el log. [lockHeld] como en [recompute].
      * El cálculo pesado va sin candado; el guardado relee el caché bajo el candado y aplica el resultado
      * sobre lo ÚLTIMO guardado (no sobre la copia leída al empezar el recálculo), para no pisar una
-     * escritura concurrente como [learnFromManualAdjustment]. Qué se aprende y cuándo no cambia.
+     * escritura concurrente como un gesto manual ([applyManualBatteries]). Qué se aprende y cuándo no cambia.
      */
     private suspend fun learnFromLatestFinishedLog(
         history: List<WorkoutLog>,
@@ -1069,35 +977,6 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             .filter { it.recoveryScore < RecoveryBands.NORMAL_MIN }
             .minOfOrNull { it.hoursToRecovery }
             ?: RecoveryBands.hoursUntilNormal(muscularScore, AugeParameters.DEFAULT_TAU_GLOBAL_MUSCLE_H)
-    }
-
-    private fun lastSessionDrainOrNull(log: WorkoutLog): PredictedDrain? {
-        return runCatching {
-            AugeFatigueEngine.calculateCompletedSessionDrain(
-                completedExercises = log.completedExercises,
-                exerciseDb = exerciseDb,
-                settings = programRepo.settings.value,
-                durationMinutes = log.durationMinutes,
-            )
-        }.getOrNull()
-    }
-
-    private fun muscleStressFromLog(log: WorkoutLog, muscle: String): Double? {
-        val key = toAugeAdaptiveMuscleKey(muscle)
-        val impact = log.muscularImpactV2?.perMuscle?.entries?.firstOrNull {
-            toAugeAdaptiveMuscleKey(it.key) == key
-        }?.value
-        val fromImpact = impact?.immediateDrainPct?.takeIf { it > 0.0 }
-            ?: impact?.stressUnits?.takeIf { it > 0.0 }
-        if (fromImpact != null) return fromImpact
-        val computed = AugeRecoveryEngine.calculateMuscleSessionStress(
-            muscleName = muscle,
-            log = log,
-            settings = programRepo.settings.value,
-            exerciseDb = exerciseDb,
-            adaptiveCache = AugeAdaptiveCache(),
-        )
-        return computed.takeIf { it > 0.0 }
     }
 
     private fun lookupPredictedMuscle(predicted: Map<String, Int>, muscle: String): Int? {
