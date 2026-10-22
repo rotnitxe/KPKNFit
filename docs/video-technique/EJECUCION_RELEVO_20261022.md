@@ -83,3 +83,22 @@ El usuario CANCELÓ la configuración remota y dejó las pruebas del Z Flip pend
 - El heartbeat `continuar-el-plan-de-relevo-vt` fue actualizado para respetar la suspensión del teléfono y continuar SOLO tareas de PC independientes.
 - Puede prepararse M5 sobre MM-Fit OpenPose y vt-tune ya disponibles, manteniendo los folds0–3 de ajuste y fold4/dev-check ciegos del orquestador. La medición completa MediaPipe (Fase2) y el QA físico (Fase5) siguen pendientes y no deben declararse aprobados.
 - Adelantar verificación de PC/R8 sin instalación y documentación según dependencias. La entrega definitiva mantiene sus gates pendientes del teléfono.
+
+## Avance de PC tras aplazar el teléfono
+
+La corrida M4b `vt-m4b-codex-20261022-2.log` terminó: 285 pruebas, 283 correctas y 2 fallos reales de texto recortado en `restLines100/130`. Los 17 XML incluyen los dos métodos nuevos del Modo visual, correctos. Se revisaron los PNG de parciales en estiramiento, MEDIA y BAJA del Modo visual al 130 %: texto completo y distinción de confianza visibles.
+
+- Corrección `981423d46` en `vt/m4b`: mide también el resumen compacto de la línea del descanso, conserva las acciones en la segunda línea cuando es necesario y adapta a 12/16sp si el compacto aún desborda. La lámina crece a 1240dp para mostrar todos los estados; se conserva la aserción de ausencia de overflow.
+- Única corrida Gradle propia actual: sesión `98724`, log `C:/kw/logs/vt-m4b-codex-20261022-3.log`. Solo repite `WorkoutVideoRepsRenderSheetTest`, `WorkoutRestVideoLineTest` y `WorkoutVideoPartialsTextTest`, afectadas por el arreglo. No duplicarla. Fase 1 aún espera sus resultados, inspección PNG y merge --no-ff.
+
+### M5 · Infraestructura y partidas
+
+- Constructor externo `C:/kw/vt-mmfit/tools/build_mmfit_m5_packages.py`, revisado: verifica el SHA padre fijado y los 1.848 archivos, no modifica el banco y publica dos destinos nuevos tras comprobar las copias. Las etiquetas se conservan byte por byte y no hay vídeos.
+- Paquetes ya construidos: `m5-openpose-tune` (509 filas, 17 grupos; G1 405/G3 104) y `m5-openpose-control` (107 filas, 4 grupos; G1 89/G3 18). Cada uno contiene físicamente solo su partición. El paquete de ajuste no contiene filas, rutas ni archivos del control.
+- Commits `2cd70f780` y `5b7282551`: `FullBankMmfitReportTest` exige `EXAM=0` explícito, paquete/partición válidos, salida nueva/vacía, recuentos dinámicos y todas las filas procesadas. Publica agregados antes de fallar por una extracción incompleta. Su desglose de folds está rotulado `splitPlanOnly=true`: no acredita CV.
+- Partida motor 9 de vt-tune: `C:/kw/vt-tune-out/m5-baseline-20261022`, log `C:/kw/logs/vt-m5-tune-baseline-20261022.log`, BUILD SUCCESSFUL. 720/720 procesados; G1: salida 269/345, FULL exactas 230/269, ALTA 45/45, MEDIA 104/105; G2 erróneas entre ofrecidas 1/21. «Errónea» usa la definición del evaluador (rango), distinta de «no exacta».
+- Partida motor 9 de MM-Fit ajuste: `C:/kw/vt-mmfit/m5-out/openpose-baseline-tune-20261022`, log `C:/kw/logs/vt-m5-mmfit-baseline-tune-20261022.log`, BUILD SUCCESSFUL, 509/509 procesados. Tríceps 0/52 exactas (ALTA 0/34), zancada 41/51 (ALTA 41/49). No es la medición MediaPipe ni incluye el control.
+- Nuevo worktree aislado: `C:/Users/valen/Documents/KPKNFit/.claude/worktrees/vt-m5-codex-20261022`, rama `codex/vt-m5-20261022`, base `5b7282551`; sparse checkout para dominio/tests/docs, no build Android allí. Su brief `docs/video-technique/briefs/M5.md` fija datos permitidos, CV real y límites. El agente ajustador comienza el diagnóstico de bordes; no recibe datos individuales de los controles.
+- Fase 6 adelantada en `4a027c024`: mapas de arquitectura, pantallas, estructura y decisiones; rutas/sidecars/referencia PERSONAL/parciales y privacidad estática. D27 conserva su evidencia histórica API36 y distingue la verificación física pendiente. Revisar los IDs nuevos de decisiones para evitar colisión con UI_PLAN. No hay cifras finales ni cierre de privacidad dinámica.
+
+Las Fases 2 y 5 siguen aplazadas por el usuario. M5 se prepara con los datos disponibles; no se entrega ni integra un candidato que incumpla sus controles y dependencias.
