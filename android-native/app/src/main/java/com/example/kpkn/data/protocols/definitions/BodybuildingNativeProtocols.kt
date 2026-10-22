@@ -20,6 +20,7 @@ import com.example.kpkn.data.protocols.SlotPriority
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.data.protocols.addT3Sets
 import com.example.kpkn.data.protocols.asDeload
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
@@ -259,7 +260,7 @@ object KpknNativeHypertrophyProtocols {
         id = "kpkn-rp-style",
         name = "Mesociclo RP-style KPKN",
         emoji = "📈",
-        description = "6 semanas, 4 días torso/pierna: 5 semanas con RIR 3→1 y una de descarga con menos series. El volumen no sube semana a semana (sin rampa MEV→MRV).",
+        description = "6 semanas, 4 días torso/pierna: 5 semanas con RIR 3→1 y los accesorios sumando una serie por semana (rampa de series al estilo RP) y una semana de descarga con menos series.",
         author = "KPKN Fit",
         tags = listOf("culturismo", "hipertrofia", "avanzado", "4 días", "6 semanas", "RPE"),
         blocks = listOf(ProtocolBlock("Volumen", 5, "Acumulación", 60, 80), ProtocolBlock("Descarga", 1, "Descarga", 50, 65)),
@@ -281,16 +282,30 @@ object KpknNativeHypertrophyProtocols {
                     listOf(
                         DayArchetypes.bbTorso(rir).copy(weekday = 1, label = "Torso A"),
                         DayArchetypes.bbLegs(rir).copy(weekday = 2, label = "Pierna A"),
-                        DayArchetypes.bbPush(rir).copy(weekday = 4, label = "Torso B"),
+                        DayArchetypes.bbPull(rir).copy(weekday = 4, label = "Torso B"),
                         DayArchetypes.bbLegs(secondRir).copy(weekday = 5, label = "Pierna B"),
-                    ).map { day -> if (deload) day.asDeload() else day },
+                    ).map { day ->
+                        if (deload) {
+                            day.asDeload()
+                        } else {
+                            // T-12 (L-25): la rampa toca el primer accesorio de cada día. Subir todos los T3 de golpe desborda los
+                            // techos de sesión H6/H7 de las semanas 3 a 5 y un framework KPKN-native no puede declarar exenciones.
+                            val anchor = day.slots.firstOrNull { it.role == SlotRole.T3_ACCESSORY }
+                            if (anchor == null) {
+                                day
+                            } else {
+                                val ramped = day.copy(slots = listOf(anchor)).addT3Sets(extra = w - 1).slots.single()
+                                day.copy(slots = day.slots.map { slot -> if (slot.id == anchor.id) ramped else slot })
+                            }
+                        }
+                    },
                     kind = if (deload) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING,
                 )
             },
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.RPE_CAP)),
-            contentVersion = 2,
+            contentVersion = 3,
         ),
         fidelitySpec = ProtocolFidelitySpec(6, 4, requiresRpe = true, claimedLevel = "avanzado"),
     )

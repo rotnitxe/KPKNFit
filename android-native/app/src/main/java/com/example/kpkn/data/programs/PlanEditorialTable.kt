@@ -1085,16 +1085,15 @@ internal object PlanEditorialTable {
                 terms = setOf(PlanTerm.UL_PPL, PlanTerm.RIR, PlanTerm.DELOAD),
             ),
         )
-        // El texto describe la receta de hoy (el número de series no sube de una semana a otra).
-        // Si D3 fase 2 implementa la rampa de volumen, usar la alternativa de §2.8 del diseño editorial.
+        // El texto describe la receta de hoy (los accesorios suman una serie cada semana: rampa al estilo RP).
         add(
             "protocol:kpkn-rp-style",
             own(
                 displayName = "Mesociclo de músculo (estilo RP)",
                 summary = "6 semanas, 4 días por semana (torso A, pierna A, torso B y pierna B). Cada dos semanas " +
                     "te acercas más al fallo, de 3 repeticiones en reserva a 1; la segunda pierna va un punto " +
-                    "más cerca, sin bajar nunca de 1, y las series no aumentan. La sexta semana es de " +
-                    "descarga, con cerca de la mitad de las series. Plan propio inspirado en Renaissance " +
+                    "más cerca, sin bajar nunca de 1, y los accesorios suman una serie cada semana. La sexta " +
+                    "semana es de descarga, con cerca de la mitad de las series. Plan propio inspirado en Renaissance " +
                     "Periodization.",
                 rank = 341,
                 levels = ONLY_ADVANCED,

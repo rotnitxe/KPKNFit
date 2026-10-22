@@ -170,6 +170,20 @@ fun DayRecipe.dropT3(n: Int, minSets: Int = if (n >= 2) 1 else 2): DayRecipe {
     )
 }
 
+/** Rampa de series de los accesorios (estilo RP): +[extra] series a cada slot T3, sin pasar de [cap] series de trabajo. */
+fun DayRecipe.addT3Sets(extra: Int, cap: Int = 8): DayRecipe = copy(
+    slots = slots.map { s ->
+        if (s.role != SlotRole.T3_ACCESSORY || extra <= 0) s
+        else {
+            val work = s.sets.filter { !it.isWarmup }
+            val warm = s.sets.filter { it.isWarmup }
+            val room = (cap - work.size).coerceAtLeast(0)
+            val added = List(minOf(extra, room)) { work.last() }
+            s.copy(sets = warm + work + added)
+        }
+    },
+)
+
 fun topSetAndBackoff(
     topSets: Int,
     topReps: Int,

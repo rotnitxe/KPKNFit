@@ -873,6 +873,26 @@ class ProtocolRecipeFidelityTest {
     }
 
     @Test
+    fun rp_style_ramps_accessory_sets_and_torso_b_pulls() {
+        val recipe = recipeOf("kpkn-rp-style")
+        val week1 = recipe.weeks.first { it.weekNumber == 1 }
+        val week5 = recipe.weeks.first { it.weekNumber == 5 }
+        fun firstT3(week: WeekRecipe): SlotRecipe =
+            week.days.first { it.label == "Torso A" }.slots.first { it.role == SlotRole.T3_ACCESSORY }
+        val week1Sets = workSets(firstT3(week1)).size
+        val week5Sets = workSets(firstT3(week5)).size
+        assertEquals("la semana 5 suma 4 series al primer accesorio del Torso A (o 8 como tope)", minOf(week1Sets + 4, 8), week5Sets)
+        assertEquals("la semana 6 es de descarga", WeekExecutionKind.DELOAD, recipe.weeks.first { it.weekNumber == 6 }.kind)
+        val torsoB = week1.days.first { it.weekday == 4 }
+        assertEquals("el jueves es el Torso B", "Torso B", torsoB.label)
+        assertEquals(
+            "el Torso B tira, no empuja",
+            DayArchetypes.bbPull(3).slots.first().lift.configurationId,
+            torsoB.slots.first().lift.configurationId,
+        )
+    }
+
+    @Test
     fun the_shrug_and_the_pushdown_are_two_sets_and_not_a_loose_set() {
         // L-33: el encogimiento (arquetipo de peso muerto) y el pushdown (arquetipo de empuje) llevaban 1 serie, que el contrato C1 no admite.
         val shrug = DayArchetypes.plDeadlift(70.0).slots.single { it.lift.configurationId == CatalogIds.SHRUG }
@@ -1324,12 +1344,12 @@ class ProtocolRecipeFidelityTest {
         // registro explícito) pasan a la versión 3, The Rippler a la 2 y las tres plantillas `power-*` a la 3 (AMRAP calibrador).
         val bumped = listOf(
             "madcow-5x5", "texas-method-3d", "texas-method-4d", "kpkn-native-sbd-4", "smolov", "smolov-jr",
-            "kpkn-ppl-6", "kpkn-rp-style", "kpkn-rts-style", "kpkn-sbs-rtf", "candito-6", "gzcl-uhf-9",
+            "kpkn-ppl-6", "kpkn-rts-style", "kpkn-sbs-rtf", "candito-6", "gzcl-uhf-9",
             "tsa-9", "calgary-16", "gzcl-jt-2", "westside-conjugate", "sheiko-29-32",
         )
         bumped.forEach { id -> assertEquals("$id: contentVersion", 2, recipeOf(id).contentVersion) }
         listOf(
-            "lilliebridge", "wendler-531-bbb", "wendler-531-fsl", "nsuns-531-lp-4d", "gzclp", "juggernaut-2",
+            "lilliebridge", "wendler-531-bbb", "wendler-531-fsl", "nsuns-531-lp-4d", "gzclp", "juggernaut-2", "kpkn-rp-style",
         ).forEach { id -> assertEquals("$id: contentVersion", 3, recipeOf(id).contentVersion) }
         assertEquals("cube-method: rotación y AMRAP de registro", 4, recipeOf("cube-method").contentVersion)
         assertEquals("gzcl-rippler: AMRAP de registro", 2, recipeOf("gzcl-rippler").contentVersion)
