@@ -249,3 +249,20 @@ un desglose de una única corrida por folds no acredita esa selección.
 En esos72 timings, análisis mediano114,6s para vídeo mediano21,57s, ratio mediano5,32. Son tiempos del lote parcial,
 no una medición de fiabilidad ni prueba de cumplir el objetivo de tiempo real. La comparación OpenPose/MediaPipe de las494G1
 y el QA físico se completan cuando el usuario regrese. No integrar motor10 ni cerrar la entrega con estos resultados preliminares.
+
+### Diagnóstico M5 sobre ajuste, sin cambiar etiquetas
+
+- **Bordes de tríceps:** la vuelta desde una posición extrema al inicio no demuestra que su ida ocurriera dentro del vídeo.
+  El candidato ensaya advertir esa censura; no añade una FULL ni inventa fases para igualar la etiqueta. Debe medir el efecto
+  sobre precisión y cobertura con CV; sus pruebas sintéticas no acreditan por sí solas una mejora en los bancos.
+- **Zancada OpenPose:** las ocho salidas ALTA equivocadas de ajuste pierden veinte giros detectados, descartados por
+  `nonrep_horizontal`, con amplitud comparable a los FULL conservados. El conteo usa cadera, pero el veto lateral usa el hombro
+  que sustituye al disco. Se prepara un contrafactual por procedencia física de esa señal, conservando caminar, preparación
+  y trayectoria de disco confirmado. No es un ajuste por clip ni una corrección de etiquetas.
+- **Cobertura histórica:** de345 G1,76 sin salida:29 por ausencia de señal utilizable,19 sin ciclos válidos y28 por captura.
+  BENCH concentra38. Los casos sin señal incluyen19 sin escala,9 sin señal válida (ambos BENCH) y1 sin pose.
+  La captura rechaza26 recortes y2 desplazamientos comunes de pies. Quitar indiscriminadamente el veto no sostiene la meta:
+  entre diez recortes estáticos con confianza cruda MEDIA, solo ocho FULL eran exactas. Un posible fallback angular de BENCH
+  necesita estudiar evidencia fuerte y ciclos completos; no se baja la exigencia de escala o visibilidad para aumentar cobertura.
+
+Estos diagnósticos son de desarrollo y no sustituyen la selección retenida, los controles nuevos ni la medición MediaPipe.
