@@ -159,7 +159,7 @@ class RingsUiCopyConsistencyTest {
 
         assertEquals("Con mucha energía", ringAdjustEnergyWord(RecoveryBands.HIGH_MIN))
         assertEquals("Energía normal", ringAdjustEnergyWord(RecoveryBands.NORMAL_MIN))
-        assertEquals("Algo cansado", ringAdjustSpineWord(RecoveryBands.MODERATE_MIN))
+        assertEquals("Algo cargada", ringAdjustSpineWord(RecoveryBands.MODERATE_MIN))
         assertEquals("en rango", ringAdjustWord(RingChannel.MUSCULOS, RecoveryBands.NORMAL_MIN))
         assertEquals(RingAdjustMuscleTone.CRITICAL, ringAdjustMuscleTone(RecoveryBands.LOW_MIN - 1))
 
