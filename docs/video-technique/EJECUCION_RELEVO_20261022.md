@@ -15,7 +15,7 @@ Leídos el plan, RELEVO, BANCO_COMPLETO, M4, UI_PLAN, DECISIONES, las guías de 
 - El examen histórico ya está consumido. M5 se valida con desarrollo y los controles nuevos descritos en el plan; los agentes que ajusten no reciben datos individuales ciegos.
 - El objetivo de M5 ALTA >=98 % no equivale por sí solo al listón de mercado >=99 % de BANCO_COMPLETO.
 
-## Fase 1 · En curso
+## Fase 1 · Completada en 108146025
 
 La corrida 2 no sigue activa ni en la cola. Su log quedó sin línea final; los XML fechados el 22 de octubre a las 02:01 contienen 268 pruebas: 266 correctas y 2 fallos, ambos en `WorkoutVideoRepsRenderSheetTest.restLines100/130` por espera de miniaturas en el arnés.
 
@@ -102,3 +102,12 @@ La corrida M4b `vt-m4b-codex-20261022-2.log` terminó: 285 pruebas, 283 correcta
 - Fase 6 adelantada en `4a027c024`: mapas de arquitectura, pantallas, estructura y decisiones; rutas/sidecars/referencia PERSONAL/parciales y privacidad estática. D27 conserva su evidencia histórica API36 y distingue la verificación física pendiente. Revisar los IDs nuevos de decisiones para evitar colisión con UI_PLAN. No hay cifras finales ni cierre de privacidad dinámica.
 
 Las Fases 2 y 5 siguen aplazadas por el usuario. M5 se prepara con los datos disponibles; no se entrega ni integra un candidato que incumpla sus controles y dependencias.
+
+## Cierre de M4b y siguiente medición
+
+- La corrida selectiva `vt-m4b-codex-20261022-3.log` terminó BUILD SUCCESSFUL: 27 pruebas, cero fallos, errores u omisiones. Se revisaron los PNG nuevos `video_rest_lines_100/130.png` completos, los chips/sugerencias, los cuatro casos del Modo visual y el resumen/barras de parciales al 100 % y 130 %. La repetición resuelve los dos fallos de la corrida de 285 sin repetir sus 258 pruebas no afectadas.
+- Merge local --no-ff de `vt/m4b` en `feat/vt-ui`: `108146025`, sin conflictos, cuatro commits M4b y 32 archivos; sin dominio ni Room. Fase 1 completada. Los IDs de decisiones M4b quedaron separados de los de UI_PLAN en `d44ea7b52`.
+- Se actualizan los mapas para describir M4b como integrado. La aceptación física sigue pendiente y no se instaló nada después de la orden de aplazar el teléfono.
+- Única corrida Gradle propia actual: JVM de partida del control MM-Fit, motor 9 de integración, sesión `87601`, log `C:/kw/logs/vt-m5-mmfit-baseline-control-20261022.log`, salida nueva `C:/kw/vt-mmfit/m5-out/openpose-baseline-control-20261022`. Usa el harness MM-Fit con EXAM=0. Su paquete y resultados individuales son exclusivos del orquestador.
+- M5 tiene un candidato de guarda de borde en el worktree aislado, todavía sin commit ni validación. No suma una repetición cuya primera mitad no se observó; estudia marcar la incertidumbre para impedir publicarla como segura. La revisión independiente exigió excluir intervalos entre mini-series y usar la procedencia lateral de la señal correcta. Estos cambios y sus regresiones están en curso; no dar el candidato por aprobado ni presentar las proyecciones estáticas como medición del motor 10.
+- Erratum de metadatos de MM-Fit: `C:/kw/vt-mmfit/tools/ERRATUM_M5_FOLD_SEMANTICS.md`. El plan usa sesión mod5; el manifiesto fuente decía sujeto. Los paquetes publicados no se modificaron y sus hashes se preservan; la descripción del constructor se corrigió para futuras construcciones. No cambia ninguna etiqueta, grupo o asignación de fold.

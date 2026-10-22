@@ -134,7 +134,7 @@ com.example.kpkn/
                                 #   components/ (shared composables, icons), locale/ (LocaleManager)
 ```
 
-Video capture stays in `filesDir/workout_media/yyyy-MM/`; `data/media/technique/TechniqueSidecars.kt` defines the adjacent capture, pose, bar, analysis and temporary checkpoint files. `<id>.analysis.json` is authoritative and Room's `video_analysis` row is a rebuildable cache. The M4b UI/data changes for PERSONAL range references and partial confidence/zones are on `vt/m4b` pending integration validation; they add no Room migration. Engine version 9 is present in the integration branch, while M5 tuning and physical-device acceptance remain pending.
+Video capture stays in `filesDir/workout_media/yyyy-MM/`; `data/media/technique/TechniqueSidecars.kt` defines the adjacent capture, pose, bar, analysis and temporary checkpoint files. `<id>.analysis.json` is authoritative and Room's `video_analysis` row is a rebuildable cache. The M4b UI/data changes for PERSONAL range references and partial confidence/zones were integrated in `108146025` after targeted tests and render review; they add no Room migration. Engine version 9 is present in the integration branch, while M5 tuning and physical-device acceptance remain pending.
 
 ### Bundled Assets — `app/src/main/assets/`
 
