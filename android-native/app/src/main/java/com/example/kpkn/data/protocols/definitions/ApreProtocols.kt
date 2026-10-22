@@ -116,11 +116,19 @@ object ApreProtocols {
             ),
             progression = ProgressionRule.ApreXrm(incrementKg = 2.5),
             // Mann no programa semanas de descarga: cada semana la serie 4 reajusta el XRM a cómo estás.
+            // INV: los bloques de cuatro semanas repiten su estructura por diseño (el XRM que cambia cada semana
+            // lo fija la tabla de Mann en ejecución, no la receta); se declara por regla y semana, nunca por receta.
             exemptions = listOf(
                 RecipeCompositionExemption(
                     "C5_DELOAD_REQUIRED", "recipe",
                     "APRE de Mann son 12 semanas sin descarga programada: el XRM de cada semana sale de las repeticiones de la serie 4 de la anterior y " +
                         "así la carga se ajusta a cómo está la persona; el método no programa una semana de descarga aparte",
+                    MANN_URL,
+                ),
+                RecipeCompositionExemption(
+                    "C10_IDENTICAL_WEEKS", "w*",
+                    "APRE de Mann repite la estructura de cada bloque de cuatro semanas por diseño: el XRM de la semana siguiente sale de las " +
+                        "repeticiones de la serie 4 con la tabla de Mann, no de cambiar la forma de las semanas",
                     MANN_URL,
                 ),
             ),
