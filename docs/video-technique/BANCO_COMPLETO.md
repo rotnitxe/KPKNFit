@@ -207,3 +207,45 @@ Ejecutado con `feat/vt-ui` @d6f0bd7bc sobre los 181 clips del examen (trazas del
 - **No se alcanza el listón del mercado** en la serie exacta ni en ALTA. Parte de la diferencia es del banco: clips de Kaggle y UCF
   cortados a mitad de serie, de 320×240 y con la cámara en movimiento. Pero no lo explica todo.
 - El examen queda gastado. Lo siguiente se valida con datos nuevos: las grabaciones del usuario y MM-Fit.
+
+## Partida M5 · 22-oct, motor 9 (preliminar)
+
+Se repitió la partida de desarrollo con el motor9, sin abrir de nuevo el examen. No son resultados del motor10 ni una
+validación cruzada de parámetros. Los bancos y las etiquetas originales permanecen inmutables; los informes quedan fuera del repo.
+
+| Banco / partición | Procesados | G1 con salida | G1 FULL exactas entre salidas | G1 ALTA exactas | G1 MEDIA exactas |
+|---|---:|---:|---:|---:|---:|
+| Histórico, ajuste folds0–3 | 720/720 | 269/345 | 230/269 | 45/45 | 104/105 |
+| Histórico, control desarrollo fold4 | 175/175 | 63/86 | 50/63 | 9/10 | 21/24 |
+| MM-Fit OpenPose, ajuste folds0–3 | 509/509 | 403/405 | 331/403 | 309/358 | 6/11 |
+| MM-Fit OpenPose, control fold4 | 107/107 | 89/89 | 65/89 | 64/81 | 1/4 |
+
+Los controles son exclusivos del orquestador; el ajustador solo recibe agregados. La exactitud FULL se compara con el valor
+puntual de la etiqueta. El indicador histórico de G2 «equivocadas entre ofrecidas» usa el rango permitido y no es la misma medida:
+1/21 en ajuste histórico y1/4 en su control. MM-Fit no tiene G2 en estos paquetes; sus G3 de perfil forzado son diagnóstico,
+con rechazo real `NOT_VALIDATED`, y quedan fuera de la selección y de las metas de precisión de G1.
+
+MM-Fit OpenPose de ajuste, por ejercicio (17 sesiones/grupos; los folds siguen sesión mod5):
+
+| Ejercicio | G1 | Con salida | FULL exactas / todas G1 |
+|---|---:|---:|---:|
+| Curl | 48 | 48 | 47/48 |
+| Elevación | 49 | 49 | 49/49 |
+| Tríceps | 52 | 52 | 0/52 |
+| Flexiones | 53 | 53 | 50/53 |
+| Press de hombro | 48 | 48 | 43/48 |
+| Remo | 52 | 52 | 51/52 |
+| Sentadilla | 52 | 52 | 50/52 |
+| Zancada | 51 | 49 | 41/51 |
+
+Informes de ajuste: `C:/kw/vt-tune-out/m5-baseline-20261022` y
+`C:/kw/vt-mmfit/m5-out/openpose-baseline-tune-20261022`. Controles de partida:
+`C:/kw/vt-m5-control/old-bank-baseline-20261022` y
+`C:/kw/vt-mmfit/m5-out/openpose-baseline-control-20261022`.
+El protocolo M5 selecciona con tres folds y mide en el retenido, con resultados separados por banco y denominadores explícitos;
+un desglose de una única corrida por folds no acredita esa selección.
+
+**MediaPipe pendiente por instrucción del usuario.** Se conservaron72/616 extracciones completas antes de aplazar el Z Flip.
+En esos72 timings, análisis mediano114,6s para vídeo mediano21,57s, ratio mediano5,32. Son tiempos del lote parcial,
+no una medición de fiabilidad ni prueba de cumplir el objetivo de tiempo real. La comparación OpenPose/MediaPipe de las494G1
+y el QA físico se completan cuando el usuario regrese. No integrar motor10 ni cerrar la entrega con estos resultados preliminares.
