@@ -1,5 +1,15 @@
 # Ejecución del relevo VT · 22 de octubre de 2026
 
+## Estado vigente · prevalece sobre las entradas históricas
+
+- Fases 0 y 1 completadas; M4b integrado en `108146025`. Integración conserva motor 9 y Room v29.
+- Teléfono aplazado por orden expresa del usuario: no reanudar extracción MM-Fit, QA, ADB ni VPN hasta su regreso. Se conservan 72/616 resultados; Fases 2 y 5 pendientes.
+- Fase 4: compilación Android y nueve clases de Room/comparador correctas, 39 pruebas sin fallos, errores ni omisiones; log `C:/kw/logs/vt-fase4-room-compare-20261022.log` (sesión57868 terminada). Faltan las demás tandas, JVM completo y R8.
+- M5 se desarrolla en `codex/vt-m5-20261022`, sin integrar. Se preparan sintéticos y CV real sobre ajuste OpenPose/vt-tune; los controles de partida del motor9 ya terminaron. OpenPose es preliminar hasta disponer de MediaPipe completo.
+- Única corrida Gradle propia en curso: sesión35330, `C:/kw/logs/vt-m5-boundary-cv-synthetic-20261022.log`, tres clases sintéticas M5 en el carril JVM. Sin bancos ni teléfono.
+
+Las secciones siguientes conservan la cronología; sus sesiones «actuales» anteriores ya no describen el estado vigente.
+
 ## Autorización y alcance
 
 Se ejecuta `PLAN_RELEVO.md`, en su orden. El usuario autorizó expresamente subagentes Sol 6 High y Luna 6 Max en lugar de la obligación de Haiku, y las lecturas/escrituras necesarias para aplicar el plan. Se preservan el trabajo concurrente, los datos personales del teléfono, los bancos de solo lectura y la separación entre ajuste y control ciego. Sin push.
@@ -122,3 +132,12 @@ Las Fases 2 y 5 siguen aplazadas por el usuario. M5 se prepara con los datos dis
 - Fase4: `3597310dd` corrige solo la fixture de `TechniqueCompareViewModelTest`: BarTrack confirmado para MCV y regresión sin sidecar. Aún no ejecutada. `WorkoutReadinessSheetAdjustTest` tiene un selector obsoleto ajeno a VT y no se cambia. Se está corrigiendo el inventario externo `C:/kw/logs/vt-fase4-inventario-20261022-feat-vt-ui.txt`: verificar FQN reales, no inferir paquetes ni soporte JVM por ausencia de Robolectric; no usar ciegamente su primera versión.
 
 Siguiente orden: terminar la corrida23941 sin duplicarla; repetir sintéticos M5; fijar commit del candidato si pasa; medir ajuste por banco/fold y comprobar CV real para cualquier parámetro ajustado; después controles ciegos solo por el orquestador. No fusionar el candidato sin esos gates. Adelantar tandas Android/R8 de Fase4 según disponibilidad, sin instalación.
+
+## Verificación de Room y protocolo M5
+
+- La partida del control histórico motor9 terminó: sesión23941, `vt-m5-old-bank-baseline-control-20261022.log`, BUILD SUCCESSFUL, 175/175 procesados. G1: salida63/86, FULL exactas50/63, ALTA9/10, MEDIA21/24; G2 erróneas entre ofrecidas1/4. No se reabrió el examen histórico.
+- La tanda Android sesión57868 terminó BUILD SUCCESSFUL en8m9s, nueve clases y39 pruebas: DAO/migraciones VideoAnalysis (15+7+2), WorkoutMedia (3+1+1+1+5) y comparador (4). Cero fallos, errores u omisiones. La corrección de fixture `3597310dd` queda verificada y `compileBaseDebugKotlin` también pasó como dependencia. No cambió Room ni sus schemas.
+- El inventario corregido es `C:/kw/logs/vt-fase4-feat-vt-ui-20261022/README.txt` y sus once listas. Contiene312 FQN únicos verificados,80 de biomecánica/JVM; las pantallas, Compose, Room y repositorios quedan en Android con clases concretas. Descartar la primera lista que infería paquetes/carriles.
+- El ejecutor de CV M5 usa la rejilla predeclarada0/0.5/0.75/1.0, tres folds para elegir y uno retenido para medir. Limita la pérdida de exactas G1 ofrecidas por banco/fold, conserva la guarda G2 y excluye G3 de selección/metas. Empates y consolidación usan el parámetro más conservador; no atribuye generalización estructural a esa CV.
+- Revisión independiente corrigió selección/metas contaminadas por G3, metas fijas sin denominadores, default provisional activo y falta de identidad del corpus legacy. El default vuelve a0.0 hasta elegir; las pruebas activan explícitamente la guarda. La CV exige `KPKN_M5_LEGACY_MANIFEST_SHA256`, verificado antes de parsear filas; SHA autorizado de vt-tune: `4a1cd07b421917c29034a5e22dc350b888f542f080cc798eb8dbe2c8a061788d`.
+- Ejecutor y candidato se validan primero con tres clases sintéticas, sesión35330. La CV externa se omite en esta corrida por no configurar bancos. Ninguna cifra del motor10 está aprobada todavía.
