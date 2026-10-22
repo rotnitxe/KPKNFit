@@ -7,7 +7,8 @@
 - Fase 4: compilación Android y nueve clases de Room/comparador correctas, 39 pruebas sin fallos, errores ni omisiones; log `C:/kw/logs/vt-fase4-room-compare-20261022.log` (sesión57868 terminada). Faltan las demás tandas, JVM completo y R8.
 - M5 se desarrolla en `codex/vt-m5-20261022`, sin integrar. Se preparan sintéticos y CV real sobre ajuste OpenPose/vt-tune; los controles de partida del motor9 ya terminaron. OpenPose es preliminar hasta disponer de MediaPipe completo.
 - Sintéticos M5 aprobados: sesión97421, `C:/kw/logs/vt-m5-boundary-cv-synthetic-20261022-2.log`, 24 pruebas correctas y una omisión esperada de CV externa sin bancos. Candidato de bordes `229d2f0d7`, ejecutor CV `78b7a92b7`, árbol aislado limpio.
-- Única corrida Gradle propia actual: sesión34757, CV externa JVM sobre ajuste folds0–3; log `C:/kw/logs/vt-m5-cv-boundary-20261022.log`, salida nueva `C:/kw/vt-mmfit/m5-out/openpose-cv-boundary-20261022`. EXAM=0, sin controles ni teléfono. No duplicar mientras siga viva.
+- La primera CV externa34757 falló en preflight de metadatos, sin abrir etiquetas/trazas ni crear salida. El runner trataba `package.partition` (objeto JSON) como texto. Se corrige su contrato y se repetirá el sintético antes de medir.
+- Única corrida Gradle propia actual: Android83234, 33 clases concretas de datos/trabajo/repositorios; log `C:/kw/logs/vt-fase4-data-work-20261022.log`. No duplicar mientras siga viva. Sin instalación ni teléfono.
 
 Las secciones siguientes conservan la cronología; sus sesiones «actuales» anteriores ya no describen el estado vigente.
 
@@ -148,3 +149,5 @@ La sesión35330 falló al compilar un paréntesis del JSON del runner; no ejecut
 El ejecutor queda congelado en `78b7a92b7`, con árbol limpio antes de iniciar la CV34757. Solo usa `m5-openpose-tune` (SHA `09c9e6587b19b942a9c1232145bd84bad7455cd117ed4cec6843acfdae287e94`) y vt-tune (SHA autorizado arriba). Las4 variantes y4 rotaciones se escriben fuera del repo; no hay selección con datos ciegos. Las nueve clases Android previas conservan sus XML en `C:/kw/logs/vt-fase4-room-compare-20261022-results`.
 
 Preparación de humo R8: init QA `C:/kw/tools/dbg-r8.init.gradle`, task `:app:assembleBaseRelease`, sin instalación. Por flavors, buscar `app/build/outputs/apk/base/release/app-base-release.apk`; el comentario del init menciona una ruta antigua. El init añade `.dbg` y firma debug; MediaPipe tiene keep de sus clases/protobuf y `.task` sin comprimir. Comprobar applicationId y componentes DataTransport deshabilitados en el manifest fusionado del APK, sin confundir esta revisión estática con R8 ejecutado o privacidad dinámica.
+
+La CV34757 (`vt-m5-cv-boundary-20261022.log`) no produjo medición: falló al leer `package.partition`, antes del bucle de evaluación. Se preservan los manifiestos y su errata de texto documentada; el runner deberá conservar el objeto JSON sin interpretarlo como cadena ni reconstruir folds a partir de `rule`. La salida prevista `openpose-cv-boundary-20261022` sigue sin existir. En paralelo a esa reparación de fuentes aisladas, se inicia Android83234 con la lista33 ya contrastada; solo una corrida Gradle propia.
