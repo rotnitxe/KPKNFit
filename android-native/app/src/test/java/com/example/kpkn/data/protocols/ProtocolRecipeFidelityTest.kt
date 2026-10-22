@@ -211,7 +211,7 @@ class ProtocolRecipeFidelityTest {
     @Test
     fun cube_week1_heavy_is_5x2_at_80() {
         val protocol = visible().first { it.id == "cube-method" }
-        val heavy = protocol.recipe!!.weeks.first().days.first { it.label == "Pesado" }.slots.first { it.role == SlotRole.T1_MAIN }
+        val heavy = protocol.recipe!!.weeks.first().days.first { it.label == "Sentadilla" }.slots.first { it.role == SlotRole.T1_MAIN }
         assertEquals(5, heavy.sets.size)
         assertTrue(heavy.sets.all { it.reps == 2 && it.percent == 80.0 })
     }
@@ -825,23 +825,51 @@ class ProtocolRecipeFidelityTest {
     }
 
     @Test
-    fun cube_repetitions_day_is_one_amrap_set_and_its_incline_bench_does_not_hang_from_the_deadlift() {
-        // L-13: el día de repeticiones era una serie suelta sin marcar (C1) y la banca inclinada colgaba del peso muerto (C8).
+    fun cube_repetitions_method_is_one_amrap_set_and_its_incline_bench_does_not_hang_from_the_deadlift() {
+        // L-13: el método de repeticiones es UNA serie al máximo (antes una serie suelta sin marcar, C1) y la banca inclinada
+        // del jueves no cuelga del peso muerto (C8). T-11: la rotación reparte los métodos entre los tres levantamientos.
         val protocol = visible().first { it.id == "cube-method" }
         val recipe = protocol.recipe!!
-        recipe.weeks.forEach { week ->
-            val repetitions = week.days.first { it.label == "Repeticiones" }
-            val deadliftSets = workSets(repetitions.slots.first { it.id == "dl" })
-            assertEquals("semana ${week.weekNumber}: una sola serie de peso muerto", 1, deadliftSets.size)
-            if (week.weekNumber <= 9) {
+        recipe.weeks.filter { it.weekNumber <= 9 }.forEach { week ->
+            val deadliftDay = week.days.first { it.label == "Peso muerto" }
+            assertNull("semana ${week.weekNumber}: la banca inclinada no cuelga del peso muerto", deadliftDay.slots.first { it.id == "bp" }.supplementalOf)
+            if ((week.weekNumber - 1) % 3 == 0) {
+                val deadliftSets = workSets(deadliftDay.slots.first { it.id == "dl" })
+                assertEquals("semana ${week.weekNumber}: el peso muerto a repeticiones es una sola serie", 1, deadliftSets.size)
                 assertTrue("semana ${week.weekNumber}: la serie es AMRAP", deadliftSets.single().amrap)
-            } else {
-                assertEquals("semana 10: test de una repetición", 1, deadliftSets.single().reps)
             }
-            assertNull("semana ${week.weekNumber}: la banca inclinada no cuelga del peso muerto", repetitions.slots.first { it.id == "bp" }.supplementalOf)
         }
-        assertTrue(protocol.description.contains("una serie AMRAP"))
-        assertTrue(protocol.description.contains("rotación semanal de los tres métodos del Cube no está implementada"))
+        val test = recipe.weeks.first { it.weekNumber == 10 }
+        val testDeadlift = workSets(test.days.first { it.label == "Repeticiones" }.slots.first { it.id == "dl" })
+        assertEquals("semana 10: test de una repetición", 1, testDeadlift.single().reps)
+        assertTrue(protocol.description.contains("una serie al máximo de repeticiones"))
+        assertTrue(protocol.description.contains("rotan cada semana entre pesado, explosivo y repeticiones"))
+    }
+
+    @Test
+    fun cube_rotates_methods_each_week() {
+        val recipe = visible().first { it.id == "cube-method" }.recipe!!
+        val expectations = mapOf(
+            1 to Triple(SlotRole.T1_MAIN, CatalogIds.SQ_LOW, false),
+            2 to Triple(SlotRole.SPEED, CatalogIds.SQ_BOX, false),
+            3 to Triple(SlotRole.T1_MAIN, CatalogIds.SQ_LOW, true),
+            4 to Triple(SlotRole.T1_MAIN, CatalogIds.SQ_LOW, false),
+            5 to Triple(SlotRole.SPEED, CatalogIds.SQ_BOX, false),
+            6 to Triple(SlotRole.T1_MAIN, CatalogIds.SQ_LOW, true),
+            7 to Triple(SlotRole.T1_MAIN, CatalogIds.SQ_LOW, false),
+            8 to Triple(SlotRole.SPEED, CatalogIds.SQ_BOX, false),
+            9 to Triple(SlotRole.T1_MAIN, CatalogIds.SQ_LOW, true),
+        )
+        expectations.forEach { (weekNumber, expected) ->
+            val (role, configurationId, amrap) = expected
+            val main = recipe.weeks.first { it.weekNumber == weekNumber }.days.first().slots.first()
+            assertEquals("semana $weekNumber: rol del lunes", role, main.role)
+            assertEquals("semana $weekNumber: configuración del lunes", configurationId, main.lift.configurationId)
+            assertEquals("semana $weekNumber: AMRAP del lunes", amrap, workSets(main).any { it.amrap })
+        }
+        assertEquals("la semana 4 abre la ola 2", 1, recipe.weeks[3].blockIndex)
+        assertEquals("la semana 7 abre la ola 3", 2, recipe.weeks[6].blockIndex)
+        assertEquals("la semana 10 es el test", 3, recipe.weeks[9].blockIndex)
     }
 
     @Test
@@ -1301,8 +1329,9 @@ class ProtocolRecipeFidelityTest {
         )
         bumped.forEach { id -> assertEquals("$id: contentVersion", 2, recipeOf(id).contentVersion) }
         listOf(
-            "lilliebridge", "wendler-531-bbb", "wendler-531-fsl", "nsuns-531-lp-4d", "gzclp", "cube-method", "juggernaut-2",
+            "lilliebridge", "wendler-531-bbb", "wendler-531-fsl", "nsuns-531-lp-4d", "gzclp", "juggernaut-2",
         ).forEach { id -> assertEquals("$id: contentVersion", 3, recipeOf(id).contentVersion) }
+        assertEquals("cube-method: rotación y AMRAP de registro", 4, recipeOf("cube-method").contentVersion)
         assertEquals("gzcl-rippler: AMRAP de registro", 2, recipeOf("gzcl-rippler").contentVersion)
         listOf("coan-phillipi-dl", "korte-3x3", "phul-verified", "phat-verified", "apre-mann").forEach { id ->
             assertEquals("$id: sin cambios de contenido", 1, recipeOf(id).contentVersion)

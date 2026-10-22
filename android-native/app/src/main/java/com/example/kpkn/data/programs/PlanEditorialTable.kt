@@ -45,7 +45,7 @@ internal object PlanEditorialTable {
     private const val NOTE_WESTSIDE =
         "En los días dinámicos usamos solo la barra, sin bandas."
     private const val NOTE_CUBE =
-        "Cada tipo de día lleva siempre el mismo levantamiento."
+        "Cada levantamiento pasa cada semana por los tres métodos: pesado, explosivo y repeticiones."
     private const val NOTE_SMOLOV =
         "Solo trabaja la sentadilla, más dos accesorios de espalda."
     private const val NOTE_SMOLOV_JR =
@@ -866,10 +866,9 @@ internal object PlanEditorialTable {
             "protocol:cube-method",
             thirdParty(
                 displayName = "Cube Method",
-                summary = "10 semanas, 4 días por semana: sentadilla pesada, sentadilla en cajón y banca rápidas, " +
-                    "peso muerto por repeticiones y un día de torso para músculo. La carga sube por etapas y " +
-                    "la décima semana es de prueba. La serie al máximo de repeticiones del peso muerto es de " +
-                    "registro: queda en tu historial y no cambia tu carga.",
+                summary = "10 semanas, 4 días por semana: sentadilla, banca y peso muerto rotan cada semana entre pesado, " +
+                    "explosivo y repeticiones (una serie al máximo de repeticiones), en tres olas de 3 semanas que suben de " +
+                    "intensidad, más un día de torso para músculo. La décima semana es de prueba. Las series al máximo son de registro y no cambian la carga.",
                 rank = 453,
                 level = CatalogLevel.ADVANCED,
                 methodName = "Cube Method",

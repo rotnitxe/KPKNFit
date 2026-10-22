@@ -15,6 +15,7 @@ import com.example.kpkn.data.protocols.ProtocolPublicationStatus
 import com.example.kpkn.data.protocols.RecipeCompositionExemption
 import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotPriority
+import com.example.kpkn.data.protocols.SlotRecipe
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.SlotSource
 import com.example.kpkn.data.protocols.TechniqueModifier
@@ -94,6 +95,9 @@ object ClassicPlProtocols {
         )
     }
 
+    // T-11 (L-13): los tres métodos del Cube. El enum vive aquí porque Kotlin no admite enums locales dentro del `run`.
+    private enum class CubeMethod { HEAVY, EXPLOSIVE, REPS }
+
     val cube = run {
         fun heavySets(w: Int) = when {
             w <= 3 -> repeatPercentSets(5, 2, 80.0, 240)
@@ -117,48 +121,119 @@ object ClassicPlProtocols {
             w <= 9 -> listOf(SetRecipe(reps = 2, percent = 85.0, amrap = true))
             else -> listOf(SetRecipe(reps = 1, percent = 60.0))
         }
+        /** Rotación del Cube: cada levantamiento pasa por los tres métodos en cada ola de 3 semanas. */
+        fun methodOf(lift: LiftSlot, w: Int): CubeMethod {
+            val order = when (lift) {
+                LiftSlot.SQUAT -> listOf(CubeMethod.HEAVY, CubeMethod.EXPLOSIVE, CubeMethod.REPS)
+                LiftSlot.BENCH -> listOf(CubeMethod.EXPLOSIVE, CubeMethod.REPS, CubeMethod.HEAVY)
+                else -> listOf(CubeMethod.REPS, CubeMethod.HEAVY, CubeMethod.EXPLOSIVE)
+            }
+            return order[(w - 1) % 3]
+        }
+        fun setsFor(method: CubeMethod, w: Int): List<SetRecipe> = when (method) {
+            CubeMethod.HEAVY -> heavySets(w)
+            CubeMethod.EXPLOSIVE -> speedSets(w)
+            CubeMethod.REPS -> repsSets(w)
+        }
+        fun restFor(method: CubeMethod, w: Int): Int = when (method) {
+            CubeMethod.HEAVY -> 240
+            CubeMethod.EXPLOSIVE -> 60
+            CubeMethod.REPS -> if ((repsSets(w).first().percent ?: 0.0) >= 85) 240 else 180
+        }
+        fun mainSlot(id: String, lift: LiftSlot, competitionId: String, explosiveId: String, method: CubeMethod, w: Int): SlotRecipe =
+            slot(
+                id = id,
+                role = if (method == CubeMethod.EXPLOSIVE) SlotRole.SPEED else SlotRole.T1_MAIN,
+                configurationId = if (method == CubeMethod.EXPLOSIVE) explosiveId else competitionId,
+                sets = setsFor(method, w),
+                restSeconds = restFor(method, w),
+                liftSlot = lift,
+                technique = if (method == CubeMethod.EXPLOSIVE) TechniqueModifier.SPEED else null,
+                isCompetitionLift = true,
+                priority = if (method == CubeMethod.EXPLOSIVE) SlotPriority.SPEED else SlotPriority.NORMAL,
+            )
         val weeks = (1..10).map { w ->
-            val goal = if (w == 10) BlockGoal.PEAK else if (w >= 8) BlockGoal.INTENSIFICATION else BlockGoal.ACCUMULATION
             val drop = if (w == 10) 2 else if (w >= 8) 1 else 0
-            weekRecipe(w, 0, if (w == 10) "Test" else "Cubo", goal, listOf(
-                day("Pesado", weekday = 1, slots = listOf(
-                    slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, heavySets(w), 240, LiftSlot.SQUAT, isCompetitionLift = true),
-                    kpknAssist("row", CatalogIds.PENDLAY, 4, 8, 120),
-                    kpknAssist("ghr", CatalogIds.GHR, 4, 8, 90),
-                    kpknAssist("face", CatalogIds.FACE, 3, 15, 60),
-                    kpknAssist("pallof", CatalogIds.PALLOF, 3, 10, 60),
-                )).dropT3(drop),
-                day("Explosivo", weekday = 2, slots = listOf(
-                    slot("speed", SlotRole.SPEED, CatalogIds.SQ_BOX, speedSets(w), 60, LiftSlot.SQUAT, technique = TechniqueModifier.SPEED, priority = SlotPriority.SPEED),
-                    slot("bp", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP, repeatPercentSets(8, 3, if (w <= 3) 60.0 else if (w <= 6) 65.0 else 70.0, 90), 120, LiftSlot.BENCH, isCompetitionLift = true, technique = TechniqueModifier.SPEED),
-                    kpknAssist("pull", CatalogIds.PULLUP, 3, 6, 120),
-                    kpknAssist("tate", CatalogIds.TATE, 3, 10, 60),
-                    kpknAssist("wheel", CatalogIds.WHEEL, 3, 8, 60),
-                ), priority = SlotPriority.SPEED).dropT3(drop),
-                day("Repeticiones", weekday = 4, slots = listOf(
-                    slot("dl", SlotRole.T1_MAIN, CatalogIds.DL, repsSets(w), if ((repsSets(w).first().percent ?: 0.0) >= 85) 240 else 180, LiftSlot.DEADLIFT, isCompetitionLift = true),
-                    // L-13/C8 (B.S6): la banca inclinada no es un suplementario del peso muerto (otro patrón): sin `supplementalOf`.
-                    slot("bp", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP_INC, rpeSets(4, 8, 8.0), 120, LiftSlot.BENCH),
-                    kpknAssist("row", CatalogIds.CSR, 4, 10, 90),
-                    kpknAssist("ghr", CatalogIds.GHR, 3, 8, 90),
-                    kpknAssist("jm", CatalogIds.JM, 2, 10, 60),
-                    // CAL5: ninguna fuente le da al AMRAP del día de repeticiones una regla de carga: es una serie de registro explícita.
-                )).dropT3(drop).amrapAsRecord(),
-                DayArchetypes.bbTorso().asKpknSuggested().copy(label = "Culturismo", weekday = 5).dropT3(drop),
-            ))
+            if (w == 10) {
+                // La semana 10 es el test y se queda como estaba: sentadilla pesada, banca explosiva y peso muerto a repeticiones.
+                weekRecipe(10, 3, "Test", BlockGoal.PEAK, listOf(
+                    day("Pesado", weekday = 1, slots = listOf(
+                        slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, heavySets(w), 240, LiftSlot.SQUAT, isCompetitionLift = true),
+                        kpknAssist("row", CatalogIds.PENDLAY, 4, 8, 120),
+                        kpknAssist("ghr", CatalogIds.GHR, 4, 8, 90),
+                        kpknAssist("face", CatalogIds.FACE, 3, 15, 60),
+                        kpknAssist("pallof", CatalogIds.PALLOF, 3, 10, 60),
+                    )).dropT3(drop),
+                    day("Explosivo", weekday = 2, slots = listOf(
+                        slot("speed", SlotRole.SPEED, CatalogIds.SQ_BOX, speedSets(w), 60, LiftSlot.SQUAT, technique = TechniqueModifier.SPEED, priority = SlotPriority.SPEED),
+                        slot("bp", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP, repeatPercentSets(8, 3, if (w <= 3) 60.0 else if (w <= 6) 65.0 else 70.0, 90), 120, LiftSlot.BENCH, isCompetitionLift = true, technique = TechniqueModifier.SPEED),
+                        kpknAssist("pull", CatalogIds.PULLUP, 3, 6, 120),
+                        kpknAssist("tate", CatalogIds.TATE, 3, 10, 60),
+                        kpknAssist("wheel", CatalogIds.WHEEL, 3, 8, 60),
+                    ), priority = SlotPriority.SPEED).dropT3(drop),
+                    day("Repeticiones", weekday = 4, slots = listOf(
+                        slot("dl", SlotRole.T1_MAIN, CatalogIds.DL, repsSets(w), if ((repsSets(w).first().percent ?: 0.0) >= 85) 240 else 180, LiftSlot.DEADLIFT, isCompetitionLift = true),
+                        // L-13/C8 (B.S6): la banca inclinada no es un suplementario del peso muerto (otro patrón): sin `supplementalOf`.
+                        slot("bp", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP_INC, rpeSets(4, 8, 8.0), 120, LiftSlot.BENCH),
+                        kpknAssist("row", CatalogIds.CSR, 4, 10, 90),
+                        kpknAssist("ghr", CatalogIds.GHR, 3, 8, 90),
+                        kpknAssist("jm", CatalogIds.JM, 2, 10, 60),
+                    )).dropT3(drop),
+                    DayArchetypes.bbTorso().asKpknSuggested().copy(label = "Culturismo", weekday = 5).dropT3(drop),
+                ))
+            } else {
+                val wave = (w - 1) / 3
+                val goal = when (wave) {
+                    0 -> BlockGoal.ACCUMULATION
+                    1 -> BlockGoal.INTENSIFICATION
+                    else -> BlockGoal.PEAK
+                }
+                val sqMethod = methodOf(LiftSlot.SQUAT, w)
+                val bpMethod = methodOf(LiftSlot.BENCH, w)
+                val dlMethod = methodOf(LiftSlot.DEADLIFT, w)
+                weekRecipe(w, wave, "Ola ${wave + 1}", goal, listOf(
+                    day("Sentadilla", weekday = 1, slots = listOf(
+                        mainSlot("sq", LiftSlot.SQUAT, CatalogIds.SQ_LOW, CatalogIds.SQ_BOX, sqMethod, w),
+                        kpknAssist("row", CatalogIds.PENDLAY, 4, 8, 120),
+                        kpknAssist("ghr", CatalogIds.GHR, 4, 8, 90),
+                        kpknAssist("face", CatalogIds.FACE, 3, 15, 60),
+                        kpknAssist("pallof", CatalogIds.PALLOF, 3, 10, 60),
+                    ), priority = if (sqMethod == CubeMethod.EXPLOSIVE) SlotPriority.SPEED else SlotPriority.NORMAL).dropT3(drop),
+                    day("Banca", weekday = 2, slots = listOf(
+                        mainSlot("bp", LiftSlot.BENCH, CatalogIds.BP, CatalogIds.BP, bpMethod, w),
+                        kpknAssist("pull", CatalogIds.PULLUP, 3, 6, 120),
+                        kpknAssist("tate", CatalogIds.TATE, 3, 10, 60),
+                        kpknAssist("wheel", CatalogIds.WHEEL, 3, 8, 60),
+                    ), priority = if (bpMethod == CubeMethod.EXPLOSIVE) SlotPriority.SPEED else SlotPriority.NORMAL).dropT3(drop),
+                    day("Peso muerto", weekday = 4, slots = listOf(
+                        mainSlot("dl", LiftSlot.DEADLIFT, CatalogIds.DL, CatalogIds.DL, dlMethod, w),
+                        // L-13/C8 (B.S6): la banca inclinada no es un suplementario del peso muerto (otro patrón): sin `supplementalOf`.
+                        slot("bp", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP_INC, rpeSets(4, 8, 8.0), 120, LiftSlot.BENCH),
+                        kpknAssist("row", CatalogIds.CSR, 4, 10, 90),
+                        kpknAssist("ghr", CatalogIds.GHR, 3, 8, 90),
+                        kpknAssist("jm", CatalogIds.JM, 2, 10, 60),
+                    ), priority = if (dlMethod == CubeMethod.EXPLOSIVE) SlotPriority.SPEED else SlotPriority.NORMAL).dropT3(drop),
+                    DayArchetypes.bbTorso().asKpknSuggested().copy(label = "Culturismo", weekday = 5).dropT3(drop),
+                ))
+            }
         }
         Protocol(
             id = "cube-method", name = "Cube Method", emoji = "🧊",
-            description = "10 semanas, 4 días: la sentadilla va siempre pesada, la banca explosiva y el peso muerto a repeticiones (una serie AMRAP de " +
-                "registro: se guarda en tu historial y no cambia tu carga), más un día de culturismo. La rotación semanal de los tres métodos del Cube no " +
-                "está implementada. La semana 10 es el test.",
+            description = "10 semanas, 4 días: sentadilla, banca y peso muerto rotan cada semana entre pesado, explosivo y repeticiones " +
+                "(una serie al máximo de repeticiones), en tres olas de 3 semanas que suben de intensidad, más un día de culturismo. " +
+                "La semana 10 es el test. Las series al máximo son de registro: no cambian la carga.",
             author = "Brandon Lilly", tags = listOf("powerlifting", "avanzado", "4 días", "10 semanas", "%"),
-            blocks = listOf(ProtocolBlock("Cubo", 10, "Intensificación", 60, 100)),
+            blocks = listOf(
+                ProtocolBlock("Ola 1", 3, "Acumulación", 60, 80),
+                ProtocolBlock("Ola 2", 3, "Intensificación", 65, 85),
+                ProtocolBlock("Ola 3", 3, "Realización", 70, 95),
+                ProtocolBlock("Test", 1, "Realización", 90, 100),
+            ),
             defaultSplit = "cube_method", publicationStatus = ProtocolPublicationStatus.VERIFIED,
             kind = ProtocolKind.FIXED_PROGRAM,
             source = attributed("The Cube Method", "https://www.powerliftingtowin.com/brandon-lillys-cube-method/", "Brandon Lilly"),
             recipe = TrainingPlanRecipe(
-                "cube-method", weeks, 0.95, sbdSlots(), ProgressionRule.None,
+                "cube-method", weeks.map { week -> week.copy(days = week.days.map { it.amrapAsRecord() }) }, 0.95, sbdSlots(), ProgressionRule.None,
                 // B.S6 parte 2b (C5): el Cube termina en la semana 10 con el test y no trae descarga.
                 exemptions = listOf(
                     RecipeCompositionExemption(
@@ -166,8 +241,25 @@ object ClassicPlProtocols {
                         "El Cube Method son 10 semanas que terminan en la semana 10 con el test de una repetición; el método no programa una semana de descarga aparte",
                         "https://www.powerliftingtowin.com/brandon-lillys-cube-method/",
                     ),
+                    // La tercera ola es el pico del método y conserva los accesorios de espalda y tríceps: solo la semana de test
+                    // los recorta (dropT3), así que las semanas 7 a 9 se declaran como exención W2 por semana.
+                    RecipeCompositionExemption(
+                        "W2", "w7",
+                        "La tercera ola del Cube conserva los accesorios de espalda y tríceps: el método solo los recorta en la semana de test",
+                        "https://www.powerliftingtowin.com/brandon-lillys-cube-method/",
+                    ),
+                    RecipeCompositionExemption(
+                        "W2", "w8",
+                        "La tercera ola del Cube conserva los accesorios de espalda y tríceps: el método solo los recorta en la semana de test",
+                        "https://www.powerliftingtowin.com/brandon-lillys-cube-method/",
+                    ),
+                    RecipeCompositionExemption(
+                        "W2", "w9",
+                        "La tercera ola del Cube conserva los accesorios de espalda y tríceps: el método solo los recorta en la semana de test",
+                        "https://www.powerliftingtowin.com/brandon-lillys-cube-method/",
+                    ),
                 ),
-                claimedDaysPerWeek = 4, claimedLevel = "avanzado", contentVersion = 3,
+                claimedDaysPerWeek = 4, claimedLevel = "avanzado", contentVersion = 4,
             ),
             fidelitySpec = ProtocolFidelitySpec(10, 4, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("heavy" to listOf(80.0))),
         )
