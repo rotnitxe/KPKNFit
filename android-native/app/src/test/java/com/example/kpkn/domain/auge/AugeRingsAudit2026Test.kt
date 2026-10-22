@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.AugeAdaptiveCache
+import com.example.kpkn.data.models.AugePerformanceContext
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.CompletedExercise
@@ -272,32 +273,36 @@ class TauObservationCapTest {
 
 class PerformanceTauProgressionBiasTest {
     @Test
-    fun impliedBetterThanPredictedIsSkipped() {
-        assertEquals("progression_not_learned", runSkip(impliedBetter = true))
+    fun impliedBetterThanPredicted_emitsObservationWithWeightHalf() {
+        // Antes: el progreso se descartaba con «progression_not_learned» sesgando hacia τ más lentos.
+        // Después: el progreso se aprende bilateralmente aportando observación con peso 0,5 (media información).
+        val result = runProgressingSquat()
+        val quadObs = result.observations.single { it.parameterKey == "cuádriceps" }
+        val quadDiag = result.diagnostics.single { it.channel == "Cuádriceps" }
+
+        assertEquals(0.5, quadDiag.weight ?: 0.0, 1e-9)
+        assertEquals(12.0 / kotlin.math.sqrt(0.5), quadObs.sigma, 1e-9)
+        assertEquals(null, quadDiag.skipReason)
     }
 
-    private fun runSkip(impliedBetter: Boolean): String {
-        // Use the public observations path with a progressing squat vs a weak prediction.
+    private fun runProgressingSquat(): PerformanceTauResult {
         val now = Instant.parse("2026-09-12T18:00:00Z")
         val history = (1..4).map { i ->
             axialLog("sq-$i", now.minusSeconds((i * 7L) * 24 * 3600).toEpochMilli(), weight = 100.0)
         }
         val today = axialLog("today", now.toEpochMilli(), weight = 130.0)
-        val result = PerformanceTauLearner.observations(
+        return PerformanceTauLearner.observations(
             PerformanceTauInput(
                 historyWithoutToday = history,
                 today = today,
                 nowMs = now.toEpochMilli(),
                 exerciseDb = AxialFixtures.db,
                 settings = Settings(),
-                predictedEnergy = if (impliedBetter) 60 else 90,
-                predictedStructure = if (impliedBetter) 60 else 90,
-                predictedMuscles = mapOf("Cuádriceps" to if (impliedBetter) 60 else 90),
+                predictedEnergy = 60,
+                predictedStructure = 60,
+                predictedMuscles = mapOf("Cuádriceps" to 60),
             ),
         )
-        return result.diagnostics.firstOrNull { it.skipReason == "progression_not_learned" }?.skipReason
-            ?: result.diagnostics.firstOrNull()?.skipReason
-            ?: if (result.observations.isEmpty()) "none" else "learned"
     }
 }
 
@@ -355,5 +360,6 @@ private fun axialLog(id: String, at: Long, weight: Double = 140.0): WorkoutLog {
         date = iso, durationMinutes = 55,
         ringStartSnapshot = RingStartSnapshot(iso, muscular = 80, energy = 75, structure = 70),
         completedExercises = session("squat", AxialFixtures.db.getValue("squat"), weight = weight),
+        performanceContext = AugePerformanceContext(sessionStartTimeMs = at, isDeload = false, deloadOrigin = "hierarchy_normal"),
     )
 }

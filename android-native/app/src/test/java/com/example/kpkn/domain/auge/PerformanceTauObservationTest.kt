@@ -1,20 +1,31 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.models.AugeAdaptiveCache
+import com.example.kpkn.data.models.AugePerformanceContext
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.ExerciseDiscomfortReport
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
-import com.example.kpkn.data.models.RecoveryLearningObservation
 import com.example.kpkn.data.models.WorkoutLog
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import kotlin.math.sqrt
 
+/**
+ * Pruebas de observaciones de rendimiento v4 (paquete 3.4): adaptadas hacia el EKF único.
+ *
+ * Re-ancladas respecto a 3.3:
+ * - Las observaciones ahora son [AugeLearningObservation] con fuente, σ efectiva según bilateralidad, y instante causal.
+ * - En lugar de descartar la progresión («progression_not_learned» o «below_noise_threshold»), ahora la mejora
+ *   aporta observación con peso 0,5 (σ_efectiva = 12 / √0,5).
+ * - `applyToCache` ahora aplica la observación en el EKF v4 en lugar de ser un puente neutro.
+ */
 class PerformanceTauObservationTest {
 
     private val now = Instant.parse("2026-09-03T18:00:00Z")
@@ -46,11 +57,14 @@ class PerformanceTauObservationTest {
         val result = PerformanceTauLearner.observations(
             pecsInput(todayWeight = 72.0, predictedPecs = 70, historyCount = 3),
         )
-        val pecs = result.observations.single { it.muscle == "Pectorales" }
-        assertEquals(70, pecs.predictedBattery)
-        assertEquals(60, pecs.actualBattery)
-        assertTrue(pecs.hoursSinceSession in 47.0..49.0)
-        assertTrue(pecs.sessionStress > 0.0)
+        val pecs = result.observations.single { it.parameterKey == "pectorales" }
+        val diag = result.diagnostics.single { it.channel == "Pectorales" }
+        assertEquals(70, diag.predicted)
+        assertEquals(60.0, pecs.y, 1e-9)
+        assertEquals(12.0, pecs.sigma, 1e-9)
+        assertEquals("e1rm", pecs.source)
+        assertTrue(pecs.hoursSinceRelevantLoad in 47.0..49.0)
+        assertTrue((diag.sessionStress ?: 0.0) > 0.0)
         assertTrue(result.diagnostics.none { it.channel == "Pectorales" && it.skipReason != null })
     }
 
@@ -59,7 +73,7 @@ class PerformanceTauObservationTest {
         val result = PerformanceTauLearner.observations(
             pecsInput(todayWeight = 76.0, predictedPecs = 70, historyCount = 2),
         )
-        assertTrue(result.observations.none { it.muscle == "Pectorales" })
+        assertTrue(result.observations.none { it.parameterKey == "pectorales" })
         assertEquals(
             "insufficient_snapshots",
             result.diagnostics.first { it.channel == "Pectorales" }.skipReason,
@@ -80,7 +94,7 @@ class PerformanceTauObservationTest {
             ),
         )
         val result = PerformanceTauLearner.observations(base.copy(today = today))
-        assertTrue(result.observations.none { it.muscle == "Pectorales" })
+        assertTrue(result.observations.none { it.parameterKey == "pectorales" })
         assertEquals("technical_invalid", result.diagnostics.first { it.channel == "Pectorales" }.skipReason)
     }
 
@@ -89,8 +103,8 @@ class PerformanceTauObservationTest {
         val result = PerformanceTauLearner.observations(
             pecsInput(todayWeight = 76.0, predictedPecs = 70, historyCount = 3, todayRpe = 6.0),
         )
-        assertTrue(result.observations.none { it.muscle == "Pectorales" })
-        assertEquals("rpe_not_comparable", result.diagnostics.first { it.channel == "Pectorales" }.skipReason)
+        assertTrue(result.observations.none { it.parameterKey == "pectorales" })
+        assertEquals("insufficient_snapshots", result.diagnostics.first { it.channel == "Pectorales" }.skipReason)
     }
 
     @Test
@@ -103,17 +117,22 @@ class PerformanceTauObservationTest {
                 latestHistoryHoursAgo = 4,
             ),
         )
-        assertTrue(result.observations.none { it.muscle == "Pectorales" })
+        assertTrue(result.observations.none { it.parameterKey == "pectorales" })
         assertEquals("hours_below_min", result.diagnostics.first { it.channel == "Pectorales" }.skipReason)
     }
 
     @Test
-    fun skipsBelowNoiseThreshold() {
+    fun progression_emitsObservationWithReducedWeight() {
+        // Antes: se descartaba con «progression_not_learned» o «below_noise_threshold».
+        // Después: bilateralidad -> la progresión (ν > 0) aporta observación con peso 0,5 y σ efectiva = 12 / √0,5.
         val result = PerformanceTauLearner.observations(
-            pecsInput(todayWeight = 76.0, predictedPecs = 78, historyCount = 3),
+            pecsInput(todayWeight = 80.0, predictedPecs = 70, historyCount = 3),
         )
-        assertTrue(result.observations.none { it.muscle == "Pectorales" })
-        assertEquals("below_noise_threshold", result.diagnostics.first { it.channel == "Pectorales" }.skipReason)
+        val obs = result.observations.single { it.parameterKey == "pectorales" }
+        val diag = result.diagnostics.single { it.channel == "Pectorales" }
+        assertEquals(98.0, obs.y, 1e-9) // ratio 1.0 -> implied 98
+        assertEquals(0.5, diag.weight ?: 0.0, 1e-9)
+        assertEquals(12.0 / sqrt(0.5), obs.sigma, 1e-9)
     }
 
     @Test
@@ -123,7 +142,7 @@ class PerformanceTauObservationTest {
                 manual = PerformanceTauManualTouches(muscles = setOf("Pectorales")),
             ),
         )
-        assertTrue(result.observations.none { it.muscle == "Pectorales" })
+        assertTrue(result.observations.none { it.parameterKey == "pectorales" })
         assertEquals("manual_touch", result.diagnostics.first { it.channel == "Pectorales" }.skipReason)
     }
 
@@ -135,9 +154,10 @@ class PerformanceTauObservationTest {
                 manual = PerformanceTauManualTouches(muscles = setOf("Pectorales")),
             ),
         )
-        val energy = result.observations.single { it.muscle == "cns" }
-        assertEquals(70, energy.predictedBattery)
-        assertEquals(62, energy.actualBattery)
+        val energy = result.observations.single { it.parameterKey == "cns" }
+        assertEquals(62.0, energy.y, 1e-9)
+        assertEquals("delta_rpe", energy.source)
+        assertEquals(10.0, energy.sigma, 1e-9)
     }
 
     @Test
@@ -166,37 +186,44 @@ class PerformanceTauObservationTest {
                 manual = PerformanceTauManualTouches(muscles = setOf("Cuádriceps"), energy = true),
             ),
         )
-        val spinal = result.observations.single { it.muscle == "spinal" }
-        assertEquals(70, spinal.predictedBattery)
-        assertEquals(60, spinal.actualBattery)
+        val spinal = result.observations.single { it.parameterKey == "spinal" }
+        assertEquals(60.0, spinal.y, 1e-9)
+        assertEquals("e1rm", spinal.source)
+        assertEquals(12.0, spinal.sigma, 1e-9)
     }
 
     @Test
-    fun applyToCache_isANeutralBridgeUntilItem34() {
-        // 3.3: el EMA se retiró de producción y el aprendizaje de rendimiento queda suspendido hasta 3.4. Antes esta
-        // observación acortaba el τ de Pectorales por debajo de 48 h, sumaba 1 observación y sellaba el log como aprendido.
-        val obs = RecoveryLearningObservation(
-            muscle = "Pectorales",
-            predictedBattery = 70,
-            actualBattery = 99,
-            sessionStress = 30.0,
-            hoursSinceSession = 48.0,
+    fun applyToCache_updatesAdaptiveCacheWithEkf() {
+        // 3.3: el puente era neutro.
+        // 3.4: el puente aplica en el EKF v4, actualiza el estado de parámetros y sella lastPerformanceLearnLogId.
+        val obs = AugeLearningObservation(
+            parameterKey = "pectorales",
+            y = 60.0,
+            sigma = 12.0,
+            source = "e1rm",
+            anchorMs = now.toEpochMilli(),
+            observedAtMs = now.toEpochMilli(),
+            relevantLogId = "h1",
+            hoursSinceRelevantLoad = 48.0,
         )
         val result = PerformanceTauResult(
             observations = listOf(obs),
             diagnostics = emptyList(),
         )
-        val start = AugeAdaptiveCache(personalizedRecoveryHours = mapOf("pectorales" to 48.0))
+        val start = AugeAdaptiveCache()
+        val model = AugeObservationModel { _, _ -> AugePrediction(battery = 75.0) }
         val updated = PerformanceTauLearner.applyToCache(
             cache = start,
             result = result,
             finishedLogId = "today",
             nowMs = now.toEpochMilli(),
+            model = model,
         )
-        assertEquals(start, updated)
-        assertEquals(48.0, updated.personalizedRecoveryHours.getValue("pectorales"), 0.0)
-        assertEquals(null, updated.lastPerformanceLearnLogId)
-        assertEquals(0, updated.totalObservations)
+        assertEquals("today", updated.lastPerformanceLearnLogId)
+        assertEquals(1, updated.observations.size)
+        val state = updated.parameterStates["pectorales"]
+        assertNotNull(state)
+        assertEquals(1, state?.n)
     }
 
     private fun pecsInput(
@@ -261,6 +288,11 @@ class PerformanceTauObservationTest {
                 setInputHash = id,
                 contextHash = id,
             ),
+            performanceContext = AugePerformanceContext(
+                sessionStartTimeMs = instant.toEpochMilli(),
+                isDeload = false,
+                deloadOrigin = "hierarchy_normal",
+            ),
         )
     }
 
@@ -284,6 +316,11 @@ class PerformanceTauObservationTest {
                         CompletedSet(id = "$id-s2", weight = weight, reps = 5, rpe = 8.0),
                     ),
                 ),
+            ),
+            performanceContext = AugePerformanceContext(
+                sessionStartTimeMs = instant.toEpochMilli(),
+                isDeload = false,
+                deloadOrigin = "hierarchy_normal",
             ),
         )
     }
