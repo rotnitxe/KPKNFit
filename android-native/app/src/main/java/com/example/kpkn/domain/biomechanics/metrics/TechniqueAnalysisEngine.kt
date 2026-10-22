@@ -58,7 +58,7 @@ data class TechniqueAnalysisInput(
  * Las observaciones de técnica (`Observations`) se calculan al final, sobre el informe ya armado.
  */
 object TechniqueAnalysisEngine {
-    const val ENGINE_VERSION = 9
+    const val ENGINE_VERSION = 10
 
     /** Unidad de las cifras de trayectoria sin calibrar: porcentaje del recorrido vertical de la barra (ROM_v). */
     const val PERCENT_ROM = "%ROM"

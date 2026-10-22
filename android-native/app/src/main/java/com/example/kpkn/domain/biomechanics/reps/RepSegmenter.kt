@@ -188,6 +188,8 @@ data class SegmentationResult(
     val rangeAmplitude: Double = Double.NaN,
     val reference: RangeReferenceUse? = null,
     val partialEvidence: PartialEvidence = PartialEvidence.NONE,
+    /** Señal lateral que produjo los ciclos elegidos; null si se contó la señal agregada o ambos lados. */
+    val selectedSignalSide: Side? = null,
 ) {
     val fullCount: Int get() = cycles.count { it.kind == RepKind.FULL }
     val partialCount: Int get() = cycles.count { it.kind == RepKind.PARTIAL }
@@ -661,7 +663,8 @@ object RepSegmenter {
         val fullR = pr.countOf(RepKind.FULL)
         val counts = mapOf(Side.LEFT to fullL, Side.RIGHT to fullR)
 
-        fun single(side: Side, pass: Pass) = pass.toResult(SideMode.SINGLE, mapOf(side to pass.countOf(RepKind.FULL)), side, pass.cuts)
+        fun single(side: Side, pass: Pass) = pass.toResult(SideMode.SINGLE, mapOf(side to pass.countOf(RepKind.FULL)), side, pass.cuts,
+            selectedSignalSide = side)
 
         val hasL = pl.cycles.isNotEmpty()
         val hasR = pr.cycles.isNotEmpty()
@@ -705,9 +708,11 @@ object RepSegmenter {
         // Simétrico, o sin una pauta clara: se cuenta el lado de más confianza y la diferencia entre lados avisa.
         val snrL = if (pl.sigma > 0.0) pl.aFull / pl.sigma else Double.MAX_VALUE
         val snrR = if (pr.sigma > 0.0) pr.aFull / pr.sigma else Double.MAX_VALUE
-        val best = if (snrL >= snrR) pl else pr
+        val bestSide = if (snrL >= snrR) Side.LEFT else Side.RIGHT
+        val best = if (bestSide == Side.LEFT) pl else pr
         val extra = if (fullL != fullR) 1 else 0
-        return best.toResult(SideMode.BOTH_SYNC, counts, null, best.cuts, extraAmbiguous = extra)
+        return best.toResult(SideMode.BOTH_SYNC, counts, null, best.cuts, extraAmbiguous = extra,
+            selectedSignalSide = bestSide)
     }
 
     /** Correlación de Pearson de dos señales sobre las muestras válidas en las dos; 0 si no hay datos o alguna es constante. */
@@ -869,6 +874,7 @@ object RepSegmenter {
             sideTag: Side?,
             cuts: IntArray,
             extraAmbiguous: Int = 0,
+            selectedSignalSide: Side? = null,
         ): SegmentationResult {
             val out = ArrayList<RepCycle>(cycles.size)
             for ((i, c) in cycles.withIndex()) {
@@ -916,6 +922,7 @@ object RepSegmenter {
                 rangeAmplitude = aRange,
                 reference = range?.use(referenceApplied),
                 partialEvidence = evidence,
+                selectedSignalSide = selectedSignalSide,
             )
         }
     }

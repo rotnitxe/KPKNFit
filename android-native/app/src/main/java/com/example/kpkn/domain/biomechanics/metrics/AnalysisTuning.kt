@@ -368,6 +368,8 @@ data class MetricsTuning(
  */
 data class CountReliabilityTuning(
     val boundaryWindowS: Double = 0.12,
+    /** M5: espera máxima hasta la primera FULL en periodos interiores; 0 apaga la guarda hasta elegirla por CV. */
+    val initialBoundaryMaxPeriods: Double = 0.0,
     val shortRestFraction: Double = 0.05,
     val maxOfferedAmbiguousCycles: Int = 0,
     /**
