@@ -222,6 +222,8 @@ class AugeWellbeingProvenanceTest {
         assertEquals("cnsRecoveryHours", before.cnsRecoveryHours, after.cnsRecoveryHours)
         assertEquals("spinalRecoveryHours", before.spinalRecoveryHours, after.spinalRecoveryHours)
         assertEquals("totalObservations", before.totalObservations, after.totalObservations)
+        assertEquals("la copia no deja registros", before.observations, after.observations)
+        assertEquals("ni estados de parámetro", before.parameterStates, after.parameterStates)
         val saved = requireNotNull(todayWellbeing())
         assertEquals("la copia reinició el ancla", stored.manualBatteryAnchorMs, saved.manualBatteryAnchorMs)
         assertEquals("la copia cambió la fila guardada", stored, saved)
@@ -246,18 +248,22 @@ class AugeWellbeingProvenanceTest {
         awaitWrites()
 
         val after = cache()
-        assertEquals(
-            "una edición real cuenta como una observación (antes=$before, después=$after)",
-            before.totalObservations,
-            after.totalObservations,
-        )
-        assertEquals("EMA suspendido en v4", before.cnsRecoveryHours, after.cnsRecoveryHours)
-        assertEquals(
+        val saved = requireNotNull(todayWellbeing())
+        // 3.3: el contador histórico no se toca; la edición real deja UN registro de Energía en el anillo, con su ancla.
+        assertEquals("el contador histórico no cuenta observaciones", before.totalObservations, after.totalObservations)
+        val nuevos = after.observations.filter { registro -> before.observations.none { it.id == registro.id } }
+        assertEquals("una edición real = una observación (antes=$before, después=$after)", listOf("cns"), nuevos.map { it.parameterKey })
+        assertEquals(EDITED_NEURAL.toDouble(), nuevos.single().y, 0.0)
+        assertEquals("el registro lleva el instante del ancla", saved.manualNeuralAnchorMs, nuevos.single().anchorMs)
+        assertTrue(
             "los Pectorales copiados que viajan con la edición no enseñan",
+            after.observations.none { it.parameterKey == "pectorales" },
+        )
+        assertEquals(
+            "los Pectorales copiados tampoco mueven su τ",
             before.personalizedRecoveryHours,
             after.personalizedRecoveryHours,
         )
-        val saved = requireNotNull(todayWellbeing())
         assertEquals(EDITED_NEURAL, saved.manualNeuralBattery)
         assertTrue(
             "la edición debía reanclar (ancla ${saved.manualBatteryAnchorMs}, la guardada era ${stored.manualBatteryAnchorMs})",
