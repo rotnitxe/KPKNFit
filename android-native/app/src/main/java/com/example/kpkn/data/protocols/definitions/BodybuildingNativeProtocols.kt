@@ -32,6 +32,7 @@ import com.example.kpkn.data.protocols.repeatPercentSets
 import com.example.kpkn.data.protocols.rpeSets
 import com.example.kpkn.data.protocols.slot
 import com.example.kpkn.data.protocols.weekRecipe
+import com.example.kpkn.domain.training.generator.Prescriber
 
 object BodybuildingProtocols {
     // B.S6: la exención H5a (`*`) del PHUL heredado estaba muerta: sus series de potencia van al 80-82 % del TM, por debajo del 85 %
@@ -312,16 +313,29 @@ object KpknNativeHypertrophyProtocols {
 }
 
 object KpknNativeAutoregFrameworks {
-    private fun rpeTopSet(reps: Int, rpe: Double, backoffs: Int) = listOf(
+    /** TM de la receta (0,90): los anclajes de las series de respaldo se escriben sobre él en las fases previas (L-05). */
+    private const val TRAINING_MAX_FRACTION = 0.90
+
+    // T-13 (L-26): las series de respaldo declaran el %1RM que ya llevan implícito su repeticiones y su RPE (la tabla de la
+    // propia app), para que el contrato pueda medir la intensidad del bloque; el top set sigue en RPE puro. El RPE declarado
+    // se conserva como esfuerzo objetivo. Los anclajes siguen la convención L-05: %TM en las fases previas y %1RM en el pico.
+    private fun rpeTopSet(reps: Int, rpe: Double, backoffs: Int, peak: Boolean) = listOf(
         SetRecipe(reps = reps, rpe = rpe, isTopSet = true, loadBasis = LoadBasis.RPE),
-    ) + rpeSets(backoffs, reps, rpe - 1.0)
+    ) + rpeSets(backoffs, reps, rpe - 1.0).map { backoff ->
+        val anchorOneRm = Prescriber.percentOfOneRm(reps, (10.0 - (rpe - 1.0)).toInt())
+        if (peak) {
+            backoff.copy(percent = anchorOneRm, loadBasis = LoadBasis.PERCENT_1RM)
+        } else {
+            backoff.copy(percent = anchorOneRm / TRAINING_MAX_FRACTION, loadBasis = LoadBasis.PERCENT_TM)
+        }
+    }
 
     val rts = Protocol(
         id = "kpkn-rts-style",
         name = "RTS-style KPKN",
         emoji = "🎛️",
-        description = "8 semanas, 4 días, inspirado en RTS: solo la sentadilla va por top set a RPE 8 (RPE 9 en el pivote) con 3 series de respaldo un punto por debajo; " +
-            "banca, peso muerto y banca de volumen siguen en porcentajes del TM. Sin regla de subida de TM. No es el producto de pago.",
+        description = "8 semanas, 4 días, inspirado en RTS: sentadilla, banca y peso muerto van por top set a RPE 8 (RPE 9 en el pivote) con series de respaldo un punto por debajo; " +
+            "la banca de volumen sigue en porcentajes del TM. El top set registrado ajusta el TM de la semana siguiente (regla RPE_CAP). No es el producto de pago.",
         author = "KPKN Fit",
         tags = listOf("powerlifting", "avanzado", "4 días", "8 semanas", "RPE"),
         blocks = listOf(ProtocolBlock("Desarrollo", 5, "Intensificación", 70, 90), ProtocolBlock("Pivote", 3, "Peak", 80, 95)),
@@ -339,11 +353,16 @@ object KpknNativeAutoregFrameworks {
                 // desarrollo y la que precede al pivote, es una descarga real (`kind = DELOAD`, series recortadas y RIR ≥ 4).
                 val deload = w == 5
                 val days = listOf(
+                    // El ancla de los respaldos deja el T1 en zona pesada (≥ 85 %1RM): 240 s de descanso (H9).
                     DayArchetypes.plSquat(if (w <= 5) 80.0 else 90.0, t1Sets = 1 + 3, t1Reps = reps, weekday = 1).let { d ->
-                        d.copy(slots = listOf(slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, rpeTopSet(reps, rpe, 3), if (rpe >= 9) 240 else 180, LiftSlot.SQUAT, isCompetitionLift = true)) + d.slots.drop(1))
+                        d.copy(slots = listOf(slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, rpeTopSet(reps, rpe, 3, peak = w > 5), 240, LiftSlot.SQUAT, isCompetitionLift = true)) + d.slots.drop(1))
                     },
-                    DayArchetypes.plBenchHeavy(if (w <= 5) 78.0 else 88.0, weekday = 2),
-                    DayArchetypes.plDeadlift(if (w <= 5) 75.0 else 88.0, weekday = 4),
+                    DayArchetypes.plBenchHeavy(if (w <= 5) 78.0 else 88.0, weekday = 2).let { d ->
+                        d.copy(slots = listOf(slot("bp", SlotRole.T1_MAIN, CatalogIds.BP, rpeTopSet(reps, rpe, 3, peak = w > 5), 240, LiftSlot.BENCH, isCompetitionLift = true)) + d.slots.drop(1))
+                    },
+                    DayArchetypes.plDeadlift(if (w <= 5) 75.0 else 88.0, weekday = 4).let { d ->
+                        d.copy(slots = listOf(slot("dl", SlotRole.T1_MAIN, CatalogIds.DL, rpeTopSet(reps, rpe, 2, peak = w > 5), 240, LiftSlot.DEADLIFT, isCompetitionLift = true)) + d.slots.drop(1))
+                    },
                     DayArchetypes.plBenchVolume(if (w <= 5) 68.0 else 62.0, weekday = 5),
                 ).map { day -> if (goal == BlockGoal.PEAK) day.dropT3(2).mainWorkPercentOfOneRm() else day }
                 weekRecipe(
@@ -355,13 +374,13 @@ object KpknNativeAutoregFrameworks {
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
             // L-26 (B.S6, C6): `RepTargetDrivenTm` pide series AMRAP y esta receta no tiene ninguna (RTS no trabaja al fallo: el top set
-            // va a un RPE y las series de respaldo a un punto menos), así que la regla nunca actuaba. Sin regla de subida de TM hasta
-            // que la Fase 2 lleve el método a top sets por esfuerzo en los tres levantamientos.
+            // va a un RPE y las series de respaldo a un punto menos), así que la regla nunca actuaba. Los tres levantamientos llevan ya
+            // top sets por esfuerzo (T-13); el TM lo mueve el consumidor de `RPE_CAP` (T-15), no una regla de progresión.
             progression = ProgressionRule.None,
             claimedDaysPerWeek = 4,
             claimedLevel = "avanzado",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.RPE_CAP)),
-            contentVersion = 2,
+            contentVersion = 3,
         ),
         fidelitySpec = ProtocolFidelitySpec(8, 4, requiresRpe = true, claimedLevel = "avanzado"),
     )
