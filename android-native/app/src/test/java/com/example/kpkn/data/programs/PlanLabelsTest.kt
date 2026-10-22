@@ -198,4 +198,12 @@ class PlanLabelsTest {
             PlanLabels.metaLine(handBuilt),
         )
     }
+
+    @Test
+    fun scopeLabelUsesTheSameVocabularyAsProgramScopes() {
+        assertEquals("Una semana que se repite", PlanLabels.scopeLabel(CatalogDuration.REPEATING_WEEK, 1, null))
+        assertEquals("2 semanas que se repiten", PlanLabels.scopeLabel(CatalogDuration.REPEATING_CYCLE, 2, null))
+        assertEquals("Por bloques · 3 bloques · 12 semanas", PlanLabels.scopeLabel(CatalogDuration.FINITE_CYCLE, 12, 3))
+        assertEquals("8 semanas", PlanLabels.scopeLabel(CatalogDuration.FINITE_CYCLE, 8, 1))
+    }
 }

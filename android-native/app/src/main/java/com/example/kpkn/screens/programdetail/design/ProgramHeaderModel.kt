@@ -1,7 +1,9 @@
 package com.example.kpkn.screens.programdetail.design
 
+import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.domain.text.SpanishPlurals
+import com.example.kpkn.domain.training.ProgramScopes
 import com.example.kpkn.screens.programdetail.components.focusModeLabel
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -69,6 +71,9 @@ internal fun programHeaderPrimaryLabel(primary: ProgramHeaderPrimary): String? =
 
 /** Etiqueta del modo en la meta, con el vocabulario del asistente. Null si el modo no se conoce: nunca se inventa uno. */
 internal fun programModeLabel(mode: ProgramMode?): String? = mode?.let(::focusModeLabel)
+
+/** Línea de alcance del programa con el vocabulario único: «Una semana que se repite», «8 semanas» o «Por bloques · 3 bloques · 12 semanas». */
+internal fun programScopeLine(program: Program): String = ProgramScopes.label(ProgramScopes.of(program))
 
 /**
  * «12 semanas · 4 días por semana · Fuerza». Lo que no se sabe se omite (nada de «—» en la meta). Un programa de una sola semana que

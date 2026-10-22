@@ -39,13 +39,20 @@ object PlanLabels {
     }
 
     /**
-     * «Semana que se repite», «Ciclo de N semanas que se repite» o «N semanas»,
+     * ��Semana que se repite��, ��Ciclo de N semanas que se repite�� o ��N semanas��,
      * con la concordancia de [SpanishPlurals].
      */
     fun durationLabel(duration: CatalogDuration, weeks: Int): String = when (duration) {
         CatalogDuration.REPEATING_WEEK -> "Semana que se repite"
         CatalogDuration.REPEATING_CYCLE -> "Ciclo de ${SpanishPlurals.weeks(weeks)} que se repite"
         CatalogDuration.FINITE_CYCLE -> SpanishPlurals.weeks(weeks)
+    }
+
+    /** Alcance de una entrada del catálogo con las mismas palabras que ProgramScopes.label. */
+    fun scopeLabel(duration: CatalogDuration, weeks: Int, blocks: Int?): String = when (duration) {
+        CatalogDuration.REPEATING_WEEK -> "Una semana que se repite"
+        CatalogDuration.REPEATING_CYCLE -> if (weeks <= 1) "Una semana que se repite" else "$weeks semanas que se repiten"
+        CatalogDuration.FINITE_CYCLE -> if (blocks != null && blocks >= 2) "Por bloques · $blocks bloques · $weeks semanas" else "$weeks semanas"
     }
 
     /** «1 día por semana», «4 días por semana»; los rangos llevan raya (U+2013): «2–3 días por semana». */

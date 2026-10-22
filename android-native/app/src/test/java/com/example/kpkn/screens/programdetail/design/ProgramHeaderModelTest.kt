@@ -1,6 +1,12 @@
 package com.example.kpkn.screens.programdetail.design
 
+import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.Macrocycle
+import com.example.kpkn.data.models.Mesocycle
+import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
+import com.example.kpkn.data.models.ProgramStructure
+import com.example.kpkn.data.models.ProgramWeek
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -70,5 +76,34 @@ class ProgramHeaderModelTest {
         assertEquals(ProgramHeaderStatus.ACTIVE, programHeaderStatusOf(isActive = true, isPaused = false))
         assertEquals(ProgramHeaderStatus.PAUSED, programHeaderStatusOf(isActive = false, isPaused = true))
         assertEquals(ProgramHeaderStatus.DRAFT, programHeaderStatusOf(isActive = false, isPaused = false))
+    }
+
+    @Test
+    fun scopeLineNamesTheBlocksOfAComplexProgram() {
+        val program = Program(
+            id = "p",
+            name = "P",
+            structure = ProgramStructure.COMPLEX,
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "macro",
+                    name = "Macro",
+                    blocks = (1..3).map { b ->
+                        Block(
+                            id = "block$b",
+                            name = "Bloque $b",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "meso$b",
+                                    name = "Meso $b",
+                                    weeks = (1..4).map { w -> ProgramWeek(id = "b${b}w$w", name = "Semana $w") },
+                                ),
+                            ),
+                        )
+                    },
+                ),
+            ),
+        )
+        assertEquals("Por bloques · 3 bloques · 12 semanas", programScopeLine(program))
     }
 }
