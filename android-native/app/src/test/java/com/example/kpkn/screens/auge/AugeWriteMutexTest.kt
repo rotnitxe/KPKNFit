@@ -236,14 +236,15 @@ class AugeWriteMutexTest {
         startViewModel()
         settle()
         val logId = programRepository.history.value.first().id
-        assertNull("v4 no sella rendimiento suspendido", cache().lastPerformanceLearnLogId)
+        // 3.4: reactivado el aprendizaje de rendimiento v4: un log antiguo sella el id sin aprender.
+        assertEquals("v4 sella log antiguo sin aprender", logId, cache().lastPerformanceLearnLogId)
         forgetLearnedLog()
         armFirstRecomputeOfTheDay()
 
         vm.saveWellbeing(wellbeing(notes = "candado-aprendizaje"))
 
         assertWriteLockStaysUsable("saveWellbeing que sella el log")
-        assertNull(cache().lastPerformanceLearnLogId)
+        assertEquals(logId, cache().lastPerformanceLearnLogId)
     }
 
     // ─── Actualización perdida: guardar el aviso no pisa lo aprendido entre la lectura y el guardado ──
