@@ -1,6 +1,11 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
 import androidx.compose.foundation.clickable
+import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -248,6 +253,34 @@ internal fun RulesTimeTab(
             if (sessionBudget > 0) {
                 val isOverBudget = assignedMinutes > sessionBudget
                 val remaining = sessionBudget - assignedMinutes
+                // D6: barra del reparto del tiempo asignado por grupo; lo que queda libre, en el fondo.
+                val partShares = session.parts
+                    .map { part ->
+                        part.name to (part.targetDurationMinutes ?: part.exercises.sumOf { it.targetDurationMinutes ?: 0 })
+                    }
+                    .filter { it.second > 0 }
+                if (partShares.isNotEmpty()) {
+                    Spacer(Modifier.height(14.dp))
+                    val shadeSteps = listOf(1f, 0.5f, 0.3f, 0.2f)
+                    Row(
+                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(KpknShape.pill),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        partShares.forEachIndexed { index, (_, minutes) ->
+                            Box(
+                                modifier = Modifier
+                                    .weight(minutes.toFloat())
+                                    .fillMaxHeight()
+                                    .background(WizardColors.text.copy(alpha = shadeSteps[index.coerceAtMost(shadeSteps.lastIndex)])),
+                            )
+                        }
+                        if (remaining > 0) {
+                            Box(Modifier.weight(remaining.toFloat()).fillMaxHeight().background(KpknSurface.inset))
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    SheetCaption(partShares.joinToString(" · ") { (name, minutes) -> "$name $minutes min" })
+                }
                 Spacer(Modifier.height(10.dp))
                 Text(
                     text = if (isOverBudget) {

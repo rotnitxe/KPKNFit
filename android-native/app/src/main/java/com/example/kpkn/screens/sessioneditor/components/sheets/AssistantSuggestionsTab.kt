@@ -52,10 +52,10 @@ internal fun AssistantSuggestionsTab(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        suggestions.forEach { suggestion ->
+        suggestions.take(3).forEach { suggestion ->
             AssistantSuggestionCard(suggestion = suggestion, onApplySuggestion = onApply)
         }
-        notes.forEach { note ->
+        notes.take((3 - suggestions.size).coerceAtLeast(0)).forEach { note ->
             KpknModule(modifier = Modifier.fillMaxWidth()) {
                 SheetCaption(text = AssistantNoticeKind.INFO.label, color = WizardColors.textFaint)
                 Spacer(Modifier.height(4.dp))

@@ -100,6 +100,7 @@ internal fun HistorySheet(
                         Spacer(Modifier.height(12.dp))
                         KpknSecondaryPill(
                             text = "Restaurar",
+                            icon = KpknLineIcons.History,
                             onClick = {
                                 if (uiState.hasUnsavedChanges) {
                                     pendingRestore = snapshot
