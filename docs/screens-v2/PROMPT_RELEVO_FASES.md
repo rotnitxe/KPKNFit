@@ -6,15 +6,7 @@
 
 ## 0. Quién eres y cómo trabajas
 
-Eres el **agente único** que termina la ola screens-v2 de KPKN Fit (Android, Kotlin y Jetpack Compose). **Haces todo tú mismo: lees, escribes el código, pruebas, revisas e integras.**
-
-**PROHIBIDO desplegar subagentes de cualquier tipo:**
-- ni la herramienta Agent/Task;
-- ni Workflow;
-- ni OpenCode (`oc_run.sh`), Antigravity (`agy`) ni Codex;
-- ni ningún otro modelo.
-
-Donde este documento hable de un «paquete», lo implementas tú, uno detrás de otro.
+Eres el agente que termina la ola screens-v2 de KPKN Fit (Android, Kotlin y Jetpack Compose). Lees, escribes el código, pruebas, revisas e integras.
 
 **Idioma:** respondes al usuario **siempre en español**. Commits, informes y comentarios nuevos también van en español.
 
@@ -103,7 +95,7 @@ Todas en `C:\kw\u11\docs\screens-v2\`:
 
 ---
 
-## FASE 2 · Cerrar los paquetes a medias (los haces tú, uno detrás de otro)
+## FASE 2 · Cerrar los paquetes a medias
 
 Por cada paquete:
 1. Lee su brief en `C:/kw/<wt>/docs/screens-v2/briefs/<ID>.md`.
@@ -189,7 +181,7 @@ Además, `VoiceFirstUseDeviceTest.awaitChoicesLoaded` pasa de 5 s a 15 s. Render
 - Relee el diff completo, buscando restos, código muerto y textos inventados.
 - Abre al menos 3 renders con Read y compáralos con el tablero.
 - Comprueba en el log o los XML que la verificación pasó.
-- Si algo no cumple el tablero o el brief, corrígelo tú antes de pasar al siguiente.
+- Si algo no cumple el tablero o el brief, corrígelo antes de pasar al siguiente.
 
 **Hecho cuando:** los 8 paquetes tienen commits, informe y verificación en verde (salvo los fallos del entorno).
 
@@ -213,7 +205,7 @@ Además, `VoiceFirstUseDeviceTest.awaitChoicesLoaded` pasa de 5 s a 15 s. Render
 - Un snackbar duplicado al confirmar los límites (ED-E con el marco de ED-A).
 - Ya resuelto: en `AugeFatigueEngine`, `plannedSetWeightKg` de MOT respeta el TM.
 
-**Cómo resolverlos:** tú mismo, conservando lo de las dos ramas. Compila después de cada fusión.
+**Cómo resolverlos:** conservando lo de las dos ramas. Compila después de cada fusión.
 
 **Verificación tras cada fusión:**
 - `:app:compileBaseDebugKotlin`.
@@ -223,14 +215,14 @@ Además, `VoiceFirstUseDeviceTest.awaitChoicesLoaded` pasa de 5 s a 15 s. Render
 - Regresión del área en dos corridas:
   - **JVM:** `kpkn_jvm.sh u11 "-PtestInclude=com/example/kpkn/domain/**,com/example/kpkn/data/protocols/**"`.
   - **Android:** las clases de `screens/workout` y `screens/sessioneditor` de los informes, en grupos de 10 o 15.
-- Tabla de fallos en `reports/INT-1.md`, clasificados como de integración, de antes o del entorno. Arregla tú los que sean de integración.
+- Tabla de fallos en `reports/INT-1.md`, clasificados como de integración, de antes o del entorno. Arregla los que sean de integración.
 - Actualiza `CLAUDE.md` en u11: «Room **v30**», hoy dice v29.
 
 **Hecho cuando:** las 7 ramas están dentro, todo compila y la regresión está documentada y en verde (salvo el entorno).
 
 ---
 
-## FASE 4 · Paquetes que faltan (los implementas tú, en orden)
+## FASE 4 · Paquetes que faltan, en orden
 
 Antes de implementar cada uno, escribe su brief en `briefs/` con la plantilla de los anteriores: qué leer, qué construir, leyes, pruebas e informe. Así queda constancia para un relevo. Trabaja cada paquete en un worktree nuevo desde `feat/screens-v2` y fusiónalo al terminarlo.
 
@@ -294,7 +286,7 @@ Antes de implementar cada uno, escribe su brief en `briefs/` con la plantilla de
    - Solo con `python C:\kw\tools\phone_run.py`, la regla de 20 min y la `.dbg`.
    - Nunca toques `com.example.kpkn` ni `.completo`.
    - Haz también la QA pendiente de LQA1.
-5. Informe `reports/QA_FINAL.md`, con una tabla por tablero (ok o defecto, y su captura). Los defectos los arreglas tú y repites la QA del tablero afectado.
+5. Informe `reports/QA_FINAL.md`, con una tabla por tablero (ok o defecto, y su captura). Los defectos se arreglan y se repite la QA del tablero afectado.
 
 ---
 
