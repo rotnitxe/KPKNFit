@@ -511,6 +511,9 @@ internal fun WorkoutHeaderBar(
             }
         }
 
+        // LV-C: en la cabecera compacta los botones de icono conservan 44 dp de layout; Compose amplía su zona de toque a los 48 dp
+        // mínimos (se mide con touchBoundsInRoot en LiveHeaderTouchTargetsTest). Así el relator no pierde los 4 dp de alto que le
+        // quitaba la fila, sobre todo a 740 dp con letra al 130 %. Los chips tampoco reservan 48 dp de layout.
         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides if (compactHeader) 44.dp else LocalMinimumInteractiveComponentSize.current) {
         Column(
             modifier = Modifier

@@ -324,10 +324,12 @@ class SessionRevisionFlowDeviceTest {
             hasAnyAncestor(hasTestTag("live-session-steps")), useUnmergedTree = true)
             .assertIsDisplayed().performClick()
         compose.waitUntil(10_000) { vm.uiState.value.activeStepKey == mobilityKey }
+        assertPrepCardKeepsEverythingInside("mobility", "20-live-mobility-card")
         compose.onNode(hasContentDescription("Aproximación") and
             hasAnyAncestor(hasTestTag("live-session-steps")), useUnmergedTree = true)
             .assertIsDisplayed().performClick()
         compose.waitUntil(10_000) { vm.uiState.value.activeStepKey == warmupKey }
+        assertPrepCardKeepsEverythingInside("warmup", "21-live-warmup-card")
         compose.onNode(hasContentDescription("Movilidad") and
             hasAnyAncestor(hasTestTag("live-session-steps")), useUnmergedTree = true)
             .assertIsDisplayed().performClick()
@@ -829,6 +831,34 @@ class SessionRevisionFlowDeviceTest {
             assertEquals("Ancho V1 exacto en 360dp", 312f * metrics.density, frame.width, 2f)
             assertEquals("Alto V1 exacto en 360dp", 425f * metrics.density, frame.height, 2f)
         }
+    }
+
+    /**
+     * LV-C: las tarjetas de movilidad y aproximación miden lo mismo que la de la serie (312 × 425 dp) y llevan TODOS sus controles dentro.
+     * [phase] es «mobility» o «warmup».
+     */
+    private fun assertPrepCardKeepsEverythingInside(phase: String, captureName: String) {
+        compose.waitUntil(10_000) { compose.onAllNodesWithTag("prep-live-card", true).fetchSemanticsNodes().isNotEmpty() }
+        val frame = activeTag("live-card-frame").fetchSemanticsNode().boundsInRoot
+        assertReferenceFrame(frame)
+        val card = activeTag("prep-live-card").fetchSemanticsNode().boundsInRoot
+        val density = context.resources.displayMetrics.density
+        assertEquals("La tarjeta de $phase llena el marco: ancho", frame.width, card.width, 2f)
+        assertEquals("La tarjeta de $phase llena el marco: alto", frame.height, card.height, 2f)
+        val controls = buildList {
+            add("prep-skip"); add("prep-status")
+            if (phase == "mobility") { add("mob-global-chip"); add("mob-list-toggle"); add("mob-done"); add("mob-movement-pane") }
+            else { add("warmup-add"); add("warmup-list") }
+        }
+        controls.forEach { tag ->
+            val b = activeTag(tag).fetchSemanticsNode().boundsInRoot
+            assertTrue("$tag queda dentro de la tarjeta de $phase: $b frente a $card",
+                b.left >= card.left - 2f && b.right <= card.right + 2f && b.top >= card.top - 2f && b.bottom <= card.bottom + 2f)
+            if (tag != "prep-status" && !tag.endsWith("pane") && !tag.endsWith("list")) {
+                assertTrue("$tag conserva 48 dp táctiles", b.width / density >= 47.5f && b.height / density >= 47.5f)
+            }
+        }
+        capture(captureName)
     }
 
     private fun assertLiveActionsClear(cardContent: Rect) {

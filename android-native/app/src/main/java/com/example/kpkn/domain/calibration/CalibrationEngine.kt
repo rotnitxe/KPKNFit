@@ -118,11 +118,27 @@ object CalibrationEngine {
             affected.isEmpty() -> "No quedan series compatibles para ajustar."
             type == CalibrationDecisionType.HOLD && factor != 1.0 -> "Mantener: el redondeo al material deja las cargas iguales."
             type == CalibrationDecisionType.HOLD -> "Mantener: la capacidad está en la zona muerta de la referencia."
-            type == CalibrationDecisionType.RAISE -> "La capacidad supera la referencia; subida limitada por la política y redondeada al material."
-            else -> "La capacidad queda bajo la referencia; bajada limitada por la política y redondeada al material."
+            type == CalibrationDecisionType.RAISE -> raiseReason(capped = ratio != null && ratio > policy.maximumFactor, policy)
+            else -> lowerReason(capped = ratio != null && ratio < policy.minimumFactor, policy)
         }
         return decision(capacity, effectiveReps, ratio, factor, type, affected, reason, note)
     }
+
+    /** Subida: dice el tope solo si el factor quedó recortado; los topes salen de la política, no de números a mano. */
+    internal fun raiseReason(capped: Boolean, policy: CalibrationPolicySnapshot): String = if (capped) {
+        "La capacidad supera la referencia. La subida se limita al ${percentOf(policy.maximumFactor - 1.0)} % y se redondea al material."
+    } else {
+        "La capacidad supera la referencia. Las cargas suben en la misma proporción, redondeadas al material."
+    }
+
+    /** Bajada: igual que [raiseReason], con el tope inferior. */
+    internal fun lowerReason(capped: Boolean, policy: CalibrationPolicySnapshot): String = if (capped) {
+        "La capacidad no alcanza la referencia. La bajada se limita al ${percentOf(1.0 - policy.minimumFactor)} % y se redondea al material."
+    } else {
+        "La capacidad no alcanza la referencia. Las cargas bajan en la misma proporción, redondeadas al material."
+    }
+
+    private fun percentOf(fraction: Double): Int = Math.round(fraction * 100.0).toInt()
 
     private fun ineligibilityReason(eligibility: CalibrationEligibility): String = when (eligibility) {
         CalibrationEligibility.NO_EFFORT -> "Falta declarar la reserva o el fallo."

@@ -221,6 +221,7 @@ internal fun ExerciseEditorExpanded(
                             sets = exercise.warmupSets,
                             resolved1RM = resolved1RM,
                             accentColor = accentColor,
+                            workingWeightKg = exercise.sets.firstOrNull { (it.weight ?: 0.0) > 0.0 }?.weight,
                             onUpdate = { warmupId, transform ->
                                 onUpdateExercise { current ->
                                     current.copy(

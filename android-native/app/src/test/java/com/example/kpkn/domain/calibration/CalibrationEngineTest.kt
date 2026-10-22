@@ -61,6 +61,49 @@ class CalibrationEngineTest {
         assertTrue(decision.affectedSets.all { it.beforeKg == 60.0 && it.afterKg == 55.0 })
     }
 
+    // LV-C: el texto de RAISE/LOWER dice el tope solo cuando el factor quedó recortado, y lo lee de la política.
+    @Test fun raiseWithTheCapSaysTheRiseIsLimitedToFivePercent() {
+        val decision = calibrate()
+        assertEquals(CalibrationDecisionType.RAISE, decision.type)
+        assertEquals(1.05, decision.factor, 0.0)
+        assertEquals("La capacidad supera la referencia. La subida se limita al 5 % y se redondea al material.", decision.reason)
+    }
+
+    @Test fun raiseWithoutTheCapSaysTheLoadsRiseInTheSameProportion() {
+        val decision = calibrate(reference = 94.3 / 1.045)
+        assertEquals(CalibrationDecisionType.RAISE, decision.type)
+        assertEquals(1.045, decision.factor, 1e-12)
+        assertEquals("La capacidad supera la referencia. Las cargas suben en la misma proporción, redondeadas al material.", decision.reason)
+        assertFalse(decision.reason.contains("limita"))
+        assertFalse(decision.reason.contains("política"))
+    }
+
+    @Test fun lowerWithTheCapSaysTheDropIsLimitedToEightPercent() {
+        val decision = calibrate(recorded = source.copy(externalLoadKg = 60.0, declaredRir = 0))
+        assertEquals(CalibrationDecisionType.LOWER, decision.type)
+        assertEquals(0.92, decision.factor, 0.0)
+        assertEquals("La capacidad no alcanza la referencia. La bajada se limita al 8 % y se redondea al material.", decision.reason)
+    }
+
+    @Test fun lowerWithoutTheCapSaysTheLoadsDropInTheSameProportion() {
+        val decision = calibrate(reference = 94.3 / 0.95)
+        assertEquals(CalibrationDecisionType.LOWER, decision.type)
+        assertEquals(0.95, decision.factor, 1e-12)
+        assertEquals("La capacidad no alcanza la referencia. Las cargas bajan en la misma proporción, redondeadas al material.", decision.reason)
+        assertFalse(decision.reason.contains("limita"))
+        assertFalse(decision.reason.contains("política"))
+    }
+
+    @Test fun theCapPercentagesComeFromThePolicyNotFromTheText() {
+        val policy = CalibrationPolicy.defaults.copy(version = 2, maximumFactor = 1.03, minimumFactor = 0.90)
+        val raise = CalibrationEngine.calibrate(source, pending, references(88.0), now, policy = policy)
+        assertEquals(CalibrationDecisionType.RAISE, raise.type)
+        assertTrue(raise.reason.contains("limita al 3 %"))
+        val lower = CalibrationEngine.calibrate(source.copy(externalLoadKg = 50.0, declaredRir = 0), pending, references(88.0), now, policy = policy)
+        assertEquals(CalibrationDecisionType.LOWER, lower.type)
+        assertTrue(lower.reason.contains("limita al 10 %"))
+    }
+
     @Test fun firstReferenceUsesTheExistingInverseWithEachSetsRepsAndReserve() {
         val sets = listOf(pending[0], pending[1].copy(targetReps = 8, targetRir = 1),
             pending[2].copy(targetReps = 5, targetRir = 0))

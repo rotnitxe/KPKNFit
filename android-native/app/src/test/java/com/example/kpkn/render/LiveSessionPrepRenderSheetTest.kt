@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
@@ -319,8 +320,8 @@ class LiveSessionPrepRenderSheetTest {
                                 .testTag(tag),
                             contentAlignment = Alignment.Center,
                         ) {
-                            // La tarjeta mide unos 272 × 420 dp en el teléfono (como la de la serie en LR1a).
-                            Box(Modifier.width(272.dp).height(420.dp)) {
+                            // La tarjeta mide 312 × 425 dp en el teléfono (LV-C: la misma que la de la serie).
+                            Box(Modifier.width(312.dp).height(425.dp)) {
                                 WarmupPhaseLiveCard(
                                     rows = aproxRows(),
                                     sessionAccentColor = SESSION_ACCENT,
@@ -356,7 +357,7 @@ class LiveSessionPrepRenderSheetTest {
                                 .testTag(MOV_TAG),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Box(Modifier.width(272.dp).height(420.dp)) {
+                            Box(Modifier.width(312.dp).height(425.dp)) {
                                 MobilityPhaseLiveCard(
                                     items = movItems(),
                                     completedStepKeys = setOf("m1"),
@@ -401,8 +402,12 @@ class LiveSessionPrepRenderSheetTest {
                 }
             }
         }
-        // Se elige «Modo Música» para ver la opción elegida en tinta.
-        rule.onNodeWithText("Modo Música", substring = true).performClick()
+        // Se elige «Modo música» (así lo escribe la hoja) para ver la opción elegida en tinta. Antes se espera a que la prueba
+        // guardada en preferencias termine de cargar: sin eso el toque no selecciona nada.
+        rule.waitUntil(5_000) {
+            rule.onAllNodesWithText("Preparando controles de voz…").fetchSemanticsNodes().isEmpty()
+        }
+        rule.onNodeWithText("Modo música", substring = true).performClick()
         rule.waitForIdle()
         save(VOZ_TAG, name)
     }

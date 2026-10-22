@@ -39,6 +39,7 @@ import com.example.kpkn.domain.workout.LiveSessionReorder
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.domain.workout.TagProgressionAnalyzer
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
+import com.example.kpkn.domain.workout.warmupTargetLoadKg
 import com.example.kpkn.domain.workout.WarmupCalibrationResult
 import com.example.kpkn.domain.workout.WarmupEffort
 import com.example.kpkn.domain.workout.WarmupEffortReport
@@ -4831,10 +4832,17 @@ class WorkoutViewModel(
         val state = _uiState.value
         val key = warmupCompletionKey(exerciseId, warmupSetId)
         val current = state.completedSets[key]
-        val baseWeight = resolveReferenceCapacity(exercise)
-            ?: exercise.sets.firstOrNull { it.weight != null && it.weight > 0.0 }?.weight
-            ?: 0.0
-        val targetWeight = baseWeight * WarmupCalibrationEngine.normalizePercentage(warmup.percentageOfWorkingWeight)
+        // LV-C: el % es de la carga de TRABAJO (la misma base que la tarjeta), no del 1RM; la capacidad solo cubre su ausencia. Si la
+        // tarjeta muestra unos kg alcanzables con el material, se registran esos mismos.
+        val warmupIndex = exercise.warmupSets.indexOfFirst { it.id == warmupSetId }
+        val activeTag = state.exerciseTags[exerciseId]
+        val targetWeight = getWarmupSuggestedWeight(exercise, warmupIndex, activeTag)
+            ?: warmupTargetLoadKg(
+                percentageOfWorkingWeight = warmup.percentageOfWorkingWeight,
+                workingLoadKg = getWarmupWorkingWeightAnchor(exercise, activeTag)
+                    ?: exercise.sets.firstOrNull { it.weight != null && it.weight > 0.0 }?.weight,
+                referenceCapacityKg = resolveReferenceCapacity(exercise),
+            )
         val completed = (current ?: CompletedSet(id = key)).copy(
             weight = if ((current?.weight ?: 0.0) > 0.0) current?.weight ?: targetWeight else targetWeight,
             reps = warmup.targetReps,

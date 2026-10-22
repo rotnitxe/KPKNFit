@@ -5,6 +5,29 @@ import com.example.kpkn.data.models.WarmupSetDefinition
 /** A warm-up at or above this load is close enough to working intensity to surface a warning. */
 const val WARMUP_EFFECTIVE_THRESHOLD = 0.85
 
+/** Máximo recomendado de aproximaciones: el doble de las series efectivas, y nunca menos de 4. */
+fun warmupMaxRecommended(effectiveSetCount: Int): Int = (effectiveSetCount.coerceAtLeast(1) * 2).coerceAtLeast(4)
+
+private fun warmupTooManyMessage(maxWarmupSets: Int, effectiveSetCount: Int): String =
+    "Demasiadas aproximaciones: máximo recomendado $maxWarmupSets para $effectiveSetCount series efectivas."
+
+private const val WARMUP_NEAR_EFFECTIVE_MESSAGE =
+    "Una aproximación al 85% o más puede comportarse como una serie efectiva; revisa su carga y repeticiones."
+
+/**
+ * Aviso al AÑADIR una aproximación en vivo (LV-C): el mismo texto del editor si ya hay más del máximo recomendado o si la
+ * recién añadida (la última) llega al 85 % de la carga efectiva. Null si no hay nada que avisar.
+ */
+fun warmupLiveAddAdvisory(warmupSets: List<WarmupSetDefinition>, effectiveSetCount: Int): String? {
+    if (warmupSets.isEmpty()) return null
+    val max = warmupMaxRecommended(effectiveSetCount)
+    if (warmupSets.size > max) return warmupTooManyMessage(max, effectiveSetCount)
+    if (normalizeWarmupPercentage(warmupSets.last().percentageOfWorkingWeight) >= WARMUP_EFFECTIVE_THRESHOLD) {
+        return WARMUP_NEAR_EFFECTIVE_MESSAGE
+    }
+    return null
+}
+
 /** Conservative editor guardrails that keep warm-up volume proportional. */
 fun warmupValidationMessages(
     warmupSets: List<WarmupSetDefinition>,
@@ -20,7 +43,7 @@ fun warmupValidationMessages(
             add("Cada aproximación debe estar entre 10% y 100% de la carga efectiva.")
         }
         if (warmupSets.any { normalizeWarmupPercentage(it.percentageOfWorkingWeight) >= WARMUP_EFFECTIVE_THRESHOLD }) {
-            add("Una aproximación al 85% o más puede comportarse como una serie efectiva; revisa su carga y repeticiones.")
+            add(WARMUP_NEAR_EFFECTIVE_MESSAGE)
         }
         if (warmupSets.any { it.targetReps <= 0 }) {
             add("Cada aproximación necesita al menos 1 repetición objetivo.")

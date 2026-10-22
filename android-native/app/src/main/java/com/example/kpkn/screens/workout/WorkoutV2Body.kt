@@ -1757,6 +1757,7 @@ internal fun WorkoutV2Body(
                                     recordActionPageKey = recordActionPageKey,
                                     recordFabHolder = recordFabHolder,
                                     isActivePage = isActivePage,
+                                    nextIsWarmup = prepWarmupMembers.isNotEmpty(),
                                     modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                                 )
                                 }
@@ -1800,6 +1801,14 @@ internal fun WorkoutV2Body(
                                     }
                                 }
                                 val firstWarmupEx = prepWarmupMembers.firstOrNull() ?: pageExercise
+                                // Carga de la primera serie efectiva, si se conoce (nunca se inventa).
+                                val firstWorkingWeight = (
+                                    firstWarmupEx.sets.firstOrNull()?.weight
+                                        ?: uiState.completedSets["${firstWarmupEx.id}_0"]?.weight
+                                        ?: uiState.completedSets["${firstWarmupEx.id}_0_L"]?.weight
+                                        ?: uiState.completedSets["${firstWarmupEx.id}_0_R"]?.weight
+                                        ?: warmupWorkingWeight
+                                    )?.takeIf { it > 0.0 }
                                 com.example.kpkn.screens.workout.components.WarmupPhaseLiveCard(
                                     rows = warmupRows,
                                     sessionAccentColor = sessionAccentColor,
@@ -1844,6 +1853,8 @@ internal fun WorkoutV2Body(
                                         val key = "${row.exerciseId}_${row.warmup.id}"
                                         warmupWeightDrafts = warmupWeightDrafts + (key to text)
                                     },
+                                    workingWeightKg = firstWorkingWeight,
+                                    effectiveSetCount = prepWarmupMembers.sumOf { it.sets.size },
                                     modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                                 )
                             }
