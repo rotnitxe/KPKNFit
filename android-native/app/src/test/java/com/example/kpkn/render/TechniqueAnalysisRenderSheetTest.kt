@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.repository.CaptureOverrides
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisFlag
+import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
+import com.example.kpkn.domain.biomechanics.metrics.PartialZone
 import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.domain.biomechanics.metrics.RepPhaseTimes
 import com.example.kpkn.domain.biomechanics.metrics.SetTechniqueReport
@@ -37,6 +39,7 @@ import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.technique.TechniqueSamples
 import com.example.kpkn.screens.technique.analysis.AnalysisStatusUi
+import com.example.kpkn.screens.technique.analysis.PartialsSamples
 import com.example.kpkn.screens.technique.analysis.PlateCalibrationDialog
 import com.example.kpkn.screens.technique.analysis.PlateModuleUi
 import com.example.kpkn.screens.technique.analysis.RepMetricKind
@@ -509,6 +512,50 @@ class TechniqueAnalysisRenderSheetTest {
 
     @Test
     fun graficasSinElegir130() = pila("graficas_130_b", 1.3f) { Graficas(1) }
+
+    // ── Parciales (M4) ────────────────────────────────────────────────────────
+
+    /** Grupo 0: parciales en estiramiento; 1: una en cada zona; 2: confianza MEDIA; 3: BAJA (sin zona ni línea). */
+    @Composable
+    private fun Parciales(grupo: Int) {
+        @Composable
+        fun modulos(informe: SetTechniqueReport, elegida: Int) {
+            val marcas = TechniqueOverlayData.from(null, null, informe, 720, 1280).reps
+            val desglose = buildBreakdown(informe, marcas)!!
+            AnalysisSummaryModule(buildSummary(informe))
+            RepBreakdownModule(desglose, RepMetricKind.TIME, {}, elegida, {})
+        }
+        when (grupo) {
+            0 -> modulos(PartialsSamples.report(), elegida = 2)
+            1 -> modulos(PartialsSamples.report(zones = listOf(PartialZone.STRETCHED, PartialZone.SHORTENED)), elegida = 5)
+            2 -> modulos(PartialsSamples.report(partialConfidence = CountConfidence.MEDIA), elegida = 2)
+            else -> modulos(PartialsSamples.report(partialConfidence = CountConfidence.BAJA), elegida = 2)
+        }
+    }
+
+    @Test
+    fun parciales100() = pila("parciales_100_a", 1f) { Parciales(0) }
+
+    @Test
+    fun parcialesDosZonas100() = pila("parciales_100_b", 1f) { Parciales(1) }
+
+    @Test
+    fun parcialesMedia100() = pila("parciales_100_c", 1f) { Parciales(2) }
+
+    @Test
+    fun parcialesBaja100() = pila("parciales_100_d", 1f) { Parciales(3) }
+
+    @Test
+    fun parciales130() = pila("parciales_130_a", 1.3f) { Parciales(0) }
+
+    @Test
+    fun parcialesDosZonas130() = pila("parciales_130_b", 1.3f) { Parciales(1) }
+
+    @Test
+    fun parcialesMedia130() = pila("parciales_130_c", 1.3f) { Parciales(2) }
+
+    @Test
+    fun parcialesBaja130() = pila("parciales_130_d", 1.3f) { Parciales(3) }
 
     @Composable
     private fun Observaciones() {

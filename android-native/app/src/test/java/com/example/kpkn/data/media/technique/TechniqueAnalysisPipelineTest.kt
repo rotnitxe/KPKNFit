@@ -264,6 +264,43 @@ class TechniqueAnalysisPipelineTest {
     }
 
     @Test
+    fun recomputeAppliesThePersonalRangeReferenceOfTheRequestAndIgnoresOneFromAnotherSignal() {
+        val video = PipelineTestKit.videoFile(folder.root)
+        val first = done(analyze(pipeline(), PipelineTestKit.request(video)).outcome).report
+        assertNull("sin referencia, el informe no la trae", first.rangeReference)
+        val signal = first.countSignal!!
+
+        // Una referencia casi del doble de lo que esta serie recorre: el motor la ve como una serie de parciales.
+        val reference = com.example.kpkn.domain.biomechanics.metrics.RangeReference(
+            amplitude = first.fullAmplitude!! * 2.2,
+            signal = signal,
+            source = com.example.kpkn.domain.biomechanics.metrics.RangeReferenceSource.PERSONAL,
+            seriesCount = 3,
+            view = first.view,
+        )
+        val noVideo = pipeline(open = { error("RECOMPUTE no abre el vídeo") }, pose = { error("RECOMPUTE no crea el estimador") })
+        val applied = done(analyze(noVideo, PipelineTestKit.request(video, AnalysisMode.RECOMPUTE).copy(rangeReference = reference)).outcome).report
+        val use = applied.rangeReference!!
+        assertTrue(use.applied)
+        assertEquals(3, use.seriesCount)
+        assertEquals(com.example.kpkn.domain.biomechanics.metrics.RangeReferenceSource.PERSONAL, use.source)
+        assertTrue("con la referencia, repeticiones que antes eran completas pasan a parciales", applied.repCount < first.repCount)
+        assertTrue(applied.partialReps > 0)
+
+        // Medida con otra señal de conteo, la referencia no se usa y el informe sale como sin ella.
+        val otherSignal = if (signal == com.example.kpkn.domain.biomechanics.profiles.CountSignal.RISE_HAND) {
+            com.example.kpkn.domain.biomechanics.profiles.CountSignal.DROP_HIP_MID
+        } else com.example.kpkn.domain.biomechanics.profiles.CountSignal.RISE_HAND
+        val ignored = done(
+            analyze(noVideo, PipelineTestKit.request(video, AnalysisMode.RECOMPUTE).copy(rangeReference = reference.copy(signal = otherSignal))).outcome,
+        ).report
+        assertEquals(false, ignored.rangeReference!!.applied)
+        assertEquals("signal", ignored.rangeReference!!.reason)
+        assertEquals(first.repCount, ignored.repCount)
+        assertEquals(first.partialReps, ignored.partialReps)
+    }
+
+    @Test
     fun recomputeWithoutSidecarsFallsBackToAFullAnalysis() {
         val video = PipelineTestKit.videoFile(folder.root)
         val result = analyze(pipeline(), PipelineTestKit.request(video, AnalysisMode.RECOMPUTE))

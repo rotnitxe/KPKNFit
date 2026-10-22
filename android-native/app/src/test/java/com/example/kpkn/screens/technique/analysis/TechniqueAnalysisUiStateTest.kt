@@ -11,6 +11,7 @@ import com.example.kpkn.domain.biomechanics.bar.PlateSeed
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisFlag
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.domain.biomechanics.metrics.MetricKey
+import com.example.kpkn.domain.biomechanics.metrics.PartialZone
 import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.domain.biomechanics.metrics.SetTechniqueReport
 import com.example.kpkn.domain.biomechanics.metrics.TechniqueObservation
@@ -255,7 +256,7 @@ class TechniqueAnalysisUiStateTest {
         val report = TechniqueSamples.analysisReport
         val breakdown = buildBreakdown(report, marksOf(report))!!
         assertEquals("Rep 1 · bajada 2,8 s · subida 0,9 s · ROM 112° · ≈ 0,62 m/s · bajo el paralelo", breakdown.reps[0].detail)
-        assertEquals("Rep 3 · parcial · bajada 3,0 s", breakdown.reps[2].detail)
+        assertEquals("Rep 3 · parcial · ≈\u00A055\u00A0%\u00A0del\u00A0recorrido · bajada 3,0 s", breakdown.reps[2].detail)
         assertEquals("Rep 10 · fallida · bajada 3,5 s", breakdown.reps[9].detail)
         assertTrue(breakdown.reps[8].detail.endsWith("a la par"))
     }
@@ -529,6 +530,84 @@ class TechniqueAnalysisUiStateTest {
         assertEquals(source.reps.map { it.kind }, breakdown.reps.map { it.kind })
         assertEquals((1..source.reps.size).toList(), breakdown.reps.map { it.number })
         assertTrue(breakdown.metrics.none { it.description.startsWith("Tiempo:") })
+    }
+
+    // ── Parciales (M4) ────────────────────────────────────────────────────────
+
+    private val pct = "≈\u00A055\u00A0%\u00A0del\u00A0recorrido"
+
+    @Test
+    fun the_summary_line_names_the_zone_and_the_range_of_the_partials() {
+        assertEquals("2 parciales en estiramiento ($pct)", buildSummary(PartialsSamples.report()).partialsLine)
+        assertEquals(
+            "2 parciales acortadas ($pct)",
+            buildSummary(PartialsSamples.report(zones = listOf(PartialZone.SHORTENED, PartialZone.SHORTENED))).partialsLine,
+        )
+        assertEquals(
+            "1 parcial en estiramiento ($pct)",
+            buildSummary(PartialsSamples.report(zones = listOf(PartialZone.STRETCHED))).partialsLine,
+        )
+        // Zonas distintas: cada una con su número.
+        assertEquals(
+            "2 parciales: 1 en estiramiento y 1 acortada ($pct)",
+            buildSummary(PartialsSamples.report(zones = listOf(PartialZone.STRETCHED, PartialZone.SHORTENED))).partialsLine,
+        )
+    }
+
+    @Test
+    fun a_medium_partial_count_is_an_estimate_and_a_low_one_is_not_offered_at_all() {
+        assertEquals(
+            "≈\u00A02 parciales en estiramiento ($pct)",
+            buildSummary(PartialsSamples.report(partialConfidence = CountConfidence.MEDIA)).partialsLine,
+        )
+        val low = PartialsSamples.report(partialConfidence = CountConfidence.BAJA)
+        assertNull(buildSummary(low).partialsLine)
+        assertFalse(buildSummary(low).tiles.first { it.id == SummaryTileId.REPS }.notes.any { "parcial" in it })
+        val bar = buildBreakdown(low, marksOf(low))!!.reps[2]
+        assertEquals(RepKind.PARTIAL, bar.kind)
+        assertNull(bar.zone)
+        assertNull(bar.percent)
+        assertEquals("Rep 3 · parcial · bajada 3,0 s", bar.detail)
+    }
+
+    @Test
+    fun the_count_note_uses_the_own_confidence_of_the_partials_and_falls_back_to_the_reps_one() {
+        fun note(report: SetTechniqueReport) = buildSummary(report).tiles.first { it.id == SummaryTileId.REPS }.notes.first()
+        assertEquals("+2 parciales", note(PartialsSamples.report(partialConfidence = CountConfidence.ALTA)))
+        assertEquals("+≈\u00A02 parciales", note(PartialsSamples.report(partialConfidence = CountConfidence.MEDIA)))
+        // Un informe de antes del motor 9 no trae la confianza de las parciales: vale la del conteo.
+        assertEquals("+2 parciales", note(PartialsSamples.report(partialConfidence = null)))
+        val oldMedium = PartialsSamples.report(partialConfidence = null, base = TechniqueSamples.analysisReportMedium)
+        assertEquals("+≈\u00A02 parciales", note(oldMedium))
+        // Sin zona (motor viejo) la línea sigue diciendo el recorrido.
+        assertEquals(
+            "2 parciales ($pct)",
+            buildSummary(PartialsSamples.report(partialConfidence = null, zones = listOf(null, null))).partialsLine,
+        )
+    }
+
+    @Test
+    fun every_partial_bar_carries_its_zone_and_range_for_the_detail_and_for_talkback() {
+        val report = PartialsSamples.report(zones = listOf(PartialZone.STRETCHED, PartialZone.SHORTENED))
+        val breakdown = buildBreakdown(report, marksOf(report))!!
+        val third = breakdown.reps[2]
+        val sixth = breakdown.reps[5]
+        assertEquals(PartialZone.STRETCHED, third.zone)
+        assertEquals(55, third.percent)
+        assertEquals(PartialZone.SHORTENED, sixth.zone)
+        assertEquals("Rep 3 · parcial en estiramiento · $pct · bajada 3,0 s", third.detail)
+        assertTrue(sixth.detail.startsWith("Rep 6 · parcial acortada · $pct"))
+        assertEquals("parcial en estiramiento, $pct", third.partialSpoken)
+        assertNull(breakdown.reps[0].partialSpoken)
+        assertEquals(
+            "Parciales: la 3, en estiramiento, $pct; la 6, acortada, $pct",
+            breakdown.partialsDescription,
+        )
+        assertEquals(listOf<PartialZone?>(PartialZone.STRETCHED, PartialZone.SHORTENED), breakdown.partialZones)
+        // Sin parciales, nada que decir.
+        val withoutPartials = TechniqueSamples.analysisReport.copy(reps = TechniqueSamples.analysisReport.reps.filter { it.kind != RepKind.PARTIAL })
+        val none = buildBreakdown(withoutPartials, marksOf(withoutPartials))!!
+        assertNull(none.partialsDescription)
     }
 
     @Test

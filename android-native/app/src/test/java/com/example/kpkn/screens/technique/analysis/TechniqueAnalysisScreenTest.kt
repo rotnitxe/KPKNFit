@@ -44,11 +44,13 @@ import androidx.compose.ui.test.swipe
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.biomechanics.bar.PlateSeed
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisFlag
+import com.example.kpkn.domain.biomechanics.metrics.PartialZone
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.technique.TechniqueSamples
 import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_BREAKDOWN_TAG
 import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_OBSERVATIONS_TAG
+import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_PARTIALS_LINE_TAG
 import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_PLATE_CONFIRM_TAG
 import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_PLATE_OPEN_TAG
 import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_PROFILE_ANALYZE_TAG
@@ -59,6 +61,7 @@ import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_SUMMARY_TAG
 import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_ANALYZE_TAG
 import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_TIPS_TAG
 import com.example.kpkn.screens.technique.analysis.design.AnalysisStatusModule
+import com.example.kpkn.screens.technique.analysis.design.AnalysisSummaryModule
 import com.example.kpkn.screens.technique.analysis.design.ObservationsModule
 import com.example.kpkn.screens.technique.analysis.design.PlateCalibrationModule
 import com.example.kpkn.screens.technique.analysis.design.RepBreakdownModule
@@ -157,7 +160,9 @@ class TechniqueAnalysisScreenTest {
             RepBreakdownModule(breakdown, RepMetricKind.VELOCITY, onSelectMetric = {}, selectedRep = 4, onSelectRep = { picks += it })
         }
         val chart = rule.onNodeWithTag(ANALYSIS_REP_CHART_TAG)
-        chart.assertContentDescriptionEquals(breakdown.metrics.first { it.kind == RepMetricKind.VELOCITY }.description)
+        chart.assertContentDescriptionEquals(
+            breakdown.metrics.first { it.kind == RepMetricKind.VELOCITY }.description + ". " + breakdown.partialsDescription,
+        )
         chart.assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Repetición 5 de 10 elegida"))
         val actions = chart.fetchSemanticsNode().config[SemanticsActions.CustomActions]
         assertEquals(listOf("Repetición anterior", "Repetición siguiente"), actions.map { it.label })
@@ -177,10 +182,36 @@ class TechniqueAnalysisScreenTest {
         rule.onNodeWithText("Velocidad").performClick()
         rule.onNodeWithText("ROM").performClick()
         assertEquals(listOf(RepMetricKind.VELOCITY, RepMetricKind.ROM), metrics)
-        rule.onNodeWithText("Rep 3 · parcial · bajada 3,0 s").assertIsDisplayed()
+        rule.onNodeWithText("Rep 3 · parcial · ≈\u00A055\u00A0%\u00A0del\u00A0recorrido · bajada 3,0 s").assertIsDisplayed()
         // Con una parcial y una fallida, la leyenda las explica.
         rule.onNodeWithText("Parcial").assertIsDisplayed()
         rule.onNodeWithText("Fallida").assertIsDisplayed()
+    }
+
+    @Test
+    fun the_summary_shows_the_partials_line_and_the_chart_names_each_zone_for_talkback() {
+        val report = PartialsSamples.report(zones = listOf(PartialZone.STRETCHED, PartialZone.SHORTENED))
+        val marks = TechniqueOverlayData.from(null, null, report, 720, 1280).reps
+        val partialBreakdown = buildBreakdown(report, marks)!!
+        content {
+            Column {
+                AnalysisSummaryModule(buildSummary(report))
+                RepBreakdownModule(partialBreakdown, RepMetricKind.TIME, {}, 2, {})
+            }
+        }
+        rule.onNodeWithTag(ANALYSIS_PARTIALS_LINE_TAG).assertIsDisplayed()
+        rule.onNodeWithText("Parcial en estiramiento").assertIsDisplayed()
+        rule.onNodeWithText("Parcial acortada").assertIsDisplayed()
+        val chart = rule.onNodeWithTag(ANALYSIS_REP_CHART_TAG)
+        chart.assertContentDescriptionEquals(
+            partialBreakdown.metrics.first { it.kind == RepMetricKind.TIME }.description + ". " + partialBreakdown.partialsDescription,
+        )
+        chart.assert(
+            SemanticsMatcher.expectValue(
+                SemanticsProperties.StateDescription,
+                "Repetición 3 de 10 elegida, parcial en estiramiento, ≈\u00A055\u00A0%\u00A0del\u00A0recorrido",
+            ),
+        )
     }
 
     @Test

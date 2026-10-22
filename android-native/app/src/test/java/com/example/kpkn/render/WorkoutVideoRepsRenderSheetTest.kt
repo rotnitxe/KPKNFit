@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
+import com.example.kpkn.domain.biomechanics.metrics.PartialZone
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
@@ -123,8 +124,8 @@ class WorkoutVideoRepsRenderSheetTest {
         return bitmap
     }
 
-    private fun save(name: String, includePopup: Boolean = false): Bitmap {
-        awaitRestPreviews()
+    private fun save(name: String, includePopup: Boolean = false, waitForPreviews: Boolean = true): Bitmap {
+        if (waitForPreviews) awaitRestPreviews()
         val bitmap = capture(includePopup)
         val bounds = rule.onNodeWithTag("vt8b-render").fetchSemanticsNode().boundsInRoot
         val cropped = Bitmap.createBitmap(bitmap, bounds.left.toInt(), bounds.top.toInt(), bounds.width.toInt(), bounds.height.toInt())
@@ -170,6 +171,21 @@ class WorkoutVideoRepsRenderSheetTest {
             ).forEach { Suggestion(it) }
         }
     }
+    /** M4b: las parciales con cada confianza propia y cada zona, en la sugerencia y en la corrección. */
+    @Composable private fun PartialStates() {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            listOf(
+                SetVideoAnalysisState.Suggest(8, 2, 0, CountConfidence.ALTA, partialZone = PartialZone.STRETCHED),
+                SetVideoAnalysisState.Suggest(8, 2, 0, CountConfidence.ALTA, partialZone = PartialZone.SHORTENED),
+                SetVideoAnalysisState.Suggest(8, 2, 0, CountConfidence.ALTA, partialZone = null),
+                SetVideoAnalysisState.Suggest(8, 2, 0, CountConfidence.ALTA, partialConfidence = CountConfidence.MEDIA, partialZone = PartialZone.STRETCHED),
+                SetVideoAnalysisState.Suggest(8, 0, 0, CountConfidence.ALTA, partialConfidence = CountConfidence.BAJA),
+                SetVideoAnalysisState.Suggest(8, 2, 1, CountConfidence.MEDIA, 95),
+                SetVideoAnalysisState.Mismatch(8, 7, 2, 0, CountConfidence.ALTA, loggedPartials = 1, partialZone = PartialZone.STRETCHED),
+                SetVideoAnalysisState.Mismatch(8, 7, 2, 0, CountConfidence.ALTA, loggedPartials = 1, partialConfidence = CountConfidence.MEDIA),
+            ).forEach { Suggestion(it) }
+        }
+    }
     @Composable private fun Card(state: SetVideoAnalysisState? = SetVideoAnalysisState.Suggest(8, 1, 1, CountConfidence.ALTA, 95)) {
         Box(Modifier.padding(16.dp)) {
             SetInputCardV2(exercise = exercise, setIndex = 0, currentSet = set, ghostSet = null,
@@ -205,6 +221,10 @@ class WorkoutVideoRepsRenderSheetTest {
             "low" to SetVideoAnalysisState.Suggest(27, 4, 2, CountConfidence.BAJA),
             "failed" to SetVideoAnalysisState.Failed("decode"),
             "unsupported" to SetVideoAnalysisState.Unsupported("Esta serie se registra por tiempo"),
+            "partials_stretched" to SetVideoAnalysisState.Suggest(8, 2, 0, CountConfidence.ALTA, partialZone = PartialZone.STRETCHED),
+            "partials_medium" to SetVideoAnalysisState.Suggest(8, 2, 0, CountConfidence.ALTA, partialConfidence = CountConfidence.MEDIA),
+            "partials_both_medium" to SetVideoAnalysisState.Suggest(8, 2, 0, CountConfidence.MEDIA),
+            "partials_low" to SetVideoAnalysisState.Suggest(8, 0, 0, CountConfidence.ALTA, partialConfidence = CountConfidence.BAJA),
         )
         val radius = (28f * host!!.resources.displayMetrics.density).toInt()
         cases.forEach { (name, next) ->
@@ -237,6 +257,9 @@ class WorkoutVideoRepsRenderSheetTest {
             "use_medium" to SetVideoAnalysisState.Suggest(8, 1, 0, CountConfidence.MEDIA),
             "correct_medium" to SetVideoAnalysisState.Mismatch(8, 7, 1, 0, CountConfidence.MEDIA),
             "retry" to SetVideoAnalysisState.Failed("decode"),
+            "use_partials_stretched" to SetVideoAnalysisState.Suggest(8, 2, 0, CountConfidence.ALTA, partialZone = PartialZone.STRETCHED),
+            "use_partials_medium" to SetVideoAnalysisState.Suggest(8, 2, 0, CountConfidence.ALTA, partialConfidence = CountConfidence.MEDIA),
+            "correct_partials" to SetVideoAnalysisState.Mismatch(8, 7, 2, 0, CountConfidence.ALTA, loggedPartials = 1, partialZone = PartialZone.SHORTENED),
         ).forEach { (name, next) ->
             rule.runOnIdle { state.value = next }
             rule.onNodeWithTag(WorkoutVideoChipTag).performClick()
@@ -255,6 +278,10 @@ class WorkoutVideoRepsRenderSheetTest {
         "inconclusive" to SetVideoAnalysisState.Inconclusive,
         "failed" to SetVideoAnalysisState.Failed("decode"),
         "partials" to SetVideoAnalysisState.Mismatch(12, 8, 3, 2, CountConfidence.ALTA, loggedPartials = 2),
+        "partials_zone" to SetVideoAnalysisState.Mismatch(8, 7, 2, 0, CountConfidence.ALTA, loggedPartials = 1, partialZone = PartialZone.STRETCHED),
+        "partials_shortened" to SetVideoAnalysisState.Mismatch(8, 7, 2, 0, CountConfidence.ALTA, loggedPartials = 1, partialZone = PartialZone.SHORTENED),
+        "partials_medium" to SetVideoAnalysisState.Mismatch(8, 7, 2, 0, CountConfidence.ALTA, loggedPartials = 1, partialConfidence = CountConfidence.MEDIA),
+        "partials_low" to SetVideoAnalysisState.Mismatch(8, 7, 2, 0, CountConfidence.ALTA, loggedPartials = 1, partialConfidence = CountConfidence.BAJA),
         "unsupported" to SetVideoAnalysisState.Unsupported("Este ejercicio todavía no admite análisis de técnica con esta variante"),
     )
     private fun badge(state: SetVideoAnalysisState): VideoThumbBadge? = when (state) {
@@ -380,7 +407,7 @@ class WorkoutVideoRepsRenderSheetTest {
                 }
             }
         }
-        save("video_rest_lines_$label").recycle()
+        save("video_rest_lines_$label", waitForPreviews = false).recycle()
         rule.onAllNodes(androidx.compose.ui.test.hasTestTag(RestVideoTextTag)).fetchSemanticsNodes().forEach { node ->
             val layouts = mutableListOf<TextLayoutResult>()
             rule.runOnIdle { node.config[SemanticsActions.GetTextLayoutResult].action?.invoke(layouts) }
@@ -390,6 +417,8 @@ class WorkoutVideoRepsRenderSheetTest {
 
     @Test fun states100() = render("video_states_100", 1f, 1300.dp) { States() }
     @Test fun states130() = render("video_states_130", 1.3f, 1500.dp) { States() }
+    @Test fun partialStates100() = render("video_partials_100", 1f, 1100.dp) { PartialStates() }
+    @Test fun partialStates130() = render("video_partials_130", 1.3f, 1500.dp) { PartialStates() }
     @Test fun card100() = cardStates(1f, "100")
     @Test fun card130() = cardStates(1.3f, "130")
     @Test fun rest100() = restSurface("video_rest_100", 1f, 2)

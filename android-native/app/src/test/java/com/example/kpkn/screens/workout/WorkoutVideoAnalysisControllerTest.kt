@@ -6,6 +6,11 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.VideoAnalysisEntity
 import com.example.kpkn.data.media.WorkoutMediaStore
+import com.example.kpkn.data.media.technique.TechniqueReportSamples
+import com.example.kpkn.data.media.technique.TechniqueSidecars
+import com.example.kpkn.domain.biomechanics.metrics.PartialZone
+import com.example.kpkn.domain.biomechanics.metrics.RepKind
+import com.example.kpkn.screens.workout.design.completedVideoCorrectionPatch
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.RecordedSetPayload
@@ -200,5 +205,85 @@ class WorkoutVideoAnalysisControllerTest {
         assertEquals(SetVideoAnalysisState.Analyzing(42), state)
         session.value = "empty-session"
         controller.await { it.isEmpty() }
+    }
+
+    /** Un análisis DONE con parciales cuyo sidecar guarda la confianza propia de las parciales y sus zonas (lo que Room no guarda). */
+    private suspend fun partialsRow(
+        id: String,
+        partialConfidence: CountConfidence?,
+        zones: List<PartialZone?>,
+        confidence: String = "ALTA",
+        count: Int = 8,
+    ) {
+        row(id, count = count, partials = zones.size, confidence = confidence)
+        val base = TechniqueReportSamples.fullReport()
+        val partial = base.reps.first { it.kind == RepKind.PARTIAL }
+        val report = base.copy(
+            reps = base.reps.filter { it.kind != RepKind.PARTIAL } + zones.mapIndexed { i, zone -> partial.copy(index = 10 + i, zone = zone) },
+            partialReps = zones.size,
+            partialConfidence = partialConfidence,
+        )
+        val file = java.io.File(folder.root, "$id.analysis.json")
+        TechniqueSidecars.writeAnalysis(file, report, TechniqueReportSamples.exercise(), 80.0, "exercise_0", 1L)
+        db.videoAnalysisDao().upsert(db.videoAnalysisDao().getByMedia(id)!!.copy(reportPath = file.absolutePath))
+    }
+
+    private suspend fun WorkoutVideoAnalysisController.suggestion() =
+        await { it["exercise_0"]?.state is SetVideoAnalysisState.Suggest }["exercise_0"]!!.state as SetVideoAnalysisState.Suggest
+
+    @Test fun the_own_confidence_and_zone_of_the_partials_come_from_the_sidecar() = runBlocking<Unit> {
+        partialsRow("high", CountConfidence.ALTA, listOf(PartialZone.STRETCHED, PartialZone.STRETCHED))
+        val high = controller().suggestion()
+        assertEquals(2, high.partials)
+        assertEquals(CountConfidence.ALTA, high.partialConfidence)
+        assertEquals(PartialZone.STRETCHED, high.partialZone)
+    }
+
+    @Test fun partials_in_different_zones_have_no_common_zone_and_medium_confidence_is_kept() = runBlocking<Unit> {
+        partialsRow("mixed", CountConfidence.MEDIA, listOf(PartialZone.STRETCHED, PartialZone.SHORTENED))
+        val state = controller().suggestion()
+        assertEquals(2, state.partials)
+        assertEquals(CountConfidence.MEDIA, state.partialConfidence)
+        assertNull(state.partialZone)
+    }
+
+    @Test fun low_confidence_partials_are_not_offered_and_correcting_leaves_the_logged_ones() = runBlocking<Unit> {
+        partialsRow("low", CountConfidence.BAJA, listOf(PartialZone.STRETCHED, PartialZone.STRETCHED))
+        val controller = controller()
+        val suggested = controller.suggestion()
+        assertEquals("sin parciales que aplicar", 0, suggested.partials)
+        assertEquals(CountConfidence.BAJA, suggested.partialConfidence)
+        assertEquals("las repeticiones completas siguen ofrecidas", 8, suggested.reps)
+
+        completed.value = mapOf("exercise_0" to CompletedSet("set", reps = 7, partialReps = 3, isPartial = true))
+        val mismatch = controller.await { it["exercise_0"]?.state is SetVideoAnalysisState.Mismatch }["exercise_0"]!!.state as SetVideoAnalysisState.Mismatch
+        assertEquals(3, mismatch.loggedPartials)
+        assertEquals("«Corregir» deja las parciales que había", 3, mismatch.partials)
+        assertNull(completedVideoCorrectionPatch(mismatch).partialReps)
+        assertEquals(8, completedVideoCorrectionPatch(mismatch).edit.metricValue)
+
+        // Con las mismas completas registradas, las parciales de BAJA ya no cuentan como diferencia.
+        completed.value = mapOf("exercise_0" to CompletedSet("set", reps = 8, partialReps = 3, isPartial = true))
+        controller.await { it["exercise_0"]?.state is SetVideoAnalysisState.Agrees }
+    }
+
+    @Test fun a_report_without_partial_confidence_falls_back_to_the_confidence_of_the_count() = runBlocking<Unit> {
+        partialsRow("old", null, listOf(null, null), confidence = "MEDIA")
+        val old = controller().suggestion()
+        assertEquals(CountConfidence.MEDIA, old.partialConfidence)
+        assertEquals(2, old.partials)
+        assertNull(old.partialZone)
+    }
+
+    @Test fun without_a_sidecar_the_partials_follow_the_count_confidence() = runBlocking<Unit> {
+        row("no-sidecar", partials = 2)
+        val state = controller().suggestion()
+        assertEquals(CountConfidence.ALTA, state.partialConfidence)
+        assertEquals(2, state.partials)
+    }
+
+    @Test fun a_series_of_only_low_confidence_partials_is_inconclusive_instead_of_empty() = runBlocking<Unit> {
+        partialsRow("only-partials", CountConfidence.BAJA, listOf(PartialZone.STRETCHED, PartialZone.STRETCHED), count = 0)
+        controller().await { it["exercise_0"]?.state == SetVideoAnalysisState.Inconclusive }
     }
 }
