@@ -26,9 +26,8 @@ Fuente del plan: `artifacts/macrofactor-reverse-engineering-20261020/INFORME_FIN
 - Si delegas: Haiku 5.5 con `effort: max`, un encargo por agente, contexto pegado, lista cerrada de archivos, criterio de hecho con el comando de la cola; revisa el diff y el log, no la frase «todos los tests pasan». Antes de aceptar un paquete: `python C:\kw\tools\mfp_verify.py <worktree> --since <base> --baseline C:\kw\mfp\docs\macrofactor-parity\ROJOS_BASE.txt` (0 rojos nuevos, Room intacto, sin constantes prohibidas, commits con pie).
 
 ### FASE 0 · Retomar (antes de escribir nada)
-1. Mirar la cuota semanal (`get_usage`, «Weekly · all models»); se reinicia el 27-oct 07:00 UTC. Si está en 94 % o más, no lanzar trabajo y avisar al usuario.
-2. `bash /c/kw/tools/gradle_cola.sh`: ver si siguen vivas las corridas de `mfp` (T4) y `mfpn` (N4 + correcciones de N3). Si la de `mfpn` no está, relanzarla UNA vez.
-3. `git status` y `git log` de `C:\kw\mfp`, `mfpn`, `mfpd`, `mfpt5`, `mfph`; confirmar que coincide con `RELEVO.md`.
+1. `bash /c/kw/tools/gradle_cola.sh`: ver si siguen vivas las corridas de `mfp` (T4) y `mfpn` (N4 + correcciones de N3). Si la de `mfpn` no está, relanzarla UNA vez.
+2. `git status` y `git log` de `C:\kw\mfp`, `mfpn`, `mfpd`, `mfpt5`, `mfph`; confirmar que coincide con `RELEVO.md`.
 
 ### FASE 1 · Cerrar lo ya escrito
 1. **T4 objetivo automático** (en `feat/macrofactor-parity`, commits `609361f5c`, `6eb0f4c7e`, `25954360c`): leer `C:\kw\logs\mfp-T4-1.log`; `mfp_verify.py --since c696902b9`; corregir rojos nuevos; revisión de solo lectura (Gemini u otro) y revisión del diff; ver hojas de render; cerrar README y `cambios/T4.md`.
