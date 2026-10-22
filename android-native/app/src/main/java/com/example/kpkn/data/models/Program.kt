@@ -571,13 +571,13 @@ fun Program.validateTemporalStructure(): List<TemporalStructureIssue> {
         if (macrocycles.size > 1) {
             issues += TemporalStructureIssue(
                 TemporalStructureIssueType.SIMPLE_MULTIPLE_MACROCYCLES,
-                "Programa Simple con ${macrocycles.size} macrociclos; se requiere un solo macrociclo.",
+                "Programa que se repite con ${macrocycles.size} macrociclos; se requiere un solo macrociclo.",
             )
         }
         if (totalBlockCount > 1) {
             issues += TemporalStructureIssue(
                 TemporalStructureIssueType.SIMPLE_MULTIPLE_BLOCKS,
-                "Programa Simple con $totalBlockCount bloques; agregar bloques requiere conversión explícita a Avanzado.",
+                "Programa que se repite con $totalBlockCount bloques; agregar bloques requiere pasar explícitamente a programa por bloques.",
             )
         }
         if (simpleProgramKind == SimpleProgramKind.CALENDARIZED && loops.isNotEmpty()) {
@@ -596,7 +596,7 @@ fun Program.validateTemporalStructure(): List<TemporalStructureIssue> {
     if (structure == ProgramStructure.COMPLEX && macrocycles.isEmpty()) {
         issues += TemporalStructureIssue(
             TemporalStructureIssueType.COMPLEX_MISSING_STRUCTURE,
-            "Programa Avanzado sin macrociclos.",
+            "Programa por bloques sin macrociclos.",
         )
     }
     val invalidDays = resolvedSchedulePlan().trainingDays.filterNot { it in 1..7 }

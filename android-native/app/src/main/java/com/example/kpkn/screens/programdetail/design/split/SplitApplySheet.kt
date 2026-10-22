@@ -248,7 +248,7 @@ internal fun SplitApplySheet(
 
             if (isAdvancedProgram) {
                 KpknModule {
-                    KpknModuleHeader(label = "Programa avanzado")
+                    KpknModuleHeader(label = "Programa por bloques")
                     Spacer(Modifier.height(10.dp))
                     KpknSegmentedControl(
                         options = listOf("Un reparto", "Por bloque"),

@@ -48,8 +48,8 @@ internal fun ProgramConvertBlocksDialog(
         },
         text = {
             Text(
-                text = "Agregar un segundo bloque hace que este programa deje de ser simple. " +
-                    "La estructura pasa a ser lineal, se terminan los ciclos y los eventos cíclicos dejan de ser compatibles.",
+                text = "Con un segundo bloque el programa deja de repetirse: se recorre una vez, de bloque en bloque. " +
+                    "Los ciclos y los eventos cíclicos se detienen.",
                 style = KpknType.body,
                 color = WizardColors.textMuted,
             )

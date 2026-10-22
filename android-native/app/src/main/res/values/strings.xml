@@ -36,8 +36,8 @@
     <string name="common_weeks">Semanas</string>
     <string name="common_sessions">Sesiones</string>
     <string name="common_rest">Descanso</string>
-    <string name="common_simple_program">Programa simple</string>
-    <string name="common_advanced_program">Programa avanzado</string>
+    <string name="common_simple_program">Programa que se repite</string>
+    <string name="common_advanced_program">Programa por bloques</string>
 
     <!-- Formatos de fecha (traducibles por locale) -->
     <string name="date_format_day_month">EEEE, d \'de\' MMMM</string>
@@ -341,13 +341,13 @@
     <!-- ═══════════════════════════════════════════════════════════════
          EDITOR DE MACROCICLO
     ═══════════════════════════════════════════════════════════════ -->
-    <string name="macro_editor_add_block_and_convert">Agregar bloque y convertir a avanzado</string>
+    <string name="macro_editor_add_block_and_convert">Agregar un bloque</string>
     <string name="macro_editor_add_block">Agregar bloque</string>
     <string name="macro_editor_delete_block_body">Eliminar este bloque puede cambiar la lógica temporal del programa.</string>
     <string name="macro_editor_delete_meso_body">Eliminar este mesociclo quitará sus semanas y sesiones.</string>
     <string name="macro_editor_delete_week_body">Eliminar esta semana quitará sus sesiones.</string>
-    <string name="macro_editor_convert_to_advanced_title">Convertir a programa avanzado</string>
-    <string name="macro_editor_convert_to_advanced_body">Agregar un segundo bloque hace que este programa deje de ser simple. La estructura pasa a ser lineal, se terminan los loops y los eventos cíclicos dejan de ser compatibles.</string>
+    <string name="macro_editor_convert_to_advanced_title">Pasar a programa por bloques</string>
+    <string name="macro_editor_convert_to_advanced_body">Con un segundo bloque el programa deja de repetirse: se recorre una vez, de bloque en bloque. Los ciclos y los eventos cíclicos se detienen.</string>
     <string name="macro_editor_create_view_loops">Crear/ver loops</string>
     <!-- %1$d = cantidad de fechas clave -->
     <string name="macro_editor_key_dates_count">%1$d fechas clave</string>
@@ -357,7 +357,7 @@
     <string name="macro_editor_key_dates_label">Fechas clave</string>
     <string name="macro_editor_hide_roadmap">Ocultar roadmap</string>
     <string name="macro_editor_view_roadmap">Ver roadmap</string>
-    <string name="macro_editor_loops_desc">Los loops viven solo en programas simples y te permiten repetir ciclos con eventos programados.</string>
+    <string name="macro_editor_loops_desc">Los ciclos y sus eventos solo existen en programas que se repiten.</string>
     <string name="macro_editor_macro_start_date_hint">Inicio del macrociclo (YYYY-MM-DD)</string>
     <string name="macro_editor_save_start">Guardar inicio</string>
     <string name="macro_editor_add_key_date">Agregar fecha clave</string>

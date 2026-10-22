@@ -498,7 +498,7 @@ internal fun SaveSheet(
             if (onDiscardSwitch != null) {
                 "Hay cambios sin guardar. Si guardas, continuarás editando la sesión destino. Si descartas, los cambios se perderán."
             } else if (isSimpleProgram) {
-                "Este programa es simple: el guardado aplica solo a esta sesión."
+                "Este programa se repite: el guardado aplica solo a esta sesión."
             } else {
                 "Puedes guardar solo esta sesión o propagar el mismo molde al mesociclo."
             },

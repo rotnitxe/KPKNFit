@@ -35,8 +35,8 @@ private fun genericBlockNames(count: Int): List<String> = (1..count).map { "Bloq
 val PROGRAM_TEMPLATES: List<ProgramTemplateOption> = listOf(
     ProgramTemplateOption(
         id = "simple-1",
-        name = "1 Semana",
-        description = "Programa simple de 1 semana.",
+        name = "Semana que se repite",
+        description = "Una semana en blanco que se repite en ciclos.",
         emoji = "\uD83D\uDCC8",
         type = ProgramStructure.SIMPLE,
         weeks = 1,
@@ -47,8 +47,8 @@ val PROGRAM_TEMPLATES: List<ProgramTemplateOption> = listOf(
     ),
     ProgramTemplateOption(
         id = "simple-ab",
-        name = "Semana A/B",
-        description = "Programa simple de 2 semanas.",
+        name = "Dos semanas A/B",
+        description = "Dos semanas en blanco que se alternan.",
         emoji = "\uD83C\uDF0A",
         type = ProgramStructure.SIMPLE,
         weeks = 2,
@@ -58,8 +58,8 @@ val PROGRAM_TEMPLATES: List<ProgramTemplateOption> = listOf(
     ),
     ProgramTemplateOption(
         id = "simple-4",
-        name = "4 Semanas",
-        description = "Programa simple de 4 semanas.",
+        name = "Cuatro semanas",
+        description = "Cuatro semanas en blanco que se repiten en ciclo.",
         emoji = "\uD83D\uDDD3\uFE0F",
         type = ProgramStructure.SIMPLE,
         weeks = 4,
