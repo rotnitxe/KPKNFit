@@ -247,6 +247,9 @@ sealed class KpknRoute(val route: String) {
     // ─── Health Connect ───────────────────────────────────────────────
     object HealthConnect : KpknRoute("settings/health-connect")
 
+    // ─── Hábitos: rachas y calendario anual (P2-D) ────────────────────
+    object Habits : KpknRoute("habits")
+
 }
 
 // ─── Bottom Nav Items ────────────────────────────────────────────────────────
