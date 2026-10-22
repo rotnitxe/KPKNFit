@@ -48,7 +48,7 @@ Gemini (Antigravity) y Codex no tienen cuota; Codex vuelve el 27-oct a las 12:38
 
 ### Bloque común para cada prompt de agente gratuito
 
-Copia `C:kw11docsscreens-v2briefsree_common.md` (versionado). Si ya no existe, usa esto:
+Copia `C:/kw/u11/docs/screens-v2/briefs/free_common.md` (versionado). Si ya no existe, usa esto:
 
 - Escribe en español.
 - Trabaja solo en tu worktree.
