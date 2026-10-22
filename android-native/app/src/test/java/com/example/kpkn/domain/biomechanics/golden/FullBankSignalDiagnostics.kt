@@ -18,12 +18,11 @@ import kotlinx.serialization.json.*
 
 /** Additive evidence only: never changes FullBank's crop, truth, predictions or metric definitions. */
 internal fun fullBankSignalDiagnostics(prepared: PreparedTrack, built: CountSeriesResult, profile: AnalysisProfile,
-    bar: BarTrack? = null): JsonObject = buildJsonObject {
-    val tuning = AnalysisTuning.DEFAULT
+    bar: BarTrack? = null, tuning: AnalysisTuning = AnalysisTuning.DEFAULT): JsonObject = buildJsonObject {
     put("near", prepared.near?.near?.name?.let(::JsonPrimitive) ?: JsonNull)
     put("scaleFh", prepared.scale?.bodyHeightFh?.let(::JsonPrimitive) ?: JsonNull)
     put("viewReliable", prepared.view.reliable)
-    val rawSeg = if (built is CountSeriesResult.Ok) RepSegmenter.segment(built.series, profile, emptySet()) else null
+    val rawSeg = if (built is CountSeriesResult.Ok) RepSegmenter.segment(built.series, profile, emptySet(), tuning) else null
     val footWindow = if (built is CountSeriesResult.Ok && rawSeg != null) captureWindowUs(built.series, rawSeg, tuning) else null
     val capture = captureCountEvidence(prepared, profile, tuning, footWindow)
     put("capture", buildJsonObject {
@@ -86,7 +85,7 @@ internal fun fullBankSignalDiagnostics(prepared: PreparedTrack, built: CountSeri
         put("sideMode", seg.sideMode.name); put("nAmb", seg.ambiguousCycles)
         put("aFull", seg.aFull); put("lRest", seg.lRest); put("sigma", seg.noiseSigma)
         put("periodS", seg.periodS?.let(::JsonPrimitive) ?: JsonNull)
-        val confidence = RepConfidence.score(series, seg, prepared.view, variantProfile, RepFlags.of(prepared, series, seg))
+        val confidence = RepConfidence.score(series, seg, prepared.view, variantProfile, RepFlags.of(prepared, series, seg), tuning)
         put("level", confidence.level.name); put("score", confidence.score)
         put("forcedLowReason", confidence.forcedLowReason?.let(::JsonPrimitive) ?: JsonNull)
         put("validFraction", series.validFraction)
@@ -96,7 +95,7 @@ internal fun fullBankSignalDiagnostics(prepared: PreparedTrack, built: CountSeri
     fun array(v: DoubleArray) = JsonArray(v.map { if (it.isFinite()) JsonPrimitive(it) else JsonNull })
     if (built is CountSeriesResult.Ok) {
         val series = built.series
-        val seg = RepSegmenter.segment(series, profile, emptySet(), prepared = prepared)
+        val seg = RepSegmenter.segment(series, profile, emptySet(), tuning, prepared)
         val cutoff = seg.periodS?.let { (tuning.countLowPassCycles / it).coerceIn(tuning.countLowPassMinHz, tuning.countLowPassMaxHz) } ?: tuning.acfLowPassHz
         put("series", buildJsonObject {
             put("t0Us", series.t0Us); put("fs", series.fs); put("unit", series.unit.name)
@@ -156,16 +155,16 @@ internal fun fullBankSignalDiagnostics(prepared: PreparedTrack, built: CountSeri
                 SideEstimate(side, 0.0, "diagnostic"), prepared.facing, prepared.view, prepared.flags)
             for (minimum in listOf(25.0, 35.0, 40.0)) {
                 val angleProfile = profile.copy(poseSignal = CountSignal.ELBOW_FLEXION, minAmplitude = minimum)
-                val candidate = CountSeriesBuilder.build(sidePrepared, null, angleProfile)
+                val candidate = CountSeriesBuilder.build(sidePrepared, null, angleProfile, tuning)
                 if (candidate is CountSeriesResult.Ok) put("${side.name}/$minimum", summary(candidate.series,
-                    RepSegmenter.segment(candidate.series, angleProfile, emptySet(), prepared = sidePrepared), angleProfile))
+                    RepSegmenter.segment(candidate.series, angleProfile, emptySet(), tuning, sidePrepared), angleProfile))
             }
         }
     })
     // M3: dudosos por tipo, reposo en los extremos y D42.1 (puntos «world»).
-    put("m3", fullBankM3Diagnostics(prepared, built, profile))
+    put("m3", fullBankM3Diagnostics(prepared, built, profile, tuning))
     // M4: conteo y confianzas con cada variante de las reglas de parciales (validación cruzada con la confianza exacta).
-    put("m4", fullBankM4Diagnostics(prepared, built, profile))
+    put("m4", fullBankM4Diagnostics(prepared, built, profile, tuning))
 }
 
 /** Por región del cuerpo: fracción de fotogramas con pose con algún punto de la región fuera de [0, 1]. */

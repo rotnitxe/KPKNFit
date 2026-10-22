@@ -43,9 +43,13 @@ import kotlinx.serialization.json.*
  * - D42.1: series de conteo con los puntos «world» (ángulos 3D y altura muñeca–hombro), con controles de visibilidad, de
  *   estabilidad de los segmentos y de coherencia con la imagen, segmentadas y puntuadas con el motor.
  */
-internal fun fullBankM3Diagnostics(prepared: PreparedTrack, built: CountSeriesResult, profile: AnalysisProfile): JsonObject =
+internal fun fullBankM3Diagnostics(
+    prepared: PreparedTrack,
+    built: CountSeriesResult,
+    profile: AnalysisProfile,
+    tuning: AnalysisTuning = AnalysisTuning.DEFAULT,
+): JsonObject =
     buildJsonObject {
-        val tuning = AnalysisTuning.DEFAULT
         if (built is CountSeriesResult.Ok) {
             val series = built.series
             val lines = ArrayList<String>()

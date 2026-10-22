@@ -45,20 +45,24 @@ internal object FullBankM4Variants {
     )
 }
 
-internal fun fullBankM4Diagnostics(prepared: PreparedTrack, built: CountSeriesResult, profile: AnalysisProfile): JsonObject =
+internal fun fullBankM4Diagnostics(
+    prepared: PreparedTrack,
+    built: CountSeriesResult,
+    profile: AnalysisProfile,
+    tuning: AnalysisTuning = AnalysisTuning.DEFAULT,
+): JsonObject =
     buildJsonObject {
         if (built !is CountSeriesResult.Ok) return@buildJsonObject
         val series = built.series
         for ((name, partials) in FullBankM4Variants.variants) {
-            val base = AnalysisTuning.DEFAULT
-            val tuning = base.copy(metrics = base.metrics.copy(partials = partials))
-            val seg = RepSegmenter.segment(series, profile, emptySet(), tuning, prepared)
-            val confidence = RepConfidence.score(series, seg, prepared.view, profile, RepFlags.of(prepared, series, seg), tuning)
+            val variant = tuning.copy(metrics = tuning.metrics.copy(partials = partials))
+            val seg = RepSegmenter.segment(series, profile, emptySet(), variant, prepared)
+            val confidence = RepConfidence.score(series, seg, prepared.view, profile, RepFlags.of(prepared, series, seg), variant)
             val hasReps = seg.cycles.isNotEmpty()
             put(name, buildJsonObject {
                 put("full", seg.fullCount); put("partial", seg.partialCount); put("failed", seg.failedCount)
                 put("level", if (hasReps) confidence.level.name else "SIN_SALIDA")
-                put("partialLevel", if (hasReps) RepConfidence.partialLevel(seg, confidence, tuning).name else "SIN_SALIDA")
+                put("partialLevel", if (hasReps) RepConfidence.partialLevel(seg, confidence, variant).name else "SIN_SALIDA")
                 put("score", confidence.score)
                 put("forced", confidence.forcedLowReason?.let(::JsonPrimitive) ?: JsonNull)
                 put("zones", seg.cycles.mapNotNull { it.zone?.name }.joinToString(","))

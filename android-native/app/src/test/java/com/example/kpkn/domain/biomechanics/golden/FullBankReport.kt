@@ -3,6 +3,7 @@ package com.example.kpkn.domain.biomechanics.golden
 import com.example.kpkn.domain.biomechanics.bar.BarTrackCodec
 import com.example.kpkn.domain.biomechanics.kinematics.ViewKind
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisFlag
+import com.example.kpkn.domain.biomechanics.metrics.AnalysisTuning
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.domain.biomechanics.metrics.MetricKey
 import com.example.kpkn.domain.biomechanics.metrics.RepKind
@@ -81,7 +82,7 @@ internal object FullBankReport {
     /** Selection happens before opening ANY label, sidecar or clip result. EXAM=1 selects only exam. */
     fun select(rows: List<FullBankRow>, exam: Boolean): List<FullBankRow> = rows.filter { it.exam == exam }
 
-    fun run(root: File, output: File, exam: Boolean): List<FullBankResult> {
+    fun run(root: File, output: File, exam: Boolean, tuning: AnalysisTuning = AnalysisTuning.DEFAULT): List<FullBankResult> {
         requireOutsideRepository(output)
         require(!output.canonicalFile.toPath().startsWith(File(root, "traces").canonicalFile.toPath())) { "Salida sobre las trazas" }
         val manifestFile = File(root, "manifest.json")
@@ -107,7 +108,7 @@ internal object FullBankReport {
         output.mkdirs()
         val clipOutput = File(output, if (exam) "exam-clips" else "development-clips").apply { mkdirs() }
         val results = selected.map { row ->
-            evaluate(root, row, receipts[row.id]?.jsonObject, manifest.b("validationOnly")).also { result ->
+            evaluate(root, row, receipts[row.id]?.jsonObject, manifest.b("validationOnly"), tuning).also { result ->
                 File(clipOutput, row.id + ".json").writeText(objectText(clipJson(result, manifestHash)))
             }
         }
@@ -124,7 +125,7 @@ internal object FullBankReport {
         return results
     }
 
-    private fun requireOutsideRepository(file: File) {
+    internal fun requireOutsideRepository(file: File) {
         var ancestor: File? = file.canonicalFile
         while (ancestor != null) {
             require(!File(ancestor, ".git").exists()) { "Los informes por clip deben quedar FUERA del repo: $file" }
@@ -137,7 +138,14 @@ internal object FullBankReport {
         return file
     }
 
-    private fun evaluate(root: File, row: FullBankRow, receipt: JsonObject?, validation: Boolean): FullBankResult {
+    internal fun evaluate(
+        root: File,
+        row: FullBankRow,
+        receipt: JsonObject?,
+        validation: Boolean,
+        tuning: AnalysisTuning = AnalysisTuning.DEFAULT,
+        includeDiagnostics: Boolean = true,
+    ): FullBankResult {
         val labelFile = checked(path(root, row.raw.s("labelPath")), row.raw.s("labelSha256"))
         val label = readObject(labelFile)
         require(label.s("id") == row.id && label.s("suggestedProfile") == row.profile) { "ID/perfil de etiqueta cambiado" }
@@ -180,17 +188,18 @@ internal object FullBankReport {
         val cropped = pose.copy(frames = pose.frames.filter { it.tUs in start..end })
         val croppedBar = bar?.copy(samples = bar.samples.filter { it.tUs in start..end })
         require(cropped.frames.isNotEmpty()) { "Ventana vacía: ${row.id}" }
-        val report = TechniqueAnalysisEngine.analyze(TechniqueAnalysisInput(cropped, croppedBar, profile, null, null, emptySet()))
+        val report = TechniqueAnalysisEngine.analyze(TechniqueAnalysisInput(cropped, croppedBar, profile, null, null,
+            emptySet(), tuning = tuning))
         require(report.repCount == report.reps.count { it.kind == RepKind.FULL })
         require(report.partialReps == report.reps.count { it.kind == RepKind.PARTIAL })
         require(report.failedReps == report.reps.count { it.kind == RepKind.FAILED })
         // Reconstruct the unrounded, non-persisted factors through the SAME domain APIs.
-        val prepared = TrackPreparation.prepare(cropped)
-        val built = CountSeriesBuilder.build(prepared, croppedBar, profile)
+        val prepared = TrackPreparation.prepare(cropped, tuning)
+        val built = CountSeriesBuilder.build(prepared, croppedBar, profile, tuning)
         val confidence: ConfidenceBreakdown? = if (built is CountSeriesResult.Ok) {
-            val segmented = RepSegmenter.segment(built.series, profile, emptySet(), prepared = prepared)
+            val segmented = RepSegmenter.segment(built.series, profile, emptySet(), tuning, prepared)
             require(segmented.fullCount == report.repCount && segmented.partialCount == report.partialReps && segmented.failedCount == report.failedReps)
-            RepConfidence.score(built.series, segmented, prepared.view, profile, RepFlags.of(prepared, built.series, segmented)).also {
+            RepConfidence.score(built.series, segmented, prepared.view, profile, RepFlags.of(prepared, built.series, segmented), tuning).also {
                 require(it.level == report.confidence && abs(it.score - report.confidenceScore) <= .000501) { "Desglose distinto del motor: ${row.id}" }
             }
         } else null
@@ -199,7 +208,7 @@ internal object FullBankReport {
             cropped.frames.maxOf { it.posesDetected },
             posed.takeIf { it.isNotEmpty() }?.let { frames -> frames.count { it.posesDetected >= 2 }.toDouble() / frames.size },
             goodFraming(expected, profile), "Done", (built as? CountSeriesResult.Ok)?.series?.source,
-            fullBankSignalDiagnostics(prepared, built, profile, croppedBar))
+            if (includeDiagnostics) fullBankSignalDiagnostics(prepared, built, profile, croppedBar, tuning) else null)
     }
 
     fun resolve(row: FullBankRow): AnalysisProfile {
