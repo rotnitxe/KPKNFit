@@ -210,22 +210,22 @@ Ejecutado con `feat/vt-ui` @d6f0bd7bc sobre los 181 clips del examen (trazas del
 
 ## Partida M5 · 22-oct, motor 9 (preliminar)
 
-Se repitió la partida de desarrollo con el motor9, sin abrir de nuevo el examen. No son resultados del motor10 ni una
+Se repitió la partida de desarrollo con el motor 9, sin abrir de nuevo el examen. No son resultados del motor 10 ni una
 validación cruzada de parámetros. Los bancos y las etiquetas originales permanecen inmutables; los informes quedan fuera del repo.
 
 | Banco / partición | Procesados | G1 con salida | G1 FULL exactas entre salidas | G1 ALTA exactas | G1 MEDIA exactas |
 |---|---:|---:|---:|---:|---:|
-| Histórico, ajuste folds0–3 | 720/720 | 269/345 | 230/269 | 45/45 | 104/105 |
-| Histórico, control desarrollo fold4 | 175/175 | 63/86 | 50/63 | 9/10 | 21/24 |
-| MM-Fit OpenPose, ajuste folds0–3 | 509/509 | 403/405 | 331/403 | 309/358 | 6/11 |
-| MM-Fit OpenPose, control fold4 | 107/107 | 89/89 | 65/89 | 64/81 | 1/4 |
+| Histórico, ajuste folds 0–3 | 720/720 | 269/345 | 230/269 | 45/45 | 104/105 |
+| Histórico, control desarrollo fold 4 | 175/175 | 63/86 | 50/63 | 9/10 | 21/24 |
+| MM-Fit OpenPose, ajuste folds 0–3 | 509/509 | 403/405 | 331/403 | 309/358 | 6/11 |
+| MM-Fit OpenPose, control fold 4 | 107/107 | 89/89 | 65/89 | 64/81 | 1/4 |
 
 Los controles son exclusivos del orquestador; el ajustador solo recibe agregados. La exactitud FULL se compara con el valor
 puntual de la etiqueta. El indicador histórico de G2 «equivocadas entre ofrecidas» usa el rango permitido y no es la misma medida:
-1/21 en ajuste histórico y1/4 en su control. MM-Fit no tiene G2 en estos paquetes; sus G3 de perfil forzado son diagnóstico,
+1/21 en ajuste histórico y 1/4 en su control. MM-Fit no tiene G2 en estos paquetes; sus G3 de perfil forzado son diagnóstico,
 con rechazo real `NOT_VALIDATED`, y quedan fuera de la selección y de las metas de precisión de G1.
 
-MM-Fit OpenPose de ajuste, por ejercicio (17 sesiones/grupos; los folds siguen sesión mod5):
+MM-Fit OpenPose de ajuste, por ejercicio (17 sesiones/grupos; los folds siguen sesión mod 5):
 
 | Ejercicio | G1 | Con salida | FULL exactas / todas G1 |
 |---|---:|---:|---:|
@@ -245,10 +245,10 @@ Informes de ajuste: `C:/kw/vt-tune-out/m5-baseline-20261022` y
 El protocolo M5 selecciona con tres folds y mide en el retenido, con resultados separados por banco y denominadores explícitos;
 un desglose de una única corrida por folds no acredita esa selección.
 
-**MediaPipe pendiente por instrucción del usuario.** Se conservaron72/616 extracciones completas antes de aplazar el Z Flip.
-En esos72 timings, análisis mediano114,6s para vídeo mediano21,57s, ratio mediano5,32. Son tiempos del lote parcial,
-no una medición de fiabilidad ni prueba de cumplir el objetivo de tiempo real. La comparación OpenPose/MediaPipe de las494G1
-y el QA físico se completan cuando el usuario regrese. No integrar motor10 ni cerrar la entrega con estos resultados preliminares.
+**MediaPipe pendiente por instrucción del usuario.** Se conservaron 72/616 extracciones completas antes de aplazar el Z Flip.
+En esas 72 mediciones, el análisis mediano fue de 114,6 s para vídeo mediano de 21,57 s, con ratio mediano de 5,32. Son tiempos
+del lote parcial, no una medición de fiabilidad ni prueba de cumplir el objetivo de tiempo real. La comparación OpenPose/MediaPipe
+de las 494 G1 y el QA físico se completan cuando el usuario regrese. No integrar motor 10 ni cerrar la entrega con estos resultados preliminares.
 
 ### Diagnóstico M5 sobre ajuste, sin cambiar etiquetas
 
@@ -259,9 +259,9 @@ y el QA físico se completan cuando el usuario regrese. No integrar motor10 ni c
   `nonrep_horizontal`, con amplitud comparable a los FULL conservados. El conteo usa cadera, pero el veto lateral usa el hombro
   que sustituye al disco. Se prepara un contrafactual por procedencia física de esa señal, conservando caminar, preparación
   y trayectoria de disco confirmado. No es un ajuste por clip ni una corrección de etiquetas.
-- **Cobertura histórica:** de345 G1,76 sin salida:29 por ausencia de señal utilizable,19 sin ciclos válidos y28 por captura.
-  BENCH concentra38. Los casos sin señal incluyen19 sin escala,9 sin señal válida (ambos BENCH) y1 sin pose.
-  La captura rechaza26 recortes y2 desplazamientos comunes de pies. Quitar indiscriminadamente el veto no sostiene la meta:
+- **Cobertura histórica:** de 345 G1, 76 sin salida: 29 por ausencia de señal utilizable, 19 sin ciclos válidos y 28 por captura.
+  BENCH concentra 38. Los casos sin señal incluyen 19 sin escala, 9 sin señal válida (ambos BENCH) y 1 sin pose.
+  La captura rechaza 26 recortes y 2 desplazamientos comunes de pies. Quitar indiscriminadamente el veto no sostiene la meta:
   entre diez recortes estáticos con confianza cruda MEDIA, solo ocho FULL eran exactas. Un posible fallback angular de BENCH
   necesita estudiar evidencia fuerte y ciclos completos; no se baja la exigencia de escala o visibilidad para aumentar cobertura.
 
