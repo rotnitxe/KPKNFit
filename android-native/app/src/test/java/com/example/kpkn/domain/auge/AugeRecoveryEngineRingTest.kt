@@ -308,7 +308,7 @@ class AugeRecoveryEngineRingTest {
     }
 
     @Test
-    fun calculateGlobalBatteries_articularGating_blendSuave() {
+    fun calculateGlobalBatteries_articularDoesNotGateTheMuscularGlobal() {
         val precomputed = AugeRecoveryEngine.pillarMuscles.associateWith { muscle ->
             com.example.kpkn.data.models.MuscleRecoveryStatus(
                 muscleName = muscle,
@@ -330,8 +330,17 @@ class AugeRecoveryEngineRingTest {
             articularBatteries = articular,
             nowOverrideMs = ahora,
         )
-        assertTrue("Muscular battery should be reduced by gating, got ${batteries.muscular}", batteries.muscular < 97)
-        assertTrue("Muscular battery should not collapse to 30, got ${batteries.muscular}", batteries.muscular > 80)
+        // D1: la articular ya no entra en el global de Músculos; solo pesa en la Columna mostrada.
+        assertTrue("Muscular battery must not be gated by articular, got ${batteries.muscular}", batteries.muscular > 97)
+        val sinArticular = AugeRecoveryEngine.calculateGlobalBatteries(
+            history = emptyList(),
+            wellbeing = null,
+            settings = Settings(),
+            precomputedMuscles = precomputed,
+            articularBatteries = emptyMap(),
+            nowOverrideMs = ahora,
+        )
+        assertEquals(sinArticular.muscular, batteries.muscular)
     }
 
     @Test
