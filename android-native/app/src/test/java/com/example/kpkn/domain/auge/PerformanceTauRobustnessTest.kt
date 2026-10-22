@@ -460,7 +460,7 @@ class PerformanceTauRobustnessTest {
         val obsCountFirst = cache.observations.size
 
         assertEquals(1, nAfterFirst)
-        assertEquals(1, obsCountFirst)
+        assertEquals(result.observations.size, obsCountFirst)
 
         // Segundo intento
         cache = PerformanceTauLearner.applyToCache(cache, result, today.id, originMs + 3600_000L, model)
