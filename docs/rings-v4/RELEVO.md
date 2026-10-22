@@ -40,3 +40,8 @@ Estado congelado por orden del usuario: al 94 % de la cuota semanal «Weekly · 
 4. Terminar 3.2c-2 y 2.4 (Gemini, máx. 2 agentes a la vez; cuota de Gemini se agota ~2 h después de 5 agentes; no sondearla).
 5. Lanzar 3.5; después una tanda Android integrada (fusionar todo en `feat/rings-v4` y luego `git merge feat/rings-v4` en `C:\kw\r4n`, o encolar `r4i`), 5.1, 5.2 y 5.3.
 6. Al fusionar 3.3 + 3.4 y verificar: avisar a la sesión VT. Al terminar todo: avisar al usuario y pedir consentimiento para master.
+
+## ACTUALIZACIÓN 00:10 (manda sobre la tabla de arriba)
+- **1.10v2 FUSIONADO** en `feat/rings-v4` (`e4c133cd8`). Tanda Android 3 (`r4n`, árbol con 1.10v2 pero SIN los re-anclajes de `r4/verify`): 3 472 pruebas, 49 fallos; los 49 = los 48 de la tanda 2 + `AlbumSheetContentTest` (ajeno a Rings, probable previo/inestable). `Rings110UiTest` y `Rings110IntegrationTest` pasan; no hay fallos nuevos de Rings. Los 26 no heredados de la tanda 2 que son de Rings (AugeWriteMutexTest, SessionEditorAugeCharacterizationTest, RingsUiCopyConsistencyTest, RingAdjustTest) ya tienen arreglo fusionado (`r4/verify`) pero NO se han reconfirmado en Android.
+- Los agentes Gemini (3.2c-2 en `r4l`, 2.4 en `v3c`) y el revisor de 3.3 se pararon a las 23:45 por la cuota; quedan sus árboles sucios (`r4l`: 3 ficheros; `v3c`: 8 ficheros). Revisar `git status`/`git diff` antes de seguir; no rehacer desde cero.
+- La corrida de contraste con master (`sb`) sigue en cola (`/c/kw/logs/r4-master-contraste.log`).
