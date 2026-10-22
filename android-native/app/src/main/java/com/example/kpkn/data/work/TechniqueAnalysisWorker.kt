@@ -45,7 +45,8 @@ import java.io.IOException
  *    o el perfil) corre siempre, con el ajuste apagado también: el ajuste solo gobierna el análisis automático.
  * 2. Toma [AnalysisGate.mutex]: un análisis cada vez. Fila en RUNNING.
  * 3. [AnalysisGate.awaitClear]: espera a que la cámara no grabe y el móvil no esté en estado térmico SEVERE.
- * 4. Arma la [TechniqueAnalysisRequest] y llama al analizador ([TechniqueAnalyzerProvider]).
+ * 4. Arma la [TechniqueAnalysisRequest] (con la referencia PERSONAL de recorrido de los análisis anteriores, si hay al menos
+ *    dos) y llama al analizador ([TechniqueAnalyzerProvider]).
  * 5. Según el resultado: Done → `<id>.analysis.json` y DESPUÉS la fila DONE; Unsupported → UNSUPPORTED; NeedsProfile →
  *    NEEDS_PROFILE; Failed transitorio → `Result.retry()` (espera exponencial desde 30 s) hasta el 3.er intento; si no, FAILED
  *    con su `errorCode`.
@@ -103,6 +104,15 @@ class TechniqueAnalysisWorker(
             return failed(repository, media.id, TechniqueAnalysisOutcome.Failed(ERROR_VIDEO_MISSING, transient = false), 0)
         }
         val overrides = repository.captureOverrides(media)
+        // La referencia PERSONAL de recorrido (M4) vale en los tres modos, también en RECOMPUTE; sin ella el motor trabaja como siempre.
+        val rangeReference = try {
+            repository.personalRangeReference(media)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            Log.w(TAG, "No se pudo preparar la referencia de recorrido de ${media.id}.", error)
+            null
+        }
         val request = TechniqueAnalysisRequest(
             mediaId = media.id,
             videoFile = video,
@@ -114,6 +124,7 @@ class TechniqueAnalysisWorker(
             userHeightCm = settings.userVitals.height?.takeIf { it.isFinite() && it > 0.0 },
             // Los nombres de SetTechniqueV2 de la serie no viajan con el medio: VT4c/VT8 los añadirán si hacen falta.
             setHints = emptySet(),
+            rangeReference = rangeReference,
         )
 
         val inForeground = promoteToForeground(media)

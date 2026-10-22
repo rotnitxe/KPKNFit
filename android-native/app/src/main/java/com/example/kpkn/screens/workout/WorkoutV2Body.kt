@@ -51,6 +51,7 @@ import com.example.kpkn.screens.workout.components.SetInputCardV2
 import com.example.kpkn.screens.workout.components.WorkoutMobilityChecklistItem
 import com.example.kpkn.screens.workout.components.WorkoutWarmupDisplaySet
 import com.example.kpkn.screens.workout.components.WorkoutUiTokens
+import com.example.kpkn.screens.workout.design.completedVideoCorrectionPatch
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -2143,11 +2144,7 @@ internal fun WorkoutV2Body(
                                     onVideoCorrect = { result ->
                                         viewModel.patchCompletedSet(
                                             workoutSetKey(targetExercise.id, activeSetIndex, com.example.kpkn.data.media.WorkoutMediaSides.normalize(cardSide, targetExercise)),
-                                            CompletedSetPatch(
-                                                edit = com.example.kpkn.services.workout.VoiceSetEditPatch(metricValue = result.counted),
-                                                partialReps = result.partials,
-                                                reachedFailure = true.takeIf { result.failed > 0 },
-                                            ),
+                                            completedVideoCorrectionPatch(result),
                                         )
                                     },
                                     onVideoMarkFailure = {

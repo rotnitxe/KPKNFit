@@ -104,7 +104,7 @@ internal fun workoutRestVideoLine(state: SetVideoAnalysisState): RestVideoLine {
             } else description
             val count = if (state.confidence == CountConfidence.MEDIA) approxCount(state.counted) else "${state.counted}"
             val extras = buildString {
-                if (state.partials > 0) append("+${state.partials}p")
+                partialsShort(state.partials, state.partialConfidence)?.let { append("+").append(it) }
                 if (state.failed > 0) append(" · ${state.failed} fallo${if (state.failed == 1) "" else "s"}")
             }
             val compact = if (state.countsDiffer) "${state.logged}${if (state.loggedPartials > 0) "+${state.loggedPartials}p" else ""}→$count$extras"
@@ -115,7 +115,7 @@ internal fun workoutRestVideoLine(state: SetVideoAnalysisState): RestVideoLine {
             if (state.confidence == CountConfidence.BAJA) description
             else if (state.reps == 0 && state.partials == 0 && state.failed > 0) "${state.failed} al fallo"
             else "Vídeo ${if (state.confidence == CountConfidence.MEDIA) approxCount(state.reps) else state.reps}" +
-                (if (state.partials > 0) " +${state.partials}p" else "") + (if (state.failed > 0) " · ${state.failed} al fallo" else ""))
+                (partialsShort(state.partials, state.partialConfidence)?.let { " +$it" }.orEmpty()) + (if (state.failed > 0) " · ${state.failed} al fallo" else ""))
         is SetVideoAnalysisState.Agrees -> RestVideoLine(description, listOf(RestVideoAction.OPEN))
         SetVideoAnalysisState.Inconclusive -> RestVideoLine(description, listOf(RestVideoAction.WHY))
         is SetVideoAnalysisState.Failed -> RestVideoLine(description, listOf(RestVideoAction.RETRY), "No se pudo analizar")

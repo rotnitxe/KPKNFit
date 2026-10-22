@@ -66,6 +66,7 @@ import kotlin.math.roundToInt
 
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
+import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.domain.workout.SetTechniqueScope
 import com.example.kpkn.domain.workout.scheduledTechniquePlan
 import com.example.kpkn.domain.workout.isInlineEditorScheduledTechnique
@@ -2183,8 +2184,10 @@ internal fun SetInputCardV2(
                                                             repsWheelCenterIndex.intValue = result.reps
                                                             // El centro viejo no puede sobrescribir el borrador tras «Usar».
                                                             repsInputGeneration++
-                                                            partialSets = listOf(result.partials.coerceAtLeast(0))
-                                                            showPartialsMode = result.partials > 0
+                                                            if (result.partialConfidence != CountConfidence.BAJA) {
+                                                                partialSets = listOf(result.partials.coerceAtLeast(0))
+                                                                showPartialsMode = result.partials > 0
+                                                            }
                                                         }
                                                         showVideoMenu = false
                                                     },

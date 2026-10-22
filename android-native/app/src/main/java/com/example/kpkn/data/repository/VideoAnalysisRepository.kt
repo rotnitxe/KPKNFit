@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.room.withTransaction
 import com.example.kpkn.data.db.KpknDatabase
+import com.example.kpkn.data.db.VideoAnalysisEntity
 import com.example.kpkn.data.db.VideoAnalysisExerciseRow
 import com.example.kpkn.data.db.VideoAnalysisLoadPoint
 import com.example.kpkn.data.db.VideoAnalysisSessionRow
@@ -13,6 +14,8 @@ import com.example.kpkn.data.media.WorkoutMediaCaptureJournal
 import com.example.kpkn.data.media.WorkoutMediaStore
 import com.example.kpkn.data.media.technique.AnalysisMode
 import com.example.kpkn.data.media.technique.CaptureFileLock
+import com.example.kpkn.data.media.technique.PartialSummary
+import com.example.kpkn.data.media.technique.PersonalRangeReference
 import com.example.kpkn.data.media.technique.TechniqueSidecars
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.VideoAnalysisStatus
@@ -26,12 +29,15 @@ import com.example.kpkn.data.models.toEntity
 import com.example.kpkn.data.models.toSummary
 import com.example.kpkn.data.work.TechniqueAnalysisScheduler
 import com.example.kpkn.domain.biomechanics.bar.PlateSeed
+import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
+import com.example.kpkn.domain.biomechanics.metrics.RangeReference
 import com.example.kpkn.domain.biomechanics.metrics.SetTechniqueReport
 import com.example.kpkn.domain.biomechanics.profiles.AnalysisProfileId
 import com.example.kpkn.domain.biomechanics.profiles.ExerciseRef
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -288,6 +294,41 @@ class VideoAnalysisRepository internal constructor(
         return stored
     }
 
+    /**
+     * La referencia PERSONAL de recorrido (M4) para [media]: la mediana de la amplitud completa de sus análisis anteriores DONE
+     * de la misma configuración del catálogo (o, si el vídeo no la trae, del mismo ejercicio), sin contar el propio vídeo. Se leen
+     * los `<id>.analysis.json` (la fuente de verdad) de los más recientes con motor reciente y confianza ALTA o MEDIA; la
+     * selección (señal, vista, mínimo de series) es de [PersonalRangeReference]. `null` si no hay al menos dos series que valgan.
+     */
+    internal suspend fun personalRangeReference(media: WorkoutMedia): RangeReference? {
+        val configurationKey = media.techniqueConfigurationKey()
+        val rows = db.videoAnalysisDao().observeTrend(media.techniqueExerciseKey()).first()
+            .filter { row ->
+                row.mediaId != media.id && row.engineVersion >= PersonalRangeReference.MIN_ENGINE_VERSION &&
+                    (row.confidence == CountConfidence.ALTA.name || row.confidence == CountConfidence.MEDIA.name) &&
+                    (configurationKey == null || row.configurationKey == configurationKey)
+            }
+            .sortedWith(compareByDescending<VideoAnalysisEntity> { it.recordedAtMs }.thenBy { it.mediaId })
+            .take(PRIOR_ROWS_TO_READ)
+        if (rows.size < PersonalRangeReference.MIN_SERIES) return null
+        return withContext(Dispatchers.IO) {
+            val priors = rows.mapNotNull { row ->
+                val path = row.reportPath ?: return@mapNotNull null
+                val sidecar = TechniqueSidecars.readAnalysis(File(path)) ?: return@mapNotNull null
+                PersonalRangeReference.Prior(row.mediaId, row.recordedAtMs, sidecar.report)
+            }
+            PersonalRangeReference.select(priors, media.id)
+        }
+    }
+
+    /**
+     * Lo que el sidecar `<id>.analysis.json` en [reportPath] sabe de las parciales y la fila de Room no guarda (su confianza
+     * propia y su zona), o `null` si no se puede leer: la sesión en vivo cae entonces a la confianza de las repeticiones.
+     */
+    suspend fun partialSummaryAt(reportPath: String): PartialSummary? = withContext(Dispatchers.IO) {
+        TechniqueSidecars.readAnalysis(File(reportPath))?.report?.let(PartialSummary::of)
+    }
+
     /** Borra el informe de un vídeo (el ejercicio dejó de ser analizable): ya no vale para esta asignación. */
     internal suspend fun deleteReport(media: WorkoutMedia) {
         withContext(Dispatchers.IO) {
@@ -434,6 +475,9 @@ class VideoAnalysisRepository internal constructor(
         /** Diámetro del disco que el usuario puede fijar: de un disco pequeño (100 mm) a uno enorme (700 mm). */
         const val MIN_PLATE_MM = 100
         const val MAX_PLATE_MM = 700
+
+        /** Cuántos análisis anteriores se abren como mucho para la referencia PERSONAL (se usan las [PersonalRangeReference.MAX_SERIES] mejores). */
+        private const val PRIOR_ROWS_TO_READ = 24
 
         private const val TAG = "VideoAnalysisRepo"
         private val MONTH_DIR = Regex("\\d{4}-\\d{2}")

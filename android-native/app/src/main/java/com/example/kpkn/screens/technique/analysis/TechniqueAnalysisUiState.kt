@@ -15,6 +15,7 @@ import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.domain.biomechanics.metrics.DepthClass
 import com.example.kpkn.domain.biomechanics.metrics.MetricKey
 import com.example.kpkn.domain.biomechanics.metrics.ObservationText
+import com.example.kpkn.domain.biomechanics.metrics.PartialZone
 import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.domain.biomechanics.metrics.RepReport
 import com.example.kpkn.domain.biomechanics.metrics.ScaleSource
@@ -26,6 +27,9 @@ import com.example.kpkn.domain.biomechanics.profiles.PathRule
 import com.example.kpkn.domain.biomechanics.profiles.UnsupportedReasons
 import com.example.kpkn.screens.technique.player.TechniqueOverlayData
 import com.example.kpkn.screens.technique.player.TechniqueRepMark
+import com.example.kpkn.screens.workout.design.approxCount
+import com.example.kpkn.screens.workout.design.partialZoneText
+import com.example.kpkn.screens.workout.design.partialsPhrase
 import java.time.Instant
 import java.time.ZoneId
 import java.util.Locale
@@ -156,6 +160,8 @@ data class AnalysisSummaryUi(
     val tiles: List<SummaryTileUi>,
     /** «Bajo el paralelo en ≈ 7 de 8», si el ejercicio mide profundidad. */
     val depthLine: String?,
+    /** «2 parciales en estiramiento (≈ 55 % del recorrido)», si hay parciales y su confianza propia no es BAJA (M4). */
+    val partialsLine: String? = null,
 )
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -182,15 +188,56 @@ data class RepMetricUi(
     val note: String? = null,
 )
 
-/** Una repetición de la gráfica: [number] es el que ve el usuario (desde 1) y [detail] la línea de detalle de la elegida. */
+/**
+ * Una repetición de la gráfica: [number] es el que ve el usuario (desde 1) y [detail] la línea de detalle de la elegida. En una
+ * parcial (M4), [zone] es su zona y [percent] su recorrido respecto de una repetición completa (55 = ≈ 55 %); solo se rellenan si
+ * la confianza propia de las parciales no es BAJA y el motor dio la zona.
+ */
 @Immutable
-data class RepBarUi(val kind: RepKind, val number: Int, val detail: String)
+data class RepBarUi(
+    val kind: RepKind,
+    val number: Int,
+    val detail: String,
+    val zone: PartialZone? = null,
+    val percent: Int? = null,
+) {
+    /** Lo que TalkBack dice de una parcial: «parcial en estiramiento, ≈ 55 % del recorrido». `null` en las demás. */
+    val partialSpoken: String?
+        get() = if (kind != RepKind.PARTIAL) null else partialWords(zone, percent, joiner = ", ")
+}
 
 @Immutable
 data class RepBreakdownUi(val metrics: List<RepMetricUi>, val reps: List<RepBarUi>) {
     val hasPartial: Boolean get() = reps.any { it.kind == RepKind.PARTIAL }
     val hasFailed: Boolean get() = reps.any { it.kind == RepKind.FAILED }
+
+    /** Las zonas de las parciales, en el orden en que salen, para la leyenda; `null` es una parcial sin zona. */
+    val partialZones: List<PartialZone?> get() = reps.filter { it.kind == RepKind.PARTIAL }.map { it.zone }.distinct()
+
+    /** Para TalkBack, la gráfica entera: «Parciales: la 3, en estiramiento, ≈ 55 % del recorrido». `null` sin parciales. */
+    val partialsDescription: String? get() = partialsDescriptionOf(reps)
 }
+
+/** La descripción de las parciales de [reps] para TalkBack (ver [RepBreakdownUi.partialsDescription]). */
+internal fun partialsDescriptionOf(reps: List<RepBarUi>): String? {
+    val partials = reps.filter { it.kind == RepKind.PARTIAL }
+    if (partials.isEmpty()) return null
+    return "Parciales: " + partials.joinToString("; ") { rep ->
+        "la ${rep.number}" + (partialWordsOrNull(rep.zone, rep.percent)?.let { ", $it" }.orEmpty())
+    }
+}
+
+/** «≈ 55 % del recorrido», con la estimación y su cifra, y la cifra y su «%», juntas. */
+internal fun percentOfRangeText(percent: Int): String = "${approxCount(percent)}\u00A0%\u00A0del\u00A0recorrido"
+
+private fun partialWordsOrNull(zone: PartialZone?, percent: Int?): String? {
+    val parts = listOfNotNull(zone?.let(::partialZoneText), percent?.let(::percentOfRangeText))
+    return parts.takeIf { it.isNotEmpty() }?.joinToString(", ")
+}
+
+/** «parcial en estiramiento» y su recorrido, unidos con [joiner]. */
+private fun partialWords(zone: PartialZone?, percent: Int?, joiner: String): String =
+    listOfNotNull("parcial" + (zone?.let { " ${partialZoneText(it)}" }.orEmpty()), percent?.let(::percentOfRangeText)).joinToString(joiner)
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 // Observaciones, disco y consejos
@@ -456,7 +503,8 @@ internal fun buildSummary(report: SetTechniqueReport): AnalysisSummaryUi {
     val estimated = report.confidence != CountConfidence.ALTA
     // Cada cosa en su línea: la columna es estrecha y una línea partida a media frase se lee mal.
     val repNotes = ArrayList<String>(5)
-    if (report.partialReps > 0) repNotes.add(if (report.partialReps == 1) "+1 parcial" else "+${report.partialReps} parciales")
+    // Las parciales con su propia confianza (M4): el número con ALTA, «≈» con MEDIA y nada con BAJA. La zona va en la línea del resumen.
+    partialsPhrase(report.partialReps, report.partialConfidenceOrCount(), zone = null)?.let { repNotes.add(it) }
     if (report.failedReps > 0) repNotes.add(if (report.failedReps == 1) "1 fallida" else "${report.failedReps} fallidas")
     val left = report.perSideCounts["left"]
     val right = report.perSideCounts["right"]
@@ -600,7 +648,48 @@ internal fun buildSummary(report: SetTechniqueReport): AnalysisSummaryUi {
         }
     }
 
-    return AnalysisSummaryUi(noRepsMessage = null, tiles = tiles, depthLine = depthLine(report))
+    return AnalysisSummaryUi(noRepsMessage = null, tiles = tiles, depthLine = depthLine(report), partialsLine = partialsLine(report))
+}
+
+/** La confianza del número de parciales; sin ella (un informe de antes del motor 9), la del conteo. */
+private fun SetTechniqueReport.partialConfidenceOrCount(): CountConfidence = partialConfidence ?: confidence
+
+/** Con BAJA las parciales no se ofrecen: ni zona ni recorrido. */
+private fun SetTechniqueReport.showsPartialDetail(): Boolean = partialConfidenceOrCount() != CountConfidence.BAJA
+
+/** El recorrido medio de las parciales respecto de una repetición completa, en %; `null` si ninguna trae el dato. */
+private fun meanPartialPercent(partials: List<RepReport>): Int? {
+    val fractions = partials.map { it.amplitudeFraction }.filter { it.isFinite() && it > 0.0 }
+    return if (fractions.isEmpty()) null else (fractions.average() * 100.0).roundToInt()
+}
+
+/**
+ * «2 parciales en estiramiento (≈ 55 % del recorrido)». Con MEDIA el número lleva «≈»; con zonas distintas, «2 parciales: 1 en
+ * estiramiento y 1 acortada (≈ 55 % del recorrido)»; sin zona (informe viejo), solo el recorrido. Con BAJA no hay línea.
+ */
+internal fun partialsLine(report: SetTechniqueReport): String? {
+    if (!report.showsPartialDetail()) return null
+    val partials = report.reps.filter { it.kind == RepKind.PARTIAL }
+    if (partials.isEmpty()) return null
+    val confidence = report.partialConfidenceOrCount()
+    val count = partials.size
+    val number = if (confidence == CountConfidence.MEDIA) approxCount(count) else "$count"
+    val zones = partials.map { it.zone }
+    val zoned = zones.all { it != null }
+    val distinct = zones.filterNotNull().distinct()
+    // «acortada» concuerda con el número; «en estiramiento» no cambia.
+    fun zoneWords(zone: PartialZone, n: Int): String =
+        if (zone == PartialZone.SHORTENED && n != 1) "acortadas" else partialZoneText(zone)
+    val where = when {
+        !zoned -> ""
+        distinct.size == 1 -> " ${zoneWords(distinct.single(), count)}"
+        else -> ": " + distinct.joinToString(" y ") { zone ->
+            val n = zones.count { it == zone }
+            "$n ${zoneWords(zone, n)}"
+        }
+    }
+    val percent = meanPartialPercent(partials)?.let { " (${percentOfRangeText(it)})" }.orEmpty()
+    return "$number ${if (count == 1) "parcial" else "parciales"}$where$percent"
 }
 
 /** Lo que significan las cuatro cifras del tempo: los movimientos que se hacen hacia arriba y hacia abajo hablan de bajada y subida. */
@@ -648,9 +737,23 @@ internal fun buildBreakdown(report: SetTechniqueReport, marks: List<TechniqueRep
         timeMetric(report, marks),
     )
     if (metrics.isEmpty()) return null
-    val bars = marks.mapIndexed { i, mark -> RepBarUi(mark.kind, i + 1, repDetail(report, i + 1, mark, reps[i])) }
+    val bars = marks.mapIndexed { i, mark ->
+        val rep = reps[i]
+        val detailed = mark.kind == RepKind.PARTIAL && report.showsPartialDetail() && rep != null
+        RepBarUi(
+            kind = mark.kind,
+            number = i + 1,
+            detail = repDetail(report, i + 1, mark, rep),
+            zone = rep?.zone.takeIf { detailed },
+            percent = rep?.takeIf { detailed }?.let(::partialPercentOf),
+        )
+    }
     return RepBreakdownUi(metrics, bars)
 }
+
+/** El recorrido de una parcial respecto de una completa, en %, si el motor lo dio. */
+private fun partialPercentOf(rep: RepReport): Int? =
+    rep.amplitudeFraction.takeIf { it.isFinite() && it > 0.0 }?.let { (it * 100.0).roundToInt() }
 
 private fun relativeHeights(values: List<Double?>): Triple<List<Float?>, Int, Int> {
     val present = values.withIndex().filter { it.value != null }
@@ -728,7 +831,12 @@ private fun repDetail(report: SetTechniqueReport, number: Int, mark: TechniqueRe
     val parts = ArrayList<String>(7)
     parts.add("Rep $number")
     when (mark.kind) {
-        RepKind.PARTIAL -> parts.add("parcial")
+        RepKind.PARTIAL -> {
+            // M4: con la zona y el recorrido de la parcial, salvo que la confianza de las parciales sea BAJA.
+            val detailed = report.showsPartialDetail() && rep != null
+            parts.add("parcial" + (rep?.zone?.takeIf { detailed }?.let { " ${partialZoneText(it)}" }.orEmpty()))
+            rep?.takeIf { detailed }?.let(::partialPercentOf)?.let { parts.add(percentOfRangeText(it)) }
+        }
         RepKind.FAILED -> parts.add("fallida")
         RepKind.FULL -> Unit
     }

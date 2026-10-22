@@ -571,7 +571,10 @@ class TechniqueAnalysisPipeline internal constructor(
             val report = try {
                 withContext(Dispatchers.Default) {
                     TechniqueAnalysisEngine.analyze(
-                        TechniqueAnalysisInput(pose, usable, profile, request.loadKg, request.userHeightCm, request.setHints),
+                        TechniqueAnalysisInput(
+                            pose, usable, profile, request.loadKg, request.userHeightCm, request.setHints,
+                            rangeReference = request.rangeReference,
+                        ),
                     )
                 }
             } catch (cancelled: CancellationException) {

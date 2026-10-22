@@ -9,6 +9,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,13 +47,17 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kpkn.domain.biomechanics.metrics.PartialZone
 import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.technique.analysis.RepBarUi
 import com.example.kpkn.screens.technique.analysis.RepBreakdownUi
 import com.example.kpkn.screens.technique.analysis.RepMetricKind
 import com.example.kpkn.screens.technique.analysis.RepMetricUi
+import com.example.kpkn.screens.technique.analysis.partialsDescriptionOf
+import com.example.kpkn.screens.workout.design.partialZoneText
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknSegmentedControl
@@ -80,11 +86,14 @@ private val StubHeight = 3.dp
  *   elegida va sobre su barra.
  * - **Estilo:** la elegida, en tinta; las demás, al 40 %. Las parciales con trama y las fallidas en `danger`. Sin ninguna elegida,
  *   todas al 85 %. Una repetición sin dato en esa medida deja un tope bajo, no una barra inventada.
+ * - **Parciales (M4):** con zona, la trama lleva el tono de su zona (estiramiento o acortada); la leyenda y TalkBack nombran la zona y
+ *   el % del recorrido, así que el color nunca es lo único que la distingue.
  * - **Elegir:** tocar una barra, o arrastrar el dedo por la gráfica, elige la repetición ([onSelectRep] recibe su posición en la capa)
  *   y el reproductor salta a ella. Para TalkBack, la gráfica se lee entera («Velocidad: la más rápida, la 1; la más lenta, la 8, un
  *   18 % menos») y se recorre con «Repetición anterior» y «Repetición siguiente».
  * - **Detalle:** bajo la gráfica, la línea de la elegida («Rep 4 · bajada 2,1 s · subida 0,9 s · ROM 104° · bajo el paralelo»).
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RepBreakdownModule(
     breakdown: RepBreakdownUi,
@@ -119,8 +128,14 @@ fun RepBreakdownModule(
         )
         if (breakdown.hasPartial || breakdown.hasFailed) {
             Spacer(Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(18.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (breakdown.hasPartial) LegendItem(text = "Parcial", failed = false)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(18.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                // Una entrada por zona de las parciales (M4); sin zona, la de siempre.
+                if (breakdown.hasPartial) breakdown.partialZones.forEach { zone ->
+                    LegendItem(text = zone?.let { "Parcial ${partialZoneText(it)}" } ?: "Parcial", failed = false, tint = zone?.let(::zoneColor))
+                }
                 if (breakdown.hasFailed) LegendItem(text = "Fallida", failed = true)
             }
         }
@@ -137,8 +152,14 @@ private fun spokenName(kind: RepMetricKind): String = when (kind) {
     RepMetricKind.TIME -> "Tiempo"
 }
 
+/** El tono de una parcial según su zona: estiramiento en azul, acortada en melocotón; distintos de la tinta y del rojo de las fallidas. */
+private fun zoneColor(zone: PartialZone): Color = when (zone) {
+    PartialZone.STRETCHED -> SymbolPalette.columna
+    PartialZone.SHORTENED -> SymbolPalette.musculo
+}
+
 @Composable
-private fun LegendItem(text: String, failed: Boolean) {
+private fun LegendItem(text: String, failed: Boolean, tint: Color? = null) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Canvas(Modifier.size(12.dp)) {
             if (failed) {
@@ -146,7 +167,7 @@ private fun LegendItem(text: String, failed: Boolean) {
             } else {
                 drawHatchedBar(
                     left = 0f, top = 0f, width = size.width, height = size.height, radius = 3.dp.toPx(),
-                    color = WizardColors.text.copy(alpha = 0.85f), strokeWidth = 1.2.dp.toPx(), spacing = 3.5.dp.toPx(),
+                    color = (tint ?: WizardColors.text).copy(alpha = 0.85f), strokeWidth = 1.2.dp.toPx(), spacing = 3.5.dp.toPx(),
                 )
             }
         }
@@ -169,6 +190,7 @@ private fun RepBarChart(metric: RepMetricUi, reps: List<RepBarUi>, selected: Int
     val reduced = wizardReducedMotion()
     val measurer = rememberTextMeasurer()
     val latestSelect by rememberUpdatedState(onSelect)
+    val partialsSpoken = remember(reps) { partialsDescriptionOf(reps) }
 
     // Las barras crecen desde cero la primera vez que se ven. Se lee en el dibujo, no en la composición.
     val animate = remember { ChartMemory.firstTime("rep-chart") } && !reduced
@@ -188,8 +210,11 @@ private fun RepBarChart(metric: RepMetricUi, reps: List<RepBarUi>, selected: Int
             .height(ChartHeight)
             .testTag(ANALYSIS_REP_CHART_TAG)
             .semantics {
-                contentDescription = metric.description
-                stateDescription = if (selected in 0 until count) "Repetición ${selected + 1} de $count elegida" else "Ninguna repetición elegida"
+                // TalkBack lee la medida y, aparte, las parciales con su zona y su recorrido (M4).
+                contentDescription = listOfNotNull(metric.description, partialsSpoken).joinToString(". ")
+                stateDescription = if (selected in 0 until count) {
+                    "Repetición ${selected + 1} de $count elegida" + (reps[selected].partialSpoken?.let { ", $it" }.orEmpty())
+                } else "Ninguna repetición elegida"
                 customActions = listOf(
                     CustomAccessibilityAction("Repetición anterior") {
                         latestSelect(if (selected <= 0) 0 else selected - 1)
@@ -259,7 +284,12 @@ private fun RepBarChart(metric: RepMetricUi, reps: List<RepBarUi>, selected: Int
                 else -> 0.4f
             }
             val kind = reps[i].kind
-            val color = (if (kind == RepKind.FAILED) WizardColors.danger else ink).copy(alpha = if (relative == null) alpha * 0.75f else alpha)
+            val base = when {
+                kind == RepKind.FAILED -> WizardColors.danger
+                kind == RepKind.PARTIAL && reps[i].zone != null -> zoneColor(reps[i].zone!!)
+                else -> ink
+            }
+            val color = base.copy(alpha = if (relative == null) alpha * 0.75f else alpha)
             if (kind == RepKind.PARTIAL) {
                 drawHatchedBar(left, top, barWidth, barHeight, radius, color, strokeWidth = 1.4.dp.toPx(), spacing = 4.dp.toPx())
             } else {
