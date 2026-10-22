@@ -56,7 +56,7 @@ class AugeRepository private constructor(context: Context) {
      * resolución por fecha/id de [saveWellbeingLog] y la protección de un esquema futuro de [saveAdaptiveCache]
      * (con caché no escribible solo se guarda el bienestar). La base se queda en su versión: sin migración.
      */
-    suspend fun saveWellbeingAndCache(log: DailyWellbeingLog, cache: AugeAdaptiveCache) = withContext(Dispatchers.IO) {
+    suspend fun saveWellbeingAndCache(log: DailyWellbeingLog, cache: AugeAdaptiveCache): Unit = withContext(Dispatchers.IO) {
         db.withTransaction {
             val existing = dao.getWellbeingForDate(log.date)?.toWellbeingLog()
             val toSave = if (existing != null && existing.id != log.id) log.copy(id = existing.id) else log
@@ -65,6 +65,7 @@ class AugeRepository private constructor(context: Context) {
             if (stored?.writable != false) {
                 dao.upsertAdaptiveCache(com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.normalize(cache).toEntity())
             }
+            Unit
         }
     }
 
