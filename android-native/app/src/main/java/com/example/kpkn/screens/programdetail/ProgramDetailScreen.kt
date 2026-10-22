@@ -88,6 +88,7 @@ import com.example.kpkn.screens.programdetail.design.programHeaderDotColor
 import com.example.kpkn.screens.programdetail.design.programHeaderPrimaryOf
 import com.example.kpkn.screens.programdetail.design.programHeaderStatusOf
 import com.example.kpkn.screens.programdetail.design.programMetaLine
+import com.example.kpkn.screens.programdetail.design.programScopeLine
 import com.example.kpkn.screens.programdetail.design.programNextSessionOf
 import com.example.kpkn.screens.programdetail.design.repeatingWeekSubtitle
 import com.example.kpkn.screens.programdetail.design.programProgressLabel
@@ -261,6 +262,7 @@ fun ProgramDetailScreen(
         ),
         primary = primaryAction,
         nextSession = nextSession,
+        scopeLine = programScopeLine(p),
     )
     val openEdit: () -> Unit = {
         editDraft = programEditDraftOf(p)

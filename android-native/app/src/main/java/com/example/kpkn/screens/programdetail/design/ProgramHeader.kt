@@ -61,6 +61,8 @@ internal data class ProgramHeaderState(
     val primary: ProgramHeaderPrimary,
     /** La siguiente sesión, para un día sin sesión: su píldora dice «Siguiente: jueves · Pierna A». Null si no hay ninguna. */
     val nextSession: ProgramNextSession? = null,
+    /** Línea de alcance del programa (ver [programScopeLine]); null si no se pinta. */
+    val scopeLine: String? = null,
 )
 
 /** Las acciones de la cabecera. Cada una la ejecuta la pantalla. */
@@ -102,6 +104,16 @@ internal fun ProgramHeader(
                         style = KpknType.caption,
                         color = WizardColors.textMuted,
                         maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                state.scopeLine?.let { scope ->
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = scope,
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }

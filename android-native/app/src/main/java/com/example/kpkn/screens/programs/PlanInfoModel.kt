@@ -117,6 +117,8 @@ data class ReadyExercise(val name: String, val series: String)
  */
 data class PlanInfoModel(
     val displayName: String,
+    /** Alcance del plan con el vocabulario único: «Una semana que se repite», «8 semanas», «Por bloques · 3 bloques · 12 semanas». */
+    val scopeLabel: String,
     val provenanceLabel: String,
     val levelLabel: String,
     /** «Especialización», «Complemento» o «Estructura»; null en los planes completos. */
@@ -163,6 +165,11 @@ object PlanInfoModelBuilder {
         val recipe = entry.recipe ?: entry.template?.recipe
         return PlanInfoModel(
             displayName = entry.displayName,
+            scopeLabel = PlanLabels.scopeLabel(
+                entry.duration,
+                PlanLabels.weeksOf(entry),
+                entry.template?.blockWeekCounts?.size ?: entry.recipe?.distinctBlockCount,
+            ),
             provenanceLabel = PlanLabels.provenanceLabel(entry),
             levelLabel = PlanLabels.levelLabel(entry.levels),
             kindLabel = kindLabel(entry.kind),

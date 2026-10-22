@@ -91,6 +91,6 @@ object PlanLabels {
     }
 
     /** Semanas del ciclo: lo declarado por la entrada o, en su defecto, lo que dicen la receta o la plantilla. */
-    private fun weeksOf(entry: CatalogEntry): Int =
+    internal fun weeksOf(entry: CatalogEntry): Int =
         entry.durationWeeks ?: entry.recipe?.weeks?.size ?: entry.template?.weeks ?: 1
 }

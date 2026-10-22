@@ -228,6 +228,7 @@ private fun PlanInfoHeader(model: PlanInfoModel) {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            PlanInfoChip(model.scopeLabel)
             PlanInfoChip(model.provenanceLabel)
             PlanInfoChip(model.levelLabel)
             model.kindLabel?.let { PlanInfoChip(it) }
