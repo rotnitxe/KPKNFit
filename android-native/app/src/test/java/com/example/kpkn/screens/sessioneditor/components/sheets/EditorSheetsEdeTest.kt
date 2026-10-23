@@ -2,8 +2,12 @@ package com.example.kpkn.screens.sessioneditor.components.sheets
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -21,9 +25,12 @@ import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.onRoot
 import com.example.kpkn.data.models.CalorieRange
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.InvolvedMuscle
+import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionEnergySummary
@@ -31,6 +38,7 @@ import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.domain.calculations.SessionTimeBreakdown
 import com.example.kpkn.domain.sessionassistant.SessionAssistantReport
 import com.example.kpkn.domain.sessionassistant.Verdict
+import com.example.kpkn.domain.auge.PreciseDrain
 import com.example.kpkn.screens.sessioneditor.ApplyRulesOutcome
 import com.example.kpkn.screens.sessioneditor.SessionCloneApplyMode
 import com.example.kpkn.screens.sessioneditor.SessionCloneDayOption
@@ -39,6 +47,7 @@ import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.sessionTimeBreakdownCaption
 import com.example.kpkn.data.models.IntensityMode
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -112,6 +121,65 @@ class EditorSheetsEdeTest {
         )
         rule.setContent { AssistantImpactTab(uiState = state) }
         rule.onNodeWithText("Completa pesos o 1RM en los ejercicios para estimar el gasto calórico").assertExists()
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h740dp-xxhdpi")
+    fun elVolumenDeGluteosEnvuelveLasTresLecturasA740DpY130PorCiento() {
+        val direct = Exercise(
+            id = "extension-gluteo",
+            name = "Extensión de cadera",
+            sets = (1..3).map { ExerciseSet(id = "direct-$it", targetReps = 10, targetRPE = 8.0) },
+            effectiveMuscles = listOf(InvolvedMuscle("Glúteos", MuscleRole.PRIMARY, 1.0)),
+        )
+        val secondary = Exercise(
+            id = "sentadilla-gluteos",
+            name = "Sentadilla",
+            sets = (1..3).map { ExerciseSet(id = "secondary-$it", targetReps = 8, targetRPE = 8.0) },
+            effectiveMuscles = listOf(InvolvedMuscle("Glúteos", MuscleRole.SECONDARY, 1.0)),
+        )
+        val state = SessionEditorUiState(
+            session = Session(id = "d2-volume", name = "Volumen D2", exercises = listOf(direct, secondary)),
+            augeSummary = SessionEditorAugeSummary(
+                muscleDrainPrecise = mapOf("Glúteos" to PreciseDrain(cns = 3.0, muscular = 4.0, spinal = 1.0)),
+            ),
+            assistantReport = report,
+        )
+        rule.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 1.3f)) {
+                Box(Modifier.width(360.dp).height(740.dp)) {
+                    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                        AssistantImpactTab(uiState = state)
+                    }
+                }
+            }
+        }
+
+        val volumeHeader = rule.onNodeWithText("Volumen de entreno de la sesión", ignoreCase = true).performScrollTo()
+        val headerBounds = volumeHeader.fetchSemanticsNode().boundsInRoot
+        assertTrue("La cabecera conserva un objetivo táctil de 48 dp", headerBounds.height / rule.density.density >= 48f)
+        volumeHeader.performClick()
+        rule.onNodeWithText("Glúteos").performScrollTo().performClick()
+        rule.onNodeWithText("3 series · Intensidad Alta").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("3 series como secundario").performScrollTo().assertIsDisplayed()
+
+        val rootBounds = rule.onRoot().fetchSemanticsNode().boundsInRoot
+        val labels = listOf("Músculo 4 %", "Energía 3 %", "Columna 1 %")
+        labels.forEach { label ->
+            val node = rule.onNodeWithText(label, useUnmergedTree = true).performScrollTo().assertIsDisplayed()
+            val bounds = node.fetchSemanticsNode().boundsInRoot
+            assertTrue("$label queda dentro del ancho visible: $bounds / $rootBounds", bounds.left >= rootBounds.left && bounds.right <= rootBounds.right)
+            val layouts = mutableListOf<TextLayoutResult>()
+            node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+            val layout = layouts.single()
+            assertEquals("$label ocupa una línea", 1, layout.lineCount)
+            assertFalse("$label no desborda ancho", layout.didOverflowWidth)
+            assertFalse("$label no desborda alto", layout.didOverflowHeight)
+            assertFalse("$label no se trunca", layout.isLineEllipsized(0))
+            assertEquals("$label conserva todo el texto", label.length, layout.getLineEnd(0, visibleEnd = true))
+        }
     }
 
     @Test fun reglasAplicaLaIntensidadGlobalConFalloComoValorCero() {
