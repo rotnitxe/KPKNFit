@@ -2,6 +2,7 @@
 
 ## Estado vigente · prevalece sobre las entradas históricas
 
+- **Seguimiento04:57UTC:** conductor30212 único y vivo,240/616 completos (último recibo04:42:42UTC), sin errores/pausas y térmico0. La alimentación confirmada antes no se mantuvo: lotes19/20 reportan charging=false; batería80%→76%. Se avisa al usuario para revisar cable/cargador y evitar una futura pausa por batería. No tocar servicio/candado ni desactivar la guarda<30%.
 - **Última prioridad expresa:** entregar Pre Release18 pre-Anexo antes de realizar aceptación competitiva. El usuario revocó su condición previa de gate obligatorio: `ACEPTACION_COMPETITIVA.md` y sus herramientas son anexo posentrega, sin nuevos bloqueos de firma/entrega. Mantener las verificaciones originales de Fases2–6,≈/beta y límites reales; no afirmar paridad competitiva todavía. REA sobre Metric es investigación estática acotada, no un requisito de reconstrucción antes de entregar.
 - Fases 0 y 1 completas; M4b integrado en `108146025`. Integración mantiene motor 9 y Room v29.
 - Fase 2 activa: generación homogénea `C:/kw/vt-mmfit/phone-v51`, conductor PID 30212, log `runall-20261023T020301Z.log`; último estado comprobado 216/616 completos a las 04:26:57 UTC del 23-oct. No duplicar el conductor ni modificarlo mientras escribe. GPU/Full/stride 1 confirmado; APK fijado `8c2c233ccdfc77bc66700e2c9fa7c75d63be7f3f63d0ca17dc0fdee74bb186f0`, atestación en esa carpeta. Las 72 trazas v50 anteriores se conservan aparte y no se reanudan ni mezclan. Batería/temperatura y todas las guardas intactas.
@@ -343,3 +344,6 @@ La prueba de CLI de root quedó en `C:/kw/vt-competitive-annex/cli-smoke-2026102
 Preflight de entrega solo lectura: master permanece8ac57c9d4 y es ancestro de feat/vt-ui; el fast-forward local sigue siendo posible al estado observado. `G:/Mi unidad` existe. No se cambió master ni se firmó/copió un APK de entrega todavía. Android no tiene diff respecto a la compilación/atestación previa; documentación y scripts del anexo no alteran el binario. Mantener las mediciones, decisiones M5 y QA original pendientes de completar la extracción.
 
 El núcleo de herramientas del anexo quedó guardado en957a1c9a1, solo tres rutas scripts, sin código Android. No lo usar como requisito de entrega ni afirmar que representa pruebas competitivas reales.
+
+
+Heartbeat04:57UTC: se contrastó el parser sin modificarlo: charging=true significa alimentación AC/USB/Wireless/Dock presente o estado de carga2; no es solo el porcentaje80 de protección de batería. Los dos últimos lotes completos volvieron a registrar charging=false y el último bajó a76%. La extracción sigue activa, sin stderr ni pausas; se notifica únicamente la pérdida de alimentación y la revisión necesaria del cable/cargador, no el aumento rutinario del contador. No se sondeó ADB ni se inició otro conductor.
