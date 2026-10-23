@@ -11,10 +11,15 @@ XAPK Metric aportado busca mejoras concretas; una inferencia estática no prueba
 entrega por una reconstrucción de Metric ni por implementar contador/voz en vivo. Se mantienen datos inmutables, ciegos,
 cola Gradle, protección del teléfono y ausencia de push. El permiso MiMo conserva su alcance UI/medios/navegación.
 
+**Autonomía autorizada · 23-oct-2026:** el usuario se va a dormir y autoriza tomar decisiones autónomas para no pausar
+esperando su respuesta. Resolver decisiones rutinarias dentro del alcance, continuar con subagentes cuando aporten y
+ejecutar la entrega autorizada tras sus gates. La participación física o una referencia inexistente no se suplen con
+suposiciones: registrar el límite, conservar≈/beta y seguir con trabajo independiente. Mantener las guardas y los datos.
+
 ## 0. Contexto mínimo
 
-**Worktree:** `C:\Users\valen\Documents\KPKNFit\.claude\worktrees\video-technique-rep-counter-ee5b0d`, rama `feat/vt-ui`, punta
-`3596ae3a2`. `master` está en `8ac57c9d4`.
+**Worktree:** `C:\Users\valen\Documents\KPKNFit\.claude\worktrees\video-technique-rep-counter-ee5b0d`, rama `feat/vt-ui`.
+La punta inicial era `3596ae3a2`; consultar el estado vigente en `EJECUCION_RELEVO_20261022.md` antes de actuar.
 
 **Lee primero:**
 - `docs/video-technique/RELEVO.md`: estado exacto y rutas;
@@ -37,7 +42,7 @@ cola Gradle, protección del teléfono y ausencia de push. El permiso MiMo conse
 - motor 9, con parciales, zona, confianza propia y referencia de recorrido;
 - base de datos v29, sin migraciones nuevas.
 
-**Cifras actuales:**
+**Mediciones previas al relevo (no son el resultado MediaPipe final):**
 - Examen del banco anterior con el motor 9: ALTA acertó exacto 8 de 10 y MEDIA 22 de 22. Solo da número en el 77 % de los clips
   útiles. No llega al nivel del mercado.
 - MM-Fit con pose OpenPose, 494 series:
@@ -47,8 +52,9 @@ cola Gradle, protección del teléfono y ausencia de push. El permiso MiMo conse
   - zancada 44/62, con 16 ALTA equivocadas.
 
 ## Reglas fijas
-- **Escritura del código:** el código del repo lo escriben subagentes Haiku 5.5 con effort max. Sonnet u Opus, en effort medium,
-  solo si Haiku falla dos veces en la misma tarea por juicio.
+- **Escritura del código:** usar subagentes cuando aporten. El usuario autorizó expresamente Sol 6 High o Luna 6 Max;
+  no existe obligación de usar Haiku ni de esperar sus fallos antes de delegar a esos modelos. Sus instrucciones expresas
+  y la autonomía concedida prevalecen sobre las restricciones históricas de este plan.
 - **Gradle:** solo por `/c/kw/tools/gradle_slot.sh`, `gradle_solo.sh` o `kpkn_jvm.sh`.
   - Las pruebas de `domain/**` van por el carril JVM.
   - El carril Android, solo con clases concretas.
@@ -73,8 +79,8 @@ cola Gradle, protección del teléfono y ausencia de push. El permiso MiMo conse
 ---
 
 ## Fase 1 · Cerrar M4b (las parciales en datos e interfaz)
-**Estado:** 28 archivos modificados sin commit en `C:\kw\vt-a`, rama `vt/m4b`. Compila (log `C:\kw\logs\vt-m4b-1.log`). Su
-corrida 2 de pruebas quedó en la cola; el log es `C:\kw\logs\vt-m4b-2.log`.
+**Estado vigente:** completada e integrada en `108146025`; pruebas y renders revisados. Los pasos siguientes conservan
+el encargo original y no requieren repetir corridas, renders o merges aprobados.
 
 1. Mira la corrida 2 con `bash /c/kw/tools/gradle_cola.sh` y el log. No la relances si sigue en cola.
 2. Revisa el diff (`git -C /c/kw/vt-a diff`) contra el encargo de `briefs/M4.md` (sección M4b):
@@ -101,18 +107,23 @@ corrida 2 de pruebas quedó en la cola; el log es `C:\kw\logs\vt-m4b-2.log`.
 **Hecho cuando:** M4b está en `feat/vt-ui`, con las pruebas verdes y las hojas revisadas.
 
 ## Fase 2 · Medición real con MediaPipe sobre MM-Fit
-**Estado:** el conductor `C:\kw\vt-mmfit\phone\run_mmfit_phone.py --background` sigue extrayendo en el Z Flip. Había 36 de 616
-trazas. Se pausa solo si la batería baja o el teléfono se calienta.
+**Estado vigente:** generación homogénea nueva en `C:\kw\vt-mmfit\phone-v51`, 616 clips con APK `.dbg` v51/B12 fijado por SHA.
+Consultar contador, PID, log y atestación en el estado vigente de EJECUCION. Las 72 trazas antiguas de `phone` son v50:
+se conservan, no se reanudan ni se mezclan. La generación se pausa por batería/temperatura y conserva sus guardas.
 
 1. **Vigílalo:**
-   - `Get-Content C:\kw\vt-mmfit\phone\runall.log -Tail 5`;
-   - cuenta `C:\kw\vt-mmfit\phone\traces\*.pose2.json.gz`.
-   - Si muere, relánzalo desde `C:\kw\vt-mmfit\phone\` con la orden de `RELEVO.md`, después de comprobar que no sigue vivo.
-2. Al terminar, monta `C:\kw\vt-mmfit\bank-mp\`: es `C:\kw\vt-mmfit\bank\`, con las mismas etiquetas, pero apuntando a las
-   trazas nuevas y con hashes reales.
-3. Corre el evaluador por el carril JVM con `-PappRoot=...\android-native\app` (orden exacta en `RELEVO.md`). Fallan 2 pruebas por
-   diseño. Luego `exam_report.py C:/kw/vt-mmfit/report-mp-1 development-clips`.
-4. Tabla por ejercicio, OpenPose (`report-1`) frente a MediaPipe (`report-mp-1`), más el tiempo por clip y los estados térmicos.
+   - Lee `phone-v51/extraction-state.json` y el log vigente; no sondees ADB mientras extrae.
+   - Si parece muerto, comprueba procesos del host, estado, recibos y servicio/candado antes de reanudar; una vista
+     restringida del sandbox no demuestra que haya terminado. Nunca dupliques conductores ni modifiques sus scripts activos.
+   - Solo reanuda `phone-v51` con el pin explícito `8c2c233ccdfc77bc66700e2c9fa7c75d63be7f3f63d0ca17dc0fdee74bb186f0`;
+     nunca `--allow-debug-apk-change`. La orden y las atestaciones están registradas en EJECUCION.
+2. Tras las 616 trazas y con el conductor detenido, revisa el constructor externo `build_mmfit_mp_bank_v51.py`, ejecuta
+   check-only y publica el destino nuevo `C:\kw\vt-mmfit\bank-mp-v51`: etiquetas idénticas y hashes reales. No construyas
+   mientras el conductor todavía escriba ni sobrescribas un destino existente.
+3. Corre el evaluador por el carril JVM con `-PappRoot=...\android-native\app`, EXAM=0 y una salida nueva. EJECUCION describe
+   las dos aserciones históricas esperadas; cualquier otro fallo exige revisión. Genera el informe de desarrollo sin
+   repetir el examen histórico. Los resultados individuales completos quedan solo con el orquestador.
+4. Tabla por ejercicio, OpenPose (`report-1`) frente al informe MediaPipe v51 nuevo, más el tiempo por clip y los estados térmicos.
    Anótala en `BANCO_COMPLETO.md`.
 
 **Hecho cuando:** hay cifras con MediaPipe para las 494 series G1 de MM-Fit.
@@ -161,7 +172,8 @@ Ese cierre no demuestra paridad competitiva: sus afirmaciones se reservan al ane
 **Hecho cuando:** todo está verde o los fallos están explicados uno por uno.
 
 ## Fase 5 · QA de punta a punta en el Z Flip (APK `.dbg`)
-Cuando el conductor de MM-Fit no esté usando el teléfono, o entre sus lotes, respetando `C:/kw/phone.lock`:
+Cuando el conductor de MM-Fit haya terminado o esté detenido de forma comprobada, sin servicio activo y respetando
+`C:/kw/phone.lock`. No intercalar instalaciones ni QA entre los lotes de la generación homogénea:
 
 1. **Grabar una serie desde la sesión en vivo:**
    - el encuadre;
