@@ -100,7 +100,7 @@ internal fun SessionEditorFrameBottomBar(
                 )
                 Text(
                     text = "Añadir",
-                    style = KpknType.bodyStrong,
+                    style = KpknType.action,
                     color = WizardColors.ctaContent,
                     maxLines = 1,
                     softWrap = false,
@@ -195,13 +195,13 @@ private fun FrameBarTextAction(
             .testTag(tag)
             .clip(KpknShape.pill)
             .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 10.dp),
+            .padding(horizontal = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(
             text = label,
-            style = KpknType.bodyStrong,
+            style = KpknType.action,
             color = WizardColors.text,
             maxLines = 1,
             softWrap = false,
