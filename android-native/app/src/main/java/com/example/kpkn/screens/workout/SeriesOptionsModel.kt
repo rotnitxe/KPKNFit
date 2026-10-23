@@ -59,7 +59,7 @@ private fun plannedParts(exercise: Exercise, set: ExerciseSet?): List<String> {
         unit == com.example.kpkn.data.models.UnitModeV2.DISTANCE ->
             set.plannedTargetV2?.let { formatEffort(it) + " m" }
         unit == com.example.kpkn.data.models.UnitModeV2.CUSTOM ->
-            set.plannedTargetV2?.let { formatEffort(it) + " " + (exercise.customUnit?.takeIf { it.isNotBlank() } ?: "u") }
+            set.plannedTargetV2?.let { formatEffort(it) + "\u00A0" + (exercise.customUnit?.takeIf { it.isNotBlank() } ?: "u") }
         set.targetRepsRange != null -> set.targetRepsRange.let { range ->
             if (range.min == range.max) range.min.toString() else range.min.toString() + "–" + range.max
         }
