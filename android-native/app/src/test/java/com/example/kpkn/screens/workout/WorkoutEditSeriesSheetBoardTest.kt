@@ -23,6 +23,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasAnySibling
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performImeAction
@@ -471,8 +472,8 @@ class WorkoutEditSeriesSheetBoardTest {
             exercise.copy(sets = exercise.sets + exercise.sets.single().copy(id = "s2", loadBasis = LoadBasis.PERCENT_1RM))
         }
         mount(source, initialSetIndex = 0)
-        rule.onNode(hasSetTextAction() and hasText("TM (kg)")).performScrollTo().performTextReplacement("125")
-        rule.onNode(hasSetTextAction() and hasText("TM (kg)")).performImeAction()
+        rule.onNode(hasSetTextAction() and hasAnySibling(hasText("TM (kg)")), useUnmergedTree = true).performScrollTo().performTextReplacement("125")
+        rule.onNode(hasSetTextAction() and hasAnySibling(hasText("TM (kg)")), useUnmergedTree = true).performImeAction()
         rule.waitForIdle()
         confirm()
         assertEquals(125.0, saved!!.referenceTrainingMax!!, 0.001)
@@ -493,8 +494,8 @@ class WorkoutEditSeriesSheetBoardTest {
     @Test fun cargaInteligenteRecalculaRmAlCambiarLaReferencia() {
         mount(rmExercise(), initialSetIndex = 0)
         tap(LIVE_EDIT_SMART_LOAD_TAG)
-        rule.onNode(hasSetTextAction() and hasText("1RM referencial")).performTextReplacement("150")
-        rule.onNode(hasSetTextAction() and hasText("1RM referencial")).performImeAction()
+        rule.onNode(hasSetTextAction() and hasAnySibling(hasText("1RM referencial")), useUnmergedTree = true).performTextReplacement("150")
+        rule.onNode(hasSetTextAction() and hasAnySibling(hasText("1RM referencial")), useUnmergedTree = true).performImeAction()
         rule.waitForIdle()
         tapText("Listo")
         confirm()

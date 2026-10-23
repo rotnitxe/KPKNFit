@@ -10,6 +10,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
@@ -19,7 +20,10 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Exercise
@@ -92,7 +96,16 @@ class LiveEditG1IntegrationRenderTest {
         rule.onNodeWithTag(LIVE_EDIT_MODE_TAG).assertIsDisplayed().assertHeightIsAtLeast(48.dp)
         rule.onNodeWithTag(liveEditSetChipTag(0)).assertIsDisplayed().assertHeightIsEqualTo(56.dp)
         save("G1-${if (amrap) "AMRAP" else "RM-TM"}-${height}-${(fontScale * 100).toInt()}")
-        rule.onNodeWithTag(LIVE_EDIT_DELETE_TAG).performScrollTo().assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+        // Desplaza físicamente el viewport: el scroll semántico deja recortado el foco anidado en este host nativo.
+        val viewport = rule.onNode(hasScrollAction() and hasAnyDescendant(hasTestTag(LIVE_EDIT_DELETE_TAG)), useUnmergedTree = true)
+        repeat(4) {
+            viewport.performTouchInput {
+                swipe(start = Offset(this.width * 0.95f, this.height * 0.85f), end = Offset(this.width * 0.95f, this.height * 0.15f), durationMillis = 400)
+            }
+            rule.mainClock.advanceTimeBy(500)
+            rule.waitForIdle()
+        }
+        rule.onNodeWithTag(LIVE_EDIT_DELETE_TAG).assertIsDisplayed().assertHeightIsAtLeast(48.dp)
         rule.onNodeWithTag(LIVE_EDIT_CONFIRM_TAG).assertIsDisplayed()
         save("G1-${if (amrap) "AMRAP" else "RM-TM"}-${height}-${(fontScale * 100).toInt()}-acciones")
     }
