@@ -330,3 +330,142 @@ No se han abierto controles del candidato ni se ha integrado motor 10. Se conser
 con MediaPipe completo. Informe `C:/kw/vt-mmfit/m5-out/openpose-cv-lunge-observed-20261022/M5_CV.json`, SHA-256
 `5579cba256c1235411382f3cf2858168c30eaa02882fd44aeb25f257bea31b08`, con `RUN_CONTEXT.json` de procedencia;
 log `C:/kw/logs/vt-m5-cv-lunge-observed-20261022.log`, corrida correcta en 3m17s.
+
+
+
+### MediaPipe v51 · medición completa del 23-oct-2026
+
+La extracción nueva cerró el 23-oct a las 09:31:55 UTC: 616/616 en 52 lotes, más un preflight, sin fallos ni pausas.
+Los 616 recibos/timings registran GPU, modelo Full, stride 1 y temperatura máxima 1. El banco separado es
+`C:/kw/vt-mmfit/bank-mp-v51`, con SHA-256 de manifiesto
+`8b2b509f24425ba5d702e71d7657875acb6a8cb2ea868cf00df46a281d178242`.
+Conserva los 1.848 archivos originales y las etiquetas byte por byte; MediaPipe usa sidecars nuevos. La medición ejecutó el
+motor 9 en `C:/kw/vt-mmfit/report-mp-v51-motor9-20261023`: 616/616 procesados, 494 G1 y 122 G3, con `EXAM=0`; no se
+abrió ni consumió un examen nuevo. Log `C:/kw/logs/vt-mmfit-v51-motor9-20261023.log` y XML/contexto preservados en
+`C:/kw/logs/vt-mmfit-v51-motor9-20261023-results`. Duración 1m54s; dos pruebas tuvieron sus fallos históricos esperados,
+sin errores adicionales.
+
+Comparación de G1 con la salida OpenPose ya existente (proxy), sin volver a calcularla. Cada par de FULL indica
+exactas/salidas; cada par ALTA indica exactas/ofrecidas:
+
+| Ejercicio | G1 | OpenPose FULL | MediaPipe FULL | OpenPose ALTA | MediaPipe ALTA |
+|---|---:|---:|---:|---:|---:|
+| CURL | 59 | 58/59 | 38/59 | 58/59 | 33/46 |
+| LUNGE | 62 | 44/60 | 33/60 | 44/60 | 27/50 |
+| OHP | 60 | 55/60 | 57/60 | 53/55 | 44/46 |
+| PUSH_UP | 65 | 59/65 | 44/65 | 58/64 | 36/51 |
+| RAISE | 56 | 55/56 | 43/56 | 50/50 | 43/53 |
+| ROW | 64 | 63/64 | 48/63 | 48/48 | 9/12 |
+| SQUAT | 64 | 62/64 | 56/62 | 62/63 | 46/47 |
+| TRICEPS_EXTENDED_REST | 64 | 0/64 | 2/62 | 0/40 | 0/0, no estimable |
+
+| G1 agregado | OpenPose | MediaPipe |
+|---|---:|---:|
+| Con salida | 492/494 (99,60 %) | 487/494 (98,58 %) |
+| FULL exactas entre salidas | 396/492 (80,49 %) | 321/487 (65,91 %) |
+| FULL exactas contando abstenciones como fallo | 396/494 (80,16 %) | 321/494 (64,98 %) |
+| ALTA FULL exactas/ofrecidas | 373/439 (84,97 %) | 238/305 (78,03 %) |
+| MEDIA FULL exactas/ofrecidas | 7/15 (46,67 %) | 52/69 (75,36 %) |
+
+MediaPipe obtuvo 31/113 FULL exactas entre las 113 salidas BAJA y siete G1 sin salida. El rango aceptado de estas etiquetas coincide con la
+exactitud FULL en esta medición; no equivale a una tolerancia de ±1 repetición. La comparación no demuestra mejora:
+MediaPipe queda bajo las metas 98/90 y el OpenPose comparativo es un proxy, no una referencia física externa.
+
+En las 616 trazas, la duración mediana del vídeo fue 23,7165 s (p95 34,867 s) y la del análisis 36,207885 s (p95
+78,42257 s). El ratio análisis/vídeo tuvo mediana 1,5265409683, p95 3,2388709163, mínimo 1,2909352683 y máximo
+7,0069082192. El análisis acumuló 24.867,84873 s frente a 14.915,03 s de vídeo. El total fue 50,885 ms por frame
+en mediana (p95 107,96 ms); pose, 25,73 ms (p95 52,81 ms). El objetivo de ratio ≤1 todavía no se cumple. GPU y stride 1
+no implican procesamiento en tiempo real; una densidad de trazas de 30 fps no mide throughput real a 30 fps.
+
+No hay timing OpenPose comparable ni ground truth externo de velocidad, ROM o velocidad de barra. Mantener `≈` y 1RM
+en beta. El QA del flujo real en teléfono sigue pendiente. La CV M5 MediaPipe terminó (run 5977) en el worktree
+`ce16580d3`, usando solo tune folds 0–3 y `vt-tune`; no declara aprobado el motor 10. El anexo competitivo permanece
+posentrega y no bloquea la entrega actual.
+
+
+
+### CV M5 MediaPipe v51 · corrida completada
+
+La CV real usó el arnés de ce16580d3: 10 pruebas PASS, 1.229 predicciones retenidas y selección de guarda 1,0 en las
+cuatro rotaciones. El informe agregado es C:/kw/vt-mmfit/m5-out/mediapipe-v51-cv-7032-20261023/M5_CV.json,
+SHA-256 a1d60b209c05fe5364589f670f4b92e53ddd36c443e68f42449052457200d0f0. Se usaron los folds 0–3 de tune MediaPipe y
+vt-tune; no se abrieron controles.
+
+| G1 MediaPipe tune | Guarda 0 | Guarda 1,0 retenida |
+|---|---:|---:|
+| Filas con salida | 401/405 | 401/405 |
+| FULL exactas/salidas | 270/401 | 270/401 |
+| ALTA exactas/ofrecidas | 203/249 | 202/235 (85,96 %) |
+| MEDIA exactas/ofrecidas | 42/57 | 42/55 (76,36 %) |
+| Ofrecidas ALTA/MEDIA | 306/405 | 290/405 |
+
+| G1 histórico vt-tune | Guarda 0 | Guarda 1,0 retenida |
+|---|---:|---:|
+| FULL exactas/salidas | 230/269 | 230/269 |
+| ALTA exactas/ofrecidas | 45/45 | 44/44 |
+| MEDIA exactas/ofrecidas | 104/105 | 103/104 |
+| Ofrecidas ALTA/MEDIA | 150/345 | 148/345 |
+
+La guarda 1,0 conserva las FULL exactas/salidas en ambos bancos y reduce las ofertas ALTA/MEDIA; no mejora el conteo exacto.
+Las metas 98/90 siguen incumplidas en MediaPipe. La guarda 1 quedó congelada en el candidato aislado `2be0179b7`;
+sus siete clases de regresión terminaron con 93 pruebas correctas, sin fallos ni omisiones. La selección CV por sí sola
+no constituye aprobación de motor 10; los controles posteriores se registran abajo.
+
+### M5 · controles posteriores a la congelación y decisión
+
+El orquestador midió una sola vez el candidato `2be0179b7` en cada control de desarrollo, con EXAM=0 y sin comunicar
+identificadores o resultados individuales al ajustador. La partida MediaPipe motor 9 se obtuvo del fold4 del informe ya
+calculado; la partida histórica de desarrollo también se reutilizó. No se repitió el examen histórico.
+
+| Control / G1 | Motor 9 | Candidato motor 10 |
+|---|---:|---:|
+| MediaPipe: salida | 88/89 | 88/89 |
+| MediaPipe: FULL exactas/salidas | 60/88 | 67/88 |
+| MediaPipe: ALTA exactas/ofrecidas | 44/58 (75,86 %) | 50/58 (86,21 %) |
+| MediaPipe: MEDIA exactas/ofrecidas | 10/12 (83,33 %) | 11/12 (91,67 %) |
+| MediaPipe: ofrecidas ALTA/MEDIA | 70/89 | 70/89 |
+| Histórico: salida | 63/86 | 63/86 |
+| Histórico: FULL exactas/salidas | 50/63 | 50/63 |
+| Histórico: ALTA exactas/ofrecidas | 9/10 | 9/10 |
+| Histórico: MEDIA exactas/ofrecidas | 21/24 | 21/24 |
+| Histórico: ofrecidas ALTA/MEDIA | 34/86 | 34/86 |
+
+En el control MediaPipe, zancada pasó de 3/11 a 10/11 FULL exactas: siete casos mejoraron y ninguno empeoró.
+Los demás ejercicios conservaron sus FULL exactas y su cobertura. En el histórico, ninguna de las 86 G1 cambió su conteo
+ni perdió salida; G2 pasó de 1/4 ofrecidas erróneas a 0/3. Es una mejora limitada, suficiente para integrar el candidato
+según la regla de no regresión de Fase3; **no demuestra las metas 98/90 ni paridad competitiva**. No se retocaron parámetros
+mirando los controles. La revisión independiente del código físico no encontró bloqueantes.
+
+Los dos tests de control terminaron correctos. Logs `C:/kw/logs/vt-m5-frozen-control-mediapipe-20261023.log` y
+`vt-m5-frozen-control-legacy-20261023.log`; XML/contextos en `C:/kw/logs/vt-m5-frozen-controls-20261023-results`.
+SHA XML MediaPipe `ec6c2fa5bb45f5aa7a8cc3d40be1d9f812ddd9a336a884600bf8e11b8c711058`, histórico
+`eebcede6b21f1d11a0bb2719e91b6e6184affa4846f2603b3cd004da735e5794`. Fuente congelada, hashes de manifiestos y
+particiones constan en los contextos. El control histórico contiene175 filas de desarrollo seleccionadas por EXAM0;
+sus901 referencias selladas carecen de archivos en este paquete y no se abrieron.
+
+El descriptivo total del candidato combina las405 G1 retenidas de CV y las89 G1 del control; solo estas últimas son
+control ciego. No es un nuevo ensayo independiente de494 series:
+
+| Ejercicio | G1 | FULL exactas/salidas | ALTA exactas/ofrecidas | MEDIA exactas/ofrecidas |
+|---|---:|---:|---:|---:|
+| CURL | 59 | 38/59 | 33/46 | 5/12 |
+| LUNGE | 62 | 49/62 | 42/47 | 4/4 |
+| OHP | 60 | 57/60 | 43/45 | 3/4 |
+| PUSH_UP | 65 | 44/65 | 36/48 | 6/6 |
+| RAISE | 56 | 43/56 | 43/49 | 0/1 |
+| ROW | 64 | 48/63 | 9/11 | 25/29 |
+| SQUAT | 64 | 56/62 | 46/47 | 10/11 |
+| TRICEPS_EXTENDED_REST | 64 | 2/62 | 0/0, no estimable | 0/0, no estimable |
+| Total | 494 | 337/489 (68,92 %) | 252/293 (86,01 %) | 53/67 (79,10 %) |
+
+El total ofrece ALTA/MEDIA en360/494 series y deja cinco sin salida. Tríceps sigue sin resolverse; flexiones, curl y otros
+perfiles siguen lejos del listón. Se requieren mejores señales/segmentación y validación independiente antes de afirmar
+fiabilidad de mercado. Los límites físicos, de parciales y de velocidad no se resuelven con esta tabla.
+Agregado derivado `C:/kw/vt-m5-control/aggregate-acceptance-2be0179b7-20261023-v2.json`, SHA
+`3d5bf7fb4a0d00bea967016b80380629815cd168b7100859e8c8d7101a6662cc`. La versión2 corrige el provisional no utilizado:
+`predictedFull=0` también puede representar SIN_SALIDA; la cobertura exige una salida ALTA/MEDIA/BAJA.
+
+La comprobación de dominio congelado posterior cubrió82 clases y603 pruebas:589 correctas,14 omisiones opcionales,
+sin fallos ni errores, SUCCESS en2m17s. Se excluyeron expresamente los dos métodos del examen histórico.
+Evidencia `C:/kw/logs/vt-m5-frozen-domain-integration-20261023-results`; no sustituye la comprobación Android/R8
+ni el QA del APK que se vaya a entregar. El anexo competitivo permanece posentrega.

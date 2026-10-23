@@ -107,11 +107,11 @@ el encargo original y no requieren repetir corridas, renders o merges aprobados.
 **Hecho cuando:** M4b está en `feat/vt-ui`, con las pruebas verdes y las hojas revisadas.
 
 ## Fase 2 · Medición real con MediaPipe sobre MM-Fit
-**Estado vigente:** generación homogénea nueva en `C:\kw\vt-mmfit\phone-v51`, 616 clips con APK `.dbg` v51/B12 fijado por SHA.
-Consultar contador, PID, log y atestación en el estado vigente de EJECUCION. Las 72 trazas antiguas de `phone` son v50:
-se conservan, no se reanudan ni se mezclan. La generación se pausa por batería/temperatura y conserva sus guardas.
-Las órdenes contrastadas para publicación/evaluación y la barrera M5 están en `FASE2_MEDIAPIPE_OPERATIVA_20261023.md`;
-son preparación estática hasta satisfacer sus condiciones de entrada.
+**Estado vigente:** completada el 23-oct-2026: extracción homogénea `phone-v51` 616/616 y banco nuevo `bank-mp-v51`
+publicado con etiquetas idénticas. Motor 9 medido en las 494 G1; comparación OpenPose/MediaPipe y tiempos en
+`BANCO_COMPLETO.md`. Los dos fallos históricos del evaluador están explicados y no hubo otros. Evidencia, hashes y logs en
+EJECUCION. No repetir generación, publicación ni baseline aprobados. Las 72 trazas antiguas v50 se conservan aparte.
+`FASE2_MEDIAPIPE_OPERATIVA_20261023.md` conserva las órdenes reproducibles y la barrera M5.
 
 1. **Vigílalo:**
    - Lee `phone-v51/extraction-state.json` y el log vigente; no sondees ADB mientras extrae.
