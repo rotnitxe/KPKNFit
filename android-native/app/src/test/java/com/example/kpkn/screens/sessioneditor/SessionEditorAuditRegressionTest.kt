@@ -185,10 +185,26 @@ class SessionEditorAuditRegressionTest {
     @Test fun quickActionDeleteActuallyDeletesASupersetMember() = runBlocking {
         val vm = editor()
         vm.openSupersetCreator(null, listOf("a", "b"))
+        vm.createSupersetGroupFromDraft()
         vm.openExerciseQuickActions(null, "a")
         vm.triggerQuickActionDelete()
         vm.commitPendingExerciseRemoval()
         assertEquals(listOf("b"), vm.currentUiState.session!!.allExercises().map { it.id })
+    }
+
+    /** ED-D · C2: con dos o más ejercicios ya marcados tampoco se crea nada hasta confirmar en la hoja única. */
+    @Test fun openingTheSupersetCreatorWithTwoMembersWaitsForTheSheetConfirmation() = runBlocking {
+        val vm = editor()
+        vm.openSupersetCreator(null, listOf("a", "b"))
+
+        assertEquals(SessionEditorSheet.SUPERSET_CREATOR, vm.currentUiState.sheet)
+        assertTrue(vm.currentUiState.activeVariantSession!!.allSupersetGroups().isEmpty())
+        assertNull(vm.currentUiState.activeVariantSession!!.allExercises().first { it.id == "a" }.supersetGroupRef)
+
+        vm.createSupersetGroupFromDraft()
+        val group = vm.currentUiState.activeVariantSession!!.allSupersetGroups().single()
+        assertEquals(listOf("a", "b"), group.exerciseOrder)
+        assertEquals(SessionEditorSheet.NONE, vm.currentUiState.sheet)
     }
 
     @Test fun restoringAVersionCancelsTheOldDeletionTimer() = runBlocking {

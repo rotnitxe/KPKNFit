@@ -64,9 +64,11 @@ import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknRestPickerChain
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknCellInput
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknNumberCell
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknSegmentedControl
@@ -361,6 +363,126 @@ internal fun SupersetGoalDialog(
 }
 
 /**
+ * «Descanso base» (ED-D · C3): las rondas sin el suyo usan estos valores. Rondas con su stepper (− se apaga en el suelo real, que son
+ * las series de los miembros: el motor no admite menos) y los dos descansos con el stepper de ±15 s de siempre. El descanso propio de
+ * una ronda se edita en su fila.
+ */
+@Composable
+internal fun SupersetBaseRestModule(
+    rounds: Int,
+    minRounds: Int,
+    restBetweenSeconds: Int,
+    restAfterSeconds: Int,
+    onRoundsStep: (Int) -> Unit,
+    onRestBetweenChange: (Int) -> Unit,
+    onRestAfterChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text("DESCANSO BASE", style = KpknType.eyebrow, color = WizardColors.textMuted)
+            Text("Para las rondas sin el suyo", style = KpknType.caption, color = WizardColors.textFaint)
+        }
+        Spacer(Modifier.height(4.dp))
+        SupersetBaseStepperRow(
+            label = "Rondas",
+            value = "$rounds",
+            contentDescription = "Rondas: $rounds",
+            minusDescription = "Quitar una ronda",
+            plusDescription = "Añadir una ronda",
+            minusEnabled = rounds > minRounds,
+            onStep = { delta -> onRoundsStep(delta) },
+        )
+        SessionBaseRestDivider()
+        SupersetBaseRestStepperRow(
+            label = "Entre ejercicios",
+            seconds = restBetweenSeconds,
+            onChange = onRestBetweenChange,
+        )
+        SessionBaseRestDivider()
+        SupersetBaseRestStepperRow(
+            label = "Tras la ronda",
+            seconds = restAfterSeconds,
+            onChange = onRestAfterChange,
+        )
+    }
+}
+
+/** Filete del módulo «Descanso base»: 1 dp del divisor de superficie, como el de cualquier módulo KPKN. */
+@Composable
+private fun SessionBaseRestDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(KpknSurface.divider),
+    )
+}
+
+/** Fila «etiqueta · − valor +» del módulo «Descanso base». */
+@Composable
+private fun SupersetBaseStepperRow(
+    label: String,
+    value: String,
+    contentDescription: String,
+    minusDescription: String,
+    plusDescription: String,
+    minusEnabled: Boolean,
+    onStep: (Int) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 48.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = KpknType.bodyStrong,
+            color = WizardColors.text,
+            modifier = Modifier.weight(1f),
+        )
+        KpknIconButton(
+            icon = KpknLineIcons.Minus,
+            contentDescription = minusDescription,
+            enabled = minusEnabled,
+            onClick = { onStep(-1) },
+        )
+        KpknNumberCell(
+            value = value,
+            input = KpknCellInput.ReadOnly,
+            contentDescription = contentDescription,
+            onStep = onStep,
+            modifier = Modifier.width(72.dp),
+        )
+        KpknIconButton(
+            icon = KpknLineIcons.Plus,
+            contentDescription = plusDescription,
+            onClick = { onStep(1) },
+        )
+    }
+}
+
+/** Un descanso del módulo «Descanso base»: título con sus ±15 s, el mismo rango de siempre (0 a 600 s). */
+@Composable
+private fun SupersetBaseRestStepperRow(
+    label: String,
+    seconds: Int,
+    onChange: (Int) -> Unit,
+) {
+    SupersetBaseStepperRow(
+        label = label,
+        value = formatRestSummary(seconds),
+        contentDescription = "$label: ${formatRestSummary(seconds)}",
+        // El nombre lleva el descanso al que pertenece: hay dos ±15 s en el módulo y TalkBack debe distinguirlos.
+        minusDescription = "Quitar 15 segundos a $label",
+        plusDescription = "Añadir 15 segundos a $label",
+        minusEnabled = true,
+        onStep = { delta -> onChange((seconds + delta * 15).coerceIn(0, 600)) },
+    )
+}
+
+/**
  * Las rondas de la superserie (ER1c2): una lista vertical en lugar del carrusel de tarjetas. Cada ronda es una fila con su número, sus
  * miembros con su dosis y sus puntos (qué miembros tienen serie en esa ronda). Al tocarla se despliega con el botón de descansos y las
  * tarjetas de cada miembro. Solo una ronda abierta a la vez; «Añadir ronda» va al pie.
@@ -372,6 +494,7 @@ internal fun SupersetRoundsCarousel(
     rounds: Int,
     accentColor: Color,
     onUpdateRoundRest: (Int, Int?, Int?) -> Unit,
+    onClearRoundRest: (Int) -> Unit = { _ -> },
     onUpdateSet: (String, String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onRemoveSet: (String, String) -> Unit,
     onMoveSet: (String, String, Int) -> Unit,
@@ -382,9 +505,14 @@ internal fun SupersetRoundsCarousel(
     var openRound by rememberSaveable(group.id) { mutableStateOf<Int?>(null) }
     var restPickerRound by remember { mutableStateOf<Int?>(null) }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("POR RONDA · TOCA UNA PARA ABRIRLA", style = KpknType.eyebrow, color = WizardColors.textMuted)
         (0 until rounds).forEach { roundIndex ->
             val roundRestBetween = group.roundRestBetweenExercises[roundIndex] ?: group.restBetweenExercises
             val roundRestAfter = group.roundRestAfterSuperset[roundIndex] ?: group.restAfterSuperset
+            // Los mapas guardan ajustes explícitos. Aunque hoy coincida con el base, hay que poder
+            // quitarlo para que la ronda herede también sus próximos cambios.
+            val hasOwnRest = roundIndex in group.roundRestBetweenExercises ||
+                roundIndex in group.roundRestAfterSuperset
             val expanded = openRound == roundIndex
             KpknModule(contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp)) {
                 Row(
@@ -401,6 +529,13 @@ internal fun SupersetRoundsCarousel(
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("Ronda ${roundIndex + 1}", style = KpknType.bodyStrong, color = WizardColors.text)
                             RoundProgressDots(exercises = exercises, roundIndex = roundIndex, accentColor = accentColor)
+                            if (hasOwnRest) {
+                                Text(
+                                    "Descanso propio",
+                                    style = KpknType.caption,
+                                    color = accentColor,
+                                )
+                            }
                         }
                         Text(
                             roundSummary(exercises, roundIndex),
@@ -435,6 +570,22 @@ internal fun SupersetRoundsCarousel(
                             modifier = Modifier.fillMaxWidth(),
                             onClick = { restPickerRound = roundIndex },
                         )
+                        if (hasOwnRest) {
+                            // C3: una ronda con descanso propio enseña el base al lado y puede volver a él sin reescribir los valores.
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(
+                                    text = "Base: entre ${formatRestSummary(group.restBetweenExercises)} · " +
+                                        "ronda ${formatRestSummary(group.restAfterSuperset)}",
+                                    style = KpknType.caption,
+                                    color = WizardColors.textFaint,
+                                )
+                                KpknTextAction(
+                                    text = "Usar el base",
+                                    onClick = { onClearRoundRest(roundIndex) },
+                                    color = accentColor,
+                                )
+                            }
+                        }
                         exercises.forEach { exercise ->
                             val set = exercise.sets.getOrNull(roundIndex)
                             if (set != null) {
