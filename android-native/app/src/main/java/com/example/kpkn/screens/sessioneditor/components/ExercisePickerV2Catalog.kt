@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.semantics.contentDescription
@@ -118,6 +119,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePattern
 import com.example.kpkn.screens.sessioneditor.design.CatalogSupersetConfiguratorDialog
 import com.example.kpkn.screens.sessioneditor.design.SmartExerciseEditorPage
 import com.example.kpkn.screens.sessioneditor.design.SmartExerciseCreatePage
+import com.example.kpkn.ui.components.KpknPortal
 
 private typealias CatalogExerciseImageVariant = ExerciseTechniqueImageVariant
 
@@ -914,6 +916,7 @@ private fun ColumnScope.CatalogReadyContent(
         }
     }
 
+    val creatorFocusManager = LocalFocusManager.current
     val creatingCustomQuery = rememberSaveable { mutableStateOf<String?>(null) }
     fun finishCreatedSelection(info: ExerciseMuscleInfo) {
         if (confirmSelection) {
@@ -930,6 +933,7 @@ private fun ColumnScope.CatalogReadyContent(
         onSearch("")
     }
     creatingCustomQuery.value?.let { seedName ->
+      KpknPortal {
         SmartExerciseCreatePage(initialName = seedName,
             onSave = ::finishCreatedSelection,
             onUseCandidate = { candidate ->
@@ -945,10 +949,12 @@ private fun ColumnScope.CatalogReadyContent(
                 }
             },
             onClose = { creatingCustomQuery.value = null })
+      }
         return
     }
     val editing = editingCustomExercise.value
     if (editing != null) {
+      KpknPortal {
         SmartExerciseEditorPage(
             exercise = editing,
             onSave = { saved ->
@@ -960,6 +966,7 @@ private fun ColumnScope.CatalogReadyContent(
             },
             onClose = { editingCustomExercise.value = null },
         )
+      }
         return
     }
 
@@ -1373,7 +1380,10 @@ private fun ColumnScope.CatalogReadyContent(
                 )
             ) {
                 item("smart-create") {
-                    SmartCreateSuggestion(query = query, onOpenCreate = { creatingCustomQuery.value = query })
+                    SmartCreateSuggestion(query = query, onOpenCreate = {
+                        creatorFocusManager.clearFocus()
+                        creatingCustomQuery.value = query
+                    })
                 }
             }
         }

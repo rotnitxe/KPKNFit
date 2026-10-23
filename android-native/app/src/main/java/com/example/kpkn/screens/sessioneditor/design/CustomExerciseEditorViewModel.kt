@@ -69,9 +69,12 @@ internal class CustomExerciseEditorViewModel(
 
     fun edit(transform: (CustomExerciseEditorState) -> CustomExerciseEditorState) {
         if (_state.value.saving) return
-        val next = transform(_state.value)
+        val previous = _state.value
+        val next = transform(previous)
+        val identityChanged = next.name != previous.name || next.implement != previous.implement ||
+            next.station != previous.station || next.laterality != previous.laterality
         _state.value = next.copy(reviewed = false, error = null, saved = null, preview = null,
-            cover = if (next.cover is CustomExerciseCoverDraft.Reference) CustomExerciseCoverDraft.Pattern else next.cover)
+            cover = if (identityChanged && next.cover is CustomExerciseCoverDraft.Reference) CustomExerciseCoverDraft.Pattern else next.cover)
         refresh()
     }
 
@@ -114,7 +117,7 @@ internal class CustomExerciseEditorViewModel(
             try {
                 var info = preview.exercise
                 val selectedCover = when (val choice = draft.cover) {
-                    CustomExerciseCoverDraft.Keep -> initial?.cover
+                    CustomExerciseCoverDraft.Keep -> initial?.cover ?: info.cover
                     CustomExerciseCoverDraft.Pattern -> ExerciseCover(patternId = ExerciseCoverResolver.patternIdFor(info))
                     is CustomExerciseCoverDraft.Reference -> choice.cover
                     is CustomExerciseCoverDraft.PrivatePhoto -> ExerciseCover.userPhoto(choice.media.id)

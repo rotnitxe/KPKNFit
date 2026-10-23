@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.sessioneditor.design
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -27,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.kpkn.data.exercises.approvedExerciseCatalogV2
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
+import com.example.kpkn.data.exercises.catalogv2.canonicalPatternKnowledge
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.data.repository.WorkoutMediaRepository
@@ -84,6 +86,7 @@ internal fun SmartExerciseForm(
     } }
     val vm = editor ?: viewModel<CustomExerciseEditorViewModel>(key = "custom-exercise-$key", factory = factory)
     val state by vm.state.collectAsState()
+    BackHandler { if (!state.saving) onDismiss() }
     LaunchedEffect(state.saved) { state.saved?.let { saved -> vm.consumeSaved(); onSave(saved) } }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { vm.cover(CustomExerciseCoverDraft.DevicePhoto(it.toString())) }
@@ -104,7 +107,7 @@ internal fun SmartExerciseForm(
     CustomExerciseEditorContent(state = state, editing = initial != null,
         onEdit = vm::edit, onReview = vm::review, onCover = vm::cover, onSave = vm::save,
         onCancel = { if (!state.saving) onDismiss() }, onUseCandidate = onUseCandidate,
-        onPickDevice = { picker.launch(arrayOf("image/*")) }, onPickPrivate = { privatePicker = true })
+        onPickDevice = { if (!state.saving) picker.launch(arrayOf("image/*")) }, onPickPrivate = { if (!state.saving) privatePicker = true })
     if (privatePicker) KpknSheet(onDismissRequest = { privatePicker = false }) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Tus fotos privadas", style = KpknType.title, color = WizardColors.text)
@@ -143,7 +146,7 @@ internal fun CustomExerciseEditorContent(
     val preview = state.preview
     val info = preview?.exercise
 
-    Column(Modifier.fillMaxSize().background(KpknSurface.canvas).imePadding().testTag("custom-exercise-editor")) {
+    Column(Modifier.fillMaxSize().background(KpknSurface.canvas).imePadding().statusBarsPadding().navigationBarsPadding().testTag("custom-exercise-editor")) {
         KpknTopRow(onBack = onCancel)
         Text(if (editing) "Editar ejercicio" else "Crear ejercicio", style = KpknType.title, color = WizardColors.text,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
@@ -192,14 +195,17 @@ internal fun CustomExerciseEditorContent(
                 "Generada solo desde la configuración confirmada" else "Sin descripción automática: falta una configuración confirmada.",
                 style = KpknType.caption, color = WizardColors.textMuted)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                CustomOptionField("Material", state.implement, SmartExerciseCreator.IMPLEMENTO_IDS, SmartExerciseCreator::implementoLabel,
+                CustomOptionField("Material", state.implement ?: info?.equipment?.let(SmartExerciseCreator::implementoIdFromLabel), SmartExerciseCreator.IMPLEMENTO_IDS, SmartExerciseCreator::implementoLabel,
                     { value -> onEdit { it.copy(implement = value) } }, Modifier.weight(1f))
-                CustomOptionField("Estación", state.station, SmartExerciseCreator.ESTACION_IDS, SmartExerciseCreator::estacionLabel,
+                CustomOptionField("Estación", state.station ?: info?.catalogVariantChips?.firstNotNullOfOrNull(SmartExerciseCreator::estacionIdFromLabel), SmartExerciseCreator.ESTACION_IDS, SmartExerciseCreator::estacionLabel,
                     { value -> onEdit { it.copy(station = value) } }, Modifier.weight(1f))
             }
-            CustomOptionField("Lateralidad", state.laterality, SmartExerciseCreator.LATERALIDAD_IDS, SmartExerciseCreator::lateralidadLabel,
+            CustomOptionField("Lateralidad", state.laterality ?: info?.catalogVariantChips?.firstNotNullOfOrNull(SmartExerciseCreator::lateralidadIdFromLabel), SmartExerciseCreator.LATERALIDAD_IDS, SmartExerciseCreator::lateralidadLabel,
                 { value -> onEdit { it.copy(laterality = value) } }, Modifier.fillMaxWidth())
-            Text("Patrón · ${info?.movementPattern ?: "Por confirmar"}", style = KpknType.body, color = WizardColors.text)
+            val patternName = info?.movementPattern?.let(::canonicalPatternKnowledge)?.name
+            Text(if (patternName != null) "Patrón · $patternName" else preview?.detectedPattern?.label?.let {
+                "Patrón sugerido · $it · por confirmar"
+            } ?: "Patrón por confirmar", style = KpknType.body, color = WizardColors.text)
             if (info != null && info.involvedMuscles.isNotEmpty()) MuscleInvolvementSection(info)
             else Text("Músculos por completar: el nombre no confirma una configuración.", style = KpknType.caption, color = WizardColors.textMuted)
             KpknTextAction(if (manual) "Ocultar ajuste manual" else "Ajustar involucramiento muscular", onClick = { manual = !manual })
