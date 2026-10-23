@@ -62,13 +62,12 @@ Desglose descriptivo por ejercicio, tune más control ciego G1:
 | TRICEPS | 2/62 |
 
 Las metas internas 98/90 siguen sin alcanzarse, especialmente en tríceps. Estos resultados no acreditan paridad con otras
-aplicaciones. La duración de análisis GPU sigue por encima del objetivo de tiempo real: ratio análisis/vídeo mediano
+aplicaciones. En la generación de referencia MediaPipe GPU/Full del motor9 (616clips), el tiempo superó el objetivo de tiempo real: ratio análisis/vídeo mediano
 1,5265 y p95 3,2389.
 
 ### Pendiente antes de aprobar o publicar este texto
 
-- El QA de ejecución en el Z Flip y el QA R8 del motor 10 siguen pendientes. Una grabación oscura con preferencia60 activada produjo30fps reales; el fallo del respaldo sigue en depuración. No afirmar60fps ni UI aprobada antes de
-  completar esas verificaciones.
+- El cierre del QA de ejecución en el Z Flip sigue pendiente. El R8 motor10/FPS compiló, fue atestado y se instaló en.dbg conservando los datos de QA. La corrección del respaldoFPS pasó193pruebas Android, pero no se ha demostrado que causara la toma observada a30fps. No afirmar60fps efectivos ni toda la UI aprobada antes de completar las verificaciones físicas; una preferencia activada no acredita la cadencia del archivo.
 - El artefacto final debe confirmar versionName Pre Release 18, versionCode mayor que 50 y el certificado público esperado
   9e8bb57415e409a1f107e70c62b85aa65ce73576e6196470808231f256464bc1. Nombre definitivo, SHA-256 del APK y fecha de
   archivo quedan PENDIENTES del artefacto firmado. Ejecutar signed_release.py solo al final de los gates; no hay una
