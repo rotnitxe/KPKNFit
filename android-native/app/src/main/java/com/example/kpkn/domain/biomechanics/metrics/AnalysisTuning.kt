@@ -368,6 +368,8 @@ data class MetricsTuning(
  */
 data class CountReliabilityTuning(
     val boundaryWindowS: Double = 0.12,
+    /** M5: espera máxima hasta la primera FULL en periodos interiores; 1,0 elegido por CV MediaPipe de cuatro folds. */
+    val initialBoundaryMaxPeriods: Double = 1.0,
     val shortRestFraction: Double = 0.05,
     val maxOfferedAmbiguousCycles: Int = 0,
     /**
