@@ -7,7 +7,7 @@
 | int-screen-final-codex-20261023-1 | 9b106d664f86a64142b8baf1fe6ac0cc07c263ba | 399 / 3135 | 26 fallos, 0 errores, 0 omitidas, 0 clases ausentes; BUILD31min45s; wrapper exit1 |
 | int-phase4-final-jvm-codex-20261023-5 | 8890750dbe109c8aa5a42bc4b898abb0e0e69de8 | 207 / 2062 | 0 fallos, errores u omitidas; BUILD6min56s; 673s con cola/resumen; wrapper exit0 |
 
-Logs en `C:/kw/logs/` con nombre de corrida y extensión .log. Los XML nuevos se archivaron bajo `C:/kw/logs/screens-v2-evidence/<corrida>/`, con `summary.json`. Los207 XML puros tienen marcas 10:17:09–10:17:10, posteriores al inicio propio 10:09:14. El barrido Android generó381 PNG y no reutilizó XML/PNG de compilaciones anteriores; el ejecutor fija HEAD, manifiesto y herramientas por SHA, comprueba fuente limpia al principio y final, y exige todas las clases solicitadas.
+Logs en `C:/kw/logs/` con nombre de corrida y extensión .log. Los XML nuevos se archivaron bajo `C:/kw/logs/screens-v2-evidence/<corrida>/`, con `summary.json`. Los207 XML puros tienen marcas 10:17:09–10:17:10, posteriores al inicio propio 10:09:14. El barrido Android generó436 PNG y no reutilizó XML/PNG de compilaciones anteriores; el ejecutor fija HEAD, manifiesto y herramientas por SHA, comprueba fuente limpia al principio y final, y exige todas las clases solicitadas.
 
 El alcance Android incluye las clases concretas de workout/sessioneditor, tres runners con contratos heredados y dependencias seleccionadas de render/programdetail/training. No es toda la suite del repositorio. Un worker, reciclado cada15clases, failFast=false e ignoreFailures=false: todos los fallos se recogen y Gradle falla. No se añadieron exclusiones ni se subieron techos INV. ExerciseCatalogImageCoverageTest pasó sus dos casos; los tres manifiestos originales de imágenes recuperados de Git siguen sin diff.
 
@@ -39,3 +39,14 @@ CAL3 nativo probó registrar→proponer→reiniciar→recuperar→aplicar→reve
 Teléfono: se instaló fuente d24370583/version51, SHA256 `7dd56f54fbb9a21948e91cf0291788a842c69f283d1eb6e5611e949ace8a81c7`, certificado AndroidDebug. Captura verificó1080×2640/480dpi/letra1.0; no acredita los recorridos G1/G2/TM/LQA1. Otra QA de técnica de vídeo usó la misma .dbg y se preservó su sesión. Operar sólo mediante phone_run.py y sus guardas/candado/20min.
 
 Roomv30 congelado. Ningún push, integración master ni firma de distribución. Un APK debug no es el release; el release unsigned y su verificación siguen pendientes.
+
+
+## Correcciones integradas y segunda completa preparada · 23-oct 10:56
+
+u23 integrado en6b42b482d, incluidos los arreglos de RM, renders, snapshots CAL7 y geometría de cabecera detallados arriba. 710d48218 unifica unidades activas en G1;8188400a1 comprueba la referencia nullable de su regresión antes del valor. El resolver conserva REPS legacy con duración sin marcador como TIME, y prioriza unidades explícitas y modos TIME/DISTANCE/CUSTOM. El cambio confirmado de modo fija unidad; dosis, cockpit, grabador y reconciliación consumen el mismo resolver. La revisión estática independiente del commit no encontró regresiones materiales; todavía falta ejecución.
+
+D4:487a87bab distingue rechazo por dosis incompleta del error de almacenamiento.03347e492 comparte el diálogo de aplicar plantilla entre ambas superficies y coloca Reemplazar/Añadir al final en ancho completo. La QA del APK anterior sí guardó una sesión nueva de cardio; no era un fallo general de Room. Ver INT-TEMPLATE-SAVE.md para la reproducción, el recorte real y sus regresiones.
+
+Se repetirá la completa de400clases (399anteriores más TemplateApplyPhysicalViewportTest), en una sola reserva y con la fuente final fijada en el manifiesto. Se elige ese alcance porque el arreglo G1 modifica la resolución compartida de unidades y varios consumidores, superando la selección dirigida inicial de29/35clases. No hay exclusiones nuevas ni pruebas omitidas deliberadamente.
+
+Corrección del recuento de renders de la primera completa: invocation.json enumera436rutas únicas; las436existen y tienen mtime posterior al TestStarted propio.381era un recuento provisional anterior al cierre; se sustituye por436sin atribuir PNG ajenos ni repetir pruebas.

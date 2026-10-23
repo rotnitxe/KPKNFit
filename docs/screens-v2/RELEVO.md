@@ -1,10 +1,16 @@
 # Relevo de la ola screens-v2 (21-oct-2026, noche)
 
+## Actualización operativa · 23-oct-2026 10:56
+
+Los arreglos de u23 (modos G1, RM, renders y fixtures CAL7) y D4 ya están integrados en6b42b482d; se prepara segunda completa Android de400clases. El recuento final verificado de la primera completa es436PNG, no381provisionales. JVM5 sigue2062/0; los cambios posteriores son resolución de unidad en presentación/registro y validación/mensajes de guardar plantillas, pendientes de Android.
+
+D4 guardó una sesión nueva sólo de cardio; el error inicial se acota a contenido incompleto. El mensaje ya explica qué completar. La confirmación Reemplazar/Añadir al final recortaba Reemplazar a740/130 y tiene arreglo más cuatro regresiones físicas preparadas. Los defectos de G1/F1/RM/D4 aún requieren nuevo APK y retest nativo. No hay corrida propia activa al escribir esta actualización.
+
 ## Estado operativo · 23-oct-2026 10:30
 
 La implementación de las fases 3 y 4 está integrada. JVM final5, fuente `8890750dbe109c8aa5a42bc4b898abb0e0e69de8`: 207 clases, 2062 pruebas, cero fallos, errores u omitidas; BUILD 6 min 56 s, wrapper cerrado exit0 (673 s con cola). Log `int-phase4-final-jvm-codex-20261023-5.log`, XML nuevos archivados. Esta vez es una única corrida completa del alcance puro, no una unión de repeticiones.
 
-El barrido Android completo de la ola, fuente `9b106d664f86a64142b8baf1fe6ac0cc07c263ba`, cerró exit1: 399 clases, 3135 pruebas, 26 fallos, cero errores/omitidas/clases ausentes; BUILD 31 min 45 s y 381 PNG nuevos. No equivale a toda la suite del repositorio. El informe `reports/INT-FINAL-REGRESSION.md` clasifica las diez clases fallidas y las correcciones. RIR sin porcentajes era un defecto real y su arreglo ya pasó JVM5; la repetición Android sigue pendiente. No se excluyeron imágenes: las dos pruebas históricas de cobertura pasaron al recuperar los tres manifiestos originales de Git.
+El barrido Android completo de la ola, fuente `9b106d664f86a64142b8baf1fe6ac0cc07c263ba`, cerró exit1: 399 clases, 3135 pruebas, 26 fallos, cero errores/omitidas/clases ausentes; BUILD 31 min 45 s y 436 PNG nuevos. No equivale a toda la suite del repositorio. El informe `reports/INT-FINAL-REGRESSION.md` clasifica las diez clases fallidas y las correcciones. RIR sin porcentajes era un defecto real y su arreglo ya pasó JVM5; la repetición Android sigue pendiente. No se excluyeron imágenes: las dos pruebas históricas de cobertura pasaron al recuperar los tres manifiestos originales de Git.
 
 QA real continúa exclusivamente en ZFlip5_QA5580, APK fuente 0c642bff1. G4, movilidad H3/H5/H6 y varios flujos editor/catálogo verificados; CAL3 ya probó propuesta, reinicio, aplicar, revertir, corregir y conservar. F1 (solape de cabecera) y etiquetas RM truncadas tienen arreglo pendiente de nuevo APK. G1 expuso pérdida de cambios de modo/dosis desde la sesión: corrección en curso en u23. No acreditar como verde ese tablero ni la lista completa de 70.
 
