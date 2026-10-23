@@ -180,10 +180,13 @@ class Cal7ManagedProgramRoomJourneyTest {
         }
         assertEquals(allSessionCount, logs.size)
         assertEquals(sourceWeekIds.toSet(), logs.mapNotNull { it.weekId }.toSet())
+        // Settings de prueba publican discos legacy de 1,25 kg: el paso real del TM es 2,5 kg.
+        // Por eso 108 + 2,5 = 110,5 redondea a 110,0; 72 + 2,5 = 74,5 a 75,0;
+        // Juggernaut 72 + 5 = 77,0 redondea a 77,5. nSuns conserva su propuesta explícita de 77,0.
         val expectedTms = when (protocol) {
-            "wendler-531-bbb", "gzclp" -> mapOf(LiftSlot.SQUAT to 185.0, LiftSlot.BENCH to 110.5,
-                LiftSlot.DEADLIFT to 203.0, LiftSlot.OVERHEAD to 74.5)
-            "juggernaut-2" -> initialTms + (LiftSlot.OVERHEAD to 77.0)
+            "wendler-531-bbb", "gzclp" -> mapOf(LiftSlot.SQUAT to 185.0, LiftSlot.BENCH to 110.0,
+                LiftSlot.DEADLIFT to 203.0, LiftSlot.OVERHEAD to 75.0)
+            "juggernaut-2" -> initialTms + (LiftSlot.OVERHEAD to 77.5)
             else -> if (mode == AutoregulationMode.OFF) initialTms else initialTms + (LiftSlot.OVERHEAD to 77.0)
         }
         assertTms(expectedTms, f.program)
