@@ -866,7 +866,8 @@ fun SessionEditorScreen(
                 hasActiveLoops = uiState.hasActiveLoops,
                 activeVariant = uiState.activeVariant,
                 availableVariants = uiState.availableVariants,
-                variantName = { variant -> frameVariantName(session, variant) },
+                // B/C/D names live on the base session even while the editor shows one derivative.
+                variantName = { variant -> frameVariantName(uiState.session ?: session, variant) },
                 nextVariant = nextFreeVariant(uiState.availableVariants),
                 defaultVariantName = "${session.name.ifBlank { "Sesión" }} – Rápida",
                 onSelectSession = { id -> viewModel.requestSessionSwitch(id) },
