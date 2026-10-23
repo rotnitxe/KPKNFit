@@ -1,6 +1,6 @@
 # INT-EDA · Cierre acotado de omisiones A1/A5
 
-Estado: cambios preparados, pendientes de compilación, pruebas nativas y revisión de renders en la corrida centralizada del orquestador. No se ejecutó Gradle, JVM, adb ni instalación desde este worktree. No se declara verde.
+Estado: integrado y verificado en u11. Compilación y 96 casos únicos verdes en corridas separadas; renders nativos revisados. Sin adb ni instalación en esta continuación. El worktree de preparación no ejecutó Gradle.
 
 Base: `C:/kw/u26-int-eda`, rama `codex/sv2-int-eda`, creada desde integración `67ded417b`. El worktree C3 `u24-int-c3` permanece intocable y limpio.
 
@@ -48,3 +48,12 @@ Evidencia disponible ahora: revisión estática y `git diff --check` sin errores
 ## Riesgos limitados
 
 La geometría y las capturas deben confirmarse en la corrida nativa centralizada, especialmente la píldora en dos líneas y las acciones del pie a 130 %. El parámetro opcional `moduleInset` conserva las llamadas existentes y deja `onDone` como último callback. Las hojas usan el portal existente; no se modifica su implementación. El `FrameHeader`, el orden de los contenidos del editor y los demás tableros ED-A no se reescriben.
+
+
+## Verificación en integración · 23-oct
+
+Merge ED-A tras G, con preflight limpio c922658c9cd398fddf8da689a2a528973a258c39. Primera corrida `int-eda-android-codex-20261023-1.log`: 14 clases, 96 pruebas, ocho fallos en la clase nueva; las otras 85 pasan y tres nuevas también. El render al130 muestra recorte real de Añadir. 8e4b54634 reduce márgenes internos, conserva altura64 y objetivos48, y reserva el ancho de la acción. Segunda: seis clases,33 casos,6 fallos; Añadir ya pasa en ambas alturas/fuentes.
+
+La medida del texto centrado usa un párrafo de ancho110 dentro de un nodo95: línea7..103, fuera del ancho asignado. 2e14b0700 fuerza el ancho completo en AnimatedContent/Text, sin cambiar etiqueta o fuente. Los cuatro fallos de badges usan el árbol fusionado que oculta la decoración: se seleccionan en el árbol sin fusionar y se espera el cierre del diálogo; se conservan medidas22, colores exactos, selección, callbacks y píxeles. Se retiran impresiones diagnósticas.
+
+Tercera `int-eda-android-codex-20261023-3.log`: BUILD SUCCESSFUL en8min10s, wrapper exit0; seis clases33/0, incluidos los11 nuevos. Con las63 pruebas de rutas no afectadas de la primera corrida, total96 únicos verdes. XML de las tres corridas archivados en C:/kw/logs/screens-v2-evidence/int-eda-android-codex-20261023-{1,2,3}/. Revisados Main740/130, Main880/100 y variantes740/130 en C:/kw/shots/int-eda: etiquetas completas y acciones dentro de pantalla. Se generan los12PNG nuevos previstos. QA de dispositivo sigue pendiente.

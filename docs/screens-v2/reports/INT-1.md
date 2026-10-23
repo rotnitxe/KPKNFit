@@ -101,3 +101,10 @@ Preflight80bafa8a6dec6a0b6635ff13a3cb8dcdbe1b169a; merge cca733fe5 sin conflicto
 La cuarta corrida `int-u16-android-codex-20261023-4.log` compila y pasa los seis renders físicos; Board conserva 37/39. El selector hermano directo seguía equivocado: la etiqueta pertenece al contenedor de la fila que contiene el BasicTextField. ec4ebc225 lo localiza por ancestro y hermano, sin tocar producción ni llamar callbacks directamente. La quinta corrida `int-u16-android-codex-20261023-5.log` ejecuta únicamente ambos casos pendientes: 2/0, BUILD SUCCESSFUL en 3 min 15 s, wrapper exit0 y XML comprobado. La tercera había fallado solo por importar swipe, corregido en b44478519.
 
 Total: 95 pruebas únicas verdes, con 50 de la segunda corrida, 37 Board y seis renders de la cuarta y dos Board de la quinta. No se atribuyen a una única corrida. Revisados tres PNG nuevos de acciones en C:/kw/shots/int-g: RM/TM a740/130 y880/100 y AMRAP a740/130; Eliminar y Confirmar cambios completos después del desplazamiento físico, pie fijo y objetivos48. G cerrado; sigue la corrección acotada ED-A7114b5872 y la regresión de fase3. QA de dispositivo pendiente.
+
+
+## ED-A adicional cerrado; regresión de fase3
+
+Tras fusionar7114b5872 se corrigieron los recortes reales de Añadir y del párrafo de semana en8e4b54634/2e14b0700 y dos selectores de decoración/animación. ED-A suma96 casos únicos verdes:63 iniciales fuera de las rutas modificadas y33 finales del marco (incluidos11 nuevos). Tercera corrida exit0, XML archivados; ver INT-EDA.md para diagnóstico y las tres ejecuciones. Renders nuevos revisados al100/130,740/880. Todas las ramas de fase3 están integradas.
+
+Sigue la regresión central: JVM de protocolos/training/workout/calibration y motores MOT con fixtures concretos; dos lotes Android de15 clases de sesión en vivo y persistencia. Los tests con dependencias de pantalla/Room no se fuerzan al arnés puro. No se declara aún fase3 completamente verde hasta cerrar estas corridas. No hay QA ni APK de esta continuación.
