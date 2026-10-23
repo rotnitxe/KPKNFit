@@ -158,6 +158,7 @@ internal data class CatalogDetailModel(
     val contextLine: String? = null,
     val historySummary: com.example.kpkn.domain.exercises.ExerciseHistorySummary? = null,
     val media: List<com.example.kpkn.data.models.WorkoutMedia> = emptyList(),
+    val customCover: com.example.kpkn.screens.sessioneditor.design.CustomCoverModel? = null,
 )
 
 /** Un eje de la configuración con sus opciones visibles (las que el catálogo deja elegir). */

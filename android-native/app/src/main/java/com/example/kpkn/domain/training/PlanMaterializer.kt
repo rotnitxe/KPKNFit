@@ -3,6 +3,7 @@ package com.example.kpkn.domain.training
 import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.AppliedRecipeProposal
+import com.example.kpkn.data.models.ApreBlockReference
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.DEFAULT_CARDIO_PART_COLOR

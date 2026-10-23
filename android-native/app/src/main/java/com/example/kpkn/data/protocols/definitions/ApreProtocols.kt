@@ -75,7 +75,7 @@ object ApreProtocols {
             slots = listOf(
                 slot("t1", SlotRole.T1_MAIN, configurationId, apreSets(phase), 240, lift, isCompetitionLift = true),
             ) + accessories,
-        )
+        ).copy(id = "apre-" + lift.name.lowercase())
 
     fun recipe(): TrainingPlanRecipe {
         val weeks = (1..12).map { w ->
