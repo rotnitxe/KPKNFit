@@ -2,9 +2,13 @@ package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -17,6 +21,8 @@ import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnilateralTarget
+import com.example.kpkn.data.models.UnilateralIntensityMode
+import com.example.kpkn.data.models.UnilateralMode
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import com.example.kpkn.screens.sessioneditor.withTrainingMode
@@ -297,6 +303,37 @@ class ExerciseSetListComposeTest {
         rule.onNodeWithText("R1").assertDoesNotExist()
         rule.onNodeWithText("+ Añadir R").performClick()
         assertTrue(updated.getValue("s1").rightTarget != null)
+    }
+
+    @Test
+    fun fichasUnilateralesMuestranLasRepsDeCadaLadoSobreElRangoBase() {
+        val set = ExerciseSet(
+            id = "s1",
+            targetRepsRange = RepRange(6, 10),
+            leftTarget = UnilateralTarget(targetReps = 10),
+            rightTarget = UnilateralTarget(targetReps = 12),
+        )
+        val exercise = exerciseWith(set).copy(
+            isUnilateral = true,
+            unilateralMode = UnilateralMode.UNILATERAL_PAIRED,
+            unilateralIntensityMode = UnilateralIntensityMode.INDEPENDENT,
+        )
+
+        renderList(exercise)
+
+        rule.onNodeWithTag("set-row-s1:L").assertIsDisplayed()
+        rule.onNodeWithTag("set-row-s1:R").assertIsDisplayed()
+        assertEquals(0, rule.onAllNodesWithText("6–10").fetchSemanticsNodes().size)
+        rule.onNode(hasText("10") and hasAnyAncestor(hasTestTag("set-row-s1:L")), useUnmergedTree = true).assertExists()
+        rule.onNode(hasText("12") and hasAnyAncestor(hasTestTag("set-row-s1:R")), useUnmergedTree = true).assertExists()
+
+        rule.onNodeWithTag("set-row-s1:L").performClick()
+        rule.onNodeWithTag("set-focus-s1:L").assertExists()
+        rule.onNode(hasText("10") and hasAnyAncestor(hasTestTag("set-focus-s1:L")), useUnmergedTree = true).assertExists()
+        rule.onNodeWithTag("set-row-s1:R").performClick()
+        rule.onNodeWithTag("set-focus-s1:L").assertDoesNotExist()
+        rule.onNodeWithTag("set-focus-s1:R").assertExists()
+        rule.onNode(hasText("12") and hasAnyAncestor(hasTestTag("set-focus-s1:R")), useUnmergedTree = true).assertExists()
     }
 
     @Test
