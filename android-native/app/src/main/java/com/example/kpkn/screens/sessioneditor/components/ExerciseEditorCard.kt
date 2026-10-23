@@ -331,6 +331,12 @@ internal fun ExerciseEditorCard(
                                             append(chip)
                                         }
                                     }
+                                    // B1: la lateralidad sigue visible también con el marco memberBox de ED-D.
+                                    if (exercise.isEffectivelyUnilateral()) {
+                                        withStyle(SpanStyle(color = WizardColors.textMuted)) {
+                                            append(" · Unilateral")
+                                        }
+                                    }
                                 },
                                 style = KpknType.bodyStrong,
                                 maxLines = 2,
