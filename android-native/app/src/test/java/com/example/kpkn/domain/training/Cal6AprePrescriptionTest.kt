@@ -18,6 +18,7 @@ import com.example.kpkn.domain.training.Cal5TestSupport.weeksOf
 import com.example.kpkn.domain.sessionassistant.transformExercisesFlat
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
@@ -202,6 +203,12 @@ class Cal6AprePrescriptionTest {
         val week1 = weeks.first()
         val squatDay = week1.sessions.first()
         val t1 = exerciseOf(squatDay, CatalogIds.SQ_LOW)
+        val targetBefore = exerciseOf(weeks[1].sessions.first(), CatalogIds.SQ_LOW)
+        assertNotEquals("cada semana conserva una ocurrencia propia", t1.id, targetBefore.id)
+        assertEquals("apre-squat", t1.recipeDayId)
+        assertEquals(t1.recipeDayId, targetBefore.recipeDayId)
+        assertEquals("t1", t1.recipeSlotId)
+        assertEquals(t1.recipeSlotId, targetBefore.recipeSlotId)
         assertEquals(150.0, t1.sets[2].weight!!, 1e-6)
         assertEquals(150.0, t1.sets[3].weight!!, 1e-6)
 
@@ -231,7 +238,8 @@ class Cal6AprePrescriptionTest {
         val nextWeekSquat = exerciseOf(nextWeek.sessions.first(), CatalogIds.SQ_LOW)
         assertEquals(162.5, nextWeekSquat.sets[2].weight!!, 1e-6)
         assertEquals(162.5, nextWeekSquat.sets[3].weight!!, 1e-6)
-        assertEquals(81.25, nextWeekSquat.sets[0].weight!!, 1e-6)
+        assertEquals(82.5, nextWeekSquat.sets[0].weight!!, 1e-6)
+        assertEquals(122.5, nextWeekSquat.sets[1].weight!!, 1e-6)
 
         val rematerialized = PlanMaterializer.rematerializeWeek(
             program = applied.program,

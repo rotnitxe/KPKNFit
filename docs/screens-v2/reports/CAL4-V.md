@@ -42,3 +42,11 @@ La primera ejecución JVM centralizada en u11 (f47cc64e5) terminó con código 1
 ## Segunda compilación APRE JVM
 
 La segunda corrida centralizada compiló producción y falló durante compileTestKotlin. El error primario fue la referencia sin calificar a ProgressAdvanceResult en ProgramAutoregulationApreXrmChannelTest; los errores de advancedCycle, program y autoregulationProposals fueron derivados. Se corrigió la referencia al tipo anidado de ProgramProgressEngine. No se ejecutaron tests en esta corrida ni desde este worktree; queda pendiente repetir el wrapper centralizado.
+
+## Correcciones tras la tercera corrida APRE JVM
+
+La corrida centralizada reportó 192 clases, 1.988 tests y 5 fallos; u20 no ejecutó Gradle ni tests. Dos casos APRE mostraron que la receta no tenía identidad de día estable: cada semana recibía Exercise.id distinto, sin una clave común de día/slot para llevar el XRM a la ocurrencia siguiente. La receta ahora conserva apre-squat/apre-bench/apre-deadlift por lift y las regresiones verifican que los Exercise.id sigan siendo distintos mientras día y slot permanecen iguales. El matcher no se amplía.
+
+La receta APRE también queda fuera del clasificador de cambios semanales de TM. Su caso de extremo a extremo espera ADJUST_XRM de 162,5 kg desde S4 (155 kg × 17 repeticiones), sin liftSlot, delta porcentual ni delta de TM. Las cargas de S1/S2 para ese XRM son 82,5/122,5 kg por redondeo al salto real de 2,5 kg.
+
+La corrección de identidad, la aplicación al bloque siguiente y la rematerialización quedan pendientes de repetición JVM centralizada. Ninguna prueba se ejecutó desde este worktree.
