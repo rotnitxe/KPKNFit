@@ -56,7 +56,7 @@ class SessionPrescriptionSummaryTest {
     }
 
     @Test
-    fun laUnidadActivaEnResumenEvitaRepeticionesYCargaResiduales() {
+    fun laUnidadActivaEvitaDosisResidualPeroConservaCargaExplicita() {
         val timeSets = (1..3).map {
             ExerciseSet(
                 id = "time-$it",
@@ -75,7 +75,7 @@ class SessionPrescriptionSummaryTest {
         val distanceSets = timeSets.map { it.copy(id = "distance-${it.id}", unitModeV2 = UnitModeV2.DISTANCE, intensityMode = IntensityMode.RIR) }
         val ambiguousTimeSets = timeSets.map { it.copy(id = "ambiguous-${it.id}", intensityMode = null) }
         val customSets = timeSets.map {
-            it.copy(id = "custom-${it.id}", plannedTargetV2 = 12.0, unitModeV2 = UnitModeV2.CUSTOM, intensityMode = IntensityMode.FAILURE)
+            it.copy(id = "custom-${it.id}", plannedTargetV2 = 12.0, weight = 5.0, unitModeV2 = UnitModeV2.CUSTOM, intensityMode = IntensityMode.FAILURE)
         }
         val repsSets = timeSets.map {
             it.copy(
@@ -90,14 +90,15 @@ class SessionPrescriptionSummaryTest {
         }
 
         assertEquals(
-            "3 × 45${nbsp}s · RPE 9 · 2:00",
+            "3 × 45${nbsp}s · 84${nbsp}kg · RPE 9 · 2:00",
             formatExercisePrescription(ejercicio(*timeSets.toTypedArray(), descanso = 120, modo = TrainingMode.TIME)),
         )
         assertEquals(
-            "3 × 45${nbsp}s · 2:00",
+            "3 × 45${nbsp}s · 84${nbsp}kg · 2:00",
             formatExercisePrescription(ejercicio(*ambiguousTimeSets.toTypedArray(), descanso = 120, modo = TrainingMode.TIME)),
-        )        assertEquals(
-            "3 × 400${nbsp}m · RIR 2 · 2:00",
+        )
+        assertEquals(
+            "3 × 400${nbsp}m · 84${nbsp}kg · RIR 2 · 2:00",
             formatExercisePrescription(ejercicio(*distanceSets.toTypedArray(), descanso = 120, modo = TrainingMode.DISTANCE)),
         )
         assertEquals(
@@ -105,8 +106,30 @@ class SessionPrescriptionSummaryTest {
             formatExercisePrescription(ejercicio(*repsSets.toTypedArray(), descanso = 120, modo = TrainingMode.REPS)),
         )
         assertEquals(
-            "3 × 12${nbsp}pasos · hasta el fallo · 2:00",
+            "3 × 12${nbsp}pasos · 5${nbsp}kg · hasta el fallo · 2:00",
             formatExercisePrescription(ejercicio(*customSets.toTypedArray(), descanso = 120, modo = TrainingMode.CUSTOM, customUnit = "pasos")),
+        )
+
+        val capturedRm = PlanLoadReference(
+            kind = PlanLoadReferenceKind.EXERCISE_1RM,
+            configurationId = "press",
+            state = PlanLoadReferenceState.CAPTURED,
+            capturedLoadKg = 120.0,
+        )
+        val distanceWithoutExplicitWeight = distanceSets.map { it.copy(weight = null) }
+        val customWithoutExplicitWeight = customSets.map { it.copy(weight = null) }
+        val timeWithoutExplicitWeight = timeSets.map { it.copy(weight = null) }
+        assertEquals(
+            "3 × 45${nbsp}s · RPE 9 · 2:00",
+            formatExercisePrescription(ejercicio(*timeWithoutExplicitWeight.toTypedArray(), descanso = 120, referencia = capturedRm, modo = TrainingMode.TIME)),
+        )
+        assertEquals(
+            "3 × 400${nbsp}m · RIR 2 · 2:00",
+            formatExercisePrescription(ejercicio(*distanceWithoutExplicitWeight.toTypedArray(), descanso = 120, referencia = capturedRm, modo = TrainingMode.DISTANCE)),
+        )
+        assertEquals(
+            "3 × 12${nbsp}pasos · hasta el fallo · 2:00",
+            formatExercisePrescription(ejercicio(*customWithoutExplicitWeight.toTypedArray(), descanso = 120, referencia = capturedRm, modo = TrainingMode.CUSTOM, customUnit = "pasos")),
         )
     }
 
