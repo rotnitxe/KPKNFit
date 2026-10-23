@@ -47,3 +47,8 @@ El fallo `NativeProgressionRealPlanTest.carryForward_isIdempotent_andKeepsLastRe
 Commit deliberadamente separado de UI y demas CAL5b para poder incorporarlo antes de TM; compatible conceptualmente con u20 APRE `94aaf1865`. No se ejecutaron Gradle/JVM/adb. Pendiente repetir centralmente las dos clases citadas y las regresiones compartidas de rematerializacion/APRE.
 
 La regresion nueva `PlanMaterializerLegacyReferenceTest` conserva dos ocurrencias legacy de igual configuracion con capturas distintas160/140 y pesos128/112; una captura antigua insertada despues no desplaza la latest. El reloj del fixture de arrastre pasa de99/123 a2000/3000 porque las observaciones previas estan fechadas1000: el arrastre debe ser posterior para comprobar latest cronologico, sin alterar el orden de produccion. Se mantienen todas las aserciones anteriores de carga/ids/logs.
+
+
+### Fixture legacy corregido tras cuarta JVM central
+
+La nueva prueba anterior reducia indebidamente la receta y fue rechazada por los validadores de composicion antes de ejercitar el materializador. Se conserva ahora Wendler BBB completo (cuatro dias, semanas, dosis, AMRAP, roles y `supplementalOf` reales); unicamente se declaran referencias pendientes en t1 y su BBB ya existente. Las capturas por ocurrencia siguen siendo160/140 y la evidencia130@20 insertada despues160@30 sigue sin ganar; con los porcentajes publicados65/50 las cargas esperadas son104/70. Se mantienen ids e historial intactos. Ningun validador se desactiva y no cambia produccion. Pendiente ejecucion central; sin Gradle/JVM/adb local.
