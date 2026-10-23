@@ -131,6 +131,11 @@ EJECUCION. No repetir generación, publicación ni baseline aprobados. Las 72 tr
 **Hecho cuando:** hay cifras con MediaPipe para las 494 series G1 de MM-Fit.
 
 ## Fase 3 · Ronda M5 del motor (fiabilidad «como el mercado»)
+**Estado vigente:** integrada en `9af368c95`, motor10, después de CV MediaPipe, controles congelados sin regresión y
+regresiones físicas. El control MediaPipe mejora FULL60/88→67/88 y el histórico conserva sus conteos. Las metas98/90
+siguen incumplidas; causas y límites documentados en BANCO_COMPLETO. No repetir selección ni ajustar mirando controles.
+La Fase4 se revalida solo en lo afectado por el nuevo motor; siguen pendientes QA y entrega.
+
 **Objetivo:**
 - ALTA ≥ 98 % exacta y MEDIA ≥ 90 %;
 - más series con número sin perder precisión;

@@ -90,7 +90,7 @@ com.example.kpkn/
 │   │                           #   anatomy insights, filters
 │   ├── sessionassistant/       # SessionAssistantEngine (time optimization suggestions)
 │   ├── biomechanics/           # Pure technique engines: metrics/TechniqueAnalysisEngine,
-│   │                           #   profiles/, kinematics/, reps/ (engine version 9)
+│   │                           #   profiles/, kinematics/, reps/ (engine version 10)
 │   ├── calculations/           # PlateCalculator, shared math helpers
 │   ├── storage/                # KeyValueStore (interfaz pura; implementación en data/preferences)
 │   ├── text/                   # SpanishPlurals (singular/plural en textos de interfaz)
@@ -134,7 +134,7 @@ com.example.kpkn/
                                 #   components/ (shared composables, icons), locale/ (LocaleManager)
 ```
 
-Video capture stays in `filesDir/workout_media/yyyy-MM/`; `data/media/technique/TechniqueSidecars.kt` defines the adjacent capture, pose, bar, analysis and temporary checkpoint files. `<id>.analysis.json` is authoritative and Room's `video_analysis` row is a rebuildable cache. The M4b UI/data changes for PERSONAL range references and partial confidence/zones were integrated in `108146025` after targeted tests and render review; they add no Room migration. Engine version 9 is present in the integration branch, while M5 tuning and physical-device acceptance remain pending.
+Video capture stays in `filesDir/workout_media/yyyy-MM/`; `data/media/technique/TechniqueSidecars.kt` defines the adjacent capture, pose, bar, analysis and temporary checkpoint files. `<id>.analysis.json` is authoritative and Room's `video_analysis` row is a rebuildable cache. The M4b UI/data changes for PERSONAL range references and partial confidence/zones were integrated in `108146025` after targeted tests and render review; they add no Room migration. Engine version 10 and the M5 guard selected by four-fold MediaPipe CV are integrated in the branch. The 98/90 targets remain unmet; physical-device acceptance and Fase 7 remain pending.
 
 ### Bundled Assets — `app/src/main/assets/`
 
