@@ -2,6 +2,9 @@
 
 ## Estado vigente · prevalece sobre las entradas históricas
 
+- **ENTREGA ÚNICA COMPLETADA · 23-oct17:26UTC:** G:/Mi unidad/KPKN Pre Release 18.apk,264836553bytes,SHA2561e058061be132316f850f032b66a9507f3c8ff77612e3e550fe783ecd055ea12. Firma oficial verificada9e8bb57415e409a1f107e70c62b85aa65ce73576e6196470808231f256464bc1, packagecom.example.kpkn/code52/nombreKPKN Pre Release18/no debuggable, Room30/motor10. Fuente conjunta5ffdff2559f60ae32b56aadffdc4f6939e578d21/árbole00240b6e006631aeac27e2968a59009c976fb4c, incluye9657APRE/screens+VT69f10a, excluyeQAisolation531. Única firma94989 conhelperoficial SUCCESS11m16/EXIT0; postproceso5858 EXIT0 verificó modeloFull/JNI/R8 y copiaG byteidéntica. Atestación/mapas/log: C:/kw/vt-mmfit/apks/release18-unico-20261023/. Rediseños corroboró deformaindependiente firma/metadatos/hashlocalvsG; ningúnotroAPK. LEEME/SHA ypromptsRELEVO VT post entrega 18.txt / RELEVO Redisenos post entrega 18.md juntoalAPK. Copia localG verificada, sincronización remota administrada por DriveDesktop sinatribuirconfirmación de subida. QA físico conjunto pendiente,≈m/s y1RMbeta conservados. Master/WIPajeno intactos,sinpush. Seguimiento deentrega finaliza; tareaspendientes quedan enprompts, noF8nuevo.
+
+
 - **Orden humana de entrega inmediata conjunta (23-oct):** entregar un único APK baseRelease final firmado, VT + Rediseños, directamente en G:/Mi unidad del Explorador, sin complemento Drive. Sustituye la espera de QA físico como condición de esta entrega. QA pendiente se conserva sin inventar PASS. Unión de VT8024bfb13 (excluye aislamiento QA531) y Rediseños/APRE9657ca736, Room30/motor10, Pre Release18/code52; sin master/WIP/push. Firma sólo con signed_release.py oficial. Después del APK cada chat entregará su prompt de relevo. El usuario revocó el límite artificial94%.
 
 
