@@ -2,29 +2,36 @@
 
 ## Estado y límites
 
-Preparación provisional en `C:/kw/u23`, `codex/sv2-cal7`, desde `bfaa78fc5`. Solo pruebas y este informe; ninguna función de producción modificada. **No se ejecutó Gradle, JVM ni adb.** Todos los resultados están pendientes de la corrida central. Antes de validar/integrar se actualizará la base con Fase3 verde y las dependencias APRE, CAL5b y PLAN-OBS.
+Preparación en `C:/kw/u23`, rama `codex/sv2-cal7`, sobre una base todavía provisional (HEAD de trabajo conocido: `74e58e2037`; la línea previa `bfaa78fc5` aún no contiene la Fase 3 verde). El alcance de este cambio es pruebas e informe: no modifica código de producción, Room, entidades, DAO ni esquemas. **No se ejecutó Gradle, JVM ni adb; todos los resultados quedan pendientes de la corrida central sobre el SHA verde.**
 
-## Primeros recorridos preparados
+La suite preparada reúne 21 recorridos end-to-end con Room en memoria: cuatro ya existentes y 17 añadidos en esta preparación. Se usan Robolectric, repositorio/ViewModels y cierres reales; ningún log de entrenamiento se fabrica en memoria de prueba ni se sustituye por un helper aislado.
 
-`Cal7FreeSessionRoomTest` reutiliza `LiveSessionVmFixture`, `RoomTestRule`, `ProgramRepository.initForTests` (Room en memoria), `WorkoutViewModel`, grabador, persistencia y cierre reales. No usa puertos simulados ni inserta registros de entrenamiento fabricados.
+## Sesiones libres y 1RM
 
-1. Sesión de atleta sin receta gestionada: registrar calibrador, aplicar, recrear ViewModel desde Room, revertir, registrar otra fuente con alcance NEXT_SESSIONS, aceptar, completar las cinco series reales, terminar, leer el log/decisiones durables y abrir una ejecución nueva. Comprueba 60→62,5→60 hoy, referencia65 en la próxima, resolución en resumen, realizadas intactas y el ejercicio contiguo40kg sin alteración.
-2. Cancelar por `WorkoutViewModel.cancelWorkout`: decisión aceptada previa, borrado confirmado en Room, cero logs/referencias aceptadas, bolsa sin cambios y ejecución nueva sin referencia residual.
-3. RINGS: dos registros y cierres reales del mismo contexto con69kg×10, RIR1; uno normal y otro calibrador conservado. Los logs se evalúan en el mismo instante y con idénticos metadatos musculares. Resultado esperado: mismos anillos neural/columna/muscular, mismos drenajes y perMuscle; el drenaje debe ser positivo para evitar una igualdad vacía. La etiqueta calibrador no añade bonificación. Los valores numéricos observados se anotarán tras ejecutar.
+`Cal7FreeSessionRoomTest` contiene tres recorridos. El primero registra y aplica un calibrador, recrea el ViewModel desde Room, revierte la decisión, registra una captura NEXT_SESSIONS, termina una sesión real y abre la siguiente ejecución. Comprueba que 60→62,5→60 hoy, referencia de 65 kg en la próxima, resolución durable y series ya realizadas intactas, sin cambiar el ejercicio contiguo de 40 kg. El segundo cancela por `WorkoutViewModel.cancelWorkout` y comprueba el borrado en Room, ausencia de logs/referencias aceptadas y de residuos en la siguiente ejecución. El tercero compara RINGS normal y calibrador conservado con los mismos registros, instante y metadatos musculares; exige drenaje positivo para que la igualdad no sea vacía. Los valores numéricos observados se anotarán después de ejecutar.
 
-`Cal7OneRmRoomJourneyTest` materializa una receta de banca y press militar, migra explícitamente el pool como precondición, abre la hoja real con OverlayHost real y pulsa Guardar y continuar. Comprueba que no pregunta sentadilla/peso muerto, el control48dp, ausencia de persistencia antes del click, valores127,5/82,5 confirmados, auditoría y final del gate, perfil y bolsa1RM/TM actualizados juntos, cargas70%TM de la semana siguiente y principales ajenos conservados. Esta prueba espera la corrección asignada al agente de revisión CAL5b; no se rebaja para aceptar la bolsa obsoleta.
+`Cal7OneRmRoomJourneyTest` materializa una receta de banca y press militar, migra el pool como precondición, abre la hoja real sobre el OverlayHost y pulsa Guardar y continuar. Comprueba que el gate no pide sentadilla ni peso muerto, el control de 48 dp, la falta de persistencia antes del click, los resultados de 127,5 y 82,5 kg, auditoría y cierre del gate, perfil y referencias 1RM/TM actualizados, cargas 70 % del TM de la semana siguiente y referencias principales ajenas preservadas. La ejecución contra la base verde debe confirmar la corrección de CAL5b necesaria para mantener el pool sincronizado y rechazar un guardado cuyo rebuild falle.
 
-## Matriz gestionada pendiente de dependencias
+## Programas publicados: 12 recorridos
 
-`Cal7ManagedRoomFixture` prepara recetas publicadas y ejecución COMPLEX real en Room, abre cada sesión mediante el ViewModel, registra todas sus series por el grabador y termina por el controlador real. Verifica identidad de todas las series en el log. No genera logs sintéticos para simular semanas completas. Las cargas accesorias sin kg autor usan una entrada explícita del atleta del fixture40kg, que no se convierte en referencia de capacidad.
+`Cal7ManagedRoomFixture` instala recetas publicadas, prepara un programa COMPLEX en Room, abre sesiones con `WorkoutViewModel`, registra todas las series por el grabador y termina con el controlador real. Verifica la identidad de las series en los logs durables y usa fechas de finalización explícitas, con el check-in sano asociado al mismo día. Accesorios sin kg autor usan una entrada explícita del atleta de 40 kg, que no se convierte en referencia de capacidad. El fixture también protege una sesión manual y una referencia de otra variante.
 
-Se completarán15 recorridos: `wendler-531-bbb`, `nsuns-531-lp-4d`, `juggernaut-2`, `gzclp` y `apre-mann`, cada uno en OFF/PROPOSE/AUTO. Se elegirá el cierre autor pertinente (ciclo5/3/1, ola Juggernaut, semana nSuns/GZCLP/APRE). Las aserciones incluirán referencia, kilos y series protegidas, propuesta antes de aceptar y efecto después, registro sin cambio automático en OFF y el alcance AUTO real que permita cada receta. No se añaden placeholders verdes ni pruebas omitidas como sustituto de esos recorridos.
+`Cal7ManagedProgramRoomJourneyTest` ejecuta 12 combinaciones (OFF/PROPOSE/AUTO) de `wendler-531-bbb`, `nsuns-531-lp-4d`, `juggernaut-2` y `gzclp`. Cierra el ciclo 5/3/1 y GZCLP tras cuatro semanas, la ola Juggernaut tras cuatro semanas y nSuns tras la semana publicada. En PROPOSE acepta los cambios de método por `ProgramDetailViewModel`; mantiene decisiones de recuperación separadas. Comprueba auditoría y TMs, que no se inventen 1RM, que el pool canónico acompañe al perfil, que las referencias/sesiones manuales y logs históricos queden protegidos, y abre y registra la carga prescrita en una sesión futura real. nSuns PROPOSE/AUTO deben demostrar el +5 kg publicado; OFF conserva el TM.
 
-## Defectos identificados por lectura y coordinación
+## APRE manual, ciclo simple y variante B: cinco recorridos
 
-- `recordPendingOneRmTestMarks` en la base provisional aún cambia el perfil sin sincronizar el pool de referencias y admite guardar el resultado cuando reconstruir falla. Se contrastó con `u21@cc94b308a`; la revisión independiente confirmó el defecto y el agente principal asignó su corrección de producción a `adaptar_c3`. CAL7 solo aporta el recorrido de regresión.
-- La revisión independiente también notificó dos ocurrencias de la misma configuración con TM ausente: confirmar una captura para ambas identidades pero puede dejar la segunda referencia runtime sin hidratar. Espera corrección CAL5b antes de ampliar el recorrido de preparación.
+`Cal7ManualApreRoomJourneyTest` crea programas manuales sin receta ni protocolo publicado. En OFF/PROPOSE/AUTO ejecuta dos semanas por la ruta real: S3 con 120 kg × 9 se aplica desde el ViewModel y ajusta S4 a 122,5 kg; S4 ejecutado por la atleta produce captura XRM de 125 kg. Verifica el log durable, la propuesta tipada antes de aceptar, la resolución por `ProgramDetailViewModel`, auditoría/captura aplicada en AUTO, cargas reales de la siguiente semana y que una sesión manual y una referencia ajena no cambien.
 
-## Evidencia actual
+El cuarto recorrido cierra una semana APRE en un ciclo simple de una semana. Fija identidad/cursor del ciclo 1, conserva esa identidad en el log cerrado y comprueba la propuesta APRE de 125 kg antes de que la misma semana se reutilice en el ciclo 2. Esta regresión cubre la omisión observada en la revisión de `completeCycle`.
 
-`git diff --check` y revisión de firmas/fixtures únicamente. Sin compilación, resultados de pruebas ni renders generados. Riesgos: base provisional; APIs APRE de S4/propuestas aún se integran; volumen de la matriz exige la cola central única. No se cambió Room/DAO/entidades/esquemas ni se tocó u21/u11.
+El quinto activa B desde `WorkoutViewModel.setActiveMode` sobre una sesión base A cuyo `sessionB.id` es distinto. Graba S3/S4 APRE y el accesorio manual B por el ViewModel; verifica que el log conserva el ID base A pero contiene los ejercicios y contexto de B. La captura tipada afecta solo al APRE B de la semana futura después de aceptar; la banca A ajena, el accesorio B manual, la sesión manual separada y la referencia externa permanecen intactos.
+
+## Hallazgos y dependencias de integración
+
+- Luna informó que el canal de producción u28 ya corrige los hallazgos APRE encontrados en revisión: evaluación S4 al cerrar un ciclo simple, recolección APRE en variantes B/C/D y cierre de B con la identidad base A del log. Queda pendiente revisar esos cambios y validarlos contra el SHA verde; esta preparación solo aporta recorridos de regresión.
+- El recorrido 1RM conserva aserciones para pool sincronizado y rechazo seguro si falla la reconstrucción. La preparación no sustituye la corrección CAL5b ni acredita que esté presente en el SHA verde.
+- La API APRE manual, las propuestas tipadas y la corrección de identidad de sesión B aún deben estar en la base verde antes de compilar esta suite.
+
+## Evidencia
+
+Revisión estática de firmas/fixtures e inspección de diffs. `git diff --check` pasó y el escaneo estricto de los cuatro archivos no encontró BOM, U+FFFD, CR aislado ni whitespace final. No hay compilación, ejecución de pruebas, render ni validación en dispositivo. No se modificaron producción ni Room y no se tocaron otros worktrees.
