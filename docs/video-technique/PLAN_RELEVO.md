@@ -181,6 +181,13 @@ Ese cierre no demuestra paridad competitiva: sus afirmaciones se reservan al ane
 **Hecho cuando:** todo está verde o los fallos están explicados uno por uno.
 
 ## Fase 5 · QA de punta a punta en el Z Flip (APK `.dbg`)
+**Estado vigente · 23-oct15:48UTC:** el APK corregido20916 se instaló conservando datos, pero su arranque falló con una
+incompatibilidad Room30→29 en el estado persistido de la app de pruebas. Los dos APK VT conservados declaran29 también
+en el código compilado; la identidad instalada inmediatamente antes del delta no se midió. No se han borrado datos ni
+añadido migraciones. El retorno del Photo Picker fue observado, pero no acredita por sí solo el análisis del medio.
+Fase5 y la ventana dinámica del APK nuevo siguen pendientes; no firmar ni hacer FF antes de resolverlo. Evidencias en
+QA_FASE5_RESULTADOS y EJECUCION; no repetir arranques, selección manual ni pruebas PC aprobadas por rutina.
+
 Cuando el conductor de MM-Fit haya terminado o esté detenido de forma comprobada, sin servicio activo y respetando
 `C:/kw/phone.lock`. No intercalar instalaciones ni QA entre los lotes de la generación homogénea:
 

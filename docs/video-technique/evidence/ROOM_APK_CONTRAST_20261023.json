@@ -1,0 +1,76 @@
+{
+  "recordedAtUtc": "2026-10-23T15:47:40Z",
+  "purpose": "Contraste acotado de Room compilado tras el crash 30->29 de la app de pruebas; sin ejecutar APK ni leer bases privadas.",
+  "artifacts": [
+    {
+      "sha256": "0afd5a5af80d9249936a5c8222a626b85e14ee8a76d858381d760c4a36b21fc4",
+      "path": "C:\\kw\\vt-mmfit\\apks\\r8-motor10-fps-v51-20261023-2\\app-base-release-r8-dbg.apk",
+      "evidenceId": "ev_d54d6d3624b9154659d1bd340a7c2cf6634b413c11928e22d1af8ea9d847029e",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "C:/kw/vt-mmfit/apks/r8-motor10-fps-v51-20261023-2/app-base-release-r8-dbg.apk",
+        "class_name": "com.example.kpkn.data.db.KpknDatabase_Impl",
+        "method_name": "createOpenDelegate",
+        "overload_index": 1
+      },
+      "engine": {
+        "name": "jadx-headless-mcp",
+        "version": "0.7.1",
+        "artifact_sha256": "6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75",
+        "source_revision": "5844800a486d2248fa949b74c9896285f5b54de2",
+        "worker_count": 1,
+        "heap_limit_mib": 8028
+      },
+      "method": {
+        "name": "createOpenDelegate",
+        "reported_signature": "createOpenDelegate(): rz6",
+        "overload_index": 1,
+        "is_constructor": false,
+        "dex_descriptor": "()Lrz6;"
+      },
+      "bodyStatus": "available",
+      "sourceStatus": "complete",
+      "constructorExcerpt": "    @Override // defpackage.mz6\r\n    public qz6 createOpenDelegate() {\r\n        return new qz6() { // from class: com.example.kpkn.data.db.KpknDatabase_Impl$createOpenDelegate$_openDelegate$1\r\n            {\r\n                super(29, \"e24dfe64be0479e820e1210cb13f55b3\", \"de9875f3d5557840394ead168f2d9a22\");\r\n            }\r\n\r\n            @Override // defpackage.qz6\r",
+      "roomVersion": 29
+    },
+    {
+      "sha256": "20916de3570d45cb56e9d22240cada03a63357f9dbe63ebbb0d909f2a9819a8c",
+      "path": "C:\\kw\\vt-mmfit\\apks\\r8-motor10-partial-confidence-v51-20261023\\app-base-release-r8-dbg.apk",
+      "evidenceId": "ev_bf85df84c62e95a5fc023c4a87e211dd97a7ce1fe9fe806c477bfa6dae520ca5",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "C:/kw/vt-mmfit/apks/r8-motor10-partial-confidence-v51-20261023/app-base-release-r8-dbg.apk",
+        "class_name": "com.example.kpkn.data.db.KpknDatabase_Impl",
+        "method_name": "createOpenDelegate",
+        "overload_index": 1
+      },
+      "engine": {
+        "name": "jadx-headless-mcp",
+        "version": "0.7.1",
+        "artifact_sha256": "6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75",
+        "source_revision": "5844800a486d2248fa949b74c9896285f5b54de2",
+        "worker_count": 1,
+        "heap_limit_mib": 8028
+      },
+      "method": {
+        "name": "createOpenDelegate",
+        "reported_signature": "createOpenDelegate(): rz6",
+        "overload_index": 1,
+        "is_constructor": false,
+        "dex_descriptor": "()Lrz6;"
+      },
+      "bodyStatus": "available",
+      "sourceStatus": "complete",
+      "constructorExcerpt": "    @Override // defpackage.mz6\r\n    public qz6 createOpenDelegate() {\r\n        return new qz6() { // from class: com.example.kpkn.data.db.KpknDatabase_Impl$createOpenDelegate$_openDelegate$1\r\n            {\r\n                super(29, \"e24dfe64be0479e820e1210cb13f55b3\", \"de9875f3d5557840394ead168f2d9a22\");\r\n            }\r\n\r\n            @Override // defpackage.qz6\r",
+      "roomVersion": 29
+    }
+  ],
+  "result": "Ambos APK conservados compilan Room29 y el mismo par de hashes de identidad. No explican una actualización a30 entre las observaciones. La identidad del APK instalado inmediatamente antes del delta no se midió.",
+  "runtimeEvidence": "C:/kw/shots/vt/qa/20261023/fase5_delta_startup-crash.txt",
+  "limits": [
+    "Inspección estática de los APK conservados, distinta de la identidad instalada antes del delta.",
+    "El crash Room detectó30->29; no se abrió ni extrajo la base persistida.",
+    "La causa, el momento y el responsable del cambio a30 no están acreditados.",
+    "No se restauraron datos, no se borraron, no se añadió una migración ni se cambió Room."
+  ]
+}

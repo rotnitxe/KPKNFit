@@ -1,5 +1,12 @@
 # Preparación de entrega Pre Release 18 — 2026-10-23
 
+**Bloqueo vigente · 15:48UTC:** el APK QA corregido20916 se instaló con-r conservando datos, pero el arranque falló al
+encontrar una base persistida30 y esperar29. REA contrastó los APK conservados0afd y20916: ambos compilan29 con los mismos
+hashes de identidad; no se midió qué APK estaba instalado inmediatamente antes del delta. No se leen ni borran bases
+privadas ni se añade una migración para eludir el fallo. F5/privacidad del nuevo APK no están aprobadas, por lo que no se
+ejecutan todavía FF, nombre18, parche opcional del firmador, firma ni copia a Drive. El resto de este documento es
+preparación revisable, no una entrega. Evidencia acotada: `evidence/ROOM_APK_CONTRAST_20261023.json` y el informe QA.
+
 ## Resultado de compatibilidad
 
 La búsqueda acotada a nombres de APK KPKN/base en la raíz documentada `G:\Mi unidad\` encontró el APK firmado del 20-oct y Pre Release 16. No se abrieron LEEME ni otros archivos y no se recorrieron subcarpetas. Las comprobaciones públicas con `aapt2 dump badging` y `apksigner verify --print-certs` dieron:
