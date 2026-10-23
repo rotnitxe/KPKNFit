@@ -58,6 +58,7 @@ import com.example.kpkn.screens.workout.RestGameEngine
 import com.example.kpkn.screens.workout.RestNextSetSummary
 import com.example.kpkn.screens.workout.RestTimerKind
 import com.example.kpkn.screens.workout.WorkoutRestModalState
+import com.example.kpkn.screens.workout.restLastSetFigureText
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknModule
@@ -65,7 +66,6 @@ import com.example.kpkn.ui.design.KpknSetFormat
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
-import java.util.Locale
 
 /**
  * Working-set rest as a live pager card (minimized overlay view).
@@ -98,6 +98,7 @@ internal fun RestLiveCard(
     shape: RestClockShape = RestClockShape.TOWER,
     nextSet: RestNextSetSummary? = null,
     recordStore: RestGameRecordStore? = null,
+    lastCompletedCustomUnit: String? = null,
     clockActive: Boolean = true,
     initiallyPlaying: Boolean = false,
     gameEngine: RestGameEngine? = null,
@@ -252,6 +253,7 @@ internal fun RestLiveCard(
                     videoSlot?.invoke()
                     RestLiveLastSetSummary(
                         lastCompletedSet = lastCompletedSet ?: pendingRestSuggestion?.lastSet,
+                        customUnit = lastCompletedCustomUnit,
                         lastSetOutcome = lastSetOutcome,
                     )
 
@@ -308,14 +310,13 @@ internal val CardTrackColor = Color(0xFF242424)
 @Composable
 private fun RestLiveLastSetSummary(
     lastCompletedSet: CompletedSet?,
+    customUnit: String?,
     lastSetOutcome: SetOutcomeV2?,
 ) {
     val set = lastCompletedSet ?: return
     // Espacio inseparable solo antes de la unidad («100,5 kg», «6 reps», «45 s»): alrededor de «×» el espacio normal deja que la cifra
     // parta en dos líneas antes que cortarse con elipsis al 130 % (LR1c1).
-    val loadStr = if (set.weight > 0.0) "${formatRestWeight(set.weight)} kg" else "Peso corporal"
-    val valueStr = if (set.timeSeconds != null) "${set.timeSeconds} s" else "${set.reps} reps"
-    val figure = "$loadStr × $valueStr"
+    val figure = restLastSetFigureText(set, customUnit)
     val outcome = lastSetOutcome ?: set.setOutcomeV2
     val boxShape = WorkoutUiTokens.InnerCardShape
 
@@ -462,9 +463,4 @@ private fun RestLiveSecondaryPill(
             textAlign = TextAlign.Center,
         )
     }
-}
-
-/** Peso del descanso con coma decimal, como en el resto de la sesión (LR1c1): «100,5», «95». */
-private fun formatRestWeight(weight: Double): String {
-    return if (weight % 1.0 == 0.0) weight.toInt().toString() else String.format(Locale.forLanguageTag("es"), "%.1f", weight)
 }

@@ -1317,7 +1317,13 @@ fun WorkoutScreen(
                     .filter { it.supersetGroupRefOrLegacyId() == groupId }
                     .mapNotNull { member ->
                         val key = "${member.id}_${uiState.currentSetIdx}"
-                        uiState.completedSets[key]?.let { displayWorkoutExerciseName(member) to it }
+                        uiState.completedSets[key]?.let {
+                            RestCompletedSetSummary(
+                                exerciseName = displayWorkoutExerciseName(member),
+                                set = it,
+                                customUnit = member.customUnit,
+                            )
+                        }
                     }
             }
             .orEmpty()
