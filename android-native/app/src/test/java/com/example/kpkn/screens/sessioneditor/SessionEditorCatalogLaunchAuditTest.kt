@@ -118,7 +118,7 @@ class SessionEditorCatalogLaunchAuditTest {
                     )),
                 )),
             )),
-        ))
+        )))
         repo.flushPendingWrites()
 
         val firstEditor = SessionEditorViewModel(app, programId, baseSession.id, "variant-week", 0, 0, 6)
