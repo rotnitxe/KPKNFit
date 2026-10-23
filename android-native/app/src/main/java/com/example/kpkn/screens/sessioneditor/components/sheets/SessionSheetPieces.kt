@@ -176,8 +176,8 @@ internal fun SessionSheetActionRow(
 }
 
 /**
- * Fila de la lista de la superserie: casilla, miniatura de 40 dp y el nombre con su dosis debajo. Con [selectable] en falso (ya hay
- * cuatro marcados y esta no está) va al 38 % y no responde.
+ * Fila de la lista de la superserie (ED-D · C2): la insignia circular con la letra del orden cuando está marcada, y el nombre con su
+ * dosis debajo. Con [selectable] en falso (ya hay cuatro marcados y esta no está) va al 38 % y no responde.
  */
 @Composable
 internal fun SupersetPickRow(
@@ -185,12 +185,18 @@ internal fun SupersetPickRow(
     checked: Boolean,
     selectable: Boolean,
     onToggle: () -> Unit,
+    /** Letra del orden («A»..«D») cuando está marcada; sin letra, la insignia sale vacía. */
+    letter: String? = null,
+    /** Tinte de la insignia marcada y del fondo de la fila. El editor de sesiones pasa el de la superserie. */
+    accent: Color = WizardColors.text,
 ) {
     val interaction = remember { MutableInteractionSource() }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 56.dp)
+            .defaultMinSize(minHeight = 48.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(if (checked) accent.copy(alpha = 0.08f) else Color.Transparent, RoundedCornerShape(14.dp))
             .graphicsLayer { alpha = if (selectable) 1f else 0.38f }
             .toggleable(
                 value = checked,
@@ -200,12 +206,10 @@ internal fun SupersetPickRow(
                 indication = null,
                 onValueChange = { onToggle() },
             )
-            .padding(vertical = 8.dp),
+            .padding(horizontal = 10.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        SessionCheckMark(checked = checked)
-        Spacer(Modifier.width(12.dp))
-        SessionExerciseThumb(exercise = exercise)
+        SessionOrderBadge(letter = if (checked) (letter ?: "•") else null, accent = accent)
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -221,6 +225,32 @@ internal fun SupersetPickRow(
                 color = WizardColors.textMuted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+/** Insignia de 28 dp de la fila de la superserie: vacía con filete, o rellena del acento con la letra del orden. */
+@Composable
+internal fun SessionOrderBadge(letter: String?, accent: Color) {
+    val filled = letter != null
+    Box(
+        modifier = Modifier
+            .size(28.dp)
+            .clip(CircleShape)
+            .background(if (filled) accent else Color.Transparent, CircleShape)
+            .border(
+                width = if (filled) 0.dp else 1.5.dp,
+                color = if (filled) Color.Transparent else WizardColors.text.copy(alpha = 0.30f),
+                shape = CircleShape,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (filled) {
+            Text(
+                text = letter.orEmpty(),
+                style = KpknType.caption,
+                color = WizardColors.ctaContent,
             )
         }
     }
