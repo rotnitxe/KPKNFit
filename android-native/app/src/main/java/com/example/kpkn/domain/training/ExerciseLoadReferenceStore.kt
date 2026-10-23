@@ -53,7 +53,7 @@ object ExerciseLoadReferenceStore {
             val sourceId = reference.metadata?.sourceId?.takeIf { it.isNotBlank() }
             val sameEvent = existing.filter { sameIdentity(it, reference) &&
                 sourceId != null && it.metadata?.sourceId == sourceId }
-            val duplicate = if (sourceId == null) reference in existing else sameEvent.any { samePayload(it, reference) }
+            val duplicate = if (sourceId == null) reference in existing else sameEvent.lastOrNull()?.let { samePayload(it, reference) } == true
             if (!duplicate) {
                 val captured = if (reference.metadata == null) reference else reference.copy(metadata = reference.metadata.copy(
                     revision = maxOf(reference.metadata.revision, (sameEvent.maxOfOrNull { it.metadata?.revision ?: 0 } ?: -1) + 1),

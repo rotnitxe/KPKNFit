@@ -66,6 +66,9 @@ class ExerciseLoadReferenceStoreTest {
         assertEquals(1, history[1].metadata!!.revision)
         assertEquals(105.0, current(corrected, reference)!!.capturedLoadKg!!, 0.0)
         assertEquals(corrected, add(corrected, reference.copy(capturedLoadKg = 105.0, capturedAtMs = 50)))
+        val reverted = add(corrected, reference.copy(capturedAtMs = 60))
+        assertEquals(3, ExerciseLoadReferenceStore.history(reverted, "press", reference).size)
+        assertEquals(100.0, current(reverted, reference)!!.capturedLoadKg!!, 0.0)
     }
 
     @Test fun unknownDateIsNotInventedAndEqualDatesUseTheLastRevision() {
