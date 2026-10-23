@@ -187,3 +187,10 @@ El usuario se va a dormir y autoriza tomar decisiones autónomas para completar 
 ### Paralelismo preparatorio y CAT-A · 23-oct
 
 Por autonomía explícita del usuario se adelanta fase4 en bases provisionales acc75872c mientras se valida fase3: u19/codex/sv2-catb(SolMedium),u20/codex/sv2-cal4v(principal),u21/codex/sv2-cal5b(SolMedium),u22/codex/sv2-plan-obs(Luna6Max). Antes de validar o integrar esas ramas se actualizarán con feat/screens-v2 de fase3 completa y verde. No cambia el orden de integración ni la única corrida propia. CAT-A ya suma70casos únicos/0 (66base+4geometría real), wrappers cerrados; el recorte E4 era del arnés1000→880 y las acciones reales se verificaron. Siguiente G1adaptado0ac8bd0e6, ED-A7114b5872 y regresión JVM.
+
+
+### Hito fase3 · 23-oct 04:42
+
+Fusiones u13/u12/u14/u17/u18/u15/u16 y cierre ED-A integrados; fuente2e14b0700, HEAD documental60caa0b4a. Regresión dirigida verde:1936JVM(185clases)+169Android(15)+173Android(15),2278casos en3corridas, wrappers exit0. Evidencia archivada, detalle INT-1.md. Barrido ampliado final de workout/sessioneditor pendiente tras fase4 y antes de QA. Roomv30 sin cambios data/db/schema.
+
+Siguiente: actualizar bases de fase4 desde este hito, integrar/validar CAT-B(u19d28b4d2cf), CAL4-V(u201f235265c, condurabilidadu29ycanalu28integrados), CAL5b(u21f8068e5f4), PLAN-OBS(u22cc35b9388), CAL7(u23,21recorridosRoompreparados y ajuste deesperadelogencurso). Todos esos paquetes siguen sin ejecutar. Después regresión ampliada, QA ZFlip5_QA5580 y APK. Firma sólo orquestador, sin push/master ni paquetes personales.

@@ -1,4 +1,4 @@
-# INT-1 · Integración de screens-v2 · en curso
+# INT-1 · Integración y regresión dirigida de fase3 verificadas
 
 Se integra en `feat/screens-v2`, C:/kw/u11, en el orden del relevo. El artefacto ajeno `artifacts/aud2-editor-catalogo-20261020/` se conserva fuera de los commits. No se modifica master ni se hace push. Room sigue congelado en v30.
 
@@ -108,3 +108,18 @@ Total: 95 pruebas únicas verdes, con 50 de la segunda corrida, 37 Board y seis 
 Tras fusionar7114b5872 se corrigieron los recortes reales de Añadir y del párrafo de semana en8e4b54634/2e14b0700 y dos selectores de decoración/animación. ED-A suma96 casos únicos verdes:63 iniciales fuera de las rutas modificadas y33 finales del marco (incluidos11 nuevos). Tercera corrida exit0, XML archivados; ver INT-EDA.md para diagnóstico y las tres ejecuciones. Renders nuevos revisados al100/130,740/880. Todas las ramas de fase3 están integradas.
 
 Sigue la regresión central: JVM de protocolos/training/workout/calibration y motores MOT con fixtures concretos; dos lotes Android de15 clases de sesión en vivo y persistencia. Los tests con dependencias de pantalla/Room no se fuerzan al arnés puro. No se declara aún fase3 completamente verde hasta cerrar estas corridas. No hay QA ni APK de esta continuación.
+
+
+## Hito verde de fase3 · 23-oct 04:42
+
+La fuente validada es2e14b0700 (HEAD documental60caa0b4a); todas las fusiones de fase3 y la corrección ED-A están dentro. CLAUDE.md y KpknDatabase declaran Roomv30 y el diff de data/db y schemas desde3645ba55c está vacío. Se conserva el artefacto ajeno sin seguimiento. Sin push/master.
+
+- JVM: `int-phase3-jvm-codex-20261023-2.log`, log completo `kpknjvm-u11-20261023-042613.log`: BUILD SUCCESSFUL3min42s, wrapper exit0,382s con cola/resumen.185 clases1936 pruebas,0 fallos/errores/omitidas. Incluye protocolos/training/workout/calibration, FIX-TM y tres motores MOT con sus fixtures por archivo. Primera corrida sólo falló en compilación de tests por omitir CustomExerciseNameCorpus.kt del filtro; se añadió el archivo, sin modificar producto ni arnés.
+- Android1: `int-phase3-android-codex-20261023-1.log`:15 clases169/0, BUILD SUCCESSFUL1min1s, wrapper exit0. Línea/hojas, modos, persistencia de modos, preparación, ficha, opciones y geometría en vivo.
+- Android2: `int-phase3-android-codex-20261023-2.log`:15 clases173/0, BUILD SUCCESSFUL55s, wrapper exit0. Calibración/Room, decisiones, resumen/vista previa, voz/vídeo, cierre y preparación.
+
+Son2278 casos en tres corridas dirigidas, no una suite única. XML/summary.json archivados bajo C:/kw/logs/screens-v2-evidence/ con el nombre de cada corrida. MOT se repite sin cambiar corpus: AUD1top1/top3=36/36; validación40/40; fresco42/45 y44/45 (93,3/97,8%).
+
+Esta regresión dirigida se suma a las verificaciones por paquete de arriba. El barrido ampliado de clases concretas de workout/sessioneditor se hará tras unir fase4 y antes de QA, para cubrir también sus cambios nuevos sin repetirlo entero antes de cada unión. Se documenta esta decisión autónoma de orden: no equivale a declarar ahora todos los tests del repositorio verdes. QA, instalación, APK y firma no se han realizado en esta continuación.
+
+Las bases provisionales de CAT-B/CAL4-V/CAL5b/PLAN-OBS deben incorporar este hito antes de validarlas. CAL7 incorporará además todos los paquetes de fase4. Los preflight individuales contra60caa0b4a fueron limpios; se repiten antes de las fusiones reales.
