@@ -9,10 +9,7 @@ import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.training.generator.Prescriber
-import com.example.kpkn.domain.training.resolveLiveApreBlock
-import com.example.kpkn.domain.training.ExerciseLoadReferenceStore
-import com.example.kpkn.data.protocols.PlanLoadReferenceKind
-import com.example.kpkn.data.protocols.PlanLoadReferenceState
+import com.example.kpkn.domain.training.observedApreXrmBlock
 
 /**
  * Carga de una serie en %RM (ER2a): la referencia de 1RM por su porcentaje, redondeada con la regla del generador
@@ -55,18 +52,7 @@ internal fun Exercise.withExplicitRmLoads(previous: Exercise): Exercise {
     val oneRmChanged = resolveReferenceCapacity(previous) != resolveReferenceCapacity(this)
     val trainingMaxChanged = previous.referenceTrainingMax != referenceTrainingMax
     val previousSets = previous.sets.associateBy { it.id }
-    val observedXrm = loadReference?.takeIf { reference ->
-        reference.kind == PlanLoadReferenceKind.OBSERVED_WORKING_SET &&
-            reference.state == PlanLoadReferenceState.CAPTURED &&
-            reference.metadata?.origin == ExerciseLoadReferenceStore.APRE_XRM &&
-            reference.capturedLoadKg?.let { it.isFinite() && it > 0.0 } == true &&
-            reference.configurationId == (catalogConfigurationId ?: exerciseDbId) &&
-            reference.quantityConvention == loadQuantityConvention
-    }
-    val protectedApreIds = resolveLiveApreBlock(this)?.takeIf { block ->
-        observedXrm != null && observedXrm.repMin == block.variant.xrmReps &&
-            observedXrm.repMax == block.variant.xrmReps
-    }?.setIds.orEmpty().toSet()
+    val protectedApreIds = observedApreXrmBlock(this)?.setIds.orEmpty().toSet()
     return copy(
         sets = sets.map { set ->
             if (set.id in protectedApreIds) return@map set

@@ -89,6 +89,18 @@ class ExerciseLoadReferenceStoreTest {
         assertEquals(before.runState, after.runState)
     }
 
+    @Test fun explicitClearDoesNotResurrectAnOlderCaptureButNewCaptureCanReplaceIt() {
+        val reference = ref()
+        val captured = add(Program("p", "Plan"), reference)
+        val cleared = ExerciseLoadReferenceStore.invalidate(captured, setOf("press"), reference, 20, "clear", "Retirado")
+        assertEquals(PlanLoadReferenceState.PENDING, current(cleared, reference)!!.state)
+        assertNull(current(cleared, reference)!!.capturedLoadKg)
+        val updated = add(cleared, reference.copy(capturedLoadKg = 110.0, capturedAtMs = 30,
+            metadata = reference.metadata!!.copy(sourceId = "new")))
+        assertEquals(110.0, current(updated, reference)!!.capturedLoadKg!!, 0.0)
+        assertEquals(3, ExerciseLoadReferenceStore.history(updated, "press", reference).size)
+    }
+
     @Test fun oldJsonRemainsReadableAndNewProvenanceRoundTrips() {
         val legacy = Json.decodeFromString<PlanLoadReference>("""{"kind":"EXERCISE_TM","configurationId":"press"}""")
         assertNull(legacy.metadata)

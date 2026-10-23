@@ -61,6 +61,35 @@ class ExerciseTrainingMaxTest {
         assertEquals(2, ExerciseLoadReferenceStore.history(after, row.id, ExerciseTrainingMax.request(row, PlanLoadReferenceKind.EXERCISE_TM)!!).size)
     }
 
+    @Test fun authoredRecipeBindingsAdvanceDerivedVariantsButNeverTheirManualOverrides() {
+        val variant = exercise("seated", CatalogIds.OHP_SEATED, 72.0, 80.0)
+        val recipe = TrainingPlanRecipe("scope-fixture", weeks = listOf(weekRecipe(1, 0, "Semana", BlockGoal.ACCUMULATION,
+            listOf(day("A", weekday = 1, slots = listOf(slot("seated", SlotRole.T2_SUPPLEMENTAL, CatalogIds.OHP_SEATED,
+                listOf(SetRecipe(reps = 5, percent = 80.0)), 120, LiftSlot.OVERHEAD)))))),
+            progression = ProgressionRule.CycleIncrement(2.5, 5.0))
+        val before = ExerciseTrainingMax.migrate(program(listOf(variant), PowerliftingProfile(overheadTM = 72.0, overhead1RM = 80.0))
+            .copy(sourceRecipe = recipe))
+        val after = ExerciseTrainingMax.syncProfile(before, before.copy(powerliftingProfile = before.powerliftingProfile!!.copy(overheadTM = 74.5)),
+            100, "cycle", "Ciclo")
+        assertEquals(74.5, ExerciseTrainingMax.capturedKg(after, variant, PlanLoadReferenceKind.EXERCISE_TM)!!, 0.0)
+        val manual = ExerciseTrainingMax.capture(before, variant, PlanLoadReferenceKind.EXERCISE_TM, 65.0, 50, "manual", "Referencia propia")
+        val protected = ExerciseTrainingMax.syncProfile(manual, manual.copy(powerliftingProfile = manual.powerliftingProfile!!.copy(overheadTM = 74.5)),
+            100, "cycle", "Ciclo")
+        assertEquals(65.0, ExerciseTrainingMax.capturedKg(protected, variant, PlanLoadReferenceKind.EXERCISE_TM)!!, 0.0)
+    }
+
+    @Test fun aConfirmedClearRemainsPendingAcrossMigrationAndHydration() {
+        val row = exercise()
+        val source = program(listOf(row), PowerliftingProfile(overheadTM = 72.0, overhead1RM = 80.0))
+        val cleared = ExerciseTrainingMax.clear(source, row, PlanLoadReferenceKind.EXERCISE_TM, 100, "clear")
+        val migrated = ExerciseTrainingMax.migrate(cleared)
+        assertNull(ExerciseTrainingMax.hydrate(migrated, row).referenceTrainingMax)
+        assertNull(migrated.powerliftingProfile!!.overheadTM)
+        val refreshed = ExerciseTrainingMax.refreshPending(migrated, emptySet(), emptySet())
+        assertNull(all(refreshed).single().sets.single().weight)
+        assertEquals(80.0, all(refreshed).single().reference1RM!!, 0.0)
+    }
+
     @Test fun refreshProtectsExecutedAndManualSessionsAndRecalculatesOnlyPending() {
         val first = exercise("done")
         val manual = exercise("manual")

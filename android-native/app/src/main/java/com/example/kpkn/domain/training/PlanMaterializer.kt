@@ -1140,11 +1140,10 @@ object PlanMaterializer {
             }
             ?.capturedLoadKg
             ?.takeIf { it > 0.0 }
-        // H10: 1RM de referencia con el que `materializeSet` acota la carga de `WeeklyKg`. Sin referencia
-        // declarada es el 1RM del perfil (o, si solo hay TM, el TM entre la fracción de TM de la receta); con
-        // una referencia declarada solo vale la de un 1RM capturado, igual que `Exercise.reference1RM`.
+        // H10 only clamps WeeklyKg when an actual 1RM reference exists. A stored TM is not evidence of 1RM;
+        // dividing it by a recipe fraction must not invent a capacity or a safety limit.
         val weeklyKgOneRmKg: Double? = if (hasCapacityReference) declaredOneRmKg else when {
-            explicit == null -> oneRm ?: tm?.takeIf { it > 0.0 }?.let { it / PercentBasis.tmFraction(recipe.trainingMaxPercent) }
+            explicit == null -> oneRm
             else -> null
         }
         val sets = working.mapIndexed { index, set ->
@@ -1248,7 +1247,12 @@ object PlanMaterializer {
             // valor legacy; con referencia declarada SOLO si es 1RM capturado.
             // Una carga de trabajo de 3-5 reps JAMÁS acá (§14.2).
             reference1RM = if (hasCapacityReference) declaredOneRmKg else if (explicit == null) oneRm else null,
-            referenceTrainingMax = if (hasCapacityReference) declaredTmKg else if (explicit == null) tm else null,
+            referenceTrainingMax = when {
+                tmReference != null -> referenceBaseKg(tmReference)
+                oneRmReference != null -> declaredTmKg.takeIf { working.any { it.percent != null && !readsOneRm(it.loadBasis) } }
+                explicit == null -> tm
+                else -> null
+            },
             variantName = slot.technique?.displayName(),
             isUnilateral = slot.isUnilateral,
             isCompetitionLift = slot.isCompetitionLift,
