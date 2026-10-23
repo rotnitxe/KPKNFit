@@ -8,8 +8,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
@@ -18,6 +16,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -41,6 +41,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -61,7 +63,6 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -69,12 +70,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -264,18 +260,6 @@ internal fun DetailSheet(
             .fillMaxSize()
             .testTag(PLAN_DETAIL_TAG)
             .semantics { paneTitle = card.title }
-            // Tocar fuera del panel «Cambiar» lo cierra; el toque sigue su curso (no se consume aquí).
-            .pointerInput(swapState) {
-                awaitPointerEventScope {
-                    while (true) {
-                        val event = awaitPointerEvent(PointerEventPass.Initial)
-                        if (event.type == PointerEventType.Press && swapState.panelOf != null) {
-                            val at = event.changes.first().position
-                            if (swapState.panelRect?.contains(at) != true) swapState.closePanel()
-                        }
-                    }
-                }
-            }
             .graphicsLayer { alpha = shown() }
             // Sin desenfoque del sistema el velo es del todo opaco (con 0,985 el texto de la página de atrás asomaba unos niveles
             // de gris); con él, 0,84: aquí hay mucho texto.
@@ -391,6 +375,21 @@ internal fun DetailSheet(
                 .align(Alignment.BottomCenter)
                 .onSizeChanged { barPx = it.height },
         )
+        // El panel «Cambiar» va sobre la hoja y su pie, y bajo la ficha del ejercicio.
+        swapState.panelExercise?.takeIf { swapState.panelOf != null }?.let { exercise ->
+            SwapSheet(
+                exercise = exercise,
+                accent = accent,
+                options = swapState.options,
+                picked = swapState.picked,
+                onPick = { swapState.picked = it },
+                onConfirm = { configId ->
+                    swaps.onSwap(exercise.instanceId, configId)
+                    swapState.closePanel()
+                },
+                onCancel = { swapState.closePanel() },
+            )
+        }
         // La ficha va la última: cubre la cabecera, el pie y el resto de la hoja.
         ExerciseInfoLayer(state = info, reduced = reduced, topInset = statusTop + HEADER_STRIP)
     }
@@ -1055,6 +1054,11 @@ private val BLEED = 24.dp
 
 /** Marca de prueba del panel «Cambiar» abierto. */
 internal const val SWAP_PANEL_TAG = "setup-plan-swap-panel"
+internal const val SWAP_SCRIM_TAG = "setup-plan-swap-scrim"
+internal const val SWAP_CURRENT_TAG = "setup-plan-swap-current"
+internal const val SWAP_KEEPS_TAG = "setup-plan-swap-keeps"
+internal const val SWAP_CONFIRM_TAG = "setup-plan-swap-confirm"
+internal const val SWAP_CANCEL_TAG = "setup-plan-swap-cancel"
 
 /** Motivos cortos de una alternativa y el texto cuando no hay ninguna con el material de ese día. */
 internal const val SWAP_REASON_SAME_MUSCLE = "Mismo músculo"
@@ -1068,12 +1072,18 @@ private const val DAY_CLOSED = "Plegado"
 /** Relleno del acento del día desplegado: tenue, para que la inicial siga legible sobre él. */
 private const val OPEN_DAY_FILL_ALPHA = 0.18f
 
-private val SwapPanelShape = RoundedCornerShape(24.dp)
+private val SwapSheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+private val SwapCardShape = RoundedCornerShape(20.dp)
 
-/** El fondo del panel «Cambiar»: el de la nota de A3 (0xFF141414 al 0,94), sin desenfoque ni sombra. */
-private val SwapPanelFill = Color(0xFF141414).copy(alpha = 0.94f)
+/** Los fondos del panel «Cambiar» (G4): la hoja #0E0E0E, el módulo del ejercicio #111 y el cuadro del pictograma #1A1A1A. */
+private val SwapSheetFill = Color(0xFF0E0E0E)
+private val SwapCardFill = Color(0xFF111111)
+private val SwapThumbFill = Color(0xFF1A1A1A)
 
-/** El estado de «Cambiar» en la hoja: el día desplegado, el ejercicio con el panel abierto, sus alternativas y dónde está el panel. */
+/** Lo que queda libre sobre la hoja «Cambiar»: se ve el día desplegado, oscurecido. */
+private val SWAP_SHEET_TOP_GAP = 168.dp
+
+/** El estado de «Cambiar» en la hoja: el día desplegado, el ejercicio con el panel abierto, sus alternativas y la elegida. */
 private class SwapPanelState {
     /** El día cuya lista está desplegada (null = plegada). */
     var openDay by mutableStateOf<Int?>(null)
@@ -1081,16 +1091,25 @@ private class SwapPanelState {
     /** El último día desplegado: mientras la lista se pliega, sigue mostrando sus ejercicios. */
     var lastDay by mutableStateOf<Int?>(null)
 
-    /** El ejercicio cuyo panel «Cambiar» está abierto, y sus alternativas. */
+    /** El ejercicio cuyo panel «Cambiar» está abierto (su instancia), el propio ejercicio y sus alternativas. */
     var panelOf by mutableStateOf<String?>(null)
+    var panelExercise by mutableStateOf<SetupPlanRevealExercise?>(null)
     var options by mutableStateOf<List<SwapOption>>(emptyList())
 
-    /** Dónde está el panel en la raíz de la hoja: tocar fuera de él lo cierra. */
-    var panelRect by mutableStateOf<Rect?>(null)
+    /** La alternativa marcada en el panel: no se aplica hasta «Cambiar por …» (G4: confirmar antes de aplicar). */
+    var picked by mutableStateOf<String?>(null)
+
+    /** Abre el panel del ejercicio [exercise] con sus [alternatives]; parte con la primera, la más parecida, marcada. */
+    fun openPanel(exercise: SetupPlanRevealExercise, alternatives: List<SwapOption>) {
+        panelExercise = exercise
+        options = alternatives
+        picked = alternatives.firstOrNull()?.configId
+        panelOf = exercise.instanceId
+    }
 
     fun closePanel() {
         panelOf = null
-        panelRect = null
+        picked = null
     }
 
     /** Despliega el día [day] o, si ya lo está, lo pliega. Cambiar de día (o plegarlo) cierra el panel. */
@@ -1209,38 +1228,9 @@ private fun ExerciseRow(
             if (canSwap) {
                 SwapAction(name = exercise.name, instanceId = exercise.instanceId) {
                     if (state.panelOf != exercise.instanceId) {
-                        state.options = swaps.optionsOf(exercise.instanceId)
-                        state.panelOf = exercise.instanceId
+                        state.openPanel(exercise, swaps.optionsOf(exercise.instanceId))
                     }
                 }
-            }
-        }
-        if (canSwap) {
-            AnimatedVisibility(
-                visible = state.panelOf == exercise.instanceId,
-                enter = if (reduced) {
-                    EnterTransition.None
-                } else {
-                    scaleIn(animationSpec = tween(220), initialScale = 0.92f, transformOrigin = TransformOrigin(0.5f, 0f)) +
-                        fadeIn(tween(220))
-                },
-                exit = if (reduced) {
-                    ExitTransition.None
-                } else {
-                    fadeOut(tween(160)) + scaleOut(animationSpec = tween(160), targetScale = 0.92f)
-                },
-            ) {
-                SwapPanel(
-                    exerciseName = exercise.name,
-                    accent = accent,
-                    options = state.options,
-                    onPick = { configId ->
-                        swaps.onSwap(exercise.instanceId, configId)
-                        state.closePanel()
-                    },
-                    onCancel = { state.closePanel() },
-                    modifier = Modifier.onGloballyPositioned { state.panelRect = it.boundsInRoot() },
-                )
             }
         }
     }
@@ -1291,67 +1281,185 @@ private fun SwapArrows(color: Color, modifier: Modifier = Modifier) {
     }
 }
 
-/** El panel «Cambiar»: el aspecto de la nota de A3 sin desenfoque, con las alternativas y «Cancelar». */
+/**
+ * El panel «Cambiar» (G4): una hoja sobre el día desplegado, con el aspecto del reemplazo del catálogo. Arriba el ejercicio que se
+ * reemplaza («REEMPLAZANDO»), después las alternativas más parecidas como lista de una sola elección y, fijo abajo, lo que se
+ * mantiene del plan, «Cambiar por …» y «Cancelar». Marcar una alternativa no cambia nada: solo el botón aplica ([onConfirm]); tocar
+ * el velo o «Cancelar» lo cierra sin tocar el programa.
+ */
 @Composable
-private fun SwapPanel(
-    exerciseName: String,
+private fun SwapSheet(
+    exercise: SetupPlanRevealExercise,
     accent: Color,
     options: List<SwapOption>,
+    picked: String?,
     onPick: (String) -> Unit,
+    onConfirm: (String) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier
-            .fillMaxWidth()
-            .padding(top = 6.dp, bottom = 10.dp)
-            .testTag(SWAP_PANEL_TAG)
-            .background(SwapPanelFill, SwapPanelShape)
-            .border(1.dp, WizardColors.glassBorder, SwapPanelShape)
-            .padding(20.dp),
-    ) {
-        Text(
-            text = "Cambiar $exerciseName",
-            style = WizardTypography.controlLabel,
-            color = WizardColors.text,
-            modifier = Modifier.semantics { heading() },
+    val pickedOption = options.firstOrNull { it.configId == picked }
+    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    Box(modifier.fillMaxSize()) {
+        // El velo: oscurece el plan y, al tocarlo, cancela.
+        Box(
+            Modifier
+                .fillMaxSize()
+                .testTag(SWAP_SCRIM_TAG)
+                .background(Color.Black.copy(alpha = 0.55f))
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClickLabel = "Cancelar el cambio", onClick = onCancel),
         )
-        Spacer(Modifier.height(6.dp))
-        if (options.isEmpty()) {
-            Text(SWAP_NONE_TEXT, style = WizardTypography.note, color = WizardColors.textMuted)
-        } else {
-            for (option in options) SwapOptionRow(option, accent) { onPick(option.configId) }
-        }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        Column(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(top = statusTop + SWAP_SHEET_TOP_GAP)
+                .testTag(SWAP_PANEL_TAG)
+                .semantics { paneTitle = "Cambiar ${exercise.name}" }
+                .clip(SwapSheetShape)
+                .background(SwapSheetFill)
+                .border(1.dp, Color.White.copy(alpha = 0.08f), SwapSheetShape)
+                // Lo de dentro no deja pasar el toque al velo (sin fundir la semántica de sus hijos, como haría un clickable).
+                .pointerInput(Unit) { detectTapGestures { } },
+        ) {
             Box(
                 Modifier
-                    .heightIn(min = 48.dp)
-                    .clickable(role = Role.Button, onClickLabel = "Cancelar el cambio", onClick = onCancel)
-                    .padding(horizontal = 8.dp),
-                contentAlignment = Alignment.Center,
+                    .padding(top = 8.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .size(width = 36.dp, height = 4.dp)
+                    .background(Color.White.copy(alpha = 0.22f), RoundedCornerShape(2.dp)),
+            )
+            Text(
+                text = "Cambiar",
+                style = SECTION_STYLE,
+                color = WizardColors.text,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp).semantics { heading() },
+            )
+            // Lo que se reemplaza.
+            Row(
+                Modifier
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .fillMaxWidth()
+                    .testTag(SWAP_CURRENT_TAG)
+                    .background(SwapCardFill, SwapCardShape)
+                    .border(1.dp, Color.White.copy(alpha = 0.10f), SwapCardShape)
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text("Cancelar", style = WizardTypography.controlLabel, color = WizardColors.text)
+                SwapThumb(exercise.name, accent, 48.dp, 26.dp)
+                Column(Modifier.weight(1f)) {
+                    Text("REEMPLAZANDO", style = WizardTypography.eyebrow, color = WizardColors.textFaint)
+                    Text(exercise.name, style = WizardTypography.controlLabel, color = WizardColors.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    exercise.setsLabel?.let { Text(it, style = WizardTypography.note, color = WizardColors.textMuted) }
+                }
+            }
+            if (options.isEmpty()) {
+                Text(
+                    SWAP_NONE_TEXT,
+                    style = WizardTypography.note,
+                    color = WizardColors.textMuted,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).weight(1f, fill = false),
+                )
+            } else {
+                Text(
+                    "PRIMERO LOS MÁS PARECIDOS",
+                    style = WizardTypography.eyebrow,
+                    color = WizardColors.textMuted,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+                Column(
+                    Modifier
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                        .selectableGroup()
+                        .semantics { contentDescription = "Alternativas" },
+                ) {
+                    for (option in options) SwapOptionRow(option, accent, selected = option.configId == picked) { onPick(option.configId) }
+                    Text(
+                        "Solo con el material de este día.",
+                        style = WizardTypography.note,
+                        color = WizardColors.textFaint,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                }
+            }
+            // Fijo abajo: lo que se mantiene, el botón que aplica y «Cancelar».
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(Brush.verticalGradient(0f to Color.Transparent, 0.3f to SwapSheetFill, 1f to SwapSheetFill))
+                    .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = navBottom + 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    text = exercise.setsLabel?.let { "Se mantienen las series del plan: $it" } ?: "Se mantienen las series del plan.",
+                    style = WizardTypography.note,
+                    color = WizardColors.textMuted,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.testTag(SWAP_KEEPS_TAG),
+                )
+                PillButton(
+                    label = pickedOption?.let { "Cambiar por ${it.displayName}" } ?: "Elige una alternativa",
+                    container = if (pickedOption != null) WizardColors.cta else WizardColors.ctaDisabled,
+                    content = if (pickedOption != null) WizardColors.ctaContent else WizardColors.ctaDisabledContent,
+                    leadingCheck = false,
+                    onClick = { pickedOption?.let { onConfirm(it.configId) } },
+                    modifier = Modifier.fillMaxWidth().testTag(SWAP_CONFIRM_TAG),
+                )
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .testTag(SWAP_CANCEL_TAG)
+                        .clickable(role = Role.Button, onClickLabel = "Cancelar el cambio", onClick = onCancel),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("Cancelar", style = WizardTypography.controlLabel, color = WizardColors.textMuted)
+                }
             }
         }
     }
 }
 
-/** Una alternativa: su pictograma, su nombre, su matiz y el motivo corto; un objetivo táctil de 48 dp. */
+/** El pictograma del ejercicio en un cuadro redondeado, como en el reemplazo del catálogo. */
 @Composable
-private fun SwapOptionRow(option: SwapOption, accent: Color, onClick: () -> Unit) {
+private fun SwapThumb(name: String, accent: Color, box: Dp, glyph: Dp) {
+    Box(
+        Modifier.size(box).background(SwapThumbFill, RoundedCornerShape(12.dp)),
+        contentAlignment = Alignment.Center,
+    ) {
+        PatternGlyph(exercisePatternOf(name), accent, Modifier.size(glyph))
+    }
+}
+
+/** Una alternativa: su pictograma, su nombre, su matiz y el motivo corto, y a la derecha su marca; 52 dp de alto como mínimo. */
+@Composable
+private fun SwapOptionRow(option: SwapOption, accent: Color, selected: Boolean, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .heightIn(min = 48.dp)
+            .heightIn(min = 52.dp)
             .testTag("setup-plan-swap-option-${option.configId}")
-            .clickable(role = Role.Button, onClickLabel = "Cambiar por ${option.displayName}", onClick = onClick),
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .padding(horizontal = 4.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        PatternGlyph(exercisePatternOf(option.displayName), accent, Modifier.size(28.dp))
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f).padding(vertical = 6.dp)) {
+        SwapThumb(option.displayName, accent, 44.dp, 24.dp)
+        Column(Modifier.weight(1f)) {
             Text(option.displayName, style = WizardTypography.controlLabel, color = WizardColors.text)
             Text(swapReasonOf(option), style = WizardTypography.note, color = WizardColors.textMuted)
+        }
+        if (selected) {
+            Box(Modifier.size(24.dp).background(WizardColors.cta, CircleShape), contentAlignment = Alignment.Center) {
+                CheckGlyph(WizardColors.ctaContent, Modifier.size(14.dp), 2.4.dp)
+            }
+        } else {
+            Box(Modifier.size(24.dp).border(2.dp, Color.White.copy(alpha = 0.25f), CircleShape))
         }
     }
 }
