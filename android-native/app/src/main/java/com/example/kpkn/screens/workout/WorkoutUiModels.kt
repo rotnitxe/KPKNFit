@@ -3,6 +3,7 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.data.models.*
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
+import com.example.kpkn.domain.relator.RelatorProgressionContext
 import kotlinx.serialization.Serializable
 
 /** Molestia repetida ≥N sesiones en el mismo ejercicio/patrón. */
@@ -359,6 +360,7 @@ data class LivePlanContext(
     val weeksInBlock: Int? = null,
     val progression: com.example.kpkn.data.protocols.ProgressionRule? = null,
     val autoregulationHooks: List<com.example.kpkn.data.protocols.AutoregulationHook> = emptyList(),
+    val progressionContext: RelatorProgressionContext? = null,
 )
 
 data class WorkoutSessionSummary(

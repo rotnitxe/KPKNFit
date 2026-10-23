@@ -2,7 +2,9 @@ package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.PowerliftingProfile
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.protocols.LiftSlot
+import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
@@ -67,13 +69,21 @@ data class AmrapProgramEffect(
     val nextWeekXrmKg: Double? = null,
     /** 5/3/1: el e1RM de la serie «+» con la cuenta de Wendler. */
     val e1rmKg: Double? = null,
+    /** Nota corta para PlanObserver; conserva la espera del cierre o del modo que decide la regla. */
+    val observerNote: AmrapProgramObserverNote? = null,
 ) {
-    /** true si el cambio es una propuesta que hay que aceptar. */
-    val needsConfirmation: Boolean get() = gate == AmrapEffectGate.PROPOSE && (tmDeltaKg != null || tmDeltaPercent != null)
+    /** true si el cambio es una propuesta que hay que aceptar, incluido el XRM de APRE. */
+    val needsConfirmation: Boolean get() =
+        gate == AmrapEffectGate.PROPOSE && (tmDeltaKg != null || tmDeltaPercent != null || nextWeekXrmKg != null)
 
     /** true si el AMRAP solo se registra: ningún cambio de carga del programa depende de él. */
     val isRecordOnly: Boolean get() = kind == AmrapEffectKind.RECORD_ONLY
 }
+
+data class AmrapProgramObserverNote(
+    val text: String,
+    val conditional: Boolean = false,
+)
 
 /**
  * «Qué provocará este AMRAP según su programa». Reutiliza las mismas reglas que ejecutan los motores
@@ -82,8 +92,8 @@ data class AmrapProgramEffect(
  *
  * Firma: [preview] recibe la receta del programa (`program.sourceRecipe`), su modo de autorregulación, su perfil de cargas y el
  * [AmrapHit] de la serie (con la carga, las repeticiones y, para el calibrador, la reserva declarada). [frozenCyclesBefore] son los
- * ciclos seguidos ya congelados de 5/3/1 (`ProgramAutoregulationEngine.frozenCycleStreaks`, sin contar este ciclo): con ellos avisa del
- * reinicio. Para la serie 3 de APRE, la tarjeta pasa `isLastAmrapOfExercise = false`.
+ * ciclos seguidos ya congelados de 5/3/1 (`ProgramAutoregulationEngine.frozenCycleStreaks`, sin contar este ciclo); null indica que no
+ * se conoce esa evidencia. Para la serie 3 de APRE, la tarjeta pasa `isLastAmrapOfExercise = false`.
  */
 object AmrapProgramPreview {
 
@@ -92,7 +102,10 @@ object AmrapProgramPreview {
         mode: AutoregulationMode,
         profile: PowerliftingProfile?,
         hit: AmrapHit,
-        frozenCyclesBefore: Int = 0,
+        frozenCyclesBefore: Int? = null,
+        tierCheck: ProgramAutoregulationEngine.GzclpTierCheck? = null,
+        slotRole: SlotRole? = null,
+        plannedVolumeReps: Int? = null,
     ): AmrapProgramEffect {
         val lift = hit.liftSlot
         val e1rm = hit.weightKg?.let { Wendler531Progression.e1rmKg(it, hit.actualReps) }?.takeIf { it > 0.0 }
@@ -108,9 +121,9 @@ object AmrapProgramPreview {
             is ProgressionRule.AmrapDrivenTm -> tmByWeek(rule, mode, hit, lift, tm, prefix, "tabla de nSuns")
             is ProgressionRule.RepTargetDrivenTm -> tmByWeek(rule, mode, hit, lift, tm, prefix, "regla de repeticiones")
             is ProgressionRule.RepsOverStandardTm -> juggernaut(rule, hit, lift, tm, prefix)
-            is ProgressionRule.StagedVolume -> gzclp(rule, hit, lift, prefix)
+            is ProgressionRule.StagedVolume -> gzclp(rule, hit, lift, prefix, tierCheck, slotRole, plannedVolumeReps)
             ProgressionRule.RepMaxAutoregulated -> repMax(mode, profile, recipe, hit, lift, tm, prefix)
-            is ProgressionRule.ApreXrm -> apre(rule, hit, lift, prefix)
+            is ProgressionRule.ApreXrm -> apre(rule, mode, hit, lift, prefix)
             is ProgressionRule.TopSetPr,
             is ProgressionRule.WeeklyKg,
             is ProgressionRule.WeeklyPercent,
@@ -119,6 +132,104 @@ object AmrapProgramPreview {
                 hit, lift, e1rm,
                 "${prefix}AMRAP de registro: se guarda en tu historial y tus récords; no cambia tu carga en este programa.",
             )
+        }
+    }
+
+    /** Nota de plan para PlanObserver: los hits se calculan con [preview], los cierres incompletos quedan condicionales. */
+    fun relatorNote(
+        recipe: TrainingPlanRecipe?,
+        mode: AutoregulationMode,
+        profile: PowerliftingProfile?,
+        liftSlot: LiftSlot?,
+        slotRole: SlotRole?,
+        plannedVolumeReps: Int?,
+        plannedMinimumReps: Int?,
+        purpose: SetPurpose?,
+        hit: AmrapHit?,
+        tierCheck: ProgramAutoregulationEngine.GzclpTierCheck?,
+        frozenCyclesBefore: Int?,
+        isApreBlock: Boolean,
+        isLastAmrapOfExercise: Boolean?,
+    ): AmrapProgramObserverNote? {
+        recipe ?: return null
+        val prefix = programName(recipe)?.let { "$it: " }.orEmpty()
+        return when (val rule = recipe.progression) {
+            is ProgressionRule.CycleIncrement -> {
+                val observed = hit?.takeIf { it.purpose.isAmrap }
+                if (observed != null) {
+                    preview(recipe, mode, profile, observed, frozenCyclesBefore).observerNote
+                } else if (purpose?.isAmrap == true) {
+                    val increment = liftSlot?.let { AuthoredProgressionEngine.cycleIncrementKg(rule, it) }
+                    val close = if (rule.scope == com.example.kpkn.data.protocols.IncrementScope.BLOCK) "bloque" else "ciclo"
+                    val amount = increment?.let { "TM +${kg(it)} kg" } ?: "el TM sube"
+                    AmrapProgramObserverNote(
+                        text = "${prefix}$amount al cerrar el $close si cumples las mínimas; si no, se congela.",
+                        conditional = true,
+                    )
+                } else {
+                    null
+                }
+            }
+            is ProgressionRule.RepsOverStandardTm -> {
+                val observed = hit?.takeIf { it.purpose.isAmrap }
+                if (observed != null) {
+                    preview(recipe, mode, profile, observed, frozenCyclesBefore).observerNote
+                } else if (purpose?.isAmrap == true) {
+                    val perRep = when (liftSlot) {
+                        LiftSlot.BENCH, LiftSlot.OVERHEAD -> rule.upperKgPerRep
+                        LiftSlot.SQUAT, LiftSlot.DEADLIFT -> rule.lowerKgPerRep
+                        null -> null
+                    }
+                    val amount = perRep?.let { "+${kg(it)} kg por rep extra" } ?: "el TM según las reps extra"
+                    val standard = plannedMinimumReps?.let { " sobre $it" }.orEmpty()
+                    AmrapProgramObserverNote(
+                        text = "${prefix}$amount$standard; al cerrar la ola, con tope ${rule.maxExtraReps} reps extra.",
+                        conditional = true,
+                    )
+                } else {
+                    null
+                }
+            }
+            is ProgressionRule.StagedVolume -> {
+                val role = tierCheck?.role ?: slotRole ?: return null
+                if (role != SlotRole.T1_MAIN && role != SlotRole.T2_SUPPLEMENTAL) return null
+                if (tierCheck != null) {
+                    gzclpClosedNote(rule, liftSlot, tierCheck)
+                } else {
+                    val volume = plannedVolumeReps ?: return null
+                    val stage = when (role) {
+                        SlotRole.T1_MAIN -> GzclpProgression.t1StageOfBaseVolume(volume)
+                        SlotRole.T2_SUPPLEMENTAL -> GzclpProgression.t2StageOfBaseVolume(volume)
+                        else -> null
+                    } ?: return null
+                    AmrapProgramObserverNote(
+                        text = gzclpConditionalNote(rule, liftSlot, role, volume, stage),
+                        conditional = true,
+                    )
+                }
+            }
+            is ProgressionRule.ApreXrm -> {
+                if (!isApreBlock) return null
+                val observed = hit?.takeIf { it.purpose.isAmrap }
+                if (observed != null) {
+                    preview(recipe, mode, profile, observed, frozenCyclesBefore).observerNote
+                } else if (purpose?.isAmrap == true) {
+                    val variant = plannedMinimumReps?.let { Apre.variantOfXrmReps(it) } ?: return null
+                    val line = when (isLastAmrapOfExercise) {
+                        false -> "Al completar S3, sus reps fijan la carga de S4."
+                        true -> when (mode) {
+                            AutoregulationMode.OFF -> "Al completar S4, OFF calcula el XRM; no lo aplica."
+                            AutoregulationMode.PROPOSE -> "Al completar S4, se propone el XRM de la próxima semana."
+                            AutoregulationMode.AUTO -> "Al completar S4, AUTO ajusta el XRM para la próxima semana."
+                        }
+                        null -> return null
+                    }
+                    AmrapProgramObserverNote("APRE ${variant.xrmReps}: $line", conditional = true)
+                } else {
+                    null
+                }
+            }
+            else -> null
         }
     }
 
@@ -153,27 +264,39 @@ object AmrapProgramPreview {
         tm: Double?,
         e1rm: Double?,
         prefix: String,
-        frozenCyclesBefore: Int,
+        frozenCyclesBefore: Int?,
     ): AmrapProgramEffect {
         val short = ProgramAutoregulationEngine.isShortAmrap(hit)
         val record = e1rm?.let { "Récord de repeticiones y e1RM de ${kg(it)} kg (la cuenta de Wendler)." }
+        val closeName = if (rule.scope == com.example.kpkn.data.protocols.IncrementScope.BLOCK) "bloque" else "ciclo"
         if (!short) {
+            val increment = lift?.let { AuthoredProgressionEngine.cycleIncrementKg(rule, it) }
             return AmrapProgramEffect(
                 kind = AmrapEffectKind.CYCLE_CLOSE,
                 timing = if (rule.scope == com.example.kpkn.data.protocols.IncrementScope.BLOCK) AmrapEffectTiming.END_OF_BLOCK else AmrapEffectTiming.END_OF_CYCLE,
                 gate = AmrapEffectGate.METHOD,
-                headline = "${prefix}récord de repeticiones; el TM no se mueve y sube al cerrar el ciclo.",
+                headline = "${prefix}récord de repeticiones; el TM no se mueve y sube al cerrar el $closeName.",
                 detail = record,
                 liftSlot = lift,
                 e1rmKg = e1rm,
+                observerNote = AmrapProgramObserverNote(
+                    text = if (increment != null) {
+                        "${prefix}este AMRAP cumple; TM +${kg(increment)} kg al cerrar el $closeName, si pasan las demás mínimas."
+                    } else {
+                        "${prefix}este AMRAP cumple; el TM cambia al cerrar el $closeName si pasan las demás mínimas."
+                    },
+                    conditional = true,
+                ),
             )
         }
-        val resets = Wendler531Progression.resetsAtFrozenStreak(frozenCyclesBefore + 1, rule.resetAfterFrozenCycles)
+        val resets = frozenCyclesBefore?.let {
+            Wendler531Progression.resetsAtFrozenStreak(it + 1, rule.resetAfterFrozenCycles)
+        } == true
         return AmrapProgramEffect(
             kind = AmrapEffectKind.CYCLE_CLOSE,
-            timing = AmrapEffectTiming.END_OF_CYCLE,
+            timing = if (rule.scope == com.example.kpkn.data.protocols.IncrementScope.BLOCK) AmrapEffectTiming.END_OF_BLOCK else AmrapEffectTiming.END_OF_CYCLE,
             gate = AmrapEffectGate.METHOD,
-            headline = "${prefix}no llegaste a las repeticiones mínimas; el TM se congela al cerrar el ciclo, sin bajarlo.",
+            headline = "${prefix}no llegaste a las repeticiones mínimas; el TM se congela al cerrar el $closeName, sin bajarlo.",
             detail = record,
             warning = if (resets) {
                 "Serían ${rule.resetAfterFrozenCycles} ciclos congelados seguidos: el TM se reinicia un ${kg(rule.resetPercent)} %" +
@@ -183,6 +306,10 @@ object AmrapProgramPreview {
             },
             liftSlot = lift,
             e1rmKg = e1rm,
+            observerNote = AmrapProgramObserverNote(
+                text = "${prefix}AMRAP corto: TM congelado al cerrar el $closeName, sin bajarlo.",
+                conditional = false,
+            ),
         )
     }
 
@@ -272,37 +399,173 @@ object AmrapProgramPreview {
             liftSlot = lift,
             tmDeltaKg = result.deltaKg.takeIf { raised },
             newTmKg = newTm.takeIf { raised },
+            observerNote = AmrapProgramObserverNote(
+                text = when {
+                    raised && newTm != null -> "${prefix}TM ${kg(newTm)} kg al cerrar la ola."
+                    raised -> "${prefix}TM +${kg(result.deltaKg)} kg al cerrar la ola."
+                    else -> "${prefix}TM se mantiene al cerrar la ola (${hit.actualReps}/${result.standardReps} reps)."
+                },
+            ),
         )
     }
 
     // ─── GZCLP ────────────────────────────────────────────────────────────────────
 
-    private fun gzclp(rule: ProgressionRule.StagedVolume, hit: AmrapHit, lift: LiftSlot?, prefix: String): AmrapProgramEffect {
+    private fun gzclp(
+        rule: ProgressionRule.StagedVolume,
+        hit: AmrapHit,
+        lift: LiftSlot?,
+        prefix: String,
+        tierCheck: ProgramAutoregulationEngine.GzclpTierCheck?,
+        slotRole: SlotRole?,
+        plannedVolumeReps: Int?,
+    ): AmrapProgramEffect {
         val counted = GzclpProgression.cappedAmrapReps(hit.actualReps, rule.t1AmrapCap)
-        val stage = GzclpProgression.T1Stage.entries.firstOrNull { it.reps == hit.prescribedReps }
-        val short = ProgramAutoregulationEngine.isShortAmrap(hit)
         val capNote = if (hit.actualReps > rule.t1AmrapCap) {
             "Cuentan ${SpanishPlurals.reps(counted)}: la AMRAP del T1 se topa en ${rule.t1AmrapCap}."
         } else {
             "La AMRAP del T1 no cambia la carga: es margen de volumen."
         }
+        val role = tierCheck?.role ?: slotRole
+        val baseVolume = tierCheck?.plannedReps ?: plannedVolumeReps
+        val stage = when (role) {
+            SlotRole.T1_MAIN -> baseVolume?.let(GzclpProgression::t1StageOfBaseVolume)
+            SlotRole.T2_SUPPLEMENTAL -> baseVolume?.let(GzclpProgression::t2StageOfBaseVolume)
+            else -> null
+        }
+        val decision = tierCheck?.let { check ->
+            when (check.role) {
+                SlotRole.T1_MAIN -> (stage as? GzclpProgression.T1Stage)?.let {
+                    GzclpProgression.decideT1(it, check.completedBaseVolume)
+                }
+                SlotRole.T2_SUPPLEMENTAL -> (stage as? GzclpProgression.T2Stage)?.let {
+                    GzclpProgression.decideT2(it, check.completedBaseVolume)
+                }
+                else -> null
+            }
+        }
+        val observerNote = when {
+            tierCheck != null && decision != null -> gzclpCloseNote(rule, lift, tierCheck, stage, decision)
+            role != null && stage != null && baseVolume != null -> AmrapProgramObserverNote(
+                text = gzclpConditionalNote(rule, lift, role, baseVolume, stage),
+                conditional = true,
+            )
+            else -> null
+        }
         return AmrapProgramEffect(
             kind = AmrapEffectKind.CYCLE_CLOSE,
             timing = AmrapEffectTiming.END_OF_CYCLE,
             gate = AmrapEffectGate.METHOD,
-            headline = if (short) {
-                "${prefix}no llegaste a las repeticiones mínimas: al cerrar el ciclo pasas de etapa con la misma carga."
+            headline = if (decision == null) {
+                "${prefix}la AMRAP no cambia la carga; el cierre revisa el volumen base de todas las series."
             } else {
-                "${prefix}la AMRAP no cambia la carga; si completas el volumen base, el TM sube al cerrar el ciclo."
+                observerNote?.text ?: "${prefix}el cierre del ciclo decide el siguiente paso."
             },
-            detail = capNote + (stage?.let { " Etapa ${it.number}: ${it.label}." } ?: ""),
-            warning = if (stage == GzclpProgression.T1Stage.STAGE_3 && short) {
+            detail = capNote + when (stage) {
+                is GzclpProgression.T1Stage -> " Etapa ${stage.number}: ${stage.label}."
+                is GzclpProgression.T2Stage -> " Etapa ${stage.number}: ${stage.label}."
+                else -> ""
+            },
+            warning = if (
+                tierCheck?.role == SlotRole.T1_MAIN && stage == GzclpProgression.T1Stage.STAGE_3 &&
+                decision?.outcome == GzclpProgression.TierOutcome.RESTART
+            ) {
                 "Etapa 3 sin completar: toca probar un 5RM nuevo y reiniciar al ${(GzclpProgression.RESTART_FRACTION_OF_FIVE_RM * 100).toInt()} % de ese 5RM."
             } else {
                 null
             },
             liftSlot = lift,
+            observerNote = observerNote,
         )
+    }
+
+    private fun gzclpCloseNote(
+        rule: ProgressionRule.StagedVolume,
+        lift: LiftSlot?,
+        check: ProgramAutoregulationEngine.GzclpTierCheck,
+        stage: Any?,
+        decision: GzclpProgression.TierDecision,
+    ): AmrapProgramObserverNote {
+        val ratio = "${check.doneReps}/${check.plannedReps} reps"
+        val result = when (check.role) {
+            SlotRole.T1_MAIN -> when (decision.outcome) {
+                GzclpProgression.TierOutcome.PASSED -> {
+                    val delta = lift?.let { AuthoredProgressionEngine.cycleIncrementKg(rule, it) }
+                    if (delta == null) "TM sube al cerrar el ciclo"
+                    else "TM +${kg(delta)} kg al cerrar el ciclo"
+                }
+                GzclpProgression.TierOutcome.ADVANCE_STAGE -> {
+                    val next = GzclpProgression.T1Stage.entries.getOrNull(decision.toStage - 1)?.label ?: "siguiente etapa"
+                    "pasa a $next con igual carga al cerrar"
+                }
+                GzclpProgression.TierOutcome.RESTART -> "nuevo 5RM y reinicio al 85 %"
+            }
+            SlotRole.T2_SUPPLEMENTAL -> when (decision.outcome) {
+                GzclpProgression.TierOutcome.PASSED -> {
+                    val current = (stage as? GzclpProgression.T2Stage)?.label ?: "misma etapa"
+                    "sigue $current al cerrar el ciclo"
+                }
+                GzclpProgression.TierOutcome.ADVANCE_STAGE -> {
+                    val next = GzclpProgression.T2Stage.entries.getOrNull(decision.toStage - 1)?.label ?: "siguiente etapa"
+                    "pasa a $next con igual carga al cerrar"
+                }
+                GzclpProgression.TierOutcome.RESTART -> "reinicia en 3×10 al cerrar"
+            }
+            else -> return AmrapProgramObserverNote("GZCLP: cierre de volumen registrado.")
+        }
+        return AmrapProgramObserverNote(
+            text = "GZCLP ${if (check.role == SlotRole.T1_MAIN) "T1" else "T2"}: $ratio; $result.",
+        )
+    }
+
+    private fun gzclpClosedNote(
+        rule: ProgressionRule.StagedVolume,
+        lift: LiftSlot?,
+        check: ProgramAutoregulationEngine.GzclpTierCheck,
+    ): AmrapProgramObserverNote? {
+        val stage = when (check.role) {
+            SlotRole.T1_MAIN -> GzclpProgression.t1StageOfBaseVolume(check.plannedReps)
+            SlotRole.T2_SUPPLEMENTAL -> GzclpProgression.t2StageOfBaseVolume(check.plannedReps)
+            else -> null
+        } ?: return null
+        val decision = when (check.role) {
+            SlotRole.T1_MAIN -> GzclpProgression.decideT1(
+                stage as GzclpProgression.T1Stage,
+                check.completedBaseVolume,
+            )
+            SlotRole.T2_SUPPLEMENTAL -> GzclpProgression.decideT2(
+                stage as GzclpProgression.T2Stage,
+                check.completedBaseVolume,
+            )
+            else -> return null
+        }
+        return gzclpCloseNote(rule, lift, check, stage, decision)
+    }
+
+    private fun gzclpConditionalNote(
+        rule: ProgressionRule.StagedVolume,
+        lift: LiftSlot?,
+        role: SlotRole,
+        plannedVolumeReps: Int,
+        stage: Any,
+    ): String {
+        return when (role) {
+            SlotRole.T1_MAIN -> {
+                val t1 = stage as GzclpProgression.T1Stage
+                val next = t1.next()?.label
+                val delta = lift?.let { AuthoredProgressionEngine.cycleIncrementKg(rule, it) }
+                val pass = delta?.let { "TM +${kg(it)} kg" } ?: "TM sube"
+                val fail = if (next != null) "$next misma carga" else "nuevo 5RM ×85 %"
+                "GZCLP T1 E${t1.number}: $plannedVolumeReps reps; pasa: $pass; falla: $fail al cierre del ciclo."
+            }
+            SlotRole.T2_SUPPLEMENTAL -> {
+                val t2 = stage as GzclpProgression.T2Stage
+                val current = t2.label
+                val next = t2.next()?.let { "${it.label} misma carga" } ?: "reinicia 3×10"
+                "GZCLP T2 E${t2.number}: $plannedVolumeReps reps; pasa: sigue $current; falla: $next al cierre del ciclo."
+            }
+            else -> "GZCLP: el cierre revisa las repeticiones de todas las series."
+        }
     }
 
     // ─── J&T 2.0 ──────────────────────────────────────────────────────────────────
@@ -348,7 +611,13 @@ object AmrapProgramPreview {
 
     // ─── APRE ─────────────────────────────────────────────────────────────────────
 
-    private fun apre(rule: ProgressionRule.ApreXrm, hit: AmrapHit, lift: LiftSlot?, prefix: String): AmrapProgramEffect {
+    private fun apre(
+        rule: ProgressionRule.ApreXrm,
+        mode: AutoregulationMode,
+        hit: AmrapHit,
+        lift: LiftSlot?,
+        prefix: String,
+    ): AmrapProgramEffect {
         val variant = Apre.variantOfXrmReps(hit.prescribedReps)
         val weight = hit.weightKg
         if (variant == null || weight == null) {
@@ -358,26 +627,49 @@ object AmrapProgramPreview {
         val band = Apre.band(variant, reps)
         val bandText = if (band == Apre.Band.HOLD) "mantener" else "${signed(band.percent)} %"
         return if (hit.isLastAmrapOfExercise) {
-            val xrm = Apre.nextWeekXrmKg(weight, reps, variant, rule.incrementKg)
+            val capturedXrm = hit.apreXrmCapture?.takeIf { capture ->
+                validApreXrmCapture(capture) &&
+                    capture.reference.repMin == variant.xrmReps &&
+                    capture.reference.repMax == variant.xrmReps &&
+                    (hit.sourceExerciseId == null || hit.sourceExerciseId == capture.sourceExerciseId)
+            }?.reference?.capturedLoadKg?.takeIf { it.isFinite() && it > 0.0 }
+            val xrm = capturedXrm ?: Apre.nextWeekXrmKg(weight, reps, variant, rule.incrementKg)
+            val gate = gateOf(mode)
+
+            val note = when (gate) {
+                AmrapEffectGate.OFF -> "${variant.label}: XRM ${kg(xrm)} kg calculado; OFF no lo aplica."
+                AmrapEffectGate.PROPOSE -> "${variant.label}: propone XRM ${kg(xrm)} kg para la próxima semana."
+                AmrapEffectGate.AUTO -> "${variant.label}: AUTO ajusta el XRM a ${kg(xrm)} kg la próxima semana."
+                AmrapEffectGate.METHOD -> "${variant.label}: XRM ${kg(xrm)} kg para la próxima semana."
+            }
             AmrapProgramEffect(
-                kind = AmrapEffectKind.NEXT_WEEK_XRM,
-                timing = AmrapEffectTiming.NEXT_WEEK,
-                gate = AmrapEffectGate.METHOD,
-                headline = "${prefix}tu ${variant.xrmReps}RM de la semana próxima: ${kg(xrm)} kg.",
-                detail = "${SpanishPlurals.reps(reps)} válidas con ${kg(weight)} kg (${variant.label}: $bandText).",
+                kind = if (gate == AmrapEffectGate.OFF) AmrapEffectKind.NO_CHANGE else AmrapEffectKind.NEXT_WEEK_XRM,
+                timing = if (gate == AmrapEffectGate.OFF) AmrapEffectTiming.NONE else AmrapEffectTiming.NEXT_WEEK,
+                gate = gate,
+                headline = note,
+                detail = listOfNotNull(
+                    "${SpanishPlurals.reps(reps)} válidas con ${kg(weight)} kg (${variant.label}: $bandText).",
+                    gateDetail(gate, null).takeIf { gate == AmrapEffectGate.PROPOSE || gate == AmrapEffectGate.AUTO },
+                ).joinToString(" "),
                 liftSlot = lift,
                 nextWeekXrmKg = xrm,
+                observerNote = AmrapProgramObserverNote(note),
             )
         } else {
-            val next = Apre.set4LoadKg(weight, reps, variant, rule.incrementKg)
+            val next = hit.apreSet4LoadKg?.takeIf { it.isFinite() && it > 0.0 }
+                ?: Apre.set4LoadKg(weight, reps, variant, rule.incrementKg)
             AmrapProgramEffect(
                 kind = AmrapEffectKind.NEXT_SET_LOAD,
                 timing = AmrapEffectTiming.SAME_SESSION,
                 gate = AmrapEffectGate.METHOD,
-                headline = "${prefix}serie 4 con ${kg(next)} kg.",
+                headline = if (hit.apreSet4Applied) "${prefix}serie 4 ajustada a ${kg(next)} kg hoy."
+                    else "${prefix}serie 4 prevista con ${kg(next)} kg hoy.",
                 detail = "${SpanishPlurals.reps(reps)} válidas en la serie 3 (${variant.label}: $bandText).",
                 liftSlot = lift,
                 nextSetLoadKg = next,
+                observerNote = AmrapProgramObserverNote(if (hit.apreSet4Applied)
+                    "${variant.label}: serie 4 ajustada a ${kg(next)} kg hoy."
+                    else "${variant.label}: serie 4 prevista con ${kg(next)} kg hoy."),
             )
         }
     }

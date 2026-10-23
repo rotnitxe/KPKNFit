@@ -55,3 +55,21 @@ El ejecutor serial preparado archiva cada lote y se detiene ante un fallo. La re
 ## Límites
 
 Room v30 congelado, sin cambios Entity/DAO/migración/schema. Se conserva el artefacto ajeno sin seguimiento. Sin push/master; firma sólo por el orquestador. Aún no hay ensamblado de APK, instalación ni QA de dispositivo de esta continuación. QA sólo com.example.kpkn.dbg en emulator-5580 y teléfono mediante phone_run.py/20min, sin tocar paquetes personales ni la sesión de vídeo.
+
+
+## CAL5b: núcleo verificado y ajuste visual pendiente · 23-oct 07:08
+
+Integración inicial846213eda y correcciones643c0ee7e/e52b21dde integradas en6eb44c9d3. Las tres correcciones de arnés conservan valor, disabled, error/retry, navegación y ausencia de aceptación implícita. Los dos pesos126 en vez de132,3 procedían de evidencia derivada180 que no acompañaba al perfil189; se conserva la expectativa132,3. La sincronización ahora sigue sólo el vínculo real de receta y deja intactas capturas manuales, tests e invalidaciones. La rematerialización confirma el commit durable, rechaza false, conserva datos/flag tras fallo y permite retry.
+
+| Corrida en C:/kw/logs/ | Clases/casos | Resultado |
+|---|---|---|
+| int-cal5b-jvm-codex-20261023-1.log | 11/133 | 0 fallos/errores/omitidas; anterior a correcciones Android |
+| int-cal5b-android-codex-20261023-1.log | 14/143 | 5 fallos: tres arneses y dos casos de bases derivadas desactualizadas; exit1 |
+| int-cal5b-jvm-codex-20261023-2.log | 11/135 | 0 fallos/errores/omitidas; BUILD3min23s; wrapper exit0 |
+| int-cal5b-android-codex-20261023-2.log | 14/144 | 0 fallos/errores/omitidas; BUILD8min56s; wrapper exit0 |
+
+XML nuevos archivados por corrida. No se suman repeticiones como casos únicos. Los14PNG de int-cal5b-2 incluyen preparación740/880 al100/130; abiertos preparación740/130,880/100 y tmPreview130. Preparación completa y legible. El último render permitió encontrar una omisión anterior en TrainingMaxWizard: hidrata militar pero hasValidInput/noMarks y el resumen sólo consideran sentadilla/banca/peso muerto. Se corrige aparte en u21 con regresión de militar como único dato. **CAL5b aún no se cierra completo por esa omisión visual/funcional**, aunque el núcleo anterior esté verde.
+
+PLAN-OBS tiene un desvío concreto en revisión: APRE10 S4 155×17 con material5kg debe conservar XRM160, no recalcular162,5 con incremento de receta2,5. Se alinearán captura validada, nota y propuesta, incluyendo S3 y evidencia stale. Aún sin validación de esa corrección. CAL7 y barrido final siguen pendientes.
+
+El ejecutor final fuerza tests frescos mediante init exclusivo para Test, desactiva reutilización del wrapper, falla si faltan XML recientes/clases o hay omitidas, conserva el historial al reanudar y comprueba fuente constante por lote. No fuerza recompilaciones ajenas vigentes. QA_FINAL.md inventaría70 pantallas HTML y distingue la entrada71 del lienzo, una pieza Div sin HTML local. No hay todavía APK instalado ni QA del dispositivo de esta continuación.
