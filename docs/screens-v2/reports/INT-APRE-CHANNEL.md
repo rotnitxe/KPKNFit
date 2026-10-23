@@ -9,13 +9,17 @@ Worktree exclusivo: `C:\kw\u28-apre-channel`, rama `codex/sv2-apre-channel`, bas
 - `evaluateApreXrmOnly` permite procesar programas sin receta fuente cuando el bloque APRE lleva su marcador explícito; no sintetiza identidad de protocolo ni perfil.
 - `apply` / `resolvePending` implementan OFF (sin acción), PROPOSE (pendiente, sin guardar/aplicar) y AUTO (guardar y modificar solo bloques compatibles de la semana futura). La referencia se agrega al pool para la ocurrencia origen y destinos compatibles; se conserva al rematerializar.
 - La deduplicación compara la revisión más reciente del mismo evento e identidad. Así, una corrección 162,5 → 155 → 162,5 agrega revisiones 0/1/2 y un reintento del último payload no agrega otra. La resolución parcial actualiza el mensaje para mostrar solo lo pendiente.
+- La asociación del log ahora rechaza configuraciones registradas que contradicen la variante actual, aunque se hayan conservado IDs de ejercicio y serie. También contrasta snapshot/contexto, convención, lado, variante APRE y slots conocidos; ante contradicción no recaptura el set bajo la configuración nueva. Los campos legacy desconocidos siguen siendo tolerados solo cuando no existe evidencia contradictoria.
+- `collectAmrapHits`, las sesiones ya ejecutadas y la aplicación/pool de XRM recorren sesiones A/B/C/D de forma recursiva, manteniendo su `sessionId` para el filtrado y las protecciones.
+- La asociación de registros admite que el log exterior conserve el `sessionId` de A mientras sus `CompletedExercise` pertenecen a B/C/D. Para APRE, una identidad repetida entre variantes necesita un snapshot/contexto que seleccione una sola; sin esa evidencia se abstiene.
+- Al cerrar el ciclo, la última semana evalúa solo APRE de la ocurrencia cerrada y dirige S4 a la primera semana del ciclo siguiente. El ciclo de los logs observados se separa del ciclo destino, por lo que un `weekId` reutilizado no trata el log viejo como una sesión nueva. OFF sigue sin generar acción XRM; el cierre de progresión de autor conserva su orden.
 - No se añadieron entidades, DAOs, migraciones ni schemas de Room. Se conserva el resumen de propuesta en `explanation` para el canal de Programas.
 
 ## Archivos
 
 Producción: `ProgramScheduleModels.kt`, `ProgramAutoregulationEngine.kt`, `ProgramProgressEngine.kt` y `ApreXrmProgression.kt`.
 
-Pruebas preparadas: `Cal6AprePrescriptionTest` (se amplía el caso real de S4 y rematerialización) y `ProgramAutoregulationApreXrmChannelTest` (flujo manual sin receta, propuesta parcial/rechazo/caducidad, corrección/reversión/reintento, receta mixta con señales obsoletas y propuesta TM mixta). Ambas son pruebas unitarias puras en `src/test`; no se agregó `androidTest`.
+Pruebas preparadas: `Cal6AprePrescriptionTest` (se amplía el caso real de S4 y rematerialización) y `ProgramAutoregulationApreXrmChannelTest` (flujo manual sin receta, configuración A→B con IDs conservados y snapshot/no snapshot, sesión B + protección de su ID, cierre de ciclo de una semana en AUTO/PROPOSE/OFF, propuesta parcial/rechazo/caducidad, corrección/reversión/reintento, receta mixta con señales obsoletas y propuesta TM mixta). Ambas son pruebas unitarias puras en `src/test`; no se agregó `androidTest`.
 
 ## Validación y límites
 

@@ -5,7 +5,9 @@ import com.example.kpkn.data.models.AutoregulationProposal
 import com.example.kpkn.data.models.AutoregulationProposalKind
 import com.example.kpkn.data.models.PendingActionResolutionStatus
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramRunState
 import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.data.protocols.LiftSlot
@@ -36,7 +38,8 @@ class ProgramAutoregulationApreXrmChannelTest {
         set4LoadKg: Double = 155.0,
         set4Reps: Int = 17,
         set3Only: Boolean = false,
-    ): List<WorkoutLog> = week.sessions.mapNotNull { session ->
+        runId: String? = null,
+    ): List<WorkoutLog> = week.sessions.flatMap { it.withVariants() }.mapNotNull { session ->
         val exercises = session.allExercises().filter {
             (onlyExerciseId == null || it.id == onlyExerciseId) &&
                 resolveLiveApreBlock(it, recipe.id, hasApreProgression = true) != null
@@ -44,7 +47,7 @@ class ProgramAutoregulationApreXrmChannelTest {
         if (exercises.isEmpty()) return@mapNotNull null
         val completed = exercises.map { exercise ->
             val base = Cal5TestSupport.exerciseLog(
-                program, week, session, exercise,
+                program, week, session, exercise, runId = runId,
                 weightOf = { index, planned -> if (index == 3) set4LoadKg else planned.weight },
                 repsOf = { index, planned -> when (index) {
                     2 -> 12
@@ -57,11 +60,41 @@ class ProgramAutoregulationApreXrmChannelTest {
             }
             base.copy(sets = if (set3Only) listOf(sets[2]) else sets)
         }
-        Cal5TestSupport.exerciseLog(program, week, session, exercises.first()).copy(
+        Cal5TestSupport.exerciseLog(program, week, session, exercises.first(), runId = runId).copy(
             id = "log-" + program.id + "-" + week.id + "-" + session.id,
             completedExercises = completed,
         )
     }
+
+    private fun Session.withVariants(): List<Session> = buildList {
+        add(this@withVariants)
+        sessionB?.let { addAll(it.withVariants()) }
+        sessionC?.let { addAll(it.withVariants()) }
+        sessionD?.let { addAll(it.withVariants()) }
+    }
+
+    private fun Program.replacingWeek(replacement: ProgramWeek): Program = copy(
+        macrocycles = macrocycles.map { macro -> macro.copy(blocks = macro.blocks.map { block ->
+            block.copy(mesocycles = block.mesocycles.map { mesocycle ->
+                mesocycle.copy(weeks = mesocycle.weeks.map { week ->
+                    if (week.id == replacement.id) replacement else week
+                })
+            })
+        }) },
+    )
+
+    private fun Program.reducingToWeek(weekId: String): Program = copy(
+        macrocycles = macrocycles.mapNotNull { macro ->
+            val blocks = macro.blocks.mapNotNull { block ->
+                val mesocycles = block.mesocycles.mapNotNull { mesocycle ->
+                    val weeks = mesocycle.weeks.filter { it.id == weekId }
+                    mesocycle.copy(weeks = weeks).takeIf { weeks.isNotEmpty() }
+                }
+                block.copy(mesocycles = mesocycles).takeIf { mesocycles.isNotEmpty() }
+            }
+            macro.copy(blocks = blocks).takeIf { blocks.isNotEmpty() }
+        },
+    )
 
     private fun xrmHistory(program: Program, exerciseId: String, proposal: AutoregulationProposal) =
         ExerciseLoadReferenceStore.history(program, exerciseId, proposal.apreXrm!!.reference)
@@ -108,6 +141,213 @@ class ProgramAutoregulationApreXrmChannelTest {
         val rematerializedSquat =
             Cal5TestSupport.exerciseOf(Cal5TestSupport.weeksOf(rematerialized)[1].sessions.first(), CatalogIds.SQ_LOW)
         assertEquals(162.5, rematerializedSquat.sets[3].weight!!, 1e-6)
+    }
+
+    @Test
+    fun replaced_catalog_configuration_with_same_occurrence_ids_does_not_relabel_apre_capture() {
+        val plan = program(AutoregulationMode.AUTO, "apre-variant-replaced").copy(
+            sourceRecipe = null, sourceProtocolId = null,
+        )
+        val originalWeek = Cal5TestSupport.weeksOf(plan).first()
+        val originalSquat = Cal5TestSupport.exerciseOf(originalWeek.sessions.first(), CatalogIds.SQ_LOW)
+        val canonicalExerciseId = originalSquat.exerciseDbId ?: "canonical-squat"
+        val sourceWeek = originalWeek.copy(sessions = originalWeek.sessions.map { session ->
+            fun withCanonical(exercise: com.example.kpkn.data.models.Exercise) =
+                if (exercise.id == originalSquat.id) exercise.copy(exerciseDbId = canonicalExerciseId) else exercise
+            session.copy(
+                exercises = session.exercises.map(::withCanonical),
+                parts = session.parts.map { part -> part.copy(exercises = part.exercises.map(::withCanonical)) },
+            )
+        })
+        val sourceSquat = Cal5TestSupport.exerciseOf(sourceWeek.sessions.first(), CatalogIds.SQ_LOW)
+        val logsWithoutSnapshot = recordedLogs(plan, sourceWeek, sourceSquat.id)
+        val captureFromA = ProgramAutoregulationEngine.evaluateApreXrmOnly(
+            plan, sourceWeek, logsWithoutSnapshot,
+        ).single().apreXrm!!
+        val logsWithSnapshot = logsWithoutSnapshot.map { log ->
+            log.copy(completedExercises = log.completedExercises.map { completed ->
+                if (completed.exerciseId != sourceSquat.id) completed else completed.copy(
+                    sets = completed.sets.mapIndexed { index, set ->
+                        if (index == 3) set.copy(apreXrm = captureFromA) else set
+                    },
+                )
+            })
+        }
+        val replacementConfiguration = (sourceSquat.catalogConfigurationId ?: "config") + "-replaced"
+        val replacedWeek = sourceWeek.copy(sessions = sourceWeek.sessions.map { session ->
+            fun replace(exercise: com.example.kpkn.data.models.Exercise) =
+                if (exercise.id == sourceSquat.id) exercise.copy(catalogConfigurationId = replacementConfiguration)
+                else exercise
+            session.copy(
+                exercises = session.exercises.map(::replace),
+                parts = session.parts.map { part -> part.copy(exercises = part.exercises.map(::replace)) },
+            )
+        })
+        val replacement = Cal5TestSupport.exerciseOf(
+            replacedWeek.sessions.first(), replacementConfiguration,
+        )
+        assertEquals(sourceSquat.id, replacement.id)
+        assertEquals(sourceSquat.recipeSlotId, replacement.recipeSlotId)
+        assertEquals(canonicalExerciseId, sourceSquat.exerciseDbId)
+        assertEquals(canonicalExerciseId, replacement.exerciseDbId)
+        assertEquals(sourceSquat.sets.map { it.id }, replacement.sets.map { it.id })
+
+        assertTrue(
+            "el log sin snapshot conserva la configuración A y no debe producir XRM para B",
+            ProgramAutoregulationEngine.evaluateApreXrmOnly(plan, replacedWeek, logsWithoutSnapshot).isEmpty(),
+        )
+        assertTrue(
+            "un snapshot S4 de A tampoco puede recapturarse con el contexto B",
+            ProgramAutoregulationEngine.evaluateApreXrmOnly(plan, replacedWeek, logsWithSnapshot).isEmpty(),
+        )
+    }
+
+    @Test
+    fun apre_collection_and_application_keep_session_variant_identity() {
+        val plan = program(AutoregulationMode.AUTO, "apre-session-variant").copy(
+            sourceRecipe = null, sourceProtocolId = null,
+        )
+        val sourceWeek = Cal5TestSupport.weeksOf(plan).first()
+        val sourceBase = Cal5TestSupport.exerciseOf(sourceWeek.sessions.first(), CatalogIds.SQ_LOW)
+        fun variant(exercise: com.example.kpkn.data.models.Exercise, suffix: String) = exercise.copy(
+            id = "${exercise.id}-$suffix",
+            sets = exercise.sets.map { set -> set.copy(id = "${set.id}-$suffix") },
+        ).let { changed ->
+            changed.copy(apreBlock = changed.apreBlock?.copy(setIds = changed.sets.map { it.id }))
+        }
+        val sourceB = variant(sourceBase, "source-b").copy(
+            recipeDayId = "apre-day",
+            recipeSlotId = "apre-squat-slot",
+        )
+        val sourceBSession = Session(id = "${sourceWeek.sessions.first().id}-source-b", name = "Día B", exercises = listOf(sourceB))
+        val sourceWeekWithB = sourceWeek.copy(sessions = sourceWeek.sessions.map { session ->
+            if (session.id == sourceWeek.sessions.first().id) session.copy(sessionB = sourceBSession) else session
+        })
+        // WorkoutFinishController almacena la variante activa dentro de la sesión base A.
+        val sourceLogsB = recordedLogs(plan, sourceWeekWithB, onlyExerciseId = sourceB.id)
+            .map { it.copy(sessionId = sourceWeekWithB.sessions.first().id) }
+        val sourceHits = ProgramAutoregulationEngine.collectAmrapHits(sourceWeekWithB, sourceLogsB)
+            .filter { it.isApreBlock && it.apreXrmCapture != null }
+        assertEquals(listOf(sourceB.id), sourceHits.map { it.sourceExerciseId })
+        val proposal = ProgramAutoregulationEngine.evaluateApreXrmOnly(
+            plan, sourceWeekWithB, sourceLogsB,
+        ).single()
+        assertEquals(sourceB.id, proposal.apreXrm!!.sourceExerciseId)
+
+        val targetWeek = Cal5TestSupport.weeksOf(plan)[1]
+        val targetBase = Cal5TestSupport.exerciseOf(targetWeek.sessions.first(), CatalogIds.SQ_LOW)
+        val targetB = variant(targetBase, "target-b").copy(
+            recipeDayId = sourceB.recipeDayId,
+            recipeSlotId = sourceB.recipeSlotId,
+        )
+        val targetBSession = Session(id = "${targetWeek.sessions.first().id}-target-b", name = "Día B", exercises = listOf(targetB))
+        val targetOuter = targetWeek.sessions.first()
+        val isolatedA = targetWeek.copy(sessions = targetWeek.sessions.map { session ->
+            if (session.id != targetOuter.id) session else session.copy(
+                exercises = session.exercises.map { exercise ->
+                    if (exercise.id == targetBase.id) exercise.copy(recipeSlotId = "${exercise.recipeSlotId}-A") else exercise
+                },
+                parts = session.parts.map { part -> part.copy(exercises = part.exercises.map { exercise ->
+                    if (exercise.id == targetBase.id) exercise.copy(recipeSlotId = "${exercise.recipeSlotId}-A") else exercise
+                }) },
+                sessionB = targetBSession,
+            )
+        })
+        val withVariant = plan.replacingWeek(isolatedA)
+
+        val applied = ProgramAutoregulationEngine.apply(
+            program = withVariant,
+            nextWeekId = targetWeek.id,
+            proposals = listOf(proposal),
+            recipe = null,
+            executedWeekIds = setOf(sourceWeek.id),
+            nowMs = 150L,
+        )
+        val resultWeek = Cal5TestSupport.weeksOf(applied.program).first { it.id == targetWeek.id }
+        val resultB = resultWeek.sessions.first { it.sessionB?.id == targetBSession.id }.sessionB!!.exercises.single()
+        val resultA = Cal5TestSupport.exerciseOf(resultWeek.sessions.first(), CatalogIds.SQ_LOW)
+        assertEquals(162.5, resultB.sets[3].weight!!, 1e-6)
+        assertEquals(targetBase.sets[3].weight, resultA.sets[3].weight)
+        assertTrue(ExerciseLoadReferenceStore.history(applied.program, targetB.id, proposal.apreXrm!!.reference).isNotEmpty())
+
+        val protected = ProgramAutoregulationEngine.apply(
+            program = withVariant,
+            nextWeekId = targetWeek.id,
+            proposals = listOf(proposal),
+            recipe = null,
+            executedWeekIds = setOf(sourceWeek.id),
+            executedSessionIds = setOf(targetBSession.id),
+            nowMs = 151L,
+        )
+        val protectedWeek = Cal5TestSupport.weeksOf(protected.program).first { it.id == targetWeek.id }
+        val protectedB = protectedWeek.sessions.first { it.sessionB?.id == targetBSession.id }.sessionB!!.exercises.single()
+        assertEquals(targetB.sets[3].weight, protectedB.sets[3].weight)
+    }
+
+    @Test
+    fun closing_a_single_week_cycle_uses_cycle_one_s4_for_the_reused_week_in_cycle_two() {
+        fun close(mode: AutoregulationMode): Pair<com.example.kpkn.domain.training.ProgressAdvanceResult, Double?> {
+            val base = program(mode, "apre-cycle-close-${mode.name.lowercase()}").copy(
+                sourceRecipe = null,
+                sourceProtocolId = null,
+                structure = com.example.kpkn.data.models.ProgramStructure.SIMPLE,
+                simpleProgramKind = com.example.kpkn.data.models.SimpleProgramKind.CYCLIC,
+            )
+            val templateWeek = Cal5TestSupport.weeksOf(base).first()
+            val cyclic = base.reducingToWeek(templateWeek.id)
+            val week = Cal5TestSupport.weeksOf(cyclic).single()
+            val runId = "run-close-${mode.name.lowercase()}"
+            val instanceId = ProgramProgressEngine.instanceIdFor(1, week.id)
+            val running = cyclic.copy(runState = ProgramRunState(
+                runId = runId,
+                cycleNumber = 1,
+                weekInstanceId = instanceId,
+                weekId = week.id,
+            ))
+            val emptyLogs = Cal5TestSupport.emptyLogs(running, listOf(week), cycle = 1, runId = runId)
+            val squat = Cal5TestSupport.exerciseOf(week.sessions.first(), CatalogIds.SQ_LOW)
+            val actualS4 = recordedLogs(running, week, onlyExerciseId = squat.id, runId = runId)
+            val allLogs = emptyLogs.map { blank ->
+                actualS4.firstOrNull { it.sessionId == blank.sessionId } ?: blank
+            }
+            val startingLoad = Cal5TestSupport.exerciseOf(week.sessions.first(), CatalogIds.SQ_LOW).sets[3].weight
+            val result = ProgramProgressEngine.advanceAfterSessionComplete(
+                program = running,
+                activeState = null,
+                completedSession = week.sessions.last(),
+                weekInstanceId = instanceId,
+                logs = allLogs,
+            )
+            return result to startingLoad
+        }
+
+        val (auto, _) = close(AutoregulationMode.AUTO)
+        assertTrue(auto.advancedCycle)
+        assertEquals(2, auto.program.runState!!.cycleNumber)
+        assertEquals(1, auto.autoregulationProposals.count { it.kind == AutoregulationProposalKind.ADJUST_XRM })
+        val reusedWeek = Cal5TestSupport.weeksOf(auto.program).single()
+        val appliedSquat = Cal5TestSupport.exerciseOf(reusedWeek.sessions.first(), CatalogIds.SQ_LOW)
+        assertEquals(162.5, appliedSquat.sets[3].weight!!, 1e-6)
+        assertTrue(auto.program.runState!!.autoregulationAudit.any {
+            it.kinds.contains(AutoregulationProposalKind.ADJUST_XRM) &&
+                it.resolution == PendingActionResolutionStatus.APPLIED
+        })
+
+        val (propose, proposeStartingLoad) = close(AutoregulationMode.PROPOSE)
+        assertEquals(2, propose.program.runState!!.cycleNumber)
+        assertEquals(AutoregulationProposalKind.ADJUST_XRM, propose.program.runState!!.pendingAction!!.proposals.single().kind)
+        assertTrue(propose.program.exerciseLoadReferences.isEmpty())
+        val proposedWeek = Cal5TestSupport.weeksOf(propose.program).single()
+        assertEquals(
+            proposeStartingLoad,
+            Cal5TestSupport.exerciseOf(proposedWeek.sessions.first(), CatalogIds.SQ_LOW).sets[3].weight,
+        )
+
+        val (off, _) = close(AutoregulationMode.OFF)
+        assertTrue(off.advancedCycle)
+        assertTrue(off.autoregulationProposals.isEmpty())
+        assertNull(off.program.runState!!.pendingAction)
+        assertTrue(off.program.exerciseLoadReferences.isEmpty())
     }
 
     @Test
