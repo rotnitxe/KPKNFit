@@ -5,6 +5,10 @@ import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.protocols.LoadBasis
+import com.example.kpkn.domain.training.ApreVariant
+import com.example.kpkn.domain.training.resolveLiveApreBlock
+import com.example.kpkn.screens.sessioneditor.components.withApreBlock
 import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -89,6 +93,33 @@ class SessionEditorAuditRegressionTest {
 
     private fun storedMain() = repository.getProgramById(auditProgramId)!!
         .macrocycles.single().blocks.single().mesocycles.single().weeks.single().sessions.single { it.id == "audit-main" }
+
+    @Test fun applyingManualApreFromRmPreservesPurposesThroughRoomSaveAndReadback() = runBlocking {
+        val vm = editor()
+        vm.updateExercise(null, "a") { current ->
+            current.copy(
+                trainingMode = TrainingMode.RM, reference1RM = 100.0, referenceTrainingMax = 80.0,
+                sets = listOf(ExerciseSet(id = "a-rm", targetReps = 8, targetPercentageRM = 80.0, loadBasis = LoadBasis.PERCENT_TM)),
+            )
+        }
+        var setId = 0
+        vm.updateExercise(null, "a") { current ->
+            current.withApreBlock(ApreVariant.APRE_6) { "manual-apre-${++setId}" }
+        }
+
+        assertTrue(vm.flushProgramAutoSaveAndAwait())
+        repository.flushPendingWrites()
+        val saved = storedMain()
+        val readback = kotlinx.serialization.json.Json.decodeFromString<Session>(
+            kotlinx.serialization.json.Json.encodeToString(Session.serializer(), saved),
+        ).exercises.single { it.id == "a" }
+
+        val liveBlock = resolveLiveApreBlock(readback)
+        assertEquals(ApreVariant.APRE_6, liveBlock?.variant)
+        assertEquals(listOf(SetPurpose.NONE, SetPurpose.NONE, SetPurpose.AMRAP, SetPurpose.AMRAP),
+            readback.sets.map { it.purpose })
+        assertEquals(listOf(null, null, 6, 6), readback.sets.map { it.amrapMinimumReps })
+    }
 
     @Test fun leavingBeforeUndoExpiresPersistsTheDeletion() = runBlocking {
         val vm = editor()

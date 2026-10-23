@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+import com.example.kpkn.domain.training.resolveLiveApreBlock
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.domain.workout.SupersetRules
 import java.util.UUID
@@ -367,7 +368,12 @@ fun SessionEditorViewModel.updateExercise(partId: String?, exerciseId: String, t
     fun update(exercise: Exercise): Exercise {
         if (exercise.id != exerciseId) return exercise
         val changed = transform(exercise)
-        val withPurpose = if (changed.trainingMode != exercise.trainingMode) changed.withTrainingMode(changed.trainingMode) else changed
+        // APRE manual prescribe REPS con propósito propio; no es un cambio de modo que limpie sus series.
+        val validManualApre = changed.trainingMode == TrainingMode.REPS &&
+            changed.apreBlock != null && resolveLiveApreBlock(changed) != null
+        val withPurpose = if (changed.trainingMode != exercise.trainingMode && !validManualApre) {
+            changed.withTrainingMode(changed.trainingMode)
+        } else changed
         return withPurpose.normalizeExercise()
     }
     if (partId == null) {
