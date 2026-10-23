@@ -1036,7 +1036,10 @@ object ProgramAutoregulationEngine {
                     else -> current
                 }
             }
-        if (profile != null) working = working.copy(powerliftingProfile = profile)
+        if (profile != null) working = ExerciseTrainingMax.syncProfile(program,
+            working.copy(powerliftingProfile = profile), nowMs,
+            "autoregulation:${program.runState?.runId}:$nextWeekId:" + proposals.hashCode(),
+            "Propuesta de autorregulación aceptada")
 
         val intensity = proposals
             .filter { it.kind == AutoregulationProposalKind.SCALE_WEEK_INTENSITY }
@@ -1162,13 +1165,13 @@ object ProgramAutoregulationEngine {
 
         if (profile != null && signals.consecutiveHighE1rmWeeks >= 2) {
             signals.e1rmByLift.forEach { (slot, e1) ->
-                val tm = TrainingMaxResolver.trainingMax(profile, slot, recipe.trainingMaxPercent) ?: return@forEach
-                if (e1 > tm * 1.05) {
+                val oneRm = TrainingMaxResolver.oneRm(profile, slot) ?: return@forEach
+                if (e1 > oneRm) {
                     out += AutoregulationProposal(
                         kind = AutoregulationProposalKind.PROMOTE_TM,
                         liftSlot = slot.name,
                         percentDelta = 2.5,
-                        explanation = "e1RM ${e1.toInt()} kg > TM ${tm.toInt()} kg × 1,05 dos semanas seguidas",
+                        explanation = "e1RM ${e1.toInt()} kg > 1RM ${oneRm.toInt()} kg dos semanas seguidas",
                     )
                 }
             }

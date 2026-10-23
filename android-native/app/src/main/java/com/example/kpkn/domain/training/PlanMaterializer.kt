@@ -134,7 +134,8 @@ object PlanMaterializer {
             recipeId = recipe.id,
             contentVersion = recipe.contentVersion,
             weekOccurrence = weekOccurrence,
-            referencePool = program.exerciseLoadReferences.associate { entry -> entry.exerciseId to entry.references },
+            referencePool = ExerciseTrainingMax.migrate(program).exerciseLoadReferences.groupBy { it.exerciseId }
+                .mapValues { (_, entries) -> entries.flatMap { it.references } },
         )
 
     fun materialize(
@@ -1063,15 +1064,28 @@ object PlanMaterializer {
         // resolución legacy por LiftSlot (que es de otra variante). La bolsa
         // del programa solo se consulta para ejercientes con identidad estable
         // y MISMA configuración/convención; los capturados ganan a los pendientes.
-        val explicit = working.firstNotNullOfOrNull { it.reference }
+        val declaredReferences = slot.sets.mapNotNull { it.reference }
+        val pooledReferences = stableExerciseId?.let { referencePool[it].orEmpty() }.orEmpty()
+            .filter { it.configurationId == slot.lift.configurationId && it.side == null && it.metadata?.contextKey == null }
+        val originalExplicit = working.firstNotNullOfOrNull { it.reference }
             ?: slot.sets.firstNotNullOfOrNull { it.reference }
-             ?: resolvedPoolReference(
-                 pool = referencePool,
-                 stableExerciseId = stableExerciseId,
-                 configurationId = slot.lift.configurationId,
-                 explicitMetadata = slot.explicitReference,
-                 allowBilateralReference = !slot.isUnilateral,
-             )
+            ?: resolvedPoolReference(referencePool, stableExerciseId, slot.lift.configurationId,
+                slot.explicitReference, allowBilateralReference = !slot.isUnilateral)
+        fun resolvedReference(request: PlanLoadReference): PlanLoadReference? =
+            ExerciseLoadReferenceStore.resolve(declaredReferences + pooledReferences, request)
+        val explicit = originalExplicit?.let { resolvedReference(it) ?: it }
+        // Capacity references coexist. A captured pool value also resolves a matching pending recipe reference.
+        fun capacityReference(kind: PlanLoadReferenceKind): PlanLoadReference? {
+            val convention = slot.explicitReference?.quantityConvention
+                ?.takeUnless { it == LoadQuantityConvention.UNSPECIFIED } ?: originalExplicit?.quantityConvention
+            val request = declaredReferences.firstOrNull { it.kind == kind }
+                ?: pooledReferences.filter { it.kind == kind && (convention == null || it.quantityConvention == convention) }
+                    .takeIf { refs -> refs.map { it.quantityConvention }.distinct().size <= 1 }?.lastOrNull()
+                ?: return null
+            return resolvedReference(request)
+        }
+        val oneRmReference = capacityReference(PlanLoadReferenceKind.EXERCISE_1RM)
+        val tmReference = capacityReference(PlanLoadReferenceKind.EXERCISE_TM)
         val declaredLoadConvention = slot.explicitReference?.quantityConvention
             ?.takeIf { it != LoadQuantityConvention.UNSPECIFIED }
             ?: working.firstNotNullOfOrNull { set ->
@@ -1099,21 +1113,23 @@ object PlanMaterializer {
         // 1RM desde un TM. Una referencia declarada de trabajo observado/lastre es la base de todas las series.
         fun readsOneRm(basis: LoadBasis): Boolean =
             basis == LoadBasis.PERCENT_1RM || basis == LoadBasis.PERCENT_DESIRED_MAX
-        val declaredOneRmKg = explicit
-            ?.takeIf { it.kind == PlanLoadReferenceKind.EXERCISE_1RM }
-            ?.let { referenceBaseKg(it) }
+        val declaredOneRmKg = oneRmReference?.let(::referenceBaseKg)
+        val hasCapacityReference = oneRmReference != null || tmReference != null
         val declaredTmKg: Double? = when {
+            tmReference != null -> referenceBaseKg(tmReference)
+            declaredOneRmKg != null -> declaredOneRmKg * recipeTmFraction
             explicit == null -> tm
-            explicit.kind == PlanLoadReferenceKind.EXERCISE_TM -> referenceBaseKg(explicit)
-            else -> declaredOneRmKg?.times(recipeTmFraction)
+            else -> null
         }
-        fun baseLoadKgFor(set: SetRecipe): Double? = when {
-            explicit == null -> if (readsOneRm(set.loadBasis)) oneRm else tm
-            explicit.kind == PlanLoadReferenceKind.EXERCISE_1RM ->
-                if (readsOneRm(set.loadBasis)) declaredOneRmKg else declaredTmKg
-            explicit.kind == PlanLoadReferenceKind.EXERCISE_TM ->
-                if (readsOneRm(set.loadBasis)) null else declaredTmKg
-            else -> referenceBaseKg(explicit)
+        fun baseLoadKgFor(set: SetRecipe): Double? {
+            val direct = set.reference?.takeIf { it.kind in setOf(
+                PlanLoadReferenceKind.OBSERVED_WORKING_SET, PlanLoadReferenceKind.BODYWEIGHT_EXTERNAL) }
+                ?.let { resolvedReference(it) ?: it }
+                ?: explicit?.takeIf { it.kind in setOf(
+                    PlanLoadReferenceKind.OBSERVED_WORKING_SET, PlanLoadReferenceKind.BODYWEIGHT_EXTERNAL) }
+            if (direct != null) return referenceBaseKg(direct)
+            if (hasCapacityReference) return if (readsOneRm(set.loadBasis)) declaredOneRmKg else declaredTmKg
+            return if (explicit == null) { if (readsOneRm(set.loadBasis)) oneRm else tm } else null
         }
         val directWorkingLoadKg = explicit
             ?.takeIf { reference ->
@@ -1127,10 +1143,8 @@ object PlanMaterializer {
         // H10: 1RM de referencia con el que `materializeSet` acota la carga de `WeeklyKg`. Sin referencia
         // declarada es el 1RM del perfil (o, si solo hay TM, el TM entre la fracción de TM de la receta); con
         // una referencia declarada solo vale la de un 1RM capturado, igual que `Exercise.reference1RM`.
-        val weeklyKgOneRmKg: Double? = when {
+        val weeklyKgOneRmKg: Double? = if (hasCapacityReference) declaredOneRmKg else when {
             explicit == null -> oneRm ?: tm?.takeIf { it > 0.0 }?.let { it / PercentBasis.tmFraction(recipe.trainingMaxPercent) }
-            explicit.kind == PlanLoadReferenceKind.EXERCISE_1RM && explicit.state == PlanLoadReferenceState.CAPTURED ->
-                explicit.capturedLoadKg?.takeIf { it > 0.0 }
             else -> null
         }
         val sets = working.mapIndexed { index, set ->
@@ -1233,23 +1247,8 @@ object PlanMaterializer {
             // `reference1RM` sigue significando 1RM: sin referencia declarada el
             // valor legacy; con referencia declarada SOLO si es 1RM capturado.
             // Una carga de trabajo de 3-5 reps JAMÁS acá (§14.2).
-            reference1RM = when {
-                explicit == null -> oneRm
-                explicit.kind == PlanLoadReferenceKind.EXERCISE_1RM &&
-                    explicit.state == PlanLoadReferenceState.CAPTURED -> explicit.capturedLoadKg?.takeIf { it > 0.0 }
-                else -> null
-            },
-            // `referenceTrainingMax` es el TM con el que se resolvieron las series %TM. Con un 1RM capturado y sin TM
-            // declarado (TM = 1RM × la fracción de TM de la receta) se conserva ese TM derivado para que el editor
-            // y el entrenamiento resuelvan las mismas cargas; sin series %TM no se inventa ninguno.
-            referenceTrainingMax = when {
-                explicit == null -> tm
-                explicit.kind == PlanLoadReferenceKind.EXERCISE_TM &&
-                    explicit.state == PlanLoadReferenceState.CAPTURED -> explicit.capturedLoadKg?.takeIf { it > 0.0 }
-                explicit.kind == PlanLoadReferenceKind.EXERCISE_1RM &&
-                    working.any { it.percent != null && !readsOneRm(it.loadBasis) } -> declaredTmKg
-                else -> null
-            },
+            reference1RM = if (hasCapacityReference) declaredOneRmKg else if (explicit == null) oneRm else null,
+            referenceTrainingMax = if (hasCapacityReference) declaredTmKg else if (explicit == null) tm else null,
             variantName = slot.technique?.displayName(),
             isUnilateral = slot.isUnilateral,
             isCompetitionLift = slot.isCompetitionLift,
@@ -1298,10 +1297,12 @@ object PlanMaterializer {
                     declaredConvention == LoadQuantityConvention.UNSPECIFIED ||
                     ref.quantityConvention == declaredConvention)
         }
-        val captured = candidates.firstOrNull {
-            it.state == PlanLoadReferenceState.CAPTURED && it.capturedLoadKg != null
-        }
-        return captured ?: candidates.firstOrNull { it.state == PlanLoadReferenceState.PENDING }
+        val compatible = candidates.filter { it.metadata?.contextKey == null }
+        return compatible.withIndex().filter { (_, ref) -> ref.state == PlanLoadReferenceState.CAPTURED &&
+            ref.capturedLoadKg?.let { it.isFinite() && it > 0.0 } == true }
+            .maxWithOrNull(compareBy<IndexedValue<PlanLoadReference>> { it.value.capturedAtMs ?: Long.MIN_VALUE }
+                .thenBy { it.value.metadata?.revision ?: 0 }.thenBy { it.index })?.value
+            ?: compatible.lastOrNull { it.state == PlanLoadReferenceState.PENDING }
     }
 
     /**
