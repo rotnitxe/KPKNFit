@@ -91,19 +91,24 @@ class LiveFichaHeadingRegressionTest {
         val initialHistoryTop = history.fetchSemanticsNode().boundsInRoot.top
         var reachedHeadingBand = false
         var finalHistoryTop = initialHistoryTop
-        for (step in 1..40) {
+        for (step in 1..80) {
             scrollable.performSemanticsAction(SemanticsActions.ScrollBy) {
-                it(0f, screenDensity.density * 8f)
+                it(0f, screenDensity.density * 4f)
             }
             rule.waitForIdle()
+            // Un rectángulo vacío significa que el nodo salió del viewport; no puede contar como cruce correcto.
+            history.assertIsDisplayed()
             val headingBounds = fixedHeading.fetchSemanticsNode().boundsInRoot
             val historyBounds = history.fetchSemanticsNode().boundsInRoot
             finalHistoryTop = historyBounds.top
             assertTrue(
+                "En el paso $step el historial sigue visible bajo el título: heading=$headingBounds history=$historyBounds",
+                historyBounds.width > 0f && historyBounds.height > 0f,
+            )
+            assertTrue(
                 "En el paso $step el historial no debe cruzar el título: heading=$headingBounds history=$historyBounds",
                 headingBounds.bottom <= historyBounds.top,
             )
-            history.assertIsDisplayed()
             if (historyBounds.top - headingBounds.bottom <= 16f * screenDensity.density) {
                 reachedHeadingBand = true
                 break
@@ -118,8 +123,13 @@ class LiveFichaHeadingRegressionTest {
             it(0f, screenDensity.density * 32f)
         }
         rule.waitForIdle()
+        history.assertIsDisplayed()
         val headingAfterExtraScroll = fixedHeading.fetchSemanticsNode().boundsInRoot
         val historyAfterExtraScroll = history.fetchSemanticsNode().boundsInRoot
+        assertTrue(
+            "Tras 32 dp extra, el historial mantiene un área visible: $historyAfterExtraScroll",
+            historyAfterExtraScroll.width > 0f && historyAfterExtraScroll.height > 0f,
+        )
         assertTrue(
             "Tras 32 dp extra, el historial aún empieza debajo del título: " +
                 "heading=$headingAfterExtraScroll history=$historyAfterExtraScroll",
