@@ -89,7 +89,7 @@ class SessionEditorCatalogLaunchAuditTest {
 
     @Test
     @Config(sdk = [34], qualifiers = "w360dp-h740dp-xxhdpi", application = Application::class)
-    fun weeklySheetKeepsSiblingNamesAndActiveNameAcrossEditorRecreation() = runBlocking {
+    fun weeklySheetKeepsSiblingNamesAndActiveNameAcrossEditorRecreation() = runBlocking<Unit> {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         val app = ApplicationProvider.getApplicationContext<Application>()
         val repo = ProgramRepository.initForTests(app)
