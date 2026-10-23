@@ -8,7 +8,6 @@ import com.example.kpkn.data.protocols.*
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.calibration.CalibrationStatus
-import com.example.kpkn.domain.training.Apre
 import com.example.kpkn.domain.training.ApreVariant
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.ExerciseLoadReferenceStore
@@ -38,6 +37,12 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.time.Instant
 import java.time.ZoneId
+
+private fun expectedApre6Loads(xrmKg: Double): List<Double> = when (xrmKg) {
+    120.0 -> listOf(60.0, 90.0, 120.0, 120.0)
+    125.0 -> listOf(62.5, 95.0, 125.0, 125.0)
+    else -> error("No hay expectativas CAL7 APRE 6 para XRM $xrmKg kg")
+}
 
 /** Tres modos APRE manuales, ciclo simple de una semana y recorrido real de la variante B. */
 @RunWith(RobolectricTestRunner::class)
@@ -134,7 +139,7 @@ class Cal7ManualApreRoomJourneyTest {
 
         val nextVm = f.open(f.week2.sessions.single { it.id == f.apreSessionWeek2Id })
         val nextExercise = nextVm.uiState.value.session!!.allExercises().single { it.id == f.apreExerciseId }
-        assertEquals(Apre.block(expectedXrm, ApreVariant.APRE_6).map { it.loadKg }, nextExercise.sets.map { it.weight })
+        assertEquals(expectedApre6Loads(expectedXrm), nextExercise.sets.map { it.weight })
         assertEquals("La ejecución real siguiente refleja el XRM del modo", expectedXrm,
             nextExercise.sets[2].weight!!, 0.0)
         assertEquals(log, f.repository.history.value.single { it.id == log.id })
@@ -265,7 +270,11 @@ class Cal7ManualApreRoomJourneyTest {
             WeekVariant.D -> baseSession.sessionD!!
         }
         val exercise = session.allExercises().single { it.id == f.apreExerciseId }
-        assertEquals(Apre.block(xrm, ApreVariant.APRE_6).map { it.loadKg }, exercise.sets.map { it.weight })
+        assertEquals(expectedApre6Loads(xrm), exercise.sets.map { it.weight })
+        assertEquals(listOf(10, 6, null, null), exercise.sets.map { it.targetReps })
+        assertEquals(listOf(SetPurpose.NONE, SetPurpose.NONE, SetPurpose.AMRAP, SetPurpose.AMRAP),
+            exercise.sets.map { it.purpose })
+        assertEquals(listOf(null, null, 6, 6), exercise.sets.map { it.amrapMinimumReps })
         assertNull("El XRM no se convierte en 1RM", exercise.reference1RM)
         assertNull("El XRM no se convierte en TM", exercise.referenceTrainingMax)
     }
@@ -323,14 +332,20 @@ class Cal7ManualApreRoomJourneyTest {
         }
 
         private fun apreExercise(setPrefix: String): Exercise {
-            val rows = Apre.block(120.0, ApreVariant.APRE_6)
-            val sets = rows.mapIndexed { index, row ->
+            val xrmKg = 120.0
+            val loads = expectedApre6Loads(xrmKg)
+            val variant = ApreVariant.APRE_6
+            val sets = loads.mapIndexed { index, loadKg ->
                 ExerciseSet(
                     id = setPrefix + "-s" + (index + 1),
-                    targetReps = row.targetReps,
-                    weight = row.loadKg,
-                    purpose = row.purpose,
-                    amrapMinimumReps = row.minimumReps,
+                    targetReps = when (index) {
+                        0 -> variant.set1Reps
+                        1 -> variant.set2Reps
+                        else -> null
+                    },
+                    weight = loadKg,
+                    purpose = if (index < 2) SetPurpose.NONE else SetPurpose.AMRAP,
+                    amrapMinimumReps = if (index < 2) null else variant.xrmReps,
                     loadModeV2 = LoadModeV2.LOAD,
                     unitModeV2 = UnitModeV2.REPS,
                 )
