@@ -187,9 +187,10 @@ object ProgramAutoregulationEngine {
         logs: List<WorkoutLog>,
         recipe: TrainingPlanRecipe,
         signals: WeeklyAutoregulationSignals,
+        sourceCycleNumber: Int? = program.runState?.cycleNumber,
     ): List<AutoregulationProposal> {
         if (program.autoregulationMode == AutoregulationMode.OFF) return emptyList()
-        val cycle = program.runState?.cycleNumber
+        val cycle = sourceCycleNumber
         val runId = program.runState?.runId
         val rule = recipe.progression
         val observedHits = collectAmrapHits(
@@ -220,20 +221,36 @@ object ProgramAutoregulationEngine {
         )
     }
 
-    /** Canal APRE para programas manuales sin receta fuente; sólo lee S4 con bloque APRE marcado. */
-    fun evaluateApreXrmOnly(program: Program, completedWeek: ProgramWeek, logs: List<WorkoutLog>): List<AutoregulationProposal> {
+    /** Canal APRE cuando no corresponde evaluar otras reglas; sólo lee S4 con bloque APRE real. */
+    fun evaluateApreXrmOnly(
+        program: Program,
+        completedWeek: ProgramWeek,
+        logs: List<WorkoutLog>,
+        sourceCycleNumber: Int? = program.runState?.cycleNumber,
+        recipe: TrainingPlanRecipe? = null,
+        sourceProtocolId: String? = program.sourceProtocolId ?: recipe?.id,
+    ): List<AutoregulationProposal> {
         if (program.autoregulationMode == AutoregulationMode.OFF) return emptyList()
         val hits = collectAmrapHits(
             completedWeek = completedWeek,
             logs = logs,
-            cycleNumber = program.runState?.cycleNumber,
+            cycleNumber = sourceCycleNumber,
             programId = program.id,
             runId = program.runState?.runId,
-            recipe = null,
-            sourceProtocolId = program.sourceProtocolId,
+            recipe = recipe,
+            sourceProtocolId = sourceProtocolId,
             sourceProgramId = program.id,
         )
         return hits.mapNotNull { apreProposal(it, program.id) }
+            .distinctBy { proposal ->
+                val capture = proposal.apreXrm!!
+                listOf(
+                    capture.reference.sourceProgramId,
+                    capture.sourceExerciseId,
+                    capture.sourcePlannedSetId,
+                    capture.reference.metadata?.sourceId,
+                )
+            }
     }
 
     private fun validXrmProposalForProgram(proposal: AutoregulationProposal, programId: String): Boolean {
@@ -753,24 +770,56 @@ object ProgramAutoregulationEngine {
         val weekLogs = weekLogsOf(week, logs, cycleNumber, programId, runId)
         if (weekLogs.isEmpty()) return emptyList()
         val lifts = RecipeLiftResolver(recipe)
-        val weekSessionIds = week.sessions.mapTo(mutableSetOf()) { it.id }
+        val sessionVariants = week.sessions.flatMap { it.withVariants() }
+        val weekSessionIds = sessionVariants.mapTo(mutableSetOf()) { it.id }
         val out = mutableListOf<AmrapHit>()
-        week.sessions.forEach { session ->
-            val sessionLogs = logsOfSession(weekLogs, session, weekSessionIds)
+        sessionVariants.forEach { session ->
+            // WorkoutFinishController conserva el sessionId exterior A aunque el usuario
+            // haya terminado B/C/D. Solo asociamos ese contenedor si CompletedExercise
+            // identifica sin ambigüedad un ejercicio de la variante.
+            val sessionLogs = logsOfSession(weekLogs, session, weekSessionIds, sessionVariants)
             session.allExercises().forEach { exercise ->
-                val amrapPairs = pairedSets(exercise, sessionLogs, isTarget = { it.purpose.isAmrap }, isFlagged = { it.performedPurpose()?.isAmrap == true })
                 val hasApreProgression = recipe?.progression is ProgressionRule.ApreXrm
                 val isApreBlock = exercise.apreBlock != null ||
                     resolveLiveApreBlock(exercise, sourceProtocolId, hasApreProgression) != null
+                val exerciseLogs = if (isApreBlock) {
+                    sessionLogs.filter { log -> hasUnambiguousVariantExercise(log, exercise, sessionVariants) }
+                } else sessionLogs
+                val amrapPairs = pairedSets(
+                    exercise, exerciseLogs,
+                    isTarget = { it.purpose.isAmrap },
+                    isFlagged = { it.performedPurpose()?.isAmrap == true },
+                    requireExactExerciseId = isApreBlock,
+                )
                 amrapPairs.forEachIndexed { pairIndex, pair ->
                         val prescribedIndex = exercise.sets.indexOfFirst { it.id == pair.prescribed.id }
                         val storedCapture = pair.performed.apreXrm
+                        val plannedContext = plannedApreContext(exercise, pair.prescribed, pair.performed.side, pair.performed)
                         val storedSourceMatches = storedCapture?.reference?.sourceProgramId
                             ?.let { it == sourceProgramId } ?: true
+                        val currentBlock = resolveLiveApreBlock(exercise, sourceProtocolId, hasApreProgression)
+                        val storedContextMatches = storedCapture != null && storedCapture.context == plannedContext &&
+                            storedCapture.reference.configurationId == plannedContext.configurationId &&
+                            storedCapture.reference.quantityConvention == plannedContext.loadQuantityConvention &&
+                            storedCapture.reference.side == pair.performed.side &&
+                            storedCapture.reference.repMin == currentBlock?.variant?.xrmReps &&
+                            storedCapture.reference.repMax == currentBlock?.variant?.xrmReps &&
+                            storedCapture.reference.metadata?.contextKey == plannedContext.key &&
+                            (storedCapture.reference.sourceSlotId == null || exercise.recipeSlotId == null ||
+                                storedCapture.reference.sourceSlotId == exercise.recipeSlotId) &&
+                            (storedCapture.sourceRecipeDayId == null || exercise.recipeDayId == null ||
+                                storedCapture.sourceRecipeDayId == exercise.recipeDayId) &&
+                            (storedCapture.sourceRecipeSlotId == null || exercise.recipeSlotId == null ||
+                                storedCapture.sourceRecipeSlotId == exercise.recipeSlotId)
+                        val recordedContextMatches = pair.performed.contextKey?.let { it == plannedContext.key } ?: true
                         val storedIdentityMatches = storedCapture != null && storedSourceMatches &&
+                            storedContextMatches &&
                             validApreXrmCapture(storedCapture) && storedCapture.sourceExerciseId == exercise.id &&
                             storedCapture.sourcePlannedSetId == pair.prescribed.id &&
                             storedCapture.reference.metadata?.sourceId == pair.performed.id
+                        // Un snapshot o contextKey contradictorio es evidencia de otra variante/contexto;
+                        // no se recaptura con la configuración actual para "convertirlo" en una captura nueva.
+                        val captureIdentityConflicts = (storedCapture != null && !storedIdentityMatches) || !recordedContextMatches
                         val incrementKg = (recipe?.progression as? ProgressionRule.ApreXrm)?.incrementKg
                             ?: storedCapture?.takeIf { storedIdentityMatches }?.incrementKg
                             ?: Apre.DEFAULT_INCREMENT_KG
@@ -778,7 +827,7 @@ object ProgramAutoregulationEngine {
                         val completedForCapture = if (legacyPurposeFromPlan) {
                             pair.performed.copy(purpose = pair.prescribed.purpose)
                         } else pair.performed
-                        val apreCapture = if (!storedSourceMatches || prescribedIndex < 0 ||
+                        val apreCapture = if (captureIdentityConflicts || !storedSourceMatches || prescribedIndex < 0 ||
                             pair.performed.setIndex?.let { it != prescribedIndex } == true) null else
                             captureApreXrm(
                                 exercise = exercise,
@@ -789,6 +838,7 @@ object ProgramAutoregulationEngine {
                                 incrementKg = incrementKg,
                                 capturedAtMs = storedCapture?.takeIf { storedIdentityMatches }?.reference?.capturedAtMs,
                                 sourceProgramId = sourceProgramId,
+                                contextOverride = plannedContext,
                             )
                         out += AmrapHit(
                             liftSlot = lifts.liftSlotFor(exercise),
@@ -1085,9 +1135,17 @@ object ProgramAutoregulationEngine {
         programId: String?,
         runId: String?,
     ): Set<String> {
-        val sessionIds = week.sessions.mapTo(linkedSetOf()) { it.id }
+        val sessionIds = week.sessions.flatMap { it.withVariants() }.mapTo(linkedSetOf()) { it.id }
         return weekLogsOf(week, logs, cycleNumber, programId, runId)
             .map { it.sessionId }.filterTo(linkedSetOf()) { it in sessionIds }
+    }
+
+    /** Sesiones A/B/C/D configuradas en una misma ocurrencia semanal. */
+    private fun Session.withVariants(): List<Session> = buildList {
+        add(this@withVariants)
+        sessionB?.let { addAll(it.withVariants()) }
+        sessionC?.let { addAll(it.withVariants()) }
+        sessionD?.let { addAll(it.withVariants()) }
     }
 
     private fun weekLogsOf(
@@ -1119,21 +1177,87 @@ object ProgramAutoregulationEngine {
         weekLogs: List<WorkoutLog>,
         session: Session,
         weekSessionIds: Set<String>,
+        sessionVariants: List<Session> = emptyList(),
     ): List<WorkoutLog> = weekLogs
-        .filter { it.sessionId == session.id || it.sessionId !in weekSessionIds }
+        .filter { log ->
+            log.sessionId == session.id || log.sessionId !in weekSessionIds ||
+                (sessionVariants.isNotEmpty() && hasUnambiguousVariantExercise(log, session, sessionVariants))
+        }
         .sortedByDescending { AugeUtils.logDateMs(it) }
+
+    /** Asocia un log de A a B/C/D solo con identidad única o snapshot/contexto exacto. */
+    private fun hasUnambiguousVariantExercise(
+        log: WorkoutLog,
+        session: Session,
+        sessionVariants: List<Session>,
+    ): Boolean = session.allExercises().any { planned ->
+        hasUnambiguousVariantExercise(log, planned, sessionVariants)
+    }
+
+    private fun hasUnambiguousVariantExercise(
+        log: WorkoutLog,
+        planned: Exercise,
+        sessionVariants: List<Session>,
+    ): Boolean =
+        log.completedExercises.any { completed ->
+            completed.exerciseId == planned.id && !hasContradictoryExerciseIdentity(completed, planned) &&
+                run {
+                    val sameIdentityCandidates = sessionVariants.flatMap { it.allExercises() }.filter { candidate ->
+                        candidate.id == completed.exerciseId && !hasContradictoryExerciseIdentity(completed, candidate)
+                    }.distinct()
+                    sameIdentityCandidates.size == 1 ||
+                        completedPinsVariant(completed, planned, sameIdentityCandidates)
+                }
+        }
+
+    /** Si la identidad se reutiliza entre variantes, exige una captura/contexto que seleccione una sola. */
+    private fun completedPinsVariant(
+        completed: CompletedExercise,
+        planned: Exercise,
+        candidates: List<Exercise>,
+    ): Boolean {
+        val captureMatches = candidates.filter { candidate ->
+            completed.sets.any { performed ->
+                val capture = performed.apreXrm
+                val capturedSet = capture?.let { candidate.sets.firstOrNull { set -> set.id == it.sourcePlannedSetId } }
+                val exactCapture = capture != null && capturedSet != null && validApreXrmCapture(capture) &&
+                    capture.sourceExerciseId == candidate.id &&
+                    capture.sourcePlannedSetId == capturedSet.id &&
+                    capture.reference.metadata?.sourceId == performed.id &&
+                    capture.sourceRecipeDayId == candidate.recipeDayId &&
+                    capture.sourceRecipeSlotId == candidate.recipeSlotId &&
+                    capture.context == plannedApreContext(candidate, capturedSet, performed.side, performed)
+                val exactContext = performed.contextKey != null && performed.setIndex != null &&
+                    candidate.sets.getOrNull(performed.setIndex)?.let { prescribed ->
+                        performed.contextKey == plannedApreContext(candidate, prescribed, performed.side, performed).key
+                    } == true
+                exactCapture || exactContext
+            }
+        }
+        return captureMatches.singleOrNull() == planned
+    }
 
     /** Los ejercicios registrados que corresponden a [exercise]: por id; si no, por configuración. */
     private fun loggedExercisesOf(log: WorkoutLog, exercise: Exercise): List<CompletedExercise> {
         val byId = log.completedExercises.filter { it.exerciseId == exercise.id }
-        if (byId.isNotEmpty()) return byId
+        // Un ID de ocurrencia puede sobrevivir a un reemplazo de variante. Si el log
+        // y el plan conservan configuraciones conocidas distintas, el ID no autoriza
+        // a reinterpretar la carga (ni a caer al emparejamiento por nombre/DB).
+        if (byId.isNotEmpty()) return byId.filterNot { hasContradictoryExerciseIdentity(it, exercise) }
         val configurationId = exercise.catalogConfigurationId
         val dbId = exercise.exerciseDbId
         return log.completedExercises.filter { done ->
-            (configurationId != null && done.catalogConfigurationId == configurationId) ||
-                (dbId != null && done.exerciseDbId == dbId)
+            !hasContradictoryExerciseIdentity(done, exercise) &&
+                ((configurationId != null && done.catalogConfigurationId == configurationId) ||
+                    (dbId != null && done.exerciseDbId == dbId))
         }
     }
+
+    /** Compara sólo identidades homólogas; `exerciseDbId` y `catalogConfigurationId` no se mezclan. */
+    private fun hasContradictoryExerciseIdentity(done: CompletedExercise, exercise: Exercise): Boolean =
+        (done.catalogConfigurationId != null && exercise.catalogConfigurationId != null &&
+            done.catalogConfigurationId != exercise.catalogConfigurationId) ||
+            (done.exerciseDbId != null && exercise.exerciseDbId != null && done.exerciseDbId != exercise.exerciseDbId)
 
     /**
      * Empareja las series prescritas de [exercise] que cumplen [isTarget] con las series registradas, en
@@ -1147,12 +1271,19 @@ object ProgramAutoregulationEngine {
         logs: List<WorkoutLog>,
         isTarget: (ExerciseSet) -> Boolean,
         isFlagged: ((CompletedSet) -> Boolean)?,
+        requireExactExerciseId: Boolean = false,
     ): List<SetPair> {
         val planned = exercise.sets.filterNot { it.isEmptySlot }
         val targets = planned.withIndex().filter { isTarget(it.value) }
         if (targets.isEmpty() && isFlagged == null) return emptyList()
         for (log in logs) {
-            val working = loggedExercisesOf(log, exercise)
+            val matchingExercises = if (requireExactExerciseId) {
+                log.completedExercises.filter { it.exerciseId == exercise.id }
+                    .filterNot { hasContradictoryExerciseIdentity(it, exercise) }
+            } else {
+                loggedExercisesOf(log, exercise)
+            }
+            val working = matchingExercises
                 .flatMap { it.sets }
                 .filter { !it.isWarmup && !it.skipped }
             if (working.isEmpty()) continue

@@ -33,7 +33,7 @@ object ApreXrmProgression {
         val savedSourceIds = linkedSetOf<String>()
         captures.forEach { capture ->
             val compatibleIds = targetWeek?.sessions.orEmpty()
-                .flatMap { it.allExercises() }
+                .flatMap { it.allExercisesWithVariants() }
                 .filter { isCompatibleTarget(it, capture) }
                 .mapTo(linkedSetOf()) { it.id }
             val referenceIds = compatibleIds + capture.sourceExerciseId
@@ -51,8 +51,7 @@ object ApreXrmProgression {
         if (targetWeekId != null && targetWeek != null && targetWeekId !in executedWeekIds) {
             working = updateWeek(working, targetWeekId) { week ->
                 week.copy(sessions = week.sessions.map { session ->
-                    if (session.id in protectedSessions) return@map session
-                    session.transformExercisesFlat { original ->
+                    session.transformExercisesWithVariants(protectedSessions) { original ->
                         captures.fold(original) { current, capture ->
                             val exactReference = storedReference(working, current.id, capture)
                             val exactCapture = exactReference?.let { capture.copy(reference = it) } ?: capture
@@ -122,6 +121,25 @@ object ApreXrmProgression {
         capture.reference.capturedLoadKg,
         capture.incrementKg,
     )
+
+    private fun Session.allExercisesWithVariants(): List<Exercise> = buildList {
+        addAll(allExercises())
+        sessionB?.let { addAll(it.allExercisesWithVariants()) }
+        sessionC?.let { addAll(it.allExercisesWithVariants()) }
+        sessionD?.let { addAll(it.allExercisesWithVariants()) }
+    }
+
+    private fun Session.transformExercisesWithVariants(
+        protectedSessions: Set<String>,
+        transform: (Exercise) -> Exercise,
+    ): Session {
+        if (id in protectedSessions) return this
+        return transformExercisesFlat(transform).copy(
+            sessionB = sessionB?.let { it.transformExercisesWithVariants(protectedSessions, transform) },
+            sessionC = sessionC?.let { it.transformExercisesWithVariants(protectedSessions, transform) },
+            sessionD = sessionD?.let { it.transformExercisesWithVariants(protectedSessions, transform) },
+        )
+    }
 
     private fun findWeek(program: Program, weekId: String): ProgramWeek? =
         program.macrocycles.asSequence().flatMap { it.blocks.asSequence() }
