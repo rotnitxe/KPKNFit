@@ -1,12 +1,12 @@
 # Relevo de la ola screens-v2 (21-oct-2026, noche)
 
-## Estado verificado · 23-oct-2026 01:26 · continuación Codex
+## Estado verificado · 23-oct-2026 · integración ED-B comprobada
 
 Este bloque sustituye el inventario operativo de abajo; los inventarios antiguos se conservan como historial. No hay push, merge en master, QA de esta continuación ni APK nuevo. Room permanece congelado.
 
 | Worktree | HEAD / estado | Evidencia nueva |
 |---|---|---|
-| u11 · integración | 030341408 integra u13 sin conflictos; 08162eed8 registra INT-1 | JVM posterior: 161 clases, 1700 pruebas, 0 fallos/errores/omitidas (`int-u13-jvm-codex-20261023-2.log`). Android posterior 45/0; u12 fusionado en 6bf182d81 y verificado: 33/0 base más 11/0 tras corregir D8 (34 casos únicos). Se conserva `artifacts/aud2-editor-catalogo-20261020/` sin seguimiento. |
+| u11 · integración | 67ded417b integra u14; D8 corregido en 9469d3817 | JVM posterior: 161 clases, 1700 pruebas, 0 fallos/errores/omitidas (`int-u13-jvm-codex-20261023-2.log`). Android posterior 45/0; u12 fusionado en 6bf182d81 y verificado: 33/0 base más 11/0 tras corregir D8 (34 casos únicos). Se conserva `artifacts/aud2-editor-catalogo-20261020/` sin seguimiento. |
 | u12 · MOT/ED-E | a76b4edc2, limpio | Código cerrado en f042464ba; se guardó el brief MOT que estaba sin seguimiento. No se repitió su implementación. |
 | u14 · ED-B | 385cab731, limpio | Completo B1–B5/B7–B9, APRE y NBSP. `edb-12.log`: 55/0; `edb-10.log`: otras 55/0; APRE JVM 15/0. Informe ED-B. |
 | u15 · CAT-A | f34b02318 | 66/0 en `cat-a-2.log`; creador E4 conserva su estado al recrear. Artefactos recibidos fuera de commits. |
@@ -14,11 +14,11 @@ Este bloque sustituye el inventario operativo de abajo; los inventarios antiguos
 | u17 · ED-D | 8f8a02b95, limpio | 14/0 JVM y 67/0 Android en `edd-codex-20261022-4.log`. Descanso heredado y edición de miembros corregidos. Informe ED-D. |
 | u18 · ED-C | 296bb3ff6, limpio | Dominio f37329fe0, fichas b7381c436, movilidad 142aa2e58, H3/pruebas ae5253498 y cierre 296bb3ff6. JVM 13/0; 34 pruebas Android únicas verificadas (20 Compose finales más VM/persistencia/render de corridas anteriores), 14 PNG. Informe ED-C. |
 
-### Punto de continuación · ED-E verificado y u14 siguiente
+### Punto de continuación · ED-B verificado y C3/ED-D siguiente
 
-`int-u12-android-codex-20261023-2.log` terminó BUILD SUCCESSFUL en 9 min 31 s: tres clases, 11 pruebas, 0 fallos/errores/omitidas. Se revisó `transferir_s130.png`: las dos etiquetas completas y la acción final son visibles. La prueba nativa nueva verifica 360 × 740 y 130 %, objetivos de 48 dp, ambos atajos, cuerpo útil y pie al copiar/reemplazar/traer. Con los 23 casos sin rutas modificadas de la primera corrida son 34 pruebas únicas verificadas. Esperar el cierre del wrapper de esta corrida antes de lanzar la siguiente; luego preflight NUEVO y merge u14.
+`int-u12-android-codex-20261023-2.log` terminó BUILD SUCCESSFUL en 9 min 31 s: tres clases, 11 pruebas, 0 fallos/errores/omitidas. Se revisó `transferir_s130.png`: las dos etiquetas completas y la acción final son visibles. La prueba nativa nueva verifica 360 × 740 y 130 %, objetivos de 48 dp, ambos atajos, cuerpo útil y pie al copiar/reemplazar/traer. Con los 23 casos sin rutas modificadas de la primera corrida son 34 pruebas únicas verificadas. Wrapper cerrado. ED-B se fusionó después en 67ded417b y pasó 87 pruebas de 10 clases en `int-u14-android-codex-20261023-1.log` (9 min 54 s); su wrapper también cerró. No hay corrida propia activa en este punto: siguiente preflight y merge C3/ED-D.
 
-Paralelismo autorizado por el usuario el 23-oct: dos subagentes GPT-6.1 Sol Medium preparan adaptaciones en worktrees de integración aislados creados con mkwt. `u24-int-c3` / `codex/sv2-int-c3` incorpora u14 y u17 y adapta C3; `u25-int-g1` / `codex/sv2-int-g1` incorpora u14 y u16 y adapta G1. No ejecutan Gradle, JVM ni adb. El principal centraliza todas las corridas y fusionará sus resultados en el lugar de u17 y u16, respetando el orden de integración. Estas ramas aún no están verificadas: no confundir commits de preparación con verde.
+Paralelismo autorizado por el usuario el 23-oct: dos subagentes GPT-6.1 Sol Medium preparan adaptaciones en worktrees de integración aislados creados con mkwt. `u24-int-c3` / `codex/sv2-int-c3` incorpora u14 y u17 y adapta C3; `u25-int-g1` / `codex/sv2-int-g1` incorpora u14 y u16 y adapta G1. No ejecutan Gradle, JVM ni adb. El principal centraliza todas las corridas y fusionará sus resultados en el lugar de u17 y u16, respetando el orden de integración. C3 listo en 2cf81b677 y G1 en 0ac8bd0e6, ambos limpios y aún sin ejecuciones: no confundir commits de preparación con verde. El mismo subagente C3 revisa dos limitaciones reales de ED-A en u26-int-eda / codex/sv2-int-eda; no ejecuta Gradle. Las lecturas CAT-B y PLAN-OBS ya prepararon sus planes, sin comenzar fase 4.
 
 ED-C sigue cerrado en u18, HEAD 296bb3ff6, limpio: 20 Compose finales verdes, 13 pruebas puras y las verificaciones de VM/persistencia/render documentadas. u13 está verde en u11 (1700 JVM y 45 Android/Room). CLAUDE ya documenta Room v30. u19–u23 se reservan para fase 4 y solo se crearán desde la integración verde.
 

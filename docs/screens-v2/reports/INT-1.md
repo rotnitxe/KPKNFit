@@ -8,7 +8,7 @@ Se integra en `feat/screens-v2`, C:/kw/u11, en el orden del relevo. El artefacto
 |---|---|---|---|
 | u13 · PROG/FIX-TM/INV · 2c549b7ac | Limpio, árbol 60d1e6480057c97e3b312d3ed645d4c33d4516b1 | 030341408, sin conflictos | JVM: 161 clases, 1700/0; Android: 6 clases, 45/0 |
 | u12 · ED-E · a76b4edc2 | Limpio sobre 18985e121, árbol 37860253aecd833693ded31d9bc28882f07ff638 | 6bf182d81, sin conflictos | 33/0 base y 11/0 tras corrección D8; 34 pruebas únicas |
-| u14 · ED-A/ED-B | Pendiente | Pendiente | Pendiente |
+| u14 · ED-A/ED-B · 385cab731 | Limpio tras D8, árbol 6e533815cb855eccd804bba94e78a7f17f745e07 | 67ded417b, sin conflictos | 10 clases, 87/0 |
 | u17 · ED-D | Pendiente | Pendiente | Pendiente |
 | u18 · ED-C | Pendiente | Pendiente | Pendiente |
 | u15 · CAT-A | Pendiente | Pendiente | Pendiente |
@@ -51,3 +51,10 @@ Se corrige D8 en integración: modos en columna con letra grande, atajos separad
 ## Reparto de adaptaciones de integración
 
 El usuario autorizó subagentes 6.1 Sol Medium. C3 se prepara en u24-int-c3 (ramas u14 y u17); G1 en u25-int-g1 (u14 y u16). No ejecutan Gradle ni JVM; todas las pruebas y el orden de fusión siguen centralizados en el principal. Sus commits de preparación requieren validación en u11 antes de acreditar el verde.
+
+
+## ED-B: verificación en integración
+
+`int-u14-android-codex-20261023-1.log`: BUILD SUCCESSFUL en 9 min 54 s, 10 clases, 87 pruebas, 0 fallos/errores/omitidas. Focos (17), opciones (5), lista de series (20), estado de fila (3), lista de sesión (10), AMRAP (5), cargas RM (4), reglas RM (2), dosis (8) y render (13). Se generaron 26 PNG en C:/kw/shots/int-edb. Se revisaron RM y Calibrador al 130 %: RM completo; Calibrador conserva el recorte variable de Canvas documentado en ED-B pese a geometría e interacción verdes. No se atribuye a este PNG una QA visual completa; verificar cabeceras en el emulador final.
+
+C3 preparado en 2cf81b677, preflight sobre 67ded417b limpio (árbol 6b35564d96c0239059646dd7ffc1716bb891e7cf). Se repetirá tras guardar esta evidencia. La revisión de pendientes de ED-A se prepara aparte en u26-int-eda; A5 usa insignias neutras exactas del tablero, no colores inferidos del informe antiguo, y A1 requiere comprobar el espacio de acciones al 130 %.
