@@ -85,6 +85,7 @@ class RecorderCameraBindingOwnerTest {
         assertEquals(listOf(listOf("preview", "video")), provider.releases)
     }
 
+    @OptIn(ExperimentalSessionConfig::class)
     @Test
     fun cleanup_clears_downgraded_session_copy_and_unbinds_the_owned_use_cases() {
         val ownedSession = createSession()
