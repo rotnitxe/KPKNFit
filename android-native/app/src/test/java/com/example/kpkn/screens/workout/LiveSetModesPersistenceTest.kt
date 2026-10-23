@@ -123,7 +123,8 @@ class LiveSetModesPersistenceTest {
 
         vm.flushOngoingForBackgroundAndAwait()
         val stored = f.storedOngoing().session.allExercises().single()
-        assertEquals(46.5, stored.reference1RM, 0.0)
+        assertNotNull(stored.reference1RM)
+        assertEquals(46.5, stored.reference1RM!!, 0.0)
         assertEquals(UnitModeV2.CUSTOM, stored.sets[1].unitModeV2)
         assertEquals(1.0, stored.sets[1].plannedTargetV2!!, 0.0)
         var reopened = f.recreate(vm)
