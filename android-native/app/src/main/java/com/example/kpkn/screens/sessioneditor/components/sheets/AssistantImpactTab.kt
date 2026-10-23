@@ -3,6 +3,8 @@ package com.example.kpkn.screens.sessioneditor.components.sheets
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -287,6 +289,7 @@ private fun AssistantVolumeModule(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AssistantVolumeRow(
     muscle: String,
@@ -359,10 +362,10 @@ private fun AssistantVolumeRow(
             )
         }
         // Coste fisiológico de ese volumen: el mismo reparto de anillos que el resumen.
-        Row(
+        FlowRow(
             modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             AssistantDrainChip(label = "Músculo", reading = DrainReading.of(muscleDrain), color = KpknRingColors.musculos)
             AssistantDrainChip(label = "Energía", reading = DrainReading.of(energyDrain), color = KpknRingColors.energia)
