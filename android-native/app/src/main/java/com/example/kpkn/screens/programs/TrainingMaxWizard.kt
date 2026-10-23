@@ -88,10 +88,8 @@ internal fun TrainingMaxContent(
         ),
         trainingMaxPercent,
     )
-    val hasValidInput = positiveKg(marks[LiftMark.SQUAT]) != null ||
-        positiveKg(marks[LiftMark.BENCH]) != null ||
-        positiveKg(marks[LiftMark.DEADLIFT]) != null
-    val noMarks = marks[LiftMark.SQUAT] == null && marks[LiftMark.BENCH] == null && marks[LiftMark.DEADLIFT] == null
+    val hasValidInput = TmLifts.any { positiveKg(marks[it]) != null }
+    val noMarks = TmLifts.none { positiveKg(marks[it]) != null }
     val scroll = rememberScrollState()
     // Solo cambia el booleano: la franja aparece o se va sin recomponer la hoja en cada tick del scroll.
     val canScrollMore by remember { derivedStateOf { scroll.canScrollForward } }
@@ -146,7 +144,7 @@ internal fun TrainingMaxContent(
         }
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
             // Una fila por levantamiento con TM. Sin ningún TM, la vista previa no se pinta (P6).
-            val tmRows = trainingMaxPreviewRows(preview.squatTM, preview.benchTM, preview.deadliftTM, unit)
+            val tmRows = trainingMaxPreviewRows(preview.squatTM, preview.benchTM, preview.deadliftTM, unit, overheadTM = preview.overheadTM)
             if (tmRows.isNotEmpty()) {
                 tmRows.forEach { row ->
                     Text(
@@ -204,9 +202,11 @@ internal fun trainingMaxFiveRepNote(trainingMaxPercent: Double): String? =
  * Filas de la vista previa: una por levantamiento con TM, como «Sentadilla · TM 124 kg», en la unidad de Ajustes. Sin TM no hay filas, y
  * así no quedan «—» huérfanos.
  */
-internal fun trainingMaxPreviewRows(squatTM: Double?, benchTM: Double?, deadliftTM: Double?, unit: String): List<String> =
+internal fun trainingMaxPreviewRows(squatTM: Double?, benchTM: Double?, deadliftTM: Double?, unit: String,
+    overheadTM: Double? = null): List<String> =
     listOfNotNull(
         squatTM?.let { "Sentadilla · TM ${MarksMath.formatMark(it, unit)}" },
         benchTM?.let { "Press de banca · TM ${MarksMath.formatMark(it, unit)}" },
         deadliftTM?.let { "Peso muerto · TM ${MarksMath.formatMark(it, unit)}" },
+        overheadTM?.let { "Press militar · TM ${MarksMath.formatMark(it, unit)}" },
     )
