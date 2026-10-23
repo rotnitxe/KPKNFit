@@ -199,10 +199,18 @@ class SessionListItemsTest {
         )
         val session = Session(id = "s1", name = "Mixto", parts = listOf(cardioPart))
 
-        val atStart = buildSessionListItems(session, cardioAtStart = true)
-        val startCardioIdx = atStart.indexOfFirst { it is SessionListItem.CardioDivider }
-        val startStrengthIdx = atStart.indexOfFirst { it is SessionListItem.StrengthDivider }
-        assertTrue(startCardioIdx in 0..<startStrengthIdx)
+        // ED-A · A2b: una sesión solo de cardio no tiene colocación ni espacio de fuerza; sea cual sea la preferencia, el cardio va arriba y
+        // la opción de Fuerza queda debajo, pendiente.
+        listOf(true, false, null).forEach { preference ->
+            val onlyCardio = buildSessionListItems(session, cardioAtStart = preference)
+            assertTrue(onlyCardio.none { it is SessionListItem.StrengthDivider })
+            assertTrue(onlyCardio.none { it is SessionListItem.CardioDivider })
+            assertTrue(onlyCardio.none { it is SessionListItem.CardioPlacement })
+            val cardioIdx = onlyCardio.indexOfFirst { it is SessionListItem.PartExercise && it.exerciseId == "c1" }
+            val cardioAddIdx = onlyCardio.indexOfFirst { it is SessionListItem.CardioAddActions }
+            assertTrue(cardioIdx in 0..<cardioAddIdx)
+            assertTrue(onlyCardio.last() is SessionListItem.StrengthAddActions)
+        }
 
         val atEnd = buildSessionListItems(session, showStrengthDivider = true, cardioAtStart = false)
         val endStrengthIdx = atEnd.indexOfFirst { it is SessionListItem.StrengthDivider }

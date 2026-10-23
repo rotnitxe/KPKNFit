@@ -95,6 +95,13 @@ import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameWeekSheet
 import com.example.kpkn.screens.sessioneditor.frame.adjacentWeekDay
 import com.example.kpkn.screens.sessioneditor.frame.frameDayIndex
 import com.example.kpkn.screens.sessioneditor.frame.frameDayLabel
+import com.example.kpkn.screens.sessioneditor.frame.frameDayWeekLabel
+import com.example.kpkn.screens.sessioneditor.frame.frameWeekNumber
+import com.example.kpkn.screens.sessioneditor.frame.isRedundantWhileSaveBlocked
+import com.example.kpkn.screens.sessioneditor.frame.SessionEditorLoadErrorState
+import com.example.kpkn.screens.sessioneditor.frame.SessionEditorLoadingState
+import com.example.kpkn.screens.sessioneditor.frame.sessionFrameSummaryChips
+import com.example.kpkn.screens.sessioneditor.design.SessionEditorDropHintBanner
 import com.example.kpkn.screens.sessioneditor.frame.frameVariantName
 import com.example.kpkn.screens.sessioneditor.frame.frameWeekOrder
 import com.example.kpkn.screens.sessioneditor.frame.neighbourSessionDay
@@ -106,6 +113,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
@@ -228,6 +236,11 @@ fun SessionEditorScreen(
     // Snackbar for auto-save and navigation messages from ViewModel
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { msg ->
+            // ED-A · A6: un solo aviso por estado. Si el aviso fijo de «guardado bloqueado» ya cuenta lo mismo, la snackbar no lo repite.
+            if (isRedundantWhileSaveBlocked(msg, autoSaveBlock?.message)) {
+                viewModel.clearSnackbarMessage()
+                return@LaunchedEffect
+            }
             val draftFailure = msg.startsWith("No se pudo guardar el borrador") ||
                 msg.startsWith("No se pudo descartar el borrador")
             val action = snackbarHostState.showKpknSnackbar(
@@ -405,6 +418,15 @@ fun SessionEditorScreen(
     }
 
     fun beginExerciseDrag(partId: String, exerciseId: String, pointerWindow: Offset) {
+        // ED-A · A3: la cabecera de una superserie mueve el bloque entero; un ejercicio que no es de ninguna superserie se arrastra solo,
+        // para poder soltarlo sobre una ya formada.
+        val container = if (partId == SessionEditorDragController.LOOSE_PART_ID) {
+            session?.exercises
+        } else {
+            session?.parts?.firstOrNull { it.id == partId }?.exercises
+        }
+        val groupId = container?.firstOrNull { it.id == exerciseId }?.supersetGroupRefOrLegacyId()
+        val isSupersetBlock = groupId != null && (container?.count { it.supersetGroupRefOrLegacyId() == groupId } ?: 0) >= 2
         dragController.beginExerciseDrag(
             partId = partId,
             exerciseId = exerciseId,
@@ -413,6 +435,7 @@ fun SessionEditorScreen(
             pointerStartWindow = pointerWindow,
             session = session,
             collapsedPartIds = uiState.collapsedPartIds,
+            dragScope = if (isSupersetBlock) ExerciseDragScope.BLOCK else ExerciseDragScope.INDIVIDUAL,
         )
     }
 
@@ -454,34 +477,16 @@ fun SessionEditorScreen(
     }
 
     if (session == null) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            val loadErrorMessage = uiState.loadErrorMessage
-            if (loadErrorMessage != null) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Text(
-                        loadErrorMessage,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                        textAlign = TextAlign.Center,
-                    )
-                    Text(
-                        "Puedes reintentar la carga o volver al programa.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = onBack) { Text("Volver") }
-                        Button(onClick = viewModel::retryLoadSession) { Text("Reintentar") }
-                    }
-                }
-            } else {
-                LinearProgressIndicator(modifier = Modifier.width(180.dp))
-            }
+        // ED-A · A6: una sola franja por estado (cargando, error), sin otro aviso encima.
+        val loadErrorMessage = uiState.loadErrorMessage
+        if (loadErrorMessage != null) {
+            SessionEditorLoadErrorState(
+                message = loadErrorMessage,
+                onBack = onBack,
+                onRetry = viewModel::retryLoadSession,
+            )
+        } else {
+            SessionEditorLoadingState()
         }
         return
     }
@@ -492,12 +497,14 @@ fun SessionEditorScreen(
         session.cardioFirst,
         uiState.collapsedPartIds,
         uiState.strengthSpaceCommitted,
+        uiState.cardioSpaceCommitted,
         uiState.cardioSpacePlacement,
     ) {
         buildSessionListItems(
             session = session,
             collapsedPartIds = uiState.collapsedPartIds,
             showStrengthDivider = uiState.strengthSpaceCommitted,
+            cardioSpaceCommitted = uiState.cardioSpaceCommitted,
             cardioAtStart = when (uiState.cardioSpacePlacement) {
                 CardioSpacePlacement.START -> true
                 CardioSpacePlacement.END -> false
@@ -509,6 +516,21 @@ fun SessionEditorScreen(
         sessionListItems.drop(1)
     }
     val allExercisesForUi = remember(session.exercises, session.parts) { session.allExercises() }
+    // ED-A · A3: qué pasaría si se soltara ahora el ejercicio que se arrastra; lo pinta el aviso de arriba y las señales de la lista.
+    val dropPlan = if (draggingExerciseId != null) {
+        planExerciseDrop(
+            session = session,
+            sourcePartId = draggingExercisePartId,
+            exerciseId = draggingExerciseId,
+            scope = dragController.draggingExerciseScope,
+            targetPartId = exerciseDropTargetPartId,
+            targetIndex = exerciseDropTargetIndex,
+            targetGroupId = dragUi.exerciseDropTargetGroupId,
+            outOfRange = exerciseDropOutOfRange,
+        )
+    } else {
+        null
+    }
 
     // Auto-scroll al ejercicio recién añadido (índice = Hero + offset en scrollable)
     LaunchedEffect(pendingAutoExpandExerciseId) {
@@ -657,10 +679,12 @@ fun SessionEditorScreen(
             breakdownMinutes = uiState.sessionTimeBreakdown?.totalMinutes,
             fallbackMinutes = uiState.estimatedDurationMinutes,
         )
-        val summary = sessionFrameSummary(
+        // Una sesión solo de cardio no cuenta series (ED-A · A2b): «2 ejercicios · ≈ 42 min».
+        val summaryChips = sessionFrameSummaryChips(
             exercises = allExercisesForUi.size,
             sets = session.workingSetCount(),
             minutes = timeMinutes,
+            showSets = !(allExercisesForUi.isNotEmpty() && allExercisesForUi.all { it.isCardio }),
         )
 
         // Cambio de día: el contenido nuevo entra deslizándose desde el lado del día (220 ms); con movimiento reducido, un fundido.
@@ -703,7 +727,16 @@ fun SessionEditorScreen(
 
         Column(modifier = Modifier.fillMaxSize()) {
             SessionEditorFrameTopBar(
-                dayLabel = frameDayLabel(currentDay, session.name),
+                dayLabel = frameDayWeekLabel(
+                    day = currentDay,
+                    // Solo se nombra la semana si el programa las distingue (varias semanas, o una simple con bucles).
+                    weekNumber = if (uiState.roadmapOptions.size > 1 || (uiState.isSimpleProgram && uiState.hasActiveLoops)) {
+                        frameWeekNumber(uiState.roadmapOptions, uiState.weekId)
+                    } else {
+                        null
+                    },
+                    sessionName = session.name,
+                ),
                 forward = slideForward,
                 canGoPrevious = previousDay != null,
                 canGoNext = nextDay != null,
@@ -744,7 +777,7 @@ fun SessionEditorScreen(
                             name = session.name,
                             description = session.description.orEmpty(),
                             protocolLabel = uiState.protocolLabel,
-                            summary = summary,
+                            summaryChips = summaryChips,
                             onNameChange = viewModel::updateSessionName,
                             onDescriptionChange = viewModel::updateSessionDescription,
                             onDaySwipe = ::swipeToAdjacentDay,
@@ -762,6 +795,9 @@ fun SessionEditorScreen(
                     exerciseDropTargetKey = exerciseDropTargetKey,
                     exerciseDropTargetPartId = exerciseDropTargetPartId,
                     exerciseDropTargetIndex = exerciseDropTargetIndex,
+                    exerciseDropTargetGroupId = dragUi.exerciseDropTargetGroupId,
+                    draggingExercisePartId = draggingExercisePartId,
+                    dropPlan = dropPlan,
                     draggingPartId = draggingPartId,
                     partDropTargetId = partDropTargetId,
                     pendingAutoExpandExerciseId = pendingAutoExpandExerciseId,
@@ -799,7 +835,9 @@ fun SessionEditorScreen(
             limitMinutes = session.targetDurationMinutes,
             onAdd = { viewModel.openPickerForUncategorized() },
             onAssistant = ::openAssistantSheet,
-            onRules = { viewModel.openRulesSheet(initialTab = 1) },
+            // ED-A · A1: el anillo del tiempo abre la pestaña de tiempo; «Reglas», la de reglas.
+            onRules = { viewModel.openRulesSheet(initialTab = 0) },
+            onTime = { viewModel.openRulesSheet(initialTab = 1) },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
@@ -887,6 +925,14 @@ fun SessionEditorScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 72.dp)
+                .zIndex(510f),
+        )
+        SessionEditorDropHintBanner(
+            plan = dropPlan?.takeIf { !exerciseDropOutOfRange },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(top = 60.dp)
                 .zIndex(510f),
         )
         val draggingPart = draggingPartId?.let { id -> groupedParts.firstOrNull { it.id == id } }

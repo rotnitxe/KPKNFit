@@ -81,6 +81,7 @@ class SessionEditorFrameComposeTest {
                     onAdd = { calls += "add" },
                     onAssistant = { calls += "assistant" },
                     onRules = { calls += "rules" },
+                    onTime = { calls += "time" },
                     modifier = Modifier.padding(12.dp),
                 )
             }
@@ -89,8 +90,10 @@ class SessionEditorFrameComposeTest {
         rule.onNodeWithText("Añadir").performClick()
         rule.onNodeWithText("Asistente").performClick()
         rule.onNodeWithText("Reglas").performClick()
+        // ED-A · A1: el anillo del tiempo es un botón aparte («Reglas» ya no abre el tiempo).
+        rule.onNodeWithContentDescription("Tiempo estimado 54 de 60 minutos").performClick()
 
-        assertEquals(listOf("add", "assistant", "rules"), calls)
+        assertEquals(listOf("add", "assistant", "rules", "time"), calls)
     }
 
     @Test
@@ -105,11 +108,14 @@ class SessionEditorFrameComposeTest {
                     onAdd = {},
                     onAssistant = {},
                     onRules = {},
+                    onTime = {},
                     modifier = Modifier.padding(12.dp),
                 )
             }
         }
-        rule.onNodeWithText("54 min").assertExists()
+        // Los minutos van dentro del anillo; su descripción dice el estimado frente al límite.
+        rule.onNodeWithContentDescription("Tiempo estimado 54 de 60 minutos").assertExists()
+        rule.onNodeWithText("54").assertExists()
     }
 
     @Test
@@ -124,11 +130,13 @@ class SessionEditorFrameComposeTest {
                     onAdd = {},
                     onAssistant = {},
                     onRules = {},
+                    onTime = {},
                     modifier = Modifier.padding(12.dp),
                 )
             }
         }
         rule.onNodeWithText("Reglas").assertExists()
-        rule.onNodeWithText("54 min").assertDoesNotExist()
+        rule.onNodeWithContentDescription("Tiempo estimado: sin ejercicios").assertExists()
+        rule.onNodeWithContentDescription("Tiempo estimado 54 de 60 minutos").assertDoesNotExist()
     }
 }

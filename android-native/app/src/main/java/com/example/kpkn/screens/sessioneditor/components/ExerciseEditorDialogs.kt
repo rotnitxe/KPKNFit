@@ -42,7 +42,6 @@ import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.smartReferenceMetricLabel
 import com.example.kpkn.screens.sessioneditor.components.sheets.EditorDialogImeArea
 import com.example.kpkn.ui.components.KpknAlertConfirmButton
-import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknAlertDismissButton
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknPrimaryPill
@@ -126,7 +125,7 @@ internal fun ExerciseSmartLoadDialog(
 ) {
     var trainingMaxInput by remember(exercise.id) { mutableStateOf(exercise.referenceTrainingMax?.toString().orEmpty()) }
 EditorDialogImeArea {
-KpknAlertDialog(
+EditorSheetDialog(
     onDismissRequest = { onDismiss() },
     title = { Text("Carga inteligente", style = KpknType.dialogTitle, color = WizardColors.text) },
     text = {
@@ -287,7 +286,7 @@ internal fun ExerciseGoalDialog(
     imeInsets: WindowInsets = WindowInsets.ime,
 ) {
 EditorDialogImeArea(imeInsets = imeInsets) {
-KpknAlertDialog(
+EditorSheetDialog(
     onDismissRequest = { onDismiss() },
     title = { Text("Meta", style = KpknType.dialogTitle, color = WizardColors.text) },
     text = {
@@ -356,7 +355,7 @@ internal fun ExerciseCustomUnitDialog(
     imeInsets: WindowInsets = WindowInsets.ime,
 ) {
 EditorDialogImeArea(imeInsets = imeInsets) {
-KpknAlertDialog(
+EditorSheetDialog(
     onDismissRequest = { onDismiss() },
     title = { Text("Unidad Personalizada", style = KpknType.dialogTitle, color = WizardColors.text) },
     text = {
