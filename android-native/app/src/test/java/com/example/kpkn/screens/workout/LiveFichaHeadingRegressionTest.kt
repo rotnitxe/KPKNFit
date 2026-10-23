@@ -73,7 +73,8 @@ class LiveFichaHeadingRegressionTest {
         val screenDensity = setHistoryFicha(fontScale = 1.3f)
         expandDescriptionAndReturnToTop(screenDensity)
         val history = rule.onNodeWithText("Tu historial", useUnmergedTree = true)
-        val fixedHeading = rule.onNode(
+        val fixedHeadingContainer = rule.onNodeWithTag("exercise-ficha-fixed-heading", useUnmergedTree = true)
+        val fixedHeadingText = rule.onNode(
             hasText("Press Militar") and hasAnyAncestor(hasTestTag("exercise-ficha-fixed-heading")),
             useUnmergedTree = true,
         )
@@ -86,7 +87,8 @@ class LiveFichaHeadingRegressionTest {
             }
         }
         rule.waitForIdle()
-        fixedHeading.assertExists()
+        fixedHeadingContainer.assertExists()
+        fixedHeadingText.assertIsDisplayed()
         history.assertIsDisplayed()
         val initialHistoryTop = history.fetchSemanticsNode().boundsInRoot.top
         var reachedHeadingBand = false
@@ -98,7 +100,8 @@ class LiveFichaHeadingRegressionTest {
             rule.waitForIdle()
             // Un rectángulo vacío significa que el nodo salió del viewport; no puede contar como cruce correcto.
             history.assertIsDisplayed()
-            val headingBounds = fixedHeading.fetchSemanticsNode().boundsInRoot
+            fixedHeadingText.assertIsDisplayed()
+            val headingBounds = fixedHeadingContainer.fetchSemanticsNode().boundsInRoot
             val historyBounds = history.fetchSemanticsNode().boundsInRoot
             finalHistoryTop = historyBounds.top
             assertTrue(
@@ -124,7 +127,8 @@ class LiveFichaHeadingRegressionTest {
         }
         rule.waitForIdle()
         history.assertIsDisplayed()
-        val headingAfterExtraScroll = fixedHeading.fetchSemanticsNode().boundsInRoot
+        fixedHeadingText.assertIsDisplayed()
+        val headingAfterExtraScroll = fixedHeadingContainer.fetchSemanticsNode().boundsInRoot
         val historyAfterExtraScroll = history.fetchSemanticsNode().boundsInRoot
         assertTrue(
             "Tras 32 dp extra, el historial mantiene un área visible: $historyAfterExtraScroll",
