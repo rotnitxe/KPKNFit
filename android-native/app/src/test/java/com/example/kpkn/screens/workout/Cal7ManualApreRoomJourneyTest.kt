@@ -7,7 +7,6 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.*
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.domain.calibration.CalibrationStatus
 import com.example.kpkn.domain.training.ApreVariant
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.ExerciseLoadReferenceStore
