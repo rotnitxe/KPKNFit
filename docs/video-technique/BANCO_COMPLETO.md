@@ -245,10 +245,15 @@ Informes de ajuste: `C:/kw/vt-tune-out/m5-baseline-20261022` y
 El protocolo M5 selecciona con tres folds y mide en el retenido, con resultados separados por banco y denominadores explícitos;
 un desglose de una única corrida por folds no acredita esa selección.
 
-**MediaPipe pendiente por instrucción del usuario.** Se conservaron 72/616 extracciones completas antes de aplazar el Z Flip.
-En esas 72 mediciones, el análisis mediano fue de 114,6 s para vídeo mediano de 21,57 s, con ratio mediano de 5,32. Son tiempos
-del lote parcial, no una medición de fiabilidad ni prueba de cumplir el objetivo de tiempo real. La comparación OpenPose/MediaPipe
-de las 494 G1 y el QA físico se completan cuando el usuario regrese. No integrar motor 10 ni cerrar la entrega con estos resultados preliminares.
+**MediaPipe en recuperación tras el regreso del usuario.** Se preservan 72/616 extracciones completas de la versión 50;
+su veto GPU persistente impidió reanudar una medición válida. La versión 51 con B12 compiló y se instaló en `.dbg` sin borrar
+datos ni preferencias. Se inició una generación homogénea nueva de los 616 clips en `C:/kw/vt-mmfit/phone-v51`, sin reutilizar
+las 72 trazas anteriores. Su preflight aprobó GPU/Full/stride 1 y traza de 30,0003 Hz sobre fuente de 30 fps;
+el primer lote está en curso. Esta frecuencia acredita muestreo, no velocidad de procesamiento. APK y procedencia
+registrados en `APK_ATTESTATION.json`.
+En las 72 mediciones antiguas, el análisis mediano fue de 114,6 s para vídeo mediano de 21,57 s, con ratio mediano de 5,32.
+Son tiempos del lote parcial anterior, no fiabilidad ni prueba de tiempo real. La comparación OpenPose/MediaPipe de las 494 G1
+y el QA físico siguen pendientes. No integrar motor 10 ni cerrar la entrega con estos resultados preliminares.
 
 ### Diagnóstico M5 sobre ajuste, sin cambiar etiquetas
 
