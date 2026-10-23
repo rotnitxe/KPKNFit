@@ -62,6 +62,8 @@ import com.example.kpkn.domain.templates.TemplateCatalogFilters
 import com.example.kpkn.domain.templates.TemplateCatalogNestedGroup
 import com.example.kpkn.domain.templates.TemplateCatalogSection
 import com.example.kpkn.domain.templates.TemplateGroupMode
+import com.example.kpkn.domain.templates.TemplateSaveValidationException
+import com.example.kpkn.domain.templates.TemplateSaveValidationIssue
 import com.example.kpkn.domain.templates.TemplateSessionGoal
 import com.example.kpkn.domain.templates.TemplateSessionType
 import com.example.kpkn.domain.templates.TemplateSessionZone
@@ -108,20 +110,23 @@ internal suspend fun executeUserTemplateSave(
             onSuccess = { result ->
                 result.fold(
                     onSuccess = { template -> UserTemplateSaveState.Success(template) },
-                    onFailure = { _ ->
-                        UserTemplateSaveState.Error(
-                            "No se pudo guardar la plantilla. Inténtalo de nuevo.",
-                        )
-                    },
+                    onFailure = ::userTemplateSaveError,
                 )
             },
-            onFailure = { _ ->
-                UserTemplateSaveState.Error(
-                    "No se pudo guardar la plantilla. Inténtalo de nuevo.",
-                )
-            },
+            onFailure = ::userTemplateSaveError,
         )
 }
+
+private fun userTemplateSaveError(failure: Throwable): UserTemplateSaveState.Error =
+    UserTemplateSaveState.Error(
+        when ((failure as? TemplateSaveValidationException)?.issue) {
+            TemplateSaveValidationIssue.NAME_REQUIRED -> "Escribe un nombre para la plantilla."
+            TemplateSaveValidationIssue.SESSION_REQUIRED -> "Abre una sesión antes de guardar una plantilla."
+            TemplateSaveValidationIssue.SESSION_INCOMPLETE ->
+                "Completa la dosis de los ejercicios y las modalidades antes de guardar la plantilla."
+            null -> "No se pudo guardar la plantilla. Inténtalo de nuevo."
+        },
+    )
 
 /** Chips amigables de grupo / día (sin Powerlifting / Minimalista / Recuperación como primarios). */
 private val FriendlyGroupChips = listOf(
