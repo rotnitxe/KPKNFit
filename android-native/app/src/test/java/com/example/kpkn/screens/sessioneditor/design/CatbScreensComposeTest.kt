@@ -133,6 +133,11 @@ class CatbScreensComposeTest {
             rule.onNodeWithTag("exercise-ficha-image-provenance").assertExists()
             rule.onNodeWithTag("exercise-ficha-image-abstention").assertExists()
             val info = state.value.preview!!.exercise
+            val description = requireNotNull(info.description)
+            assertFalse(description, description.contains("knee_dominant"))
+            assertFalse(description, Regex("[a-z]+_[a-z_]+").containsMatchIn(description))
+            rule.onNode(hasText(description) and hasAnyAncestor(hasTestTag("exercise-ficha-description")), useUnmergedTree = true)
+                .performScrollTo().assertIsDisplayed()
             assertTrue(info.setupCues.orEmpty().isNotEmpty())
             assertTrue(info.executionCues.orEmpty().isNotEmpty())
             info.setupCues.orEmpty().forEach { cue -> rule.onNode(hasText(cue) and hasAnyAncestor(hasTestTag("exercise-ficha-setup"))).assertExists() }
