@@ -30,6 +30,7 @@ internal fun LiveCalibrationResult(
     val d = record?.decision
     val resolution = record?.let { r -> when (r.status) {
         CalibrationStatus.APPLIED -> when {
+            r.apre != null -> if (r.appliedSetIds.isEmpty()) "APRE · S4 se conserva" else "APRE · carga de S4 aplicada"
             r.decision.scope == CalibrationScope.NEXT_SESSIONS -> "Propuesta guardada para la próxima sesión de este ejercicio"
             r.appliedSetIds.isEmpty() -> "Referencia aceptada · sin cambios de carga"
             else -> "Cargas aplicadas · calibrada"
@@ -50,6 +51,7 @@ internal fun LiveCalibrationResult(
         exercise.sets.indexOfFirst { calibrationSetId(it, completed.side) == change.setId }.takeIf { it >= 0 }?.plus(1)
     }
     val applyLabel = when {
+        record?.apre != null -> "Aplicar a S4"
         d?.scope == CalibrationScope.NEXT_SESSIONS -> "Guardar propuesta"
         positions.isEmpty() -> "Aceptar referencia"
         positions.size > 1 && positions.zipWithNext().all { (a,b) -> b == a + 1 } -> "Aplicar a S${positions.first()}–S${positions.last()}"
@@ -58,9 +60,10 @@ internal fun LiveCalibrationResult(
     Column(Modifier.fillMaxSize().background(Color(0xFF111111)).padding(horizontal = 16.dp, vertical = 10.dp)
         .testTag("calibration-result"), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(if (d == null) "AMRAP · registrada" else "Calibrador · S${sourceIndex + 1}",
+            Text(when { record?.apre != null -> "APRE ${record.apre.xrmReps} · S${sourceIndex + 1}"
+                d == null -> "AMRAP · registrada"; else -> "Calibrador · S${sourceIndex + 1}" },
                 Modifier.weight(1f).padding(top = 12.dp), color = muted, fontSize = 12.sp)
-            TextButton(onClick = onEdit, enabled = !busy, modifier = Modifier.heightIn(min = 44.dp).testTag("calibration-edit")) {
+            TextButton(onClick = onEdit, enabled = !busy, modifier = Modifier.heightIn(min = 48.dp).testTag("calibration-edit")) {
                 Text("Editar", color = ink)
             }
         }
@@ -81,6 +84,17 @@ internal fun LiveCalibrationResult(
                 Text(program.message, color = accent, fontSize = 13.sp, lineHeight = 18.sp)
                 program.proposals.forEach { Text(it.explanation, color = muted, fontSize = 12.sp, lineHeight = 16.sp) }
             } else {
+                if (record.apre != null) {
+                    val apre = record.apre
+                    Text(if (d.type == CalibrationDecisionType.NOT_APPLIED) "APRE · ajuste no aplicado"
+                        else "APRE · S4 → ${finishNumber(apre.set4LoadKg)} kg (tabla de Mann)",
+                        color = ink, fontSize = 20.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.testTag("apre-set4-result"))
+                    if (apre.sourceLoadKg.isFinite() && apre.sourceLoadKg > 0.0)
+                        Text("S3 · ${apre.validReps} reps válidas con ${finishNumber(apre.sourceLoadKg)} kg",
+                            color = muted, fontSize = 12.sp)
+                    Text(d.reason, color = accent, fontSize = 12.sp, lineHeight = 16.sp)
+                } else {
                 Text(when {
                     d.type == CalibrationDecisionType.NOT_APPLIED -> "Calibración no aplicada"
                     d.referenceKg == null && d.capacityKg != null -> "Primera referencia"
@@ -97,6 +111,7 @@ internal fun LiveCalibrationResult(
                 d.improvementPercent?.let { Text("Cambio medido ${if(it >= 0) "+" else ""}${finishNumber(it)} % · ajuste ${finishNumber((d.factor - 1) * 100)} %",
                     color = muted, fontSize = 11.sp, lineHeight = 15.sp) }
                 d.note?.let { Text(it, color = muted, fontSize = 11.sp, lineHeight = 15.sp) }
+                }
                 d.affectedSets.forEach { change ->
                     val index = exercise.sets.indexOfFirst { calibrationSetId(it, completed.side) == change.setId }
                     if (index >= 0) Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -128,16 +143,16 @@ internal fun LiveCalibrationResult(
         }
         if (record?.status == CalibrationStatus.PROPOSED) {
             if (d?.type != CalibrationDecisionType.NOT_APPLIED) Button(onClick = { onResolve(record.id, CalibrationStatus.APPLIED) }, enabled = !busy,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp).testTag("calibration-apply"),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("calibration-apply"),
                 colors = ButtonDefaults.buttonColors(containerColor = ink, contentColor = Color.Black), shape = RoundedCornerShape(24.dp)) {
                 Text(applyLabel, fontSize = 12.sp)
             }
             OutlinedButton(onClick = { onResolve(record.id, CalibrationStatus.KEPT) }, enabled = !busy,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp).testTag("calibration-keep")) { Text("Conservar", color = ink) }
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("calibration-keep")) { Text("Conservar", color = ink) }
         } else {
             if (record?.status == CalibrationStatus.APPLIED) OutlinedButton(onClick = { onResolve(record.id, CalibrationStatus.REVERTED) }, enabled = !busy,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp).testTag("calibration-revert")) { Text("Revertir", color = ink) }
-            Button(onClick = onContinue, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp).testTag("calibration-continue"),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("calibration-revert")) { Text("Revertir", color = ink) }
+            Button(onClick = onContinue, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("calibration-continue"),
                 colors = ButtonDefaults.buttonColors(containerColor = ink, contentColor = Color.Black)) { Text("Continuar") }
         }
     }

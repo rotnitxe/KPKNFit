@@ -1334,29 +1334,22 @@ object NativeWorkoutProgressionRuntime {
         updatedExercises: Collection<Exercise>,
         identity: NativeProgressionIdentity,
     ): List<ExerciseLoadReference> {
-        val byId = current.associateBy { it.exerciseId }.toMutableMap()
+        var poolProgram = Program(id = "reference-pool", name = "", exerciseLoadReferences = current)
         updatedExercises.forEach { exercise ->
-            val existing = byId[exercise.id]
-            val retained = existing?.references.orEmpty().filterNot { reference ->
-                reference.configurationId == identity.configurationId &&
-                    reference.quantityConvention == identity.quantityConvention &&
-                    (reference.side == null || reference.side == identity.side)
-            }
-            val updatedReference = exercise.loadReference?.takeIf { reference ->
-                reference.configurationId == identity.configurationId &&
-                    reference.quantityConvention == identity.quantityConvention &&
-                    (reference.side == null || reference.side == identity.side)
-            }
-            val references = retained + listOfNotNull(updatedReference)
-            if (references.isEmpty()) {
-                byId.remove(exercise.id)
-            } else {
-                byId[exercise.id] = (existing ?: ExerciseLoadReference(exerciseId = exercise.id)).copy(
-                    references = references,
-                )
+            val reference = exercise.loadReference?.takeIf { ref ->
+                ref.configurationId == identity.configurationId && ref.quantityConvention == identity.quantityConvention &&
+                    (ref.side == null || ref.side == identity.side)
+            } ?: return@forEach
+            if (reference.state == PlanLoadReferenceState.CAPTURED && reference.capturedLoadKg?.let { it.isFinite() && it > 0.0 } == true) {
+                poolProgram = ExerciseLoadReferenceStore.appendCapture(poolProgram, setOf(exercise.id), reference)
+            } else if (reference.state == PlanLoadReferenceState.PENDING) {
+                val existing = poolProgram.exerciseLoadReferences.filter { it.exerciseId == exercise.id }.flatMap { it.references }
+                if (reference !in existing) poolProgram = poolProgram.copy(exerciseLoadReferences =
+                    poolProgram.exerciseLoadReferences.filterNot { it.exerciseId == exercise.id } +
+                        ExerciseLoadReference(exercise.id, existing + reference))
             }
         }
-        return byId.values.toList()
+        return poolProgram.exerciseLoadReferences
     }
 
     /**

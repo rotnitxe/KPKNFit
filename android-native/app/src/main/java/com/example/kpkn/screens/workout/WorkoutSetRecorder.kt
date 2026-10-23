@@ -535,7 +535,7 @@ class WorkoutSetRecorder(
             } else {
                 emptyList()
             }
-            val completedSet = if (plannedSet?.isVolumeReplacedTechnique() == true) {
+            val completedBeforeApre = if (plannedSet?.isVolumeReplacedTechnique() == true) {
                 recordedAfterAdvanced.copy(
                     dropSets = recordedAfterAdvanced.dropSets
                         .ifEmpty { plannedSet.dropSets }
@@ -548,6 +548,9 @@ class WorkoutSetRecorder(
                 recordedAfterAdvanced
             }
 
+            val completedSet = completedBeforeApre.copy(apreXrm = buildRecordedApreXrm(
+                state, exercise, targetSetIdx, completedBeforeApre, System.currentTimeMillis(),
+                repository.settings.value.resolvedEquipmentInventory()))
             val key = buildCompletedSetKey(exercise.id, targetSetIdx, resolvedSide)
             val wasExistingSet = state.completedSets.containsKey(key)
             val existingSet = state.completedSets[key]
@@ -628,7 +631,9 @@ class WorkoutSetRecorder(
                 persistedLoadModeByExercise = submitted.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode),
             )
             val now = System.currentTimeMillis()
-            val calibrationRecord = if (performedPurpose == SetPurpose.CALIBRATOR && !completedSet.skipped) {
+            val calibrationRecord = buildRecordedApreCalibration(recordedCandidate, exercise, targetSetIdx,
+                completedSet, now, repository.settings.value.resolvedEquipmentInventory())
+                ?: if (performedPurpose == SetPurpose.CALIBRATOR && !completedSet.skipped) {
                 withContext(Dispatchers.IO) {
                     buildRecordedCalibration(recordedCandidate, exercise, targetSetIdx, completedSet,
                         repository.history.value, repository.calibrationDecisions.accepted(now, completedSet.id), now,

@@ -9,6 +9,7 @@ import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.training.generator.Prescriber
+import com.example.kpkn.domain.training.observedApreXrmBlock
 
 /**
  * Carga de una serie en %RM (ER2a): la referencia de 1RM por su porcentaje, redondeada con la regla del generador
@@ -51,8 +52,10 @@ internal fun Exercise.withExplicitRmLoads(previous: Exercise): Exercise {
     val oneRmChanged = resolveReferenceCapacity(previous) != resolveReferenceCapacity(this)
     val trainingMaxChanged = previous.referenceTrainingMax != referenceTrainingMax
     val previousSets = previous.sets.associateBy { it.id }
+    val protectedApreIds = observedApreXrmBlock(this)?.setIds.orEmpty().toSet()
     return copy(
         sets = sets.map { set ->
+            if (set.id in protectedApreIds) return@map set
             val old = previousSets[set.id] ?: return@map set
             val percentChanged = old.targetPercentageRM != set.targetPercentageRM
             val referenceChanged = if (set.loadBasis == LoadBasis.PERCENT_TM) trainingMaxChanged else oneRmChanged

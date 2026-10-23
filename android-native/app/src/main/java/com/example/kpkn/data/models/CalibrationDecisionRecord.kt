@@ -27,4 +27,17 @@ data class CalibrationDecisionRecord(
     val loadIncrementKg: Double = 2.5,
     /** Includes baseline-only states and NEXT_SESSIONS, so recording never changes today's base implicitly. */
     val pendingPrescriptions: Map<String, CalibrationPendingPrescription> = emptyMap(),
+    /** Resultado de Mann, nunca una capacidad 1RM; metadatos dentro del JSON existente. */
+    val apre: ApreCalibrationDetails? = null,
+)
+
+/** Fuente y destino explícitos para reconstruir S3 sin estimar ni propagar una capacidad. */
+@Serializable
+data class ApreCalibrationDetails(
+    val xrmReps: Int,
+    val sourcePlannedSetId: String,
+    val targetPlannedSetId: String,
+    val validReps: Int,
+    val sourceLoadKg: Double,
+    val set4LoadKg: Double,
 )
