@@ -612,7 +612,7 @@ class SessionEditorViewModelRulesTest {
         assertTrue(saved is UserTemplateSaveState.Success)
         val template = (saved as UserTemplateSaveState.Success).template
         try {
-            assertEquals(8, templates.getByIdAfterReady(template.id)!!.session!!.allExercises().single().sets.single().targetReps)
+            assertEquals(8, templates.getByIdAfterReady(template.id)!!.session.allExercises().single().sets.single().targetReps)
             assertEquals("", template.description)
         } finally {
             templates.deleteUserTemplateNow(template.id)

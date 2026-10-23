@@ -158,28 +158,10 @@ internal fun TemplatesSheet(
         }
     }
     if (applyDecision != null) {
-        KpknAlertDialog(
-            onDismissRequest = onCancelApply,
-            title = { Text("Aplicar plantilla", style = KpknType.dialogTitle, color = WizardColors.text) },
-            text = {
-                Text(
-                    "La sesión ya tiene ejercicios. ¿Qué deseas hacer con la plantilla \"${applyDecision.template.name}\"?",
-                    style = KpknType.body,
-                    color = WizardColors.textMuted,
-                )
-            },
-            confirmButton = {
-                KpknPrimaryPill(
-                    text = "Reemplazar",
-                    onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.REPLACE) },
-                )
-            },
-            dismissButton = {
-                KpknTextAction(
-                    text = "Añadir al final",
-                    onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.APPEND) },
-                )
-            },
+        TemplateApplyDialog(
+            decision = applyDecision,
+            onDismiss = onCancelApply,
+            onApply = onConfirmApplyTemplate,
         )
     }
 }
