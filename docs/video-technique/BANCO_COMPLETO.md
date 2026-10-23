@@ -485,7 +485,8 @@ El límite de un minuto cerró una grabación sin pulsar detener. En el hub se p
 `Otro=42 cm`, con persistencia y restauración a 45 cm. No se verificó `PLATE_ONLY` con un disco identificable.
 
 La aceptación física sigue parcial. El importador del hub abre Photo Picker y su selección continúa pendiente; DocumentsUI
-ya probó una ruta distinta. También sigue pendiente un caso positivo de parcial M4b con zona/confianza propias (el 84 %
-observado era velocidad relativa, no parcial); solo hay autorización para un clip TUNE adicional en ese caso. Sin
+ya probó una ruta distinta. El tercer TUNE CURL ya mostró +1 parcial estable, barra 2 tramada y ROM 89°, con confianza propia ALTA
+inferida del formato frente a MEDIA global. No apareció zona ni porcentaje de recorrido; se revisa si falta el dato o su
+presentación, sin asumir un fallo ni aprobarlo. El 84 % anterior era velocidad relativa, no parcial. Sin
 referencia física externa, se mantiene `≈` y el 1RM en beta. No se extrapola a 616 la rapidez de una pasada de teléfono ni
 se declara aprobado el flujo completo.

@@ -75,9 +75,10 @@ El análisis se procesa en el teléfono. La exportación ZIP de medios es manual
   reabrir uno no creó duplicados. Grabaciones con preferencia 60 ON y OFF dieron ~30,0101 fps efectivos. Con ON,
   Camera3 ya mostraba `[30 30]` antes de REC y los rangos AE normales anunciados llegaban a 30; esto respalda fallback en esta
   configuración, no 60 fps. El cierre automático al minuto y los ajustes 45/40/35/Otro=42 cm con restauración a 45 cm
-  sí se observaron. Siguen pendientes la selección manual desde el Photo Picker del hub, un positivo M4b de parciales
-  con zona/confianza propias (el 84 % era velocidad relativa; solo se autoriza un TUNE adicional), y un caso de
-  confianza BAJA. Los demás flujos de QA pueden avanzar por sus rutas permitidas. Sin referencia externa se conserva
+  sí se observaron. El tercer TUNE CURL mostró +1 parcial estable y barra tramada; la confianza propia ALTA se infiere
+  del formato frente a MEDIA global. No apareció zona ni porcentaje de recorrido y se revisa la causa. La selección
+  manual desde Photo Picker del hub sigue pendiente. BAJA y MEDIA propias tienen pruebas y renders previos, pero no
+  una nueva observación física; no se consideran aprobadas por esta toma. Los demás flujos pueden avanzar por rutas permitidas. Sin referencia externa se conserva
   `≈` y `1RM beta`.
 - La ventana de privacidad dinámica del APK QA instalado encontró sano el acumulador UID antes y después de una pasada FULL y sin clave para la app. Esto permite inferir cero bytes registrados en ese acumulador durante esa ventana, con límite OEM; no es un contador explícito ni una garantía universal. `trafficcontroller --short` solo devolvió el encabezado y no mostró estado de programa. La lectura no corresponde al artefacto firmado final.
 - El artefacto final debe confirmar versionName Pre Release 18, versionCode mayor que 50 y el certificado público esperado
