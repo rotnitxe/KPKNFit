@@ -355,10 +355,7 @@ internal fun TechniqueRecorderStage(
         audioPermissionGranted = granted
     }
 
-    val is60FpsGranted = activeSession?.tier in listOf(
-        RecorderFpsTier.FEATURE_GROUP_60,
-        RecorderFpsTier.RANGE_60,
-    )
+    val is60FpsGranted = activeSession?.is60FpsGranted == true
 
     val originalOrientation = remember { activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED }
     var isStopping by remember { mutableStateOf(false) }
@@ -462,7 +459,7 @@ internal fun TechniqueRecorderStage(
                     val session = RecorderSessionFactory.createSession(cameraInfo, want60)
                     // Capturar los casos creados por ESTE efecto antes del bind, también si un enlace falla a medias.
                     ownership.own {
-                        if (activeSession === session) activeSession = null
+                        if (activeSession?.sharesUseCasesWith(session) == true) activeSession = null
                         fun releaseOwned() {
                             if (cameraProvider.isBound(session.preview) || cameraProvider.isBound(session.videoCapture)) {
                                 cameraProvider.unbind(session.preview, session.videoCapture)
@@ -478,31 +475,29 @@ internal fun TechniqueRecorderStage(
                     }
                     session.preview.surfaceProvider = view.surfaceProvider
                     session.videoCapture.targetRotation = targetRotation
-                    val boundCamera = if (session.tier == RecorderFpsTier.FALLBACK_30) {
-                        cameraProvider.bindToLifecycle(
-                            lifecycleOwner,
-                            cameraSelector,
-                            session.preview,
-                            session.videoCapture,
-                        )
-                    } else {
-                        runCatching {
+                    val binding = RecorderSessionFactory.bindWithFallback(
+                        session = session,
+                        bindConfigured = {
                             cameraProvider.bindToLifecycle(
                                 lifecycleOwner,
                                 cameraSelector,
                                 session.sessionConfig,
                             )
-                        }.getOrElse {
+                        },
+                        bindUnconfigured = {
                             cameraProvider.bindToLifecycle(
                                 lifecycleOwner,
                                 cameraSelector,
                                 session.preview,
                                 session.videoCapture,
                             )
-                        }
-                    }
-                    activeSession = session
-                    boundCamera
+                        },
+                        onConfiguredBindFailure = {
+                            Log.w(TAG, "Configured camera session bind failed; using nominal 30 FPS fallback")
+                        },
+                    )
+                    activeSession = binding.effectiveSession
+                    binding.camera
                 }.onSuccess {
                     cameraBindFailed = false
                 }.onFailure { e ->

@@ -47,6 +47,19 @@ data class RecorderSession(
     val sessionConfig: SessionConfig,
     val tier: RecorderFpsTier,
     val grantedFps: Float,
+) {
+    val is60FpsGranted: Boolean
+        get() = tier == RecorderFpsTier.FEATURE_GROUP_60 || tier == RecorderFpsTier.RANGE_60
+
+    /** El tier efectivo puede cambiar sin reemplazar los use cases propiedad de este efecto. */
+    fun sharesUseCasesWith(other: RecorderSession): Boolean =
+        preview === other.preview && videoCapture === other.videoCapture
+}
+
+internal data class RecorderSessionBindResult<T>(
+    val camera: T,
+    val effectiveSession: RecorderSession,
+    val usedUnconfiguredFallback: Boolean,
 )
 
 /**
@@ -54,6 +67,46 @@ data class RecorderSession(
  * Configura Preview 16:9 + VideoCapture y negocia 60 fps según el dispositivo y perfil.
  */
 object RecorderSessionFactory {
+
+    /**
+     * Si CameraX rechaza el SessionConfig solicitado, el bind bare solo concede 30 fps nominales.
+     * Mantiene separados el pedido original y la concesión efectiva.
+     */
+    internal fun <T> bindWithFallback(
+        session: RecorderSession,
+        bindConfigured: () -> T,
+        bindUnconfigured: () -> T,
+        onConfiguredBindFailure: () -> Unit = {},
+    ): RecorderSessionBindResult<T> {
+        if (session.tier == RecorderFpsTier.FALLBACK_30) {
+            return RecorderSessionBindResult(
+                camera = bindUnconfigured(),
+                effectiveSession = session,
+                usedUnconfiguredFallback = true,
+            )
+        }
+
+        return runCatching(bindConfigured).fold(
+            onSuccess = { camera ->
+                RecorderSessionBindResult(
+                    camera = camera,
+                    effectiveSession = session,
+                    usedUnconfiguredFallback = false,
+                )
+            },
+            onFailure = {
+                onConfiguredBindFailure()
+                RecorderSessionBindResult(
+                    camera = bindUnconfigured(),
+                    effectiveSession = session.copy(
+                        tier = RecorderFpsTier.FALLBACK_30,
+                        grantedFps = 30f,
+                    ),
+                    usedUnconfiguredFallback = true,
+                )
+            },
+        )
+    }
 
     /**
      * Perfiles que usan disco o son de velocidad y por tanto se benefician de 60 fps

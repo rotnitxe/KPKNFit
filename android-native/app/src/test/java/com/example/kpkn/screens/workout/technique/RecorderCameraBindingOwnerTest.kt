@@ -1,16 +1,27 @@
 package com.example.kpkn.screens.workout.technique
 
+import androidx.camera.core.ExperimentalSessionConfig
+import androidx.camera.core.Preview
+import androidx.camera.core.SessionConfig
+import androidx.camera.video.Recorder
+import androidx.camera.video.VideoCapture
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /** Ejercita la misma guarda que usa el efecto real con proveedores y casos de uso falsos. */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class RecorderCameraBindingOwnerTest {
     private class FakeProvider {
-        val bound = linkedSetOf<String>()
-        val releases = mutableListOf<List<String>>()
-        fun bind(vararg cases: String) { bound.addAll(cases) }
-        fun unbind(vararg cases: String) {
+        val bound = linkedSetOf<Any>()
+        val releases = mutableListOf<List<Any>>()
+        fun bind(vararg cases: Any) { bound.addAll(cases) }
+        fun unbind(vararg cases: Any) {
             releases += cases.toList()
             bound.removeAll(cases.toSet())
         }
@@ -72,5 +83,48 @@ class RecorderCameraBindingOwnerTest {
         owner.close()
         assertEquals(setOf("other"), provider.bound)
         assertEquals(listOf(listOf("preview", "video")), provider.releases)
+    }
+
+    @Test
+    fun cleanup_clears_downgraded_session_copy_and_unbinds_the_owned_use_cases() {
+        val ownedSession = createSession()
+        val effectiveSession = ownedSession.copy(
+            tier = RecorderFpsTier.FALLBACK_30,
+            grantedFps = 30f,
+        )
+        var activeSession: RecorderSession? = effectiveSession
+        val provider = FakeProvider().apply {
+            bind("other", ownedSession.preview, ownedSession.videoCapture)
+        }
+        val owner = RecorderCameraBindingOwner()
+        owner.own {
+            if (activeSession?.sharesUseCasesWith(ownedSession) == true) activeSession = null
+            if (ownedSession.preview in provider.bound || ownedSession.videoCapture in provider.bound) {
+                provider.unbind(ownedSession.preview, ownedSession.videoCapture)
+            }
+        }
+
+        owner.close()
+
+        assertNull(activeSession)
+        assertEquals(setOf("other"), provider.bound)
+        assertEquals(
+            listOf(listOf(ownedSession.preview, ownedSession.videoCapture)),
+            provider.releases,
+        )
+    }
+
+    @OptIn(ExperimentalSessionConfig::class)
+    private fun createSession(): RecorderSession {
+        val preview = Preview.Builder().build()
+        val videoCapture = VideoCapture.withOutput(Recorder.Builder().build())
+        val sessionConfig = SessionConfig.Builder(preview, videoCapture).build()
+        return RecorderSession(
+            preview = preview,
+            videoCapture = videoCapture,
+            sessionConfig = sessionConfig,
+            tier = RecorderFpsTier.FEATURE_GROUP_60,
+            grantedFps = 60f,
+        )
     }
 }
