@@ -23,3 +23,10 @@ La base preparatoria de u22 incorpora APRE/CAL5b desde `u20@992a9bbee`. El confl
 El ajuste PLAN-OBS está en `0def2640d`; la cabeza de u22 es el merge preparatorio `d1f4a0655`, que incorpora `6eb44c9d3` desde la base compartida `992a9bbee`. La convivencia integrada sigue pendiente de validación. `git diff --check` pasó; no se ejecutaron Gradle, JVM, adb ni pruebas en este trabajo, según la coordinación centralizada de root. No se modificó Room ni su esquema.
 
 El flujo vivo aún no aporta el cierre agregado GZCLP ni una racha 5/3/1 persistida y verificada. En esos casos las notas quedan condicionales o informativas. La base ya contiene el contrato tipado `ADJUST_XRM` y la aplicación XRM de APRE; su convivencia con PLAN-OBS sigue sin validar. El relator conserva el valor como XRM físico y no lo presenta como TM.
+
+
+## Primera compilación central
+
+`int-phase4-final-jvm-codex-20261023-1.log` se detuvo en compileKotlin: la expresión común de etapas T1/T2 infería un tipo sin propiedades number/label. Se despacha el texto por el enum real de cada etapa, conservando número, etiqueta y reglas. No se ejecutaron tests ni se archivaron XML antiguos como evidencia de esta compilación fallida. Pendiente repetir el barrido.
+
+La segunda central (`int-phase4-final-jvm-codex-20261023-2.log`) compila producción y falla únicamente en compileTestKotlin por imports ausentes de assertEquals/AmrapEffectTiming en RelatorPlanAwareTest. Se añaden ambos sin cambiar aserciones ni expectativas. Tampoco ejecutó casos ni se reutilizaron XML.
