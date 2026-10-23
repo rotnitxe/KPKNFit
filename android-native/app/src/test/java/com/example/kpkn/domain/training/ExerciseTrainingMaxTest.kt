@@ -122,4 +122,27 @@ class ExerciseTrainingMaxTest {
         assertNull(ExerciseTrainingMax.capturedKg(source, row, PlanLoadReferenceKind.EXERCISE_TM))
         assertNull(ExerciseTrainingMax.capturedKg(source, row, PlanLoadReferenceKind.EXERCISE_1RM))
     }
+    @Test fun variantSessionsMigrateAndHydrateTheirOwnExactReferences() {
+        val main = exercise("main", CatalogIds.BP, 108.0, 120.0)
+        val alternate = exercise("alternate", CatalogIds.OHP, 72.0, 80.0)
+        val original = program(listOf(main))
+        val macro = original.macrocycles.single()
+        val block = macro.blocks.single()
+        val meso = block.mesocycles.single()
+        val week = meso.weeks.single()
+        val session = week.sessions.single().copy(sessionB = Session("alternate-session", "B", exercises = listOf(alternate)))
+        val withVariant = original.copy(macrocycles = listOf(macro.copy(blocks = listOf(block.copy(mesocycles = listOf(
+            meso.copy(weeks = listOf(week.copy(sessions = listOf(session))))))))))
+        val migrated = ExerciseTrainingMax.migrate(withVariant)
+        assertEquals(2, ExerciseTrainingMax.exercises(migrated).size)
+        val changed = ExerciseTrainingMax.capture(migrated, alternate, PlanLoadReferenceKind.EXERCISE_TM,
+            75.0, 20, "alternate-confirmed", "Confirmado en B")
+        val hydrated = ExerciseTrainingMax.hydrateSession(changed, session)
+        assertEquals(75.0, hydrated.sessionB!!.exercises.single().referenceTrainingMax!!, 0.0)
+        assertEquals(108.0, hydrated.exercises.single().referenceTrainingMax!!, 0.0)
+        val refreshed = ExerciseTrainingMax.refreshPending(changed, emptySet(), emptySet())
+        val refreshedAlternate = ExerciseTrainingMax.exercises(refreshed).single { it.id == alternate.id }
+        assertEquals(63.75, refreshedAlternate.sets.single().weight!!, 0.0)
+    }
+
 }
