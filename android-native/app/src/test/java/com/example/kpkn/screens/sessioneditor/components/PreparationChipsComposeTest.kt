@@ -1,7 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.hasText
 import com.example.kpkn.ui.components.KpknSheet
