@@ -195,6 +195,8 @@ data class CompletedSet(
     val originalLoad: Double? = null,
     val contextKey: String? = null,
     val estimatorVersion: Int = 1,
+    /** APRE S4 conservado como XRM de trabajo, separado de las capacidades 1RM/TM. */
+    val apreXrm: ApreXrmCapture? = null,
 )
 
 /** null means a legacy log without evidence: only those logs may use positional fallback. */

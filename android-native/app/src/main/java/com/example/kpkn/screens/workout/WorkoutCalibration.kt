@@ -197,7 +197,15 @@ internal suspend fun refreshCorrectedCalibrations(
                     record.sourceSetId, replacement, now))
             }
         }
-    return result
+    val corrected = result.completedSets.mapValues { (key, completed) ->
+        if (previous.completedSets[key] == completed) completed else {
+            val parsed = parseCompletedSetKey(key)
+            val exercise = result.session?.allExercises()?.firstOrNull { it.id == parsed?.exerciseId }
+            completed.copy(apreXrm = if (parsed != null && exercise != null && parsed.setIdx in exercise.sets.indices)
+                buildRecordedApreXrm(result, exercise, parsed.setIdx, completed, now, inventory) else null)
+        }
+    }
+    return result.copy(completedSets = corrected)
 }
 
 internal fun resolveCalibration(

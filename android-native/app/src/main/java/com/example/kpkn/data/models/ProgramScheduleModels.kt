@@ -179,6 +179,8 @@ data class AutoregulationProposal(
      * sin este campo, decodifica con null.
      */
     val kgDelta: Double? = null,
+    /** Resultado contextual de S4; nunca representa un cambio de TM ni una estimación de 1RM. */
+    val apreXrm: ApreXrmCapture? = null,
 )
 
 @Serializable
@@ -239,4 +241,16 @@ enum class TemporalStructureIssueType {
 data class TemporalStructureIssue(
     val type: TemporalStructureIssueType,
     val message: String,
+)
+
+/** Snapshot real de S4 para el canal de propuestas, compatible con los programas y registros antiguos. */
+@Serializable
+data class ApreXrmCapture(
+    val sourceExerciseId: String,
+    val sourcePlannedSetId: String,
+    val context: com.example.kpkn.domain.calibration.CalibrationContext,
+    val reference: com.example.kpkn.data.protocols.PlanLoadReference,
+    val incrementKg: Double,
+    val sourceRecipeDayId: String? = null,
+    val sourceRecipeSlotId: String? = null,
 )

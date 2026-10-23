@@ -72,3 +72,14 @@ internal fun buildRecordedApreCalibration(
             exercise.sets[block.fourthIndex].id, valid, sourceLoad, targetKg),
     )
 }
+
+/** Snapshot de S4 guardado junto con CompletedSet antes de confirmar la escritura de la serie. */
+internal fun buildRecordedApreXrm(
+    state: WorkoutUiState, exercise: Exercise, index: Int, completed: CompletedSet, now: Long,
+    inventory: EquipmentInventory? = null,
+): ApreXrmCapture? = com.example.kpkn.domain.training.captureApreXrm(
+    exercise, index, completed, state.livePlanContext?.sourceProtocolId,
+    state.livePlanContext?.progression is ProgressionRule.ApreXrm,
+    calibrationIncrement(exercise, exercise.sets[index], inventory), now,
+    state.programId.takeIf { it.isNotBlank() }, calibrationContextForSet(state, exercise, index, completed.side, completed),
+)

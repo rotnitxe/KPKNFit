@@ -12,3 +12,6 @@ S3 preparada: usa Apre.set4LoadKg sobre carga externa y reps completas de CAL1, 
 Se corrige también una lectura de carga completada al revertir: calibrationLoadForSet devolvía la base previa aunque el CompletedSet conservaba la carga real. El consumidor ahora devuelve la carga externa registrada, y sólo restaura pendientes; la prueba APRE exige155kg ya hechos tras revertir. Se repetirán las regresiones CAL3 para comprobar este contrato compartido.
 
 Pendientes: propuestas de XRM al cerrarS4 porOFF/PROPONER/AUTO, persistencia real con recorder/Room, renders físicos312x425, actualización de la base a fase3 verde y validación centralizada.
+
+
+Snapshot S4 preparado: ApreXrmCapture dentro de CompletedSet y de la propuesta JSON, sin nueva tabla. La captura durable toma sólo la carga externa real de S4, su contexto/lado y reps completas, y guarda OBSERVED_WORKING_SET de rangoexacto con origenAPRE_XRM; no deriva1RM/TM. recipeSlotId conserva el slotreal y sourceSetId la serie. Seis pruebas puras nuevas:155×17→10RM162,5, procedencia, parciales, identidad, contextos y lastre. Fecha legada desconocida se conserva null. Recorder y correcciones reconstruyen el snapshot antes del guardado duradero. Falta conectar dispatch ADJUST_XRM y aplicación protegida; todavía ninguna validación APRE ejecutada.
