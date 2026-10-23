@@ -3,12 +3,13 @@
 ## Estado vigente · prevalece sobre las entradas históricas
 
 - Fases 0 y 1 completadas; M4b integrado en `108146025`. Integración conserva motor 9 y Room v29.
-- Teléfono aplazado por orden expresa del usuario: no reanudar extracción MM-Fit, QA, ADB ni VPN hasta su regreso. Se conservan 72/616 resultados; Fases 2 y 5 pendientes.
+- El usuario avisó que el Z Flip volvió a estar disponible: se revoca la pausa anterior. Tras confirmar depuración activa, phone_run encontró de nuevo el SM-F731B. Conductor7132 reanudado desde72/616, con su candado y mismo APK; preflight/lote inicial en curso. No duplicar ni instalar otro `.dbg` mientras extrae. No retomar VPN.
 - Fase 4: compilación Android, Room/comparador (39 pruebas) y datos/trabajo/repositorios (339 pruebas) correctos: 42 clases y378 pruebas sin fallos, errores ni omisiones. Faltan las tandas de pantallas, JVM completo y R8.
 - M5 se desarrolla en `codex/vt-m5-20261022`, sin integrar. Se preparan sintéticos y CV real sobre ajuste OpenPose/vt-tune; los controles de partida del motor9 ya terminaron. OpenPose es preliminar hasta disponer de MediaPipe completo.
 - Sintéticos M5 aprobados: sesión97421, `C:/kw/logs/vt-m5-boundary-cv-synthetic-20261022-2.log`, 24 pruebas correctas y una omisión esperada de CV externa sin bancos. Candidato de bordes `229d2f0d7`, ejecutor CV `78b7a92b7`, árbol aislado limpio.
 - CV de bordes completada en2061 sobre `e1268d050`, log `C:/kw/logs/vt-m5-cv-boundary-20261022-2.log`: 1.229 predicciones retenidas, cuatro rotaciones eligen1.0; MM-Fit ALTA308/327 y MEDIA6/8, aún por debajo de98/90. Sin controles nuevos; integración sigue en9 y default aislado0 hasta MediaPipe.
-- Única corrida Gradle propia actual: Android91923, 17 clases de técnica/perfil (excluye el comparador ya aprobado); log `C:/kw/logs/vt-fase4-technique-profile-20261022.log`. No duplicar mientras siga viva. Sin instalación ni teléfono.
+- Android91923 terminó correctamente:17 clases y191 pruebas sin fallos, errores ni omisiones; log `C:/kw/logs/vt-fase4-technique-profile-20261022.log`, XML externos en carpeta de igual nombre con sufijo `-results`. Total actual de Fase4:59 clases y569 pruebas correctas.
+- Única corrida Gradle propia: JVM77723, toda biomecánica del candidato con arreglo de procedencia horizontal y su fixture integrada; log `C:/kw/logs/vt-m5-lunge-all-biomechanics-20261022.log`. Fuentes quietas hasta resultado; sin bancos configurados.
 - El ajustador prepara un único cambio siguiente: limitar `nonrep_horizontal` a la fuente física PLATE, preservando caminar/setup/rerack/setdown y la excepción ROW. Todavía sin validar ni integrar.
 
 Las secciones siguientes conservan la cronología; sus sesiones «actuales» anteriores ya no describen el estado vigente.
@@ -159,3 +160,16 @@ La CV34757 (`vt-m5-cv-boundary-20261022.log`) no produjo medición: falló al le
 La regresión51906 terminó SUCCESS en43s: siete pruebas de protocolo correctas, una omisión esperada de CV externa sin bancos; XML `C:/kw/logs/vt-m5-cv-contract-synthetic-20261022.xml`. La repetición externa2061 terminó SUCCESS en2m5s y conserva informe, huella y contexto en `C:/kw/vt-mmfit/m5-out/openpose-cv-boundary-20261022`. Variante0 reproduce los agregados del motor9; todas las rotaciones eligen1.0. Las cifras completas y el coste de cobertura están en BANCO_COMPLETO. Es selección de parámetro, no prueba de generalización estructural ni sustituto de los controles/MediaPipe.
 
 Tras2061 se inicia Android91923, sin otra corrida propia. Se encarga el arreglo mecánico de zancada por procedencia física en la rama M5, con regresiones sintéticas y sin modificar otros umbrales ni el evaluador. Medir por banco/fold frente a las partidas guardadas antes de controles; no dar ese arreglo por aceptado solo por diagnóstico.
+
+## Regreso del Z Flip · conexión pendiente
+
+El usuario confirmó «Mi ZFLIP ya esta disponible». Esta instrucción revoca la pausa previa y autoriza continuar Fases2/5 según sus candados y guardas. No autoriza ni requiere retomar Tailscale/VPN.
+
+- No había conductor MM-Fit ni candado activo. Se inició una sola reanudación oficial, PID5892, con el mismo APK fijado y sin instalación.
+- El conductor verificó72 completos,544 pendientes,46 lotes y terminó con `Refusal: Flip5 not already connected`; no llegó a tocar el teléfono ni iniciar servicio.
+- Logs: `C:/kw/vt-mmfit/phone/runall-return-20261023T012022Z.log` y `.err.log` (nombre en UTC). Se pidió al usuario activar la depuración inalámbrica en la misma Wi-Fi e indicar IP/puerto si cambió. No duplicar procesos ni asumir conexión a partir de la disponibilidad física.
+- Reanudar con la orden de RELEVO solo tras confirmar conexión; seguir usando phone_run/candado, batería/temperatura y APK attestado. MM-Fit en segundo plano conserva su excepción autorizada; el QA visual mantiene la regla de uso del teléfono.
+
+El usuario confirmó «SI ESTA ACTIVADO». El nuevo sondeo por `phone_run.find_serial()` ya encontró `adb-R5CW81A2G3P-LPpbNR._adb-tls-connect._tcp`, anunciado en192.168.100.240:35703; no se conectó por VPN ni se reinició ADB. Se reanudó una sola vez, PID7132, logs `C:/kw/vt-mmfit/phone/runall-return-20261023T012317Z.log` y `.err.log`. Confirma72 completos/544 pendientes/46 lotes; proceso vivo y candado propio. Falta confirmar en el log el cierre del preflight antes de afirmar extracción de nuevos clips. Los nombres de log están en UTC, el trabajo corresponde al regreso del usuario del22-oct local.
+
+La revisión del arreglo de zancada encontró una fixture integrada vacua; se reforzó con traslación lateral real de pose y disco de la misma muñeca. Afirma PLATE4FULL con veto, POSE5FULL y tres fallbacks5FULL; confirma geometría que cruzaría el veto anterior. Revisión independiente estática cerrada; la JVM77723 valida todas las pruebas de biomecánica por el alcance genérico del gate.
