@@ -102,12 +102,13 @@ class Cal7OneRmRoomJourneyTest {
         val vm = ProgramDetailViewModel(id).also { store.put("detail", it) }
         withTimeout(10_000) { vm.program.first { it != null } }
         assertEquals(listOf(LiftSlot.BENCH, LiftSlot.OVERHEAD), vm.oneRmTestLifts())
+        val beforeOpeningSheet = repository.getProgramById(id)!!
         mount(vm)
         compose.onNodeWithTag(markTag(LiftMark.SQUAT)).assertDoesNotExist()
         compose.onNodeWithTag(markTag(LiftMark.DEADLIFT)).assertDoesNotExist()
         compose.onNodeWithTag(markTag(LiftMark.BENCH)).assertExists()
         compose.onNodeWithTag(markTag(LiftMark.OVERHEAD_PRESS)).assertExists()
-        assertEquals(before, repository.getProgramById(id))
+        assertEquals("Opening a prefilled sheet must not persist the proposed marks", beforeOpeningSheet, repository.getProgramById(id))
         compose.onNodeWithTag(ONE_RM_SAVE_TAG).assertIsEnabled().assertHeightIsAtLeast(48.dp).performClick()
         withTimeout(20_000) { vm.uiState.first { it.snackbarMessage?.startsWith("1RM registrado") == true } }
         repository.flushPendingWrites()
