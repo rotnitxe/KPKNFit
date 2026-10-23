@@ -59,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -809,6 +810,7 @@ internal fun WorkoutStructureSheetsHost(
         modeSession = modeSession,
         sessionAccentColor = sessionAccentColor,
         bottomHazeState = bottomHazeState,
+        initialSetIndex = if (state.editSheetExerciseId == currentExercise?.id) uiState.currentSetIdx else 0,
         onSaveDefinition = { exerciseId, draft ->
             viewModel.updateExerciseDefinition(exerciseId) { current -> draft.copy(id = current.id) }
         },
@@ -1567,8 +1569,9 @@ internal fun WorkoutSupersetCreatorSheet(
 }
 
 /**
- * Cajón «Editar series» (D3): modo, unilateral, descanso entre lados, «Carga inteligente» y «Confirmar cambios». Antes vivía dentro
- * de [WorkoutStructureSheetsHost]; la conducta no cambia.
+ * Cajón «Editar series» (G1) y «Editar cardio» (G2): una hoja casi a pantalla completa con «Confirmar cambios» fijo al pie. La fuerza
+ * lleva la zona «Ejercicio», la lista compacta de series y el foco de la serie elegida ([LiveEditSeriesBody]); el cardio, su editor
+ * con la prescripción en grande y las plantillas ([CardioEditorCard]). Antes vivía dentro de [WorkoutStructureSheetsHost].
  */
 @Composable
 internal fun WorkoutEditSeriesSheet(
@@ -1576,6 +1579,8 @@ internal fun WorkoutEditSeriesSheet(
     modeSession: Session,
     sessionAccentColor: Color,
     bottomHazeState: HazeState,
+    /** La serie de turno de la sesión: la que se abre en el foco de «Editar series» (G1). */
+    initialSetIndex: Int = 0,
     onSaveDefinition: (exerciseId: String, draft: Exercise) -> Unit,
 ) {
     if (state.editSheetExerciseId != null) {
@@ -1610,15 +1615,34 @@ internal fun WorkoutEditSeriesSheet(
                 draftExercise.reference1RM ?: localPrEstimatedRm ?: draftExercise.consolidatedWeight?.weightKg
             }
 
+            val confirmEdit = {
+                val confirmedDraft = draftExercise
+                onSaveDefinition(editEx.id, confirmedDraft)
+                state.selectedExerciseContextTab = null
+                state.editSheetExerciseId = null
+            }
             WorkoutDrawer(
                 title = if (draftExercise.cardioDetails != null) "Editar cardio" else "Editar series",
                 onDismiss = { state.editSheetExerciseId = null },
                 hazeState = bottomHazeState,
-                ) {
+                fullHeight = true,
+                footer = {
+                    // «Confirmar cambios» fijo al pie de la hoja (G1, G2): lo único que no se desplaza.
+                    KpknPrimaryPill(
+                        text = "Confirmar cambios",
+                        onClick = confirmEdit,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 12.dp)
+                            .testTag(LIVE_EDIT_CONFIRM_TAG),
+                        icon = KpknLineIcons.Check,
+                    )
+                },
+            ) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     ExerciseSheetSubtitle(draftExercise.name)
-                    if (draftExercise.cardioDetails != null) {
-                        val cardioDetails = draftExercise.cardioDetails ?: return@Column
+                    val cardioDetails = draftExercise.cardioDetails
+                    if (cardioDetails != null) {
                         CardioEditorCard(
                             details = cardioDetails,
                             accentColor = sessionAccentColor,
@@ -1631,112 +1655,16 @@ internal fun WorkoutEditSeriesSheet(
                             },
                         )
                     } else {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(horizontal = 2.dp),
-                    ) {
-                        item {
-                            CompactModeSelector(
-                                currentMode = draftExercise.trainingMode,
-                                accentColor = sessionAccentColor,
-                            ) { mode -> draftExercise = draftExercise.withTrainingMode(mode) }
-                        }
-                        item {
-                            UnilateralModeSelector(
-                                mode = draftExercise.unilateralMode,
-                                accentColor = sessionAccentColor,
-                                onToggleUnilateral = { draftExercise = draftExercise.toggledBilateralUnilateral() },
-                            )
-                        }
-                        if (draftExercise.isEffectivelyUnilateral()) {
-                            item {
-                                SideOrderChip(
-                                    sideOrder = draftExercise.unilateralSideOrder,
-                                    accentColor = sessionAccentColor,
-                                    onToggle = {
-                                        draftExercise = draftExercise.copy(
-                                            unilateralSideOrder = if (draftExercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) {
-                                                UnilateralSideOrder.RIGHT_LEFT
-                                            } else {
-                                                UnilateralSideOrder.LEFT_RIGHT
-                                            },
-                                        )
-                                    },
-                                )
-                            }
-                        }
-                    }
-
-                    if (draftExercise.isEffectivelyUnilateral()) {
-                        var restBetweenSidesText by remember(draftExercise.id, draftExercise.restBetweenSidesSeconds) {
-                            mutableStateOf((draftExercise.restBetweenSidesSeconds ?: 0).toString())
-                        }
-                        KpknTextField(
-                            value = restBetweenSidesText,
-                            onValueChange = { raw ->
-                                restBetweenSidesText = raw.filter(Char::isDigit).take(4)
-                                draftExercise = draftExercise.copy(restBetweenSidesSeconds = restBetweenSidesText.toIntOrNull()?.coerceAtLeast(0))
-                            },
-                            label = "Descanso entre lados (s)",
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth(),
+                        LiveEditSeriesBody(
+                            exercise = draftExercise,
+                            reference1RM = resolved1RM,
+                            accentColor = sessionAccentColor,
+                            initialSetIndex = initialSetIndex,
+                            onUpdateExercise = { transform -> draftExercise = transform(draftExercise) },
+                            onOpenSmartLoad = { showSmartLoadDialog = true },
                         )
                     }
-
-                    if (draftExercise.cardioDetails == null) {
-                        KpknModule(
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = { showSmartLoadDialog = true },
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    Icon(
-                                        imageVector = KpknLineIcons.Training,
-                                        contentDescription = null,
-                                        tint = sessionAccentColor,
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                    Text(
-                                        "Carga inteligente",
-                                        style = KpknType.bodyStrong,
-                                        color = WizardColors.text,
-                                    )
-                                }
-                                if (resolved1RM != null && resolved1RM > 0.0) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(KpknShape.pill)
-                                            .background(KpknSurface.inset, KpknShape.pill)
-                                            .border(1.dp, Color.White.copy(alpha = 0.12f), KpknShape.pill)
-                                            .padding(horizontal = 10.dp, vertical = 4.dp),
-                                    ) {
-                                        Text(
-                                            "1RM: ${formatEditableNumber(resolved1RM).replace('.', ',')}\u00A0kg",
-                                            style = KpknType.chip,
-                                            color = WizardColors.text,
-                                        )
-                                    }
-                                } else {
-                                    Text(
-                                        "Configurar",
-                                        style = KpknType.caption,
-                                        color = WizardColors.textMuted,
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    if (showSmartLoadDialog) {
+                    if (showSmartLoadDialog && cardioDetails == null) {
                         ExerciseSmartLoadDialog(
                             exercise = draftExercise,
                             rmInputMode = rmInputMode,
@@ -1756,80 +1684,6 @@ internal fun WorkoutEditSeriesSheet(
                             onDismiss = { showSmartLoadDialog = false },
                         )
                     }
-
-                    ExerciseSetsCarousel(
-                        exercise = draftExercise,
-                        reference1RM = resolved1RM,
-                        trainingMode = draftExercise.trainingMode,
-                        customUnit = draftExercise.customUnit,
-                        predictedMetrics = emptyMap(),
-                        accentColor = sessionAccentColor,
-                        onAddSet = { side ->
-                            val lastSet = draftExercise.sets.lastOrNull()
-                            val seed = lastSet?.freshPlannedCopy(preserveEmptySlot = false)
-                                ?: ExerciseSet(id = UUID.randomUUID().toString(), targetReps = 8)
-                            val baseTarget = UnilateralTarget(
-                                weight = lastSet?.weight,
-                                targetReps = lastSet?.targetReps,
-                                targetRepsRange = lastSet?.targetRepsRange,
-                                targetDuration = lastSet?.targetDuration,
-                                targetValue = lastSet?.plannedTargetV2,
-                                targetRPE = lastSet?.targetRPE,
-                                targetRIR = lastSet?.targetRIR,
-                                intensityMode = lastSet?.intensityMode,
-                            )
-                            val newSet = seed.copy(
-                                leftTarget = when (side) {
-                                    "left" -> baseTarget
-                                    "right" -> null
-                                    else -> lastSet?.leftTarget
-                                },
-                                rightTarget = when (side) {
-                                    "right" -> baseTarget
-                                    "left" -> null
-                                    else -> lastSet?.rightTarget
-                                },
-                            )
-                            draftExercise = draftExercise.copy(sets = draftExercise.sets + newSet)
-                        },
-                        onUpdateSet = { setId, transform ->
-                            draftExercise = draftExercise.copy(
-                                sets = draftExercise.sets.map { set ->
-                                    if (set.id == setId) transform(set) else set
-                                },
-                            )
-                        },
-                        onRemoveSet = { setId ->
-                            draftExercise = draftExercise.copy(
-                                sets = draftExercise.sets.filterNot { it.id == setId }.ifEmpty {
-                                    listOf(ExerciseSet(id = UUID.randomUUID().toString()))
-                                },
-                            )
-                        },
-                        onMoveSet = { setId, direction ->
-                            val currentIndex = draftExercise.sets.indexOfFirst { it.id == setId }
-                            val targetIndex = (currentIndex + direction).coerceIn(0, draftExercise.sets.lastIndex)
-                            if (currentIndex >= 0 && currentIndex != targetIndex) {
-                                val mutable = draftExercise.sets.toMutableList()
-                                val moved = mutable.removeAt(currentIndex)
-                                mutable.add(targetIndex, moved)
-                                draftExercise = draftExercise.copy(sets = mutable)
-                            }
-                        },
-                    )
-                    }
-
-                    KpknPrimaryPill(
-                        text = "Confirmar cambios",
-                        onClick = {
-                            val confirmedDraft = draftExercise
-                            onSaveDefinition(editEx.id, confirmedDraft)
-                            state.selectedExerciseContextTab = null
-                            state.editSheetExerciseId = null
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        icon = KpknLineIcons.Check,
-                    )
                 }
             }
         } else {
@@ -1852,3 +1706,6 @@ internal fun ExerciseSheetSubtitle(exerciseName: String) {
         overflow = TextOverflow.Ellipsis,
     )
 }
+
+/** Marca de prueba del «Confirmar cambios» de «Editar series» y «Editar cardio». */
+internal const val LIVE_EDIT_CONFIRM_TAG = "live-edit-confirm"
