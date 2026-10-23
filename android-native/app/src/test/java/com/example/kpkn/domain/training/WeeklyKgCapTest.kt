@@ -259,6 +259,18 @@ class WeeklyKgCapTest {
     }
 
     @Test
+    fun a_tm_only_profile_never_invents_a_one_rm_for_the_weekly_kg_cap() {
+        val recipe = singleSetRecipe(offsetKg = 20.0)
+        val program = materialize(recipe, PowerliftingProfile(squatTM = 90.0))
+        val exercise = weeksOf(program).single().sessions.single().allExercises().first()
+        assertNull(exercise.reference1RM)
+        assertEquals(90.0, exercise.referenceTrainingMax!!, 1e-9)
+        // Without an actual 1RM there is no 1RM clamp: 100% of TM90 +20 =110.
+        assertEquals(110.0, exercise.sets.single().weight!!, 1e-9)
+        assertEquals(100.0 + 20.0 / 90.0 * 100.0, exercise.sets.single().targetPercentageRM!!, 1e-9)
+    }
+
+    @Test
     fun without_a_profile_the_weight_stays_null_even_with_weekly_kg() {
         val set = onlySet(singleSetRecipe(offsetKg = 15.0), profile = null)
         assertNull(set.weight)

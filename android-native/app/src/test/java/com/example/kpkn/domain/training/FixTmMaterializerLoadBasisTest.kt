@@ -169,6 +169,15 @@ class FixTmMaterializerLoadBasisTest {
     }
 
     @Test
+    fun a_tm_only_legacy_profile_keeps_percent_one_rm_pending() {
+        val exercise = materialize(recipe(tm(), oneRm()), PowerliftingProfile(benchTM = 108.0))
+        assertNull(exercise.reference1RM)
+        assertEquals(108.0, exercise.referenceTrainingMax!!, 1e-9)
+        assertEquals(86.4, exercise.sets[0].weight!!, 1e-9)
+        assertNull(exercise.sets[1].weight)
+    }
+
+    @Test
     fun without_profile_or_reference_every_percent_set_stays_pending() {
         val exercise = materialize(recipe(tm(), oneRm()), profile = null)
         assertNull(exercise.reference1RM)

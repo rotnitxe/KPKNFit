@@ -235,10 +235,14 @@ internal class WorkoutVoiceSetMutationController(
                     null
                 }
             }
-            val calibrated = refreshCalibrations(captured, ready.transform(captured))
+            val transformed = ready.transform(captured)
+            val calibrated = refreshCalibrations(captured, transformed)
+            // Merge only entries changed by calibration; preserve unrelated concurrent UI entries.
+            val correctedSets = calibrated.completedSets.filter { (key, set) -> transformed.completedSets[key] != set }
             val apply: (WorkoutUiState) -> WorkoutUiState = { state ->
                 val next = ready.transform(state)
-                next.copy(calibrationDecisions = calibrated.calibrationDecisions,
+                next.copy(completedSets = next.completedSets + correctedSets,
+                    calibrationDecisions = calibrated.calibrationDecisions,
                     liveEnergySummary = energy ?: next.liveEnergySummary)
             }
             val candidate = apply(captured)
@@ -285,7 +289,7 @@ internal class WorkoutVoiceSetMutationController(
             }
 
             runPostCommitEffects(op, ready)
-            return Outcome(WorkoutVoiceMutationResult.Committed(ready.setKey, ready.resultSet), needsReconcile)
+            return Outcome(WorkoutVoiceMutationResult.Committed(ready.setKey, candidate.completedSets[ready.setKey]), needsReconcile)
         }
     }
 
