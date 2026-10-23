@@ -3,14 +3,14 @@
 ## Estado vigente · prevalece sobre las entradas históricas
 
 - Fases 0 y 1 completadas; M4b integrado en `108146025`. Integración conserva motor 9 y Room v29.
-- El usuario avisó que el Z Flip volvió a estar disponible: se revoca la pausa anterior. Tras confirmar depuración activa, phone_run encontró de nuevo el SM-F731B. Conductor7132 reanudado desde72/616, con su candado y mismo APK; preflight/lote inicial en curso. No duplicar ni instalar otro `.dbg` mientras extrae. No retomar VPN.
+- El Z Flip está disponible y conectado; la pausa del usuario quedó revocada. El conductor7132 terminó su preflight en CPU y se detuvo: el APK antiguo tiene la GPU vetada en versionCode50. Se conservan72/616 GPU válidas. NO reintentar ese APK en bucle ni aceptar CPU; se audita la recuperación B12 sin borrar preferencias/datos ni quitar vetos. No retomar VPN.
 - Fase 4: compilación Android, Room/comparador (39 pruebas) y datos/trabajo/repositorios (339 pruebas) correctos: 42 clases y378 pruebas sin fallos, errores ni omisiones. Faltan las tandas de pantallas, JVM completo y R8.
 - M5 se desarrolla en `codex/vt-m5-20261022`, sin integrar. Se preparan sintéticos y CV real sobre ajuste OpenPose/vt-tune; los controles de partida del motor9 ya terminaron. OpenPose es preliminar hasta disponer de MediaPipe completo.
 - Sintéticos M5 aprobados: sesión97421, `C:/kw/logs/vt-m5-boundary-cv-synthetic-20261022-2.log`, 24 pruebas correctas y una omisión esperada de CV externa sin bancos. Candidato de bordes `229d2f0d7`, ejecutor CV `78b7a92b7`, árbol aislado limpio.
 - CV de bordes completada en2061 sobre `e1268d050`, log `C:/kw/logs/vt-m5-cv-boundary-20261022-2.log`: 1.229 predicciones retenidas, cuatro rotaciones eligen1.0; MM-Fit ALTA308/327 y MEDIA6/8, aún por debajo de98/90. Sin controles nuevos; integración sigue en9 y default aislado0 hasta MediaPipe.
 - Android91923 terminó correctamente:17 clases y191 pruebas sin fallos, errores ni omisiones; log `C:/kw/logs/vt-fase4-technique-profile-20261022.log`, XML externos en carpeta de igual nombre con sufijo `-results`. Total actual de Fase4:59 clases y569 pruebas correctas.
-- Única corrida Gradle propia: JVM77723, toda biomecánica del candidato con arreglo de procedencia horizontal y su fixture integrada; log `C:/kw/logs/vt-m5-lunge-all-biomechanics-20261022.log`. Fuentes quietas hasta resultado; sin bancos configurados.
-- El ajustador prepara un único cambio siguiente: limitar `nonrep_horizontal` a la fuente física PLATE, preservando caminar/setup/rerack/setdown y la excepción ROW. Todavía sin validar ni integrar.
+- JVM77723 completa:82 clases,602 pruebas,586 correctas y16 omisiones esperadas de bancos/bench opcionales sin configurar, cero fallos/errores. Log `C:/kw/logs/vt-m5-lunge-all-biomechanics-20261022.log`, XML en carpeta de igual nombre con sufijo `-results`.
+- Arreglo horizontal aislado y revisado en `1e2717f31`: conserva caminar/setup/rerack/setdown/ROW. Única corrida Gradle propia actual61504: CV tune contrafactual, log `C:/kw/logs/vt-m5-cv-horizontal-20261022.log`, salida nueva `C:/kw/vt-mmfit/m5-out/openpose-cv-horizontal-20261022`. Sin controles ni integración.
 
 Las secciones siguientes conservan la cronología; sus sesiones «actuales» anteriores ya no describen el estado vigente.
 
@@ -173,3 +173,13 @@ El usuario confirmó «Mi ZFLIP ya esta disponible». Esta instrucción revoca l
 El usuario confirmó «SI ESTA ACTIVADO». El nuevo sondeo por `phone_run.find_serial()` ya encontró `adb-R5CW81A2G3P-LPpbNR._adb-tls-connect._tcp`, anunciado en192.168.100.240:35703; no se conectó por VPN ni se reinició ADB. Se reanudó una sola vez, PID7132, logs `C:/kw/vt-mmfit/phone/runall-return-20261023T012317Z.log` y `.err.log`. Confirma72 completos/544 pendientes/46 lotes; proceso vivo y candado propio. Falta confirmar en el log el cierre del preflight antes de afirmar extracción de nuevos clips. Los nombres de log están en UTC, el trabajo corresponde al regreso del usuario del22-oct local.
 
 La revisión del arreglo de zancada encontró una fixture integrada vacua; se reforzó con traslación lateral real de pose y disco de la misma muñeca. Afirma PLATE4FULL con veto, POSE5FULL y tres fallbacks5FULL; confirma geometría que cruzaría el veto anterior. Revisión independiente estática cerrada; la JVM77723 valida todas las pruebas de biomecánica por el alcance genérico del gate.
+
+### Preflight del regreso · veto persistente del APK antiguo
+
+El PID7132 terminó sin publicar nuevos resultados: `GPU required; CPU fallback is not an accepted Flip5 measurement`. La salida fallida se conserva solo en `phone/preflight/20261023T012321-1792718601122964300-m1-try1`, no se añade a los72 recibos aceptados.
+
+- `pasada.notaDelegado`: «GPU vetada en la versión 50: un arranque anterior murió con ella». ModoFULL, stride1, térmico0→0;210,3s en CPU. No fue un fallo de conexión ni una medición GPU válida. El APK instalado sí coincide con28e7b3d3…
+- Lectura acotada por phone_run/candado de `dumpsys activity exit-info com.example.kpkn.dbg`: nueve salidas retenidas, última17:15:49 del22-oct por LOW_MEMORY (pid16216), anterior00:24:23 por LOW_MEMORY; las demás son cierres del sistema/usuario. Ninguna NATIVE_CRASH en ese historial disponible; esto no prueba ausencia universal de fallos nativos.
+- B12 ya corrige en integración el falso veto por salidas Java/sistema, pero conserva los vetos existentes durante su versionCode. Se audita la procedencia del APK antiguo y una actualización legítima con B12, sin borrar SharedPreferences, cambiar su significado ni aceptar CPU.
+- El conductor solo admite cambios de APK con nota de src/debug; no usar esa opción para fingir que un cambio main/B12 es solo debug. Cualquier transición compatible necesita atestación veraz de código/modelo/inferencia y adaptación revisada del conductor/constructor, o un banco nuevo coherente. Todavía no se ha construido/instalado otro APK ni modificado esos scripts.
+- El seguimiento20min quedó actualizado a ACTIVE con la nueva disponibilidad del teléfono. Debe leer este estado vigente y no repetir automáticamente el preflight CPU con el APK vetado.
