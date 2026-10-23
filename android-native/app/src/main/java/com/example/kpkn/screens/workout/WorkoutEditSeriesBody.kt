@@ -22,7 +22,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,6 +55,10 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.RestBundleDialog
 import com.example.kpkn.screens.sessioneditor.SideOrderChip
 import com.example.kpkn.screens.sessioneditor.components.InlineSetRow
+import com.example.kpkn.screens.sessioneditor.components.AmrapSetFocus
+import com.example.kpkn.screens.sessioneditor.components.RmSetFocus
+import com.example.kpkn.screens.sessioneditor.components.ExerciseModeSheet
+import com.example.kpkn.screens.sessioneditor.components.SetRestControl
 import com.example.kpkn.screens.sessioneditor.components.SetRowPresentation
 import com.example.kpkn.screens.sessioneditor.components.SetRowSummary
 import com.example.kpkn.screens.sessioneditor.components.setRowSummary
@@ -70,7 +73,6 @@ import com.example.kpkn.screens.sessioneditor.withSideConfigOf
 import com.example.kpkn.screens.sessioneditor.withTrainingMode
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.components.KpknDropdownMenu
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknIconButton
@@ -106,17 +108,6 @@ private val ChipBorder = Color.White.copy(alpha = 0.08f)
 /** El peligro de la paleta KPKN (#EF6F64). */
 private val LiveEditDanger = Color(0xFFEF6F64)
 
-/** Los siete modos, en el orden del editor. */
-private val EditableModes = listOf(
-    TrainingMode.REPS,
-    TrainingMode.AMRAP,
-    TrainingMode.RM,
-    TrainingMode.SOLO_RPE,
-    TrainingMode.TIME,
-    TrainingMode.DISTANCE,
-    TrainingMode.CUSTOM,
-)
-
 /**
  * El cuerpo de fuerza de «Editar series» (G1): la zona «Ejercicio», que vale para todas las series (modo, lateralidad, descanso y
  * «Carga inteligente»), la lista compacta de series y el foco de la serie elegida, con sus flechas y sus acciones. Todo sale del
@@ -138,7 +129,7 @@ internal fun LiveEditSeriesBody(
     val orderedSides = if (exercise.unilateralSideOrder == UnilateralSideOrder.RIGHT_LEFT) listOf("R", "L") else listOf("L", "R")
     val sharedSides = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED
     var selectedId by rememberSaveable(exercise.id) { mutableStateOf<String?>(null) }
-    var selectedSide by rememberSaveable(exercise.id) { mutableStateOf("L") }
+    var selectedSide by rememberSaveable(exercise.id) { mutableStateOf(orderedSides.first()) }
     var showRest by remember { mutableStateOf(false) }
     var showOptions by remember { mutableStateOf(false) }
     var showLaterality by remember { mutableStateOf(false) }
@@ -148,7 +139,7 @@ internal fun LiveEditSeriesBody(
         ?: initialSetIndex.coerceIn(0, (sets.size - 1).coerceAtLeast(0))
     val selected = sets.getOrNull(selectedIndex)
     val side = if (unilateral) selectedSide.takeIf { it in orderedSides } ?: orderedSides.first() else null
-    val predicted = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM, exercise.sets) {
+    val predicted = remember(exercise.trainingMode, exercise.reference1RM, exercise.referenceTrainingMax, exercise.prFor1RM, exercise.sets) {
         sets.associate { set -> set.id to calculateSuggestedLoad(exercise, set) }
     }
     fun summaryOf(set: ExerciseSet, ofSide: String?): SetRowSummary = setRowSummary(
@@ -378,10 +369,20 @@ internal fun LiveEditSeriesBody(
                             },
                         )
                     } else {
-                        InlineSetRow(
+                        val updateSelected: ((ExerciseSet) -> ExerciseSet) -> Unit = { updater ->
+                            onUpdateExercise { current ->
+                                current.copy(sets = current.sets.map { set -> if (set.id == selected.id) updater(set) else set })
+                            }
+                        }
+                        if (selected.purpose.isAmrap) {
+                            AmrapSetFocus(exercise, selected, selectedIndex, fixedUnilateralSide = side, onUpdate = updateSelected)
+                        } else if (exercise.trainingMode == TrainingMode.RM) {
+                            RmSetFocus(exercise, selected, updateSelected, onUpdateExercise, fixedUnilateralSide = side)
+                        } else InlineSetRow(
                             set = selected,
                             index = selectedIndex,
                             reference1RM = reference1RM,
+                            trainingMax = exercise.referenceTrainingMax,
                             predictedWeight = predicted[selected.id],
                             estimatedMetric = null,
                             trainingMode = exercise.trainingMode,
@@ -393,11 +394,7 @@ internal fun LiveEditSeriesBody(
                             fixedUnilateralSide = side,
                             showSetActions = false,
                             unilateralIntensityMode = exercise.unilateralIntensityMode,
-                            onUpdate = { updater ->
-                                onUpdateExercise { current ->
-                                    current.copy(sets = current.sets.map { set -> if (set.id == selected.id) updater(set) else set })
-                                }
-                            },
+                            onUpdate = updateSelected,
                             onRemove = {},
                             onMoveUp = {},
                             onMoveDown = {},
@@ -406,6 +403,16 @@ internal fun LiveEditSeriesBody(
                         )
                     }
                 }
+                SetRestControl(
+                    seconds = selected.restAfterSeconds ?: exercise.restTime ?: 90,
+                    inherited = selected.restAfterSeconds == null,
+                    onChange = { seconds -> onUpdateExercise { current -> current.copy(
+                        sets = current.sets.map { if (it.id == selected.id) it.copy(restAfterSeconds = seconds) else it },
+                    ) } },
+                    onReset = { onUpdateExercise { current -> current.copy(
+                        sets = current.sets.map { if (it.id == selected.id) it.copy(restAfterSeconds = null) else it },
+                    ) } },
+                )
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     LiveEditActionChip(
                         text = "Aplicar a todas",
@@ -537,7 +544,7 @@ private fun LiveEditSectionLabel(title: String, note: String, modifier: Modifier
     }
 }
 
-/** El modo del ejercicio: una píldora de 44 dp con su flecha; abre los siete modos. */
+/** Píldora visual de 44 dp con objetivo táctil de 48 dp y confirmación común B4. */
 @Composable
 private fun LiveEditModePill(mode: TrainingMode, onSelect: (TrainingMode) -> Unit) {
     var open by remember { mutableStateOf(false) }
@@ -563,17 +570,14 @@ private fun LiveEditModePill(mode: TrainingMode, onSelect: (TrainingMode) -> Uni
                 Icon(KpknLineIcons.ChevronDown, contentDescription = null, tint = WizardColors.text, modifier = Modifier.size(14.dp))
             }
         }
-        KpknDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            EditableModes.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(trainingModeLabel(option)) },
-                    onClick = {
-                        open = false
-                        onSelect(option)
-                    },
-                )
-            }
-        }
+        if (open) ExerciseModeSheet(
+            current = mode,
+            onSelect = { selected ->
+                open = false
+                onSelect(selected)
+            },
+            onDismiss = { open = false },
+        )
     }
 }
 

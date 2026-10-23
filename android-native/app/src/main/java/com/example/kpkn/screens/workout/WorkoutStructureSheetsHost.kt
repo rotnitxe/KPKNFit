@@ -87,6 +87,8 @@ import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.screens.sessioneditor.components.ExerciseSmartLoadDialog
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
+import com.example.kpkn.screens.sessioneditor.normalizeExercise
+import com.example.kpkn.screens.sessioneditor.withExplicitRmLoads
 import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.effectiveSupersetGroupFor
@@ -1660,7 +1662,10 @@ internal fun WorkoutEditSeriesSheet(
                             reference1RM = resolved1RM,
                             accentColor = sessionAccentColor,
                             initialSetIndex = initialSetIndex,
-                            onUpdateExercise = { transform -> draftExercise = transform(draftExercise) },
+                            onUpdateExercise = { transform ->
+                                val previous = draftExercise
+                                draftExercise = transform(previous).withExplicitRmLoads(previous).normalizeExercise()
+                            },
                             onOpenSmartLoad = { showSmartLoadDialog = true },
                         )
                     }
@@ -1679,7 +1684,8 @@ internal fun WorkoutEditSeriesSheet(
                             localPrEstimatedRm = localPrEstimatedRm,
                             resolved1RM = resolved1RM,
                             onUpdateExercise = { transform ->
-                                draftExercise = transform(draftExercise)
+                                val previous = draftExercise
+                                draftExercise = transform(previous).withExplicitRmLoads(previous).normalizeExercise()
                             },
                             onDismiss = { showSmartLoadDialog = false },
                         )
