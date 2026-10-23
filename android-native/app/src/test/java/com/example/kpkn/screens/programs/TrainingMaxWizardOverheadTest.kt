@@ -92,7 +92,9 @@ class TrainingMaxWizardOverheadTest {
     }
 
     private fun fullText(label: String) {
-        val node = rule.onNodeWithText(label).assertIsDisplayed()
+        // The sheet's merged ancestor exposes the first descendant's layout (the title).
+        // Read the Text node itself so geometry belongs to this exact preview row.
+        val node = rule.onNodeWithText(label, useUnmergedTree = true).assertIsDisplayed()
         val layouts = mutableListOf<TextLayoutResult>()
         node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
         val layout = layouts.single()
