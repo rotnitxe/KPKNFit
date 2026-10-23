@@ -6,6 +6,8 @@ import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.data.protocols.LiftSlot
+import com.example.kpkn.data.protocols.SlotRole
+import com.example.kpkn.domain.training.ProgramAutoregulationEngine
 import com.example.kpkn.domain.training.Cal5TestSupport.recipeOf
 import com.example.kpkn.domain.training.Cal5TestSupport.templateRecipeOf
 import org.junit.Assert.assertEquals
@@ -33,8 +35,13 @@ class AmrapProgramPreviewTest {
         hit: AmrapHit,
         mode: AutoregulationMode = AutoregulationMode.PROPOSE,
         p: PowerliftingProfile? = profile,
-        frozenBefore: Int = 0,
-    ) = AmrapProgramPreview.preview(recipeOf(id), mode, p, hit, frozenBefore)
+        frozenBefore: Int? = null,
+        slotRole: SlotRole? = null,
+        plannedVolumeReps: Int? = null,
+        tierCheck: ProgramAutoregulationEngine.GzclpTierCheck? = null,
+    ) = AmrapProgramPreview.preview(
+        recipeOf(id), mode, p, hit, frozenBefore, tierCheck, slotRole, plannedVolumeReps,
+    )
 
     // ─── nSuns ───────────────────────────────────────────────────────────────────
 
@@ -83,6 +90,7 @@ class AmrapProgramPreviewTest {
         assertEquals(AmrapEffectGate.METHOD, effect.gate)
         assertEquals(126.64, effect.e1rmKg!!, 1e-9)
         assertNull(effect.tmDeltaKg)
+        assertTrue(effect.observerNote!!.text, effect.observerNote!!.text.contains("TM +5 kg al cerrar el ciclo"))
         assertNull(effect.warning)
     }
 
@@ -122,19 +130,34 @@ class AmrapProgramPreviewTest {
 
     @Test
     fun gzclp_says_the_amrap_does_not_change_the_load_and_counts_ten_reps_at_most() {
-        val effect = preview("gzclp", AmrapHit(LiftSlot.SQUAT, 85.0, prescribedReps = 3, actualReps = 14, weightKg = 153.0))
+        val effect = preview(
+            "gzclp",
+            AmrapHit(LiftSlot.SQUAT, 85.0, prescribedReps = 3, actualReps = 14, weightKg = 153.0),
+            slotRole = SlotRole.T1_MAIN,
+            plannedVolumeReps = 15,
+        )
         assertTrue(effect.headline, effect.headline.contains("la AMRAP no cambia la carga"))
         assertTrue(effect.detail!!, effect.detail!!.contains("Cuentan 10 reps"))
         assertTrue(effect.detail!!, effect.detail!!.contains("Etapa 1: 5×3+"))
         assertEquals(AmrapEffectTiming.END_OF_CYCLE, effect.timing)
         assertNull(effect.tmDeltaKg)
+        assertTrue(effect.observerNote!!.text, effect.observerNote!!.conditional)
+        assertTrue(effect.observerNote!!.text, effect.observerNote!!.text.contains("15 reps"))
+        assertTrue(effect.observerNote!!.text, effect.observerNote!!.text.length <= 90)
     }
 
     @Test
     fun gzclp_warns_about_the_restart_when_stage_3_falls_short() {
-        val effect = preview("gzclp", AmrapHit(LiftSlot.SQUAT, 85.0, prescribedReps = 1, actualReps = 0, weightKg = 153.0))
-        assertTrue(effect.headline, effect.headline.contains("pasas de etapa"))
-        assertTrue(effect.warning!!, effect.warning!!.contains("5RM") && effect.warning!!.contains("85 %"))
+        val effect = preview(
+            "gzclp",
+            AmrapHit(LiftSlot.SQUAT, 85.0, prescribedReps = 1, actualReps = 0, weightKg = 153.0),
+            slotRole = SlotRole.T1_MAIN,
+            plannedVolumeReps = 10,
+        )
+        assertTrue(effect.observerNote!!.text, effect.observerNote!!.conditional)
+        assertTrue(effect.observerNote!!.text, effect.observerNote!!.text.contains("nuevo 5RM ×85 %"))
+        assertTrue(effect.observerNote!!.text, effect.observerNote!!.text.length <= 90)
+        assertNull("one logged AMRAP is not aggregate GZCLP close evidence", effect.warning)
     }
 
     // ─── J&T, SBS, registro y calibrador ─────────────────────────────────────────
@@ -198,11 +221,43 @@ class AmrapProgramPreviewTest {
         assertEquals(AmrapEffectKind.NEXT_SET_LOAD, toSet4.kind)
         assertEquals(AmrapEffectTiming.SAME_SESSION, toSet4.timing)
         assertEquals(155.0, toSet4.nextSetLoadKg!!, 1e-9)
+        assertEquals("APRE 10: serie 4 con 155 kg hoy.", toSet4.observerNote!!.text)
 
         val set4 = AmrapHit(LiftSlot.SQUAT, 81.52, prescribedReps = 10, actualReps = 17, weightKg = 155.0, isLastAmrapOfExercise = true)
         val toNextWeek = preview("apre-mann", set4)
-        assertEquals("APRE: tu 10RM de la semana próxima: 162,5 kg.", toNextWeek.headline)
+        assertEquals("APRE 10: propone XRM 162,5 kg para la próxima semana.", toNextWeek.headline)
         assertEquals(AmrapEffectKind.NEXT_WEEK_XRM, toNextWeek.kind)
+        assertEquals(AmrapEffectTiming.NEXT_WEEK, toNextWeek.timing)
+        assertEquals(AmrapEffectGate.PROPOSE, toNextWeek.gate)
         assertEquals(162.5, toNextWeek.nextWeekXrmKg!!, 1e-9)
+        assertEquals("APRE 10: propone XRM 162,5 kg para la próxima semana.", toNextWeek.observerNote!!.text)
+        assertTrue(toNextWeek.needsConfirmation)
+        assertNull(toNextWeek.tmDeltaPercent)
+        assertNull(toNextWeek.newTmKg)
+
+        val auto = AmrapProgramPreview.preview(recipeOf("apre-mann"), AutoregulationMode.AUTO, profile, set4)
+        assertEquals(AmrapEffectGate.AUTO, auto.gate)
+        assertTrue(auto.observerNote!!.text, auto.observerNote!!.text.contains("AUTO"))
+        assertTrue(auto.observerNote!!.text, auto.observerNote!!.text.contains("162,5 kg"))
+        assertEquals(AmrapEffectKind.NEXT_WEEK_XRM, auto.kind)
+        assertEquals(AmrapEffectTiming.NEXT_WEEK, auto.timing)
+        assertFalse(auto.needsConfirmation)
+        assertNull(auto.tmDeltaPercent)
+        assertNull(auto.newTmKg)
+
+        val off = AmrapProgramPreview.preview(recipeOf("apre-mann"), AutoregulationMode.OFF, profile, set4)
+        assertEquals(AmrapEffectGate.OFF, off.gate)
+        assertEquals(AmrapEffectTiming.NONE, off.timing)
+        assertEquals(AmrapEffectKind.NO_CHANGE, off.kind)
+        assertTrue(off.observerNote!!.text, off.observerNote!!.text.contains("OFF no lo aplica"))
+
+        val noProfile = AmrapProgramPreview.preview(recipeOf("apre-mann"), AutoregulationMode.PROPOSE, null, set4)
+        assertEquals("APRE 10: propone XRM 162,5 kg para la próxima semana.", noProfile.observerNote!!.text)
+        assertEquals(162.5, noProfile.nextWeekXrmKg!!, 1e-9)
+        assertTrue(noProfile.needsConfirmation)
+        assertNull(noProfile.tmDeltaPercent)
+        assertNull(noProfile.newTmKg)
+        assertFalse(noProfile.observerNote!!.text, noProfile.observerNote!!.text.contains("TM"))
+        assertFalse(noProfile.observerNote!!.text, noProfile.observerNote!!.text.contains("0 kg"))
     }
 }
