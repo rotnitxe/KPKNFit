@@ -1,5 +1,16 @@
 # Ola VT · registro de decisiones
 
+## QA-DB-1 · aislamiento del entorno de pruebas (23-oct-2026)
+
+La instalación QA detectó una base persistida30 mientras los APK VT conservados compilan29; no se acreditó qué APK la
+actualizó. Para preservar ese estado,531eb0b06 asigna solo a `com.example.kpkn.dbg` la base `kpkn-vt-qa-v29.db`.
+El producto oficial y los demás IDs conservan `kpkn.db`; no cambian esquema29, migraciones ni datos históricos.
+Backup/restore usan el mismo destinoDB/WAL/SHM y `listSnapshots` filtra el prefijo `kpkn-vt-qa-v29_snapshot_`, manteniendo
+el directorio plano `snapshots/` requerido por el rollback. No se ejecutan backup/restauración en este QA ni se promete
+importar snapshots30 en29. El perfilQA será nuevo y aislado; conservar el archivo anterior no significa recuperarlo
+visiblemente. Tres pruebas verdes y R8 atestado; instalación/arranque/FULL/privacidad del APK aislado siguen pendientes
+de conexión al ZFlip. Ver EJECUCION para identidad de artefacto y estado vigente; build no equivale a aprobación física.
+
 ## Del usuario (2026-10-13, AskUserQuestion)
 - **U1. Alcance de la 1.ª entrega:** el núcleo, más la barra calibrada con disco (m/s reales), el análisis de vídeos de la galería y las tendencias en el historial (incluido comparar dos vídeos).
   - El núcleo es el análisis al terminar la serie: reps, TUT/tempo, ROM, trayectoria, pérdida de velocidad y «Usar/Corregir N reps».
