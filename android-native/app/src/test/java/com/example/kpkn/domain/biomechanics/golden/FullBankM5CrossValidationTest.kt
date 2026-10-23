@@ -15,6 +15,23 @@ private val M5_GRID = listOf(0.0, 0.5, 0.75, 1.0)
 private val M5_LEVELS = listOf("ALTA", "MEDIA", "BAJA", "SIN_SALIDA")
 private val M5_CATEGORIES = listOf("G1", "G2", "G3")
 private val M5_SHA256_PATTERN = Regex("[a-f0-9]{64}")
+private const val M5_OPENPOSE_PARENT_MANIFEST_SHA256 = "91a9512a04a7de33264a37a9d281cfe0ca1a3d777ad17d3439ef6b8fe8c82b6f"
+private const val M5_OPENPOSE_EVIDENCE_STATUS = "OPENPOSE_PRELIMINARY_PENDING_MEDIAPIPE"
+private const val M5_MEDIAPIPE_EVIDENCE_STATUS = "CV_PENDIENTE_CIEGOS"
+private val M5_MEDIAPIPE_V51_ATTESTATION = mapOf(
+    "pipeline" to JsonPrimitive("mediapipe_pose_landmarker"),
+    "model" to JsonPrimitive("full"),
+    "apkSha256" to JsonPrimitive("8c2c233ccdfc77bc66700e2c9fa7c75d63be7f3f63d0ca17dc0fdee74bb186f0"),
+    "versionCode" to JsonPrimitive(51),
+    "engineVersion" to JsonPrimitive(9),
+    "sourceCommit" to JsonPrimitive("50d6e104b8f54d2b7b45335472a1cc88a3cc666f"),
+    "androidNativeGitTree" to JsonPrimitive("c63c5adbcb2f66b3d7c885c88b4cf89a1813a8da"),
+    "modelAsset" to JsonPrimitive("assets/mediapipe/pose_landmarker_full.task"),
+    "modelSha256" to JsonPrimitive("5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1"),
+    "arm64JniSha256" to JsonPrimitive("af5da2251aae340a8ac9d225f0780ecfc50a5fb36ea17e17218f362b1e90dceb"),
+    "delegate" to JsonPrimitive("GPU"),
+    "poseStride" to JsonPrimitive(1),
+)
 
 /** Compact prediction: no pose series, diagnostic arrays, or FullBankResult is retained between evaluations. */
 internal data class M5Prediction(
@@ -78,6 +95,8 @@ private data class M5Bank(
     val packageKind: String?,
     val packagePartition: JsonElement?,
     val parentManifestSha256: String?,
+    val poseBackend: JsonObject?,
+    val externalParentManifestSha256: String?,
     val selectedRows: List<FullBankRow>,
     val validationOnly: Boolean,
     val receipts: JsonObject,
@@ -315,7 +334,53 @@ internal fun validateM5ExpectedManifestSha256(actual: String, expected: String) 
 /** Conserva opaco el metadato de partición; los folds por fila mandan en la membresía de CV. */
 internal fun m5SourcePackagePartition(pkg: JsonObject): JsonElement? = pkg["partition"]
 
-private fun loadM5Bank(name: String, rootArgument: File, expectedManifestSha256: String? = null): M5Bank {
+/** A MediaPipe status requires the pinned v51 attestation; a missing field identifies only the frozen OpenPose parent. */
+internal fun validateM5PoseBackend(
+    pkg: JsonObject,
+    parentManifestSha256: String,
+    expectedMediaPipeParentManifestSha256: String?,
+): JsonObject? {
+    require(M5_SHA256_PATTERN.matches(parentManifestSha256)) { "Hash de origen MM-Fit inválido" }
+    val element = pkg["poseBackend"]
+    if (element == null) {
+        require(parentManifestSha256 == M5_OPENPOSE_PARENT_MANIFEST_SHA256) {
+            "Paquete MM-Fit de origen desconocido sin poseBackend"
+        }
+        return null
+    }
+    require(parentManifestSha256 != M5_OPENPOSE_PARENT_MANIFEST_SHA256) {
+        "El manifiesto padre OpenPose no acredita extracción MediaPipe"
+    }
+    val externalParent = expectedMediaPipeParentManifestSha256?.takeIf { it.isNotBlank() }
+        ?: throw IllegalArgumentException("MediaPipe exige KPKN_M5_MMFIT_PARENT_MANIFEST_SHA256 externo")
+    require(M5_SHA256_PATTERN.matches(externalParent)) {
+        "KPKN_M5_MMFIT_PARENT_MANIFEST_SHA256 inválido"
+    }
+    require(parentManifestSha256 == externalParent) {
+        "El manifiesto padre MediaPipe no coincide con el pin externo"
+    }
+    val backend = element as? JsonObject ?: throw IllegalArgumentException("poseBackend debe ser un objeto")
+    require(backend.keys == M5_MEDIAPIPE_V51_ATTESTATION.keys + "parentManifestSha256") {
+        "Atestación MediaPipe v51 incompleta o inesperada"
+    }
+    require(backend["parentManifestSha256"] == JsonPrimitive(parentManifestSha256)) {
+        "poseBackend no coincide con el manifiesto padre MM-Fit"
+    }
+    for ((key, expected) in M5_MEDIAPIPE_V51_ATTESTATION) {
+        require(backend[key] == expected) { "Atestación MediaPipe v51 inválida: $key" }
+    }
+    return backend
+}
+
+internal fun m5EvidenceStatus(poseBackend: JsonObject?): String =
+    if (poseBackend == null) M5_OPENPOSE_EVIDENCE_STATUS else M5_MEDIAPIPE_EVIDENCE_STATUS
+
+private fun loadM5Bank(
+    name: String,
+    rootArgument: File,
+    expectedManifestSha256: String? = null,
+    expectedMediaPipeParentManifestSha256: String? = null,
+): M5Bank {
     val root = rootArgument.canonicalFile
     require(root.isDirectory) { "Falta el banco $name" }
     val manifestFile = File(root, "manifest.json")
@@ -328,24 +393,35 @@ private fun loadM5Bank(name: String, rootArgument: File, expectedManifestSha256:
     }
     validateManifestReceipt(root, manifestHash)
     val manifest = FullBankReport.readObject(manifestFile)
-    val allRows = FullBankReport.rows(manifest)
     val manifestExpectedCount = manifest.getValue("expectedCount").jsonPrimitive.int
     val validationOnly = manifest.b("validationOnly")
+    val mmfitPackage = if (name == "mmfit") manifest["package"]?.jsonObject
+        ?: error("MM-Fit exige metadatos package") else null
+    val mmfitParent = if (mmfitPackage != null) {
+        require(manifest.s("source") == "mmfit") { "El paquete M5 debe conservar source=mmfit" }
+        require(mmfitPackage.s("kind") == "mmfit-m5-tune") { "La CV solo acepta package.kind mmfit-m5-tune" }
+        val parent = manifest.s("parentManifestSha256")
+        require(M5_SHA256_PATTERN.matches(parent) && mmfitPackage.s("parentManifestSha256") == parent) {
+            "Hash de origen MM-Fit incoherente"
+        }
+        parent
+    } else null
+    val poseBackend = if (mmfitPackage != null) validateM5PoseBackend(
+        mmfitPackage, requireNotNull(mmfitParent), expectedMediaPipeParentManifestSha256) else null
+    if (poseBackend != null) {
+        require(File(root, "manifest.sha256").isFile) { "MediaPipe exige recibo SHA-256 del manifiesto del paquete" }
+    }
+    val allRows = FullBankReport.rows(manifest)
     var packageKind: String? = null
     var packagePartition: JsonElement? = null
     var parentManifestSha256: String? = null
     val selected = if (name == "mmfit") {
-        val pkg = manifest["package"]?.jsonObject ?: error("MM-Fit exige metadatos package")
+        val pkg = requireNotNull(mmfitPackage)
         packageKind = pkg.s("kind")
         packagePartition = m5SourcePackagePartition(pkg)
-        require(packageKind == "mmfit-m5-tune") { "La CV solo acepta package.kind mmfit-m5-tune" }
-        val parent = manifest.s("parentManifestSha256")
-        require(Regex("[a-f0-9]{64}").matches(parent) && pkg.s("parentManifestSha256") == parent) {
-            "Hash de origen MM-Fit incoherente"
-        }
-        parentManifestSha256 = parent
-        require(validationOnly && allRows.all { !it.exam && it.fold in 0..3 }) {
-            "MM-Fit debe ser validationOnly, folds 0–3, exam=false; control/fold4 rechazado"
+        parentManifestSha256 = mmfitParent
+        require(validationOnly && allRows.all { it.source == "mmfit" && !it.exam && it.fold in 0..3 }) {
+            "MM-Fit debe conservar source=mmfit, validationOnly, folds 0–3, exam=false; control/fold4 rechazado"
         }
         allRows
     } else {
@@ -366,7 +442,9 @@ private fun loadM5Bank(name: String, rootArgument: File, expectedManifestSha256:
     val stateReceipts = state?.get("clips")?.jsonObject ?: JsonObject(emptyMap())
     val receipts = JsonObject(selected.mapNotNull { row -> stateReceipts[row.id]?.let { row.id to it } }.toMap())
     return M5Bank(name, root, manifestHash, manifestExpectedCount, packageKind, packagePartition,
-        parentManifestSha256, selected, validationOnly, receipts)
+        parentManifestSha256, poseBackend,
+        if (poseBackend == null) null else expectedMediaPipeParentManifestSha256,
+        selected, validationOnly, receipts)
 }
 
 private fun validateOutput(output: File, roots: List<File>) {
@@ -386,7 +464,9 @@ class FullBankM5CrossValidationTest {
         val raw = listOf("KPKN_M5_MMFIT_TUNE_DIR", "KPKN_M5_LEGACY_TUNE_DIR", "KPKN_M5_CV_OUT")
             .map { System.getenv(it) }
         val expectedLegacyManifestSha256 = System.getenv("KPKN_M5_LEGACY_MANIFEST_SHA256")?.trim()
-        if (raw.all { it.isNullOrBlank() } && expectedLegacyManifestSha256.isNullOrBlank()) {
+        val expectedMediaPipeParentManifestSha256 = System.getenv("KPKN_M5_MMFIT_PARENT_MANIFEST_SHA256")?.trim()
+        if (raw.all { it.isNullOrBlank() } && expectedLegacyManifestSha256.isNullOrBlank() &&
+            expectedMediaPipeParentManifestSha256.isNullOrBlank()) {
             assumeTrue("M5 CV opcional: configura sus rutas y el hash del manifiesto legacy", false)
         }
         require(raw.all { !it.isNullOrBlank() } && !expectedLegacyManifestSha256.isNullOrBlank()) {
@@ -403,7 +483,9 @@ class FullBankM5CrossValidationTest {
         validateOutput(output, listOf(mmfitRoot, legacyRoot))
 
         // Read and validate BOTH manifests, partitions, groups and receipts before any label or trace is opened.
-        val banks = listOf(loadM5Bank("mmfit", mmfitRoot), loadM5Bank("legacy", legacyRoot, expectedLegacyManifestSha256))
+        val banks = listOf(loadM5Bank("mmfit", mmfitRoot,
+            expectedMediaPipeParentManifestSha256 = expectedMediaPipeParentManifestSha256),
+            loadM5Bank("legacy", legacyRoot, expectedLegacyManifestSha256))
         val byCandidate = M5_GRID.associateWith { mutableListOf<M5Prediction>() }
         for (bank in banks) for (value in M5_GRID) {
             val tuning = candidateTuning(value)
@@ -470,10 +552,12 @@ class FullBankM5CrossValidationTest {
             put("mediaExactPrecision", targetByConfidence("MEDIA", 0.90))
             put("note", "Las metas describen precisión FULL exacta G1 en predicciones retenidas. MET_IN_CV_PENDING_BLIND requiere todavía el control ciego; esta CV no demuestra generalización estructural ni lo sustituye.")
         }
+        val mmfitPoseBackend = banks.single { it.name == "mmfit" }.poseBackend
+        val evidenceStatus = m5EvidenceStatus(mmfitPoseBackend)
         val report = buildJsonObject {
             put("schemaVersion", 1); put("protocol", "M5-3fold-train-1fold-heldout")
             put("engineVersion", TechniqueAnalysisEngine.ENGINE_VERSION); put("exam", false)
-            put("evidenceStatus", "OPENPOSE_PRELIMINARY_PENDING_MEDIAPIPE")
+            put("evidenceStatus", evidenceStatus)
             put("validationOnly", banks.all { it.validationOnly })
             put("gridInitialBoundaryMaxPeriods", JsonArray(M5_GRID.map(::JsonPrimitive)))
             put("candidateMetricsDescriptiveAllRowsNotForSelection", fullCandidateMetrics)
@@ -483,6 +567,8 @@ class FullBankM5CrossValidationTest {
                 put("validationOnly", bank.validationOnly)
                 put("packageKind", bank.packageKind?.let(::JsonPrimitive) ?: JsonNull)
                 put("parentManifestSha256", bank.parentManifestSha256?.let(::JsonPrimitive) ?: JsonNull)
+                put("poseBackend", bank.poseBackend ?: JsonNull)
+                put("externalParentManifestSha256", bank.externalParentManifestSha256?.let(::JsonPrimitive) ?: JsonNull)
                 put("partition", if (bank.name == "mmfit") "mmfit-m5-tune-folds-0-3" else "legacy-exam-false-folds-0-3")
                 put("selectedFolds", JsonArray(bank.selectedRows.map { it.fold }.distinct().sorted().map(::JsonPrimitive)))
                 put("selectedRows", bank.selectedRows.size)
@@ -493,7 +579,10 @@ class FullBankM5CrossValidationTest {
             put("retainedOutOfFoldPredictions", JsonArray(outOfFold.sortedWith(compareBy<M5Prediction> { it.fold }.thenBy { it.bank }.thenBy { it.id }).map { it.json() }))
             put("finalMostConservativeInitialBoundaryMaxPeriods", finalValue)
             put("targets", targetReport)
-            put("interpretation", "Los resultados conservan métricas separadas por banco, fold, categoría y confianza. OpenPose es preliminar mientras se completa MediaPipe. La selección nunca usa el fold retenido ni el control. Esta CV no prueba generalización del diseño estructural y no reemplaza un control ciego independiente.")
+            put("interpretation", if (mmfitPoseBackend == null)
+                "Los resultados conservan métricas separadas por banco, fold, categoría y confianza. OpenPose es preliminar mientras se completa MediaPipe. La selección nunca usa el fold retenido ni el control. Esta CV no prueba generalización del diseño estructural y no reemplaza un control ciego independiente."
+            else
+                "Los resultados conservan métricas separadas por banco, fold, categoría y confianza. MediaPipe v51 está atestado en el paquete MM-Fit; la CV sigue pendiente de controles ciegos. La selección nunca usa el fold retenido ni el control. Esta CV no prueba generalización del diseño estructural y no reemplaza un control ciego independiente.")
         }
         validateOutput(output, listOf(mmfitRoot, legacyRoot))
         require(output.mkdirs() || output.isDirectory) { "No se pudo crear KPKN_M5_CV_OUT" }
@@ -611,5 +700,69 @@ class FullBankM5CrossValidationTest {
         })
         val decoded = FullBankReport.json.parseToJsonElement(encoded).jsonObject.getValue("sourcePackagePartition")
         assertEquals(expected, decoded)
+    }
+
+    private fun syntheticMediaPipeV51Package(parent: String): JsonObject = buildJsonObject {
+        put("poseBackend", buildJsonObject {
+            put("pipeline", "mediapipe_pose_landmarker")
+            put("model", "full")
+            put("parentManifestSha256", parent)
+            put("apkSha256", "8c2c233ccdfc77bc66700e2c9fa7c75d63be7f3f63d0ca17dc0fdee74bb186f0")
+            put("versionCode", 51)
+            put("engineVersion", 9)
+            put("sourceCommit", "50d6e104b8f54d2b7b45335472a1cc88a3cc666f")
+            put("androidNativeGitTree", "c63c5adbcb2f66b3d7c885c88b4cf89a1813a8da")
+            put("modelAsset", "assets/mediapipe/pose_landmarker_full.task")
+            put("modelSha256", "5134a3aad27a58b93da0088d431f366da362b44e3ccfbe3462b3827a839011b1")
+            put("arm64JniSha256", "af5da2251aae340a8ac9d225f0780ecfc50a5fb36ea17e17218f362b1e90dceb")
+            put("delegate", "GPU")
+            put("poseStride", 1)
+        })
+    }
+
+    @Test fun frozenOpenPoseWithoutPoseBackendRemainsPreliminaryButUnknownParentIsRejected() {
+        val withoutBackend = JsonObject(emptyMap())
+        assertEquals(M5_OPENPOSE_EVIDENCE_STATUS,
+            m5EvidenceStatus(validateM5PoseBackend(withoutBackend, M5_OPENPOSE_PARENT_MANIFEST_SHA256, null)))
+        assertThrows(IllegalArgumentException::class.java) {
+            validateM5PoseBackend(withoutBackend, "b".repeat(64), null)
+        }
+    }
+
+    @Test fun mediaPipeStatusRequiresCompletePinnedV51ProvenanceAndMatchingParent() {
+        val parent = "b".repeat(64)
+        val pkg = syntheticMediaPipeV51Package(parent)
+        val backend = requireNotNull(validateM5PoseBackend(pkg, parent, parent))
+        assertEquals(M5_MEDIAPIPE_EVIDENCE_STATUS, m5EvidenceStatus(backend))
+        assertEquals(parent, backend.getValue("parentManifestSha256").jsonPrimitive.content)
+
+        fun changedBackend(change: (JsonObject) -> JsonObject): JsonObject = buildJsonObject {
+            put("poseBackend", change(pkg.getValue("poseBackend").jsonObject))
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            validateM5PoseBackend(changedBackend { JsonObject(it - "arm64JniSha256") }, parent, parent)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            validateM5PoseBackend(changedBackend { JsonObject(it + ("apkSha256" to JsonPrimitive("c".repeat(64)))) }, parent, parent)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            validateM5PoseBackend(pkg, "c".repeat(64), "c".repeat(64))
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            validateM5PoseBackend(syntheticMediaPipeV51Package(M5_OPENPOSE_PARENT_MANIFEST_SHA256),
+                M5_OPENPOSE_PARENT_MANIFEST_SHA256, M5_OPENPOSE_PARENT_MANIFEST_SHA256)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            validateM5PoseBackend(buildJsonObject { put("poseBackend", JsonNull) }, parent, parent)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            validateM5PoseBackend(pkg, parent, null)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            validateM5PoseBackend(pkg, parent, "c".repeat(64))
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            validateM5PoseBackend(pkg, parent, "invalid")
+        }
     }
 }
