@@ -687,7 +687,8 @@ object ProgramAutoregulationEngine {
                 AutoregulationProposalKind.SCALE_WEEK_INTENSITY,
                 AutoregulationProposalKind.DELAY_PEAK,
                 -> when {
-                    percentsBefore != percentsAfter -> PendingActionResolutionStatus.APPLIED to "Aplicada: ${proposal.explanation}"
+                    hasPercent && percentsBefore != percentsAfter ->
+                        PendingActionResolutionStatus.APPLIED to "Aplicada: ${proposal.explanation}"
                     protectedTarget -> PendingActionResolutionStatus.EXPIRED to trainedReason
                     !hasPercent -> PendingActionResolutionStatus.EXPIRED to
                         "No aplicable: la prescripción de esa semana no usa porcentajes (RIR/esfuerzo); " +
