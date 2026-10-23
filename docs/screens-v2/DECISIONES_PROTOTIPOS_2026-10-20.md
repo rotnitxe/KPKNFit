@@ -45,3 +45,10 @@ Quedan aprobados por no mencionarse: hoja única de descanso (B7), creador únic
 - Decisiones AUD3 tomadas con la recomendación: sin el +2,5 % por etiqueta AMRAP (una sola capacidad en toda la app); topes del ajuste +5 % / −8 % (los de `computeSessionImprovementAdjustment`); calibrar solo con carga externa, reps completas y reserva 0–1 o fallo.
 - **El calibrador debe funcionar al 100 %** y, además de estimar la fuerza en ese ejercicio, adaptar cargas e intensidades sugeridas en la sesión en vivo según el rendimiento de los músculos implicados y de patrones de movimiento parecidos o conectados. Propuesta conservadora (decisión de producto de KPKN, no estándar del mercado): mismo ejercicio 100 % del ajuste; misma familia y mismos músculos principales 50 %; las bajadas (rendimiento bajo) se extienden también a ejercicios que comparten músculo principal, las subidas no; siempre como propuesta que la persona aplica o conserva, nunca sobre cargas fijadas a mano.
 - **Corrección del usuario (misma tarde):** como no hay evidencia de que el rendimiento en un ejercicio se traslade a otros (RES1 §10), **el AMRAP no cambia nada en los demás ejercicios**. Se descarta la propagación por músculos y patrones; la calibración solo afecta al mismo ejercicio en su contexto. Especificación: `CALIBRADOR_V1.md`.
+
+
+## Decisión del usuario · 22-oct-2026 · movilidad de sesión
+
+Al contrastar H2 `#grupo` (grupo generado de solo lectura) con el WIP editable de ED-C, se pidió resolver la diferencia. El usuario respondió: «haz lo que necesites hacer y que permita una implementación completa, esa es la prioridad».
+
+Se conserva la edición completa de los grupos de movilidad de sesión: añadir y quitar movimientos, reordenar, cambiar dosis por tiempo o repeticiones y configurar el tiempo global. Es una excepción explícita a la variante de solo lectura del tablero H2. Se utilizan los campos serializados existentes, sin cambiar Room ni atribuir un origen que el modelo no registra. La persistencia se comprueba cerrando y reabriendo una base de prueba aislada. Los HTML congelados no se modifican.
