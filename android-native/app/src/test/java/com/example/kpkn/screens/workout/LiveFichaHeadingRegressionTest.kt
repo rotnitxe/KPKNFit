@@ -79,7 +79,8 @@ class LiveFichaHeadingRegressionTest {
         )
 
         val scrollable = rule.onNodeWithTag("exercise-ficha-scroll")
-        for (step in 1..16) {
+        // Cruza desde el primer estado con título fijo visible (scroll 280 dp) hasta la franja del encabezado.
+        for (step in 1..14) {
             scrollable.performSemanticsAction(SemanticsActions.ScrollBy) {
                 it(0f, screenDensity.density * 20f)
             }
