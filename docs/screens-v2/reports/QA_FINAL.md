@@ -6,7 +6,7 @@ APK actual del emulador5580: fuente8c943ce84c0576db1dff62d2b484bb721b8a88b9, ver
 
 Pendientes materiales: la confirmación G1 de CUSTOM13pasos revierte a12 en el mismo VM; el resumen Semana conserva dosis de otros modos. Ambos en corrección. RM anidado/caption y compatibilidad importada legacy están integrados pero aún esperan APK5. CUSTOM ya aparece correctamente como12pasos en el cockpit QA4; ese arreglo de modo no prueba que su edición posterior persista.
 
-Teléfono: la QA ajena de Modo Visual instaló su APK pero encontró una incompatibilidad Room30→29 al abrir. Está preparando una base separada conservando la existente; no se interfiere en esa sesión. La evidencia física propia anterior1080×2640/480dpi/letra1.0 no acredita recorridos del APK final. No hay aún release unsigned ni firma de distribución. Roomv30 de esta ola permanece congelado; sin push/master.
+Teléfono: la QA ajena de Modo Visual instaló su APK pero encontró una incompatibilidad Room30→29 al abrir. Está preparando una base separada conservando la existente; no se interfiere en esa sesión. La evidencia física propia anterior1080×2640/480dpi/letra1.0 no acredita recorridos del APK final. Decisión humana posterior: la aceptación se cierra en el emulador5580; el teléfono deja de bloquear esta entrega y no se declara probado. No hay aún release unsigned ni firma de distribución. Roomv30 de esta ola permanece congelado; sin push/master.
 
 Los XML/Room/Compose se documentan por separado en INT-FINAL-REGRESSION e INT-CAL7-RINGS. A6/E8 con error inyectado no se convierten en QA nativa por tener prueba automatizada.
 

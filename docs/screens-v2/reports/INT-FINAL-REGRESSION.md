@@ -1,5 +1,13 @@
 # Regresión final de la ola screens-v2
 
+## Candidato final congelado · 23-oct-2026 13:29
+
+Las tres verificaciones puras nuevas cerraron realmente exit0: identidad importada1clase/5casos, puerta de guardado1/4 y mutador G1 mixto1/10; sin fallos, errores u omitidas y XML nuevos archivados. Son corridas separadas y no sustituyen la completa JVM5 de207/2062.
+
+Integrados los arreglos de G1 mixto(3f5fbc596), APRE desdeRM(a64b5f804), resumen por unidad(c226b3a18/2a8b5ced5), descanso CUSTOM/DISTANCE(869807e7a), etiqueta RM anidada y caption, fixturesA5/H3, e identidad legacy. Las cargas explícitas de TIME/DISTANCE/CUSTOM se conservan; una referencia RM capturada no se recicla sin un peso explícito. La regresión APRE nueva parte deRM y comprueba guardado/readback real del marcador y AMRAP6 enS3/S4. La próxima dirigida Android y los APK usarán una única fuente fijada. No se atribuye a QA4 ningún arreglo posterior.
+
+Decisión humana actual: si el teléfono no puede usarse, cerrar QA en el emulador. El teléfono deja de ser requisito de aceptación para esta entrega, sin acreditarlo como probado. ZFlip5_QA5580 se apagó limpiamente para liberar RAM y conserva todos sus datos; se reiniciará para los retests del APK actualizado. No se detuvo Java ni se alteró la sesión de vídeo. Roomv30 congelado, sin push/master/firma de distribución. Regresión final, retests y release unsigned aún pendientes al congelar.
+
 ## Estado operativo · 23-oct-2026 13:02
 
 La dirigida5 cerró con26clases/363pruebas,3fallos,0errores/omitidas/ausentes y37PNG nuevos; fuente bf0a3d20a39e32b0f2824131d578769b9d8fdbc6, wrapperexit1. Cinco de los seis casos fallidos de la tercera completa pasaron en esta repetición; H3 sigue fallando en el selector del arnés. No se declara verde el conjunto. RIR con volumen, ambas fichas sin imagen, cruce de cabecera y resumen CUSTOM tienen prueba nueva verde. La dirigida6 cerró con3clases/30pruebas,2fallos,0errores/omitidas/ausentes; fuente7d7809650cc2bc023f68618acd8379873e8a0e66, wrapperexit1. D2 pasó su regresión geométrica completa; A5 y H3 requieren la siguiente ejecución tras176e7fc1b.
