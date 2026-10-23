@@ -2168,7 +2168,7 @@ class ProgramDetailViewModelTest {
     }
 
     @Test
-    fun updatePowerliftingProfile_keeps_the_tm_and_flags_the_recipe_blocks_when_the_weeks_cannot_be_rebuilt() = runBlocking {
+    fun updatePowerliftingProfile_preserves_reference_and_prescription_when_rebuilding_fails() = runBlocking {
         val id = nextId()
         val program = wendlerProgram(id, PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0))
         repository.addProgram(program)
@@ -2185,11 +2185,11 @@ class ProgramDetailViewModelTest {
             CompositionMetadataHolder.current = installed
         }
 
-        assertEquals("TM actualizado. Las cargas nuevas se aplican al pulsar «Re-materializar».", message)
+        assertEquals("No se pudo guardar el TM. El plan y el historial se conservaron.", message)
         val saved = repository.getProgramById(id)!!
-        assertEquals("el TM se guardó igual", 189.0, saved.powerliftingProfile!!.squatTM!!, 1e-9)
+        assertEquals("la referencia anterior se conserva", before.powerliftingProfile, saved.powerliftingProfile)
         assertEquals("las semanas no se tocaron", weeksOf(before), weeksOf(saved))
-        assertTrue(saved.macrocycles.flatMap { it.blocks }.all { it.materializationPending })
+        assertEquals("no aparece una captura parcialmente aplicada", before.exerciseLoadReferences, saved.exerciseLoadReferences)
     }
 
     @Test
