@@ -1148,15 +1148,20 @@ fun SessionEditorScreen(
         onQuickActionOpenPicker = viewModel::triggerQuickActionOpenPicker,
         onQuickActionOpenWarmup = viewModel::triggerQuickActionOpenWarmup,
         onQuickActionOpenMobility = viewModel::triggerQuickActionOpenMobility,
-        onAddMobilityExercise = viewModel::addMobilityToQuickActionExercise,
+        onAddMobilityExercise = viewModel::addMobilityToTarget,
         onRemoveMobilityExercise = { info ->
-            val quickActionsExerciseId = uiState.quickActionsExerciseId
-            val targetSeries = quickActionsExerciseId
-                ?.let { id -> uiState.session?.allExercises()?.firstOrNull { it.id == id }?.mobilitySeries }
-                .orEmpty()
-            val existing = targetSeries.firstOrNull { it.catalogIdentityKey() == info.id }
-            if (existing != null && quickActionsExerciseId != null) {
-                viewModel.removeMobilitySeries(uiState.quickActionsPartId, quickActionsExerciseId, existing.id)
+            // D9: el catálogo puede apuntar a un ejercicio o al grupo de movilidad de la sesión.
+            val partId = uiState.quickActionsPartId
+            val exerciseId = uiState.quickActionsExerciseId
+            val targetSeries = when {
+                exerciseId != null -> session.allExercises()
+                    .firstOrNull { it.id == exerciseId }
+                    ?.mobilitySeries
+                partId != null -> session.parts.firstOrNull { it.id == partId }?.mobilitySeries
+                else -> null
+            }.orEmpty()
+            targetSeries.firstOrNull { it.catalogIdentityKey() == info.id }?.let { existing ->
+                viewModel.removeMobilityTarget(partId, exerciseId, existing.id)
             }
         },
         onAddCardio = viewModel::addCardioToPart,

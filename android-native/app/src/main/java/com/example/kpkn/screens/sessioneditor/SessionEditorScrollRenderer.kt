@@ -127,6 +127,20 @@ internal fun SessionEditorListItem(
                             }
                         },
                         onDragCancel = cancelPartDrag,
+                        // D9 · el grupo de movilidad de la sesión se edita en su sitio.
+                        onOpenPartMobility = { viewModel.openPartMobilityPicker(part.id) },
+                        onUpdatePartMobility = { mobilityId, transform ->
+                            viewModel.updatePartMobility(part.id, mobilityId, transform)
+                        },
+                        onRemovePartMobility = { mobilityId ->
+                            viewModel.removeMobilityFromPart(part.id, mobilityId)
+                        },
+                        onMovePartMobility = { mobilityId, delta ->
+                            viewModel.moveMobilityInPart(part.id, mobilityId, delta)
+                        },
+                        onUpdatePartMobilityConfig = { config ->
+                            viewModel.updatePartMobilityConfig(part.id, config)
+                        },
                     )
                 }
                 if (isDropTargetAfter) {

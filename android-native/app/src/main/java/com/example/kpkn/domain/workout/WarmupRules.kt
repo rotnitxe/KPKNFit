@@ -28,6 +28,20 @@ fun warmupLiveAddAdvisory(warmupSets: List<WarmupSetDefinition>, effectiveSetCou
     return null
 }
 
+/** Nombre compartido por las fichas del editor; conserva la regla única de LV-C. */
+fun recommendedWarmupMax(effectiveSetCount: Int): Int = warmupMaxRecommended(effectiveSetCount)
+
+/** Aplica el porcentaje al peso de trabajo objetivo y solo cae a la capacidad cuando falta. */
+fun warmupLoadKg(
+    percentageOfWorkingWeight: Double,
+    workingWeightKg: Double?,
+    capacityKg: Double?,
+): Double? {
+    val fraction = normalizeWarmupPercentage(percentageOfWorkingWeight)
+    if (!fraction.isFinite() || fraction <= 0.0) return null
+    return warmupTargetLoadKg(fraction, workingWeightKg, capacityKg).takeIf { it.isFinite() && it > 0.0 }
+}
+
 /** Conservative editor guardrails that keep warm-up volume proportional. */
 fun warmupValidationMessages(
     warmupSets: List<WarmupSetDefinition>,

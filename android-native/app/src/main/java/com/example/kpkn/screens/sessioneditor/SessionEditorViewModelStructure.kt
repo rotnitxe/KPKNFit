@@ -524,38 +524,131 @@ fun SessionEditorViewModel.triggerQuickActionOpenMobility() {
     }
 }
 
-fun SessionEditorViewModel.addMobilityToQuickActionExercise(info: MobilityExercise) {
-    val state = currentUiState
-    val exerciseId = state.quickActionsExerciseId ?: return
-    updateExercise(state.quickActionsPartId, exerciseId) { exercise ->
-        val mobility = MobilitySeries(
-            id = UUID.randomUUID().toString(),
-            exerciseDbId = info.id,
-            name = info.name,
-            sets = 1,
-            durationSeconds = info.durationSeconds,
-            unit = MobilityUnit.SECONDS,
-            catalogConfigurationId = info.id,
-            notes = "Movilidad asociada a ${exercise.name}",
-            associatedDiscomforts = info.discomfortIds,
-            bodyZones = listOf(info.bodyRegion),
-            movementPatterns = listOf(info.category),
+/** D9: abre el catálogo de movilidad apuntando al grupo de movilidad de la sesión (sin ejercicio). */
+fun SessionEditorViewModel.openPartMobilityPicker(partId: String) {
+    updateUi {
+        it.copy(
+            sheet = SessionEditorSheet.MOBILITY_PICKER,
+            quickActionsPartId = partId,
+            quickActionsExerciseId = null,
+            warmupExerciseId = null,
+            searchQuery = "",
         )
-        if (exercise.mobilitySeries.any { it.catalogIdentityKey() == info.id }) {
-            exercise
-        } else {
-            exercise.copy(
-                mobilitySeries = exercise.mobilitySeries + mobility,
-                mobilityConfig = exercise.mobilityConfig ?: MobilityConfig(),
-            )
-        }
     }
 }
+
+/** H3 + D9: añade el movimiento al ejercicio o al grupo de movilidad que abrió el catálogo. */
+fun SessionEditorViewModel.addMobilityToTarget(info: MobilityExercise) {
+    val state = currentUiState
+    val exerciseId = state.quickActionsExerciseId
+    if (exerciseId != null) {
+        updateExercise(state.quickActionsPartId, exerciseId) { exercise ->
+            if (exercise.mobilitySeries.any { it.catalogIdentityKey() == info.id }) {
+                exercise
+            } else {
+                exercise.copy(
+                    mobilitySeries = exercise.mobilitySeries + info.toMobilitySeries("Movilidad asociada a ${exercise.name}"),
+                    mobilityConfig = exercise.mobilityConfig ?: MobilityConfig(),
+                )
+            }
+        }
+        return
+    }
+    val partId = state.quickActionsPartId ?: return
+    updateSession { session ->
+        session.copy(
+            parts = session.parts.map { part ->
+                if (part.id != partId) {
+                    part
+                } else if (part.mobilitySeries.any { it.catalogIdentityKey() == info.id }) {
+                    part
+                } else {
+                    part.copy(
+                        mobilitySeries = part.mobilitySeries + info.toMobilitySeries("Movilidad de la sesión"),
+                        mobilityConfig = part.mobilityConfig ?: MobilityConfig(),
+                    )
+                }
+            },
+        )
+    }
+}
+
+private fun MobilityExercise.toMobilitySeries(notes: String) = MobilitySeries(
+    id = UUID.randomUUID().toString(),
+    exerciseDbId = id,
+    name = name,
+    sets = 1,
+    durationSeconds = durationSeconds,
+    unit = MobilityUnit.SECONDS,
+    catalogConfigurationId = id,
+    notes = notes,
+    associatedDiscomforts = discomfortIds,
+    bodyZones = listOf(bodyRegion),
+    movementPatterns = listOf(category),
+)
 
 fun SessionEditorViewModel.removeMobilitySeries(partId: String?, exerciseId: String, mobilityId: String) {
     updateExercise(partId, exerciseId) { exercise ->
         exercise.copy(mobilitySeries = exercise.mobilitySeries.filterNot { it.id == mobilityId })
     }
+}
+
+/** Quita el movimiento del ejercicio o del grupo de movilidad de la sesión según el objetivo abierto. */
+fun SessionEditorViewModel.removeMobilityTarget(partId: String?, exerciseId: String?, mobilityId: String) {
+    if (exerciseId != null) {
+        removeMobilitySeries(partId, exerciseId, mobilityId)
+    } else if (partId != null) {
+        removeMobilityFromPart(partId, mobilityId)
+    }
+}
+
+fun SessionEditorViewModel.updatePartMobility(
+    partId: String,
+    mobilityId: String,
+    transform: (MobilitySeries) -> MobilitySeries,
+) = updateSession { session ->
+    session.copy(
+        parts = session.parts.map { part ->
+            if (part.id != partId) part else part.copy(
+                mobilitySeries = part.mobilitySeries.map { mobility ->
+                    if (mobility.id == mobilityId) transform(mobility) else mobility
+                },
+            )
+        },
+    )
+}
+
+fun SessionEditorViewModel.moveMobilityInPart(partId: String, mobilityId: String, delta: Int) = updateSession { session ->
+    session.copy(
+        parts = session.parts.map { part ->
+            if (part.id != partId) return@map part
+            val reordered = part.mobilitySeries.toMutableList()
+            val from = reordered.indexOfFirst { it.id == mobilityId }
+            if (from >= 0) {
+                val to = (from + delta).coerceIn(0, reordered.lastIndex)
+                if (to != from) reordered.add(to, reordered.removeAt(from))
+            }
+            part.copy(mobilitySeries = reordered)
+        },
+    )
+}
+
+fun SessionEditorViewModel.removeMobilityFromPart(partId: String, mobilityId: String) = updateSession { session ->
+    session.copy(
+        parts = session.parts.map { part ->
+            if (part.id != partId) part else part.copy(
+                mobilitySeries = part.mobilitySeries.filterNot { it.id == mobilityId },
+            )
+        },
+    )
+}
+
+fun SessionEditorViewModel.updatePartMobilityConfig(partId: String, config: MobilityConfig) = updateSession { session ->
+    session.copy(
+        parts = session.parts.map { part ->
+            if (part.id == partId) part.copy(mobilityConfig = config) else part
+        },
+    )
 }
 
 /**

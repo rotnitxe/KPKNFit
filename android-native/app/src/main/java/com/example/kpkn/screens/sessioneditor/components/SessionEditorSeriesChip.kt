@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
@@ -56,6 +57,7 @@ internal fun EditorPreparationChip(
     tag: String,
     description: String? = null,
     enabled: Boolean = true,
+    content: (@Composable ColumnScope.() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     val shape = RoundedCornerShape(SessionEditorChipMetrics.radius)
@@ -85,32 +87,36 @@ internal fun EditorPreparationChip(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.Start,
     ) {
-        Text(
-            text = label,
-            color = Color.White.copy(alpha = 0.62f),
-            fontSize = 10.sp,
-            lineHeight = 12.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            text = value,
-            color = valueColor,
-            fontFamily = WizardFonts.display,
-            fontWeight = FontWeight.Bold,
-            fontSize = valueSize.sp,
-            lineHeight = 20.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            text = detail,
-            color = KpknInk,
-            fontSize = 11.sp,
-            lineHeight = 14.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        if (content != null) {
+            content.invoke(this)
+        } else {
+            Text(
+                text = label,
+                color = Color.White.copy(alpha = 0.62f),
+                fontSize = 10.sp,
+                lineHeight = 12.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = value,
+                color = valueColor,
+                fontFamily = WizardFonts.display,
+                fontWeight = FontWeight.Bold,
+                fontSize = valueSize.sp,
+                lineHeight = 20.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = detail,
+                color = KpknInk,
+                fontSize = 11.sp,
+                lineHeight = 14.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 

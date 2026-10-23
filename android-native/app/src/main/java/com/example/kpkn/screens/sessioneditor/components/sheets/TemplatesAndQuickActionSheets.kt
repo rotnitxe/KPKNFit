@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -515,12 +516,6 @@ internal fun MobilityPickerSheet(
                         maxLines = if (expanded) 4 else 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    KpknTextAction(
-                        text = if (expanded) "Ocultar ficha" else "Ver ficha",
-                        onClick = {
-                            expandedMobilityId = if (expanded) null else mobility.id
-                        },
-                    )
                     if (expanded) {
                         com.example.kpkn.ui.components.MobilityTechniqueImage(
                             movementId = mobility.id,
@@ -549,21 +544,50 @@ internal fun MobilityPickerSheet(
                         )
                     }
                     Spacer(Modifier.height(8.dp))
-                    if (alreadyAdded) {
-                        KpknPrimaryPill(
-                            text = "Agregado (Quitar)",
-                            onClick = { onRemove(mobility) },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    } else {
-                        KpknSecondaryPill(
-                            text = "Agregar",
-                            onClick = { onAdd(mobility) },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
+                    MobilityPickerActions(
+                        expanded = expanded,
+                        alreadyAdded = alreadyAdded,
+                        onToggleDetails = { expandedMobilityId = if (expanded) null else mobility.id },
+                        onToggleMembership = { if (alreadyAdded) onRemove(mobility) else onAdd(mobility) },
+                    )
                 }
             }
+        }
+    }
+}
+
+
+/** H3: con letra grande las dos acciones conservan su texto completo y su objetivo táctil. */
+@Composable
+private fun MobilityPickerActions(
+    expanded: Boolean,
+    alreadyAdded: Boolean,
+    onToggleDetails: () -> Unit,
+    onToggleMembership: () -> Unit,
+) {
+    val details: @Composable () -> Unit = {
+        KpknTextAction(
+            text = if (expanded) "Ocultar ficha" else "Ver ficha",
+            onClick = onToggleDetails,
+        )
+    }
+    val membership: @Composable (Modifier) -> Unit = { modifier ->
+        if (alreadyAdded) {
+            KpknPrimaryPill(text = "Añadido · Quitar", onClick = onToggleMembership, modifier = modifier.heightIn(min = 48.dp))
+        } else {
+            KpknSecondaryPill(text = "Añadir", onClick = onToggleMembership, modifier = modifier.heightIn(min = 48.dp))
+        }
+    }
+    if (LocalDensity.current.fontScale >= 1.2f) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            details()
+            membership(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            details()
+            Spacer(Modifier.weight(1f))
+            membership(Modifier)
         }
     }
 }
