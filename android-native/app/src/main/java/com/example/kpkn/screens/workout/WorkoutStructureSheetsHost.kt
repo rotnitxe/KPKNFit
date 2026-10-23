@@ -1664,7 +1664,7 @@ internal fun WorkoutEditSeriesSheet(
                             initialSetIndex = initialSetIndex,
                             onUpdateExercise = { transform ->
                                 val previous = draftExercise
-                                draftExercise = transform(previous).withExplicitRmLoads(previous).normalizeExercise()
+                                draftExercise = transform(previous).normalizeLiveEditRmLoads(previous)
                             },
                             onOpenSmartLoad = { showSmartLoadDialog = true },
                         )
@@ -1685,7 +1685,7 @@ internal fun WorkoutEditSeriesSheet(
                             resolved1RM = resolved1RM,
                             onUpdateExercise = { transform ->
                                 val previous = draftExercise
-                                draftExercise = transform(previous).withExplicitRmLoads(previous).normalizeExercise()
+                                draftExercise = transform(previous).normalizeLiveEditRmLoads(previous)
                             },
                             onDismiss = { showSmartLoadDialog = false },
                         )
@@ -1715,3 +1715,7 @@ internal fun ExerciseSheetSubtitle(exerciseName: String) {
 
 /** Marca de prueba del «Confirmar cambios» de «Editar series» y «Editar cardio». */
 internal const val LIVE_EDIT_CONFIRM_TAG = "live-edit-confirm"
+
+/** G1 solo rematerializa las cargas RM; normalizar otros modos alteraría cargas manuales al editar descansos o copiar series. */
+private fun Exercise.normalizeLiveEditRmLoads(previous: Exercise): Exercise =
+    if (trainingMode == TrainingMode.RM) withExplicitRmLoads(previous).normalizeExercise() else this

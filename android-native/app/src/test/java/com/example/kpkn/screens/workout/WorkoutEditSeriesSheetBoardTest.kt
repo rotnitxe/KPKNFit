@@ -554,8 +554,20 @@ class WorkoutEditSeriesSheetBoardTest {
         rule.onNodeWithText("Usar descanso del ejercicio").assertExists()
         confirm()
         assertEquals(165, saved!!.sets[1].restAfterSeconds)
+        assertEquals(listOf(100.0, 100.0, 100.0, 105.0), saved!!.sets.map { it.weight })
         assertNull(saved!!.sets[0].restAfterSeconds)
         assertEquals(150, saved!!.restTime)
+    }
+
+    @Test fun editarDescansoNoRecalculaLasCargasManualesEnTiempo() {
+        val source = romanianDeadlift().copy(trainingMode = TrainingMode.TIME,
+            sets = romanianDeadlift().sets.map { it.copy(targetDuration = 60) })
+        mount(source, initialSetIndex = 1)
+        click(rule.onNodeWithContentDescription("Sumar 15 segundos a esta serie"))
+        confirm()
+        assertEquals(listOf(100.0, 100.0, 100.0, 105.0), saved!!.sets.map { it.weight })
+        assertTrue(saved!!.sets.all { it.targetDuration == 60 })
+        assertEquals(165, saved!!.sets[1].restAfterSeconds)
     }
 
     @Test fun descansoDeSerieSePuedeRestablecerSinCambiarElEjercicio() {
