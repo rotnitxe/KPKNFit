@@ -1139,19 +1139,36 @@ object ProgramProgressEngine {
         weeklySignals: WeeklyAutoregulationSignals?,
         compositionMetadata: ExerciseCompositionMetadataProvider?,
     ): AutoregulationEvaluation {
-        val recipe = program.sourceRecipe ?: return AutoregulationEvaluation(emptyList(), program)
         if (program.autoregulationMode == AutoregulationMode.OFF) {
             return AutoregulationEvaluation(emptyList(), program)
         }
-        val signals = weeklySignals ?: WeeklyAutoregulationSignals()
-        val proposals = ProgramAutoregulationEngine.evaluate(
-            program = program,
-            completedWeek = completedWeek,
-            logs = logs,
-            recipe = recipe,
-            signals = signals,
-        )
+        val recipe = program.sourceRecipe
+        val proposals = if (recipe == null) {
+            ProgramAutoregulationEngine.evaluateApreXrmOnly(program, completedWeek, logs)
+        } else {
+            ProgramAutoregulationEngine.evaluate(
+                program = program,
+                completedWeek = completedWeek,
+                logs = logs,
+                recipe = recipe,
+                signals = weeklySignals ?: WeeklyAutoregulationSignals(),
+            )
+        }
         if (proposals.isEmpty()) return AutoregulationEvaluation(emptyList(), program)
+        val targetWeek = nextWeekId?.let { targetId ->
+            program.macrocycles.asSequence().flatMap { it.blocks.asSequence() }
+                .flatMap { it.mesocycles.asSequence() }.flatMap { it.weeks.asSequence() }
+                .firstOrNull { it.id == targetId }
+        }
+        val executedTargetSessions = targetWeek?.let { week ->
+            ProgramAutoregulationEngine.collectExecutedSessionIds(
+                week = week,
+                logs = logs,
+                cycleNumber = program.runState?.cycleNumber,
+                programId = program.id,
+                runId = program.runState?.runId,
+            )
+        }.orEmpty()
         return ProgramAutoregulationEngine.apply(
             program = program,
             nextWeekId = nextWeekId,
@@ -1159,9 +1176,9 @@ object ProgramProgressEngine {
             recipe = recipe,
             executedWeekIds = setOf(completedWeek.id),
             metadata = compositionMetadata,
+            executedSessionIds = executedTargetSessions,
         )
     }
-
     fun resolvePendingAutoregulation(
         program: Program,
         accept: Boolean,
