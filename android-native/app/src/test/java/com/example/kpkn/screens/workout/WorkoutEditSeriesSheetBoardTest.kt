@@ -183,7 +183,8 @@ class WorkoutEditSeriesSheetBoardTest {
 
         rule.onNodeWithContentDescription("Aumentar pasos").performClick()
         rule.waitForIdle()
-        rule.onNode(hasSetTextAction() and hasText("13"), useUnmergedTree = true).assertIsDisplayed()
+        rule.onNode(hasSetTextAction() and hasText("13"), useUnmergedTree = true)
+            .performScrollTo().assertIsDisplayed()
         confirm()
         rule.runOnIdle { assertNull(sheetState.editSheetExerciseId) }
         assertEquals(13.0, confirmedSession!!.exercises.single().sets[1].plannedTargetV2!!, 0.0)
@@ -192,7 +193,8 @@ class WorkoutEditSeriesSheetBoardTest {
         rule.waitUntil(15_000) {
             rule.onAllNodesWithText("Confirmar cambios").fetchSemanticsNodes().isNotEmpty()
         }
-        rule.onNode(hasSetTextAction() and hasText("13"), useUnmergedTree = true).assertIsDisplayed()
+        rule.onNode(hasSetTextAction() and hasText("13"), useUnmergedTree = true)
+            .performScrollTo().assertIsDisplayed()
     }
 
     // ───────────────────────────── G1 · Editar series ─────────────────────────────

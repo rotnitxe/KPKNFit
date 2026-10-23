@@ -5,6 +5,8 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -158,9 +160,22 @@ class SessionEditorCatalogLaunchAuditTest {
         rule.onNodeWithText("Eliminar variante activa").assertDoesNotExist()
         rule.onNodeWithText("Sesión Sábado–Rápida").assertExists()
         rule.onNodeWithText("QAC").assertExists()
-        rule.onNodeWithTag("session_variant_D").assertTextContains("QAD")
-        rule.onNodeWithTag("session_variant_D").performClick()
-        rule.waitUntil(10_000) { firstEditor.currentUiState.activeVariant == WeekVariant.D }
+        val variantD = rule.onNodeWithTag("session_variant_D")
+        variantD.assertTextContains("QAD").performScrollTo().assertIsDisplayed().assertIsEnabled()
+        variantD.performClick()
+        try {
+            rule.waitUntil(10_000) { firstEditor.currentUiState.activeVariant == WeekVariant.D }
+        } catch (failure: AssertionError) {
+            val state = firstEditor.currentUiState
+            throw AssertionError(
+                "El selector D no cambió de variante: active=${state.activeVariant}, " +
+                    "available=${state.availableVariants}, session=${state.session?.id}, " +
+                    "D=${state.session?.sessionD?.id}, unsaved=${state.hasUnsavedChanges}, " +
+                    "pendingRemoval=${state.pendingExerciseRemoval?.exerciseId}, " +
+                    "pendingSession=${state.pendingSessionSwitchId}, snackbar=${state.snackbarMessage}",
+                failure,
+            )
+        }
         rule.onNodeWithText("QAD", useUnmergedTree = true).assertIsDisplayed()
 
         rule.onNodeWithTag("session_editor_open_week").performClick()
