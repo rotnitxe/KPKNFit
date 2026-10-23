@@ -12,7 +12,7 @@ Se integra en `feat/screens-v2`, C:/kw/u11, en el orden del relevo. El artefacto
 | u17 · ED-D + C3 · 2cf81b677 | Limpio sobre 6487f3059, árbol fadf0ced2030287f8598084998c4c2145287ac30 | e7fd65eac, sin conflictos | 10 C3 finales/0; 67 anteriores ED-D/0 y 50 ED-B/0 en corridas separadas, descritas abajo |
 | u18 · ED-C · 296bb3ff6 | Cuatro conflictos previstos, resueltos conservando LV-C/ED-B | 9d6d11730 | 78 casos únicos/0; 72/0 iniciales y 6/0 tras migrar H1/H2 |
 | u15 · CAT-A · f34b02318 | Un conflicto de firma CatalogExerciseRow, conservadas ambas APIs | acc75872c | 66/0 base + 4/0 ventanas físicas E4; 70 casos únicos |
-| u16 · G | Pendiente | Pendiente | Pendiente |
+| u16 · G + adaptación G1 · 0ac8bd0e6 | Limpio, árbol 80bafa8a6dec6a0b6635ff13a3cb8dcdbe1b169a | cca733fe5 | 95 casos únicos verdes en corridas separadas; detalle debajo |
 
 ## Contratos que deben conservarse
 
@@ -94,3 +94,10 @@ Los22PNG antiguos incluyen un recorte aparente del pie E4 al130 y un Canvas vac�
 ## G/G1: integración y adaptación del arnés
 
 Preflight80bafa8a6dec6a0b6635ff13a3cb8dcdbe1b169a; merge cca733fe5 sin conflictos, conu16 yadaptaciónu25 0ac8bd0e6. Primera corrida int-u16-android-codex-20261023-1.log: produccióncompila, testno por importonNode inexistente comoextensión; corregida sóloesaimportación en5b476d9f4. Segunda: BUILD FAILED en3min34s, sieteclases95pruebas,8fallos. Cinco clases sinrutasafectadas pasan50/0; Board37/39 yRender0/6. DosselectoresbuscabanetiquetaenelTextFieldenvezdehermana; seis rendersno dejaronDeletevisibletrasperformScrollTo del focoanidado. Las copias revisadas usanhermanoenárbolsinmerge ygestosfísicos sobreelScrollByquecontieneDelete; mantienenaserciones48dp,visibilidad,piefijo,guardadoyrestodedatos. Seefectúanterceracorrida45casosafectados; noatribuirtodavíaelfallodevisibilidadaproducción.
+
+
+## G/G1: cierre verificado
+
+La cuarta corrida `int-u16-android-codex-20261023-4.log` compila y pasa los seis renders físicos; Board conserva 37/39. El selector hermano directo seguía equivocado: la etiqueta pertenece al contenedor de la fila que contiene el BasicTextField. ec4ebc225 lo localiza por ancestro y hermano, sin tocar producción ni llamar callbacks directamente. La quinta corrida `int-u16-android-codex-20261023-5.log` ejecuta únicamente ambos casos pendientes: 2/0, BUILD SUCCESSFUL en 3 min 15 s, wrapper exit0 y XML comprobado. La tercera había fallado solo por importar swipe, corregido en b44478519.
+
+Total: 95 pruebas únicas verdes, con 50 de la segunda corrida, 37 Board y seis renders de la cuarta y dos Board de la quinta. No se atribuyen a una única corrida. Revisados tres PNG nuevos de acciones en C:/kw/shots/int-g: RM/TM a740/130 y880/100 y AMRAP a740/130; Eliminar y Confirmar cambios completos después del desplazamiento físico, pie fijo y objetivos48. G cerrado; sigue la corrección acotada ED-A7114b5872 y la regresión de fase3. QA de dispositivo pendiente.
