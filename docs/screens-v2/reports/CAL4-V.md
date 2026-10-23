@@ -1,6 +1,6 @@
 # CAL4-V · APRE en vivo y XRM de la próxima semana
 
-Estado: implementación completa preparada en u20, codex/sv2-cal4v, **sin ejecución todavía**. Base provisional acc75872c; antes de validar o integrar se actualizará con fase3 completa y verde. El usuario autorizó autonomía y paralelismo preparatorio. Sin cambios Room, push, master, paquetes personales ni firma.
+Estado: integrado en u11 y verificado de forma dirigida. Producción corregida 420acaf4c, fixture 66993303c y sólo documentación posterior. 1989 casos puros únicos verdes mediante corrida completa más repetición del único fixture; Android final 14 clases/201 casos sin fallos, errores ni omitidas. Los wrappers cerraron y los XML están archivados. No es aún barrido ampliado ni QA de dispositivo. Room congelado, sin push/master.
 
 ## Contrato y cálculos
 
@@ -50,3 +50,12 @@ La corrida centralizada reportó 192 clases, 1.988 tests y 5 fallos; u20 no ejec
 La receta APRE también queda fuera del clasificador de cambios semanales de TM. Su caso de extremo a extremo espera ADJUST_XRM de 162,5 kg desde S4 (155 kg × 17 repeticiones), sin liftSlot, delta porcentual ni delta de TM. Las cargas de S1/S2 para ese XRM son 82,5/122,5 kg por redondeo al salto real de 2,5 kg.
 
 La corrección de identidad, la aplicación al bloque siguiente y la rematerialización quedan pendientes de repetición JVM centralizada. Ninguna prueba se ejecutó desde este worktree.
+
+
+## Cierre de integración · 23-oct
+
+Ver INT-4.md para las cinco corridas JVM y los diagnósticos completos. La tercera ejecutó 1988 casos con cinco fallos; se corrigieron dos causas productivas (identidad APRE entre semanas y lectura de capturas antes de adoptar IDs legacy) y expectativas antiguas de TM/historial. La cuarta ejecutó 1989: 1988 pasaron y sólo falló la composición del fixture adicional. Tras conservar Wendler BBB íntegro, la quinta ejecutó ese caso: 1/1 verde, sin cambiar producción. Son 1989 únicos verdes en varias ejecuciones, no una corrida completa final verde.
+
+Android final: int-apre-android-codex-20261023-2.log, BUILD SUCCESSFUL en 8 min 11 s, wrapper exit0, 14 clases/201 pruebas, 0 fallos/errores/omitidas. Repite las mismas clases de la primera Android (201/0), ahora sobre la producción corregida. Incluye S3/S4, durabilidad, voz/vídeo, lados, correcciones, fallos/reintentos, JSON y V7. XML por corrida en C:/kw/logs/screens-v2-evidence/.
+
+Revisados tres renders nuevos de C:/kw/shots/int-apre-2/: APRE3 740/130, APRE6 880/100 y APRE10 880/130. Mann, cambio y acciones completos dentro de 312×425 y objetivos48; las tres tablas se verifican en doce PNG. No se atribuye a estos renders validación de barras/IME de dispositivo. Quedan el relator PLAN-OBS, el resto de TM, CAL7 y regresión/QA final.

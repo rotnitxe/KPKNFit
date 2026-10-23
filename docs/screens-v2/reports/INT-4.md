@@ -28,7 +28,7 @@ Merge APRE `f47cc64e5` desde u20 `992a9bbee`. Se incorporan captura durable, can
 | int-apre-android-codex-20261023-1.log | 14/201 | 0 fallos/errores/omitidas; BUILD 8 min 41 s; exit0; fuente 539b951e1, anterior a correcciones de identidad futura |
 | int-apre-jvm-codex-20261023-4.log | 193/1989 | 1988 correctos; único fallo del fixture nuevo por composición inválida. BUILD 5 min 35 s; exit1, 514 s con cola/resumen; producción 420acaf4c |
 | int-apre-jvm-codex-20261023-5.log | 1/1 | Fixture corregido, 0 fallos/errores/omitidas; BUILD 1 min 2 s; exit0; 66993303c sólo cambia test/informe |
-| int-apre-android-codex-20261023-2.log | pendiente | En marcha sobre la producción corregida; no acreditar resultado hasta XML y cierre del wrapper |
+| int-apre-android-codex-20261023-2.log | 14/201 | 0 fallos/errores/omitidas; BUILD 8 min 11 s; exit0, XML archivados; producción corregida |
 
 Hay 1989 casos puros únicos verdes mediante la completa y la repetición del único fixture, no una corrida completa final verde. Los cinco fallos funcionales/expectativas de la tercera corrida quedaron verdes en la cuarta. XML de todas las corridas que ejecutaron tests archivados; nunca se renombraron XML antiguos como evidencia de compilaciones fallidas.
 
@@ -42,7 +42,7 @@ Hay 1989 casos puros únicos verdes mediante la completa y la repetición del ú
 
 ### Renders V7
 
-La primera Android generó 12 PNG APRE3/6/10 en C:/kw/shots/int-apre-1. Revisados apre-v7-3-740-130-proposed, apre-v7-6-880-100-proposed y apre-v7-10-880-130-proposed: Mann, carga propuesta y acciones completos dentro del marco312×425, objetivos48. Son componentes reales en Robolectric; aún no QA de dispositivo. La segunda corrida repetirá la comprobación con la fuente corregida.
+La primera Android generó 12 PNG APRE3/6/10 en C:/kw/shots/int-apre-1. Revisados apre-v7-3-740-130-proposed, apre-v7-6-880-100-proposed y apre-v7-10-880-130-proposed: Mann, carga propuesta y acciones completos dentro del marco312×425, objetivos48. Son componentes reales en Robolectric; aún no QA de dispositivo. La segunda corrida repitió las medidas y los tres renders con la fuente corregida en int-apre-2; revisión completa, sin recortes. CAL4-V cerrado de forma dirigida; barrido y dispositivo pendientes.
 
 ## Siguientes paquetes y barrido final
 
@@ -54,4 +54,4 @@ El ejecutor serial preparado archiva cada lote y se detiene ante un fallo. La re
 
 ## Límites
 
-Room v30 congelado, sin cambios Entity/DAO/migración/schema. Se conserva el artefacto ajeno sin seguimiento. Sin push/master; firma sólo por el orquestador. Aún no hay build, instalación, QA ni APK de esta continuación. QA sólo com.example.kpkn.dbg en emulator-5580 y teléfono mediante phone_run.py/20min, sin tocar paquetes personales ni la sesión de vídeo.
+Room v30 congelado, sin cambios Entity/DAO/migración/schema. Se conserva el artefacto ajeno sin seguimiento. Sin push/master; firma sólo por el orquestador. Aún no hay ensamblado de APK, instalación ni QA de dispositivo de esta continuación. QA sólo com.example.kpkn.dbg en emulator-5580 y teléfono mediante phone_run.py/20min, sin tocar paquetes personales ni la sesión de vídeo.
