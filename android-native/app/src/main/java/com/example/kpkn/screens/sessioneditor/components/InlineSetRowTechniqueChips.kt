@@ -102,7 +102,7 @@ internal fun InlineSetRowTechniqueChips(
             TechniqueToggleChip(
                 label = "Drop-set",
                 selected = hasDropSet,
-                modifier = if (listSkin) Modifier else Modifier.weight(1f),
+                modifier = Modifier.weight(1f),
                 listSkin = listSkin,
                 onClick = {
                     if (hasDropSet) {
@@ -113,7 +113,6 @@ internal fun InlineSetRowTechniqueChips(
                                 },
                                 isDropSet = false,
                                 dropSets = emptyList(),
-                                restAfterSeconds = null,
                             )
                         }
                         showDropSetConfig = false
@@ -139,7 +138,6 @@ internal fun InlineSetRowTechniqueChips(
                                 isRestPause = false,
                                 dropSets = emptyList(),
                                 restPauses = emptyList(),
-                                restAfterSeconds = null,
                             )
                         }
                         showDropSetConfig = true
@@ -150,7 +148,7 @@ internal fun InlineSetRowTechniqueChips(
             TechniqueToggleChip(
                 label = "Rest-pause",
                 selected = hasRestPause,
-                modifier = if (listSkin) Modifier else Modifier.weight(1f),
+                modifier = Modifier.weight(1f),
                 listSkin = listSkin,
                 onClick = {
                     if (hasRestPause) {
@@ -161,7 +159,6 @@ internal fun InlineSetRowTechniqueChips(
                                 },
                                 isRestPause = false,
                                 restPauses = emptyList(),
-                                restAfterSeconds = null,
                             )
                         }
                         showRestPauseConfig = false
@@ -184,7 +181,6 @@ internal fun InlineSetRowTechniqueChips(
                                 isDropSet = false,
                                 dropSets = emptyList(),
                                 restPauses = emptyList(),
-                                restAfterSeconds = null,
                             )
                         }
                         showRestPauseConfig = true
@@ -314,7 +310,17 @@ private fun TechniqueToggleChip(
     onClick: () -> Unit,
 ) {
     if (listSkin) {
-        KpknChip(text = label, selected = selected, onClick = onClick, modifier = modifier)
+        val tone = if (label == "Drop-set") Color(0xFFF49A6E) else Color(0xFFC9B8FF)
+        Surface(modifier = modifier.heightIn(min = 88.dp).clickable(onClick = onClick),
+            shape = RoundedCornerShape(16.dp), color = if (selected) tone.copy(alpha = 0.14f) else KpknSurface.inset,
+            border = BorderStroke(1.dp, if (selected) tone else Color.White.copy(alpha = 0.10f))) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(label, style = KpknType.bodyStrong, color = WizardColors.text)
+                Text(if (label == "Drop-set") "Sin descanso · ~${DropSetPlanDefaults.DropReps} reps"
+                    else "Pausa fija ${RestPausePlanDefaults.PauseSeconds} s · ${RestPausePlanDefaults.Reps} reps",
+                    style = KpknType.caption, color = WizardColors.textMuted)
+            }
+        }
         return
     }
     Surface(

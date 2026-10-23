@@ -627,6 +627,9 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
  * carga. El cambio explícito de %RM, de referencia o a RM la recalcula en `withExplicitRmLoads` (SessionEditorRmLoads.kt).
  */
 internal fun ExerciseSet.normalizedLoadKg(exercise: Exercise, normalized: ExerciseSet): Double? {
+    // El bloque declara cargas de Mann sobre el XRM, no una estimación genérica desde las reps de S1/S2.
+    val apre = exercise.apreBlock
+    if (apre != null && apre.xrmReps in listOf(3, 6, 10) && id in apre.setIds) return normalized.weight
     val usesExplicitTmPercent = exercise.trainingMode == TrainingMode.RM && usesExternalTrainingMax()
     val plainRm = exercise.trainingMode == TrainingMode.RM && !usesExplicitTmPercent &&
         (normalized.loadModeV2 ?: LoadModeV2.LOAD) == LoadModeV2.LOAD
@@ -736,11 +739,20 @@ internal fun resolveWeekDayDate(week: ProgramWeek, dayOfWeek: Int): LocalDate? {
 internal fun String?.toLocalDateOrNull(): LocalDate? =
     this?.takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
 
-/** Called only for an explicit mode change, never during save/normalization. */
+/** Quita solo las dos técnicas que requieren fallo; conserva el descanso propio y las demás técnicas. */
+internal fun ExerciseSet.withoutBeyondFailureTechniques(): ExerciseSet = copy(
+    plannedIntensityTechniques = plannedIntensityTechniques.filterNot {
+        it.type == TechniqueType.DROP_SET || it.type == TechniqueType.REST_PAUSE
+    },
+    isDropSet = false, isRestPause = false, dropSets = emptyList(), restPauses = emptyList(),
+)
+
+/** Solo se llama al confirmar un cambio de modo; nunca durante el guardado o la normalización. */
 internal fun Exercise.withTrainingMode(mode: TrainingMode): Exercise = copy(
     trainingMode = mode,
+    apreBlock = if (mode == trainingMode) apreBlock else null,
     sets = sets.map { set ->
-        if (mode == TrainingMode.AMRAP) set.copy(
+        (if (mode == TrainingMode.AMRAP) set.copy(
             purpose = if (set.purpose == SetPurpose.CALIBRATOR) SetPurpose.CALIBRATOR else SetPurpose.AMRAP,
             amrapMinimumReps = if (set.purpose.isAmrap) set.amrapMinimumReps else set.effectiveRepRange()?.min,
             intensityMode = null,
@@ -752,6 +764,15 @@ internal fun Exercise.withTrainingMode(mode: TrainingMode): Exercise = copy(
             amrapMinimumReps = null,
             calibrationScope = null,
             intensityMode = set.intensityMode?.takeUnless { it == IntensityMode.AMRAP },
-        )
+        )).let { changed ->
+            when (mode) {
+                TrainingMode.AMRAP -> changed.withoutBeyondFailureTechniques()
+                TrainingMode.RM -> changed.copy(isFailure = false, intensityMode = null, targetRPE = null, targetRIR = null)
+                    .withoutBeyondFailureTechniques()
+                TrainingMode.SOLO_RPE -> changed.copy(isFailure = false, intensityMode = IntensityMode.RPE,
+                    targetRPE = changed.targetRPE ?: 8.0, targetRIR = null).withoutBeyondFailureTechniques()
+                else -> changed
+            }
+        }
     },
 )

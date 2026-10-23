@@ -370,7 +370,12 @@ data class Exercise(
     val recipeSlotId: String? = null,
     /** Uses the native recipe's explicit §12.4 load-progression policy, not generic workout increments. */
     val nativeProgressionManaged: Boolean = false,
+    /** Bloque APRE del editor: variante y sus cuatro series. Vive en el JSON; no añade columnas ni tablas a Room. */
+    val apreBlock: ApreBlockReference? = null,
 )
+
+@Serializable
+data class ApreBlockReference(val xrmReps: Int, val setIds: List<String>)
 
 @Serializable
 data class MobilitySeries(

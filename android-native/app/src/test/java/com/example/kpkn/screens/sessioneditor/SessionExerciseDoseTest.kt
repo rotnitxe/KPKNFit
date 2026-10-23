@@ -21,13 +21,13 @@ class SessionExerciseDoseTest {
     @Test
     fun dosisDeFuerzaConRangoPorcentajeRirYDescanso() {
         val exercise = Exercise(id = "press", name = "Press banca", trainingMode = TrainingMode.RM, restTime = 195, sets = rmSets(4))
-        assertEquals("4 × 4–6 · 80 % 1RM · RIR 2 · 3:15", sessionExerciseListDose(exercise, includeRest = true))
+        assertEquals("4 × 4–6 · 80 % 1RM · RIR\u00A02 · 3:15", sessionExerciseListDose(exercise, includeRest = true))
     }
 
     @Test
     fun unaSuperserieNoRepiteElDescanso() {
         val exercise = Exercise(id = "press", name = "Press banca", trainingMode = TrainingMode.RM, restTime = 195, sets = rmSets(4))
-        assertEquals("4 × 4–6 · 80 % 1RM · RIR 2", sessionExerciseListDose(exercise, includeRest = false))
+        assertEquals("4 × 4–6 · 80 % 1RM · RIR\u00A02", sessionExerciseListDose(exercise, includeRest = false))
     }
 
     @Test
@@ -41,7 +41,7 @@ class SessionExerciseDoseTest {
             sets = sets,
             isUnilateral = true,
         )
-        assertEquals("3 × 8–10 · RIR 2 · 1:30 · por lado", sessionExerciseListDose(exercise, includeRest = true))
+        assertEquals("3 × 8–10 · RIR\u00A02 · 1:30 · por\u00A0lado", sessionExerciseListDose(exercise, includeRest = true))
     }
 
     @Test

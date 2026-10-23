@@ -137,9 +137,9 @@ class Cal6AprePrescriptionTest {
         assertEquals(listOf(10, 6, null, null), block.map { it.targetReps })
         assertEquals(listOf(null, null, 6, 6), block.map { it.minimumReps })
         assertEquals(listOf(50.0, 75.0, 100.0, 100.0), block.map { it.percentOfXrm })
-        // La serie 3 es la calibradora de la sesión (fija la carga de la serie 4) y la 4 es AMRAP (sus repeticiones proponen el XRM).
-        assertEquals(listOf(SetPurpose.NONE, SetPurpose.NONE, SetPurpose.CALIBRATOR, SetPurpose.AMRAP), block.map { it.purpose })
-        assertEquals(CalibrationScope.SESSION, block[2].calibrationScope)
+        // La serie 3 es AMRAP con Mann (fija S4); no usa el calibrador. S4 propone el XRM.
+        assertEquals(listOf(SetPurpose.NONE, SetPurpose.NONE, SetPurpose.AMRAP, SetPurpose.AMRAP), block.map { it.purpose })
+        assertNull(block[2].calibrationScope)
         assertNull(block[3].calibrationScope)
 
         val apre10 = Apre.block(100.0, ApreVariant.APRE_10)

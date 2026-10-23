@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.design.KpknSurface
 
 /**
@@ -33,9 +34,10 @@ internal fun SessionModuleEdge.bottomGap(): Dp =
  * Relleno `module` de un trozo con su filete de 1 dp (`moduleBorder`) en los lados y en el borde que le toca. Va DESPUÉS del padding que da
  * el margen de la pantalla, así que el relleno ocupa solo la zona interior. Radio de 24 dp solo en las esquinas exteriores del módulo.
  */
-internal fun Modifier.sessionModuleSurface(edge: SessionModuleEdge): Modifier = drawBehind {
+internal fun Modifier.sessionModuleSurface(edge: SessionModuleEdge, highlighted: Boolean = false): Modifier = drawBehind {
     val radius = 24.dp.toPx()
-    val stroke = 1.dp.toPx()
+    // Con [highlighted] (el módulo al que se va a soltar un ejercicio, ED-A · A3) el filete es de 2 dp y en tinta.
+    val stroke = (if (highlighted) 2f else 1f).dp.toPx()
     val half = stroke / 2f
     val w = size.width
     val h = size.height
@@ -69,6 +71,6 @@ internal fun Modifier.sessionModuleSurface(edge: SessionModuleEdge): Modifier = 
         )
     }
     clipRect(0f, 0f, w, h) {
-        drawPath(border, KpknSurface.moduleBorder, style = Stroke(width = stroke))
+        drawPath(border, if (highlighted) WizardColors.text else KpknSurface.moduleBorder, style = Stroke(width = stroke))
     }
 }

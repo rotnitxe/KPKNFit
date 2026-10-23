@@ -6,7 +6,11 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,12 +29,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -40,6 +47,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.ui.design.KpknShape
+import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -54,7 +63,7 @@ internal fun SessionEditorFrameHeader(
     name: String,
     description: String,
     protocolLabel: String?,
-    summary: String,
+    summaryChips: List<String>,
     onNameChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onDaySwipe: (Int) -> Boolean,
@@ -112,12 +121,38 @@ internal fun SessionEditorFrameHeader(
         }
         NameField(sessionId = sessionId, name = name, onCommit = onNameChange)
         DescriptionField(sessionId = sessionId, description = description, onCommit = onDescriptionChange)
-        Text(
-            text = summary,
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-            modifier = Modifier.padding(top = 4.dp),
-        )
+        SummaryChips(chips = summaryChips)
+    }
+}
+
+/** El resumen de la sesión en fichas de 28 dp: «5 ejercicios · 14 series» y «≈ 58 min» (ED-A · A1). */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SummaryChips(chips: List<String>) {
+    FlowRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp)
+            .testTag("session_header_summary"),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        chips.forEach { text ->
+            Box(
+                modifier = Modifier
+                    .defaultMinSize(minHeight = 28.dp)
+                    .background(KpknSurface.module, KpknShape.pill)
+                    .border(1.dp, WizardColors.text.copy(alpha = 0.08f), KpknShape.pill)
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = text,
+                    style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold),
+                    color = WizardColors.text,
+                )
+            }
+        }
     }
 }
 

@@ -33,7 +33,7 @@ import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameTopBar
 import com.example.kpkn.screens.sessioneditor.frame.SessionEditorFrameWeekContent
 import com.example.kpkn.screens.sessioneditor.frame.frameWeekOrder
 import com.example.kpkn.screens.sessioneditor.frame.nextFreeVariant
-import com.example.kpkn.screens.sessioneditor.frame.sessionFrameSummary
+import com.example.kpkn.screens.sessioneditor.frame.sessionFrameSummaryChips
 import dev.chrisbanes.haze.HazeState
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
@@ -131,7 +131,7 @@ class SessionEditorFrameRenderSheetTest {
                         name = "Pierna pesada de sentadilla y peso muerto",
                         description = "Fuerza con dos superseries; el cardio va al final",
                         protocolLabel = "Fuerza · 5/3/1",
-                        summary = sessionFrameSummary(7, 22, 54),
+                        summaryChips = sessionFrameSummaryChips(7, 22, 54),
                         onNameChange = {},
                         onDescriptionChange = {},
                         onDaySwipe = { false },
@@ -143,7 +143,7 @@ class SessionEditorFrameRenderSheetTest {
                         name = "Pierna A",
                         description = "",
                         protocolLabel = null,
-                        summary = sessionFrameSummary(4, 12, 38),
+                        summaryChips = sessionFrameSummaryChips(4, 12, 38),
                         onNameChange = {},
                         onDescriptionChange = {},
                         onDaySwipe = { false },
@@ -158,6 +158,7 @@ class SessionEditorFrameRenderSheetTest {
                         onAdd = {},
                         onAssistant = {},
                         onRules = {},
+                        onTime = {},
                         modifier = Modifier.padding(12.dp),
                     )
                 }
@@ -170,6 +171,7 @@ class SessionEditorFrameRenderSheetTest {
                         onAdd = {},
                         onAssistant = {},
                         onRules = {},
+                        onTime = {},
                         modifier = Modifier.padding(12.dp),
                     )
                 }
@@ -182,6 +184,7 @@ class SessionEditorFrameRenderSheetTest {
                         onAdd = {},
                         onAssistant = {},
                         onRules = {},
+                        onTime = {},
                         modifier = Modifier.padding(12.dp),
                     )
                 }
@@ -194,6 +197,7 @@ class SessionEditorFrameRenderSheetTest {
                         onAdd = {},
                         onAssistant = {},
                         onRules = {},
+                        onTime = {},
                         modifier = Modifier.padding(12.dp),
                     )
                 }

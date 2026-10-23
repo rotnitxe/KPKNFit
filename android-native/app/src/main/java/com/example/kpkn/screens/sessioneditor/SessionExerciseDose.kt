@@ -131,7 +131,8 @@ private fun valueRange(values: List<Double>, prefix: String, suffix: String): St
     val low = values.minOrNull() ?: return null
     val high = values.maxOrNull() ?: return null
     val text = if (low == high) formatValue(low) else "${formatValue(low)}–${formatValue(high)}"
-    val head = if (prefix.isEmpty()) text else "$prefix $text"
+    // «RIR 2» / «RPE 8» con espacio inseparable (retoque de ED-A): la cifra no queda sola al partir la línea.
+    val head = if (prefix.isEmpty()) text else "$prefix\u00A0$text"
     return head + suffix
 }
 
@@ -147,7 +148,7 @@ internal fun sessionExerciseListDose(exercise: com.example.kpkn.data.models.Exer
     val details = exercise.cardioDetails
     if (details != null) return cardioDoseLine(details)
     val base = sessionExerciseDose(exercise.sets, exercise.trainingMode, exercise.restTime, includeRest, exercise.customUnit) ?: "Sin series"
-    val side = if (exercise.isEffectivelyUnilateral() && exercise.sets.any { !it.isEmptySlot }) " · por lado" else ""
+    val side = if (exercise.isEffectivelyUnilateral() && exercise.sets.any { !it.isEmptySlot }) " · por\u00A0lado" else ""
     return hardUnitSpaces(base + side)
 }
 
