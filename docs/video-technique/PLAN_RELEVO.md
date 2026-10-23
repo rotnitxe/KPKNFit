@@ -166,6 +166,8 @@ La Fase4 se revalida solo en lo afectado por el nuevo motor; siguen pendientes Q
 Ese cierre no demuestra paridad competitiva: sus afirmaciones se reservan al anexo posterior.
 
 ## Fase 4 · Verificación completa de `feat/vt-ui`
+**Estado vigente:** verificación PC cerrada el23-oct: compuesto314clases/2525pruebas,2488correctas,23fallos preVT explicados individualmente,14omisiones opcionales y0errores. Dominio motor10 y15clases Android afectadas verdes; R8 motor10/FPS compilado y atestado (.dbg v51), sin repetir pruebas no afectadas. APK, hashes, procedencia y recuperación del posproceso enEJECUCION. Instalación/QA físico del APK nuevo siguen enFase5; build no los acredita.
+
 1. `:app:compileBaseDebugKotlin`.
 2. **Carril JVM:** todas las pruebas de `domain/biomechanics/**`.
 3. **Carril Android, por tandas con clases concretas:**
