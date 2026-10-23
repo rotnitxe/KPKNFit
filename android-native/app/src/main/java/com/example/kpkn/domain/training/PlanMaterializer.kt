@@ -1230,7 +1230,7 @@ object PlanMaterializer {
             addAll(meta?.let { emptyList() } ?: emptyList())
             slot.technique?.let { add(it.executionCue()) }
         }
-        return Exercise(
+        val materializedExercise = Exercise(
             id = stableExerciseId ?: idProvider.newId(),
             name = display,
             exerciseDbId = slot.lift.configurationId,
@@ -1277,6 +1277,10 @@ object PlanMaterializer {
             recipeSlotId = slot.id.takeIf { recipeDayId != null },
             nativeProgressionManaged = nativeProgressionManaged,
         )
+        val apre = resolveLiveApreBlock(materializedExercise, recipe.id, recipe.progression is ProgressionRule.ApreXrm)
+        val marked = if (apre == null) materializedExercise else materializedExercise.copy(
+            apreBlock = ApreBlockReference(apre.variant.xrmReps, apre.setIds))
+        return consumeApreXrmReferences(marked, referencePool[marked.id].orEmpty())
     }
 
     /**

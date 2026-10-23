@@ -28,3 +28,11 @@ La revision del resto de CAL5b no encontro otro defecto accionable confirmado en
 El helper de hidratacion reutiliza la proteccion lateral compartida `manuallyFixedCalibrationSet`; la correccion side-aware de u29 debe convivir con esta base al integrar. El guardado global de referencia/rematerializacion es una mutacion durable de programa; la sesion en curso conserva su canal existente de persistencia y se rehidrata de la bolsa al reiniciar. No se afirma una nueva transaccion multi-entidad programa+ongoing.
 
 No se cambio Room, DAO, entidades, esquemas, datasets ni canal APRE/NativeProgressionCardModel. Verificados estaticamente UTF8 estricto de rutas propias, delimitadores y `git diff --check`; eso no equivale a compilacion.
+
+## Base preparatoria APRE integrada
+
+Se integra `992a9bbee` (u20 APRE) sobre `849843aa4` (u21 CAL5b con base fase3). Preflight `merge-tree` detecto exclusivamente dos add/add: `ExerciseTrainingMax.kt` y `ExerciseTrainingMaxTest.kt`. La comparacion completa confirmo que la version CAL5b contiene todo el contrato compartido de APRE y agrega unicamente `captureTestProfile` y su regresion; se conserva esa version completa en ambos conflictos.
+
+Se revisaron los auto-merges de PlanMaterializer, ProgramAutoregulationEngine, ProgramProgressEngine y WorkoutViewModel contra ambos padres. El materializador mantiene migracion/resolucion KIND de TM/1RM y consume XRM fisico al marcar el bloque APRE; el canal de propuestas permanece separado del perfil de capacidades. El avance conserva captura TEST previa al metodo y el nuevo cierre APRE con ciclos fuente/destino separados. El VM mantiene guardado durable de referencias, hidratacion TM de ocurrencias y refresh de capturas S4 sin S3.
+
+Esta es una BASE PREPARATORIA: APRE+CAL5b juntos todavia no se han compilado ni ejecutado aqui. No se corrio Gradle/JVM/adb ni se tocaron u11/u20/u22. La validacion central debe repetir referencias TEST/TM, canal APRE y rematerializacion, protecciones hechas/manuales/laterales, y las regresiones de VM/Room/UI enumeradas arriba. El merge limpio y UTF8/diff-check no equivalen a verde.

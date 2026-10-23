@@ -1138,30 +1138,59 @@ object ProgramProgressEngine {
         logs: List<WorkoutLog>,
         weeklySignals: WeeklyAutoregulationSignals?,
         compositionMetadata: ExerciseCompositionMetadataProvider?,
+        sourceCycleNumber: Int? = program.runState?.cycleNumber,
+        targetCycleNumber: Int? = program.runState?.cycleNumber,
+        executedWeekIdsOverride: Set<String>? = null,
+        apreOnly: Boolean = false,
     ): AutoregulationEvaluation {
-        val recipe = program.sourceRecipe ?: return AutoregulationEvaluation(emptyList(), program)
         if (program.autoregulationMode == AutoregulationMode.OFF) {
             return AutoregulationEvaluation(emptyList(), program)
         }
-        val signals = weeklySignals ?: WeeklyAutoregulationSignals()
-        val proposals = ProgramAutoregulationEngine.evaluate(
-            program = program,
-            completedWeek = completedWeek,
-            logs = logs,
-            recipe = recipe,
-            signals = signals,
-        )
+        val recipe = program.sourceRecipe
+        val proposals = if (recipe == null || apreOnly) {
+            ProgramAutoregulationEngine.evaluateApreXrmOnly(
+                program = program,
+                completedWeek = completedWeek,
+                logs = logs,
+                sourceCycleNumber = sourceCycleNumber,
+                recipe = recipe,
+                sourceProtocolId = program.sourceProtocolId ?: recipe?.id,
+            )
+        } else {
+            ProgramAutoregulationEngine.evaluate(
+                program = program,
+                completedWeek = completedWeek,
+                logs = logs,
+                recipe = recipe,
+                signals = weeklySignals ?: WeeklyAutoregulationSignals(),
+                sourceCycleNumber = sourceCycleNumber,
+            )
+        }
         if (proposals.isEmpty()) return AutoregulationEvaluation(emptyList(), program)
+        val targetWeek = nextWeekId?.let { targetId ->
+            program.macrocycles.asSequence().flatMap { it.blocks.asSequence() }
+                .flatMap { it.mesocycles.asSequence() }.flatMap { it.weeks.asSequence() }
+                .firstOrNull { it.id == targetId }
+        }
+        val executedTargetSessions = targetWeek?.let { week ->
+            ProgramAutoregulationEngine.collectExecutedSessionIds(
+                week = week,
+                logs = logs,
+                cycleNumber = targetCycleNumber,
+                programId = program.id,
+                runId = program.runState?.runId,
+            )
+        }.orEmpty()
         return ProgramAutoregulationEngine.apply(
             program = program,
             nextWeekId = nextWeekId,
             proposals = proposals,
             recipe = recipe,
-            executedWeekIds = setOf(completedWeek.id),
+            executedWeekIds = executedWeekIdsOverride ?: setOf(completedWeek.id),
             metadata = compositionMetadata,
+            executedSessionIds = executedTargetSessions,
         )
     }
-
     fun resolvePendingAutoregulation(
         program: Program,
         accept: Boolean,
@@ -1333,9 +1362,29 @@ object ProgramProgressEngine {
             excludedLifts = shortAmrapLifts,
             evidence = closeEvidence,
         )
+        // La última semana del ciclo no pasa por la transición semanal anterior. Procesamos
+        // exclusivamente S4 APRE contra la primera ocurrencia nueva, manteniendo separado
+        // el ciclo observado del ciclo destino aunque ambos reutilicen el mismo weekId.
+        val closingApreWeek = closingWeeks.lastOrNull()
+        val closingApre = if (firstInstance != null && closingApreWeek != null) {
+            applyWeeklyAutoregulation(
+                program = authored,
+                completedWeek = closingApreWeek,
+                nextWeekId = firstInstance.templateWeekId,
+                logs = logs,
+                weeklySignals = null,
+                compositionMetadata = compositionMetadata,
+                sourceCycleNumber = cycleNumber,
+                targetCycleNumber = newCycle,
+                executedWeekIdsOverride = emptySet(),
+                apreOnly = true,
+            )
+        } else {
+            AutoregulationEvaluation(emptyList(), authored)
+        }
 
         return ProgressAdvanceResult(
-            program = authored,
+            program = closingApre.program,
             activeState = activeState?.copy(
                 currentWeekId = firstInstance?.instanceId ?: activeState.currentWeekId,
                 currentWeekInstanceId = firstInstance?.instanceId,
@@ -1350,6 +1399,7 @@ object ProgramProgressEngine {
             ),
             advancedCycle = true,
             advancedWeek = true,
+            autoregulationProposals = closingApre.proposals,
         )
     }
     fun newRunId(idProvider: IdProvider = UuidIdProvider): String = "run_${idProvider.newId()}"

@@ -586,7 +586,7 @@ class WorkoutViewModel(
         },
         refreshLoadSuggestions = { state, exerciseId -> refreshLoadSuggestions(state, onlyExerciseId = exerciseId) },
         refreshCalibrations = { previous, next ->
-            if (previous.calibrationDecisions.isEmpty()) next else withContext(Dispatchers.IO) {
+            if (!needsCorrectedCalibrationRefresh(previous) && !needsCorrectedCalibrationRefresh(next)) next else withContext(Dispatchers.IO) {
                 refreshCorrectedCalibrations(previous, next, repository.history.value,
                     inventory = repository.settings.value.resolvedEquipmentInventory()) { sourceId ->
                     repository.calibrationDecisions.accepted(System.currentTimeMillis(), sourceId)
