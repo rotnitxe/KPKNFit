@@ -1,6 +1,15 @@
 package com.example.kpkn.screens.onboarding.design.entreno.plan
 
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.click
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -141,24 +150,109 @@ class PlanDetailDayExercisesTest {
         rule.onNodeWithTag("setup-plan-day-4").assertDoesNotExist()
     }
 
-    @Test
-    fun cambiarOpensThePanelAndChoosingAnOptionSwapsIt() {
-        show()
+    private fun openThePanel() {
         rule.onNodeWithTag("setup-plan-day-4").performScrollTo().performClick()
         rule.onNodeWithTag("setup-plan-swap-jue-1").performScrollTo().performClick()
         rule.onNodeWithTag(SWAP_PANEL_TAG).assertExists()
+    }
+
+    /** G4: «Cambiar» abre la hoja con lo que se reemplaza, las alternativas y el botón que confirma; nada se aplica al abrirla. */
+    @Test
+    fun cambiarOpensTheReplacementSheetWithoutChangingAnything() {
+        show()
+        openThePanel()
+
+        // «Cambiar» es también la acción de cada fila: el título de la hoja es el de dentro del panel.
+        rule.onNode(hasText("Cambiar") and hasAnyAncestor(hasTestTag(SWAP_PANEL_TAG))).assertExists()
+        rule.onNodeWithText("REEMPLAZANDO").assertExists()
+        rule.onNodeWithTag(SWAP_CURRENT_TAG).assertExists()
+        rule.onNodeWithText("PRIMERO LOS MÁS PARECIDOS").assertExists()
         rule.onNodeWithTag("setup-plan-swap-option-cfg-a").assertHeightIsAtLeast(48.dp)
-        rule.onNodeWithTag("setup-plan-swap-option-cfg-a").performScrollTo().performClick()
+        rule.onNodeWithTag(SWAP_KEEPS_TAG).assertTextEquals("Se mantienen las series del plan: 4 × 6–8")
+        assertNull(swapped)
+    }
+
+    /** G4: parte con la más parecida marcada; marcar otra cambia el botón y sigue sin aplicar nada hasta confirmar. */
+    @Test
+    fun theFirstOptionStartsMarkedAndPickingAnotherOnlyChangesTheButton() {
+        show()
+        openThePanel()
+
+        rule.onNodeWithTag("setup-plan-swap-option-cfg-a").assertIsSelected()
+        rule.onNodeWithTag(SWAP_CONFIRM_TAG).assertTextEquals("Cambiar por Sentadilla frontal")
+
+        rule.onNodeWithTag("setup-plan-swap-option-cfg-b").performClick()
+
+        rule.onNodeWithTag("setup-plan-swap-option-cfg-b").assertIsSelected()
+        rule.onNodeWithTag("setup-plan-swap-option-cfg-a").assertIsNotSelected()
+        rule.onNodeWithTag(SWAP_CONFIRM_TAG).assertTextEquals("Cambiar por Prensa")
+        assertNull("elegir no aplica: solo confirmar", swapped)
+    }
+
+    /** G4: confirmar aplica la alternativa marcada y cierra la hoja. */
+    @Test
+    fun confirmingAppliesTheMarkedOptionAndClosesTheSheet() {
+        show()
+        openThePanel()
+        rule.onNodeWithTag("setup-plan-swap-option-cfg-b").performClick()
+
+        rule.onNodeWithTag(SWAP_CONFIRM_TAG).performClick()
+
+        assertEquals("jue-1" to "cfg-b", swapped)
+        rule.onNodeWithTag(SWAP_PANEL_TAG).assertDoesNotExist()
+    }
+
+    /** G4: confirmar sin tocar nada aplica la primera, la más parecida. */
+    @Test
+    fun confirmingWithoutPickingAppliesTheMostSimilarOne() {
+        show()
+        openThePanel()
+
+        rule.onNodeWithTag(SWAP_CONFIRM_TAG).performClick()
+
         assertEquals("jue-1" to "cfg-a", swapped)
     }
 
+    /** G4: cancelar, el velo y Atrás cierran la hoja sin tocar el programa. */
     @Test
-    fun withoutOptionsThePanelSaysSo() {
-        show(options = emptyList())
-        rule.onNodeWithTag("setup-plan-day-4").performScrollTo().performClick()
-        rule.onNodeWithTag("setup-plan-swap-jue-1").performScrollTo().performClick()
-        rule.onNodeWithText("No hay otra opción con el material de este día.").assertExists()
+    fun cancellingTheScrimAndTheCancelButtonCloseTheSheetWithoutSwapping() {
+        show()
+        openThePanel()
+        rule.onNodeWithTag(SWAP_CANCEL_TAG).performClick()
+        rule.onNodeWithTag(SWAP_PANEL_TAG).assertDoesNotExist()
         assertNull(swapped)
+
+        rule.onNodeWithTag("setup-plan-swap-jue-1").performScrollTo().performClick()
+        rule.onNodeWithTag(SWAP_PANEL_TAG).assertExists()
+        // El velo solo se ve sobre la hoja: se toca en su esquina de arriba.
+        rule.onNodeWithTag(SWAP_SCRIM_TAG).performTouchInput { click(Offset(10f, 10f)) }
+        rule.onNodeWithTag(SWAP_PANEL_TAG).assertDoesNotExist()
+        assertNull(swapped)
+    }
+
+    /** G4: al cancelar y volver a abrir, la hoja parte otra vez de la más parecida. */
+    @Test
+    fun reopeningTheSheetStartsAgainFromTheFirstOption() {
+        show()
+        openThePanel()
+        rule.onNodeWithTag("setup-plan-swap-option-cfg-b").performClick()
+        rule.onNodeWithTag(SWAP_CANCEL_TAG).performClick()
+
+        rule.onNodeWithTag("setup-plan-swap-jue-1").performScrollTo().performClick()
+
+        rule.onNodeWithTag("setup-plan-swap-option-cfg-a").assertIsSelected()
+    }
+
+    @Test
+    fun withoutOptionsThePanelSaysSoAndOffersNothingToConfirm() {
+        show(options = emptyList())
+        openThePanel()
+
+        rule.onNodeWithText("No hay otra opción con el material de este día.").assertExists()
+        rule.onNodeWithTag(SWAP_CONFIRM_TAG).performClick()
+        assertNull(swapped)
+        rule.onNodeWithTag(SWAP_CANCEL_TAG).performClick()
+        rule.onNodeWithTag(SWAP_PANEL_TAG).assertDoesNotExist()
     }
 
     @Test

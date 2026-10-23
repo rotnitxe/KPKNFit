@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.semantics.SemanticsActions
@@ -107,7 +108,9 @@ class WorkoutEditSeriesAuditTest {
             sets = listOf(ExerciseSet(id = "set", plannedTargetV2 = 400.0, targetRIR = 2)),
         )))
         mount()
-        tap("+ Añadir serie")
+        // G1: «+ Añadir serie» pasó a ser la ficha «Serie» de la lista compacta (descripción «Añadir serie»).
+        rule.onNodeWithContentDescription("Añadir serie").performSemanticsAction(SemanticsActions.OnClick) { it() }
+        rule.waitForIdle()
         confirm()
         assertEquals(2, saved!!.sets.size)
         assertEquals(400.0, saved!!.sets.last().plannedTargetV2!!, 0.0)
