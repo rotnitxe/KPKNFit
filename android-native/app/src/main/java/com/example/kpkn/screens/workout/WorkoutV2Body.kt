@@ -2039,6 +2039,8 @@ internal fun WorkoutV2Body(
                                     uiState.completedSets,
                                     uiState.currentAutoRegulation,
                                     uiState.sleepQuality,
+                                    cardSide,
+                                    uiState.calibrationDecisions,
                                 ) {
                                     if (!isActivePage) {
                                         null
@@ -2047,6 +2049,7 @@ internal fun WorkoutV2Body(
                                         targetExercise,
                                         activeSetIndex,
                                         activeTag = uiState.exerciseTags[targetExercise.id],
+                                        side = cardSide,
                                     )
                                     val calibratedWorkingWeight = if (activeSetIndex == 0) {
                                         viewModel.getCalibratedWorkingWeight(
