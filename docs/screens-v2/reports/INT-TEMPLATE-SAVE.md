@@ -17,3 +17,7 @@ Al aplicar esa plantilla sobre una sesión ocupada, la confirmación recortaba �
 ## Ejecución central · 23-oct-2026
 
 La tercera completa Android, fuente b7910feaf, dejó verdes SessionEditorViewModelRulesTest y los cuatro casos de TemplateApplyPhysicalViewportTest. El wrapper global cerró exit1 por seis fallos de otras clases; no se declara verde el barrido completo. El retest nativo con APK nuevo sigue pendiente. Sólo ese contraste puede confirmar si el fallo original de TorsoB era validación de dosis o un error de almacenamiento distinto.
+
+## Retest nativo QA4 · 23-oct-2026
+
+Fuente8c943ce84/v51: TorsoB original ahora explica Completa la dosis… y conserva el borrador. La plantilla QA válida de Cinta20min sigue como un único resultado después de actualizar el APK. A740/130 ambas decisiones Reemplazar/Añadir al final se ven completas, confirmadas en PNG QA4-D4-complete-decisions740130-1792768976530368700.png. Se canceló aplicar sobre TorsoB para preservar esa sesión; el guardado y Añadir reales ya se recorrieron en APK50. Con la regresión Room y los cuatro viewports verdes en la completa3 se confirma la clasificación como validación de contenido, sin atribuir fallo general de almacenamiento.

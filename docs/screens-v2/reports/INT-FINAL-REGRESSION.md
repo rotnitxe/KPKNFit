@@ -1,5 +1,17 @@
 # Regresión final de la ola screens-v2
 
+## Estado operativo · 23-oct-2026 13:02
+
+La dirigida5 cerró con26clases/363pruebas,3fallos,0errores/omitidas/ausentes y37PNG nuevos; fuente bf0a3d20a39e32b0f2824131d578769b9d8fdbc6, wrapperexit1. Cinco de los seis casos fallidos de la tercera completa pasaron en esta repetición; H3 sigue fallando en el selector del arnés. No se declara verde el conjunto. RIR con volumen, ambas fichas sin imagen, cruce de cabecera y resumen CUSTOM tienen prueba nueva verde. La dirigida6 cerró con3clases/30pruebas,2fallos,0errores/omitidas/ausentes; fuente7d7809650cc2bc023f68618acd8379873e8a0e66, wrapperexit1. D2 pasó su regresión geométrica completa; A5 y H3 requieren la siguiente ejecución tras176e7fc1b.
+
+A5 ya usa una sesión base v2 válida con una serie de8reps y conserva los clics de variante/recreación. H3 usa los nodos reales del árbol no combinado para vacío, resultado y añadir. En D2 se comprueba la geometría de glifos, texto íntegro y ausencia de elipsis: didOverflowWidth compara un párrafo retenido de918px con su caja intrínseca y por sí solo no demuestra recorte. No se quitó la comprobación real de legibilidad.
+
+APK QA4, fuente8c943ce84c0576db1dff62d2b484bb721b8a88b9, instalado en5580: v51, paquete com.example.kpkn.dbg,489286027bytes, SHA2561a219fbd382c61b75d611d2a6e4c93f502e18b88fd2874e9fa130a227298d996. BUILD6min55s; wrapperexit0/513s. Retests nativos confirmaron A5, B5, B8, D2, F1, D4 y H3. D4 original muestra validación por dosis incompleta; una plantilla válida de cardio sigue durable. G3 fresco conserva sustitución/guardado y deshacer inmediato. Los importados legacy con identidadv2 completa recuperan occurrenceId sólo si su id es único por sesión, sin colisión y con procedenciaIMPORTED; da758ff5b está integrado y su prueba pura cerró con1clase/5casos/0fallos/errores/omitidas, fuente1db77917500bad26948ebaef61fdbcf120c80499, wrapperexit0/338s; sin atribuirlo todavía al APK.
+
+En QA4 CUSTOM vive como12pasos y DISTANCE conserva400m; el defecto anterior de modo heredado Tiempo45s está corregido. Quedan dos hallazgos reales: G1 confirma13pasos pero vuelve a12 al reabrir, y el resumen Semana aún muestra reps/carga residual para modos distintos. u20/u23 los corrigen en worktrees aislados. La etiqueta RM anidada y caption de referencia ya tienen arreglos integrados, pendientes de dirigida y APK5. No confundir las fuentes ni acreditar el arreglo por commit.
+
+Teléfono: la otra QA de Modo Visual instaló su APKv29 pero falló al abrir la basev30 existente; está preparando una base separada y conserva la existente. El bloqueo previo de reproducción no describe el estado actual. No se interfiere en esa sesión ni se reduce Room de esta ola. Roomv30 permanece congelado: diff DB/esquemas vacío desde3645ba55c. Sin push/master/firma de distribución. Release unsigned y QA restante siguen pendientes. Los bloques inferiores son historial.
+
 ## Actualización · 23-oct-2026 11:52
 
 | Corrida | Fuente | Clases / pruebas | Resultado real |

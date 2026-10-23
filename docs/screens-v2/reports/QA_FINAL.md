@@ -1,103 +1,84 @@
 # QA final de screens-v2
 
-Fecha:23-oct-2026. Estado: **QA en curso en ZFlip5_QA5580**. APK.dbg instalado y precompilado; MainActivity real y G4 verificados, resto en revisión. La tabla distingue observaciones reales de lo pendiente. JVM/Room/Compose constan en INT-4 y no equivalen a QA del APK.
+Estado23-oct-2026 13:05: QA en curso; no es una entrega completa. El inventario de70tableros conserva resultados, límites y defectos individuales. V2 está descartado por decisión; Piece-433s es una pieza sin marco ni HTML local, no una pantalla adicional inventada.
 
-## Procedencia y límites
+APK actual del emulador5580: fuente8c943ce84c0576db1dff62d2b484bb721b8a88b9, version51, paquete com.example.kpkn.dbg,489286027bytes, SHA2561a219fbd382c61b75d611d2a6e4c93f502e18b88fd2874e9fa130a227298d996. Install-r-t, precompilación y MainActivity confirmados por el operador exclusivo. Las capturas QA4 pertenecen a esta fuente; las anteriores, al APK50/fuente0c642bff1. No se atribuyen arreglos posteriores al APK instalado.
 
-Se completará el SHA de fuente, variante, SHA-256 del APK, serial, tamaño, densidad, escala de fuente y actividad top-resumed observados. QA exclusivamente en `com.example.kpkn.dbg`, emulador ZFlip5_QA puerto5580 y teléfono mediante phone_run.py con regla20min. Roomv30 congelado. Sin push, master ni firma de distribución.
+Pendientes materiales: la confirmación G1 de CUSTOM13pasos revierte a12 en el mismo VM; el resumen Semana conserva dosis de otros modos. Ambos en corrección. RM anidado/caption y compatibilidad importada legacy están integrados pero aún esperan APK5. CUSTOM ya aparece correctamente como12pasos en el cockpit QA4; ese arreglo de modo no prueba que su edición posterior persista.
 
-## APK preparado y arranque de entorno
+Teléfono: la QA ajena de Modo Visual instaló su APK pero encontró una incompatibilidad Room30→29 al abrir. Está preparando una base separada conservando la existente; no se interfiere en esa sesión. La evidencia física propia anterior1080×2640/480dpi/letra1.0 no acredita recorridos del APK final. No hay aún release unsigned ni firma de distribución. Roomv30 de esta ola permanece congelado; sin push/master.
 
-23-oct08:43: BUILD6min6s y wrapperexit0 sobre0c642bff1. APK C:/kw/apk/20261023/screens-v2-qa-0c642bff1-base-debug.apk;485534900bytes; SHA256170a26fabb3930af3e5d06fbfd26b564c33c8dc1ca5ee3473eda4c7f8ab77f14. Paquete.dbg y certificado AndroidDebug verificados mediante aapt2/apksigner. Metadatos en screens-v2-qa-0c642bff1-evidence.json de la misma carpeta. Aún sin acreditar instalación ni flujos: el emulador dedicado5580 acaba de iniciarse y el teléfono se comprobará exclusivamente mediante phone_run.py/candado/20min. Los cambios posteriores de compilaciónCAL7 afectan solo tests.
+Los XML/Room/Compose se documentan por separado en INT-FINAL-REGRESSION e INT-CAL7-RINGS. A6/E8 con error inyectado no se convierten en QA nativa por tener prueba automatizada.
 
-## Tableros aprobados
-
-La copia local contiene 70 pantallas HTML. canvas.json enumera 71 entradas: la restante es Piece-433s.dc.html, pieza sin marco titulada Div (389,997 × 119,992), sin HTML local; no se inventa una pantalla adicional ni una aprobación visual de esa pieza. La evidencia de dispositivo se enlazará por tablero y se anotarán defectos y repetición. Pendiente significa que aún no se ha comprobado; no se equipara un render Robolectric a una captura del APK.
-
-| Tablero | Resultado en dispositivo | Captura y observación |
+| Tablero | Estado | Evidencia/observacion |
 |---|---|---|
-| A2-Vacia | Pendiente | — |
-| A2b-SoloCardio | Pendiente | — |
-| A3-Arrastrar | Pendiente | — |
-| A4-BorrarDeshacer | Pendiente | — |
-| A5-Semana | Pendiente | — |
-| A6-Estados | Pendiente | — |
-| B1-EjercicioAbierto | Pendiente | — |
-| B2-FocoSerie | Pendiente | — |
-| B3-FocoRM | Defecto confirmado; corrección aplicada y regresiones Compose añadidas sin ejecutar; pendiente de revalidar en APK | `C:\kw\shots\screens-v2-final-emu-20261023-c3\B3-rm80-committed-1792758416757982400.png` — «Reps estimadas» y «Peso (kg)» se recortan en el foco RM anidado al 130 %; el foco RM ahora reserva dos líneas compartidas y conserva celdas táctiles de 48 dp. |
-| B3b-FocoAMRAP | Pendiente | — |
-| B3c-FocoSoloRPE | Pendiente | — |
-| B3d-FocoTiempo | Pendiente | — |
-| B3e-FocoDistancia | Pendiente | — |
-| B3f-FocoPersonalizado | Pendiente | — |
-| B4-Modos | Pendiente | — |
-| B5-Unilateral | Pendiente | — |
-| B6-Preparacion | Pendiente | — |
-| B7-Descanso | Pendiente | — |
-| B8-OpcionesEjercicio | Pendiente | — |
-| B8b-SerieVivoROM | Pendiente | — |
-| B9-Dialogos | Pendiente | — |
-| C1-Superserie | Pendiente | — |
-| C2-CrearSuperserie | Pendiente | — |
-| C3-Rondas | Pendiente | — |
-| C4-CardioContinuo | Pendiente | — |
-| C5-CardioSeries | Pendiente | — |
-| C6-CardioIntervalos | Pendiente | — |
-| C7-SelectorCardio | Pendiente | — |
-| D1-AccionesRapidas | Pendiente | — |
-| D2-Impacto | Pendiente | — |
-| D3-Sugerencias | Pendiente | — |
-| D4-Plantillas | Pendiente | — |
-| D5-Reglas | Pendiente | — |
-| D6-Tiempo | Pendiente | — |
-| D7-Versiones | Pendiente | — |
-| D8-Transferir | Pendiente | — |
-| D9-Movilidad | Pendiente | — |
-| E1-Anadir | Pendiente | — |
-| E2-Busqueda | Pendiente | — |
-| E3-Seleccion | Pendiente | — |
-| E4-SuperserieCatalogo | Pendiente | — |
-| E5-Reemplazar | Pendiente | — |
-| E6-SinResultados | Pendiente | — |
-| E7-CrearEjercicio | Pendiente | — |
-| E8-CargandoError | Pendiente | — |
-| E9-ElegirTecnica | Pendiente | — |
-| F1-FichaCatalogo | Defecto confirmado; corrección en curso | F1-cues-1792757772026551400.png: título fijo [60,169][408,240] cruza Tu historial [114,181][900,252] al desplazar en740/130. |
-| F2-FichaSesion | Pendiente | — |
-| G1-EditarSeriesVivo | Pendiente | — |
-| G2-EditarCardioVivo | Pendiente | — |
-| G3-Importador | Pendiente | — |
-| G4-WizardCambiar | Correcto en740/130 | Cambio confirmado y deshacer conservan ejercicio/dosis; informe provisional C:/kw/shots/screens-v2-final-emu-20261023-c3/emu-qa-report.md. |
-| H1-AproxEditor | Pendiente | — |
-| H2-MovilidadEditor | Pendiente | — |
-| H3-CatalogoMovilidad | Pendiente | — |
-| H4-MovilidadDosis | Pendiente | — |
-| H5-AproxVivo | Pendiente | — |
-| H6-MovilidadVivo | Pendiente | — |
-| Main | Arranque real comprobado; revisión en curso | Alta completa y DemoSeed; com.example.kpkn.dbg/.MainActivity observada. |
-| V1-PropuestaLinea | Pendiente | — |
-| V2-IdeaUsuario | Pendiente | — |
-| V3-PantallaCorta | Pendiente | — |
-| V4-RutaSesion | Pendiente | — |
-| V5-MigracionCockpit | Pendiente | — |
-| V6-VivoRM | Pendiente | — |
-| V7-VivoAMRAP | Pendiente | — |
-| V8-VivoSoloRPE | Pendiente | — |
-| V9-VivoTiempo | Pendiente | — |
-| V10-VivoDistancia | Pendiente | — |
-| V11-VivoPersonalizado | Pendiente | — |
-
-## Recorridos transversales pendientes
-
-- Vivo: modos RM, AMRAP/Calibrador, solo RPE, tiempo, distancia y personalizado; preparar y editar con teclado.
-- H5/H6 y marco312×425 en alturas880/740, fuentes100/130; fichas85×76 y acciones48dp.
-- CAL3: pasos2–10, incluyendo aplicar/revertir, guardado, reapertura y siguiente sesión; sin contaminar ejercicios contiguos.
-- APRE: S3→S4 y XRM futuro por OFF/PROPONER/AUTO, incremento real del material, sin sustituir S3 por Calibrador.
-- TM: preparación pide sólo el ausente; confirmar/cancelar, motivo e historial; edición y semanas futuras sin alterar series hechas o fijadas.
-- LQA1: cruce del encabezado, descanso, margen inferior, voz130 y teclado; repetir también en teléfono si está disponible según su regla de uso.
-- G4 se abre en el asistente de alta, antes de activar y sembrar QA; no en el detalle de un programa ya creado.
-- Los errores A6/E8 deben distinguir evidencia de inyección Room/Compose de una reproducción real en dispositivo; no se inventarán fallos espontáneos.
-
-## Resultado final
-
-Pendiente de cierre. APK integrado compilado, instalado y ejecutado en emulador; faltan completar70tableros, CAL3/LQA1, correcciones y teléfono.
+| A2-Vacia.dc.html | Recorrido | Domingo vacío confirmado→Crear sesión; muestra Sin ejercicios y entradas Fuerza/Cardio sin borrar originales. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/A2-created-empty-1792757423362771600.png) |
+| A2b-SoloCardio.dc.html | Recorrido | Añadir cinta deja sesión sólo cardio:1ejercicio20min; acceso a Añadir fuerza y pie. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/C4-cardio-new-1792757476615486400.png) |
+| A3-Arrastrar.dc.html | Recorrido | Arrastre nativo mantenido desde asaAbducciones hasta cuerpoEnvión: indicadorAlsoltarposición1 y soltado cambia orden;6series/dosis/2cardios preservados. Soltar sobreotraasa da indicadorquedarádondeestaba (no destino), era límite de gesto anterior. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/A3-body-drop-native-1792765972536784500.png) |
+| A4-BorrarDeshacer.dc.html | Recorrido | Eliminar segunda Cinta20min y Deshacer nativo restaura2cardios/42min sin error. En programa importado aparece falta ficha y undo local no restaura: caso G3 investigado por separado, sin pérdida durable demostrada. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/A4-valid-cardio-undo-1792765279278420000.png) |
+| A5-Semana.dc.html | Recorrido | QA4v51/source8c943: Dactiva muestra nombresrealesB SesiónSábado–Rápida/CQAC/DQAD; AOriginalprotegida. 7días48×48simultáneos740/130(ancestrosUIXML). SelecciónA–Dycreacióncancelar ya nativas; fixfallbackDerivada cerrado. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/QA4-A5-derived-names740130-1792769025897609900.png) |
+| A6-Estados.dc.html | Pendiente |  |
+| B1-EjercicioAbierto.dc.html | Recorrido | Ejercicio desplegado muestra preparación,4fichas efectivas, modo, descanso, opciones y carga inteligente a740/130. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/B1-press-open130-1792759195793959000.png) |
+| B2-FocoSerie.dc.html | Recorrido | 740/130 fichaS1 abre foco y siguiente cambiaS2. Descanso específico, duplicar crea5series, eliminar retorna4; rango editado antes de Aplicar todas fue sobrescrito deliberadamente porS2. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/B2-delete-series-1792759830571693700.png) |
+| B3-FocoRM.dc.html | Parcial QA4 | QA4/source8c943: foco RM C3 muestra Peso (kg) completo en2lineas a740/130. Reps estimadas parece perder s final sin elipsis; enviado a root. Caption heredado80 pendiente QA5. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/QA4-C3-first-focus-current-1792769908977477000.png) |
+| B3b-FocoAMRAP.dc.html | Recorrido | AMRAP/Calibrador, mínimo6→7, Esta sesión/Próximas sesiones con explicación distinta y texto completo740/130 dentroC3; L/R identificados. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/C3-amrap-calibrator130-1792759016334579600.png) |
+| B3c-FocoSoloRPE.dc.html | Recorrido | SoloRPE a740/130: campo8→9 confirmado conEnter; fichaS1RPE9 yS2/S3RPE8 independientes; descanso2:15 yacciones conservadas. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/B3c-rpe-focus130-1792759881689911800.png) |
+| B3d-FocoTiempo.dc.html | Recorrido | Tiempo740/130: S1duración45s confirmadaEnter; otrasfichasvacías conservadas; Probar cronómetro descuenta44s yDetener prueba funciona. Footer obliga desplazar controles, alcanzables. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/B3d-time-focus130-1792759928093485700.png) |
+| B3e-FocoDistancia.dc.html | Recorrido | Distancia740/130: campo400m confirmadoEnter, botón+ lleva405m (paso5m); fichaS1yotrasvacías independientes; RPE/descanso preservados. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/B3e-distance-focus130-1792760037890192100.png) |
+| B3f-FocoPersonalizado.dc.html | Recorrido QA4 | QA4/source8c943: CUSTOM conservado vivo Objetivo12pasos/cantidadrealizada, sinTIME45. RegistroQA sintetico S2=12pasos5kgRIR2 aceptado y descanso Serie2hecha. G1 modificar13 revierte12 es defecto separado pendienteQA5; no implica modoCUSTOMperdido. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/QA4-CUSTOM12-record-readback-1792771390599658500.png) |
+| B4-Modos.dc.html | Recorrido | Selector canónico7modos completo740/130; elegirRM requiere AplicarRM y actualiza miembro sin perder dosis. Resto de modos aún en recorrido. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/B4-modes-menu-1792758201893494700.png) |
+| B5-Unilateral.dc.html | Recorrido | QA4 v51/source8c943: fichas R1=12 y L1=10 visibles y accesibles, orden R/L y datos por lado conservados tras actualización. Independencia de dosis y relectura probadas; no asumir prueba nativa de pesos distintos. Cálculo RM/caption heredado pendiente QA5. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/QA4-B5-side-values-visible-1792769084509837100.png) |
+| B6-Preparacion.dc.html | Recorrido | Preparación aproximación3fichas+movilidad real y tiempo global; callbacks nativos y persistencia tras recrear escala confirmados; vivo pendiente. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/H2-740130-preserved-1792759707558138700.png) |
+| B7-Descanso.dc.html | Recorrido | DescansoS2 2:00→2:15, confirmaciónAplicar todas avisa3series; aplica y habilitaUsar descanso del ejercicio. Duplicar/eliminar preservan descanso. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/B7-apply-all-1792759799832271300.png) |
+| B8-OpcionesEjercicio.dc.html | Recorrido | QA4 v51/source8c943: relación a Aperturas Inversas muestra nombre humano completo, sin ID técnico; selector, cambio a Asistencia y quitar ejecutados. Medir ROM activado en editor; cockpit ROM pendiente separado B8b. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/QA4-B8-human-anchor-label-1792769222961841500.png) |
+| B8b-SerieVivoROM.dc.html | Parcial | MedirROM activado desde menú del editor en ejercicio QA, sin cámara/audio. Falta comprobar controlROM en cockpit vivo con nueva sesión propia; no equiparar toggle a medición real. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/B8-rom-editor-dialog-1792765592975918900.png) |
+| B9-Dialogos.dc.html | Parcial | Unidadpersonalizada yAplicaratodas: diálogosnativos conCancelar/Guardar/confirmación3series; modos/teclado probados. No todoslosdiálogosnierrorinyectado. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/B9-custom-unit-dialog-1792760104234243500.png) |
+| C1-Superserie.dc.html | Recorrido | Superserie creada en sesión real: A1Remo,A2Press,4rondas; header y descansos presentes; original TorsoB no editado. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/C1-superset-visible-1792757970106259400.png) |
+| C2-CrearSuperserie.dc.html | Recorrido | Desde ejercicio existenteEnvión: selector2–4, ordenAEnvión/BAbducciones, catálogo añade miembro propio;4rondas/1:15entre/2:00tras; confirmar crea superserie, mantiene3series/rangos/RIRpor miembro y2cardios aparte. Piecrear/cancelar completos740/130. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/C2-created-native-1792766054165853500.png) |
+| C3-Rondas.dc.html | Defecto | Ronda1 RM ref100/%80 Enter calcula80kg; fila RM recorta etiquetas a740/130. AMRAP unilateral L/R visibles; ambos alcances completos y clicks cambian explicación; mínimo6→7. Rondas/descansos preservados. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/C3-amrap-calibrator130-1792759016334579600.png) |
+| C4-CardioContinuo.dc.html | Recorrido | Continuo20min; diálogo duración selecciona21 y Aplicar. Pies/foco130 pendiente. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/C4-cardio-new-1792757476615486400.png) |
+| C5-CardioSeries.dc.html | Recorrido | Series crea8×30s/1min; desplazamiento alcanza calentamiento/esfuerzo/pausa/enfriamiento; sumar cambia8→9 y estimación19→21min. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/C5-rounds9-1792757578143758700.png) |
+| C6-CardioIntervalos.dc.html | Recorrido | Intervalos7bloques: rondas1→2 actualiza duración20→40 y estimación41. Bloques/esfuerzos/patrón alcanzables por scroll. Configuración persiste tras cambio740/130. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/C6-blocks-1792757631007646800.png) |
+| C7-SelectorCardio.dc.html | Recorrido | Selector real interior/exterior; Cinta se añade y cierra. No se inicia GPS ni se usa ubicación. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/C7-choose-1792757459863562900.png) |
+| D1-AccionesRapidas.dc.html | Recorrido | PulsaciónlargaPress abre7accionesFicha/Cambiar/preparación/CrearSuperserie/Duplicar/Eliminar completas740/130. Ficha navegaF2 real; otroscallbacks cubiertosenfamiliascorrespondientes. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/D1-editor-return-target-1792762160440533600.png) |
+| D2-Impacto.dc.html | Recorrido | QA4 v51/source8c943: acordeón13músculos y desglose real; fila de 3 métricas de Glúteos/Deltoides envuelve Columna a segunda línea completa a740/130, sin letras verticales. PNG inspeccionado. Avisos por datos propios sin carga axial o1RM preservados. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/QA4-D2-metrics-wrap-visible-1792769308641262600.png) |
+| D3-Sugerencias.dc.html | Recorrido | SugerenciaopcionalCruceTorsoA seleccionaQuitar1serieDominadas→Aplicarselección; retornoeditor confirmaDominadas4→3, total21→20series y61→59min. PrincipalPress4seriespreservado. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/D3-applied-adjustment-1792762449038117400.png) |
+| D4-Plantillas.dc.html | Recorrido | QA4v51/source8c943: TorsoBoriginalreintento muestraCompleta la dosis… yconservaQATorso. QAcardioguardadaAPK50sigue1resultado trasupdate. Confirmación740/130ahoraReemplazar/Añadiralfinalcompletos(miradoPNG); cancelada para noalterarTorsoB. Guardado/callbackAñadirreal yaAPK50. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/QA4-D4-complete-decisions740130-1792768976530368700.png) |
+| D5-Reglas.dc.html | Recorrido | Reglas740/130: alcanceSesión,Series4→3 Enter,Aplicaraplica6ejercicios:18series,RPE8,descanso2min. Controleslados/entre/rondas yacordeonesLímites/Plantillasvisibles; no eliminaciones. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/D5-after-assistant-dismiss-1792762606904433100.png) |
+| D6-Tiempo.dc.html | Recorrido | Tiempo740/130: límite61→45min, reloj/diferenciaydesglose; avisoNo corta sesión, controlesporgrupo/ejercicio. Guardadoverificadoenfooter51de45min. Noajustessegurosdisponibles, noforzados. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/D6-adjustment-proposals130-1792762858656324800.png) |
+| D7-Versiones.dc.html | Recorrido | Tras finalizar DomingoQA se creó versiónestructural3ej/9seriesinclcardio. QuitéPress:2ej/4series/55min; Restaurar aplica directo y toastVersiónrestaurada, vuelvePress4series y cardio ejecutado7bloques×3/60min (G2), total92min. Títuloactual sepreserva; restauraestructura. No afectasesionesajenas. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/D7-restored-executed-cardio-1792767388711791000.png) |
+| D8-Transferir.dc.html | Recorrido | Transferir copió Torso B a miércoles; programa muestra destino con6 ejercicios/61min y origen conservado. Sin sustitución probada. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/A5-sunday-program-1792758884639719800.png) |
+| D9-Movilidad.dc.html | Recorrido | Catálogomovilidad compartidoH3: búsqueda cervical/fichatécnica/añadir yselectorAñadidoQuitar completos740/130. SinresultadoscarecemensajepreAPKcorregido. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/H3-cervical-technique-1792759472376121200.png) |
+| E1-Anadir.dc.html | Recorrido | Añadir real abre catálogo con filtros y botones ficha/selección a740/130; acceso desde footer completo. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/E1-add-choice-1792757688437874600.png) |
+| E2-Busqueda.dc.html | Recorrido | Búsqueda Press militar con teclado; tras estabilizar muestra Press Militar/Deltoides/Barra. Se espera resultado antes de seleccionar. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/E2-search-settled-1792757732270017400.png) |
+| E3-Seleccion.dc.html | Recorrido | Seleccionar Press Militar cambia + a quitar y contador1; pie Añadir1 y bandeja visibles740/130. Multiseleccion en curso. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/E3-selected-1792757780676575600.png) |
+| E4-SuperserieCatalogo.dc.html | Recorrido | 2seleccionados reordenadosRemo→Press; configurar4rondas1minentre/2mintras; scroll740/130 alcanza Crear superserie/Cancelar completos; creación real preserva orden/dosis. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/E4-selection-tray-1792757845788233500.png) |
+| E5-Reemplazar.dc.html | Recorrido | Reemplazo desde acción rápida: REEMPLAZANDO/parecidos/filtros y dosis3×6–10/RIR2. Selección Envión de Empuje muestra decisión completa a740/130, confirmar cambia nombre conservando3series/rango/RIR/descanso. Atrás antes conserva original. No datos importados usados. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/E5-replaced-prescription-1792765815086628800.png) |
+| E6-SinResultados.dc.html | Recorrido | Consultapropia sincoincidencias muestraNoencontramos yCrear ejercicio abreformularioE7; nombreIMEautocorregidoobservadoantescrear. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/E6-no-results-create-1792763334275035800.png) |
+| E7-CrearEjercicio.dc.html | Parcial | Creado y releído Press military QA: SIMILAR se abstiene, descripción manual PruebaQA, Barra/De pie/Bilateral, Deltoides Primario60%, revisión MOT explícita. Archivo sintético guardado y portada/procedencia propia en F1; álbum privado vacío cancelado. Pendientes portada de referencia y patrón con cancelación/reapertura independiente, fallo durable no inyectable. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/E7-create-durable-result-1792764230918649700.png) |
+| E8-CargandoError.dc.html | Pendiente |  |
+| E9-ElegirTecnica.dc.html | Recorrido | Perfil→Técnica→galería con clip sintético silencioso2s propio. Catálogo740/130 selecciónúnica:Abducciones→Aducciones deselecciona anterior, footer nombrecompleto/Elegir; entrega Aducciones al formulario real y cancela. Sin cámara/audio ni análisis de clip sin persona. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/E9-chosen-exercise-return-1792766293387096400.png) |
+| F1-FichaCatalogo.dc.html | Recorrido | QA4 v51/source8c943: historial sube hasta y364 con cabecera reservada y294 de contenido; sin solape a740/130 (PNG inspeccionado). Historia40×6/1RM46,5, aportes, descripción humana y cues Preparación/Ejecución siguen accesibles. Portada propia/abstención ya comprobadas E7. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/QA4-F1-history-under-fixed-header-1792769398974395700.png) |
+| F2-FichaSesion.dc.html | Parcial | Ficha desdeD1Press: procedenciaImagen técnica catálogo,historial40×6/1RM46,5, músculos y cuesPreparación/Ejecución completosconscroll130; cabeceracompartidapreAPKfixF1 pendiente. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/F2-session-cues-bottom-1792762678374606600.png) |
+| G1-EditarSeriesVivo.dc.html | Defecto QA4 | QA4/source8c943: CUSTOMS2borrador13pasos observado yConfirmarcambioscierra, cockpit/reabrirvuelve12. Bilateral, sinIME. Dosreproducciones; rootasignoarreglo. ModoCUSTOMcorrecto. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/QA4-G1-custom-draft13-1792770771013021300.png) |
+| G2-EditarCardioVivo.dc.html | Recorrido | 880/130: intervalos7bloques2rondas40min→3rondas60min confirmado yreabierto60.740/130borradorTabata cancelado conBack preserva60. FooterConfirmarcompleto; acciones168px≥48dp. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/G2-cancel-preserved60-1792762066720476100.png) |
+| G3-Importador.dc.html | Recorrido QA4 | QA4/source8c943: importacion NUEVA TXT propio,2reconocidos2x5/60 y2x8/40. Reemplazo BancaBarra porMancuerna persistido al reabrir. DeleteBanca durable; primera ventanaUndo expiro por captura. Delete/Undo inmediatoSentadilla restaura2x5/60 y2:00, relectura1ex8min sin errorficha. No afirmaUndoBanca. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/QA4-G3-immediate-undo-result-1792770466866975300.png) |
+| G4-WizardCambiar.dc.html | Verificado en dispositivo | Confirmar cambia Alta→Frontal manteniendo4×4–6; Cambiado/Deshacer restaura original. Cancelar y pie completos740/130. Árboles y JSON junto a PNG. G4 regular880/100 y geometría740/130; no se atribuye guardado Room fuera del flujo observable. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/G4-740130-expanded-1792756756985387600.png) |
+| H1-AproxEditor.dc.html | Recorrido | 740/130: añadidas3 fichas50%×8,60%×6,70%×4; navegación nativa A1→A2→A3 conserva descanso1:00 cada una; Listo cierra foco. Pendiente880/100 y vivoH5. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/H1-approach-added130-1792759212028930000.png) |
+| H2-MovilidadEditor.dc.html | Recorrido | Movilidad realRetracción cervical añadida; tiempo global editableDefinir→5min mediante reloj; borrador dosis guardado2×8. CatálogoAñadir funciona880/100y740/130. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/H2-740130-preserved-1792759707558138700.png) |
+| H3-CatalogoMovilidad.dc.html | Recorrido | QA4 v51/source8c943: gato muestra Sin resultados y ayuda; cervical recupera resultado real, Añadir cambia a Añadido·Quitar. Catálogo y acciones completos740/130. No inventarGato-vaca ausente del corpus real. Dosis/ficha/movilidad nativa ya probadasH2/H4/H6. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/QA4-H3-recovered-add-result-1792769539187179500.png) |
+| H4-MovilidadDosis.dc.html | Recorrido | FocoTiempo30s→Reps8/Series2 guardado: ficha2×8 y resumen16reps; global5min independiente. Comprobado880/100,130dosis pendiente. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/H4-dose-editor-1792759618197217000.png) |
+| H5-AproxVivo.dc.html | Recorrido | Aproximaciones reales3/3: manual20×8,22,5×6,25×4; checkboxdesmarcar/marcar ydescansos1:00/Saltar reales.740/130y880/130. Sugerenciainicialnull, no inventada; motor porinventario necesita contraste si procede. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/H5-approach740130-1792761191799054000.png) |
+| H6-MovilidadVivo.dc.html | Recorrido | Vivo real880/100 y740/130 conservaRetracción cervical2×8/global5min. Reloj inicia/pausa,+30s4:33→5:03,reinicia5:00. Hecho completa1/1 yContinuarconaproximación. Sin voz/alarmafinal. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/H6-clock-controls-1792761122123246400.png) |
+| Main.dc.html | Recorrido | Editor real abierto desde Inicio/MainActivity:6ejercicios21series y acciones Añadir/Asistente/Reglas;880/100. Geometría130 pendiente. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/Main-Editor-1792756980372264800.png) |
+| V1-PropuestaLinea.dc.html | Pendiente |  |
+| V10-VivoDistancia.dc.html | Pendiente |  |
+| V11-VivoPersonalizado.dc.html | Parcial QA4 | QA4/source8c943: cockpitPersonalizado12pasos a740/130; registroQA sintetico12pasos5kgRIR2 aceptado. Reloj ultimaSerie todavia dice12reps, formato legado informado. G1edicion13→12pendienteQA5. Sinclaim actividadfisicareal. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/QA4-CUSTOM12-rest-after-record-1792771363977343100.png) |
+| V2-IdeaUsuario.dc.html | Descartado por decisión | DECISIONES_PROTOTIPOS_2026-10-20.md36: usuarioeligeV1 yV2queda descartado. Fila retenidainventario70; noQApendiente niimplementaciónnueva. |
+| V3-PantallaCorta.dc.html | Pendiente |  |
+| V4-RutaSesion.dc.html | Recorrido | Ruta real muestra3bloques,13series,tonelaje/RIR y permite saltarPress conpreparación sin registrar series ajenas. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/V4-route-real-1792761031791849900.png) |
+| V5-MigracionCockpit.dc.html | Parcial QA4 | Mapa7destinos: Rutaabierta; Hitosvaciohonesto; Album/GaleriaentradaCancel; TemporizadorIniciar/Pausar/Reiniciar0:00; Calculadora50x5tabla1a10RM; Caloriassinregistrosseabstiene; NotaytareaQguardadas/toggle/reapertura. Falta notaresumenfinal; datosQsonfixtureIMEobservado. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/QA4-V5-note-task-readback-1792771105584587200.png) |
+| V6-VivoRM.dc.html | Pendiente |  |
+| V7-VivoAMRAP.dc.html | Recorrido | AMRAP nativo312×425 a740/130;86kg,10repsfallo; calibradorS2proponeS3/S4, reinicioapppreserva, aplicar/revertir/corregir/conservar reales. Ver detalleCAL3 separado; APREBpendienterecambio. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/CAL3-applied740130-1792760887788367100.png) |
+| V8-VivoSoloRPE.dc.html | Pendiente |  |
+| V9-VivoTiempo.dc.html | Recorrido | CockpitTiempo0:45 a880/130 camposmin:s,carga/esfuerzo yregistrar visibles; correspondeactualmenteaunpropósitoheredadoquecontradiceCUSTOM(errorreportado). Noalarmanifinalcronómetroreal. [PNG](C:/kw/shots/screens-v2-final-emu-20261023-c3/V11-custom-live-readback-1792761532540262000.png) |
