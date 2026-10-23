@@ -259,6 +259,7 @@ class RelatorPlanAwareTest {
                     liftSlot = LiftSlot.SQUAT,
                     slotRole = SlotRole.T1_MAIN,
                     purpose = SetPurpose.AMRAP,
+                    plannedMinimumReps = 10,
                     isApreBlock = true,
                     isLastAmrapOfExercise = true,
                 ),

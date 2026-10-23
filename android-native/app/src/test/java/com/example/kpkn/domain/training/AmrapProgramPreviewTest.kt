@@ -274,6 +274,7 @@ class AmrapProgramPreviewTest {
             sets = (1..4).mapIndexed { index, ordinal ->
                 ExerciseSet(
                     id = "s$ordinal",
+                    targetReps = when (index) { 0 -> 12; 1 -> 10; else -> null },
                     weight = 150.0,
                     purpose = if (index >= 2) SetPurpose.AMRAP else SetPurpose.NONE,
                     amrapMinimumReps = if (index >= 2) 10 else null,

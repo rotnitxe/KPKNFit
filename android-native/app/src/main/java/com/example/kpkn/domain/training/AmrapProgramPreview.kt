@@ -642,7 +642,7 @@ object AmrapProgramPreview {
                 kind = if (gate == AmrapEffectGate.OFF) AmrapEffectKind.NO_CHANGE else AmrapEffectKind.NEXT_WEEK_XRM,
                 timing = if (gate == AmrapEffectGate.OFF) AmrapEffectTiming.NONE else AmrapEffectTiming.NEXT_WEEK,
                 gate = gate,
-                headline = "$note.",
+                headline = note,
                 detail = listOfNotNull(
                     "${SpanishPlurals.reps(reps)} válidas con ${kg(weight)} kg (${variant.label}: $bandText).",
                     gateDetail(gate, null).takeIf { gate == AmrapEffectGate.PROPOSE || gate == AmrapEffectGate.AUTO },
