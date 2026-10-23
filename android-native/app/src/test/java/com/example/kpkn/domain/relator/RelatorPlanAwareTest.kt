@@ -10,9 +10,11 @@ import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.domain.training.AmrapEffectTiming
 import com.example.kpkn.domain.training.AmrapHit
 import com.example.kpkn.domain.training.AmrapProgramPreview
 import com.example.kpkn.domain.training.ProgramAutoregulationEngine
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
