@@ -2,9 +2,9 @@
 
 Estado: **parcial; Fase 5 aún no aprobada**. Este registro distingue el APK preparado, su instalación y lo observado en el flujo real. No incluye la aceptación competitiva ni el anexo de REA/voz en vivo, que son posentrega.
 
-**Corrección posterior pendiente de validar (14:30 UTC):** el código `69f10a0e3` normaliza la confianza propia de parciales
+**Corrección posterior: PC aprobado; runtime pendiente (15:04 UTC):** el código `69f10a0e3` normaliza la confianza propia de parciales
 tras degradaciones de la confianza global y al leer sidecars previos, sin cambiar conteos, zonas ni amplitudes ni
-reescribir informes históricos. Sus pruebas afectadas y R8 están en cola; no es el APK observado en estas capturas.
+reescribir informes históricos. Sus151pruebas afectadas pasaron y R8 compiló/recibió atestación pública; todavía no se instaló y no es el APK observado en estas capturas.
 El caso DECODE_FALLBACK se demostró por fuente, pero no se confirmó esa bandera en el CURL de QA ni la causa de su zona
 ausente. No se recomienda extraer un JSON privado por una ruta individual no acreditada ni mediante ZIP global.
 
