@@ -93,6 +93,7 @@ class WorkoutSessionHydrator(
     )
 
     suspend fun loadSession(): Boolean {
+        repository.mutateProgramNow(programId) { current -> com.example.kpkn.domain.training.ExerciseTrainingMax.migrate(current) }
         val program = repository.getProgramById(programId) ?: return false
         var foundSession: Session? = null
         var foundWeekId = ""
@@ -155,7 +156,7 @@ class WorkoutSessionHydrator(
             active = active,
         )
 
-        val restoredSession = (resumedState?.session ?: session)
+        val restoredSession = com.example.kpkn.domain.training.ExerciseTrainingMax.hydrateSession(program, resumedState?.session ?: session)
             .normalizeMobilityCompatibility()
             .let(ports::normalizeSupersetsForWorkout)
             .let(ports::sanitizeSessionLoadModes)

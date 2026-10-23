@@ -145,4 +145,55 @@ class ExerciseTrainingMaxTest {
         assertEquals(63.75, refreshedAlternate.sets.single().weight!!, 0.0)
     }
 
+    @Test fun confirmingAnUnchangedTestStillRecordsTestEvidenceAndDoesNotTouchOtherVariants() {
+        val canonical = exercise()
+        val variant = exercise("seated", CatalogIds.OHP_SEATED, 60.0,70.0)
+        val original = ExerciseTrainingMax.migrate(program(listOf(canonical,variant),PowerliftingProfile(overhead1RM = 80.0,overheadTM = 72.0)))
+        val resolution = OneRmResolution(OneRmResolutionStatus.RECORDED,overhead1RM = 80.0,resolvedAtMs = 1234)
+        val confirmed = ExerciseTrainingMax.captureTestProfile(original,resolution)
+        val ref = ExerciseTrainingMax.resolved(confirmed,canonical,PlanLoadReferenceKind.EXERCISE_1RM)!!
+        assertEquals("TEST",ref.metadata!!.origin)
+        assertEquals(1234L,ref.capturedAtMs)
+        assertEquals(72.0,ExerciseTrainingMax.capturedKg(confirmed,canonical,PlanLoadReferenceKind.EXERCISE_TM)!!,0.0)
+        assertEquals(60.0,ExerciseTrainingMax.capturedKg(confirmed,variant,PlanLoadReferenceKind.EXERCISE_TM)!!,0.0)
+        assertEquals(original.powerliftingProfile,confirmed.powerliftingProfile)
+        assertEquals(confirmed,ExerciseTrainingMax.captureTestProfile(confirmed,resolution))
+    }
+
+    @Test fun profileEditsFollowRecipeDerivedVariantsRepeatedlyButPreserveManualVariantCapacity() {
+        val derived = exercise("seated", CatalogIds.OHP_SEATED, 72.0, 80.0)
+        val recipe = TrainingPlanRecipe("bound", weeks = listOf(weekRecipe(1, 0, "Semana", BlockGoal.ACCUMULATION,
+            listOf(day("A", slots = listOf(slot("seated", SlotRole.T2_SUPPLEMENTAL, CatalogIds.OHP_SEATED,
+                listOf(SetRecipe(reps = 5, percent = 80.0)), 120, LiftSlot.OVERHEAD)))))))
+        val before = ExerciseTrainingMax.migrate(program(listOf(derived), PowerliftingProfile(overheadTM = 72.0, overhead1RM = 80.0))
+            .copy(sourceRecipe = recipe))
+        fun edit(current: Program, kg: Double, at: Long) = ExerciseTrainingMax.syncProfile(current,
+            current.copy(powerliftingProfile = current.powerliftingProfile!!.copy(overheadTM = kg)),
+            at, "profile-$at", "Perfil confirmado", ExerciseLoadReferenceStore.MANUAL)
+        val first = edit(before, 74.5, 100)
+        val second = edit(first, 77.0, 200)
+        assertEquals(77.0, ExerciseTrainingMax.capturedKg(second, derived, PlanLoadReferenceKind.EXERCISE_TM)!!, 0.0)
+        assertEquals("RECIPE_PROFILE", ExerciseTrainingMax.resolved(second, derived, PlanLoadReferenceKind.EXERCISE_TM)!!.metadata!!.origin)
+        val explicit = ExerciseTrainingMax.capture(before, derived, PlanLoadReferenceKind.EXERCISE_TM,
+            65.0, 50, "own", "TM propio de esta variante")
+        val protected = edit(explicit, 77.0, 200)
+        assertEquals(65.0, ExerciseTrainingMax.capturedKg(protected, derived, PlanLoadReferenceKind.EXERCISE_TM)!!, 0.0)
+        assertEquals(80.0, ExerciseTrainingMax.capturedKg(protected, derived, PlanLoadReferenceKind.EXERCISE_1RM)!!, 0.0)
+    }
+
+    @Test fun pendingReconciliationUpdatesOnlyProfileDerivedEvidenceAndPreservesConfirmedClear() {
+        val canonical = exercise()
+        val before = ExerciseTrainingMax.migrate(program(listOf(canonical), PowerliftingProfile(overheadTM = 72.0, overhead1RM = 80.0)))
+        fun reconcile(current: Program) = ExerciseTrainingMax.syncProfile(current, current, 200,
+            "pending", "Recalculo pendiente", reconcileDerived = true)
+        val stale = before.copy(powerliftingProfile = before.powerliftingProfile!!.copy(overheadTM = 75.0))
+        assertEquals(75.0, ExerciseTrainingMax.capturedKg(reconcile(stale), canonical, PlanLoadReferenceKind.EXERCISE_TM)!!, 0.0)
+        val explicit = ExerciseTrainingMax.capture(before, canonical, PlanLoadReferenceKind.EXERCISE_TM,
+            65.0, 50, "own", "TM propio").copy(powerliftingProfile = stale.powerliftingProfile)
+        assertEquals(65.0, ExerciseTrainingMax.capturedKg(reconcile(explicit), canonical, PlanLoadReferenceKind.EXERCISE_TM)!!, 0.0)
+        val cleared = ExerciseTrainingMax.clear(before, canonical, PlanLoadReferenceKind.EXERCISE_TM,
+            100, "clear").copy(powerliftingProfile = stale.powerliftingProfile)
+        assertNull(ExerciseTrainingMax.capturedKg(reconcile(cleared), canonical, PlanLoadReferenceKind.EXERCISE_TM))
+    }
+
 }

@@ -36,3 +36,8 @@ com.example.kpkn.screens.workout.components.Cal3CardUiTest
 Con `KPKN_RENDER_DIR` la clase `ApreCardUiTest` emite 12 PNG `apre-v7-{3|6|10}-{740|880}-{100|130}-proposed.png`. Las aserciones de geometría/texto/clicks se ejecutan aunque no se pida escribir PNG. Root debe abrirlos tras la corrida; aquí no se han generado ni inspeccionado píxeles. No hay evidencia visual nueva todavía.
 
 Se reutilizan los arneses CAL3 de Room y el componente V7 real, sin migraciones/DAO/entidades, datasets ni scripts. No se modifican `ProgramAutoregulationEngine`, `ProgressEngine`, `PlanMaterializer` ni `ApreXrmPrescription`. No se modifica u19, u20, u11 ni otros worktrees. `git diff --check` es verificación estática, no compilación.
+
+
+## Validación central de integración · 23-oct
+
+La entrega de origen descrita arriba fue revisada e integrada en u11. CAL4-V.md e INT-4.md registran las correcciones productivas, de compilación y de fixtures, con su evidencia real. Producción420acaf4c: 1989 casos puros únicos verdes en completa más repetición de un fixture; Android final int-apre-android-codex-20261023-2.log:14 clases/201 casos,0 fallos/errores/omitidas, BUILD8min11s, wrapper exit0. XML archivados; tres renders finales revisados. Pendientes el barrido ampliado y la QA de dispositivo; no se declara una única corrida completa JVM verde ni la suite entera del repositorio.

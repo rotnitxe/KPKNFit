@@ -15,6 +15,7 @@ import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
@@ -146,6 +147,10 @@ class ProgramAutoregulationApreXrmChannelTest {
         val weeks = Cal5TestSupport.weeksOf(manual)
         val sourceWeek = weeks.first()
         val sourceSquat = Cal5TestSupport.exerciseOf(sourceWeek.sessions.first(), CatalogIds.SQ_LOW)
+        val targetBefore = Cal5TestSupport.exerciseOf(weeks[1].sessions.first(), CatalogIds.SQ_LOW)
+        assertNotEquals("la semana siguiente es otra ocurrencia", sourceSquat.id, targetBefore.id)
+        assertEquals(sourceSquat.recipeDayId, targetBefore.recipeDayId)
+        assertEquals(sourceSquat.recipeSlotId, targetBefore.recipeSlotId)
         val proposals = ProgramAutoregulationEngine.evaluateApreXrmOnly(
             manual, sourceWeek, recordedLogs(manual, sourceWeek),
         )
@@ -167,7 +172,8 @@ class ProgramAutoregulationApreXrmChannelTest {
         val targetSquat = Cal5TestSupport.exerciseOf(updatedTarget.sessions.first(), CatalogIds.SQ_LOW)
         assertEquals(162.5, targetSquat.sets[2].weight!!, 1e-6)
         assertEquals(162.5, targetSquat.sets[3].weight!!, 1e-6)
-        assertEquals(81.25, targetSquat.sets[0].weight!!, 1e-6)
+        assertEquals(82.5, targetSquat.sets[0].weight!!, 1e-6)
+        assertEquals(122.5, targetSquat.sets[1].weight!!, 1e-6)
         assertEquals(1, xrmHistory(applied.program, sourceSquat.id, squatProposal).size)
         assertEquals(1, xrmHistory(applied.program, targetSquat.id, squatProposal).size)
 
@@ -324,7 +330,7 @@ class ProgramAutoregulationApreXrmChannelTest {
 
     @Test
     fun closing_a_single_week_cycle_uses_cycle_one_s4_for_the_reused_week_in_cycle_two() {
-        fun close(mode: AutoregulationMode): Pair<com.example.kpkn.domain.training.ProgressAdvanceResult, Double?> {
+        fun close(mode: AutoregulationMode): Pair<ProgramProgressEngine.ProgressAdvanceResult, Double?> {
             val base = program(mode, "apre-cycle-close-${mode.name.lowercase()}").copy(
                 sourceRecipe = null,
                 sourceProtocolId = null,

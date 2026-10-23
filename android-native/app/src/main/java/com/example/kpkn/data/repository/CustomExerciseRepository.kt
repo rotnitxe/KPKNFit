@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
 
 /** Operaciones puras sobre la lista de ejercicios propios: lo que se publica de forma optimista y cómo se revierte un guardado fallido. */
 internal object CustomExerciseListOps {
@@ -74,6 +75,34 @@ object CustomExerciseRepository {
         setCustomExerciseOverlay(saved)
     }
 
+    private val saves = CustomExerciseSaveCoordinator(
+        persist = { exercise ->
+            val existing = db.customExerciseDao().getById(exercise.id)
+            db.customExerciseDao().upsert(exercise.toEntity(createdAt = existing?.createdAt))
+        },
+        committed = { exercise ->
+            _customExercises.update { CustomExerciseListOps.withExercise(it, exercise) }
+            upsertCustomExerciseOverlay(exercise)
+            _lastPersistError.value = null
+        },
+    )
+
+    /** CAT-B: no publica ni cierra el formulario hasta que Room confirma el guardado. */
+    suspend fun upsertAndAwait(exercise: ExerciseMuscleInfo): Result<ExerciseMuscleInfo> {
+        if (!initialized) {
+            val message = "El almacenamiento de ejercicios todavía no está disponible. Inténtalo de nuevo."
+            _lastPersistError.value = message
+            return Result.failure(IllegalStateException(message))
+        }
+        val normalized = exercise.copy(isCustom = true)
+        // El trabajo pertenece al repositorio: una recreación del formulario no interrumpe una escritura iniciada.
+        return scope.async {
+            saves.save(normalized).onFailure {
+                _lastPersistError.value = "No se pudo guardar «${normalized.name}»."
+            }
+        }.await()
+    }
+
     fun upsert(exercise: ExerciseMuscleInfo) {
         if (!initialized) return
         val normalized = exercise.copy(isCustom = true)
@@ -81,10 +110,7 @@ object CustomExerciseRepository {
         _customExercises.update { list -> CustomExerciseListOps.withExercise(list, normalized) }
         upsertCustomExerciseOverlay(normalized)
         scope.launch {
-            runCatching {
-                val existing = db.customExerciseDao().getById(normalized.id)
-                db.customExerciseDao().upsert(normalized.toEntity(createdAt = existing?.createdAt))
-            }.onFailure {
+            saves.save(normalized).onFailure {
                 revertUpsert(normalized, previous)
             }
         }
@@ -92,8 +118,11 @@ object CustomExerciseRepository {
 
     /** Deshace una publicación optimista cuyo guardado falló: vuelve el ejercicio anterior o lo quita si era nuevo. */
     private fun revertUpsert(failed: ExerciseMuscleInfo, previous: ExerciseMuscleInfo?) {
-        _customExercises.update { list -> CustomExerciseListOps.reverted(list, failed, previous) }
-        if (previous != null) upsertCustomExerciseOverlay(previous) else removeCustomExerciseOverlay(failed.id)
+        val current = _customExercises.value.firstOrNull { it.id.equals(failed.id, ignoreCase = true) }
+        if (current == failed) {
+            _customExercises.update { list -> CustomExerciseListOps.reverted(list, failed, previous) }
+            if (previous != null) upsertCustomExerciseOverlay(previous) else removeCustomExerciseOverlay(failed.id)
+        }
         _lastPersistError.value = "No se pudo guardar «${failed.name}»."
     }
 

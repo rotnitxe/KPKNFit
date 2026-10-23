@@ -194,3 +194,15 @@ Por autonomía explícita del usuario se adelanta fase4 en bases provisionales a
 Fusiones u13/u12/u14/u17/u18/u15/u16 y cierre ED-A integrados; fuente2e14b0700, HEAD documental60caa0b4a. Regresión dirigida verde:1936JVM(185clases)+169Android(15)+173Android(15),2278casos en3corridas, wrappers exit0. Evidencia archivada, detalle INT-1.md. Barrido ampliado final de workout/sessioneditor pendiente tras fase4 y antes de QA. Roomv30 sin cambios data/db/schema.
 
 Siguiente: actualizar bases de fase4 desde este hito, integrar/validar CAT-B(u19d28b4d2cf), CAL4-V(u201f235265c, condurabilidadu29ycanalu28integrados), CAL5b(u21f8068e5f4), PLAN-OBS(u22cc35b9388), CAL7(u23,21recorridosRoompreparados y ajuste deesperadelogencurso). Todos esos paquetes siguen sin ejecutar. Después regresión ampliada, QA ZFlip5_QA5580 y APK. Firma sólo orquestador, sin push/master ni paquetes personales.
+
+
+### CAT-B integrado y verificado ·23-oct
+
+Basefase3 incorporada; merge5b4a6e842 y corrección64de531b5/b2d37d0ec del ID técnico expuesto en descripción confirmada. Android inicial13clases80/0; tras ajuste3clases27/0; JVM MOT3clases26/0. Tres wrappers exit0 y XML archivados. Revisados4renders iniciales y3nuevos E7/F1/F2 (CAT-B.md/INT-4.md). Siguiente CAL4-Vu20@992a9bbee, después CAL5bu21@d13139a31, PLAN-OBSu22@4e9b42ce8 y CAL7actualizado. Bases preparatorias APRE/TM/relator resueltas; aún sin ejecución de esos paquetes. QA/APK pendientes, Roomv30 congelado, sin push/master.
+
+
+### CAL4-V cerrado de forma dirigida · 23-oct
+
+APRE integrado y corregido: identidad de día entre semanas (80613d630) y capturas legacy antes del cálculo (420acaf4c, dependencia compartida de TM). Compilación corregida en0497b9f68/94aaf1865. JVM:193 clases/1989 casos en completa,1988 correctos y un fixture nuevo inválido; corregido en66993303c y repetido1/1. Son1989 únicos verdes con la misma producción, no una corrida completa final verde. Android final int-apre-android-codex-20261023-2.log:14clases201/0, BUILD8min11s, wrapper exit0. XML archivados y3renders APRE3/6/10 revisados. Detalle CAL4-V.md e INT-4.md.
+
+Siguiente: integrar resto TM desdeu21@3b5eedab0 (incluye arreglo compartido ya trasladado; preflight previo limpio), PLAN-OBSu22@4e9b42ce8 y CAL7u23@6cad6e0d0 actualizado con toda fase4. El filtro puro final añade domain/relator/** con su fixture, además de training/workout/calibration/protocols/MOT. Barrido322 clases workout/editor y externos, QA emulador5580/teléfono y APK siguen pendientes. Roomv30 sin cambios; firma sólo orquestador, sin push/master.

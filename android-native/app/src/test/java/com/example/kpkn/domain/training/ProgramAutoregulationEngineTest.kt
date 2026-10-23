@@ -824,12 +824,39 @@ class ProgramAutoregulationEngineTest {
 
     @Test
     fun only_the_rules_that_translate_the_amrap_into_a_weekly_tm_change_keep_proposing_from_it() {
-        // CAL5: nSuns (tabla en kilos), el estilo SBS (porcentaje por repetición) y APRE (XRM de la semana siguiente) proponen por la vía semanal.
-        listOf("nsuns-531-lp-4d", "kpkn-sbs-rtf", "apre-mann").forEach { id ->
+        // CAL5: nSuns (tabla en kilos) y SBS (porcentaje por repetición) proponen un cambio semanal de TM.
+        listOf("nsuns-531-lp-4d", "kpkn-sbs-rtf").forEach { id ->
             assertTrue("$id: su AMRAP mueve el TM", ProgramAutoregulationEngine.amrapMovesTm(PROTOCOL_LIBRARY.first { it.id == id }.recipe!!))
         }
+
+        val apreRecipe = Cal5TestSupport.recipeOf("apre-mann")
+        assertFalse("APRE propone XRM físico, no una subida de TM", ProgramAutoregulationEngine.amrapMovesTm(apreRecipe))
+        val apreProgram = Cal5TestSupport.materialize(
+            apreRecipe, AutoregulationMode.PROPOSE, Cal5TestSupport.fullProfile(), id = "apre-xrm-weekly",
+        )
+        val apreWeek = Cal5TestSupport.weeksOf(apreProgram).first()
+        val apreSession = apreWeek.sessions.first()
+        val apreSquat = Cal5TestSupport.exerciseOf(apreSession, CatalogIds.SQ_LOW)
+        val apreLog = Cal5TestSupport.exerciseLog(
+            apreProgram, apreWeek, apreSession, apreSquat,
+            weightOf = { index, planned -> if (index == 3) 155.0 else planned.weight },
+            repsOf = { index, planned ->
+                when (index) { 2 -> 12; 3 -> 17; else -> planned.targetReps ?: 10 }
+            },
+        )
+        val apreProposal = ProgramAutoregulationEngine.evaluate(
+            program = apreProgram,
+            completedWeek = apreWeek,
+            logs = listOf(apreLog),
+            recipe = apreRecipe,
+            signals = WeeklyAutoregulationSignals(readinessScore = 80),
+        ).single { it.kind == AutoregulationProposalKind.ADJUST_XRM }
+        assertNull(apreProposal.liftSlot)
+        assertNull(apreProposal.percentDelta)
+        assertNull(apreProposal.kgDelta)
+        assertEquals(162.5, apreProposal.apreXrm!!.reference.capturedLoadKg!!, 1e-6)
         // 5/3/1 (la serie «+» no mueve el TM), GZCLP y Juggernaut (actúan al cerrar ciclo u ola) y J&T (lo mide el e1RM del RM) no.
-        listOf("wendler-531-bbb", "wendler-531-fsl", "gzclp", "juggernaut-2", "gzcl-jt-2", "kpkn-rts-style").forEach { id ->
+        listOf("wendler-531-bbb", "wendler-531-fsl", "gzclp", "juggernaut-2", "gzcl-jt-2", "kpkn-rts-style", "apre-mann").forEach { id ->
             assertFalse("$id: su AMRAP no propone un cambio de TM por la vía semanal", ProgramAutoregulationEngine.amrapMovesTm(PROTOCOL_LIBRARY.first { it.id == id }.recipe!!))
         }
     }

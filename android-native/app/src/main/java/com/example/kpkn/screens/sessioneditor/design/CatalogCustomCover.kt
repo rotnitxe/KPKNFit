@@ -2,41 +2,54 @@ package com.example.kpkn.screens.sessioneditor.design
 
 import android.content.Context
 import com.example.kpkn.data.exercises.approvedExerciseCatalogV2
-import com.example.kpkn.data.media.WorkoutMediaStore
-import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.domain.exercises.ExerciseCoverPresentation
-import com.example.kpkn.domain.exercises.ExerciseCoverResolver
+import com.example.kpkn.data.models.*
+import com.example.kpkn.data.repository.WorkoutMediaRepository
+import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.sessioneditor.components.exerciseCatalogImageVariants
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
-/** Lo que pinta la fila de un ejercicio propio como portada: un recurso de imagen, un archivo de foto o nada (entonces, el glifo del patrón). */
 internal data class CustomCoverModel(
-    val imageResId: Int?,
-    val photoFile: File?,
+    val imageResId: Int? = null,
+    val photoFile: File? = null,
+    val provenance: String = "Ilustración del patrón",
+    val unavailableReason: String? = null,
 )
 
-/**
- * Resuelve la portada de un ejercicio propio (MOT · E4/E5): su foto del almacén privado de medios, la imagen de referencia del
- * catálogo si es de la revisión vigente y sigue disponible, o el glifo del patrón. Una foto borrada o una referencia retirada no
- * rompen la fila: caen a la ilustración.
- */
-internal fun customExerciseCoverModel(context: Context, exercise: ExerciseMuscleInfo): CustomCoverModel {
-    if (exercise.cover == null) return CustomCoverModel(null, null)
-    val thumbs = runCatching { WorkoutMediaStore(context).thumbsDir() }.getOrNull()
-    val presentation = ExerciseCoverResolver.resolve(
-        info = exercise,
-        mediaExists = { mediaId -> thumbs != null && File(thumbs, "$mediaId.jpg").isFile },
-        catalogImageAvailable = { definitionId, configurationId ->
-            exerciseCatalogImageVariants(definitionId, configurationId).isNotEmpty()
-        },
-        currentCatalogRevision = approvedExerciseCatalogV2()?.catalogRevision,
-    )
+/** La miniatura sola no demuestra que una foto exista: la portada exige su original privado. */
+internal suspend fun customExerciseCoverModel(context: Context, exercise: ExerciseMuscleInfo): CustomCoverModel = withContext(Dispatchers.IO) {
+    val mediaRepository = runCatching { WorkoutMediaRepository.getInstance() }.getOrNull()
+    val media = exercise.cover?.mediaId?.let { id -> runCatching { mediaRepository?.getById(id) }.getOrNull() }
+    val original = media?.takeIf { it.kind == WorkoutMediaKind.PHOTO }?.filePath?.let(::File)
+        ?.takeIf { it.isFile && it.length() > 0 && mediaRepository?.isManagedPath(it) == true }
+    val catalog = approvedExerciseCatalogV2()
+    presentCustomExerciseCover(exercise, media, original != null, catalog?.catalogRevision,
+        imageFor = { definition, configuration -> exerciseCatalogImageVariants(definition, configuration).firstOrNull()?.imageResId },
+        materialFor = { definition, configuration -> catalog?.families?.asSequence()?.flatMap { it.definitions.asSequence() }
+            ?.firstOrNull { it.id == definition }?.configurations?.firstOrNull { it.id == configuration }?.selectedOptions?.get("implement") })
+}
+
+/** Política de presentación, con hechos del archivo y del catálogo inyectados; nunca confunde thumb con original. */
+internal fun presentCustomExerciseCover(
+    exercise: ExerciseMuscleInfo, media: WorkoutMedia?, originalAvailable: Boolean, catalogRevision: String?,
+    imageFor: (String, String) -> Int?, materialFor: (String, String) -> String?,
+): CustomCoverModel {
+    fun compatible(definitionId: String, configurationId: String): Boolean {
+        val material = exercise.equipment?.let(SmartExerciseCreator::implementoIdFromLabel) ?: return false
+        return material == materialFor(definitionId, configurationId) && imageFor(definitionId, configurationId) != null
+    }
+    val presentation = ExerciseCoverResolver.resolve(exercise,
+        mediaExists = { it == media?.id && originalAvailable && media?.kind == WorkoutMediaKind.PHOTO },
+        catalogImageAvailable = ::compatible, currentCatalogRevision = catalogRevision)
     return when (presentation) {
-        is ExerciseCoverPresentation.UserPhoto -> CustomCoverModel(null, thumbs?.let { File(it, "${presentation.mediaId}.jpg") })
-        is ExerciseCoverPresentation.CatalogImage -> CustomCoverModel(
-            imageResId = exerciseCatalogImageVariants(presentation.definitionId, presentation.configurationId).firstOrNull()?.imageResId,
-            photoFile = null,
-        )
-        is ExerciseCoverPresentation.PatternIllustration -> CustomCoverModel(null, null)
+        is ExerciseCoverPresentation.UserPhoto -> CustomCoverModel(photoFile = media?.filePath?.let(::File), provenance = "Foto privada · elegida por ti")
+        is ExerciseCoverPresentation.CatalogImage -> CustomCoverModel(imageResId = imageFor(presentation.definitionId, presentation.configurationId),
+            provenance = "Imagen de referencia del catálogo")
+        is ExerciseCoverPresentation.PatternIllustration -> CustomCoverModel(unavailableReason = when (exercise.cover?.kind) {
+            ExerciseCoverKind.USER_PHOTO -> "La foto original ya no está disponible. Se muestra la ilustración."
+            ExerciseCoverKind.CATALOG_REFERENCE -> "La imagen de referencia ya no es compatible o no está disponible. Se muestra la ilustración."
+            else -> null
+        })
     }
 }

@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.semantics.contentDescription
@@ -117,6 +118,8 @@ import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePattern
 import com.example.kpkn.screens.sessioneditor.design.CatalogSupersetConfiguratorDialog
 import com.example.kpkn.screens.sessioneditor.design.SmartExerciseEditorPage
+import com.example.kpkn.screens.sessioneditor.design.SmartExerciseCreatePage
+import com.example.kpkn.ui.components.KpknPortal
 
 private typealias CatalogExerciseImageVariant = ExerciseTechniqueImageVariant
 
@@ -913,8 +916,45 @@ private fun ColumnScope.CatalogReadyContent(
         }
     }
 
+    val creatorFocusManager = LocalFocusManager.current
+    val creatingCustomQuery = rememberSaveable { mutableStateOf<String?>(null) }
+    fun finishCreatedSelection(info: ExerciseMuscleInfo) {
+        if (confirmSelection) {
+            selectedRows.value = mapOf(info.id to info)
+            replacementSelectionIds = listOf(info.id)
+            onSelectionChange(listOf(info))
+        } else if (editingExisting) {
+            onSelect(info)
+        } else {
+            selectedRows.value = selectedRows.value + (info.id to info)
+            onSelectionChange(selectedRows.value.values.toList())
+        }
+        creatingCustomQuery.value = null
+        onSearch("")
+    }
+    creatingCustomQuery.value?.let { seedName ->
+      KpknPortal {
+        SmartExerciseCreatePage(initialName = seedName,
+            onSave = ::finishCreatedSelection,
+            onUseCandidate = { candidate ->
+                val exact = candidate.configurationId?.let { configuration ->
+                    catalog.toLegacySelection(ExerciseSelectionV2(candidate.definitionId, configuration, catalog.catalogRevision))
+                }
+                if (exact != null) finishCreatedSelection(exact) else {
+                    // Una semejanza sin configuración exacta se revisa en el catálogo, nunca se materializa por defecto.
+                    creatingCustomQuery.value = null
+                    onClearFilters()
+                    onSearch(candidate.name)
+                    expandedDefinitionId = candidate.definitionId
+                }
+            },
+            onClose = { creatingCustomQuery.value = null })
+      }
+        return
+    }
     val editing = editingCustomExercise.value
     if (editing != null) {
+      KpknPortal {
         SmartExerciseEditorPage(
             exercise = editing,
             onSave = { saved ->
@@ -926,6 +966,7 @@ private fun ColumnScope.CatalogReadyContent(
             },
             onClose = { editingCustomExercise.value = null },
         )
+      }
         return
     }
 
@@ -1339,22 +1380,10 @@ private fun ColumnScope.CatalogReadyContent(
                 )
             ) {
                 item("smart-create") {
-                    SmartCreateSuggestion(
-                        query = query,
-                        onCreate = { info ->
-                            if (confirmSelection) {
-                                selectedRows.value = mapOf(info.id to info)
-                                replacementSelectionIds = listOf(info.id)
-                                onSelectionChange(listOf(info))
-                            } else if (editingExisting) {
-                                onSelect(info)
-                            } else {
-                                selectedRows.value = selectedRows.value + (info.id to info)
-                                onSelectionChange(selectedRows.value.values.toList())
-                            }
-                            onSearch("")
-                        },
-                    )
+                    SmartCreateSuggestion(query = query, onOpenCreate = {
+                        creatorFocusManager.clearFocus()
+                        creatingCustomQuery.value = query
+                    })
                 }
             }
         }
@@ -1662,6 +1691,12 @@ private fun CatalogCustomExerciseItem(
     selectionOrder: Int? = null,
 ) {
     var expanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
+    var fichaOpen by remember(exercise.id) { mutableStateOf(false) }
+    fun toggleCustomSelection() {
+        if (selected) onToggle() else if (editingExisting) onSelect() else onToggle()
+    }
+    if (fichaOpen) ExerciseFicha(model = customExerciseDetailModel(exercise, selected), onDismiss = { fichaOpen = false },
+        onToggleSelection = { toggleCustomSelection(); fichaOpen = false })
     val primaryMuscles = remember(exercise) {
         exercise.involvedMuscles
             .filter { it.role == MuscleRole.PRIMARY }
@@ -1672,10 +1707,13 @@ private fun CatalogCustomExerciseItem(
     val pattern = remember(exercise.name) { exercisePatternOf(exercise.name) }
     // MOT · E4/E5: portada del propio = su foto, la imagen de referencia de una variante próxima o, si no hay, el glifo del patrón.
     val coverContext = androidx.compose.ui.platform.LocalContext.current
-    val cover = remember(exercise.cover, exercise.name) { com.example.kpkn.screens.sessioneditor.design.customExerciseCoverModel(coverContext, exercise) }
+    val cover by androidx.compose.runtime.produceState(com.example.kpkn.screens.sessioneditor.design.CustomCoverModel(), exercise) {
+        value = com.example.kpkn.screens.sessioneditor.design.customExerciseCoverModel(coverContext, exercise)
+    }
     Column(modifier = Modifier.fillMaxWidth()) {
         CatalogExerciseRow(
             name = exercise.name,
+            onOpenFicha = { fichaOpen = true },
             subtitle = primaryMuscles.takeIf { it.isNotEmpty() }?.joinToString(" · ") { exerciseCatalogMuscleLabel(it) },
             matchLabel = null,
             thumbnailResId = cover.imageResId,
@@ -1746,40 +1784,11 @@ internal fun catalogInlineAxes(
     )
 }
 
-/**
- * «No encontramos…» con «Crear ejercicio» (SE6a): crea el ejercicio con el nombre buscado, de forma automática, como antes, y lo elige.
- */
+/** E7 abre un borrador revisable; no se publica ni selecciona un ejercicio antes de guardarlo. */
 @Composable
-private fun SmartCreateSuggestion(
-    query: String,
-    onCreate: (ExerciseMuscleInfo) -> Unit,
-) {
-    var creating by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val catalog = remember { exerciseCatalogSnapshot() }
-    // MOT · E1: el creador comparte catálogo con la búsqueda (v2 completo): comprueba la variante exacta y no inventa una.
-    val catalogV2 = remember { approvedExerciseCatalogV2() }
-    CatalogNoResults(
-        query = query,
-        creating = creating,
-        onCreateClick = {
-            if (!creating) {
-                creating = true
-                scope.launch {
-                    val created = withContext(Dispatchers.IO) {
-                        val info = SmartExerciseCreator.createAutomatic(query, catalog, catalogV2)
-                        CustomExerciseRepository.upsert(info)
-                        info
-                    }
-                    creating = false
-                    onCreate(created)
-                }
-            }
-        },
-        modifier = Modifier.padding(top = 16.dp),
-    )
+private fun SmartCreateSuggestion(query: String, onOpenCreate: () -> Unit) {
+    CatalogNoResults(query = query, creating = false, onCreateClick = onOpenCreate, modifier = Modifier.padding(top = 16.dp))
 }
-
 
 
 /**

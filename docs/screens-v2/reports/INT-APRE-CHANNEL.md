@@ -24,3 +24,8 @@ Pruebas preparadas: `Cal6AprePrescriptionTest` (se amplía el caso real de S4 y 
 ## Validación y límites
 
 Revisión estática del diff y `git diff --check`; no se ejecutaron Gradle, JVM, adb, build, instalación ni pruebas, por coordinación centralizada. No hay evidencia aún de compilación ni ejecución. Sin push.
+
+
+## Validación central de integración · 23-oct
+
+La entrega de origen descrita arriba fue revisada e integrada en u11. CAL4-V.md e INT-4.md registran las correcciones productivas, de compilación y de fixtures, con su evidencia real. Producción420acaf4c: 1989 casos puros únicos verdes en completa más repetición de un fixture; Android final int-apre-android-codex-20261023-2.log:14 clases/201 casos,0 fallos/errores/omitidas, BUILD8min11s, wrapper exit0. XML archivados; tres renders finales revisados. Pendientes el barrido ampliado y la QA de dispositivo; no se declara una única corrida completa JVM verde ni la suite entera del repositorio.
