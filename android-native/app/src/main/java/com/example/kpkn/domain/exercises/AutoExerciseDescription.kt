@@ -39,7 +39,8 @@ fun describeConfirmedReference(
         .map { it.muscle }
         .distinct()
     if (primaries.isEmpty()) return null
-    val movement = reference.force?.takeIf { it.isNotBlank() } ?: "Movimiento"
+    // The confirmed catalog name is display text; force may carry a technical pattern ID in v2.
+    val movement = reference.name.trim().takeIf { it.isNotBlank() } ?: "Movimiento"
     val withEquipment = equipment?.takeIf { it.isNotBlank() }?.let { " con ${it.lowercase()}" }.orEmpty()
     val first = "$movement$withEquipment, orientado a ${primaries.joinToString(" y ")}."
     val cue = reference.executionCues?.firstOrNull { it.isNotBlank() }?.trim()
