@@ -206,6 +206,8 @@ internal fun ExerciseFichaContent(
     val reduced = wizardReducedMotion()
     val effects = exerciseFichaEffects(scroll.value / density.density, reduced, Build.VERSION.SDK_INT >= 31)
     val insets = WindowInsets.safeDrawing.asPaddingValues()
+    // Reserva fuera del viewport el espacio del título fijo para evitar que el cuerpo pase debajo.
+    val fixedHeadingSpace = (insets.calculateTopPadding() + 60.dp) * effects.headerAlpha
     val implement = model.axes.firstOrNull { it.axis == "implement" }?.options.orEmpty()
     val config = model.axes.filter { it.axis != "implement" }
     val footer = exerciseFichaFooter(model.context, model.isSelected, showFooter)?.let { default -> model.selectionLabel ?: default }
@@ -219,7 +221,12 @@ internal fun ExerciseFichaContent(
             .semantics { paneTitle = model.name }
             .testTag(if (wizard) "setup-exercise-info" else "exercise-ficha"),
     ) {
-        Column(Modifier.fillMaxSize().verticalScroll(scroll).testTag("exercise-ficha-scroll")) {
+        Column(
+            Modifier.fillMaxSize()
+                .padding(top = fixedHeadingSpace)
+                .verticalScroll(scroll)
+                .testTag("exercise-ficha-scroll"),
+        ) {
             if (hasHero) {
                 Box(Modifier.fillMaxWidth().height(heroHeight - 80.dp)) {
                     Box(

@@ -30,3 +30,11 @@
 | Nuevo | **Defecto** | En la tarjeta de descanso (`rest-card`, `rest-track-card`), la línea «Plan de sesión · 3:00» queda cortada entre «Última serie» y «Siguiente». Viola la ley 1 (nada se corta ni se solapa). Puede agravarse por el alto del emulador. |
 
 **Destino:** B1, la tarjeta de descanso y el margen del tercio inferior entran en el paquete LV-A (`PLAN_IMPLEMENTACION.md`). `voice130` se repite en el teléfono.
+
+## Seguimiento F1 de la ficha de catálogo (23-oct-2026)
+
+La captura C:\kw\shots\screens-v2-final-emu-20261023-c3\F1-cues-1792757772026551400.png muestra «Press Militar» fijo en [60,169][408,240] y «Tu historial» en [114,181][900,252]. El título fijo se dibujaba sobre el contenido del ScrollView al bajar la ficha; el fondo semitransparente dejaba ambos textos legibles a la vez. Este es el F1 de la ficha de catálogo y se registra aparte de B1, que describe la transición de título/subtítulo de la ficha en vivo.
+
+La ficha ahora reserva progresivamente en el viewport desplazable el alto del encabezado fijo según aparece, incluido el inset superior. El historial y el resto del cuerpo empiezan debajo del título sin tapar contenido; la lista conserva su scroll y los controles existentes. LiveFichaHeadingRegressionTest comprueba que «Tu historial» queda debajo del encabezado en 740/880 dp y 100/130 % de escala, y que cerrar/añadir conservan áreas táctiles de al menos 48 × 48 dp.
+
+El cambio está implementado en u19. No se ejecutó Gradle/JVM ni se hizo una nueva comprobación en emulador o teléfono; la evidencia visual descrita es la captura anterior.
