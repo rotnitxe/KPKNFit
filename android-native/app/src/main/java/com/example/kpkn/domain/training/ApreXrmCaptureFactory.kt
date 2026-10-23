@@ -29,6 +29,7 @@ fun captureApreXrm(
     val block = resolveLiveApreBlock(exercise, sourceProtocolId, hasApreProgression) ?: return null
     if (index != block.fourthIndex || completed.skipped || completed.isWarmup ||
         completed.performedPurpose() != SetPurpose.AMRAP || completed.reps < 0 ||
+        completed.amrapMinimumReps?.let { it != block.variant.xrmReps } == true ||
         !incrementKg.isFinite() || incrementKg <= 0.0) return null
     val context = contextOverride ?: plannedApreContext(exercise, exercise.sets[index], completed.side, completed)
     if (context.loadMode !in setOf(LoadModeV2.LOAD, LoadModeV2.LASTRE) || context.side != completed.side) return null

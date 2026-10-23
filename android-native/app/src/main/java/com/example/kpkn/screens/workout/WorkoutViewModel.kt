@@ -10,6 +10,10 @@ import com.example.kpkn.data.voice.VoiceState
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.withConfirmedExerciseReferences
+import com.example.kpkn.data.repository.rematerializeExerciseReferences
+import com.example.kpkn.domain.training.ExerciseTrainingMax
+import com.example.kpkn.data.protocols.PlanLoadReferenceKind
 import com.example.kpkn.data.repository.StartWorkoutResult
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
@@ -582,7 +586,7 @@ class WorkoutViewModel(
         },
         refreshLoadSuggestions = { state, exerciseId -> refreshLoadSuggestions(state, onlyExerciseId = exerciseId) },
         refreshCalibrations = { previous, next ->
-            if (previous.calibrationDecisions.isEmpty()) next else withContext(Dispatchers.IO) {
+            if (!needsCorrectedCalibrationRefresh(previous) && !needsCorrectedCalibrationRefresh(next)) next else withContext(Dispatchers.IO) {
                 refreshCorrectedCalibrations(previous, next, repository.history.value,
                     inventory = repository.settings.value.resolvedEquipmentInventory()) { sourceId ->
                     repository.calibrationDecisions.accepted(System.currentTimeMillis(), sourceId)
@@ -3158,6 +3162,11 @@ class WorkoutViewModel(
     }
 
     fun updateExerciseDefinition(exerciseId: String, persistToProgram: Boolean = false, transform: (Exercise) -> Exercise) {
+        updateExerciseDefinitionConfirmed(exerciseId, persistToProgram, transform, persistReferences = true)
+    }
+
+    private fun updateExerciseDefinitionConfirmed(exerciseId: String, persistToProgram: Boolean,
+        transform: (Exercise) -> Exercise, persistReferences: Boolean) {
         val state = _uiState.value
         val base = state.session ?: return
         val previous = sessionForActiveMode(base, state.activeMode).allExercises().firstOrNull { it.id == exerciseId }
@@ -3167,8 +3176,27 @@ class WorkoutViewModel(
             }
         }
         if (updatedSession == base) return
-        applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = persistToProgram)
         val next = sessionForActiveMode(updatedSession, state.activeMode).allExercises().firstOrNull { it.id == exerciseId }
+        if (persistReferences && repository.getProgramById(programId) != null && previous != null && next != null &&
+            (previous.referenceTrainingMax != next.referenceTrainingMax || previous.reference1RM != next.reference1RM)) {
+            // This boundary is invoked after the sheet's Confirmar cambios, never from its cancellable draft.
+            viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                try {
+                    val saved = repository.mutateProgramNow(programId) { program ->
+                        repository.withConfirmedExerciseReferences(program, program, listOf(next), System.currentTimeMillis(),
+                            "live-reference:${java.util.UUID.randomUUID()}", "Referencia confirmada en entrenamiento")
+                    }
+                    if (saved) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        updateExerciseDefinitionConfirmed(exerciseId, persistToProgram, { next }, persistReferences = false)
+                    } else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { showWorkoutToast("No se pudo guardar la referencia del programa. Se conservó la anterior.") }
+                } catch (failure: Exception) {
+                    if (failure is kotlinx.coroutines.CancellationException) throw failure
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { showWorkoutToast("No se pudo guardar la referencia del programa. Se conservó la anterior.") }
+                }
+            }
+            return
+        }
+        applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = persistToProgram)
         if (previous != null && next != null && previous.isEffectivelyUnilateral() != next.isEffectivelyUnilateral()) {
             val toUnilateral = next.isEffectivelyUnilateral()
             updateUiState {
@@ -3194,6 +3222,44 @@ class WorkoutViewModel(
                 )
             }
             persistOngoingState()
+        }
+    }
+
+    /** Pure list for preparation: only missing TM references required by this session. */
+    fun missingTrainingMaxes(session: Session): List<ExerciseTrainingMax.Missing> =
+        ExerciseTrainingMax.missing(repository.getProgramById(programId), session)
+
+    fun confirmTrainingMax(exerciseId: String, kg: Double) {
+        if (!kg.isFinite() || kg <= 0.0) return
+        val state = _uiState.value
+        val base = state.session ?: return
+        val exercise = sessionForActiveMode(base, state.activeMode).allExercises().firstOrNull { it.id == exerciseId } ?: return
+        if (repository.getProgramById(programId) == null) {
+            sessionWithConfirmedTrainingMax(state, null, exercise, kg)?.let {
+                applySessionMutation(it, preferredExerciseId = exerciseId)
+            }
+            return
+        }
+        // Save first; only a successful durable update changes the live session and clears the preparation request.
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val saved = repository.mutateProgramNow(programId) { program ->
+                    val captured = ExerciseTrainingMax.capture(program, exercise, PlanLoadReferenceKind.EXERCISE_TM,
+                        kg, System.currentTimeMillis(), "preparation:${java.util.UUID.randomUUID()}", "TM confirmado en la preparación")
+                    repository.rematerializeExerciseReferences(captured)
+                }
+                if (saved) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    val current = _uiState.value
+                    if(current.startTimeMs != state.startTimeMs || current.session?.id != state.session?.id)
+                        return@withContext
+                    sessionWithConfirmedTrainingMax(current, repository.getProgramById(programId), exercise, kg)?.let {
+                        applySessionMutation(it, preferredExerciseId = exerciseId)
+                    }
+                } else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { showWorkoutToast("No se pudo guardar el TM. Tu referencia anterior se conserva.") }
+            } catch (failure: Exception) {
+                if (failure is kotlinx.coroutines.CancellationException) throw failure
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { showWorkoutToast("No se pudo guardar el TM. Tu referencia anterior se conserva.") }
+            }
         }
     }
 

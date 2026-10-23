@@ -182,3 +182,32 @@ Guía android-emulator-qa leída. La QA sigue pendiente: no se usó adb ni se in
 ### Autonomía y cierre ED-C · 23-oct-2026
 
 El usuario se va a dormir y autoriza tomar decisiones autónomas para completar el proyecto sin pausar esperando respuesta. Se documentan las decisiones, se preservan WIP y datos personales y no se amplía el esquema congelado ni se hace push. ED-C integrado en9d6d11730 y migración de dos pruebas en521f14c38:78 casos únicos verdes (72/0 en primera corrida,6/0 en segunda); wrappers cerrados. Siguiente CAT-A, G1 adaptado y ED-A adicional, después regresión JVM y fase4. No hay QA ni APK de esta continuación.
+
+
+### Paralelismo preparatorio y CAT-A · 23-oct
+
+Por autonomía explícita del usuario se adelanta fase4 en bases provisionales acc75872c mientras se valida fase3: u19/codex/sv2-catb(SolMedium),u20/codex/sv2-cal4v(principal),u21/codex/sv2-cal5b(SolMedium),u22/codex/sv2-plan-obs(Luna6Max). Antes de validar o integrar esas ramas se actualizarán con feat/screens-v2 de fase3 completa y verde. No cambia el orden de integración ni la única corrida propia. CAT-A ya suma70casos únicos/0 (66base+4geometría real), wrappers cerrados; el recorte E4 era del arnés1000→880 y las acciones reales se verificaron. Siguiente G1adaptado0ac8bd0e6, ED-A7114b5872 y regresión JVM.
+
+
+### Hito fase3 · 23-oct 04:42
+
+Fusiones u13/u12/u14/u17/u18/u15/u16 y cierre ED-A integrados; fuente2e14b0700, HEAD documental60caa0b4a. Regresión dirigida verde:1936JVM(185clases)+169Android(15)+173Android(15),2278casos en3corridas, wrappers exit0. Evidencia archivada, detalle INT-1.md. Barrido ampliado final de workout/sessioneditor pendiente tras fase4 y antes de QA. Roomv30 sin cambios data/db/schema.
+
+Siguiente: actualizar bases de fase4 desde este hito, integrar/validar CAT-B(u19d28b4d2cf), CAL4-V(u201f235265c, condurabilidadu29ycanalu28integrados), CAL5b(u21f8068e5f4), PLAN-OBS(u22cc35b9388), CAL7(u23,21recorridosRoompreparados y ajuste deesperadelogencurso). Todos esos paquetes siguen sin ejecutar. Después regresión ampliada, QA ZFlip5_QA5580 y APK. Firma sólo orquestador, sin push/master ni paquetes personales.
+
+
+### CAT-B integrado y verificado ·23-oct
+
+Basefase3 incorporada; merge5b4a6e842 y corrección64de531b5/b2d37d0ec del ID técnico expuesto en descripción confirmada. Android inicial13clases80/0; tras ajuste3clases27/0; JVM MOT3clases26/0. Tres wrappers exit0 y XML archivados. Revisados4renders iniciales y3nuevos E7/F1/F2 (CAT-B.md/INT-4.md). Siguiente CAL4-Vu20@992a9bbee, después CAL5bu21@d13139a31, PLAN-OBSu22@4e9b42ce8 y CAL7actualizado. Bases preparatorias APRE/TM/relator resueltas; aún sin ejecución de esos paquetes. QA/APK pendientes, Roomv30 congelado, sin push/master.
+
+
+### CAL4-V cerrado de forma dirigida · 23-oct
+
+APRE integrado y corregido: identidad de día entre semanas (80613d630) y capturas legacy antes del cálculo (420acaf4c, dependencia compartida de TM). Compilación corregida en0497b9f68/94aaf1865. JVM:193 clases/1989 casos en completa,1988 correctos y un fixture nuevo inválido; corregido en66993303c y repetido1/1. Son1989 únicos verdes con la misma producción, no una corrida completa final verde. Android final int-apre-android-codex-20261023-2.log:14clases201/0, BUILD8min11s, wrapper exit0. XML archivados y3renders APRE3/6/10 revisados. Detalle CAL4-V.md e INT-4.md.
+
+Siguiente: integrar resto TM desdeu21@3b5eedab0 (incluye arreglo compartido ya trasladado; preflight previo limpio), PLAN-OBSu22@4e9b42ce8 y CAL7u23@6cad6e0d0 actualizado con toda fase4. El filtro puro final añade domain/relator/** con su fixture, además de training/workout/calibration/protocols/MOT. Barrido322 clases workout/editor y externos, QA emulador5580/teléfono y APK siguen pendientes. Roomv30 sin cambios; firma sólo orquestador, sin push/master.
+
+
+### CAL5b: núcleo verde, omisión de militar en revisión ·23-oct07:08
+
+Fuente6eb44c9d3. Pure2:11clases135/0; Android2:14clases144/0, BUILD8min56s, wrappers exit0 y XML archivados. Se corrigen bases derivadas180 frente a perfil189 sin cambiar132,3 esperado, y fallo durable/retry; detalle INT-CAL5B/INT-4. Revisión de3renders nuevos encontró TrainingMaxWizard todavía limitado a3levantamientos al habilitar guardar/resumir; C3 lo corrige enu21 con caso sólo militar antes de cerrarCAL5b. PLAN-OBS enu22 alinea incremento material APRE validado en captura/nota/propuesta (155×17APRE10,5kg→160). CAL7u23@6cad6e0d0 pendiente actualizar/ejecutar tras núcleo completo. No corrida propia activa en este instante. QA_FINAL preparado sin afirmar resultados:70HTML funcionales, entrada71Div sin HTML. Barrido final por lotes≤15 con tests frescos y externos afectados, QA5580/teléfono y APK siguen pendientes. Sin Room/push/master ni firma de distribución.

@@ -1406,6 +1406,43 @@ class ProgramDetailViewModel(
             "Esta sesión no tiene una sesión equivalente en la receta (la creaste tú o cambió de día); se conserva tu edición."
     }
 
+    /** Confirma una referencia global exacta y su prescripción pendiente en una única mutación durable. */
+    fun updateExerciseTrainingMax(exerciseId: String, kg: Double) {
+        viewModelScope.launch {
+            val result = updateExerciseTrainingMaxAndAwait(exerciseId, kg)
+            _uiState.update { it.copy(snackbarMessage = if(result.isSuccess) "TM actualizado" else "No se pudo guardar el TM. El plan se conservó.") }
+        }
+    }
+
+    /** The editor retains its draft until this durable result succeeds. */
+    suspend fun updateExerciseTrainingMaxAndAwait(exerciseId: String, kg: Double): Result<Unit> =
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                require(kg.isFinite() && kg > 0.0)
+                val saved = repository.mutateProgramNow(programId) { current ->
+                    val exercise = com.example.kpkn.domain.training.ExerciseTrainingMax.exercises(current)
+                        .firstOrNull { it.id == exerciseId } ?: return@mutateProgramNow null
+                    val captured = com.example.kpkn.domain.training.ExerciseTrainingMax.capture(current, exercise,
+                        com.example.kpkn.data.protocols.PlanLoadReferenceKind.EXERCISE_TM, kg, System.currentTimeMillis(),
+                        "detail:${java.util.UUID.randomUUID()}", "TM confirmado en el detalle")
+                    val recipe = captured.sourceRecipe
+                    if (recipe == null) {
+                        val evidence = repository.executedTrainingEvidence(captured)
+                        com.example.kpkn.domain.training.ExerciseTrainingMax.refreshPending(captured, evidence.weekIds, evidence.sessionIds)
+                    } else {
+                        val rebuilt = rematerializeWithEvidence(captured, recipe, onlyPendingBlocks = false)
+                        check(!rebuilt.failed) { "No se pudo recalcular el plan" }
+                        rebuilt.program
+                    }
+                }
+                check(saved) { "No se pudo guardar el TM" }
+                Result.success(Unit)
+            } catch (failure: Exception) {
+                if (failure is CancellationException) throw failure
+                Result.failure(failure)
+            }
+        }
+
     /**
      * «Guardar TM» (R-04). El asistente solo edita los 1RM y devuelve un perfil nuevo; se fusiona con el
      * que tiene el programa ([TrainingMaxMerge]: conserva las variantes y los TM ajustados de los
@@ -1414,11 +1451,10 @@ class ProgramDetailViewModel(
      * conservan tal cual (evidencia real del repositorio). El aviso dice cuántas semanas se recalcularon
      * y cuántas se dejaron intactas. Sin receta solo se guarda el perfil.
      *
-     * Si las semanas no se pueden reconstruir (p. ej. sin metadatos del catálogo) el TM se guarda igual
-     * y los bloques de la receta quedan pendientes: el botón RE-MATERIALIZAR aplica las cargas nuevas.
+     * Si la reconstrucción falla, la mutación no guarda una referencia nueva sobre una prescripción vieja.
      */
     fun updatePowerliftingProfile(profile: com.example.kpkn.data.models.PowerliftingProfile) {
-        viewModelScope.launch {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             var rebuild: Rematerialization? = null
             val outcome = runCatching {
                 repository.mutateProgramNow(programId) { current ->
@@ -1428,11 +1464,14 @@ class ProgramDetailViewModel(
                         new = profile,
                         trainingMaxPercent = TrainingMaxMerge.trainingMaxPercentOf(current),
                     )
-                    val withProfile = current.copy(powerliftingProfile = merged)
+                    val withProfile = com.example.kpkn.domain.training.ExerciseTrainingMax.syncProfile(current,
+                        current.copy(powerliftingProfile = merged), System.currentTimeMillis(),
+                        "profile:${java.util.UUID.randomUUID()}", "Máximos confirmados en el detalle", "MANUAL")
                     val recipe = current.sourceRecipe ?: return@mutateProgramNow withProfile
                     val rebuilt = rematerializeWithEvidence(withProfile, recipe, onlyPendingBlocks = false)
                     rebuild = rebuilt
-                    if (rebuilt.failed) withPendingRecipeBlocks(withProfile, recipe) else rebuilt.program
+                    check(!rebuilt.failed) { "No se pudo recalcular el plan; se conserva la referencia anterior" }
+                    rebuilt.program
                 }
             }
             val error = outcome.exceptionOrNull()
@@ -1442,29 +1481,45 @@ class ProgramDetailViewModel(
             } else {
                 savedMessageFor(rebuild)
             }
-            _uiState.update { it.copy(snackbarMessage = message) }
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { _uiState.update { it.copy(snackbarMessage = message) } }
         }
     }
 
     private fun savedMessageFor(rebuild: Rematerialization?): String = when {
         rebuild == null -> "TM actualizado"
-        rebuild.failed -> "TM actualizado. Las cargas nuevas se aplican al pulsar «Re-materializar»."
+        rebuild.failed -> "No se pudo recalcular el plan. Se conservó el TM anterior."
         else -> trainingMaxSavedMessage(rebuild.recalculatedWeeks, rebuild.preservedWeeks)
     }
 
     fun rematerializePending() {
-        val current = program.value ?: return
-        val recipe = current.sourceRecipe ?: return
-        val rebuilt = rematerializeWithEvidence(current, recipe, onlyPendingBlocks = true)
-        if (rebuilt.failed) {
-            // Empieza por «No se pudo»: así la pantalla lo pinta como fallo (`snackbarTypeFor`).
-            _uiState.update {
-                it.copy(snackbarMessage = "No se pudo recalcular lo pendiente del plan. El plan y el historial se conservaron.")
-            }
-            return
+        viewModelScope.launch {
+            val result = rematerializePendingAndAwait()
+            if (result.isFailure) _uiState.update { it.copy(snackbarMessage =
+                "No se pudo recalcular lo pendiente del plan. El plan y el historial se conservaron.") }
         }
-        updateProgram(rebuilt.program)
     }
+
+    /** Success means both the pending prescriptions and their references have reached durable storage. */
+    internal suspend fun rematerializePendingAndAwait(): Result<Unit> =
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val saved = repository.mutateProgramNow(programId) { current ->
+                    val recipe = current.sourceRecipe ?: return@mutateProgramNow current
+                    if (current.macrocycles.flatMap { it.blocks }.none { it.materializationPending }) return@mutateProgramNow current
+                    val synchronized = com.example.kpkn.domain.training.ExerciseTrainingMax.syncProfile(
+                        current, current, System.currentTimeMillis(), "pending:${java.util.UUID.randomUUID()}",
+                        "Base derivada del perfil al recalcular el plan pendiente", reconcileDerived = true)
+                    val rebuilt = rematerializeWithEvidence(synchronized, recipe, onlyPendingBlocks = true)
+                    check(!rebuilt.failed) { "No se pudo recalcular el plan pendiente" }
+                    rebuilt.program
+                }
+                check(saved) { "No se pudo guardar el plan recalculado" }
+                Result.success(Unit)
+            } catch (failure: Exception) {
+                if (failure is CancellationException) throw failure
+                Result.failure(failure)
+            }
+        }
 
     /**
      * Reconstruye con la receta las semanas de [program] que quedan por entrenar. Con
@@ -1522,17 +1577,6 @@ class ProgramDetailViewModel(
         }
     }
 
-    /** Deja pendientes de materializar los bloques de [recipe]: el TM ya está guardado y RE-MATERIALIZAR lo aplica. */
-    private fun withPendingRecipeBlocks(program: Program, recipe: TrainingPlanRecipe): Program =
-        program.copy(
-            macrocycles = program.macrocycles.map { macro ->
-                macro.copy(
-                    blocks = macro.blocks.map { block ->
-                        if (block.sourceDefinitionId == recipe.id) block.copy(materializationPending = true) else block
-                    },
-                )
-            },
-        )
 
     /**
      * Registros de este programa para las puertas de bloque (descarga y test de 1RM). Se leen de la
@@ -1607,27 +1651,43 @@ class ProgramDetailViewModel(
 
     /** Guarda los 1RM del test de los levantamientos del programa ([values], en kg) y avanza el cursor (R-19). */
     fun recordPendingOneRmTestMarks(values: Map<com.example.kpkn.data.protocols.LiftSlot, Double>) {
-        val current = program.value ?: return
-        val result = ProgramProgressEngine.resolvePendingOneRmTest(
-            program = current,
-            activeState = activeProgramState.value?.takeIf { it.programId == current.id },
-            resolution = com.example.kpkn.domain.training.OneRmTestPlan.recorded(values),
-            logs = currentProgramLogs(),
-            inventory = currentEquipmentInventory(),
-        )
-        if (result.program == current) return
-        val recipe = result.program.sourceRecipe
-        val profileChanged = result.program.powerliftingProfile != current.powerliftingProfile
-        val rebuilt = if (recipe != null && profileChanged) {
-            rematerializeWithEvidence(result.program, recipe, onlyPendingBlocks = false)
-        } else {
-            null
-        }
-        updateProgram(rebuilt?.takeUnless { it.failed }?.program ?: result.program)
-        result.activeState?.let(repository::updateActiveProgramState)
-        _blockTransitionBanner.value = null
-        if (profileChanged) {
-            _uiState.update { it.copy(snackbarMessage = "1RM registrado. ${savedMessageFor(rebuilt)}") }
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            var rebuilt: Rematerialization? = null
+            var active: ActiveProgramState? = null
+            try {
+                val saved = repository.mutateProgramNow(programId) { current ->
+                    if (current.runState?.pendingAction?.type != com.example.kpkn.data.models.PendingProgramActionType.CONFIRM_1RM_TEST)
+                        return@mutateProgramNow null
+                    val result = ProgramProgressEngine.resolvePendingOneRmTest(
+                        program = current,
+                        activeState = activeProgramState.value?.takeIf { it.programId == current.id },
+                        resolution = com.example.kpkn.domain.training.OneRmTestPlan.recorded(values),
+                        logs = currentProgramLogs(), inventory = currentEquipmentInventory(),
+                    )
+                    if (result.program == current) return@mutateProgramNow null
+                    val confirmed = result.program
+                    val recipe = confirmed.sourceRecipe
+                    val next = if (recipe != null) {
+                        rematerializeWithEvidence(confirmed, recipe, onlyPendingBlocks = false).also {
+                            rebuilt = it
+                            check(!it.failed) { "No se pudo recalcular el plan" }
+                        }.program
+                    } else confirmed
+                    active = result.activeState
+                    next
+                }
+                check(saved) { "No se pudo guardar el test" }
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    active?.let(repository::updateActiveProgramState)
+                    _blockTransitionBanner.value = null
+                    _uiState.update { it.copy(snackbarMessage = "1RM registrado. ${savedMessageFor(rebuilt)}") }
+                }
+            } catch (failure: Exception) {
+                if (failure is CancellationException) throw failure
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    _uiState.update { it.copy(snackbarMessage = "No se pudo guardar el test de 1RM. El plan, las referencias y el test pendiente se conservaron.") }
+                }
+            }
         }
     }
 

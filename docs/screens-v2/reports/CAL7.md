@@ -2,9 +2,9 @@
 
 ## Estado y límites
 
-Preparación en `C:/kw/u23`, rama `codex/sv2-cal7`, sobre una base provisional pendiente de refrescar al SHA verde de Fase 3. El alcance de este cambio es pruebas e informe: no modifica código de producción, Room, entidades, DAO ni esquemas. **No se ejecutó Gradle, JVM ni adb; todos los resultados quedan pendientes de la corrida central sobre el SHA verde.**
+Preparación en `C:/kw/u23`, rama `codex/sv2-cal7`, refrescada con `u11@37a03e127` (núcleo APRE/TM/PLAN-OBS). Según el estado comunicado por raíz, el núcleo compila y 13/17 pruebas Android están verdes; cuatro fallos de geometría TM siguen en corrección C3 y son independientes de CAL7. El alcance de este cambio es pruebas e informe: no modifica código de producción, Room, entidades, DAO ni esquemas. **Los 21 recorridos CAL7 no se ejecutaron en Gradle, JVM ni adb; siguen pendientes de la corrida central.**
 
-La suite preparada reúne 21 recorridos end-to-end con Room en memoria: cuatro ya existentes y 17 añadidos en esta preparación. Se usan Robolectric, repositorio/ViewModels y cierres reales; ningún log de entrenamiento se fabrica en memoria de prueba ni se sustituye por un helper aislado.
+La suite preparada reúne 21 recorridos end-to-end con Room en memoria: 3 sesiones libres, 1 de 1RM, 12 programas publicados y 5 APRE manuales, cíclicos o de variante B. Se usan Robolectric, repositorio/ViewModels y cierres reales; ningún log de entrenamiento se fabrica en memoria de prueba ni se sustituye por un helper aislado.
 
 ## Sesiones libres y 1RM
 
@@ -28,9 +28,9 @@ El quinto activa B desde `WorkoutViewModel.setActiveMode` sobre una sesión base
 
 ## Hallazgos y dependencias de integración
 
-- Luna informó que el canal de producción u28 ya corrige los hallazgos APRE encontrados en revisión: evaluación S4 al cerrar un ciclo simple, recolección APRE en variantes B/C/D y cierre de B con la identidad base A del log. Queda pendiente revisar esos cambios y validarlos contra el SHA verde; esta preparación solo aporta recorridos de regresión.
-- El recorrido 1RM conserva aserciones para pool sincronizado y rechazo seguro si falla la reconstrucción. La preparación no sustituye la corrección CAL5b ni acredita que esté presente en el SHA verde.
-- La API APRE manual, las propuestas tipadas y la corrección de identidad de sesión B aún deben estar en la base verde antes de compilar esta suite.
+- La base refrescada `u11@37a03e127` contiene las correcciones APRE revisadas: evaluación S4 al cerrar un ciclo simple, recolección APRE en variantes B/C/D y cierre de B con identidad base A en el log. CAL7 aporta regresiones reales para el ciclo simple y la variante B; aún falta ejecutar esta suite.
+- El recorrido 1RM conserva aserciones para pool sincronizado y rechazo seguro si falla la reconstrucción. La corrección CAL5b está en la base refrescada; su comportamiento en este recorrido sigue pendiente de ejecución.
+- La API APRE manual, las propuestas tipadas y la identidad de sesión B ya están en la base refrescada; su compatibilidad está revisada estáticamente, pero la suite CAL7 aún no se ha compilado ni ejecutado.
 
 ## Evidencia
 

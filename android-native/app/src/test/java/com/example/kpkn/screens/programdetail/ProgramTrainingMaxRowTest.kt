@@ -7,6 +7,11 @@ import org.junit.Test
 /** La fila de máximos de Propuestas: «Añadir» cuando el programa usa TM y no hay ninguno; nada cuando no lo usa. */
 class ProgramTrainingMaxRowTest {
 
+    @Test fun overheadTmIsVisibleEvenWhenItIsTheOnlyStoredLift() {
+        assertEquals(TrainingMaxRow.Value("TM: press militar 72 kg"),
+            trainingMaxRowOf(usesTm = true, profile = PowerliftingProfile(overheadTM = 72.0)))
+    }
+
     @Test
     fun `a program that uses TM with no max set offers adding them`() {
         assertEquals(TrainingMaxRow.Unset, trainingMaxRowOf(usesTm = true, profile = null))

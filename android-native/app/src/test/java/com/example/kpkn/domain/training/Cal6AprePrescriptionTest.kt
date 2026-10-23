@@ -15,8 +15,10 @@ import com.example.kpkn.domain.training.Cal5TestSupport.exerciseLog
 import com.example.kpkn.domain.training.Cal5TestSupport.exerciseOf
 import com.example.kpkn.domain.training.Cal5TestSupport.recipeOf
 import com.example.kpkn.domain.training.Cal5TestSupport.weeksOf
+import com.example.kpkn.domain.sessionassistant.transformExercisesFlat
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
@@ -194,65 +196,113 @@ class Cal6AprePrescriptionTest {
     }
 
     @Test
-    fun the_series_4_proposes_the_xrm_of_next_week_and_the_next_week_uses_it() {
+    fun the_real_series_4_proposes_a_physical_xrm_and_rematerialization_reuses_it() {
         val profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0)
         val program = Cal5TestSupport.materialize(recipe, AutoregulationMode.AUTO, profile, id = "apre")
         val weeks = weeksOf(program)
         val week1 = weeks.first()
         val squatDay = week1.sessions.first()
         val t1 = exerciseOf(squatDay, CatalogIds.SQ_LOW)
-        // Semana 1 (APRE 10): el 10RM de sentadilla es el 75 % del 1RM = 150 kg en las dos series al máximo.
+        val targetBefore = exerciseOf(weeks[1].sessions.first(), CatalogIds.SQ_LOW)
+        assertNotEquals("cada semana conserva una ocurrencia propia", t1.id, targetBefore.id)
+        assertEquals("apre-squat", t1.recipeDayId)
+        assertEquals(t1.recipeDayId, targetBefore.recipeDayId)
+        assertEquals("t1", t1.recipeSlotId)
+        assertEquals(t1.recipeSlotId, targetBefore.recipeSlotId)
         assertEquals(150.0, t1.sets[2].weight!!, 1e-6)
         assertEquals(150.0, t1.sets[3].weight!!, 1e-6)
 
-        // Serie 3: 12 repeticiones con 150 → la serie 4 va a 155 (+2,5 %). Serie 4: 17 repeticiones con 155 → XRM de la semana siguiente 162,5.
         assertEquals(155.0, Apre.set4LoadKg(150.0, 12, ApreVariant.APRE_10), 1e-9)
         val log = exerciseLog(
             program, week1, squatDay, t1,
             weightOf = { index, planned -> if (index == 3) 155.0 else planned.weight },
             repsOf = { index, planned -> when (index) { 2 -> 12; 3 -> 17; else -> planned.targetReps ?: 10 } },
         )
-        val proposals = ProgramAutoregulationEngine.evaluate(
+        val proposal = ProgramAutoregulationEngine.evaluate(
             program, week1, listOf(log), recipe, WeeklyAutoregulationSignals(readinessScore = 80),
-        ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
-        val proposal = proposals.single()
-        assertEquals("SQUAT", proposal.liftSlot)
-        assertEquals("162,5 sobre los 150 kg prescritos: +8,33 %", (162.5 / 150.0 - 1.0) * 100.0, proposal.percentDelta!!, 1e-6)
-        assertTrue(proposal.explanation, proposal.explanation.contains("tu 10RM de la semana próxima es 162,5 kg"))
+        ).single { it.kind == AutoregulationProposalKind.ADJUST_XRM }
+
+        assertNull(proposal.liftSlot)
+        assertNull(proposal.percentDelta)
+        assertNull(proposal.kgDelta)
+        assertEquals(162.5, proposal.apreXrm!!.reference.capturedLoadKg!!, 1e-6)
+        assertNull("el fixture no conoce hora de captura", proposal.apreXrm.reference.capturedAtMs)
+        assertTrue(proposal.explanation, proposal.explanation.contains("10RM 162,5 kg para la próxima semana"))
 
         val applied = ProgramAutoregulationEngine.apply(
-            program, weeks[1].id, proposals, recipe, setOf(week1.id), CatalogCompositionTestSupport.metadata,
+            program, weeks[1].id, listOf(proposal), recipe, setOf(week1.id), CatalogCompositionTestSupport.metadata,
         )
         assertTrue(applied.applied)
-        // La semana 2 (APRE 10) parte del XRM propuesto: sus dos series al máximo van a 162,5 kg.
-        val nextWeekSquat = exerciseOf(weeksOf(applied.program)[1].sessions.first(), CatalogIds.SQ_LOW)
+        assertEquals("XRM no modifica perfil ni TM", program.powerliftingProfile, applied.program.powerliftingProfile)
+        val nextWeek = weeksOf(applied.program)[1]
+        val nextWeekSquat = exerciseOf(nextWeek.sessions.first(), CatalogIds.SQ_LOW)
         assertEquals(162.5, nextWeekSquat.sets[2].weight!!, 1e-6)
         assertEquals(162.5, nextWeekSquat.sets[3].weight!!, 1e-6)
-        // La serie 1 sigue al 50 % del XRM nuevo.
-        assertEquals(81.25, nextWeekSquat.sets[0].weight!!, 1e-6)
+        assertEquals(82.5, nextWeekSquat.sets[0].weight!!, 1e-6)
+        assertEquals(122.5, nextWeekSquat.sets[1].weight!!, 1e-6)
+
+        val rematerialized = PlanMaterializer.rematerializeWeek(
+            program = applied.program,
+            weekId = nextWeek.id,
+            recipe = recipe,
+            metadata = CatalogCompositionTestSupport.metadata,
+            idProvider = Cal5TestSupport.SeqIds(),
+            executedWeekIds = setOf(week1.id),
+        )
+        val rematerializedSquat = exerciseOf(weeksOf(rematerialized)[1].sessions.first(), CatalogIds.SQ_LOW)
+        assertEquals("la bolsa mantiene el XRM después de materializar", 162.5, rematerializedSquat.sets[3].weight!!, 1e-6)
     }
 
     @Test
-    fun only_the_last_amrap_of_the_exercise_proposes_and_the_modes_are_respected() {
+    fun only_a_real_series_4_from_an_apre_block_proposes_and_modes_are_respected() {
         val profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0)
-        // Una serie 3 sola (no es la última AMRAP del ejercicio) no genera ninguna propuesta de XRM.
-        val set3Only = AmrapHit(LiftSlot.SQUAT, 81.52, prescribedReps = 10, actualReps = 17, weightKg = 150.0, isLastAmrapOfExercise = false)
         val propose = Cal5TestSupport.materialize(recipe, AutoregulationMode.PROPOSE, profile, id = "apre-p")
         val week = weeksOf(propose).first()
-        assertTrue(
-            ProgramAutoregulationEngine.evaluate(propose, week, emptyList(), recipe, WeeklyAutoregulationSignals(amrapHits = listOf(set3Only), readinessScore = 80))
-                .none { it.kind == AutoregulationProposalKind.ADJUST_TM },
+        val session = week.sessions.first()
+        val exercise = exerciseOf(session, CatalogIds.SQ_LOW)
+        val log = exerciseLog(
+            propose, week, session, exercise,
+            weightOf = { index, planned -> if (index == 3) 155.0 else planned.weight },
+            repsOf = { index, planned -> when (index) { 2 -> 12; 3 -> 17; else -> planned.targetReps ?: 10 } },
         )
-        val set4 = set3Only.copy(isLastAmrapOfExercise = true, weightKg = 155.0)
-        val signals = WeeklyAutoregulationSignals(amrapHits = listOf(set4), readinessScore = 80)
-        assertTrue(ProgramAutoregulationEngine.evaluate(Cal5TestSupport.materialize(recipe, AutoregulationMode.OFF, profile, "apre-o"), week, emptyList(), recipe, signals).isEmpty())
-        val proposals = ProgramAutoregulationEngine.evaluate(propose, week, emptyList(), recipe, signals)
-        assertFalse(proposals.isEmpty())
+        val observed = ProgramAutoregulationEngine.evaluate(
+            propose, week, listOf(log), recipe, WeeklyAutoregulationSignals(readinessScore = 80),
+        )
+        assertEquals(listOf(AutoregulationProposalKind.ADJUST_XRM), observed.map { it.kind })
+
+        val thirdOnlySet = log.completedExercises.single().sets[2].copy(id = "solo-s3", setIndex = 2)
+        val thirdOnlyLog = log.copy(
+            completedExercises = listOf(log.completedExercises.single().copy(sets = listOf(thirdOnlySet))),
+        )
+        assertTrue(
+            ProgramAutoregulationEngine.evaluate(propose, week, listOf(thirdOnlyLog), recipe, WeeklyAutoregulationSignals())
+                .none { it.kind == AutoregulationProposalKind.ADJUST_XRM },
+        )
+        assertTrue(
+            ProgramAutoregulationEngine.evaluate(
+                Cal5TestSupport.materialize(recipe, AutoregulationMode.OFF, profile, id = "apre-off"),
+                week, listOf(log), recipe, WeeklyAutoregulationSignals(),
+            ).isEmpty(),
+        )
+
         val pending = ProgramAutoregulationEngine.apply(
-            propose, weeksOf(propose)[1].id, proposals, recipe, setOf(week.id), CatalogCompositionTestSupport.metadata,
+            propose, weeksOf(propose)[1].id, observed, recipe, setOf(week.id), CatalogCompositionTestSupport.metadata,
         )
         assertFalse(pending.applied)
-        assertEquals("PROPONER no toca el TM", 184.0, pending.program.powerliftingProfile!!.squatTM!!, 1e-9)
+        assertEquals(listOf(AutoregulationProposalKind.ADJUST_XRM),
+            pending.program.runState?.pendingAction?.proposals?.map { it.kind })
+        assertTrue("PROPONER no guarda ni aplica la captura", pending.program.exerciseLoadReferences.isEmpty())
+        val unchanged = exerciseOf(weeksOf(pending.program)[1].sessions.first(), CatalogIds.SQ_LOW)
+        assertEquals(150.0, unchanged.sets[3].weight!!, 1e-6)
+
+        val ordinaryAmrap = recipe.copy(progression = ProgressionRule.AmrapDrivenTm())
+        val unmarkedWeek = week.copy(sessions = week.sessions.map { plannedSession ->
+            plannedSession.transformExercisesFlat { it.copy(apreBlock = null) }
+        })
+        val ordinary = ProgramAutoregulationEngine.evaluate(
+            propose, unmarkedWeek, listOf(log), ordinaryAmrap, WeeklyAutoregulationSignals(),
+        )
+        assertTrue("una AMRAP normal no crea XRM", ordinary.none { it.kind == AutoregulationProposalKind.ADJUST_XRM })
     }
 
     @Test

@@ -42,4 +42,13 @@ class TrainingMaxWizardCopyTest {
             assertFalse("«$all» conserva la sigla $abbreviation", all.contains(abbreviation))
         }
     }
+
+    @Test fun thePreviewIncludesOverheadWithoutRequiringCompetitionLifts() {
+        assertEquals(listOf("Press militar · TM 72 kg"),
+            trainingMaxPreviewRows(null, null, null, "kg", overheadTM = 72.0))
+        assertEquals(listOf("Sentadilla · TM 180 kg", "Press de banca · TM 108 kg",
+            "Peso muerto · TM 198 kg", "Press militar · TM 72 kg"),
+            trainingMaxPreviewRows(180.0, 108.0, 198.0, "kg", overheadTM = 72.0))
+    }
+
 }

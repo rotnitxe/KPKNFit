@@ -7,6 +7,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +44,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
@@ -59,6 +63,11 @@ import com.example.kpkn.data.repository.WorkoutMediaRepository
 import com.example.kpkn.domain.exercises.exerciseFichaEffects
 import com.example.kpkn.domain.exercises.exerciseHistorySummary
 import com.example.kpkn.domain.training.NativeProgressionText
+import com.example.kpkn.screens.sessioneditor.design.customExerciseCoverModel
+import com.example.kpkn.ui.components.LocalMediaImage
+import com.example.kpkn.ui.components.rememberLocalMediaImageSource
+import com.example.kpkn.screens.onboarding.design.entreno.plan.PatternGlyph
+import com.example.kpkn.screens.onboarding.design.entreno.plan.exercisePatternOf
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
@@ -146,9 +155,18 @@ internal fun ExerciseFicha(
             } catch (_: Exception) { /* Conserva la última lectura. */ }
         }
     }
+    val coverContext = LocalContext.current
+    var customCover by remember(model.muscleInfo, model.customCover) {
+        mutableStateOf(model.customCover ?: model.muscleInfo?.takeIf { it.isCustom }?.let { com.example.kpkn.screens.sessioneditor.design.CustomCoverModel() })
+    }
+    LaunchedEffect(model.muscleInfo, mediaVersion) {
+        model.muscleInfo?.takeIf { it.isCustom || it.id.startsWith("custom:") }?.let {
+            customCover = customExerciseCoverModel(coverContext, it)
+        }
+    }
     KpknPortal {
         ExerciseFichaContent(
-            model = model.copy(historySummary = resolved, media = media),
+            model = model.copy(historySummary = resolved, media = media, customCover = customCover),
             onDismiss = dismiss,
             onToggleSelection = onToggleSelection,
             onSelectOption = onSelectOption,
@@ -192,7 +210,8 @@ internal fun ExerciseFichaContent(
     val config = model.axes.filter { it.axis != "implement" }
     val footer = exerciseFichaFooter(model.context, model.isSelected, showFooter)?.let { default -> model.selectionLabel ?: default }
     val wizard = model.context == ExerciseFichaContext.WIZARD
-    val hasHero = selectedCatalogImageVariantIndex(model.imageVariants, model.selectedImplementation) != null
+    val catalogHero = selectedCatalogImageVariantIndex(model.imageVariants, model.selectedImplementation) != null
+    val hasHero = model.customCover != null || catalogHero
     val heroHeight = 400.dp
     var knowledge by remember { mutableStateOf<CanonicalKnowledge?>(null) }
     Box(
@@ -214,7 +233,15 @@ internal fun ExerciseFichaContent(
                             .then(if (effects.blurDp > 0f) Modifier.blur(effects.blurDp.dp) else Modifier)
                             .testTag(if (wizard) "setup-exercise-info-image" else "exercise-ficha-photo"),
                     ) {
-                        CatalogExerciseImageCarousel(
+                        val cover = model.customCover
+                        if (cover != null) Box(Modifier.fillMaxWidth().height(heroHeight), contentAlignment = Alignment.Center) {
+                            when {
+                                cover.photoFile != null -> LocalMediaImage(rememberLocalMediaImageSource(cover.photoFile), "Foto privada del ejercicio",
+                                    Modifier.fillMaxSize(), ContentScale.Crop)
+                                cover.imageResId != null -> Image(painterResource(cover.imageResId), "Imagen de referencia", Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+                                else -> PatternGlyph(exercisePatternOf(model.name), SymbolPalette.musculo, Modifier.size(96.dp))
+                            }
+                        } else CatalogExerciseImageCarousel(
                             variants = model.imageVariants,
                             selectedImplementation = model.selectedImplementation,
                             onImplementationSettled = onImplementationSettled,
@@ -249,6 +276,20 @@ internal fun ExerciseFichaContent(
                     model.caption?.takeIf { it.isNotBlank() }?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
                     model.contextLine?.takeIf { it.isNotBlank() }?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
                 }
+                if (!wizard) {
+                    Text(model.customCover?.provenance ?: if (catalogHero) "Imagen técnica del catálogo" else "Sin imagen revisada para esta configuración.",
+                        style = KpknType.caption, color = WizardColors.textMuted, modifier = Modifier.testTag("exercise-ficha-image-provenance"))
+                    model.customCover?.unavailableReason?.let {
+                        Text(it, style = KpknType.caption, color = SymbolPalette.energia, modifier = Modifier.testTag("exercise-ficha-image-abstention"))
+                    }
+                    if (model.muscleInfo?.isCustom == true) {
+                        Text(if (model.muscleInfo.creationReference?.confirmed == true)
+                            "Referencia de creación confirmada; puede incluir ajustes tuyos."
+                            else "Datos propios sin una configuración de referencia confirmada.",
+                            style = KpknType.caption, color = WizardColors.textMuted,
+                            modifier = Modifier.testTag("exercise-ficha-data-provenance"))
+                    }
+                }
                 model.patternId?.let(::canonicalPatternKnowledge)?.let { pattern ->
                     KpknChip(text = "Patrón · ${pattern.name}", selected = false, onClick = { knowledge = pattern })
                 }
@@ -263,6 +304,18 @@ internal fun ExerciseFichaContent(
                 model.description?.takeIf { it.isNotBlank() }?.let { description ->
                     Box(Modifier.testTag(if (wizard) "setup-exercise-info-description" else "exercise-ficha-description")) {
                         CatalogDescription(description)
+                    }
+                }
+                if (model.setupCues.isNotEmpty()) {
+                    Column(Modifier.testTag("exercise-ficha-setup"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("Preparación", style = KpknType.bodyStrong, color = WizardColors.text)
+                        FichaCues(model.setupCues)
+                    }
+                }
+                if (model.executionCues.isNotEmpty()) {
+                    Column(Modifier.testTag("exercise-ficha-execution"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("Ejecución", style = KpknType.bodyStrong, color = WizardColors.text)
+                        FichaCues(model.executionCues)
                     }
                 }
                 if (config.isNotEmpty() || !model.configurationLine.isNullOrBlank()) {

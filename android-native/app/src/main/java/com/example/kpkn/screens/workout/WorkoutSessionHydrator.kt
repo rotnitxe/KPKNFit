@@ -21,6 +21,7 @@ import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler
 import com.example.kpkn.domain.training.ProgramProgressEngine
+import com.example.kpkn.domain.relator.RelatorProgressionContext
 import com.example.kpkn.domain.workout.WorkoutContextRecurrenceEngine
 import com.example.kpkn.domain.workout.WorkoutTagResolver
 import com.example.kpkn.services.workout.ActiveWorkoutHolder
@@ -92,6 +93,7 @@ class WorkoutSessionHydrator(
     )
 
     suspend fun loadSession(): Boolean {
+        repository.mutateProgramNow(programId) { current -> com.example.kpkn.domain.training.ExerciseTrainingMax.migrate(current) }
         val program = repository.getProgramById(programId) ?: return false
         var foundSession: Session? = null
         var foundWeekId = ""
@@ -154,7 +156,7 @@ class WorkoutSessionHydrator(
             active = active,
         )
 
-        val restoredSession = (resumedState?.session ?: session)
+        val restoredSession = com.example.kpkn.domain.training.ExerciseTrainingMax.hydrateSession(program, resumedState?.session ?: session)
             .normalizeMobilityCompatibility()
             .let(ports::normalizeSupersetsForWorkout)
             .let(ports::sanitizeSessionLoadModes)
@@ -666,5 +668,15 @@ internal fun buildLivePlanContext(
         weeksInBlock = weeks.size.takeIf { it > 0 },
         progression = program.sourceRecipe?.progression,
         autoregulationHooks = program.sourceRecipe?.autoregulationHooks.orEmpty(),
+        progressionContext = program.sourceRecipe?.let { recipe ->
+            RelatorProgressionContext(
+                recipe = recipe,
+                sourceProtocolId = program.sourceProtocolId,
+                profile = program.powerliftingProfile,
+                // The run stores no verified frozen-cycle streak or GZCLP close evidence.
+                frozenCyclesBefore = null,
+                tierCheck = null,
+            )
+        },
     )
 }

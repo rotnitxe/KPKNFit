@@ -2,9 +2,19 @@ package com.example.kpkn.domain.relator
 
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.PowerliftingProfile
+import com.example.kpkn.data.models.SetPurpose
+import com.example.kpkn.data.protocols.IncrementScope
+import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.data.protocols.SlotRole
+import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.domain.training.AmrapEffectTiming
+import com.example.kpkn.domain.training.AmrapHit
+import com.example.kpkn.domain.training.AmrapProgramPreview
+import com.example.kpkn.domain.training.ProgramAutoregulationEngine
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -116,6 +126,220 @@ class RelatorPlanAwareTest {
             )
             assertTrue("${rule?.let { it::class.simpleName }}", planLines(ctx).contains(generic))
         }
+    }
+
+    @Test
+    fun juggernaut_line_matches_preview_for_the_just_logged_hit_and_defers_the_tm_change() {
+        val recipe = TrainingPlanRecipe(
+            id = "juggernaut-2",
+            weeks = emptyList(),
+            progression = ProgressionRule.RepsOverStandardTm(),
+        )
+        val profile = PowerliftingProfile(squat1RM = 167.0, squatTM = 150.0)
+        val hit = AmrapHit(LiftSlot.SQUAT, 85.0, prescribedReps = 5, actualReps = 13, weightKg = 127.5)
+        val preview = AmrapProgramPreview.preview(recipe, AutoregulationMode.OFF, profile, hit)
+        val context = relatorContext(protocolId = null, protocolName = null, isAmrap = false).copy(
+            plan = RelatorPlanSlice(
+                progression = recipe.progression,
+                autoregulationMode = AutoregulationMode.OFF,
+                progressionContext = RelatorProgressionContext(
+                    recipe = recipe,
+                    profile = profile,
+                    hit = hit,
+                    liftSlot = LiftSlot.SQUAT,
+                    slotRole = SlotRole.T1_MAIN,
+                    purpose = SetPurpose.AMRAP,
+                ),
+            ),
+        )
+
+        val lines = planLines(context)
+        assertTrue(lines, lines.contains(preview.observerNote!!.text))
+        assertTrue(lines, lines.contains("TM 170 kg"))
+        assertTrue(lines, lines.contains("cerrar la ola"))
+        assertFalse(lines, lines.contains("ya cambió"))
+    }
+
+    @Test
+    fun gzclp_t2_gets_a_conditional_stage_note_even_without_amrap_or_close_evidence() {
+        val recipe = TrainingPlanRecipe(
+            id = "gzclp",
+            weeks = emptyList(),
+            progression = ProgressionRule.StagedVolume(),
+        )
+        val context = relatorContext(protocolId = null, protocolName = null, isAmrap = false).copy(
+            slotRole = SlotRole.T2_SUPPLEMENTAL,
+            plan = RelatorPlanSlice(
+                progression = recipe.progression,
+                autoregulationMode = AutoregulationMode.AUTO,
+                progressionContext = RelatorProgressionContext(
+                    recipe = recipe,
+                    slotRole = SlotRole.T2_SUPPLEMENTAL,
+                    liftSlot = LiftSlot.SQUAT,
+                    plannedVolumeReps = 30,
+                    purpose = SetPurpose.NONE,
+                    tierCheck = null,
+                ),
+            ),
+        )
+
+        val lines = planLines(context)
+        val note = lines.lineSequence().single { it.startsWith("GZCLP T2") }
+        assertTrue(lines, lines.contains("GZCLP T2 E1"))
+        assertTrue(lines, lines.contains("30 reps"))
+        assertTrue(lines, lines.contains("3×8"))
+        assertTrue(note, note.contains("pasa: sigue 3×10"))
+        assertTrue(note, note.contains("falla: 3×8 misma carga al cierre del ciclo"))
+        assertTrue(note, note.length <= 90)
+        assertFalse(lines, lines.contains("completó"))
+    }
+
+    @Test
+    fun gzclp_uses_aggregate_tier_check_instead_of_the_last_amrap_to_claim_a_stage_change() {
+        val recipe = TrainingPlanRecipe(
+            id = "gzclp",
+            weeks = emptyList(),
+            progression = ProgressionRule.StagedVolume(),
+        )
+        val check = ProgramAutoregulationEngine.GzclpTierCheck(
+            liftSlot = LiftSlot.SQUAT,
+            role = SlotRole.T1_MAIN,
+            plannedReps = 15,
+            doneReps = 12,
+            lastSetReps = 7,
+        )
+        val context = relatorContext(protocolId = null, protocolName = null, isAmrap = true).copy(
+            slotRole = SlotRole.T1_MAIN,
+            plan = RelatorPlanSlice(
+                progression = recipe.progression,
+                progressionContext = RelatorProgressionContext(
+                    recipe = recipe,
+                    liftSlot = LiftSlot.SQUAT,
+                    slotRole = SlotRole.T1_MAIN,
+                    plannedVolumeReps = 15,
+                    purpose = SetPurpose.AMRAP,
+                    tierCheck = check,
+                ),
+            ),
+        )
+
+        val lines = planLines(context)
+        assertTrue(lines, lines.contains("12/15 reps"))
+        assertTrue(lines, lines.contains("6×2"))
+        assertTrue(lines, lines.contains("igual carga al cerrar"))
+        assertFalse(lines, lines.contains("TM +5 kg"))
+    }
+
+    @Test
+    fun apre_line_matches_preview_and_ordinary_amrap_is_not_labeled_as_apre() {
+        val recipe = TrainingPlanRecipe(
+            id = "apre-mann",
+            weeks = emptyList(),
+            progression = ProgressionRule.ApreXrm(),
+        )
+        val profile = PowerliftingProfile(squat1RM = 200.0, squatTM = 180.0)
+        val hit = AmrapHit(
+            LiftSlot.SQUAT,
+            81.52,
+            prescribedReps = 10,
+            actualReps = 17,
+            weightKg = 155.0,
+            purpose = SetPurpose.AMRAP,
+            isLastAmrapOfExercise = true,
+        )
+        val preview = AmrapProgramPreview.preview(recipe, AutoregulationMode.PROPOSE, profile, hit)
+        val inBlock = relatorContext(protocolId = null, protocolName = null, isAmrap = false).copy(
+            plan = RelatorPlanSlice(
+                progression = recipe.progression,
+                autoregulationMode = AutoregulationMode.PROPOSE,
+                progressionContext = RelatorProgressionContext(
+                    recipe = recipe,
+                    profile = profile,
+                    hit = hit,
+                    liftSlot = LiftSlot.SQUAT,
+                    slotRole = SlotRole.T1_MAIN,
+                    purpose = SetPurpose.AMRAP,
+                    plannedMinimumReps = 10,
+                    isApreBlock = true,
+                    isLastAmrapOfExercise = true,
+                ),
+            ),
+        )
+        val ordinaryAmrap = inBlock.copy(
+            isAmrap = true,
+            plan = inBlock.plan.copy(
+                progressionContext = inBlock.plan.progressionContext!!.copy(isApreBlock = false),
+            ),
+        )
+
+        val lines = planLines(inBlock)
+        assertTrue(lines, lines.contains(preview.observerNote!!.text))
+        assertTrue(lines, lines.contains("162,5 kg"))
+        assertTrue(lines, lines.contains("propone"))
+        val genericLines = planLines(ordinaryAmrap)
+        assertTrue(genericLines, genericLines.contains("AMRAP de {ex}: deja 1 limpia"))
+        assertFalse(genericLines, genericLines.contains("APRE 10"))
+
+        val plannedS4 = inBlock.copy(
+            plan = inBlock.plan.copy(
+                progressionContext = inBlock.plan.progressionContext!!.copy(hit = null),
+            ),
+        )
+        val plannedLines = planLines(plannedS4)
+        assertTrue(plannedLines, plannedLines.contains("Al completar S4"))
+        assertFalse(plannedLines, plannedLines.contains("ya cambió"))
+    }
+
+    @Test
+    fun cycle_increment_waits_for_close_and_unknown_frozen_streak_does_not_invent_a_reset() {
+        val recipe = TrainingPlanRecipe(
+            id = "wendler-531-bbb",
+            weeks = emptyList(),
+            progression = ProgressionRule.CycleIncrement(upperKg = 2.5, lowerKg = 5.0),
+        )
+        val short = AmrapHit(LiftSlot.SQUAT, 85.0, prescribedReps = 5, actualReps = 3, weightKg = 100.0)
+        val effect = AmrapProgramPreview.preview(recipe, AutoregulationMode.AUTO, null, short, frozenCyclesBefore = null)
+        assertTrue(effect.observerNote!!.text, effect.observerNote!!.text.contains("TM congelado al cerrar el ciclo"))
+        assertFalse(effect.warning.orEmpty(), effect.warning.orEmpty().contains("10 %"))
+
+        val context = relatorContext(protocolId = null, protocolName = null, isAmrap = true).copy(
+            plan = RelatorPlanSlice(
+                progression = recipe.progression,
+                progressionContext = RelatorProgressionContext(
+                    recipe = recipe,
+                    hit = short,
+                    liftSlot = LiftSlot.SQUAT,
+                    purpose = SetPurpose.AMRAP,
+                    frozenCyclesBefore = null,
+                ),
+            ),
+        )
+        val lines = planLines(context)
+        assertTrue(lines, lines.contains("TM congelado al cerrar el ciclo"))
+        assertFalse(lines, lines.contains("se reinicia"))
+
+        val upper = AmrapProgramPreview.preview(
+            recipe,
+            AutoregulationMode.PROPOSE,
+            null,
+            AmrapHit(LiftSlot.BENCH, 85.0, prescribedReps = 5, actualReps = 8, weightKg = 100.0),
+        )
+        assertTrue(upper.observerNote!!.text, upper.observerNote!!.text.contains("TM +2,5 kg al cerrar el ciclo"))
+        assertEquals(AmrapEffectTiming.END_OF_CYCLE, upper.timing)
+
+        val blockRecipe = recipe.copy(
+            id = "custom-cycle-block",
+            progression = ProgressionRule.CycleIncrement(2.5, 5.0, IncrementScope.BLOCK),
+        )
+        val block = AmrapProgramPreview.preview(
+            blockRecipe,
+            AutoregulationMode.PROPOSE,
+            null,
+            AmrapHit(LiftSlot.SQUAT, 85.0, prescribedReps = 5, actualReps = 8, weightKg = 100.0),
+        )
+        assertEquals(AmrapEffectTiming.END_OF_BLOCK, block.timing)
+        assertTrue(block.headline, block.headline.contains("cerrar el bloque"))
+        assertTrue(block.observerNote!!.text, block.observerNote!!.text.contains("al cerrar el bloque"))
     }
 
     @Test

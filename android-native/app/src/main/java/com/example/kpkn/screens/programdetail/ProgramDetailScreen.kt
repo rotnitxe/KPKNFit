@@ -789,6 +789,7 @@ private fun TrainingPanel(
         }
 
         if (structureSubTab == StructureSubTab.SEMANA) {
+            ExerciseTrainingMaxPanel(program, onConfirm = viewModel::updateExerciseTrainingMaxAndAwait, modifier = Modifier.padding(horizontal = 16.dp))
             AutoregulationProposalsCard(
                 program = program,
                 nativeCard = nativeProgressionCard,

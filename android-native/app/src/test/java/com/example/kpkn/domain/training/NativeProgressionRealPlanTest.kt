@@ -277,8 +277,8 @@ class NativeProgressionRealPlanTest {
             },
         )
 
-        val once = NativeWorkoutProgressionRuntime.carryForwardToNextCycle(cycleOne, logs, closedCycle = 1, nowMs = 99L)
-        val twice = NativeWorkoutProgressionRuntime.carryForwardToNextCycle(once, logs, closedCycle = 1, nowMs = 123L)
+        val once = NativeWorkoutProgressionRuntime.carryForwardToNextCycle(cycleOne, logs, closedCycle = 1, nowMs = 2_000L)
+        val twice = NativeWorkoutProgressionRuntime.carryForwardToNextCycle(once, logs, closedCycle = 1, nowMs = 3_000L)
         assertEquals("repetir el arrastre no cambia nada", once, twice)
         assertTrue(once.nativeProgressionProposals.isEmpty())
 
@@ -287,7 +287,14 @@ class NativeProgressionRealPlanTest {
             managedOf(once, sessionOf(once, week).id).forEach { exercise ->
                 assertTrue("semana $week ${exercise.name}", exercise.sets.all { it.weight == 62.5 && it.manualLoadRequiredSides.isEmpty() })
                 assertEquals(PlanLoadReferenceState.CAPTURED, exercise.loadReference?.state)
-                val reference = pool.getValue(exercise.id).references.single()
+                val history = pool.getValue(exercise.id).references
+                val previousHistory = cycleOne.exerciseLoadReferences
+                    .filter { it.exerciseId == exercise.id }.flatMap { it.references }
+                assertEquals("el arrastre conserva el historial anterior", previousHistory, history.take(previousHistory.size))
+                assertEquals("no duplica eventos en la bolsa", history.size, history.distinct().size)
+                val request = requireNotNull(exercise.loadReference)
+                val reference = requireNotNull(ExerciseLoadReferenceStore.resolve(history, request))
+                assertTrue(ExerciseLoadReferenceStore.sameIdentity(reference, request))
                 assertEquals(PlanLoadReferenceState.CAPTURED, reference.state)
                 assertEquals(62.5, reference.capturedLoadKg ?: Double.NaN, 0.0001)
             }

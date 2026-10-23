@@ -360,6 +360,23 @@ class CatalogScreensV2Test {
         assertEquals("", latestQuery)
     }
 
+    @Test fun e7DesdeBusquedaAbreBorradorPrecargadoYCancelarNoCreaNiSelecciona() {
+        mount("bench_press", query = "zzzinexistentezzz")
+        waitFor("Crear ejercicio")
+        rule.onNodeWithText("Crear ejercicio").performClick()
+        rule.waitUntil(15_000) { rule.onAllNodesWithTag("custom-exercise-editor").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithTag("custom-exercise-editor").assertIsDisplayed()
+        rule.onNode(hasSetTextAction() and hasAnyAncestor(hasTestTag("custom-exercise-name")))
+            .assertTextContains("zzzinexistentezzz")
+        assertTrue(selection.isEmpty())
+        assertTrue(committed.isEmpty())
+        rule.onNodeWithTag("custom-exercise-cancel").performClick()
+        waitFor("No encontramos “zzzinexistentezzz”")
+        assertEquals("zzzinexistentezzz", latestQuery)
+        assertTrue(selection.isEmpty())
+        assertTrue(committed.isEmpty())
+    }
+
     @Test fun e8CargaYErrorConservanBusquedaYFiltrosYReintentan() {
         val delegate = repository("bench_press")
         val states = MutableStateFlow<ExerciseCatalogStateV2>(ExerciseCatalogStateV2.Loading)

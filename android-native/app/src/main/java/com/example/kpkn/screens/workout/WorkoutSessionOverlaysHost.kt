@@ -71,6 +71,8 @@ internal fun WorkoutSessionOverlaysHost(
     val reportedBefore = remember(uiState.previousSessionDiscomforts) {
         reportedBeforeDiscomforts(uiState.previousSessionDiscomforts)
     }
+    TrainingMaxPreparation(viewModel.missingTrainingMaxes(session), enabled = !showReadinessSheet,
+        onConfirm = viewModel::confirmTrainingMax)
     WorkoutReadinessSheet(
         showReadinessSheet = showReadinessSheet,
         gender = gender,

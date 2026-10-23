@@ -19,7 +19,9 @@ internal fun buildRecordedApreCalibration(
     inventory: EquipmentInventory? = null,
 ): CalibrationDecisionRecord? {
     val block = liveApreBlock(state, exercise) ?: return null
-    if (index != block.thirdIndex || completed.skipped || completed.performedPurpose() != SetPurpose.AMRAP) return null
+    if (index != block.thirdIndex || completed.skipped || completed.isWarmup ||
+        completed.performedPurpose() != SetPurpose.AMRAP ||
+        completed.amrapMinimumReps?.let { it != block.variant.xrmReps } == true) return null
     val context = calibrationContextForSet(state, exercise, index, completed.side, completed)
     val sourceLoad = completed.originalLoad ?: completed.recordedPayloadV3?.externalLoad
         ?: completed.weight.takeUnless { context.loadMode == LoadModeV2.LASTRE } ?: 0.0
