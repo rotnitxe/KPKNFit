@@ -1,6 +1,21 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithText
@@ -31,6 +46,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /**
  * ED-E · Compose/Robolectric de las hojas D2 (Impacto), D5 (Reglas: aplicar intensidad), D6 (Tiempo: reparto por grupo) y D8
@@ -160,4 +176,48 @@ class EditorSheetsEdeTest {
         assertEquals(SessionCloneApplyMode.REPLACE, mode)
         assertTrue(mode != SessionCloneApplyMode.APPEND)
     }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun transferirConservaEtiquetasAtajosYAccionEnPantallaCortaAlCientoTreinta() {
+        val target = SessionCloneDayOption(
+            key = "viernes", macroIndex = 0, mesoIndex = 0, weekId = "semana", dayOfWeek = 5,
+            macroName = "Bloque", blockName = "Bloque 1", mesoName = "Mesociclo 1", weekName = "Semana 1",
+            existingSessionId = "otra", existingSessionName = "Pierna B", existingExerciseCount = 5,
+        )
+        val nextWeek = target.copy(key = "miercoles", weekId = "otra-semana", dayOfWeek = 3, weekName = "Semana 2",
+            existingSessionId = null, existingSessionName = null, existingExerciseCount = 0)
+        rule.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 1.3f)) {
+                Box(Modifier.width(360.dp).height(740.dp)) {
+                    SessionClonerSheet(
+                        uiState = SessionEditorUiState(session = session, cloneDayOptions = listOf(target, nextWeek), weekId = "semana", dayOfWeek = 3),
+                        onCloneCurrentToTargets = { _, _, _ -> },
+                        onImportFromSource = { _, _, _ -> },
+                    )
+                }
+            }
+        }
+        rule.onNodeWithTag("transfer-mode-copy").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+        rule.onNodeWithTag("transfer-mode-import").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+        rule.onNodeWithTag("transfer-scroll").assertHeightIsAtLeast(96.dp)
+        listOf("Copiar a otros días", "Traer de otra sesión", "Esta semana", "Mismo día").forEach { label ->
+            val layouts = mutableListOf<TextLayoutResult>()
+            rule.onNodeWithText(label, useUnmergedTree = true).assertIsDisplayed()
+                .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+            assertTrue("La etiqueta debe disponer todo su texto: $label", layouts.isNotEmpty() && layouts.all { layout ->
+                !layout.didOverflowHeight && layout.getLineEnd(layout.lineCount - 1, visibleEnd = true) == label.length &&
+                    (0 until layout.lineCount).all { !layout.isLineEllipsized(it) && layout.getLineRight(it) <= layout.size.width + 1f }
+            })
+        }
+        rule.onNodeWithText("Esta semana").performClick()
+        rule.onNodeWithText("Copiar ahora").assertIsDisplayed().assertIsEnabled()
+        rule.onNodeWithText("Reemplazar").performClick()
+        rule.onNodeWithText("Reemplazar eliminará 5 ejercicio(s) en los destinos seleccionados.").assertIsDisplayed()
+        rule.onNodeWithText("Copiar ahora").assertIsDisplayed()
+        rule.onNodeWithTag("transfer-mode-import").performClick()
+        rule.onNodeWithText("Traer ahora").assertIsDisplayed()
+    }
+
 }

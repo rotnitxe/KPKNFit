@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,6 +45,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -110,7 +114,7 @@ internal fun SessionClonerSheet(
     val canSubmitImport = selectedSourceSessionId != null &&
         (!importPartial || selectedImportExerciseIds.isNotEmpty())
 
-    Column(Modifier.fillMaxWidth()) {
+    Column(Modifier.fillMaxWidth().heightIn(max = 720.dp)) {
         Column(
             Modifier.padding(
                 start = KpknSheetTokens.ContentPaddingHorizontal,
@@ -127,25 +131,8 @@ internal fun SessionClonerSheet(
             )
             // La copia ya no queda pendiente: se aplica al confirmar, no al guardar.
 
-            // D8: cada decisión tiene su fila y un blanco táctil legible a 360 dp.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                KpknSheetGlassChip(
-                    label = "Copiar a otros días",
-                    selected = mode == SessionClonerMode.CLONE_TO_DAYS,
-                    onClick = { mode = SessionClonerMode.CLONE_TO_DAYS },
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                )
-                KpknSheetGlassChip(
-                    label = "Traer de otra sesión",
-                    selected = mode == SessionClonerMode.IMPORT_FROM_DAY,
-                    onClick = { mode = SessionClonerMode.IMPORT_FROM_DAY },
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                )
-            }
+            // D8: con letra grande cada modo conserva su etiqueta completa.
+            TransferModeControls(mode = mode, onSelect = { mode = it })
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -169,6 +156,8 @@ internal fun SessionClonerSheet(
         if (mode == SessionClonerMode.CLONE_TO_DAYS) {
             Column(
                 modifier = Modifier
+                    .testTag("transfer-scroll")
+                    .weight(1f, fill = false)
                     .fillMaxWidth()
                     .heightIn(max = 420.dp)
                     .verticalScroll(rememberScrollState())
@@ -182,39 +171,12 @@ internal fun SessionClonerSheet(
                 val sameDayTargets = uiState.cloneDayOptions.filter {
                     !it.isCurrentSessionDay && it.dayOfWeek == uiState.dayOfWeek
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        "Días destino",
-                        color = KpknSheetTokens.Body,
-                        style = KpknType.bodyStrong,
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        if (weekTargets.isNotEmpty()) {
-                            KpknSheetGlassChip(
-                                label = "Esta semana",
-                                selected = selectedTargetKeys == weekTargets.map { it.key }.toSet(),
-                                onClick = {
-                                    selectedTargetKeys = weekTargets.map { it.key }.toSet()
-                                },
-                                modifier = Modifier.heightIn(min = 48.dp),
-                            )
-                        }
-                        if (sameDayTargets.isNotEmpty()) {
-                            KpknSheetGlassChip(
-                                label = "Mismo día",
-                                selected = selectedTargetKeys == sameDayTargets.map { it.key }.toSet(),
-                                onClick = {
-                                    selectedTargetKeys = sameDayTargets.map { it.key }.toSet()
-                                },
-                                modifier = Modifier.heightIn(min = 48.dp),
-                            )
-                        }
-                    }
-                }
+                TransferTargetsHeader(
+                    weekTargets = weekTargets.map { it.key }.toSet(),
+                    sameDayTargets = sameDayTargets.map { it.key }.toSet(),
+                    selectedTargets = selectedTargetKeys,
+                    onSelect = { selectedTargetKeys = it },
+                )
                 uiState.cloneDayOptions
                     .filterNot { it.isCurrentSessionDay }
                     .forEach { target ->
@@ -291,6 +253,8 @@ internal fun SessionClonerSheet(
         } else {
             Column(
                 modifier = Modifier
+                    .testTag("transfer-scroll")
+                    .weight(1f, fill = false)
                     .fillMaxWidth()
                     .heightIn(max = 420.dp)
                     .verticalScroll(rememberScrollState())
@@ -360,6 +324,70 @@ internal fun SessionClonerSheet(
                     },
                 )
             }
+        }
+    }
+}
+
+/** Selector D8: las dos decisiones se mantienen visibles sin recortar su texto. */
+@Composable
+private fun TransferModeControls(mode: SessionClonerMode, onSelect: (SessionClonerMode) -> Unit) {
+    val options = listOf(SessionClonerMode.CLONE_TO_DAYS, SessionClonerMode.IMPORT_FROM_DAY)
+    if (LocalDensity.current.fontScale >= 1.2f) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            options.forEach { option -> TransferModeChoice(option, mode, onSelect, Modifier.fillMaxWidth()) }
+        }
+    } else {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            options.forEach { option -> TransferModeChoice(option, mode, onSelect, Modifier.weight(1f)) }
+        }
+    }
+}
+
+@Composable
+private fun TransferModeChoice(
+    option: SessionClonerMode,
+    selected: SessionClonerMode,
+    onSelect: (SessionClonerMode) -> Unit,
+    modifier: Modifier,
+) {
+    val copy = option == SessionClonerMode.CLONE_TO_DAYS
+    KpknSheetGlassChip(
+        label = if (copy) "Copiar a otros días" else "Traer de otra sesión",
+        selected = option == selected,
+        onClick = { onSelect(option) },
+        modifier = modifier.testTag(if (copy) "transfer-mode-copy" else "transfer-mode-import").heightIn(min = 48.dp),
+    )
+}
+
+/** Con letra grande los atajos tienen su propia línea; ambos siguen seleccionando los destinos reales. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TransferTargetsHeader(
+    weekTargets: Set<String>,
+    sameDayTargets: Set<String>,
+    selectedTargets: Set<String>,
+    onSelect: (Set<String>) -> Unit,
+) {
+    val title: @Composable () -> Unit = { Text("Días destino", color = KpknSheetTokens.Body, style = KpknType.bodyStrong) }
+    val shortcuts: @Composable () -> Unit = {
+        if (weekTargets.isNotEmpty()) KpknSheetGlassChip(
+            label = "Esta semana", selected = selectedTargets == weekTargets,
+            onClick = { onSelect(weekTargets) }, modifier = Modifier.heightIn(min = 48.dp),
+        )
+        if (sameDayTargets.isNotEmpty()) KpknSheetGlassChip(
+            label = "Mismo día", selected = selectedTargets == sameDayTargets,
+            onClick = { onSelect(sameDayTargets) }, modifier = Modifier.heightIn(min = 48.dp),
+        )
+    }
+    if (LocalDensity.current.fontScale >= 1.2f) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            title()
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) { shortcuts() }
+        }
+    } else {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            title()
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { shortcuts() }
         }
     }
 }

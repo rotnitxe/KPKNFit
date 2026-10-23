@@ -45,3 +45,10 @@ Seleccionados en `C:\kw\u12\docs\screens-v2\renders\ED-E\` (D1…D8, 100 % y D1 
 
 - Sustituir `KpknSheetTokens`/`KpknSheetGlassChip` del cloner por piezas KPKN completas (hoy solo tipografía y tamaños).
 - D3: la personalización por historial sigue siendo mínima (pendiente de MOT).
+
+
+## Corrección al integrar · 23-oct-2026
+
+La primera validación en u11 pasó 33 pruebas, pero la revisión visual detectó «Traer de otra sesi…» al 130 %. D8 pasa los modos a columna con letra grande, separa los atajos del título y reserva el pie con cuerpos desplazables con peso. Nueva prueba nativa a 360 × 740/130 %: caracteres completos, objetivos de 48 dp, ambos atajos y acción final visible al copiar, reemplazar y traer.
+
+`int-u12-android-codex-20261023-2.log`: BUILD SUCCESSFUL en 9 min 31 s; Ede 6, D5D8 4 y render 1, 11/0. Nuevo PNG `C:/kw/shots/int-ede/transferir_s130.png` revisado y completo. Con los 23 casos anteriores sin rutas modificadas, 34 casos únicos de integración verificados. Sin QA de dispositivo ni APK nuevos.

@@ -1,28 +1,26 @@
 # Relevo de la ola screens-v2 (21-oct-2026, noche)
 
-## Estado verificado · 23-oct-2026 00:30 · continuación Codex
+## Estado verificado · 23-oct-2026 01:26 · continuación Codex
 
 Este bloque sustituye el inventario operativo de abajo; los inventarios antiguos se conservan como historial. No hay push, merge en master, QA de esta continuación ni APK nuevo. Room permanece congelado.
 
 | Worktree | HEAD / estado | Evidencia nueva |
 |---|---|---|
-| u11 · integración | 030341408 integra u13 sin conflictos; 08162eed8 registra INT-1 | JVM posterior: 161 clases, 1700 pruebas, 0 fallos/errores/omitidas (`int-u13-jvm-codex-20261023-2.log`). Android posterior 45/0; u12 entra sin conflictos y espera su verificación. Se conserva `artifacts/aud2-editor-catalogo-20261020/` sin seguimiento. |
+| u11 · integración | 030341408 integra u13 sin conflictos; 08162eed8 registra INT-1 | JVM posterior: 161 clases, 1700 pruebas, 0 fallos/errores/omitidas (`int-u13-jvm-codex-20261023-2.log`). Android posterior 45/0; u12 fusionado en 6bf182d81 y verificado: 33/0 base más 11/0 tras corregir D8 (34 casos únicos). Se conserva `artifacts/aud2-editor-catalogo-20261020/` sin seguimiento. |
 | u12 · MOT/ED-E | a76b4edc2, limpio | Código cerrado en f042464ba; se guardó el brief MOT que estaba sin seguimiento. No se repitió su implementación. |
 | u14 · ED-B | 385cab731, limpio | Completo B1–B5/B7–B9, APRE y NBSP. `edb-12.log`: 55/0; `edb-10.log`: otras 55/0; APRE JVM 15/0. Informe ED-B. |
 | u15 · CAT-A | f34b02318 | 66/0 en `cat-a-2.log`; creador E4 conserva su estado al recrear. Artefactos recibidos fuera de commits. |
 | u16 · G | d5e7c7ac4, limpio | 53/0 de hojas/render y 23/0 de importador; total 76/0. Informe G. |
 | u17 · ED-D | 8f8a02b95, limpio | 14/0 JVM y 67/0 Android en `edd-codex-20261022-4.log`. Descanso heredado y edición de miembros corregidos. Informe ED-D. |
-| u18 · ED-C | 142aa2e58 más H3/pruebas/render/informe sin commit | Dominio f37329fe0, fichas b7381c436, movilidad de sesión 142aa2e58. JVM 13/0; Android 33/0 antes de H3. Último detalle H3 en verificación, ver abajo. |
+| u18 · ED-C | 296bb3ff6, limpio | Dominio f37329fe0, fichas b7381c436, movilidad 142aa2e58, H3/pruebas ae5253498 y cierre 296bb3ff6. JVM 13/0; 34 pruebas Android únicas verificadas (20 Compose finales más VM/persistencia/render de corridas anteriores), 14 PNG. Informe ED-C. |
 
-### Punto exacto de espera · actualización 00:53
+### Punto de continuación · ED-E verificado y u14 siguiente
 
-La única corrida propia ACTIVA es `C:/kw/logs/edc-codex-20261023-6.log` en u18, sesión terminal 33566. Verifica los 20 casos de PreparationChipsComposeTest. Esperar su salida antes de cualquier otra corrida propia.
+`int-u12-android-codex-20261023-2.log` terminó BUILD SUCCESSFUL en 9 min 31 s: tres clases, 11 pruebas, 0 fallos/errores/omitidas. Se revisó `transferir_s130.png`: las dos etiquetas completas y la acción final son visibles. La prueba nativa nueva verifica 360 × 740 y 130 %, objetivos de 48 dp, ambos atajos, cuerpo útil y pie al copiar/reemplazar/traer. Con los 23 casos sin rutas modificadas de la primera corrida son 34 pruebas únicas verificadas. Esperar el cierre del wrapper de esta corrida antes de lanzar la siguiente; luego preflight NUEVO y merge u14.
 
-u13 ya quedó verde en u11: 1700/0 JVM y 45/0 Android/Room (`int-u13-android-codex-20261023-1.log`, BUILD SUCCESSFUL en 9 min 33 s). Se fusiona ahora u12 sin conflictos, con preflight sobre 18985e121 y a76b4edc2, árbol 37860253aecd833693ded31d9bc28882f07ff638. La siguiente validación Android de u11 debe cubrir las clases ED-E de su informe; no avanzar a u14 hasta que termine.
+Paralelismo autorizado por el usuario el 23-oct: dos subagentes GPT-6.1 Sol Medium preparan adaptaciones en worktrees de integración aislados creados con mkwt. `u24-int-c3` / `codex/sv2-int-c3` incorpora u14 y u17 y adapta C3; `u25-int-g1` / `codex/sv2-int-g1` incorpora u14 y u16 y adapta G1. No ejecutan Gradle, JVM ni adb. El principal centraliza todas las corridas y fusionará sus resultados en el lugar de u17 y u16, respetando el orden de integración. Estas ramas aún no están verificadas: no confundir commits de preparación con verde.
 
-H3 tiene su disposición final en columna al 130 %, con la captura nativa mostrando «Añadido · Quitar» completo. Las corridas 4 y 5 compilaron y pasaron los otros 19 casos y el render; el caso nuevo fallaba por `didOverflowWidth` aun sin elipsis (tamaño 470 × 74, límite 744 px). La corrida 6 exige todos los caracteres, ninguna elipsis, ningún recorte vertical y límites de línea dentro de la zona con un píxel máximo de redondeo, e imprime medidas. Revisar esas medidas y el resultado antes de cerrar el informe ED-C. No se ha cambiado producción desde la corrida 4.
-
-CLAUDE.md ya dice Room v30 (18985e121), verificado contra KpknDatabase sin editarlo. El brief MOT recibido se guardó en a76b4edc2. No repetir esas tareas.
+ED-C sigue cerrado en u18, HEAD 296bb3ff6, limpio: 20 Compose finales verdes, 13 pruebas puras y las verificaciones de VM/persistencia/render documentadas. u13 está verde en u11 (1700 JVM y 45 Android/Room). CLAUDE ya documenta Room v30. u19–u23 se reservan para fase 4 y solo se crearán desde la integración verde.
 
 ### Decisiones y límites de esta continuación
 
@@ -33,8 +31,8 @@ CLAUDE.md ya dice Room v30 (18985e121), verificado contra KpknDatabase sin edita
 
 ### Siguientes pasos obligatorios
 
-1. Cerrar ED-C tras su última prueba; commits de H3, pruebas Compose, render e informe final.
-2. u13 ya está verificado y u12 fusionado. Verificar ED-E; después, preflight NUEVO y merge u14, u17, u18, u15, u16, compilando y probando cada unión.
+1. ED-C ya cerrado y limpio: no repetir implementación ni la corrección de ancho de H3.
+2. u13 ya está verificado y u12 fusionado. ED-E verificado; después, preflight NUEVO y merge u14, u17, u18, u15, u16, compilando y probando cada unión.
 3. Adaptar C3 y G1 a RmSetFocus/AmrapSetFocus, con TM declarado y lado. C3 necesita propagar su callback de ejercicio desde SupersetGroupEditorCard. G1 necesita recálculo withExplicitRmLoads y modo confirmado por la hoja común; sus fichas de 56 dp son las aprobadas en G1. Mantener acciones y descansos contextuales.
 4. Resolver la ficha común añadida por ED-B/ED-C con el slot opcional de ED-C y los valores S1 predeterminados de ED-B; conservar la sección de preparación extraída y la base única LV-C. Comprobar el aviso único ED-E/ED-A.
 5. Completar fase 3 e INT-1 (CLAUDE ya actualizado a Room v30); fase 4 CAT-B, CAL4-V, CAL5b, PLAN-OBS, CAL7; regresión; QA ZFlip5_QA 5580 y APK. Sin tocar paquetes personales ni firmar: la firma sigue a cargo del orquestador.

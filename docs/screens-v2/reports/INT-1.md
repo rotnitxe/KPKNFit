@@ -7,7 +7,7 @@ Se integra en `feat/screens-v2`, C:/kw/u11, en el orden del relevo. El artefacto
 | Paquete | Preflight | Fusión | Verificación posterior |
 |---|---|---|---|
 | u13 · PROG/FIX-TM/INV · 2c549b7ac | Limpio, árbol 60d1e6480057c97e3b312d3ed645d4c33d4516b1 | 030341408, sin conflictos | JVM: 161 clases, 1700/0; Android: 6 clases, 45/0 |
-| u12 · ED-E · a76b4edc2 | Limpio sobre 18985e121, árbol 37860253aecd833693ded31d9bc28882f07ff638 | Fusión en este commit, sin conflictos | Pendiente |
+| u12 · ED-E · a76b4edc2 | Limpio sobre 18985e121, árbol 37860253aecd833693ded31d9bc28882f07ff638 | 6bf182d81, sin conflictos | 33/0 base y 11/0 tras corrección D8; 34 pruebas únicas |
 | u14 · ED-A/ED-B | Pendiente | Pendiente | Pendiente |
 | u17 · ED-D | Pendiente | Pendiente | Pendiente |
 | u18 · ED-C | Pendiente | Pendiente | Pendiente |
@@ -38,3 +38,16 @@ Este informe no acredita todavía QA en emulador, instalación, APK, firma ni pu
 ## ED-E: unión y aviso de límites
 
 Preflight y merge de u12 sin conflictos. La revisión de `RulesSheet` confirma una llamada por edición; `KpknNumberCell.commit()` apaga `editing` antes del callback, de modo que Hecho y perder foco no lo repiten. El ViewModel normaliza y guarda el borrador sin emitir otro aviso; la pantalla conserva un único snackbar de límites por callback. No se añade una segunda notificación. Esta conclusión es por lectura; la verificación de interacción sigue en las clases concretas de ED-E y el QA final.
+
+ED-C se cerró en u18 (296bb3ff6) mientras se valida ED-E. El preflight de u14 sobre 6bf182d81 es limpio (árbol b3df59c9d6d0d1eee2dda3272e2226ab01ebaa56), pero la rama aún no se aplica hasta cerrar ED-E.
+
+## ED-E: verificación y defecto visual detectado
+
+`int-u12-android-codex-20261023-1.log`: BUILD SUCCESSFUL en 9 min 23 s; 6 clases, 33 pruebas, 0 fallos/errores/omitidas. Se revisaron Reglas y Transferir al 130 % entre los 34 PNG generados en C:/kw/shots/int-ede. Reglas conserva sus controles; Transferir cortaba «Traer de otra sesión». Las pruebas verdes no cerraron ese defecto visual.
+
+Se corrige D8 en integración: modos en columna con letra grande, atajos separados del título y cuerpos con peso que reservan el pie, dentro de máximo 720 dp. Nueva regresión física a 360 × 740 y 130 %: etiquetas y todos sus caracteres, objetivos de 48 dp, cuerpo útil ≥96 dp y acción fija al copiar/reemplazar/traer. `int-u12-android-codex-20261023-2.log`: BUILD SUCCESSFUL en 9 min 31 s; tres clases, 11 pruebas, 0 fallos/errores/omitidas (Ede 6, D5D8 4 y render 1). Se revisó el nuevo PNG Transferir al 130 %: etiquetas y pie completos. Las otras 23 pruebas base no tienen rutas modificadas; total 34 únicas, sin atribuirlas a una sola corrida. Se cierra ED-E y el siguiente paso es u14 tras salir el wrapper.
+
+
+## Reparto de adaptaciones de integración
+
+El usuario autorizó subagentes 6.1 Sol Medium. C3 se prepara en u24-int-c3 (ramas u14 y u17); G1 en u25-int-g1 (u14 y u16). No ejecutan Gradle ni JVM; todas las pruebas y el orden de fusión siguen centralizados en el principal. Sus commits de preparación requieren validación en u11 antes de acreditar el verde.
