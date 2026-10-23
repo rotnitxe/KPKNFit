@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.biomechanics.reps
 
 import com.example.kpkn.domain.biomechanics.bar.BarSampleSource
+import com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity
 import com.example.kpkn.domain.biomechanics.kinematics.Side
 import com.example.kpkn.domain.biomechanics.metrics.AnalysisFlag
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
@@ -19,6 +20,7 @@ import com.example.kpkn.domain.biomechanics.testing.SynthSegment
 import com.example.kpkn.domain.biomechanics.testing.SynthTestSupport.mapFrames
 import com.example.kpkn.domain.biomechanics.testing.SynthTestSupport.repScript
 import com.example.kpkn.domain.biomechanics.testing.SyntheticLifter
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -138,6 +140,69 @@ class CountSeriesBuilderTest {
         val turn = ((first.turnStartUs + first.turnEndUs) / 2e6 * full.fs).roundToInt()
         fails.check(mean(full.r, turn - 3, turn + 4) - mean(full.r, 3, 40) >= 0.1) { "el disco no sube con la barra en el pecho" }
         fails.assertNone()
+    }
+
+    @Test
+    fun lungePlateFallbackKeepsThePoseShoulderProxyWithoutHorizontalVeto() {
+        val r = gen(SynthMovement.LUNGE, repScript(5, 1.5, 0.5, 1.5, 0.5, lead = 2.0, tail = 2.0))
+        val profile = RepTestSupport.profile(AnalysisProfileId.LUNGE, plate = true)
+        val target = r.reps[1]
+        // Todo el cuerpo se traslada lateralmente durante la segunda zancada: la flexión vertical no cambia,
+        // pero hombro (proxy POSE) y muñeca (disco confirmado) recorren la misma distancia horizontal real.
+        val shiftedTrack = r.track.mapFrames { i, image, _ ->
+            val t = r.track.frames[i].tUs
+            val fraction = ((t - target.departUs).toDouble() / (target.arriveUs - target.departUs).toDouble())
+                .coerceIn(0.0, 1.0)
+            val dx = (0.30 * fraction).toFloat()
+            for ((lm, point) in image.toMap()) image[lm] = point.copy(x = point.x + dx)
+        }
+        val shifted = SynthResult(shiftedTrack, r.reps, r.primaryAngleDeg)
+        val confirmed = RepTestSupport.plateFromWrist(shifted)
+        val confirmedSeries = ok(build(shiftedTrack, profile, confirmed)).series
+        assertEquals(CountSeriesBuilder.SOURCE_PLATE, confirmedSeries.source)
+        assertTrue("LUNGE no usa la máscara de caminar", confirmedSeries.walk.none { it })
+        val confirmedSeg = RepSegmenter.segment(confirmedSeries, profile, emptySet())
+        assertEquals("el disco lateral veta solo la segunda zancada", 4, confirmedSeg.fullCount)
+        assertTrue("el disco lateral debe activar el veto", confirmedSeg.discarded.any { it.reason == "nonrep_horizontal" })
+        val seed = checkNotNull(confirmed.seed)
+        val withoutPlate = ok(build(shiftedTrack, profile)).series
+        assertEquals(CountSeriesBuilder.SOURCE_POSE, withoutPlate.source)
+        assertNotNull(withoutPlate.barX)
+        assertNotNull(withoutPlate.barY)
+        assertTrue("LUNGE no usa la máscara de caminar", withoutPlate.walk.none { it })
+        val proxyX = checkNotNull(withoutPlate.barX)
+        val proxyY = checkNotNull(withoutPlate.barY)
+        val start = ((target.departUs - withoutPlate.t0Us) / 1e6 * withoutPlate.fs).roundToInt().coerceIn(proxyX.indices)
+        val end = ((target.arriveUs - withoutPlate.t0Us) / 1e6 * withoutPlate.fs).roundToInt().coerceIn(proxyX.indices)
+        assertTrue("el proxy de hombro debe desplazarse durante la zancada", abs(proxyX[end] - proxyX[start]) > 0.20)
+        fun span(values: DoubleArray): Double {
+            val window = (start..end).map { values[it] }.filter { it.isFinite() }
+            return window.maxOrNull()!! - window.minOrNull()!!
+        }
+        assertTrue("el proxy lateral cruzaría el antiguo veto horizontal",
+            span(proxyX) > AnalysisTuning.DEFAULT.horizontalPathRatio * span(proxyY))
+        assertEquals("la pose conserva las cinco zancadas", 5,
+            RepSegmenter.segment(withoutPlate, profile, emptySet()).fullCount)
+
+        val unconfirmed = confirmed.copy(seed = seed.copy(userConfirmed = false))
+        val interrupted = confirmed.copy(trackingContinuity = PlateTrackingContinuity.INTERRUPTED,
+            continuityBreakUs = 4_000_000L)
+        val lowCoverage = confirmed.copy(samples = confirmed.samples.mapIndexed { i, sample ->
+            if (i % 10 < 7) sample else sample.copy(source = BarSampleSource.PREDICTED)
+        })
+        for ((reason, plate) in listOf(
+            "sin confirmar" to unconfirmed,
+            "interrumpida" to interrupted,
+            "cobertura baja" to lowCoverage,
+        )) {
+            val fallback = ok(build(shiftedTrack, profile, plate)).series
+            assertEquals(reason, CountSeriesBuilder.SOURCE_POSE, fallback.source)
+            assertArrayEquals(reason, checkNotNull(withoutPlate.barX), checkNotNull(fallback.barX), 0.0)
+            assertArrayEquals(reason, checkNotNull(withoutPlate.barY), checkNotNull(fallback.barY), 0.0)
+            val segmented = RepSegmenter.segment(fallback, profile, emptySet())
+            assertEquals(reason, 5, segmented.fullCount)
+            assertTrue(reason, segmented.discarded.none { it.reason == "nonrep_horizontal" })
+        }
     }
 
     @Test

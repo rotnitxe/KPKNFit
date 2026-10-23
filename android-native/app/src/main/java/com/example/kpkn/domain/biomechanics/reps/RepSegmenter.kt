@@ -1304,7 +1304,8 @@ object RepSegmenter {
         // ---- paso 5: no-repeticiones ----
 
         private fun markNonReps(cands: List<Cand>) {
-            val horizontalProfile = profile.plateSignal != null && profile.id != AnalysisProfileId.ROW
+            val horizontalProfile = series.source == CountSeriesBuilder.SOURCE_PLATE &&
+                profile.plateSignal != null && profile.id != AnalysisProfileId.ROW
             val bx = series.barX
             val by = series.barY
             for (c in cands) {

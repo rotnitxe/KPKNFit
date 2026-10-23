@@ -167,7 +167,7 @@ class RepSegmenterRulesTest {
     }
 
     @Test
-    fun aBarThatTravelsSidewaysIsNotARepInAVerticalProfile() {
+    fun aConfirmedPlateThatTravelsSidewaysIsNotARepInAVerticalProfile() {
         val fails = RepTestSupport.Failures()
         val b = SignalBuilder().hold(2.0)
         repeat(5) { b.rep(0.3) }
@@ -180,15 +180,41 @@ class RepSegmenterRulesTest {
             barX[k] = if (t < 6.0) 0.0 else if (t < 10.0) 0.8 * ((t - 6.0) / 4.0) else 0.8
         }
         val squat = AnalysisProfiles.of(AnalysisProfileId.SQUAT).copy(minAmplitude = 0.1)
-        val vertical = segment(b.series(raw = r, barX = barX, barY = r.copyOf()), squat)
+        val vertical = segment(b.series(raw = r, source = CountSeriesBuilder.SOURCE_PLATE, barX = barX, barY = r.copyOf()), squat)
         fails.check(vertical.fullCount == 4 && vertical.discarded.any { it.reason == "nonrep_horizontal" }) { "perfil vertical: ${describe(vertical)}" }
         // El remo no es un perfil vertical: la barra se mueve en diagonal y no se descarta.
         val row = AnalysisProfiles.of(AnalysisProfileId.ROW).copy(minAmplitude = 0.1, perSide = false)
-        val rowResult = segment(b.series(raw = r, barX = barX, barY = r.copyOf()), row)
+        val rowResult = segment(b.series(raw = r, source = CountSeriesBuilder.SOURCE_PLATE, barX = barX, barY = r.copyOf()), row)
         fails.check(rowResult.fullCount == 5) { "remo: ${describe(rowResult)}" }
         // Sin punto de barra (sin escala o sin regla) no se descarta nada.
-        fails.check(segment(b.series(raw = r), squat).fullCount == 5) { "sin punto de barra" }
+        fails.check(segment(b.series(raw = r, source = CountSeriesBuilder.SOURCE_PLATE), squat).fullCount == 5) { "sin punto de barra" }
         fails.assertNone()
+    }
+
+    @Test
+    fun aLateralShoulderProxyInPoseLungeDoesNotVetoAFullRep() {
+        val b = SignalBuilder().hold(2.0)
+        repeat(5) { b.rep(0.3) }
+        b.hold(1.5)
+        val r = b.values()
+        val shoulderX = DoubleArray(r.size) { k ->
+            val t = k / 30.0
+            if (t < 6.0) 0.0 else if (t < 10.0) 0.8 * ((t - 6.0) / 4.0) else 0.8
+        }
+        val lunge = AnalysisProfiles.of(AnalysisProfileId.LUNGE)
+        val pose = segment(b.series(raw = r, source = CountSeriesBuilder.SOURCE_POSE,
+            barX = shoulderX, barY = r.copyOf()), lunge)
+        assertEquals(describe(pose), 5, pose.fullCount)
+        assertTrue(describe(pose), pose.discarded.none { it.reason == "nonrep_horizontal" })
+
+        // La misma geometría sí se descarta cuando procede del disco; una trayectoria vertical del disco se conserva.
+        val plateSideways = segment(b.series(raw = r, source = CountSeriesBuilder.SOURCE_PLATE,
+            barX = shoulderX, barY = r.copyOf()), lunge)
+        assertEquals(describe(plateSideways), 4, plateSideways.fullCount)
+        assertTrue(describe(plateSideways), plateSideways.discarded.any { it.reason == "nonrep_horizontal" })
+        val plateVertical = segment(b.series(raw = r, source = CountSeriesBuilder.SOURCE_PLATE,
+            barX = DoubleArray(r.size), barY = r.copyOf()), lunge)
+        assertEquals(describe(plateVertical), 5, plateVertical.fullCount)
     }
 
     @Test
