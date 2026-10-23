@@ -188,6 +188,7 @@ internal fun SessionEditorListItem(
                             cardioHistoryByType = uiState.cardioHistoryByType,
                             exerciseInfoById = exerciseInfoById,
                             competitionMovementIds = uiState.competitionMovementIds,
+                            programCandidatesList = uiState.allProgramExerciseCandidates,
                             draggingExerciseId = draggingExerciseId,
                             exerciseDropTargetKey = exerciseDropTargetKey,
                             exerciseDropTargetPartId = exerciseDropTargetPartId,
@@ -247,6 +248,7 @@ internal fun SessionEditorListItem(
                             cardioHistoryByType = uiState.cardioHistoryByType,
                             exerciseInfoById = exerciseInfoById,
                             competitionMovementIds = uiState.competitionMovementIds,
+                            programCandidatesList = uiState.allProgramExerciseCandidates,
                             draggingExerciseId = draggingExerciseId,
                             exerciseDropTargetKey = exerciseDropTargetKey,
                             exerciseDropTargetPartId = exerciseDropTargetPartId,
@@ -310,6 +312,7 @@ internal fun SessionEditorListItem(
                             session = session,
                             exerciseInfoById = exerciseInfoById,
                             competitionMovementIds = uiState.competitionMovementIds,
+                            programCandidatesList = uiState.allProgramExerciseCandidates,
                             draggingExerciseId = draggingExerciseId,
                             exerciseDropTargetKey = exerciseDropTargetKey,
                             exerciseDropTargetPartId = exerciseDropTargetPartId,
@@ -376,6 +379,7 @@ internal fun SessionEditorListItem(
                             session = session,
                             exerciseInfoById = exerciseInfoById,
                             competitionMovementIds = uiState.competitionMovementIds,
+                            programCandidatesList = uiState.allProgramExerciseCandidates,
                             draggingExerciseId = draggingExerciseId,
                             exerciseDropTargetKey = exerciseDropTargetKey,
                             exerciseDropTargetPartId = exerciseDropTargetPartId,
@@ -655,6 +659,7 @@ private fun LooseExerciseItem(
     cardioHistoryByType: Map<CardioType, CardioTypeHistory> = emptyMap(),
     exerciseInfoById: Map<String, ExerciseMuscleInfo>,
     competitionMovementIds: Set<String>,
+    programCandidatesList: List<ProgramExerciseCandidate>,
     draggingExerciseId: String?,
     exerciseDropTargetKey: String?,
     exerciseDropTargetPartId: String?,
@@ -724,7 +729,7 @@ private fun LooseExerciseItem(
                 relationshipAnchorName = resolveRelationshipAnchorName(
                     session,
                     exercise,
-                    uiState.allProgramExerciseCandidates,
+                    programCandidatesList,
                 ),
                 onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, exercise.id) },
                 onClearRelationship = { viewModel.linkExerciseRelativeTo(null, exercise.id, null) },
@@ -755,6 +760,7 @@ private fun PartExerciseItem(
     cardioHistoryByType: Map<CardioType, CardioTypeHistory> = emptyMap(),
     exerciseInfoById: Map<String, ExerciseMuscleInfo>,
     competitionMovementIds: Set<String>,
+    programCandidatesList: List<ProgramExerciseCandidate>,
     draggingExerciseId: String?,
     exerciseDropTargetKey: String?,
     exerciseDropTargetPartId: String?,
@@ -822,7 +828,7 @@ private fun PartExerciseItem(
                 relationshipAnchorName = resolveRelationshipAnchorName(
                     session,
                     exercise,
-                    uiState.allProgramExerciseCandidates,
+                    programCandidatesList,
                 ),
                 onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, exercise.id) },
                 onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, exercise.id, null) },
@@ -853,6 +859,7 @@ private fun LooseSupersetItem(
     session: Session,
     exerciseInfoById: Map<String, ExerciseMuscleInfo>,
     competitionMovementIds: Set<String>,
+    programCandidatesList: List<ProgramExerciseCandidate>,
     draggingExerciseId: String?,
     exerciseDropTargetKey: String?,
     exerciseDropTargetPartId: String?,
@@ -908,7 +915,7 @@ private fun LooseSupersetItem(
         onMoveSet = { exerciseId, setId, dir -> viewModel.moveSet(null, exerciseId, setId, dir) },
         onRemoveRound = { roundIndex -> viewModel.removeSupersetRound(supersetGroup.id, null, roundIndex) },
         relationshipAnchorName = { member ->
-            resolveRelationshipAnchorName(session, member, uiState.allProgramExerciseCandidates)
+            resolveRelationshipAnchorName(session, member, programCandidatesList)
         },
         onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(null, exerciseId) },
         onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(null, exerciseId, null) },
@@ -989,7 +996,7 @@ private fun LooseSupersetItem(
                         relationshipAnchorName = resolveRelationshipAnchorName(
                             session,
                             member,
-                            uiState.allProgramExerciseCandidates,
+                            programCandidatesList,
                         ),
                         onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, member.id) },
                         onClearRelationship = { viewModel.linkExerciseRelativeTo(null, member.id, null) },
@@ -1018,6 +1025,7 @@ private fun PartSupersetItem(
     session: Session,
     exerciseInfoById: Map<String, ExerciseMuscleInfo>,
     competitionMovementIds: Set<String>,
+    programCandidatesList: List<ProgramExerciseCandidate>,
     draggingExerciseId: String?,
     exerciseDropTargetKey: String?,
     exerciseDropTargetPartId: String?,
@@ -1072,7 +1080,7 @@ private fun PartSupersetItem(
         onMoveSet = { exerciseId, setId, dir -> viewModel.moveSet(part.id, exerciseId, setId, dir) },
         onRemoveRound = { roundIndex -> viewModel.removeSupersetRound(supersetGroup.id, part.id, roundIndex) },
         relationshipAnchorName = { member ->
-            resolveRelationshipAnchorName(session, member, uiState.allProgramExerciseCandidates)
+            resolveRelationshipAnchorName(session, member, programCandidatesList)
         },
         onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(part.id, exerciseId) },
         onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(part.id, exerciseId, null) },
@@ -1152,7 +1160,7 @@ private fun PartSupersetItem(
                         relationshipAnchorName = resolveRelationshipAnchorName(
                             session,
                             member,
-                            uiState.allProgramExerciseCandidates,
+                            programCandidatesList,
                         ),
                         onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, member.id) },
                         onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, member.id, null) },
