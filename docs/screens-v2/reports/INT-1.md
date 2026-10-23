@@ -9,7 +9,7 @@ Se integra en `feat/screens-v2`, C:/kw/u11, en el orden del relevo. El artefacto
 | u13 · PROG/FIX-TM/INV · 2c549b7ac | Limpio, árbol 60d1e6480057c97e3b312d3ed645d4c33d4516b1 | 030341408, sin conflictos | JVM: 161 clases, 1700/0; Android: 6 clases, 45/0 |
 | u12 · ED-E · a76b4edc2 | Limpio sobre 18985e121, árbol 37860253aecd833693ded31d9bc28882f07ff638 | 6bf182d81, sin conflictos | 33/0 base y 11/0 tras corrección D8; 34 pruebas únicas |
 | u14 · ED-A/ED-B · 385cab731 | Limpio tras D8, árbol 6e533815cb855eccd804bba94e78a7f17f745e07 | 67ded417b, sin conflictos | 10 clases, 87/0 |
-| u17 · ED-D | Pendiente | Pendiente | Pendiente |
+| u17 · ED-D + C3 · 2cf81b677 | Limpio sobre 6487f3059, árbol fadf0ced2030287f8598084998c4c2145287ac30 | e7fd65eac, sin conflictos | Producción compila; 76 pruebas, 4 fallos del arnés nuevo; corrección visual C3 pendiente |
 | u18 · ED-C | Pendiente | Pendiente | Pendiente |
 | u15 · CAT-A | Pendiente | Pendiente | Pendiente |
 | u16 · G | Pendiente | Pendiente | Pendiente |
@@ -58,3 +58,10 @@ El usuario autorizó subagentes 6.1 Sol Medium. C3 se prepara en u24-int-c3 (ram
 `int-u14-android-codex-20261023-1.log`: BUILD SUCCESSFUL en 9 min 54 s, 10 clases, 87 pruebas, 0 fallos/errores/omitidas. Focos (17), opciones (5), lista de series (20), estado de fila (3), lista de sesión (10), AMRAP (5), cargas RM (4), reglas RM (2), dosis (8) y render (13). Se generaron 26 PNG en C:/kw/shots/int-edb. Se revisaron RM y Calibrador al 130 %: RM completo; Calibrador conserva el recorte variable de Canvas documentado en ED-B pese a geometría e interacción verdes. No se atribuye a este PNG una QA visual completa; verificar cabeceras en el emulador final.
 
 C3 preparado en 2cf81b677, preflight sobre 67ded417b limpio (árbol 6b35564d96c0239059646dd7ffc1716bb891e7cf). Se repetirá tras guardar esta evidencia. La revisión de pendientes de ED-A se prepara aparte en u26-int-eda; A5 usa insignias neutras exactas del tablero, no colores inferidos del informe antiguo, y A1 requiere comprobar el espacio de acciones al 130 %.
+
+
+## ED-D/C3: primera corrida y correcciones pendientes
+
+`int-u17-android-codex-20261023-1.log`: BUILD FAILED en 8 min 59 s; producción y pruebas compilan, 76 pruebas ejecutadas, 4 fallos en SupersetRoundsFocusIntegrationTest. Los 67 casos anteriores de ED-D pasan y 5 de los 9 nuevos pasan. Tres fallos seleccionan ambiguamente Eliminar de ronda y Eliminar del foco; el cuarto compara bounds recortados fuera del viewport. El commit aislado 5439b7760 acota acciones al foco y usa coordenadas sin recorte; aún no aplicado en u11 ni verificado.
+
+Se revisaron los renders nuevos RM/TM y AMRAP lateral al 130 % en C:/kw/shots/int-edd. Además del arnés, se detectó un defecto de interfaz real: el control anidado recorta Próximas sesiones al 130 %, y el foco AMRAP lateral no identifica el lado que sustituyó InlineSetRow. Se adapta el alcance local a la anchura/fuente y se conserva la identidad L/R; no cerrar esta unión hasta la nueva corrida y revisión de PNG. El fixture de render TM se hará coherente con su % y referencia, sin rebajar las pruebas de edición.
