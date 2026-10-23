@@ -83,7 +83,8 @@ internal fun manuallyFixedCalibrationSet(state: WorkoutUiState, exercise: Exerci
     val set = exercise.sets[index]
     val draft = state.setDrafts[key] ?: state.setDrafts[baseKey]
     return key in state.manualLoadOverrides || baseKey in state.manualLoadOverrides ||
-        set.manualLoadRequiredSides.isNotEmpty() ||
+        (if (side.isNullOrBlank()) set.manualLoadRequiredSides.isNotEmpty()
+            else side in set.manualLoadRequiredSides || "bilateral" in set.manualLoadRequiredSides) ||
         (draft?.weightManuallyFixed == true || (draft?.weightManuallyFixed == null &&
             draft?.isDirty == true && draft.weightText?.replace(',', '.')?.toDoubleOrNull() != null))
 }
@@ -168,6 +169,11 @@ internal fun replaceRecordedCalibration(
     if (it.sourceSetId == sourceSetId && it.status != CalibrationStatus.SUPERSEDED)
         it.copy(status = CalibrationStatus.SUPERSEDED, resolvedAt = now) else it
 } + listOfNotNull(next)
+
+/** S4 snapshots also need rebuilding when S3 was skipped or never registered. */
+internal fun needsCorrectedCalibrationRefresh(state: WorkoutUiState): Boolean =
+    state.calibrationDecisions.isNotEmpty() || state.completedSets.values.any { it.apreXrm != null } ||
+        state.session?.allExercises().orEmpty().any { liveApreBlock(state, it) != null }
 
 /** Voice/video corrections and undo use the same replacement contract as registering again. */
 internal suspend fun refreshCorrectedCalibrations(
