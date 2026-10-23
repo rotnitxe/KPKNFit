@@ -233,10 +233,18 @@ class SupersetRoundsFocusIntegrationTest {
             rule.onNode(hasText(label) and within("R"), useUnmergedTree = true)
                 .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
             val layout = layouts.single()
-            assertFalse("$label desborda en ancho", layout.didOverflowWidth)
-            assertFalse("$label desborda en alto", layout.didOverflowHeight)
-            for (line in 0 until layout.lineCount) assertFalse("$label elidido", layout.isLineEllipsized(line))
-            assertEquals(label.length, layout.getLineEnd(layout.lineCount - 1, visibleEnd = true))
+            val lines = 0 until layout.lineCount
+            val detail = "${layout.size}, párrafo=${layout.multiParagraph.width}, líneas=${lines.map { layout.getLineLeft(it) to layout.getLineRight(it) }}, ${layout.layoutInput.constraints}"
+            println("C3 alcance «$label»: $detail")
+            assertEquals("Etiqueta exacta del alcance", label, layout.layoutInput.text.text)
+            assertFalse("$label desborda en alto: $detail", layout.didOverflowHeight)
+            for (line in lines) assertFalse("$label elidido: $detail", layout.isLineEllipsized(line))
+            assertEquals("Todos los caracteres visibles: $detail", label.length,
+                layout.getLineEnd(layout.lineCount - 1, visibleEnd = true))
+            // Como H3: el párrafo puede ser mayor que la caja ajustada sin recortar ninguna línea.
+            assertTrue("$label recortado: $detail", lines.all {
+                layout.getLineLeft(it) >= -1f && layout.getLineRight(it) <= layout.size.width + 1f
+            })
         }
         completeScope("Esta sesión")
         completeScope("Próximas sesiones")

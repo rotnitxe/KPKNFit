@@ -74,3 +74,12 @@ Repetición necesaria: clase C3 nueva completa, `EdbFocusControlsTest` y `EdbRen
 
 
 La inspección del mismo PNG también mostró que AMRAP había perdido la identificación del lado que `InlineSetRow` ofrecía. Se restituye «Lado R» / «Lado L» en el foco AMRAP cuando recibe `fixedUnilateralSide`, sin cambiar el texto exacto de la carga ni duplicar etiquetas RM. La prueba lateral exige ambos rótulos dentro de su foco correspondiente y los alcanza con desplazamiento real. Es una preservación funcional del consumidor, no una nueva lateralidad ni un nuevo porcentaje por lado.
+
+
+## Segunda corrida integrada: medición del texto de alcance
+
+Se leyó de nuevo el XML real C3, timestamp `2026-10-23T05:05:28.792Z`: diez casos, un fallo, cero errores/omitidos. Los cuatro fallos anteriores ya no aparecen. El único fallo está en `didOverflowWidth` para «Esta sesión» del caso nuevo de alcance; el orquestador informó 60 casos totales, 59 pasados.
+
+Se aplica únicamente al arnés el patrón ya usado por `PreparationChipsComposeTest` de H3: la anchura del párrafo puede superar la caja ajustada aunque las líneas visibles quepan. En vez de ese booleano se exige etiqueta exacta en `layoutInput.text`, todos los caracteres hasta `visibleEnd`, ninguna elipsis, ausencia de desborde vertical y límites de cada línea entre −1 px y `layout.size.width + 1 px`. Se imprimen tamaño, anchura del párrafo, límites de líneas y constraints para sustentar el resultado. El margen de un píxel solo admite redondeo, no texto oculto.
+
+No cambian los clicks, selected, los valores de alcance ni las aserciones laterales; tampoco cambia producción. La repetición de los diez casos C3 sigue pendiente del orquestador. No se declara verde con esta corrección estática.
