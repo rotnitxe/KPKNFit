@@ -127,12 +127,13 @@ internal fun SessionEditorFrameTopBar(
             ) {
                 AnimatedContent(
                     targetState = dayLabel,
-                    modifier = Modifier.weight(1f, fill = false),
+                    modifier = Modifier.weight(1f),
                     transitionSpec = { frameLabelTransition(forward = forward, reduced = reduced) },
                     label = "frameDayLabel",
                 ) { label ->
                     Text(
                         text = label,
+                        modifier = Modifier.fillMaxWidth(),
                         style = KpknType.bodyStrong.copy(fontSize = 13.sp, lineHeight = 16.sp),
                         color = WizardColors.text,
                         // Día y semana caben en dos líneas al aumentar la letra.

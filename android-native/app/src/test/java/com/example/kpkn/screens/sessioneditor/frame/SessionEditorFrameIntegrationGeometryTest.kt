@@ -109,8 +109,6 @@ class SessionEditorFrameIntegrationGeometryTest {
     private fun fullText(label: String) {
         val layout = textLayout(rule.onNodeWithText(label, useUnmergedTree = true))
         val diagnostic = "$label: size=${layout.size}, lines=${(0 until layout.lineCount).map { listOf(layout.getLineLeft(it), layout.getLineRight(it), layout.getLineEnd(it, visibleEnd = true)) }}, overflowHeight=${layout.didOverflowHeight}"
-        println(diagnostic)
-        save("texto_${label.hashCode()}")
         assertFalse("$label desborda en vertical", layout.didOverflowHeight)
         for (line in 0 until layout.lineCount) assertFalse("$label elidido en línea $line", layout.isLineEllipsized(line))
         assertEquals(label.length, layout.getLineEnd(layout.lineCount - 1, visibleEnd = true))
@@ -184,9 +182,7 @@ class SessionEditorFrameIntegrationGeometryTest {
         WeekVariant.entries.forEach { variant ->
             val row = rule.onNodeWithTag("session_variant_${variant.name}")
             row.performScrollTo()
-            val badge = rule.onNodeWithTag("session_variant_badge_${variant.name}")
-            println("Variante $variant: radio=${row.fetchSemanticsNode().boundsInRoot}, badge=${badge.fetchSemanticsNode().boundsInRoot}")
-            save("variante_${variant.name}_$name")
+            val badge = rule.onNodeWithTag("session_variant_badge_${variant.name}", useUnmergedTree = true)
             badge.assertIsDisplayed()
             val size = badge.fetchSemanticsNode().size
             assertEquals(22f, size.width / density, 0.01f)
