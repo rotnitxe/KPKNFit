@@ -10,28 +10,44 @@ import java.util.Locale
 
 object DatabaseBackupHelper {
 
+    private const val DEFAULT_DATABASE_NAME = "kpkn.db"
+    private const val DEFAULT_SNAPSHOT_PREFIX = "kpkn_snapshot_"
+    private const val VT_QA_SNAPSHOT_PREFIX = "kpkn-vt-qa-v29_snapshot_"
+
+    internal fun snapshotFilePrefixForApplicationId(applicationId: String): String =
+        if (KpknDatabase.databaseNameForApplicationId(applicationId) == DEFAULT_DATABASE_NAME) {
+            DEFAULT_SNAPSHOT_PREFIX
+        } else {
+            VT_QA_SNAPSHOT_PREFIX
+        }
+
     fun createSnapshot(context: Context): String {
-        val db = KpknDatabase.getInstance(context)
+        val appContext = context.applicationContext
+        val dbName = KpknDatabase.databaseNameForApplicationId(appContext.packageName)
+        val snapshotPrefix = snapshotFilePrefixForApplicationId(appContext.packageName)
+        val db = KpknDatabase.getInstance(appContext)
         // Checkpoint completo para asegurar que todos los logs WAL se consoliden en el archivo .db principal
         db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(FULL)").close()
 
-        val dbFile = context.getDatabasePath("kpkn.db")
+        val dbFile = appContext.getDatabasePath(dbName)
         if (!dbFile.exists()) {
             throw Exception("Base de datos no encontrada para respaldar")
         }
 
-        val snapshotDir = File(context.filesDir, "snapshots").apply { mkdirs() }
+        val snapshotDir = File(appContext.filesDir, "snapshots").apply { mkdirs() }
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val snapshotFile = File(snapshotDir, "kpkn_snapshot_$timestamp.db")
+        val snapshotFile = File(snapshotDir, "$snapshotPrefix$timestamp.db")
 
         copyFile(dbFile, snapshotFile)
         return snapshotFile.name
     }
 
     fun listSnapshots(context: Context): List<File> {
-        val snapshotDir = File(context.filesDir, "snapshots")
+        val appContext = context.applicationContext
+        val snapshotDir = File(appContext.filesDir, "snapshots")
         if (!snapshotDir.exists()) return emptyList()
-        return snapshotDir.listFiles { _, name -> name.startsWith("kpkn_snapshot_") && name.endsWith(".db") }
+        val snapshotPrefix = snapshotFilePrefixForApplicationId(appContext.packageName)
+        return snapshotDir.listFiles { _, name -> name.startsWith(snapshotPrefix) && name.endsWith(".db") }
             ?.sortedByDescending { it.lastModified() }
             ?: emptyList()
     }
@@ -41,14 +57,17 @@ object DatabaseBackupHelper {
             throw Exception("Archivo de snapshot no encontrado")
         }
 
+        val appContext = context.applicationContext
+        val dbName = KpknDatabase.databaseNameForApplicationId(appContext.packageName)
+
         // 1. Cerrar de forma segura la instancia activa de Room
         KpknDatabase.closeInstance()
 
-        val destDbFile = context.getDatabasePath("kpkn.db")
+        val destDbFile = appContext.getDatabasePath(dbName)
 
         // 2. Eliminar archivos temporales de log WAL/SHM para evitar corrupción por colisión de logs antiguos
-        context.getDatabasePath("kpkn.db-wal").delete()
-        context.getDatabasePath("kpkn.db-shm").delete()
+        appContext.getDatabasePath("$dbName-wal").delete()
+        appContext.getDatabasePath("$dbName-shm").delete()
 
         // 3. Reemplazar el archivo de base de datos principal
         copyFile(snapshotFile, destDbFile)
