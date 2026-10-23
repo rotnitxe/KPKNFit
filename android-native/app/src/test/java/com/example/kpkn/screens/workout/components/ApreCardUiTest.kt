@@ -35,7 +35,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import java.io.File
 
-/** V7 real en su marco312×425; viewport físico distinto en740/880 y clicks nativos. */
+/** V7 real en su marco312Ã—425; viewport fÃ­sico distinto en740/880 y clicks nativos. */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [34], application = Application::class, qualifiers = "w360dp-h880dp-mdpi")
@@ -122,7 +122,7 @@ class ApreCardUiTest {
         ApreVariant.entries.forEach { variant ->
             rule.runOnIdle { seed(variant) }
             rule.waitForIdle(); frame(height)
-            rule.onNodeWithText("APRE ${variant.xrmReps} · S3").assertIsDisplayed()
+            rule.onNodeWithText("APRE ${variant.xrmReps} Â· S3").assertIsDisplayed()
             val record = state.value.calibrationDecisions.single()
             completeText(rule.onNodeWithTag("apre-set4-result"))
             completeText(rule.onNodeWithText(record.decision.reason))
