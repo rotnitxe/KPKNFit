@@ -26,3 +26,8 @@ Roomv30 congelado; sin cambios Entity/DAO/migración/schema. Sin push/master. Fi
 ### CAT-B cerrado de forma dirigida
 
 Corrección64de531b5 (mergeb2d37d0ec): la descripción usa el nombre humano confirmado; no force técnico ni detección heurística. int-catb-jvm-codex-20261023-1:3clases26/0, exit0; int-catb-android-codex-20261023-2:3clases27/0, exit0, BUILD8min5s. XML archivados. Revisión de3renders nuevos E7/F1/F2 completa y sin knee_dominant; descripción expandible y cues reales. Los27repiten rutas del primer80, no son107casos únicos. CAT-B listo para pasar a APRE; QA de dispositivo y barrido final pendientes.
+
+
+## CAL4-V ·primera compilación
+
+Mergef47cc64e5 desdeu20@992a9bbee, preflightlimpio; data/db y schemas siguen sin diff desde3645ba55c. int-apre-jvm-codex-20261023-1.log (completo kpknjvm-u11-20261023-052409.log): BUILD FAILED1min, wrapperexit1,153s concola;0clases/0tests ejecutados. Dos causas decompilación: faltaimport ApreBlockReference en PlanMaterializer y argumento nombrado completedWeek en collectAmrapHits, cuya firma exige week. No son pruebas falladas ni evidencia funcional; no se archivan XML anteriores como si fueran de esta corrida. Corrección mínima en preparación antes de repetir.
