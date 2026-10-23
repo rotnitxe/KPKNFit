@@ -6,6 +6,10 @@ Fecha de preparación: 23-oct-2026. Estado: **pendiente de ejecución en disposi
 
 Se completará el SHA de fuente, variante, SHA-256 del APK, serial, tamaño, densidad, escala de fuente y actividad top-resumed observados. QA exclusivamente en `com.example.kpkn.dbg`, emulador ZFlip5_QA puerto5580 y teléfono mediante phone_run.py con regla20min. Roomv30 congelado. Sin push, master ni firma de distribución.
 
+## APK preparado y arranque de entorno
+
+23-oct08:43: BUILD6min6s y wrapperexit0 sobre0c642bff1. APK C:/kw/apk/20261023/screens-v2-qa-0c642bff1-base-debug.apk;485534900bytes; SHA256170a26fabb3930af3e5d06fbfd26b564c33c8dc1ca5ee3473eda4c7f8ab77f14. Paquete.dbg y certificado AndroidDebug verificados mediante aapt2/apksigner. Metadatos en screens-v2-qa-0c642bff1-evidence.json de la misma carpeta. Aún sin acreditar instalación ni flujos: el emulador dedicado5580 acaba de iniciarse y el teléfono se comprobará exclusivamente mediante phone_run.py/candado/20min. Los cambios posteriores de compilaciónCAL7 afectan solo tests.
+
 ## Tableros aprobados
 
 La copia local contiene 70 pantallas HTML. canvas.json enumera 71 entradas: la restante es Piece-433s.dc.html, pieza sin marco titulada Div (389,997 × 119,992), sin HTML local; no se inventa una pantalla adicional ni una aprobación visual de esa pieza. La evidencia de dispositivo se enlazará por tablero y se anotarán defectos y repetición. Pendiente significa que aún no se ha comprobado; no se equipara un render Robolectric a una captura del APK.
