@@ -513,9 +513,9 @@ class PreparationChipsComposeTest {
                 }
             }
         }
-        rule.onNodeWithTag("mobility-picker-search").performTextReplacement("zzzzzzkpknqa")
+        rule.onNodeWithTag("mobility-picker-search", useUnmergedTree = true).performTextReplacement("zzzzzzkpknqa")
         rule.onNodeWithTag("mobility-picker-empty").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithTag("mobility-picker-search").performTextReplacement(movement.name)
+        rule.onNodeWithTag("mobility-picker-search", useUnmergedTree = true).performTextReplacement(movement.name)
         rule.onNodeWithTag("mobility-picker-empty").assertDoesNotExist()
         val movementTag = "mobility-picker-item-${movement.id}"
         rule.onNodeWithTag(movementTag).performScrollTo().assertIsDisplayed()
