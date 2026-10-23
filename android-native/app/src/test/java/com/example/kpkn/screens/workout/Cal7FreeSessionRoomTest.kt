@@ -207,6 +207,8 @@ class Cal7FreeSessionRoomTest {
 
     @Test fun ringsCountTheRecordedWorkEquallyForNormalAndCalibratorPurposes() = runBlocking {
         suspend fun completed(purpose: SetPurpose): WorkoutLog {
+            // Cada prepare cierra Room; el DAO del singleton AUGE anterior ya no es válido.
+            LiveSessionVmFixture.resetAugeRepository()
             val original = cal3Fixture().state.session!!
             val session = original.copy(exercises = listOf(original.exercises.first().copy(sets = listOf(
                 original.exercises.first().sets.first().copy(purpose = purpose, targetReps = 10)))))
