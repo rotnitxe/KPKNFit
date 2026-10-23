@@ -1,5 +1,12 @@
 # Relevo de la ola screens-v2 (21-oct-2026, noche)
 
+## Estado operativo · 23-oct08:20
+
+Este bloque es el estado actual; los bloques inferiores se conservan como historial. Fase3 y CAT-B/CAL4-V integrados y verificados de forma dirigida. TM: núcleo135JVM/144Android verde; ajuste militar implementado y selector de geometría corregido en a61a6ba98, pendiente repetición de sus4medidas. PLAN-OBS:2062casos puros únicos verdes mediante completa3+focused4, y4Android/4; no una única completa verde. Android2 conjunta17casos tuvo4fallos del arnés visual TM, sin rebajar aserciones. Evidencia en INT-4 y XML archivados.
+
+Siguiente: refrescar/integrar CAL7u23, piloto dirigido CAL7+TM en una reserva, APKdebugQA, barrido final exacto en una reserva con un worker reciclado cada15clases, QA emulador5580 y teléfono por phone_run.py, APKrelease sin firma de distribución. El cambio de método y sus controles quedan en INT-4. Root centraliza toda ejecución Gradle/JVM; subagentes solo preparan código/fixtures. El usuario autorizó decisiones autónomas mientras duerme. Sin push/master/firma; Roomv30 congelado; no hay todavía instalación ni QA de dispositivo de esta continuación. Se conserva el artefacto ajeno sin seguimiento.
+
+
 ## Estado verificado · 23-oct-2026 · integración ED-B comprobada
 
 Este bloque sustituye el inventario operativo de abajo; los inventarios antiguos se conservan como historial. No hay push, merge en master, QA de esta continuación ni APK nuevo. Room permanece congelado.

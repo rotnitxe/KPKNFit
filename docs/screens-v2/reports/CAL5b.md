@@ -1,5 +1,7 @@
 # CAL5b · Referencias y TM por ejercicio
 
+Estado central23-oct08:20: núcleo135casos JVM y144Android verdes (corridas2). El press militar del wizard y su resumen de cuatro levantamientos están implementados; su nueva prueba pasó los2casos funcionales y falló4medidas por seleccionar el layout del título fusionado. Corregido el selector en4c37d4c4c; repetición central pendiente. INT-CAL5B e INT-4 contienen la secuencia completa. Los apartados de preparación inferiores son históricos y no sustituyen esta evidencia.
+
 Estado: implementado en `codex/sv2-cal5b` sobre base provisional. Compilación, pruebas y renders pendientes de la cola central del agente principal; no se ejecutó Gradle, JVM ni adb en este trabajo. No se cambió Room.
 
 ## Almacenamiento y contrato compartido

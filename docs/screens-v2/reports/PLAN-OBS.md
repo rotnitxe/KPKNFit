@@ -35,3 +35,6 @@ La tercera central (`int-phase4-final-jvm-codex-20261023-3.log`) informó tres f
 
 
 La repetición pura4 cerró exit0 con2clases/27casos, sin fallos/errores/omitidas; XML archivados. Junto a la completa3 verifica2062 casos únicos de207clases; no se presenta como una única corrida completa verde. La Android int-phase4-tm-relator-android-codex-20261023-1 falló compileBaseDebugKotlin en2min20s por import LiveApreBlock ausente (errores derivados en sus propiedades). Se añade el import del dominio, sin cambiar lógica ni repetir el barrido puro. Cero tests Android ejecutados en este intento y sin XML viejos archivados. Pendiente repetición.
+
+
+Android2 TM+Relator cerró: RelatorPlanProgressionContextTest4/4correctos. La corrida conjunta17casos tuvo4fallos del selector visual TM, ajenos a Relator; XML nuevos archivados en int-phase4-tm-relator-android-codex-20261023-2. El selector se corrige sin cambios de producto y se repetirá el conjunto junto a CAL7. La verificación dirigida de PLAN-OBS comprende2062casos puros únicos mediante completa3+focused4 y4casos Android, no QA de dispositivo ni una sola completa verde.
