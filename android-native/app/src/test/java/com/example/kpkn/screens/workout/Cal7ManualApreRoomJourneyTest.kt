@@ -121,9 +121,9 @@ class Cal7ManualApreRoomJourneyTest {
 
         val expectedXrm = if (mode == AutoregulationMode.OFF) 120.0 else 125.0
         assertApreLoads(f, current, targetWeekId, f.apreSessionWeek2Id, expectedXrm)
-        assertEquals("La sesión manual de la semana siguiente conserva su contenido",
-            f.manualSessionWeek2, f.weeks(current).single { it.id == targetWeekId }.sessions.single {
-                it.id == f.manualSessionWeek2.id
+        assertEquals("La sesión manual persistida de la semana siguiente conserva todo su contenido e identidad",
+            f.persistedManualSessionWeek2, f.weeks(current).single { it.id == targetWeekId }.sessions.single {
+                it.id == f.persistedManualSessionWeek2.id
             })
         assertEquals(f.foreignReferences, current.exerciseLoadReferences.single {
             it.exerciseId == f.foreignExerciseId
@@ -182,7 +182,9 @@ class Cal7ManualApreRoomJourneyTest {
         val baseWeek1 = f.week1.sessions.single()
         val activeBWeek1 = baseWeek1.sessionB!!
         assertNotEquals("La variante persistida tiene su propio ID", baseWeek1.id, activeBWeek1.id)
-        val baseWeek2Before = f.week2.sessions.single { it.id == f.apreSessionWeek2Id }
+        val baseWeek2Before = f.weeks(f.program).single { it.id == f.week2.id }.sessions.single {
+            it.id == f.apreSessionWeek2Id
+        }
         val unrelatedAExercisesBefore = baseWeek2Before.exercises
         val variantBWeek2Before = baseWeek2Before.sessionB!!
         val manualBExerciseBefore = variantBWeek2Before.allExercises().single {
@@ -230,8 +232,8 @@ class Cal7ManualApreRoomJourneyTest {
         assertEquals(f.foreignReferences, after.exerciseLoadReferences.single {
             it.exerciseId == f.foreignExerciseId
         })
-        assertEquals(f.manualSessionWeek2, f.weeks(after).single { it.id == f.week2.id }.sessions.single {
-            it.id == f.manualSessionWeek2.id
+        assertEquals(f.persistedManualSessionWeek2, f.weeks(after).single { it.id == f.week2.id }.sessions.single {
+            it.id == f.persistedManualSessionWeek2.id
         })
     }
     private fun assertSingleApreProposal(
@@ -298,6 +300,8 @@ class Cal7ManualApreRoomJourneyTest {
         val week1: ProgramWeek
         val week2: ProgramWeek
         val manualSessionWeek2: Session
+        lateinit var persistedManualSessionWeek2: Session
+            private set
         lateinit var repository: ProgramRepository
             private set
         val preparedRepository: ProgramRepository? get() = if (::repository.isInitialized) repository else null
@@ -429,6 +433,11 @@ class Cal7ManualApreRoomJourneyTest {
             repository.addProgram(ExerciseLoadReferenceStore.appendCapture(manualProgram,
                 setOf(foreignExerciseId), foreign))
             repository.flushPendingWrites()
+            if (!simpleCycle) {
+                persistedManualSessionWeek2 = weeks(program).single { it.id == week2.id }.sessions.single {
+                    it.id == manualSessionWeek2.id
+                }
+            }
             val weekLocation = ProgramHierarchyIndex(manualProgram).locateWeek(week1.id)!!
             repository.updateActiveProgramState(ActiveProgramState(
                 programId = programId,
