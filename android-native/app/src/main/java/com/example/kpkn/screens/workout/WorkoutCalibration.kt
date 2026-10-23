@@ -12,6 +12,18 @@ import com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngine
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import java.util.UUID
 
+/** Keep execution/log identity on the base session, but resolve prescriptions from the active variant. */
+private fun calibrationExercises(state: WorkoutUiState): List<Exercise> {
+    val base = state.session ?: return emptyList()
+    val active = when (state.activeMode) {
+        WeekVariant.A -> base
+        WeekVariant.B -> base.sessionB ?: base
+        WeekVariant.C -> base.sessionC ?: base
+        WeekVariant.D -> base.sessionD ?: base
+    }
+    return active.allExercises()
+}
+
 internal fun calibrationExecutionId(state: WorkoutUiState): String = CalibrationDecisionRepository.executionId(
     state.programId, state.session?.id.orEmpty(), state.startTimeMs)
 
@@ -173,7 +185,7 @@ internal fun replaceRecordedCalibration(
 /** S4 snapshots also need rebuilding when S3 was skipped or never registered. */
 internal fun needsCorrectedCalibrationRefresh(state: WorkoutUiState): Boolean =
     state.calibrationDecisions.isNotEmpty() || state.completedSets.values.any { it.apreXrm != null } ||
-        state.session?.allExercises().orEmpty().any { liveApreBlock(state, it) != null }
+        calibrationExercises(state).any { liveApreBlock(state, it) != null }
 
 /** Voice/video corrections and undo use the same replacement contract as registering again. */
 internal suspend fun refreshCorrectedCalibrations(
@@ -191,7 +203,7 @@ internal suspend fun refreshCorrectedCalibrations(
                 it.partialReps, it.rir, it.rpe, it.isFailure, it.isFailedSet, it.loadMode, it.contextKey, it.side, it.purpose, it.skipped) }
             if (signature(old) != signature(updated)) {
                 val parsed = entry?.key?.let(::parseCompletedSetKey)
-                val exercise = next.session?.allExercises()?.firstOrNull { it.id == parsed?.exerciseId }
+                val exercise = calibrationExercises(next).firstOrNull { it.id == parsed?.exerciseId }
                 val replacement = if (exercise != null && parsed != null && updated != null && !updated.skipped &&
                     updated.performedPurpose()?.isAmrap == true) {
                     buildRecordedApreCalibration(result, exercise, parsed.setIdx, updated, now, inventory)
@@ -206,7 +218,7 @@ internal suspend fun refreshCorrectedCalibrations(
     val corrected = result.completedSets.mapValues { (key, completed) ->
         if (previous.completedSets[key] == completed) completed else {
             val parsed = parseCompletedSetKey(key)
-            val exercise = result.session?.allExercises()?.firstOrNull { it.id == parsed?.exerciseId }
+            val exercise = calibrationExercises(result).firstOrNull { it.id == parsed?.exerciseId }
             completed.copy(apreXrm = if (parsed != null && exercise != null && parsed.setIdx in exercise.sets.indices)
                 buildRecordedApreXrm(result, exercise, parsed.setIdx, completed, now, inventory) else null)
         }
@@ -223,14 +235,14 @@ internal fun resolveCalibration(
     if (action !in setOf(CalibrationStatus.APPLIED, CalibrationStatus.KEPT, CalibrationStatus.REVERTED)) return state
     val d = record.decision
     if (record.apre != null && action == CalibrationStatus.APPLIED) {
-        val plannedExercise = state.session?.allExercises()?.firstOrNull { it.id == d.exerciseId } ?: return state
+        val plannedExercise = calibrationExercises(state).firstOrNull { it.id == d.exerciseId } ?: return state
         val block = liveApreBlock(state, plannedExercise) ?: return state
         if (block.variant.xrmReps != record.apre.xrmReps ||
             plannedExercise.sets[block.thirdIndex].id != record.apre.sourcePlannedSetId ||
             plannedExercise.sets[block.fourthIndex].id != record.apre.targetPlannedSetId) return state
     }
     if (action == CalibrationStatus.APPLIED && d.type == CalibrationDecisionType.NOT_APPLIED) return state
-    val exercise = state.session?.allExercises()?.firstOrNull { it.id == d.exerciseId } ?: return state
+    val exercise = calibrationExercises(state).firstOrNull { it.id == d.exerciseId } ?: return state
     val sourceIndex = exercise.sets.indexOfFirst { set ->
         state.completedSets.any { (key, done) -> done.id == record.sourceSetId &&
             parseCompletedSetKey(key)?.let { it.exerciseId == exercise.id && exercise.sets.getOrNull(it.setIdx)?.id == set.id } == true }
@@ -289,7 +301,7 @@ internal fun calibrationLoadForSet(state: WorkoutUiState, exercise: Exercise, in
 
 internal fun calibrationRouteLoads(state: WorkoutUiState): Map<String, Double> = buildMap {
     if (state.calibrationDecisions.isEmpty()) return@buildMap
-    state.session?.allExercises().orEmpty().forEach { exercise ->
+    calibrationExercises(state).forEach { exercise ->
         exercise.sets.indices.forEach { index ->
             listOf(null, "left", "right").forEach { side ->
                 calibrationLoadForSet(state, exercise, index, side)?.takeIf { it.calibrated }?.let {

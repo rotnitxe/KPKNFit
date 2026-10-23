@@ -41,3 +41,10 @@ Se reutilizan los arneses CAL3 de Room y el componente V7 real, sin migraciones/
 ## Validación central de integración · 23-oct
 
 La entrega de origen descrita arriba fue revisada e integrada en u11. CAL4-V.md e INT-4.md registran las correcciones productivas, de compilación y de fixtures, con su evidencia real. Producción420acaf4c: 1989 casos puros únicos verdes en completa más repetición de un fixture; Android final int-apre-android-codex-20261023-2.log:14 clases/201 casos,0 fallos/errores/omitidas, BUILD8min11s, wrapper exit0. XML archivados; tres renders finales revisados. Pendientes el barrido ampliado y la QA de dispositivo; no se declara una única corrida completa JVM verde ni la suite entera del repositorio.
+
+
+## Identidad de la variante activa descubierta por CAL7 · 23-oct
+
+El recorrido Room de variante B reveló que resolveCalibration buscaba el ejercicio y sus IDs S3/S4 en la sesión base A. Aunque el registro era de B, la validación rechazaba la propuesta y permanecía PROPOSED. Se resuelven ahora las prescripciones desde la variante activa A/B/C/D, con el mismo fallback a base de la sesión en vivo; la identidad de ejecución/log continúa siendo la base. La misma selección se aplica a correcciones de voz/vídeo, reconstrucción de la captura S4 y cargas de la ruta, que también estaban leyendo A. No se relaja la validación de contexto ni de IDs.
+
+WorkoutCalibrationVariantTest añade cinco casos: aplicar/ruta/revertir en B/C/D con IDs propios, rechazar el registro B en A, rechazar un S4 reemplazado, corregir S3 conservando identidad B y corregir S4 conservando el XRM físico. APRE10:150×12→155;145×12→150;S4 155×17→162,5 y150×17→157,5. CAL7 conserva su APRE6:120×9→122,5 y XRM125. Preparado, aún sin compilar ni ejecutar; prueba central posterior obligatoria. Room y tablas intactos.
