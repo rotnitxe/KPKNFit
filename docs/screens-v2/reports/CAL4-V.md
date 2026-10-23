@@ -1,20 +1,37 @@
-# CAL4-V · APRE en vivo · en curso
+# CAL4-V · APRE en vivo y XRM de la próxima semana
 
-Worktree u20, codex/sv2-cal4v, base provisional acc75872c. El usuario autoriza autonomía y paralelismo. Para aprovechar la validación central de fase3 se adelanta implementación aislada: antes de validar o integrar fase4 se fusionará la fase3 completa y verde. No se cambia el orden de integración, Room, datos personales ni la cola única propia.
+Estado: implementación completa preparada en u20, codex/sv2-cal4v, **sin ejecución todavía**. Base provisional acc75872c; antes de validar o integrar se actualizará con fase3 completa y verde. El usuario autorizó autonomía y paralelismo preparatorio. Sin cambios Room, push, master, paquetes personales ni firma.
 
-Primera parte: identidad pura del bloque por sus cuatro IDs y variante. Un marcador editado inválido no vuelve a identificarse por parecido. El respaldo legado exige el protocolo apre-mann, su regla ApreXrm y las cuatro prescripciones reales. S3 y S4 son AMRAP, nunca CALIBRATOR. Series ajenas añadidas fuera del bloque no se convierten en S4.
+## Contrato y cálculos
 
-Siete pruebas de identidad preparadas, sin ejecutar aún. La ruta en vivo, persistencia, decisiones S3 y propuestas S4 siguen pendientes. Este informe no acredita compilación, QA ni APK.
+La identidad del bloque procede de sus cuatro IDs y variante. Un marcador inválido no vuelve a identificarse por parecido. El respaldo legado requiere apre-mann, regla ApreXrm y cuatro prescripciones compatibles. S3/S4 son AMRAP, nunca CALIBRATOR; una quinta AMRAP no sustituye la S4 marcada.
 
+S3 usa Apre.set4LoadKg y S4 usa Apre.nextWeekXrmKg, con la carga externa real, reps completas de CAL1 y salto del material. No se descuentan dos veces las parciales. Corporal/asistido, fuentes incompatibles o sin carga externa se abstienen. El ejemplo155×17 produce10RM162,5kg por Mann; jamás1RM niTM. Se conservan fechas desconocidas como null.
 
-S3 preparada: usa Apre.set4LoadKg sobre carga externa y reps completas de CAL1, sin descontar otra vez partialReps. El registro serializa sólo metadatos APRE en el JSON actual y mantiene capacityKg=null: nunca se acepta como1RM. La decisión apunta exclusivamente a S4 de ese contexto/lado, con conservación de hechas/fijadas y asignación absoluta. Correcciones y undo reconstruyen/sustituyen la decisión; un marcador modificado no habilita la propuesta antigua. V7 distingue Mann de una capacidad estimada y tiene objetivos48. Ocho pruebas Android preparadas sobre tablas, parcialidad, idempotencia, lados, protección, corrección y compatibilidad JSON. No ejecutadas aún.
+## S3, V7 y durabilidad
 
-Se corrige también una lectura de carga completada al revertir: calibrationLoadForSet devolvía la base previa aunque el CompletedSet conservaba la carga real. El consumidor ahora devuelve la carga externa registrada, y sólo restaura pendientes; la prueba APRE exige155kg ya hechos tras revertir. Se repetirán las regresiones CAL3 para comprobar este contrato compartido.
+V7 muestra «APRE · S4 → X kg (tabla de Mann)», fuente y reps válidas, Aplicar a S4, Conservar y Revertir con objetivos48 dentro del marco312×425. capacityKg/referenceKg/ratio quedan null. Sólo cambia la S4 pendiente del contexto y lado exactos; hechas, fijadas a mano y marcadores de otro contexto se conservan.
 
-Pendientes: propuestas de XRM al cerrarS4 porOFF/PROPONER/AUTO, persistencia real con recorder/Room, renders físicos312x425, actualización de la base a fase3 verde y validación centralizada.
+Recorder guarda decisión y snapshot antes de publicar. Correcciones, voz/vídeo y undo recalculan sin descartar completedSets: candidato durable, Room, estado y resultado confirmado comparten la captura. La protección manual distingue lados. Revertir conserva los kilos externos de una S4 ya ejecutada. Ver INT-APRE-DURABLE.md para los defectos encontrados y las pruebas con Room real.
 
+## S4 y propuestas
 
-Snapshot S4 preparado: ApreXrmCapture dentro de CompletedSet y de la propuesta JSON, sin nueva tabla. La captura durable toma sólo la carga externa real de S4, su contexto/lado y reps completas, y guarda OBSERVED_WORKING_SET de rangoexacto con origenAPRE_XRM; no deriva1RM/TM. recipeSlotId conserva el slotreal y sourceSetId la serie. Seis pruebas puras nuevas:155×17→10RM162,5, procedencia, parciales, identidad, contextos y lastre. Fecha legada desconocida se conserva null. Recorder y correcciones reconstruyen el snapshot antes del guardado duradero. Falta conectar dispatch ADJUST_XRM y aplicación protegida; todavía ninguna validación APRE ejecutada.
+CompletedSet y AutoregulationProposal llevan ApreXrmCapture opcional en el JSON existente. ADJUST_XRM es un carril físico separado: OFF no actúa; PROPONER conserva un pendiente sin cambiar bolsa/prescripciones; AUTO o aceptación guardan OBSERVED_WORKING_SET, rango XRM exacto y procedencia APRE_XRM. No exige LiftSlot, perfil ni receta para un bloque manual marcado.
 
+La asociación verifica configuración/contexto registrados y no reetiqueta un log de varianteA comoB. Admite el contrato real de fin de sesión: log con sessionId baseA y ejercicios activosB/C/D; identidades ambiguas se abstienen. Se preservan sesiones ejecutadas y manuales. Al cerrar ciclo se lee el cicloN y se dirige a la primera ocurrenciaN+1, sin confundir el ID de plantilla reutilizado con una sesión hecha. La progresión autora conserva su orden.
 
-Consumo XRM preparado: el constructor marca las cuatro series de la receta APRE y luego consume la bolsa por ID, contexto/lado y variante exactos, preservando1RM/TM. Al aceptar una carga observada, ese bloque se expresa enkg/reps(como el bloque del editor), sin seguir mostrando%delTMdel queya no procede; no se inventa una nueva base1RM. Se recalculan0,5/0,75/1/1 con Apre y salto material persistido en metadata.loadIncrementKg. Seriesfijadas/contextosajenos no se tocan. Un ejercicio con filas adicionales se conserva entero al aplicar la referencia futura; la referencia puede quedar guardada con motivo sin afirmar cargasmodificadas. Seis pruebas puras preparadas (capacidades separadas, guardas, rematerialización y salto1kg, contextos/rangos y marcador manual delotro lado). Aún sin ejecutar.
+Aceptación/rechazo parcial, expiración y reintentos dejan auditoría observable. La corrección162,5→155→162,5 añade revisiones; repetir el último payload no duplica. El mensaje pendiente contiene sólo lo aún pendiente. Si sólo se guarda referencia, el motivo lo dice y no afirma que cambiaron series. Ver INT-APRE-CHANNEL.md.
+
+## Materialización y almacenamiento compartido
+
+El materializador marca el bloque APRE y consume referencias ligadas por ID o slot real y contexto/lado/variante exactos. Las cargas observadas se expresan enkg/reps, como el bloque del editor; no mantienen un porcentaje TM ficticio. Se calculan0,5/0,75/1/1 y se conserva metadata.loadIncrementKg. Ejercicios con filas adicionales o fijadas se conservan.
+
+Se reutiliza la bolsa JSON ExerciseLoadReferenceStore y metadatos opcionales de CAL5b, incorporados como dependencia común para no duplicar almacenes. El resto de CAL5b (UI, confirmación, preparación y sincronización del test1RM) sigue en u21. No se toca Entity/DAO/migración/schema ni versión30.
+
+## Pruebas preparadas y siguiente verificación
+
+Puras: LiveApreBlockTest, ApreXrmCaptureFactoryTest, ApreXrmPrescriptionTest, ProgramAutoregulationApreXrmChannelTest y Cal6AprePrescriptionTest. Cubren las tres tablas, identidad, material, contextos/lados, referencias, correcciones, propuestas mixtas, variantes y ciclo. Se repetirán protocolos/training por JVM, incluidos los fixtures por archivo.
+
+Android: ApreLiveCalibrationTest, ApreDurableRoomTest, ApreDurableViewModelRoomTest, ApreLateralCalibrationTest y components.ApreCardUiTest; además las regresiones WorkoutCalibrationTest, WorkoutCalibrationRecorderRoomTest, WorkoutVoiceSetMutationRoomTest, WorkoutVoiceSetMutationsTest, Cal3ViewModelRoomTest, components.Cal3CardUiTest, WorkoutFinishCalibrationTest, Cal3ProgramPreviewTest y TrainingPlanRecipeJsonCompatTest. Las19 nuevas de durabilidad/UI aún no se han ejecutado; las restantes tampoco se presentan como verdes.
+
+Con KPKN_RENDER_DIR se preparan12PNG V7 de APRE3/6/10, viewport360×740/880 y fuente100/130; raíz debe abrirlos después de una corrida exitosa. Revisión estática y UTF-8 estricta correctas; compilación, tests, Room observado, revisión visual, QA y APK continúan pendientes. No se declara ninguna de esas evidencias a partir del código preparado.
