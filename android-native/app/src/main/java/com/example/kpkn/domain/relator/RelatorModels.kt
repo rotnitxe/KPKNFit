@@ -3,14 +3,20 @@ package com.example.kpkn.domain.relator
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.BlockProgressionScheme
+import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.ProgramGoals
 import com.example.kpkn.data.models.ProgramMode
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.TrainingPhase
 import com.example.kpkn.data.protocols.AutoregulationHook
 import com.example.kpkn.data.protocols.LoadBasis
+import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
+import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.domain.training.AmrapHit
+import com.example.kpkn.domain.training.ProgramAutoregulationEngine
 
 enum class RelatorSessionPhase {
     HIDDEN,
@@ -78,6 +84,26 @@ data class RelatorPlanSlice(
     val weeksInBlock: Int? = null,
     val progression: ProgressionRule? = null,
     val autoregulationHooks: List<AutoregulationHook> = emptyList(),
+    val progressionContext: RelatorProgressionContext? = null,
+)
+
+/** Datos reales de la receta y del registro usados para describir su progresión en vivo. */
+data class RelatorProgressionContext(
+    val recipe: TrainingPlanRecipe? = null,
+    val sourceProtocolId: String? = null,
+    val profile: PowerliftingProfile? = null,
+    val hit: AmrapHit? = null,
+    /** Evidencia agregada de cierre; null mientras no se conoce el cierre del ciclo. */
+    val tierCheck: ProgramAutoregulationEngine.GzclpTierCheck? = null,
+    /** Racha anterior verificada de ciclos congelados; null si no se cargó esa evidencia. */
+    val frozenCyclesBefore: Int? = null,
+    val liftSlot: LiftSlot? = null,
+    val slotRole: SlotRole? = null,
+    val plannedVolumeReps: Int? = null,
+    val plannedMinimumReps: Int? = null,
+    val purpose: SetPurpose? = null,
+    val isApreBlock: Boolean = false,
+    val isLastAmrapOfExercise: Boolean? = null,
 )
 
 data class RelatorHistorySet(

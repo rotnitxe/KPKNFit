@@ -102,6 +102,44 @@ class ProgramAutoregulationApreXrmChannelTest {
             .filter { it.metadata?.sourceId == proposal.apreXrm!!.reference.metadata?.sourceId }
 
     @Test
+    fun collector_prefers_a_current_material_capture_and_rejects_one_from_different_reps() {
+        val plan = program(AutoregulationMode.AUTO, "apre-material-increment")
+        val week = Cal5TestSupport.weeksOf(plan).first()
+        val exercise = Cal5TestSupport.exerciseOf(week.sessions.first(), CatalogIds.SQ_LOW)
+        val logs = recordedLogs(plan, week, onlyExerciseId = exercise.id)
+        val sourceLog = logs.single()
+        val sourceExercise = sourceLog.completedExercises.single()
+        val sourceS4 = sourceExercise.sets.single { it.setIndex == 3 }
+        val capture = captureApreXrm(
+            exercise, 3, sourceS4, sourceProtocolId = recipe.id, hasApreProgression = true,
+            incrementKg = 5.0, capturedAtMs = 123L, sourceProgramId = plan.id,
+            contextOverride = plannedApreContext(exercise, exercise.sets[3], sourceS4.side, sourceS4),
+        )!!
+        val capturedLogs = logs.map { log ->
+            log.copy(completedExercises = log.completedExercises.map { completedExercise ->
+                completedExercise.copy(sets = completedExercise.sets.map {
+                    if (it.id == sourceS4.id) it.copy(apreXrm = capture) else it
+                })
+            })
+        }
+
+        val recipeFallback = ProgramAutoregulationEngine.evaluateApreXrmOnly(plan, week, logs).single()
+        val proposal = ProgramAutoregulationEngine.evaluateApreXrmOnly(plan, week, capturedLogs).single()
+        assertEquals(162.5, recipeFallback.apreXrm!!.reference.capturedLoadKg!!, 1e-9)
+        assertEquals(5.0, proposal.apreXrm!!.incrementKg, 0.0)
+        assertEquals(160.0, proposal.apreXrm!!.reference.capturedLoadKg!!, 1e-9)
+
+        val staleLogs = capturedLogs.map { log ->
+            log.copy(completedExercises = log.completedExercises.map { completedExercise ->
+                completedExercise.copy(sets = completedExercise.sets.map {
+                    if (it.id == sourceS4.id) it.copy(reps = 18, apreXrm = capture) else it
+                })
+            })
+        }
+        assertTrue(ProgramAutoregulationEngine.evaluateApreXrmOnly(plan, week, staleLogs).isEmpty())
+    }
+
+    @Test
     fun real_s4_without_source_recipe_applies_physical_xrm_and_rematerializes_from_pool() {
         val manual = program(AutoregulationMode.AUTO, "apre-manual").copy(
             sourceRecipe = null, sourceProtocolId = null, powerliftingProfile = null,
