@@ -2,6 +2,8 @@ package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.resolveUnitModeV2
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.screens.sessioneditor.components.cardioDoseLine
 import com.example.kpkn.ui.design.KpknSetFormat
@@ -22,11 +24,12 @@ internal fun sessionExerciseDose(
     trainingMode: TrainingMode,
     restSeconds: Int?,
     includeRest: Boolean = true,
+    customUnit: String? = null,
 ): String? {
     val working = sets.filterNot { it.isEmptySlot }
     if (working.isEmpty()) return null
     val count = working.size
-    val reps = repsLabel(working, trainingMode)
+    val reps = repsLabel(working, trainingMode, customUnit)
     val first = when {
         reps != null -> "$count × $reps"
         count == 1 -> "1 serie"
@@ -45,11 +48,12 @@ internal fun sessionExerciseSpokenDose(
     trainingMode: TrainingMode,
     restSeconds: Int?,
     includeRest: Boolean = true,
+    customUnit: String? = null,
 ): String? {
     val working = sets.filterNot { it.isEmptySlot }
     if (working.isEmpty()) return null
     val count = working.size
-    val reps = repsLabel(working, trainingMode)?.replace("–", " a ")
+    val reps = repsLabel(working, trainingMode, customUnit)?.replace("–", " a ")
     val first = when {
         count == 1 && reps != null -> "1 serie de $reps"
         count == 1 -> "1 serie"
@@ -74,20 +78,27 @@ private fun spokenDuration(seconds: Int): String {
 }
 
 /** Repeticiones de todas las series: «AMRAP», un rango («6–8»), un número («8») o una duración («45 s»). Null si no hay un patrón común. */
-private fun repsLabel(sets: List<ExerciseSet>, mode: TrainingMode): String? {
-    val amrap = sets.count { it.isAmrap || mode == TrainingMode.AMRAP }
+private fun repsLabel(sets: List<ExerciseSet>, mode: TrainingMode, customUnit: String?): String? {
+    val unit = sets.map { it.resolveUnitModeV2(mode) }.distinct().singleOrNull() ?: return null
+    if (unit == UnitModeV2.DISTANCE || unit == UnitModeV2.CUSTOM) {
+        val values = sets.mapNotNull { it.plannedTargetV2 }
+        if (values.size != sets.size) return null
+        val label = if (unit == UnitModeV2.DISTANCE) "m" else customUnit?.takeIf { it.isNotBlank() } ?: "u"
+        return valueRange(values, prefix = "", suffix = " $label")
+    }
+    val amrap = sets.count { it.purpose.isAmrap }
     if (amrap == sets.size) return "AMRAP"
     if (amrap > 0) return null
-    val timed = mode == TrainingMode.TIME || sets.all { repRangeOf(it) == null }
-    if (timed) {
+    if (unit == UnitModeV2.TIME) {
         return sets.map { it.targetDuration }.distinct().singleOrNull()?.let { KpknSetFormat.doseTime(it) }
     }
+    if (unit != UnitModeV2.REPS) return null
     val ranges = sets.map { repRangeOf(it) }
     if (ranges.any { it == null }) return null
     val known = ranges.filterNotNull()
     val low = known.minOf { it.first }
     val high = known.maxOf { it.second }
-    return if (low == high) "$low" else "$low–$high"
+    return if (low == high) low.toString() else low.toString() + "–" + high
 }
 
 /** Rango de repeticiones de una serie: el [com.example.kpkn.data.models.RepRange] o el número exacto. */
@@ -123,7 +134,8 @@ private fun valueRange(values: List<Double>, prefix: String, suffix: String): St
     val low = values.minOrNull() ?: return null
     val high = values.maxOrNull() ?: return null
     val text = if (low == high) formatValue(low) else "${formatValue(low)}–${formatValue(high)}"
-    val head = if (prefix.isEmpty()) text else "$prefix $text"
+    // «RIR 2» / «RPE 8» con espacio inseparable (retoque de ED-A): la cifra no queda sola al partir la línea.
+    val head = if (prefix.isEmpty()) text else "$prefix\u00A0$text"
     return head + suffix
 }
 
@@ -138,8 +150,8 @@ private fun formatValue(value: Double): String =
 internal fun sessionExerciseListDose(exercise: com.example.kpkn.data.models.Exercise, includeRest: Boolean): String {
     val details = exercise.cardioDetails
     if (details != null) return cardioDoseLine(details)
-    val base = sessionExerciseDose(exercise.sets, exercise.trainingMode, exercise.restTime, includeRest) ?: "Sin series"
-    val side = if (exercise.isEffectivelyUnilateral() && exercise.sets.any { !it.isEmptySlot }) " · por lado" else ""
+    val base = sessionExerciseDose(exercise.sets, exercise.trainingMode, exercise.restTime, includeRest, exercise.customUnit) ?: "Sin series"
+    val side = if (exercise.isEffectivelyUnilateral() && exercise.sets.any { !it.isEmptySlot }) " · por\u00A0lado" else ""
     return hardUnitSpaces(base + side)
 }
 

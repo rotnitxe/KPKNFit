@@ -84,6 +84,25 @@ data class PlanLoadReference(
     /** Snapshot de la carga elegida cuando [state] es [PlanLoadReferenceState.CAPTURED]. */
     val capturedLoadKg: Double? = null,
     val capturedAtMs: Long? = null,
+    /** JSON-only provenance. Null keeps the exact legacy context; it is never a wildcard. */
+    val metadata: PlanLoadReferenceMetadata? = null,
+)
+
+/** Optional audit attached to the existing reference pool; no separate persistence or inferred dates. */
+@Serializable
+data class PlanLoadReferenceMetadata(
+    val origin: String? = null,
+    val reason: String? = null,
+    /** Existing CAL1 CalibrationContext.key, including equipment/tag/brand/setup and side. */
+    val contextKey: String? = null,
+    /** Stable event identity. A corrected event appends a revision instead of erasing history. */
+    val sourceId: String? = null,
+    val sourceSetId: String? = null,
+    val tmFraction: Double? = null,
+    val loadIncrementKg: Double? = null,
+    val revision: Int = 0,
+    /** Explicit user clearing, distinct from an unresolved recipe reference. The previous captures remain in history. */
+    val invalidatedAtMs: Long? = null,
 )
 
 @Serializable
@@ -133,6 +152,10 @@ data class SetRecipe(
     val rpe: Double? = null,
     val rir: Int? = null,
     val amrap: Boolean = false,
+    /** Explicit contract for recipes authored from sessions; null reads legacy amrap/reps. */
+    val purpose: com.example.kpkn.data.models.SetPurpose? = null,
+    val amrapMinimumReps: Int? = null,
+    val calibrationScope: com.example.kpkn.data.models.CalibrationScope? = null,
     val isTopSet: Boolean = false,
     val loadBasis: LoadBasis = LoadBasis.PERCENT_TM,
     /** No cuenta como serie efectiva en H5b/H6/H8/W2. */
@@ -146,7 +169,12 @@ data class SetRecipe(
      * `reference1RM`. null = resolución legacy sin cambios.
      */
     val reference: PlanLoadReference? = null,
-)
+) {
+    val resolvedPurpose: com.example.kpkn.data.models.SetPurpose
+        get() = purpose ?: if (amrap) com.example.kpkn.data.models.SetPurpose.AMRAP else com.example.kpkn.data.models.SetPurpose.NONE
+    val effectiveAmrapMinimumReps: Int?
+        get() = if (purpose != null) amrapMinimumReps else (repsMin ?: reps)?.takeIf { it > 0 }
+}
 
 /**
  * Intención editorial de un slot según el vocabulario de §11.2.
@@ -347,6 +375,52 @@ sealed class ProgressionRule {
         val upperKg: Double,
         val lowerKg: Double,
         val scope: IncrementScope = IncrementScope.CYCLE,
+        /**
+         * 5/3/1 (CAL5): tras este número de ciclos SEGUIDOS congelados (el AMRAP no alcanzó las repeticiones
+         * mínimas) el TM del levantamiento se reinicia un [resetPercent] %. 0 = sin reinicio (Madcow y el JSON
+         * anterior, que decodifica con 0). El umbral de producto es `CalibrationPolicy.fiveThreeOneResetAfterFrozenCycles`.
+         */
+        val resetAfterFrozenCycles: Int = 0,
+        val resetPercent: Double = 10.0,
+    ) : ProgressionRule()
+
+    /**
+     * Juggernaut 2.0 (CAL5): el TM nuevo es `TM + (repeticiones del AMRAP de realización − estándar) × kg por
+     * repetición` ([lowerKgPerRep] en sentadilla y peso muerto, [upperKgPerRep] en banca y press militar), con un
+     * tope de [maxExtraReps] repeticiones extra. Con menos o las mismas repeticiones que el estándar el TM no cambia
+     * y se avisa. Se aplica al entrar en la ola siguiente (el método no sube el TM en ninguna otra ocasión).
+     */
+    @Serializable
+    @SerialName("reps_over_standard_tm")
+    data class RepsOverStandardTm(
+        val lowerKgPerRep: Double = 2.5,
+        val upperKgPerRep: Double = 1.25,
+        val maxExtraReps: Int = 10,
+    ) : ProgressionRule()
+
+    /**
+     * APRE (CAL6, Mann): las repeticiones de la serie 4 (la última AMRAP del ejercicio) fijan el XRM de la semana siguiente con la
+     * tabla de Mann, aplicada a la carga de esa serie 4. En la receta el TM es el 1RM con el porcentaje del plan y las series van
+     * en porcentaje del TM; el XRM nuevo se propone como un cambio porcentual del TM (que respeta OFF, PROPONER y AUTO) y la
+     * semana siguiente parte de él. [incrementKg] es el salto de material al que se redondea.
+     */
+    @Serializable
+    @SerialName("apre_xrm")
+    data class ApreXrm(val incrementKg: Double = 2.5) : ProgressionRule()
+
+    /**
+     * GZCLP (CAL5): el T1 pasa de etapa (5×3+ → 6×2+ → 10×1+) cuando no se completa su volumen base, con la misma
+     * carga; completar el volumen base sube el TM [upperKg] (banca y press) o [lowerKg] al cerrar el ciclo. La AMRAP
+     * del T1 no cambia la carga y cuenta como mucho [t1AmrapCap] repeticiones. El T3 sube cuando su última serie
+     * llega a [t3RaiseReps].
+     */
+    @Serializable
+    @SerialName("staged_volume")
+    data class StagedVolume(
+        val upperKg: Double = 2.5,
+        val lowerKg: Double = 5.0,
+        val t1AmrapCap: Int = 10,
+        val t3RaiseReps: Int = 25,
     ) : ProgressionRule()
 
     @Serializable

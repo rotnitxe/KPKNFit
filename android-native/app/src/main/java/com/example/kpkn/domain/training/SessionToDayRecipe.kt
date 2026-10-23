@@ -57,7 +57,10 @@ object SessionToDayRecipe {
                     percent = set.targetPercentageRM,
                     rpe = set.targetRPE,
                     rir = set.targetRIR,
-                    amrap = set.isAmrap,
+                    amrap = set.purpose.isAmrap,
+                    purpose = set.purpose,
+                    amrapMinimumReps = set.amrapMinimumReps,
+                    calibrationScope = set.calibrationScope,
                     isTopSet = false,
                     loadBasis = when {
                         set.targetPercentageRM != null -> LoadBasis.PERCENT_TM

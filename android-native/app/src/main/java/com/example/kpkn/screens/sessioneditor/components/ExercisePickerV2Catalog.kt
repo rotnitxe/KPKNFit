@@ -36,6 +36,7 @@ import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -45,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.semantics.contentDescription
@@ -54,6 +56,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.draw.drawWithContent
 import com.example.kpkn.screens.sessioneditor.CatalogSupersetConfig
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
+import com.example.kpkn.data.exercises.approvedExerciseCatalogV2
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
@@ -101,7 +104,11 @@ import com.example.kpkn.screens.sessioneditor.design.CatalogReplaceBar
 import com.example.kpkn.screens.sessioneditor.design.CatalogReplacingCardModel
 import com.example.kpkn.screens.sessioneditor.design.CatalogSelectionIsland
 import com.example.kpkn.screens.sessioneditor.design.CatalogSelectionSlot
-import com.example.kpkn.screens.sessioneditor.design.CatalogVariantChips
+import com.example.kpkn.screens.sessioneditor.design.CatalogInlineAxis
+import com.example.kpkn.screens.sessioneditor.design.CatalogInlineVariants
+import com.example.kpkn.screens.sessioneditor.design.CatalogMuscleContribution
+import com.example.kpkn.screens.sessioneditor.design.CatalogFilteredNoResults
+import com.example.kpkn.screens.sessioneditor.design.CatalogTechniqueChoiceBar
 import com.example.kpkn.screens.sessioneditor.design.catalogSelectionSummary
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
@@ -111,6 +118,8 @@ import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePattern
 import com.example.kpkn.screens.sessioneditor.design.CatalogSupersetConfiguratorDialog
 import com.example.kpkn.screens.sessioneditor.design.SmartExerciseEditorPage
+import com.example.kpkn.screens.sessioneditor.design.SmartExerciseCreatePage
+import com.example.kpkn.ui.components.KpknPortal
 
 private typealias CatalogExerciseImageVariant = ExerciseTechniqueImageVariant
 
@@ -474,6 +483,9 @@ internal fun ExercisePickerV2Catalog(
     replacement: CatalogReplacementContext? = null,
 ) {
     val state by repository.state.collectAsStateWithLifecycle()
+    // El contenido listo puede salir de composición mientras se restaura/carga el catálogo.
+    // Conserva su selección, el creador abierto y el borrador de rondas a través de esa transición.
+    val readyStateHolder = rememberSaveableStateHolder()
     DisposableEffect(Unit) {
         val repairBenchmarkIoWindow =
             com.example.kpkn.screens.workout.RepairBenchmarkTrace.beginUiIoWindow("exercise_picker")
@@ -550,6 +562,8 @@ internal fun ExercisePickerV2Catalog(
                 onBack = if (opaqueSurface) onDismiss else null,
                 targetGroupName = targetGroupName,
                 isReplacement = replacement != null,
+                isSingleSelection = singleSelectionLabel != null && replacement == null,
+                isSupersetAddMode = isSupersetAddMode,
                 replacingCard = replacingCard,
                 sameMuscleSelected = sameMuscleId != null && filterMuscle == sameMuscleId,
                 onToggleSameMuscle = if (sameMuscleId != null) {
@@ -593,7 +607,8 @@ internal fun ExercisePickerV2Catalog(
                     modifier = Modifier.padding(horizontal = 16.dp),
                 )
 
-                is ExerciseCatalogStateV2.Ready -> CatalogReadyContent(
+                is ExerciseCatalogStateV2.Ready -> readyStateHolder.SaveableStateProvider("catalog-ready") {
+                    CatalogReadyContent(
                     catalog = current.catalog,
                     repository = repository,
                     query = query,
@@ -617,9 +632,15 @@ internal fun ExercisePickerV2Catalog(
                     hazeState = glassHaze,
                     filterRegion = filterRegion,
                     filterMuscle = filterMuscle,
+                    onClearFilters = {
+                        filterRegion = null
+                        filterMuscle = null
+                        muscleFilterExpanded = false
+                    },
                     benchmarkRequestId = repairBenchmarkPickerRequestId,
                     replacement = replacement,
-                )
+                    )
+                }
             }
         }
     }
@@ -653,6 +674,7 @@ private fun ColumnScope.CatalogReadyContent(
     hazeState: HazeState?,
     filterRegion: String?,
     filterMuscle: String?,
+    onClearFilters: () -> Unit,
     benchmarkRequestId: Long,
     benchmarkSearchRequestId: Long,
     benchmarkLatestRequestedQuery: String,
@@ -663,6 +685,10 @@ private fun ColumnScope.CatalogReadyContent(
     val haptics = LocalHapticFeedback.current
     val reducedMotion = wizardReducedMotion()
     val imeVisible = WindowInsets.isImeVisible
+    val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
+    val singleChoice = singleSelectionLabel != null && replacement == null
+    val confirmSelection = replacement != null || singleChoice
+    var replacementSelectionIds by rememberSaveable { mutableStateOf<List<String>?>(null) }
     val projectionCache = remember(catalog) {
         object : LinkedHashMap<CatalogDefinitionFilterKey, CatalogDefinitionProjection>(8, 0.75f, true) {}
     }
@@ -774,6 +800,7 @@ private fun ColumnScope.CatalogReadyContent(
         catalogProjection,
         initialCatalogDefinitionId,
         initialCatalogConfigurationId,
+        replacementSelectionIds,
     ) {
         val definition = when {
             initialCatalogDefinitionId != null -> definitionsById[initialCatalogDefinitionId]
@@ -783,9 +810,18 @@ private fun ColumnScope.CatalogReadyContent(
             else -> null
         }
         val configuration = definition?.configurations?.firstOrNull { it.id == initialCatalogConfigurationId }
-        if (definition != null && configuration != null) mapOf(definition.id to configuration.selectedOptions) else emptyMap()
+        val initial = if (definition != null && configuration != null) mapOf(definition.id to configuration.selectedOptions) else emptyMap()
+        val restoredChoices = replacementSelectionIds.orEmpty().mapNotNull { id ->
+            val chosenDefinition = definitionsById.values.firstOrNull { candidate -> candidate.configurations.any { it.id == id } }
+                ?: return@mapNotNull null
+            chosenDefinition.id to chosenDefinition.configurations.first { it.id == id }.selectedOptions
+        }.toMap()
+        initial + restoredChoices
     }
-    val draftByDefinition = remember(initialDraftByDefinition) { mutableStateOf(initialDraftByDefinition) }
+    val draftByDefinition = rememberSaveable { mutableStateOf(initialDraftByDefinition) }
+    LaunchedEffect(initialDraftByDefinition) {
+        draftByDefinition.value = initialDraftByDefinition + draftByDefinition.value
+    }
     val suggestedDrafts = remember(searchHits, definitionsById) {
         searchHits.mapNotNull { hit ->
             val suggestedId = hit.suggestedConfigurationId ?: return@mapNotNull null
@@ -824,34 +860,44 @@ private fun ColumnScope.CatalogReadyContent(
             restoreSelectedCatalogRows(
                 catalog = catalog,
                 definitionsById = definitionsById,
-                selectedIds = selectedExercisesIds,
+                selectedIds = if (confirmSelection) replacementSelectionIds ?: selectedExercisesIds else selectedExercisesIds,
                 previous = emptyMap(),
                 draftByDefinition = initialDraftByDefinition,
                 initialCatalogDefinitionId = initialCatalogDefinitionId,
                 initialCatalogConfigurationId = initialCatalogConfigurationId,
+                customExercises = customExercises,
             ),
             neverEqualPolicy(),
         )
     }
-    LaunchedEffect(catalog, catalogProjection, selectedExercisesIds) {
-        // Al reemplazar (H1) lo elegido vive aquí y el padre no guarda ids: reconstruirlo desde ellos lo vaciaría al tocar un filtro.
-        if (replacement != null) return@LaunchedEffect
+    LaunchedEffect(catalog, catalogProjection, selectedExercisesIds, customExercises, replacementSelectionIds) {
         val next = restoreSelectedCatalogRows(
             catalog = catalog,
             definitionsById = definitionsById,
-            selectedIds = selectedExercisesIds,
+            selectedIds = if (confirmSelection) replacementSelectionIds ?: selectedExercisesIds else selectedExercisesIds,
             previous = selectedRows.value,
             draftByDefinition = draftByDefinition.value,
             initialCatalogDefinitionId = initialCatalogDefinitionId,
             initialCatalogConfigurationId = initialCatalogConfigurationId,
+            customExercises = customExercises,
         )
-        if (next != selectedRows.value) {
-            selectedRows.value = next
+        val restored = if (confirmSelection) {
+            next.values.associateBy { it.catalogDefinitionId ?: it.id }
+        } else next
+        if (restored != selectedRows.value) {
+            selectedRows.value = restored
         }
     }
     var selectedListExpanded by rememberSaveable { mutableStateOf(false) }
+    // Solo se pliega cuando la persona vacía la selección; al recrear la actividad la selección puede estar vacía un instante
+    // mientras se restaura y no debe perder la lista desplegada.
+    var hadSelection by remember { mutableStateOf(selectedRows.value.isNotEmpty()) }
     LaunchedEffect(selectedRows.value.isEmpty()) {
-        if (selectedRows.value.isEmpty()) selectedListExpanded = false
+        if (selectedRows.value.isEmpty()) {
+            if (hadSelection) selectedListExpanded = false
+        } else {
+            hadSelection = true
+        }
     }
     // La ficha de hoy (expandedDefinitionId) y las variantes desplegadas bajo la fila (variantsDefinitionId) son estados distintos.
     // La ficha nunca se abre sola (LV5): al reemplazar, el ejercicio actual ya encabeza la lista y su ficha queda a un toque. Antes
@@ -859,7 +905,6 @@ private fun ColumnScope.CatalogReadyContent(
     var expandedDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
     var variantsDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
     var showSupersetConfigurator by rememberSaveable { mutableStateOf(false) }
-    val customExercises by CustomExerciseRepository.customExercises.collectAsStateWithLifecycle()
     val editingCustomExercise = remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
     val deletingCustomExercise = remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
     val normalizedCustomQuery = remember(query) { ExerciseMatchLexicon.normalize(query) }
@@ -871,8 +916,45 @@ private fun ColumnScope.CatalogReadyContent(
         }
     }
 
+    val creatorFocusManager = LocalFocusManager.current
+    val creatingCustomQuery = rememberSaveable { mutableStateOf<String?>(null) }
+    fun finishCreatedSelection(info: ExerciseMuscleInfo) {
+        if (confirmSelection) {
+            selectedRows.value = mapOf(info.id to info)
+            replacementSelectionIds = listOf(info.id)
+            onSelectionChange(listOf(info))
+        } else if (editingExisting) {
+            onSelect(info)
+        } else {
+            selectedRows.value = selectedRows.value + (info.id to info)
+            onSelectionChange(selectedRows.value.values.toList())
+        }
+        creatingCustomQuery.value = null
+        onSearch("")
+    }
+    creatingCustomQuery.value?.let { seedName ->
+      KpknPortal {
+        SmartExerciseCreatePage(initialName = seedName,
+            onSave = ::finishCreatedSelection,
+            onUseCandidate = { candidate ->
+                val exact = candidate.configurationId?.let { configuration ->
+                    catalog.toLegacySelection(ExerciseSelectionV2(candidate.definitionId, configuration, catalog.catalogRevision))
+                }
+                if (exact != null) finishCreatedSelection(exact) else {
+                    // Una semejanza sin configuración exacta se revisa en el catálogo, nunca se materializa por defecto.
+                    creatingCustomQuery.value = null
+                    onClearFilters()
+                    onSearch(candidate.name)
+                    expandedDefinitionId = candidate.definitionId
+                }
+            },
+            onClose = { creatingCustomQuery.value = null })
+      }
+        return
+    }
     val editing = editingCustomExercise.value
     if (editing != null) {
+      KpknPortal {
         SmartExerciseEditorPage(
             exercise = editing,
             onSave = { saved ->
@@ -884,6 +966,7 @@ private fun ColumnScope.CatalogReadyContent(
             },
             onClose = { editingCustomExercise.value = null },
         )
+      }
         return
     }
 
@@ -908,9 +991,10 @@ private fun ColumnScope.CatalogReadyContent(
     }
 
     // La isla solo con algo elegido, fuera de la edición de una sola pieza y sin teclado abierto.
-    val showIsland = !editingExisting && selectedRows.value.isNotEmpty() && !imeVisible
+    val showIsland = !editingExisting && !singleChoice && selectedRows.value.isNotEmpty() && !imeVisible
     // Al reemplazar (H1), la barra con la nota y el botón va siempre, salvo con el teclado abierto.
     val showReplaceBar = replacement != null && !imeVisible
+    val showChoiceBar = singleChoice && !imeVisible
     CatalogPickerViewport {
         LazyColumn(
             state = listState,
@@ -935,7 +1019,7 @@ private fun ColumnScope.CatalogReadyContent(
                 start = 16.dp,
                 top = 4.dp,
                 end = 16.dp,
-                bottom = if (showIsland || showReplaceBar) with(density) { bottomPanelHeight.toDp() } + 8.dp else 16.dp,
+                bottom = if (showIsland || showReplaceBar || showChoiceBar) with(density) { bottomPanelHeight.toDp() } + 8.dp else 16.dp,
             ),
         ) {
             item("result-count") {
@@ -963,17 +1047,20 @@ private fun ColumnScope.CatalogReadyContent(
                     CatalogCustomExerciseItem(
                         exercise = custom,
                         selected = custom.id in selectedRows.value,
+                        selectionOrder = selectedRows.value.keys.indexOf(custom.id).takeIf { it >= 0 }?.plus(1)
+                            ?.takeUnless { confirmSelection },
                         // Al reemplazar (H1) un ejercicio propio se elige como cualquier otro candidato y se confirma abajo.
-                        editingExisting = editingExisting && replacement == null,
+                        editingExisting = editingExisting && !confirmSelection,
                         onSelect = { onSelect(custom) },
                         onToggle = {
                             val next: Map<String, ExerciseMuscleInfo> = when {
-                                replacement != null ->
+                                confirmSelection ->
                                     if (custom.id in selectedRows.value) emptyMap() else mapOf(custom.id to custom)
                                 custom.id in selectedRows.value -> selectedRows.value - custom.id
                                 else -> selectedRows.value + (custom.id to custom)
                             }
                             selectedRows.value = next
+                            if (confirmSelection) replacementSelectionIds = next.values.map { it.id }
                             onSelectionChange(next.values.toList())
                         },
                         onEdit = { editingCustomExercise.value = custom },
@@ -1007,11 +1094,6 @@ private fun ColumnScope.CatalogReadyContent(
                         repository.compatibility(definition.id, selectedOptions)
                     }
                     val selectedConfigurationId = compatibility.exactConfigurationId
-                    val selectedConfiguration = remember(definition, selectedConfigurationId) {
-                        selectedConfigurationId?.let { id ->
-                            definition.configurations.firstOrNull { it.id == id }
-                        }
-                    }
                     // Fallback: si el draft del usuario tiene opciones seleccionadas pero no
                     // colapsa a una configuración exacta, resolver la mejor configuración
                     // compatible en lugar de caer en silencio a la configuración por defecto.
@@ -1021,8 +1103,8 @@ private fun ColumnScope.CatalogReadyContent(
                     // configuration (for example implement=cable implies station=standing).
                     // Render all implied axis values as selected so the chips never show
                     // an apparently incomplete state while the summary says otherwise.
-                    val effectiveSelectedOptions = selectedConfiguration?.selectedOptions ?: selectedOptions
-                    val effectiveConfiguration = selectedConfiguration ?: default
+                    val effectiveConfiguration = definition.configurations.firstOrNull { it.id == resolvedConfigurationId }
+                    val effectiveSelectedOptions = effectiveConfiguration?.selectedOptions ?: selectedOptions
                     val effectiveExerciseInfo = remember(catalog, definition.id, resolvedConfigurationId) {
                         exactInfo(catalog, definition, resolvedConfigurationId)
                     }
@@ -1035,7 +1117,7 @@ private fun ColumnScope.CatalogReadyContent(
                         }
                     val isExpanded = expandedDefinitionId == definition.id
                     val hasOptions = definition.optionAxes.isNotEmpty()
-                    val defaultMuscles = remember(default) { default?.profile?.primaryMuscles.orEmpty() }
+                    val shownMuscles = effectiveConfiguration?.profile?.primaryMuscles.orEmpty()
                     val selectedImplementation = effectiveSelectedOptions["implement"]
                     // La imagen es la del implemento que se ve: el elegido y, si no hay elección, el de la configuración que «Añadir»
                     // añadiría. Antes, sin elección se enseñaba la primera foto de la lista aunque la fila dijera otro material (LV5).
@@ -1063,37 +1145,47 @@ private fun ColumnScope.CatalogReadyContent(
                             value = value,
                         )
                         draftByDefinition.value = draftByDefinition.value + (definition.id to newDraft)
-                        if (definition.id in selectedRows.value) {
+                        // En selección múltiple cada configuración es independiente: cambiar un eje permite añadir otra variante.
+                        // Reemplazo y Técnica mantienen un único candidato pendiente y sí actualizan su configuración en el sitio.
+                        if ((confirmSelection && isSelected) || definition.id in selectedRows.value) {
                             val nextConfigId = repository.compatibility(definition.id, newDraft).exactConfigurationId
                                 ?: bestMatchingConfigurationId(definition, newDraft, default)
                             val info = exactInfo(catalog, definition, nextConfigId)
                             if (info != null) {
                                 // Al reemplazar (H1) lo elegido se guarda por su definición: así lo sigue cada cambio de variante.
-                                val key = if (replacement != null) {
+                                val key = if (confirmSelection) {
                                     definition.id
                                 } else {
                                     info.catalogConfigurationId?.takeIf { it.isNotBlank() } ?: info.id
                                 }
-                                selectedRows.value = selectedRows.value
-                                    .filterKeys { it != definition.id } + (key to info)
+                                // Reemplazar en su posición conserva el orden.
+                                selectedRows.value = selectedRows.value.entries.associate { entry ->
+                                    if (entry.key == definition.id || entry.value.catalogDefinitionId == definition.id) key to info
+                                    else entry.key to entry.value
+                                }
+                                if (confirmSelection) replacementSelectionIds = selectedRows.value.values.map { it.id }
+                                onSelectionChange(selectedRows.value.values.toList())
                             }
                         }
                     }
                     // El círculo y el botón de la ficha hacen lo mismo: quitar si ya está elegido, añadir si no.
                     val toggleSelection: () -> Unit = {
                         if (isSelected) {
-                            val next = selectedRows.value.filterKeys { key ->
-                                key != definition.id &&
-                                    selectedRows.value[key]?.catalogDefinitionId != definition.id
+                            val next = selectedRows.value.filter { (key, info) ->
+                                key != definition.id && key != resolvedConfigurationId &&
+                                    !(info.catalogDefinitionId == definition.id && info.catalogConfigurationId == resolvedConfigurationId)
                             }
                             selectedRows.value = next
+                            if (confirmSelection) replacementSelectionIds = next.values.map { it.id }
                             onSelectionChange(next.values.toList())
                         } else {
                             val info = exactInfo(catalog, definition, resolvedConfigurationId)
                             if (info != null) {
-                                if (replacement != null) {
+                                if (confirmSelection) {
                                     // Al reemplazar (H1) se elige uno y se confirma abajo: el círculo no reemplaza de golpe.
                                     selectedRows.value = mapOf(definition.id to info)
+                                    replacementSelectionIds = listOf(info.id)
+                                    onSelectionChange(listOf(info))
                                 } else if (editingExisting) {
                                     onSelect(info)
                                 } else {
@@ -1108,11 +1200,11 @@ private fun ColumnScope.CatalogReadyContent(
                     val pattern = remember(definition.canonicalName) { exercisePatternOf(definition.canonicalName) }
                     val thumbnailResId = selectedCatalogImageVariantIndex(imageVariants, shownImplementation)
                         ?.let { imageVariants[it].imageResId }
-                    val muscleLabel = defaultMuscles.firstOrNull()?.let(::exerciseCatalogMuscleLabel)
-                    val materialLabel = default?.selectedOptions?.get("implement")
+                    val muscleLabel = shownMuscles.firstOrNull()?.let(::exerciseCatalogMuscleLabel)
+                    val materialLabel = effectiveConfiguration?.selectedOptions?.get("implement")
                         ?.takeIf { it.isNotBlank() && it != "default" }
                         ?.let { exerciseCatalogOptionLabel(it, definition.id) }
-                    // La ficha nombra el implemento elegido ahora (CF1); la tarjeta sigue con el de la configuración por defecto.
+                    // La fila y la ficha nombran el implemento que se está mostrando.
                     val fichaMaterialLabel = catalogFichaMaterialLabel(
                         selectedImplementation = selectedImplementation,
                         defaultImplementation = default?.selectedOptions?.get("implement"),
@@ -1120,7 +1212,7 @@ private fun ColumnScope.CatalogReadyContent(
                     )
                     // Al reemplazar (H1), la línea de cada candidato dice su implemento y lo que cambia respecto al ejercicio actual.
                     val subtitle = replacementAnchor
-                        ?.let { catalogReplacementCandidateLine(definition, default, it) }
+                        ?.let { catalogReplacementCandidateLine(definition, effectiveConfiguration, it) }
                         ?: listOfNotNull(muscleLabel, materialLabel).joinToString(" · ")
                     // La línea de coincidencias no repite lo que la fila ya dice (músculo y material), y sin búsqueda no se pinta (SE6b).
                     val searchMatchLabel = catalogMatchLabel(
@@ -1144,6 +1236,11 @@ private fun ColumnScope.CatalogReadyContent(
                             thumbnailResId = thumbnailResId,
                             pattern = pattern,
                             selected = isSelected,
+                            selectionOrder = selectedRows.value.values.indexOfFirst {
+                                it.catalogDefinitionId == definition.id && it.catalogConfigurationId == resolvedConfigurationId
+                            }
+                                .takeIf { it >= 0 }?.plus(1)?.takeUnless { confirmSelection },
+                            onOpenFicha = { expandedDefinitionId = definition.id },
                             onClick = {
                                 if (hasVariants) {
                                     variantsDefinitionId = toggleCatalogDefinitionExpansion(
@@ -1170,13 +1267,10 @@ private fun ColumnScope.CatalogReadyContent(
                             },
                         )
                         if (variantsOpen) {
-                            CatalogVariantChips(
-                                values = variantValues,
-                                labelOf = { value -> exerciseCatalogVariantTagLabel(value, definition.id) },
-                                selectedValue = if (hasExplicitDraft) firstAxis?.let(effectiveSelectedOptions::get) else null,
-                                // Las variantes son las del primer eje de la definición, que no siempre es el implemento (agarre,
-                                // lateralidad, ángulo…): elegir una cambia ESE eje. Antes llamaba siempre a «implement» y no hacía nada (LV5).
-                                onSelect = { value -> selectOption(firstAxis ?: "implement", value) },
+                            CatalogInlineVariants(
+                                definitionId = definition.id,
+                                axes = catalogInlineAxes(definition, effectiveSelectedOptions, hasExplicitDraft),
+                                onSelect = selectOption,
                                 onOpenFicha = {
                                     expandedDefinitionId = toggleCatalogDefinitionExpansion(
                                         currentDefinitionId = expandedDefinitionId,
@@ -1184,6 +1278,12 @@ private fun ColumnScope.CatalogReadyContent(
                                     )
                                 },
                             )
+                            effectiveExerciseInfo?.let { info ->
+                                CatalogMuscleContribution(
+                                    exercise = info,
+                                    modifier = Modifier.padding(start = 60.dp, bottom = 12.dp),
+                                )
+                            }
                         }
                         if (isExpanded) {
                             // La ficha de hoy: una hoja casi a pantalla completa (SE6b). «Añadir» o «Quitar» la cierran, como antes.
@@ -1258,6 +1358,19 @@ private fun ColumnScope.CatalogReadyContent(
             // merely non-exact query. Use the unfiltered catalog result so an
             // active body/muscle filter cannot suggest duplicating an exercise that
             // exists elsewhere in the catalog.
+            if (searchSettled && definitions.isEmpty() && visibleCustomExercises.isEmpty() &&
+                (filterRegion != null || filterMuscle != null) &&
+                (query.isBlank() || globalSearchHits.isNotEmpty())
+            ) {
+                item("filtered-empty") {
+                    CatalogFilteredNoResults(
+                        query = query,
+                        filterLabel = filterMuscle?.let(::exerciseCatalogMuscleLabel)
+                            ?: if (filterRegion == "UPPER") "Tren superior" else "Tren inferior",
+                        onShowAll = onClearFilters,
+                    )
+                }
+            }
             if (shouldShowCatalogCreateSuggestion(
                     query = query,
                     searchSettled = searchSettled,
@@ -1267,18 +1380,10 @@ private fun ColumnScope.CatalogReadyContent(
                 )
             ) {
                 item("smart-create") {
-                    SmartCreateSuggestion(
-                        query = query,
-                        onCreate = { info ->
-                            if (editingExisting) {
-                                onSelect(info)
-                            } else {
-                                selectedRows.value = selectedRows.value + (info.id to info)
-                                onSelectionChange(selectedRows.value.values.toList())
-                            }
-                            onSearch("")
-                        },
-                    )
+                    SmartCreateSuggestion(query = query, onOpenCreate = {
+                        creatorFocusManager.clearFocus()
+                        creatingCustomQuery.value = query
+                    })
                 }
             }
         }
@@ -1297,14 +1402,23 @@ private fun ColumnScope.CatalogReadyContent(
             )
         }
 
+        if (showChoiceBar) {
+            val chosen = selectedRows.value.values.singleOrNull()
+            CatalogTechniqueChoiceBar(
+                name = chosen?.name,
+                onConfirm = { chosen?.let(onSelect) },
+                modifier = Modifier.align(Alignment.BottomCenter).onSizeChanged { bottomPanelHeight = it.height },
+            )
+        }
+
         // La isla flota abajo: resumen, «Superserie» si se puede y «Añadir N». Entra con un fundido y 8 dp de subida.
         CatalogSelectionSlot(
             visible = showIsland,
             reducedMotion = reducedMotion,
             modifier = Modifier.onSizeChanged { bottomPanelHeight = it.height },
         ) {
-            val supersetAvailable = selectedRows.value.size >= 2 &&
-                (onCreateSupersetConfigured != null || onCreateSuperset != null || isSupersetAddMode)
+            val supersetAvailable = selectedRows.value.size in 2..4 &&
+                !isSupersetAddMode && (onCreateSupersetConfigured != null || onCreateSuperset != null)
             CatalogSelectionIsland(
                 count = selectedRows.value.size,
                 summary = catalogSelectionSummary(selectedRows.value.values.map { it.name }),
@@ -1346,10 +1460,17 @@ private fun ColumnScope.CatalogReadyContent(
                         },
                         onTap = { id ->
                             val customOffset = if (visibleCustomExercises.isNotEmpty()) visibleCustomExercises.size + 1 else 0
-                            val indexInDefinitions = definitions.indexOfFirst { it.id == id }
-                            if (indexInDefinitions >= 0) {
+                            val customIndex = visibleCustomExercises.indexOfFirst { it.id == id }
+                            val definitionId = selectedRows.value[id]?.catalogDefinitionId ?: id
+                            val definitionIndex = definitions.indexOfFirst { it.id == definitionId }
+                            val targetIndex = when {
+                                customIndex >= 0 -> 2 + customIndex
+                                definitionIndex >= 0 -> 1 + customOffset + definitionIndex
+                                else -> null
+                            }
+                            if (targetIndex != null) {
                                 scope.launch {
-                                    listState.animateScrollToItem(1 + customOffset + indexInDefinitions)
+                                    listState.animateScrollToItem(targetIndex)
                                 }
                             }
                         },
@@ -1359,7 +1480,7 @@ private fun ColumnScope.CatalogReadyContent(
         }
     }
 
-    if (showSupersetConfigurator) {
+    if (showSupersetConfigurator && selectedRows.value.size in 2..4) {
         CatalogSupersetConfiguratorDialog(
             selectedExercises = selectedRows.value.values.toList(),
             onDismiss = { showSupersetConfigurator = false },
@@ -1499,6 +1620,12 @@ private fun SelectedExercisesList(
             .heightIn(max = 240.dp)
             .verticalScroll(rememberScrollState()),
     ) {
+        Text(
+            "ORDEN DE LA SELECCIÓN",
+            style = KpknType.eyebrow,
+            color = WizardColors.textMuted,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+        )
         selected.forEachIndexed { index, (id, info) ->
             Row(
                 modifier = Modifier
@@ -1525,6 +1652,7 @@ private fun SelectedExercisesList(
                 } else {
                     Spacer(Modifier.size(48.dp))
                 }
+                Text("${index + 1}.", style = KpknType.caption, color = WizardColors.textMuted)
                 Text(
                     text = info.name,
                     style = KpknType.bodyStrong,
@@ -1533,8 +1661,9 @@ private fun SelectedExercisesList(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .weight(1f)
+                        .heightIn(min = 48.dp)
                         .clickable(role = Role.Button, onClick = { onTap(id) })
-                        .padding(horizontal = 8.dp),
+                        .padding(horizontal = 8.dp, vertical = 12.dp),
                 )
                 KpknIconButton(
                     icon = KpknLineIcons.Close,
@@ -1559,8 +1688,15 @@ private fun CatalogCustomExerciseItem(
     onToggle: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    selectionOrder: Int? = null,
 ) {
     var expanded by rememberSaveable(exercise.id) { mutableStateOf(false) }
+    var fichaOpen by remember(exercise.id) { mutableStateOf(false) }
+    fun toggleCustomSelection() {
+        if (selected) onToggle() else if (editingExisting) onSelect() else onToggle()
+    }
+    if (fichaOpen) ExerciseFicha(model = customExerciseDetailModel(exercise, selected), onDismiss = { fichaOpen = false },
+        onToggleSelection = { toggleCustomSelection(); fichaOpen = false })
     val primaryMuscles = remember(exercise) {
         exercise.involvedMuscles
             .filter { it.role == MuscleRole.PRIMARY }
@@ -1569,14 +1705,22 @@ private fun CatalogCustomExerciseItem(
             .take(3)
     }
     val pattern = remember(exercise.name) { exercisePatternOf(exercise.name) }
+    // MOT · E4/E5: portada del propio = su foto, la imagen de referencia de una variante próxima o, si no hay, el glifo del patrón.
+    val coverContext = androidx.compose.ui.platform.LocalContext.current
+    val cover by androidx.compose.runtime.produceState(com.example.kpkn.screens.sessioneditor.design.CustomCoverModel(), exercise) {
+        value = com.example.kpkn.screens.sessioneditor.design.customExerciseCoverModel(coverContext, exercise)
+    }
     Column(modifier = Modifier.fillMaxWidth()) {
         CatalogExerciseRow(
             name = exercise.name,
+            onOpenFicha = { fichaOpen = true },
             subtitle = primaryMuscles.takeIf { it.isNotEmpty() }?.joinToString(" · ") { exerciseCatalogMuscleLabel(it) },
             matchLabel = null,
-            thumbnailResId = null,
+            thumbnailResId = cover.imageResId,
+            thumbnailFile = cover.photoFile,
             pattern = pattern,
             selected = selected,
+            selectionOrder = selectionOrder,
             onClick = { expanded = !expanded },
             onToggleSelection = {
                 if (selected) {
@@ -1612,7 +1756,7 @@ private fun CatalogCustomExerciseItem(
                     )
                 }
                 if (exercise.involvedMuscles.isNotEmpty()) {
-                    MuscleInvolvementSection(exercise)
+                    CatalogMuscleContribution(exercise)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     KpknTextAction(text = "Editar", onClick = onEdit)
@@ -1623,38 +1767,28 @@ private fun CatalogCustomExerciseItem(
     }
 }
 
-/**
- * «No encontramos…» con «Crear ejercicio» (SE6a): crea el ejercicio con el nombre buscado, de forma automática, como antes, y lo elige.
- */
-@Composable
-private fun SmartCreateSuggestion(
-    query: String,
-    onCreate: (ExerciseMuscleInfo) -> Unit,
-) {
-    var creating by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val catalog = remember { exerciseCatalogSnapshot() }
-    CatalogNoResults(
-        query = query,
-        creating = creating,
-        onCreateClick = {
-            if (!creating) {
-                creating = true
-                scope.launch {
-                    val created = withContext(Dispatchers.IO) {
-                        val info = SmartExerciseCreator.createAutomatic(query, catalog)
-                        CustomExerciseRepository.upsert(info)
-                        info
-                    }
-                    creating = false
-                    onCreate(created)
-                }
-            }
-        },
-        modifier = Modifier.padding(top = 16.dp),
+/** Los ejes secundarios se resuelven en la misma fila, usando únicamente configuraciones del catálogo. */
+internal fun catalogInlineAxes(
+    definition: ExerciseDefinitionV2,
+    shownOptions: Map<String, String>,
+    hasExplicitDraft: Boolean,
+): List<CatalogInlineAxis> = definition.optionAxes.mapNotNull { axis ->
+    val configurations = if (axis == "implement") definition.configurations else definition.configurations.filter {
+        shownOptions["implement"] == null || it.selectedOptions["implement"] == shownOptions["implement"]
+    }
+    val values = configurations.mapNotNull { it.selectedOptions[axis] }.distinct()
+    if (values.isEmpty()) null else CatalogInlineAxis(
+        id = axis,
+        values = values,
+        selectedValue = shownOptions[axis].takeIf { hasExplicitDraft },
     )
 }
 
+/** E7 abre un borrador revisable; no se publica ni selecciona un ejercicio antes de guardarlo. */
+@Composable
+private fun SmartCreateSuggestion(query: String, onOpenCreate: () -> Unit) {
+    CatalogNoResults(query = query, creating = false, onCreateClick = onOpenCreate, modifier = Modifier.padding(top = 16.dp))
+}
 
 
 /**
@@ -1710,6 +1844,7 @@ internal fun restoreSelectedCatalogRows(
     draftByDefinition: Map<String, Map<String, String>>,
     initialCatalogDefinitionId: String? = null,
     initialCatalogConfigurationId: String? = null,
+    customExercises: List<ExerciseMuscleInfo> = emptyList(),
 ): Map<String, ExerciseMuscleInfo> {
     val restored = linkedMapOf<String, ExerciseMuscleInfo>()
     selectedIds.forEach { selectedId ->
@@ -1723,7 +1858,8 @@ internal fun restoreSelectedCatalogRows(
         }
         val definition = definitionById ?: definitionByConfig
         if (definition == null) {
-            previous[selectedId]?.let { restored[selectedId] = it }
+            val custom = customExercises.firstOrNull { it.id.equals(selectedId, ignoreCase = true) }
+            (custom ?: previous[selectedId]?.takeUnless { it.isCustom })?.let { restored[it.id] = it }
             return@forEach
         }
         val previousInfo = previous[definition.id]

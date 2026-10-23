@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.lifecycle.ViewModelStore
+import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
@@ -429,6 +430,8 @@ class SessionEditorViewModelRulesTest {
             assertEquals("cardio-$suffix", vm.uiState.value.pickerTargetPartId)
 
             vm.openSupersetCreator(null, listOf(active.exercises[0].id, active.exercises[1].id))
+            // ED-D · C2: la hoja es el único creador; se confirma antes de comprobar la variante editada.
+            vm.createSupersetGroupFromDraft()
             val updatedActive = vm.uiState.value.activeVariantSession!!
             assertTrue("Superset debe editar sólo $slot", updatedActive.allSupersetGroups().isNotEmpty())
             assertTrue(vm.uiState.value.session!!.allSupersetGroups().isEmpty())
@@ -584,6 +587,44 @@ class SessionEditorViewModelRulesTest {
     }
 
     @Test
+    fun guardarPlantillaExplicaLaDosisIncompletaYPermiteGuardarTrasCorregirla() = runBlocking {
+        val programId = "template-actionable-validation"
+        val sessionId = "template-actionable-validation-session"
+        repository.addProgram(programWithSession(programId, Session(
+            id = sessionId,
+            name = "Sesión incompleta",
+            exercises = listOf(Exercise(id = "incomplete-exercise", name = "Press militar",
+                sets = listOf(ExerciseSet("incomplete-set")))),
+        )))
+        val vm = createViewModel(programId, sessionId)
+        awaitSession(vm)
+        suspend fun save() = executeUserTemplateSave("QA Torso", "") { name, description ->
+            vm.saveCurrentSessionAsTemplateNow(name, description)
+        }
+        val invalid = save()
+        assertTrue(invalid is UserTemplateSaveState.Error)
+        assertEquals("Completa la dosis de los ejercicios y las modalidades antes de guardar la plantilla.",
+            (invalid as UserTemplateSaveState.Error).message)
+        val templates = SessionTemplateRepository.getInstance(ApplicationProvider.getApplicationContext())
+        assertTrue(templates.userTemplates.value.none { it.name == "QA Torso" })
+        vm.updateSet(null, "incomplete-exercise", "incomplete-set") { it.copy(targetReps = 8) }
+        val saved = save()
+        assertTrue(saved is UserTemplateSaveState.Success)
+        val template = (saved as UserTemplateSaveState.Success).template
+        try {
+            assertEquals(8, templates.getByIdAfterReady(template.id)!!.session.allExercises().single().sets.single().targetReps)
+            assertEquals("", template.description)
+        } finally {
+            templates.deleteUserTemplateNow(template.id)
+        }
+        val storageFailure = executeUserTemplateSave("QA Torso", "") { _, _ ->
+            Result.failure(IllegalStateException("detalle interno no visible"))
+        }
+        assertEquals("No se pudo guardar la plantilla. Inténtalo de nuevo.",
+            (storageFailure as UserTemplateSaveState.Error).message)
+    }
+
+    @Test
     fun saveCurrentSessionAsTemplate_rejects_mixed_valid_and_placeholder_strength_cards() = runBlocking {
         val programId = "program-template-mixed-invalid"
         val sessionId = "session-template-mixed-invalid"
@@ -638,6 +679,41 @@ class SessionEditorViewModelRulesTest {
         awaitSession(vm)
 
         assertTrue(vm.saveCurrentSessionAsTemplateNow("Modal inválida", "").isFailure)
+    }
+
+    @Test
+    fun editarUnaSuperserieConservaSuIdentidadAunqueSeCambienTodosLosMiembros() = runBlocking {
+        val programId = "program-existing-superset"
+        val sessionId = "session-existing-superset"
+        val writer = SessionEditorDraftStore.getInstance(ApplicationProvider.getApplicationContext<Context>()).writer
+        assertEquals(DraftWriteStatus.WRITTEN,
+            writer.clear(sessionEditorDraftStorageKey(programId, "week", 0, 0, sessionId)).status)
+        val base = Session(id = sessionId, name = "Grupo", exercises = listOf("a", "b", "c", "d").map { id ->
+            Exercise(id = id, name = id, sets = List(3) { ExerciseSet("$id-$it", targetReps = 8) })
+        })
+        val grouped = SupersetRules.createSuperset(base, "own", listOf("a", "b"), 60, 120, rounds = 3)
+        val session = SupersetRules.updateRoundRest(grouped, "own", 1, 15, 90).let {
+            it.copy(supersetGroups = it.supersetGroups.map { group -> group.copy(isOptional = true) })
+        }
+        repository.addProgramNow(programWithSession(programId, session)).getOrThrow()
+        val vm = createViewModel(programId, sessionId)
+        awaitSession(vm)
+        vm.openSupersetCreator(null, listOf("a", "b"))
+        val draft = vm.uiState.value.supersetDraft!!
+        assertEquals("own", draft.sourceGroupId)
+        vm.updateSupersetDraft(draft.copy(exerciseIds = listOf("c", "d")))
+        vm.createSupersetGroupFromDraft()
+        val updated = vm.uiState.value.session!!
+        val group = updated.supersetGroups.single()
+        assertEquals("own", group.id)
+        assertEquals(listOf("c", "d"), group.exerciseOrder)
+        assertTrue(group.isOptional)
+        assertEquals(mapOf(1 to 15), group.roundRestBetweenExercises)
+        assertEquals(mapOf(1 to 90), group.roundRestAfterSuperset)
+        updated.exercises.filter { it.id in listOf("a", "b") }.forEach {
+            assertNull(it.supersetGroupRef)
+            assertEquals(8, it.sets.first().targetReps)
+        }
     }
 
     private fun createViewModel(programId: String, sessionId: String): SessionEditorViewModel =

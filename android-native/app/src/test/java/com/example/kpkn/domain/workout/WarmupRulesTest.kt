@@ -1,6 +1,8 @@
 package com.example.kpkn.domain.workout
 
 import com.example.kpkn.data.models.WarmupSetDefinition
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -33,5 +35,61 @@ class WarmupRulesTest {
         )
 
         assertTrue(messages.any { it.contains("serie efectiva") })
+    }
+
+    @Test
+    fun live_add_advisory_warns_beyond_the_recommended_max_with_the_editor_text() {
+        val four = (1..4).map { WarmupSetDefinition("w$it", 0.5, 5) }
+        assertEquals(4, warmupMaxRecommended(1))
+        assertEquals(6, warmupMaxRecommended(3))
+        assertNull(warmupLiveAddAdvisory(four, effectiveSetCount = 1))
+        assertEquals(
+            "Demasiadas aproximaciones: máximo recomendado 4 para 1 series efectivas.",
+            warmupLiveAddAdvisory(four + WarmupSetDefinition("w5", 0.5, 5), effectiveSetCount = 1),
+        )
+    }
+
+    @Test
+    fun live_add_advisory_only_looks_at_the_newly_added_last_warmup_for_the_85_rule() {
+        val plan = listOf(WarmupSetDefinition("a", 0.85, 3), WarmupSetDefinition("b", 0.5, 6))
+        assertNull(warmupLiveAddAdvisory(plan, effectiveSetCount = 3))
+        val added = plan + WarmupSetDefinition("c", 0.9, 1)
+        assertTrue(warmupLiveAddAdvisory(added, effectiveSetCount = 3)!!.startsWith("Una aproximación al 85% o más"))
+        assertNull(warmupLiveAddAdvisory(emptyList(), effectiveSetCount = 3))
+    }
+    @Test
+    fun recommended_max_is_twice_the_effective_sets_with_a_floor_of_four() {
+        assertEquals(4, recommendedWarmupMax(1))
+        assertEquals(6, recommendedWarmupMax(3))
+        assertEquals(10, recommendedWarmupMax(5))
+    }
+
+    @Test
+    fun warmup_load_applies_the_percentage_to_the_working_weight_not_the_capacity() {
+        assertEquals(50.0, warmupLoadKg(0.5, workingWeightKg = 100.0, capacityKg = 130.0)!!, 0.0001)
+        assertEquals(85.0, warmupLoadKg(0.85, workingWeightKg = 100.0, capacityKg = 200.0)!!, 0.0001)
+    }
+
+    @Test
+    fun warmup_load_falls_back_to_capacity_when_the_working_set_has_no_weight() {
+        assertEquals(65.0, warmupLoadKg(0.5, workingWeightKg = null, capacityKg = 130.0)!!, 0.0001)
+        assertEquals(65.0, warmupLoadKg(0.5, workingWeightKg = 0.0, capacityKg = 130.0)!!, 0.0001)
+    }
+
+    @Test
+    fun warmup_load_is_unknown_without_any_reference_weight() {
+        assertNull(warmupLoadKg(0.5, workingWeightKg = null, capacityKg = null))
+    }
+
+    @Test
+    fun warmup_load_accepts_the_legacy_percentage_representation() {
+        assertEquals(50.0, warmupLoadKg(50.0, workingWeightKg = 100.0, capacityKg = null)!!, 0.0001)
+    }
+
+    @Test
+    fun exceeding_the_recommended_max_is_reported_with_the_new_rule() {
+        val six = (1..7).map { WarmupSetDefinition("w$it", 0.5, 8) }
+        val messages = warmupValidationMessages(warmupSets = six, effectiveSetCount = 3)
+        assertTrue(messages.any { it.contains("máximo recomendado 6") })
     }
 }

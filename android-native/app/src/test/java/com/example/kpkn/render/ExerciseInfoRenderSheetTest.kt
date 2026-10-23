@@ -9,17 +9,18 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.Density
 import androidx.test.core.app.ApplicationProvider
-import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.screens.onboarding.SetupPlanRevealExercise
 import com.example.kpkn.screens.onboarding.design.entreno.plan.DetailSheet
+import com.example.kpkn.screens.onboarding.design.entreno.plan.ExerciseInfoCopy
 import com.example.kpkn.screens.onboarding.design.entreno.plan.EXERCISE_INFO_IMAGE_TAG
 import com.example.kpkn.screens.onboarding.design.entreno.plan.EXERCISE_INFO_JOINTS_TAG
 import com.example.kpkn.screens.onboarding.design.entreno.plan.EXERCISE_INFO_NOIMAGE_TAG
@@ -27,7 +28,9 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanBlockModel
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCardModel
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDayModel
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailModel
+import com.example.kpkn.screens.sessioneditor.components.exerciseCatalogImageVariants
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.BeforeClass
@@ -94,7 +97,9 @@ class ExerciseInfoRenderSheetTest {
     /** Un ejercicio sin imagen del catálogo (el primero que el buscador no ilustra). */
     private fun withoutImage() = catalog.families.asSequence()
         .flatMap { it.definitions.asSequence() }
-        .first { def -> ExerciseTechniqueImageLookup.resolveImageResId(def.id, null, def.id, def.defaultConfigurationId) == null }
+        .first { definition ->
+            exerciseCatalogImageVariants(definition.id, definition.defaultConfigurationId).isEmpty()
+        }
 
     private fun exerciseOf(instanceId: String, definitionId: String, configurationId: String, sets: String) = run {
         val def = definitionOf(definitionId)
@@ -149,6 +154,15 @@ class ExerciseInfoRenderSheetTest {
         )
     }
 
+    private fun noImageExercise(): SetupPlanRevealExercise {
+        val exercise = jueves().getValue(4).single { it.instanceId == "jue-3" }
+        val variants = exerciseCatalogImageVariants(
+            definitionId = checkNotNull(exercise.catalogDefinitionId),
+            catalogConfigurationId = exercise.catalogConfigurationId,
+        )
+        assertTrue("El fixture no tiene material aprobado para esta configuración", variants.isEmpty())
+        return exercise
+    }
     /** La hoja a [scale] de letra (1 o 1,3), con el jueves como día inicial. */
     private fun host(scale: Float) {
         val exercises = jueves()
@@ -226,18 +240,24 @@ class ExerciseInfoRenderSheetTest {
     @Test
     fun renderTheInfoWithoutImageAt100() {
         onlyWhenAsked()
+        val exercise = noImageExercise()
         host(1f)
-        openInfo("jue-3")
-        rule.onNodeWithTag(EXERCISE_INFO_NOIMAGE_TAG).assertExists()
+        openInfo(exercise.instanceId)
+        rule.onNodeWithTag(EXERCISE_INFO_NOIMAGE_TAG).assertDoesNotExist()
+        rule.onNodeWithText(ExerciseInfoCopy.IMAGE_MISSING).assertDoesNotExist()
+        rule.onNodeWithTag(EXERCISE_INFO_IMAGE_TAG).assertDoesNotExist()
         save("exercise_info_noimage_s100")
     }
 
     @Test
     fun renderTheInfoWithoutImageAt130() {
         onlyWhenAsked()
+        val exercise = noImageExercise()
         host(1.3f)
-        openInfo("jue-3")
-        rule.onNodeWithTag(EXERCISE_INFO_NOIMAGE_TAG).assertExists()
+        openInfo(exercise.instanceId)
+        rule.onNodeWithTag(EXERCISE_INFO_NOIMAGE_TAG).assertDoesNotExist()
+        rule.onNodeWithText(ExerciseInfoCopy.IMAGE_MISSING).assertDoesNotExist()
+        rule.onNodeWithTag(EXERCISE_INFO_IMAGE_TAG).assertDoesNotExist()
         save("exercise_info_noimage_s130")
     }
 }

@@ -278,10 +278,15 @@ internal fun cloneExerciseForTransfer(
     }
     return exercise.copy(
         id = newId,
+        occurrenceId = UUID.randomUUID().toString(),
         supersetId = newSupersetId,
         supersetGroupRef = newSupersetId,
         warmupSets = exercise.warmupSets.map { it.copy(id = UUID.randomUUID().toString()) },
-        sets = exercise.sets.map { it.copy(id = UUID.randomUUID().toString()) },
+        sets = exercise.sets.map { it.freshPlannedCopy() },
+        mobilitySeries = exercise.mobilitySeries.map { it.copy(id = UUID.randomUUID().toString()) },
+        cardioDetails = exercise.cardioDetails?.let { details ->
+            details.copy(intervalBlocks = details.intervalBlocks.map { it.copy(id = UUID.randomUUID().toString()) })
+        },
     )
 }
 
@@ -366,6 +371,9 @@ internal fun createSessionFromPayload(
             competitionKeyDateId = null,
             meetResults = null,
             trainingBackup = null,
+            sessionB = null,
+            sessionC = null,
+            sessionD = null,
         )
     }
 }

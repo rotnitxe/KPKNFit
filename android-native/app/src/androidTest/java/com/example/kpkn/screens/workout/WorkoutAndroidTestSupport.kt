@@ -17,6 +17,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -51,23 +53,15 @@ internal fun UnifiedExerciseCarousel(
     onOpenContext: (String) -> Unit = {},
     enableLongPress: Boolean = true,
 ) {
-    // Keep the legacy test-facing entry point on the same roadmap model and
-    // visuals as production. This prevents unilateral/superset behavior from
-    // drifting between the two surfaces.
-    WorkoutRoadmapBar(
-        exercises = exercises,
-        parts = parts,
-        supersetGroups = supersetGroups,
-        currentIdx = currentIdx,
-        currentSetIdx = currentSetIdx,
-        completedSets = completedSets,
-        onSelect = onSelect,
-        onSelectGroup = onSelectGroup,
-        onOpenContext = onOpenContext,
-        enableLongPress = enableLongPress,
-        sessionAccentColor = MaterialTheme.colorScheme.primary,
-        mode = RoadmapMode.COMPACT,
-    )
+    // The historical helper now drives the same integrated line and route as production.
+    var route by remember { mutableStateOf<LiveSessionDestination?>(null) }
+    val selectExercise: (String) -> Unit = { id -> exercises.indexOfFirst { it.id == id }.takeIf { it >= 0 }?.let(onSelect) }
+    LiveSessionLine(exercises, exercises.getOrNull(currentIdx)?.id, null,
+        { route = LiveSessionDestination.ROUTE }, {}, selectExercise, { if (enableLongPress) onOpenContext(it) }, {}, false, false,
+        supersetGroups = supersetGroups, onSelectSuperset = onSelectGroup)
+    LiveSessionSheetsHost(route, { route = it }, exercises = exercises, completedSets = completedSets,
+        currentExerciseId = exercises.getOrNull(currentIdx)?.id, supersetGroups = supersetGroups,
+        onSelectExercise = selectExercise, onSelectSuperset = onSelectGroup, onOpenExerciseOptions = onOpenContext)
 }
 
 

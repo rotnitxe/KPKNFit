@@ -3,8 +3,12 @@ package com.example.kpkn.screens.sessioneditor.components.sheets
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,6 +34,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.domain.calculations.SessionTimeBreakdown
+import com.example.kpkn.domain.auge.DrainReading
+import com.example.kpkn.domain.auge.SpinalEvidence
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.MuscleVolumeRow
@@ -62,14 +69,22 @@ internal fun AssistantImpactTab(uiState: SessionEditorUiState) {
     val session = uiState.session
     val volumeRows = remember(session) { session?.let { buildMuscleVolumeRows(it) }.orEmpty() }
     // Energía = coste del SNC; Músculos = coste muscular; Columna = coste axial (mismo mapeo que en la sesión en vivo).
+    // MOT · I2: las cifras salen de la proyección compartida con el motor general, con decimales: cero, «<1» y «sin estimación» se
+    // distinguen. Sin proyección (resumen de respaldo) se leen los enteros de siempre.
+    val projection = summary.drainProjection
+    val columnaReading = projection?.spinalReading ?: DrainReading.of(summary.sessionDrain.spinal.toDouble())
+    val musculosReading = projection?.muscularReading ?: DrainReading.of(summary.sessionDrain.muscular.toDouble())
+    val energiaReading = projection?.cnsReading ?: DrainReading.of(summary.sessionDrain.cns.toDouble())
     val rings = TowerRingValues(
-        columna = summary.sessionDrain.spinal,
-        musculos = summary.sessionDrain.muscular,
-        energia = summary.sessionDrain.cns,
+        columna = columnaReading.ringValue,
+        musculos = musculosReading.ringValue,
+        energia = energiaReading.ringValue,
     )
+    val axialNote = remember(projection, session) { columnAxialNote(projection, session) }
 
     if (report == null) {
         SheetLoadingSkeleton()
+        return
     }
 
     // 1. RINGS: la torre protagonista, con las tres cifras en Syne.
@@ -83,69 +98,118 @@ internal fun AssistantImpactTab(uiState: SessionEditorUiState) {
                 animate = false,
             )
             Spacer(Modifier.width(20.dp))
-            AssistantRingFigures(values = rings, modifier = Modifier.weight(1f))
+            AssistantRingFigures(
+                musculos = musculosReading,
+                energia = energiaReading,
+                columna = columnaReading,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        if (axialNote != null) {
+            Spacer(Modifier.height(8.dp))
+            SheetCaption(axialNote, color = WizardColors.textFaint)
         }
     }
 
-    // 2. Duración: la misma fuente única que el reloj de Reglas.
-    if (timeBreakdown != null) {
-        KpknModule(modifier = Modifier.fillMaxWidth()) {
-            KpknModuleHeader(label = "Duración de la sesión")
-            Spacer(Modifier.height(6.dp))
-            KpknMetric(value = "${timeBreakdown.totalMinutes}", unit = "min", style = KpknType.metricL)
-            Spacer(Modifier.height(6.dp))
+    // 2. D2: duración y calorías en un solo módulo, lado a lado, con la barra del reparto del tiempo debajo. La duración sale de la misma
+    // fuente única que el reloj de Reglas.
+    val kcalKnown = energySummary.totalKcal.mid > 0
+    KpknModule(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            if (timeBreakdown != null) {
+                Column(modifier = Modifier.weight(1.15f)) {
+                    KpknModuleHeader(label = "Duración de la sesión")
+                    Spacer(Modifier.height(8.dp))
+                    KpknMetric(value = "${timeBreakdown.totalMinutes}", unit = "min", style = KpknType.metricL)
+                }
+                Box(modifier = Modifier.fillMaxHeight().width(1.dp).background(KpknSurface.divider))
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                KpknModuleHeader(label = "Calorías estimadas")
+                Spacer(Modifier.height(8.dp))
+                if (kcalKnown) {
+                    KpknMetric(value = "${energySummary.totalKcal.mid}", unit = "kcal", style = KpknType.metricL)
+                    Spacer(Modifier.height(4.dp))
+                    SheetCaption("${energySummary.totalKcal.low}–${energySummary.totalKcal.high}", color = WizardColors.textFaint)
+                } else {
+                    KpknMetric(value = "—", style = KpknType.metricL, color = WizardColors.textMuted)
+                }
+            }
+        }
+        if (timeBreakdown != null) {
+            Spacer(Modifier.height(12.dp))
+            SessionTimeSegmentBar(timeBreakdown)
+            Spacer(Modifier.height(8.dp))
             // El mismo desglose que Reglas › Tiempo, con el calentamiento (ER2b).
             SheetCaption(sessionTimeBreakdownCaption(timeBreakdown))
+        }
+        // Una sola nota de calorías: la pista de carga si hay estimación, o lo que falta para tenerla.
+        val kcalNote = if (kcalKnown) {
+            energySummary.notes.firstOrNull {
+                it.contains("1RM", ignoreCase = true) || it.contains("carga", ignoreCase = true)
+            }
+        } else {
+            energySummary.notes.firstOrNull {
+                it.contains("peso", ignoreCase = true) ||
+                    it.contains("1RM", ignoreCase = true) ||
+                    it.contains("estimar", ignoreCase = true)
+            } ?: "Completa pesos o 1RM en los ejercicios para estimar el gasto calórico"
+        }
+        if (kcalNote != null) {
+            Spacer(Modifier.height(8.dp))
+            SheetCaption(kcalNote, color = if (kcalKnown) WizardColors.textMuted else WizardColors.textFaint)
         }
     }
 
     // 3. Volumen por músculo (colapsado por defecto).
     AssistantVolumeModule(volumeRows = volumeRows, summary = summary, session = session)
-
-    // 4. Calorías (activo + EPOC del motor auge-energy-v2).
-    KpknModule(modifier = Modifier.fillMaxWidth()) {
-        KpknModuleHeader(label = "Calorías estimadas")
-        Spacer(Modifier.height(6.dp))
-        if (energySummary.totalKcal.mid > 0) {
-            KpknMetric(value = "${energySummary.totalKcal.mid}", unit = "kcal", style = KpknType.metricL)
-            Spacer(Modifier.height(4.dp))
-            SheetCaption("${energySummary.totalKcal.low}–${energySummary.totalKcal.high}", color = WizardColors.textFaint)
-            val loadHint = energySummary.notes.firstOrNull {
-                it.contains("1RM", ignoreCase = true) || it.contains("carga", ignoreCase = true)
-            }
-            if (loadHint != null) {
-                Spacer(Modifier.height(4.dp))
-                SheetCaption(loadHint)
-            }
-        } else {
-            KpknMetric(value = "—", style = KpknType.metricL, color = WizardColors.textMuted)
-            Spacer(Modifier.height(4.dp))
-            SheetCaption(
-                energySummary.notes.firstOrNull {
-                    it.contains("peso", ignoreCase = true) ||
-                        it.contains("1RM", ignoreCase = true) ||
-                        it.contains("estimar", ignoreCase = true)
-                } ?: "Completa pesos o 1RM en los ejercicios para estimar el gasto calórico",
-            )
-        }
-    }
 }
 
 /** Las tres cifras de la torre: Músculos, Energía y Columna, una por fila, con el color de su anillo y la cifra en `metricM`. */
 @Composable
-private fun AssistantRingFigures(values: TowerRingValues, modifier: Modifier = Modifier) {
+internal fun AssistantRingFigures(
+    musculos: DrainReading,
+    energia: DrainReading,
+    columna: DrainReading,
+    modifier: Modifier = Modifier,
+) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        AssistantRingFigure(name = "Músculos", value = values.musculos ?: 0, color = KpknRingColors.musculos)
-        AssistantRingFigure(name = "Energía", value = values.energia ?: 0, color = KpknRingColors.energia)
-        AssistantRingFigure(name = "Columna", value = values.columna ?: 0, color = KpknRingColors.columna)
+        AssistantRingFigure(name = "Músculos", reading = musculos, color = KpknRingColors.musculos)
+        AssistantRingFigure(name = "Energía", reading = energia, color = KpknRingColors.energia)
+        AssistantRingFigure(name = "Columna", reading = columna, color = KpknRingColors.columna)
     }
 }
 
 @Composable
-private fun AssistantRingFigure(name: String, value: Int, color: Color) {
+private fun AssistantRingFigure(name: String, reading: DrainReading, color: Color) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         SheetCaption(text = name, modifier = Modifier.weight(1f), color = WizardColors.textMuted)
-        KpknMetric(value = "$value", unit = "%", style = KpknType.metricM, color = color)
+        if (reading is DrainReading.Unknown) {
+            // Dato desconocido: no se pinta un cero que parezca «sin carga».
+            SheetCaption(text = reading.label, color = WizardColors.textMuted)
+        } else {
+            KpknMetric(value = reading.label, unit = "%", style = KpknType.metricM, color = color)
+        }
+    }
+}
+
+/**
+ * Nota bajo las cifras cuando la Columna no se apoya en cargas axiales declaradas: dice de qué ejercicios falta el dato en vez de
+ * mostrar un cero. Null si todos los ejercicios de fuerza declaran su carga axial.
+ */
+internal fun columnAxialNote(
+    projection: com.example.kpkn.domain.auge.SessionDrainProjection?,
+    session: Session?,
+): String? {
+    projection ?: return null
+    if (!projection.hasWork || projection.spinalEvidence == SpinalEvidence.DECLARED) return null
+    val names = projection.axialUnknownExerciseIds.mapNotNull { id ->
+        session?.allExercises()?.firstOrNull { it.id == id }?.name
+    }.distinct()
+    val list = names.take(2).joinToString(", ").let { if (names.size > 2) "$it y otros" else it }
+    return when (projection.spinalEvidence) {
+        SpinalEvidence.NONE -> "Columna sin estimación: no consta la carga axial de ${list.ifBlank { "estos ejercicios" }}."
+        else -> "Columna con datos parciales: no consta la carga axial de ${list.ifBlank { "algunos ejercicios" }}."
     }
 }
 
@@ -204,9 +268,12 @@ private fun AssistantVolumeModule(
                             maxDirect = maxDirect,
                             maxSecondary = maxSecondary,
                             maxStabilizer = maxStabilizer,
-                            energyDrain = summary.muscleEnergyDrain[row.muscle] ?: 0,
-                            spinalDrain = summary.muscleSpinalDrain[row.muscle] ?: 0,
-                            muscleDrain = summary.muscleDrainProjection[row.muscle] ?: 0,
+                            energyDrain = summary.muscleDrainPrecise[row.muscle]?.cns
+                                ?: (summary.muscleEnergyDrain[row.muscle] ?: 0).toDouble(),
+                            spinalDrain = summary.muscleDrainPrecise[row.muscle]?.spinal
+                                ?: (summary.muscleSpinalDrain[row.muscle] ?: 0).toDouble(),
+                            muscleDrain = summary.muscleDrainPrecise[row.muscle]?.muscular
+                                ?: (summary.muscleDrainProjection[row.muscle] ?: 0).toDouble(),
                             session = session,
                         )
                     }
@@ -222,6 +289,7 @@ private fun AssistantVolumeModule(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AssistantVolumeRow(
     muscle: String,
@@ -232,9 +300,9 @@ private fun AssistantVolumeRow(
     maxDirect: Double,
     maxSecondary: Double,
     maxStabilizer: Double,
-    energyDrain: Int,
-    spinalDrain: Int,
-    muscleDrain: Int,
+    energyDrain: Double,
+    spinalDrain: Double,
+    muscleDrain: Double,
     session: Session?,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -294,15 +362,16 @@ private fun AssistantVolumeRow(
             )
         }
         // Coste fisiológico de ese volumen: el mismo reparto de anillos que el resumen.
-        Row(
+        FlowRow(
             modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            AssistantDrainChip(label = "Músculo", value = muscleDrain, color = KpknRingColors.musculos)
-            AssistantDrainChip(label = "Energía", value = energyDrain, color = KpknRingColors.energia)
-            if (spinalDrain > 0) {
-                AssistantDrainChip(label = "Columna", value = spinalDrain, color = KpknRingColors.columna)
+            AssistantDrainChip(label = "Músculo", reading = DrainReading.of(muscleDrain), color = KpknRingColors.musculos)
+            AssistantDrainChip(label = "Energía", reading = DrainReading.of(energyDrain), color = KpknRingColors.energia)
+            // Un coste de Columna positivo menor de uno sigue visible como «<1 %».
+            if (spinalDrain > 0.0) {
+                AssistantDrainChip(label = "Columna", reading = DrainReading.of(spinalDrain), color = KpknRingColors.columna)
             }
         }
     }
@@ -331,12 +400,35 @@ private fun AssistantVolumeBar(label: String, progress: Float, color: Color) {
 }
 
 @Composable
-private fun AssistantDrainChip(label: String, value: Int, color: Color) {
+private fun AssistantDrainChip(label: String, reading: DrainReading, color: Color) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(color))
-        SheetCaption(text = "$label $value %", color = WizardColors.textMuted)
+        SheetCaption(text = "$label ${reading.label} %", color = WizardColors.textMuted)
     }
 }
 
 private fun formatAssistantSets(value: Double): String =
     if (value == value.toLong().toDouble()) value.toLong().toString() else "%.1f".format(value)
+
+/**
+ * Barra de 6 dp con el reparto del tiempo de la sesión (preparación, ejecución, descansos y calentamiento), en neutros y el color de
+ * Energía para el calentamiento, como en el tablero D2. Cada tramo pesa lo que sus segundos; los vacíos no se pintan.
+ */
+@Composable
+internal fun SessionTimeSegmentBar(breakdown: SessionTimeBreakdown, modifier: Modifier = Modifier) {
+    val segments = listOf(
+        breakdown.setupSeconds to WizardColors.text.copy(alpha = 0.35f),
+        breakdown.executionSeconds to WizardColors.text,
+        breakdown.restSeconds to WizardColors.text.copy(alpha = 0.62f),
+        breakdown.warmupSeconds to KpknRingColors.energia,
+    ).filter { it.first > 0 }
+    if (segments.isEmpty()) return
+    Row(
+        modifier = modifier.fillMaxWidth().height(6.dp).clip(KpknShape.pill),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        segments.forEach { (seconds, color) ->
+            Box(modifier = Modifier.weight(seconds.toFloat()).fillMaxHeight().background(color))
+        }
+    }
+}

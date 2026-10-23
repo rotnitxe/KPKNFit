@@ -79,23 +79,9 @@ fun SessionEditorViewModel.openSupersetCreator(partId: String?, exerciseIds: Lis
             exercise.takeIf { it.id in exerciseIds }?.supersetGroupRefOrLegacyId()
         }
         ?.let { groupId -> session.allSupersetGroups().firstOrNull { it.id == groupId } }
-    if (existingGroup == null && exerciseIds.distinct().size >= 2) {
-        val targetIds = exerciseIds.distinct()
-        val groupId = UUID.randomUUID().toString()
-        updateSession { current ->
-            SupersetRules.createSuperset(
-                session = current,
-                groupId = groupId,
-                exerciseIds = targetIds,
-                restBetweenExercises = defaultSupersetBetween,
-                restAfterSuperset = defaultSupersetAfter,
-                anchorPartId = partId,
-                anchorExerciseId = targetIds.firstOrNull(),
-            )
-        }
-        updateUi { it.copy(sheet = SessionEditorSheet.NONE, supersetDraft = null) }
-        return
-    }
+    // ED-D · C2: todas las entradas del editor desembocan en la misma hoja. Aunque lleguen dos o más ejercicios ya marcados
+    // (catálogo, acciones rápidas o «+ Añadir» de una superserie), nada se crea hasta pulsar el botón de la hoja: así las rondas y
+    // los descansos se confirman en el mismo sitio y no hay un segundo creador que se salte la hoja.
     updateUi {
         it.copy(
             sheet = SessionEditorSheet.SUPERSET_CREATOR,
@@ -105,6 +91,7 @@ fun SessionEditorViewModel.openSupersetCreator(partId: String?, exerciseIds: Lis
                 restBetweenExercises = existingGroup?.restBetweenExercises ?: defaultSupersetBetween,
                 restAfterSuperset = existingGroup?.restAfterSuperset ?: defaultSupersetAfter,
                 rounds = existingGroup?.rounds,
+                sourceGroupId = existingGroup?.id,
             ),
             quickActionsPartId = null,
             quickActionsExerciseId = null,
@@ -125,7 +112,10 @@ fun SessionEditorViewModel.createSupersetGroupFromDraft() {
     updateSession { session ->
         val existingIds = session.allExercises().map { it.id }.toSet()
         if (!targetIds.all { it in existingIds }) return@updateSession session
-        val groupId = session.allExercises()
+        if (draft.sourceGroupId != null && session.allSupersetGroups().none { it.id == draft.sourceGroupId }) {
+            return@updateSession session
+        }
+        val groupId = draft.sourceGroupId ?: session.allExercises()
             .filter { it.id in targetIds }
             .mapNotNull { it.supersetGroupRefOrLegacyId() }
             .firstOrNull { id -> session.allSupersetGroups().any { it.id == id } }
@@ -163,6 +153,11 @@ fun SessionEditorViewModel.updateSupersetRoundRest(groupId: String, roundIndex: 
         restBetweenExercises = restBetween,
         restAfterSuperset = restAfter,
     )
+}
+
+/** C3 · «Usar el base»: la ronda vuelve al descanso del grupo y deja de marcar «Descanso propio». */
+fun SessionEditorViewModel.clearSupersetRoundRest(groupId: String, roundIndex: Int) = updateSession { session ->
+    SupersetRules.clearRoundRest(session, groupId, roundIndex)
 }
 
 fun SessionEditorViewModel.removeSupersetRound(groupId: String, partId: String?, roundIndex: Int) = updateSession { session ->

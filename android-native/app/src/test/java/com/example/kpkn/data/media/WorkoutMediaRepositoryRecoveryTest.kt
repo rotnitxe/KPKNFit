@@ -13,10 +13,12 @@ import com.example.kpkn.data.media.WorkoutMediaCaptureJournalEntry
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.data.repository.WorkoutMediaRepository
+import com.example.kpkn.data.work.TechniqueWorkTestKit
 import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
+import org.junit.Before
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertFalse
@@ -49,8 +51,15 @@ class WorkoutMediaRepositoryRecoveryTest {
 
     private fun db(): KpknDatabase = KpknDatabase.createInMemory(context).also(databases::add)
 
+    @Before
+    fun setUp() {
+        // Recovery may enqueue technique analysis; do not reuse a WorkManager closed by another suite.
+        TechniqueWorkTestKit.initWorkManager(context)
+    }
+
     @After
     fun tearDown() {
+        TechniqueWorkTestKit.tearDownWorkManager()
         databases.forEach { it.close() }
         databases.clear()
         KpknDatabase.closeInstance()

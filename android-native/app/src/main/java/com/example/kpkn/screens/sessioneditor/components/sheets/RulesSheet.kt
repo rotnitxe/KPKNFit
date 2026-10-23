@@ -45,6 +45,7 @@ import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.design.sessionChipRowEdgeFade
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
+import com.example.kpkn.screens.sessioneditor.buildMuscleVolumeRows
 import com.example.kpkn.ui.components.KpknAlertConfirmButton
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknAlertDismissButton
@@ -103,13 +104,6 @@ internal fun RulesSheet(
 
     onDismiss: () -> Unit = {},
 ) {
-    @Suppress("UNUSED_PARAMETER")
-    onRuleLimitsChange
-    @Suppress("UNUSED_PARAMETER")
-    onAdvancedRuleLimitsChange
-    @Suppress("UNUSED_PARAMETER")
-    onApplyGlobalIntensityAdjustment
-
     val focusManager = LocalFocusManager.current
     var activeTab by remember { mutableIntStateOf(0) }
     LaunchedEffect(uiState.rulesSheetInitialTab) {
@@ -126,6 +120,11 @@ internal fun RulesSheet(
     var saveTemplateName by remember { mutableStateOf<String?>(null) }
     var renameTemplate by remember { mutableStateOf<Pair<String, String>?>(null) }
     var templatesExpanded by remember { mutableStateOf(false) }
+    var limitsExpanded by remember { mutableStateOf(false) }
+    var intensityExpanded by remember { mutableStateOf(false) }
+    var adjustmentMode by remember { mutableStateOf(IntensityMode.RPE) }
+    var adjustmentValue by remember { mutableStateOf(formatDecimalComma(uiState.ruleDefaults.rpe)) }
+    var adjustmentMuscle by remember { mutableStateOf<String?>(null) }
 
     val activeScopePartId = scopePartId.takeIf { selectedScope == RuleScope.PER_GROUP }
     val defaults = remember(selectedScope, activeScopePartId, uiState.ruleDefaults, uiState.partRuleDefaults) {
@@ -537,6 +536,83 @@ internal fun RulesSheet(
                             onSaveNew = { saveTemplateName = "" },
                         )
                     }
+                    // D5: las reglas menos frecuentes permanecen accesibles en filas plegadas del mismo módulo, separadas por una línea.
+                    SessionSheetDivider()
+                    RuleFoldHeader("Límites", "Límites de seguridad al guardar.", limitsExpanded) {
+                        limitsExpanded = !limitsExpanded
+                    }
+                    if (limitsExpanded) {
+                        val limits = uiState.ruleLimits
+                        Spacer(Modifier.height(12.dp))
+                        RulesNumberField("RPE máximo", limits.maxRPE?.let(::formatDecimalComma).orEmpty(), KeyboardType.Decimal, Modifier.fillMaxWidth()) {
+                            onRuleLimitsChange(it.safeDoubleOrNull(), limits.maxExercisesPerMuscle)
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        RulesNumberField("Ejercicios por músculo", limits.maxExercisesPerMuscle?.toString().orEmpty(), KeyboardType.Number, Modifier.fillMaxWidth()) {
+                            onRuleLimitsChange(limits.maxRPE, it.safeIntOrNull())
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        RulesNumberField("Series por músculo en la sesión", limits.maxVolumePerMuscleSession?.let(::formatDecimalComma).orEmpty(), KeyboardType.Decimal, Modifier.fillMaxWidth()) {
+                            onAdvancedRuleLimitsChange(it.safeDoubleOrNull(), limits.maxVolumePerMuscleWeekly, limits.maxSamePatternPerSession, limits.rigidLimits)
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        RulesNumberField("Series por músculo en la semana", limits.maxVolumePerMuscleWeekly?.let(::formatDecimalComma).orEmpty(), KeyboardType.Decimal, Modifier.fillMaxWidth()) {
+                            onAdvancedRuleLimitsChange(limits.maxVolumePerMuscleSession, it.safeDoubleOrNull(), limits.maxSamePatternPerSession, limits.rigidLimits)
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        RulesNumberField("Ejercicios del mismo patrón", limits.maxSamePatternPerSession?.toString().orEmpty(), KeyboardType.Number, Modifier.fillMaxWidth()) {
+                            onAdvancedRuleLimitsChange(limits.maxVolumePerMuscleSession, limits.maxVolumePerMuscleWeekly, it.safeIntOrNull(), limits.rigidLimits)
+                        }
+                        Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text("Límites rígidos", style = KpknType.bodyStrong, color = WizardColors.text, modifier = Modifier.weight(1f))
+                            KpknSwitch(checked = limits.rigidLimits, onCheckedChange = {
+                                onAdvancedRuleLimitsChange(limits.maxVolumePerMuscleSession, limits.maxVolumePerMuscleWeekly, limits.maxSamePatternPerSession, it)
+                            })
+                        }
+                    }
+                    SessionSheetDivider()
+                    RuleFoldHeader("Modificar intensidad", "Modifica intensidad globalmente por modo y alcance.", intensityExpanded) {
+                        intensityExpanded = !intensityExpanded
+                    }
+                    if (intensityExpanded) {
+                        Spacer(Modifier.height(12.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            listOf(IntensityMode.RPE to "RPE", IntensityMode.RIR to "RIR", IntensityMode.FAILURE to "Fallo", IntensityMode.SOLO_RM to "% RM").forEach { (mode, label) ->
+                                KpknChip(text = label, selected = adjustmentMode == mode, onClick = {
+                                    adjustmentMode = mode
+                                    adjustmentValue = if (mode == IntensityMode.RPE) formatDecimalComma(defaults.rpe) else ""
+                                })
+                            }
+                        }
+                        if (adjustmentMode != IntensityMode.FAILURE) {
+                            Spacer(Modifier.height(8.dp))
+                            KpknTextField(
+                                label = when (adjustmentMode) { IntensityMode.RIR -> "RIR"; IntensityMode.SOLO_RM -> "% RM"; else -> "RPE" },
+                                value = adjustmentValue,
+                                onValueChange = { adjustmentValue = it },
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                        val muscles = (uiState.activeVariantSession ?: uiState.session)?.let(::buildMuscleVolumeRows)
+                            .orEmpty().map { it.muscle }.distinct()
+                        if (muscles.isNotEmpty()) {
+                            Spacer(Modifier.height(8.dp))
+                            SheetCaption("Alcance")
+                            val muscleScroll = rememberScrollState()
+                            Row(Modifier.fillMaxWidth().horizontalScroll(muscleScroll), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                KpknChip(text = "Toda la sesión", selected = adjustmentMuscle == null, onClick = { adjustmentMuscle = null })
+                                muscles.forEach { muscle -> KpknChip(text = muscle, selected = adjustmentMuscle == muscle, onClick = { adjustmentMuscle = muscle }) }
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        KpknPrimaryPill(text = "Aplicar intensidad", modifier = Modifier.fillMaxWidth(),
+                            enabled = adjustmentMode == IntensityMode.FAILURE || adjustmentValue.safeDoubleOrNull() != null,
+                            onClick = {
+                            val value = if (adjustmentMode == IntensityMode.FAILURE) 0.0 else adjustmentValue.safeDoubleOrNull()
+                            if (value != null) onApplyGlobalIntensityAdjustment(adjustmentMode, value, adjustmentMuscle?.let { setOf(it) })
+                        })
+                    }
                 }
             } else {
                 // Tiempo: el reloj, las sugerencias para entrar en el límite y los tiempos (en RulesTimeTab).
@@ -620,6 +696,17 @@ internal fun RulesSheet(
                 },
             )
         }
+    }
+}
+
+@Composable
+private fun RuleFoldHeader(title: String, subtitle: String, expanded: Boolean, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onClick), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = KpknType.bodyStrong, color = WizardColors.text)
+            SheetCaption(subtitle)
+        }
+        ExpandChevron(expanded)
     }
 }
 

@@ -7,6 +7,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -102,8 +104,10 @@ class WorkoutReadinessSheetCompactTest {
         rule.onNodeWithText("Buen día para intensidad y coordinación", substring = true).assertDoesNotExist()
         rule.onNodeWithText("Carga estructural normal con buena técnica", substring = true).assertDoesNotExist()
 
-        // 12.1. La ayuda pasa a: «Toca un anillo para ajustarlo»
-        rule.onNodeWithText("Toca un anillo para ajustarlo").assertExists()
+        // La ayuda textual se retiró en PR16; los tres canales conservan su acción accesible.
+        listOf("MUSCULOS", "ENERGIA", "COLUMNA").forEach {
+            rule.onNodeWithTag("readiness-legend-$it", useUnmergedTree = true).assertHasClickAction()
+        }
         rule.onNodeWithText("Si no te representan los rings, presiona cada uno para ajustarlo", substring = true).assertDoesNotExist()
     }
 }

@@ -22,7 +22,10 @@ import com.example.kpkn.data.models.AugeMetrics
 import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.InterferenceEngine
-import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
+import com.example.kpkn.domain.auge.PreciseDrain
+import com.example.kpkn.domain.auge.SessionDrainProjection
+import com.example.kpkn.domain.auge.SpinalEvidence
+import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.ceil
@@ -33,131 +36,92 @@ internal fun reduceRestLabel(seconds: Int): String = "Bajar $seconds s de desca
 
 object SessionAssistantEngine {
 
+    /**
+     * Una sola ruta de decisión (MOT · S5): contexto → proyección de coste compartida → reglas verificadas ([SessionAdvisor]).
+     * El reloj es el del editor ([SessionDurationEstimator]) y el coste es el de la proyección del motor general: lo que ve la persona
+     * en Impacto y en la cabecera es lo que las reglas usan.
+     */
     fun evaluate(
         input: SessionAssistantInput,
         allTemplates: List<SessionTemplate> = emptyList(),
     ): SessionAssistantReport {
         val volumeResult = calcularVolumenPorMusculo(input)
-        val drain = calcularDrenajeEstimado(input)
+        val session = input.session ?: provisionalSession(input)
+        val projection = projectDrain(input, session)
         val thresholds = buildVolumeThresholds(input, volumeResult.volumeMap)
-        val ajustes = generarAjustesPorRings(input, volumeResult, drain)
 
-        // Un solo reloj: mismo breakdown que el editor / TimeCoach.
-        val breakdown = calculateSessionTimeBreakdown(
-            exercises = input.allExercisesInSession,
-            supersetGroups = input.supersetGroups,
-            sessionWarmup = input.sessionWarmup,
-        )
-        val totalRestSeconds = breakdown.restSeconds
-        val estimatedWorkSeconds = breakdown.setupSeconds + breakdown.executionSeconds + breakdown.warmupSeconds
-        val duracion = breakdown.totalMinutes
-
-        val timeAjustes = if (input.targetDurationMinutes != null && duracion > input.targetDurationMinutes) {
-            val overage = duracion - input.targetDurationMinutes
-            buildTimeSuggestions(input, overage)
-        } else {
-            emptyList()
-        }
-        val overlapAjustes = generarSugerenciasSolapamiento(input)
+        val duration = SessionDurationEstimator.estimate(session)
+        val context = SessionAnalysisContextBuilder.build(input, session, duration.totalSeconds)
+        val advice = SessionAdvisor.advise(input, session, context, projection, volumeResult)
 
         return SessionAssistantReport(
             veredicto = Verdict.OPTIMAL,
             scoreEstimado = 0,
             riesgos = emptyList(),
-            ajustes = ajustes + timeAjustes + overlapAjustes,
+            ajustes = advice.cards,
             oportunidades = emptyList(),
             tarjetasFantasma = emptyList(),
             plantillasCompatibles = emptyList(),
             volumenPorMusculo = volumeResult.volumeMap.mapValues { it.value.flat },
             umbralesPorMusculo = thresholds,
-            drenajeEstimado = drain,
-            duracionEstimada = duracion,
-            totalRestSeconds = totalRestSeconds,
-            estimatedWorkSeconds = estimatedWorkSeconds,
+            drenajeEstimado = projection.global,
+            duracionEstimada = duration.totalMinutes,
+            totalRestSeconds = duration.resistanceRestSeconds,
+            estimatedWorkSeconds = (duration.totalSeconds - duration.resistanceRestSeconds).coerceAtLeast(0),
             resumenTexto = "",
+            notas = advice.notes,
         )
     }
 
-    // ─── Time Overage Suggestions ─────────────────────────────────────────────
-
-    private const val MAX_REDUCE_REST_SUGGESTIONS = 2
-    private const val MAX_SUPERSET_SUGGESTIONS = 2
-    private const val MAX_DROPSET_SUGGESTIONS = 2
-    /** Only suggest when the session is clearly too demanding. */
-    private const val HIGH_DRAIN_THRESHOLD = 60
-
-    private fun buildTimeSuggestions(
-        input: SessionAssistantInput,
-        overageMinutes: Int
-    ): List<AssistantSuggestion> {
-        if (overageMinutes < 8) return emptyList()
-        val exercises = input.allExercisesInSession
-        val details = mutableListOf<AssistantSuggestionDetail>()
-
-        val avgRest = exercises.map { it.restTime ?: 90 }.average()
-        if (avgRest > 45) {
-            details += AssistantSuggestionDetail(
-                id = "time_detail_rest",
-                label = reduceRestLabel(seconds = 15),
-                action = AssistantDetailAction.ReduceRest(seconds = 15),
-            )
-        }
-
-        if (exercises.size >= 2) {
-            for (i in 0 until minOf(exercises.size - 1, MAX_SUPERSET_SUGGESTIONS) step 2) {
-                val ex = exercises[i]
-                val next = exercises[i + 1]
-                if (ex.sets.any { it.isDropSet || it.isRestPause }) continue
-                if (next.sets.any { it.isDropSet || it.isRestPause }) continue
-                details += AssistantSuggestionDetail(
-                    id = "time_detail_superset_${ex.id}",
-                    label = "Unir ${ex.name} con ${next.name} en superserie",
-                    action = AssistantDetailAction.ConvertToSuperset(exerciseId = ex.id),
-                    defaultAccepted = false,
-                )
-            }
-        }
-
-        var dropCount = 0
-        for (ex in exercises) {
-            if (dropCount >= MAX_DROPSET_SUGGESTIONS) break
-            val multiSet = ex.sets.size > 1
-            val notAlreadyDrop = ex.sets.none { it.isDropSet }
-            val notRestPause = ex.sets.none { it.isRestPause }
-            if (!multiSet || !notAlreadyDrop || !notRestPause) continue
-            details += AssistantSuggestionDetail(
-                id = "time_detail_drop_${ex.id}",
-                label = "Acortar descansos en ${ex.name} (drop-set)",
-                action = AssistantDetailAction.ConvertToDropSet(exerciseId = ex.id),
-                defaultAccepted = false,
-            )
-            dropCount++
-        }
-
-        val muscle = calcularVolumenPorMusculo(input).volumeMap.entries
-            .filter { (_, acc) -> acc.flat > 0 }
-            .map { it.key }
-            .firstOrNull()
-        if (muscle != null && details.size >= 1) {
-            details += AssistantSuggestionDetail(
-                id = "time_detail_reduce_$muscle",
-                label = "Quitar 1 serie de $muscle",
-                action = AssistantDetailAction.ReduceSet(muscle = muscle),
-                defaultAccepted = false,
-            )
-        }
-
-        if (details.isEmpty()) return emptyList()
-        return listOf(
-            AssistantSuggestion(
-                id = "time_overage",
-                type = AssistantActionType.COMPOSITE,
-                title = "La sesión se alarga demasiado",
-                message = "Pasa unos $overageMinutes min del tiempo previsto. Elige qué ajustes quieres aplicar.",
-                priority = 20,
-                details = details,
-            ),
+    /** Sesión provisional con lo que llega en el input, cuando quien llama no pasa el borrador completo. */
+    internal fun provisionalSession(input: SessionAssistantInput): Session {
+        val weekHit = input.weekSessions.firstOrNull { it.id == input.currentSessionId }
+        val base = weekHit ?: Session(id = input.currentSessionId, name = "Esta sesión")
+        return base.copy(
+            exercises = input.allExercisesInSession,
+            parts = emptyList(),
+            warmup = input.sessionWarmup,
+            supersetGroups = input.supersetGroups,
+            targetDurationMinutes = input.targetDurationMinutes,
         )
+    }
+
+    /**
+     * Proyección de coste de la sesión: la del motor general con el ajuste por historial. Con [SessionAssistantInput.customDrain]
+     * (pruebas y simulaciones) se usa ese coste tal cual.
+     */
+    internal fun projectDrain(input: SessionAssistantInput, session: Session): SessionDrainProjection {
+        input.customDrain?.let { drain ->
+            val precise = PreciseDrain(
+                cns = drain.cns.toDouble(),
+                muscular = drain.muscular.toDouble(),
+                spinal = drain.spinal.toDouble(),
+            )
+            return SessionDrainProjection(
+                precise = precise,
+                accumulated = precise,
+                global = drain,
+                perExercise = emptyList(),
+                effectiveSetCount = 1,
+                hardEffectiveSets = 0,
+                hasWork = true,
+                spinalEvidence = SpinalEvidence.DECLARED,
+                axialUnknownExerciseIds = emptyList(),
+            )
+        }
+        return runCatching {
+            val ema = AugeFatigueEngine.calculateMesocycleStressEMA(
+                logs = input.workoutLogs,
+                programId = input.programId,
+                mesoIndex = input.mesoIndex,
+            )
+            AugeFatigueEngine.projectPlannedSession(
+                session = session,
+                exerciseDb = input.exerciseIndex,
+                settings = input.settings,
+                mesocycleEma = ema,
+            )
+        }.getOrDefault(SessionDrainProjection.EMPTY)
     }
 
     // ─── Volume Calculation ───────────────────────────────────────────────────
@@ -259,11 +223,9 @@ object SessionAssistantEngine {
                 totalSpinalLoad += info.axialLoadFactor ?: 0.0
                 accumulated++
 
-                val calculatedWeight = if (exercise.trainingMode == TrainingMode.RM && set.targetPercentageRM != null && exercise.reference1RM != null && exercise.reference1RM!! > 0.0) {
-                    (set.targetPercentageRM / 100.0) * exercise.reference1RM!!
-                } else {
-                    set.weight ?: 60.0
-                }
+                // %RM sobre la referencia de SU base: PERCENT_TM lee el TM, el resto el 1RM.
+                val calculatedWeight = (if (exercise.trainingMode == TrainingMode.RM) com.example.kpkn.domain.calculations.percentLoadKg(exercise, set) else null)
+                    ?: set.weight ?: 60.0
                 val completedSet = CompletedSet(
                     id = set.id,
                     weight = calculatedWeight,
@@ -338,27 +300,8 @@ object SessionAssistantEngine {
 
     // ─── Drain Calculation ────────────────────────────────────────────────────
 
-    internal fun calcularDrenajeEstimado(input: SessionAssistantInput): PredictedDrain {
-        input.customDrain?.let { return it }
-        return try {
-            val session = Session(
-                id = input.currentSessionId,
-                name = "temp",
-                exercises = input.allExercisesInSession,
-            )
-            val base = AugeFatigueEngine.calculateAdjustedPredictedDrain(
-                session, input.exerciseIndex, input.settings,
-            )
-            val ema = AugeFatigueEngine.calculateMesocycleStressEMA(
-                logs = input.workoutLogs,
-                programId = input.programId,
-                mesoIndex = input.mesoIndex,
-            )
-            AugeFatigueEngine.adjustPredictedDrainWithEMA(base, ema)
-        } catch (_: Throwable) {
-            AugeFatigueEngine.DEFAULT_FALLBACK_PREDICTED_DRAIN
-        }
-    }
+    internal fun calcularDrenajeEstimado(input: SessionAssistantInput): PredictedDrain =
+        projectDrain(input, input.session ?: provisionalSession(input)).global
 
     // ─── Risk Detection ───────────────────────────────────────────────────────
 
@@ -721,113 +664,6 @@ object SessionAssistantEngine {
         return ajustes.sortedBy { it.priority }
     }
 
-    internal fun generarAjustesPorRings(
-        input: SessionAssistantInput,
-        volume: VolumeCalculationResult,
-        drain: PredictedDrain,
-    ): List<AssistantSuggestion> {
-        val peak = maxOf(drain.spinal, drain.cns, drain.muscular)
-        if (peak < HIGH_DRAIN_THRESHOLD) return emptyList()
-
-        val heavyExercises = volume.exerciseInsights
-            .filter {
-                (it.muscular >= HIGH_DRAIN_THRESHOLD) ||
-                    (it.cns >= HIGH_DRAIN_THRESHOLD) ||
-                    (it.spinal >= HIGH_DRAIN_THRESHOLD)
-            }
-            .sortedWith(
-                compareByDescending<ExerciseInsightData> { maxOf(it.muscular, it.cns, it.spinal) }
-                    .thenBy { it.name },
-            )
-            .take(3)
-
-        val details = mutableListOf<AssistantSuggestionDetail>()
-        val topMuscle = volume.volumeMap.maxByOrNull { it.value.effective }?.key
-
-        if (drain.muscular >= HIGH_DRAIN_THRESHOLD && topMuscle != null) {
-            details += AssistantSuggestionDetail(
-                id = "fatigue_detail_reduce_$topMuscle",
-                label = "Quitar 1 serie de $topMuscle",
-                action = AssistantDetailAction.ReduceSet(muscle = topMuscle),
-            )
-        }
-
-        heavyExercises.forEach { exercise ->
-            details += AssistantSuggestionDetail(
-                id = "fatigue_detail_rpe_${exercise.exerciseId}",
-                label = "Bajar un poco la intensidad en ${exercise.name}",
-                action = AssistantDetailAction.LowerRpe(exerciseId = exercise.exerciseId, amount = 0.5),
-            )
-        }
-
-        if (details.isEmpty() && input.allExercisesInSession.isNotEmpty()) {
-            val first = input.allExercisesInSession.first()
-            details += AssistantSuggestionDetail(
-                id = "fatigue_detail_rpe_fallback",
-                label = "Bajar un poco la intensidad en ${first.name}",
-                action = AssistantDetailAction.LowerRpe(exerciseId = first.id, amount = 0.5),
-            )
-        }
-
-        return listOf(
-            AssistantSuggestion(
-                id = "session_too_fatiguing",
-                type = AssistantActionType.COMPOSITE,
-                title = "Sesión demasiado exigente",
-                message = "Es una sesión demasiado fatigante y puede afectar tu recuperación para lo que viene. Elige qué quieres suavizar.",
-                priority = 1,
-                details = details,
-            ),
-        )
-    }
-
-    internal fun generarSugerenciasSolapamiento(
-        input: SessionAssistantInput,
-    ): List<AssistantSuggestion> {
-        if (input.allExercisesInSession.isEmpty()) return emptyList()
-        val weekHit = input.weekSessions.firstOrNull { it.id == input.currentSessionId }
-        val current = (weekHit ?: Session(
-            id = input.currentSessionId,
-            name = "Esta sesión",
-        )).copy(exercises = input.allExercisesInSession)
-        val hits = InterferenceEngine.analyzeUpcomingSession(
-            current = current,
-            weekSessions = input.weekSessions,
-            history = input.workoutLogs,
-            exerciseDb = input.exerciseIndex,
-            settings = input.settings,
-        ).filter { it.interferencePercent >= 10 }
-            .take(2)
-        return hits.map { hit ->
-            val hours = hit.hoursApart.roundToInt()
-            val muscles = hit.sharedMuscles.take(2).joinToString(" y ") { it.muscleName }
-            val top = hit.sharedMuscles.maxByOrNull { it.recoveryDeficit }?.muscleName
-            val from = hit.sessionAName.ifBlank { "otra sesión" }
-            val whenLabel = when {
-                hit.isFromHistory && hours < 20 -> "hace pocas horas"
-                hit.isFromHistory -> "hace $hours horas"
-                hours <= 24 -> "al día siguiente"
-                else -> "con $hours horas de separación"
-            }
-            AssistantSuggestion(
-                id = "overlap-${hit.sessionAId}",
-                type = AssistantActionType.KEEP,
-                title = "Poco descanso para $muscles",
-                message = "Entrenaste $from $whenLabel y esta sesión vuelve a pedir $muscles. Baja un poco el volumen o cambia el orden.",
-                muscle = top,
-                priority = 2,
-                details = if (top != null) listOf(
-                    AssistantSuggestionDetail(
-                        id = "overlap-reduce-$top",
-                        label = "Quitar 1 serie de $top",
-                        action = AssistantDetailAction.ReduceSet(muscle = top),
-                        defaultAccepted = false,
-                    ),
-                ) else emptyList(),
-            )
-        }
-    }
-
     internal fun generarOportunidades(
         input: SessionAssistantInput,
         volume: VolumeCalculationResult,
@@ -1079,7 +915,7 @@ object SessionAssistantEngine {
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     internal fun Exercise.validAugeSets(): List<ExerciseSet> =
-        sets.filterNot { it.isIneffective }
+        sets.filterNot { it.isIneffective || it.isEmptySlot }
 
     internal fun ExerciseSet.effectiveTargetRpe(): Double {
         if (isFailure || intensityMode == IntensityMode.FAILURE) return 10.0

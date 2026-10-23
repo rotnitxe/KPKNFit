@@ -21,11 +21,13 @@ import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.ui.components.*
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.theme.KPKNTheme
+import com.example.kpkn.testutil.configureLiveSheetTestWindow
 import com.example.kpkn.ui.tour.TourSeenStore
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import org.junit.Assert.*
 import org.junit.Rule
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.math.abs
@@ -37,6 +39,9 @@ import kotlin.math.abs
 @RunWith(AndroidJUnit4::class)
 class LiveFinishSummaryDeviceTest {
     @get:Rule val rule=createAndroidComposeRule<ComponentActivity>()
+    @Before fun configureWindow() {
+        rule.activityRule.scenario.onActivity { it.configureLiveSheetTestWindow() }
+    }
     private val saves=mutableListOf<Pair<String,SessionClosingFeedback>>()
     private var confirm by mutableStateOf(false)
     private var spokenNotes by mutableStateOf<String?>(null)

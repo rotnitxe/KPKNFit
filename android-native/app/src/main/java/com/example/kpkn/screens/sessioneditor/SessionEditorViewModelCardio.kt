@@ -28,6 +28,24 @@ fun SessionEditorViewModel.commitStrengthSpace() {
     updateUi { it.copy(strengthSpaceCommitted = true) }
 }
 
+/**
+ * Cardio en la sesión vacía (ED-A · A2): su espacio aparece, vacío y con «Añadir cardio», sin abrir todavía el selector. La parte de cardio
+ * se crea al añadir el primero ([addCardioToPart]); hasta entonces solo vive en la pantalla.
+ */
+fun SessionEditorViewModel.commitCardioSpace() {
+    updateUi { it.copy(cardioSpaceCommitted = true) }
+}
+
+/**
+ * La colocación «Al inicio / Al final» del cardio (ED-A · A2): la guarda en la sesión y en la pantalla, sin abrir el selector (lo que sí
+ * hace [confirmCardioPlacement]).
+ */
+fun SessionEditorViewModel.setCardioPlacement(placement: CardioSpacePlacement) {
+    val isStart = placement == CardioSpacePlacement.START
+    updateSession { session -> session.copy(cardioFirst = isStart) }
+    updateUi { it.copy(cardioSpacePlacement = placement) }
+}
+
 fun SessionEditorViewModel.createCardioSpace() {
     val existingCardio = currentUiState.activeVariantSession?.cardioPart()
     openCardioPicker(existingCardio?.id)
@@ -58,7 +76,7 @@ fun SessionEditorViewModel.toggleCardioPlacement() {
         session.copy(cardioFirst = newCardioFirst)
     }
     updateUi {
-        val isFirst = currentUiState.session?.cardioFirst == true
+        val isFirst = it.activeVariantSession?.cardioFirst == true
         it.copy(
             cardioSpacePlacement = if (isFirst) CardioSpacePlacement.START else CardioSpacePlacement.END,
         )
@@ -69,7 +87,7 @@ fun SessionEditorViewModel.addCardioToPart(item: CardioCatalogItem) {
     val targetPartId = currentUiState.pickerTargetPartId
     val targetExerciseId = currentUiState.pickerTargetExerciseId
     val placement = currentUiState.cardioSpacePlacement
-        ?: if (currentUiState.session?.cardioFirst == true) CardioSpacePlacement.START else CardioSpacePlacement.END
+        ?: if (currentUiState.activeVariantSession?.cardioFirst == true) CardioSpacePlacement.START else CardioSpacePlacement.END
 
     if (targetExerciseId != null) {
         updateExercise(targetPartId, targetExerciseId) { current -> current.withCardioItem(item) }

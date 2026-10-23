@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -51,6 +52,9 @@ internal fun AutoregulationProposalsCard(
     val hasAutoregPending = pending?.type == PendingProgramActionType.CONFIRM_AUTOREGULATION
     val needsRematerialize = program.macrocycles.any { macro ->
         macro.blocks.any { it.materializationPending }
+    }
+    LaunchedEffect(program.id, program.macrocycles.flatMap { it.blocks }.filter { it.materializationPending }.map { it.id }) {
+        if (needsRematerialize) onRematerialize()
     }
     val tm = program.powerliftingProfile
     val recipe = program.sourceRecipe
@@ -162,11 +166,10 @@ internal fun AutoregulationProposalsCard(
         if (needsRematerialize) {
             Spacer(Modifier.height(12.dp))
             Text(
-                text = "Hay semanas pendientes de re-materializar.",
+                text = "Se recalculan las semanas pendientes conservando el trabajo realizado.",
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
             )
-            KpknTextAction(text = "Re-materializar", onClick = onRematerialize)
         }
     }
 }

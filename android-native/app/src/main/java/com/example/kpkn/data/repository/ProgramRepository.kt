@@ -74,6 +74,7 @@ class ProgramRepository private constructor(
 
     /** Test-only read-back seam; production callers continue using repository APIs. */
     internal fun databaseForTests(): KpknDatabase = db
+    val calibrationDecisions = CalibrationDecisionRepository(db.calibrationDecisionDao())
 
     private val repositoryJob = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + repositoryJob)
@@ -1027,6 +1028,7 @@ class ProgramRepository private constructor(
                     activeStateWriteMutex.withLock {
                         db.withTransaction {
                             db.workoutLogDao().insert(enriched.toEntity())
+                            calibrationDecisions.saveSnapshot(enriched.calibrationDecisions)
                             mediaSessionKey?.takeIf { it.isNotBlank() }?.let { db.bindWorkoutMediaSession(it, enriched) }
                             if (clearOngoing) db.stateDao().clearOngoingWorkout()
                             else if (retainedOngoing != null) db.stateDao().upsertOngoingWorkout(retainedOngoing.toEntity())
@@ -1443,7 +1445,10 @@ class ProgramRepository private constructor(
                 }
                 val normalized = state.normalizedIdentityFields()
                 try {
-                    db.stateDao().upsertOngoingWorkout(normalized.toEntity())
+                    db.withTransaction {
+                        db.stateDao().upsertOngoingWorkout(normalized.toEntity())
+                        calibrationDecisions.saveSnapshot(normalized.calibrationDecisions)
+                    }
                     _ongoingWorkout.value = normalized
                     _ongoingWorkoutCorrupt.value = false
                     StartWorkoutResult.Started
@@ -1473,7 +1478,10 @@ class ProgramRepository private constructor(
             val current = _ongoingWorkout.value ?: return@withLock com.example.kpkn.screens.workout.WorkoutPersistResult.Cancelled
             try {
                 val next = update(current).normalizedIdentityFields()
-                db.stateDao().upsertOngoingWorkout(next.toEntity())
+                db.withTransaction {
+                    db.stateDao().upsertOngoingWorkout(next.toEntity())
+                    calibrationDecisions.saveSnapshot(next.calibrationDecisions)
+                }
                 _ongoingWorkout.value = next
                 com.example.kpkn.screens.workout.WorkoutPersistResult.Ok
             } catch (error: Throwable) {
@@ -1521,9 +1529,23 @@ class ProgramRepository private constructor(
         runBlocking(Dispatchers.IO + NonCancellable) {
             ongoingWorkoutMutex.withLock {
                 if (_ongoingWorkout.value?.programId != programId) return@withLock
+                val discarded = _ongoingWorkout.value
                 _ongoingWorkout.value = null
                 _ongoingWorkoutCorrupt.value = false
-                db.stateDao().clearOngoingWorkout()
+                clearOngoingRowAndDiscardedCalibrations(discarded)
+            }
+        }
+    }
+
+    /**
+     * Borra la fila de la sesión en curso y, si se descarta (no si ya se escribió su registro), también las decisiones del
+     * calibrador de esa ejecución: no hay serie en el historial que las respalde y no deben quedar como referencia aceptada.
+     */
+    private suspend fun clearOngoingRowAndDiscardedCalibrations(discarded: OngoingWorkoutState?) {
+        db.withTransaction {
+            db.stateDao().clearOngoingWorkout()
+            if (discarded != null && discarded.logAlreadyWrittenId == null) {
+                calibrationDecisions.discardExecution(discarded.programId, discarded.session.id, discarded.startTime)
             }
         }
     }
@@ -1537,7 +1559,8 @@ class ProgramRepository private constructor(
                     check(current.programId == expected.programId && current.session.id == expected.session.id &&
                         current.startTime == expected.startTime) { "La ejecución cambió antes del descarte." }
                 }
-                db.stateDao().clearOngoingWorkout()
+                val discarded = _ongoingWorkout.value
+                clearOngoingRowAndDiscardedCalibrations(discarded)
                 _ongoingWorkout.value = null
                 _ongoingWorkoutCorrupt.value = false
             }

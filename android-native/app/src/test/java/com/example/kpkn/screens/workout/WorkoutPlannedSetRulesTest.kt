@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.LoadModeV2
@@ -49,12 +50,12 @@ class WorkoutPlannedSetRulesTest {
         val left = UnilateralTarget(weight = 20.0, targetReps = 10)
         val right = UnilateralTarget(weight = 22.5, targetReps = 10)
         val plan = exercise(
-            ExerciseSet(id = "a", targetReps = 10, isAmrap = true, leftTarget = left, rightTarget = right, targetRepsRange = RepRange(8, 12)),
+            ExerciseSet(id = "a", targetReps = 10, purpose = SetPurpose.AMRAP, amrapMinimumReps = 8, leftTarget = left, rightTarget = right, targetRepsRange = RepRange(8, 12)),
         )
 
         val added = plannedSetAfterLast(plan)
 
-        assertFalse(added.isAmrap)
+        assertFalse(added.purpose.isAmrap)
         assertEquals(left, added.leftTarget)
         assertEquals(right, added.rightTarget)
         assertEquals(RepRange(8, 12), added.targetRepsRange)

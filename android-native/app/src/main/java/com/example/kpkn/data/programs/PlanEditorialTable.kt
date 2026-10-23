@@ -57,7 +57,7 @@ internal object PlanEditorialTable {
     private const val NOTE_SHEIKO =
         "Repite el mismo levantamiento varias veces en la sesión, como en el método."
     private const val NOTE_NSUNS =
-        "9 series del principal y 8 del complementario el mismo día, como en el método."
+        "9 series del principal y 8 o 9 del complementario el mismo día, como en el método."
     private const val NOTE_COAN =
         "Se suma a tu plan."
     private const val NOTE_LEGACY =
@@ -691,11 +691,11 @@ internal object PlanEditorialTable {
             "protocol:wendler-531-bbb",
             thirdParty(
                 displayName = "5/3/1 Boring But Big",
-                summary = "Ciclos de 4 semanas (de 5, de 3 y de 1 repeticiones, y descarga), con 4 días: " +
-                    "sentadilla, banca, peso muerto y press. En las tres primeras, tras el levantamiento " +
-                    "principal (con una última serie al máximo de repeticiones), haces 5 series de 10 al 50 % " +
-                    "de tu máximo de entrenamiento; la descarga no las lleva. Cada ciclo ese máximo sube " +
-                    "2,5 kg (banca y press) o 5 kg.",
+                summary = "Ciclos de 4 semanas (5, 3, 1 repeticiones y descarga), con 4 días: sentadilla, banca, " +
+                    "peso muerto y press. Tras el levantamiento principal, que acaba en una serie al máximo de " +
+                    "repeticiones, haces 5×10 al 50 % de tu máximo de entrenamiento. Esa serie no cambia ese " +
+                    "máximo: sube 2,5 kg (banca y press) o 5 kg por ciclo si cumples las repeticiones mínimas, y " +
+                    "baja un 10 % tras dos ciclos sin cumplirlas.",
                 rank = 410,
                 level = CatalogLevel.INTERMEDIATE,
                 methodName = "5/3/1 Boring But Big",
@@ -744,16 +744,31 @@ internal object PlanEditorialTable {
             "protocol:gzclp",
             thirdParty(
                 displayName = "GZCLP",
-                summary = "Ciclos de 4 semanas con 4 días: cada día un levantamiento principal (5 series de 3, la " +
-                    "última al máximo de repeticiones), uno complementario de 3×10 y accesorios de 15 a 20 " +
-                    "repeticiones. Es solo la primera etapa del método de Cody Lefever. Tu máximo de " +
-                    "entrenamiento sube al cerrar cada ciclo (2,5 kg banca y press, 5 kg sentadilla y peso " +
-                    "muerto), más despacio que el método original.",
+                summary = "Ciclos de 4 semanas con 4 días: un levantamiento principal (5 series de 3, la última al " +
+                    "máximo de repeticiones, hasta 10), uno complementario de 3×10 y accesorios. Si no completas " +
+                    "las repeticiones de un levantamiento, pasa a 6 series de 2 y luego a 10 de 1, con la misma " +
+                    "carga y sin subir su máximo de entrenamiento. Si las completas, ese máximo sube 2,5 kg " +
+                    "(banca y press) o 5 kg por ciclo.",
                 rank = 430,
                 level = CatalogLevel.INTERMEDIATE,
                 methodName = "GZCLP",
                 authors = "Cody Lefever",
                 terms = setOf(PlanTerm.TIERS, PlanTerm.AMRAP, PlanTerm.CYCLE),
+            ),
+        )
+        add(
+            "protocol:apre-mann",
+            thirdParty(
+                displayName = "APRE de Mann",
+                summary = "12 semanas, 3 días por semana: sentadilla, banca y peso muerto con cuatro series cada uno. " +
+                    "Las dos primeras son ligeras y las dos últimas van al máximo de repeticiones: la tercera ajusta " +
+                    "el peso de la cuarta y la cuarta, el de la semana siguiente. Las repeticiones con mala técnica " +
+                    "no cuentan. El plan pasa de 10 a 6 y a 3 repeticiones.",
+                rank = 442,
+                level = CatalogLevel.INTERMEDIATE,
+                methodName = "APRE",
+                authors = "Bryan Mann",
+                terms = setOf(PlanTerm.AMRAP, PlanTerm.TM, PlanTerm.SBD),
             ),
         )
         add(
@@ -821,7 +836,7 @@ internal object PlanEditorialTable {
                 summary = "10 semanas, 3 días por semana. El lunes alternas una sentadilla pesada (semanas " +
                     "impares) y un peso muerto pesado (semanas pares), con el otro levantamiento más ligero; " +
                     "el miércoles haces banca pesada (simples, o series de 5 con la última al máximo de " +
-                    "repeticiones) y el viernes banca de volumen. La semana 10 es una descarga ligera.",
+                    "repeticiones, que es de registro) y el viernes banca de volumen. La semana 10 es una descarga ligera.",
                 rank = 451,
                 level = CatalogLevel.ADVANCED,
                 methodName = "Lilliebridge",
@@ -853,7 +868,8 @@ internal object PlanEditorialTable {
                 displayName = "Cube Method",
                 summary = "10 semanas, 4 días por semana: sentadilla pesada, sentadilla en cajón y banca rápidas, " +
                     "peso muerto por repeticiones y un día de torso para músculo. La carga sube por etapas y " +
-                    "la décima semana es de prueba.",
+                    "la décima semana es de prueba. La serie al máximo de repeticiones del peso muerto es de " +
+                    "registro: queda en tu historial y no cambia tu carga.",
                 rank = 453,
                 level = CatalogLevel.ADVANCED,
                 methodName = "Cube Method",
@@ -882,10 +898,10 @@ internal object PlanEditorialTable {
             thirdParty(
                 displayName = "Juggernaut Method 2.0",
                 summary = "16 semanas en cuatro olas de 4, de 10, 8, 5 y 3 repeticiones, con 4 días. La tercera " +
-                    "semana incluye una serie al máximo de repeticiones que puede proponer ajustar tu máximo " +
-                    "de entrenamiento; la cuarta es de descarga. Al empezar la siguiente ola, si cumpliste " +
-                    "las repeticiones previstas, ese máximo " +
-                    "sube 2,5 kg en banca y press y 5 kg en sentadilla y peso muerto.",
+                    "semana de cada ola termina con una serie al máximo de repeticiones; la cuarta es de descarga. " +
+                    "Al empezar la siguiente ola, tu máximo de entrenamiento sube 2,5 kg (sentadilla y peso " +
+                    "muerto) o 1,25 kg (banca y press) por cada repetición sobre el objetivo, hasta 10 extra; si " +
+                    "no lo superas, no cambia.",
                 rank = 460,
                 level = CatalogLevel.ADVANCED,
                 methodName = "Juggernaut Method 2.0",
@@ -902,11 +918,10 @@ internal object PlanEditorialTable {
             "protocol:nsuns-531-lp-4d",
             thirdParty(
                 displayName = "nSuns 5/3/1",
-                summary = "4 días por semana, ciclos de 4 semanas: cada día haces 9 series de un levantamiento " +
-                    "principal y 8 de uno complementario. En sentadilla, peso muerto y banca pesada, la " +
-                    "tercera serie es un intento al 95 % de tu máximo de entrenamiento, hecho al máximo de " +
-                    "repeticiones: según cuántas hagas, el plan puede proponerte subir o bajar ese máximo. " +
-                    "Es muy exigente.",
+                summary = "4 días por semana, ciclos de 4 semanas: cada día, 9 series de un levantamiento " +
+                    "principal y 8 o 9 de uno complementario. En el principal (press militar, sentadilla, banca " +
+                    "pesada o peso muerto), la tercera serie es un intento al 95 % de tu máximo de entrenamiento, " +
+                    "al máximo de repeticiones: con 2 o 3 sube ese máximo 2,5 kg, con 4 o 5, 5 kg y con 6 o más, 7,5 kg.",
                 rank = 461,
                 level = CatalogLevel.ADVANCED,
                 methodName = "nSuns 5/3/1",
@@ -934,8 +949,8 @@ internal object PlanEditorialTable {
             thirdParty(
                 displayName = "GZCL The Rippler",
                 summary = "12 semanas en tres bloques de 4, con 4 días. Haces series pesadas de 2 repeticiones, la " +
-                    "última al máximo, cuyo peso sube cada semana y arranca más alto en cada bloque; las dos " +
-                    "últimas semanas son de pico.",
+                    "última al máximo, cuyo peso sube cada semana y arranca más alto en cada bloque; esa serie es " +
+                    "de registro y no cambia tu carga. Las dos últimas semanas son de pico.",
                 rank = 463,
                 level = CatalogLevel.INTERMEDIATE,
                 methodName = "GZCL The Rippler",

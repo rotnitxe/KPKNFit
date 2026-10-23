@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -179,7 +180,8 @@ private fun KpknPill(
 
 /**
  * Botón de icono (KPKN_UI_V2 §6): círculo `inset` de 40 dp con el icono a 20 dp o, con [filled], de tinta con el icono negro. Su zona
- * táctil es de 48 dp y [contentDescription] le da nombre. Al pulsar escala a 0,97 con resorte.
+ * táctil es de 48 dp y [contentDescription] le da nombre. Al pulsar escala a 0,97 con resorte. Con [enabled] = false se pinta al 38 % y
+ * no responde (lo anuncia TalkBack), como las píldoras.
  */
 @Composable
 fun KpknIconButton(
@@ -189,11 +191,12 @@ fun KpknIconButton(
     modifier: Modifier = Modifier,
     filled: Boolean = false,
     tint: Color? = null,
+    enabled: Boolean = true,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (pressed) 0.97f else 1f,
+        targetValue = if (pressed && enabled) 0.97f else 1f,
         animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium),
         label = "kpknIconScale",
     )
@@ -201,8 +204,15 @@ fun KpknIconButton(
     Box(
         modifier = modifier
             .size(48.dp)
-            .semantics { this.contentDescription = contentDescription }
-            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick),
+            .semantics { this.contentDescription = contentDescription; if (!enabled) disabled() }
+            .graphicsLayer { alpha = if (enabled) 1f else 0.38f }
+            .clickable(
+                interactionSource = interaction,
+                indication = null,
+                enabled = enabled,
+                role = Role.Button,
+                onClick = onClick,
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Box(

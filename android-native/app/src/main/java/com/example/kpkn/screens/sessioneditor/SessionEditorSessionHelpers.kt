@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.sessioneditor
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
@@ -160,7 +161,7 @@ internal fun Exercise.withSessionEditorDefaults(
                 targetPercentageRM = null,
                 intensityMode = mode,
                 isFailure = mode == IntensityMode.FAILURE,
-                isAmrap = false,
+                purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
             )
         }
         return copy(
@@ -485,11 +486,7 @@ internal fun Exercise.normalizeExercise(): Exercise {
     }
     val normalizedIdentity = normalizedIdentityFields()
     val restored = normalizedIdentity.copy(sets = restoredSets)
-    val resolved1rm = if (restored.usesExternalTrainingMax()) {
-        restored.reference1RM
-    } else {
-        resolveReferenceCapacity(restored)
-    }
+    val resolved1rm = resolveReferenceCapacity(restored)
     return normalizedIdentity.copy(
         restTime = restTime ?: suggestRestSeconds(restoredSets.size, restoredSets.mapNotNull { it.targetRPE }.averageOrNull() ?: 8.0),
         reference1RM = resolved1rm,
@@ -508,11 +505,7 @@ internal fun Exercise.withSharedPerformanceFromHistory(history: List<WorkoutLog>
     val normalized = normalizedIdentityFields()
     val shared = normalized.resolveSharedPerformance(history) ?: return normalized
     val withReferences = normalized.copy(
-        reference1RM = if (normalized.usesExternalTrainingMax()) {
-            normalized.reference1RM
-        } else {
-            normalized.reference1RM ?: shared.reference1RM
-        },
+        reference1RM = normalized.reference1RM ?: shared.reference1RM,
         prFor1RM = normalized.prFor1RM ?: shared.prReference,
         consolidatedWeight = normalized.consolidatedWeight ?: shared.consolidatedWeight,
     )
@@ -556,16 +549,15 @@ internal fun Exercise.resolveSharedPerformance(history: List<WorkoutLog>): Share
         .filter { (_, set) -> !set.isWarmup && !set.skipped && set.weight > 0.0 && set.reps > 0 }
     if (completedSets.isEmpty()) return null
 
-    fun estimatedRm(set: CompletedSet): Double =
-        set.homologatedResultV3?.estimatedRm
-            ?.takeIf { it > 0.0 }
-            ?: calculateHybrid1RM(set.weight, set.reps)
+    fun estimatedRm(set: CompletedSet): Double = calculateHybrid1RM(set.weight, set.reps)
 
     val bestSet = completedSets.maxByOrNull { (_, set) -> estimatedRm(set) } ?: return null
     val latestSet = completedSets.maxByOrNull { (date, _) -> date }?.second
     val bestEstimatedRm = estimatedRm(bestSet.second)
     val suggestedNextLoad = latestSet
-        ?.homologatedResultV3
+        ?.homologatedResultV3?.takeUnless {
+            it.estimatorVersion < com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION && it.amrapOverride
+        }
         ?.suggestedNextLoad
         ?.takeIf { it > 0.0 }
 
@@ -580,27 +572,11 @@ internal fun Exercise.resolveSharedPerformance(history: List<WorkoutLog>): Share
 internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
     val usesExplicitTmPercent = exercise.trainingMode == TrainingMode.RM && usesExternalTrainingMax()
     val normalized = when {
-        exercise.trainingMode == TrainingMode.AMRAP -> copy(
-            intensityMode = IntensityMode.AMRAP,
-            targetReps = effectiveRepRange()?.max ?: targetReps ?: plannedTargetV2?.roundToInt(),
+        purpose.isAmrap -> copy(
+            // Purpose and explicit nullable minimum survive mixed RM recipes.
+            intensityMode = intensityMode?.takeUnless { it == IntensityMode.AMRAP },
             targetDuration = null,
-            plannedTargetV2 = null,
-            targetPercentageRM = null,
-            targetRPE = null,
-            targetRIR = null,
             isFailure = false,
-            isAmrap = true,
-        )
-        // The exercise training mode is the persisted source of truth.  When a
-        // user switches an AMRAP exercise back to regular reps/time/etc., clear
-        // the old AMRAP marker instead of letting a stale set keep re-enabling
-        // it on every subsequent normalization pass.
-        isAmrap || intensityMode == IntensityMode.AMRAP -> copy(
-            intensityMode = null,
-            targetRPE = null,
-            targetRIR = null,
-            isFailure = false,
-            isAmrap = false,
         )
         isFailure || intensityMode == IntensityMode.FAILURE -> copy(
             intensityMode = IntensityMode.FAILURE,
@@ -616,7 +592,7 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
             TrainingMode.RM -> copy(
                 intensityMode = if (intensityMode == IntensityMode.SOLO_RM) IntensityMode.SOLO_RM else null,
                 isFailure = false,
-                isAmrap = false,
+                purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
                 targetPercentageRM = if (usesExplicitTmPercent) {
                     targetPercentageRM?.takeIf { it.isFinite() && it > 0.0 }
                 } else {
@@ -631,7 +607,7 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
                 targetReps = null,
                 targetDuration = null,
                 isFailure = false,
-                isAmrap = false,
+                purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
             )
             else -> {
                 when {
@@ -651,6 +627,9 @@ internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
  * carga. El cambio explícito de %RM, de referencia o a RM la recalcula en `withExplicitRmLoads` (SessionEditorRmLoads.kt).
  */
 internal fun ExerciseSet.normalizedLoadKg(exercise: Exercise, normalized: ExerciseSet): Double? {
+    // El bloque declara cargas de Mann sobre el XRM, no una estimación genérica desde las reps de S1/S2.
+    val apre = exercise.apreBlock
+    if (apre != null && apre.xrmReps in listOf(3, 6, 10) && id in apre.setIds) return normalized.weight
     val usesExplicitTmPercent = exercise.trainingMode == TrainingMode.RM && usesExternalTrainingMax()
     val plainRm = exercise.trainingMode == TrainingMode.RM && !usesExplicitTmPercent &&
         (normalized.loadModeV2 ?: LoadModeV2.LOAD) == LoadModeV2.LOAD
@@ -661,7 +640,7 @@ internal fun ExerciseSet.normalizedLoadKg(exercise: Exercise, normalized: Exerci
 }
 
 internal fun createNextSetTemplate(exercise: Exercise, template: ExerciseSet): ExerciseSet {
-    val base = template.copy(id = UUID.randomUUID().toString())
+    val base = template.freshPlannedCopy(preserveEmptySlot = false)
     // En modo RM se estima reducción de carga por fatiga; el resto mantiene la intensidad elegida
     if (exercise.trainingMode != TrainingMode.RM) return base
 
@@ -759,3 +738,41 @@ internal fun resolveWeekDayDate(week: ProgramWeek, dayOfWeek: Int): LocalDate? {
 
 internal fun String?.toLocalDateOrNull(): LocalDate? =
     this?.takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+
+/** Quita solo las dos técnicas que requieren fallo; conserva el descanso propio y las demás técnicas. */
+internal fun ExerciseSet.withoutBeyondFailureTechniques(): ExerciseSet = copy(
+    plannedIntensityTechniques = plannedIntensityTechniques.filterNot {
+        it.type == TechniqueType.DROP_SET || it.type == TechniqueType.REST_PAUSE
+    },
+    isDropSet = false, isRestPause = false, dropSets = emptyList(), restPauses = emptyList(),
+)
+
+/** Solo se llama al confirmar un cambio de modo; nunca durante el guardado o la normalización. */
+internal fun Exercise.withTrainingMode(mode: TrainingMode): Exercise = copy(
+    trainingMode = mode,
+    apreBlock = if (mode == trainingMode) apreBlock else null,
+    sets = sets.map { set ->
+        (if (mode == TrainingMode.AMRAP) set.copy(
+            purpose = if (set.purpose == SetPurpose.CALIBRATOR) SetPurpose.CALIBRATOR else SetPurpose.AMRAP,
+            amrapMinimumReps = if (set.purpose.isAmrap) set.amrapMinimumReps else set.effectiveRepRange()?.min,
+            intensityMode = null,
+            targetRPE = null,
+            targetRIR = null,
+            isFailure = false,
+        ) else set.copy(
+            purpose = SetPurpose.NONE,
+            amrapMinimumReps = null,
+            calibrationScope = null,
+            intensityMode = set.intensityMode?.takeUnless { it == IntensityMode.AMRAP },
+        )).let { changed ->
+            when (mode) {
+                TrainingMode.AMRAP -> changed.withoutBeyondFailureTechniques()
+                TrainingMode.RM -> changed.copy(isFailure = false, intensityMode = null, targetRPE = null, targetRIR = null)
+                    .withoutBeyondFailureTechniques()
+                TrainingMode.SOLO_RPE -> changed.copy(isFailure = false, intensityMode = IntensityMode.RPE,
+                    targetRPE = changed.targetRPE ?: 8.0, targetRIR = null).withoutBeyondFailureTechniques()
+                else -> changed
+            }.copy(unitModeV2 = mode.toUnitModeV2())
+        }
+    },
+)

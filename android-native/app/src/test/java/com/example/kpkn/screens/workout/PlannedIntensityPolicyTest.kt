@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
@@ -98,7 +99,7 @@ class PlannedIntensityPolicyTest {
             id = "amrap",
             targetReps = 6,
             targetRepsRange = RepRange(4, 6),
-            isAmrap = true,
+            purpose = SetPurpose.AMRAP, amrapMinimumReps = 4,
             intensityMode = IntensityMode.AMRAP,
         )
         val normalized = WorkoutEditingRules.normalizeLiveEditedSet(
@@ -176,7 +177,7 @@ class PlannedIntensityPolicyTest {
     @Test
     fun load_and_amrap_modes_do_not_require_an_rpe_input() {
         val load = Exercise(id = "load", name = "Load", sets = listOf(ExerciseSet(id = "load-set", intensityMode = IntensityMode.LOAD)))
-        val amrap = Exercise(id = "amrap", name = "AMRAP", sets = listOf(ExerciseSet(id = "amrap-set", intensityMode = IntensityMode.AMRAP, isAmrap = true)))
+        val amrap = Exercise(id = "amrap", name = "AMRAP", sets = listOf(ExerciseSet(id = "amrap-set", intensityMode = IntensityMode.AMRAP, purpose = SetPurpose.AMRAP)))
 
         assertFalse(exerciseHasPlannedIntensity(load))
         assertFalse(exerciseHasPlannedIntensity(amrap))
@@ -187,7 +188,7 @@ class PlannedIntensityPolicyTest {
         val planned = ExerciseSet(
             id = "planned-amrap",
             targetReps = 8,
-            isAmrap = true,
+            purpose = SetPurpose.AMRAP, amrapMinimumReps = 8,
             intensityMode = IntensityMode.AMRAP,
         )
 
@@ -203,7 +204,7 @@ class PlannedIntensityPolicyTest {
 
     @Test
     fun omitted_live_amrap_override_follows_the_plan() {
-        val planned = ExerciseSet(id = "planned-amrap", isAmrap = true, intensityMode = IntensityMode.AMRAP)
+        val planned = ExerciseSet(id = "planned-amrap", purpose = SetPurpose.AMRAP, intensityMode = IntensityMode.AMRAP)
 
         assertTrue(resolveAmrapActive(planned, requestedOverride = false, explicitOverride = null))
     }

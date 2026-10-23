@@ -53,10 +53,11 @@ import java.io.FileOutputStream
  * HOJAS DE DIBUJO de ER1c2 (no comprueban nada: escriben PNG). Solo corren con `KPKN_RENDER_DIR` apuntando a una carpeta; sin ella se
  * saltan. A 360 dp, al 100 % y al 130 % de letra: las acciones rápidas, crear superserie con 0, 2 y 4 marcados, el editor de rondas
  * cerrado y con una ronda abierta, la configuración de un miembro, la gestión de la superserie, las plantillas y el catálogo de movilidad.
+ * La ventana de captura mide 360 × 880 dp.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [34], qualifiers = "w360dp-h1800dp-xxhdpi", application = android.app.Application::class)
+@Config(sdk = [34], qualifiers = "w360dp-h880dp-xxhdpi", application = android.app.Application::class)
 class SessionSupersetQuickActionsRenderSheetTest {
 
     companion object {

@@ -21,13 +21,18 @@ import com.example.kpkn.ui.design.KpknEmptyState
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSkeleton
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 
 /**
  * Carga del catálogo (SE6a): [rows] filas de `KpknSkeleton` con la forma de una fila (miniatura de 48 dp y dos líneas). Sin estado.
  */
 @Composable
 internal fun CatalogListSkeleton(rows: Int = 5, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(modifier = modifier.fillMaxWidth().testTag("catalog_loading").semantics {
+        contentDescription = "Cargando ejercicios"
+    }) {
         repeat(rows) {
             Row(
                 modifier = Modifier
@@ -65,7 +70,7 @@ internal fun CatalogNoResults(
         KpknEmptyState(
             icon = KpknLineIcons.Search,
             title = "No encontramos “$query”",
-            body = null,
+            body = "Créalo con ese nombre y se elige solo.",
             action = {
                 KpknPrimaryPill(
                     text = if (creating) "Creando…" else "Crear ejercicio",
@@ -73,6 +78,28 @@ internal fun CatalogNoResults(
                     enabled = !creating,
                 )
             },
+        )
+    }
+}
+
+/** El ejercicio existe fuera del filtro: limpiar los filtros conserva la consulta y la selección. */
+@Composable
+internal fun CatalogFilteredNoResults(
+    query: String,
+    filterLabel: String,
+    onShowAll: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier.fillMaxWidth().testTag("catalog_filtered_empty")) {
+        KpknEmptyState(
+            icon = KpknLineIcons.Search,
+            title = if (query.isBlank()) {
+                "Sin ejercicios en $filterLabel"
+            } else {
+                "Ninguna ${query.trim()} en $filterLabel"
+            },
+            body = "Hay coincidencias en otros grupos. No hace falta crear nada.",
+            action = { KpknPrimaryPill(text = "Ver en Todos", onClick = onShowAll) },
         )
     }
 }

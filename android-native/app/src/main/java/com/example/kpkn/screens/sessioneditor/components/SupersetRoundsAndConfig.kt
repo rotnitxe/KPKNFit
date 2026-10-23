@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,9 +65,11 @@ import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknRestPickerChain
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknCellInput
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknNumberCell
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknSegmentedControl
@@ -235,6 +238,7 @@ internal fun SupersetSmartLoadDialog(
     var rmInputMode by remember(exercise.id, exercise.prFor1RM) { mutableStateOf(if (exercise.prFor1RM != null) "pr" else "direct") }
     // SE11: el texto de cada campo lo escribe la persona; el modelo solo lo corrige si cambia por fuera.
     var directRmInput by rememberEditableNumber(exercise.id, exercise.reference1RM)
+    var trainingMaxInput by rememberEditableNumber(exercise.id, exercise.referenceTrainingMax)
     var prWeightInput by rememberEditableNumber(exercise.id, exercise.prFor1RM?.weight)
     var prRepsInput by rememberEditableNumber(exercise.id, exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toDouble())
     KpknAlertDialog(
@@ -247,6 +251,18 @@ internal fun SupersetSmartLoadDialog(
                     selectedIndex = if (rmInputMode == "pr") 1 else 0,
                     onSelect = { index -> rmInputMode = if (index == 1) "pr" else "direct" },
                 )
+                if (exercise.sets.any { it.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM }) {
+                    // Las series en %TM leen el TM, no el 1RM: tiene su propio campo.
+                    KpknTextField(
+                        value = trainingMaxInput,
+                        onValueChange = { input ->
+                            trainingMaxInput = input
+                            onUpdateExercise { it.copy(referenceTrainingMax = input.safeDoubleOrNull()?.takeIf { value -> value > 0 }) }
+                        },
+                        label = "Training max (TM)",
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    )
+                }
                 if (rmInputMode == "direct") {
                     KpknTextField(
                         value = directRmInput,
@@ -254,7 +270,7 @@ internal fun SupersetSmartLoadDialog(
                             directRmInput = input
                             onUpdateExercise { it.copy(reference1RM = input.safeDoubleOrNull()?.takeIf { value -> value > 0 }) }
                         },
-                        label = "RM referencial",
+                        label = "1RM referencial",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     )
                 } else {
@@ -298,8 +314,15 @@ internal fun SupersetSmartLoadDialog(
                     }
                 }
                 val resolved1RM = resolveReferenceCapacity(exercise)
-                val needsRmReference = exercise.sets.any { it.targetPercentageRM != null } && resolved1RM == null
-                if (needsRmReference) {
+                val missing = com.example.kpkn.domain.calculations.missingPercentReferences(exercise, resolved1RM)
+                if (missing.trainingMax) {
+                    Text(
+                        "Falta el TM para las series en %TM. Escríbelo arriba: el 1RM no lo sustituye.",
+                        style = KpknType.caption,
+                        color = WizardColors.danger,
+                    )
+                }
+                if (missing.oneRm) {
                     Text(
                         "Falta referencia para %RM. Agrega RM o PR.",
                         style = KpknType.caption,
@@ -361,6 +384,126 @@ internal fun SupersetGoalDialog(
 }
 
 /**
+ * «Descanso base» (ED-D · C3): las rondas sin el suyo usan estos valores. Rondas con su stepper (− se apaga en el suelo real, que son
+ * las series de los miembros: el motor no admite menos) y los dos descansos con el stepper de ±15 s de siempre. El descanso propio de
+ * una ronda se edita en su fila.
+ */
+@Composable
+internal fun SupersetBaseRestModule(
+    rounds: Int,
+    minRounds: Int,
+    restBetweenSeconds: Int,
+    restAfterSeconds: Int,
+    onRoundsStep: (Int) -> Unit,
+    onRestBetweenChange: (Int) -> Unit,
+    onRestAfterChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text("DESCANSO BASE", style = KpknType.eyebrow, color = WizardColors.textMuted)
+            Text("Para las rondas sin el suyo", style = KpknType.caption, color = WizardColors.textFaint)
+        }
+        Spacer(Modifier.height(4.dp))
+        SupersetBaseStepperRow(
+            label = "Rondas",
+            value = "$rounds",
+            contentDescription = "Rondas: $rounds",
+            minusDescription = "Quitar una ronda",
+            plusDescription = "Añadir una ronda",
+            minusEnabled = rounds > minRounds,
+            onStep = { delta -> onRoundsStep(delta) },
+        )
+        SessionBaseRestDivider()
+        SupersetBaseRestStepperRow(
+            label = "Entre ejercicios",
+            seconds = restBetweenSeconds,
+            onChange = onRestBetweenChange,
+        )
+        SessionBaseRestDivider()
+        SupersetBaseRestStepperRow(
+            label = "Tras la ronda",
+            seconds = restAfterSeconds,
+            onChange = onRestAfterChange,
+        )
+    }
+}
+
+/** Filete del módulo «Descanso base»: 1 dp del divisor de superficie, como el de cualquier módulo KPKN. */
+@Composable
+private fun SessionBaseRestDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(KpknSurface.divider),
+    )
+}
+
+/** Fila «etiqueta · − valor +» del módulo «Descanso base». */
+@Composable
+private fun SupersetBaseStepperRow(
+    label: String,
+    value: String,
+    contentDescription: String,
+    minusDescription: String,
+    plusDescription: String,
+    minusEnabled: Boolean,
+    onStep: (Int) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 48.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = KpknType.bodyStrong,
+            color = WizardColors.text,
+            modifier = Modifier.weight(1f),
+        )
+        KpknIconButton(
+            icon = KpknLineIcons.Minus,
+            contentDescription = minusDescription,
+            enabled = minusEnabled,
+            onClick = { onStep(-1) },
+        )
+        KpknNumberCell(
+            value = value,
+            input = KpknCellInput.ReadOnly,
+            contentDescription = contentDescription,
+            onStep = onStep,
+            modifier = Modifier.width(72.dp),
+        )
+        KpknIconButton(
+            icon = KpknLineIcons.Plus,
+            contentDescription = plusDescription,
+            onClick = { onStep(1) },
+        )
+    }
+}
+
+/** Un descanso del módulo «Descanso base»: título con sus ±15 s, el mismo rango de siempre (0 a 600 s). */
+@Composable
+private fun SupersetBaseRestStepperRow(
+    label: String,
+    seconds: Int,
+    onChange: (Int) -> Unit,
+) {
+    SupersetBaseStepperRow(
+        label = label,
+        value = formatRestSummary(seconds),
+        contentDescription = "$label: ${formatRestSummary(seconds)}",
+        // El nombre lleva el descanso al que pertenece: hay dos ±15 s en el módulo y TalkBack debe distinguirlos.
+        minusDescription = "Quitar 15 segundos a $label",
+        plusDescription = "Añadir 15 segundos a $label",
+        minusEnabled = true,
+        onStep = { delta -> onChange((seconds + delta * 15).coerceIn(0, 600)) },
+    )
+}
+
+/**
  * Las rondas de la superserie (ER1c2): una lista vertical en lugar del carrusel de tarjetas. Cada ronda es una fila con su número, sus
  * miembros con su dosis y sus puntos (qué miembros tienen serie en esa ronda). Al tocarla se despliega con el botón de descansos y las
  * tarjetas de cada miembro. Solo una ronda abierta a la vez; «Añadir ronda» va al pie.
@@ -372,19 +515,26 @@ internal fun SupersetRoundsCarousel(
     rounds: Int,
     accentColor: Color,
     onUpdateRoundRest: (Int, Int?, Int?) -> Unit,
+    onClearRoundRest: (Int) -> Unit = { _ -> },
     onUpdateSet: (String, String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onRemoveSet: (String, String) -> Unit,
     onMoveSet: (String, String, Int) -> Unit,
     onRestoreSet: (String, Int) -> Unit,
     onAddRound: () -> Unit,
     onRemoveRound: (Int) -> Unit,
+    onUpdateExercise: ((String, (Exercise) -> Exercise) -> Unit)? = null,
 ) {
     var openRound by rememberSaveable(group.id) { mutableStateOf<Int?>(null) }
     var restPickerRound by remember { mutableStateOf<Int?>(null) }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("POR RONDA · TOCA UNA PARA ABRIRLA", style = KpknType.eyebrow, color = WizardColors.textMuted)
         (0 until rounds).forEach { roundIndex ->
             val roundRestBetween = group.roundRestBetweenExercises[roundIndex] ?: group.restBetweenExercises
             val roundRestAfter = group.roundRestAfterSuperset[roundIndex] ?: group.restAfterSuperset
+            // Los mapas guardan ajustes explícitos. Aunque hoy coincida con el base, hay que poder
+            // quitarlo para que la ronda herede también sus próximos cambios.
+            val hasOwnRest = roundIndex in group.roundRestBetweenExercises ||
+                roundIndex in group.roundRestAfterSuperset
             val expanded = openRound == roundIndex
             KpknModule(contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp)) {
                 Row(
@@ -401,6 +551,13 @@ internal fun SupersetRoundsCarousel(
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("Ronda ${roundIndex + 1}", style = KpknType.bodyStrong, color = WizardColors.text)
                             RoundProgressDots(exercises = exercises, roundIndex = roundIndex, accentColor = accentColor)
+                            if (hasOwnRest) {
+                                Text(
+                                    "Descanso propio",
+                                    style = KpknType.caption,
+                                    color = accentColor,
+                                )
+                            }
                         }
                         Text(
                             roundSummary(exercises, roundIndex),
@@ -435,6 +592,22 @@ internal fun SupersetRoundsCarousel(
                             modifier = Modifier.fillMaxWidth(),
                             onClick = { restPickerRound = roundIndex },
                         )
+                        if (hasOwnRest) {
+                            // C3: una ronda con descanso propio enseña el base al lado y puede volver a él sin reescribir los valores.
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(
+                                    text = "Base: entre ${formatRestSummary(group.restBetweenExercises)} · " +
+                                        "ronda ${formatRestSummary(group.restAfterSuperset)}",
+                                    style = KpknType.caption,
+                                    color = WizardColors.textFaint,
+                                )
+                                KpknTextAction(
+                                    text = "Usar el base",
+                                    onClick = { onClearRoundRest(roundIndex) },
+                                    color = accentColor,
+                                )
+                            }
+                        }
                         exercises.forEach { exercise ->
                             val set = exercise.sets.getOrNull(roundIndex)
                             if (set != null) {
@@ -446,6 +619,7 @@ internal fun SupersetRoundsCarousel(
                                     onUpdateSet = { setId, updater -> onUpdateSet(exercise.id, setId, updater) },
                                     onRemoveSet = { setId -> onRemoveSet(exercise.id, setId) },
                                     onMoveSet = { setId, dir -> onMoveSet(exercise.id, setId, dir) },
+                                    onUpdateExercise = onUpdateExercise?.let { update -> { transform -> update(exercise.id, transform) } },
                                 )
                             } else {
                                 RoundMissingSetCard(
@@ -569,6 +743,7 @@ private fun RoundExerciseSetCard(
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onRemoveSet: (String) -> Unit,
     onMoveSet: (String, Int) -> Unit,
+    onUpdateExercise: (((Exercise) -> Exercise) -> Unit)?,
 ) {
     var expanded by rememberSaveable(exercise.id, roundIndex) { mutableStateOf(false) }
     val predictedWeight = calculateSuggestedLoad(exercise, set)
@@ -647,10 +822,20 @@ private fun RoundExerciseSetCard(
                             if (prior == "L") set.leftTarget != null else set.rightTarget != null
                         }
                         if (showCard) {
-                            InlineSetRow(
+                            if (set.purpose.isAmrap || exercise.trainingMode == TrainingMode.RM) {
+                                RoundCanonicalSetFocus(
+                                    exercise = exercise, set = set, roundIndex = roundIndex,
+                                    side = side, showActions = isFirstVisible,
+                                    canMoveUp = isFirstVisible && roundIndex > 0,
+                                    canMoveDown = isFirstVisible && roundIndex < exercise.sets.lastIndex,
+                                    onUpdateSet = onUpdateSet, onUpdateExercise = onUpdateExercise,
+                                    onRemoveSet = onRemoveSet, onMoveSet = onMoveSet,
+                                )
+                            } else InlineSetRow(
                                 set = set,
                                 index = roundIndex,
                                 reference1RM = resolveReferenceCapacity(exercise),
+                                trainingMax = exercise.referenceTrainingMax,
                                 predictedWeight = predictedWeight,
                                 estimatedMetric = estimatedMetric,
                                 trainingMode = exercise.trainingMode,
@@ -701,10 +886,20 @@ private fun RoundExerciseSetCard(
                         }
                     }
                 } else {
-                    InlineSetRow(
+                    if (set.purpose.isAmrap || exercise.trainingMode == TrainingMode.RM) {
+                        RoundCanonicalSetFocus(
+                            exercise = exercise, set = set, roundIndex = roundIndex,
+                            side = null, showActions = true,
+                            canMoveUp = roundIndex > 0,
+                            canMoveDown = roundIndex < exercise.sets.lastIndex,
+                            onUpdateSet = onUpdateSet, onUpdateExercise = onUpdateExercise,
+                            onRemoveSet = onRemoveSet, onMoveSet = onMoveSet,
+                        )
+                    } else InlineSetRow(
                         set = set,
                         index = roundIndex,
                         reference1RM = resolveReferenceCapacity(exercise),
+                        trainingMax = exercise.referenceTrainingMax,
                         predictedWeight = predictedWeight,
                         estimatedMetric = estimatedMetric,
                         trainingMode = exercise.trainingMode,
@@ -777,4 +972,39 @@ internal fun SupersetRestPickerDialog(
         onConfirm = { between, after -> onConfirm(between, after ?: initialRestAfterSeconds) },
         onDismiss = onDismiss,
     )
+}
+
+/** C3 conserva las acciones de la serie una sola vez, junto al foco canónico de ED-B. */
+@Composable
+private fun RoundCanonicalSetFocus(
+    exercise: Exercise,
+    set: ExerciseSet,
+    roundIndex: Int,
+    side: String?,
+    showActions: Boolean,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
+    onUpdateExercise: (((Exercise) -> Exercise) -> Unit)?,
+    onRemoveSet: (String) -> Unit,
+    onMoveSet: (String, Int) -> Unit,
+) {
+    Column(
+        modifier = Modifier.testTag("round-set-focus-${set.id}${side?.let { ":$it" }.orEmpty()}"),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (set.purpose.isAmrap) {
+            AmrapSetFocus(exercise, set, roundIndex, fixedUnilateralSide = side) { update -> onUpdateSet(set.id, update) }
+        } else {
+            RmSetFocus(exercise, set, { update -> onUpdateSet(set.id, update) }, onUpdateExercise, fixedUnilateralSide = side)
+        }
+        if (showActions) FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(18.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            if (canMoveUp) KpknTextAction(text = "Subir", onClick = { onMoveSet(set.id, -1) })
+            if (canMoveDown) KpknTextAction(text = "Bajar", onClick = { onMoveSet(set.id, 1) })
+            KpknTextAction(text = "Eliminar", color = WizardColors.danger, onClick = { onRemoveSet(set.id) })
+        }
+    }
 }

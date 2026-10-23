@@ -23,24 +23,28 @@ object WorkoutStructuralEditor {
         exerciseId: String,
         update: (Exercise) -> Exercise,
     ): Session {
-        if (session.parts.isNotEmpty()) {
-            var changed = false
-            val newParts = session.parts.map { part ->
-                val idx = part.exercises.indexOfFirst { it.id == exerciseId }
-                if (idx < 0) return@map part
+        var changed = false
+        // Una sesión puede combinar ejercicios planos con partes de cardio o movilidad.
+        val exercises = session.exercises.map { exercise ->
+            if (exercise.id != exerciseId) exercise
+            else {
                 changed = true
-                val mutable = part.exercises.toMutableList()
-                mutable[idx] = update(mutable[idx])
-                part.copy(exercises = mutable)
+                update(exercise)
             }
-            return if (changed) session.copy(parts = newParts) else session
         }
-
-        val idx = session.exercises.indexOfFirst { it.id == exerciseId }
-        if (idx < 0) return session
-        val mutable = session.exercises.toMutableList()
-        mutable[idx] = update(mutable[idx])
-        return session.copy(exercises = mutable)
+        val parts = session.parts.map { part ->
+            var partChanged = false
+            val partExercises = part.exercises.map { exercise ->
+                if (exercise.id != exerciseId) exercise
+                else {
+                    changed = true
+                    partChanged = true
+                    update(exercise)
+                }
+            }
+            if (partChanged) part.copy(exercises = partExercises) else part
+        }
+        return if (changed) session.copy(exercises = exercises, parts = parts) else session
     }
 
     fun moveExerciseById(session: Session, exerciseId: String, direction: Int): Session {

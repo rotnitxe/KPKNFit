@@ -25,6 +25,9 @@ import org.junit.Test
  * equivalente en la semántica antigua (`contains` / `==`). `scopeUniverse` conoce ahora los
  * ámbitos de las reglas C (por slot, por semana, por día, `recipe`), para que la equivalencia
  * estructural de un ámbito de slot o de semana no sea vacía.
+ *
+ * INV (2026-10-22): la C10 de `apre-mann` (semanas idénticas de cada bloque de cuatro por diseño,
+ * tabla de Mann) se anota igual con su equivalente antiguo para el glob anclado `w*`.
  */
 class ExemptionScopeMigrationTest {
     companion object {
@@ -101,6 +104,8 @@ class ExemptionScopeMigrationTest {
         // peso muerto sumo (sentadilla) y el de sentadilla frontal (peso muerto) cuelgan de su T1 de otro patrón: C8 por slot.
         "nsuns-531-lp-4d" to listOf(
             "C1_SET_RANGE" to "Banca/OHP/t1",
+            // CAL5: la banca de volumen (9 series) es el T2 del primer día; el T1 es el press militar pesado.
+            "C1_SET_RANGE" to "Banca/OHP/t2",
             "C1_SET_RANGE" to "Sentadilla/Sumo/t1",
             "C1_SET_RANGE" to "Banca/Cerrado/t1",
             "C1_SET_RANGE" to "Peso muerto/Frontal/t1",
@@ -128,6 +133,9 @@ class ExemptionScopeMigrationTest {
         "gzcl-jt-2" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         "gzcl-rippler" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         "gzcl-uhf-9" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
+        // INV: la C10 de APRE (semanas idénticas de cada bloque de cuatro por diseño, tabla de Mann) con el
+        // equivalente antiguo del glob anclado «w*»: el contains "w" cubre w1…w12 igual que el anclado.
+        "apre-mann" to listOf("C5_DELOAD_REQUIRED" to "recipe", "C10_IDENTICAL_WEEKS" to "w"),
         "cube-method" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         "calgary-16" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID to phulAuthoredLegacy,

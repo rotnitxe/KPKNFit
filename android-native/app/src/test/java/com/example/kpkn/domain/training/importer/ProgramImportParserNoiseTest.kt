@@ -212,7 +212,7 @@ class ProgramImportParserNoiseTest {
     }
 
     @Test
-    fun `en una tabla, las repeticiones AMRAP sin numero se omiten con su aviso`() {
+    fun `en una tabla, AMRAP sin numero se importa sin minimo`() {
         val sheet = ImportSheet(
             name = "Día 2",
             rows = listOf(
@@ -224,13 +224,11 @@ class ProgramImportParserNoiseTest {
 
         val draft = ProgramImportParser.parseSheets(listOf(sheet), title = "Tabla AMRAP")
 
-        assertEquals(listOf("Remo"), draft.weeks.single().days.single().exercises.map { it.rawName })
-        assertEquals(
-            listOf("Hoja «Día 2», fila 3: «Dominadas»: AMRAP sin número de repeticiones; se omite"),
-            draft.warningMessages,
-        )
-        assertEquals(ImportWarningKind.SKIPPED_ROW, draft.warnings.single().kind)
-        assertEquals("w1-d1", draft.warnings.single().dayId)
+        val exercises = draft.weeks.single().days.single().exercises
+        assertEquals(listOf("Remo", "Dominadas"), exercises.map { it.rawName })
+        assertEquals(com.example.kpkn.data.models.SetPurpose.AMRAP, exercises.last().purpose)
+        assertEquals(null, exercises.last().amrapMinimumReps)
+        assertTrue(draft.warningMessages.isEmpty())
     }
 
     @Test

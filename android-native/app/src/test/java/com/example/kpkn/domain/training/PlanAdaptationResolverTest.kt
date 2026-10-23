@@ -1037,7 +1037,10 @@ class PlanAdaptationResolverTest {
         )
         val barExercise = exercisesOf(originalProgram).single()
         assertEquals("bench_press__barbell", barExercise.catalogConfigurationId)
-        assertEquals("TM de barra sobre 100 kg de 1RM", 90.0, barExercise.reference1RM!!, 0.0001)
+        // FIX-TM: el 1RM del perfil (100 kg) vive en `reference1RM`; el TM de barra (90 kg) en `referenceTrainingMax`.
+        // Antes de CAL1 esta prueba leía el TM en `reference1RM` (mezcla de significados).
+        assertEquals("1RM de barra del perfil", 100.0, barExercise.reference1RM!!, 0.0001)
+        assertEquals("TM de barra sobre 100 kg de 1RM", 90.0, barExercise.referenceTrainingMax!!, 0.0001)
 
         val program = PlanMaterializer.materialize(
             program = Program(id = "p-adapted", name = "Adaptado"),

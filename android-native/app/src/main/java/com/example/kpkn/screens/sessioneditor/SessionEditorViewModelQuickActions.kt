@@ -42,8 +42,12 @@ internal fun duplicateExerciseInSession(
         val source = exercises[index]
         val copy = source.copy(
             id = newId(),
-            sets = source.sets.map { set -> set.copy(id = newId()) },
+            sets = source.sets.map { set -> set.freshPlannedCopy(newId) },
+            warmupSets = source.warmupSets.map { it.copy(id = newId()) },
             mobilitySeries = source.mobilitySeries.map { series -> series.copy(id = newId()) },
+            cardioDetails = source.cardioDetails?.let { details ->
+                details.copy(intervalBlocks = details.intervalBlocks.map { it.copy(id = newId()) })
+            },
             occurrenceId = if (isCatalogExercise(source)) newId() else source.occurrenceId,
             supersetGroupRef = null,
             supersetId = null,

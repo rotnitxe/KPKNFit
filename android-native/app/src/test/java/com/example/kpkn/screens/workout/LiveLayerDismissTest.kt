@@ -29,6 +29,8 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onLast
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
@@ -339,7 +341,7 @@ class LiveLayerDismissTest {
         rule.onNodeWithText("Notas").performClick()
         rule.waitForIdle()
         // La nota rápida pertenece a la sección Notas y conserva el borrador.
-        rule.onAllNodes(hasSetTextAction()).onLast().performTextReplacement("Me sentí fuerte")
+        rule.onNodeWithTag("finish-notes", useUnmergedTree = true).performTextReplacement("Me sentí fuerte")
         pressBack()
 
         assertEquals("la nota pasa a la sesión en vez de perderse", "Me sentí fuerte", kept)
@@ -475,17 +477,12 @@ class LiveLayerDismissTest {
         rule.setContent {
             KPKNTheme {
                 Box(Modifier.fillMaxSize().background(Color.Black)) {
-                    WorkoutRoadmapBar(
-                        exercises = exercises,
-                        currentIdx = 0,
-                        completedSets = emptyMap(),
-                        onSelect = {},
-                    )
+                    LiveSessionLine(exercises, null, null, {}, {}, {}, {}, {}, recordVisible = false, recordEnabled = false)
                 }
             }
         }
         rule.waitForIdle()
-        val lefts = names.map { name -> rule.onNodeWithText(name, substring = true).fetchSemanticsNode().boundsInRoot.left }
+        val lefts = names.map { name -> rule.onNodeWithContentDescription("Ir a $name").fetchSemanticsNode().boundsInRoot.left }
         assertEquals("de izquierda a derecha, como la lista", lefts.sorted(), lefts)
     }
 
@@ -578,13 +575,8 @@ class LiveLayerDismissTest {
         rule.setContent {
             KPKNTheme {
                 Box(Modifier.fillMaxSize().background(Color.Black)) {
-                    WorkoutRoadmapBar(
-                        exercises = listOf(liveExercise("a"), liveExercise("b")),
-                        currentIdx = 0,
-                        completedSets = emptyMap(),
-                        onSelect = {},
-                        pendingActions = pending,
-                    )
+                    LiveSessionLine(listOf(liveExercise("a"), liveExercise("b")), "a", null,
+                        {}, {}, {}, {}, {}, recordVisible = false, recordEnabled = false, pendingActions = pending)
                 }
             }
         }

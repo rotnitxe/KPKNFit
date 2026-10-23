@@ -111,7 +111,23 @@ sealed class SessionListItem {
     ) : SessionListItem() {
         override val stableKey: String = "strength-divider"
     }
+
+    /**
+     * La colocación del cardio, «Al inicio / Al final» (ED-A · A2, ED-D): existe siempre que la sesión tiene Fuerza y Cardio, con o sin
+     * ejercicios. Es el único control de colocación de la lista: los rótulos FUERZA/CARDIO no ofrecen «Mover…» (añadido del
+     * orquestador de ED-D).
+     */
+    data object CardioPlacement : SessionListItem() {
+        override val stableKey: String = "cardio-placement"
+    }
 }
+
+/**
+ * La sesión tiene espacio de fuerza con algo dentro: ejercicios sueltos o algún grupo de fuerza. Una sesión solo de cardio no (ED-A · A2b):
+ * sin fuerza no hay «Al inicio / Al final» que elegir, ni en la lista ni en el cardio desplegado.
+ */
+internal fun Session.hasStrengthContent(): Boolean =
+    exercises.isNotEmpty() || parts.any { !it.isCardioPart() && !it.isUncategorizedPart() }
 
 fun buildSessionListItems(
     session: Session,
@@ -119,6 +135,8 @@ fun buildSessionListItems(
     showStrengthDivider: Boolean = false,
     /** Preferencia explícita inicio/final; necesaria cuando solo hay part cardio. */
     cardioAtStart: Boolean? = null,
+    /** El cardio se eligió en la sesión vacía y todavía no tiene ningún cardio: su espacio existe aunque esté vacío (ED-A · A2). */
+    cardioSpaceCommitted: Boolean = false,
 ): List<SessionListItem> {
     val items = mutableListOf<SessionListItem>()
     items += SessionListItem.Hero
@@ -126,29 +144,39 @@ fun buildSessionListItems(
     val groupedParts = session.parts.filterNot { it.isUncategorizedPart() }
     val strengthParts = groupedParts.filterNot { it.isCardioPart() }
     val cardioParts = groupedParts.filter { it.isCardioPart() }
-    val hasStrength = session.exercises.isNotEmpty() || strengthParts.isNotEmpty()
-    val hasCardio = cardioParts.isNotEmpty()
+    val hasStrengthContent = session.exercises.isNotEmpty() || strengthParts.isNotEmpty()
+    // Fuerza existe si tiene contenido o se eligió en la sesión vacía; el cardio, si tiene su parte o se eligió.
+    val hasStrength = hasStrengthContent || showStrengthDivider
+    val hasCardio = cardioParts.isNotEmpty() || cardioSpaceCommitted
     val hasBothSpaces = hasStrength && hasCardio
+    // Solo cardio (ED-A · A2b): sin colocación ni espacio de fuerza. La opción de Fuerza queda debajo, como pendiente.
+    val cardioOnly = hasCardio && !hasStrength
 
     val showCardioFirst = when {
         !hasCardio -> false
+        cardioOnly -> true
         cardioAtStart != null -> cardioAtStart
         session.cardioFirst -> true
         strengthParts.isNotEmpty() && groupedParts.firstOrNull()?.isCardioPart() == true -> true
         else -> false
     }
-    val emitStrengthDivider = showStrengthDivider || showCardioFirst || hasCardio
+    val emitStrengthDivider = !cardioOnly && (showStrengthDivider || showCardioFirst || hasCardio)
+
+    // Un solo control para la colocación (ED-D · Añadido del orquestador): el selector «Al inicio / Al final» está siempre a la vista
+    // cuando la sesión tiene Fuerza y Cardio, y los rótulos FUERZA/CARDIO no ofrecen «Mover…». La función no se pierde: se mueve con
+    // el selector, y el chip del cardio desplegado sigue funcionando igual.
+    if (hasBothSpaces) items += SessionListItem.CardioPlacement
 
     if (showCardioFirst) {
         // --- 1. BLOQUE CARDIO ARRIBA ---
-        items += SessionListItem.CardioDivider(showCardioFirst = true, canMove = hasBothSpaces)
+        if (!cardioOnly) items += SessionListItem.CardioDivider(showCardioFirst = true, canMove = false)
         cardioParts.forEach { part ->
             appendCardioPartExercises(items, part)
         }
         items += SessionListItem.CardioAddActions
 
         // --- 2. BLOQUE FUERZA ABAJO ---
-        items += SessionListItem.StrengthDivider(showCardioFirst = true, canMove = hasBothSpaces)
+        if (emitStrengthDivider) items += SessionListItem.StrengthDivider(showCardioFirst = true, canMove = false)
         if (session.exercises.isNotEmpty()) {
             if (strengthParts.isNotEmpty()) items += SessionListItem.LooseGroupLabel
             appendExerciseItems(
@@ -168,7 +196,7 @@ fun buildSessionListItems(
     } else {
         // --- 1. BLOQUE FUERZA ARRIBA ---
         if (emitStrengthDivider) {
-            items += SessionListItem.StrengthDivider(showCardioFirst = false, canMove = hasBothSpaces)
+            items += SessionListItem.StrengthDivider(showCardioFirst = false, canMove = false)
         }
         if (session.exercises.isNotEmpty()) {
             if (strengthParts.isNotEmpty()) items += SessionListItem.LooseGroupLabel
@@ -190,7 +218,7 @@ fun buildSessionListItems(
 
         // --- 2. BLOQUE CARDIO ABAJO (si existe) ---
         if (hasCardio) {
-            items += SessionListItem.CardioDivider(showCardioFirst = false, canMove = hasBothSpaces)
+            items += SessionListItem.CardioDivider(showCardioFirst = false, canMove = false)
             cardioParts.forEach { part ->
                 appendCardioPartExercises(items, part)
             }

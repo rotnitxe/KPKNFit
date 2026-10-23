@@ -29,6 +29,8 @@ data class SupersetDraft(
     val restBetweenExercises: Int = 60,
     val restAfterSuperset: Int = 120,
     val rounds: Int? = null,
+    /** Grupo que se edita, también cuando se desmarcan todos sus miembros iniciales. Solo estado de UI. */
+    val sourceGroupId: String? = null,
 )
 
 sealed interface SessionExerciseEditorBlock {

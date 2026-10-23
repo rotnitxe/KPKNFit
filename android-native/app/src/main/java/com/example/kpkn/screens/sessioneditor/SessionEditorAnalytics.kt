@@ -84,7 +84,7 @@ internal fun com.example.kpkn.data.models.ExerciseSet.sessionIntensityTier(): Se
 internal fun averageSessionIntensityTier(
     sets: List<com.example.kpkn.data.models.ExerciseSet>,
 ): SessionIntensityTier {
-    val active = sets.filterNot { it.isIneffective }
+    val active = sets.filterNot { it.isIneffective || it.isEmptySlot }
     if (active.isEmpty()) return SessionIntensityTier.MEDIA
     val avg = active.map { it.sessionIntensityTier().ordinalRank }.average()
     return SessionIntensityTier.entries.minByOrNull { kotlin.math.abs(it.ordinalRank - avg) }
@@ -122,7 +122,7 @@ internal fun buildMuscleVolumeRows(session: Session): List<MuscleVolumeRow> {
             .distinct()
             .forEach { muscle ->
                 intensitySets.getOrPut(muscle) { mutableListOf() }
-                    .addAll(exercise.sets.filterNot { it.isIneffective })
+                    .addAll(exercise.sets.filterNot { it.isIneffective || it.isEmptySlot })
             }
     }
 
@@ -170,7 +170,7 @@ internal fun buildDisplayContributions(
 
 internal fun countDisplaySets(exerciseSets: List<com.example.kpkn.data.models.ExerciseSet>, adjustByIntensity: Boolean): Double {
     var total = 0.0
-    val activeSets = exerciseSets.filterNot { it.isIneffective }
+    val activeSets = exerciseSets.filterNot { it.isIneffective || it.isEmptySlot }
     val counted = activeSets.filter { set ->
         ((set.completedReps ?: set.plannedRepAnchor() ?: 0) > 0 || (set.weight ?: 0.0) > 0.0)
     }

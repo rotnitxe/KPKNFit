@@ -139,7 +139,7 @@ private fun RowScope.ExerciseOptionTile(option: ExerciseOption) {
 
 /**
  * Las opciones de un ejercicio de fuerza (A2): las del prototipo (Reemplazar, Reordenar, Crear superserie, Historial, Ultrarrápido,
- * Notas) y las que la app ya tenía y el prototipo no enseña (Etiquetas, Editar, Agregar otro); al pie, «Saltar ejercicio» (omitir) y
+ * Notas) y las que la app ya tenía y el prototipo no enseña (Etiquetas, Editar, Agregar ejercicio); al pie, «Saltar ejercicio» (omitir) y
  * «Quitar de la sesión» (con confirmación y «Deshacer», que pide quien llama).
  */
 @Composable
@@ -163,10 +163,15 @@ internal fun ColumnScope.ExerciseOptionsStrengthContent(
             ExerciseOption("Reemplazar", KpknLineIcons.Swap, onReplace),
             ExerciseOption("Reordenar", KpknLineIcons.Reorder, onReorder),
             ExerciseOption("Crear superserie", KpknLineIcons.Link, onCreateSuperset),
+            ExerciseOption("Historial", KpknLineIcons.History, onHistory),
+            ExerciseOption("Ultrarrápido", LiveOptionIcons.Bolt, onUltraFast),
+            ExerciseOption("Notas", LiveOptionIcons.Note, onNotes),
+            ExerciseOption("Etiquetas", KpknLineIcons.Tag, onTags),
             ExerciseOption("Editar", KpknLineIcons.Edit, onEdit),
             ExerciseOption("Agregar ejercicio", KpknLineIcons.Plus, onAddOther),
         ) + listOfNotNull(onRM?.let { ExerciseOption("Calculadora RM", KpknLineIcons.TrendUp, it) }),
     )
+    ExerciseOptionsFooter(onSkip = onSkip, onRemove = onRemove, canRemove = canRemove)
 }
 
 /** Las opciones de un ejercicio de cardio (A2): sus opciones de siempre con el mismo aspecto y, al pie, lo que antes hacía el modo dios. */

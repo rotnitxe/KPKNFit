@@ -91,13 +91,13 @@ class VideoAnalysisMigrationValidateTest {
         assertEquals(1, before.getValue("programs").size)
 
         val upgraded = Room.databaseBuilder(shortPathContext(databaseDirectory), KpknDatabase::class.java, databaseName)
-            .addMigrations(videoAnalysisMigration(28))
+            .addMigrations(videoAnalysisMigration(28), CALIBRATION_MIGRATION_29_30)
             .allowMainThreadQueries()
             .build()
         try {
             // Abrir por Room = migración real + validación completa del esquema v29.
             val db = upgraded.openHelper.writableDatabase
-            assertEquals(29L, scalar(db, "PRAGMA user_version"))
+            assertEquals(30L, scalar(db, "PRAGMA user_version"))
 
             val after = snapshotUserTables { sql -> db.query(sql).readRows() }
             assertEquals("ninguna tabla anterior puede perder ni cambiar filas", before.keys, after.keys)
@@ -150,7 +150,7 @@ class VideoAnalysisMigrationValidateTest {
         createPhysicalRoom(28, File(databaseDirectory, databaseName))
 
         val upgraded = Room.databaseBuilder(shortPathContext(databaseDirectory), KpknDatabase::class.java, databaseName)
-            .addMigrations(videoAnalysisMigration(28))
+            .addMigrations(videoAnalysisMigration(28), CALIBRATION_MIGRATION_29_30)
             .allowMainThreadQueries()
             .build()
         try {
@@ -334,7 +334,7 @@ class VideoAnalysisMigrationValidateTest {
     private fun snapshotUserTables(query: (String) -> List<List<String?>>): Map<String, List<List<String?>>> {
         val tables = query("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name").map { it.single()!! }
             .filterNot { it.startsWith("sqlite_") || it.startsWith("room_") || it.startsWith("global_foods_fts") }
-            .filterNot { it == "android_metadata" || it == "video_analysis" }
+            .filterNot { it == "android_metadata" || it == "video_analysis" || it == "calibration_decisions" }
         return tables.associateWith { table ->
             val columns = if (table == "workout_media") {
                 V28_MEDIA_COLUMNS

@@ -91,14 +91,14 @@ class LiveExerciseOptionsUiTest {
                     onNotes = calls.tap("Notas"),
                     onTags = calls.tap("Etiquetas"),
                     onEdit = calls.tap("Editar"),
-                    onAddOther = calls.tap("Agregar otro"),
+                    onAddOther = calls.tap("Agregar ejercicio"),
                     onSkip = calls.tap("Saltar ejercicio"),
                     onRemove = calls.tap("Quitar de la sesión"),
                 )
             }
         }
         val labels = listOf(
-            "Reemplazar", "Reordenar", "Crear superserie", "Historial", "Ultrarrápido", "Notas", "Etiquetas", "Editar", "Agregar otro",
+            "Reemplazar", "Reordenar", "Crear superserie", "Historial", "Ultrarrápido", "Notas", "Etiquetas", "Editar", "Agregar ejercicio",
             "Saltar ejercicio", "Quitar de la sesión",
         )
 

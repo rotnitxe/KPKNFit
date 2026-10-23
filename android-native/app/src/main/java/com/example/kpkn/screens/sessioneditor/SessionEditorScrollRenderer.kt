@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
@@ -28,8 +29,15 @@ import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
 import com.example.kpkn.screens.sessioneditor.components.ExerciseEditorCard
 import com.example.kpkn.screens.sessioneditor.components.GroupEditorCard
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.screens.sessioneditor.components.SessionEditorCardioPlacementControl
 import com.example.kpkn.screens.sessioneditor.components.SessionEditorEmptyState
+import com.example.kpkn.screens.sessioneditor.components.SessionEditorSpace
+import com.example.kpkn.screens.sessioneditor.components.SessionEditorSpaceOption
 import com.example.kpkn.screens.sessioneditor.components.SupersetGroupEditorCard
+import com.example.kpkn.screens.sessioneditor.design.SessionEditorDashedAddButton
+import com.example.kpkn.screens.sessioneditor.design.SessionEditorOutsideDropZone
 import com.example.kpkn.screens.sessioneditor.design.SessionExerciseUndoNotice
 import com.example.kpkn.screens.sessioneditor.design.SessionGroupLabel
 import com.example.kpkn.screens.sessioneditor.design.SessionModuleEdge
@@ -38,6 +46,7 @@ import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.domain.cardio.CardioTypeHistory
 import com.example.kpkn.data.models.SupersetGroup
@@ -58,6 +67,9 @@ internal fun SessionEditorListItem(
     exerciseDropTargetKey: String?,
     exerciseDropTargetPartId: String?,
     exerciseDropTargetIndex: Int?,
+    exerciseDropTargetGroupId: String? = null,
+    draggingExercisePartId: String? = null,
+    dropPlan: SessionEditorDropPlan? = null,
     draggingPartId: String?,
     partDropTargetId: String?,
     pendingAutoExpandExerciseId: String?,
@@ -79,6 +91,10 @@ internal fun SessionEditorListItem(
     }
     // El ejercicio cuyo borrado espera el «Deshacer» (ER1b): su fila se cambia por el aviso mientras tanto.
     val pendingRemovalId = uiState.pendingExerciseRemoval?.exerciseId
+    // Durante un arrastre, el módulo de destino (si no es el de origen) lleva el filete en tinta y la superserie de destino, el suyo (ED-A · A3).
+    fun moduleIsDropTarget(partId: String): Boolean =
+        draggingExerciseId != null && exerciseDropTargetPartId == partId && draggingExercisePartId != partId
+    val supersetDropTargetId = exerciseDropTargetGroupId.takeIf { draggingExerciseId != null }
     when (listItem) {
         is SessionListItem.PartHeader -> {
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
@@ -93,7 +109,7 @@ internal fun SessionEditorListItem(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
                     )
                 }
-                SessionModuleSlot(edge = listItem.edge) {
+                SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id)) {
                     GroupEditorCard(
                         part = part,
                         collapsed = isCollapsed,
@@ -111,6 +127,20 @@ internal fun SessionEditorListItem(
                             }
                         },
                         onDragCancel = cancelPartDrag,
+                        // D9 · el grupo de movilidad de la sesión se edita en su sitio.
+                        onOpenPartMobility = { viewModel.openPartMobilityPicker(part.id) },
+                        onUpdatePartMobility = { mobilityId, transform ->
+                            viewModel.updatePartMobility(part.id, mobilityId, transform)
+                        },
+                        onRemovePartMobility = { mobilityId ->
+                            viewModel.removeMobilityFromPart(part.id, mobilityId)
+                        },
+                        onMovePartMobility = { mobilityId, delta ->
+                            viewModel.moveMobilityInPart(part.id, mobilityId, delta)
+                        },
+                        onUpdatePartMobilityConfig = { config ->
+                            viewModel.updatePartMobilityConfig(part.id, config)
+                        },
                     )
                 }
                 if (isDropTargetAfter) {
@@ -126,11 +156,8 @@ internal fun SessionEditorListItem(
             val exercise = session.exercises.firstOrNull { it.id == listItem.exerciseId } ?: return
             val itemHeight = (dragController.frozenExerciseBounds["__loose__|${exercise.id}"]
                 ?: dragController.exerciseBounds["__loose__|${exercise.id}"])?.height ?: 88f
-            val shiftY = if (draggingExerciseId != null) {
-                dragController.calculateProjectedShift(session, "__loose__", listItem.indexInLoose, exercise.id, itemHeight)
-            } else {
-                0f
-            }
+            // ED-A · A3: la lista no se desplaza mientras se arrastra; el destino se ve con su señal.
+            val shiftY = 0f
             val isLooseInsertBefore = exerciseDropTargetPartId == "__loose__" &&
                 exerciseDropTargetIndex == listItem.indexInLoose &&
                 draggingExerciseId != null &&
@@ -152,7 +179,7 @@ internal fun SessionEditorListItem(
                         .fillMaxWidth()
                         .graphicsLayer { translationY = shiftY },
                 ) {
-                    SessionModuleSlot(edge = listItem.edge) {
+                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget("__loose__")) {
                         LooseExerciseItem(
                             exercise = exercise,
                             index = listItem.indexInLoose,
@@ -161,6 +188,7 @@ internal fun SessionEditorListItem(
                             cardioHistoryByType = uiState.cardioHistoryByType,
                             exerciseInfoById = exerciseInfoById,
                             competitionMovementIds = uiState.competitionMovementIds,
+                            programCandidatesList = uiState.allProgramExerciseCandidates,
                             draggingExerciseId = draggingExerciseId,
                             exerciseDropTargetKey = exerciseDropTargetKey,
                             exerciseDropTargetPartId = exerciseDropTargetPartId,
@@ -188,11 +216,8 @@ internal fun SessionEditorListItem(
             val exercise = part.exercises.firstOrNull { it.id == listItem.exerciseId } ?: return
             val itemHeight = (dragController.frozenExerciseBounds["${part.id}|${exercise.id}"]
                 ?: dragController.exerciseBounds["${part.id}|${exercise.id}"])?.height ?: 88f
-            val shiftY = if (draggingExerciseId != null) {
-                dragController.calculateProjectedShift(session, part.id, listItem.indexInPart, exercise.id, itemHeight)
-            } else {
-                0f
-            }
+            // ED-A · A3: la lista no se desplaza mientras se arrastra; el destino se ve con su señal.
+            val shiftY = 0f
             val isPartInsertBefore = exerciseDropTargetPartId == part.id &&
                 exerciseDropTargetIndex == listItem.indexInPart &&
                 draggingExerciseId != null &&
@@ -214,7 +239,7 @@ internal fun SessionEditorListItem(
                         .fillMaxWidth()
                         .graphicsLayer { translationY = shiftY },
                 ) {
-                    SessionModuleSlot(edge = listItem.edge) {
+                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id)) {
                         PartExerciseItem(
                             exercise = exercise,
                             part = part,
@@ -223,6 +248,7 @@ internal fun SessionEditorListItem(
                             cardioHistoryByType = uiState.cardioHistoryByType,
                             exerciseInfoById = exerciseInfoById,
                             competitionMovementIds = uiState.competitionMovementIds,
+                            programCandidatesList = uiState.allProgramExerciseCandidates,
                             draggingExerciseId = draggingExerciseId,
                             exerciseDropTargetKey = exerciseDropTargetKey,
                             exerciseDropTargetPartId = exerciseDropTargetPartId,
@@ -254,11 +280,8 @@ internal fun SessionEditorListItem(
             val firstId = supersetMembers.first().id
             val itemHeight = (dragController.frozenExerciseBounds["__loose__|$firstId"]
                 ?: dragController.exerciseBounds["__loose__|$firstId"])?.height ?: 88f
-            val looseSupersetShiftY = if (draggingExerciseId != null) {
-                dragController.calculateProjectedShift(session, "__loose__", listItem.indexInLoose, firstId, itemHeight)
-            } else {
-                0f
-            }
+            // ED-A · A3: la lista no se desplaza mientras se arrastra; el destino se ve con su señal.
+            val looseSupersetShiftY = 0f
             val isLooseSupersetInsertBefore = exerciseDropTargetPartId == "__loose__" &&
                 exerciseDropTargetIndex == listItem.indexInLoose &&
                 draggingExerciseId != null &&
@@ -280,7 +303,7 @@ internal fun SessionEditorListItem(
                         .fillMaxWidth()
                         .graphicsLayer { translationY = looseSupersetShiftY },
                 ) {
-                    SessionModuleSlot(edge = listItem.edge) {
+                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget("__loose__")) {
                         LooseSupersetItem(
                             supersetGroup = supersetGroup,
                             supersetMembers = supersetMembers,
@@ -289,6 +312,7 @@ internal fun SessionEditorListItem(
                             session = session,
                             exerciseInfoById = exerciseInfoById,
                             competitionMovementIds = uiState.competitionMovementIds,
+                            programCandidatesList = uiState.allProgramExerciseCandidates,
                             draggingExerciseId = draggingExerciseId,
                             exerciseDropTargetKey = exerciseDropTargetKey,
                             exerciseDropTargetPartId = exerciseDropTargetPartId,
@@ -305,6 +329,7 @@ internal fun SessionEditorListItem(
                             viewModel = viewModel,
                             shiftYForBounds = looseSupersetShiftY,
                             collapsedPartIds = uiState.collapsedPartIds,
+                            isSupersetDropTarget = supersetDropTargetId == supersetGroup.id,
                             pendingRemovalId = pendingRemovalId,
                         )
                     }
@@ -322,11 +347,8 @@ internal fun SessionEditorListItem(
             val firstId = supersetMembers.first().id
             val itemHeight = (dragController.frozenExerciseBounds["${part.id}|$firstId"]
                 ?: dragController.exerciseBounds["${part.id}|$firstId"])?.height ?: 88f
-            val partSupersetShiftY = if (draggingExerciseId != null) {
-                dragController.calculateProjectedShift(session, part.id, listItem.indexInPart, firstId, itemHeight)
-            } else {
-                0f
-            }
+            // ED-A · A3: la lista no se desplaza mientras se arrastra; el destino se ve con su señal.
+            val partSupersetShiftY = 0f
             val isPartSupersetInsertBefore = exerciseDropTargetPartId == part.id &&
                 exerciseDropTargetIndex == listItem.indexInPart &&
                 draggingExerciseId != null &&
@@ -348,7 +370,7 @@ internal fun SessionEditorListItem(
                         .fillMaxWidth()
                         .graphicsLayer { translationY = partSupersetShiftY },
                 ) {
-                    SessionModuleSlot(edge = listItem.edge) {
+                    SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id)) {
                         PartSupersetItem(
                             supersetGroup = supersetGroup,
                             supersetMembers = supersetMembers,
@@ -357,6 +379,7 @@ internal fun SessionEditorListItem(
                             session = session,
                             exerciseInfoById = exerciseInfoById,
                             competitionMovementIds = uiState.competitionMovementIds,
+                            programCandidatesList = uiState.allProgramExerciseCandidates,
                             draggingExerciseId = draggingExerciseId,
                             exerciseDropTargetKey = exerciseDropTargetKey,
                             exerciseDropTargetPartId = exerciseDropTargetPartId,
@@ -373,6 +396,7 @@ internal fun SessionEditorListItem(
                             viewModel = viewModel,
                             shiftYForBounds = partSupersetShiftY,
                             collapsedPartIds = uiState.collapsedPartIds,
+                            isSupersetDropTarget = supersetDropTargetId == supersetGroup.id,
                             pendingRemovalId = pendingRemovalId,
                         )
                     }
@@ -389,17 +413,19 @@ internal fun SessionEditorListItem(
                 visible = isDropTargetAtEndOfLoose,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
             )
+            // Sin ejercicios sueltos, «Sin grupo» no tiene sitio donde verse: su señal aparece sobre el primer grupo (ED-A · A3).
+            SessionEditorOutsideDropZone(
+                visible = draggingExerciseId != null &&
+                    session.exercises.isEmpty() &&
+                    dropPlan?.kind == SessionEditorDropKind.OUT_OF_GROUP,
+            )
         }
 
         is SessionListItem.PartAddExercise -> {
             val part = groupedParts.firstOrNull { it.id == listItem.partId } ?: return
             val displayName = part.name.trim().ifBlank { "este grupo" }
             val isCardioSpace = part.isCardioPart()
-            val footerShiftY = if (draggingExerciseId != null) {
-                dragController.projectedFooterShiftFor(part.id, part.exercises.size)
-            } else {
-                0f
-            }
+            val footerShiftY = 0f
             val isDropTargetAtEnd = exerciseDropTargetPartId == part.id &&
                 exerciseDropTargetIndex != null &&
                 exerciseDropTargetIndex >= part.exercises.size &&
@@ -425,7 +451,7 @@ internal fun SessionEditorListItem(
                         onPartContentBoundsReport(part.id, rect)
                     },
             ) {
-                SessionModuleSlot(edge = listItem.edge) {
+                SessionModuleSlot(edge = listItem.edge, highlighted = moduleIsDropTarget(part.id)) {
                     if (isCardioSpace) {
                         KpknTextAction(
                             text = "Añadir cardio",
@@ -435,12 +461,11 @@ internal fun SessionEditorListItem(
                             leadingIcon = KpknLineIcons.Plus,
                         )
                     } else {
-                        KpknTextAction(
-                            text = "Añadir ejercicio a $displayName",
+                        // ED-A · A1: el recuadro de trazos de Main, «+ Añadir a Principal».
+                        SessionEditorDashedAddButton(
+                            text = "Añadir a $displayName",
                             onClick = { viewModel.openPicker(part.id) },
-                            // ER1f: alineado con el contenido del módulo (16 dp), no pegado a su borde.
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            leadingIcon = KpknLineIcons.Plus,
+                            modifier = Modifier.padding(start = 14.dp, end = 14.dp, top = 6.dp, bottom = 12.dp),
                         )
                     }
                 }
@@ -457,8 +482,13 @@ internal fun SessionEditorListItem(
         SessionListItem.StrengthAddActions -> {
             val isEmptySession = session.exercises.isEmpty() &&
                 session.parts.none { !it.isUncategorizedPart() }
-            val hasCardioSpace = session.hasCardioPart()
-            val showChooser = isEmptySession && !uiState.strengthSpaceCommitted
+            // ED-A · A2: Fuerza y Cardio son los dos espacios de una sesión. La persona entrena uno, el otro o los dos.
+            val hasStrengthSpace = session.exercises.isNotEmpty() ||
+                groupedParts.any { !it.isCardioPart() } ||
+                uiState.strengthSpaceCommitted
+            val hasCardioSpace = session.hasCardioPart() || uiState.cardioSpaceCommitted
+            val noExercises = session.exercises.isEmpty() && session.parts.all { it.exercises.isEmpty() }
+            val showChooser = !hasStrengthSpace && !hasCardioSpace
 
             Column(
                 modifier = Modifier
@@ -478,26 +508,47 @@ internal fun SessionEditorListItem(
                 if (showChooser) {
                     SessionEditorEmptyState(
                         onChooseStrength = viewModel::commitStrengthSpace,
-                        onChooseCardio = viewModel::createCardioSpace,
+                        onChooseCardio = viewModel::commitCardioSpace,
                     )
                 } else {
-                    KpknTextAction(
-                        text = "Añadir ejercicio",
-                        onClick = viewModel::openPickerForUncategorized,
-                        modifier = Modifier.padding(start = 4.dp),
-                        leadingIcon = KpknLineIcons.Plus,
-                    )
-                    KpknSecondaryPill(
-                        text = "Nuevo grupo",
-                        onClick = viewModel::addPart,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    if (!hasCardioSpace) {
+                    if (hasStrengthSpace) {
+                        KpknTextAction(
+                            text = "Añadir ejercicio",
+                            onClick = viewModel::openPickerForUncategorized,
+                            modifier = Modifier.padding(start = 4.dp),
+                            leadingIcon = KpknLineIcons.Plus,
+                        )
                         KpknSecondaryPill(
-                            text = "Crear espacio de cardio",
-                            onClick = viewModel::createCardioSpace,
+                            text = "Nuevo grupo",
+                            onClick = viewModel::addPart,
                             modifier = Modifier.fillMaxWidth(),
                         )
+                    }
+                    // El otro espacio queda abajo como opción pendiente: la grande con su símbolo mientras la sesión no tiene ejercicios y la
+                    // píldora de siempre cuando ya los tiene.
+                    if (!hasCardioSpace) {
+                        if (noExercises) {
+                            PendingSpaceLabel()
+                            SessionEditorSpaceOption(space = SessionEditorSpace.CARDIO, onClick = viewModel::commitCardioSpace)
+                        } else {
+                            KpknSecondaryPill(
+                                text = "Crear espacio de cardio",
+                                onClick = viewModel::createCardioSpace,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+                    if (!hasStrengthSpace) {
+                        if (noExercises) {
+                            PendingSpaceLabel()
+                            SessionEditorSpaceOption(space = SessionEditorSpace.STRENGTH, onClick = viewModel::commitStrengthSpace)
+                        } else {
+                            KpknSecondaryPill(
+                                text = "Añadir fuerza",
+                                onClick = viewModel::commitStrengthSpace,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
                     }
                 }
             }
@@ -531,26 +582,48 @@ internal fun SessionEditorListItem(
         }
 
         is SessionListItem.CardioDivider -> {
+            // «CARDIO · AL FINAL ——— Mover al inicio», como en Main (ED-A · A1); sin los dos espacios, solo «CARDIO».
             SessionGroupLabel(
-                label = "CARDIO",
+                label = if (listItem.canMove) {
+                    if (listItem.showCardioFirst) "CARDIO · AL INICIO" else "CARDIO · AL FINAL"
+                } else {
+                    "CARDIO"
+                },
                 moveLabel = if (listItem.canMove) {
                     if (listItem.showCardioFirst) "Mover al final" else "Mover al inicio"
                 } else {
                     null
                 },
                 onMove = viewModel::toggleCardioPlacement,
+                accent = SymbolPalette.columna,
+                showRule = true,
             )
         }
 
         is SessionListItem.StrengthDivider -> {
-            SessionGroupLabel(
-                label = "FUERZA",
-                moveLabel = if (listItem.canMove) {
-                    if (listItem.showCardioFirst) "Mover al inicio" else "Mover al final"
-                } else {
-                    null
+            // Con la fuerza primero y ya con contenido, la lista empieza sin rótulo, como en Main (ED-A · A1).
+            val hasStrengthContent = session.exercises.isNotEmpty() || groupedParts.any { !it.isCardioPart() }
+            if (listItem.showCardioFirst || !hasStrengthContent) {
+                SessionGroupLabel(
+                    label = "FUERZA",
+                    moveLabel = if (listItem.canMove) {
+                        if (listItem.showCardioFirst) "Mover al inicio" else "Mover al final"
+                    } else {
+                        null
+                    },
+                    onMove = viewModel::toggleCardioPlacement,
+                )
+            }
+        }
+
+        SessionListItem.CardioPlacement -> {
+            val atStart = uiState.cardioSpacePlacement?.let { it == CardioSpacePlacement.START } ?: session.cardioFirst
+            SessionEditorCardioPlacementControl(
+                atStart = atStart,
+                onChange = { start ->
+                    viewModel.setCardioPlacement(if (start) CardioSpacePlacement.START else CardioSpacePlacement.END)
                 },
-                onMove = viewModel::toggleCardioPlacement,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
 
@@ -586,6 +659,7 @@ private fun LooseExerciseItem(
     cardioHistoryByType: Map<CardioType, CardioTypeHistory> = emptyMap(),
     exerciseInfoById: Map<String, ExerciseMuscleInfo>,
     competitionMovementIds: Set<String>,
+    programCandidatesList: List<ProgramExerciseCandidate>,
     draggingExerciseId: String?,
     exerciseDropTargetKey: String?,
     exerciseDropTargetPartId: String?,
@@ -652,7 +726,11 @@ private fun LooseExerciseItem(
                     else viewModel.openSupersetManager(null, groupId)
                 },
                 onOpenMobility = { viewModel.openMobilityPicker(null, exercise.id) },
-                relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
+                relationshipAnchorName = resolveRelationshipAnchorName(
+                    session,
+                    exercise,
+                    programCandidatesList,
+                ),
                 onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, exercise.id) },
                 onClearRelationship = { viewModel.linkExerciseRelativeTo(null, exercise.id, null) },
                 onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(null, exercise.id, type) },
@@ -662,7 +740,9 @@ private fun LooseExerciseItem(
                     if (pendingAutoExpandExerciseId == exercise.id) onPendingAutoExpandHandled(exercise.id)
                 },
                 cardioFirst = session.cardioFirst,
+                // ED-A · A2b: el «Al inicio / Al final» del cardio solo se ofrece si la sesión también tiene fuerza.
                 showCardioPlacementChip = exercise.cardioDetails != null &&
+                    session.hasStrengthContent() &&
                     session.cardioPart()?.exercises?.firstOrNull()?.id == exercise.id,
                 onToggleCardioPlacement = viewModel::toggleCardioPlacement,
                 cardioHistory = exercise.cardioDetails?.type?.let { cardioHistoryByType[it] },
@@ -680,6 +760,7 @@ private fun PartExerciseItem(
     cardioHistoryByType: Map<CardioType, CardioTypeHistory> = emptyMap(),
     exerciseInfoById: Map<String, ExerciseMuscleInfo>,
     competitionMovementIds: Set<String>,
+    programCandidatesList: List<ProgramExerciseCandidate>,
     draggingExerciseId: String?,
     exerciseDropTargetKey: String?,
     exerciseDropTargetPartId: String?,
@@ -744,7 +825,11 @@ private fun PartExerciseItem(
                     else viewModel.openSupersetManager(part.id, groupId)
                 },
                 onOpenMobility = { viewModel.openMobilityPicker(part.id, exercise.id) },
-                relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
+                relationshipAnchorName = resolveRelationshipAnchorName(
+                    session,
+                    exercise,
+                    programCandidatesList,
+                ),
                 onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, exercise.id) },
                 onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, exercise.id, null) },
                 onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(part.id, exercise.id, type) },
@@ -754,7 +839,9 @@ private fun PartExerciseItem(
                     if (pendingAutoExpandExerciseId == exercise.id) onPendingAutoExpandHandled(exercise.id)
                 },
                 cardioFirst = session.cardioFirst,
+                // ED-A · A2b: el «Al inicio / Al final» del cardio solo se ofrece si la sesión también tiene fuerza.
                 showCardioPlacementChip = exercise.cardioDetails != null &&
+                    session.hasStrengthContent() &&
                     session.cardioPart()?.exercises?.firstOrNull()?.id == exercise.id,
                 onToggleCardioPlacement = viewModel::toggleCardioPlacement,
                 cardioHistory = exercise.cardioDetails?.type?.let { cardioHistoryByType[it] },
@@ -772,6 +859,7 @@ private fun LooseSupersetItem(
     session: Session,
     exerciseInfoById: Map<String, ExerciseMuscleInfo>,
     competitionMovementIds: Set<String>,
+    programCandidatesList: List<ProgramExerciseCandidate>,
     draggingExerciseId: String?,
     exerciseDropTargetKey: String?,
     exerciseDropTargetPartId: String?,
@@ -789,6 +877,7 @@ private fun LooseSupersetItem(
     shiftYForBounds: Float = 0f,
     collapsedPartIds: Set<String> = emptySet(),
     pendingRemovalId: String? = null,
+    isSupersetDropTarget: Boolean = false,
 ) {
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
@@ -801,6 +890,7 @@ private fun LooseSupersetItem(
         accentHex = accentHex,
         partId = null,
         isDragging = draggingExerciseId == firstMember.id,
+        isDropTarget = isSupersetDropTarget,
         modifier = Modifier,
         onBoundsChange = { rect ->
             val key = "$partId|${firstMember.id}"
@@ -816,6 +906,7 @@ private fun LooseSupersetItem(
         onOpenSupersetCreator = viewModel::openSupersetCreator,
         onUpdateSupersetRest = viewModel::updateSupersetRest,
         onUpdateRoundRest = viewModel::updateSupersetRoundRest,
+        onClearRoundRest = viewModel::clearSupersetRoundRest,
         onToggleOptional = viewModel::toggleSupersetOptional,
         onUpdateExercise = { exerciseId, updater -> viewModel.updateExercise(null, exerciseId, updater) },
         onAddSet = { exerciseId -> viewModel.addSet(null, exerciseId) },
@@ -823,7 +914,9 @@ private fun LooseSupersetItem(
         onRemoveSet = { exerciseId, setId -> viewModel.removeSet(null, exerciseId, setId) },
         onMoveSet = { exerciseId, setId, dir -> viewModel.moveSet(null, exerciseId, setId, dir) },
         onRemoveRound = { roundIndex -> viewModel.removeSupersetRound(supersetGroup.id, null, roundIndex) },
-        relationshipAnchorName = { member -> resolveRelationshipAnchorName(session, member) },
+        relationshipAnchorName = { member ->
+            resolveRelationshipAnchorName(session, member, programCandidatesList)
+        },
         onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(null, exerciseId) },
         onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(null, exerciseId, null) },
         onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, null, exerciseId) },
@@ -900,7 +993,11 @@ private fun LooseSupersetItem(
                             else viewModel.openSupersetManager(null, groupId)
                         },
                         onOpenMobility = { viewModel.openMobilityPicker(null, member.id) },
-                        relationshipAnchorName = resolveRelationshipAnchorName(session, member),
+                        relationshipAnchorName = resolveRelationshipAnchorName(
+                            session,
+                            member,
+                            programCandidatesList,
+                        ),
                         onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, member.id) },
                         onClearRelationship = { viewModel.linkExerciseRelativeTo(null, member.id, null) },
                         onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(null, member.id, type) },
@@ -910,6 +1007,7 @@ private fun LooseSupersetItem(
                             if (pendingAutoExpandExerciseId == member.id) onPendingAutoExpandHandled(member.id)
                         },
                         suppressIndividualRest = true,
+                        memberBadge = "A${position + 1}",
                     )
                 }
             }
@@ -927,6 +1025,7 @@ private fun PartSupersetItem(
     session: Session,
     exerciseInfoById: Map<String, ExerciseMuscleInfo>,
     competitionMovementIds: Set<String>,
+    programCandidatesList: List<ProgramExerciseCandidate>,
     draggingExerciseId: String?,
     exerciseDropTargetKey: String?,
     exerciseDropTargetPartId: String?,
@@ -944,6 +1043,7 @@ private fun PartSupersetItem(
     shiftYForBounds: Float = 0f,
     collapsedPartIds: Set<String> = emptySet(),
     pendingRemovalId: String? = null,
+    isSupersetDropTarget: Boolean = false,
 ) {
     val accentHex = resolveExerciseAccentHex(session, part.color)
     val coverAccentHex = resolveCoverAccentId(session.background)
@@ -955,6 +1055,7 @@ private fun PartSupersetItem(
         accentHex = accentHex,
         partId = part.id,
         isDragging = draggingExerciseId == firstMember.id,
+        isDropTarget = isSupersetDropTarget,
         modifier = Modifier,
         onBoundsChange = { rect ->
             val key = "${part.id}|${firstMember.id}"
@@ -970,6 +1071,7 @@ private fun PartSupersetItem(
         onOpenSupersetCreator = viewModel::openSupersetCreator,
         onUpdateSupersetRest = viewModel::updateSupersetRest,
         onUpdateRoundRest = viewModel::updateSupersetRoundRest,
+        onClearRoundRest = viewModel::clearSupersetRoundRest,
         onToggleOptional = viewModel::toggleSupersetOptional,
         onUpdateExercise = { exerciseId, updater -> viewModel.updateExercise(part.id, exerciseId, updater) },
         onAddSet = { exerciseId -> viewModel.addSet(part.id, exerciseId) },
@@ -977,7 +1079,9 @@ private fun PartSupersetItem(
         onRemoveSet = { exerciseId, setId -> viewModel.removeSet(part.id, exerciseId, setId) },
         onMoveSet = { exerciseId, setId, dir -> viewModel.moveSet(part.id, exerciseId, setId, dir) },
         onRemoveRound = { roundIndex -> viewModel.removeSupersetRound(supersetGroup.id, part.id, roundIndex) },
-        relationshipAnchorName = { member -> resolveRelationshipAnchorName(session, member) },
+        relationshipAnchorName = { member ->
+            resolveRelationshipAnchorName(session, member, programCandidatesList)
+        },
         onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(part.id, exerciseId) },
         onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(part.id, exerciseId, null) },
         onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, part.id, exerciseId) },
@@ -1053,7 +1157,11 @@ private fun PartSupersetItem(
                             else viewModel.openSupersetManager(part.id, groupId)
                         },
                         onOpenMobility = { viewModel.openMobilityPicker(part.id, member.id) },
-                        relationshipAnchorName = resolveRelationshipAnchorName(session, member),
+                        relationshipAnchorName = resolveRelationshipAnchorName(
+                            session,
+                            member,
+                            programCandidatesList,
+                        ),
                         onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, member.id) },
                         onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, member.id, null) },
                         onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(part.id, member.id, type) },
@@ -1063,12 +1171,24 @@ private fun PartSupersetItem(
                             if (pendingAutoExpandExerciseId == member.id) onPendingAutoExpandHandled(member.id)
                         },
                         suppressIndividualRest = true,
+                        memberBadge = "A${position + 1}",
                     )
                 }
             }
             if (position < supersetMembers.lastIndex) SupersetMemberDivider()
         }
     }
+}
+
+/** «AÑADIR A LA SESIÓN»: el rótulo de la opción pendiente, el espacio que todavía no está en la sesión (ED-A · A2). */
+@Composable
+private fun PendingSpaceLabel() {
+    Text(
+        text = "AÑADIR A LA SESIÓN",
+        style = KpknType.eyebrow,
+        color = WizardColors.textMuted,
+        modifier = Modifier.padding(start = 4.dp, top = 8.dp),
+    )
 }
 
 /** Línea de 1 dp al 6 % entre dos miembros de una superserie, sangrada para no cruzar el raíl. */

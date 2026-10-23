@@ -208,7 +208,8 @@ object VolumeCalculator {
 
     fun countEffectiveSets(exerciseSets: List<ExerciseSet>): Int {
         val counted = exerciseSets.count { set ->
-            if (set.isIneffective) {
+            // Un hueco de ronda borrada (isEmptySlot) tampoco es una serie.
+            if (set.isIneffective || set.isEmptySlot) {
                 false
             } else if (set.completedReps != null) {
                 set.completedReps > 0
@@ -216,7 +217,7 @@ object VolumeCalculator {
                 (set.plannedRepAnchor() ?: 0) > 0 || (set.weight ?: 0.0) > 0.0
             }
         }
-        return if (counted == 0) exerciseSets.count { !it.isIneffective } else counted
+        return if (counted == 0) exerciseSets.count { !it.isIneffective && !it.isEmptySlot } else counted
     }
 
     /**
@@ -244,7 +245,7 @@ object VolumeCalculator {
             val effectiveSets = countEffectiveSets(exercise.sets)
             if (effectiveSets <= 0) return@forEach
             val setWeight = if (adjustByIntensity) {
-                exercise.sets.filterNot { it.isIneffective }
+                exercise.sets.filterNot { it.isIneffective || it.isEmptySlot }
                     .sumOf { set ->
                         val rpe = when {
                             set.isFailure || set.intensityMode == com.example.kpkn.data.models.IntensityMode.FAILURE -> 10.0

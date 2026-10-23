@@ -7,6 +7,7 @@ import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.displayName
 import com.example.kpkn.domain.training.NativeProgressionText
+import com.example.kpkn.domain.training.AmrapProgramPreview
 import com.example.kpkn.domain.training.ProgramAutoregulationEngine
 
 object PlanObserver : RelatorObserver {
@@ -96,8 +97,25 @@ object PlanObserver : RelatorObserver {
 
     private const val GENERIC_AMRAP_LINE = "AMRAP de {ex}: deja 1 limpia; no caces el fallo si no es el test."
 
-    /** El AMRAP dice lo que de verdad hace con el TM: lee la tabla o el porcentaje de la regla de la receta. */
+    /** Conserva las reglas conocidas y usa el mismo preview tipado del plan para las reglas nuevas. */
     private fun amrapLine(context: RelatorContext): String? {
+        context.plan.progressionContext?.let { progression ->
+            AmrapProgramPreview.relatorNote(
+                recipe = progression.recipe,
+                mode = context.plan.autoregulationMode,
+                profile = progression.profile,
+                liftSlot = progression.liftSlot,
+                slotRole = progression.slotRole ?: context.slotRole,
+                plannedVolumeReps = progression.plannedVolumeReps,
+                plannedMinimumReps = progression.plannedMinimumReps,
+                purpose = progression.purpose,
+                hit = progression.hit,
+                tierCheck = progression.tierCheck,
+                frozenCyclesBefore = progression.frozenCyclesBefore,
+                isApreBlock = progression.isApreBlock,
+                isLastAmrapOfExercise = progression.isLastAmrapOfExercise,
+            )?.let { return it.text }
+        }
         if (!context.isAmrap) return null
         return when (val rule = context.plan.progression) {
             is ProgressionRule.AmrapDrivenTm -> amrapTableLine(rule, context)

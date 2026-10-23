@@ -26,8 +26,9 @@ internal fun ExerciseSet.withPlannedConfigOf(source: ExerciseSet): ExerciseSet =
     intensityMode = source.intensityMode,
     targetPercentageRM = source.targetPercentageRM,
     isFailure = source.isFailure,
-    isAmrap = source.isAmrap,
-    isCalibrator = source.isCalibrator,
+    purpose = source.purpose,
+    amrapMinimumReps = source.amrapMinimumReps,
+    calibrationScope = source.calibrationScope,
     loadModeV2 = source.loadModeV2,
     unitModeV2 = source.unitModeV2,
     loadBasis = source.loadBasis,
@@ -62,10 +63,7 @@ internal fun Exercise.withSetDuplicated(setId: String, newId: () -> String = { U
     val index = sets.indexOfFirst { it.id == setId }
     if (index < 0) return this
     val source = sets[index]
-    val duplicate = source.copy(
-        id = newId(),
-        plannedIntensityTechniques = source.plannedIntensityTechniques.map { technique -> technique.copy(id = newId()) },
-    )
+    val duplicate = source.freshPlannedCopy(newId, preserveEmptySlot = false)
     val insertAt = if (supersetGroupRefOrLegacyId() != null) sets.size else index + 1
     return copy(sets = sets.toMutableList().apply { add(insertAt, duplicate) })
 }

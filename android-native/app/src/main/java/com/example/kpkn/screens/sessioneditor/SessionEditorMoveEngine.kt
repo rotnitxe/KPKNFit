@@ -33,6 +33,7 @@ object SessionEditorMoveEngine {
         val dragged = sourceExercises[sourceIndex]
         val sourcePart = request.sourcePartId?.let { id -> normalized.parts.firstOrNull { it.id == id } }
         val targetPart = request.targetPartId?.let { id -> normalized.parts.firstOrNull { it.id == id } }
+        if (request.targetPartId != null && targetPart == null) return session
         val isCardio = dragged.isCardio || sourcePart?.isCardioPart() == true
         val targetIsCardio = targetPart?.isCardioPart() == true
         if (isCardio != targetIsCardio) return session

@@ -10,6 +10,10 @@ import com.example.kpkn.data.voice.VoiceState
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.data.repository.withConfirmedExerciseReferences
+import com.example.kpkn.data.repository.rematerializeExerciseReferences
+import com.example.kpkn.domain.training.ExerciseTrainingMax
+import com.example.kpkn.data.protocols.PlanLoadReferenceKind
 import com.example.kpkn.data.repository.StartWorkoutResult
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
@@ -39,6 +43,7 @@ import com.example.kpkn.domain.workout.LiveSessionReorder
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.domain.workout.TagProgressionAnalyzer
 import com.example.kpkn.domain.workout.WarmupCalibrationEngine
+import com.example.kpkn.domain.workout.warmupTargetLoadKg
 import com.example.kpkn.domain.workout.WarmupCalibrationResult
 import com.example.kpkn.domain.workout.WarmupEffort
 import com.example.kpkn.domain.workout.WarmupEffortReport
@@ -135,7 +140,7 @@ internal class WorkoutRecordingGate {
 }
 
 internal fun canStartWorkoutRecording(state: WorkoutUiState): Boolean =
-    !state.isFinishingWorkout && !state.isComplete && !state.isStartingWorkout && !state.isCancellingWorkout && !state.wasCancelled && state.startPersistenceError == null && state.pendingOngoingConflict == null && !state.pendingOngoingCorrupt
+    state.calibrationActionId == null && !state.isFinishingWorkout && !state.isComplete && !state.isStartingWorkout && !state.isCancellingWorkout && !state.wasCancelled && state.startPersistenceError == null && state.pendingOngoingConflict == null && !state.pendingOngoingCorrupt
 
 internal fun canRunWorkoutTimers(state: WorkoutUiState): Boolean =
     !state.isCancellingWorkout && !state.wasCancelled && !state.isComplete && !state.isFinishingWorkout &&
@@ -535,6 +540,7 @@ class WorkoutViewModel(
     )
 
     private val loadSuggestionController = WorkoutLoadSuggestionController(
+        equipmentInventory = { repository.settings.value.resolvedEquipmentInventory() },
         performanceRangeStore = performanceRangeStore,
         scope = viewModelScope,
         getState = { _uiState.value },
@@ -579,6 +585,14 @@ class WorkoutViewModel(
             recomputeLiveEnergy(completedSets, exercises, repository.settings.value)
         },
         refreshLoadSuggestions = { state, exerciseId -> refreshLoadSuggestions(state, onlyExerciseId = exerciseId) },
+        refreshCalibrations = { previous, next ->
+            if (!needsCorrectedCalibrationRefresh(previous) && !needsCorrectedCalibrationRefresh(next)) next else withContext(Dispatchers.IO) {
+                refreshCorrectedCalibrations(previous, next, repository.history.value,
+                    inventory = repository.settings.value.resolvedEquipmentInventory()) { sourceId ->
+                    repository.calibrationDecisions.accepted(System.currentTimeMillis(), sourceId)
+                }
+            }
+        },
     )
 
     private lateinit var stepNavigator: WorkoutStepNavigator
@@ -650,12 +664,7 @@ class WorkoutViewModel(
                 override fun canonicalExerciseKey(exercise: Exercise) = this@WorkoutViewModel.canonicalExerciseKey(exercise)
                 override fun inferUnitMode(exercise: Exercise, setIdx: Int): UnitModeV2 =
                     exercise.sets.getOrNull(setIdx)?.let { this@WorkoutViewModel.inferUnitMode(exercise, it) }
-                        ?: when (exercise.trainingMode) {
-                            TrainingMode.TIME -> UnitModeV2.TIME
-                            TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
-                            TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
-                            else -> UnitModeV2.REPS
-                        }
+                        ?: exercise.trainingMode.toUnitModeV2()
                 override fun effectiveLoadModeForExercise(exercise: Exercise, setIdx: Int) =
                     this@WorkoutViewModel.effectiveLoadModeForExercise(exercise, setIdx)
                 override suspend fun recordSetV2(
@@ -971,12 +980,7 @@ class WorkoutViewModel(
             val exercises = visibleExercises(s)
             val exercise = exercises.getOrNull(s.currentExerciseIdx) ?: return@provider null
             val plannedSet = exercise.sets.getOrNull(s.currentSetIdx)
-            val unitMode = plannedSet?.let { inferUnitMode(exercise, it) } ?: when (exercise.trainingMode) {
-                TrainingMode.TIME -> UnitModeV2.TIME
-                TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
-                TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
-                else -> UnitModeV2.REPS
-            }
+            val unitMode = plannedSet?.let { inferUnitMode(exercise, it) } ?: exercise.trainingMode.toUnitModeV2()
             val loadMode = effectiveLoadModeForExercise(exercise, s.currentSetIdx)
             val tagNames = s.userCreatedTags[canonicalExerciseKey(exercise)].orEmpty().map { it.name }.toSet()
             val currentStep = s.activeStepKey?.let { key -> workoutStepPositions(s).firstOrNull { it.stepKey == key } }
@@ -1536,14 +1540,8 @@ class WorkoutViewModel(
     ): List<WorkoutTag> = tagsContextController.migrateContextProfilesToTags(profiles, exerciseKey)
 
 
-    private fun inferUnitMode(exercise: Exercise, set: ExerciseSet): UnitModeV2 {
-        return set.unitModeV2 ?: when {
-            exercise.trainingMode == TrainingMode.TIME || set.targetDuration != null -> UnitModeV2.TIME
-            exercise.trainingMode == TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
-            exercise.trainingMode == TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
-            else -> UnitModeV2.REPS
-        }
-    }
+    private fun inferUnitMode(exercise: Exercise, set: ExerciseSet): UnitModeV2 =
+        set.resolveUnitModeV2(exercise.trainingMode)
 
     private fun inferLoadMode(set: ExerciseSet): LoadModeV2 = set.loadModeV2 ?: LoadModeV2.LOAD
 
@@ -2320,6 +2318,45 @@ class WorkoutViewModel(
         val key = workoutSetKey(exerciseId, setIdx, side)
         updateUiState {
             it.copy(manualLoadOverrides = it.manualLoadOverrides + (key to load.coerceAtLeast(0.0)))
+        }
+    }
+
+    internal fun calibrationForSet(completed: CompletedSet?): com.example.kpkn.data.models.CalibrationDecisionRecord? =
+        completed?.let { done -> _uiState.value.calibrationDecisions.lastOrNull {
+            it.sourceSetId == done.id && it.status != com.example.kpkn.data.models.CalibrationStatus.SUPERSEDED
+        } }
+
+    internal fun amrapProgramPreview(exercise: Exercise, index: Int, completed: CompletedSet): LiveAmrapProgramPreview =
+        liveAmrapProgramPreview(repository.getProgramById(programId), exercise, exercise.sets[index], completed, _uiState.value.weekId)
+
+    fun resolveCalibrationDecision(id: String, action: com.example.kpkn.data.models.CalibrationStatus) {
+        if (!canStartWorkoutRecording(_uiState.value) || _uiState.value.recordingSetKey != null) return
+        val gateKey = "calibration:$id"
+        if (!recordingGate.tryStart(gateKey)) return
+        updateUiState { it.copy(calibrationActionId = id, calibrationError = null) }
+        viewModelScope.launch {
+            try {
+                val captured = _uiState.value
+                val candidate = withContext(Dispatchers.IO) {
+                    resolveCalibration(captured, id, action, System.currentTimeMillis())
+                }
+                if (candidate.calibrationDecisions == captured.calibrationDecisions) return@launch
+                val result = persistOngoingStateAndAwait(candidate) {
+                    updateUiState { it.copy(calibrationDecisions = candidate.calibrationDecisions) }
+                }
+                if (result is WorkoutPersistResult.UiPublicationFailed) updateUiState {
+                    it.copy(calibrationDecisions = candidate.calibrationDecisions)
+                }
+                if (result.succeeded) refreshLoadSuggestions(_uiState.value)
+                else updateUiState { it.copy(calibrationError = CalibrationActionFailure(id, "No se pudo guardar la decisión. Reintenta; las cargas se conservan.")) }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                updateUiState { it.copy(calibrationError = CalibrationActionFailure(id, "No se pudo guardar la decisión. Reintenta; las cargas se conservan.")) }
+            } finally {
+                updateUiState { it.copy(calibrationActionId = null) }
+                recordingGate.finish(gateKey)
+            }
         }
     }
 
@@ -3109,6 +3146,11 @@ class WorkoutViewModel(
     }
 
     fun updateExerciseDefinition(exerciseId: String, persistToProgram: Boolean = false, transform: (Exercise) -> Exercise) {
+        updateExerciseDefinitionConfirmed(exerciseId, persistToProgram, transform, persistReferences = true)
+    }
+
+    private fun updateExerciseDefinitionConfirmed(exerciseId: String, persistToProgram: Boolean,
+        transform: (Exercise) -> Exercise, persistReferences: Boolean) {
         val state = _uiState.value
         val base = state.session ?: return
         val previous = sessionForActiveMode(base, state.activeMode).allExercises().firstOrNull { it.id == exerciseId }
@@ -3118,8 +3160,27 @@ class WorkoutViewModel(
             }
         }
         if (updatedSession == base) return
-        applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = persistToProgram)
         val next = sessionForActiveMode(updatedSession, state.activeMode).allExercises().firstOrNull { it.id == exerciseId }
+        if (persistReferences && repository.getProgramById(programId) != null && previous != null && next != null &&
+            (previous.referenceTrainingMax != next.referenceTrainingMax || previous.reference1RM != next.reference1RM)) {
+            // This boundary is invoked after the sheet's Confirmar cambios, never from its cancellable draft.
+            viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                try {
+                    val saved = repository.mutateProgramNow(programId) { program ->
+                        repository.withConfirmedExerciseReferences(program, program, listOf(next), System.currentTimeMillis(),
+                            "live-reference:${java.util.UUID.randomUUID()}", "Referencia confirmada en entrenamiento")
+                    }
+                    if (saved) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        updateExerciseDefinitionConfirmed(exerciseId, persistToProgram, { next }, persistReferences = false)
+                    } else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { showWorkoutToast("No se pudo guardar la referencia del programa. Se conservó la anterior.") }
+                } catch (failure: Exception) {
+                    if (failure is kotlinx.coroutines.CancellationException) throw failure
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { showWorkoutToast("No se pudo guardar la referencia del programa. Se conservó la anterior.") }
+                }
+            }
+            return
+        }
+        applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = persistToProgram)
         if (previous != null && next != null && previous.isEffectivelyUnilateral() != next.isEffectivelyUnilateral()) {
             val toUnilateral = next.isEffectivelyUnilateral()
             updateUiState {
@@ -3145,6 +3206,44 @@ class WorkoutViewModel(
                 )
             }
             persistOngoingState()
+        }
+    }
+
+    /** Pure list for preparation: only missing TM references required by this session. */
+    fun missingTrainingMaxes(session: Session): List<ExerciseTrainingMax.Missing> =
+        ExerciseTrainingMax.missing(repository.getProgramById(programId), session)
+
+    fun confirmTrainingMax(exerciseId: String, kg: Double) {
+        if (!kg.isFinite() || kg <= 0.0) return
+        val state = _uiState.value
+        val base = state.session ?: return
+        val exercise = sessionForActiveMode(base, state.activeMode).allExercises().firstOrNull { it.id == exerciseId } ?: return
+        if (repository.getProgramById(programId) == null) {
+            sessionWithConfirmedTrainingMax(state, null, exercise, kg)?.let {
+                applySessionMutation(it, preferredExerciseId = exerciseId)
+            }
+            return
+        }
+        // Save first; only a successful durable update changes the live session and clears the preparation request.
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val saved = repository.mutateProgramNow(programId) { program ->
+                    val captured = ExerciseTrainingMax.capture(program, exercise, PlanLoadReferenceKind.EXERCISE_TM,
+                        kg, System.currentTimeMillis(), "preparation:${java.util.UUID.randomUUID()}", "TM confirmado en la preparación")
+                    repository.rematerializeExerciseReferences(captured)
+                }
+                if (saved) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    val current = _uiState.value
+                    if(current.startTimeMs != state.startTimeMs || current.session?.id != state.session?.id)
+                        return@withContext
+                    sessionWithConfirmedTrainingMax(current, repository.getProgramById(programId), exercise, kg)?.let {
+                        applySessionMutation(it, preferredExerciseId = exerciseId)
+                    }
+                } else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { showWorkoutToast("No se pudo guardar el TM. Tu referencia anterior se conserva.") }
+            } catch (failure: Exception) {
+                if (failure is kotlinx.coroutines.CancellationException) throw failure
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { showWorkoutToast("No se pudo guardar el TM. Tu referencia anterior se conserva.") }
+            }
         }
     }
 
@@ -4783,10 +4882,17 @@ class WorkoutViewModel(
         val state = _uiState.value
         val key = warmupCompletionKey(exerciseId, warmupSetId)
         val current = state.completedSets[key]
-        val baseWeight = resolveReferenceCapacity(exercise)
-            ?: exercise.sets.firstOrNull { it.weight != null && it.weight > 0.0 }?.weight
-            ?: 0.0
-        val targetWeight = baseWeight * WarmupCalibrationEngine.normalizePercentage(warmup.percentageOfWorkingWeight)
+        // LV-C: el % es de la carga de TRABAJO (la misma base que la tarjeta), no del 1RM; la capacidad solo cubre su ausencia. Si la
+        // tarjeta muestra unos kg alcanzables con el material, se registran esos mismos.
+        val warmupIndex = exercise.warmupSets.indexOfFirst { it.id == warmupSetId }
+        val activeTag = state.exerciseTags[exerciseId]
+        val targetWeight = getWarmupSuggestedWeight(exercise, warmupIndex, activeTag)
+            ?: warmupTargetLoadKg(
+                percentageOfWorkingWeight = warmup.percentageOfWorkingWeight,
+                workingLoadKg = getWarmupWorkingWeightAnchor(exercise, activeTag)
+                    ?: exercise.sets.firstOrNull { it.weight != null && it.weight > 0.0 }?.weight,
+                referenceCapacityKg = resolveReferenceCapacity(exercise),
+            )
         val completed = (current ?: CompletedSet(id = key)).copy(
             weight = if ((current?.weight ?: 0.0) > 0.0) current?.weight ?: targetWeight else targetWeight,
             reps = warmup.targetReps,

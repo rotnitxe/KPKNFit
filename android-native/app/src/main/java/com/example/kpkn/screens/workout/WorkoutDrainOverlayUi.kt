@@ -1,9 +1,13 @@
 package com.example.kpkn.screens.workout
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -11,8 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.ui.components.kpknGlassOrFallback
@@ -20,6 +27,36 @@ import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
 import java.util.Locale
+import kotlinx.coroutines.delay
+
+internal const val ExerciseDrainOverlayDurationMillis = 1_650L
+
+/** Transient feedback stays above the entire V1 island, including navigation/IME insets. */
+@Composable
+internal fun ExerciseDrainOverlay(
+    state: ExerciseDrainOverlayState?,
+    bottomClearance: Dp,
+    modifier: Modifier = Modifier,
+    insets: WindowInsets = WindowInsets.navigationBars.union(WindowInsets.ime),
+) {
+    if (state == null) return
+    key(state.key) {
+        var visible by remember { mutableStateOf(true) }
+        LaunchedEffect(Unit) {
+            delay(ExerciseDrainOverlayDurationMillis)
+            visible = false
+        }
+        AnimatedVisibility(
+            visible = visible,
+            modifier = modifier.windowInsetsPadding(insets)
+                .padding(start = 14.dp, end = 14.dp, bottom = bottomClearance + 8.dp),
+            enter = fadeIn(tween(120)), exit = fadeOut(tween(220)),
+        ) {
+            ExerciseDrainOverlayCard(state, Modifier.fillMaxWidth().testTag("exercise-drain-overlay")
+                .clickable(role = Role.Button, onClickLabel = "Cerrar drenaje") { visible = false })
+        }
+    }
+}
 
 enum class ExerciseDrainOverlayChannel {
     ENERGY,

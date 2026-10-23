@@ -56,6 +56,7 @@ import com.example.kpkn.data.models.MobilityConfig
 import com.example.kpkn.data.models.MobilityMode
 import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.WarmupSetDefinition
+import com.example.kpkn.domain.workout.warmupTargetLoadKg
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
@@ -268,6 +269,8 @@ internal fun WarmupPreparationRows(
     onUpdate: (String, (WarmupSetDefinition) -> WarmupSetDefinition) -> Unit,
     onRemove: (String) -> Unit,
     onAdd: () -> Unit,
+    /** Carga de la primera serie efectiva; si falta, la capacidad de [resolved1RM] cubre su ausencia. */
+    workingWeightKg: Double? = null,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         sets.forEachIndexed { index, warmup ->
@@ -276,6 +279,7 @@ internal fun WarmupPreparationRows(
                     index = index,
                     warmup = warmup,
                     resolved1RM = resolved1RM,
+                    workingWeightKg = workingWeightKg,
                     onUpdate = { transform -> onUpdate(warmup.id, transform) },
                     onRemove = { onRemove(warmup.id) },
                 )
@@ -294,13 +298,15 @@ private fun WarmupPreparationRow(
     index: Int,
     warmup: WarmupSetDefinition,
     resolved1RM: Double?,
+    workingWeightKg: Double?,
     onUpdate: ((WarmupSetDefinition) -> WarmupSetDefinition) -> Unit,
     onRemove: () -> Unit,
 ) {
     val restSeconds = warmup.restBetween ?: 60
     var showRestPicker by remember(warmup.id) { mutableStateOf(false) }
     val normalizedPercentage = normalizeWarmupPercentage(warmup.percentageOfWorkingWeight)
-    val suggestedLoad = resolved1RM?.takeIf { it > 0.0 }?.times(normalizedPercentage)
+    // LV-C: el % es de la carga de TRABAJO de la serie efectiva, no del 1RM; la capacidad solo si esa carga falta.
+    val suggestedLoad = warmupTargetLoadKg(normalizedPercentage, workingWeightKg, resolved1RM).takeIf { it > 0.0 }
     Column(
         modifier = Modifier
             .fillMaxWidth()

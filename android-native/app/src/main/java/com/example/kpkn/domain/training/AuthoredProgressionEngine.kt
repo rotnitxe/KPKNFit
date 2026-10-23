@@ -38,6 +38,9 @@ object ProgressionConsumers {
     val authored: Set<KClass<out ProgressionRule>> = setOf(
         ProgressionRule.CycleIncrement::class,
         ProgressionRule.WeeklyKg::class,
+        // CAL5: Juggernaut (reps sobre el estándar, al entrar en la ola siguiente) y GZCLP (etapas y TM al cerrar el ciclo).
+        ProgressionRule.RepsOverStandardTm::class,
+        ProgressionRule.StagedVolume::class,
     )
 
     val autoregulation: Set<KClass<out ProgressionRule>> = setOf(
@@ -45,6 +48,8 @@ object ProgressionConsumers {
         ProgressionRule.RepTargetDrivenTm::class,
         ProgressionRule.TopSetPr::class,
         ProgressionRule.RepMaxAutoregulated::class,
+        // CAL6: el XRM de la semana siguiente sale de la serie 4 de APRE, como una propuesta de TM.
+        ProgressionRule.ApreXrm::class,
     )
 
     val executable: Set<KClass<out ProgressionRule>> = authored + autoregulation
@@ -113,21 +118,26 @@ object AuthoredProgressionEngine {
      * Kilos que `CycleIncrement` suma al TM de [liftSlot]: `upperKg` para banca y press militar,
      * `lowerKg` para sentadilla y peso muerto. Null si la regla no es `CycleIncrement`.
      */
-    fun cycleIncrementKg(rule: ProgressionRule, liftSlot: LiftSlot): Double? {
-        if (rule !is ProgressionRule.CycleIncrement) return null
-        return when (liftSlot) {
+    fun cycleIncrementKg(rule: ProgressionRule, liftSlot: LiftSlot): Double? = when (rule) {
+        is ProgressionRule.CycleIncrement -> when (liftSlot) {
             LiftSlot.BENCH, LiftSlot.OVERHEAD -> rule.upperKg
             LiftSlot.SQUAT, LiftSlot.DEADLIFT -> rule.lowerKg
         }
+        // GZCLP: el salto del TM cuando el T1 completa su volumen base.
+        is ProgressionRule.StagedVolume -> when (liftSlot) {
+            LiftSlot.BENCH, LiftSlot.OVERHEAD -> rule.upperKg
+            LiftSlot.SQUAT, LiftSlot.DEADLIFT -> rule.lowerKg
+        }
+        else -> null
     }
 
     /** true si la regla sube el TM al cerrar el ciclo del programa (null: programa sin receta). */
     fun appliesAtCycleClose(rule: ProgressionRule?): Boolean =
-        rule is ProgressionRule.CycleIncrement && rule.scope == IncrementScope.CYCLE
+        (rule is ProgressionRule.CycleIncrement && rule.scope == IncrementScope.CYCLE) || rule is ProgressionRule.StagedVolume
 
     /** true si la regla sube el TM al entrar en el bloque siguiente (null: programa sin receta). */
     fun appliesAtBlockClose(rule: ProgressionRule?): Boolean =
-        rule is ProgressionRule.CycleIncrement && rule.scope == IncrementScope.BLOCK
+        (rule is ProgressionRule.CycleIncrement && rule.scope == IncrementScope.BLOCK) || rule is ProgressionRule.RepsOverStandardTm
 
     /**
      * Paso de redondeo del TM: la menor carga que el inventario puede añadir a la barra, el doble
@@ -150,65 +160,236 @@ object AuthoredProgressionEngine {
         return maxOf(rounded, currentKg)
     }
 
-    /** Cambio de TM de un levantamiento al aplicar una subida. */
-    data class TmChange(val liftSlot: LiftSlot, val beforeKg: Double, val afterKg: Double)
+    /**
+     * Cambio de TM de un levantamiento al aplicar una subida (o, en 5/3/1, un reinicio del −10 %). [note] es el porqué para el
+     * aviso: «reinicio −10 %», «13 repeticiones con estándar de 5»…
+     */
+    data class TmChange(val liftSlot: LiftSlot, val beforeKg: Double, val afterKg: Double, val note: String? = null)
 
     /**
      * Subida del método que NO se aplica este cierre porque el levantamiento hizo un AMRAP corto en el
-     * ciclo o bloque que termina: su TM se mantiene en [tmKg].
+     * ciclo o bloque que termina: su TM se mantiene en [tmKg]. [note] sustituye al «AMRAP corto» del aviso (Juggernaut:
+     * «no llegaste al estándar», GZCLP: «volumen base sin completar»).
      */
-    data class TmHold(val liftSlot: LiftSlot, val tmKg: Double)
+    data class TmHold(val liftSlot: LiftSlot, val tmKg: Double, val note: String? = null)
+
+    /**
+     * Lo que pasó en el ciclo o bloque que se cierra, leído de los registros por quien llama (la regla del método decide qué
+     * parte usa): los AMRAP del cierre (Juggernaut), las rachas de ciclos congelados (5/3/1) y el volumen de los T1 y T2 (GZCLP).
+     */
+    data class CloseEvidence(
+        val amrapHits: List<AmrapHit> = emptyList(),
+        /** Ciclos seguidos con AMRAP corto por levantamiento, contando el que se cierra (5/3/1). */
+        val frozenStreaks: Map<LiftSlot, Int> = emptyMap(),
+        val gzclpChecks: List<ProgramAutoregulationEngine.GzclpTierCheck> = emptyList(),
+    )
+
+    /** El resultado completo de la regla del método sobre un cierre: TM que cambian, TM que se mantienen y etapas de GZCLP. */
+    data class MethodOutcome(
+        val changes: List<TmChange>,
+        val holds: List<TmHold>,
+        /** GZCLP: etapa del T1 / T2 de cada levantamiento con registros para el ciclo NUEVO. */
+        val t1Stages: Map<LiftSlot, GzclpProgression.T1Stage> = emptyMap(),
+        val t2Stages: Map<LiftSlot, GzclpProgression.T2Stage> = emptyMap(),
+        /** Frases extra para el aviso (reinicio de GZCLP, T3…). */
+        val notes: List<String> = emptyList(),
+    )
 
     /**
      * Cambios de TM que produce la regla de [recipe] sobre [profile]: un levantamiento de
      * `recipe.liftSlots` con TM (guardado, o derivado de su 1RM) y con subida positiva. Solo
      * devuelve los que cambian, en el orden de [LiftSlot]. El paso de redondeo [stepKg] se acota
      * al incremento de cada levantamiento. Los levantamientos de [excludedLifts] (un AMRAP corto
-     * en el ciclo o bloque que se cierra) no suben: quedan en [tmHolds].
+     * en el ciclo o bloque que se cierra) no suben: quedan en [tmHolds]. Con [evidence] la regla de cada método usa lo
+     * registrado: las rachas de 5/3/1 (reinicio −10 %), las repeticiones de Juggernaut y el volumen de GZCLP.
      */
     fun tmChanges(
         profile: PowerliftingProfile,
         recipe: TrainingPlanRecipe,
         stepKg: Double = DEFAULT_ROUNDING_STEP_KG,
         excludedLifts: Set<LiftSlot> = emptySet(),
-    ): List<TmChange> = methodChanges(profile, recipe, stepKg).filterNot { it.liftSlot in excludedLifts }
+        evidence: CloseEvidence = CloseEvidence(),
+    ): List<TmChange> = evaluate(profile, recipe, stepKg, excludedLifts, evidence).changes
 
     /**
-     * Los levantamientos de [excludedLifts] a los que el método les habría subido el TM y se les
-     * congela. Un levantamiento sin subida (sin TM o con incremento cero) no aparece: no hay nada que
-     * explicar. En el orden de [LiftSlot].
+     * Los levantamientos a los que el método les habría subido el TM y se les congela (un AMRAP corto de [excludedLifts],
+     * un volumen sin completar en GZCLP o un estándar sin superar en Juggernaut). Un levantamiento sin subida (sin TM o con
+     * incremento cero) no aparece: no hay nada que explicar. En el orden de [LiftSlot].
      */
     fun tmHolds(
         profile: PowerliftingProfile,
         recipe: TrainingPlanRecipe,
         stepKg: Double = DEFAULT_ROUNDING_STEP_KG,
         excludedLifts: Set<LiftSlot> = emptySet(),
-    ): List<TmHold> =
-        if (excludedLifts.isEmpty()) {
-            emptyList()
-        } else {
-            methodChanges(profile, recipe, stepKg)
-                .filter { it.liftSlot in excludedLifts }
-                .map { TmHold(it.liftSlot, it.beforeKg) }
-        }
+        evidence: CloseEvidence = CloseEvidence(),
+    ): List<TmHold> = evaluate(profile, recipe, stepKg, excludedLifts, evidence).holds
 
-    /** La subida completa del método, sin excluir ningún levantamiento. */
-    private fun methodChanges(
+    /** La regla del método de [recipe] aplicada a un cierre: qué cambia, qué se mantiene y, en GZCLP, qué etapa toca. */
+    fun evaluate(
         profile: PowerliftingProfile,
         recipe: TrainingPlanRecipe,
+        stepKg: Double = DEFAULT_ROUNDING_STEP_KG,
+        excludedLifts: Set<LiftSlot> = emptySet(),
+        evidence: CloseEvidence = CloseEvidence(),
+    ): MethodOutcome = when (val rule = recipe.progression) {
+        is ProgressionRule.CycleIncrement -> evaluateCycleIncrement(profile, recipe, rule, stepKg, excludedLifts, evidence)
+        is ProgressionRule.StagedVolume -> evaluateStaged(profile, recipe, rule, stepKg, evidence)
+        is ProgressionRule.RepsOverStandardTm -> evaluateRepsOverStandard(profile, recipe, rule, stepKg, evidence)
+        else -> MethodOutcome(emptyList(), emptyList())
+    }
+
+    /**
+     * `CycleIncrement`: el salto fijo del método por levantamiento. Un AMRAP corto lo congela (sin bajar el TM) y, con
+     * `resetAfterFrozenCycles` (5/3/1), tras esa racha de ciclos congelados seguidos el TM se reinicia `resetPercent` %.
+     */
+    private fun evaluateCycleIncrement(
+        profile: PowerliftingProfile,
+        recipe: TrainingPlanRecipe,
+        rule: ProgressionRule.CycleIncrement,
         stepKg: Double,
-    ): List<TmChange> = LiftSlot.entries
-        .filter { it in recipe.liftSlots }
-        .mapNotNull { lift ->
-            val increment = cycleIncrementKg(recipe.progression, lift)?.takeIf { it > 0.0 }
-                ?: return@mapNotNull null
-            val current = TrainingMaxResolver.trainingMax(profile, lift, recipe.trainingMaxPercent)
-                ?: return@mapNotNull null
+        excludedLifts: Set<LiftSlot>,
+        evidence: CloseEvidence,
+    ): MethodOutcome {
+        val changes = mutableListOf<TmChange>()
+        val holds = mutableListOf<TmHold>()
+        LiftSlot.entries.filter { it in recipe.liftSlots }.forEach { lift ->
+            val increment = cycleIncrementKg(rule, lift)?.takeIf { it > 0.0 } ?: return@forEach
+            val current = TrainingMaxResolver.trainingMax(profile, lift, recipe.trainingMaxPercent) ?: return@forEach
+            if (lift in excludedLifts) {
+                val streak = evidence.frozenStreaks[lift] ?: 1
+                if (Wendler531Progression.resetsAtFrozenStreak(streak, rule.resetAfterFrozenCycles)) {
+                    val reset = Wendler531Progression.resetTmKg(current, rule.resetPercent, stepKg)
+                    if (abs(reset - current) >= TM_EPSILON) {
+                        changes += TmChange(
+                            lift, current, reset,
+                            note = "reinicio −${NativeProgressionText.formatKg(rule.resetPercent)} % tras ${rule.resetAfterFrozenCycles} ciclos congelados",
+                        )
+                        return@forEach
+                    }
+                }
+                holds += TmHold(lift, current)
+                return@forEach
+            }
             // El paso de redondeo nunca supera el incremento del método: con discos de 2,5 kg (paso
             // de 5 kg) una subida de 2,5 kg saltaría 5.
             val next = incrementedTm(current, increment, minOf(stepKg, increment))
-            if (abs(next - current) < TM_EPSILON) null else TmChange(lift, current, next)
+            if (abs(next - current) >= TM_EPSILON) changes += TmChange(lift, current, next)
         }
+        return MethodOutcome(changes, holds)
+    }
+
+    /**
+     * `RepsOverStandardTm` (Juggernaut): el TM de cada levantamiento con el AMRAP de realización del bloque que se cierra.
+     * Sin AMRAP registrado el TM no cambia ni se avisa; con él, sube `(reps − estándar) × kg` o se mantiene con el aviso.
+     */
+    private fun evaluateRepsOverStandard(
+        profile: PowerliftingProfile,
+        recipe: TrainingPlanRecipe,
+        rule: ProgressionRule.RepsOverStandardTm,
+        stepKg: Double,
+        evidence: CloseEvidence,
+    ): MethodOutcome {
+        val changes = mutableListOf<TmChange>()
+        val holds = mutableListOf<TmHold>()
+        LiftSlot.entries.filter { it in recipe.liftSlots }.forEach { lift ->
+            val current = TrainingMaxResolver.trainingMax(profile, lift, recipe.trainingMaxPercent) ?: return@forEach
+            val hit = evidence.amrapHits
+                .filter { it.liftSlot == lift && it.purpose.isAmrap && it.prescribedReps > 0 }
+                .maxByOrNull { it.percent ?: 0.0 }
+                ?: return@forEach
+            val result = JuggernautProgression.evaluate(rule, hit) ?: return@forEach
+            if (result.outcome == JuggernautProgression.Outcome.RAISED && result.deltaKg > 0.0) {
+                val next = incrementedTm(current, result.deltaKg, minOf(stepKg, result.deltaKg))
+                if (abs(next - current) >= TM_EPSILON) {
+                    changes += TmChange(lift, current, next, note = JuggernautProgression.summary(result))
+                    return@forEach
+                }
+            }
+            holds += TmHold(lift, current, note = JuggernautProgression.summary(result))
+        }
+        return MethodOutcome(changes, holds)
+    }
+
+    /**
+     * `StagedVolume` (GZCLP): el T1 completa su volumen base y el TM sube el salto del método; si no, el TM se mantiene y el
+     * T1 pasa a la etapa siguiente con la misma carga (la etapa 3 sin completar es el reinicio: 5RM nuevo × 85 %). El T2 sigue
+     * el mismo criterio con sus propias etapas. Sin registros de un levantamiento el TM sube como si lo hubiera completado.
+     */
+    private fun evaluateStaged(
+        profile: PowerliftingProfile,
+        recipe: TrainingPlanRecipe,
+        rule: ProgressionRule.StagedVolume,
+        stepKg: Double,
+        evidence: CloseEvidence,
+    ): MethodOutcome {
+        val changes = mutableListOf<TmChange>()
+        val holds = mutableListOf<TmHold>()
+        val t1Stages = linkedMapOf<LiftSlot, GzclpProgression.T1Stage>()
+        val t2Stages = linkedMapOf<LiftSlot, GzclpProgression.T2Stage>()
+        val notes = mutableListOf<String>()
+        LiftSlot.entries.filter { it in recipe.liftSlots }.forEach { lift ->
+            val t1Checks = evidence.gzclpChecks.filter { it.liftSlot == lift && it.role == SlotRole.T1_MAIN }
+            val t2Checks = evidence.gzclpChecks.filter { it.liftSlot == lift && it.role == SlotRole.T2_SUPPLEMENTAL }
+            val name = liftName(lift)
+
+            // T2: etapas propias, sin efecto sobre el TM.
+            if (t2Checks.isNotEmpty()) {
+                val stage = GzclpProgression.t2StageOfBaseVolume(t2Checks.first().plannedReps) ?: GzclpProgression.T2Stage.STAGE_1
+                val decision = GzclpProgression.decideT2(stage, t2Checks.all { it.completedBaseVolume })
+                t2Stages[lift] = GzclpProgression.T2Stage.entries[decision.toStage - 1]
+                when (decision.outcome) {
+                    GzclpProgression.TierOutcome.PASSED -> Unit
+                    GzclpProgression.TierOutcome.ADVANCE_STAGE ->
+                        notes += "T2 de $name sin completar su volumen base: pasa a ${t2Stages.getValue(lift).label}, con la misma carga."
+                    GzclpProgression.TierOutcome.RESTART ->
+                        notes += "T2 de $name sin completar la etapa 3: reinicia en 3×10."
+                }
+            }
+
+            val increment = cycleIncrementKg(rule, lift)?.takeIf { it > 0.0 }
+            val current = TrainingMaxResolver.trainingMax(profile, lift, recipe.trainingMaxPercent)
+            if (t1Checks.isEmpty()) {
+                if (increment != null && current != null) {
+                    val next = incrementedTm(current, increment, minOf(stepKg, increment))
+                    if (abs(next - current) >= TM_EPSILON) changes += TmChange(lift, current, next)
+                }
+                return@forEach
+            }
+            val stage = GzclpProgression.t1StageOfBaseVolume(t1Checks.first().plannedReps) ?: GzclpProgression.T1Stage.STAGE_1
+            val decision = GzclpProgression.decideT1(stage, t1Checks.all { it.completedBaseVolume })
+            val nextStage = GzclpProgression.T1Stage.entries[decision.toStage - 1]
+            t1Stages[lift] = nextStage
+            when (decision.outcome) {
+                GzclpProgression.TierOutcome.PASSED -> if (increment != null && current != null) {
+                    val next = incrementedTm(current, increment, minOf(stepKg, increment))
+                    if (abs(next - current) >= TM_EPSILON) changes += TmChange(lift, current, next)
+                }
+                GzclpProgression.TierOutcome.ADVANCE_STAGE -> if (current != null) {
+                    holds += TmHold(
+                        lift, current,
+                        note = "volumen base sin completar: pasas de ${stage.label} a ${nextStage.label} con la misma carga",
+                    )
+                }
+                GzclpProgression.TierOutcome.RESTART -> {
+                    if (current != null) {
+                        holds += TmHold(lift, current, note = "etapa 3 sin completar: toca reiniciar")
+                    }
+                    notes += "T1 de $name: etapa 3 sin completar. Descansa 2 o 3 días, prueba un 5RM nuevo y empieza otro ciclo de " +
+                        "${GzclpProgression.T1Stage.STAGE_1.label} con el 85 % de ese 5RM (pon ese 5RM como tu máximo de entrenamiento)."
+                }
+            }
+        }
+        // T3: sube la carga cuando la última serie llega a las repeticiones de la regla (25 en Lefever). Sin TM de accesorio, el
+        // cambio es un aviso para el atleta, que es quien tiene la carga.
+        evidence.gzclpChecks
+            .filter { it.role == SlotRole.T3_ACCESSORY && it.lastSetReps != null && GzclpProgression.t3ShouldRaise(it.lastSetReps, rule.t3RaiseReps) }
+            .mapNotNull { it.exerciseName }
+            .distinct()
+            .forEach { name ->
+                notes += "T3 $name: la última serie llegó a ${rule.t3RaiseReps} repeticiones; sube la carga."
+            }
+        return MethodOutcome(changes, holds, t1Stages, t2Stages, notes)
+    }
 
     // ─── Aplicación al cerrar ciclo o bloque ───────────────────────────────────────
 
@@ -232,6 +413,7 @@ object AuthoredProgressionEngine {
      * @param firstWeekOccurrence ocurrencia de la primera semana del ciclo nuevo: ancla de la guarda.
      * @param excludedLifts levantamientos con un AMRAP corto en el ciclo que se cierra (B.S4): no
      *   suben este ciclo y el aviso lo dice («banca se mantiene en 108 kg (AMRAP corto)»).
+     * @param evidence lo registrado en el ciclo que se cierra (CAL5): las rachas de 5/3/1 y el volumen de GZCLP.
      */
     fun applyAtCycleClose(
         program: Program,
@@ -241,6 +423,7 @@ object AuthoredProgressionEngine {
         inventory: EquipmentInventory?,
         nowMs: Long = System.currentTimeMillis(),
         excludedLifts: Set<LiftSlot> = emptySet(),
+        evidence: CloseEvidence = CloseEvidence(),
     ): Program {
         val recipe = program.sourceRecipe ?: return program
         if (!appliesAtCycleClose(recipe.progression) || usesNativeProgression(recipe)) return program
@@ -262,12 +445,13 @@ object AuthoredProgressionEngine {
             inventory = inventory,
             nowMs = nowMs,
             excludedLifts = excludedLifts,
+            evidence = evidence,
         )
     }
 
     /**
      * Sube el TM al entrar en [enteredBlockId] si la receta declara
-     * `CycleIncrement(scope = BLOCK)`. [program] ya tiene el cursor en el bloque nuevo. Se
+     * `CycleIncrement(scope = BLOCK)` o `RepsOverStandardTm` (Juggernaut). [program] ya tiene el cursor en el bloque nuevo. Se
      * rematerializan las semanas de ese bloque y de los siguientes que vienen de la receta;
      * [protectedSessionIds] (las sesiones que ya tienen registros) no se reconstruyen. Mismas
      * garantías que [applyAtCycleClose]. Entrar al primer bloque no es un cierre de bloque, y entrar
@@ -279,6 +463,7 @@ object AuthoredProgressionEngine {
      *
      * @param excludedLifts levantamientos con un AMRAP corto en el bloque que se cierra (B.S4): no
      *   suben al entrar en el bloque nuevo y el aviso lo dice.
+     * @param evidence lo registrado en el bloque que se cierra (CAL5): el AMRAP de realización de Juggernaut.
      */
     fun applyAtBlockClose(
         program: Program,
@@ -288,6 +473,7 @@ object AuthoredProgressionEngine {
         protectedSessionIds: Set<String> = emptySet(),
         nowMs: Long = System.currentTimeMillis(),
         excludedLifts: Set<LiftSlot> = emptySet(),
+        evidence: CloseEvidence = CloseEvidence(),
     ): Program {
         val recipe = program.sourceRecipe ?: return program
         if (!appliesAtBlockClose(recipe.progression) || usesNativeProgression(recipe)) return program
@@ -314,6 +500,7 @@ object AuthoredProgressionEngine {
             inventory = inventory,
             nowMs = nowMs,
             excludedLifts = excludedLifts,
+            evidence = evidence,
         )
     }
 
@@ -335,6 +522,7 @@ object AuthoredProgressionEngine {
         inventory: EquipmentInventory?,
         nowMs: Long,
         excludedLifts: Set<LiftSlot>,
+        evidence: CloseEvidence,
     ): Program {
         val existing = PlanMaterializer.effectiveWeekRecipeFor(program, markerOccurrence, markerCycle)
         if (existing?.appliedProposals?.any { it.proposalId == proposalId } == true) return program
@@ -342,15 +530,27 @@ object AuthoredProgressionEngine {
         if (weekIds.isEmpty()) return program
         val profile = program.powerliftingProfile ?: return program
         val stepKg = roundingStepKg(inventory)
-        val changes = tmChanges(profile, recipe, stepKg, excludedLifts)
-        val holds = tmHolds(profile, recipe, stepKg, excludedLifts)
-        if (changes.isEmpty() && holds.isEmpty()) return program
-        // Todo lo que el método subiría se congela por AMRAP corto: no hay TM que cambiar ni semanas que
+        val outcome = evaluate(profile, recipe, stepKg, excludedLifts, evidence)
+        val changes = outcome.changes
+        val holds = outcome.holds
+        // GZCLP: las etapas del ciclo nuevo solo se escriben si alguna deja la etapa 1 (la receta ya es la etapa 1).
+        val stageOverlay = outcome.t1Stages.values.any { it != GzclpProgression.T1Stage.STAGE_1 } ||
+            outcome.t2Stages.values.any { it != GzclpProgression.T2Stage.STAGE_1 }
+        if (changes.isEmpty() && holds.isEmpty() && !stageOverlay && outcome.notes.isEmpty()) return program
+        // Todo lo que el método subiría se congela (AMRAP corto, estándar sin superar…): no hay TM que cambiar ni semanas que
         // reconstruir, pero el atleta debe saber por qué no sube y la guarda deja el cierre registrado.
-        if (changes.isEmpty()) return holdOnly(program, proposalId, appliedKind, label, markerOccurrence, markerCycle, holds, nowMs)
+        if (changes.isEmpty() && !stageOverlay) {
+            return holdOnly(program, proposalId, appliedKind, label, markerOccurrence, markerCycle, holds, nowMs, outcome.notes)
+        }
 
         val updatedProfile = changes.fold(profile) { acc, change -> acc.withTm(change.liftSlot, change.afterKg) }
-        val withProfile = program.copy(powerliftingProfile = updatedProfile)
+        val synchronized = ExerciseTrainingMax.syncProfile(program, program.copy(powerliftingProfile = updatedProfile),
+            nowMs, proposalId, "Progresión del método al cerrar $label")
+        val withProfile = if (stageOverlay) {
+            withStageOverlay(synchronized, recipe, markerCycle, outcome)
+        } else {
+            synchronized
+        }
 
         val weekIdSet = weekIds.toSet()
         val frozen = program.manualSessionOverrides.mapTo(mutableSetOf()) { it.sessionId }
@@ -374,6 +574,7 @@ object AuthoredProgressionEngine {
             preservedSessions,
             pendingMaterialization = rebuild is Rebuild.Pending,
             held = holds,
+            notes = outcome.notes,
         )
         // El aviso es para el atleta; el porqué técnico de un fallback queda en el marcador.
         val summary = if (rebuild is Rebuild.Pending) "$text [reconstrucción pendiente: ${rebuild.reason}]" else text
@@ -408,8 +609,9 @@ object AuthoredProgressionEngine {
         markerCycle: Int,
         holds: List<TmHold>,
         nowMs: Long,
+        notes: List<String> = emptyList(),
     ): Program {
-        val text = noticeText(label, emptyList(), preservedSessions = 0, pendingMaterialization = false, held = holds)
+        val text = noticeText(label, emptyList(), preservedSessions = 0, pendingMaterialization = false, held = holds, notes = notes)
         val marked = PlanMaterializer.withEffectiveWeekRecipe(
             program = program,
             weekOccurrence = markerOccurrence,
@@ -425,6 +627,26 @@ object AuthoredProgressionEngine {
             ),
         )
         return withNotice(marked, proposalId, text, nowMs)
+    }
+
+    /**
+     * GZCLP: escribe, para cada semana de la receta en el ciclo [cycle], la receta efectiva con el T1 y el T2 de cada
+     * levantamiento en su etapa nueva. La reconstrucción que sigue (`rematerializeWeek`) lee esa receta efectiva en vez de la base.
+     */
+    private fun withStageOverlay(
+        program: Program,
+        recipe: TrainingPlanRecipe,
+        cycle: Int,
+        outcome: MethodOutcome,
+    ): Program = recipe.weeks.fold(program) { acc, week ->
+        val base = PlanMaterializer.effectiveWeekRecipeFor(acc, week.weekNumber, cycle)?.weekRecipe ?: week
+        PlanMaterializer.withEffectiveWeekRecipe(
+            program = acc,
+            weekOccurrence = week.weekNumber,
+            cycleNumber = cycle,
+            weekRecipe = GzclpProgression.overlay(base, outcome.t1Stages, outcome.t2Stages),
+            applied = emptyList(),
+        )
     }
 
     /** Resultado de reconstruir las semanas tras subir el TM. */
@@ -556,6 +778,7 @@ object AuthoredProgressionEngine {
         preservedSessions: Int,
         pendingMaterialization: Boolean,
         held: List<TmHold> = emptyList(),
+        notes: List<String> = emptyList(),
     ): String = buildString {
         append(label).append(':')
         if (changes.isNotEmpty()) {
@@ -563,7 +786,8 @@ object AuthoredProgressionEngine {
             append(
                 changes.joinToString(", ") { change ->
                     "${liftName(change.liftSlot)} ${NativeProgressionText.formatKg(change.beforeKg)} → " +
-                        "${NativeProgressionText.formatKg(change.afterKg)} kg"
+                        "${NativeProgressionText.formatKg(change.afterKg)} kg" +
+                        (change.note?.let { " ($it)" }.orEmpty())
                 },
             )
         }
@@ -571,7 +795,9 @@ object AuthoredProgressionEngine {
             append(if (changes.isEmpty()) " " else "; ")
             append(heldClause(held))
         }
-        append('.')
+        // Sin cambios ni congelaciones (solo avisos de GZCLP) el aviso arranca directamente con su frase.
+        if (changes.isNotEmpty() || held.isNotEmpty()) append('.')
+        notes.forEach { note -> append(' ').append(note) }
         if (preservedSessions > 0) {
             append(' ')
             append(SpanishPlurals.sessions(preservedSessions))
@@ -585,7 +811,7 @@ object AuthoredProgressionEngine {
     /** «banca se mantiene en 108 kg (AMRAP corto)»; con varios, «…, … y …». */
     private fun heldClause(held: List<TmHold>): String {
         val parts = held.map { hold ->
-            "${liftName(hold.liftSlot)} se mantiene en ${NativeProgressionText.formatKg(hold.tmKg)} kg (AMRAP corto)"
+            "${liftName(hold.liftSlot)} se mantiene en ${NativeProgressionText.formatKg(hold.tmKg)} kg (${hold.note ?: "AMRAP corto"})"
         }
         return if (parts.size == 1) parts.single() else parts.dropLast(1).joinToString(", ") + " y " + parts.last()
     }

@@ -19,6 +19,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.DropSetData
@@ -243,6 +244,6 @@ class SetCardTechniqueBackTest {
 
         val alto = rule.onNodeWithTag("reverso").fetchSemanticsNode().boundsInRoot.height
         assertEquals("la tarjeta no cambia de tamaño: el reverso mide $alto px", 380f, alto, 1f)
-        rule.onNodeWithText("Error de ejecución").assertIsDisplayed()
+        rule.onNodeWithText("Error de ejecución").performScrollTo().assertIsDisplayed()
     }
 }

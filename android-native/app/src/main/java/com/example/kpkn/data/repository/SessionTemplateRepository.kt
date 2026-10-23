@@ -14,8 +14,9 @@ import com.example.kpkn.domain.templates.SessionTemplateQualityRules
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,9 +27,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.time.Instant
 
 /**
@@ -227,9 +230,14 @@ class SessionTemplateRepository private constructor(context: Context) {
          * this repository too so its StateFlow never points at a closed DAO.
          */
         internal fun resetForTests() {
-            synchronized(this) {
-                INSTANCE?.scope?.cancel()
-                INSTANCE = null
+            val previous = synchronized(this) {
+                INSTANCE.also { INSTANCE = null }
+            }
+            // Tests close Room immediately after this hook. Cancellation alone
+            // can leave its IO hydration query running against the closed pool.
+            val job = previous?.scope?.coroutineContext?.get(Job) ?: return
+            runBlocking {
+                withTimeout(10_000) { job.cancelAndJoin() }
             }
         }
     }

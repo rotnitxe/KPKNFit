@@ -24,7 +24,7 @@ internal fun seriesOptionsSummary(
     val title = "Serie ${setIndex + 1}"
     val planned = exercise.sets.getOrNull(setIndex)
     val done = exercise.completionKeysForSet(setIndex).firstNotNullOfOrNull { completedSets[it] }
-    val parts = if (done != null) completedParts(done) else plannedParts(planned)
+    val parts = if (done != null) completedParts(done) else plannedParts(exercise, planned)
     // Con espacio inseparable antes de la unidad también en el tiempo («45 s»): lo que arma `KpknSetFormat` lleva un espacio normal.
     return SeriesOptionsSummary(title = title, detail = hardUnitSpaces(parts.joinToString(" · ")))
 }
@@ -50,21 +50,26 @@ private fun completedParts(set: CompletedSet): List<String> {
 }
 
 /** El plan de la serie: carga, repeticiones (o rango, o tiempo) y su intensidad objetivo. */
-private fun plannedParts(set: ExerciseSet?): List<String> {
+private fun plannedParts(exercise: Exercise, set: ExerciseSet?): List<String> {
     if (set == null) return emptyList()
+    val unit = liveSetUnitMode(exercise, set)
     val amount = when {
-        set.isAmrap -> "AMRAP"
+        set.purpose.isAmrap -> "AMRAP"
+        unit == com.example.kpkn.data.models.UnitModeV2.TIME -> set.targetDuration?.let { KpknSetFormat.doseTime(it) }
+        unit == com.example.kpkn.data.models.UnitModeV2.DISTANCE ->
+            set.plannedTargetV2?.let { formatEffort(it) + " m" }
+        unit == com.example.kpkn.data.models.UnitModeV2.CUSTOM ->
+            set.plannedTargetV2?.let { formatEffort(it) + "\u00A0" + (exercise.customUnit?.takeIf { it.isNotBlank() } ?: "u") }
         set.targetRepsRange != null -> set.targetRepsRange.let { range ->
-            if (range.min == range.max) "${range.min}" else "${range.min}–${range.max}"
+            if (range.min == range.max) range.min.toString() else range.min.toString() + "–" + range.max
         }
-        set.targetReps != null -> "${set.targetReps}"
-        (set.targetDuration ?: 0) > 0 -> KpknSetFormat.doseTime(set.targetDuration ?: 0)
+        set.targetReps != null -> set.targetReps.toString()
         else -> null
     }
     val effort = when {
         set.isFailure || set.intensityMode == IntensityMode.FAILURE -> "al fallo"
-        set.targetRIR != null -> "RIR ${set.targetRIR}"
-        set.targetRPE != null -> "RPE ${formatEffort(set.targetRPE)}"
+        set.targetRIR != null -> "RIR " + set.targetRIR
+        set.targetRPE != null -> "RPE " + formatEffort(set.targetRPE)
         else -> null
     }
     return listOfNotNull(loadTimesAmount(set.weight?.takeIf { it > 0.0 }, amount), effort)

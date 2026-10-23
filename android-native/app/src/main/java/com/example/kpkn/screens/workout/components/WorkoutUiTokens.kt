@@ -108,15 +108,17 @@ object WorkoutUiTokens {
 
     /** Relleno de la banda del relator, arriba y abajo. */
     val LiveRelatorBandPadding: Dp = 12.dp
+    val LiveRelatorAnimationLaneHeight: Dp = 32.dp
+    val LiveRelatorAnimationGap: Dp = 6.dp
 
     /**
-     * Altura de la banda del relator (serie y descanso en página): 12 dp + dos líneas de 16 sp + 12 dp. El texto
-     * va centrado en vertical; con una sola línea la banda mide lo mismo y la tarjeta no salta. Las líneas van en
-     * sp, así que la banda crece con la letra del sistema.
+     * Reserva siempre el carril de personajes, su separación y dos líneas de texto. Cambiar entre reposo,
+     * trabajo y confirmación no mueve ni redimensiona la tarjeta. Las líneas crecen con la letra del sistema.
      */
     fun liveRelatorBandHeight(density: Density): Dp = with(density) {
         val lineDp = WorkoutLiveRelatorLineHeight.toDp().value
-        (LiveRelatorBandPadding.value * 2f + lineDp * WorkoutLiveRelatorMaxLines).dp
+        (LiveRelatorBandPadding.value + LiveRelatorAnimationLaneHeight.value + LiveRelatorAnimationGap.value +
+            lineDp * WorkoutLiveRelatorMaxLines).dp
     }
     /** Design reference for proportional adapt (typical phone width / card slot). */
     val LivePagerReferenceWidth = ViewportAdaptMath.LIVE_PAGER_REF_WIDTH_DP.dp

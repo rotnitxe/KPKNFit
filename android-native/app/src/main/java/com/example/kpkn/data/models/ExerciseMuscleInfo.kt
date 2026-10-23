@@ -104,6 +104,15 @@ data class ExerciseMuscleInfo(
     val articulationType: String? = null,
     /** Tier de fatiga de la configuración: "BAJA", "MEDIA" o "ALTA". */
     val fatigueTier: String? = null,
+    /**
+     * Solo ejercicios propios creados por parecido (MOT · E2): de qué definición/configuración confirmada salen sus datos. Separada
+     * de la identidad (`catalogDefinitionId`/`catalogConfigurationId` siguen null en un propio) y de la imagen.
+     */
+    val creationReference: CustomExerciseReference? = null,
+    /** Origen de [description]: "GENERATED" (borrador automático regenerable) o "USER" (escrita por la persona). null = anterior a MOT. */
+    val descriptionOrigin: String? = null,
+    /** Portada elegida para un ejercicio propio (foto, imagen de referencia o ilustración del patrón); null = la del patrón por nombre. */
+    val cover: ExerciseCover? = null,
 )
 
 @Serializable

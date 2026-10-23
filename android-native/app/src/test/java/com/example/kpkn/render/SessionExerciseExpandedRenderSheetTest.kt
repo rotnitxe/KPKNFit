@@ -1,5 +1,6 @@
 package com.example.kpkn.render
 
+import com.example.kpkn.data.models.SetPurpose
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.view.View
@@ -361,8 +362,8 @@ class SessionExerciseExpandedRenderSheetTest {
                 name = "Dominadas",
                 trainingMode = TrainingMode.AMRAP,
                 sets = listOf(
-                    ExerciseSet(id = "a1", targetReps = 6, isAmrap = true),
-                    ExerciseSet(id = "a2", targetReps = 6, isAmrap = true),
+                    ExerciseSet(id = "a1", targetReps = 6, purpose = SetPurpose.AMRAP, amrapMinimumReps = 6),
+                    ExerciseSet(id = "a2", targetReps = 6, purpose = SetPurpose.AMRAP, amrapMinimumReps = 6),
                 ),
             )
             ExerciseSetList(

@@ -221,8 +221,8 @@ class LibraryCardModelTest {
         assertEquals(21, count(LibraryOriginFilter.KPKN))
         assertEquals(2, count(LibraryOriginFilter.ORIGINAL))
         assertEquals(2, count(LibraryOriginFilter.ADAPTED))
-        // Veintidós métodos de terceros; las dos versiones anteriores de PHUL y PHAT ya no se listan (D1).
-        assertEquals(22, count(LibraryOriginFilter.LEGACY))
+        // Veintitrés métodos de terceros (CAL6 añade APRE de Mann); las dos versiones anteriores de PHUL y PHAT ya no se listan (D1).
+        assertEquals(23, count(LibraryOriginFilter.LEGACY))
     }
 
     // ─── 4 · Qué hace el tap de cada tarjeta ─────────────────────────────────
@@ -298,8 +298,8 @@ class LibraryCardModelTest {
     @Test
     fun a_library_method_follows_the_assistant_when_there_is_one_and_is_handed_to_the_caller_when_there_is_not() {
         val protocols = listed.filter { visibleProtocolOf(it) != null }
-        // 22 métodos de terceros y 5 planes KPKN de receta fija (las dos versiones anteriores ya no se listan, D1).
-        assertEquals(27, protocols.size)
+        // 23 métodos de terceros (CAL6 añade APRE de Mann) y 5 planes KPKN de receta fija (las dos versiones anteriores ya no se listan, D1).
+        assertEquals(28, protocols.size)
         protocols.forEach { entry ->
             // C.P6 (D8): con asistente el método tampoco crea el programa directo (antes: TM wizard en dos toques).
             assertEquals(
@@ -396,7 +396,7 @@ class LibraryCardModelTest {
     }
 
     private companion object {
-        const val EXPECTED_LISTED = 47
+        const val EXPECTED_LISTED = 48
         const val MAX_TITLE = 48
 
         val OWN_PROFILES = setOf(
@@ -411,7 +411,7 @@ class LibraryCardModelTest {
          * fija (7 + 5) · 4 terceros (19) · 5 históricos (2) · 6 especializaciones y complemento (3) ·
          * 7 estructuras en blanco (3). Las versiones anteriores (grupo 8) ya no se listan (D1).
          */
-        val GROUP_SIZES: Map<Int, Int> = mapOf(0 to 4, 1 to 2, 2 to 2, 3 to 12, 4 to 19, 5 to 2, 6 to 3, 7 to 3)
+        val GROUP_SIZES: Map<Int, Int> = mapOf(0 to 4, 1 to 2, 2 to 2, 3 to 12, 4 to 20, 5 to 2, 6 to 3, 7 to 3)
 
         val ENGLISH_LEVEL = Regex("""\b(beginner|intermediate|advanced)\b""", RegexOption.IGNORE_CASE)
         val ID_WITH_PREFIX = Regex("""\b(native|template|protocol|original|adapted):[a-z0-9]""")

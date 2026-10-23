@@ -177,7 +177,7 @@ data class CatalogResult(
         when (commitAction) {
             CatalogCommitAction.ADD -> if (supersetConfig != null) return false
             CatalogCommitAction.CREATE_SUPERSET -> {
-                if (selectedExerciseIds.size < 2) return false
+                if (selectedExerciseIds.size !in 2..4) return false
                 val canCreateSuperset = request.origin in setOf(
                     CatalogLaunchOrigin.SESSION_EDITOR,
                     CatalogLaunchOrigin.LIVE_SESSION,

@@ -1,7 +1,9 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.AppliedRecipeProposal
+import com.example.kpkn.data.models.ApreBlockReference
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.BlockProgressionScheme
 import com.example.kpkn.data.models.DEFAULT_CARDIO_PART_COLOR
@@ -133,7 +135,8 @@ object PlanMaterializer {
             recipeId = recipe.id,
             contentVersion = recipe.contentVersion,
             weekOccurrence = weekOccurrence,
-            referencePool = program.exerciseLoadReferences.associate { entry -> entry.exerciseId to entry.references },
+            referencePool = ExerciseTrainingMax.migrate(program).exerciseLoadReferences.groupBy { it.exerciseId }
+                .mapValues { (_, entries) -> entries.flatMap { it.references } },
         )
 
     fun materialize(
@@ -383,6 +386,7 @@ object PlanMaterializer {
                                                 scaled, recipe, metadata, idProvider, profile,
                                                 schedule.trainingDays, schedule.startDay,
                                                 warmupPlan, nativeCurate, scope,
+                                                existingSessions = if (foreignRecipe) emptyList() else week.sessions,
                                             )
                                             rebuilt.copy(
                                                 id = week.id,
@@ -857,12 +861,20 @@ object PlanMaterializer {
         warmupPlan: WarmupPlan,
         nativeCurate: Boolean,
         scope: MaterializationScope,
+        existingSessions: List<Session> = emptyList(),
     ): ProgramWeek {
+        val claimed = mutableSetOf<String>()
         val sessions = week.days.mapIndexed { index, day ->
             val dayOfWeek = rotateWeekday(day.weekday, startDay)
                 ?: trainingDays?.getOrNull(index)
                 ?: ((startDay - 1 + index).mod(7) + 1)
-            materializeDay(day, dayOfWeek, week, recipe, metadata, idProvider, profile, warmupPlan, nativeCurate, scope)
+            // Match the persisted occurrence before calculating loads; identity adoption after
+            // materialization is too late to read its capture history (legacy days have no id).
+            val previous = existingSessions.firstOrNull { it.id !in claimed && it.dayOfWeek == dayOfWeek }
+                ?: existingSessions.getOrNull(index)?.takeIf { it.id !in claimed }
+            previous?.let { claimed += it.id }
+            materializeDay(day, dayOfWeek, week, recipe, metadata, idProvider, profile, warmupPlan, nativeCurate, scope,
+                legacySession = previous.takeIf { day.id == null })
         }
         return ProgramWeek(
             id = idProvider.newId(),
@@ -884,6 +896,7 @@ object PlanMaterializer {
         warmupPlan: WarmupPlan,
         nativeCurate: Boolean,
         scope: MaterializationScope,
+        legacySession: Session? = null,
     ): Session {
         // Identidad estable §14.4: solo con `DayRecipe.id` declarado. Las
         // recetas legacy (id de día null) siguen con el [IdProvider] y su
@@ -901,6 +914,10 @@ object PlanMaterializer {
         }
         val assignedWarmups = assignWarmups(day, metadata, idProvider, warmupPlan.explicitSteps, nativeCurate, stableSessionId)
         val seenSlotIds = mutableSetOf<String>()
+        val legacyExercises = LinkedHashMap<String, ArrayDeque<Exercise>>()
+        legacySession?.allExercises()?.forEach { previous ->
+            legacyExercises.getOrPut(exerciseMatchKey(previous)) { ArrayDeque() }.addLast(previous)
+        }
         val exercises = day.slots.mapIndexed { index, slot ->
             // Dos slots con el mismo id no comparten ejercicio: caen al
             // IdProvider para que `allExercises()` nunca tenga duplicados.
@@ -928,6 +945,8 @@ object PlanMaterializer {
                 stableExerciseId = stableExerciseId,
                 recipeDayId = dayId,
                 referencePool = scope.referencePool,
+                referenceExerciseId = stableExerciseId
+                    ?: legacyExercises[slot.lift.configurationId + "|"]?.removeFirstOrNull()?.id,
             )
         }
         val parts = groupParts(day, exercises, idProvider, stableSessionId)
@@ -1043,6 +1062,7 @@ object PlanMaterializer {
         stableExerciseId: String? = null,
         recipeDayId: String? = null,
         referencePool: Map<String, List<PlanLoadReference>> = emptyMap(),
+        referenceExerciseId: String? = stableExerciseId,
     ): Exercise {
         val meta = metadata.metadata(slot.lift.configurationId)
             ?: error("Configuración '${slot.lift.configurationId}' sin metadata del catálogo")
@@ -1056,23 +1076,34 @@ object PlanMaterializer {
         val working = slot.sets.filter { !it.isWarmup }
         val warmups = slot.sets.filter { it.isWarmup }
         val usesPercent = working.any { it.percent != null } || warmups.any { it.percent != null }
-        val legacyReference = when (working.firstOrNull()?.loadBasis ?: slot.sets.firstOrNull()?.loadBasis) {
-            LoadBasis.PERCENT_1RM, LoadBasis.PERCENT_DESIRED_MAX -> oneRm
-            else -> tm
-        }
+        // Fracción de TM de la receta (0,90 = TM al 90 % del 1RM): con un 1RM y sin TM declarado, TM = 1RM × esta fracción.
+        val recipeTmFraction = PercentBasis.tmFraction(recipe.trainingMaxPercent)
         // §14.1: una referencia declarada en el set prevalece sobre la
         // resolución legacy por LiftSlot (que es de otra variante). La bolsa
         // del programa solo se consulta para ejercientes con identidad estable
         // y MISMA configuración/convención; los capturados ganan a los pendientes.
-        val explicit = working.firstNotNullOfOrNull { it.reference }
+        val declaredReferences = slot.sets.mapNotNull { it.reference }
+        val pooledReferences = referenceExerciseId?.let { referencePool[it].orEmpty() }.orEmpty()
+            .filter { it.configurationId == slot.lift.configurationId && it.side == null && it.metadata?.contextKey == null }
+        val originalExplicit = working.firstNotNullOfOrNull { it.reference }
             ?: slot.sets.firstNotNullOfOrNull { it.reference }
-             ?: resolvedPoolReference(
-                 pool = referencePool,
-                 stableExerciseId = stableExerciseId,
-                 configurationId = slot.lift.configurationId,
-                 explicitMetadata = slot.explicitReference,
-                 allowBilateralReference = !slot.isUnilateral,
-             )
+            ?: resolvedPoolReference(referencePool, referenceExerciseId, slot.lift.configurationId,
+                slot.explicitReference, allowBilateralReference = !slot.isUnilateral)
+        fun resolvedReference(request: PlanLoadReference): PlanLoadReference? =
+            ExerciseLoadReferenceStore.resolve(declaredReferences + pooledReferences, request)
+        val explicit = originalExplicit?.let { resolvedReference(it) ?: it }
+        // Capacity references coexist. A captured pool value also resolves a matching pending recipe reference.
+        fun capacityReference(kind: PlanLoadReferenceKind): PlanLoadReference? {
+            val convention = slot.explicitReference?.quantityConvention
+                ?.takeUnless { it == LoadQuantityConvention.UNSPECIFIED } ?: originalExplicit?.quantityConvention
+            val request = declaredReferences.firstOrNull { it.kind == kind }
+                ?: pooledReferences.filter { it.kind == kind && (convention == null || it.quantityConvention == convention) }
+                    .takeIf { refs -> refs.map { it.quantityConvention }.distinct().size <= 1 }?.lastOrNull()
+                ?: return null
+            return resolvedReference(request)
+        }
+        val oneRmReference = capacityReference(PlanLoadReferenceKind.EXERCISE_1RM)
+        val tmReference = capacityReference(PlanLoadReferenceKind.EXERCISE_TM)
         val declaredLoadConvention = slot.explicitReference?.quantityConvention
             ?.takeIf { it != LoadQuantityConvention.UNSPECIFIED }
             ?: working.firstNotNullOfOrNull { set ->
@@ -1080,7 +1111,7 @@ object PlanMaterializer {
             }
             ?: explicit?.quantityConvention?.takeIf { it != LoadQuantityConvention.UNSPECIFIED }
         val sideReferenceCandidates = if (slot.isUnilateral) {
-            stableExerciseId?.let { referencePool[it].orEmpty() }.orEmpty()
+            referenceExerciseId?.let { referencePool[it].orEmpty() }.orEmpty()
                 .filter {
                     it.configurationId == slot.lift.configurationId &&
                         it.side in setOf("left", "right") &&
@@ -1094,10 +1125,29 @@ object PlanMaterializer {
             sideReferenceCandidates.map { it.quantityConvention }.distinct().size <= 1 -> sideReferenceCandidates
             else -> emptyList()
         }
-        val baseLoadKg = if (explicit != null) {
-            referenceBaseKg(explicit)
-        } else {
-            legacyReference
+        // La base de carga se elige POR SERIE según su `loadBasis` (una receta puede mezclar %TM y %1RM en un
+        // mismo slot): PERCENT_1RM / PERCENT_DESIRED_MAX leen el 1RM; PERCENT_TM, PERCENT_OF_TOP_SET y el
+        // resto leen el TM, que sin TM declarado es 1RM × la fracción de TM de la receta. Nunca se deduce un
+        // 1RM desde un TM. Una referencia declarada de trabajo observado/lastre es la base de todas las series.
+        fun readsOneRm(basis: LoadBasis): Boolean =
+            basis == LoadBasis.PERCENT_1RM || basis == LoadBasis.PERCENT_DESIRED_MAX
+        val declaredOneRmKg = oneRmReference?.let(::referenceBaseKg)
+        val hasCapacityReference = oneRmReference != null || tmReference != null
+        val declaredTmKg: Double? = when {
+            tmReference != null -> referenceBaseKg(tmReference)
+            declaredOneRmKg != null -> declaredOneRmKg * recipeTmFraction
+            explicit == null -> tm
+            else -> null
+        }
+        fun baseLoadKgFor(set: SetRecipe): Double? {
+            val direct = set.reference?.takeIf { it.kind in setOf(
+                PlanLoadReferenceKind.OBSERVED_WORKING_SET, PlanLoadReferenceKind.BODYWEIGHT_EXTERNAL) }
+                ?.let { resolvedReference(it) ?: it }
+                ?: explicit?.takeIf { it.kind in setOf(
+                    PlanLoadReferenceKind.OBSERVED_WORKING_SET, PlanLoadReferenceKind.BODYWEIGHT_EXTERNAL) }
+            if (direct != null) return referenceBaseKg(direct)
+            if (hasCapacityReference) return if (readsOneRm(set.loadBasis)) declaredOneRmKg else declaredTmKg
+            return if (explicit == null) { if (readsOneRm(set.loadBasis)) oneRm else tm } else null
         }
         val directWorkingLoadKg = explicit
             ?.takeIf { reference ->
@@ -1108,13 +1158,10 @@ object PlanMaterializer {
             }
             ?.capturedLoadKg
             ?.takeIf { it > 0.0 }
-        // H10: 1RM de referencia con el que `materializeSet` acota la carga de `WeeklyKg`. Sin referencia
-        // declarada es el 1RM del perfil (o, si solo hay TM, el TM entre la fracción de TM de la receta); con
-        // una referencia declarada solo vale la de un 1RM capturado, igual que `Exercise.reference1RM`.
-        val weeklyKgOneRmKg: Double? = when {
-            explicit == null -> oneRm ?: tm?.takeIf { it > 0.0 }?.let { it / PercentBasis.tmFraction(recipe.trainingMaxPercent) }
-            explicit.kind == PlanLoadReferenceKind.EXERCISE_1RM && explicit.state == PlanLoadReferenceState.CAPTURED ->
-                explicit.capturedLoadKg?.takeIf { it > 0.0 }
+        // H10 only clamps WeeklyKg when an actual 1RM reference exists. A stored TM is not evidence of 1RM;
+        // dividing it by a recipe fraction must not invent a capacity or a safety limit.
+        val weeklyKgOneRmKg: Double? = if (hasCapacityReference) declaredOneRmKg else when {
+            explicit == null -> oneRm
             else -> null
         }
         val sets = working.mapIndexed { index, set ->
@@ -1122,7 +1169,7 @@ object PlanMaterializer {
                 set = set,
                 slot = slot,
                 week = week,
-                tm = baseLoadKg,
+                tm = baseLoadKgFor(set),
                 idProvider = idProvider,
                 stableSetId = stableExerciseId?.let { "$it#set:$index" },
                 progression = recipe.progression,
@@ -1142,7 +1189,7 @@ object PlanMaterializer {
             sets
         } else {
             sets.map { set ->
-                if (set.isCalibrator || set.isTopSet || set.isDropSet || set.isRestPause || set.isAmrap) set
+                if (set.purpose.isAmrap || set.isTopSet || set.isDropSet || set.isRestPause) set
                 else set.copy(manualLoadRequiredSides = set.manualLoadRequiredSides + manualLoadSides)
             }
         }.mapIndexed { index, set ->
@@ -1201,7 +1248,7 @@ object PlanMaterializer {
             addAll(meta?.let { emptyList() } ?: emptyList())
             slot.technique?.let { add(it.executionCue()) }
         }
-        return Exercise(
+        val materializedExercise = Exercise(
             id = stableExerciseId ?: idProvider.newId(),
             name = display,
             exerciseDbId = slot.lift.configurationId,
@@ -1217,10 +1264,11 @@ object PlanMaterializer {
             // `reference1RM` sigue significando 1RM: sin referencia declarada el
             // valor legacy; con referencia declarada SOLO si es 1RM capturado.
             // Una carga de trabajo de 3-5 reps JAMÁS acá (§14.2).
-            reference1RM = when {
-                explicit == null -> legacyReference
-                explicit.kind == PlanLoadReferenceKind.EXERCISE_1RM &&
-                    explicit.state == PlanLoadReferenceState.CAPTURED -> explicit.capturedLoadKg?.takeIf { it > 0.0 }
+            reference1RM = if (hasCapacityReference) declaredOneRmKg else if (explicit == null) oneRm else null,
+            referenceTrainingMax = when {
+                tmReference != null -> referenceBaseKg(tmReference)
+                oneRmReference != null -> declaredTmKg.takeIf { working.any { it.percent != null && !readsOneRm(it.loadBasis) } }
+                explicit == null -> tm
                 else -> null
             },
             variantName = slot.technique?.displayName(),
@@ -1247,6 +1295,10 @@ object PlanMaterializer {
             recipeSlotId = slot.id.takeIf { recipeDayId != null },
             nativeProgressionManaged = nativeProgressionManaged,
         )
+        val apre = resolveLiveApreBlock(materializedExercise, recipe.id, recipe.progression is ProgressionRule.ApreXrm)
+        val marked = if (apre == null) materializedExercise else materializedExercise.copy(
+            apreBlock = ApreBlockReference(apre.variant.xrmReps, apre.setIds))
+        return consumeApreXrmReferences(marked, referencePool[referenceExerciseId ?: marked.id].orEmpty())
     }
 
     /**
@@ -1271,10 +1323,12 @@ object PlanMaterializer {
                     declaredConvention == LoadQuantityConvention.UNSPECIFIED ||
                     ref.quantityConvention == declaredConvention)
         }
-        val captured = candidates.firstOrNull {
-            it.state == PlanLoadReferenceState.CAPTURED && it.capturedLoadKg != null
-        }
-        return captured ?: candidates.firstOrNull { it.state == PlanLoadReferenceState.PENDING }
+        val compatible = candidates.filter { it.metadata?.contextKey == null }
+        return compatible.withIndex().filter { (_, ref) -> ref.state == PlanLoadReferenceState.CAPTURED &&
+            ref.capturedLoadKg?.let { it.isFinite() && it > 0.0 } == true }
+            .maxWithOrNull(compareBy<IndexedValue<PlanLoadReference>> { it.value.capturedAtMs ?: Long.MIN_VALUE }
+                .thenBy { it.value.metadata?.revision ?: 0 }.thenBy { it.index })?.value
+            ?: compatible.lastOrNull { it.state == PlanLoadReferenceState.PENDING }
     }
 
     /**
@@ -1342,7 +1396,7 @@ object PlanMaterializer {
         }
         val range = if (set.repsMin != null && set.repsMax != null) RepRange(set.repsMin, set.repsMax) else null
         val mode = when {
-            set.amrap -> IntensityMode.AMRAP
+            set.resolvedPurpose.isAmrap -> null
             percent != null -> IntensityMode.SOLO_RM
             set.rir != null -> IntensityMode.RIR
             set.rpe != null -> IntensityMode.RPE
@@ -1357,7 +1411,9 @@ object PlanMaterializer {
             intensityMode = mode,
             targetPercentageRM = percent,
             weight = weight,
-            isAmrap = set.amrap,
+            purpose = set.resolvedPurpose,
+            amrapMinimumReps = if (set.resolvedPurpose.isAmrap) set.effectiveAmrapMinimumReps else null,
+            calibrationScope = if (set.resolvedPurpose == SetPurpose.CALIBRATOR) set.calibrationScope ?: com.example.kpkn.data.models.CalibrationScope.SESSION else null,
             restAfterSeconds = slot.restSeconds,
             isTopSet = set.isTopSet,
             loadBasis = set.loadBasis,

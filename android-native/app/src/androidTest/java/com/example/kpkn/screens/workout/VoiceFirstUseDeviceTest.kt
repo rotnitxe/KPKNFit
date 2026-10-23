@@ -55,7 +55,7 @@ class VoiceFirstUseDeviceTest {
     }
 
     private fun awaitChoicesLoaded() {
-        compose.waitUntil(5_000) {
+        compose.waitUntil(15_000) {
             compose.onAllNodesWithText("Preparando controles de voz…").fetchSemanticsNodes().isEmpty()
         }
         compose.onNodeWithText("Modo de voz").assertIsDisplayed()

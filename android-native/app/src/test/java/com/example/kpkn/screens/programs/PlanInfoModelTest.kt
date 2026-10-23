@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.programs
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioType
@@ -771,7 +772,7 @@ class PlanInfoModelTest {
                 .sessions.single().exercises.single().series
         assertEquals(
             "1 × 5+ al 85 % de tu TM",
-            series(ExerciseSet(id = "a", targetReps = 5, isAmrap = true, targetPercentageRM = 85.0, loadBasis = LoadBasis.PERCENT_TM)),
+            series(ExerciseSet(id = "a", targetReps = 5, purpose = SetPurpose.AMRAP, amrapMinimumReps = 5, targetPercentageRM = 85.0, loadBasis = LoadBasis.PERCENT_TM)),
         )
         assertEquals(
             "5 × 5 al 70 % de tu 1RM",

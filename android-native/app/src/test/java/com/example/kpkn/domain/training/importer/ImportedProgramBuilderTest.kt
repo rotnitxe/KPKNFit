@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.training.importer
 
+import com.example.kpkn.data.exercises.catalogv2.catalogV2SelectionIssues
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.RepRange
@@ -8,8 +9,10 @@ import com.example.kpkn.data.models.SessionOrigin
 import com.example.kpkn.data.protocols.PlanProvenanceClass
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
+import com.example.kpkn.domain.training.importer.ExerciseNameMatcher
 import java.io.File
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -153,6 +156,64 @@ class ImportedProgramBuilderTest {
     }
 
     @Test
+    fun `ejercicios reconocidos del import quedan validos para la ficha v2`() {
+        val catalog = loadCatalog()
+        val matcher = ExerciseNameMatcher(catalog)
+        val names = listOf("Sentadilla", "Press banca")
+        val resolved = names.associateWith { name ->
+            val match = matcher.match(name)
+            assertTrue("$name debe conservar el reconocimiento de catálogo", match.isConfident)
+            assertNotNull(match.best)
+            match.best!!.configurationId
+        }
+        val qaDraft = ImportedProgramDraft(
+            title = "G3",
+            weeks = listOf(
+                ImportedWeek(
+                    index = 1,
+                    days = listOf(
+                        ImportedDay(
+                            id = "d1",
+                            name = "Día 1",
+                            exercises = listOf(
+                                ImportedExercise(
+                                    id = "sq",
+                                    rawName = "Sentadilla",
+                                    sets = 2,
+                                    repsMin = 5,
+                                    repsMax = 5,
+                                    loadKg = 60.0,
+                                ),
+                                ImportedExercise(
+                                    id = "bp",
+                                    rawName = "Press banca",
+                                    sets = 2,
+                                    repsMin = 8,
+                                    repsMax = 8,
+                                    loadKg = 40.0,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val program = ImportedProgramBuilder.build(
+            qaDraft,
+            resolved = resolved,
+            weekdays = listOf(1),
+            programId = "qa-g3",
+            catalog = catalog,
+        )
+        val session = program.firstWeekSessions().single()
+
+        assertEquals(names.size, session.exercises.size)
+        assertTrue(session.exercises.all { !it.occurrenceId.isNullOrBlank() })
+        assertTrue(session.catalogV2SelectionIssues().isEmpty())
+    }
+
+    @Test
     fun `sin catalogo una configuracion resuelta no cambia el ejercicio`() {
         val program = ImportedProgramBuilder.build(
             draft,
@@ -164,6 +225,7 @@ class ImportedProgramBuilderTest {
         val squat = program.firstWeekSessions()[0].exercises[0]
         assertEquals("Sentadilla", squat.name)
         assertNull(squat.catalogConfigurationId)
+        assertNull(squat.occurrenceId)
     }
 
     @Test

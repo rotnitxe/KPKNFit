@@ -79,6 +79,12 @@ internal fun GroupEditorCard(
     onDragEnd: () -> Unit,
     // Default must NOT commit (N2): cancel is a no-op unless the caller wires cancelPartDrag.
     onDragCancel: () -> Unit = {},
+    // D9 · movilidad de la sesión: el grupo de movilidad se edita dentro de su módulo.
+    onOpenPartMobility: () -> Unit = {},
+    onUpdatePartMobility: (String, (MobilitySeries) -> MobilitySeries) -> Unit = { _, _ -> },
+    onRemovePartMobility: (String) -> Unit = {},
+    onMovePartMobility: (String, Int) -> Unit = { _, _ -> },
+    onUpdatePartMobilityConfig: (MobilityConfig) -> Unit = {},
 ) {
     var showDeleteConfirm by remember(part.id) { mutableStateOf(false) }
     var showDeleteModeConfirm by remember(part.id) { mutableStateOf(false) }
@@ -89,6 +95,14 @@ internal fun GroupEditorCard(
     val exerciseCount = part.exercises.size
     val setCount = part.exercises.sumOf { it.sets.size }
     val summary = when {
+        part.isMobilityGroup -> {
+            val movements = part.mobilitySeries.size
+            val minutes = part.mobilityConfig?.totalMinutes?.takeIf { it > 0 }
+            buildString {
+                append(if (movements == 1) "1 movimiento" else "$movements movimientos")
+                if (minutes != null) append(" · $minutes min")
+            }
+        }
         exerciseCount == 0 -> "Sin ejercicios"
         else -> "$exerciseCount ejercicio${if (exerciseCount == 1) "" else "s"} · $setCount serie${if (setCount == 1) "" else "s"}"
     }
@@ -240,13 +254,12 @@ internal fun GroupEditorCard(
 
         if (part.isMobilityGroup && !collapsed) {
             MobilityGroupInlineEditor(
-                mobilitySeries = part.mobilitySeries,
-                mobilityConfig = part.mobilityConfig,
-                accentColor = WizardColors.text,
-                onAdd = {},
-                onRemove = {},
-                onUpdate = { _, _ -> },
-                onUpdateConfig = {},
+                part = part,
+                onAdd = onOpenPartMobility,
+                onRemove = onRemovePartMobility,
+                onUpdate = onUpdatePartMobility,
+                onMove = onMovePartMobility,
+                onUpdateConfig = onUpdatePartMobilityConfig,
             )
         }
     }
@@ -309,43 +322,53 @@ internal fun GroupEditorCard(
 }
 
 /**
- * Editor de la movilidad global de un grupo de movilidad: el mismo carrusel compacto que un ejercicio, dentro del módulo, con su ceja. Es de
- * solo lectura, como antes: los grupos de movilidad los crea el generador.
+ * D9 · movilidad de la sesión: el grupo de movilidad se edita dentro de su módulo con las mismas fichas 85 × 76 que
+ * el ejercicio (H2) y con el tiempo global, el catálogo, la reordenación, la dosis y el quitar dentro del grupo.
  */
 @Composable
 private fun MobilityGroupInlineEditor(
-    mobilitySeries: List<MobilitySeries>,
-    mobilityConfig: MobilityConfig?,
-    accentColor: androidx.compose.ui.graphics.Color,
+    part: SessionPart,
     onAdd: () -> Unit,
     onRemove: (String) -> Unit,
     onUpdate: (String, (MobilitySeries) -> MobilitySeries) -> Unit,
+    onMove: (String, Int) -> Unit,
     onUpdateConfig: (MobilityConfig) -> Unit,
 ) {
     Column(
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+        modifier = Modifier
+            .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+            .testTag("session-mobility-group"),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text(
-            "Movilidad global · ${mobilitySeries.size} movimiento${if (mobilitySeries.size == 1) "" else "s"}",
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-        )
-        if (mobilitySeries.isEmpty()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             Text(
-                "Añade movimientos para programar series, repeticiones y un tiempo global.",
+                "Movilidad global · ${part.mobilitySeries.size} movimiento${if (part.mobilitySeries.size == 1) "" else "s"}",
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
+                modifier = Modifier.weight(1f),
             )
-        } else {
-            MobilityPreparationCarousel(
-                series = mobilitySeries,
-                mobilityConfig = mobilityConfig,
-                accentColor = accentColor,
-                onUpdate = onUpdate,
+            MobilityGlobalTimeButton(
+                mobilityConfig = part.mobilityConfig,
                 onUpdateConfig = onUpdateConfig,
-                onRemove = onRemove,
-                onAdd = onAdd,
+            )
+        }
+        MobilityPreparationChips(
+            exerciseId = part.id,
+            series = part.mobilitySeries,
+            onUpdate = onUpdate,
+            onMove = onMove,
+            onRemove = onRemove,
+            onAdd = onAdd,
+        )
+        if (part.mobilitySeries.isEmpty()) {
+            Text(
+                "Sin movimientos. Elige uno del catálogo.",
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
             )
         }
     }

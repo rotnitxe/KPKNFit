@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.repository.withConfirmedExerciseReferences
 import com.example.kpkn.data.exercises.isExerciseCatalogV2RuntimeReady
 import com.example.kpkn.data.exercises.catalogv2.catalogV2SelectionIssues
 
@@ -26,26 +27,75 @@ fun SessionEditorViewModel.clearSnackbarMessage() {
     updateUi { it.copy(snackbarMessage = null) }
 }
 
+/** UI-only metrics may change during IO; authored content and new user actions must win. */
+private fun SessionEditorViewModel.navigationSourceChanged(snapshot: SessionEditorUiState): Boolean {
+    val latest = currentUiState
+    val changedDraft = latest.hasUnsavedChanges && (
+        !sameSessionEditorContent(latest.session, snapshot.session) ||
+            latest.ruleDefaults != snapshot.ruleDefaults ||
+            latest.partRuleDefaults != snapshot.partRuleDefaults ||
+            latest.ruleLimits != snapshot.ruleLimits ||
+            latest.pendingTransferToDays != snapshot.pendingTransferToDays
+        )
+    if (!changedDraft && latest.activeVariant == snapshot.activeVariant &&
+        latest.pendingExerciseRemoval == snapshot.pendingExerciseRemoval && latest.sheet == snapshot.sheet
+    ) return false
+    updateUi { it.copy(snackbarMessage = "La sesión cambió mientras se abría otro día. Tus cambios siguen aquí; vuelve a elegir el destino.") }
+    return true
+}
+
 fun SessionEditorViewModel.setMainSessionForDay(sessionId: String) {
-    val state = currentUiState
-    val program = repository.getProgramById(programId) ?: return
-    val day = state.dayOfWeek ?: return
-    val updated = program.macrocycles.map { macro ->
-        macro.copy(blocks = macro.blocks.map { block ->
-            block.copy(mesocycles = block.mesocycles.map { meso ->
-                meso.copy(weeks = meso.weeks.map { week ->
-                    if (week.id != state.weekId) return@map week
-                    week.copy(sessions = week.sessions.map { session ->
-                        if (session.dayOfWeek != day) session
-                        else session.copy(isMainSession = session.id == sessionId)
-                    })
-                })
-            })
-        })
+    val sourceId = currentUiState.session?.id ?: return
+    viewModelScope.launch {
+        if (currentUiState.session?.id != sourceId) return@launch
+        flushProgramAutoSaveAndAwait()
+        val state = currentUiState
+        val day = state.dayOfWeek ?: return@launch
+        if (state.hasUnsavedChanges && !persistRecoverableSession(state)) {
+            updateUi { it.copy(snackbarMessage = "No se pudo guardar el borrador; la sesión principal no cambió.") }
+            return@launch
+        }
+        val saved = try {
+            withContext(Dispatchers.IO) {
+                repository.mutateProgramNow(programId) { program ->
+                    val week = findWeek(program, state.macroIndex, state.mesoIndex, state.weekId)
+                    if (week?.sessions?.none { it.id == sessionId && it.dayOfWeek == day } != false) {
+                        return@mutateProgramNow null
+                    }
+                    program.updateWeekSessions(state.macroIndex, state.mesoIndex, state.weekId) { sessions ->
+                        sessions.map { session ->
+                            if (session.dayOfWeek == day) session.copy(isMainSession = session.id == sessionId) else session
+                        }
+                    }
+                }
+            }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Throwable) {
+            false
+        }
+        if (!saved) {
+            updateUi { it.copy(snackbarMessage = "No se pudo actualizar la sesión principal. Tus cambios se conservaron.") }
+            return@launch
+        }
+        if (currentUiState.session?.id != sourceId || currentUiState.weekId != state.weekId) return@launch
+        // Keep the dirty draft's content, but synchronize the main-session metadata.
+        updateUi {
+            it.copy(
+                session = it.session?.copy(isMainSession = sourceId == sessionId),
+                originalSession = it.originalSession?.copy(isMainSession = sourceId == sessionId),
+                snackbarMessage = "Sesión principal actualizada",
+            )
+        }
+        commitPendingExerciseRemoval()
+        val leavingState = currentUiState
+        if (leavingState.hasUnsavedChanges && !persistRecoverableSession(leavingState)) {
+            updateUi { it.copy(snackbarMessage = "La principal cambió, pero no se pudo guardar el borrador; tus cambios siguen en pantalla.") }
+            return@launch
+        }
+        if (navigationSourceChanged(leavingState)) return@launch
+        switchToSession(sessionId)
     }
-    repository.updateProgram(program.copy(macrocycles = updated))
-    updateUi { it.copy(snackbarMessage = "Sesión principal actualizada") }
-    switchToSession(sessionId)
 }
 
 fun SessionEditorViewModel.requestSessionSwitch(
@@ -54,12 +104,14 @@ fun SessionEditorViewModel.requestSessionSwitch(
     targetMacroIndex: Int? = null,
     targetMesoIndex: Int? = null,
 ) {
+        if (currentUiState.session?.id == targetSessionId) return
+        commitPendingExerciseRemoval()
         val state = currentUiState
-        if (state.session?.id == targetSessionId) return
         if (state.hasUnsavedChanges) {
             // ER1a: antes de cambiar, lo pendiente se guarda en el programa. Si el cortafuegos lo bloquea, el borrador local lo conserva.
             viewModelScope.launch {
                 flushProgramAutoSaveAndAwait()
+                commitPendingExerciseRemoval()
                 val pending = currentUiState
                 val ok = !pending.hasUnsavedChanges ||
                     withContext(Dispatchers.IO) { persistRecoverableSession(pending) }
@@ -67,6 +119,7 @@ fun SessionEditorViewModel.requestSessionSwitch(
                     updateUi { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
                     return@launch
                 }
+                if (navigationSourceChanged(pending)) return@launch
                 switchToSession(targetSessionId, targetWeekId, targetMacroIndex, targetMesoIndex)
             }
             return
@@ -88,11 +141,13 @@ fun SessionEditorViewModel.selectRoadmapDay(dayOfWeek: Int): SessionEditorSaveRe
 }
 
 fun SessionEditorViewModel.createSessionForDay(dayOfWeek: Int): SessionEditorSaveResult {
+    commitPendingExerciseRemoval()
     val state = currentUiState
     if (state.hasUnsavedChanges) {
         // ER1a: lo pendiente se guarda en el programa antes de crear la sesión del día.
         viewModelScope.launch {
             flushProgramAutoSaveAndAwait()
+            commitPendingExerciseRemoval()
             val pending = currentUiState
             val ok = !pending.hasUnsavedChanges ||
                 withContext(Dispatchers.IO) { persistRecoverableSession(pending) }
@@ -100,6 +155,7 @@ fun SessionEditorViewModel.createSessionForDay(dayOfWeek: Int): SessionEditorSav
                 updateUi { it.copy(snackbarMessage = "Error al guardar el borrador de la sesión actual") }
                 return@launch
             }
+            if (navigationSourceChanged(pending)) return@launch
             completeCreateSessionForDay(dayOfWeek)
         }
         return SessionEditorSaveResult(success = true, message = "")
@@ -124,11 +180,24 @@ private fun SessionEditorViewModel.completeCreateSessionForDay(dayOfWeek: Int): 
         return SessionEditorSaveResult(success = false, message = "No pudimos crear la sesión en esta semana.")
     }
 
+    invalidateInitialSessionLoadForSwitch()
+    invalidateDraftWritesFor(state)
+    sessionSwitchGeneration++
+    val updatedProgram = repository.getProgramById(programId)
+
     updateUi {
         val updatedWeekSessions = ensureSessionInList(it.weekSessions, newSession)
         it.copy(
             session = newSession,
             originalSession = newSession,
+            activeVariant = WeekVariant.A,
+            availableVariants = listOf(WeekVariant.A),
+            pendingExerciseRemoval = null,
+            collapsedPartIds = emptySet(),
+            selectedExercisesIds = emptySet(),
+            targetDurationMinutes = null,
+            cloneDayOptions = updatedProgram?.let { program -> buildCloneDayOptions(program, newSession.id) }.orEmpty(),
+            cloneSourceOptions = updatedProgram?.let { program -> buildCloneSourceOptions(program, newSession.id) }.orEmpty(),
             dayOfWeek = dayOfWeek,
             isNewSession = true,
             selectedSiblingSessionId = newSession.id,
@@ -149,6 +218,7 @@ private fun SessionEditorViewModel.completeCreateSessionForDay(dayOfWeek: Int): 
             draftBundle = it.draftBundle?.copy(sessionId = newSession.id, dayOfWeek = dayOfWeek),
             snackbarMessage = "Sesión creada para ${dayLabel(dayOfWeek)}",
             strengthSpaceCommitted = false,
+            cardioSpaceCommitted = false,
             cardioSpacePlacement = null,
         )
     }
@@ -247,6 +317,7 @@ internal fun SessionEditorViewModel.switchToSession(
     val resolvedMacroIndex = located.macroIndex
     val resolvedMesoIndex = located.mesoIndex
     val weekSessions = located.week.sessions
+    val sourceAtRequest = currentUiState
     invalidateInitialSessionLoadForSwitch()
     invalidateDraftWritesFor(currentUiState)
     val generation = ++sessionSwitchGeneration
@@ -264,7 +335,13 @@ internal fun SessionEditorViewModel.switchToSession(
             Triple(draft, history, preferences)
         }
         if (generation != sessionSwitchGeneration) return@launch
-        val resolvedSession = resolveNewestSession(located.session, located.session, persistedDraft)
+        if (navigationSourceChanged(sourceAtRequest)) return@launch
+        val resolvedSession = SupersetRules.normalizeSession(
+            com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler.normalizeSessionStructure(
+                resolveNewestSession(located.session, located.session, persistedDraft)
+                    .normalizeEditorScheduledTechniques().normalizeMobilityCompatibility().normalizedIdentityFields(),
+            ),
+        )
         val resolvedWeekSessions = ensureSessionInList(weekSessions, resolvedSession)
         val roadmapOptions = buildRoadmapOptions(program)
         val cloneDayOptions = buildCloneDayOptions(program, currentSessionId = resolvedSession.id)
@@ -273,7 +350,11 @@ internal fun SessionEditorViewModel.switchToSession(
         updateUi {
             it.copy(
                 session = resolvedSession,
-                originalSession = located.session,
+                originalSession = SupersetRules.normalizeSession(located.session
+                    .normalizeEditorScheduledTechniques().normalizeMobilityCompatibility().normalizedIdentityFields()),
+                isNewSession = false,
+                loadErrorMessage = null,
+                pendingExerciseRemoval = null,
                 weekId = resolvedWeekId,
                 macroIndex = resolvedMacroIndex,
                 mesoIndex = resolvedMesoIndex,
@@ -308,6 +389,7 @@ internal fun SessionEditorViewModel.switchToSession(
                 activeVariant = WeekVariant.A,
                 pendingTransferToDays = persistedDraft?.pendingTransferToDays,
                 strengthSpaceCommitted = false,
+                cardioSpaceCommitted = false,
                 cardioSpacePlacement = null,
             )
         }
@@ -338,6 +420,7 @@ suspend fun SessionEditorViewModel.saveSession(
     // ER1a: el guardado automático no cierra la hoja que la persona tiene abierta.
     autoSave: Boolean = false,
 ): SessionEditorSaveResult {
+    if (!autoSave) commitPendingExerciseRemoval()
     val state = currentUiState
     val rawDraft = state.session ?: return SessionEditorSaveResult(false, "No hay una sesión activa para guardar.")
     if (!state.hasMeaningfulSessionChanges()) {
@@ -475,7 +558,9 @@ suspend fun SessionEditorViewModel.saveSession(
                         transferOutcome = transfers
                         val written = transfers?.program ?: updatedProgram
                         val frozenSource = freezeManualEdits(written, state, draft, effectiveScope, templateOverrideIds)
-                        val candidate = transfers?.copy(program = frozenSource)?.freezeTransferredSessionOverrides() ?: frozenSource
+                        val frozen = transfers?.copy(program = frozenSource)?.freezeTransferredSessionOverrides() ?: frozenSource
+                        val candidate = repository.withConfirmedExerciseReferences(current, frozen, draft.allExercises(),
+                            System.currentTimeMillis(), "editor:${UUID.randomUUID()}", "Referencia confirmada al guardar la sesión")
                         candidateProgram = candidate
                         candidate
                     }

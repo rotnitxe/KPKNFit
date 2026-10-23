@@ -126,7 +126,9 @@ fun ExerciseSet.copyPlannedValueFrom(
         targetRIR = source.targetRIR,
         intensityMode = source.intensityMode,
         isFailure = source.isFailure,
-        isAmrap = source.isAmrap,
+        purpose = source.purpose,
+        amrapMinimumReps = source.amrapMinimumReps,
+        calibrationScope = source.calibrationScope,
         weight = source.weight,
         loadModeV2 = source.loadModeV2,
     )

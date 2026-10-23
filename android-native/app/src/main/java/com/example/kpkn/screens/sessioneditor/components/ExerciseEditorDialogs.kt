@@ -33,6 +33,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.domain.calculations.missingPercentReferences
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.components.sheets.formatDecimalComma
@@ -41,7 +42,6 @@ import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.smartReferenceMetricLabel
 import com.example.kpkn.screens.sessioneditor.components.sheets.EditorDialogImeArea
 import com.example.kpkn.ui.components.KpknAlertConfirmButton
-import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknAlertDismissButton
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknPrimaryPill
@@ -123,8 +123,9 @@ internal fun ExerciseSmartLoadDialog(
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    var trainingMaxInput by remember(exercise.id) { mutableStateOf(exercise.referenceTrainingMax?.toString().orEmpty()) }
 EditorDialogImeArea {
-KpknAlertDialog(
+EditorSheetDialog(
     onDismissRequest = { onDismiss() },
     title = { Text("Carga inteligente", style = KpknType.dialogTitle, color = WizardColors.text) },
     text = {
@@ -140,13 +141,23 @@ KpknAlertDialog(
                 color = WizardColors.textMuted,
             )
             if (exercise.trainingMode == TrainingMode.REPS || exercise.trainingMode == TrainingMode.RM) {
+                if (exercise.sets.any { it.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM }) {
+                    EditorKpknField(
+                        label = "Training max (TM)", value = trainingMaxInput,
+                        keyboardType = KeyboardType.Decimal, modifier = Modifier.fillMaxWidth(),
+                    ) { input ->
+                        trainingMaxInput = input
+                        val parsed = input.safeDoubleOrNull()?.takeIf { it > 0.0 }
+                        onUpdateExercise { current -> current.copy(referenceTrainingMax = parsed) }
+                    }
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     KpknChip(text = "RM directo", selected = rmInputMode == "direct", onClick = { onRmInputModeChange("direct") })
                     KpknChip(text = "Desde PR", selected = rmInputMode == "pr", onClick = { onRmInputModeChange("pr") })
                 }
                 if (rmInputMode == "direct") {
                     EditorKpknField(
-                        label = "RM referencial",
+                        label = "1RM referencial",
                         value = directRmInput,
                         keyboardType = KeyboardType.Decimal,
                         modifier = Modifier.fillMaxWidth(),
@@ -240,8 +251,16 @@ KpknAlertDialog(
                     }
                 }
             }
-            val needsRmReference = exercise.sets.any { it.targetPercentageRM != null } && resolved1RM == null
-            if (needsRmReference) {
+            // Cada base avisa de SU falta: un TM no sustituye a un 1RM ni al revés.
+            val missing = missingPercentReferences(exercise, resolved1RM)
+            if (missing.trainingMax) {
+                Text(
+                    "Falta el TM para las series en %TM. Escríbelo arriba: el 1RM no lo sustituye.",
+                    style = KpknType.caption,
+                    color = WizardColors.danger,
+                )
+            }
+            if (missing.oneRm) {
                 Text(
                     "Falta referencia para %RM. Agrega RM directo o PR para autocompletar cargas.",
                     style = KpknType.caption,
@@ -267,7 +286,7 @@ internal fun ExerciseGoalDialog(
     imeInsets: WindowInsets = WindowInsets.ime,
 ) {
 EditorDialogImeArea(imeInsets = imeInsets) {
-KpknAlertDialog(
+EditorSheetDialog(
     onDismissRequest = { onDismiss() },
     title = { Text("Meta", style = KpknType.dialogTitle, color = WizardColors.text) },
     text = {
@@ -336,7 +355,7 @@ internal fun ExerciseCustomUnitDialog(
     imeInsets: WindowInsets = WindowInsets.ime,
 ) {
 EditorDialogImeArea(imeInsets = imeInsets) {
-KpknAlertDialog(
+EditorSheetDialog(
     onDismissRequest = { onDismiss() },
     title = { Text("Unidad Personalizada", style = KpknType.dialogTitle, color = WizardColors.text) },
     text = {

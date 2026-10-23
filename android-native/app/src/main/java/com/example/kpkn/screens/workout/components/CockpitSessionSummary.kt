@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
+import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +35,8 @@ import com.example.kpkn.screens.workout.displayWorkoutExerciseName
 import com.example.kpkn.ui.design.KpknSetFormat
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import java.text.NumberFormat
@@ -55,6 +58,10 @@ internal fun CockpitSessionSummary(
     ringPreview: PostSessionPreview?,
     onSelectExercise: (String) -> Unit,
     onSelectSuperset: (String) -> Unit,
+    onOpenExerciseOptions: ((String) -> Unit)? = null,
+    onOpenSupersetOptions: ((String) -> Unit)? = onOpenExerciseOptions,
+    calibratedLoads: Map<String, Double> = emptyMap(),
+    onAddExercise: (() -> Unit)? = null,
 ) {
     val metrics = remember(exercises, completedSets, completedExercises, omittedSetKeys, liveEnergySummary, bodyWeight) {
         cockpitSessionMetrics(exercises, completedSets, completedExercises, omittedSetKeys, liveEnergySummary, bodyWeight)
@@ -121,17 +128,33 @@ internal fun CockpitSessionSummary(
                 groupId != null -> "${supersetGroups.firstOrNull { it.id == groupId }?.rounds ?: members.maxOf { it.sets.size }} rondas"
                 else -> "$total series"
             }
-            Column(
+            Row(
                 modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
-                    .clickable(role = Role.Button) {
+                    .testTag("live-route-${groupId ?: members.first().id}"),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f).clickable(role = Role.Button) {
                         if (groupId != null && members.size > 1) onSelectSuperset(groupId) else onSelectExercise(members.first().id)
                     }.padding(vertical = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(title, style = KpknType.bodyStrong, color = if (current) WizardColors.text else WizardColors.textMuted)
-                Text(status, style = KpknType.caption, color = if (complete) SymbolPalette.ok else WizardColors.textMuted)
+                    verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(title, style = KpknType.bodyStrong, color = if (current) WizardColors.text else WizardColors.textMuted)
+                    Text(status, style = KpknType.caption, color = if (complete) SymbolPalette.ok else WizardColors.textMuted)
+                    members.forEach { member -> member.sets.indices.forEach { index ->
+                        listOf(null, "left", "right").forEach { side ->
+                            calibratedLoads[com.example.kpkn.screens.workout.workoutSetKey(member.id, index, side)]?.let { load ->
+                                Text("S${index + 1}${side?.let { if(it == "left") " L" else " R" }.orEmpty()} · ${com.example.kpkn.screens.workout.finishNumber(load)} kg · calibrada",
+                                    style = KpknType.caption, color = WizardColors.textMuted)
+                            }
+                        }
+                    } }
+                }
+                val options = if (groupId != null && members.size > 1) onOpenSupersetOptions else onOpenExerciseOptions
+                options?.let { open ->
+                    KpknIconButton(KpknLineIcons.More, "Opciones de $title", { open(members.first().id) })
+                }
             }
         }
+        onAddExercise?.let { add -> HeaderSheetAction("Añadir ejercicio", add, Modifier.fillMaxWidth()) }
     }
 }
 

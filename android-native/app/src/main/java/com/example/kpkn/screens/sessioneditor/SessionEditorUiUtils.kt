@@ -165,14 +165,29 @@ internal fun SessionPart.isEditorUncategorized(): Boolean =
 internal fun resolveRelationshipAnchorName(
     session: Session,
     exercise: Exercise,
+    programCandidates: List<ProgramExerciseCandidate> = emptyList(),
 ): String? {
     val anchorId = exercise.relativeToCanonicalExerciseId ?: return null
-    return session.allExercises()
+    val sessionName = session.allExercises()
         .firstOrNull { candidate ->
             candidate.id != exercise.id && candidate.resolvedCanonicalExerciseId() == anchorId
         }
         ?.name
-        ?: anchorId
+        ?.trim()
+        ?.takeIf { it.isNotBlank() && !it.equals(anchorId, ignoreCase = true) }
+    val programName = programCandidates.firstOrNull { candidate ->
+        if (candidate.exerciseId == exercise.id) return@firstOrNull false
+        val anchor = Exercise(
+            id = candidate.exerciseId,
+            name = candidate.exerciseName,
+            exerciseDbId = candidate.exerciseDbId,
+        )
+        val name = candidate.exerciseName.trim()
+        anchor.resolvedCanonicalExerciseId() == anchorId &&
+            name.isNotBlank() &&
+            !name.equals(anchorId, ignoreCase = true)
+    }?.exerciseName?.trim()
+    return sessionName ?: programName?.takeIf(String::isNotBlank)
 }
 
 internal fun formatHistoryTimestamp(timestampMs: Long): String {

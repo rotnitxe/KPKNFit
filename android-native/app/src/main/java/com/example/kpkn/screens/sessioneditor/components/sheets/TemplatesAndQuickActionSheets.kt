@@ -2,6 +2,7 @@ package com.example.kpkn.screens.sessioneditor.components.sheets
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,8 +33,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.data.models.*
@@ -42,6 +48,10 @@ import com.example.kpkn.data.sessions.SessionTemplateApplyDecision
 import com.example.kpkn.data.sessions.SessionTemplateApplyMode
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.screens.onboarding.design.entreno.plan.PatternGlyph
+import com.example.kpkn.screens.onboarding.design.entreno.plan.exercisePatternOf
+import com.example.kpkn.screens.sessioneditor.design.CardioTypeIcon
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
 import com.example.kpkn.screens.sessioneditor.components.CatalogInvolvementAccordions
 import com.example.kpkn.screens.sessioneditor.components.resolveCatalogExerciseV2
@@ -148,28 +158,10 @@ internal fun TemplatesSheet(
         }
     }
     if (applyDecision != null) {
-        KpknAlertDialog(
-            onDismissRequest = onCancelApply,
-            title = { Text("Aplicar plantilla", style = KpknType.dialogTitle, color = WizardColors.text) },
-            text = {
-                Text(
-                    "La sesión ya tiene ejercicios. ¿Qué deseas hacer con la plantilla \"${applyDecision.template.name}\"?",
-                    style = KpknType.body,
-                    color = WizardColors.textMuted,
-                )
-            },
-            confirmButton = {
-                KpknPrimaryPill(
-                    text = "Reemplazar",
-                    onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.REPLACE) },
-                )
-            },
-            dismissButton = {
-                KpknTextAction(
-                    text = "Añadir al final",
-                    onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.APPEND) },
-                )
-            },
+        TemplateApplyDialog(
+            decision = applyDecision,
+            onDismiss = onCancelApply,
+            onApply = onConfirmApplyTemplate,
         )
     }
 }
@@ -233,6 +225,15 @@ internal fun ExerciseQuickActionsSheet(
             selectedInfo?.variantName,
         ).filter { it.isNotBlank() }.distinct()
     }
+    // D1: la misma línea que la fila de la sesión («4 × 4–6 · RIR 2 · 3:00»); los huecos de ronda no son series.
+    val workingSets = exercise.sets.filterNot { it.isEmptySlot }
+    val firstSet = workingSets.firstOrNull()
+    val quickSummary = buildList {
+        if (workingSets.isNotEmpty()) add(exerciseDoseSummary(exercise.copy(sets = workingSets)))
+        firstSet?.targetRIR?.let { add("RIR $it") }
+        if (firstSet?.targetRIR == null) firstSet?.targetRPE?.let { add("RPE ${formatDecimalComma(it)}") }
+        exercise.restTime?.takeIf { it > 0 }?.let { add(com.example.kpkn.ui.design.KpknSetFormat.rest(it)) }
+    }.joinToString(" · ")
 
     Column(
         modifier = Modifier
@@ -242,16 +243,39 @@ internal fun ExerciseQuickActionsSheet(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            "Información del ejercicio",
-            style = KpknType.bodyStrong,
-            color = WizardColors.textMuted,
-        )
-        Text(
-            exercise.name,
-            style = KpknType.title,
-            color = WizardColors.text,
-        )
+        // D1: la cabecera del tablero: ficha de 52 dp con el patrón (o la máquina de cardio), el nombre y el resumen de la prescripción.
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
+                    .background(KpknSurface.inset),
+                contentAlignment = Alignment.Center,
+            ) {
+                val cardioType = exercise.cardioDetails?.type
+                if (cardioType != null) {
+                    CardioTypeIcon(type = cardioType, tint = WizardColors.text, size = 29.dp)
+                } else {
+                    PatternGlyph(
+                        pattern = remember(exercise.name) { exercisePatternOf(exercise.name) },
+                        accent = SymbolPalette.ink,
+                        modifier = Modifier.size(29.dp),
+                    )
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    exercise.name,
+                    style = KpknType.bodyStrong.copy(fontSize = 17.sp),
+                    color = WizardColors.text,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (quickSummary.isNotEmpty()) {
+                    Text(quickSummary, style = KpknType.caption, color = WizardColors.textMuted)
+                }
+            }
+        }
         if (tags.isNotEmpty()) {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 items(tags, key = { it }) { tag ->
@@ -268,9 +292,8 @@ internal fun ExerciseQuickActionsSheet(
             }
         }
 
-        // Las acciones van justo debajo del nombre: con siete filas, la descripción larga no debe empujarlas fuera de la hoja.
-        KpknModule(contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)) {
-            ExerciseQuickActionRows(
+        // D1: seis accesos en cuadrícula y la acción destructiva separada.
+        ExerciseQuickActionRows(
                 isInSuperset = exercise.isInSuperset(),
                 onOpenExerciseDetail = { onOpenExerciseDetail(exercise.id) },
                 onOpenPicker = onOpenPicker,
@@ -280,8 +303,7 @@ internal fun ExerciseQuickActionsSheet(
                 onDuplicate = onDuplicate,
                 // ER1f: sin diálogo; el borrado es blando, con «Deshacer» en la lista (como deslizar un ejercicio).
                 onRequestDelete = onDelete,
-            )
-        }
+        )
 
         // Descripción exacta del catálogo (o del catálogo de cardio)
         val exactDescription = if (exercise.cardioDetails != null) {
@@ -330,56 +352,59 @@ internal fun ExerciseQuickActionRows(
     onDuplicate: () -> Unit,
     onRequestDelete: () -> Unit,
 ) {
-    SessionSheetActionRow(
-        icon = KpknLineIcons.Info,
-        label = "Ficha",
-        tag = "quick-action-ficha",
-        onClick = onOpenExerciseDetail,
-    )
-    SessionSheetDivider()
-    SessionSheetActionRow(
-        icon = KpknLineIcons.Swap,
-        label = "Cambiar",
-        tag = "quick-action-cambiar",
-        onClick = onOpenPicker,
-    )
-    SessionSheetDivider()
-    SessionSheetActionRow(
-        icon = KpknLineIcons.Flame,
-        label = "+ Aproximación",
-        tag = "quick-action-aproximacion",
-        onClick = onOpenWarmup,
-    )
-    SessionSheetDivider()
-    SessionSheetActionRow(
-        icon = KpknLineIcons.Joint,
-        label = "+ Movilidad",
-        tag = "quick-action-movilidad",
-        onClick = onOpenMobility,
-    )
-    SessionSheetDivider()
-    SessionSheetActionRow(
-        icon = KpknLineIcons.Link,
-        label = if (isInSuperset) "Gestionar superserie" else "Crear superserie",
-        tag = "quick-action-superserie",
-        onClick = onManageSuperset,
-    )
-    SessionSheetDivider()
-    SessionSheetActionRow(
-        icon = KpknLineIcons.Layers,
-        label = "Duplicar ejercicio",
-        tag = "quick-action-duplicar",
-        onClick = onDuplicate,
-    )
-    SessionSheetDivider()
-    SessionSheetActionRow(
-        icon = KpknLineIcons.Trash,
-        label = "Eliminar",
-        tag = "quick-action-eliminar",
-        danger = true,
-        onClick = onRequestDelete,
-    )
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Con la letra grande, dos columnas: «+ Aproximación» no cabe en una celda de un tercio sin cortarse.
+        val columns = if (androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.15f) 2 else 3
+        listOf(
+            QuickAction(KpknLineIcons.Info, "Ficha", "quick-action-ficha", onOpenExerciseDetail),
+            QuickAction(KpknLineIcons.Swap, "Cambiar", "quick-action-cambiar", onOpenPicker),
+            QuickAction(KpknLineIcons.Flame, "+ Aproximación", "quick-action-aproximacion", onOpenWarmup),
+            QuickAction(KpknLineIcons.Joint, "+ Movilidad", "quick-action-movilidad", onOpenMobility),
+            QuickAction(KpknLineIcons.Link, if (isInSuperset) "Gestionar superserie" else "Crear superserie", "quick-action-superserie", onManageSuperset),
+            QuickAction(KpknLineIcons.Layers, "Duplicar ejercicio", "quick-action-duplicar", onDuplicate),
+        ).chunked(columns).forEach { actions ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                actions.forEach { action ->
+                    Column(
+                        modifier = Modifier.weight(1f).heightIn(min = 80.dp)
+                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(18.dp))
+                            .background(KpknSurface.inset)
+                            .clickable(role = Role.Button, onClick = action.onClick)
+                            .testTag(action.tag)
+                            .padding(horizontal = 4.dp, vertical = 6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        androidx.compose.material3.Icon(action.icon, contentDescription = null, tint = WizardColors.text)
+                        Spacer(Modifier.height(6.dp))
+                        Text(action.label, style = KpknType.caption, color = WizardColors.text, maxLines = 2,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    }
+                }
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                .clip(KpknShape.pill)
+                .border(1.dp, WizardColors.danger.copy(alpha = 0.4f), KpknShape.pill)
+                .clickable(role = Role.Button, onClick = onRequestDelete)
+                .testTag("quick-action-eliminar"),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            androidx.compose.material3.Icon(KpknLineIcons.Trash, contentDescription = null, tint = WizardColors.danger)
+            Spacer(Modifier.width(8.dp))
+            Text("Eliminar", style = KpknType.bodyStrong, color = WizardColors.danger)
+        }
+    }
 }
+
+private data class QuickAction(
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val label: String,
+    val tag: String,
+    val onClick: () -> Unit,
+)
 
 @Composable
 internal fun MobilityPickerSheet(
@@ -425,7 +450,7 @@ internal fun MobilityPickerSheet(
             onValueChange = { query = it },
             placeholder = "Buscar movilidad, zona o molestia",
             leadingIcon = KpknLineIcons.Search,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("mobility-picker-search"),
         )
         // Body region filter chips
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -448,10 +473,24 @@ internal fun MobilityPickerSheet(
             modifier = Modifier.heightIn(max = 520.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            if (results.isEmpty()) {
+                item(key = "mobility-picker-empty") {
+                    Column(
+                        Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text("Sin resultados", style = KpknType.bodyStrong, color = WizardColors.text,
+                            modifier = Modifier.testTag("mobility-picker-empty"))
+                        Text("Prueba con otra palabra o elige otra zona.",
+                            style = KpknType.caption, color = WizardColors.textMuted)
+                    }
+                }
+            }
             items(results, key = { it.id }) { mobility ->
                 val alreadyAdded = mobility.id in selectedMobilityIds
                 val expanded = expandedMobilityId == mobility.id
-                KpknModule(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)) {
+                KpknModule(modifier = Modifier.testTag("mobility-picker-item-${mobility.id}"),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)) {
                     Text(mobility.name, style = KpknType.bodyStrong, color = WizardColors.text)
                     val details = listOfNotNull(
                         mobilityBodyRegionLabel(mobility.bodyRegion).takeIf { it.isNotBlank() },
@@ -472,12 +511,6 @@ internal fun MobilityPickerSheet(
                         color = WizardColors.text,
                         maxLines = if (expanded) 4 else 2,
                         overflow = TextOverflow.Ellipsis,
-                    )
-                    KpknTextAction(
-                        text = if (expanded) "Ocultar ficha" else "Ver ficha",
-                        onClick = {
-                            expandedMobilityId = if (expanded) null else mobility.id
-                        },
                     )
                     if (expanded) {
                         com.example.kpkn.ui.components.MobilityTechniqueImage(
@@ -507,21 +540,50 @@ internal fun MobilityPickerSheet(
                         )
                     }
                     Spacer(Modifier.height(8.dp))
-                    if (alreadyAdded) {
-                        KpknPrimaryPill(
-                            text = "Agregado (Quitar)",
-                            onClick = { onRemove(mobility) },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    } else {
-                        KpknSecondaryPill(
-                            text = "Agregar",
-                            onClick = { onAdd(mobility) },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
+                    MobilityPickerActions(
+                        expanded = expanded,
+                        alreadyAdded = alreadyAdded,
+                        onToggleDetails = { expandedMobilityId = if (expanded) null else mobility.id },
+                        onToggleMembership = { if (alreadyAdded) onRemove(mobility) else onAdd(mobility) },
+                    )
                 }
             }
+        }
+    }
+}
+
+
+/** H3: con letra grande las dos acciones conservan su texto completo y su objetivo táctil. */
+@Composable
+private fun MobilityPickerActions(
+    expanded: Boolean,
+    alreadyAdded: Boolean,
+    onToggleDetails: () -> Unit,
+    onToggleMembership: () -> Unit,
+) {
+    val details: @Composable () -> Unit = {
+        KpknTextAction(
+            text = if (expanded) "Ocultar ficha" else "Ver ficha",
+            onClick = onToggleDetails,
+        )
+    }
+    val membership: @Composable (Modifier) -> Unit = { modifier ->
+        if (alreadyAdded) {
+            KpknPrimaryPill(text = "Añadido · Quitar", onClick = onToggleMembership, modifier = modifier.heightIn(min = 48.dp))
+        } else {
+            KpknSecondaryPill(text = "Añadir", onClick = onToggleMembership, modifier = modifier.heightIn(min = 48.dp))
+        }
+    }
+    if (LocalDensity.current.fontScale >= 1.2f) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            details()
+            membership(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            details()
+            Spacer(Modifier.weight(1f))
+            membership(Modifier)
         }
     }
 }

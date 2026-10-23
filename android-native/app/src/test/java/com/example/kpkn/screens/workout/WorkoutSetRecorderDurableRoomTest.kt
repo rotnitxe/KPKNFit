@@ -32,6 +32,71 @@ import com.example.kpkn.screens.workout.components.toGuidedPhaseOrNull
 @Config(manifest = Config.NONE, sdk = [34])
 @OptIn(ExperimentalCoroutinesApi::class)
 class WorkoutSetRecorderDurableRoomTest {
+    @Test fun explicitLiveNoMinimumDoesNotFallBackToThePlannedMinimum() = runBlocking {
+        val planned = ExerciseSet("amrap", purpose = SetPurpose.AMRAP, amrapMinimumReps = 4)
+        state = state.copy(session = session.copy(exercises = listOf(session.exercises.single().copy(sets = listOf(planned)))))
+        assertTrue(record(value = 1.0, advanced = SetAdvancedFeedback(rir = 0, amrapMinimumOverridden = true)) is RecordSetResult.Created)
+        val done = room().completedSets.values.single()
+        assertNull(done.amrapMinimumReps)
+        assertEquals(0.0, done.debt, 0.0)
+        assertFalse(done.amrapBelowMinimum)
+    }
+    @Test fun partialRepetitionsCannotCompleteTheAmrapMinimum() = runBlocking {
+        val planned = ExerciseSet("cal", targetReps = 6, targetRepsRange = RepRange(4, 6),
+            purpose = SetPurpose.AMRAP, amrapMinimumReps = 4)
+        state = state.copy(session = session.copy(exercises = listOf(session.exercises.single().copy(sets = listOf(planned)))))
+        assertTrue(record(value = 3.0, advanced = SetAdvancedFeedback(rir = 0, partialReps = 4)) is RecordSetResult.Created)
+        val done = room().completedSets.values.single()
+        assertEquals(3, done.reps)
+        assertEquals(4, done.partialReps)
+        assertTrue(done.amrapBelowMinimum)
+        assertEquals(1.0, done.debt, 0.0)
+        assertTrue(state.planDeviations.any { it.type == PlanDeviationType.AMRAP_BELOW_MINIMUM })
+    }
+
+    @Test fun fiveRepsWithMinimumFourPersistWithoutDebtAndKeepCalibratorEvidence() = runBlocking {
+        val planned = ExerciseSet("cal", targetReps = 6, targetRepsRange = RepRange(4, 6),
+            purpose = SetPurpose.CALIBRATOR, amrapMinimumReps = 4)
+        state = state.copy(session = session.copy(exercises = listOf(session.exercises.single().copy(sets = listOf(planned)))))
+        assertTrue(record(value = 5.0, advanced = SetAdvancedFeedback(rir = 1, partialReps = 2)) is RecordSetResult.Created)
+        val done = room().completedSets.values.single()
+        assertEquals(SetPurpose.CALIBRATOR, done.purpose)
+        assertEquals(4, done.amrapMinimumReps)
+        assertFalse(done.amrapBelowMinimum)
+        assertEquals(0.0, done.debt, 0.0)
+        assertEquals(5, done.reps)
+        assertEquals(2, done.partialReps)
+        assertEquals(1, done.rir)
+        assertEquals(LoadModeV2.LOAD, done.loadMode)
+        assertEquals(20.0, done.originalLoad!!, 0.0)
+        assertEquals(20.0, done.weight, 0.0)
+        assertNotNull(done.contextKey)
+        assertEquals(SetPurpose.CALIBRATOR, done.recordedPayloadV3?.purpose)
+        assertEquals(com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION, done.estimatorVersion)
+    }
+
+    @Test fun amrapWithNoMinimumDoesNotBorrowTheLegacyRange() = runBlocking {
+        val planned = ExerciseSet("amrap", targetReps = 6, targetRepsRange = RepRange(4, 6), purpose = SetPurpose.AMRAP)
+        state = state.copy(session = session.copy(exercises = listOf(session.exercises.single().copy(sets = listOf(planned)))))
+        assertTrue(record(value = 1.0, advanced = SetAdvancedFeedback(rir = 0)) is RecordSetResult.Created)
+        val done = room().completedSets.values.single()
+        assertNull(done.amrapMinimumReps)
+        assertFalse(done.amrapBelowMinimum)
+        assertEquals(0.0, done.debt, 0.0)
+    }
+
+    @Test fun disabledLiveAmrapPersistsExplicitNoneForProgression() = runBlocking {
+        val planned = ExerciseSet("amrap", targetReps = 6, purpose = SetPurpose.AMRAP, amrapMinimumReps = 4)
+        state = state.copy(session = session.copy(exercises = listOf(session.exercises.single().copy(sets = listOf(planned)))))
+        assertTrue(record(advanced = SetAdvancedFeedback(amrapOverride = false)) is RecordSetResult.Created)
+        val done = room().completedSets.values.single()
+        assertEquals(SetPurpose.NONE, done.purpose)
+        assertEquals(SetPurpose.NONE, done.performedPurpose())
+        assertFalse(done.amrapPerformed)
+        assertNull(done.amrapMinimumReps)
+        assertTrue(record(value = 8.0, index = 0) is RecordSetResult.Updated)
+        assertEquals(SetPurpose.NONE, room().completedSets.values.single().purpose)
+    }
 
     @get:Rule
     val roomRule = RoomTestRule()
@@ -46,6 +111,7 @@ class WorkoutSetRecorderDurableRoomTest {
     private var profileWrites = 0
     private var failAncillary = false
     private var failFirstPublication = false
+    private var afterDurablePublication: (() -> Unit)? = null
     private val session = Session(id = "durable-session", name = "Regresión", exercises = listOf(
         Exercise(id = "exercise", name = "Regression fixture exercise", sets = listOf(
             ExerciseSet(id = "s1", targetReps = 6), ExerciseSet(id = "s2", targetReps = 6),
@@ -84,7 +150,9 @@ class WorkoutSetRecorderDurableRoomTest {
                 "evaluateSetEntryV3" -> error("La homologación está desactivada en este fixture")
                 "persistOngoingStateAndAwait" -> runBlocking {
                     @Suppress("UNCHECKED_CAST")
-                    persistence.persistAndAwait(args[0] as WorkoutUiState, args[1] as () -> Unit)
+                    persistence.persistAndAwait(args[0] as WorkoutUiState, args[1] as () -> Unit).also {
+                        if (it.succeeded) afterDurablePublication?.invoke()
+                    }
                 }
                 "nextSet" -> { advances++; state = state.copy(currentSetIdx = state.currentSetIdx + 1); Unit }
                 "startRestTimer" -> { rests++; Unit }
@@ -124,6 +192,44 @@ class WorkoutSetRecorderDurableRoomTest {
         unitMode = unit, setIdxOverride = index,
     )
     private suspend fun room() = repository.databaseForTests().stateDao().getOngoingWorkout()!!.toOngoingWorkoutState()!!
+
+    @Test fun quickSheetClosesAtRoomAcknowledgementWhileTheCommandIsStillSuspended() = runBlocking {
+        state = state.copy(showUltraFastSheet = true)
+        val acknowledged = CompletableDeferred<Unit>()
+        val release = java.util.concurrent.CountDownLatch(1)
+        afterDurablePublication = {
+            acknowledged.complete(Unit)
+            check(release.await(10, java.util.concurrent.TimeUnit.SECONDS))
+        }
+        val command = async(Dispatchers.Default) { record() }
+        try {
+            withTimeout(10_000) { acknowledged.await() }
+            assertFalse("Se reproduce el intervalo entre confirmación y retorno", command.isCompleted)
+            assertEquals(1, room().completedSets.size)
+            assertEquals(1, state.completedSets.size)
+            assertFalse("La hoja ya debe estar cerrada al confirmar Room", state.showUltraFastSheet)
+        } finally {
+            release.countDown()
+            command.await()
+        }
+        assertEquals(1, advances)
+    }
+
+    @Test fun failedQuickWriteKeepsTheSheetDraftAndCursorForRetry() = runBlocking {
+        state = state.copy(showUltraFastSheet = true)
+        val drafts = state.setDrafts
+        failWrites()
+        assertTrue(record() is RecordSetResult.PersistenceFailed)
+        assertTrue(state.showUltraFastSheet)
+        assertEquals(drafts, state.setDrafts)
+        assertEquals(0, state.currentSetIdx)
+        assertTrue(state.completedSets.isEmpty())
+        assertTrue(room().completedSets.isEmpty())
+        allowWrites()
+        assertTrue(record() is RecordSetResult.Created)
+        assertFalse(state.showUltraFastSheet)
+        assertEquals(1, state.completedSets.size)
+    }
 
     @Test fun uiPublicationFailureDoesNotDisguiseACommittedSetAsPersistenceFailure() = runBlocking {
         failFirstPublication = true

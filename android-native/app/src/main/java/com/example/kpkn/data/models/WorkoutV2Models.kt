@@ -50,6 +50,26 @@ enum class UnitModeV2 {
     CUSTOM,
 }
 
+/** Unidad de ejecución que gobierna una serie cuando el ejercicio no declara un override explícito. */
+fun TrainingMode.toUnitModeV2(): UnitModeV2 = when (this) {
+    TrainingMode.TIME -> UnitModeV2.TIME
+    TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
+    TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
+    TrainingMode.REPS, TrainingMode.RM, TrainingMode.SOLO_RPE, TrainingMode.AMRAP -> UnitModeV2.REPS
+}
+
+/**
+ * Resolves a set's execution unit. New exercises persist the unit explicitly; only legacy REPS plans may still use a duration
+ * without a unit marker, so retain that historical TIME interpretation after all declared modes have had precedence.
+ */
+fun ExerciseSet.resolveUnitModeV2(trainingMode: TrainingMode): UnitModeV2 = unitModeV2 ?: when (trainingMode) {
+    TrainingMode.TIME -> UnitModeV2.TIME
+    TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
+    TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
+    TrainingMode.REPS -> if (targetDuration != null) UnitModeV2.TIME else UnitModeV2.REPS
+    TrainingMode.RM, TrainingMode.SOLO_RPE, TrainingMode.AMRAP -> trainingMode.toUnitModeV2()
+}
+
 /**
  * Convención de cantidad de una carga prescrita/registrada (§14.2).
  *
@@ -191,6 +211,8 @@ data class RecordedSetPayload(
     val failedSet: Boolean = false,
     val reachedFailure: Boolean = false,
     val amrapPerformed: Boolean = false,
+    val purpose: SetPurpose? = null,
+    val amrapMinimumReps: Int? = null,
     val timerTargetSeconds: Int? = null,
     val timerElapsedSeconds: Int? = null,
     val failureReason: String? = null,
@@ -255,6 +277,8 @@ data class HomologatedPerformanceResult(
     val ermRangeMin: Double = 0.0,
     val ermRangeMax: Double = 0.0,
     val suggestedLoadMode: LoadModeV2? = null,
+    /** Missing in persisted results from the old estimator. */
+    val estimatorVersion: Int = 1,
 )
 
 @Serializable
@@ -285,6 +309,8 @@ data class SetEntryV2(
     val rom: Int? = null,
     val assistedReps: Int? = null,
     val isFirstEvaluationInSession: Boolean = false,
+    /** Full reps for capacity; actualValue may also credit partial work for fatigue. */
+    val completedReps: Int? = null,
 )
 
 @Serializable

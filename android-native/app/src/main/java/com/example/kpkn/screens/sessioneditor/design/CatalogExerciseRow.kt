@@ -45,6 +45,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.ExercisePattern
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PatternGlyph
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
@@ -72,6 +73,10 @@ internal fun CatalogExerciseRow(
     expandable: Boolean = false,
     expanded: Boolean = false,
     onLongClick: (() -> Unit)? = null,
+    /** Foto de portada de un ejercicio propio (miniatura del almacén privado de medios); tiene prioridad sobre la imagen y el glifo. */
+    thumbnailFile: java.io.File? = null,
+    onOpenFicha: (() -> Unit)? = null,
+    selectionOrder: Int? = null,
 ) {
     Row(
         modifier = modifier
@@ -83,6 +88,7 @@ internal fun CatalogExerciseRow(
         Row(
             modifier = Modifier
                 .weight(1f)
+                .heightIn(min = 48.dp)
                 .combinedClickable(
                     role = Role.Button,
                     onClick = onClick,
@@ -93,14 +99,14 @@ internal fun CatalogExerciseRow(
                 },
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            CatalogRowThumbnail(thumbnailResId = thumbnailResId, pattern = pattern)
+            CatalogRowThumbnail(thumbnailResId = thumbnailResId, pattern = pattern, thumbnailFile = thumbnailFile)
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = name,
                     style = KpknType.bodyStrong,
                     color = WizardColors.text,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (!subtitle.isNullOrBlank()) {
@@ -124,10 +130,18 @@ internal fun CatalogExerciseRow(
             }
         }
         Spacer(Modifier.width(8.dp))
+        if (onOpenFicha != null) {
+            KpknIconButton(
+                icon = KpknLineIcons.Info,
+                contentDescription = "Ver ficha de $name",
+                onClick = onOpenFicha,
+            )
+        }
         CatalogSelectionCircle(
             selected = selected,
             label = if (selected) "Quitar $name de la selección" else "Añadir $name a la selección",
             onToggle = onToggleSelection,
+            selectionOrder = selectionOrder,
         )
     }
 }
@@ -176,7 +190,7 @@ internal fun CatalogVariantChips(
  * de la fila ya la dice.
  */
 @Composable
-internal fun CatalogRowThumbnail(thumbnailResId: Int?, pattern: ExercisePattern) {
+internal fun CatalogRowThumbnail(thumbnailResId: Int?, pattern: ExercisePattern, thumbnailFile: java.io.File? = null) {
     Box(
         modifier = Modifier
             .size(48.dp)
@@ -184,7 +198,14 @@ internal fun CatalogRowThumbnail(thumbnailResId: Int?, pattern: ExercisePattern)
             .background(KpknSurface.inset),
         contentAlignment = Alignment.Center,
     ) {
-        if (thumbnailResId != null) {
+        if (thumbnailFile != null) {
+            coil.compose.AsyncImage(
+                model = thumbnailFile,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
+        } else if (thumbnailResId != null) {
             Image(
                 painter = painterResource(thumbnailResId),
                 contentDescription = null,
@@ -204,13 +225,16 @@ internal fun CatalogRowThumbnail(thumbnailResId: Int?, pattern: ExercisePattern)
  * táctil mide 48 dp y lleva [label] para accesibilidad.
  */
 @Composable
-private fun CatalogSelectionCircle(selected: Boolean, label: String, onToggle: () -> Unit) {
+private fun CatalogSelectionCircle(selected: Boolean, label: String, onToggle: () -> Unit, selectionOrder: Int?) {
     val interaction = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
             .size(48.dp)
             .testTag("catalog_row_select")
-            .semantics { contentDescription = label }
+            .semantics {
+                contentDescription = label
+                if (selected && selectionOrder != null) stateDescription = "Orden $selectionOrder"
+            }
             .toggleable(
                 value = selected,
                 role = Role.Checkbox,
@@ -233,7 +257,9 @@ private fun CatalogSelectionCircle(selected: Boolean, label: String, onToggle: (
             contentAlignment = Alignment.Center,
         ) {
             if (selected) {
-                Icon(
+                if (selectionOrder != null) {
+                    Text(text = "$selectionOrder", style = KpknType.bodyStrong, color = WizardColors.ctaContent)
+                } else Icon(
                     imageVector = KpknLineIcons.Check,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),

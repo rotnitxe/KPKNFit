@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.toUnitModeV2
 import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isSimpleProgram
@@ -160,16 +161,7 @@ object WorkoutEditingRules {
             session.exercises.joinToString(",") { it.resolvedCanonicalExerciseId().lowercase() }
         }
 
-    fun unitModeForTrainingMode(mode: TrainingMode): UnitModeV2 = when (mode) {
-        TrainingMode.TIME -> UnitModeV2.TIME
-        TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
-        TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
-        TrainingMode.REPS,
-        TrainingMode.RM,
-        TrainingMode.SOLO_RPE,
-        TrainingMode.AMRAP,
-        -> UnitModeV2.REPS
-    }
+    fun unitModeForTrainingMode(mode: TrainingMode): UnitModeV2 = mode.toUnitModeV2()
 
     fun normalizeLiveEditedExercise(exercise: Exercise): Exercise = exercise.copy(
         sets = exercise.sets.map { set -> normalizeLiveEditedSet(exercise.trainingMode, set) },
@@ -185,7 +177,6 @@ object WorkoutEditingRules {
                 targetRepsRange = null,
                 plannedTargetV2 = null,
                 targetPercentageRM = null,
-                isAmrap = false,
             )
             TrainingMode.DISTANCE,
             TrainingMode.CUSTOM,
@@ -196,7 +187,6 @@ object WorkoutEditingRules {
                 targetRepsRange = null,
                 targetDuration = null,
                 targetPercentageRM = null,
-                isAmrap = false,
             )
             TrainingMode.RM -> set.copy(
                 unitModeV2 = UnitModeV2.REPS,
@@ -206,7 +196,6 @@ object WorkoutEditingRules {
                 plannedTargetV2 = null,
                 targetPercentageRM = (set.targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0)
                     .let { kotlin.math.round(it * 100.0) / 100.0 },
-                isAmrap = false,
             )
             TrainingMode.SOLO_RPE -> set.copy(
                 unitModeV2 = UnitModeV2.REPS,
@@ -215,7 +204,6 @@ object WorkoutEditingRules {
                 targetDuration = null,
                 plannedTargetV2 = null,
                 targetPercentageRM = null,
-                isAmrap = false,
             )
             TrainingMode.AMRAP -> set.copy(
                 unitModeV2 = UnitModeV2.REPS,
@@ -223,8 +211,8 @@ object WorkoutEditingRules {
                 targetDuration = null,
                 plannedTargetV2 = null,
                 targetPercentageRM = null,
-                isAmrap = true,
-                intensityMode = IntensityMode.AMRAP,
+                purpose = set.purpose,
+                intensityMode = set.intensityMode,
             )
             TrainingMode.REPS -> set.copy(
                 unitModeV2 = UnitModeV2.REPS,
@@ -232,11 +220,11 @@ object WorkoutEditingRules {
                 targetDuration = null,
                 plannedTargetV2 = null,
                 targetPercentageRM = null,
-                isAmrap = set.isAmrap || set.intensityMode == IntensityMode.AMRAP,
+                purpose = set.purpose,
             )
         }
 
-        val intensityNormalized = if (metricNormalized.isAmrap || metricNormalized.intensityMode == IntensityMode.AMRAP) {
+        val intensityNormalized = if (metricNormalized.purpose.isAmrap) {
             metricNormalized.copy(
                 intensityMode = IntensityMode.AMRAP,
                 targetRPE = null,

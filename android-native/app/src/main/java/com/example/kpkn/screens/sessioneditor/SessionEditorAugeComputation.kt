@@ -5,7 +5,8 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.AugeUtils
-import com.example.kpkn.domain.auge.CardioRingDrainEngine
+import com.example.kpkn.domain.auge.PreciseDrain
+import com.example.kpkn.domain.auge.SessionDrainProjection
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.roundToInt
@@ -41,6 +42,8 @@ internal data class MuscleRecommendationContext(
 
 internal data class SessionAugeComputation(
     val drain: PredictedDrain,
+    /** Proyección de coste compartida con el motor general: decimales, cardio, aportes por ejercicio y evidencia de Columna. */
+    val projection: SessionDrainProjection,
     val setCount: Int,
     val durationMinutes: Int,
     val difficulty: Int,
@@ -49,6 +52,8 @@ internal data class SessionAugeComputation(
     val muscleDrainProjection: Map<String, Int>,
     val muscleEnergyDrain: Map<String, Int>,
     val muscleSpinalDrain: Map<String, Int>,
+    /** Coste por músculo canónico con decimales, ajustado al total final de la proyección. */
+    val muscleDrainPrecise: Map<String, PreciseDrain>,
     val totalSpinalLoad: Double,
     val elbowStress: Int,
     val kneeStress: Int,
@@ -281,6 +286,8 @@ internal fun buildAugeSummary(
         muscleDrainProjection = currentMetrics.muscleDrainProjection,
         muscleEnergyDrain = currentMetrics.muscleEnergyDrain,
         muscleSpinalDrain = currentMetrics.muscleSpinalDrain,
+        muscleDrainPrecise = currentMetrics.muscleDrainPrecise,
+        drainProjection = currentMetrics.projection,
         sessionVolumeByMuscle = currentMetrics.volumeMap.mapValues { (_, acc) -> acc.flat },
         weeklyVolumeByMuscle = weeklyVolumeMap.mapValues { (_, acc) -> acc.flat },
         volumeThresholdsByMuscle = volumeThresholdsByMuscle,
@@ -469,6 +476,8 @@ internal fun buildAugeSummaryFromMetrics(
         muscleDrainProjection = currentMetrics.muscleDrainProjection,
         muscleEnergyDrain = currentMetrics.muscleEnergyDrain,
         muscleSpinalDrain = currentMetrics.muscleSpinalDrain,
+        muscleDrainPrecise = currentMetrics.muscleDrainPrecise,
+        drainProjection = currentMetrics.projection,
         sessionVolumeByMuscle = currentMetrics.volumeMap.mapValues { (_, acc) -> acc.flat },
         weeklyVolumeByMuscle = combinedWeeklyVolumeFlat,
         volumeThresholdsByMuscle = volumeThresholdsByMuscle,
@@ -484,21 +493,29 @@ internal fun computeSessionAugeComputation(
     programId: String,
     mesoIndex: Int,
 ): SessionAugeComputation {
-    val exercises = session.allExercises()
-    val tanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
-    val floor = AugeUtils.physiologicalFloor(settings)
-    val muscularCap = (100 - floor.muscular).coerceAtLeast(5).toDouble()
-    val cnsCap = (100 - floor.cns).coerceAtLeast(5).toDouble()
-    val spinalCap = (100 - floor.spinal).coerceAtLeast(5).toDouble()
+    // MOT · I1/I4: el coste de la sesión sale de UNA proyección compartida con el motor general (mismo resultado que el asistente
+    // y las plantillas, con el cardio dentro y los decimales conservados). Esta pasada solo reparte ese coste por ejercicio y por
+    // músculo y calcula volumen, roles y contexto de recomendación, que no son coste.
+    val ema = runCatching {
+        AugeFatigueEngine.calculateMesocycleStressEMA(
+            logs = programLogs,
+            programId = programId,
+            mesoIndex = mesoIndex,
+        )
+    }.getOrNull()
+    val projection = AugeFatigueEngine.projectPlannedSession(
+        session = session,
+        exerciseDb = exerciseIndex,
+        settings = settings,
+        mesocycleEma = ema,
+    )
+    val contributionById = projection.perExercise.associateBy { it.exerciseId }
+    val exercises = session.allExercises().distinctBy { it.id }
     val volumeMap = mutableMapOf<String, AugeVolumeAccumulator>()
-    // Raw maps kept for scaling fallback; pipelined maps reflect real engine
-    val muscleDrainMapPipelined = mutableMapOf<String, Double>()
-    val muscleEnergyDrainMapPipelined = mutableMapOf<String, Double>()
-    val muscleSpinalDrainMapPipelined = mutableMapOf<String, Double>()
-    // Legacy raw maps for reference (kept to compute insights)
-    val muscleDrainMap = mutableMapOf<String, Double>()
-    val muscleEnergyDrainMap = mutableMapOf<String, Double>()
-    val muscleSpinalDrainMap = mutableMapOf<String, Double>()
+    // Aporte por músculo canónico, antes de ajustar al total final.
+    val muscleMuscularShare = mutableMapOf<String, Double>()
+    val muscleCnsShare = mutableMapOf<String, Double>()
+    val muscleSpinalShare = mutableMapOf<String, Double>()
     val roleMap = mutableMapOf<String, MuscleRoleBreakdown>()
     val recommendationContext = mutableMapOf<String, MuscleRecommendationContext>()
     var totalSets = 0
@@ -509,50 +526,37 @@ internal fun computeSessionAugeComputation(
     var rpeCount = 0
     var rmSum = 0.0
     var rmCount = 0
-    val muscleSetCounters = mutableMapOf<String, Int>()
-    var pipelinedAccumulatedDrain = 0.0
-    var pipelinedTotalMuscular = 0.0
-    var pipelinedTotalCns = 0.0
-    var pipelinedTotalSpinal = 0.0
 
     val exerciseInsights = exercises.mapNotNull { exercise ->
+        val contribution = contributionById[exercise.id]
         exercise.cardioDetails?.let { cardio ->
-            val duration = cardio.effectiveDurationSeconds().coerceAtLeast(0)
-            if (duration <= 0) return@mapNotNull null
-            val rpe = cardio.resolvedRpe()
-            val cardioDrain = CardioRingDrainEngine.drain(cardio, duration, rpe, settings)
+            contribution ?: return@mapNotNull null
             totalSets += 1
-            rpeSum += rpe
+            rpeSum += cardio.resolvedRpe()
             rpeCount += 1
-            totalSpinalLoad += cardioDrain.spinal
-            cardioDrain.muscleDrains.forEach { (muscle, value) ->
-                muscleDrainMapPipelined[muscle] = (muscleDrainMapPipelined[muscle] ?: 0.0) + value
-                muscleEnergyDrainMapPipelined[muscle] = (muscleEnergyDrainMapPipelined[muscle] ?: 0.0) + value * cardioDrain.cns / cardioDrain.muscular.coerceAtLeast(0.01)
-                muscleSpinalDrainMapPipelined[muscle] = (muscleSpinalDrainMapPipelined[muscle] ?: 0.0) + value * cardioDrain.spinal / cardioDrain.muscular.coerceAtLeast(0.01)
+            totalSpinalLoad += contribution.rawSpinal
+            val muscularBase = contribution.rawMuscular.coerceAtLeast(0.01)
+            contribution.cardioMuscleDrains.forEach { (muscle, value) ->
+                muscleMuscularShare[muscle] = (muscleMuscularShare[muscle] ?: 0.0) + value
+                muscleCnsShare[muscle] = (muscleCnsShare[muscle] ?: 0.0) + value * contribution.rawCns / muscularBase
+                muscleSpinalShare[muscle] = (muscleSpinalShare[muscle] ?: 0.0) + value * contribution.rawSpinal / muscularBase
             }
             return@mapNotNull SessionEditorAugeExerciseInsight(
                 exerciseId = exercise.id,
                 name = exercise.name,
-                muscular = cardioDrain.muscular.roundToInt().coerceIn(0, 100),
-                cns = cardioDrain.cns.roundToInt().coerceIn(0, 100),
-                spinal = cardioDrain.spinal.roundToInt().coerceIn(0, 100),
-                total = ((cardioDrain.muscular + cardioDrain.cns + cardioDrain.spinal) / 3.0).roundToInt().coerceIn(0, 100),
-                suggestion = exerciseSuggestionForInsight(cardioDrain.muscular, cardioDrain.cns, cardioDrain.spinal),
+                muscular = contribution.rawMuscular.roundToInt().coerceIn(0, 100),
+                cns = contribution.rawCns.roundToInt().coerceIn(0, 100),
+                spinal = contribution.rawSpinal.roundToInt().coerceIn(0, 100),
+                total = ((contribution.rawMuscular + contribution.rawCns + contribution.rawSpinal) / 3.0).roundToInt().coerceIn(0, 100),
+                suggestion = exerciseSuggestionForInsight(contribution.rawMuscular, contribution.rawCns, contribution.rawSpinal),
             )
         }
         val info = resolveExerciseInfo(exercise, exerciseIndex) ?: return@mapNotNull null
         val validSets = exercise.validAugeSets()
         if (validSets.isEmpty()) return@mapNotNull null
         val musclesForVolume = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
-
-        val metrics = AugeFatigueEngine.getDynamicAugeMetrics(exercise.name, info.equipment, info) ?: AugeMetrics()
-        var muscular = 0.0
-        var cns = 0.0
-        var spinal = 0.0
         totalSets += validSets.size
 
-        val primaryMuscle = resolvePrimaryMuscle(info) ?: "Core"
-        var accumulated = muscleSetCounters[primaryMuscle] ?: 0
         val perExerciseContrib = VolumeCalculator.buildPerExerciseMuscleContributions(
             musclesForVolume,
         )
@@ -562,9 +566,12 @@ internal fun computeSessionAugeComputation(
             val effectiveRpe = set.effectiveTargetRpe()
             rpeSum += effectiveRpe
             rpeCount++
-            if (exercise.trainingMode == TrainingMode.RM && set.targetPercentageRM != null) {
-                rmSum += set.targetPercentageRM / 100.0
-                rmCount++
+            // La intensidad media se expresa en %1RM: un %TM se convierte con el TM y el 1RM declarados (sin ambos no se mide).
+            if (exercise.trainingMode == TrainingMode.RM) {
+                com.example.kpkn.domain.calculations.percentOfOneRm(exercise, set)?.let { percent1Rm ->
+                    rmSum += percent1Rm / 100.0
+                    rmCount++
+                }
             }
 
             val volumeMultiplier = AugeClassifiers.getEffectiveVolumeMultiplier(effectiveRpe)
@@ -584,92 +591,24 @@ internal fun computeSessionAugeComputation(
                     MuscleRole.NEUTRALIZER -> roleBucket.neutralizer += 1.0
                 }
             }
-
             totalSpinalLoad += info.axialLoadFactor ?: 0.0
-            accumulated++
+        }
 
-            val calculatedWeight = if (exercise.trainingMode == TrainingMode.RM && set.targetPercentageRM != null && exercise.reference1RM != null && exercise.reference1RM!! > 0.0) {
-                (set.targetPercentageRM / 100.0) * exercise.reference1RM!!
-            } else {
-                set.weight ?: 60.0
-            }
-            val completedSet = CompletedSet(
-                id = set.id,
-                weight = calculatedWeight,
-                reps = set.plannedRepAnchor() ?: 8,
-                rpe = set.targetRPE,
-                rir = set.targetRIR,
-                actualIntensityMode = set.intensityMode,
-                actualIntensityValue = when (set.intensityMode) {
-                    IntensityMode.RPE -> set.targetRPE
-                    IntensityMode.RIR -> set.targetRIR?.toDouble()
-                    else -> null
-                },
-                isFailure = set.isFailure || set.intensityMode == IntensityMode.FAILURE,
-            )
-            val drain = AugeFatigueEngine.calculateSetBatteryDrain(
-                set = completedSet,
-                metrics = metrics,
-                tanks = tanks,
-                accumulatedSets = accumulated,
-                restTime = exercise.restTime ?: settings.restTimerDefaultSeconds,
-                densityMultiplier = AugeFatigueEngine.getDensityMultiplierForExercise(
-                    supersetId = exercise.supersetGroupRefOrLegacyId(),
-                    restTime = exercise.restTime ?: settings.restTimerDefaultSeconds,
-                ),
-            )
-            val axialGate = AugeFatigueEngine.spinalAxialGate(info.axialLoadFactor)
-            muscular += drain.muscularDrainPct
-            cns += drain.cnsDrainPct
-            spinal += drain.spinalDrainPct * axialGate
-
-            // Raw attribution (legacy, kept for fallback)
-            if (totalRoleWeight > 0.0) {
-                perExerciseContrib.forEach { (muscle, roleWeight) ->
-                    val share = roleWeight / totalRoleWeight
-                    if (drain.muscularDrainPct > 0.0) {
-                        muscleDrainMap[muscle] = (muscleDrainMap[muscle] ?: 0.0) + (drain.muscularDrainPct * share)
-                    }
-                    if (drain.cnsDrainPct > 0.0) {
-                        muscleEnergyDrainMap[muscle] =
-                            (muscleEnergyDrainMap[muscle] ?: 0.0) + (drain.cnsDrainPct * share)
-                    }
-                    if (drain.spinalDrainPct > 0.0 && axialGate > 0.0) {
-                        muscleSpinalDrainMap[muscle] =
-                            (muscleSpinalDrainMap[muscle] ?: 0.0) + (drain.spinalDrainPct * axialGate * share)
-                    }
+        // Reparto del aporte de este ejercicio entre sus músculos canónicos (lo que entró en el total de la proyección).
+        if (contribution != null && totalRoleWeight > 0.0) {
+            perExerciseContrib.forEach { (muscle, roleWeight) ->
+                val share = roleWeight / totalRoleWeight
+                if (contribution.cappedMuscular > 0.0) {
+                    muscleMuscularShare[muscle] = (muscleMuscularShare[muscle] ?: 0.0) + contribution.cappedMuscular * share
                 }
-            }
-            // Pipelined attribution (alineado con AugeFatigueEngine.aggregateSetIntoSessionDrain)
-            // Aplica conservación, diminishing y softCap para que la proyección per-músculo
-            // anticipe el drenaje real de rings.
-            val diminishingFactor = 1.0 / (1.0 + AugeUtils.SESSION_DECAY_K * (pipelinedAccumulatedDrain / 100.0))
-            val adjustedMuscular = drain.muscularDrainPct * AugeUtils.SESSION_CONSERVATION_FACTOR * diminishingFactor
-            val adjustedCns = drain.cnsDrainPct * AugeUtils.SESSION_CONSERVATION_FACTOR * diminishingFactor
-            val adjustedSpinal = drain.spinalDrainPct * AugeUtils.SESSION_CONSERVATION_FACTOR * diminishingFactor * axialGate
-            val cappedMuscular = AugeUtils.applySessionSoftCap(adjustedMuscular, pipelinedTotalMuscular, muscularCap)
-            val cappedCns = AugeUtils.applySessionSoftCap(adjustedCns, pipelinedTotalCns, cnsCap)
-            val cappedSpinal = AugeUtils.applySessionSoftCap(adjustedSpinal, pipelinedTotalSpinal, spinalCap)
-            pipelinedTotalMuscular += cappedMuscular
-            pipelinedTotalCns += cappedCns
-            pipelinedTotalSpinal += cappedSpinal
-            pipelinedAccumulatedDrain += (adjustedMuscular + adjustedCns + adjustedSpinal) / 3.0
-            if (totalRoleWeight > 0.0) {
-                perExerciseContrib.forEach { (muscle, roleWeight) ->
-                    val share = roleWeight / totalRoleWeight
-                    if (cappedMuscular > 0.0) {
-                        muscleDrainMapPipelined[muscle] = (muscleDrainMapPipelined[muscle] ?: 0.0) + (cappedMuscular * share)
-                    }
-                    if (cappedCns > 0.0) {
-                        muscleEnergyDrainMapPipelined[muscle] = (muscleEnergyDrainMapPipelined[muscle] ?: 0.0) + (cappedCns * share)
-                    }
-                    if (cappedSpinal > 0.0) {
-                        muscleSpinalDrainMapPipelined[muscle] = (muscleSpinalDrainMapPipelined[muscle] ?: 0.0) + (cappedSpinal * share)
-                    }
+                if (contribution.cappedCns > 0.0) {
+                    muscleCnsShare[muscle] = (muscleCnsShare[muscle] ?: 0.0) + contribution.cappedCns * share
+                }
+                if (contribution.cappedSpinal > 0.0) {
+                    muscleSpinalShare[muscle] = (muscleSpinalShare[muscle] ?: 0.0) + contribution.cappedSpinal * share
                 }
             }
         }
-        muscleSetCounters[primaryMuscle] = accumulated
 
         musclesForVolume.filter(VolumeCalculator::isStandardVolumeMuscle).forEach { muscle ->
             val normalized = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
@@ -687,7 +626,10 @@ internal fun computeSessionAugeComputation(
             kneeStress += validSets.size
         }
 
-        val insight = SessionEditorAugeExerciseInsight(
+        val muscular = contribution?.rawMuscular ?: 0.0
+        val cns = contribution?.rawCns ?: 0.0
+        val spinal = contribution?.rawSpinal ?: 0.0
+        SessionEditorAugeExerciseInsight(
             exerciseId = exercise.id,
             name = exercise.name,
             muscular = muscular.coerceAtMost(100.0).roundToInt(),
@@ -696,54 +638,18 @@ internal fun computeSessionAugeComputation(
             total = ((muscular + cns + spinal) / 3.0).coerceAtMost(100.0).roundToInt(),
             suggestion = exerciseSuggestionForInsight(muscular, cns, spinal),
         )
-        insight
     }
 
-    val predictedDrain = run {
-        val fromPass = PredictedDrain(
-            cns = pipelinedTotalCns.roundToInt().coerceIn(0, 100),
-            muscular = pipelinedTotalMuscular.roundToInt().coerceIn(0, 100),
-            spinal = pipelinedTotalSpinal.roundToInt().coerceIn(0, 100),
-        )
-        val ema = runCatching {
-            AugeFatigueEngine.calculateMesocycleStressEMA(
-                logs = programLogs,
-                programId = programId,
-                mesoIndex = mesoIndex,
-            )
-        }.getOrNull()
-        val adjusted = if (ema != null) {
-            AugeFatigueEngine.adjustPredictedDrainWithEMA(fromPass, ema)
-        } else {
-            fromPass
-        }
-        if (adjusted.cns == 0 && adjusted.muscular == 0 && adjusted.spinal == 0 && totalSets > 0) {
-            AugeFatigueEngine.DEFAULT_FALLBACK_PREDICTED_DRAIN
-        } else {
-            adjusted
-        }
-    }
-
-    // La proyección per-músculo ahora usa el pipeline pipelined (conservación/diminishing/softCap)
-    // para anticipar el drenaje real de rings. Si por algún motivo el pipeline quedara vacío
-    // (sesión sin sets efectivos), cae al mapa raw escalado como fallback.
-    val pipelinedDrainForUi = if (muscleDrainMapPipelined.isNotEmpty()) {
-        muscleDrainMapPipelined.mapValues { (_, v) -> v.roundToInt().coerceIn(0, 100) }
-    } else {
-        muscleDrainMap.mapValues { (_, drainPct) -> drainPct.roundToInt().coerceIn(0, 100) }
-    }
-    val pipelinedEnergyForUi = if (muscleEnergyDrainMapPipelined.isNotEmpty()) {
-        muscleEnergyDrainMapPipelined.mapValues { (_, v) -> v.roundToInt().coerceIn(0, 100) }
-    } else {
-        scaleMuscleDrainMap(muscleEnergyDrainMap, predictedDrain.cns)
-    }
-    val pipelinedSpinalForUi = if (muscleSpinalDrainMapPipelined.isNotEmpty()) {
-        muscleSpinalDrainMapPipelined.mapValues { (_, v) -> v.roundToInt().coerceIn(0, 100) }
-    } else {
-        scaleMuscleDrainMap(muscleSpinalDrainMap, predictedDrain.spinal)
-    }
+    // El reparto por músculo se ajusta al total FINAL de la proyección (con el mínimo de sesión dura y el historial): se reparte
+    // según los aportes positivos conocidos y nunca se inventan músculos para cuadrar una cifra.
+    val musclePrecise = buildMuscleDrainPrecise(
+        muscular = distributeToTotal(muscleMuscularShare, projection.precise.muscular),
+        cns = distributeToTotal(muscleCnsShare, projection.precise.cns),
+        spinal = distributeToTotal(muscleSpinalShare, projection.precise.spinal),
+    )
     return SessionAugeComputation(
-        drain = predictedDrain,
+        drain = projection.global,
+        projection = projection,
         setCount = totalSets,
         durationMinutes = sessionEditorDurationMinutes(session),
         difficulty = computeDifficulty(
@@ -752,9 +658,10 @@ internal fun computeSessionAugeComputation(
         ),
         averageRpe = if (rpeCount > 0) rpeSum / rpeCount else 0.0,
         volumeMap = volumeMap,
-        muscleDrainProjection = pipelinedDrainForUi,
-        muscleEnergyDrain = pipelinedEnergyForUi,
-        muscleSpinalDrain = pipelinedSpinalForUi,
+        muscleDrainProjection = musclePrecise.mapValues { (_, v) -> v.muscular.roundToInt().coerceIn(0, 100) },
+        muscleEnergyDrain = musclePrecise.mapValues { (_, v) -> v.cns.roundToInt().coerceIn(0, 100) }.filterValues { it > 0 },
+        muscleSpinalDrain = musclePrecise.mapValues { (_, v) -> v.spinal.roundToInt().coerceIn(0, 100) }.filterValues { it > 0 },
+        muscleDrainPrecise = musclePrecise,
         totalSpinalLoad = totalSpinalLoad,
         elbowStress = elbowStress,
         kneeStress = kneeStress,
@@ -764,15 +671,63 @@ internal fun computeSessionAugeComputation(
     )
 }
 
-/** Scale raw per-muscle drain shares so their sum ≈ targetRingDrain (session ring coherence). */
-private fun scaleMuscleDrainMap(raw: Map<String, Double>, targetRingDrain: Int): Map<String, Int> {
-    if (raw.isEmpty() || targetRingDrain <= 0) return emptyMap()
-    val rawSum = raw.values.sum()
-    if (rawSum <= 0.0) return emptyMap()
-    val scale = targetRingDrain.toDouble() / rawSum
-    return raw.mapValues { (_, v) -> (v * scale).roundToInt().coerceIn(0, 100) }
-        .filterValues { it > 0 }
+/**
+ * Ordena las peticiones de cálculo de Impacto y asistente (AUD2-P03): editar o cambiar de variante mientras se calcula lanza otra
+ * petición; el resultado de la anterior ya no pertenece a la sesión que se ve y no se publica.
+ */
+internal class AugeRequestGate {
+    private val counter = java.util.concurrent.atomic.AtomicLong()
+
+    /** Abre una petición nueva: las anteriores dejan de ser vigentes. */
+    fun next(): Long = counter.incrementAndGet()
+
+    fun isCurrent(ticket: Long): Boolean = counter.get() == ticket
 }
+
+/**
+ * Claves de la caché del Impacto (MOT · I3). El tamaño del índice no basta como versión (cambiar metadatos de un ejercicio
+ * conserva el número de entradas) y el historial entra en el coste por el ajuste de estrés: ambos invalidan el resultado.
+ */
+internal object AugeCacheKeys {
+    /** Cambia cuando el catálogo se reconstruye (nueva instantánea) o cambia su tamaño. */
+    fun catalogVersion(index: Map<String, ExerciseMuscleInfo>): Int = System.identityHashCode(index) * 31 + index.size
+
+    /** Huella barata del historial que mueve el coste: registros, sus puntuaciones de estrés y su mesociclo. */
+    fun logsFingerprint(logs: List<WorkoutLog>): Int {
+        var r = logs.size
+        logs.forEach { log ->
+            r = 31 * r + log.id.hashCode()
+            r = 31 * r + (log.sessionStressScore?.hashCode() ?: 0)
+            r = 31 * r + (log.mesoIndex ?: -1)
+        }
+        return r
+    }
+}
+
+/**
+ * Ajusta los aportes por músculo para que sumen el total final de su canal. Sin aportes positivos no hay a quién repartir: devuelve
+ * vacío en vez de inventar músculos para cuadrar un total.
+ */
+internal fun distributeToTotal(shares: Map<String, Double>, total: Double): Map<String, Double> {
+    if (shares.isEmpty() || total <= 0.0) return emptyMap()
+    val sum = shares.values.sum()
+    if (sum <= 0.0) return emptyMap()
+    val scale = total / sum
+    return shares.mapValues { (_, v) -> v * scale }.filterValues { it > 0.0 }
+}
+
+private fun buildMuscleDrainPrecise(
+    muscular: Map<String, Double>,
+    cns: Map<String, Double>,
+    spinal: Map<String, Double>,
+): Map<String, PreciseDrain> =
+    (muscular.keys + cns.keys + spinal.keys).associateWith { muscle ->
+        PreciseDrain(
+            cns = cns[muscle] ?: 0.0,
+            muscular = muscular[muscle] ?: 0.0,
+            spinal = spinal[muscle] ?: 0.0,
+        )
+    }
 
 internal fun accumulateSessionVolume(
     session: Session,
@@ -945,7 +900,7 @@ internal fun aggregateWeeklyDrain(drains: List<PredictedDrain>): PredictedDrain 
 
 internal fun PredictedDrain.combinedDrain(): Double = (cns + muscular + spinal) / 3.0
 
-internal fun Exercise.validAugeSets(): List<ExerciseSet> = sets.filterNot { it.isIneffective }
+internal fun Exercise.validAugeSets(): List<ExerciseSet> = sets.filterNot { it.isIneffective || it.isEmptySlot }
 
 internal fun ExerciseSet.effectiveTargetRpe(): Double {
     if (isFailure || intensityMode == IntensityMode.FAILURE) return 10.8

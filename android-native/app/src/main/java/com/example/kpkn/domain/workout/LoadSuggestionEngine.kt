@@ -3,6 +3,7 @@ package com.example.kpkn.domain.workout
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.performedPurpose
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -30,9 +31,10 @@ object LoadSuggestionEngine {
         val suggestedLoadMode: LoadModeV2? = null,
     )
 
-    fun roundLoad(weight: Double): Double {
+    fun roundLoad(weight: Double, incrementKg: Double = 0.5): Double {
+        require(incrementKg.isFinite() && incrementKg > 0.0)
         if (weight <= 0.0) return 0.0
-        return ((weight / 0.5).roundToInt() * 0.5).coerceAtLeast(0.5)
+        return ((weight / incrementKg).roundToInt() * incrementKg).coerceAtLeast(incrementKg)
     }
 
     fun fatigueFactorForPriorCompletedSets(priorCompletedCount: Int): Double =
@@ -73,6 +75,7 @@ object LoadSuggestionEngine {
 
     fun inputLoad(set: CompletedSet, loadMode: LoadModeV2): Double {
         val payload = set.recordedPayloadV3
+        set.originalLoad?.let { return if (loadMode == LoadModeV2.BODYWEIGHT) 0.0 else it }
         return when (loadMode) {
             LoadModeV2.ASSISTED -> payload?.assistedLoad ?: set.weight
             LoadModeV2.BODYWEIGHT -> 0.0
@@ -82,7 +85,7 @@ object LoadSuggestionEngine {
 
     /** Resolves the load mode that was actually logged for [set]. */
     fun resolvedLoadMode(set: CompletedSet): LoadModeV2 =
-        set.recordedPayloadV3?.loadInputMode
+        set.loadMode ?: set.recordedPayloadV3?.loadInputMode
             ?: set.homologatedResultV3?.loadMode
             ?: LoadModeV2.LOAD
 
@@ -94,8 +97,9 @@ object LoadSuggestionEngine {
     fun estimatedCapacity(set: CompletedSet): Double? {
         val mode = resolvedLoadMode(set)
         if (mode == LoadModeV2.ASSISTED || mode == LoadModeV2.BODYWEIGHT) return null
-        set.homologatedResultV3?.estimatedRm?.takeIf { it > 0.0 }?.let { return it }
-        return if (set.weight > 0.0 && set.reps in 1..36) {
+        // Recompute from the performed full reps and normalized load. Old persisted
+        // homologations may contain the v1 AMRAP bonus; they remain untouched.
+        return if (set.weight > 0.0 && set.reps > 0) {
             calculateHybrid1RM(set.weight, set.reps)
         } else {
             null
@@ -148,7 +152,10 @@ object LoadSuggestionEngine {
 
         // Prefer homologated next-load even for BODYWEIGHT sets (weight=0), so
         // Assistd→BW→Lastre transitions can surface in live suggestions.
-        val homologated = lastSet.homologatedResultV3
+        val homologated = lastSet.homologatedResultV3?.takeUnless {
+            it.estimatorVersion < com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION &&
+                (lastSet.performedPurpose()?.isAmrap == true || it.amrapOverride) && lastSet.reps > 3
+        }
         val homologatedSuggestion = homologated?.suggestedNextLoad
         if (homologatedSuggestion != null || homologated?.suggestedLoadMode != null) {
             val rawSug = homologatedSuggestion ?: 0.0

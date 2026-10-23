@@ -96,8 +96,10 @@ object SupersetRules {
         val allIds = session.allExercises().map { it.id }.toSet()
         if (!targetIds.all { it in allIds }) return session
 
+        val previousGroup = session.allSupersetGroups().firstOrNull { it.id == groupId }
         val maxSetsForTargets = targetIds.mapNotNull { tid -> session.allExercises().find { it.id == tid }?.sets?.size }.maxOrNull() ?: 1
-        val clampedRounds = rounds?.coerceAtLeast(1)?.let { maxOf(it, maxSetsForTargets) }
+        val clampedRounds = (rounds ?: previousGroup?.rounds)?.coerceAtLeast(1)?.let { maxOf(it, maxSetsForTargets) }
+        val retainedRoundCount = clampedRounds ?: maxSetsForTargets
         val group = SupersetGroup(
             id = groupId,
             exerciseOrder = targetIds,
@@ -108,12 +110,12 @@ object SupersetRules {
                 partId = anchorPartId,
                 anchorExerciseId = anchorExerciseId,
             ),
-            roundRestBetweenExercises = clampedRounds?.let { count ->
-                (0 until count.coerceAtLeast(1)).associateWith { restBetweenExercises.coerceAtLeast(0) }
-            }.orEmpty(),
-            roundRestAfterSuperset = clampedRounds?.let { count ->
-                (0 until count.coerceAtLeast(1)).associateWith { restAfterSuperset.coerceAtLeast(0) }
-            }.orEmpty(),
+            // Las rondas nuevas heredan; editar miembros conserva los ajustes ya declarados.
+            roundRestBetweenExercises = previousGroup?.roundRestBetweenExercises.orEmpty()
+                .filterKeys { it in 0 until retainedRoundCount },
+            roundRestAfterSuperset = previousGroup?.roundRestAfterSuperset.orEmpty()
+                .filterKeys { it in 0 until retainedRoundCount },
+            isOptional = previousGroup?.isOptional ?: false,
         )
 
         val previousGroupIds = session.allExercises()
@@ -121,8 +123,15 @@ object SupersetRules {
             .mapNotNull { it.supersetGroupRefOrLegacyId() }
             .toSet() - groupId
 
+        // Un miembro desmarcado permanece como ejercicio y conserva su dosis, pero sale del grupo editado.
+        fun releaseRemovedMember(exercise: Exercise): Exercise =
+            if (exercise.supersetGroupRefOrLegacyId() == groupId && exercise.id !in targetIds) {
+                exercise.copy(supersetGroupRef = null, supersetId = null,
+                    supersetRestBetween = null, supersetRestAfter = null)
+            } else exercise
+
         // First, extract all exercises to find where they currently are and update them
-        val allCurrentExercises = session.allExercises()
+        val allCurrentExercises = session.allExercises().map(::releaseRemovedMember)
         val updatedMembers = targetIds.mapNotNull { id ->
             allCurrentExercises.find { it.id == id }?.let { member -> member.copy(
                 supersetGroupRef = groupId,
@@ -134,8 +143,8 @@ object SupersetRules {
 
         // Strip them from everywhere
         var resultSession = session.copy(
-            exercises = session.exercises.filterNot { it.id in targetIds },
-            parts = session.parts.map { it.copy(exercises = it.exercises.filterNot { it.id in targetIds }) }
+            exercises = session.exercises.filterNot { it.id in targetIds }.map(::releaseRemovedMember),
+            parts = session.parts.map { it.copy(exercises = it.exercises.filterNot { it.id in targetIds }.map(::releaseRemovedMember)) }
         )
 
         // Find the absolute best insertion point. 
@@ -268,12 +277,10 @@ object SupersetRules {
         val maxSets = session.allExercises().filter { it.supersetGroupRefOrLegacyId() == groupId }.maxOfOrNull { it.sets.size } ?: 1
         val nextRounds = rawNextRounds?.let { maxOf(it, maxSets) }
         val roundCount = nextRounds ?: roundCount(session, groupId)
-        val nextRoundBetween = (0 until roundCount).associateWith { round ->
-            existing.roundRestBetweenExercises[round] ?: nextRestBetween
-        }
-        val nextRoundAfter = (0 until roundCount).associateWith { round ->
-            existing.roundRestAfterSuperset[round] ?: nextRestAfter
-        }
+        // Solo las entradas explícitas son ajustes propios de una ronda. Copiar aquí el base
+        // lo convertía en un ajuste y bloqueaba el segundo cambio de descanso del grupo.
+        val nextRoundBetween = existing.roundRestBetweenExercises.filterKeys { it in 0 until roundCount }
+        val nextRoundAfter = existing.roundRestAfterSuperset.filterKeys { it in 0 until roundCount }
 
         fun updateExercise(exercise: Exercise): Exercise {
             if (exercise.supersetGroupRefOrLegacyId() != groupId) return exercise
@@ -319,6 +326,26 @@ object SupersetRules {
                     roundRestAfterSuperset = restAfterSuperset?.let {
                         group.roundRestAfterSuperset + (safeRound to it.coerceAtLeast(0))
                     } ?: group.roundRestAfterSuperset,
+                )
+            },
+        ))
+    }
+
+    /**
+     * C3 · «Usar el base»: la ronda deja de tener descanso propio y vuelve al del grupo. Se quitan sus entradas de los mapas, no se
+     * escriben los valores de antes, para que un cambio posterior del base sí le llegue.
+     */
+    fun clearRoundRest(
+        session: Session,
+        groupId: String,
+        roundIndex: Int,
+    ): Session {
+        val safeRound = roundIndex.coerceAtLeast(0)
+        return normalizeSession(session.copy(
+            supersetGroups = session.supersetGroups.map { group ->
+                if (group.id != groupId) group else group.copy(
+                    roundRestBetweenExercises = group.roundRestBetweenExercises - safeRound,
+                    roundRestAfterSuperset = group.roundRestAfterSuperset - safeRound,
                 )
             },
         ))

@@ -70,6 +70,8 @@ data class ImportedExercise(
     val restSeconds: Int? = null,
     val notes: String? = null,
     val sourceText: String? = null,
+    val purpose: com.example.kpkn.data.models.SetPurpose = com.example.kpkn.data.models.SetPurpose.NONE,
+    val amrapMinimumReps: Int? = null,
 )
 
 /** Unidad de las cargas del archivo: kilos (por defecto) o libras. */

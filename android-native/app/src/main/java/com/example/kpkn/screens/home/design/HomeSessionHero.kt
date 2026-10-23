@@ -463,7 +463,7 @@ private fun HeroButtonRow(buttons: List<HeroButton>) {
 internal fun heroDose(exercise: Exercise): String? {
     val working = exercise.sets.filter { !it.isEmptySlot }
     if (working.isEmpty()) return null
-    val amrap = working.any { it.isAmrap || it.intensityMode == IntensityMode.AMRAP }
+    val amrap = working.any { it.purpose.isAmrap }
     val reps = if (amrap) "AMRAP" else working.first().effectiveRepRange()?.format()
     val head = if (reps != null) {
         "${working.size} × $reps"
@@ -478,7 +478,7 @@ private fun heroLoad(exercise: Exercise, working: List<ExerciseSet>): String? {
     val first = working.first()
     val percent = first.targetPercentageRM
     val kg = first.weight?.takeIf { it > 0.0 }
-        ?: percent?.let { p -> exercise.reference1RM?.let { rm -> rm * p / 100.0 } }
+        ?: com.example.kpkn.domain.calculations.percentLoadKg(exercise, first)
     val rir = first.targetRIR
     val rpe = first.targetRPE
     return when {

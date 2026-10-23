@@ -79,6 +79,7 @@ internal class WorkoutVoiceSetMutationController(
     private val refreshLoadSuggestions: ((WorkoutUiState, String) -> Unit)? = null,
     private val gateWaitMs: Long = DEFAULT_GATE_WAIT_MS,
     private val clock: () -> Long = System::currentTimeMillis,
+    private val refreshCalibrations: suspend (WorkoutUiState, WorkoutUiState) -> WorkoutUiState = { _, next -> next },
 ) {
     private val gateSequence = AtomicLong(0L)
 
@@ -234,9 +235,15 @@ internal class WorkoutVoiceSetMutationController(
                     null
                 }
             }
+            val transformed = ready.transform(captured)
+            val calibrated = refreshCalibrations(captured, transformed)
+            // Merge only entries changed by calibration; preserve unrelated concurrent UI entries.
+            val correctedSets = calibrated.completedSets.filter { (key, set) -> transformed.completedSets[key] != set }
             val apply: (WorkoutUiState) -> WorkoutUiState = { state ->
                 val next = ready.transform(state)
-                if (energy != null) next.copy(liveEnergySummary = energy) else next
+                next.copy(completedSets = next.completedSets + correctedSets,
+                    calibrationDecisions = calibrated.calibrationDecisions,
+                    liveEnergySummary = energy ?: next.liveEnergySummary)
             }
             val candidate = apply(captured)
             val publish: () -> Unit = {
@@ -282,7 +289,7 @@ internal class WorkoutVoiceSetMutationController(
             }
 
             runPostCommitEffects(op, ready)
-            return Outcome(WorkoutVoiceMutationResult.Committed(ready.setKey, ready.resultSet), needsReconcile)
+            return Outcome(WorkoutVoiceMutationResult.Committed(ready.setKey, candidate.completedSets[ready.setKey]), needsReconcile)
         }
     }
 

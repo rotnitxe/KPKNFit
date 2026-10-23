@@ -156,6 +156,7 @@ private val ASSIGNED: Map<String, CoverIdentity> = mapOf(
     row("protocol:gzcl-jt-2", CoverStudioStyle.BAUHAUS, CoverPaletteKind.TINTA, MUSCULO, COLUMNA, motif = 0),
     row("protocol:gzcl-rippler", CoverStudioStyle.WAVES, CoverPaletteKind.NOCHE, MUSCULO, ENERGIA, motif = 10),
     row("protocol:gzcl-uhf-9", CoverStudioStyle.BAUHAUS, CoverPaletteKind.TINTA, MUSCULO, MENTE, motif = 0),
+    row("protocol:apre-mann", CoverStudioStyle.TOPO, CoverPaletteKind.PAPEL, MUSCULO, ENERGIA, motif = 8),
     row("native:machine-muscle", CoverStudioStyle.WAVES, CoverPaletteKind.NOCHE, MENTE, ENERGIA, motif = 9),
     row("native:bodyweight", CoverStudioStyle.TRAIL, CoverPaletteKind.TINTA, OK, ENERGIA, motif = 3),
     row("protocol:smolov", CoverStudioStyle.ENGRAVING, CoverPaletteKind.NOCHE, MUSCULO, OK, motif = 0),

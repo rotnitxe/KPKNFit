@@ -25,6 +25,7 @@ import com.example.kpkn.data.models.isSimpleCalendarizedProgram
 import com.example.kpkn.data.models.isSimpleLinearProgram
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.protocols.LiftSlot
+import com.example.kpkn.data.protocols.ProgressionRule
 
 /**
  * Motor de progreso para programas Simples: avanza semana y ciclo por instancia,
@@ -388,17 +389,19 @@ object ProgramProgressEngine {
             "No hay un test 1RM pendiente de resolver."
         }
         if (resolution.status == OneRmResolutionStatus.RECORDED) {
-            require(resolution.squat1RM != null && resolution.squat1RM > 0.0) { "Registra un 1RM de sentadilla válido." }
-            require(resolution.bench1RM != null && resolution.bench1RM > 0.0) { "Registra un 1RM de banca válido." }
-            require(resolution.deadlift1RM != null && resolution.deadlift1RM > 0.0) { "Registra un 1RM de peso muerto válido." }
+            // CAL5: el test pide SOLO los levantamientos del programa (Smolov: la sentadilla) y el press militar si lo trabaja.
+            OneRmTestPlan.missingLifts(resolution, OneRmTestPlan.requiredLifts(program)).firstOrNull()?.let { lift ->
+                throw IllegalArgumentException("Registra un 1RM de ${AuthoredProgressionEngine.liftName(lift)} válido.")
+            }
         }
         val withResolution = if (resolution.status == OneRmResolutionStatus.RECORDED) {
+            val currentGoals = program.goals ?: com.example.kpkn.data.models.ProgramGoals()
             withTestedProfile(
                 program.copy(
-                    goals = (program.goals ?: com.example.kpkn.data.models.ProgramGoals()).copy(
-                        squat1RM = resolution.squat1RM,
-                        bench1RM = resolution.bench1RM,
-                        deadlift1RM = resolution.deadlift1RM,
+                    goals = currentGoals.copy(
+                        squat1RM = resolution.squat1RM ?: currentGoals.squat1RM,
+                        bench1RM = resolution.bench1RM ?: currentGoals.bench1RM,
+                        deadlift1RM = resolution.deadlift1RM ?: currentGoals.deadlift1RM,
                     ),
                     runState = run.copy(
                         oneRmResolution = resolution,
@@ -426,14 +429,15 @@ object ProgramProgressEngine {
             squat1RM = resolution.squat1RM,
             bench1RM = resolution.bench1RM,
             deadlift1RM = resolution.deadlift1RM,
+            overhead1RM = resolution.overhead1RM,
         )
         val merged = TrainingMaxMerge.merge(
             old = program.powerliftingProfile,
             new = tested,
             trainingMaxPercent = TrainingMaxMerge.trainingMaxPercentOf(program),
         )
-        if (merged == program.powerliftingProfile) return program
-        val withProfile = program.copy(powerliftingProfile = merged)
+        val withProfile = ExerciseTrainingMax.captureTestProfile(program.copy(powerliftingProfile = merged), resolution)
+        if (merged == program.powerliftingProfile) return withProfile
         val recipe = program.sourceRecipe ?: return withProfile
         return withProfile.copy(
             macrocycles = withProfile.macrocycles.map { macro ->
@@ -701,6 +705,16 @@ object ProgramProgressEngine {
                 runId = runId,
                 recipe = recipe,
             ),
+            // CAL5 (Juggernaut): el AMRAP de realización de la ola que se cierra decide el TM nuevo: reps sobre el estándar.
+            evidence = if (recipe.progression is ProgressionRule.RepsOverStandardTm) {
+                AuthoredProgressionEngine.CloseEvidence(
+                    amrapHits = closingWeeks.flatMap { week ->
+                        ProgramAutoregulationEngine.collectAmrapHits(week, logs, cycleNumber, program.id, runId, recipe)
+                    },
+                )
+            } else {
+                AuthoredProgressionEngine.CloseEvidence()
+            },
         )
     }
 
@@ -1124,30 +1138,59 @@ object ProgramProgressEngine {
         logs: List<WorkoutLog>,
         weeklySignals: WeeklyAutoregulationSignals?,
         compositionMetadata: ExerciseCompositionMetadataProvider?,
+        sourceCycleNumber: Int? = program.runState?.cycleNumber,
+        targetCycleNumber: Int? = program.runState?.cycleNumber,
+        executedWeekIdsOverride: Set<String>? = null,
+        apreOnly: Boolean = false,
     ): AutoregulationEvaluation {
-        val recipe = program.sourceRecipe ?: return AutoregulationEvaluation(emptyList(), program)
         if (program.autoregulationMode == AutoregulationMode.OFF) {
             return AutoregulationEvaluation(emptyList(), program)
         }
-        val signals = weeklySignals ?: WeeklyAutoregulationSignals()
-        val proposals = ProgramAutoregulationEngine.evaluate(
-            program = program,
-            completedWeek = completedWeek,
-            logs = logs,
-            recipe = recipe,
-            signals = signals,
-        )
+        val recipe = program.sourceRecipe
+        val proposals = if (recipe == null || apreOnly) {
+            ProgramAutoregulationEngine.evaluateApreXrmOnly(
+                program = program,
+                completedWeek = completedWeek,
+                logs = logs,
+                sourceCycleNumber = sourceCycleNumber,
+                recipe = recipe,
+                sourceProtocolId = program.sourceProtocolId ?: recipe?.id,
+            )
+        } else {
+            ProgramAutoregulationEngine.evaluate(
+                program = program,
+                completedWeek = completedWeek,
+                logs = logs,
+                recipe = recipe,
+                signals = weeklySignals ?: WeeklyAutoregulationSignals(),
+                sourceCycleNumber = sourceCycleNumber,
+            )
+        }
         if (proposals.isEmpty()) return AutoregulationEvaluation(emptyList(), program)
+        val targetWeek = nextWeekId?.let { targetId ->
+            program.macrocycles.asSequence().flatMap { it.blocks.asSequence() }
+                .flatMap { it.mesocycles.asSequence() }.flatMap { it.weeks.asSequence() }
+                .firstOrNull { it.id == targetId }
+        }
+        val executedTargetSessions = targetWeek?.let { week ->
+            ProgramAutoregulationEngine.collectExecutedSessionIds(
+                week = week,
+                logs = logs,
+                cycleNumber = targetCycleNumber,
+                programId = program.id,
+                runId = program.runState?.runId,
+            )
+        }.orEmpty()
         return ProgramAutoregulationEngine.apply(
             program = program,
             nextWeekId = nextWeekId,
             proposals = proposals,
             recipe = recipe,
-            executedWeekIds = setOf(completedWeek.id),
+            executedWeekIds = executedWeekIdsOverride ?: setOf(completedWeek.id),
             metadata = compositionMetadata,
+            executedSessionIds = executedTargetSessions,
         )
     }
-
     fun resolvePendingAutoregulation(
         program: Program,
         accept: Boolean,
@@ -1263,10 +1306,14 @@ object ProgramProgressEngine {
         // run y, antes del avance, arrastraría las semanas escaladas del ciclo cerrado.
         // B.S4: un levantamiento con un AMRAP corto en el ciclo que se cierra no sube su TM. Se lee de los
         // registros de ESE ciclo (`cycleNumber` es el cerrado) y de las semanas tal como se entrenaron.
+        // CAL5: además, la regla de cada método lee lo registrado en el ciclo que se cierra: 5/3/1 cuenta los ciclos congelados
+        // seguidos (reinicio −10 %) y GZCLP el volumen que completó cada T1 y T2 (etapas).
         val cycleRecipe = program.sourceRecipe
-        val shortAmrapLifts: Set<LiftSlot> = if (cycleRecipe != null && AuthoredProgressionEngine.appliesAtCycleClose(cycleRecipe.progression)) {
+        val closingWeeks = currentInstances.mapNotNull { instance -> hierarchy.locateWeek(instance.templateWeekId)?.week }
+        val closesByCycle = cycleRecipe != null && AuthoredProgressionEngine.appliesAtCycleClose(cycleRecipe.progression)
+        val shortAmrapLifts: Set<LiftSlot> = if (cycleRecipe != null && closesByCycle) {
             ProgramAutoregulationEngine.shortAmrapLifts(
-                weeks = currentInstances.mapNotNull { instance -> hierarchy.locateWeek(instance.templateWeekId)?.week },
+                weeks = closingWeeks,
                 logs = logs,
                 cycleNumber = cycleNumber,
                 programId = program.id,
@@ -1276,6 +1323,36 @@ object ProgramProgressEngine {
         } else {
             emptySet()
         }
+        val closeEvidence: AuthoredProgressionEngine.CloseEvidence = if (cycleRecipe == null) {
+            AuthoredProgressionEngine.CloseEvidence()
+        } else when (val rule = cycleRecipe.progression) {
+            is ProgressionRule.CycleIncrement ->
+                if (rule.resetAfterFrozenCycles > 0 && shortAmrapLifts.isNotEmpty()) {
+                    AuthoredProgressionEngine.CloseEvidence(
+                        frozenStreaks = ProgramAutoregulationEngine.frozenCycleStreaks(
+                            weeks = closingWeeks,
+                            logs = logs,
+                            closingCycle = cycleNumber,
+                            programId = program.id,
+                            runId = runId,
+                            recipe = cycleRecipe,
+                        ),
+                    )
+                } else {
+                    AuthoredProgressionEngine.CloseEvidence()
+                }
+            is ProgressionRule.StagedVolume -> AuthoredProgressionEngine.CloseEvidence(
+                gzclpChecks = ProgramAutoregulationEngine.collectGzclpTierChecks(
+                    weeks = closingWeeks,
+                    logs = logs,
+                    cycleNumber = cycleNumber,
+                    programId = program.id,
+                    runId = runId,
+                    recipe = cycleRecipe,
+                ),
+            )
+            else -> AuthoredProgressionEngine.CloseEvidence()
+        }
         val authored = AuthoredProgressionEngine.applyAtCycleClose(
             program = updatedProgram,
             newCycle = newCycle,
@@ -1283,10 +1360,31 @@ object ProgramProgressEngine {
             metadata = compositionMetadata ?: CompositionMetadataHolder.current,
             inventory = inventory,
             excludedLifts = shortAmrapLifts,
+            evidence = closeEvidence,
         )
+        // La última semana del ciclo no pasa por la transición semanal anterior. Procesamos
+        // exclusivamente S4 APRE contra la primera ocurrencia nueva, manteniendo separado
+        // el ciclo observado del ciclo destino aunque ambos reutilicen el mismo weekId.
+        val closingApreWeek = closingWeeks.lastOrNull()
+        val closingApre = if (firstInstance != null && closingApreWeek != null) {
+            applyWeeklyAutoregulation(
+                program = authored,
+                completedWeek = closingApreWeek,
+                nextWeekId = firstInstance.templateWeekId,
+                logs = logs,
+                weeklySignals = null,
+                compositionMetadata = compositionMetadata,
+                sourceCycleNumber = cycleNumber,
+                targetCycleNumber = newCycle,
+                executedWeekIdsOverride = emptySet(),
+                apreOnly = true,
+            )
+        } else {
+            AutoregulationEvaluation(emptyList(), authored)
+        }
 
         return ProgressAdvanceResult(
-            program = authored,
+            program = closingApre.program,
             activeState = activeState?.copy(
                 currentWeekId = firstInstance?.instanceId ?: activeState.currentWeekId,
                 currentWeekInstanceId = firstInstance?.instanceId,
@@ -1301,6 +1399,7 @@ object ProgramProgressEngine {
             ),
             advancedCycle = true,
             advancedWeek = true,
+            autoregulationProposals = closingApre.proposals,
         )
     }
     fun newRunId(idProvider: IdProvider = UuidIdProvider): String = "run_${idProvider.newId()}"

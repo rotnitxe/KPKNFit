@@ -114,7 +114,8 @@ class SessionEditorViewModelTemplatesTest {
         repository.addProgram(programWithSession(programId, Session(id = sessionId, name = "Base")))
         val vm = createViewModel(programId, sessionId)
         awaitSession(vm)
-        vm.switchVariant(WeekVariant.B)
+        // Simulate a restored legacy state; normal selection now rejects absent slots.
+        vm.updateUi { it.copy(activeVariant = WeekVariant.B) }
         assertTrue(vm.uiState.value.activeVariantSession == null)
         assertNotNull(vm.uiState.value.session)
 

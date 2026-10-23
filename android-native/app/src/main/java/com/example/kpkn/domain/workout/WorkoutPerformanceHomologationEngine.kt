@@ -22,6 +22,10 @@ import kotlin.math.sqrt
 object WorkoutPerformanceHomologationEngine {
 
     private const val EWMA_ALPHA = 0.35
+    /** Capacity references reuse the contextual history smoothing, never its volume/score cache. */
+    fun capacityHistoryEwma(capacities: List<Double>): Double? = capacities
+        .filter { it.isFinite() && it > 0.0 }.takeIf { it.isNotEmpty() }
+        ?.reduce { previous, capacity -> EWMA_ALPHA * capacity + (1 - EWMA_ALPHA) * previous }
     private const val DEFAULT_STD = 6.0
     private const val MIN_SCORE = 0.0
     private const val MAX_SCORE = 100.0
@@ -97,6 +101,7 @@ object WorkoutPerformanceHomologationEngine {
         val trm = if (entry.unitMode == UnitModeV2.TIME) metric else null
         // ASSISTED/BODYWEIGHT use a non-barbell scoring metric — never expose as eRM kg.
         val estimatedRm = when {
+            entry.unitMode == UnitModeV2.REPS && entry.completedReps == 0 -> null
             entry.unitMode == UnitModeV2.TIME -> null
             entry.loadMode == LoadModeV2.ASSISTED || entry.loadMode == LoadModeV2.BODYWEIGHT -> null
             else -> metric
@@ -129,6 +134,7 @@ object WorkoutPerformanceHomologationEngine {
         )
 
         val homologated = HomologatedPerformanceResult(
+            estimatorVersion = com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION,
             contextKey = entry.contextKey,
             globalKey = globalKey,
             loadMode = entry.loadMode,
@@ -540,14 +546,14 @@ object WorkoutPerformanceHomologationEngine {
             UnitModeV2.CUSTOM,
             -> {
                 val load = normalizeLoad(entry)
-                val reps = entry.actualValue.toInt().coerceAtLeast(1)
+                val reps = entry.completedReps?.coerceAtLeast(0) ?: entry.actualValue.toInt().coerceAtLeast(1)
                 if (entry.loadMode == LoadModeV2.ASSISTED) {
                     val assistance = entry.loggedLoad ?: 0.0
                     (200.0 - assistance) * (1.0 + reps * 0.03)
                 } else if (entry.loadMode == LoadModeV2.BODYWEIGHT) {
                     reps.toDouble()
                 } else {
-                    calculateHybrid1RM(load, reps, isAmrap = entry.amrapOverride).coerceAtLeast(1.0)
+                    if (reps == 0) 0.0 else calculateHybrid1RM(load, reps).coerceAtLeast(1.0)
                 }
             }
         }

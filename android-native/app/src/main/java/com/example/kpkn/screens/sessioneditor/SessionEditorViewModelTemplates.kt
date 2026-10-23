@@ -9,6 +9,8 @@ import com.example.kpkn.data.sessions.SessionTemplateTag
 import com.example.kpkn.data.sessions.SessionTemplatePublicationStatus
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.domain.templates.SessionTemplateEngine
+import com.example.kpkn.domain.templates.TemplateSaveValidationException
+import com.example.kpkn.domain.templates.TemplateSaveValidationIssue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -118,21 +120,22 @@ private fun SessionEditorViewModel.buildCurrentSessionTemplate(
     name: String,
     description: String,
     tags: List<SessionTemplateTag>,
-): SessionTemplate? {
+): Result<SessionTemplate> {
     val trimmedName = name.trim()
     if (trimmedName.isBlank()) {
-        return null
+        return Result.failure(TemplateSaveValidationException(TemplateSaveValidationIssue.NAME_REQUIRED))
     }
     // A/B/C/D editors must materialize the active variant.  The base editor
     // deliberately has no active variant, though, and still needs a durable
     // blueprint save from the canonical session shown on screen.
-    val session = currentUiState.activeVariantSession ?: currentUiState.session ?: return null
+    val session = currentUiState.activeVariantSession ?: currentUiState.session
+        ?: return Result.failure(TemplateSaveValidationException(TemplateSaveValidationIssue.SESSION_REQUIRED))
     if (!SessionTemplateEngine.sessionHasCompleteExecutableContent(session)) {
-        return null
+        return Result.failure(TemplateSaveValidationException(TemplateSaveValidationIssue.SESSION_INCOMPLETE))
     }
     val now = java.time.Instant.now().toString()
     val allExercises = session.exercises + session.parts.flatMap { it.exercises }
-    return SessionTemplate(
+    return Result.success(SessionTemplate(
         id = UUID.randomUUID().toString(),
         sourceType = SessionTemplateSourceType.USER,
         name = name.trim(),
@@ -148,7 +151,7 @@ private fun SessionEditorViewModel.buildCurrentSessionTemplate(
         updatedAt = now,
         publicationStatus = SessionTemplatePublicationStatus.KPKN_NATIVE,
         autoGenerationEligible = false,
-    )
+    ))
 }
 
 /** Durable save entrypoint used by the editor UI. The Result is emitted only
@@ -158,7 +161,7 @@ fun SessionEditorViewModel.saveCurrentSessionAsTemplateDurably(
     description: String,
     tags: List<SessionTemplateTag> = emptyList(),
 ) {
-    val template = buildCurrentSessionTemplate(name, description, tags)
+    val template = buildCurrentSessionTemplate(name, description, tags).getOrNull()
     if (template == null) {
         updateUi { it.copy(snackbarMessage = "Añade un nombre y al menos una sesión válida.") }
         return
@@ -187,7 +190,7 @@ suspend fun SessionEditorViewModel.saveCurrentSessionAsTemplateNow(
     tags: List<SessionTemplateTag> = emptyList(),
 ): Result<SessionTemplate> {
     val template = buildCurrentSessionTemplate(name, description, tags)
-        ?: return Result.failure(IllegalArgumentException("Nombre o sesión inválidos"))
+        .getOrElse { return Result.failure(it) }
     return withContext(Dispatchers.IO) {
         templateRepository.saveUserTemplateNow(template).map { template }
     }

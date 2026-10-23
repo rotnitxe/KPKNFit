@@ -164,6 +164,7 @@ object ImportedProgramBuilder {
             catalogDefinitionId = definition?.id,
             catalogConfigurationId = catalogConfigurationId,
             performanceProfileId = configuration?.profile?.performanceProfileId,
+            occurrenceId = id.takeIf { catalogConfigurationId != null },
             trainingMode = TrainingMode.REPS,
             restTime = members.firstNotNullOfOrNull { it.restSeconds },
             sets = buildSets(id, members, loadUnit),
@@ -188,11 +189,16 @@ object ImportedProgramBuilder {
             else -> null
         }
         val weight = exercise.loadKg?.let { kilograms(it, loadUnit) }
-        return List(exercise.sets.coerceAtLeast(1)) {
+        return List(exercise.sets.coerceAtLeast(1)) { index ->
+            val purpose = if (exercise.purpose.isAmrap &&
+                (index == exercise.sets - 1 || exercise.amrapMinimumReps == null)) exercise.purpose
+                else com.example.kpkn.data.models.SetPurpose.NONE
             ExerciseSet(
                 id = "",
-                targetReps = high,
-                targetRepsRange = RepRange(low, high),
+                targetReps = if (purpose.isAmrap && exercise.amrapMinimumReps == null) null else high,
+                targetRepsRange = if (purpose.isAmrap && exercise.amrapMinimumReps == null) null else RepRange(low, high),
+                purpose = purpose,
+                amrapMinimumReps = if (purpose.isAmrap) exercise.amrapMinimumReps else null,
                 targetRPE = exercise.rpe,
                 targetRIR = exercise.rir,
                 intensityMode = intensity,

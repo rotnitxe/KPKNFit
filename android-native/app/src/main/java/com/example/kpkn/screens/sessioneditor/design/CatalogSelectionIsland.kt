@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -37,6 +40,24 @@ internal fun catalogSelectionSummary(names: List<String>): String = when (names.
     1 -> names[0]
     2 -> "${names[0]} y ${names[1]}"
     else -> "${names[0]}, ${names[1]} y ${names.size - 2} más"
+}
+
+/** Técnica mantiene un candidato pendiente hasta pulsar «Elegir», también tras recrear la actividad. */
+@Composable
+internal fun CatalogTechniqueChoiceBar(name: String?, onConfirm: () -> Unit, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxWidth().background(Color.Black).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("PARA EL ANÁLISIS DEL VÍDEO", style = KpknType.eyebrow, color = WizardColors.textMuted)
+        if (name != null) Text(name, style = KpknType.bodyStrong, color = WizardColors.text)
+        KpknPrimaryPill(
+            text = "Elegir",
+            enabled = name != null,
+            onClick = onConfirm,
+            modifier = Modifier.fillMaxWidth().testTag("catalog_technique_confirm"),
+        )
+    }
 }
 
 /**

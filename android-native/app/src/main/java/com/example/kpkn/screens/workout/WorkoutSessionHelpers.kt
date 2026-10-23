@@ -178,13 +178,14 @@ internal fun shouldShowWorkoutRecordFab(
     showingPostExerciseCard: Boolean,
     workingRestActive: Boolean,
     isCardio: Boolean,
+    amrapResultWithMinimizedRest: Boolean = false,
 ): Boolean = (
     pageType == LivePageType.NORMAL ||
         pageType == LivePageType.WARMUP ||
         pageType == LivePageType.MOBILITY
     ) &&
     !showingPostExerciseCard &&
-    !workingRestActive &&
+    (!workingRestActive || amrapResultWithMinimizedRest) &&
     !isCardio
 
 /** Opens readiness Adapt sheet from header into the active set card. */
@@ -200,6 +201,8 @@ internal data class LiveSetStepperSnapshot(
     val totalCount: Int,
     val sessionAccentColor: Color?,
     val canAddSet: Boolean,
+    val activePageIndex: Int? = null,
+    val calibratedPageLoads: Map<Int, Double> = emptyMap(),
 )
 
 internal class LiveSetStepperHolder {

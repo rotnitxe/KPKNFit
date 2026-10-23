@@ -562,8 +562,8 @@ internal fun WorkoutRmCalcContent(
     sessionAccentColor: Color = MaterialTheme.colorScheme.primary,
     softInputs: Boolean = false,
 ) {
-    var rmWeightText by remember { mutableStateOf("") }
-    var rmRepsText by remember { mutableStateOf("") }
+    var rmWeightText by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
+    var rmRepsText by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
     val isAssisted = currentLoadMode == LoadModeV2.ASSISTED
     val isLastre = currentLoadMode == LoadModeV2.LASTRE
     val weightLabel = when (currentLoadMode) {
@@ -572,7 +572,7 @@ internal fun WorkoutRmCalcContent(
         else -> "Peso (kg)"
     }
     val effectiveLoad = remember(rmWeightText, isLastre, isAssisted, bodyWeight) {
-        val w = rmWeightText.toDoubleOrNull() ?: 0.0
+        val w = rmWeightText.replace(',', '.').toDoubleOrNull() ?: 0.0
         when {
             isLastre && bodyWeight != null && bodyWeight > 0 -> bodyWeight + w
             isAssisted && bodyWeight != null && bodyWeight > 0 -> (bodyWeight - w).coerceAtLeast(0.0)
@@ -651,7 +651,7 @@ internal fun WorkoutRmCalcContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        if (isAssisted || isLastre) "e1RM equiv.: ${"%.1f".format(rmResult)} kg" else "e1RM: ${"%.1f".format(rmResult)} kg",
+                        if (isAssisted || isLastre) "e1RM equiv.: ${String.format(Locale.forLanguageTag("es"), "%.1f", rmResult)} kg" else "e1RM: ${String.format(Locale.forLanguageTag("es"), "%.1f", rmResult)} kg",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF4CAF50),
@@ -688,7 +688,7 @@ internal fun WorkoutRmCalcContent(
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text("${reps}RM", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = sessionAccentColor)
-                            Text("${"%.1f".format(displayWeight)}", style = MaterialTheme.typography.labelSmall, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(String.format(Locale.forLanguageTag("es"), "%.1f", displayWeight), style = MaterialTheme.typography.labelSmall, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(suffix, style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = Color.White.copy(alpha = 0.5f), maxLines = 1)
                         }
                     }

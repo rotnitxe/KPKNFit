@@ -1,5 +1,6 @@
 package com.example.kpkn.testsupport
 
+import com.example.kpkn.data.repository.SessionTemplateRepository
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -14,10 +15,20 @@ class RoomTestRule : TestRule {
         override fun evaluate() {
             SyncRoomExecutor.install()
             try {
+                closeTemplateFixture()
                 base.evaluate()
             } finally {
-                SyncRoomExecutor.uninstall()
+                try {
+                    closeTemplateFixture()
+                } finally {
+                    SyncRoomExecutor.uninstall()
+                }
             }
         }
+    }
+
+    /** Join the IO reader before Robolectric or the next fixture closes its Room database. */
+    private fun closeTemplateFixture() {
+        SessionTemplateRepository.resetForTests()
     }
 }

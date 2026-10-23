@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,6 +16,10 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.click
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
@@ -36,6 +41,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /** Los cuerpos de la ficha, la superserie, el formulario y el asistente, montados sueltos dentro de su hoja (SE6b). */
 @RunWith(RobolectricTestRunner::class)
@@ -238,7 +244,8 @@ class CatalogDetailContentTest {
         }
 
         rule.onNodeWithText("Trapecio").assertDoesNotExist()
-        rule.onNodeWithText("Ver todos").performScrollTo().performClick()
+        rule.onNodeWithText("Ver todos").performScrollTo()
+            .performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick) { it() }
         rule.waitForIdle()
         rule.onNodeWithText("Trapecio").assertExists()
     }
@@ -263,10 +270,11 @@ class CatalogDetailContentTest {
     }
 
     @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
     fun crearEjercicioConNombreVacioNoGuarda() {
         val saved = mutableListOf<ExerciseMuscleInfo>()
         rule.setContent {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
+            Column(Modifier.fillMaxSize()) {
                 SmartExerciseForm(
                     initial = pressInfo(),
                     onSave = { saved += it },
@@ -276,7 +284,7 @@ class CatalogDetailContentTest {
         }
 
         rule.onNodeWithText("Press banca").performTextReplacement("")
-        rule.onNodeWithText("Guardar ejercicio").performScrollTo().performClick()
+        rule.onNodeWithTag("custom-exercise-save").assertIsNotEnabled().performTouchInput { click() }
         rule.waitForIdle()
 
         assertEquals(0, saved.size)

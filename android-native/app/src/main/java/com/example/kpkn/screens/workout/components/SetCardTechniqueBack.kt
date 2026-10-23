@@ -244,6 +244,7 @@ internal fun SetCardTechniqueBack(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
+                    .testTag("technique-body")
                     .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
                     .drawWithContent {
                         drawContent()
@@ -455,15 +456,15 @@ internal fun SetCardTechniqueBack(
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
+                // The action scrolls with the explanation and notes; it cannot cover a partial row.
+                TechniquePill(
+                    text = "Error de ejecución",
+                    onClick = { onFailedSetChange(!isFailedSet) },
+                    fill = if (isFailedSet) WizardColors.danger else KpknSurface.inset,
+                    ink = if (isFailedSet) WizardColors.ctaContent else WizardColors.danger,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
-
-            TechniquePill(
-                text = "Error de ejecución",
-                onClick = { onFailedSetChange(!isFailedSet) },
-                fill = if (isFailedSet) WizardColors.danger else KpknSurface.inset,
-                ink = if (isFailedSet) WizardColors.ctaContent else WizardColors.danger,
-                modifier = Modifier.fillMaxWidth(),
-            )
         }
     }
 }
@@ -566,7 +567,6 @@ private fun <T> TechniqueChain(
     addDescription: String,
     accent: Color,
 ) {
-    val density = LocalDensity.current
     val scroll = rememberScrollState()
     // Solo al AÑADIR un eslabón la cadena se desplaza hasta él; al entrar se queda al principio, con «Principal» a la vista.
     var knownSize by remember { mutableIntStateOf(rows.size) }
@@ -581,47 +581,36 @@ private fun <T> TechniqueChain(
             color = WizardColors.textMuted,
             maxLines = 1,
         )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag(TechniqueChainTag)
-                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                .drawWithContent {
-                    drawContent()
-                    val fade = with(density) { 16.dp.toPx() }
-                    // Las orillas se funden por alfa (DstIn): el eslabón parcial no se corta con un borde recto.
-                    if (scroll.value > 0) {
-                        drawRect(
-                            brush = Brush.horizontalGradient(listOf(Color.Transparent, Color.Black), startX = 0f, endX = fade),
-                            blendMode = BlendMode.DstIn,
-                        )
-                    }
-                    if (scroll.value < scroll.maxValue) {
-                        drawRect(
-                            brush = Brush.horizontalGradient(listOf(Color.Black, Color.Transparent), startX = size.width - fade, endX = size.width),
-                            blendMode = BlendMode.DstIn,
-                        )
-                    }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag(TechniqueChainTag)
+                    .fadeHorizontalWhenScrollable(scroll, fade = 24.dp)
+                    .horizontalScroll(scroll),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                ChainLink(title = "Principal", value = mainLabel.substringBefore(" × "), sub = "× " + mainLabel.substringAfter(" × "), active = false, done = false, onClick = null)
+                rows.forEachIndexed { index, row ->
+                    ChainArrow()
+                    ChainLink(
+                        title = linkTitle(index),
+                        value = linkValue(row),
+                        sub = linkSub(row),
+                        active = index == activeIndex,
+                        done = (row as? TechniqueCheckRow)?.done == true,
+                        accent = accent,
+                        onClick = { onSelect(index) },
+                    )
                 }
-                .horizontalScroll(scroll),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            ChainLink(title = "Principal", value = mainLabel.substringBefore(" × "), sub = "× " + mainLabel.substringAfter(" × "), active = false, done = false, onClick = null)
-            rows.forEachIndexed { index, row ->
-                ChainArrow()
-                ChainLink(
-                    title = linkTitle(index),
-                    value = linkValue(row),
-                    sub = linkSub(row),
-                    active = index == activeIndex,
-                    done = (row as? TechniqueCheckRow)?.done == true,
-                    accent = accent,
-                    onClick = { onSelect(index) },
-                )
+                if (canAdd) {
+                    AddLinkButton(description = addDescription, onClick = onAdd)
+                }
             }
-            if (canAdd) {
-                AddLinkButton(description = addDescription, onClick = onAdd)
+            if (scroll.canScrollForward) {
+                Icon(KpknLineIcons.ChevronRight, contentDescription = "Más eslabones",
+                    modifier = Modifier.size(16.dp), tint = WizardColors.textMuted)
             }
         }
     }
@@ -899,7 +888,8 @@ private data class TechniqueBlock(val text: String, val ghost: Boolean, val isPa
  */
 @Composable
 private fun TechniqueExplanation(title: String, blocks: List<TechniqueBlock>, accent: Color) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    val scroll = rememberScrollState()
+    Column(Modifier.testTag("technique-explanation"), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             title,
             style = KpknType.eyebrow,
@@ -910,7 +900,8 @@ private fun TechniqueExplanation(title: String, blocks: List<TechniqueBlock>, ac
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
+                .fadeHorizontalWhenScrollable(scroll)
+                .horizontalScroll(scroll),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {

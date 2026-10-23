@@ -16,6 +16,7 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.protocols.PlanProvenanceClass
 import java.text.Normalizer
 
 private val exerciseIdentityStripRegex = Regex("\\p{Mn}+")
@@ -212,25 +213,72 @@ fun Program.normalizedSessionStructures(): Program = copy(
     },
 )
 
-fun Program.normalizedIdentityFields(): Program = copy(
-    macrocycles = macrocycles.map { macro ->
-        macro.copy(
-            blocks = macro.blocks.map { block ->
-                block.copy(
-                    mesocycles = block.mesocycles.map { meso ->
-                        meso.copy(
-                            weeks = meso.weeks.map { week ->
-                                week.copy(
-                                    sessions = week.sessions.map { it.normalizedIdentityFields() },
-                                )
-                            },
-                        )
-                    },
-                )
-            },
-        )
-    },
-)
+fun Program.normalizedIdentityFields(): Program {
+    val importedProgram = planProvenance?.category == PlanProvenanceClass.IMPORTED
+    return copy(
+        macrocycles = macrocycles.map { macro ->
+            macro.copy(
+                blocks = macro.blocks.map { block ->
+                    block.copy(
+                        mesocycles = block.mesocycles.map { meso ->
+                            meso.copy(
+                                weeks = meso.weeks.map { week ->
+                                    week.copy(
+                                        sessions = week.sessions.map { session ->
+                                            val withRecoveredOccurrences = if (importedProgram) {
+                                                session.recoverImportedLegacyCatalogOccurrences()
+                                            } else {
+                                                session
+                                            }
+                                            withRecoveredOccurrences.normalizedIdentityFields()
+                                        },
+                                    )
+                                },
+                            )
+                        },
+                    )
+                },
+            )
+        },
+    )
+}
+
+/**
+ * El JSON importado anterior a occurrenceId puede conservar una selección v2 completa.
+ * Su id local sólo sirve si identifica un ejercicio único de esta sesión; los nombres
+ * y alias de catálogo no participan en la recuperación.
+ */
+private fun Session.recoverImportedLegacyCatalogOccurrences(): Session {
+    val exercisesInSession = allExercises()
+    val exerciseIdCounts = exercisesInSession.groupingBy { it.id }.eachCount()
+    val existingOccurrences = exercisesInSession.mapNotNull { exercise ->
+        exercise.occurrenceId?.takeIf(String::isNotBlank)
+    }.toSet()
+    val recoverableIds = exercisesInSession.asSequence()
+        .filter { exercise ->
+            exercise.occurrenceId.isNullOrBlank() &&
+                exercise.id.isNotBlank() &&
+                exerciseIdCounts[exercise.id] == 1 &&
+                exercise.id !in existingOccurrences &&
+                !exercise.catalogRevision.isNullOrBlank() &&
+                !exercise.catalogDefinitionId.isNullOrBlank() &&
+                !exercise.catalogConfigurationId.isNullOrBlank() &&
+                !exercise.performanceProfileId.isNullOrBlank()
+        }
+        .map { it.id }
+        .toSet()
+
+    fun Exercise.recoverOccurrence(): Exercise =
+        if (id in recoverableIds && occurrenceId.isNullOrBlank()) copy(occurrenceId = id) else this
+
+    return copy(
+        exercises = exercises.map { it.recoverOccurrence() },
+        parts = parts.map { part -> part.copy(exercises = part.exercises.map { it.recoverOccurrence() }) },
+        sessionB = sessionB?.recoverImportedLegacyCatalogOccurrences(),
+        sessionC = sessionC?.recoverImportedLegacyCatalogOccurrences(),
+        sessionD = sessionD?.recoverImportedLegacyCatalogOccurrences(),
+    )
+}
 
 fun WorkoutLog.normalizedIdentityFields(): WorkoutLog = copy(
     completedExercises = completedExercises.map { it.normalizedIdentityFields() },
@@ -290,6 +338,7 @@ fun Exercise.replacedWithCatalogExercise(
         sets = sets.map { it.resetForCatalogReplacement(defaultLoadMode) },
         warmupSets = emptyList(),
         reference1RM = null,
+        referenceTrainingMax = null,
         targetSessionGoal = null,
         isStarTarget = false,
         setupDetails = setup,
@@ -322,13 +371,11 @@ private fun defaultReplacementLoadMode(info: ExerciseMuscleInfo): LoadModeV2 {
         .orEmpty()
     val name = normalizeExerciseIdentityToken(info.name)
     return when {
+        equipment.contains("asist") || name.contains("asist") ||
+            equipment.contains("assisted") || name.contains("assisted") -> LoadModeV2.ASSISTED
         equipment.contains("peso corporal") ||
             equipment.contains("bodyweight") ||
             equipment.contains("calistenia") -> LoadModeV2.BODYWEIGHT
-        equipment.contains("asist") ||
-            name.contains("asist") ||
-            equipment.contains("assisted") ||
-            name.contains("assisted") -> LoadModeV2.ASSISTED
         else -> LoadModeV2.LOAD
     }
 }

@@ -343,6 +343,48 @@ class ProgramAutoregulationResolutionTest {
         )
     }
 
+    @Test
+    fun rir_week_applies_volume_without_approving_unavailable_intensity() {
+        val program = materialized(recipe(week2UsesRir = true))
+        val week2 = weeksOf(program)[1]
+        val seeded = pendingWith(
+            program,
+            week2.id,
+            intensityProposal(),
+            AutoregulationProposal(
+                kind = AutoregulationProposalKind.SCALE_WEEK_VOLUME,
+                volumeFactor = 0.5,
+                explanation = "AUGE propone reducir el volumen de la próxima semana",
+            ),
+        )
+        val beforeSetCount = week2.sessions.sumOf { session ->
+            session.allExercises().sumOf { exercise -> exercise.sets.size }
+        }
+
+        val accepted = ProgramAutoregulationEngine.resolvePending(
+            seeded,
+            accept = true,
+            metadata = CatalogCompositionTestSupport.metadata,
+        )
+
+        val afterWeek = weeksOf(accepted)[1]
+        val afterSetCount = afterWeek.sessions.sumOf { session ->
+            session.allExercises().sumOf { exercise -> exercise.sets.size }
+        }
+        assertTrue("El volumen sí reduce las series RIR", afterSetCount < beforeSetCount)
+        val byKind = resolutions(accepted).associateBy { it.kinds.single() }
+        val intensity = byKind.getValue(AutoregulationProposalKind.SCALE_WEEK_INTENSITY)
+        assertEquals(PendingActionResolutionStatus.EXPIRED, intensity.resolution)
+        assertTrue(intensity.resolutionReason, intensity.resolutionReason.contains("No aplicable"))
+        assertEquals(PendingActionResolutionStatus.APPLIED,
+            byKind.getValue(AutoregulationProposalKind.SCALE_WEEK_VOLUME).resolution)
+        assertEquals(
+            "La receta efectiva solo registra la reducción que cambió la semana",
+            listOf(AutoregulationProposalKind.SCALE_WEEK_VOLUME.name),
+            accepted.effectiveWeekRecipes.single().appliedProposals.map { it.kind },
+        )
+    }
+
     // ─── B.S4: propuestas de TM en kilos ───────────────────────────────────────────
 
     private fun pendingWith(program: Program, week2Id: String, vararg proposals: AutoregulationProposal): Program =

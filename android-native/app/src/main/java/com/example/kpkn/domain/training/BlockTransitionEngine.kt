@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.BlockGoal
@@ -302,8 +303,7 @@ object BlockTransitionEngine {
                         } else {
                             com.example.kpkn.data.models.IntensityMode.RPE
                         },
-                        isAmrap = false,
-                        isCalibrator = false,
+                        purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
                     )
                 },
             )

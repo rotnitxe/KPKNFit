@@ -13,6 +13,7 @@ import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.WorkoutHeaderWidgets
 import com.example.kpkn.data.models.WorkoutTag
 import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.data.models.performedPurpose
 import com.example.kpkn.data.models.normalizeMobilityCompatibility
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.StartWorkoutResult
@@ -20,6 +21,7 @@ import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler
 import com.example.kpkn.domain.training.ProgramProgressEngine
+import com.example.kpkn.domain.relator.RelatorProgressionContext
 import com.example.kpkn.domain.workout.WorkoutContextRecurrenceEngine
 import com.example.kpkn.domain.workout.WorkoutTagResolver
 import com.example.kpkn.services.workout.ActiveWorkoutHolder
@@ -91,6 +93,7 @@ class WorkoutSessionHydrator(
     )
 
     suspend fun loadSession(): Boolean {
+        repository.mutateProgramNow(programId) { current -> com.example.kpkn.domain.training.ExerciseTrainingMax.migrate(current) }
         val program = repository.getProgramById(programId) ?: return false
         var foundSession: Session? = null
         var foundWeekId = ""
@@ -134,6 +137,10 @@ class WorkoutSessionHydrator(
         }
         val session = foundSession ?: return false
         val resumedState = snapshotForThis
+        val acceptedCalibrations = repository.calibrationDecisions.accepted(System.currentTimeMillis(),
+            excludingSessionLogId = resumedState?.let {
+                com.example.kpkn.data.repository.CalibrationDecisionRepository.executionId(programId, sessionId, it.startTime)
+            })
         val priorSessionLog = if (resumedState == null) {
             repository.getLogsForSession(sessionId)
                 .filter { it.programId == programId }
@@ -149,7 +156,7 @@ class WorkoutSessionHydrator(
             active = active,
         )
 
-        val restoredSession = (resumedState?.session ?: session)
+        val restoredSession = com.example.kpkn.domain.training.ExerciseTrainingMax.hydrateSession(program, resumedState?.session ?: session)
             .normalizeMobilityCompatibility()
             .let(ports::normalizeSupersetsForWorkout)
             .let(ports::sanitizeSessionLoadModes)
@@ -275,13 +282,23 @@ class WorkoutSessionHydrator(
             visibleExercises = exercisesForMode,
             omittedSetKeys = restoredOmittedSetKeys,
         )
+        val amrapResultResumeStep = resumedState?.let { snapshot ->
+            resumeSteps.firstOrNull { step ->
+                val index = step.setIndex ?: return@firstOrNull false
+                val selected = step.stepKey == snapshot.activeStepKey ||
+                    (snapshot.activeStepKey == null && step.exerciseId == snapshot.activeExerciseId &&
+                        exercisesForMode.firstOrNull { it.id == step.exerciseId }?.sets?.getOrNull(index)?.id == snapshot.activeSetId)
+                selected && restoredCompletedSets[workoutSetKey(step.exerciseId, index, step.side)]
+                    ?.performedPurpose()?.isAmrap == true
+            }
+        }
         val restoredResumeStep = resumedState?.let {
             preferredProtectedCardioResumeStep(
                 timer = restoredCardioTimerState,
                 exercises = exercisesForMode,
                 completedSets = restoredCompletedSets,
                 availableSteps = resumeSteps,
-            ) ?: ports.firstIncompleteStep(resumeProbe)
+            ) ?: amrapResultResumeStep ?: ports.firstIncompleteStep(resumeProbe)
         }
         val restoredExerciseIdx = restoredResumeStep
             ?.let { step -> exercisesForMode.indexOfFirst { it.id == step.exerciseId }.takeIf { it >= 0 } }
@@ -358,6 +375,9 @@ class WorkoutSessionHydrator(
                 readinessMuscleOverrides = resumedState?.readinessMuscleOverrides ?: emptyMap(),
                 setDrafts = resumedState?.setDrafts ?: emptyMap(),
                 manualLoadOverrides = resumedState?.manualLoadOverrides ?: emptyMap(),
+                calibrationDecisions = resumedState?.calibrationDecisions.orEmpty(),
+                acceptedCalibrationReferences = acceptedCalibrations,
+                isRestMinimized = amrapResultResumeStep != null,
                 restModalState = restoredRestState,
                 editingState = restoredEditingState,
                 persistedLoadModeBySet = resumedState?.persistedLoadModeBySet ?: emptyMap(),
@@ -429,6 +449,8 @@ class WorkoutSessionHydrator(
                 preserveElapsed = true,
             )
         }
+        // Starting the timer restores its default expanded state; V7 keeps the selected result visible.
+        if (amrapResultResumeStep != null) updateState { it.copy(isRestMinimized = true) }
 
         ports.refreshLoadSuggestions(getState())
         updateState { state ->
@@ -646,5 +668,15 @@ internal fun buildLivePlanContext(
         weeksInBlock = weeks.size.takeIf { it > 0 },
         progression = program.sourceRecipe?.progression,
         autoregulationHooks = program.sourceRecipe?.autoregulationHooks.orEmpty(),
+        progressionContext = program.sourceRecipe?.let { recipe ->
+            RelatorProgressionContext(
+                recipe = recipe,
+                sourceProtocolId = program.sourceProtocolId,
+                profile = program.powerliftingProfile,
+                // The run stores no verified frozen-cycle streak or GZCLP close evidence.
+                frozenCyclesBefore = null,
+                tierCheck = null,
+            )
+        },
     )
 }

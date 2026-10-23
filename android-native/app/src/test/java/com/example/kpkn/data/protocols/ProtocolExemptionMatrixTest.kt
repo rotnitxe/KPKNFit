@@ -31,6 +31,9 @@ class ProtocolExemptionMatrixTest {
         "gzcl-jt-2" to setOf("C5_DELOAD_REQUIRED"),
         "gzcl-rippler" to setOf("C5_DELOAD_REQUIRED"),
         "gzcl-uhf-9" to setOf("C5_DELOAD_REQUIRED"),
+        // CAL6: APRE de Mann son 12 semanas sin descarga programada (el XRM se reajusta cada semana).
+        // INV: las semanas idénticas de cada bloque de cuatro son por diseño (el XRM lo fija la tabla de Mann en la serie 4).
+        "apre-mann" to setOf("C5_DELOAD_REQUIRED", "C10_IDENTICAL_WEEKS"),
         "cube-method" to setOf("C5_DELOAD_REQUIRED"),
         "calgary-16" to setOf("C5_DELOAD_REQUIRED"),
         "coan-phillipi-dl" to setOf("H2", "C5_DELOAD_REQUIRED"),

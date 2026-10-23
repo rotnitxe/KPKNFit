@@ -66,6 +66,7 @@ fun SessionEditorViewModel.distributeTargetDurationAcrossParts() {
  * @param variantName nombre descriptivo (ej. "Rápida 45min", "Enfoque fuerza").
  */
 fun SessionEditorViewModel.createVariant(variant: WeekVariant, variantName: String): Boolean {
+    commitPendingExerciseRemoval()
     val state = currentUiState
     val base = state.session ?: return false
     if (variant == WeekVariant.A) return false
@@ -98,12 +99,14 @@ fun SessionEditorViewModel.createVariant(variant: WeekVariant, variantName: Stri
         )
     }
     scheduleAutoSave()
+    refreshDerivedStateImmediate()
     return true
 }
 
 /** Elimina la variante especificada de la sesión principal. */
 fun SessionEditorViewModel.deleteVariant(variant: WeekVariant): Boolean {
     if (variant == WeekVariant.A) return false
+    commitPendingExerciseRemoval()
     val base = currentUiState.session ?: return false
     val updated = when (variant) {
         WeekVariant.B -> base.copy(sessionB = null)
@@ -120,12 +123,17 @@ fun SessionEditorViewModel.deleteVariant(variant: WeekVariant): Boolean {
         )
     }
     scheduleAutoSave()
+    refreshDerivedStateImmediate()
     return true
 }
 
 /** Cambia la variante activa en el editor (sólo UI, no persiste nada). */
 fun SessionEditorViewModel.switchVariant(variant: WeekVariant) {
-    updateUi { it.copy(activeVariant = variant) }
+    val base = currentUiState.session ?: return
+    if (variant == currentUiState.activeVariant || variant !in computeAvailableVariants(base)) return
+    commitPendingExerciseRemoval()
+    updateUi { it.copy(activeVariant = variant, cardioSpacePlacement = null) }
+    refreshDerivedStateImmediate()
 }
 
 /**

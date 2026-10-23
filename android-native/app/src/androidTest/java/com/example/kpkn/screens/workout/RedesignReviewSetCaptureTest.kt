@@ -188,7 +188,7 @@ class RedesignReviewSetCaptureTest {
         rule.runOnIdle { workingFrame = null }
         rule.mainClock.advanceTimeBy(2100)
         rule.mainClock.autoAdvance = true
-        val done = "Listo: la serie 1 va con 57\u00A0kg. vuelve a 60."
+        val done = "Listo: la serie 1 va con 57\u00A0kg. ↶ vuelve a 60."
         rule.waitUntil(5_000) { rule.onAllNodesWithText(done, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
         rule.runOnIdle { sparkFrame = 0.35f }
         save("review-relator", "08-relator-hecho-deshacer", "Same real action reached done; previous example load60kg; existing spark progress0.35")

@@ -2,8 +2,10 @@ package com.example.kpkn.screens.sessioneditor.components.sheets
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import com.example.kpkn.domain.sessionassistant.AssistantActionType
+import com.example.kpkn.domain.auge.DrainReading
 import com.example.kpkn.domain.sessionassistant.AssistantDetailAction
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestion
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestionDetail
@@ -93,5 +95,58 @@ class AssistantSheetComposeTest {
         rule.onNodeWithText("Aplicar selección").performClick()
         assertNotNull(applied)
         assertEquals(listOf("a", "c"), applied)
+    }
+
+    @Test
+    fun sugerenciasMuestranComoMuchoTresAvisosIncluidasLasNotas() {
+        val suggestions = (1..3).map { index ->
+            suggestion(listOf(detail("$index"))).copy(id = "ajuste-$index", title = "Ajuste $index")
+        }
+        rule.setContent {
+            AssistantSuggestionsTab(
+                suggestions = suggestions,
+                analysisReady = true,
+                notes = listOf("Nota adicional"),
+                onApply = { _, _ -> },
+            )
+        }
+        rule.onNodeWithText("Ajuste 3").assertExists()
+        rule.onNodeWithText("Nota adicional").assertDoesNotExist()
+    }
+
+    @Test
+    fun misPlantillasAbreUnaListaDesdeSuBoton() {
+        rule.setContent {
+            AssistantTemplatesTab(
+                templates = emptyList(),
+                searchQuery = "",
+                applyDecision = null,
+                onSearchChange = {},
+                onSelectTemplate = {},
+                onConfirmApplyTemplate = {},
+                onCancelApply = {},
+            )
+        }
+        rule.onNodeWithText("Filtros de sesión").assertExists()
+        rule.onNodeWithText("Todavía no tienes plantillas guardadas.").assertDoesNotExist()
+        rule.onNodeWithText("Mis plantillas · 0").performClick()
+        rule.onNodeWithText("Todavía no tienes plantillas guardadas.").assertExists()
+        rule.onNodeWithText("Filtros de sesión").assertDoesNotExist()
+        rule.onNodeWithText("Volver al catálogo").performClick()
+        rule.onNodeWithText("Filtros de sesión").assertExists()
+    }
+
+    @Test
+    fun impactoDistingueMenosDeUnoCeroYSinEstimacion() {
+        rule.setContent {
+            AssistantRingFigures(
+                musculos = DrainReading.UnderOne(0.4),
+                energia = DrainReading.Zero,
+                columna = DrainReading.Unknown,
+            )
+        }
+        rule.onNodeWithContentDescription("<1 %").assertExists()
+        rule.onNodeWithContentDescription("0 %").assertExists()
+        rule.onNodeWithText("Sin estimación").assertExists()
     }
 }

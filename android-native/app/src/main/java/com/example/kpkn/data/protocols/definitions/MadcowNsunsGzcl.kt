@@ -17,6 +17,7 @@ import com.example.kpkn.data.protocols.RecipeCompositionExemption
 import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.data.protocols.amrapAsRecord
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
 import com.example.kpkn.data.protocols.mainWorkPercentOfOneRm
@@ -116,8 +117,9 @@ object MadcowProtocol {
 object NSunsProtocol {
     /**
      * Banca de volumen del primer día (8-6-4-4-4-5-6-7-8 al 65-75-85-85-85-80-75-70-65 %). La hoja de nSuns marca la
-     * última serie como «8+», pero esa no es la serie que mueve el TM; como AMRAP, con la tabla de `AmrapDrivenTm`
-     * (solo sube desde el 85 % del TM y un AMRAP corto baja el TM) un 8+ corto al 65 % propondría bajarlo (B.S6, hallazgo de B.S4).
+     * última serie como «8+», pero esa no es la serie que mueve el TM: la tabla de `AmrapDrivenTm` solo sube desde el 85 % del
+     * TM y mide la serie 1+ al 95 % (B.S6, hallazgo de B.S4). CAL5: este es el T2 del primer día; el T1 es el press militar
+     * pesado, que así lleva su propio 1+ y por fin progresa.
      */
     private fun t1BenchVolume() = percentSets(
         180,
@@ -126,7 +128,8 @@ object NSunsProtocol {
 
     /**
      * Tabla pesada de nSuns: rampa 5/3/1+ y 6 series de respaldo (hoja nSuns LP de 4 días: squat, deadlift y el segundo día de
-     * banca). El AMRAP es la serie 1+ al 95 % (la tercera), la que mueve el TM con la tabla de `AmrapDrivenTm` (L-04); antes
+     * banca; CAL5: también el press militar del primer día). El AMRAP es la serie 1+ al 95 % (la tercera), la que mueve el TM
+     * con la tabla de `AmrapDrivenTm` (L-04; sin bajada: 0-1 repeticiones es «sin subida»); antes
      * estaba en la última serie, al 65 %, donde nunca podía subir el TM. La última serie «5+» no lleva AMRAP por la misma razón.
      */
     private fun t1Heavy() = percentSets(
@@ -143,8 +146,10 @@ object NSunsProtocol {
         val weeks = (1..4).map { w ->
             weekRecipe(w, 0, "LP", BlockGoal.INTENSIFICATION, listOf(
                 day("Banca/OHP", weekday = 1, slots = listOf(
-                    slot("t1", SlotRole.T1_MAIN, CatalogIds.BP, t1BenchVolume(), 240, LiftSlot.BENCH, isCompetitionLift = true),
-                    slot("t2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.OHP, t2(), 150, LiftSlot.OVERHEAD, supplementalOf = "t1"),
+                    // CAL5 (RES1 §4): cada T1 lleva su serie 1+ al 95 % del TM. El press militar solo salía como T2 de 8 series sin 1+, así
+                    // que su TM nunca progresaba: pasa a T1 con la tabla pesada y la banca de volumen queda como el T2 del día.
+                    slot("t1", SlotRole.T1_MAIN, CatalogIds.OHP, t1Heavy(), 240, LiftSlot.OVERHEAD),
+                    slot("t2", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP, t1BenchVolume(), 150, LiftSlot.BENCH, supplementalOf = "t1"),
                     kpknAssist("row", CatalogIds.PENDLAY, 3, 8, 120),
                     kpknAssist("face", CatalogIds.FACE, 3, 15, 60),
                     kpknAssist("jm", CatalogIds.JM, 3, 8, 90),
@@ -186,7 +191,12 @@ object NSunsProtocol {
             exemptions = listOf(
                 RecipeCompositionExemption(
                     "C1_SET_RANGE", "w*/Banca/OHP/t1",
-                    "nSuns publica el T1 de banca de volumen con 9 series (8-6-4-4-4-5-6-7-8) por diseño",
+                    "nSuns publica el T1 de press militar pesado con 9 series (rampa 5/3/1+ y 6 de respaldo) por diseño",
+                    NSUNS_URL,
+                ),
+                RecipeCompositionExemption(
+                    "C1_SET_RANGE", "w*/Banca/OHP/t2",
+                    "nSuns publica la banca de volumen del primer día con 9 series (8-6-4-4-4-5-6-7-8) por diseño",
                     NSUNS_URL,
                 ),
                 RecipeCompositionExemption(
@@ -222,7 +232,7 @@ object NSunsProtocol {
             claimedLevel = "avanzado",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
             repeats = true,
-            contentVersion = 2,
+            contentVersion = 3,
         )
     }
 
@@ -232,8 +242,10 @@ object NSunsProtocol {
         id = "nsuns-531-lp-4d",
         name = "nSuns 5/3/1 LP 4 días",
         emoji = "📈",
-        description = "4 días, 4 semanas: T1 de 9 series y T2 de 8 series con la tabla nSuns; el AMRAP de la serie 1+ al 95 % del TM " +
-            "(sentadilla, banca pesada y peso muerto) mueve el TM. El segundo día de banca lleva banca con agarre cerrado como T2.",
+        description = "4 días, 4 semanas: T1 de 9 series y T2 de 8 o 9 series con la tabla nSuns; el AMRAP de la serie 1+ al 95 % del TM " +
+            "(press militar, sentadilla, banca pesada y peso muerto) mueve el TM con la tabla de nSuns: 0-1 repeticiones no sube, " +
+            "2-3 suben 2,5 kg, 4-5 suben 5 kg y 6 o más suben 7,5 kg. El primer día es de press militar con banca de volumen y " +
+            "el segundo día de banca lleva banca con agarre cerrado como T2.",
         author = "nSuns",
         tags = listOf("powerlifting", "avanzado", "4 días", "4 semanas", "AMRAP", "%"),
         blocks = listOf(ProtocolBlock("LP", 4, "Intensificación", 50, 95, 1.3)),
@@ -251,21 +263,14 @@ object GzclProtocols {
     /** Fuente de los métodos GZCL (J&T, Rippler y UHF 9): `sourceUrl` de sus exenciones C5. */
     private const val GZCL_URL = "https://gzclmethod.com/"
 
-    private fun t1Stage(week: Int): List<SetRecipe> {
-        val stage = ((week - 1) / 4).coerceIn(0, 2)
-        return when (stage) {
-            0 -> repeatPercentSets(5, 3, 85.0, 240, amrapLast = true)
-            1 -> repeatPercentSets(6, 2, 90.0, 240, amrapLast = true)
-            else -> repeatPercentSets(10, 1, 95.0, 240, amrapLast = true)
-        }
-    }
+    /**
+     * CAL5 (Lefever, RES1 §6): la receta trae la ETAPA 1 del T1 (5 series de 3 al 85 % del TM, la última al máximo: «3x5+» en la
+     * notación del autor) y del T2 (3 series de 10 al 65 %). Las etapas 2 (T1 6×2+, T2 3×8) y 3 (T1 10×1+, T2 3×6) llevan la MISMA
+     * carga y las escribe `GzclpProgression` como receta efectiva del ciclo nuevo cuando no se completa el volumen base.
+     */
+    private fun t1Stage(@Suppress("UNUSED_PARAMETER") week: Int): List<SetRecipe> = repeatPercentSets(5, 3, 85.0, 240, amrapLast = true)
 
-    private fun t2Stage(week: Int): List<SetRecipe> {
-        val stage = ((week - 1) / 4).coerceIn(0, 2)
-        val reps = listOf(10, 8, 6)[stage]
-        val pct = listOf(65.0, 70.0, 75.0)[stage]
-        return repeatPercentSets(3, reps, pct, 120)
-    }
+    private fun t2Stage(@Suppress("UNUSED_PARAMETER") week: Int): List<SetRecipe> = repeatPercentSets(3, 10, 65.0, 120)
 
     fun gzclpRecipe(): TrainingPlanRecipe {
         val days = listOf(
@@ -306,13 +311,14 @@ object GzclProtocols {
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
             // L-09 (B.S6): la subida lineal por sesión de GZCLP no cabe en 4 semanas idénticas; se aproxima con la subida del
-            // TM al cerrar el ciclo (la propia del método por ciclo). El AMRAP corto de la última serie del T1 puede bajarlo.
-            progression = ProgressionRule.CycleIncrement(2.5, 5.0),
+            // TM al cerrar el ciclo (la propia del método por ciclo). CAL5: el T1 que no completa su volumen base pasa a la
+            // etapa siguiente con la misma carga (y no sube el TM); la AMRAP del T1 no cambia la carga y cuenta como mucho 10.
+            progression = ProgressionRule.StagedVolume(upperKg = 2.5, lowerKg = 5.0, t1AmrapCap = 10, t3RaiseReps = 25),
             claimedDaysPerWeek = 4,
             claimedLevel = "intermedio",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
             repeats = true,
-            contentVersion = 2,
+            contentVersion = 3,
         )
     }
 
@@ -320,9 +326,11 @@ object GzclProtocols {
         id = "gzclp",
         name = "GZCLP",
         emoji = "🏗️",
-        description = "4 días, 4 semanas que se repiten: T1 5×3+ al 85 % del TM (la última serie al máximo), T2 3×10 al 65 % y T3 de 15 a 20 " +
-            "repeticiones; el TM sube 2,5 kg (banca y press) o 5 kg (sentadilla y peso muerto) al cerrar cada ciclo. " +
-            "Es solo la etapa 1 del método: sin cambio de etapa ni reinicio por fallo.",
+        description = "4 días, 4 semanas que se repiten: T1 5×3+ al 85 % del TM (la última serie al máximo, que no cambia la carga y cuenta " +
+            "hasta 10 repeticiones), T2 3×10 al 65 % y T3 de 15 a 20 repeticiones (sube cuando la última serie llega a 25). Si en un ciclo no " +
+            "completas el volumen base de un levantamiento, pasa a 6×2+ y luego a 10×1+ con la misma carga (el T2, a 3×8 y 3×6) y su TM no sube; " +
+            "si lo completas, sube 2,5 kg (banca y press) o 5 kg al cerrar el ciclo. Tras la etapa 3 sin completar toca probar un 5RM nuevo " +
+            "y reiniciar al 85 % de ese 5RM.",
         author = "Cody Lefever",
         tags = listOf("powerlifting", "intermedio", "4 días", "4 semanas", "AMRAP", "%"),
         blocks = listOf(ProtocolBlock("Etapa T1", 4, "Acumulación", 65, 85)),
@@ -409,7 +417,8 @@ object GzclProtocols {
                 gzclDay("Banca", 2, CatalogIds.BP, LiftSlot.BENCH, CatalogIds.BP_INC, repeatPercentSets(3, 2, pct, 240, amrapLast = i < 10), t2sets, CatalogIds.PENDLAY, CatalogIds.JM),
                 gzclDay("Peso muerto", 4, CatalogIds.DL, LiftSlot.DEADLIFT, CatalogIds.RDL, repeatPercentSets(2, 2, pct, 240), if (t2[i] == 0.0) rpeSets(3, 6, 7.0) else repeatPercentSets(3, 5, t2[i] - 5, 120), CatalogIds.ROW, CatalogIds.GHR),
                 gzclDay("Press", 5, CatalogIds.OHP, LiftSlot.OVERHEAD, CatalogIds.BP, repeatPercentSets(3, 3, pct - 5, 180, amrapLast = i < 10), t2sets, CatalogIds.LAT, CatalogIds.FACE),
-            ))
+                // CAL5: la última serie del T1 es un AMRAP de registro explícito (sin regla de carga en la fuente).
+            ).map { it.amrapAsRecord() })
         }
         return TrainingPlanRecipe(
             "gzcl-rippler", weeks, 0.90, sbdSlots(), ProgressionRule.None,
@@ -421,7 +430,7 @@ object GzclProtocols {
                     GZCL_URL,
                 ),
             ),
-            claimedDaysPerWeek = 4, claimedLevel = "intermedio",
+            claimedDaysPerWeek = 4, claimedLevel = "intermedio", contentVersion = 2,
         )
     }
 
@@ -429,7 +438,8 @@ object GzclProtocols {
         id = "gzcl-rippler",
         name = "GZCL The Rippler",
         emoji = "🌊",
-        description = "12 semanas, 4 días: T1 sobre 2RM 85-92,5 % +2,5 por bloque; T2 sobre 5RM; sem 11-12 test.",
+        description = "12 semanas, 4 días: T1 sobre 2RM 85-92,5 % +2,5 por bloque, con la última serie AMRAP de registro (no cambia la carga); " +
+            "T2 sobre 5RM; sem 11-12 test.",
         author = "Cody Lefever",
         tags = listOf("powerlifting", "intermedio", "4 días", "12 semanas", "%"),
         blocks = listOf(ProtocolBlock("B1", 4, "Acumulación", 80, 92), ProtocolBlock("B2", 4, "Intensificación", 85, 95), ProtocolBlock("B3", 4, "Peak", 90, 100)),

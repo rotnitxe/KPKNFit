@@ -931,6 +931,7 @@ object NativeWorkoutProgressionRuntime {
             },
             warmupSets = emptyList(),
             reference1RM = null,
+            referenceTrainingMax = null,
             setupDetails = template.setupDetails,
             variantName = template.variantName,
             variantGroupId = template.variantGroupId,
@@ -1004,8 +1005,8 @@ object NativeWorkoutProgressionRuntime {
             if (!planned.catalogConfigurationId.isNullOrBlank() && configurationId != planned.catalogConfigurationId) return@flatMap emptyList()
             val workIndices = planned.sets.indices.filter { index ->
                 val set = planned.sets[index]
-                !set.isEmptySlot && !set.isCalibrator && !set.isTopSet &&
-                    !set.isDropSet && !set.isRestPause && !set.isAmrap
+                !set.isEmptySlot && !set.isTopSet &&
+                    !set.isDropSet && !set.isRestPause && !set.purpose.isAmrap
             }
             if (workIndices.isEmpty()) return@flatMap emptyList()
             val expectedSides = if (planned.isUnilateral || planned.unilateralMode != UnilateralMode.BILATERAL) {
@@ -1315,7 +1316,7 @@ object NativeWorkoutProgressionRuntime {
     }
 
     private fun isProgressionWorkSet(set: ExerciseSet): Boolean =
-        !set.isEmptySlot && !set.isCalibrator && !set.isTopSet && !set.isDropSet && !set.isRestPause && !set.isAmrap
+        !set.isEmptySlot && !set.isTopSet && !set.isDropSet && !set.isRestPause && !set.purpose.isAmrap
 
     /** Mismo criterio que la UI de entrenamiento: marcador manual o peso nulo de un ejercicio gestionado. */
     private fun isLoadUnresolved(exercise: Exercise, set: ExerciseSet, side: String): Boolean =
@@ -1333,29 +1334,22 @@ object NativeWorkoutProgressionRuntime {
         updatedExercises: Collection<Exercise>,
         identity: NativeProgressionIdentity,
     ): List<ExerciseLoadReference> {
-        val byId = current.associateBy { it.exerciseId }.toMutableMap()
+        var poolProgram = Program(id = "reference-pool", name = "", exerciseLoadReferences = current)
         updatedExercises.forEach { exercise ->
-            val existing = byId[exercise.id]
-            val retained = existing?.references.orEmpty().filterNot { reference ->
-                reference.configurationId == identity.configurationId &&
-                    reference.quantityConvention == identity.quantityConvention &&
-                    (reference.side == null || reference.side == identity.side)
-            }
-            val updatedReference = exercise.loadReference?.takeIf { reference ->
-                reference.configurationId == identity.configurationId &&
-                    reference.quantityConvention == identity.quantityConvention &&
-                    (reference.side == null || reference.side == identity.side)
-            }
-            val references = retained + listOfNotNull(updatedReference)
-            if (references.isEmpty()) {
-                byId.remove(exercise.id)
-            } else {
-                byId[exercise.id] = (existing ?: ExerciseLoadReference(exerciseId = exercise.id)).copy(
-                    references = references,
-                )
+            val reference = exercise.loadReference?.takeIf { ref ->
+                ref.configurationId == identity.configurationId && ref.quantityConvention == identity.quantityConvention &&
+                    (ref.side == null || ref.side == identity.side)
+            } ?: return@forEach
+            if (reference.state == PlanLoadReferenceState.CAPTURED && reference.capturedLoadKg?.let { it.isFinite() && it > 0.0 } == true) {
+                poolProgram = ExerciseLoadReferenceStore.appendCapture(poolProgram, setOf(exercise.id), reference)
+            } else if (reference.state == PlanLoadReferenceState.PENDING) {
+                val existing = poolProgram.exerciseLoadReferences.filter { it.exerciseId == exercise.id }.flatMap { it.references }
+                if (reference !in existing) poolProgram = poolProgram.copy(exerciseLoadReferences =
+                    poolProgram.exerciseLoadReferences.filterNot { it.exerciseId == exercise.id } +
+                        ExerciseLoadReference(exercise.id, existing + reference))
             }
         }
-        return byId.values.toList()
+        return poolProgram.exerciseLoadReferences
     }
 
     /**
@@ -1378,7 +1372,7 @@ object NativeWorkoutProgressionRuntime {
         if ((identity.side == "bilateral") == exerciseIsUnilateral || identity.side !in setOf("bilateral", "left", "right")) {
             return false
         }
-        val sets = exercise.sets.filterNot { it.isEmptySlot || it.isCalibrator || it.isTopSet || it.isDropSet || it.isRestPause || it.isAmrap }
+        val sets = exercise.sets.filterNot { it.isEmptySlot || it.isTopSet || it.isDropSet || it.isRestPause || it.purpose.isAmrap }
         if (sets.isEmpty()) return false
         val unitMode = resolveUnitMode(exercise, sets, emptyList()) ?: return false
         if (unitMode != identity.unitMode) return false
@@ -1531,7 +1525,7 @@ object NativeWorkoutProgressionRuntime {
         val side = proposal.identity.side
         val requiresManualLoad = proposal.targetLoadKg == null
         val updatedSets = exercise.sets.map { set ->
-            if (set.isEmptySlot || set.isCalibrator || set.isTopSet || set.isDropSet || set.isRestPause || set.isAmrap) return@map set
+            if (set.isEmptySlot || set.isTopSet || set.isDropSet || set.isRestPause || set.purpose.isAmrap) return@map set
             val target = proposal.targetLoadKg
             val manualSides = if (requiresManualLoad) {
                 set.manualLoadRequiredSides + side
@@ -1557,7 +1551,7 @@ object NativeWorkoutProgressionRuntime {
                 )
             }
         }
-        val workSet = updatedSets.firstOrNull { !it.isEmptySlot && !it.isCalibrator && !it.isTopSet && !it.isDropSet && !it.isRestPause && !it.isAmrap }
+        val workSet = updatedSets.firstOrNull { !it.isEmptySlot && !it.isTopSet && !it.isDropSet && !it.isRestPause && !it.purpose.isAmrap }
         val loadReference = PlanLoadReference(
             kind = if (proposal.identity.loadMode in setOf(LoadModeV2.ASSISTED, LoadModeV2.LASTRE)) {
                 PlanLoadReferenceKind.BODYWEIGHT_EXTERNAL

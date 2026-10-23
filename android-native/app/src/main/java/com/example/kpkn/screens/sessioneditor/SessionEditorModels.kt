@@ -228,6 +228,13 @@ data class SessionEditorAugeSummary(
     val sessionEnergy: SessionEnergySummary = SessionEnergySummary(),
     /** Desglose detallado de tiempos (Feature 1) */
     val sessionTimeBreakdown: SessionTimeBreakdown? = null,
+    /**
+     * Proyección de coste compartida con el motor general (MOT · I1/I2): decimales, cardio y evidencia de Columna. null en un
+     * resumen vacío o de respaldo: Impacto cae entonces a los enteros de [sessionDrain].
+     */
+    val drainProjection: com.example.kpkn.domain.auge.SessionDrainProjection? = null,
+    /** Coste por músculo canónico con decimales (suma el total final de la proyección). */
+    val muscleDrainPrecise: Map<String, com.example.kpkn.domain.auge.PreciseDrain> = emptyMap(),
 ) {
     val alertCount: Int
         get() = alerts.size
@@ -344,6 +351,11 @@ data class SessionEditorUiState(
      * aunque la sesión aún no tenga ejercicios.
      */
     val strengthSpaceCommitted: Boolean = false,
+    /**
+     * Empty-state chooser (ED-A · A2): el usuario eligió Cardio. Su espacio se ve (vacío, con «Añadir cardio») aunque la sesión aún no
+     * tenga ningún cardio; la parte de cardio se crea al añadir el primero.
+     */
+    val cardioSpaceCommitted: Boolean = false,
     /**
      * Preferencia de colocación del espacio de cardio (inicio/final).
      * Se conserva tras crear el part: con sesión vacía START y END producen

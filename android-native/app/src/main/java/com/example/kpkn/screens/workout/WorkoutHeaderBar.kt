@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -400,7 +401,8 @@ internal fun WorkoutHeaderBar(
     readinessAdjustment: SetAdjustmentSuggestion? = null,
     onAdaptClick: (() -> Unit)? = null,
     godModeActive: Boolean = false,
-    onHistoryClick: (() -> Unit)? = null,
+    onStoryClick: (() -> Unit)? = null,
+    onMoreClick: (() -> Unit)? = null,
     onReplaceClick: (() -> Unit)? = null,
     nicknameKey: String? = null,
     nicknameValue: String = "",
@@ -412,9 +414,12 @@ internal fun WorkoutHeaderBar(
     programCover: String? = null,
     program: Program? = null,
     forcedMarqueeMoving: Boolean = false,
+    compactLayout: Boolean? = null,
+    statusBarInsets: WindowInsets = WindowInsets.statusBars,
 ) {
     val headerScale = headerCompactScale()
     val typeScale = headerViewportScale()
+    val compactHeader = compactLayout ?: (LocalConfiguration.current.screenHeightDp < 800)
     fun cs(dp: androidx.compose.ui.unit.Dp): androidx.compose.ui.unit.Dp = dp * headerScale
 
     val density = LocalDensity.current
@@ -506,13 +511,18 @@ internal fun WorkoutHeaderBar(
             }
         }
 
+        // LV-C: en la cabecera compacta los botones de icono conservan 44 dp de layout; Compose amplía su zona de toque a los 48 dp
+        // mínimos (se mide con touchBoundsInRoot en LiveHeaderTouchTargetsTest). Así el relator no pierde los 4 dp de alto que le
+        // quitaba la fila, sobre todo a 740 dp con letra al 130 %. Los chips tampoco reservan 48 dp de layout.
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides if (compactHeader) 44.dp else LocalMinimumInteractiveComponentSize.current) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .onSizeChanged { headerContentHeightPx = it.height }
-                .statusBarsPadding()
-                .padding(start = cs(16.dp), end = cs(16.dp), top = cs(13.dp), bottom = cs(9.dp)),
-            verticalArrangement = Arrangement.spacedBy(cs(4.dp)),
+                .windowInsetsPadding(statusBarInsets)
+                .padding(start = 12.dp, end = 12.dp, top = if (compactHeader) 0.dp else 10.dp, bottom = if (compactHeader) 0.dp else 7.dp)
+                .testTag("live-session-header"),
+            verticalArrangement = Arrangement.spacedBy(if (compactHeader) 0.dp else 3.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -522,10 +532,7 @@ internal fun WorkoutHeaderBar(
                 Column(modifier = Modifier.weight(1f)) {
                     val titleGlyphs = workoutHeaderTitleGlyphCount(exerciseName, exerciseChips)
                     val titleLengthScale = workoutHeaderTitleFontScale(titleGlyphs)
-                    val titleBase = KpknType.title.copy(fontSize = 20.sp, lineHeight = 24.sp)
-                    val titleSlotHeight = with(density) {
-                        titleBase.lineHeight.toDp()
-                    }
+                    val titleBase = KpknType.title.copy(fontSize = if (compactHeader) 18.sp else 20.sp, lineHeight = if (compactHeader) 20.sp else 24.sp)
                     val reducedMotion = wizardReducedMotion()
                     val titleAnnotated = remember(exerciseName, exerciseChips) {
                         buildAnnotatedString {
@@ -544,6 +551,10 @@ internal fun WorkoutHeaderBar(
                     val measurer = rememberTextMeasurer()
                     val textLayout = remember(titleAnnotated, titleStyle, measurer) {
                         measurer.measure(titleAnnotated, style = titleStyle, maxLines = 1, softWrap = false)
+                    }
+                    // Font metrics can exceed the nominal line height (notably the compact title).
+                    val titleSlotHeight = with(density) {
+                        maxOf(titleBase.lineHeight.toDp(), textLayout.size.height.toDp())
                     }
 
                     BoxWithConstraints(
@@ -578,7 +589,7 @@ internal fun WorkoutHeaderBar(
                         val effectiveMoving = isMoving || forcedMarqueeMoving
 
                         // Fundido de 16 dp en el borde derecho, y en el izquierdo mientras se mueve (LV1 punto 1)
-                        val fadeModifier = if (useMarquee) {
+                        val fadeModifier = if (useMarquee && effectiveMoving) {
                             Modifier
                                 .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
                                 .drawWithContent {
@@ -613,13 +624,13 @@ internal fun WorkoutHeaderBar(
                             Text(
                                 text = titleAnnotated,
                                 modifier = Modifier
-                                    .wrapContentWidth(Alignment.Start, unbounded = true)
+                                    .then(if (useMarquee && effectiveMoving) Modifier.wrapContentWidth(Alignment.Start, unbounded = true) else Modifier.fillMaxWidth())
                                     .graphicsLayer { translationX = -titleOffset.value }
                                     .then(if (useMarquee) Modifier.testTag("workout_header_title_marquee") else Modifier),
                                 style = titleStyle,
                                 maxLines = 1,
                                 softWrap = false,
-                                overflow = TextOverflow.Clip,
+                                overflow = if (useMarquee && effectiveMoving) TextOverflow.Clip else TextOverflow.Ellipsis,
                             )
                         }
 
@@ -630,7 +641,7 @@ internal fun WorkoutHeaderBar(
                             if (!groupName.isNullOrBlank()) append("$groupName · ")
                             append(sessionName)
                         },
-                        style = KpknType.caption.scaledBy(typeScale),
+                        style = (if (compactHeader) KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp) else KpknType.caption).scaledBy(typeScale),
                         color = WizardColors.textMuted,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -638,14 +649,23 @@ internal fun WorkoutHeaderBar(
                 }
                 Row(
                     verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.spacedBy(cs(8.dp)),
+                    horizontalArrangement = Arrangement.spacedBy(0.dp),
                 ) {
-                    if (onHistoryClick != null) {
+                    if (onStoryClick != null) {
                         KpknIconButton(
-                            icon = KpknLineIcons.History,
-                            contentDescription = "Historial",
-                            onClick = onHistoryClick,
+                            icon = KpknLineIcons.Book,
+                            contentDescription = "Historia de la sesión",
+                            onClick = onStoryClick,
+                            modifier = Modifier.then(if (compactHeader) Modifier.size(44.dp) else Modifier).testTag("workout-story-header"),
                         )
+                    }
+                    onToggleVoice?.let { toggle ->
+                        KpknIconButton(KpknLineIcons.Mic, if (voiceSessionEnabled) "Desactivar voz" else "Activar voz", toggle,
+                            modifier = Modifier.then(if (compactHeader) Modifier.size(44.dp) else Modifier).testTag("workout-voice-header"), filled = voiceSessionEnabled)
+                    }
+                    onMoreClick?.let { more ->
+                        KpknIconButton(KpknLineIcons.More, "Más opciones de sesión", more,
+                            modifier = Modifier.then(if (compactHeader) Modifier.size(44.dp) else Modifier).testTag("workout-more-header"))
                     }
                 }
             }
@@ -810,6 +830,7 @@ internal fun WorkoutHeaderBar(
                     }
                 }
             }
+        }
         }
     }
 }

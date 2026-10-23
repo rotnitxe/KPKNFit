@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.sessioneditor
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
@@ -103,7 +104,9 @@ object SessionEditorRulesEngine {
                     // `normalizeSet` lo devolviera a 75.
                     targetPercentageRM = if (this.trainingMode == TrainingMode.RM) existing?.targetPercentageRM else null,
                     isFailure = mode == IntensityMode.FAILURE,
-                    isAmrap = false,
+                    purpose = existing?.purpose ?: SetPurpose.NONE,
+                    amrapMinimumReps = existing?.amrapMinimumReps,
+                    calibrationScope = existing?.calibrationScope,
                 )
                 val normalized = normalizeSet(target, this)
                 if (!isEffectivelyUnilateral()) {
@@ -249,6 +252,15 @@ object SessionEditorRulesEngine {
         if (draft.name.isBlank()) {
             return SessionRulesValidationResult(blockingError = "La sesión debe tener un nombre antes de guardar.")
         }
+        val invalidMinimum = draft.allExercises().flatMap { it.sets }.any {
+            it.amrapMinimumReps != null && it.amrapMinimumReps <= 0
+        }
+        if (invalidMinimum) return SessionRulesValidationResult(
+            blockingError = "El mínimo AMRAP debe ser positivo o quedar vacío (sin mínimo).",
+        )
+        if (draft.allExercises().flatMap { it.sets }.any {
+                it.calibrationScope != null && it.purpose != SetPurpose.CALIBRATOR
+            }) return SessionRulesValidationResult(blockingError = "El alcance de calibración solo corresponde a una serie calibradora.")
         val warnings = mutableListOf<String>()
         fun fail(message: String): SessionRulesValidationResult {
             return if (ruleLimits.rigidLimits) {
@@ -377,73 +389,7 @@ object SessionEditorRulesEngine {
         return VolumeCalculator.normalizeCanonicalMuscleGroup(primary.muscle, primary.emphasis)
     }
 
-    private fun normalizeSet(set: ExerciseSet, exercise: Exercise): ExerciseSet {
-        val normalized = when (exercise.trainingMode) {
-            // ER1e: como SE11 (`normalizedForEditorSave`), normalizar no borra el rango ni el RIR ni el RPE de la serie: al aplicar
-            // reglas solo cambia lo que la regla fija. Solo se quita el marcador de intensidad que no es el %.
-            TrainingMode.RM -> set.copy(
-                intensityMode = if (set.intensityMode == IntensityMode.SOLO_RM) IntensityMode.SOLO_RM else null,
-                isFailure = false,
-                isAmrap = false,
-                targetPercentageRM = com.example.kpkn.screens.sessioneditor.roundToMax2Decimals(
-                    (set.targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0),
-                ),
-            )
-            TrainingMode.SOLO_RPE -> set.copy(
-                intensityMode = IntensityMode.RPE,
-                targetRPE = (set.targetRPE ?: 8.0).coerceIn(1.0, 10.0),
-                targetRIR = null,
-                targetPercentageRM = null,
-                targetReps = null,
-                targetDuration = null,
-                isFailure = false,
-                isAmrap = false,
-            )
-            TrainingMode.AMRAP -> set.copy(
-                intensityMode = IntensityMode.AMRAP,
-                targetReps = set.targetRepsRange?.max ?: set.targetReps ?: set.plannedTargetV2?.roundToInt(),
-                targetDuration = null,
-                targetRPE = null,
-                targetRIR = null,
-                isFailure = false,
-                isAmrap = true,
-            )
-            else -> {
-                // Switching the exercise away from AMRAP must be reversible;
-                // otherwise the stale set marker silently turns it back on.
-                if (set.isAmrap || set.intensityMode == IntensityMode.AMRAP) {
-                    set.copy(
-                        intensityMode = null,
-                        targetRPE = null,
-                        targetRIR = null,
-                        isFailure = false,
-                        isAmrap = false,
-                    )
-                } else {
-                    val resolvedMode = when (set.intensityMode) {
-                        // Null is a deliberate authoring choice: the live session must
-                        // not synthesize an RPE/RIR input for a set without intensity.
-                        null -> null
-                        IntensityMode.SOLO_RM -> IntensityMode.SOLO_RM
-                        else -> set.intensityMode
-                    }
-                    if (resolvedMode == IntensityMode.AMRAP) {
-                        set.copy(
-                            intensityMode = IntensityMode.AMRAP,
-                            targetReps = set.targetRepsRange?.max ?: set.targetReps ?: set.plannedTargetV2?.roundToInt(),
-                            targetRPE = null,
-                            targetRIR = null,
-                            isFailure = false,
-                            isAmrap = true,
-                        )
-                    } else {
-                        set.copy(intensityMode = resolvedMode)
-                    }
-                }
-            }
-        }
-        // ER2c: la carga la fija `normalizedLoadKg` (SessionEditorSessionHelpers), la misma que usa `normalizeSet`. En %RM manda la guardada.
-        return normalized.copy(weight = set.normalizedLoadKg(exercise, normalized))
-    }
+    private fun normalizeSet(set: ExerciseSet, exercise: Exercise): ExerciseSet = set.normalizeSet(exercise)
+
 }
 

@@ -237,12 +237,15 @@ object WendlerProtocols {
             weeks = weeks,
             trainingMaxPercent = 0.90,
             liftSlots = sbdSlots(),
-            progression = ProgressionRule.CycleIncrement(2.5, 5.0),
+            // CAL5 (RES1 §3): la serie «+» no mueve el TM (registra el récord de repeticiones y el e1RM); el TM sube 2,5 kg (tren
+            // superior) o 5 kg (inferior) por ciclo si se cumplieron las repeticiones mínimas, se congela (sin bajarlo un 2,5 %)
+            // si no, y tras dos ciclos seguidos congelados se reinicia un 10 % (el umbral es CalibrationPolicy).
+            progression = ProgressionRule.CycleIncrement(2.5, 5.0, resetAfterFrozenCycles = 2, resetPercent = 10.0),
             claimedDaysPerWeek = 4,
             claimedLevel = "intermedio",
             autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)),
             repeats = true,
-            contentVersion = 2,
+            contentVersion = 3,
         )
     }
 
@@ -250,7 +253,9 @@ object WendlerProtocols {
         id = "wendler-531-bbb",
         name = "5/3/1 Boring But Big",
         emoji = "5️",
-        description = "4 días, 4 semanas: semanas 5s/3s/1s con AMRAP y BBB 5×10 @ 50 % TM; la cuarta es de descarga y no lleva suplementario. TM = 90 % 1RM.",
+        description = "4 días, 4 semanas: semanas 5s/3s/1s con AMRAP y BBB 5×10 @ 50 % TM; la cuarta es de descarga y no lleva suplementario. TM = 90 % 1RM. " +
+            "La serie «+» registra tu récord de repeticiones y tu e1RM, y no mueve el TM: este sube 2,5 kg (banca y press) o 5 kg por ciclo si cumples las " +
+            "repeticiones mínimas; si no, se congela, y dos ciclos congelados seguidos lo reinician un 10 %.",
         author = "Jim Wendler",
         tags = listOf("powerlifting", "intermedio", "4 días", "4 semanas", "AMRAP", "%"),
         blocks = listOf(ProtocolBlock("5/3/1", 4, "Intensificación", 40, 95)),

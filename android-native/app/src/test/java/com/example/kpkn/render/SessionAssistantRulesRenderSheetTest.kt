@@ -48,11 +48,13 @@ import com.example.kpkn.screens.sessioneditor.ApplyRulesOutcome
 import com.example.kpkn.screens.sessioneditor.SessionDraftSnapshot
 import com.example.kpkn.screens.sessioneditor.SessionEditorAugeSummary
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
+import com.example.kpkn.screens.sessioneditor.SessionCloneDayOption
 import com.example.kpkn.screens.sessioneditor.components.ExerciseGoalDialog
 import com.example.kpkn.screens.sessioneditor.components.ExerciseSmartLoadDialog
 import com.example.kpkn.screens.sessioneditor.components.sheets.AssistantSheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.HistorySheet
 import com.example.kpkn.screens.sessioneditor.components.sheets.RulesSheet
+import com.example.kpkn.screens.sessioneditor.components.sheets.SessionClonerSheet
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -66,12 +68,12 @@ import java.io.FileOutputStream
 
 /**
  * HOJA DE DIBUJO del asistente y de las reglas (ER1e): el asistente en sus tres pestañas, Reglas y Tiempo (dentro y fuera del límite),
- * Versiones, Meta y Carga inteligente, con piezas reales y datos de ejemplo. No comprueba nada: escribe PNG. Pinta a 360 dp, con la letra al
+ * Versiones, Transferir, Meta y Carga inteligente, con piezas reales y datos de ejemplo. No comprueba nada: escribe PNG a 360 × 880 dp, con la letra al
  * 100 % y al 130 %, sin movimiento. Solo corre con `KPKN_RENDER_DIR`.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [34], qualifiers = "w360dp-h1800dp-xxhdpi", application = android.app.Application::class)
+@Config(sdk = [34], qualifiers = "w360dp-h880dp-xxhdpi", application = android.app.Application::class)
 class SessionAssistantRulesRenderSheetTest {
 
     companion object {
@@ -94,10 +96,12 @@ class SessionAssistantRulesRenderSheetTest {
         "asistente_impacto" to null,
         "asistente_sugerencias" to "Sugerencias",
         "asistente_plantillas" to "Plantillas",
+        "asistente_mis_plantillas" to "Plantillas",
         "reglas" to null,
         "tiempo_dentro" to null,
         "tiempo_fuera" to null,
         "versiones" to null,
+        "transferir" to null,
         "meta" to null,
         "carga_inteligente" to null,
     )
@@ -128,13 +132,8 @@ class SessionAssistantRulesRenderSheetTest {
         FileOutputStream(File(dir, "$name.png")).use { cropped.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
-    /** Alto de la hoja de cada caso: lo bastante para que el contenido entero quepa al 130 %. */
-    private fun heightOf(name: String): Int = when (name) {
-        "meta" -> 640
-        "carga_inteligente" -> 760
-        "versiones" -> 1100
-        else -> 1500
-    }
+    /** Ventana visible de un teléfono de 360 × 880 dp; el contenido largo se desplaza. */
+    private fun heightOf(@Suppress("UNUSED_PARAMETER") name: String): Int = 880
 
     // ─── Datos de ejemplo ─────────────────────────────────────────────────────
 
@@ -285,7 +284,7 @@ class SessionAssistantRulesRenderSheetTest {
     @Composable
     private fun Sheet(name: String) {
         when (name) {
-            "asistente_impacto", "asistente_sugerencias", "asistente_plantillas" -> AssistantSheet(
+            "asistente_impacto", "asistente_sugerencias", "asistente_plantillas", "asistente_mis_plantillas" -> AssistantSheet(
                 uiState = assistantState,
                 templates = emptyList(),
                 onApplyAssistantSuggestion = { _, _ -> },
@@ -328,6 +327,22 @@ class SessionAssistantRulesRenderSheetTest {
                 setExerciseTargetDuration = { _, _ -> },
             )
             "versiones" -> HistorySheet(uiState = historyState, onRestoreSnapshot = {})
+            "transferir" -> SessionClonerSheet(
+                uiState = SessionEditorUiState(
+                    session = session,
+                    weekId = "semana-3",
+                    cloneDayOptions = listOf(
+                        SessionCloneDayOption(
+                            key = "viernes-3", macroIndex = 0, mesoIndex = 0,
+                            weekId = "semana-3", dayOfWeek = 5,
+                            macroName = "Bloque 1", blockName = "Bloque 1",
+                            mesoName = "Mesociclo 1", weekName = "Semana 3",
+                        ),
+                    ),
+                ),
+                onCloneCurrentToTargets = { _, _, _ -> },
+                onImportFromSource = { _, _, _ -> },
+            )
             "meta" -> ExerciseGoalDialog(
                 exercise = squat,
                 goalRmInput = "102,5",
@@ -387,6 +402,15 @@ class SessionAssistantRulesRenderSheetTest {
                 rule.waitForIdle()
                 if (tapLabel != null) {
                     rule.onNodeWithText(tapLabel).performClick()
+                    rule.waitForIdle()
+                }
+                // La hoja conserva su estado entre escalas de letra: el toque solo se hace en la primera.
+                if (name == "asistente_mis_plantillas" && suffix == "s100") {
+                    rule.onNodeWithText("Mis plantillas · 0").performClick()
+                    rule.waitForIdle()
+                }
+                if (name == "transferir" && suffix == "s100") {
+                    rule.onNodeWithText("Viernes · Semana 3").performClick()
                     rule.waitForIdle()
                 }
                 save("sheet", "${name}_$suffix")

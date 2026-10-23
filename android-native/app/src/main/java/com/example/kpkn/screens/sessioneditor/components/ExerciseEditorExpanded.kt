@@ -1,10 +1,7 @@
 package com.example.kpkn.screens.sessioneditor.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -27,21 +22,19 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.displayLabel
-import com.example.kpkn.domain.workout.warmupValidationMessages
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.EditorMiniField
 import com.example.kpkn.screens.sessioneditor.rememberEditableNumber
-import com.example.kpkn.screens.sessioneditor.DarkEditorSurfaceSoft
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknSetFormat
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
-import java.util.UUID
 
 /**
  * Estado del ejercicio que sobrevive a plegar y desplegar: los bloques de movilidad y aproximación, la entrada de RM, el descanso, el menú
@@ -164,6 +157,7 @@ internal fun ExerciseEditorExpanded(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .testTag("exercise-editor-expanded")
             .padding(start = 14.dp, end = 14.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -189,80 +183,17 @@ internal fun ExerciseEditorExpanded(
             if (exercise.cardioDetails == null) {
                 // R1 §4.1: movilidad y aproximación a la vista, en su orden. Con contenido, cada una es un bloque plegable con su
                 // contador; lo que falta sigue como píldora punteada debajo, para no tener que buscarlo.
-                val hasMobility = exercise.mobilitySeries.isNotEmpty()
-                val hasWarmup = exercise.warmupSets.isNotEmpty()
-                if (hasMobility) {
-                    PreparationBlock(
-                        title = "MOVILIDAD",
-                        count = exercise.mobilitySeries.size,
-                        expanded = mobilityBlockExpanded,
-                        onToggle = { mobilityBlockExpanded = !mobilityBlockExpanded },
-                    ) {
-                        MobilityPreparationRows(
-                            series = exercise.mobilitySeries,
-                            mobilityConfig = exercise.mobilityConfig,
-                            onUpdateConfig = { config ->
-                                onUpdateExercise { current -> current.copy(mobilityConfig = config) }
-                            },
-                            onRemove = onRemoveMobility,
-                            onAdd = onOpenMobility,
-                        )
-                    }
-                }
-                if (hasWarmup) {
-                    val warmupWarnings = warmupValidationMessages(exercise.warmupSets, exercise.sets.size)
-                    PreparationBlock(
-                        title = "APROXIMACIÓN",
-                        count = exercise.warmupSets.size,
-                        expanded = warmupBlockExpanded,
-                        onToggle = { warmupBlockExpanded = !warmupBlockExpanded },
-                    ) {
-                        WarmupPreparationRows(
-                            sets = exercise.warmupSets,
-                            resolved1RM = resolved1RM,
-                            accentColor = accentColor,
-                            onUpdate = { warmupId, transform ->
-                                onUpdateExercise { current ->
-                                    current.copy(
-                                        warmupSets = current.warmupSets.map { warmup ->
-                                            if (warmup.id == warmupId) transform(warmup) else warmup
-                                        },
-                                    )
-                                }
-                            },
-                            onRemove = { warmupId ->
-                                onUpdateExercise { current ->
-                                    current.copy(warmupSets = current.warmupSets.filterNot { it.id == warmupId })
-                                }
-                            },
-                            onAdd = { onAddWarmup(onUpdateExercise) },
-                        )
-                        warmupWarnings.forEach { warning ->
-                            Text(warning, style = KpknType.caption, color = WizardColors.danger)
-                        }
-                    }
-                }
-                if (!hasMobility || !hasWarmup) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        if (!hasMobility) {
-                            PreparationDashedPill(
-                                text = "+ Movilidad",
-                                onClick = onOpenMobility,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                        if (!hasWarmup) {
-                            PreparationDashedPill(
-                                text = "+ Aproximación",
-                                onClick = { onAddWarmup(onUpdateExercise) },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                    }
-                }
+                ExercisePreparationSection(
+                    exercise = exercise,
+                    mobilityBlockExpanded = mobilityBlockExpanded,
+                    warmupBlockExpanded = warmupBlockExpanded,
+                    onToggleMobilityBlock = { mobilityBlockExpanded = !mobilityBlockExpanded },
+                    onToggleWarmupBlock = { warmupBlockExpanded = !warmupBlockExpanded },
+                    onUpdateExercise = onUpdateExercise,
+                    onRemoveMobility = onRemoveMobility,
+                    onOpenMobility = onOpenMobility,
+                    capacityKg = resolved1RM,
+                )
 
             Text(
                 "SERIES EFECTIVAS",
@@ -399,8 +330,7 @@ internal fun ExerciseEditorExpanded(
     }
 }
 
-/** Panel de relación (R1 §4.2): el tipo de relación con sus chips, «Quitar» y las notas. */
-@Composable
+/** Panel de relación (R1 §4.2): el tipo de relación con sus chips, «Quitar» y las notas. */@Composable
 private fun RelationshipPanel(
     exercise: Exercise,
     anchorName: String?,
@@ -417,9 +347,10 @@ private fun RelationshipPanel(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            val anchorLabel = anchorName ?: "un ejercicio del programa"
             Text(
-                text = exercise.relationshipType?.displayLabel()?.let { "$it de ${anchorName ?: exercise.relativeToCanonicalExerciseId}" }
-                    ?: "Relacionado con ${anchorName ?: exercise.relativeToCanonicalExerciseId}",
+                text = exercise.relationshipType?.displayLabel()?.let { "$it de $anchorLabel" }
+                    ?: "Relacionado con $anchorLabel",
                 style = KpknType.bodyStrong,
                 color = WizardColors.text,
                 maxLines = 2,
@@ -447,89 +378,6 @@ private fun RelationshipPanel(
             modifier = Modifier.fillMaxWidth(),
         ) { input ->
             onUpdateRelationshipNotes(input.ifBlank { null })
-        }
-    }
-}
-
-/** Alta de la primera aproximación (R1 §4.1): 50 %, 8 reps y 60 s, como el original. Las siguientes suben el 10 % y bajan 2 reps. */
-private fun onAddWarmup(onUpdateExercise: ((Exercise) -> Exercise) -> Unit) {
-    onUpdateExercise { current ->
-        val previous = current.warmupSets.lastOrNull()
-        if (previous == null) {
-            current.copy(
-                warmupSets = listOf(
-                    WarmupSetDefinition(
-                        id = UUID.randomUUID().toString(),
-                        percentageOfWorkingWeight = 0.5,
-                        targetReps = 8,
-                        restBetween = 60,
-                    ),
-                ),
-            )
-        } else {
-            current.copy(
-                warmupSets = current.warmupSets + WarmupSetDefinition(
-                    id = UUID.randomUUID().toString(),
-                    percentageOfWorkingWeight = (
-                        normalizeWarmupPercentageForEditor(previous.percentageOfWorkingWeight) + 0.1
-                    ).coerceAtMost(0.9),
-                    // As the load moves toward the working RM, the next
-                    // approximation also becomes shorter. Keep one
-                    // repetition as the safe floor when the previous card
-                    // is already minimal.
-                    targetReps = (previous.targetReps - 2).coerceAtLeast(1),
-                    restBetween = previous.restBetween ?: 60,
-                ),
-            )
-        }
-    }
-}
-
-private fun normalizeWarmupPercentageForEditor(rawPercentage: Double): Double {
-    val asFraction = if (rawPercentage > 1.0) rawPercentage / 100.0 else rawPercentage
-    return asFraction.coerceIn(0.1, 0.95)
-}
-
-/** Bloque plegable de la preparación (R1 §4.1): la ceja con su contador («APROXIMACIÓN · 3») y, desplegado, sus filas. */
-@Composable
-private fun PreparationBlock(
-    title: String,
-    count: Int,
-    expanded: Boolean,
-    onToggle: () -> Unit,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    KpknModule(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onToggle),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                "$title · $count",
-                style = KpknType.eyebrow,
-                color = WizardColors.textMuted,
-                modifier = Modifier.weight(1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = if (expanded) "Plegar $title" else "Desplegar $title",
-                tint = WizardColors.textMuted,
-                modifier = Modifier.size(18.dp),
-            )
-        }
-        AnimatedVisibility(visible = expanded) {
-            Column(
-                modifier = Modifier.padding(top = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) { content() }
         }
     }
 }

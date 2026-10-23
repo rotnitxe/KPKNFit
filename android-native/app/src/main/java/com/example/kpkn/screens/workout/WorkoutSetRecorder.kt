@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.AugeMetrics
@@ -45,6 +46,7 @@ import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -157,7 +159,9 @@ class WorkoutSetRecorder(
             return RecordSetResult.Rejected("Cambia al lado activo antes de registrar.")
         }
         val recordingKey = buildCompletedSetKey(exercise.id, targetSetIdx, initialSide)
-        val requiresEffort = !exercise.isCardio && !advanced.isWarmup && !advanced.skipped
+        val calibratorRecording = exercise.sets.getOrNull(targetSetIdx)?.purpose == SetPurpose.CALIBRATOR &&
+            advanced.amrapOverride != false
+        val requiresEffort = !exercise.isCardio && !advanced.isWarmup && !advanced.skipped && !calibratorRecording
         var report = if (requiresEffort) preserveExistingRecordingEffort(intensity, advanced, state.completedSets[recordingKey]) else advanced
         if (requiresEffort) {
             recordingEffortError(intensity, report)?.let { message ->
@@ -200,7 +204,16 @@ class WorkoutSetRecorder(
                 plannedSet = plannedSet,
                 requestedOverride = amrapOverride,
                 explicitOverride = report.amrapOverride,
+                recordedSet = state.completedSets[recordingKey],
             )
+            val performedPurpose = if (!amrapActive) SetPurpose.NONE else {
+                state.completedSets[recordingKey]?.purpose?.takeIf { it.isAmrap }
+                    ?: plannedSet?.purpose?.takeIf { it.isAmrap } ?: SetPurpose.AMRAP
+            }
+            val amrapMinimumReps = if (!amrapActive) null else {
+                if (report.amrapMinimumOverridden || report.amrapMinimumReps != null) report.amrapMinimumReps
+                else resolveAmrapMinimumReps(plannedSet, recordedSet = state.completedSets[recordingKey])
+            }?.takeIf { it > 0 }
             val activeProfile = ports.activeContextProfile(exercise.id)
 
             val resolvedUnitMode = unitMode ?: plannedSet?.let { ports.inferUnitMode(exercise, it) } ?: UnitModeV2.REPS
@@ -236,7 +249,9 @@ class WorkoutSetRecorder(
             }
             val hasOnlyPartialReps = resolvedUnitMode == UnitModeV2.REPS && value == 0.0 &&
                 (report.partialReps ?: 0) > 0
-            if (resolvedUnitMode != UnitModeV2.TIME && value <= 0.0 && !isFailedEntry && !hasOnlyPartialReps) {
+            val zeroRepCalibrator = calibratorRecording && resolvedUnitMode == UnitModeV2.REPS && value == 0.0 &&
+                (report.reachedFailure || report.rir != null || intensity != null)
+            if (resolvedUnitMode != UnitModeV2.TIME && value <= 0.0 && !isFailedEntry && !hasOnlyPartialReps && !zeroRepCalibrator) {
                 ports.onRecordingRejected("Reps/tiempo inválidos. Revisa el valor antes de registrar.")
                 return RecordSetResult.Rejected("Reps/tiempo inválidos. Revisa el valor antes de registrar.")
             }
@@ -248,7 +263,8 @@ class WorkoutSetRecorder(
                 UnitModeV2.REPS -> actualValue + ((report.partialReps ?: 0).coerceAtLeast(0) * 0.5)
                 else -> actualValue
             }
-            val plannedTarget = plannedSet?.let { ports.inferPlannedTarget(it, resolvedUnitMode) }
+            val plannedTarget = if (amrapActive && resolvedUnitMode == UnitModeV2.REPS) amrapMinimumReps?.toDouble()
+                else plannedSet?.let { ports.inferPlannedTarget(it, resolvedUnitMode) }
             val sideRepRange = when (resolvedSide) {
                 "left" -> plannedSet?.leftTarget?.targetRepsRange
                     ?: plannedSet?.leftTarget?.targetReps?.takeIf { it > 0 }?.let { RepRange(it, it) }
@@ -260,10 +276,10 @@ class WorkoutSetRecorder(
                 ?: plannedTarget?.toInt()?.takeIf { resolvedUnitMode == UnitModeV2.REPS && it > 0 }?.let { RepRange(it, it) }
             val debt = if (resolvedUnitMode == UnitModeV2.REPS && logicalActualValue >= 0) {
                 evaluateRepRange(
-                    actual = logicalActualValue,
+                    actual = if (amrapActive) actualValue else logicalActualValue,
                     range = plannedRepRange,
                     amrapActive = amrapActive,
-                    amrapMinimum = report.amrapMinimumReps ?: plannedRepRange?.min,
+                    amrapMinimum = amrapMinimumReps,
                 )?.debt ?: 0.0
             } else if (plannedTarget != null && logicalActualValue >= 0) {
                 (plannedTarget - logicalActualValue).coerceAtLeast(0.0)
@@ -340,7 +356,7 @@ class WorkoutSetRecorder(
                 },
                 assistedLoad = if (resolvedLoadMode == LoadModeV2.ASSISTED) weight.takeIf { it > 0.0 } else null,
                 bodyWeightSnapshot = resolvedBodyWeight,
-                completedReps = actualReps.takeIf { it > 0 || hasOnlyPartialReps },
+                completedReps = actualReps.takeIf { it > 0 || hasOnlyPartialReps || zeroRepCalibrator },
                 partialReps = report.partialReps,
                 durationSeconds = durationSeconds,
                 actualIntensityMode = actualIntensityMode,
@@ -349,7 +365,9 @@ class WorkoutSetRecorder(
                 failedSet = report.isFailedSet || report.executionError,
                 reachedFailure = report.reachedFailure,
                 amrapPerformed = amrapActive,
-                timerTargetSeconds = report.timerTargetSeconds ?: plannedSet?.targetDuration,
+                purpose = performedPurpose,
+                amrapMinimumReps = amrapMinimumReps,
+                timerTargetSeconds = if (resolvedUnitMode == UnitModeV2.TIME) report.timerTargetSeconds ?: plannedSet?.targetDuration else null,
                 timerElapsedSeconds = report.timerElapsedSeconds,
                 failureReason = report.failureReason,
                 executionError = report.executionError,
@@ -365,6 +383,7 @@ class WorkoutSetRecorder(
             }
 
             val entry = SetEntryV2(
+                completedReps = actualReps.takeIf { resolvedUnitMode == UnitModeV2.REPS },
                 exerciseId = exercise.id,
                 exerciseDbId = ports.canonicalExerciseKey(exercise),
                 canonicalExerciseId = ports.canonicalExerciseKey(exercise),
@@ -438,7 +457,6 @@ class WorkoutSetRecorder(
                     step.setIndex == targetSetIdx &&
                     (resolvedSide == null || step.side == resolvedSide)
             }
-            val amrapMinimumReps = report.amrapMinimumReps ?: plannedSet?.effectiveRepRange()?.min
             val amrapBelowMinimum = amrapActive &&
                 amrapMinimumReps != null &&
                 actualReps < amrapMinimumReps
@@ -473,8 +491,21 @@ class WorkoutSetRecorder(
                     homologatedResultV3 = evaluation?.homologated,
                     setOutcomeV2 = outcome,
                     amrapPerformed = amrapActive,
+                    purpose = performedPurpose,
                     amrapMinimumReps = amrapMinimumReps,
                     amrapBelowMinimum = amrapBelowMinimum,
+                    loadMode = resolvedLoadMode,
+                    originalLoad = weight,
+                    contextKey = com.example.kpkn.data.models.buildRecordedSetContextKey(
+                        configurationId = exercise.catalogConfigurationId ?: ports.canonicalExerciseKey(exercise),
+                        performanceContextKey = contextKey,
+                        setupProfileId = resolvedSetupId,
+                        side = resolvedSide,
+                        loadQuantityConvention = plannedSet?.loadQuantityConvention
+                            ?.takeUnless { it == com.example.kpkn.data.models.LoadQuantityConvention.UNSPECIFIED }
+                            ?: exercise.loadQuantityConvention,
+                    ),
+                    estimatorVersion = com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION,
                 ),
                 advanced = report,
             )
@@ -504,7 +535,7 @@ class WorkoutSetRecorder(
             } else {
                 emptyList()
             }
-            val completedSet = if (plannedSet?.isVolumeReplacedTechnique() == true) {
+            val completedBeforeApre = if (plannedSet?.isVolumeReplacedTechnique() == true) {
                 recordedAfterAdvanced.copy(
                     dropSets = recordedAfterAdvanced.dropSets
                         .ifEmpty { plannedSet.dropSets }
@@ -517,6 +548,9 @@ class WorkoutSetRecorder(
                 recordedAfterAdvanced
             }
 
+            val completedSet = completedBeforeApre.copy(apreXrm = buildRecordedApreXrm(
+                state, exercise, targetSetIdx, completedBeforeApre, System.currentTimeMillis(),
+                repository.settings.value.resolvedEquipmentInventory()))
             val key = buildCompletedSetKey(exercise.id, targetSetIdx, resolvedSide)
             val wasExistingSet = state.completedSets.containsKey(key)
             val existingSet = state.completedSets[key]
@@ -536,12 +570,14 @@ class WorkoutSetRecorder(
                     setIdx = targetSetIdx,
                     plannedSet = it,
                     actualWeight = weight.coerceAtLeast(0.0),
-                    actualReps = if (resolvedUnitMode == UnitModeV2.TIME) {
+                    actualReps = if (amrapActive && resolvedUnitMode == UnitModeV2.REPS) {
+                        actualReps
+                    } else if (resolvedUnitMode == UnitModeV2.TIME) {
                         logicalActualValue.toInt().coerceAtLeast(0)
                     } else {
                         logicalActualValue.roundToInt().coerceAtLeast(0)
                     },
-                    advanced = report,
+                    advanced = report.copy(amrapOverride = amrapActive),
                     amrapMinimumReps = amrapMinimumReps,
                     suggestedWeight = outcome.suggestedNextLoad,
                 )
@@ -557,14 +593,15 @@ class WorkoutSetRecorder(
                 )
                 current.copy(
                     completedSets = mergedCompleted,
+                    showUltraFastSheet = false,
                     // Make the recorded step the canonical cursor before
                     // resolving the next incomplete step. This matters when
                     // a pager/action closure carries an explicit set index:
                     // nextSet() must never advance from a stale cursor.
                     currentExerciseIdx = recordedExerciseIdx.takeIf { it >= 0 } ?: current.currentExerciseIdx,
                     currentSetIdx = targetSetIdx,
-                    activeStepKey = currentWorkoutStep?.stepKey
-                        ?: WorkoutStepRules.workingStepKey(exercise.id, targetSetIdx, resolvedSide),
+                    activeStepKey = if (amrapActive) WorkoutStepRules.workingStepKey(exercise.id, targetSetIdx, resolvedSide)
+                        else currentWorkoutStep?.stepKey ?: WorkoutStepRules.workingStepKey(exercise.id, targetSetIdx, resolvedSide),
                     setAdvancedFeedback = current.setAdvancedFeedback + (key to report),
                     planDeviations = current.planDeviations + newDeviations,
                     setJustLoggedKey = key,
@@ -588,11 +625,23 @@ class WorkoutSetRecorder(
             val submitted = getState()
             val draftKey = workoutSetKey(exercise.id, targetSetIdx, resolvedSide)
             val fallbackKey = workoutSetKey(exercise.id, targetSetIdx)
-            val candidate = applyRecorded(submitted).copy(
+            val recordedCandidate = applyRecorded(submitted).copy(
                 setDrafts = submitted.setDrafts.minus(draftKey).minus(fallbackKey),
                 persistedLoadModeBySet = submitted.persistedLoadModeBySet + (fallbackKey to resolvedLoadMode),
                 persistedLoadModeByExercise = submitted.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode),
             )
+            val now = System.currentTimeMillis()
+            val calibrationRecord = buildRecordedApreCalibration(recordedCandidate, exercise, targetSetIdx,
+                completedSet, now, repository.settings.value.resolvedEquipmentInventory())
+                ?: if (performedPurpose == SetPurpose.CALIBRATOR && !completedSet.skipped) {
+                withContext(Dispatchers.IO) {
+                    buildRecordedCalibration(recordedCandidate, exercise, targetSetIdx, completedSet,
+                        repository.history.value, repository.calibrationDecisions.accepted(now, completedSet.id), now,
+                        repository.settings.value.resolvedEquipmentInventory())
+                }
+            } else null
+            val candidate = recordedCandidate.copy(calibrationDecisions = replaceRecordedCalibration(
+                submitted.calibrationDecisions, completedSet.id, calibrationRecord, now))
             val publishRecorded: () -> Unit = {
                 updateState { current ->
                     val remainingDrafts = current.setDrafts.filter { (draftId, draft) ->
@@ -600,6 +649,9 @@ class WorkoutSetRecorder(
                     }
                     current.copy(
                         completedSets = current.completedSets + (key to completedSet),
+                        // Room has confirmed this record. Closing here avoids waiting for
+                        // rest, suggestions and other post-commit effects to return.
+                        showUltraFastSheet = false,
                         currentExerciseIdx = candidate.currentExerciseIdx,
                         currentSetIdx = candidate.currentSetIdx,
                         activeStepKey = candidate.activeStepKey,
@@ -614,6 +666,8 @@ class WorkoutSetRecorder(
                         setDrafts = remainingDrafts,
                         persistedLoadModeBySet = current.persistedLoadModeBySet + (fallbackKey to resolvedLoadMode),
                         persistedLoadModeByExercise = current.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode),
+                        calibrationDecisions = candidate.calibrationDecisions,
+                        calibrationError = null,
                     )
                 }
             }
@@ -670,7 +724,7 @@ class WorkoutSetRecorder(
                         set.targetPercentageRM
                             ?: set.targetRPE
                             ?: set.targetRIR?.toDouble()
-                            ?: set.targetReps?.takeIf { set.isAmrap }?.toDouble()
+                            ?: set.amrapMinimumReps?.takeIf { set.purpose.isAmrap }?.toDouble()
                     },
                     "techniqueScope" to plannedSet?.techniqueScope()?.name,
                     "scheduledTechnique" to scheduledPlan?.kind?.name,
@@ -697,7 +751,7 @@ class WorkoutSetRecorder(
                 (plannedSet.isDropSet && report.dropSets.isEmpty()) ||
                     (plannedSet.isRestPause && report.restPauses.isEmpty())
                 )
-            if (!isExecutionError && !unilateralPendingOtherSide && !wasExistingSet && !techniqueStillOpen) {
+            if (!amrapActive && !isExecutionError && !unilateralPendingOtherSide && !wasExistingSet && !techniqueStillOpen) {
                 // A legacy/one-phase scheduled set still gets its deterministic
                 // next-load prescription even when the UI did not need to
                 // collect explicit follow-up rows.
@@ -980,23 +1034,7 @@ class WorkoutSetRecorder(
                 },
             )
             updateState { it.copy(lastDrainOverlay = drainOverlay) }
-            if (amrapActive) {
-                val contextPerformance = state.contextualPerformanceCache[contextKey]
-                val ewma = contextPerformance?.ewma ?: 0.0
-                val amrapVolume = weight * actualValue
-                val calibratorMsg = if (ewma > 0 && amrapVolume > 0) {
-                    val ratio = amrapVolume / ewma
-                    val pct = (kotlin.math.abs(ratio - 1.0) * 100).toInt().coerceAtLeast(1)
-                    when {
-                        ratio > 1.10 -> "AMRAP: +$pct% vs histórico. Sugerencia: aumentar carga."
-                        ratio < 0.90 -> "AMRAP: -$pct% vs histórico. Sugerencia: reducir carga."
-                        else -> null
-                    }
-                } else {
-                    null
-                }
-                updateState { it.copy(amrapCalibrationMessage = calibratorMsg) }
-            }
+            if (amrapActive) updateState { it.copy(isRestMinimized = true) }
             ports.updateCoachMessage(
                 setDrain = setDrain,
                 sessionProgress = sessionProgress,
@@ -1063,6 +1101,10 @@ class WorkoutSetRecorder(
             existing.failureReason == next.failureReason &&
             existing.actualIntensityMode == next.actualIntensityMode &&
             existing.actualIntensityValue == next.actualIntensityValue &&
+            existing.purpose == next.purpose &&
+            existing.loadMode == next.loadMode &&
+            existing.originalLoad == next.originalLoad &&
+            existing.contextKey == next.contextKey &&
             existing.amrapPerformed == next.amrapPerformed &&
             existing.amrapMinimumReps == next.amrapMinimumReps &&
             existing.amrapBelowMinimum == next.amrapBelowMinimum &&

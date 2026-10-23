@@ -430,9 +430,14 @@ internal fun SessionEditorSheets(
 ) {
     val session = uiState.activeVariantSession ?: uiState.session ?: return
     if (uiState.sheet == SessionEditorSheet.NONE) return
-    val mobilityTargetSeries = uiState.quickActionsExerciseId
-        ?.let { targetId -> session.allExercises().firstOrNull { it.id == targetId }?.mobilitySeries }
-        .orEmpty()
+    val mobilityTargetSeries = when {
+        uiState.quickActionsExerciseId != null -> uiState.quickActionsExerciseId
+            .let { targetId -> session.allExercises().firstOrNull { it.id == targetId }?.mobilitySeries }
+        uiState.quickActionsPartId != null -> session.parts
+            .firstOrNull { it.id == uiState.quickActionsPartId }
+            ?.mobilitySeries
+        else -> null
+    }.orEmpty()
 
     // AUGE is rendered as an in-composition DarkMica overlay in SessionEditorScreen
     // (sibling of hazeSource). Do NOT put it in KpknSheet — blur would die.

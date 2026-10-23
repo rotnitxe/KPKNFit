@@ -20,16 +20,19 @@ import kotlin.math.roundToInt
 // ─── 1RM Formulas ────────────────────────────────────────────────────────────
 // 1:1 port from utils/calculations.ts
 
+/** v2 removes the AMRAP label bonus. Stored v1 evaluations remain historical snapshots. */
+const val CAPACITY_ESTIMATOR_VERSION = 2
+
 /**
  * Brzycki formula. Best for ≤10 reps.
  * Partial reps NOT included — they don't contribute to 1RM.
  */
+@Suppress("UNUSED_PARAMETER") // Source compatibility; the label never changes capacity.
 fun calculateBrzycki1RM(weight: Double, reps: Int, isAmrap: Boolean = false): Double {
     if (weight <= 0 || reps <= 0) return 0.0
     if (reps == 1) return weight
     val effectiveReps = reps.coerceAtMost(30)
-    var e1rm = weight * (36.0 / (37 - effectiveReps))
-    if (isAmrap && reps > 3) e1rm *= 1.025
+    val e1rm = weight * (36.0 / (37 - effectiveReps))
     return round(e1rm * 10.0) / 10.0
 }
 
@@ -57,6 +60,7 @@ fun calculateLander1RM(weight: Double, reps: Int): Double {
  * Hybrid: Brzycki ≤10, Epley 11–20, smooth extrapolation >20.
  * 1:1 port of calculateHybrid1RM from calculations.ts.
  */
+@Suppress("UNUSED_PARAMETER") // Kept for callers compiled against v1; no AMRAP bonus in v2.
 fun calculateHybrid1RM(weight: Double, reps: Int, isAmrap: Boolean = false): Double {
     if (weight <= 0 || reps <= 0) return 0.0
     if (reps == 1) return weight
@@ -66,8 +70,7 @@ fun calculateHybrid1RM(weight: Double, reps: Int, isAmrap: Boolean = false): Dou
         r <= 20 -> weight * (1 + r / 30.0)
         else    -> weight * (1 + 20.0 / 30) * (1 + (r - 20) / 80.0).pow(0.9)
     }
-    val adjusted = if (isAmrap && reps > 3) e1rm * 1.025 else e1rm
-    return round(adjusted * 10.0) / 10.0
+    return round(e1rm * 10.0) / 10.0
 }
 
 /** Inverse of Hybrid1RM: weight from 1RM and target reps. */
@@ -94,7 +97,7 @@ fun calculateWeightFrom1RMAndIntensity(reference1RM: Double, set: ExerciseSet): 
 
     val effectiveReps = when {
         set.intensityMode == IntensityMode.FAILURE ||
-        set.intensityMode == IntensityMode.AMRAP ||
+        set.purpose.isAmrap ||
         set.intensityMode == IntensityMode.SOLO_RM -> reps
         set.targetRIR != null -> reps + set.targetRIR
         set.targetRPE != null -> reps + (10 - set.targetRPE).toInt()
@@ -191,7 +194,7 @@ private fun effectiveMetricForSuggestion(set: ExerciseSet, trainingMode: Trainin
     return when (trainingMode) {
         TrainingMode.REPS -> when {
             set.intensityMode == IntensityMode.FAILURE ||
-                set.intensityMode == IntensityMode.AMRAP ||
+                set.purpose.isAmrap ||
                 set.intensityMode == IntensityMode.SOLO_RM -> baseMetric
             set.targetRIR != null -> baseMetric + set.targetRIR
             set.targetRPE != null -> baseMetric + (10 - set.targetRPE).roundToInt()
@@ -203,7 +206,7 @@ private fun effectiveMetricForSuggestion(set: ExerciseSet, trainingMode: Trainin
         -> {
             val multiplier = when {
                 set.intensityMode == IntensityMode.FAILURE ||
-                    set.intensityMode == IntensityMode.AMRAP -> 1.0
+                    set.purpose.isAmrap -> 1.0
                 set.targetRIR != null -> 1.0 + (set.targetRIR * 0.05)
                 set.targetRPE != null -> 1.0 + ((10.0 - set.targetRPE).coerceAtLeast(0.0) * 0.05)
                 else -> 1.10
@@ -251,9 +254,57 @@ fun resolveReferenceCapacity(
 
 /** PERCENT_TM declares the reference base, not authorship or a guessed history 1RM. */
 private fun explicitTrainingMaxLoad(exercise: Exercise, set: ExerciseSet): Double? {
-    val trainingMax = exercise.reference1RM?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+    val trainingMax = exercise.referenceTrainingMax?.takeIf { it.isFinite() && it > 0.0 } ?: return null
     val percent = set.targetPercentageRM?.takeIf { it.isFinite() && it > 0.0 } ?: return null
     return TrainingMaxResolver.loadKg(percent, trainingMax)?.takeIf { it.isFinite() && it > 0.0 }
+}
+
+/**
+ * Referencia (kg) sobre la que se lee el `targetPercentageRM` de [set], según su base de carga:
+ * - `PERCENT_TM`: SOLO el TM declarado (`referenceTrainingMax`); jamás el 1RM ni una capacidad deducida;
+ * - cualquier otra base con porcentaje (`PERCENT_1RM`, `PERCENT_DESIRED_MAX`, sin base...): el 1RM declarado
+ *   (`reference1RM`), que siempre significa 1RM.
+ * null = falta la referencia de esa base (la carga queda pendiente, nunca se rellena con la otra).
+ */
+fun percentLoadReferenceKg(exercise: Exercise, set: ExerciseSet): Double? {
+    val reference = if (set.loadBasis == LoadBasis.PERCENT_TM) exercise.referenceTrainingMax else exercise.reference1RM
+    return reference?.takeIf { it.isFinite() && it > 0.0 }
+}
+
+/** Kg de un `%RM` declarado leído sobre la referencia de su base ([percentLoadReferenceKg]); null si falta el porcentaje o la referencia. */
+fun percentLoadKg(exercise: Exercise, set: ExerciseSet): Double? {
+    val percent = set.targetPercentageRM?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+    val reference = percentLoadReferenceKg(exercise, set) ?: return null
+    return (percent / 100.0 * reference).takeIf { it.isFinite() && it > 0.0 }
+}
+
+/**
+ * `%RM` de [set] expresado sobre el 1RM: el porcentaje tal cual para las bases de 1RM; para `PERCENT_TM`, el porcentaje por
+ * TM ÷ 1RM (con el TM y el 1RM declarados). null si no hay porcentaje o no se puede convertir (nunca mezcla las bases).
+ */
+fun percentOfOneRm(exercise: Exercise, set: ExerciseSet): Double? {
+    val percent = set.targetPercentageRM?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+    if (set.loadBasis != LoadBasis.PERCENT_TM) return percent
+    val trainingMax = percentLoadReferenceKg(exercise, set) ?: return null
+    val oneRm = exercise.reference1RM?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+    return percent * trainingMax / oneRm
+}
+
+/** Qué referencia falta para resolver los `%RM` declarados de un ejercicio, separada por base (1RM o TM). */
+data class MissingPercentReferences(val oneRm: Boolean, val trainingMax: Boolean) {
+    val any: Boolean get() = oneRm || trainingMax
+}
+
+/**
+ * Las series `PERCENT_TM` necesitan el TM; las demás con porcentaje, el 1RM ([resolved1RM], que puede venir de un PR).
+ * Un TM no sustituye a un 1RM ni al revés: cada base avisa de su propia falta.
+ */
+fun missingPercentReferences(exercise: Exercise, resolved1RM: Double?): MissingPercentReferences {
+    val withPercent = exercise.sets.filter { it.targetPercentageRM != null }
+    val needsTm = withPercent.any { it.loadBasis == LoadBasis.PERCENT_TM } &&
+        withPercent.first { it.loadBasis == LoadBasis.PERCENT_TM }.let { percentLoadReferenceKg(exercise, it) } == null
+    val needsOneRm = withPercent.any { it.loadBasis != LoadBasis.PERCENT_TM } && resolved1RM == null
+    return MissingPercentReferences(oneRm = needsOneRm, trainingMax = needsTm)
 }
 
 fun calculateSuggestedLoad(exercise: Exercise, set: ExerciseSet): Double? {
@@ -525,8 +576,9 @@ fun estimatePercent1RM(repsToFailure: Int): Double {
 
 fun getEffectiveRepsForRM(set: ExerciseSet): Int? {
     val reps = set.plannedRepAnchor() ?: return null
+    if (set.purpose.isAmrap) return reps
     return when (set.intensityMode) {
-        IntensityMode.FAILURE, IntensityMode.AMRAP, IntensityMode.SOLO_RM -> reps
+        IntensityMode.FAILURE, IntensityMode.SOLO_RM -> reps
         IntensityMode.RIR -> reps + (set.targetRIR ?: 0)
         IntensityMode.RPE -> reps + (10 - (set.targetRPE ?: 8.0)).roundToInt()
         else -> reps + 2
@@ -675,7 +727,7 @@ fun calculateSessionTimeBreakdown(
             return@forEach
         }
 
-        val sets = exercise.sets
+        val sets = exercise.sets.filterNot { it.isEmptySlot }
         if (sets.isEmpty()) return@forEach
 
         sets.forEachIndexed { setIndex, set ->
@@ -731,23 +783,25 @@ fun calculateSessionTimeBreakdown(
             val group = supersetGroups.firstOrNull { it.id == supersetRef }
             if (group != null && supersetRef !in supersetGroupsProcessed) {
                 // Descanso intra-superset y post-superset se cuentan 1 sola vez por grupo
-                val rounds = sets.size.coerceAtLeast(1)
-                // F2 D2: respetar descansos por ronda si existen
-                var intraRest = 0
-                var roundRest = 0
-                for (r in 0 until rounds) {
-                    intraRest += group.roundRestBetweenExercises?.get(r) ?: group.restBetweenExercises
-                    if (r < rounds - 1) {
-                        roundRest += group.roundRestAfterSuperset?.get(r) ?: group.restAfterSuperset
+                // Round indices remain stable across deleted slots. Count only
+                // members that execute in each round, independently of list order.
+                val members = group.exerciseOrder.mapNotNull { id -> exercises.firstOrNull { it.id == id } }
+                val rounds = maxOf(group.rounds ?: 0, members.maxOfOrNull { it.sets.size } ?: 0)
+                val activeRounds = (0 until rounds).mapNotNull { round ->
+                    val count = members.count { it.sets.getOrNull(round)?.isEmptySlot == false }
+                    (round to count).takeIf { count > 0 }
+                }
+                activeRounds.forEachIndexed { index, (round, memberCount) ->
+                    restSec += (group.roundRestBetweenExercises[round] ?: group.restBetweenExercises) * (memberCount - 1)
+                    if (index < activeRounds.lastIndex) {
+                        restSec += group.roundRestAfterSuperset[round] ?: group.restAfterSuperset
                     }
                 }
-                restSec += intraRest * (group.exerciseOrder.size - 1)
-                restSec += roundRest
                 supersetGroupsProcessed.add(supersetRef)
             }
             // Para miembros adicionales del superset no se añade descanso individual
         } else {
-            restSec += exerciseRestSec * (sets.size - 1).coerceAtLeast(0)
+            restSec += sets.dropLast(1).sumOf { (it.restAfterSeconds ?: exerciseRestSec).coerceAtLeast(0) }
         }
     }
 
@@ -763,7 +817,7 @@ fun calculateSessionTimeBreakdown(
         // sessions may still carry synthetic ExerciseSet rows, so do not let
         // those legacy rows leak into editor/time summaries.
         totalSetCount    = exercises.sumOf { exercise ->
-            if (exercise.cardioDetails != null) 0 else exercise.sets.size
+            if (exercise.cardioDetails != null) 0 else exercise.sets.count { !it.isEmptySlot }
         },
     )
 }

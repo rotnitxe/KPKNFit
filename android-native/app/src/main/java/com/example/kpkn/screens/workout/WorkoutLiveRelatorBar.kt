@@ -17,14 +17,17 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
@@ -46,6 +50,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
@@ -67,6 +72,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.screens.workout.components.WorkoutUiTokens
 import kotlinx.coroutines.delay
 
 internal val WorkoutLiveRelatorSlotHeight = 36.dp
@@ -211,7 +217,7 @@ internal fun WorkoutLiveRelatorLine(
         currentText + ". Acciones: " + currentActions.joinToString(". ") { it.clickableSpan() }
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = currentActions.isEmpty()) {
@@ -220,6 +226,7 @@ internal fun WorkoutLiveRelatorLine(
             },
         contentAlignment = Alignment.Center,
     ) {
+        val availableBandHeight = maxHeight
         if (!isWorking && !isDone) {
             // Reposo: texto centrado en la banda para mantener simetría idéntica (Punto 2)
             AnimatedContent(
@@ -250,22 +257,26 @@ internal fun WorkoutLiveRelatorLine(
                 )
             }
         } else {
-            // Text and actors share one fixed band: working never pushes the set card.
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            // Separate measured lanes inside the same reserved band, including at large font sizes.
+            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                val textHeight = with(androidx.compose.ui.platform.LocalDensity.current) { (WorkoutLiveRelatorLineHeight * WorkoutLiveRelatorMaxLines).toDp() }
+                val laneHeight = (availableBandHeight - textHeight - WorkoutUiTokens.LiveRelatorAnimationGap).coerceIn(0.dp, WorkoutUiTokens.LiveRelatorAnimationLaneHeight)
+                if (isWorking && effectiveWorkingAction != null && laneHeight > 0.dp) {
+                    RelatorWorkingScene(
+                        actionKind = effectiveWorkingAction.kind,
+                        progress = forceWorkingProgress ?: rememberWorkingProgress(reduceMotion),
+                        reduceMotion = reduceMotion,
+                        modifier = Modifier.fillMaxWidth().height(laneHeight)
+                            .clipToBounds().testTag("relator-working-lane"),
+                    )
+                    Spacer(Modifier.height(WorkoutUiTokens.LiveRelatorAnimationGap))
+                }
                 val pieces = remember(currentText, currentActions) { relatorInlinePieces(currentText, currentActions) }
                 RelatorTextLine(
                     pieces = pieces, text = currentText, actions = currentActions,
                     onAction = handleActionClick, isWorking = isWorking, reduceMotion = reduceMotion,
                     forceShimmerSweepProgress = forceShimmerSweepProgress,
                 )
-                if (isWorking && effectiveWorkingAction != null) {
-                    RelatorWorkingScene(
-                        actionKind = effectiveWorkingAction.kind,
-                        progress = forceWorkingProgress ?: rememberWorkingProgress(reduceMotion),
-                        reduceMotion = reduceMotion,
-                        modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().height(30.dp),
-                    )
-                }
             }
 
         }
@@ -471,6 +482,7 @@ private fun RelatorTextLine(
         lineHeight = WorkoutLiveRelatorLineHeight,
         hyphens = Hyphens.None,
         lineBreak = LineBreak.Simple,
+        textAlign = TextAlign.Center,
     )
     val effectiveStyle = if (reduceMotion) {
         baseStyle.copy(color = Color(0xFFF2EEE6).copy(alpha = 0.80f))
@@ -478,7 +490,7 @@ private fun RelatorTextLine(
         baseStyle.copy(brush = shimmerBrush)
     }
 
-    Text(
+    BasicText(
         text = annotated,
         modifier = Modifier
             .fillMaxWidth()
@@ -533,7 +545,7 @@ private fun RelatorTextLine(
         maxLines = WorkoutLiveRelatorMaxLines,
         softWrap = true,
         overflow = TextOverflow.Ellipsis,
-        textAlign = TextAlign.Center,
+        autoSize = TextAutoSize.StepBased(minFontSize = 11.sp, maxFontSize = WorkoutLiveRelatorFontSp, stepSize = .5.sp),
         onTextLayout = { layout -> layoutResult = layout },
     )
 }

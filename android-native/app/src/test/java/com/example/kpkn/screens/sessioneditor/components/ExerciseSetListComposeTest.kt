@@ -1,7 +1,11 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -16,8 +20,11 @@ import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnilateralTarget
+import com.example.kpkn.data.models.UnilateralIntensityMode
+import com.example.kpkn.data.models.UnilateralMode
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
+import com.example.kpkn.screens.sessioneditor.withTrainingMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -25,14 +32,20 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /** ER1c1, R1 §4.3: la lista de series, la fila que se despliega, sus controles en los 7 modos y sus acciones. */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h2000dp-xxhdpi")
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h880dp-mdpi")
 class ExerciseSetListComposeTest {
 
     @get:Rule
     val rule = createComposeRule()
+
+    private fun setEditorContent(content: @androidx.compose.runtime.Composable () -> Unit) {
+        rule.setContent { EditorOverlayTestHost(content) }
+    }
 
     private val accent = Color(0xFFF49A6E)
 
@@ -41,6 +54,7 @@ class ExerciseSetListComposeTest {
         mode: TrainingMode = TrainingMode.REPS,
         customUnit: String? = null,
     ) = Exercise(id = "press", name = "Press", trainingMode = mode, customUnit = customUnit, sets = sets.toList())
+        .let { if (mode == TrainingMode.AMRAP) it.withTrainingMode(mode) else it }
 
     private fun renderList(
         exercise: Exercise,
@@ -50,7 +64,7 @@ class ExerciseSetListComposeTest {
         onRemoveSet: (String) -> Unit = {},
         onTransformExercise: (((Exercise) -> Exercise) -> Unit)? = null,
     ) {
-        rule.setContent {
+        setEditorContent {
             ExerciseSetList(
                 exercise = exercise,
                 reference1RM = 100.0,
@@ -82,6 +96,46 @@ class ExerciseSetListComposeTest {
     }
 
     @Test
+    fun lasTecnicasSoloAparecenAFallo() {
+        renderList(exerciseWith(ExerciseSet(id = "s1", targetReps = 8),
+            ExerciseSet(id = "s2", targetReps = 8, isFailure = true, intensityMode = IntensityMode.FAILURE)))
+        openRow("s1")
+        rule.onNodeWithText("¿Vas más allá del fallo?").assertDoesNotExist()
+        rule.onNodeWithText("Drop-set").assertDoesNotExist()
+        rule.onNodeWithText("Rest-pause").assertDoesNotExist()
+        openRow("s2")
+        rule.onNodeWithText("¿Vas más allá del fallo?").assertExists()
+        rule.onNodeWithText("Drop-set").assertExists()
+        rule.onNodeWithText("Rest-pause").assertExists()
+    }
+
+    @Test
+    fun elDescansoEsDeLaSerieYSePuedeVolverAlDelEjercicio() {
+        var saved: ExerciseSet? = null
+        val set = ExerciseSet(id = "s1", restAfterSeconds = 60)
+        renderList(exerciseWith(set), onUpdateSet = { _, transform -> saved = transform(set) })
+        openRow("s1")
+        rule.onNodeWithText("Descanso de esta serie").assertExists()
+        rule.onNodeWithContentDescription("Sumar 15 segundos a esta serie").performClick()
+        rule.waitForIdle()
+        assertEquals(75, saved?.restAfterSeconds)
+        rule.onNodeWithText("Usar descanso del ejercicio").performClick()
+        rule.waitForIdle()
+        assertEquals(null, saved?.restAfterSeconds)
+    }
+
+    @Test
+    fun lasFlechasCambianElFocoSinMoverLasSeries() {
+        renderList(exerciseWith(ExerciseSet(id = "s1"), ExerciseSet(id = "s2")))
+        openRow("s1")
+        rule.onNodeWithText("Serie 1 de 2").assertExists()
+        rule.onNodeWithContentDescription("Serie siguiente").performClick()
+        rule.onNodeWithText("Serie 2 de 2").assertExists()
+        rule.onNodeWithContentDescription("Serie anterior").performClick()
+        rule.onNodeWithText("Serie 1 de 2").assertExists()
+    }
+
+    @Test
     fun unaFilaSeAbreYSoloUnaEstaAbiertaALaVez() {
         renderList(exerciseWith(ExerciseSet(id = "s1", targetReps = 8), ExerciseSet(id = "s2", targetReps = 10)))
         openRow("s1")
@@ -94,64 +148,44 @@ class ExerciseSetListComposeTest {
 
     @Test
     fun laFilaDeRepsTieneSusControles() {
-        openedRowShows(TrainingMode.REPS, "Externa", "Reps / rango", "RPE", "RIR", "Fallo", "Drop-set", "Rest-pause")
+        openedRowShows(TrainingMode.REPS, "Externa", "Reps / rango", "RPE", "RIR", "Fallo")
     }
 
     @Test
     fun laFilaDeAmrapTieneSusControles() {
-        openedRowShows(TrainingMode.AMRAP, "AMRAP / mín.", "AMRAP", "Externa", "Drop-set", "Rest-pause")
+        openedRowShows(TrainingMode.AMRAP, "Mínimo", "AMRAP", "Externa")
     }
 
-    /** Una serie RM sin rango ni RIR (pura) enseña su %RM y sus «Reps est.» de siempre (ER2a). */
+    /** Una serie RM sin rango ni RIR (pura) enseña su %RM y sus «Reps estimadas» (ER2a). */
     @Test
     fun laFilaDeRmPuraTieneSusControles() {
         renderList(exerciseWith(rmSet(id = "s1", range = null, rir = null), mode = TrainingMode.RM))
         openRow("s1")
-        listOf("%RM", "Reps est.", "Externa", "Drop-set", "Rest-pause").forEach { label ->
+        listOf("%RM", "Reps estimadas", "Externa").forEach { label ->
             assertTrue("falta el control «$label»", rule.onAllNodesWithText(label).fetchSemanticsNodes().isNotEmpty())
         }
     }
 
-    /** Una serie RM con rango y RIR abre «Reps» y «RIR» junto al %RM, y «Reps est.» pasa a ser una línea de ayuda (ER2a). */
+    /** B3 sustituye las entradas de RIR/rango por las tres cifras enlazadas. La receta no se borra. */
     @Test
-    fun laFilaDeRmConRangoYRirTieneRepsRirYLaAyudaDeReps() {
-        renderList(
-            exerciseWith(rmSet(id = "s1", range = RepRange(4, 6), rir = 2), mode = TrainingMode.RM),
-            predictedMetrics = mapOf("s1" to 7.0),
-        )
+    fun laFilaRmMuestraRepsEstimadasPorcentajeYPesoSinRir() {
+        renderList(exerciseWith(rmSet(id = "s1", range = RepRange(4, 6), rir = 2), mode = TrainingMode.RM))
         openRow("s1")
-        listOf("%RM", "Reps", "RIR").forEach { label ->
-            assertTrue("falta el control «$label»", rule.onAllNodesWithText(label).fetchSemanticsNodes().isNotEmpty())
-        }
-        assertTrue("sigue el campo «Reps est.»", rule.onAllNodesWithText("Reps est.").fetchSemanticsNodes().isEmpty())
-        rule.onNodeWithText("≈ 7 reps máx. al 80 %").assertExists()
+        listOf("%RM", "Reps estimadas", "Peso (kg)").forEach { rule.onNodeWithText(it).assertExists() }
+        rule.onNodeWithText("RIR").assertDoesNotExist()
     }
 
-    /** Editar el RIR de una serie RM con rango lo guarda en esa serie (ER2a). */
     @Test
-    fun editarElRirDeUnaSerieRmLoGuarda() {
+    fun editarElPorcentajeConservaElRangoYRirDeLaReceta() {
         val set = rmSet(id = "s1", range = RepRange(4, 6), rir = 2)
         var saved: ExerciseSet? = null
-        rule.setContent {
-            ExerciseSetList(
-                exercise = exerciseWith(set, mode = TrainingMode.RM),
-                reference1RM = 120.0,
-                trainingMode = TrainingMode.RM,
-                customUnit = null,
-                predictedMetrics = mapOf("s1" to 7.0),
-                accentColor = accent,
-                backgroundAccentColor = accent,
-                onAddSet = {},
-                onUpdateSet = { _, updater -> saved = updater(set) },
-                onRemoveSet = {},
-                onMoveSet = { _, _ -> },
-            )
-        }
+        renderList(exerciseWith(set, mode = TrainingMode.RM), onUpdateSet = { _, update -> saved = update(set) })
         openRow("s1")
-        rule.onNodeWithContentDescription("RIR").performClick()
-        rule.onNode(hasSetTextAction()).performTextReplacement("3")
+        rule.onNodeWithContentDescription("%RM").performClick()
+        rule.onNode(hasSetTextAction()).performTextReplacement("85")
         rule.onNode(hasSetTextAction()).performImeAction()
-        assertEquals(3, saved?.targetRIR)
+        assertEquals(85.0, saved?.targetPercentageRM)
+        assertEquals(2, saved?.targetRIR)
         assertEquals(RepRange(4, 6), saved?.targetRepsRange)
     }
 
@@ -169,22 +203,22 @@ class ExerciseSetListComposeTest {
 
     @Test
     fun laFilaDeSoloRpeTieneSuRpeObjetivo() {
-        openedRowShows(TrainingMode.SOLO_RPE, "RPE obj.", "Externa", "Drop-set", "Rest-pause")
+        openedRowShows(TrainingMode.SOLO_RPE, "RPE objetivo")
     }
 
     @Test
     fun laFilaDeTiempoTieneSuTiempo() {
-        openedRowShows(TrainingMode.TIME, "Tiempo", "Externa", "Drop-set", "Rest-pause")
+        openedRowShows(TrainingMode.TIME, "Minutos", "Segundos", "Externa")
     }
 
     @Test
     fun laFilaDeDistanciaTieneSuDistancia() {
-        openedRowShows(TrainingMode.DISTANCE, "Dist.", "Externa", "Drop-set", "Rest-pause")
+        openedRowShows(TrainingMode.DISTANCE, "Distancia (m)", "Externa")
     }
 
     @Test
     fun laFilaDePersonalizadoTieneSuUnidad() {
-        openedRowShows(TrainingMode.CUSTOM, "vatios", "Externa", "Drop-set", "Rest-pause", customUnit = "vatios")
+        openedRowShows(TrainingMode.CUSTOM, "vatios", "Externa", customUnit = "vatios")
     }
 
     @Test
@@ -203,7 +237,9 @@ class ExerciseSetListComposeTest {
         )
         openRow("s1")
         rule.onNodeWithText("Aplicar a todas").performClick()
-        rule.onNodeWithText("Aplicar").performClick()
+        rule.mainClock.advanceTimeBy(3_000)
+        rule.waitForIdle()
+        rule.onNodeWithText("Aplicar").assertIsDisplayed().performClick()
         assertEquals(setOf("s2", "s3"), updated.keys)
         assertEquals(8, updated.getValue("s2").targetReps)
         assertEquals(2, updated.getValue("s3").targetRIR)
@@ -255,17 +291,48 @@ class ExerciseSetListComposeTest {
     }
 
     @Test
-    fun enUnilateralSinLadoDerechoSeOfreceAnadirD() {
+    fun enUnilateralSinLadoDerechoSeOfreceAnadirR() {
         val sets = listOf(ExerciseSet(id = "s1", targetReps = 8))
         val uni = exerciseWith(*sets.toTypedArray())
             .toggledBilateralUnilateral()
             .let { unilateral -> unilateral.copy(sets = unilateral.sets.map { set -> set.copy(rightTarget = null) }) }
         val updated = mutableMapOf<String, ExerciseSet>()
         renderList(uni, onUpdateSet = { id, transform -> updated[id] = transform(sets.first { it.id == id }) })
-        rule.onNodeWithText("I1").assertExists()
-        rule.onNodeWithText("D1").assertDoesNotExist()
-        rule.onNodeWithText("+ Añadir D").performClick()
+        rule.onNodeWithText("L1").assertExists()
+        rule.onNodeWithText("R1").assertDoesNotExist()
+        rule.onNodeWithText("+ Añadir R").performClick()
         assertTrue(updated.getValue("s1").rightTarget != null)
+    }
+
+    @Test
+    fun fichasUnilateralesMuestranLasRepsDeCadaLadoSobreElRangoBase() {
+        val set = ExerciseSet(
+            id = "s1",
+            targetRepsRange = RepRange(6, 10),
+            leftTarget = UnilateralTarget(targetReps = 10),
+            rightTarget = UnilateralTarget(targetReps = 12),
+        )
+        val exercise = exerciseWith(set).copy(
+            isUnilateral = true,
+            unilateralMode = UnilateralMode.UNILATERAL_PAIRED,
+            unilateralIntensityMode = UnilateralIntensityMode.INDEPENDENT,
+        )
+
+        renderList(exercise)
+
+        rule.onNodeWithTag("set-row-s1:L").assertIsDisplayed()
+        rule.onNodeWithTag("set-row-s1:R").assertIsDisplayed()
+        assertEquals(0, rule.onAllNodesWithText("6–10").fetchSemanticsNodes().size)
+        rule.onNode(hasText("10") and hasAnyAncestor(hasTestTag("set-row-s1:L")), useUnmergedTree = true).assertExists()
+        rule.onNode(hasText("12") and hasAnyAncestor(hasTestTag("set-row-s1:R")), useUnmergedTree = true).assertExists()
+
+        rule.onNodeWithTag("set-row-s1:L").performClick()
+        rule.onNodeWithTag("set-focus-s1:L").assertExists()
+        rule.onNode(hasText("10") and hasAnyAncestor(hasTestTag("set-focus-s1:L")), useUnmergedTree = true).assertExists()
+        rule.onNodeWithTag("set-row-s1:R").performClick()
+        rule.onNodeWithTag("set-focus-s1:L").assertDoesNotExist()
+        rule.onNodeWithTag("set-focus-s1:R").assertExists()
+        rule.onNode(hasText("12") and hasAnyAncestor(hasTestTag("set-focus-s1:R")), useUnmergedTree = true).assertExists()
     }
 
     @Test

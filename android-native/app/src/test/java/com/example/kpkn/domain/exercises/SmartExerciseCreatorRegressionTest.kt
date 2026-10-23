@@ -1,5 +1,8 @@
 package com.example.kpkn.domain.exercises
 
+import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseSelectionV2
+import com.example.kpkn.testsupport.MotCatalog
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
@@ -214,5 +217,30 @@ class SmartExerciseCreatorRegressionTest {
         val pectoral = created.involvedMuscles.firstOrNull { it.muscle == "Pectorales" }
         assertEquals(1.0, pectoral?.volumeContribution ?: 0.0, 0.0001)
         assertEquals("Mancuerna", created.equipment)
+    }
+    @Test
+    fun confirmedMotDescriptionUsesItsDisplayNameInsteadOfTheTechnicalForceId() {
+        val request = SmartCreateRequest(name = "sentadilla barra baja", implementoId = "barbell")
+        val preview = SmartExerciseCreator.preview(request, MotCatalog.legacyDefaultCatalog, MotCatalog.catalog)
+        assertEquals(ReferenceOutcome.CONFIRMED, preview.referenceResult!!.outcome)
+        val confirmed = requireNotNull(preview.referenceResult!!.confirmed)
+        val reference = requireNotNull(MotCatalog.catalog.toLegacySelection(ExerciseSelectionV2(
+            definitionId = confirmed.definitionId, configurationId = requireNotNull(confirmed.configurationId),
+            catalogRevision = MotCatalog.catalog.catalogRevision)))
+        assertEquals("knee_dominant", reference.force)
+        val description = requireNotNull(preview.exercise.description)
+        assertTrue(description, description.startsWith(reference.name + " con "))
+        assertFalse(description, description.contains(reference.force!!))
+        assertFalse(description, Regex("[a-z]+_[a-z_]+").containsMatchIn(description))
+        reference.executionCues?.firstOrNull { it.isNotBlank() }?.trim()?.let { cue ->
+            assertTrue(description, description.endsWith(cue))
+        }
+        val manual = "Mi nota personal: conservar literalmente knee_dominant."
+        val edited = SmartExerciseCreator.preview(request.copy(description = manual), MotCatalog.legacyDefaultCatalog, MotCatalog.catalog)
+        assertEquals(manual, edited.exercise.description)
+        assertEquals("USER", edited.exercise.descriptionOrigin)
+        val unknown = SmartExerciseCreator.preview(request.copy(name = "XQZ 123"), MotCatalog.legacyDefaultCatalog, MotCatalog.catalog)
+        assertEquals(ReferenceOutcome.NONE, unknown.referenceResult!!.outcome)
+        assertNull(unknown.exercise.description)
     }
 }

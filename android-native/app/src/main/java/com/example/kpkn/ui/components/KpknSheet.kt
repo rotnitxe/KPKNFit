@@ -212,7 +212,7 @@ private fun KpknSheetBody(
         val nestedScrollConnection = remember(dismissible, sheetCapPx, dismissThresholdPx) {
             object : NestedScrollConnection {
                 override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                    if (!dismissible) return Offset.Zero
+                    if (!dismissible || source != NestedScrollSource.UserInput) return Offset.Zero
                     if (available.y < 0f && dragOffsetPx > 0f) {
                         val newOffset = (dragOffsetPx + available.y).coerceAtLeast(0f)
                         val consumed = newOffset - dragOffsetPx
@@ -227,7 +227,9 @@ private fun KpknSheetBody(
                     available: Offset,
                     source: NestedScrollSource,
                 ): Offset {
-                    if (!dismissible) return Offset.Zero
+                    // Focus/bring-into-view and accessibility scrolls must never drag the panel.
+                    // They have no user fling to settle a leftover positive offset afterwards.
+                    if (!dismissible || source != NestedScrollSource.UserInput) return Offset.Zero
                     if (available.y > 0f) {
                         dragOffsetPx += available.y
                         return Offset(0f, available.y)

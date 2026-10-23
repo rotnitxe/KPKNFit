@@ -14,6 +14,8 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -25,6 +27,7 @@ import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.screens.workout.RecordActionHolder
 import com.example.kpkn.screens.workout.SetAdvancedFeedback
 import com.example.kpkn.screens.workout.RecordSetResult
+import com.example.kpkn.screens.workout.LiveSessionCardFrame
 import com.example.kpkn.ui.theme.KPKNTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -53,29 +56,35 @@ class Lv8SetCardDeviceTest {
             CompositionLocalProvider(LocalDensity provides Density(density, fontScale)) {
                 KPKNTheme {
                     Box(Modifier.fillMaxSize()) {
-                        Box(Modifier.width(272.dp).testTag("lv8-device-card")) {
-                            SetInputCardV2(
-                                exercise = Exercise(id = "lv8-ex", name = "Press banca", sets = listOf(set), trackRom = rom),
-                                setIndex = 0, currentSet = set, ghostSet = null, weightSuggestion = null,
-                                initialBodyWeight = 80.0, recordActionHolder = holder, recordActionPageKey = "lv8-device",
-                                onShowHistory = {}, onSetBodyWeight = {},
-                                onExecutionError = if (executionCallback) ({ effort ->
-                                    recorded += effort.actualIntensityValue
-                                    feedback += effort
-                                }) else null,
-                                onRecordV2 = { _, _, _, value, intensity, advanced, _, _, _, done ->
-                                    recorded += intensity
-                                    recordedValues += value
-                                    feedback += advanced
-                                    done(RecordSetResult.Created("lv8-ex_0"))
-                                },
-                            )
+                        Box(Modifier.width(312.dp).testTag("lv8-device-card")) {
+                            LiveSessionCardFrame {
+                                SetInputCardV2(
+                                    exercise = Exercise(id = "lv8-ex", name = "Press banca", sets = listOf(set), trackRom = rom),
+                                    setIndex = 0, currentSet = set, ghostSet = null, weightSuggestion = null,
+                                    initialBodyWeight = 80.0, recordActionHolder = holder, recordActionPageKey = "lv8-device",
+                                    onShowHistory = {}, onSetBodyWeight = {},
+                                    onExecutionError = if (executionCallback) ({ effort ->
+                                        recorded += effort.actualIntensityValue
+                                        feedback += effort
+                                    }) else null,
+                                    onRecordV2 = { _, _, _, value, intensity, advanced, _, _, _, done ->
+                                        recorded += intensity
+                                        recordedValues += value
+                                        feedback += advanced
+                                        done(RecordSetResult.Created("lv8-ex_0"))
+                                    },
+                                )
+                            }
                         }
                     }
                 }
             }
         }
         rule.waitForIdle()
+        val frame = rule.onNodeWithTag("live-card-frame").fetchSemanticsNode().boundsInRoot
+        val density = rule.activity.resources.displayMetrics.density
+        assertEquals("Marco de producción de 312 dp", 312f, frame.width / density, .5f)
+        assertEquals("Alto de producción de 425 dp", 425f, frame.height / density, .5f)
     }
 
     private fun record() {
@@ -104,7 +113,7 @@ class Lv8SetCardDeviceTest {
     private fun markExecutionErrorAndReturn(): Float {
         val original = rule.onNodeWithTag("lv8-device-card").fetchSemanticsNode().boundsInRoot.height
         rule.onNodeWithTag("secondary_pill_avanzado").performClick()
-        rule.onNodeWithText("Error de ejecución").performClick()
+        rule.onNodeWithText("Error de ejecución", useUnmergedTree = true).performScrollTo().assertIsDisplayed().performClick()
         rule.onNodeWithContentDescription("Volver a la serie").performClick()
         rule.waitForIdle()
         val failed = rule.onNodeWithTag("lv8-device-card").fetchSemanticsNode().boundsInRoot.height

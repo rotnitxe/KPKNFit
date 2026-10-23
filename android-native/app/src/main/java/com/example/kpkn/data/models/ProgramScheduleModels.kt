@@ -130,6 +130,8 @@ data class OneRmResolution(
     val squat1RM: Double? = null,
     val bench1RM: Double? = null,
     val deadlift1RM: Double? = null,
+    /** CAL5: el press militar, cuando el programa lo trabaja (5/3/1, Juggernaut, nSuns…). null = no se pidió. */
+    val overhead1RM: Double? = null,
     val resolvedAtMs: Long = System.currentTimeMillis(),
     val note: String? = null,
 )
@@ -156,6 +158,8 @@ enum class PendingProgramActionType {
 @Serializable
 enum class AutoregulationProposalKind {
     ADJUST_TM,
+    /** Referencia de trabajo APRE para la semana siguiente; nunca modifica TM/1RM. */
+    ADJUST_XRM,
     SCALE_WEEK_INTENSITY,
     SCALE_WEEK_VOLUME,
     INSERT_DELOAD,
@@ -173,10 +177,12 @@ data class AutoregulationProposal(
     val explanation: String,
     /**
      * Cambio del TM en kilos (AMRAP de AmrapDrivenTm, top set de TopSetPr). Si no es null manda sobre
-     * [percentDelta] en `ADJUST_TM` y `PROMOTE_TM`; null = el porcentaje de siempre. El JSON anterior,
+     * [percentDelta] en `ADJUST_TM` y `PROMOTE_TM`; `ADJUST_XRM` usa su payload físico separado. Null = sin cambio por porcentaje. El JSON anterior,
      * sin este campo, decodifica con null.
      */
     val kgDelta: Double? = null,
+    /** Resultado contextual de S4; nunca representa un cambio de TM ni una estimación de 1RM. */
+    val apreXrm: ApreXrmCapture? = null,
 )
 
 @Serializable
@@ -199,7 +205,7 @@ data class AutoregulationAuditEntry(
 /** Estado terminal de una acción/propuesta pendiente (§14.5, AC-G4). */
 @Serializable
 enum class PendingActionResolutionStatus {
-    /** La propuesta produjo un efecto observable (receta/carga/bloque). */
+    /** La propuesta produjo un efecto observable (receta/carga/bloque o referencia física). */
     APPLIED,
     /** El atleta la rechazó explícitamente. */
     REJECTED,
@@ -237,4 +243,16 @@ enum class TemporalStructureIssueType {
 data class TemporalStructureIssue(
     val type: TemporalStructureIssueType,
     val message: String,
+)
+
+/** Snapshot real de S4 para el canal de propuestas, compatible con los programas y registros antiguos. */
+@Serializable
+data class ApreXrmCapture(
+    val sourceExerciseId: String,
+    val sourcePlannedSetId: String,
+    val context: com.example.kpkn.domain.calibration.CalibrationContext,
+    val reference: com.example.kpkn.data.protocols.PlanLoadReference,
+    val incrementKg: Double,
+    val sourceRecipeDayId: String? = null,
+    val sourceRecipeSlotId: String? = null,
 )

@@ -62,6 +62,8 @@ import com.example.kpkn.domain.templates.TemplateCatalogFilters
 import com.example.kpkn.domain.templates.TemplateCatalogNestedGroup
 import com.example.kpkn.domain.templates.TemplateCatalogSection
 import com.example.kpkn.domain.templates.TemplateGroupMode
+import com.example.kpkn.domain.templates.TemplateSaveValidationException
+import com.example.kpkn.domain.templates.TemplateSaveValidationIssue
 import com.example.kpkn.domain.templates.TemplateSessionGoal
 import com.example.kpkn.domain.templates.TemplateSessionType
 import com.example.kpkn.domain.templates.TemplateSessionZone
@@ -108,20 +110,23 @@ internal suspend fun executeUserTemplateSave(
             onSuccess = { result ->
                 result.fold(
                     onSuccess = { template -> UserTemplateSaveState.Success(template) },
-                    onFailure = { _ ->
-                        UserTemplateSaveState.Error(
-                            "No se pudo guardar la plantilla. Inténtalo de nuevo.",
-                        )
-                    },
+                    onFailure = ::userTemplateSaveError,
                 )
             },
-            onFailure = { _ ->
-                UserTemplateSaveState.Error(
-                    "No se pudo guardar la plantilla. Inténtalo de nuevo.",
-                )
-            },
+            onFailure = ::userTemplateSaveError,
         )
 }
+
+private fun userTemplateSaveError(failure: Throwable): UserTemplateSaveState.Error =
+    UserTemplateSaveState.Error(
+        when ((failure as? TemplateSaveValidationException)?.issue) {
+            TemplateSaveValidationIssue.NAME_REQUIRED -> "Escribe un nombre para la plantilla."
+            TemplateSaveValidationIssue.SESSION_REQUIRED -> "Abre una sesión antes de guardar una plantilla."
+            TemplateSaveValidationIssue.SESSION_INCOMPLETE ->
+                "Completa la dosis de los ejercicios y las modalidades antes de guardar la plantilla."
+            null -> "No se pudo guardar la plantilla. Inténtalo de nuevo."
+        },
+    )
 
 /** Chips amigables de grupo / día (sin Powerlifting / Minimalista / Recuperación como primarios). */
 private val FriendlyGroupChips = listOf(
@@ -171,6 +176,9 @@ internal fun TemplateCatalogBrowser(
     },
     glassDark: Boolean = false,
     modifier: Modifier = Modifier,
+    /** D4: si quien llama controla la lista «Mis plantillas» (para ocultar el buscador mientras está abierta), pasa su estado aquí. */
+    mineOpen: Boolean? = null,
+    onMineOpenChange: (Boolean) -> Unit = {},
 ) {
     val titleColor = if (glassDark) Color.White else MaterialTheme.colorScheme.primary
     val bodyColor = if (glassDark) Color.White else MaterialTheme.colorScheme.onSurface
@@ -179,6 +187,9 @@ internal fun TemplateCatalogBrowser(
     var templateBeingEdited by remember { mutableStateOf<SessionTemplate?>(null) }
     var showSaveDialog by remember { mutableStateOf(false) }
     var pendingDeleteId by remember { mutableStateOf<String?>(null) }
+    var showMineLocal by rememberSaveable { mutableStateOf(false) }
+    val showMine = mineOpen ?: showMineLocal
+    val setShowMine: (Boolean) -> Unit = { open -> showMineLocal = open; onMineOpenChange(open) }
 
     // Keep first paint independent from the expensive AUGE/ring calculation.
     // Duration and difficulty filters already have metadata fallbacks; detailed
@@ -247,20 +258,21 @@ internal fun TemplateCatalogBrowser(
         contentPadding = PaddingValues(bottom = 8.dp),
     ) {
         val visibleUserTemplates = templates.filter { it.sourceType == SessionTemplateSourceType.USER }
+        item(key = "user-template-actions") {
+            // Una píldora por fila: dos lado a lado cortaban sus textos a 360 dp («Mis plantill…»).
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                KpknSecondaryPill(
+                    text = if (showMine) "Volver al catálogo" else "Mis plantillas · ${visibleUserTemplates.size + archivedUserTemplates.size}",
+                    onClick = { setShowMine(!showMine) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                KpknSecondaryPill(text = "Guardar sesión", onClick = { showSaveDialog = true }, modifier = Modifier.fillMaxWidth())
+            }
+        }
+        if (showMine) {
         item(key = "user-template-management") {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "Mis plantillas",
-                            style = KpknType.bodyStrong,
-                            color = WizardColors.text,
-                            modifier = Modifier.weight(1f),
-                        )
-                        KpknSecondaryPill(
-                            text = "Guardar sesión",
-                            onClick = { showSaveDialog = true },
-                        )
-                    }
+                    Text("Mis plantillas", style = KpknType.bodyStrong, color = WizardColors.text)
                     if (!templatesReady) {
                         Text(
                             "Cargando plantillas…",
@@ -309,6 +321,7 @@ internal fun TemplateCatalogBrowser(
                     }
                 }
         }
+        } else {
         item(key = "filters-header") {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
@@ -443,6 +456,7 @@ internal fun TemplateCatalogBrowser(
                     }
                 }
             }
+        }
         }
     }
     pendingDeleteId?.let { id ->

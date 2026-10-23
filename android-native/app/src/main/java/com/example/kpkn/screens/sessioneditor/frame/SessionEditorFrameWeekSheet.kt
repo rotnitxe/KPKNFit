@@ -7,6 +7,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,10 +33,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Session
@@ -100,9 +104,10 @@ internal fun SessionEditorFrameWeekSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
+                .padding(start = 12.dp, end = 12.dp, bottom = 24.dp),
         ) {
             SessionEditorFrameWeekContent(
+                moduleInset = 4.dp,
                 orderedDays = orderedDays,
                 sessions = sessions,
                 currentSessionId = currentSessionId,
@@ -154,6 +159,7 @@ internal fun SessionEditorFrameWeekContent(
     onSelectVariant: (WeekVariant) -> Unit,
     onCreateVariant: (WeekVariant, String) -> Unit,
     onDeleteActiveVariant: () -> Unit,
+    moduleInset: Dp = 0.dp,
     onDone: () -> Unit,
 ) {
     var pendingCreateDay by rememberSaveable { mutableStateOf(NO_DAY) }
@@ -166,7 +172,9 @@ internal fun SessionEditorFrameWeekContent(
     val currentBlock = roadmapOptions.firstOrNull { it.weekId == currentWeekId }?.blockIndex
     val sessionsByDay = remember(sessions) { sessions.groupBy { it.dayOfWeek ?: 99 } }
     val currentDaySessions = sessions.filter { it.dayOfWeek == currentDayOfWeek }
-    val weekCaption = roadmapOptions.firstOrNull { it.weekId.isNotBlank() }
+    // ED-A · A5: el rótulo «Semana 3 · Acumulación» es el de la semana que está abierta (antes salía el de la primera de la lista).
+    val weekCaption = roadmapOptions.firstOrNull { it.weekId.isNotBlank() && it.weekId == currentWeekId }
+        ?: roadmapOptions.firstOrNull { it.weekId.isNotBlank() }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -176,22 +184,24 @@ internal fun SessionEditorFrameWeekContent(
             text = "Semana",
             style = KpknType.title,
             color = WizardColors.text,
-            modifier = Modifier.semantics { heading() },
+            modifier = Modifier.padding(horizontal = moduleInset).semantics { heading() },
         )
         if (isSimpleProgram && hasActiveLoops && weekCaption != null) {
             Text(
                 text = "Semana ${weekCaption.weekIndex + 1} · ${weekCaption.weekName}",
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
+                modifier = Modifier.padding(horizontal = moduleInset),
             )
         }
 
         // Días: chips de bloque en programas avanzados y los círculos de la semana.
-        KpknModule(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)) {
+        KpknModule(contentPadding = PaddingValues(vertical = 14.dp)) {
             if (!isSimpleProgram && blocks.size > 1) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
@@ -208,42 +218,48 @@ internal fun SessionEditorFrameWeekContent(
                 }
                 Spacer(Modifier.height(12.dp))
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                orderedDays.forEach { day ->
-                    val daySessions = sessionsByDay[day].orEmpty()
-                    val hasSession = daySessions.isNotEmpty()
-                    FrameDayCircle(
-                        day = day,
-                        hasSession = hasSession,
-                        isCurrentDay = day == currentDayOfWeek,
-                        isCompetition = day in competitionKeyDaysInWeek,
-                        sessionCount = daySessions.size,
-                        onTap = {
-                            val primary = primarySessionOnDay(sessions, day)
-                            if (primary != null) {
-                                onSelectSession(primary.id)
-                                onDone()
+            // A 360 dp, margen específico de 12 dp: los siete objetivos de 48 dp quedan a la vista.
+            // Solo anchos menores de 336 dp de contenido necesitan desplazamiento.
+            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().then(
+                        if (maxWidth < 336.dp) Modifier.horizontalScroll(rememberScrollState()) else Modifier,
+                    ),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    orderedDays.forEach { day ->
+                        val daySessions = sessionsByDay[day].orEmpty()
+                        val hasSession = daySessions.isNotEmpty()
+                        FrameDayCircle(
+                            day = day,
+                            hasSession = hasSession,
+                            isCurrentDay = day == currentDayOfWeek,
+                            isCompetition = day in competitionKeyDaysInWeek,
+                            sessionCount = daySessions.size,
+                            onTap = {
+                                val primary = primarySessionOnDay(sessions, day)
+                                if (primary != null) {
+                                    onSelectSession(primary.id)
+                                    onDone()
+                                } else {
+                                    pendingCreateDay = day
+                                }
+                            },
+                            onLongPress = if (hasSession && day == currentDayOfWeek) {
+                                { showVariantDialog = true }
                             } else {
-                                pendingCreateDay = day
-                            }
-                        },
-                        onLongPress = if (hasSession && day == currentDayOfWeek) {
-                            { showVariantDialog = true }
-                        } else {
-                            null
-                        },
-                    )
+                                null
+                            },
+                        )
+                    }
                 }
             }
         }
 
         // Sesiones del día actual, si hay varias: la principal va marcada y las demás se pueden hacer principales.
         if (currentDaySessions.size > 1) {
-            KpknModule(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)) {
+            KpknModule(modifier = Modifier.padding(horizontal = moduleInset), contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)) {
                 KpknModuleHeader(label = "Sesiones de ${sessionEditorDayLabel(currentDayOfWeek)}")
                 currentDaySessions.forEach { session ->
                     KpknRadioRow(
@@ -269,7 +285,7 @@ internal fun SessionEditorFrameWeekContent(
         }
 
         // Variantes de la sesión: también se abren con pulsación larga en el día actual.
-        KpknModule(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)) {
+        KpknModule(modifier = Modifier.padding(horizontal = moduleInset), contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)) {
             KpknModuleHeader(label = "Variantes de la sesión")
             FrameVariantRows(
                 availableVariants = availableVariants,
@@ -293,7 +309,7 @@ internal fun SessionEditorFrameWeekContent(
 
         // Semanas del programa (el roadmap del original), agrupadas por bloque.
         if (roadmapOptions.size > 1) {
-            KpknModule(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)) {
+            KpknModule(modifier = Modifier.padding(horizontal = moduleInset), contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)) {
                 KpknModuleHeader(label = "Semanas del programa")
                 var lastBlock = -1
                 roadmapOptions.forEach { option ->
@@ -451,11 +467,28 @@ private fun FrameVariantRows(
     onDelete: () -> Unit,
 ) {
     availableVariants.forEach { variant ->
-        KpknRadioRow(
-            selected = variant == activeVariant,
-            title = variantName(variant),
-            onClick = { if (variant != activeVariant) onSelect(variant) },
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            // A5: la letra identifica la variante; el tablero usa tinta neutra, no un color por variante.
+            Box(
+                modifier = Modifier.size(22.dp)
+                    .testTag("session_variant_badge_${variant.name}")
+                    .background(KpknSurface.inset, RoundedCornerShape(6.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(variant.name, style = KpknType.chip.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
+                    color = if (variant == activeVariant) WizardColors.text else WizardColors.text.copy(alpha = 0.62f))
+            }
+            KpknRadioRow(
+                selected = variant == activeVariant,
+                title = variantName(variant),
+                modifier = Modifier.weight(1f).testTag("session_variant_${variant.name}"),
+                onClick = { if (variant != activeVariant) onSelect(variant) },
+            )
+        }
     }
     if (canCreate) {
         KpknTextAction(
@@ -474,7 +507,7 @@ private fun FrameVariantRows(
 }
 
 /**
- * Círculo de un día (42 dp como el original, en 40 dp de toque): elegido en tinta; con sesión, un punto en `textMuted`; competición con
+ * Círculo de un día con objetivo de 48 dp: elegido en tinta; con sesión, un punto en `textMuted`; competición con
  * borde en Energía y una «C»; con varias sesiones, un contador. La pulsación larga, solo en el día actual con sesión, abre las variantes.
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -495,18 +528,18 @@ private fun FrameDayCircle(
         else -> WizardColors.textFaint
     }
     // El círculo es una caja recortada; las marcas («C» y contador) van en la caja de fuera, que no recorta.
-    Box(modifier = Modifier.size(40.dp)) {
+    Box(modifier = Modifier.size(48.dp).testTag("session_week_day_$day").combinedClickable(
+        role = Role.Button,
+        onClick = onTap,
+        onLongClick = onLongPress,
+    )) {
         Box(
             modifier = Modifier
-                .matchParentSize()
+                .size(40.dp)
+                .align(Alignment.Center)
                 .clip(CircleShape)
                 .background(fill)
-                .then(if (isCompetition) Modifier.border(1.5.dp, KpknRingColors.energia, CircleShape) else Modifier)
-                .combinedClickable(
-                    role = Role.Button,
-                    onClick = onTap,
-                    onLongClick = onLongPress,
-                ),
+                .then(if (isCompetition) Modifier.border(1.5.dp, KpknRingColors.energia, CircleShape) else Modifier),
             contentAlignment = Alignment.Center,
         ) {
             Text(

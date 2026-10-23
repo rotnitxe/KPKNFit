@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -44,12 +46,14 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -63,6 +67,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.SupersetGroup
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.sessioneditor.restoreExerciseSetAtRound
 import com.example.kpkn.ui.components.KpknAlertConfirmButton
 import com.example.kpkn.ui.components.KpknAlertDismissButton
@@ -91,6 +96,8 @@ internal fun SupersetGroupEditorCard(
     partId: String?,
     modifier: Modifier = Modifier,
     isDragging: Boolean = false,
+    // El destino del soltado es esta superserie: su marco se vuelve sólido (ED-A · A3).
+    isDropTarget: Boolean = false,
     onBoundsChange: (Rect) -> Unit = {},
     onDragStart: (Offset) -> Unit = {},
     onDrag: (Offset) -> Unit = {},
@@ -100,6 +107,8 @@ internal fun SupersetGroupEditorCard(
     onOpenSupersetCreator: (String?, List<String>) -> Unit,
     onUpdateSupersetRest: (String, Int?, Int?, Int?) -> Unit,
     onUpdateRoundRest: (String, Int, Int?, Int?) -> Unit = { _, _, _, _ -> },
+    /** C3 · «Usar el base»: la ronda [Int] del grupo [String] deja de tener descanso propio. */
+    onClearRoundRest: (String, Int) -> Unit = { _, _ -> },
     onToggleOptional: (String) -> Unit = {},
     onUpdateExercise: (String, (Exercise) -> Exercise) -> Unit = { _, _ -> },
     onAddSet: (String) -> Unit = {},
@@ -148,6 +157,19 @@ internal fun SupersetGroupEditorCard(
             }
             .zIndex(if (isDragging) 12f else 0f),
     ) {
+      // El marco de la superserie dentro de su grupo (ED-A · C1): fondo más hondo, filete en `mente` y 8 dp de margen a cada lado.
+      Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 8.dp)
+            .testTag("session_superset_frame")
+            .background(SupersetFrameFill, SupersetFrameShape)
+            .border(
+                width = if (isDropTarget) 2.dp else 1.dp,
+                color = if (isDropTarget) SymbolPalette.mente else SymbolPalette.mente.copy(alpha = 0.22f),
+                shape = SupersetFrameShape,
+            ),
+      ) {
         // Cabecera del bloque: el asa mueve la superserie entera, la línea abre el panel y el «⋯» tiene el resto.
         Row(
             modifier = Modifier
@@ -202,7 +224,7 @@ internal fun SupersetGroupEditorCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(KpknSurface.module, RoundedCornerShape(16.dp))
+                        .background(SupersetFrameFill, RoundedCornerShape(16.dp))
                         .combinedClickable(
                             onClick = { roundsOpen = !roundsOpen },
                             onLongClick = { roundsOpen = !roundsOpen },
@@ -211,21 +233,26 @@ internal fun SupersetGroupEditorCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(SpanStyle(color = WizardColors.text, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)) {
-                                append("Superserie")
-                            }
-                            withStyle(SpanStyle(color = WizardColors.textMuted)) {
-                                append(" · $rounds ronda${if (rounds == 1) "" else "s"}")
-                                append(" · ${KpknSetFormat.rest(group.restBetweenExercises)} / ${KpknSetFormat.rest(group.restAfterSuperset)}")
-                            }
-                        },
-                        style = KpknType.caption,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
+                    Column(
                         modifier = Modifier.weight(1f),
-                    )
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(
+                                text = "SUPERSERIE",
+                                style = KpknType.eyebrow.copy(fontSize = 11.sp, lineHeight = 16.sp, letterSpacing = 1.4.sp),
+                                color = SymbolPalette.mente,
+                            )
+                            Text(
+                                text = "${exercises.size} ejercicios",
+                                style = KpknType.caption,
+                                color = WizardColors.textFaint,
+                            )
+                        }
+                    }
                     if (group.isOptional) {
                         Text(
                             text = "OPCIONAL",
@@ -243,6 +270,20 @@ internal fun SupersetGroupEditorCard(
             )
         }
 
+        // Las tres fichas del resumen, en su propia fila bajo la cabecera (en la columna estrecha del título se apilaban en tres líneas).
+        SupersetSummaryChips(
+            rounds = rounds,
+            restBetween = group.restBetweenExercises,
+            restAfter = group.restAfterSuperset,
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = { roundsOpen = !roundsOpen },
+                    onLongClick = { roundsOpen = !roundsOpen },
+                )
+                .padding(start = 56.dp, end = 12.dp, top = 2.dp, bottom = 6.dp),
+        )
+
         // Miembros: siempre a la vista, unidos por el raíl (el único cambio frente al original).
         Column(
             modifier = Modifier
@@ -250,13 +291,14 @@ internal fun SupersetGroupEditorCard(
                 .padding(start = 20.dp)
                 .drawBehind {
                     drawRoundRect(
-                        color = accentColor.copy(alpha = 0.30f),
+                        color = SymbolPalette.mente.copy(alpha = 0.30f),
                         size = Size(3.dp.toPx(), size.height),
                         cornerRadius = CornerRadius(1.5.dp.toPx()),
                     )
                 },
             content = content,
         )
+        Spacer(Modifier.height(6.dp))
 
         // «Rondas y descansos»: lo que abría el original al desplegar la superserie.
         AnimatedVisibility(
@@ -338,12 +380,28 @@ internal fun SupersetGroupEditorCard(
                     }
                 }
 
+                SupersetBaseRestModule(
+                    rounds = rounds,
+                    minRounds = exercises.maxOfOrNull { it.sets.size }?.coerceAtLeast(1) ?: 1,
+                    restBetweenSeconds = group.restBetweenExercises,
+                    restAfterSeconds = group.restAfterSuperset,
+                    onRoundsStep = { delta ->
+                        val next = (rounds + delta).coerceAtLeast(1)
+                        onUpdateSupersetRest(group.id, null, null, next)
+                    },
+                    onRestBetweenChange = { seconds -> onUpdateSupersetRest(group.id, seconds, null, null) },
+                    onRestAfterChange = { seconds -> onUpdateSupersetRest(group.id, null, seconds, null) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
                 SupersetRoundsCarousel(
+                    onUpdateExercise = onUpdateExercise,
                     group = group,
                     exercises = exercises,
                     rounds = rounds,
                     accentColor = accentColor,
                     onUpdateRoundRest = { roundIndex, restBetween, restAfter -> onUpdateRoundRest(group.id, roundIndex, restBetween, restAfter) },
+                    onClearRoundRest = { roundIndex -> onClearRoundRest(group.id, roundIndex) },
                     onUpdateSet = onUpdateSet,
                     onRemoveSet = onRemoveSet,
                     onMoveSet = onMoveSet,
@@ -361,6 +419,7 @@ internal fun SupersetGroupEditorCard(
                 )
             }
         }
+      }
     }
 
     val anchor = moreAnchor
@@ -523,6 +582,45 @@ internal fun SupersetGroupEditorCard(
                     )
                 }
             },
+        )
+    }
+}
+
+private val SupersetFrameFill = Color(0xFF0E0E0E)
+private val SupersetFrameShape = RoundedCornerShape(20.dp)
+
+/** Las tres fichas de la cabecera de una superserie: «3 rondas» (en `mente`), «1:00 entre ejercicios» y «2:00 tras la ronda» (ED-A · C1). */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SupersetSummaryChips(rounds: Int, restBetween: Int, restAfter: Int, modifier: Modifier = Modifier) {
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        SupersetSummaryChip(text = "$rounds ronda${if (rounds == 1) "" else "s"}", accent = true)
+        SupersetSummaryChip(text = "${KpknSetFormat.rest(restBetween)} entre ejercicios", accent = false)
+        SupersetSummaryChip(text = "${KpknSetFormat.rest(restAfter)} tras la ronda", accent = false)
+    }
+}
+
+@Composable
+private fun SupersetSummaryChip(text: String, accent: Boolean) {
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minHeight = 26.dp)
+            .background(
+                if (accent) SymbolPalette.mente.copy(alpha = 0.12f) else WizardColors.text.copy(alpha = 0.06f),
+                RoundedCornerShape(999.dp),
+            )
+            .padding(horizontal = 10.dp, vertical = 3.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold),
+            color = if (accent) SymbolPalette.mente else WizardColors.textMuted,
+            maxLines = 1,
         )
     }
 }

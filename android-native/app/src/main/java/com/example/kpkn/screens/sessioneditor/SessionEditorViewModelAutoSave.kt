@@ -59,10 +59,14 @@ fun SessionEditorViewModel.scheduleProgramAutoSave() {
 }
 
 /** Guarda lo pendiente en el programa y espera el resultado: al salir, al cambiar de sesión o de día, y al confirmar una transferencia. */
-suspend fun SessionEditorViewModel.flushProgramAutoSaveAndAwait(): Boolean = programAutoSave.flush()
+suspend fun SessionEditorViewModel.flushProgramAutoSaveAndAwait(): Boolean {
+    commitPendingExerciseRemoval()
+    return programAutoSave.flush()
+}
 
 /** Guarda lo pendiente sin esperar: al pasar la app a segundo plano. */
 fun SessionEditorViewModel.flushProgramAutoSaveInBackground() {
+    commitPendingExerciseRemoval()
     viewModelScope.launch { programAutoSave.flush() }
 }
 

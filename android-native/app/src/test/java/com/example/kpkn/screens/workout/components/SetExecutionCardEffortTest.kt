@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout.components
 
+import com.example.kpkn.data.models.SetPurpose
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
@@ -123,7 +124,7 @@ class SetExecutionCardEffortTest {
 
     private fun serieAFallo() = serieConRir().copy(id = "s-fallo", targetRIR = null, isFailure = true, intensityMode = IntensityMode.FAILURE)
 
-    private fun serieAmrap() = serieSinObjetivo().copy(id = "s-amrap", isAmrap = true)
+    private fun serieAmrap() = serieSinObjetivo().copy(id = "s-amrap", purpose = SetPurpose.AMRAP, amrapMinimumReps = 6)
 
     private fun serieSoloRm() = ExerciseSet(
         id = "s-rm",
@@ -576,18 +577,21 @@ class SetExecutionCardEffortTest {
     }
 
     @Test
-    fun elTemporizadorDeUnEjercicioPorTiempoEstaJuntoAlValorYSuLineaEnLaCabecera() {
+    fun elRelojPorTiempoConservaObjetivoInicioYDetencionEnElMarcoPorModo() {
         mostrar(Caso("tiempo", ejercicio(serieEnTiempo(), TrainingMode.TIME), serieEnTiempo()))
 
         rule.onNodeWithContentDescription("Iniciar").assertExists()
-        rule.onNodeWithText("TIEMPO").assertExists()
-        rule.onNodeWithText(" · Objetivo 45s").assertExists()
+        rule.onNodeWithText("TIEMPO REALIZADO · min:s").assertExists()
+        rule.onNodeWithText("Objetivo 0:45").assertExists()
 
         rule.onNodeWithContentDescription("Iniciar").performClick()
         rule.waitForIdle()
 
         rule.onNodeWithContentDescription("Detener").assertExists()
-        rule.onNodeWithText(" · Restan", substring = true).assertExists()
+        rule.onNodeWithText("Restan", substring = true).assertExists()
+        rule.onNodeWithContentDescription("Detener").performClick()
+        rule.onNodeWithContentDescription("Iniciar").assertExists()
+        assertTrue("detener el reloj no registra la serie", registros.isEmpty())
     }
 
     @Test

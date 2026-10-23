@@ -1,6 +1,15 @@
 package com.example.kpkn.screens.programs.importer
 
 import androidx.compose.foundation.clickable
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -299,17 +308,34 @@ internal fun ImportPreviewWeeks(
 }
 
 /**
- * La línea de deshacer, bajo el título del programa: el texto del último cambio y «Deshacer». Cada toque deshace un cambio.
+ * La línea de deshacer, justo bajo el título (G3): el texto del último cambio en una línea (13 sp) y «Deshacer», que mide 48 dp de
+ * alto táctil. Cada toque deshace un cambio.
  */
 @Composable
 internal fun ImportUndoLine(label: String, onUndo: () -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier.fillMaxWidth().testTag("import-undo-line"),
+        modifier = modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("import-undo-line"),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(label, style = WizardTypography.note, color = WizardColors.textMuted, modifier = Modifier.weight(1f))
-        ImportTextAction(label = "Deshacer", onClick = onUndo, modifier = Modifier.testTag("import-undo"))
+        Text(
+            label,
+            style = WizardTypography.note,
+            color = WizardColors.textMuted,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        Box(
+            modifier = Modifier
+                .heightIn(min = 48.dp)
+                .testTag("import-undo")
+                .clickable(role = Role.Button, onClick = onUndo)
+                .padding(horizontal = 10.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("Deshacer", style = WizardTypography.cardSubtitle.copy(fontWeight = FontWeight.SemiBold), color = WizardColors.text)
+        }
     }
 }
 
@@ -345,18 +371,25 @@ private fun ImportExerciseRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        PatternGlyph(pattern = pattern, accent = SymbolPalette.musculo, modifier = Modifier.size(36.dp))
+        Box(
+            modifier = Modifier.size(40.dp).background(Color(0xFF1A1A1A), RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center,
+        ) {
+            PatternGlyph(pattern = pattern, accent = SymbolPalette.musculo, modifier = Modifier.size(26.dp))
+        }
         Column(modifier = Modifier.weight(1f)) {
-            Text(shownName, style = WizardTypography.measure, color = WizardColors.text, maxLines = 2)
+            Text(shownName, style = WizardTypography.measure, color = WizardColors.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(importPrescriptionOf(exercise, loadUnit), style = WizardTypography.note, color = WizardColors.textMuted)
         }
         when (state) {
-            ImportExerciseState.CHOSEN -> Text(
-                "✓",
-                style = WizardTypography.controlLabel,
-                color = SymbolPalette.ok,
-                modifier = Modifier.semantics { contentDescription = "Reconocido" },
-            )
+            ImportExerciseState.CHOSEN -> Row(
+                modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = "Reconocido" },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(KpknLineIcons.Check, contentDescription = null, tint = SymbolPalette.ok, modifier = Modifier.size(14.dp))
+                Text("Reconocido", style = WizardTypography.note.copy(fontSize = 12.sp), color = SymbolPalette.ok, maxLines = 1)
+            }
             ImportExerciseState.OWN -> Text("Propio", style = WizardTypography.note, color = WizardColors.textMuted)
             ImportExerciseState.UNDECIDED -> Text("Elegir", style = WizardTypography.controlLabel, color = SymbolPalette.energia)
         }
@@ -417,8 +450,11 @@ internal fun ImportCatalogSearch(
 ) {
     var query by rememberSaveable(key) { mutableStateOf("") }
     var results by remember(key) { mutableStateOf<List<ExerciseNameCandidate>>(emptyList()) }
-    LaunchedEffect(query) {
+    var resultsQuery by remember(key) { mutableStateOf<String?>(null) }
+    LaunchedEffect(key, query) {
         val text = query.trim()
+        results = emptyList()
+        resultsQuery = null
         if (text.isEmpty()) {
             results = emptyList()
         } else {
@@ -430,6 +466,7 @@ internal fun ImportCatalogSearch(
             } catch (error: Exception) {
                 emptyList()
             }
+            resultsQuery = text
         }
     }
     SetupFormTextField(
@@ -438,7 +475,7 @@ internal fun ImportCatalogSearch(
         label = "Buscar en el catálogo",
         testTag = "import-choice-search",
     )
-    results.forEach { candidate ->
+    results.takeIf { resultsQuery == query.trim() }.orEmpty().forEach { candidate ->
         ImportCandidateRow(candidate = candidate, onClick = { onPick(candidate) })
     }
 }

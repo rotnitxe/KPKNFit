@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.programdetail
 
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
@@ -167,6 +168,7 @@ internal fun trainingMaxLine(profile: PowerliftingProfile?): String? {
         trainingMaxValue(profile?.squatTM)?.let { "sentadilla $it" },
         trainingMaxValue(profile?.benchTM)?.let { "banca $it" },
         trainingMaxValue(profile?.deadliftTM)?.let { "peso muerto $it" },
+        trainingMaxValue(profile?.overheadTM)?.let { "press militar $it" },
     )
     if (parts.isEmpty()) return null
     return "TM: " + parts.joinToString(" · ") + " kg"
@@ -257,7 +259,7 @@ private fun materializedWorkingSetCount(week: ProgramWeek): Int? = week.sessions
     .takeIf { it.isNotEmpty() }
     ?.sumOf { session ->
         session.allExercises().sumOf { exercise ->
-            exercise.sets.count { !it.isEmptySlot && !it.isCalibrator && !it.isIneffective }
+            exercise.sets.count { !it.isEmptySlot && it.purpose != SetPurpose.CALIBRATOR && !it.isIneffective }
         }
     }
 

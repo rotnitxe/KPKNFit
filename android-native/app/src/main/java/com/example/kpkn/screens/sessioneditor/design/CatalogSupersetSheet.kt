@@ -20,7 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,12 +54,21 @@ internal fun CatalogSupersetConfiguratorDialog(
     onDismiss: () -> Unit,
     onConfirm: (CatalogSupersetConfig) -> Unit,
 ) {
+    // El portal de la hoja usa una clave visual nueva al recrearse. El borrador vive antes de ese portal para poder restaurarlo.
+    var draftRounds by rememberSaveable { mutableStateOf(initialConfig.rounds.coerceIn(1, 10)) }
+    var draftBetween by rememberSaveable { mutableStateOf(initialConfig.restBetweenExercisesSeconds.coerceIn(0, 600)) }
+    var draftAfter by rememberSaveable { mutableStateOf(initialConfig.restAfterSupersetSeconds.coerceIn(0, 600)) }
     KpknSheet(onDismissRequest = onDismiss) {
         CatalogSupersetConfiguratorContent(
             selectedExercises = selectedExercises,
-            initialConfig = initialConfig,
+            initialConfig = CatalogSupersetConfig(draftRounds, draftBetween, draftAfter),
             onDismiss = onDismiss,
             onConfirm = onConfirm,
+            onConfigChange = {
+                draftRounds = it.rounds
+                draftBetween = it.restBetweenExercisesSeconds
+                draftAfter = it.restAfterSupersetSeconds
+            },
         )
     }
 }
@@ -72,10 +81,12 @@ internal fun CatalogSupersetConfiguratorContent(
     onDismiss: () -> Unit,
     onConfirm: (CatalogSupersetConfig) -> Unit,
     modifier: Modifier = Modifier,
+    onConfigChange: (CatalogSupersetConfig) -> Unit = {},
 ) {
-    var rounds by remember { mutableStateOf(initialConfig.rounds) }
-    var restBetween by remember { mutableStateOf(initialConfig.restBetweenExercisesSeconds) }
-    var restAfter by remember { mutableStateOf(initialConfig.restAfterSupersetSeconds) }
+    var rounds by rememberSaveable { mutableStateOf(initialConfig.rounds.coerceIn(1, 10)) }
+    var restBetween by rememberSaveable { mutableStateOf(initialConfig.restBetweenExercisesSeconds.coerceIn(0, 600)) }
+    var restAfter by rememberSaveable { mutableStateOf(initialConfig.restAfterSupersetSeconds.coerceIn(0, 600)) }
+    val validSelection = selectedExercises.size in 2..4
 
     Column(
         modifier = modifier
@@ -115,7 +126,7 @@ internal fun CatalogSupersetConfiguratorContent(
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
-                                text = "${'A' + index}",
+                                text = "A${index + 1}",
                                 style = KpknType.caption,
                                 color = SymbolPalette.columna,
                             )
@@ -148,7 +159,10 @@ internal fun CatalogSupersetConfiguratorContent(
                 StepperRow(
                     value = "$rounds",
                     contentDescription = "Rondas: $rounds",
-                    onStep = { delta -> rounds = (rounds + delta).coerceIn(1, 10) },
+                    onStep = { delta ->
+                        rounds = (rounds + delta).coerceIn(1, 10)
+                        onConfigChange(CatalogSupersetConfig(rounds, restBetween, restAfter))
+                    },
                     minusDescription = "Quitar una ronda",
                     plusDescription = "Añadir una ronda",
                 )
@@ -161,7 +175,10 @@ internal fun CatalogSupersetConfiguratorContent(
                     title = "Descanso entre ejercicios",
                     seconds = restBetween,
                     presets = listOf(0, 30, 60, 90),
-                    onChange = { restBetween = it },
+                    onChange = {
+                        restBetween = it
+                        onConfigChange(CatalogSupersetConfig(rounds, restBetween, restAfter))
+                    },
                 )
             }
         }
@@ -172,7 +189,10 @@ internal fun CatalogSupersetConfiguratorContent(
                     title = "Descanso tras la superserie",
                     seconds = restAfter,
                     presets = listOf(60, 90, 120, 180),
-                    onChange = { restAfter = it },
+                    onChange = {
+                        restAfter = it
+                        onConfigChange(CatalogSupersetConfig(rounds, restBetween, restAfter))
+                    },
                 )
             }
         }
@@ -188,7 +208,9 @@ internal fun CatalogSupersetConfiguratorContent(
             )
             KpknPrimaryPill(
                 text = "Crear superserie",
+                enabled = validSelection,
                 onClick = {
+                    if (!validSelection) return@KpknPrimaryPill
                     onConfirm(
                         CatalogSupersetConfig(
                             rounds = rounds,

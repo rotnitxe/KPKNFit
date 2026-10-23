@@ -17,6 +17,8 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
@@ -139,7 +141,7 @@ internal fun RestRingsClock(
         label = "restRingsRunnerRing",
     )
     val geometry = remember { RestRingsGeometry() }
-    Canvas(modifier = modifier) {
+    Canvas(modifier = modifier.semantics { contentDescription = "Reloj de descanso: ${shape.label}" }) {
         drawRestClock(
             shape = shape,
             progress = smooth,

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -45,6 +46,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -127,6 +131,8 @@ internal fun ExerciseEditorCard(
     autoExpand: Boolean,
     onAutoExpandHandled: () -> Unit,
     suppressIndividualRest: Boolean = false,
+    // La letra del miembro dentro de su superserie («A1», «A2»…): sustituye a la miniatura (ED-A · C1).
+    memberBadge: String? = null,
     enableDrag: Boolean = true,
     cardioFirst: Boolean = false,
     showCardioPlacementChip: Boolean = false,
@@ -267,106 +273,137 @@ internal fun ExerciseEditorCard(
                 Spacer(Modifier.width(48.dp).height(64.dp))
             }
 
-            // La zona que se desliza es el texto, la miniatura y la estrella; la flecha va aparte.
-            SwipeToDeleteCard(
-                onDelete = onDeleteExercise,
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
+            // Un miembro de superserie lleva su caja de fondo en toda la fila, flecha y estrella incluidas (ED-D · C1 + añadido del
+            // orquestador): la caja es de este contenedor y lleva el mismo margen a ambos lados; el resto de ejercicios la lleva dentro
+            // de la zona que se desliza.
+            val memberBox = memberBadge != null
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .then(
+                        if (memberBox) {
+                            Modifier
+                                .padding(horizontal = 8.dp)
+                                .background(KpknSurface.module, RoundedCornerShape(12.dp))
+                        } else {
+                            Modifier
+                        },
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(KpknSurface.module, RoundedCornerShape(12.dp))
-                        .padding(vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                // La zona que se desliza es el texto, la miniatura y la estrella; la flecha va aparte.
+                SwipeToDeleteCard(
+                    onDelete = onDeleteExercise,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
                 ) {
-                    Thumbnail(cardio = cardio?.type, imageRes = thumbnailRes, pattern = pattern)
-                    Spacer(Modifier.width(12.dp))
-                    Column(
+                    Row(
                         modifier = Modifier
-                            .weight(1f)
-                            .combinedClickable(
-                                onClick = { expanded = !expanded },
-                                onLongClick = onOpenQuickActions,
-                            ),
-                    ) {
-                        Text(
-                            text = buildAnnotatedString {
-                                withStyle(SpanStyle(color = WizardColors.text)) {
-                                    append(displayParts.parentName.ifBlank { "Seleccionar ejercicio" })
-                                }
-                                displayParts.chips.forEach { chip ->
-                                    withStyle(SpanStyle(color = WizardColors.textMuted)) {
-                                        append(" · ")
-                                        append(chip)
-                                    }
-                                }
-                            },
-                            style = KpknType.bodyStrong,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = dose,
-                            style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
-                            color = WizardColors.textMuted,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        if (cardio != null && cardio.hasIntervals()) {
-                            com.example.kpkn.screens.workout.CardioIntervalChart(
-                                details = cardio,
-                                accentColor = accentColor,
-                                sparkline = true,
-                                compact = true,
-                                showLabels = false,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 6.dp),
+                            .fillMaxWidth()
+                            .then(
+                                if (memberBox) Modifier else Modifier.background(KpknSurface.module, RoundedCornerShape(12.dp)),
                             )
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (memberBadge != null) {
+                            SupersetMemberBadge(label = memberBadge)
+                        } else {
+                            Thumbnail(cardio = cardio?.type, imageRes = thumbnailRes, pattern = pattern)
                         }
-                        if (isCompetitionMovement) {
+                        Spacer(Modifier.width(12.dp))
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .combinedClickable(
+                                    onClick = { expanded = !expanded },
+                                    onLongClick = onOpenQuickActions,
+                                ),
+                        ) {
                             Text(
-                                text = "MOVIMIENTO DE COMPETICIÓN",
-                                style = KpknType.eyebrow,
-                                color = WizardColors.textMuted,
-                                maxLines = 1,
+                                text = buildAnnotatedString {
+                                    withStyle(SpanStyle(color = WizardColors.text)) {
+                                        append(displayParts.parentName.ifBlank { "Seleccionar ejercicio" })
+                                    }
+                                    displayParts.chips.forEach { chip ->
+                                        withStyle(SpanStyle(color = WizardColors.textMuted)) {
+                                            append(" · ")
+                                            append(chip)
+                                        }
+                                    }
+                                    // B1: la lateralidad sigue visible también con el marco memberBox de ED-D.
+                                    if (exercise.isEffectivelyUnilateral()) {
+                                        withStyle(SpanStyle(color = WizardColors.textMuted)) {
+                                            append(" · Unilateral")
+                                        }
+                                    }
+                                },
+                                style = KpknType.bodyStrong,
+                                maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
                             )
-                        }
-                    }
-                    if (cardio == null) {
-                        val starActive = exercise.isStarTarget || exercise.goal1RM != null
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clickable(role = Role.Button) { showGoalSheet = true }
-                                .semantics { contentDescription = "Meta del ejercicio" },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = if (starActive) Icons.Default.Star else Icons.Default.StarBorder,
-                                contentDescription = null,
-                                tint = if (starActive) SymbolPalette.energia else WizardColors.textMuted,
-                                modifier = Modifier.size(20.dp),
+                            Text(
+                                text = dose,
+                                style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
+                                color = WizardColors.textMuted,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
                             )
+                            if (cardio != null && cardio.hasIntervals()) {
+                                com.example.kpkn.screens.workout.CardioIntervalChart(
+                                    details = cardio,
+                                    accentColor = accentColor,
+                                    sparkline = true,
+                                    compact = true,
+                                    showLabels = false,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 6.dp),
+                                )
+                            }
+                            if (isCompetitionMovement) {
+                                Text(
+                                    text = "MOVIMIENTO DE COMPETICIÓN",
+                                    style = KpknType.eyebrow,
+                                    color = WizardColors.textMuted,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                        if (cardio == null) {
+                            val starActive = exercise.isStarTarget || exercise.goal1RM != null
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clickable(role = Role.Button) { showGoalSheet = true }
+                                    .semantics { contentDescription = "Meta del ejercicio" },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = if (starActive) Icons.Default.Star else Icons.Default.StarBorder,
+                                    contentDescription = null,
+                                    tint = if (starActive) SymbolPalette.energia else WizardColors.textMuted,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
                         }
                     }
                 }
-            }
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clickable(role = Role.Button) { expanded = !expanded }
-                    .semantics { contentDescription = if (expanded) "Plegar" else "Desplegar" },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = if (expanded) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
-                    contentDescription = null,
-                    tint = WizardColors.textMuted,
-                    modifier = Modifier.size(20.dp),
-                )
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clickable(role = Role.Button) { expanded = !expanded }
+                        .semantics { contentDescription = if (expanded) "Plegar" else "Desplegar" },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = if (expanded) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
+                        contentDescription = null,
+                        tint = WizardColors.textMuted,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
             }
         }
 
@@ -422,6 +459,34 @@ internal fun ExerciseEditorCard(
             onUpdateExercise = onUpdateExercise,
             onDismiss = { showCustomUnitModal = false },
         )
+    }
+}
+
+/**
+ * La insignia de un miembro de superserie (ED-A · C1): un círculo de 28 dp en `mente` con su letra («A1»), centrado en el mismo hueco de 40 dp
+ * que la miniatura, para que el texto de la fila no se mueva.
+ */
+@Composable
+internal fun SupersetMemberBadge(label: String) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .testTag("session_superset_member_badge"),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .clip(CircleShape)
+                .background(SymbolPalette.mente.copy(alpha = 0.14f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = label,
+                style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold),
+                color = SymbolPalette.mente,
+            )
+        }
     }
 }
 

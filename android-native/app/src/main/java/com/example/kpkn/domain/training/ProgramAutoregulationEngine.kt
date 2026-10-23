@@ -4,11 +4,14 @@ import com.example.kpkn.data.models.AutoregulationAuditEntry
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.AutoregulationProposal
 import com.example.kpkn.data.models.AutoregulationProposalKind
+import com.example.kpkn.data.models.ApreXrmCapture
 import com.example.kpkn.data.models.AppliedRecipeProposal
+import com.example.kpkn.data.models.CalibrationScope
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.performedPurpose
 import com.example.kpkn.data.models.LoadAdvisoryLevel
 import com.example.kpkn.data.models.PendingActionResolutionStatus
 import com.example.kpkn.data.models.PendingProgramAction
@@ -18,20 +21,29 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.Settings
+import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.protocols.AutoregulationHookKind
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.data.protocols.SlotRecipe
+import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.domain.calibration.CalibrationContext
+import com.example.kpkn.domain.calibration.CalibrationDecisionType
+import com.example.kpkn.domain.calibration.CalibrationEngine
+import com.example.kpkn.domain.calibration.CalibrationReferenceCandidates
+import com.example.kpkn.domain.calibration.DeclaredCalibrationOneRm
+import com.example.kpkn.domain.calibration.RecordedCalibrationSet
 import com.example.kpkn.domain.text.SpanishPlurals
 import kotlin.math.abs
 import kotlin.math.floor
+import kotlin.math.roundToInt
 
 /**
  * Una serie AMRAP realizada. [liftSlot] es null cuando el ejercicio no declara levantamiento en su
@@ -45,7 +57,35 @@ data class AmrapHit(
     val actualReps: Int,
     val meanRpe: Double? = null,
     val weightRatio: Double? = null,
-)
+    /** Carga realmente levantada (kg normalizados); null si el registro no la trae. */
+    val weightKg: Double? = null,
+    /** Propósito PRESCRITO de la serie: `AMRAP` (rinde y alimenta la regla del programa) o `CALIBRATOR`. */
+    val purpose: SetPurpose = SetPurpose.AMRAP,
+    /** Alcance del calibrador prescrito; solo cuenta con `CALIBRATOR`. */
+    val calibrationScope: CalibrationScope? = null,
+    /** Reserva declarada al terminar la serie (RIR) y si llegó al fallo: elegibilidad del calibrador. */
+    val declaredRir: Int? = null,
+    val reachedFailure: Boolean = false,
+    val partialReps: Int = 0,
+    /** Configuración del catálogo del ejercicio: contexto exacto del calibrador. */
+    val configurationId: String? = null,
+    /** true si es la ÚLTIMA serie AMRAP de su ejercicio en el registro (la serie 4 de APRE); con una sola AMRAP, siempre. */
+    val isLastAmrapOfExercise: Boolean = true,
+    /** S4 APRE validada desde el set registrado y su identidad prescrita. */
+    val apreXrmCapture: ApreXrmCapture? = null,
+    /** Ejercicio de la ocurrencia real que produjo este hit; señales sin identidad son ambiguas. */
+    val sourceExerciseId: String? = null,
+    /** La serie pertenece a un bloque APRE real, aunque no haya datos suficientes para capturar S4. */
+    val isApreBlock: Boolean = false,
+    /** Carga S4 real de la calibración S3, cuando su identidad sigue vigente. */
+    val apreSet4LoadKg: Double? = null,
+    /** true sólo cuando la decisión S3 fue aplicada y S4 conserva esa carga. */
+    val apreSet4Applied: Boolean = false,
+) {
+    /** true si la serie es un calibrador de «próximas sesiones»: su canal es la propuesta de TM del programa. */
+    val isNextSessionsCalibrator: Boolean
+        get() = purpose == SetPurpose.CALIBRATOR && calibrationScope == CalibrationScope.NEXT_SESSIONS
+}
 
 /** Un top set realizado (serie con `isTopSet` de un slot con levantamiento), para `TopSetPr`. */
 data class TopSetHit(
@@ -151,12 +191,22 @@ object ProgramAutoregulationEngine {
         logs: List<WorkoutLog>,
         recipe: TrainingPlanRecipe,
         signals: WeeklyAutoregulationSignals,
+        sourceCycleNumber: Int? = program.runState?.cycleNumber,
     ): List<AutoregulationProposal> {
         if (program.autoregulationMode == AutoregulationMode.OFF) return emptyList()
-        val cycle = program.runState?.cycleNumber
+        val cycle = sourceCycleNumber
         val runId = program.runState?.runId
         val rule = recipe.progression
-        val hits = signals.amrapHits.ifEmpty { collectAmrapHits(completedWeek, logs, cycle, program.id, runId, recipe) }
+        val observedHits = collectAmrapHits(
+            completedWeek, logs, cycle, program.id, runId, recipe,
+            sourceProtocolId = program.sourceProtocolId ?: recipe.id,
+            sourceProgramId = program.id,
+        )
+        // Las capturas se derivan siempre del set guardado; un snapshot transportado en señales puede estar obsoleto.
+        val observedApreHits = observedHits.filter { it.isApreBlock }
+        val safeSignalHits = signals.amrapHits.filterNot { shadowsObservedApre(it, observedApreHits) }
+            .map { it.copy(apreXrmCapture = null, isApreBlock = false) }
+        val hits = if (signals.amrapHits.isEmpty()) observedHits else safeSignalHits + observedApreHits
         val topSetHits: List<TopSetHit> = if (rule is ProgressionRule.TopSetPr) {
             signals.topSetHits.ifEmpty { collectTopSetHits(completedWeek, logs, recipe, cycle, program.id, runId) }
         } else {
@@ -175,11 +225,119 @@ object ProgramAutoregulationEngine {
         )
     }
 
+    /** Canal APRE cuando no corresponde evaluar otras reglas; sólo lee S4 con bloque APRE real. */
+    fun evaluateApreXrmOnly(
+        program: Program,
+        completedWeek: ProgramWeek,
+        logs: List<WorkoutLog>,
+        sourceCycleNumber: Int? = program.runState?.cycleNumber,
+        recipe: TrainingPlanRecipe? = null,
+        sourceProtocolId: String? = program.sourceProtocolId ?: recipe?.id,
+    ): List<AutoregulationProposal> {
+        if (program.autoregulationMode == AutoregulationMode.OFF) return emptyList()
+        val hits = collectAmrapHits(
+            week = completedWeek,
+            logs = logs,
+            cycleNumber = sourceCycleNumber,
+            programId = program.id,
+            runId = program.runState?.runId,
+            recipe = recipe,
+            sourceProtocolId = sourceProtocolId,
+            sourceProgramId = program.id,
+        )
+        return hits.mapNotNull { apreProposal(it, program.id) }
+            .distinctBy { proposal ->
+                val capture = proposal.apreXrm!!
+                listOf(
+                    capture.reference.sourceProgramId,
+                    capture.sourceExerciseId,
+                    capture.sourcePlannedSetId,
+                    capture.reference.metadata?.sourceId,
+                )
+            }
+    }
+
+    private fun validXrmProposalForProgram(proposal: AutoregulationProposal, programId: String): Boolean {
+        if (proposal.kind != AutoregulationProposalKind.ADJUST_XRM) return true
+        val capture = proposal.apreXrm ?: return false
+        return validApreXrmCapture(capture) &&
+            (capture.reference.sourceProgramId == null || capture.reference.sourceProgramId == programId)
+    }
+
+    private fun filterNewProposals(
+        program: Program,
+        targetWeekId: String?,
+        proposals: List<AutoregulationProposal>,
+    ): List<AutoregulationProposal> {
+        val pending = program.runState?.pendingAction?.takeIf {
+            it.type == PendingProgramActionType.CONFIRM_AUTOREGULATION && it.targetWeekId == targetWeekId
+        }
+        return proposals.filterNot { proposal ->
+            if (proposal.kind == AutoregulationProposalKind.ADJUST_XRM) {
+                val capture = proposal.apreXrm ?: return@filterNot false
+                ApreXrmProgression.hasSameCapture(program, capture) || pending?.proposals.orEmpty().any {
+                    sameXrmProposal(it, proposal)
+                }
+            } else {
+                pending?.proposals.orEmpty().contains(proposal)
+            }
+        }
+    }
+
+    /** Conserva el pendiente y payloads diferentes; una corrección reemplaza solo el mismo evento APRE. */
+    private fun mergePendingProposals(
+        existing: List<AutoregulationProposal>,
+        incoming: List<AutoregulationProposal>,
+    ): List<AutoregulationProposal> {
+        val merged = existing.toMutableList()
+        incoming.forEach { proposal ->
+            if (proposal.kind == AutoregulationProposalKind.ADJUST_XRM) {
+                val sourceId = proposal.apreXrm?.reference?.metadata?.sourceId
+                val sourceExerciseId = proposal.apreXrm?.sourceExerciseId
+                val sameEvent = merged.filter { it.kind == proposal.kind &&
+                    it.apreXrm?.sourceExerciseId == sourceExerciseId &&
+                    it.apreXrm?.reference?.metadata?.sourceId == sourceId }
+                if (sameEvent.any { sameXrmProposal(it, proposal) }) return@forEach
+                if (sourceId != null) merged.removeAll(sameEvent.toSet())
+            } else if (proposal in merged) {
+                return@forEach
+            }
+            merged += proposal
+        }
+        return merged
+    }
+
+    private fun pendingMessage(proposals: List<AutoregulationProposal>): String =
+        proposals.joinToString(" · ") { it.explanation }.ifBlank { "AUGE propone ajustes para la próxima semana." }
+
+    /** Las señales sin identidad no pueden volver a introducir como TM una serie APRE del registro real. */
+    private fun shadowsObservedApre(signal: AmrapHit, observedApre: List<AmrapHit>): Boolean {
+        if (signal.isApreBlock || signal.apreXrmCapture != null) return true
+        if (observedApre.isEmpty()) return false
+        signal.sourceExerciseId?.let { id ->
+            return observedApre.any { it.sourceExerciseId == id }
+        }
+        signal.configurationId?.takeIf { it.isNotBlank() }?.let { configuration ->
+            return observedApre.any { it.configurationId == configuration }
+        }
+        // Sin identidad, el mismo levantamiento es ambiguo; por seguridad, prevalece el registro APRE.
+        return observedApre.any { it.liftSlot == signal.liftSlot }
+    }
+
+    private fun sameXrmProposal(first: AutoregulationProposal, second: AutoregulationProposal): Boolean {
+        val a = first.apreXrm ?: return false
+        val b = second.apreXrm ?: return false
+        if (first.kind != AutoregulationProposalKind.ADJUST_XRM || second.kind != first.kind) return false
+        return a.copy(reference = a.reference.copy(capturedAtMs = null,
+            metadata = a.reference.metadata?.copy(revision = 0))) ==
+            b.copy(reference = b.reference.copy(capturedAtMs = null,
+                metadata = b.reference.metadata?.copy(revision = 0)))
+    }
     fun apply(
         program: Program,
         nextWeekId: String?,
         proposals: List<AutoregulationProposal>,
-        recipe: TrainingPlanRecipe,
+        recipe: TrainingPlanRecipe?,
         executedWeekIds: Set<String>,
         metadata: ExerciseCompositionMetadataProvider? = null,
         nowMs: Long = System.currentTimeMillis(),
@@ -189,82 +347,104 @@ object ProgramAutoregulationEngine {
         if (proposals.isEmpty() || program.autoregulationMode == AutoregulationMode.OFF) {
             return AutoregulationEvaluation(proposals = emptyList(), program = program)
         }
-        val audit = program.runState?.autoregulationAudit.orEmpty() + AutoregulationAuditEntry(
+        val existingAction = program.runState?.pendingAction
+        if (existingAction != null && existingAction.type != PendingProgramActionType.CONFIRM_AUTOREGULATION) {
+            return AutoregulationEvaluation(proposals = emptyList(), program = program)
+        }
+        val pending = existingAction?.takeIf { it.type == PendingProgramActionType.CONFIRM_AUTOREGULATION }
+        if (pending != null && pending.targetWeekId != nextWeekId) {
+            return AutoregulationEvaluation(proposals = emptyList(), program = program)
+        }
+        val invalidXrm = proposals.filter { it.kind == AutoregulationProposalKind.ADJUST_XRM &&
+            !validXrmProposalForProgram(it, program.id) }
+        val candidates = proposals.filterNot { it in invalidXrm }
+        val newProposals = filterNewProposals(program, nextWeekId, candidates)
+        val invalidEntries = invalidXrm.map { proposal ->
+            resolutionEntry(proposal, PendingActionResolutionStatus.EXPIRED,
+                "No aplicada: la captura XRM no es válida para este programa.", nextWeekId, program.autoregulationMode, nowMs)
+        }
+        if (newProposals.isEmpty() && invalidEntries.isEmpty()) {
+            return AutoregulationEvaluation(proposals = emptyList(), program = program)
+        }
+        val generationAudit = if (newProposals.isEmpty()) emptyList() else listOf(AutoregulationAuditEntry(
             atMs = nowMs,
             mode = program.autoregulationMode,
-            kinds = proposals.map { it.kind },
+            kinds = newProposals.map { it.kind }.distinct(),
             weekId = nextWeekId,
-        )
+        ))
+        val xrm = newProposals.filter { it.kind == AutoregulationProposalKind.ADJUST_XRM }
+        val regular = newProposals.filterNot { it.kind == AutoregulationProposalKind.ADJUST_XRM }
         return when (program.autoregulationMode) {
             AutoregulationMode.PROPOSE -> {
-                val message = proposals.joinToString(" · ") { it.explanation }.ifBlank { "AUGE propone ajustes para la próxima semana." }
-                val pending = PendingProgramAction(
+                if (newProposals.isEmpty()) {
+                    val run = (program.runState ?: com.example.kpkn.data.models.ProgramRunState(
+                        runId = ProgramProgressEngine.newRunId())).copy(
+                        autoregulationAudit = program.runState?.autoregulationAudit.orEmpty() + invalidEntries,
+                    )
+                    return AutoregulationEvaluation(emptyList(), program.copy(runState = run))
+                }
+                val merged = mergePendingProposals(pending?.proposals.orEmpty(), newProposals)
+                val message = merged.joinToString(" · ") { it.explanation }
+                    .ifBlank { "AUGE propone ajustes para la próxima semana." }
+                val pendingAction = PendingProgramAction(
                     type = PendingProgramActionType.CONFIRM_AUTOREGULATION,
                     message = message,
-                    proposals = proposals,
+                    proposals = merged,
                     targetWeekId = nextWeekId,
                 )
                 val run = (program.runState ?: com.example.kpkn.data.models.ProgramRunState(runId = ProgramProgressEngine.newRunId()))
-                    .copy(pendingAction = pending, autoregulationAudit = audit)
-                AutoregulationEvaluation(proposals = proposals, program = program.copy(runState = run), applied = false)
+                    .copy(pendingAction = pendingAction, autoregulationAudit = program.runState?.autoregulationAudit.orEmpty() + generationAudit + invalidEntries)
+                AutoregulationEvaluation(newProposals, program.copy(runState = run), applied = false)
             }
             AutoregulationMode.AUTO -> {
-                val provider = metadata ?: runCatching { CompositionMetadataHolder.resolve() }.getOrNull()
-                    ?: return AutoregulationEvaluation(proposals = proposals, program = program.copy(
-                        runState = (program.runState ?: com.example.kpkn.data.models.ProgramRunState(runId = ProgramProgressEngine.newRunId()))
-                            .copy(
-                                pendingAction = PendingProgramAction(
-                                    type = PendingProgramActionType.CONFIRM_AUTOREGULATION,
-                                    message = proposals.joinToString(" · ") { it.explanation },
-                                    proposals = proposals,
-                                    targetWeekId = nextWeekId,
-                                ),
-                                autoregulationAudit = audit,
-                            ),
-                    ), applied = false)
-                val mutated = applyMutations(
-                    program = program,
-                    nextWeekId = nextWeekId,
-                    proposals = proposals,
-                    recipe = recipe,
-                    executedWeekIds = executedWeekIds,
-                    metadata = provider,
-                    executedSessionIds = executedSessionIds,
-                    nowMs = nowMs,
-                )
-                // §14.5/AC-G4: AUTO también deja estado terminal por propuesta; nunca
-                // se declara «aplicada» una propuesta sin efecto observable.
-                val outcomes = outcomeEntries(
-                    before = program,
-                    after = mutated,
-                    proposals = proposals,
-                    targetWeekId = nextWeekId,
-                    protectedWeekIds = executedWeekIds,
-                    mode = program.autoregulationMode,
-                    nowMs = nowMs,
-                )
+                val xrmResult = ApreXrmProgression.apply(program, nextWeekId, xrm, executedWeekIds, executedSessionIds)
+                val provider = if (regular.isEmpty()) null else metadata ?: runCatching { CompositionMetadataHolder.resolve() }.getOrNull()
+                if (regular.isNotEmpty() && (provider == null || recipe == null)) {
+                    val merged = mergePendingProposals(pending?.proposals.orEmpty(), regular)
+                    val message = merged.joinToString(" · ") { it.explanation }
+                        .ifBlank { "AUGE propone ajustes para la próxima semana." }
+                    val pendingAction = PendingProgramAction(
+                        type = PendingProgramActionType.CONFIRM_AUTOREGULATION,
+                        message = message,
+                        proposals = merged,
+                        targetWeekId = nextWeekId,
+                    )
+                    val xrmOutcomes = outcomeEntries(program, xrmResult.program, xrm, nextWeekId,
+                        executedWeekIds, program.autoregulationMode, nowMs, xrmResult)
+                    val run = (xrmResult.program.runState ?: com.example.kpkn.data.models.ProgramRunState(
+                        runId = ProgramProgressEngine.newRunId())).copy(
+                        pendingAction = pendingAction,
+                        autoregulationAudit = program.runState?.autoregulationAudit.orEmpty() + generationAudit + xrmOutcomes + invalidEntries,
+                    )
+                    return AutoregulationEvaluation(newProposals, xrmResult.program.copy(runState = run),
+                        applied = xrmOutcomes.any { it.resolution == PendingActionResolutionStatus.APPLIED })
+                }
+                var mutated = xrmResult.program
+                if (regular.isNotEmpty()) {
+                    mutated = applyMutations(
+                        program = mutated,
+                        nextWeekId = nextWeekId,
+                        proposals = regular,
+                        recipe = recipe!!,
+                        executedWeekIds = executedWeekIds,
+                        metadata = provider!!,
+                        executedSessionIds = executedSessionIds,
+                        nowMs = nowMs,
+                    )
+                }
+                val outcomes = outcomeEntries(program, mutated, newProposals, nextWeekId,
+                    executedWeekIds, program.autoregulationMode, nowMs, xrmResult)
                 val baseRun = mutated.runState
                     ?: com.example.kpkn.data.models.ProgramRunState(runId = ProgramProgressEngine.newRunId())
-                val run = baseRun.copy(autoregulationAudit = audit + outcomes, pendingAction = null)
-                AutoregulationEvaluation(
-                    proposals = proposals,
-                    program = mutated.copy(runState = run),
-                    applied = outcomes.any { it.resolution == PendingActionResolutionStatus.APPLIED },
-                )
+                val run = baseRun.copy(autoregulationAudit = program.runState?.autoregulationAudit.orEmpty() + generationAudit + outcomes + invalidEntries)
+                AutoregulationEvaluation(newProposals, mutated.copy(runState = run),
+                    applied = outcomes.any { it.resolution == PendingActionResolutionStatus.APPLIED })
             }
             AutoregulationMode.OFF -> AutoregulationEvaluation(emptyList(), program)
         }
     }
 
-    /**
-     * Resuelve la acción `CONFIRM_AUTOREGULATION` pendiente (§14.5): rechazar y
-     * aceptar dejan SIEMPRE estado terminal con motivo en `runState.autoregulationAudit`.
-     *
-     * @param executedWeekIds evidencia real de semanas entrenadas. Si es null se
-     *   deriva del propio run (sesiones realmente completadas), nunca del mero
-     *   `runState.weekId`: esa es la colisión R-202 (avance asigna el run a la
-     *   semana siguiente vacía y la protección la marcaba como ejecutada).
-     */
+    /** Acepta/rechaza incluso parcialmente; ADJUST_XRM no depende de receta ni de un proveedor de catálogo. */
     fun resolvePending(
         program: Program,
         accept: Boolean,
@@ -278,8 +458,12 @@ object ProgramAutoregulationEngine {
         val action = run.pendingAction ?: return program
         if (action.type != PendingProgramActionType.CONFIRM_AUTOREGULATION) return program
         val resolved = if (only == null) action.proposals else action.proposals.filter { it == only }
+        if (resolved.isEmpty()) return program
         val remaining = if (only == null) emptyList() else action.proposals.filterNot { it == only }
-        val nextPending = if (remaining.isEmpty()) null else action.copy(proposals = remaining)
+        val nextPending = if (remaining.isEmpty()) null else action.copy(
+            proposals = remaining,
+            message = pendingMessage(remaining),
+        )
 
         if (!accept) {
             return program.withResolutionEntries(
@@ -297,40 +481,50 @@ object ProgramAutoregulationEngine {
             )
         }
 
-        fun expired(reason: String): Program = program.withResolutionEntries(
-            pending = nextPending,
-            entries = resolved.map { proposal ->
-                resolutionEntry(proposal, PendingActionResolutionStatus.EXPIRED, reason, action.targetWeekId, program.autoregulationMode, nowMs)
-            },
-        )
-
-        val recipe = program.sourceRecipe
-            ?: return expired("No aplicada: el programa no tiene receta fuente.")
-        val provider = metadata ?: runCatching { CompositionMetadataHolder.resolve() }.getOrNull()
-            ?: return expired("No aplicada: sin metadatos de composición del catálogo.")
         val evidence = executedWeekIds ?: derivedExecutedWeekIds(program)
-        val mutated = applyMutations(
-            program = program.copy(runState = run.copy(pendingAction = nextPending)),
-            nextWeekId = action.targetWeekId,
-            proposals = resolved,
-            recipe = recipe,
-            executedWeekIds = evidence,
-            metadata = provider,
-            executedSessionIds = executedSessionIds,
-            nowMs = nowMs,
-        )
-        val outcomes = outcomeEntries(
-            before = program,
-            after = mutated,
-            proposals = resolved,
-            targetWeekId = action.targetWeekId,
-            protectedWeekIds = evidence,
-            mode = program.autoregulationMode,
-            nowMs = nowMs,
-        )
-        return mutated.withResolutionEntries(pending = mutated.runState?.pendingAction, entries = outcomes)
+        val xrm = resolved.filter { it.kind == AutoregulationProposalKind.ADJUST_XRM }
+        val regular = resolved.filterNot { it.kind == AutoregulationProposalKind.ADJUST_XRM }
+        val validXrm = xrm.filter { validXrmProposalForProgram(it, program.id) }
+        val base = program.copy(runState = run.copy(pendingAction = nextPending))
+        val xrmResult = ApreXrmProgression.apply(base, action.targetWeekId, validXrm, evidence, executedSessionIds)
+        var mutated = xrmResult.program
+        val entries = mutableListOf<AutoregulationAuditEntry>()
+        entries += outcomeEntries(program, mutated, validXrm, action.targetWeekId, evidence,
+            program.autoregulationMode, nowMs, xrmResult)
+        xrm.filterNot { it in validXrm }.forEach { proposal ->
+            entries += resolutionEntry(proposal, PendingActionResolutionStatus.EXPIRED,
+                "No aplicada: la captura XRM no es válida para este programa.", action.targetWeekId, program.autoregulationMode, nowMs)
+        }
+        if (regular.isNotEmpty()) {
+            val recipe = program.sourceRecipe
+            val provider = metadata ?: runCatching { CompositionMetadataHolder.resolve() }.getOrNull()
+            when {
+                recipe == null -> regular.forEach { proposal ->
+                    entries += resolutionEntry(proposal, PendingActionResolutionStatus.EXPIRED,
+                        "No aplicada: el programa no tiene receta fuente para este ajuste.", action.targetWeekId, program.autoregulationMode, nowMs)
+                }
+                provider == null -> regular.forEach { proposal ->
+                    entries += resolutionEntry(proposal, PendingActionResolutionStatus.EXPIRED,
+                        "No aplicada: sin metadatos de composición del catálogo.", action.targetWeekId, program.autoregulationMode, nowMs)
+                }
+                else -> {
+                    mutated = applyMutations(
+                        program = mutated,
+                        nextWeekId = action.targetWeekId,
+                        proposals = regular,
+                        recipe = recipe,
+                        executedWeekIds = evidence,
+                        metadata = provider,
+                        executedSessionIds = executedSessionIds,
+                        nowMs = nowMs,
+                    )
+                    entries += outcomeEntries(program, mutated, regular, action.targetWeekId, evidence,
+                        program.autoregulationMode, nowMs)
+                }
+            }
+        }
+        return mutated.withResolutionEntries(pending = mutated.runState?.pendingAction ?: nextPending, entries = entries)
     }
-
     /**
      * Estado terminal «expirada» (§14.5/AC-G4) para una acción pendiente que
      * otra transición sustituye: avance de semana, cierre de ciclo o cambio de
@@ -440,6 +634,7 @@ object ProgramAutoregulationEngine {
         protectedWeekIds: Set<String>,
         mode: AutoregulationMode,
         nowMs: Long,
+        apreResult: ApreXrmApplicationResult? = null,
     ): List<AutoregulationAuditEntry> {
         if (proposals.isEmpty()) return emptyList()
         val beforeWeek = targetWeekId?.let { id -> weekWithId(before, id) }
@@ -454,6 +649,22 @@ object ProgramAutoregulationEngine {
         val trainedReason = "No aplicada: la semana objetivo ya tiene sesiones entrenadas; su prescripción se conserva (§14.5)."
         return proposals.map { proposal ->
             val (status, reason) = when (proposal.kind) {
+                AutoregulationProposalKind.ADJUST_XRM -> {
+                    val capture = proposal.apreXrm
+                    val sourceId = capture?.reference?.metadata?.sourceId
+                    when {
+                        capture == null || !validXrmProposalForProgram(proposal, before.id) ->
+                            PendingActionResolutionStatus.EXPIRED to "No aplicada: la captura XRM no es válida para este programa."
+                        sourceId != null && apreResult?.changedSourceIds.orEmpty().contains(sourceId) ->
+                            PendingActionResolutionStatus.APPLIED to "Cargas APRE actualizadas: ${proposal.explanation}"
+                        sourceId != null && apreResult?.savedSourceIds.orEmpty().contains(sourceId) ->
+                            PendingActionResolutionStatus.APPLIED to "Referencia XRM guardada; no se modificaron series."
+                        protectedTarget -> PendingActionResolutionStatus.EXPIRED to trainedReason
+                        else -> PendingActionResolutionStatus.EXPIRED to
+                            "No aplicada: no se modificaron series ni se guardó una referencia XRM nueva."
+                    }
+                }
+
                 AutoregulationProposalKind.ADJUST_TM,
                 AutoregulationProposalKind.PROMOTE_TM,
                 -> when {
@@ -476,7 +687,8 @@ object ProgramAutoregulationEngine {
                 AutoregulationProposalKind.SCALE_WEEK_INTENSITY,
                 AutoregulationProposalKind.DELAY_PEAK,
                 -> when {
-                    percentsBefore != percentsAfter -> PendingActionResolutionStatus.APPLIED to "Aplicada: ${proposal.explanation}"
+                    hasPercent && percentsBefore != percentsAfter ->
+                        PendingActionResolutionStatus.APPLIED to "Aplicada: ${proposal.explanation}"
                     protectedTarget -> PendingActionResolutionStatus.EXPIRED to trainedReason
                     !hasPercent -> PendingActionResolutionStatus.EXPIRED to
                         "No aplicable: la prescripción de esa semana no usa porcentajes (RIR/esfuerzo); " +
@@ -557,27 +769,121 @@ object ProgramAutoregulationEngine {
         programId: String? = null,
         runId: String? = null,
         recipe: TrainingPlanRecipe? = null,
+        sourceProtocolId: String? = null,
+        sourceProgramId: String? = programId,
     ): List<AmrapHit> {
         val weekLogs = weekLogsOf(week, logs, cycleNumber, programId, runId)
         if (weekLogs.isEmpty()) return emptyList()
         val lifts = RecipeLiftResolver(recipe)
-        val weekSessionIds = week.sessions.mapTo(mutableSetOf()) { it.id }
+        val sessionVariants = week.sessions.flatMap { it.withVariants() }
+        val weekSessionIds = sessionVariants.mapTo(mutableSetOf()) { it.id }
         val out = mutableListOf<AmrapHit>()
-        week.sessions.forEach { session ->
-            val sessionLogs = logsOfSession(weekLogs, session, weekSessionIds)
+        sessionVariants.forEach { session ->
+            // WorkoutFinishController conserva el sessionId exterior A aunque el usuario
+            // haya terminado B/C/D. Solo asociamos ese contenedor si CompletedExercise
+            // identifica sin ambigüedad un ejercicio de la variante.
+            val sessionLogs = logsOfSession(weekLogs, session, weekSessionIds, sessionVariants)
             session.allExercises().forEach { exercise ->
-                pairedSets(exercise, sessionLogs, isTarget = { it.isAmrap }, isFlagged = { it.amrapPerformed })
-                    .forEach { pair ->
+                val hasApreProgression = recipe?.progression is ProgressionRule.ApreXrm
+                val isApreBlock = exercise.apreBlock != null ||
+                    resolveLiveApreBlock(exercise, sourceProtocolId, hasApreProgression) != null
+                val exerciseLogs = if (isApreBlock) {
+                    sessionLogs.filter { log -> hasUnambiguousVariantExercise(log, exercise, sessionVariants) }
+                } else sessionLogs
+                val amrapPairs = pairedSets(
+                    exercise, exerciseLogs,
+                    isTarget = { it.purpose.isAmrap },
+                    isFlagged = { it.performedPurpose()?.isAmrap == true },
+                    requireExactExerciseId = isApreBlock,
+                )
+                amrapPairs.forEachIndexed { pairIndex, pair ->
+                        val prescribedIndex = exercise.sets.indexOfFirst { it.id == pair.prescribed.id }
+                        val storedCapture = pair.performed.apreXrm
+                        val plannedContext = plannedApreContext(exercise, pair.prescribed, pair.performed.side, pair.performed)
+                        val storedSourceMatches = storedCapture?.reference?.sourceProgramId
+                            ?.let { it == sourceProgramId } ?: true
+                        val currentBlock = resolveLiveApreBlock(exercise, sourceProtocolId, hasApreProgression)
+                        val storedContextMatches = storedCapture != null && storedCapture.context == plannedContext &&
+                            storedCapture.reference.configurationId == plannedContext.configurationId &&
+                            storedCapture.reference.quantityConvention == plannedContext.loadQuantityConvention &&
+                            storedCapture.reference.side == pair.performed.side &&
+                            storedCapture.reference.repMin == currentBlock?.variant?.xrmReps &&
+                            storedCapture.reference.repMax == currentBlock?.variant?.xrmReps &&
+                            storedCapture.reference.metadata?.contextKey == plannedContext.key &&
+                            (storedCapture.reference.sourceSlotId == null || exercise.recipeSlotId == null ||
+                                storedCapture.reference.sourceSlotId == exercise.recipeSlotId) &&
+                            (storedCapture.sourceRecipeDayId == null || exercise.recipeDayId == null ||
+                                storedCapture.sourceRecipeDayId == exercise.recipeDayId) &&
+                            (storedCapture.sourceRecipeSlotId == null || exercise.recipeSlotId == null ||
+                                storedCapture.sourceRecipeSlotId == exercise.recipeSlotId)
+                        val recordedContextMatches = pair.performed.contextKey?.let { it == plannedContext.key } ?: true
+                        val legacyPurposeFromPlan = pair.performed.performedPurpose() == null
+                        val completedForCapture = if (legacyPurposeFromPlan) {
+                            pair.performed.copy(purpose = pair.prescribed.purpose)
+                        } else pair.performed
+                        val regeneratedStoredCapture = storedCapture?.takeIf {
+                            storedSourceMatches && storedContextMatches && prescribedIndex >= 0 &&
+                                pair.performed.setIndex?.let { it != prescribedIndex } != true
+                        }?.let {
+                            captureApreXrm(
+                                exercise = exercise,
+                                index = prescribedIndex,
+                                completed = completedForCapture,
+                                sourceProtocolId = sourceProtocolId,
+                                hasApreProgression = hasApreProgression,
+                                incrementKg = it.incrementKg,
+                                capturedAtMs = it.reference.capturedAtMs,
+                                sourceProgramId = it.reference.sourceProgramId,
+                                contextOverride = plannedContext,
+                            )
+                        }
+                        val storedPayloadMatches = storedCapture == null || regeneratedStoredCapture == storedCapture
+                        val storedIdentityMatches = storedCapture != null && storedSourceMatches &&
+                            storedContextMatches && storedPayloadMatches &&
+                            validApreXrmCapture(storedCapture) && storedCapture.sourceExerciseId == exercise.id &&
+                            storedCapture.sourcePlannedSetId == pair.prescribed.id &&
+                            storedCapture.reference.metadata?.sourceId == pair.performed.id
+                        // Un snapshot o contextKey contradictorio es evidencia de otra variante/contexto;
+                        // no se recaptura con la configuración actual para "convertirlo" en una captura nueva.
+                        val captureIdentityConflicts = (storedCapture != null && !storedIdentityMatches) || !recordedContextMatches
+                        // Si existe un snapshot real y compatible, su incremento de material manda sobre la regla;
+                        // sólo los registros sin snapshot usan el incremento de receta.
+                        val incrementKg = storedCapture?.takeIf { storedIdentityMatches }?.incrementKg
+                            ?: (recipe?.progression as? ProgressionRule.ApreXrm)?.incrementKg
+                            ?: Apre.DEFAULT_INCREMENT_KG
+                        val apreCapture = if (captureIdentityConflicts || !storedSourceMatches || prescribedIndex < 0 ||
+                            pair.performed.setIndex?.let { it != prescribedIndex } == true) null else
+                            captureApreXrm(
+                                exercise = exercise,
+                                index = prescribedIndex,
+                                completed = completedForCapture,
+                                sourceProtocolId = sourceProtocolId,
+                                hasApreProgression = hasApreProgression,
+                                incrementKg = incrementKg,
+                                capturedAtMs = storedCapture?.takeIf { storedIdentityMatches }?.reference?.capturedAtMs,
+                                sourceProgramId = sourceProgramId,
+                                contextOverride = plannedContext,
+                            )
                         out += AmrapHit(
                             liftSlot = lifts.liftSlotFor(exercise),
                             percent = pair.prescribed.targetPercentageRM,
-                            prescribedReps = pair.prescribed.targetReps
-                                ?: pair.prescribed.targetRepsRange?.min
-                                ?: pair.performed.amrapMinimumReps
-                                ?: 0,
+                            prescribedReps = (if (pair.performed.purpose != null || pair.performed.recordedPayloadV3?.purpose != null) {
+                                pair.performed.amrapMinimumReps
+                            } else pair.performed.amrapMinimumReps ?: pair.prescribed.amrapMinimumReps) ?: 0,
                             actualReps = pair.performed.reps,
                             meanRpe = pair.performed.rpe ?: pair.prescribed.targetRPE,
                             weightRatio = weightRatio(pair.prescribed, pair.performed),
+                            weightKg = pair.performed.weight.takeIf { it > 0.0 },
+                            purpose = if (pair.prescribed.purpose == SetPurpose.CALIBRATOR) SetPurpose.CALIBRATOR else SetPurpose.AMRAP,
+                            calibrationScope = pair.prescribed.calibrationScope.takeIf { pair.prescribed.purpose == SetPurpose.CALIBRATOR },
+                            declaredRir = pair.performed.rir ?: pair.performed.rpe?.let { rpe -> (10.0 - rpe).roundToInt().coerceAtLeast(0) },
+                            reachedFailure = pair.performed.isFailure,
+                            partialReps = (pair.performed.partialReps ?: 0).coerceAtLeast(0),
+                            configurationId = exercise.catalogConfigurationId ?: exercise.exerciseDbId,
+                            isLastAmrapOfExercise = pairIndex == amrapPairs.lastIndex,
+                            apreXrmCapture = apreCapture,
+                            sourceExerciseId = exercise.id,
+                            isApreBlock = isApreBlock,
                         )
                     }
             }
@@ -626,7 +932,8 @@ object ProgramAutoregulationEngine {
 
     /**
      * Series al máximo realizadas en [week] para `RepMaxAutoregulated`: series con base `REP_MAX` (o top
-     * set sin porcentaje) del levantamiento de COMPETICIÓN de la receta (`recipe.liftSlots`). Las
+     * set sin porcentaje), series AMRAP con porcentaje (el RM semanal de J&T 2.0, CAL5) y el single del test
+     * al 100 % del 1RM, del levantamiento de COMPETICIÓN de la receta (`recipe.liftSlots`). Las
      * variantes (cajón, buenos días, press con cadenas…) no cuentan: su máximo no se compara con el 1RM
      * del levantamiento. Solo series de 1 a [REP_MAX_MAX_REPS] repeticiones con carga.
      */
@@ -649,10 +956,22 @@ object ProgramAutoregulationEngine {
                 val lift = lifts.liftSlotFor(exercise) ?: return@forEach
                 val configurationId = exercise.catalogConfigurationId ?: exercise.exerciseDbId
                 if (configurationId == null || recipe.liftSlots[lift] != configurationId) return@forEach
+                // CAL5 (J&T 2.0): el RM semanal del T1 es una serie AMRAP con porcentaje («1×10+ al 77,5 %»), no una serie con base
+                // REP_MAX ni un top set sin porcentaje: por eso el gancho nunca se disparaba. Cuenta también el single del test al 100 %.
                 val isRepMaxSet = { set: ExerciseSet ->
-                    set.loadBasis == LoadBasis.REP_MAX || (set.isTopSet && set.targetPercentageRM == null)
+                    set.loadBasis == LoadBasis.REP_MAX ||
+                        (set.isTopSet && set.targetPercentageRM == null) ||
+                        isMaxRepsAtPercent(set) ||
+                        isOneRmTestSet(set)
                 }
-                pairedSets(exercise, sessionLogs, isTarget = isRepMaxSet, isFlagged = null)
+                val positional = pairedSets(exercise, sessionLogs, isTarget = isRepMaxSet, isFlagged = null)
+                val flagged = pairedSets(
+                    exercise, sessionLogs,
+                    isTarget = { it.purpose.isAmrap },
+                    isFlagged = { it.performedPurpose()?.isAmrap == true },
+                )
+                (positional + flagged)
+                    .distinctBy { it.performed.id }
                     .forEach { pair ->
                         val reps = pair.performed.reps
                         val weight = pair.performed.weight
@@ -661,7 +980,7 @@ object ProgramAutoregulationEngine {
                             liftSlot = lift,
                             weightKg = weight,
                             reps = reps,
-                            estimatedOneRmKg = calculateHybrid1RM(weight, reps, isAmrap = pair.performed.amrapPerformed),
+                            estimatedOneRmKg = calculateHybrid1RM(weight, reps),
                         )
                     }
             }
@@ -686,6 +1005,145 @@ object ProgramAutoregulationEngine {
         .filter { hit -> isShortAmrap(hit) }
         .mapNotNullTo(linkedSetOf<LiftSlot>()) { hit -> hit.liftSlot }
 
+    /** Una serie al máximo de repeticiones con un porcentaje prescrito (el RM semanal de J&T): `AMRAP` y `%`, sin ser un calibrador de sesión. */
+    internal fun isMaxRepsAtPercent(set: ExerciseSet): Boolean =
+        set.purpose.isAmrap && set.targetPercentageRM != null && set.loadBasis != LoadBasis.RPE
+
+    /** El single del test de 1RM: un top set de 1 repetición al 100 % o más del 1RM (`PERCENT_1RM`). */
+    internal fun isOneRmTestSet(set: ExerciseSet): Boolean =
+        set.isTopSet && set.loadBasis == LoadBasis.PERCENT_1RM &&
+            (set.targetPercentageRM ?: 0.0) >= 100.0 &&
+            (set.targetReps ?: set.targetRepsRange?.min ?: 1) <= 1
+
+    /**
+     * CAL5 · 5/3/1: ciclos SEGUIDOS, contando el que se cierra ([closingCycle]), en los que cada levantamiento tuvo un AMRAP
+     * corto (no alcanzó las repeticiones mínimas). Solo salen los levantamientos congelados en el ciclo que se cierra. El
+     * reinicio del TM llega cada [CycleIncrement.resetAfterFrozenCycles] ciclos congelados seguidos: con 2, en la racha 2, 4,
+     * 6… (tras un reinicio la cuenta vuelve a empezar). Lee los registros de cada ciclo: no guarda estado.
+     */
+    internal fun frozenCycleStreaks(
+        weeks: List<ProgramWeek>,
+        logs: List<WorkoutLog>,
+        closingCycle: Int,
+        programId: String,
+        runId: String?,
+        recipe: TrainingPlanRecipe,
+    ): Map<LiftSlot, Int> {
+        val streaks = mutableMapOf<LiftSlot, Int>()
+        var alive: Set<LiftSlot>? = null
+        var cycle = closingCycle
+        while (cycle >= 1) {
+            val frozen = shortAmrapLifts(weeks, logs, cycle, programId, runId, recipe)
+            val current = alive?.intersect(frozen) ?: frozen
+            if (current.isEmpty()) break
+            current.forEach { lift -> streaks[lift] = (streaks[lift] ?: 0) + 1 }
+            alive = current
+            cycle--
+        }
+        return streaks
+    }
+
+    /**
+     * Resultado de un T1, T2 o T3 de GZCLP en una semana: repeticiones prescritas (volumen base de la etapa: 15, 12 o 10 en el
+     * T1; 30, 24 o 18 en el T2) frente a las hechas, y las de la última serie (el T3 sube cuando esa serie llega a 25). El T3 no
+     * declara levantamiento ([liftSlot] null).
+     */
+    data class GzclpTierCheck(
+        val liftSlot: LiftSlot?,
+        val role: SlotRole,
+        val plannedReps: Int,
+        val doneReps: Int,
+        val lastSetReps: Int?,
+        val exerciseName: String? = null,
+    ) {
+        val completedBaseVolume: Boolean get() = doneReps >= plannedReps
+    }
+
+    /**
+     * CAL5 · GZCLP: por cada sesión de [weeks] con un T1 o un T2 de levantamiento conocido (y cada T3), el volumen hecho frente
+     * al prescrito en el registro más reciente de la sesión. «No completar el volumen base» (Lefever) es quedarse por debajo de
+     * las repeticiones prescritas del slot; un ejercicio sin registro no da dato.
+     */
+    internal fun collectGzclpTierChecks(
+        weeks: List<ProgramWeek>,
+        logs: List<WorkoutLog>,
+        cycleNumber: Int,
+        programId: String,
+        runId: String?,
+        recipe: TrainingPlanRecipe,
+    ): List<GzclpTierCheck> {
+        val lifts = RecipeLiftResolver(recipe)
+        val out = mutableListOf<GzclpTierCheck>()
+        weeks.forEach { week ->
+            val weekLogs = weekLogsOf(week, logs, cycleNumber, programId, runId)
+            if (weekLogs.isEmpty()) return@forEach
+            val weekSessionIds = week.sessions.mapTo(mutableSetOf()) { it.id }
+            week.sessions.forEach { session ->
+                val sessionLogs = logsOfSession(weekLogs, session, weekSessionIds)
+                session.allExercises().forEach { exercise ->
+                    val role = exercise.slotRole
+                    if (role != SlotRole.T1_MAIN && role != SlotRole.T2_SUPPLEMENTAL && role != SlotRole.T3_ACCESSORY) return@forEach
+                    val lift = lifts.liftSlotFor(exercise)
+                    if (role != SlotRole.T3_ACCESSORY && lift == null) return@forEach
+                    val plannedReps = exercise.sets.filterNot { it.isEmptySlot }
+                        .sumOf { set -> set.targetReps ?: set.targetRepsRange?.min ?: 0 }
+                    if (plannedReps <= 0) return@forEach
+                    val done = sessionLogs.firstNotNullOfOrNull { log ->
+                        loggedExercisesOf(log, exercise).flatMap { it.sets }
+                            .filter { !it.isWarmup && !it.skipped }
+                            .takeIf { it.isNotEmpty() }
+                    } ?: return@forEach
+                    out += GzclpTierCheck(
+                        liftSlot = lift,
+                        role = role,
+                        plannedReps = plannedReps,
+                        doneReps = done.sumOf { it.reps },
+                        lastSetReps = done.last().reps,
+                        exerciseName = exercise.name,
+                    )
+                }
+            }
+        }
+        return out
+    }
+
+    /** El single de un test de 1RM realizado: levantamiento, carga y repeticiones (CAL5, precarga del test de bloques). */
+    data class OneRmTestHit(val liftSlot: LiftSlot, val weightKg: Double, val reps: Int)
+
+    /**
+     * CAL5: las series «Test» de [weeks] ([isOneRmTestSet]: el single al 100 % del 1RM de un top set) realizadas en los
+     * registros, para precargar el test de 1RM al cerrar el bloque. Solo cuentan las series con repeticiones y carga y las
+     * no marcadas como fallidas. Sin [cycleNumber] y [programId] se leen todos los registros de la semana plantilla.
+     */
+    fun collectOneRmTestHits(
+        weeks: List<ProgramWeek>,
+        logs: List<WorkoutLog>,
+        recipe: TrainingPlanRecipe?,
+        cycleNumber: Int? = null,
+        programId: String? = null,
+        runId: String? = null,
+    ): List<OneRmTestHit> {
+        val lifts = RecipeLiftResolver(recipe)
+        val out = mutableListOf<OneRmTestHit>()
+        weeks.forEach { week ->
+            val weekLogs = weekLogsOf(week, logs, cycleNumber, programId, runId)
+            if (weekLogs.isEmpty()) return@forEach
+            val weekSessionIds = week.sessions.mapTo(mutableSetOf()) { it.id }
+            week.sessions.forEach { session ->
+                val sessionLogs = logsOfSession(weekLogs, session, weekSessionIds)
+                session.allExercises().forEach { exercise ->
+                    val lift = lifts.liftSlotFor(exercise) ?: return@forEach
+                    pairedSets(exercise, sessionLogs, isTarget = { isOneRmTestSet(it) }, isFlagged = null).forEach { pair ->
+                        val performed = pair.performed
+                        if (performed.reps < 1 || performed.weight <= 0.0 || performed.isFailedSet) return@forEach
+                        out += OneRmTestHit(lift, performed.weight, performed.reps)
+                    }
+                }
+            }
+        }
+        return out
+    }
+
     /** Un par serie prescrita / serie registrada del mismo ejercicio. */
     private class SetPair(val prescribed: ExerciseSet, val performed: CompletedSet)
 
@@ -694,6 +1152,26 @@ object ProgramAutoregulationEngine {
      * (`ProgramProgressEngine.logsForInstance`: ciclo, run y semana); sin ellos, todos los de la semana
      * plantilla, como antes (mezcla ciclos).
      */
+    fun collectExecutedSessionIds(
+        week: ProgramWeek,
+        logs: List<WorkoutLog>,
+        cycleNumber: Int?,
+        programId: String?,
+        runId: String?,
+    ): Set<String> {
+        val sessionIds = week.sessions.flatMap { it.withVariants() }.mapTo(linkedSetOf()) { it.id }
+        return weekLogsOf(week, logs, cycleNumber, programId, runId)
+            .map { it.sessionId }.filterTo(linkedSetOf()) { it in sessionIds }
+    }
+
+    /** Sesiones A/B/C/D configuradas en una misma ocurrencia semanal. */
+    private fun Session.withVariants(): List<Session> = buildList {
+        add(this@withVariants)
+        sessionB?.let { addAll(it.withVariants()) }
+        sessionC?.let { addAll(it.withVariants()) }
+        sessionD?.let { addAll(it.withVariants()) }
+    }
+
     private fun weekLogsOf(
         week: ProgramWeek,
         logs: List<WorkoutLog>,
@@ -723,21 +1201,87 @@ object ProgramAutoregulationEngine {
         weekLogs: List<WorkoutLog>,
         session: Session,
         weekSessionIds: Set<String>,
+        sessionVariants: List<Session> = emptyList(),
     ): List<WorkoutLog> = weekLogs
-        .filter { it.sessionId == session.id || it.sessionId !in weekSessionIds }
+        .filter { log ->
+            log.sessionId == session.id || log.sessionId !in weekSessionIds ||
+                (sessionVariants.isNotEmpty() && hasUnambiguousVariantExercise(log, session, sessionVariants))
+        }
         .sortedByDescending { AugeUtils.logDateMs(it) }
+
+    /** Asocia un log de A a B/C/D solo con identidad única o snapshot/contexto exacto. */
+    private fun hasUnambiguousVariantExercise(
+        log: WorkoutLog,
+        session: Session,
+        sessionVariants: List<Session>,
+    ): Boolean = session.allExercises().any { planned ->
+        hasUnambiguousVariantExercise(log, planned, sessionVariants)
+    }
+
+    private fun hasUnambiguousVariantExercise(
+        log: WorkoutLog,
+        planned: Exercise,
+        sessionVariants: List<Session>,
+    ): Boolean =
+        log.completedExercises.any { completed ->
+            completed.exerciseId == planned.id && !hasContradictoryExerciseIdentity(completed, planned) &&
+                run {
+                    val sameIdentityCandidates = sessionVariants.flatMap { it.allExercises() }.filter { candidate ->
+                        candidate.id == completed.exerciseId && !hasContradictoryExerciseIdentity(completed, candidate)
+                    }.distinct()
+                    sameIdentityCandidates.size == 1 ||
+                        completedPinsVariant(completed, planned, sameIdentityCandidates)
+                }
+        }
+
+    /** Si la identidad se reutiliza entre variantes, exige una captura/contexto que seleccione una sola. */
+    private fun completedPinsVariant(
+        completed: CompletedExercise,
+        planned: Exercise,
+        candidates: List<Exercise>,
+    ): Boolean {
+        val captureMatches = candidates.filter { candidate ->
+            completed.sets.any { performed ->
+                val capture = performed.apreXrm
+                val capturedSet = capture?.let { candidate.sets.firstOrNull { set -> set.id == it.sourcePlannedSetId } }
+                val exactCapture = capture != null && capturedSet != null && validApreXrmCapture(capture) &&
+                    capture.sourceExerciseId == candidate.id &&
+                    capture.sourcePlannedSetId == capturedSet.id &&
+                    capture.reference.metadata?.sourceId == performed.id &&
+                    capture.sourceRecipeDayId == candidate.recipeDayId &&
+                    capture.sourceRecipeSlotId == candidate.recipeSlotId &&
+                    capture.context == plannedApreContext(candidate, capturedSet, performed.side, performed)
+                val exactContext = performed.contextKey != null && performed.setIndex != null &&
+                    candidate.sets.getOrNull(performed.setIndex)?.let { prescribed ->
+                        performed.contextKey == plannedApreContext(candidate, prescribed, performed.side, performed).key
+                    } == true
+                exactCapture || exactContext
+            }
+        }
+        return captureMatches.singleOrNull() == planned
+    }
 
     /** Los ejercicios registrados que corresponden a [exercise]: por id; si no, por configuración. */
     private fun loggedExercisesOf(log: WorkoutLog, exercise: Exercise): List<CompletedExercise> {
         val byId = log.completedExercises.filter { it.exerciseId == exercise.id }
-        if (byId.isNotEmpty()) return byId
+        // Un ID de ocurrencia puede sobrevivir a un reemplazo de variante. Si el log
+        // y el plan conservan configuraciones conocidas distintas, el ID no autoriza
+        // a reinterpretar la carga (ni a caer al emparejamiento por nombre/DB).
+        if (byId.isNotEmpty()) return byId.filterNot { hasContradictoryExerciseIdentity(it, exercise) }
         val configurationId = exercise.catalogConfigurationId
         val dbId = exercise.exerciseDbId
         return log.completedExercises.filter { done ->
-            (configurationId != null && done.catalogConfigurationId == configurationId) ||
-                (dbId != null && done.exerciseDbId == dbId)
+            !hasContradictoryExerciseIdentity(done, exercise) &&
+                ((configurationId != null && done.catalogConfigurationId == configurationId) ||
+                    (dbId != null && done.exerciseDbId == dbId))
         }
     }
+
+    /** Compara sólo identidades homólogas; `exerciseDbId` y `catalogConfigurationId` no se mezclan. */
+    private fun hasContradictoryExerciseIdentity(done: CompletedExercise, exercise: Exercise): Boolean =
+        (done.catalogConfigurationId != null && exercise.catalogConfigurationId != null &&
+            done.catalogConfigurationId != exercise.catalogConfigurationId) ||
+            (done.exerciseDbId != null && exercise.exerciseDbId != null && done.exerciseDbId != exercise.exerciseDbId)
 
     /**
      * Empareja las series prescritas de [exercise] que cumplen [isTarget] con las series registradas, en
@@ -751,16 +1295,34 @@ object ProgramAutoregulationEngine {
         logs: List<WorkoutLog>,
         isTarget: (ExerciseSet) -> Boolean,
         isFlagged: ((CompletedSet) -> Boolean)?,
+        requireExactExerciseId: Boolean = false,
     ): List<SetPair> {
         val planned = exercise.sets.filterNot { it.isEmptySlot }
         val targets = planned.withIndex().filter { isTarget(it.value) }
-        if (targets.isEmpty()) return emptyList()
+        if (targets.isEmpty() && isFlagged == null) return emptyList()
         for (log in logs) {
-            val working = loggedExercisesOf(log, exercise)
+            val matchingExercises = if (requireExactExerciseId) {
+                log.completedExercises.filter { it.exerciseId == exercise.id }
+                    .filterNot { hasContradictoryExerciseIdentity(it, exercise) }
+            } else {
+                loggedExercisesOf(log, exercise)
+            }
+            val working = matchingExercises
                 .flatMap { it.sets }
                 .filter { !it.isWarmup && !it.skipped }
             if (working.isEmpty()) continue
             val flagged: List<CompletedSet> = if (isFlagged == null) emptyList() else working.filter(isFlagged)
+            if (isFlagged != null && working.any { it.performedPurpose() != null }) {
+                // Modern evidence, including NONE, belongs to this occurrence. Never revive
+                // an opt-out from the plan's ordinal or an older session's AMRAP.
+                return flagged.mapIndexedNotNull { flaggedIndex, performed ->
+                    val prescribed = performed.setIndex?.let { exercise.sets.getOrNull(it) }
+                        ?: planned.firstOrNull { it.id == performed.id }
+                        ?: working.indexOf(performed).takeIf { working.size == planned.size }?.let(planned::getOrNull)
+                        ?: targets.getOrNull(flaggedIndex)?.value
+                    prescribed?.let { SetPair(it, performed) }
+                }
+            }
             val pairs: List<SetPair> = when {
                 flagged.isNotEmpty() ->
                     targets.zip(flagged) { target, performed -> SetPair(target.value, performed) }
@@ -790,7 +1352,7 @@ object ProgramAutoregulationEngine {
         weekLogs.flatMap { it.completedExercises }.forEach { exercise ->
             val slot = liftSlotFromConfigurationId(exercise.catalogConfigurationId ?: exercise.exerciseDbId) ?: return@forEach
             exercise.sets.filter { !it.isWarmup && it.weight > 0 && it.reps > 0 }.forEach { set ->
-                val e1 = calculateHybrid1RM(set.weight, set.reps, isAmrap = set.amrapPerformed)
+                val e1 = calculateHybrid1RM(set.weight, set.reps)
                 acc[slot] = maxOf(acc[slot] ?: 0.0, e1)
             }
         }
@@ -802,7 +1364,7 @@ object ProgramAutoregulationEngine {
         logs.flatMap { it.completedExercises }.forEach { exercise ->
             val slot = liftSlotFromConfigurationId(exercise.catalogConfigurationId ?: exercise.exerciseDbId) ?: return@forEach
             exercise.sets.filter { !it.isWarmup && it.weight > 0 && it.reps > 0 }.forEach { set ->
-                val e1 = calculateHybrid1RM(set.weight, set.reps, isAmrap = set.amrapPerformed)
+                val e1 = calculateHybrid1RM(set.weight, set.reps)
                 acc[slot] = maxOf(acc[slot] ?: 0.0, e1)
             }
         }
@@ -837,9 +1399,23 @@ object ProgramAutoregulationEngine {
                     else -> current
                 }
             }
-        if (profile != null) working = working.copy(powerliftingProfile = profile)
+        if (profile != null) working = ExerciseTrainingMax.syncProfile(program,
+            working.copy(powerliftingProfile = profile), nowMs,
+            "autoregulation:${program.runState?.runId}:$nextWeekId:" + proposals.hashCode(),
+            "Propuesta de autorregulación aceptada")
 
-        val intensity = proposals
+        // La intensidad solo se materializa si la receta efectiva de la ocurrencia
+        // objetivo contiene porcentajes; una semana RIR no debe reconstruirse sin efecto.
+        val targetWeekUsesPercent = nextWeekId?.let { targetWeekId ->
+            PlanMaterializer.weekRecipeSourceFor(working, recipe, targetWeekId)
+                ?.weekRecipe
+                ?.days
+                ?.any { day -> day.slots.any { slot -> slot.sets.any { it.percent != null } } }
+        } == true
+        val mutationProposals = if (targetWeekUsesPercent) proposals else proposals.filterNot {
+            it.kind == AutoregulationProposalKind.SCALE_WEEK_INTENSITY
+        }
+        val intensity = mutationProposals
             .filter { it.kind == AutoregulationProposalKind.SCALE_WEEK_INTENSITY }
             .mapNotNull { it.percentDelta }
             .fold(1.0) { acc, delta -> acc * (1.0 + delta / 100.0) }
@@ -892,7 +1468,7 @@ object ProgramAutoregulationEngine {
                         weekOccurrence = source.weekOccurrence,
                         cycleNumber = source.cycleNumber,
                         weekRecipe = PlanMaterializer.scaleWeekRecipe(source.weekRecipe, intensity, volume),
-                        applied = proposals
+                        applied = mutationProposals
                             .filter { it.kind != AutoregulationProposalKind.INSERT_DELOAD }
                             // DEC-w3-07: la variante técnica retirada no consta como aprobada en la receta efectiva.
                             .filter { it.kind != AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT }
@@ -933,7 +1509,7 @@ object ProgramAutoregulationEngine {
         val autoDeload = readiness != null && fatigue != null && readiness < 40 && fatigue > 75.0
         val profile = program.powerliftingProfile
 
-        out += performanceProposals(recipe, signals, profile, readiness)
+        out += performanceProposals(program.id, recipe, signals, profile, readiness)
 
         if ((readiness != null && readiness < 40 && unload) || autoDeload || signals.overtrainedMuscles.isNotEmpty()) {
             out += AutoregulationProposal(
@@ -963,13 +1539,13 @@ object ProgramAutoregulationEngine {
 
         if (profile != null && signals.consecutiveHighE1rmWeeks >= 2) {
             signals.e1rmByLift.forEach { (slot, e1) ->
-                val tm = TrainingMaxResolver.trainingMax(profile, slot, recipe.trainingMaxPercent) ?: return@forEach
-                if (e1 > tm * 1.05) {
+                val oneRm = TrainingMaxResolver.oneRm(profile, slot) ?: return@forEach
+                if (e1 > oneRm) {
                     out += AutoregulationProposal(
                         kind = AutoregulationProposalKind.PROMOTE_TM,
                         liftSlot = slot.name,
                         percentDelta = 2.5,
-                        explanation = "e1RM ${e1.toInt()} kg > TM ${tm.toInt()} kg × 1,05 dos semanas seguidas",
+                        explanation = "e1RM ${e1.toInt()} kg > 1RM ${oneRm.toInt()} kg dos semanas seguidas",
                     )
                 }
             }
@@ -989,24 +1565,40 @@ object ProgramAutoregulationEngine {
         // del catálogo y el cambio de ejercicio va por `PlanAdaptationResolver`. Tampoco queda como aviso
         // informativo: este motor devuelve propuestas aplicables y no tiene canal de avisos.
 
-        return out.distinctBy { it.kind to it.liftSlot }
+        val distinct = mutableListOf<AutoregulationProposal>()
+        out.forEach { proposal ->
+            val duplicate = if (proposal.kind == AutoregulationProposalKind.ADJUST_XRM) {
+                val sourceId = proposal.apreXrm?.reference?.metadata?.sourceId
+                distinct.any { it.kind == proposal.kind &&
+                    it.apreXrm?.sourceExerciseId == proposal.apreXrm?.sourceExerciseId &&
+                    it.apreXrm?.reference?.metadata?.sourceId == sourceId }
+            } else {
+                distinct.any { it.kind == proposal.kind && it.liftSlot == proposal.liftSlot }
+            }
+            if (!duplicate) distinct += proposal
+        }
+        return distinct
     }
 
-    // ─── Progresión por rendimiento: propuestas ADJUST_TM ──────────────────────────────
+    // ─── Progresión por rendimiento: propuestas por carga, XRM observado o TM ───────────
 
     /**
-     * Propuestas `ADJUST_TM` de la progresión por rendimiento: el AMRAP de la semana (cualquier regla
-     * puede bajar el TM si el AMRAP quedó corto; solo `AmrapDrivenTm` y `RepTargetDrivenTm` lo suben), el
+     * Propuestas `ADJUST_TM` de la progresión por rendimiento: el AMRAP de la semana (solo `AmrapDrivenTm` y
+     * `RepTargetDrivenTm`, más una regla o un gancho genéricos, lo traducen a TM), el calibrador de «próximas sesiones», el
      * top set de `TopSetPr` y la serie al máximo de `RepMaxAutoregulated`. Un levantamiento sin ajuste
      * (hit sin levantamiento, cambio nulo) no genera propuesta.
      *
      * H-05 (B.S6 parte 2b): el AMRAP de una receta SIN regla de progresión (`None`) y sin el gancho
-     * `AMRAP_TM` no mueve el TM, ni para subirlo ni para bajarlo ([amrapMovesTm]). Cube, Lilliebridge y la
-     * plantilla de powerlifting de 12 semanas llevan series AMRAP marcadas como parte de su tabla, pero su
-     * método no usa el AMRAP para ajustar el TM: antes un AMRAP corto de esas recetas caía en la rama «otra
-     * regla» y proponía bajar el TM un 2,5 %.
+     * `AMRAP_TM` no mueve el TM, ni para subirlo ni para bajarlo ([amrapMovesTm]).
+     *
+     * CAL5: el AMRAP de cada programa de autor sigue la regla de su fuente (RES1 §12.6). En 5/3/1 la serie «+» no mueve el TM
+     * (lo sube el ciclo y lo congela o reinicia un ciclo sin repeticiones mínimas); en Juggernaut y GZCLP el AMRAP actúa al
+     * cerrar la ola o el ciclo; en J&T lo mide la serie al máximo. Ninguna de esas reglas pasa por esta función
+     * ([amrapMovesTm]). El calibrador de «próximas sesiones» (plantillas `power-*`) sí: su capacidad se compara con el 1RM que
+     * implica el TM y el factor del calibrador, acotado por `CalibrationPolicy`, se propone como cambio porcentual del TM.
      */
     private fun performanceProposals(
+        programId: String,
         recipe: TrainingPlanRecipe,
         signals: WeeklyAutoregulationSignals,
         profile: PowerliftingProfile?,
@@ -1015,9 +1607,20 @@ object ProgramAutoregulationEngine {
         val proposals = mutableListOf<AutoregulationProposal>()
         val amrapCanMoveTm = amrapMovesTm(recipe)
         signals.amrapHits.forEach { hit ->
-            if (!amrapCanMoveTm) return@forEach
+            // Todo hit de un bloque APRE real permanece fuera del canal TM; solo S4 validada produce XRM.
+            if (hit.isApreBlock || recipe.progression is ProgressionRule.ApreXrm) {
+                if (hit.apreXrmCapture != null) apreProposal(hit, programId)?.let { proposals += it }
+                return@forEach
+            }
+            // Una captura transportada fuera del bloque real no puede convertirse en TM ni en XRM.
+            if (hit.apreXrmCapture != null) return@forEach
             // Sin levantamiento en la receta (las dominadas de Texas) el hit solo se registra: no hay TM que ajustar.
             val lift = hit.liftSlot ?: return@forEach
+            if (hit.isNextSessionsCalibrator) {
+                calibratorProposal(recipe, profile, hit, lift)?.let { proposals += it }
+                return@forEach
+            }
+            if (!amrapCanMoveTm) return@forEach
             val change = amrapTmChange(recipe.progression, hit) ?: return@forEach
             proposals += tmProposal(lift, change, amrapExplanation(hit, lift, change, readiness))
         }
@@ -1041,6 +1644,90 @@ object ProgramAutoregulationEngine {
         return proposals.sortedBy { proposal -> if (proposal.isReduction()) 0 else 1 }
     }
 
+    /**
+     * CAL5/CAL6 · canal de propuestas del calibrador de «próximas sesiones» en programas con TM (`power-*`): la capacidad C de
+     * la serie (e1RM del motor común, tope de 10 repeticiones, reserva declarada 0-1 o fallo) se compara con la referencia B,
+     * el 1RM que implica el TM (`TM ÷ trainingMaxPercent`), y el factor del calibrador (zona muerta 0,97-1,025, topes +5 % y
+     * −8 %) pasa a ser un cambio porcentual del TM. Una serie no elegible (sin esfuerzo declarado, reserva alta, sin carga
+     * externa…) o con una capacidad dentro de la zona muerta no genera propuesta: el calibrador nunca pasa por encima de la
+     * receta. Respeta OFF, PROPOSE y AUTO porque sale de [evaluate].
+     */
+    internal fun calibratorProposal(
+        recipe: TrainingPlanRecipe,
+        profile: PowerliftingProfile?,
+        hit: AmrapHit,
+        lift: LiftSlot,
+    ): AutoregulationProposal? {
+        val decision = calibratorDecision(recipe, profile, hit, lift) ?: return null
+        if (decision.type != CalibrationDecisionType.RAISE && decision.type != CalibrationDecisionType.LOWER) return null
+        val percent = (decision.factor - 1.0) * 100.0
+        if (abs(percent) < 1e-9) return null
+        val capacity = decision.capacityKg ?: return null
+        val weight = hit.weightKg ?: return null
+        val implied = decision.referenceKg ?: return null
+        val change = TmChange(percentDelta = percent)
+        return tmProposal(
+            lift,
+            change,
+            "Calibrador de ${AuthoredProgressionEngine.liftName(lift)}: ${SpanishPlurals.reps(hit.actualReps)} con " +
+                "${NativeProgressionText.formatKg(weight)} kg estiman ${NativeProgressionText.formatKg(capacity)} kg de 1RM " +
+                "frente a los ${NativeProgressionText.formatKg(implied)} kg que implica tu TM: TM ${changeText(change)}",
+        )
+    }
+
+    /** Compatibilidad del consumidor anterior: sin captura S4 real no hay propuesta APRE. */
+    internal fun apreProposal(
+        recipe: TrainingPlanRecipe,
+        rule: ProgressionRule.ApreXrm,
+        profile: PowerliftingProfile?,
+        hit: AmrapHit,
+        lift: LiftSlot,
+    ): AutoregulationProposal? = apreProposal(hit, hit.apreXrmCapture?.reference?.sourceProgramId)
+
+    /** Propuesta de XRM físico basada exclusivamente en una captura S4 validada. */
+    internal fun apreProposal(hit: AmrapHit, programId: String?): AutoregulationProposal? {
+        val capture = hit.apreXrmCapture ?: return null
+        if (!validApreXrmCapture(capture) ||
+            (capture.reference.sourceProgramId != null && capture.reference.sourceProgramId != programId)) return null
+        val reason = capture.reference.metadata?.reason?.takeIf { it.isNotBlank() }
+            ?: "APRE: ${capture.reference.repMin}RM ${NativeProgressionText.formatKg(capture.reference.capturedLoadKg!!)} kg para la próxima semana."
+        return AutoregulationProposal(
+            kind = AutoregulationProposalKind.ADJUST_XRM,
+            explanation = reason,
+            apreXrm = capture,
+        )
+    }
+    /** La decisión del motor de calibración (CAL2) para [hit] contra el 1RM que implica el TM del programa; null sin carga, TM o perfil. */
+    internal fun calibratorDecision(
+        recipe: TrainingPlanRecipe,
+        profile: PowerliftingProfile?,
+        hit: AmrapHit,
+        lift: LiftSlot,
+    ): com.example.kpkn.domain.calibration.CalibrationDecision? {
+        val weight = hit.weightKg ?: return null
+        if (profile == null || recipe.trainingMaxPercent <= 0.0) return null
+        val tm = TrainingMaxResolver.trainingMax(profile, lift, recipe.trainingMaxPercent) ?: return null
+        val implied = tm / recipe.trainingMaxPercent
+        val configurationId = hit.configurationId ?: lift.name
+        val context = CalibrationContext(configurationId = configurationId, equipmentKey = "programa")
+        return CalibrationEngine.calibrate(
+            source = RecordedCalibrationSet(
+                setId = "programa-${lift.name}",
+                exerciseId = configurationId,
+                context = context,
+                externalLoadKg = weight,
+                fullReps = hit.actualReps,
+                partialReps = hit.partialReps,
+                declaredRir = hit.declaredRir,
+                reachedFailure = hit.reachedFailure,
+            ),
+            pendingSets = emptyList(),
+            references = CalibrationReferenceCandidates(declaredOneRm = DeclaredCalibrationOneRm(context, implied)),
+            nowEpochMillis = 0L,
+            scope = CalibrationScope.NEXT_SESSIONS,
+        )
+    }
+
     private fun tmProposal(lift: LiftSlot, change: TmChange, explanation: String): AutoregulationProposal =
         AutoregulationProposal(
             kind = AutoregulationProposalKind.ADJUST_TM,
@@ -1054,13 +1741,27 @@ object ProgramAutoregulationEngine {
         (kgDelta ?: 0.0) < 0.0 || (percentDelta ?: 0.0) < 0.0
 
     /**
-     * true si el AMRAP de [recipe] puede mover el TM: la receta declara una regla de progresión o el
-     * gancho `AMRAP_TM`. Sin ninguna de las dos (`None` y sin gancho) el AMRAP es solo una serie al máximo
-     * de la tabla del autor y no genera propuestas de TM (H-05).
+     * true si el AMRAP de [recipe] puede mover el TM por la vía semanal (propuesta `ADJUST_TM`): la receta declara
+     * `AmrapDrivenTm` o `RepTargetDrivenTm`, o una regla o el gancho `AMRAP_TM` genéricos. Sin ninguna de las dos (`None` y
+     * sin gancho) el AMRAP es solo una serie al máximo de la tabla del autor y no genera propuestas de TM (H-05).
+     *
+     * CAL5: el AMRAP de las reglas de ciclo u ola no mueve el TM aquí, porque en su fuente actúa al cerrar el ciclo o la ola:
+     * `CycleIncrement` (5/3/1: la serie «+» no mueve el TM), `RepsOverStandardTm` (Juggernaut) y `StagedVolume` (GZCLP), y
+     * `RepMaxAutoregulated` lo mide con el e1RM de la serie al máximo (J&T), no con el AMRAP corto.
      */
-    internal fun amrapMovesTm(recipe: TrainingPlanRecipe): Boolean =
-        recipe.progression != ProgressionRule.None ||
+    internal fun amrapMovesTm(recipe: TrainingPlanRecipe): Boolean = when (recipe.progression) {
+        is ProgressionRule.AmrapDrivenTm,
+        is ProgressionRule.RepTargetDrivenTm,
+        -> true
+        is ProgressionRule.ApreXrm,
+        is ProgressionRule.CycleIncrement,
+        is ProgressionRule.RepsOverStandardTm,
+        is ProgressionRule.StagedVolume,
+        ProgressionRule.RepMaxAutoregulated,
+        -> false
+        else -> recipe.progression != ProgressionRule.None ||
             recipe.autoregulationHooks.any { it.kind == AutoregulationHookKind.AMRAP_TM }
+    }
 
     /**
      * AMRAP corto: menos repeticiones que el objetivo. Un AMRAP corto nunca sube el TM.
@@ -1075,9 +1776,10 @@ object ProgramAutoregulationEngine {
     /**
      * Cambio de TM de un AMRAP según la regla de la receta, o null si no mueve el TM. Lo corto se evalúa
      * PRIMERO y nunca sube:
-     * - corto con `AmrapDrivenTm`: baja [TM_DOWN_PERCENT] % (su tabla en kilos no define bajadas); con
-     *   `RepTargetDrivenTm`: `missedRepPercent` por repetición que falta, solo si faltan `missThreshold` o
-     *   más; con cualquier otra regla: [TM_DOWN_PERCENT] % si faltaron repeticiones.
+     * - corto con `AmrapDrivenTm` (nSuns): sin cambio (CAL5: la tabla de su fuente va de «0-1 repeticiones: sin subida» y no
+     *   define bajadas); con `RepTargetDrivenTm`: `missedRepPercent` por repetición que falta, solo si faltan `missThreshold` o
+     *   más; con las reglas de ciclo, de ola y de etapas y con `RepMaxAutoregulated`: sin cambio (su AMRAP actúa al cerrar o
+     *   por el e1RM); con cualquier otra regla genérica: [TM_DOWN_PERCENT] % si faltaron repeticiones.
      * - no corto con `AmrapDrivenTm`: los kilos de su tabla (0-1, 2-3, 4-5 y 6 o más repeticiones; 0 kg =
      *   nada) y solo desde [AMRAP_TM_MIN_PERCENT] % del TM; con `RepTargetDrivenTm`: `extraRepPercent` por
      *   repetición sobre el objetivo. Si se levantó menos de lo prescrito ([LIGHTER_LOAD_RATIO]) no sube.
@@ -1092,7 +1794,13 @@ object ProgramAutoregulationEngine {
                     } else {
                         null
                     }
-                is ProgressionRule.AmrapDrivenTm -> TmChange(percentDelta = TM_DOWN_PERCENT)
+                is ProgressionRule.AmrapDrivenTm,
+                is ProgressionRule.CycleIncrement,
+                is ProgressionRule.RepsOverStandardTm,
+                is ProgressionRule.StagedVolume,
+                is ProgressionRule.ApreXrm,
+                ProgressionRule.RepMaxAutoregulated,
+                -> null
                 else -> if (extra < 0) TmChange(percentDelta = TM_DOWN_PERCENT) else null
             }
             carriedLighter(hit.weightRatio) -> null

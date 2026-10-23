@@ -90,17 +90,24 @@ data class WorkoutSetDraft(
     val dropSetCount: Int? = null,
     val voiceFields: Set<WorkoutVoiceField> = emptySet(),
     val isDirty: Boolean = false,
+    /** null preserves legacy drafts; false distinguishes an auto-filled calibration from a manual pin. */
+    val weightManuallyFixed: Boolean? = null,
     val updatedAtMs: Long = System.currentTimeMillis(),
     val rom: Int? = null,
     val assistedReps: Int? = null,
     /** Explicit live override; null means follow the planned set. */
     val amrapOverride: Boolean? = null,
     val amrapMinimumReps: Int? = null,
+    /** Explicit null means no minimum; false preserves legacy drafts that follow the plan. */
+    val amrapMinimumOverridden: Boolean = false,
     val amrapReachFailure: Boolean? = null,
     val amrapReserveReps: Int? = null,
     val notes: String? = null,
     /** Missing in legacy payloads; null means no multi-phase technique is in progress. */
     val techniqueProgress: WorkoutTechniqueProgressDraft? = null,
+    /** Local live RM edits; absent in older serialized drafts. Never changes the exercise's TM. */
+    val rmReference1RM: Double? = null,
+    val rmPercent: Double? = null,
 )
 
 @Serializable
