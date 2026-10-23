@@ -69,6 +69,16 @@ El análisis se procesa en el teléfono. La exportación ZIP de medios es manual
 
 ### Pendiente antes de aprobar o publicar este texto
 
+Preparación Git revisada, todavía sin aplicar: copia byte-exacta de los39WIP tracked en
+`C:/kw/vt-mmfit/master-wip-backup-preflight-20261023T1515Z`, manifiesto SHA-256
+`aa855fe510eccd87b44f7a52244d361834209a6e89c71568e77f07dcea82b40c`. A las15:15 el índice principal estaba limpio,
+master seguía en8ac57c9d42 y había un único solape, `WorkoutFinishController.kt`, con propuesta3-vías externa ya revisada;
+cero colisiones de untracked con el destino. Revalidar todos los pins justo antes del FF, después de los gates y del
+commit final de versión: si cambió cualquier WIP, solape o destino, detenerse y rehacer la propuesta. El procedimiento
+revisado conserva los38WIP no solapados, coloca temporalmente solo el solape en su blob base, ejecuta FF al SHA exacto y
+reaplica allí la unión revisada con el hunk de calendario. No se usa stash/reset/restore ni se stagea WIP ajeno. Verificar
+HEAD/índice/hashes después y conservar el backup original; el avance de master no se revierte con `--ff-only`.
+
 - El QA físico en el Z Flip sigue parcial y no se declara aprobado. El APK QA R8 de motor 10/FPS,
   SHA-256 `0afd5a5af80d9249936a5c8222a626b85e14ee8a76d858381d760c4a36b21fc4`, se instaló sin limpiar los datos.
   Al abrir análisis previos se observaron dos `RECOMPUTE` desde sidecars, sin decodificar ni volver a procesar pose;
@@ -77,7 +87,8 @@ El análisis se procesa en el teléfono. La exportación ZIP de medios es manual
   configuración, no 60 fps. El cierre automático al minuto y los ajustes 45/40/35/Otro=42 cm con restauración a 45 cm
   sí se observaron. El tercer TUNE CURL mostró +1 parcial estable y barra tramada; la confianza propia ALTA se infiere
   del formato frente a MEDIA global. No apareció zona ni porcentaje de recorrido y se revisa la causa. La selección
-  manual desde Photo Picker del hub sigue pendiente. BAJA y MEDIA propias tienen pruebas y renders previos, pero no
+  manual desde Photo Picker del hub fue confirmada por el usuario; falta observar su resultado y completar el QA delta
+  cuando la guarda natural permita usar el teléfono. BAJA y MEDIA propias tienen pruebas y renders previos, pero no
   una nueva observación física; no se consideran aprobadas por esta toma. Los demás flujos pueden avanzar por rutas permitidas. Sin referencia externa se conserva
   `≈` y `1RM beta`.
 - La ventana de privacidad dinámica del APK QA instalado encontró sano el acumulador UID antes y después de una pasada FULL y sin clave para la app. Esto permite inferir cero bytes registrados en ese acumulador durante esa ventana, con límite OEM; no es un contador explícito ni una garantía universal. `trafficcontroller --short` solo devolvió el encabezado y no mostró estado de programa. La lectura no corresponde al artefacto firmado final.
@@ -86,3 +97,19 @@ El análisis se procesa en el teléfono. La exportación ZIP de medios es manual
   archivo quedan PENDIENTES del artefacto firmado. Ejecutar signed_release.py solo al final de los gates; no hay una
   promesa de hora de entrega.
 - El anexo competitivo, la voz y la revisión de Metric son posentrega.
+
+### Memoria de la firma · propuesta revisada, aún sin aplicar ni firmar
+
+La cola añade Xmx4g cuando el firmador no pasa jvmargs, aunque gradle.properties pida8g. Para evitar repetir el OOM ya
+conocido, se preparó fuera del repo una opción pública y opcional de memoria para el mismo signed_release.py; no cambia
+su manejo de claves ni su invocación posicional. Base SHA54f63fedc3f0bd15cedfa3b76f57772b0fe43a9c5d4a0bd3af25e62fdb481179.
+Parche revisado C:/kw/vt-mmfit/signed-release-heap-20261023/signed_release_heap_option_v2.patch,
+SHA5112e597ce7ae77912f5898b421725dc3e43b9c65d4343957317985c4df6c5a6; candidata signed_release_v2.py.proposed,
+SHAe26c782f2ba88cd5403ddb92a7ab34a60888443ed74244f3621cbd7058a26737. Validación AST aislada aprobada, sin ejecutar main:
+opción ausente conserva argv exacto anterior; valores1..8 aceptados y entradas inválidas rechazadas antes de cualquier
+lectura de propiedades; worker1 y parallelfalse son argumentos separados. El helper real sigue intacto.
+
+Después de los gates y justo antes de la firma, revalidar base/candidata y ausencia de otra firma activa, preservar el
+script base y aplicar solo este cambio opcional revisado. Para esta entrega usar KPKN_SIGNED_RELEASE_HEAP_GB=8 en el
+proceso del firmador, manteniendo cola compartida, una Gradle propia, worker1 y máximo8g. No cambiar prioridad/slots ni
+leer credenciales. La firma continúa exclusivamente por C:/kw/tools/signed_release.py; no ejecutar la candidata externa.
