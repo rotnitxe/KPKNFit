@@ -9,7 +9,7 @@ Se integra en `feat/screens-v2`, C:/kw/u11, en el orden del relevo. El artefacto
 | u13 · PROG/FIX-TM/INV · 2c549b7ac | Limpio, árbol 60d1e6480057c97e3b312d3ed645d4c33d4516b1 | 030341408, sin conflictos | JVM: 161 clases, 1700/0; Android: 6 clases, 45/0 |
 | u12 · ED-E · a76b4edc2 | Limpio sobre 18985e121, árbol 37860253aecd833693ded31d9bc28882f07ff638 | 6bf182d81, sin conflictos | 33/0 base y 11/0 tras corrección D8; 34 pruebas únicas |
 | u14 · ED-A/ED-B · 385cab731 | Limpio tras D8, árbol 6e533815cb855eccd804bba94e78a7f17f745e07 | 67ded417b, sin conflictos | 10 clases, 87/0 |
-| u17 · ED-D + C3 · 2cf81b677 | Limpio sobre 6487f3059, árbol fadf0ced2030287f8598084998c4c2145287ac30 | e7fd65eac, sin conflictos | Producción compila; 76 pruebas, 4 fallos del arnés nuevo; corrección visual C3 pendiente |
+| u17 · ED-D + C3 · 2cf81b677 | Limpio sobre 6487f3059, árbol fadf0ced2030287f8598084998c4c2145287ac30 | e7fd65eac, sin conflictos | 10 C3 finales/0; 67 anteriores ED-D/0 y 50 ED-B/0 en corridas separadas, descritas abajo |
 | u18 · ED-C | Pendiente | Pendiente | Pendiente |
 | u15 · CAT-A | Pendiente | Pendiente | Pendiente |
 | u16 · G | Pendiente | Pendiente | Pendiente |
@@ -65,3 +65,10 @@ C3 preparado en 2cf81b677, preflight sobre 67ded417b limpio (árbol 6b35564d96c0
 `int-u17-android-codex-20261023-1.log`: BUILD FAILED en 8 min 59 s; producción y pruebas compilan, 76 pruebas ejecutadas, 4 fallos en SupersetRoundsFocusIntegrationTest. Los 67 casos anteriores de ED-D pasan y 5 de los 9 nuevos pasan. Tres fallos seleccionan ambiguamente Eliminar de ronda y Eliminar del foco; el cuarto compara bounds recortados fuera del viewport. El commit aislado 5439b7760 acota acciones al foco y usa coordenadas sin recorte; aún no aplicado en u11 ni verificado.
 
 Se revisaron los renders nuevos RM/TM y AMRAP lateral al 130 % en C:/kw/shots/int-edd. Además del arnés, se detectó un defecto de interfaz real: el control anidado recorta Próximas sesiones al 130 %, y el foco AMRAP lateral no identifica el lado que sustituyó InlineSetRow. Se adapta el alcance local a la anchura/fuente y se conserva la identidad L/R; no cerrar esta unión hasta la nueva corrida y revisión de PNG. El fixture de render TM se hará coherente con su % y referencia, sin rebajar las pruebas de edición.
+
+
+## ED-D/C3: cierre verificado
+
+La tercera corrida `int-u17-android-codex-20261023-3.log` termina BUILD SUCCESSFUL en 3 min 33 s: 10 C3/0, incluidos ambos alcances por click y datos L/R. Las correcciones quedan en 030e6b522, c3f44fcef y a0332f998. La segunda pasó también 50 controles ED-B; producción no cambia entre segunda y tercera. Los 67 casos previos de ED-D, de rutas no afectadas por el alcance estrecho AMRAP, estaban verdes en la primera. Son evidencias de varias corridas, no una ejecución única de127.
+
+Render AMRAP lateral al130 revisado: LadoR y las dos etiquetas completas; RM/TM usa fixture coherente100×80%=80kg. Detalle de medidas y diagnóstico de la aserción en INT-C3.md. Wrapper cerrado; siguiente preflight ED-C y resolución conservadora de cuatro conflictos conocidos.

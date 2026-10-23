@@ -83,3 +83,16 @@ Se leyó de nuevo el XML real C3, timestamp `2026-10-23T05:05:28.792Z`: diez cas
 Se aplica únicamente al arnés el patrón ya usado por `PreparationChipsComposeTest` de H3: la anchura del párrafo puede superar la caja ajustada aunque las líneas visibles quepan. En vez de ese booleano se exige etiqueta exacta en `layoutInput.text`, todos los caracteres hasta `visibleEnd`, ninguna elipsis, ausencia de desborde vertical y límites de cada línea entre −1 px y `layout.size.width + 1 px`. Se imprimen tamaño, anchura del párrafo, límites de líneas y constraints para sustentar el resultado. El margen de un píxel solo admite redondeo, no texto oculto.
 
 No cambian los clicks, selected, los valores de alcance ni las aserciones laterales; tampoco cambia producción. La repetición de los diez casos C3 sigue pendiente del orquestador. No se declara verde con esta corrección estática.
+
+
+## Validación centralizada en u11 · cerrada
+
+Fusión principal e7fd65eac. Correcciones traídas por cherry-pick: 030e6b522 (selectores/orden sin recorte), c3f44fcef (alcance completo y lado AMRAP) y a0332f998 (medición de líneas reales).
+
+- `int-u17-android-codex-20261023-1.log`: producción compila; 76 pruebas, 4 fallos del arnés nuevo. Las 67 anteriores de ED-D pasan.
+- `int-u17-android-codex-20261023-2.log`: 60 pruebas, 1 fallo por didOverflowWidth. Pasan los cuatro casos anteriores corregidos y las 50 pruebas ED-B seleccionadas (focos17, lista20, render13). El PNG muestra el alcance completo y el lado; no se declara verde por esta corrida fallida.
+- `int-u17-android-codex-20261023-3.log`: BUILD SUCCESSFUL en 3 min 33 s; **10 pruebas C3, 0 fallos/errores/omitidas**. Producción idéntica a la segunda corrida; solo cambia la comprobación de texto. Se mantienen clics nativos, selección y dosis laterales.
+
+Medidas nativas del alcance: Esta sesión, caja92×21, línea0..91,08203; Próximas sesiones, caja151×21, línea0..150,26562. Ambos párrafos tenían ancho disponible256; comparar ese párrafo con la caja ajustada al texto hacía fallar didOverflowWidth aunque cada línea cupiera. Se comprueban todos los caracteres, ausencia de elipsis, altura y límites de línea con 1px máximo de redondeo, el mismo criterio verificado en H3 de ED-C.
+
+Cuatro PNG C3 en C:/kw/shots/int-edd, además de los renders C2–C7 y ED-B. Revisados RM/TM y AMRAP lateral al130: referencias/cargas coherentes, LadoR visible y ambas decisiones de alcance completas. No se acredita QA de dispositivo ni APK con estas capturas.
