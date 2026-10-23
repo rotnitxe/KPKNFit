@@ -2409,7 +2409,7 @@ class ProgramDetailViewModelTest {
         repository.flushPendingWrites()
         val vm = vmFor(id)
 
-        vm.rematerializePending()
+        assertTrue(vm.rematerializePendingAndAwait().isSuccess)
 
         val weeks = weeksOf(repository.getProgramById(id)!!)
         assertEquals("el bloque que no estaba pendiente no se reconstruye", 0.70 * 180.0, t1Weight(weeks[0], CatalogIds.SQ_LOW), 1e-6)
@@ -2445,6 +2445,41 @@ class ProgramDetailViewModelTest {
         assertEquals("No se pudo recalcular lo pendiente del plan. El plan y el historial se conservaron.", message)
         assertEquals("el aviso se pinta como fallo", SnackbarType.DANGER, snackbarTypeFor(message))
         assertEquals("el plan no cambió", before, repository.getProgramById(id))
+    }
+
+    @Test
+    fun rematerializePending_roomFailurePreservesProfilePoolWeeksAndFlagThenRetryCommits() = runBlocking {
+        val id = nextId()
+        val original = oneRmGateProgram(id)
+        val waveId = original.macrocycles.first().blocks[1].id
+        repository.addProgram(original.copy(
+            powerliftingProfile = original.powerliftingProfile!!.copy(squatTM = 189.0),
+            macrocycles = original.macrocycles.map { macro -> macro.copy(blocks = macro.blocks.map {
+                if (it.id == waveId) it.copy(materializationPending = true) else it
+            }) },
+        ))
+        repository.flushPendingWrites()
+        val before = repository.getProgramById(id)!!
+        val beforeRow = repository.databaseForTests().programDao().getById(id)
+        val vm = vmFor(id)
+        val db = repository.databaseForTests().openHelper.writableDatabase
+        db.execSQL("CREATE TRIGGER fail_pending_insert BEFORE INSERT ON programs BEGIN SELECT RAISE(ABORT, 'pending'); END")
+        db.execSQL("CREATE TRIGGER fail_pending_update BEFORE UPDATE ON programs BEGIN SELECT RAISE(ABORT, 'pending'); END")
+        vm.rematerializePending()
+        val message = awaitSnackbar(vm)
+        assertEquals("No se pudo recalcular lo pendiente del plan. El plan y el historial se conservaron.", message)
+        assertEquals(SnackbarType.DANGER, snackbarTypeFor(message))
+        assertEquals(before, repository.getProgramById(id))
+        assertEquals(beforeRow, repository.databaseForTests().programDao().getById(id))
+        db.execSQL("DROP TRIGGER fail_pending_insert")
+        db.execSQL("DROP TRIGGER fail_pending_update")
+        assertTrue(vm.rematerializePendingAndAwait().isSuccess)
+        val saved = repository.getProgramById(id)!!
+        assertTrue(saved.macrocycles.flatMap { it.blocks }.none { it.materializationPending })
+        assertEquals(0.70 * 180.0, t1Weight(weeksOf(saved)[0], CatalogIds.SQ_LOW), 1e-6)
+        assertEquals(0.70 * 189.0, t1Weight(weeksOf(saved)[1], CatalogIds.SQ_LOW), 1e-6)
+        assertEquals(0.70 * 189.0, t1Weight(weeksOf(saved)[2], CatalogIds.SQ_LOW), 1e-6)
+        assertNotEquals(beforeRow, repository.databaseForTests().programDao().getById(id))
     }
 
     // ─── B.S6 parte 2a-bis: las puertas de bloque leen los registros y el inventario reales ───

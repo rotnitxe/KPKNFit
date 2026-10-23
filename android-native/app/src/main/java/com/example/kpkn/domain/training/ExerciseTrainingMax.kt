@@ -6,6 +6,8 @@ import com.example.kpkn.domain.calculations.percentLoadKg
 
 /** Per-exercise capacities backed by the existing JSON pool. No TM is inferred at an editing boundary. */
 object ExerciseTrainingMax {
+    private const val RECIPE_PROFILE = "RECIPE_PROFILE"
+
     fun exercises(program: Program): List<Exercise> = program.macrocycles.flatMap { it.blocks }
         .flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }.flatMap(::sessionExercises)
 
@@ -151,20 +153,28 @@ object ExerciseTrainingMax {
 
     /** Canonical edits and authored recipe progression have different scopes; explicit variant overrides remain authoritative. */
     fun syncProfile(before: Program, after: Program, nowMs: Long, sourceId: String,
-        reason: String, origin: String = ExerciseLoadReferenceStore.AUTHOR_PROGRESSION): Program {
+        reason: String, origin: String = ExerciseLoadReferenceStore.AUTHOR_PROGRESSION,
+        reconcileDerived: Boolean = false): Program {
         var result = migrate(after)
         exercises(after).forEach { exercise ->
             val canonical = legacyLift(after, exercise)
             val latest = resolved(result, exercise, PlanLoadReferenceKind.EXERCISE_TM)
             val derivedRecipeBase = latest?.metadata?.origin in setOf(
-                ExerciseLoadReferenceStore.MATERIALIZED_RECIPE, ExerciseLoadReferenceStore.AUTHOR_PROGRESSION)
-            val lift = canonical ?: if (origin == ExerciseLoadReferenceStore.AUTHOR_PROGRESSION && derivedRecipeBase)
-                authoredLift(after, exercise) else null
+                ExerciseLoadReferenceStore.MATERIALIZED_RECIPE, ExerciseLoadReferenceStore.AUTHOR_PROGRESSION, RECIPE_PROFILE)
+            val reconciliable = derivedRecipeBase || (canonical != null && latest?.metadata?.origin == ExerciseLoadReferenceStore.LEGACY_PROFILE)
+            if (reconcileDerived && !reconciliable) return@forEach
+            val lift = canonical ?: if (derivedRecipeBase) authoredLift(after, exercise) else null
             if (lift == null) return@forEach
             val oldTm = storedTm(before.powerliftingProfile, lift)
             val nextTm = storedTm(after.powerliftingProfile, lift)
-            if (nextTm != null && nextTm != oldTm) result = capture(result, exercise,
-                PlanLoadReferenceKind.EXERCISE_TM, nextTm, nowMs, "$sourceId:${lift.name}", reason, origin)
+            if (nextTm != null && (nextTm != oldTm || (reconcileDerived && nextTm != latest?.capturedLoadKg))) {
+                // A profile edit updates a recipe-derived binding, not a manual capacity of another variant.
+                // Keep that provenance so a subsequent profile edit can follow the same binding again.
+                val captureOrigin = if (origin == ExerciseLoadReferenceStore.AUTHOR_PROGRESSION) origin
+                    else if (canonical == null || reconcileDerived) RECIPE_PROFILE else origin
+                result = capture(result, exercise, PlanLoadReferenceKind.EXERCISE_TM, nextTm,
+                    nowMs, "$sourceId:${lift.name}", reason, captureOrigin)
+            }
             if (canonical != null) {
                 val oldOneRm = TrainingMaxResolver.oneRm(before.powerliftingProfile, lift)
                 val nextOneRm = TrainingMaxResolver.oneRm(after.powerliftingProfile, lift)
