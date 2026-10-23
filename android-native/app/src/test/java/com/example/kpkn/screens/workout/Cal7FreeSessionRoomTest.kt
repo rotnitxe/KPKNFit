@@ -81,7 +81,11 @@ class Cal7FreeSessionRoomTest {
         assertNull(vm.uiState.value.calibrationError)
         assertEquals(status, vm.uiState.value.calibrationDecisions.single { it.id == decisionId }.status)
     }
-    private suspend fun finish(fixture: LiveSessionVmFixture, vm: WorkoutViewModel): WorkoutLog {
+    private suspend fun finish(
+        fixture: LiveSessionVmFixture,
+        vm: WorkoutViewModel,
+        scenario: String = "CAL7",
+    ): WorkoutLog {
         val sessionId = vm.uiState.value.session!!.id
         withTimeout(20_000) {
             vm.uiState.first { it.recordingSetKey == null && it.calibrationActionId == null }
@@ -95,10 +99,32 @@ class Cal7FreeSessionRoomTest {
         val completionDate = completionInstant.toString()
         vm.finishWorkout("Recorrido CAL7", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList(),
             completionInstantIso = completionDate))
-        withTimeout(30_000) {
-            vm.uiState.first {
-                it.logAlreadyWrittenId != null || it.isComplete || it.showVolumeAdvanceModal || it.finishWarning != null
+        try {
+            withTimeout(30_000) {
+                vm.uiState.first {
+                    it.logAlreadyWrittenId != null || it.isComplete || it.showVolumeAdvanceModal || it.finishWarning != null
+                }
             }
+        } catch (timeout: TimeoutCancellationException) {
+            val state = vm.uiState.value
+            val viewModelJob = vm.viewModelScope.coroutineContext[Job]
+            val diagnostic = buildString {
+                append("Timeout al cerrar $scenario; programa=${fixture.programId}, sesion=$sessionId; ")
+                append("isFinishingWorkout=${state.isFinishingWorkout}, ")
+                append("isStartingWorkout=${state.isStartingWorkout}, ")
+                append("isCancellingWorkout=${state.isCancellingWorkout}, wasCancelled=${state.wasCancelled}, ")
+                append("recordingSetKey=${state.recordingSetKey}, calibrationActionId=${state.calibrationActionId}, ")
+                append("logAlreadyWrittenId=${state.logAlreadyWrittenId}, isComplete=${state.isComplete}, ")
+                append("showVolumeAdvanceModal=${state.showVolumeAdvanceModal}, ")
+                append("pendingVolumeAdvances=${state.pendingVolumeAdvances.size}, ")
+                append("finishWarning=${state.finishWarning?.replace('\n', ' ')}, ")
+                append("startPersistenceErrorPresent=${state.startPersistenceError != null}, ")
+                append("pendingOngoingConflict=${state.pendingOngoingConflict != null}, ")
+                append("pendingOngoingCorrupt=${state.pendingOngoingCorrupt}; ")
+                append("viewModelJob(active=${viewModelJob?.isActive}, cancelled=${viewModelJob?.isCancelled}, ")
+                append("completed=${viewModelJob?.isCompleted}, children=${viewModelJob?.children?.count()})")
+            }
+            throw AssertionError(diagnostic, timeout)
         }
         assertNull("El cierre real no debe dejar un aviso de error", vm.uiState.value.finishWarning)
         assertNotNull("El ViewModel debe publicar el ID del log durable", vm.uiState.value.logAlreadyWrittenId)
@@ -144,7 +170,7 @@ class Cal7FreeSessionRoomTest {
         record(reopened, 0, 2, 60.0, 12, 2)
         record(reopened, 0, 3, 60.0, 12, 2)
         record(reopened, 1, 0, 40.0, 8, 2)
-        val log = finish(fixture, reopened)
+        val log = finish(fixture, reopened, "sesion libre con calibrador resuelto")
         assertEquals(5, log.completedExercises.sumOf { it.sets.size })
         assertEquals(listOf(CalibrationStatus.REVERTED, CalibrationStatus.APPLIED), log.calibrationDecisions.map { it.status })
         assertTrue(calibrationSummaryLines(log.calibrationDecisions).any { it.contains("Revertida") })
@@ -188,7 +214,8 @@ class Cal7FreeSessionRoomTest {
             val source = record(vm, 0, 0, 69.0, 10, 1)
             if (purpose == SetPurpose.CALIBRATOR) resolve(vm, source.id, CalibrationStatus.KEPT)
             else assertTrue(vm.uiState.value.calibrationDecisions.isEmpty())
-            val log = finish(fixture, vm)
+            val scenario = if (purpose == SetPurpose.NONE) "RINGS normal" else "RINGS calibrador"
+            val log = finish(fixture, vm, scenario)
             fixture.closeAndJoin()
             fixture.repository.flushPendingWrites()
             awaitRepositoryScope(fixture.repository)

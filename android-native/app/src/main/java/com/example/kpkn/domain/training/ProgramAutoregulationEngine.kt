@@ -1403,7 +1403,18 @@ object ProgramAutoregulationEngine {
             "autoregulation:${program.runState?.runId}:$nextWeekId:" + proposals.hashCode(),
             "Propuesta de autorregulación aceptada")
 
-        val intensity = proposals
+        // La intensidad solo se materializa si la receta efectiva de la ocurrencia
+        // objetivo contiene porcentajes; una semana RIR no debe reconstruirse sin efecto.
+        val targetWeekUsesPercent = nextWeekId?.let { targetWeekId ->
+            PlanMaterializer.weekRecipeSourceFor(working, recipe, targetWeekId)
+                ?.weekRecipe
+                ?.days
+                ?.any { day -> day.slots.any { slot -> slot.sets.any { it.percent != null } } }
+        } == true
+        val mutationProposals = if (targetWeekUsesPercent) proposals else proposals.filterNot {
+            it.kind == AutoregulationProposalKind.SCALE_WEEK_INTENSITY
+        }
+        val intensity = mutationProposals
             .filter { it.kind == AutoregulationProposalKind.SCALE_WEEK_INTENSITY }
             .mapNotNull { it.percentDelta }
             .fold(1.0) { acc, delta -> acc * (1.0 + delta / 100.0) }
@@ -1456,7 +1467,7 @@ object ProgramAutoregulationEngine {
                         weekOccurrence = source.weekOccurrence,
                         cycleNumber = source.cycleNumber,
                         weekRecipe = PlanMaterializer.scaleWeekRecipe(source.weekRecipe, intensity, volume),
-                        applied = proposals
+                        applied = mutationProposals
                             .filter { it.kind != AutoregulationProposalKind.INSERT_DELOAD }
                             // DEC-w3-07: la variante técnica retirada no consta como aprobada en la receta efectiva.
                             .filter { it.kind != AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT }
