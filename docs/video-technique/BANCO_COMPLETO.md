@@ -378,9 +378,9 @@ en mediana (p95 107,96 ms); pose, 25,73 ms (p95 52,81 ms). El objetivo de ratio 
 no implican procesamiento en tiempo real; una densidad de trazas de 30 fps no mide throughput real a 30 fps.
 
 No hay timing OpenPose comparable ni ground truth externo de velocidad, ROM o velocidad de barra. Mantener `≈` y 1RM
-en beta. El QA del flujo real en teléfono sigue pendiente. La CV M5 MediaPipe terminó (run 5977) en el worktree
-`ce16580d3`, usando solo tune folds 0–3 y `vt-tune`; no declara aprobado el motor 10. El anexo competitivo permanece
-posentrega y no bloquea la entrega actual.
+en beta. La CV M5 MediaPipe terminó (run 5977) en el worktree `ce16580d3`, usando solo tune folds 0–3 y `vt-tune`;
+la CV por sí sola no aprobó el motor 10. El QA físico posterior y los controles congelados se documentan abajo. El
+anexo competitivo permanece posentrega y no bloquea la entrega actual.
 
 
 
@@ -469,3 +469,23 @@ La comprobación de dominio congelado posterior cubrió82 clases y603 pruebas:58
 sin fallos ni errores, SUCCESS en2m17s. Se excluyeron expresamente los dos métodos del examen histórico.
 Evidencia `C:/kw/logs/vt-m5-frozen-domain-integration-20261023-results`; no sustituye la comprobación Android/R8
 ni el QA del APK que se vaya a entregar. El anexo competitivo permanece posentrega.
+
+### QA del dispositivo · actualización 23-oct-2026
+
+La medición de 616 clips y sus tiempos agregados corresponde al motor 9 con extracción MediaPipe GPU/Full. No se ejecutó
+el banco de 616 con motor 10. Las mediciones posteriores de motor 10 son muestras puntuales del flujo del teléfono y no
+reemplazan ni se agregan a ese baseline. Una pasada FULL en un clip oscuro fue una muestra de integración; dos aperturas
+de análisis anteriores usaron `RECOMPUTE` desde sidecars (93 ms y 34 ms, cero cuadros decodificados o evaluados por pose)
+y reabrir el primero no creó otro análisis.
+
+En grabaciones reales con la preferencia condicional de 60 fps activada y desactivada se midieron ~30,0101 fps por PTS.
+Con la preferencia activada, Camera3 ya mostraba `[30 30]` antes de REC y los rangos AE normales anunciados llegaban a 30; esto respalda
+un fallback previo al sensor en esta configuración, no 60 fps.
+El límite de un minuto cerró una grabación sin pulsar detener. En el hub se probaron las calibraciones 45/40/35 cm y
+`Otro=42 cm`, con persistencia y restauración a 45 cm. No se verificó `PLATE_ONLY` con un disco identificable.
+
+La aceptación física sigue parcial. El importador del hub abre Photo Picker y su selección continúa pendiente; DocumentsUI
+ya probó una ruta distinta. También sigue pendiente un caso positivo de parcial M4b con zona/confianza propias (el 84 %
+observado era velocidad relativa, no parcial); solo hay autorización para un clip TUNE adicional en ese caso. Sin
+referencia física externa, se mantiene `≈` y el 1RM en beta. No se extrapola a 616 la rapidez de una pasada de teléfono ni
+se declara aprobado el flujo completo.

@@ -62,12 +62,24 @@ Desglose descriptivo por ejercicio, tune más control ciego G1:
 | TRICEPS | 2/62 |
 
 Las metas internas 98/90 siguen sin alcanzarse, especialmente en tríceps. Estos resultados no acreditan paridad con otras
-aplicaciones. En la generación de referencia MediaPipe GPU/Full del motor9 (616clips), el tiempo superó el objetivo de tiempo real: ratio análisis/vídeo mediano
+aplicaciones. En el baseline de referencia MediaPipe GPU/Full del motor 9 (616 clips), el tiempo superó el objetivo de tiempo real: ratio análisis/vídeo mediano
 1,5265 y p95 3,2389.
+
+El análisis se procesa en el teléfono. La exportación ZIP de medios es manual y se inicia desde la app; incluye el árbol completo de medios y sus sidecars. La exportación individual desde el visor es una acción distinta.
 
 ### Pendiente antes de aprobar o publicar este texto
 
-- El cierre del QA de ejecución en el Z Flip sigue pendiente. El R8 motor10/FPS compiló, fue atestado y se instaló en.dbg conservando los datos de QA. La corrección del respaldoFPS pasó193pruebas Android, pero no se ha demostrado que causara la toma observada a30fps. No afirmar60fps efectivos ni toda la UI aprobada antes de completar las verificaciones físicas; una preferencia activada no acredita la cadencia del archivo.
+- El QA físico en el Z Flip sigue parcial y no se declara aprobado. El APK QA R8 de motor 10/FPS,
+  SHA-256 `0afd5a5af80d9249936a5c8222a626b85e14ee8a76d858381d760c4a36b21fc4`, se instaló sin limpiar los datos.
+  Al abrir análisis previos se observaron dos `RECOMPUTE` desde sidecars, sin decodificar ni volver a procesar pose;
+  reabrir uno no creó duplicados. Grabaciones con preferencia 60 ON y OFF dieron ~30,0101 fps efectivos. Con ON,
+  Camera3 ya mostraba `[30 30]` antes de REC y los rangos AE normales anunciados llegaban a 30; esto respalda fallback en esta
+  configuración, no 60 fps. El cierre automático al minuto y los ajustes 45/40/35/Otro=42 cm con restauración a 45 cm
+  sí se observaron. Siguen pendientes la selección manual desde el Photo Picker del hub, un positivo M4b de parciales
+  con zona/confianza propias (el 84 % era velocidad relativa; solo se autoriza un TUNE adicional), y un caso de
+  confianza BAJA. Los demás flujos de QA pueden avanzar por sus rutas permitidas. Sin referencia externa se conserva
+  `≈` y `1RM beta`.
+- La ventana de privacidad dinámica del APK QA instalado encontró sano el acumulador UID antes y después de una pasada FULL y sin clave para la app. Esto permite inferir cero bytes registrados en ese acumulador durante esa ventana, con límite OEM; no es un contador explícito ni una garantía universal. `trafficcontroller --short` solo devolvió el encabezado y no mostró estado de programa. La lectura no corresponde al artefacto firmado final.
 - El artefacto final debe confirmar versionName Pre Release 18, versionCode mayor que 50 y el certificado público esperado
   9e8bb57415e409a1f107e70c62b85aa65ce73576e6196470808231f256464bc1. Nombre definitivo, SHA-256 del APK y fecha de
   archivo quedan PENDIENTES del artefacto firmado. Ejecutar signed_release.py solo al final de los gates; no hay una
