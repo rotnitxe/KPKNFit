@@ -4,6 +4,8 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WeekVariant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -29,6 +31,30 @@ class WorkoutStructuralEditorTest {
         }
         assertEquals("B2", updated.parts.single().exercises[1].name)
         assertEquals("A", updated.parts.single().exercises[0].name)
+    }
+
+    @Test
+    fun replaceFlatExerciseWhenSessionAlsoHasParts() {
+        val exercise = Exercise(
+            id = "press",
+            name = "Press militar",
+            trainingMode = TrainingMode.CUSTOM,
+            customUnit = "pasos",
+            sets = listOf(ExerciseSet(id = "press-s2", unitModeV2 = UnitModeV2.CUSTOM, plannedTargetV2 = 12.0)),
+        )
+        val session = Session(
+            id = "s1",
+            name = "Ruta",
+            exercises = listOf(exercise),
+            parts = listOf(SessionPart(id = "mobility", name = "Movilidad", isMobilityGroup = true)),
+        )
+
+        val updated = WorkoutStructuralEditor.replaceExerciseById(session, exercise.id) { current ->
+            current.copy(sets = current.sets.map { it.copy(plannedTargetV2 = 13.0) })
+        }
+
+        assertEquals(13.0, updated.exercises.single().sets.single().plannedTargetV2!!, 0.0)
+        assertTrue(updated.parts.single().exercises.isEmpty())
     }
 
     @Test
