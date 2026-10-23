@@ -182,3 +182,8 @@ Guía android-emulator-qa leída. La QA sigue pendiente: no se usó adb ni se in
 ### Autonomía y cierre ED-C · 23-oct-2026
 
 El usuario se va a dormir y autoriza tomar decisiones autónomas para completar el proyecto sin pausar esperando respuesta. Se documentan las decisiones, se preservan WIP y datos personales y no se amplía el esquema congelado ni se hace push. ED-C integrado en9d6d11730 y migración de dos pruebas en521f14c38:78 casos únicos verdes (72/0 en primera corrida,6/0 en segunda); wrappers cerrados. Siguiente CAT-A, G1 adaptado y ED-A adicional, después regresión JVM y fase4. No hay QA ni APK de esta continuación.
+
+
+### Paralelismo preparatorio y CAT-A · 23-oct
+
+Por autonomía explícita del usuario se adelanta fase4 en bases provisionales acc75872c mientras se valida fase3: u19/codex/sv2-catb(SolMedium),u20/codex/sv2-cal4v(principal),u21/codex/sv2-cal5b(SolMedium),u22/codex/sv2-plan-obs(Luna6Max). Antes de validar o integrar esas ramas se actualizarán con feat/screens-v2 de fase3 completa y verde. No cambia el orden de integración ni la única corrida propia. CAT-A ya suma70casos únicos/0 (66base+4geometría real), wrappers cerrados; el recorte E4 era del arnés1000→880 y las acciones reales se verificaron. Siguiente G1adaptado0ac8bd0e6, ED-A7114b5872 y regresión JVM.

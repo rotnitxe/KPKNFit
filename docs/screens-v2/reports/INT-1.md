@@ -11,7 +11,7 @@ Se integra en `feat/screens-v2`, C:/kw/u11, en el orden del relevo. El artefacto
 | u14 · ED-A/ED-B · 385cab731 | Limpio tras D8, árbol 6e533815cb855eccd804bba94e78a7f17f745e07 | 67ded417b, sin conflictos | 10 clases, 87/0 |
 | u17 · ED-D + C3 · 2cf81b677 | Limpio sobre 6487f3059, árbol fadf0ced2030287f8598084998c4c2145287ac30 | e7fd65eac, sin conflictos | 10 C3 finales/0; 67 anteriores ED-D/0 y 50 ED-B/0 en corridas separadas, descritas abajo |
 | u18 · ED-C · 296bb3ff6 | Cuatro conflictos previstos, resueltos conservando LV-C/ED-B | 9d6d11730 | 78 casos únicos/0; 72/0 iniciales y 6/0 tras migrar H1/H2 |
-| u15 · CAT-A | Pendiente | Pendiente | Pendiente |
+| u15 · CAT-A · f34b02318 | Un conflicto de firma CatalogExerciseRow, conservadas ambas APIs | acc75872c | 66/0 base + 4/0 ventanas físicas E4; 70 casos únicos |
 | u16 · G | Pendiente | Pendiente | Pendiente |
 
 ## Contratos que deben conservarse
@@ -82,3 +82,10 @@ Merge 9d6d11730 sobre ba304b1e5; cuatro conflictos: WarmupRules.kt, WarmupRulesT
 
 
 ED-C cerrado: `int-u18-android-codex-20261023-2.log`, BUILD SUCCESSFUL en 8 min 30 s, 6/0 en ExerciseEditorExpandedComposeTest; wrapper exit0. Con los otros 72 casos de la primera corrida, cuyas rutas no se alteraron salvo reutilizar la fórmula idéntica del máximo, hay 78 pruebas únicas verdes. La regla se repetirá también en la regresión JVM de fase 3. Revisados PNG al130 H1/H2/H3, B6, grupo D9 y LV-C a740: controles completos; las fichas se desplazan horizontalmente. Sin QA de dispositivo ni APK todavía.
+
+
+## CAT-A: unión y geometría E4 verificadas
+
+`int-u15-android-codex-20261023-1.log`: BUILD SUCCESSFUL en8min13s; diez clases,66pruebas,0fallos/errores/omitidas, wrapper exit0. Resuelto sólo CatalogExerciseRow.kt, con thumbnailFile(MOT) y onOpenFicha/selectionOrder(CAT-A); el creador MOT conserva catalogV2.
+
+Los22PNG antiguos incluyen un recorte aparente del pie E4 al130 y un Canvas vacío después del scroll. Su raíz física está configurada a1000dp y se recorta a880dp: no bastan para atribuirlo al producto. Nueva clase CatalogSupersetPhysicalViewportTest, commit c2fc2d1d0: cuatro ventanas físicas360×740/880,100/130, cuatro ejercicios; tras desplazar el contenido exige Cancelar/Crear completos dentro del viewport,48dp y TextLayoutResult sin elipsis ni pérdida de caracteres. Pulsa realmente ronda4, confirma4/60/120 y verifica cancelar sin cambiar la confirmación anterior. `int-u15-android-codex-20261023-2.log`: BUILD SUCCESSFUL en3min20s,4/0, wrapper exit0. OchoPNG físicos; revisados los de confirmación al130 a740/880, ambos completos. No fue necesario modificar producción. Total70casos únicos en dos corridas; QA dispositivo pendiente.
