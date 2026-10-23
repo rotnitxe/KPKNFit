@@ -4,9 +4,9 @@
 
 - Fases 0 y 1 completadas; M4b integrado en `108146025`. Integración conserva motor 9 y Room v29.
 - El Z Flip está disponible y conectado; la pausa del usuario quedó revocada. El conductor v50 terminó en CPU por un veto GPU persistente; sus 72 trazas se conservan aparte. La versión 51 con B12 ya compiló y se instaló mediante `phone_run`, con autorización expresa del usuario para la sesión supervisada pese a la actividad reciente. No se borraron datos ni vetos, ni se retomará VPN.
-- Nueva generación homogénea `C:/kw/vt-mmfit/phone-v51`: conductor PID 30212, log `runall-20261023T020301Z.log`, 12/616 completos; sigue extrayendo. Preflight GPU aprobado a las 23:03:50 local: Full, stride 1, fuente 30 fps y traza 30,0003 Hz. Primer lote: mediana 35,28 s de análisis, vídeo 20,33 s, ratio 1,75 y térmico máximo 0. No reanudar el conductor antiguo ni mezclar sus 72 recibos. APK fijado `8c2c233ccdfc77bc66700e2c9fa7c75d63be7f3f63d0ca17dc0fdee74bb186f0`.
-- Fase 4: compilación Android, Room/comparador (39 pruebas), datos/trabajo/repositorios (339) y técnica/perfil (191) correctos: 59 clases y 569 pruebas sin fallos, errores ni omisiones. Faltan las tandas de workout, JVM completo de integración y R8.
-- M5 se desarrolla en `codex/vt-m5-20261022`, sin integrar. Se preparan sintéticos y CV real sobre ajuste OpenPose/vt-tune; los controles de partida del motor9 ya terminaron. OpenPose es preliminar hasta disponer de MediaPipe completo.
+- Nueva generación homogénea `C:/kw/vt-mmfit/phone-v51`: conductor PID 30212, log `runall-20261023T020301Z.log`, último recuento comprobado 72/616 completos; sigue extrayendo. Son trazas nuevas v51, distintas de las 72 v50 preservadas. Preflight GPU aprobado a las 23:03:50 local: Full, stride 1, fuente 30 fps y traza 30,0003 Hz. Primer lote: mediana 35,28 s de análisis, vídeo 20,33 s, ratio 1,75 y térmico máximo 0. No reanudar el conductor antiguo ni mezclar sus recibos. APK fijado `8c2c233ccdfc77bc66700e2c9fa7c75d63be7f3f63d0ca17dc0fdee74bb186f0`.
+- Fase 4: compilación Android, Room/comparador (39 pruebas), datos/trabajo/repositorios (339) y técnica/perfil (191) correctos: 59 clases y 569 pruebas sin fallos, errores ni omisiones. JVM completo de integración también verificado: 80 clases, 567 pruebas correctas y 15 omisiones opcionales, cero fallos/errores. Faltan las tandas restantes de workout y R8.
+- M5 permanece aislado en `codex/vt-m5-20261022`, sin integrar. Sintéticos y CV real OpenPose/vt-tune completados; candidato acotado `7032c5895` congelado con default 0 y metas MM-Fit todavía incumplidas. Los controles de partida del motor 9 ya terminaron. Esperar MediaPipe completo antes de selección final y controles del candidato.
 - Sintéticos M5 aprobados: sesión97421, `C:/kw/logs/vt-m5-boundary-cv-synthetic-20261022-2.log`, 24 pruebas correctas y una omisión esperada de CV externa sin bancos. Candidato de bordes `229d2f0d7`, ejecutor CV `78b7a92b7`, árbol aislado limpio.
 - CV de bordes completada en2061 sobre `e1268d050`, log `C:/kw/logs/vt-m5-cv-boundary-20261022-2.log`: 1.229 predicciones retenidas, cuatro rotaciones eligen1.0; MM-Fit ALTA308/327 y MEDIA6/8, aún por debajo de98/90. Sin controles nuevos; integración sigue en9 y default aislado0 hasta MediaPipe.
 - Android91923 terminó correctamente:17 clases y191 pruebas sin fallos, errores ni omisiones; log `C:/kw/logs/vt-fase4-technique-profile-20261022.log`, XML externos en carpeta de igual nombre con sufijo `-results`. Total actual de Fase4:59 clases y569 pruebas correctas.
@@ -14,7 +14,9 @@
 - Arreglo horizontal `1e2717f31` pasó JVM, pero su CV61504 descubrió regresión en ajuste histórico: FULL229/269 frente230/269 y MEDIA102/106 frente103/104 con guarda1. No aceptarlo ni medirlo como candidato final en ciegos; se investiga el alcance físico. En MM-Fit mejora a340/404 FULL exactas y ALTA317/328.
 - La corrida Android 22281 terminó `BUILD SUCCESSFUL in 8m 48s`: `.dbg` versionCode 51, fuente `50d6e104b`, log `C:/kw/logs/vt-mmfit-b12-v51-build-20261022.log`. APK instalado, con certificado público igual a v50 y hashes Full/JNI comprobados. Esto no acredita todavía preflight GPU ni QA visual.
 - Candidato M5 acotado `7032c5895`: revisión independiente conforme y 36 regresiones JVM correctas. CV 32432 correcta en 3m17s: 1.229 retenidas, cuatro rotaciones eligen 1. Con guarda 0 mejora MM-Fit a 340/404 FULL exactas sin regresión agregada histórica (230/269); con guarda 1, MM-Fit ALTA317/328 y MEDIA6/8 aún incumple 98/90. Detalle y SHA en BANCO_COMPLETO; default sigue 0, sin controles nuevos ni integración hasta MediaPipe.
-- Única corrida Gradle propia actual 88413: primera tanda pendiente de workout, 35 FQN concretos del inventario `04-android-screens-workout-root-01.txt`, log `C:/kw/logs/vt-fase4-workout-root-01-20261022.log`. No duplicar mientras esté en cola o viva.
+- Android 88413 terminó con 35 clases/278 pruebas: 272 correctas y 6 fallos, sin errores ni omisiones. XML preservados en `C:/kw/logs/vt-fase4-workout-root-01-20261022-results`; no repetir las 32 clases correctas de rutina. Los seis fallos quedaron explicados como anteriores a VT: cinco funciones ausentes en opciones de fuerza y un selector de Notas desfasado; detalle individual al final. No se importan cambios de `screens-v2` antes de su alcance autorizado.
+- JVM 27476 terminó correctamente en 3m33s: 80 clases concretas de integración (motor 9), 582 pruebas, 567 correctas y 15 omisiones de bancos/barridos opcionales; cero fallos/errores. Log `C:/kw/logs/vt-fase4-integration-biomechanics-20261022.log` y XML/summary en carpeta `-results`. No confundirla con las 602 del candidato M5.
+- Único conductor Gradle propio activo: PID 20008, `C:/kw/vt-mmfit/tools/continue_vt_phase4_20261022.ps1`, inventarios 05–10 (138 FQN) secuenciales. Tanda 05 correcta: 35 clases/229 pruebas sin fallos, errores ni omisiones, 42 s; XML preservados. Tanda 06 en curso o cola, sin otra Gradle propia. Log `C:/kw/logs/vt-fase4-android-05-10-20261023T024736Z.log`; resumen `C:/kw/logs/vt-fase4-feat-vt-ui-20261022/android-05-10-run/summary.json`. Su log por tanda puede no existir hasta el primer mensaje de la cola. No iniciar ninguna otra Gradle mientras siga vivo, tampoco entre sus tandas.
 
 Las secciones siguientes conservan la cronología; sus sesiones «actuales» anteriores ya no describen el estado vigente.
 
@@ -207,3 +209,65 @@ La auditoría confirmó que el APKv50 local coincide con28e7b3d3… y su modelo 
 - `C:/kw/vt-mmfit/phone-v51` contiene copia del conductor/validador y manifiesto/checksum idénticos; no se copiaron trazas, estado ni timing. El conductor solo cambia WORKSPACE y DEFAULT_APK a su carpeta nueva. No ejecutarlo hasta completar atestación del APK construido y su instalación por phone_run.
 - El APKv51 se está construyendo en22281. Luego verificar paquete `.dbg`, version51, firma compatible, modelo/native y SHA; copiar artefacto/atestación a phone-v51. Instalar sin borrar datos ni preferencias, comprobar preflightGPU/FULL/stride1 y después extraer. El veto50 permanece; la versión nueva sigue el contrato normal B12 y no se desactiva ninguna protección.
 - Se prepara constructor separado `build_mmfit_mp_bank_v51.py`, con fuente phone-v51 y salida nueva bank-mp-v51; PIN de APK pendiente hasta verificar el build. El constructor original sigue intacto. No publicar banco hasta616 resultados coherentes.
+
+### v51 en ejecución y constructor revisado
+
+La compilación 22281 terminó correctamente; se verificó el paquete `.dbg`, versionCode 51 y certificado público
+`f14259a4a5dd75ffca3732b5930cd7e30fa7f57d740e624e07cda6db87fe6fe4`, igual a v50. APK copiado y atestado en
+`C:/kw/vt-mmfit/phone-v51/APK_ATTESTATION.json`, pin `8c2c233ccdfc77bc66700e2c9fa7c75d63be7f3f63d0ca17dc0fdee74bb186f0`.
+La instalación normal se negó por uso reciente; el usuario autorizó expresamente continuar, por lo que `phone_run --supervised`
+instaló sin borrar datos. El conductor 30212 aprobó GPU/Full/stride 1 y comenzó desde cero; no se modifican sus herramientas
+mientras corre. Su orden siempre requiere `--background --m1-apk-sha256` con el pin anterior. El README externo ya incluye
+la atestación y la orden; el pin M1 histórico interno no debe usarse como valor implícito de otro modo de ejecución.
+
+`build_mmfit_mp_bank_v51.py` quedó fijado al APK real, fuente/tree, modelo/JNI y hashes exactos de conductor/validador.
+Revisión independiente conforme para destino nuevo, etiquetas idénticas, recibos GPU coherentes y publicación por rename.
+Un `--check-only` antes del primer lote informó 616 pendientes sin publicar salida. No repetir mientras el conductor escribe
+estado/timing ni publicar antes de 616 completos. El constructor original permanece intacto.
+
+### Fase 4 · primera tanda workout: seis fallos explicados
+
+Corrida 88413, `BUILD FAILED in 10m39s`; 35 clases, 278 pruebas, 272 correctas, seis fallos, cero errores/omisiones.
+Compilación principal y de pruebas correctas. Evidencia: `C:/kw/logs/vt-fase4-workout-root-01-20261022.log` y carpeta
+`-results` con los 35 XML y `summary.json`. No es un resultado verde ni se suma como tal a las 569 pruebas previas.
+
+| Prueba | Causa verificada estáticamente |
+|---|---|
+| `LiveExerciseOptionsUiTest.everyOptionOfAStrengthExerciseCallsItsOwnFunction` | Falta Historial en `ExerciseOptionsStrengthContent`; no es un fallo del matcher |
+| `LiveExerciseOptionsUiTest.removingFromTheSessionIsDisabledWhenItIsTheOnlyExercise` | Falta el pie que contiene Quitar de la sesión |
+| `LiveOptionsLargeFontTest.theStrengthOptionsKeepEveryLabelWholeAtOneHundredAndThirtyPercent` | Historial no existe; no llega a medir su recorte |
+| `LiveOptionsLargeFontTest.withLargeLetterTheTilesGoTwoPerRowAndTheFooterPillsStack` | Quitar de la sesión no existe; no llega a medir el pie |
+| `LiveOptionsLargeFontTest.atNormalSizeTheTilesGoThreePerRowAndTheFooterPillsShareALine` | Saltar ejercicio no existe; no llega a medir el pie |
+| `LiveLayerDismissTest.theNoteTypedInTheSummaryIsKeptWhenTheSummaryIsClosed` | El selector `onAllNodes(hasSetTextAction()).onLast()` escribe en `finish-new-task`, no en `finish-notes`; el callback de nota no se ejecuta |
+
+Las cinco opciones ausentes proceden de `ExerciseOptionsSheet.kt:161-170`, función incompleta desde `f374c6c35`
+(16-oct), sin cambios de VT/M4b en esas rutas. El arreglo `4c6d88cd4` existe en `feat/screens-v2`, fuera de la integración
+autorizada de esta fase; no se porta ni se rebajan aserciones para ocultarlo. El selector de Notas viene de `ae890e9608`,
+anterior a los dos campos de `d5ffa3816d` (17-oct). La corrección test-only propuesta es seleccionar `finish-notes`, manteniendo
+las aserciones de persistencia/cierre. `FinishHost` sí propaga `onNotesDraft` y `pressBack` ya espera a Compose; no hay evidencia
+de una carrera asíncrona. Esto es diagnóstico estático, no aceptación física del flujo.
+
+Las tandas restantes y el JVM de integración pueden continuar. No se declara cerrada Fase 4 hasta recoger todas las tandas y R8.
+
+### Continuación secuencial de Fase 4
+
+El JVM completo de integración terminó en 27476 con 567 pruebas correctas y 15 omisiones opcionales (582 en 80 clases),
+sin fallos/errores. Se preservaron todos los XML antes de iniciar el conductor externo de las seis tandas Android restantes.
+
+`continue_vt_phase4_20261022.ps1`, SHA-256 `ada9f5052e3c898df4637da0fa69eef302971db8c7f50f8ae0404552506a1eaa`,
+verifica rama, árbol Android `c63c5adbcb2f66b3d7c885c88b4cf89a1813a8da` y ausencia de WIP de código antes y después de cada
+tanda; conserva inventarios con sus hashes, solo permite FQN concretos y detiene la secuencia ante cualquier fallo.
+El resumen atómico contiene su PID; los XML válidos se preservan incluso si Gradle falla. Fuerza solo la ejecución de la
+tarea de pruebas con `--rerun`, manteniendo las dependencias compiladas, según la
+[opción de tarea de Gradle](https://docs.gradle.org/current/userguide/command_line_interface.html#sec:builtin_task_options).
+No usa prioridad extraordinaria, ni teléfono, ni JVM/R8, ni detiene Java. Cada Gradle pasa por la cola compartida.
+
+Los primeros arranques 30812/33436/27720 no llegaron a iniciar Gradle: se corrigieron el stderr de Git mezclado con rutas,
+el intérprete (usar PowerShell 7 del entorno, no Windows PowerShell 5 con módulos ausentes) y la conversión del tercer argumento
+de `File.Replace` a cadena vacía (ahora `[NullString]::Value`, comprobado con dos escrituras reales en un temporal propio).
+El estado parcial de 27720 se preservó en `android-05-10-preflight-27720`, sin borrar evidencias. No contiene pruebas ejecutadas.
+
+El arranque vigente PID 20008 superó las guardas y ya inició Gradle para la tanda 05. Mientras siga vivo no iniciar otra corrida
+propia. Al terminar, leer `summary.json`, los logs por tanda y sus XML; no relanzar el script sobre una salida existente.
+Los fallos nuevos requieren triage antes de continuar; los seis anteriores de root01 están documentados arriba. Después de las
+tandas queda el humo R8 (`:app:assembleBaseRelease`, init `dbg-r8.init.gradle`) sin instalar mientras MM-Fit esté activo.
