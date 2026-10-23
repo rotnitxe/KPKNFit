@@ -480,11 +480,24 @@ class Cal7ManualApreRoomJourneyTest {
             assertTrue(exerciseIndex >= 0)
             val repetitions = listOf(10, 6, 9, 9)
             for (setIndex in repetitions.indices) {
+                withTimeout(20_000) {
+                    vm.uiState.first { it.recordingSetKey == null && it.calibrationActionId == null }
+                }
                 val exercise = activeSession().allExercises()[exerciseIndex]
                 val set = exercise.sets[setIndex]
+                val loadKg = if (setIndex == 3) {
+                    val suggestion = requireNotNull(vm.getWeightSuggestionWithAutoRegulation(exercise, setIndex)) {
+                        "La carga S4 debe venir de la sugerencia que consume la UI"
+                    }
+                    assertEquals("S3 120 kg × 9 debe sugerir S4 a 122,5 kg con Mann",
+                        122.5, suggestion.suggestedWeight, 0.0)
+                    suggestion.suggestedWeight
+                } else {
+                    set.weight!!
+                }
                 vm.selectExercise(exerciseIndex)
                 vm.jumpToSet(setIndex)
-                val result = vm.recordSetV2(set.weight!!, repetitions[setIndex].toDouble(), 1.0,
+                val result = vm.recordSetV2(loadKg, repetitions[setIndex].toDouble(), 1.0,
                     SetAdvancedFeedback(rir = 1), LoadModeV2.LOAD, UnitModeV2.REPS, 75.0,
                     setIdxOverride = setIndex, expectedExerciseId = exercise.id, expectedSetIdx = setIndex)
                 assertTrue("APRE S" + (setIndex + 1) + " debe entrar al grabador real: " + result,
@@ -495,13 +508,24 @@ class Cal7ManualApreRoomJourneyTest {
                         it.sourceSetId == completed.id
                     }
                     assertEquals(122.5, decision.apre!!.set4LoadKg, 0.0)
+                    val priorStatus = decision.status
+                    assertNotEquals("S3 debe esperar la acción real del ViewModel", CalibrationStatus.APPLIED, priorStatus)
+                    withTimeout(20_000) { vm.uiState.first { it.recordingSetKey == null } }
                     vm.resolveCalibrationDecision(decision.id, CalibrationStatus.APPLIED)
-                    withTimeout(20_000) { vm.uiState.first { it.calibrationActionId == null } }
+                    withTimeout(20_000) {
+                        vm.uiState.first { state ->
+                            state.calibrationActionId == null &&
+                                state.calibrationDecisions.singleOrNull { it.id == decision.id }?.status == CalibrationStatus.APPLIED
+                        }
+                    }
                     assertNull(vm.uiState.value.calibrationError)
-                    assertEquals(CalibrationStatus.APPLIED,
-                        vm.uiState.value.calibrationDecisions.single { it.id == decision.id }.status)
-                    val adjusted = activeSession().allExercises()[exerciseIndex].sets[3].weight!!
-                    assertEquals("S3 120 kg × 9 debe ajustar S4 con Mann", 122.5, adjusted, 0.0)
+                    assertEquals("El snapshot planificado sigue en 120 kg; la carga aplicada vive en la sugerencia de UI",
+                        120.0, activeSession().allExercises()[exerciseIndex].sets[3].weight!!, 0.0)
+                    val suggestion = requireNotNull(vm.getWeightSuggestionWithAutoRegulation(
+                        activeSession().allExercises()[exerciseIndex], 3,
+                    )) { "El ViewModel debe publicar la sugerencia APRE que consume la UI" }
+                    assertEquals("S3 120 kg × 9 debe ajustar la sugerencia S4 con Mann",
+                        122.5, suggestion.suggestedWeight, 0.0)
                 }
             }
 

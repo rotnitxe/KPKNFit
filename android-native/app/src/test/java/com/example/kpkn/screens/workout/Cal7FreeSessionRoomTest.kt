@@ -67,23 +67,47 @@ class Cal7FreeSessionRoomTest {
         return vm.uiState.value.completedSets.getValue(workoutSetKey(exercise.id, setIndex))
     }
     private suspend fun resolve(vm: WorkoutViewModel, sourceId: String, status: CalibrationStatus) {
+        withTimeout(20_000) { vm.uiState.first { it.recordingSetKey == null } }
         val decisionId = vm.uiState.value.calibrationDecisions.last { it.sourceSetId == sourceId }.id
+        val before = vm.uiState.value.calibrationDecisions.single { it.id == decisionId }.status
+        assertNotEquals("La decisión debe cambiar al aplicar la acción del ViewModel", status, before)
         vm.resolveCalibrationDecision(decisionId, status)
-        withTimeout(20_000) { vm.uiState.first { it.calibrationActionId == null } }
+        withTimeout(20_000) {
+            vm.uiState.first { state ->
+                state.calibrationActionId == null &&
+                    state.calibrationDecisions.singleOrNull { it.id == decisionId }?.status == status
+            }
+        }
         assertNull(vm.uiState.value.calibrationError)
         assertEquals(status, vm.uiState.value.calibrationDecisions.single { it.id == decisionId }.status)
     }
     private suspend fun finish(fixture: LiveSessionVmFixture, vm: WorkoutViewModel): WorkoutLog {
         val sessionId = vm.uiState.value.session!!.id
+        withTimeout(20_000) {
+            vm.uiState.first { it.recordingSetKey == null && it.calibrationActionId == null }
+        }
+        // Un aviso de avance de volumen que ya abrió la sesión debe resolverse por la API de la pantalla.
+        if (vm.uiState.value.showVolumeAdvanceModal) vm.dismissVolumeAdvance()
+        withTimeout(20_000) {
+            vm.uiState.first { !it.showVolumeAdvanceModal && it.pendingVolumeAdvances.isEmpty() }
+        }
         val completionInstant = Instant.now()
         val completionDate = completionInstant.toString()
         vm.finishWorkout("Recorrido CAL7", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList(),
             completionInstantIso = completionDate))
+        withTimeout(30_000) {
+            vm.uiState.first {
+                it.logAlreadyWrittenId != null || it.isComplete || it.showVolumeAdvanceModal || it.finishWarning != null
+            }
+        }
+        assertNull("El cierre real no debe dejar un aviso de error", vm.uiState.value.finishWarning)
+        assertNotNull("El ViewModel debe publicar el ID del log durable", vm.uiState.value.logAlreadyWrittenId)
         val log = withTimeout(60_000) {
             fixture.repository.history.first { logs -> logs.any {
                 it.programId == fixture.programId && it.date == completionDate
             } }.single { it.programId == fixture.programId && it.date == completionDate }
         }
+        if (vm.uiState.value.showVolumeAdvanceModal) vm.dismissVolumeAdvance()
         withTimeout(60_000) { fixture.repository.ongoingWorkout.first { it == null } }
         assertEquals(fixture.programId, log.programId)
         assertEquals(sessionId, log.sessionId)
@@ -166,6 +190,9 @@ class Cal7FreeSessionRoomTest {
             else assertTrue(vm.uiState.value.calibrationDecisions.isEmpty())
             val log = finish(fixture, vm)
             fixture.closeAndJoin()
+            fixture.repository.flushPendingWrites()
+            awaitRepositoryScope(fixture.repository)
+            fixtures.remove(fixture)
             return log
         }
         val normal = completed(SetPurpose.NONE)
