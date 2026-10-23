@@ -246,30 +246,10 @@ internal fun AssistantTemplatesTab(
         onMineOpenChange = { mineOpen = it },
     )
     if (applyDecision != null) {
-        KpknAlertDialog(
-            onDismissRequest = onCancelApply,
-            title = {
-                Text(text = "Aplicar plantilla", style = KpknType.dialogTitle, color = WizardColors.text)
-            },
-            text = {
-                Text(
-                    text = "La sesión ya tiene ejercicios. ¿Qué deseas hacer con la plantilla «${applyDecision.template.name}»?",
-                    style = KpknType.body,
-                    color = WizardColors.textMuted,
-                )
-            },
-            confirmButton = {
-                KpknPrimaryPill(
-                    text = "Reemplazar",
-                    onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.REPLACE) },
-                )
-            },
-            dismissButton = {
-                KpknSecondaryPill(
-                    text = "Añadir al final",
-                    onClick = { onConfirmApplyTemplate(SessionTemplateApplyMode.APPEND) },
-                )
-            },
+        TemplateApplyDialog(
+            decision = applyDecision,
+            onDismiss = onCancelApply,
+            onApply = onConfirmApplyTemplate,
         )
     }
 }
