@@ -139,6 +139,8 @@ class SessionEditorRmLoadEditTest {
             rmExercise("bench", "Press de banca", reference = 100.0, weight = 75.0),
         )
         viewModel.openSupersetCreator(null, listOf("squat", "bench"))
+        // ED-D · C2: el creador único pide confirmación; la prueba sigue comprobando que crear no toca las cargas.
+        viewModel.createSupersetGroupFromDraft()
         assertNotNull(viewModel.exercise("squat").supersetGroupRef)
         assertEquals(listOf(95.0, 95.0, 95.0, 95.0), viewModel.exercise("squat").sets.map { it.weight })
         assertEquals(listOf(75.0, 75.0, 75.0, 75.0), viewModel.exercise("bench").sets.map { it.weight })

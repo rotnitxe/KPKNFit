@@ -110,22 +110,26 @@ class SessionEditorEmptySpacesTest {
     }
 
     @Test
-    fun laColocacionSoloExisteConLosDosEspaciosYSinEjercicios() {
+    fun laColocacionEsElUnicoControlConLosDosEspacios() {
         val both = buildSessionListItems(empty(), showStrengthDivider = true, cardioSpaceCommitted = true, cardioAtStart = false)
 
         assertEquals(SessionListItem.CardioPlacement, both[1])
         val cardioDivider = both.filterIsInstance<SessionListItem.CardioDivider>().single()
         val strengthDivider = both.filterIsInstance<SessionListItem.StrengthDivider>().single()
-        assertTrue(cardioDivider.canMove)
-        assertTrue(strengthDivider.canMove)
+        // Un solo control: el selector está a la vista y los rótulos de Fuerza y Cardio no ofrecen «Mover…».
+        assertFalse(cardioDivider.canMove)
+        assertFalse(strengthDivider.canMove)
 
         // Solo uno de los dos espacios: no hay colocación.
         assertTrue(buildSessionListItems(empty(), showStrengthDivider = true).none { it is SessionListItem.CardioPlacement })
         assertTrue(buildSessionListItems(empty(), cardioSpaceCommitted = true).none { it is SessionListItem.CardioPlacement })
 
-        // Con ejercicios, la colocación se mueve desde el rótulo del cardio, no con el control de la sesión vacía.
+        // Con ejercicios el selector sigue siendo el único control: la función de mover no se pierde.
         val populated = Session(id = "s", name = "Con ejercicios", exercises = listOf(strength("e1")))
-        assertTrue(buildSessionListItems(populated, cardioSpaceCommitted = true).none { it is SessionListItem.CardioPlacement })
+        val populatedItems = buildSessionListItems(populated, cardioSpaceCommitted = true)
+        assertTrue(populatedItems.any { it is SessionListItem.CardioPlacement })
+        assertTrue(populatedItems.filterIsInstance<SessionListItem.CardioDivider>().none { it.canMove })
+        assertTrue(populatedItems.filterIsInstance<SessionListItem.StrengthDivider>().none { it.canMove })
     }
 
     @Test

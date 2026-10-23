@@ -127,14 +127,18 @@ internal fun CardioIntervalsEditor(
             Column(modifier = Modifier.weight(1f)) {
                 Text("Circuitos / Intervalos", style = KpknType.bodyStrong, color = WizardColors.text)
                 Text(
-                    if (hasIntervals) "${details.intervalBlocks.size} bloques · ${details.intervalRounds} ronda(s) · ${formatMinutes(details.totalIntervalSeconds())}"
-                    else "Programa velocidades por tramos y pirámides",
+                    if (hasIntervals) {
+                        val rounds = details.intervalRounds
+                        "${details.intervalBlocks.size} bloques · $rounds ${if (rounds == 1) "ronda" else "rondas"} · ${formatMinutes(details.totalIntervalSeconds())}"
+                    } else {
+                        "Programa velocidades por tramos y pirámides"
+                    },
                     style = KpknType.caption,
                     color = WizardColors.textMuted,
                 )
             }
             Text(
-                "Modo intervalos",
+                "MODO INTERVALOS",
                 style = KpknType.eyebrow,
                 color = WizardColors.text,
             )

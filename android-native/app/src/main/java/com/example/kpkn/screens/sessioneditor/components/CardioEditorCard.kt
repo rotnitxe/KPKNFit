@@ -39,7 +39,6 @@ import com.example.kpkn.data.models.CardioCatalog
 import com.example.kpkn.data.models.CardioDetails
 import com.example.kpkn.data.models.CardioFeaturedTemplate
 import com.example.kpkn.data.models.CardioFeaturedTemplates
-import com.example.kpkn.data.models.CardioHiitConfig
 import com.example.kpkn.data.models.CardioHiitTemplates
 import com.example.kpkn.data.models.CardioIntensity
 import com.example.kpkn.data.models.HiitProtocol
@@ -1012,37 +1011,100 @@ private fun CardioAdvancedPanel(
                         onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(restNature = next)))
                     },
                 )
+            }
+            // C5 · El objetivo de cada esfuerzo: tiempo (el de arriba), kcal o distancia. Cambiarlo no inventa una cifra: la
+            // que hubiera se conserva y la celda de abajo la pone quien programa.
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("OBJETIVO DE TRABAJO", style = KpknType.eyebrow, color = WizardColors.textMuted)
+                KpknSegmentedControl(
+                    options = listOf("Tiempo", "kcal", "Distancia"),
+                    selectedIndex = when (uniform.workTargetType) {
+                        HiitWorkTarget.TIME -> 0
+                        HiitWorkTarget.KCAL -> 1
+                        HiitWorkTarget.DISTANCE -> 2
+                    },
+                    onSelect = { index ->
+                        val target = when (index) {
+                            1 -> HiitWorkTarget.KCAL
+                            2 -> HiitWorkTarget.DISTANCE
+                            else -> HiitWorkTarget.TIME
+                        }
+                        onChange(CardioRepeatGrammar.applyUniform(details, uniform.copy(workTargetType = target)))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    "Con kcal o distancia, cada esfuerzo termina al llegar a la cifra. Por defecto, el tiempo de arriba.",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 CardioMagnitudeCell(
-                    label = "kcal/bloque",
+                    label = "kcal por esfuerzo",
                     value = if (uniform.workTargetType == HiitWorkTarget.KCAL) "${uniform.workTargetValue?.toInt() ?: 0}" else "—",
                     unit = null,
                     onClick = { onOpenPicker(CardioEditorPicker.WORK_KCAL) },
-                    modifier = Modifier.width(144.dp),
+                    modifier = Modifier.weight(1f),
                 )
                 CardioMagnitudeCell(
-                    label = "m/bloque",
+                    label = "m por esfuerzo",
                     value = if (uniform.workTargetType == HiitWorkTarget.DISTANCE) "${uniform.workTargetValue?.toInt() ?: 0}" else "—",
                     unit = null,
                     onClick = { onOpenPicker(CardioEditorPicker.WORK_METERS) },
-                    modifier = Modifier.width(144.dp),
+                    modifier = Modifier.weight(1f),
                 )
             }
-            val config = details.hiit ?: CardioHiitConfig()
+        }
+
+        // C4 · Los avisos del cardio. Los de fase (pitos, voz y vibración) son del protocolo por series: sin protocolo no hay
+        // cambio de fase que avisar, así que se muestran apagados. La pantalla encendida vale para cualquier cardio.
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("AVISOS Y PANTALLA", style = KpknType.eyebrow, color = WizardColors.textMuted)
+            val config = details.hiit
+            val hasProtocol = config != null
+            val beepsOn = config?.beepsEnabled ?: true
+            val voiceOn = config?.voiceCuesEnabled ?: true
+            val vibrationOn = config?.vibrationEnabled ?: true
+            val keepScreenOn = details.keepScreenOn && (config?.keepScreenOn != false)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 KpknChip(
                     text = "Beeps",
-                    selected = config.beepsEnabled,
-                    onClick = { onChange(details.copy(hiit = config.copy(beepsEnabled = !config.beepsEnabled))) },
+                    selected = beepsOn,
+                    enabled = hasProtocol,
+                    onClick = { onChange(details.copy(hiit = config?.copy(beepsEnabled = !beepsOn))) },
                 )
                 KpknChip(
                     text = "Voz",
-                    selected = config.voiceCuesEnabled,
-                    onClick = { onChange(details.copy(hiit = config.copy(voiceCuesEnabled = !config.voiceCuesEnabled))) },
+                    selected = voiceOn,
+                    enabled = hasProtocol,
+                    onClick = { onChange(details.copy(hiit = config?.copy(voiceCuesEnabled = !voiceOn))) },
                 )
                 KpknChip(
                     text = "Vibra",
-                    selected = config.vibrationEnabled,
-                    onClick = { onChange(details.copy(hiit = config.copy(vibrationEnabled = !config.vibrationEnabled))) },
+                    selected = vibrationOn,
+                    enabled = hasProtocol,
+                    onClick = { onChange(details.copy(hiit = config?.copy(vibrationEnabled = !vibrationOn))) },
+                )
+                KpknChip(
+                    text = "Pantalla encendida",
+                    selected = keepScreenOn,
+                    onClick = {
+                        val next = !keepScreenOn
+                        onChange(
+                            details.copy(
+                                keepScreenOn = next,
+                                hiit = details.hiit?.copy(keepScreenOn = next),
+                            ),
+                        )
+                    },
+                )
+            }
+            if (!hasProtocol) {
+                Text(
+                    "Los avisos de fase son del cardio por series.",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
                 )
             }
         }
