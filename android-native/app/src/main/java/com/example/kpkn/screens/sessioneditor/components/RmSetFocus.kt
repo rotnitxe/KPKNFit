@@ -71,7 +71,8 @@ internal fun RmSetFocus(
         SetLoadTypeControl(set = set, onUpdate = onUpdate)
         if (fixedUnilateralSide != null) {
             val side = if (fixedUnilateralSide == "L") set.leftTarget else set.rightTarget
-            Text("$fixedUnilateralSide · " + (side?.weight?.let { "${formatEditableNumber(it).replace('.', ',')}\u00a0kg" } ?: "Sin carga programada"),
+            val effectiveSideLoad = side?.weight ?: weight
+            Text("$fixedUnilateralSide · " + (effectiveSideLoad?.let { "${formatEditableNumber(it).replace('.', ',')}\u00a0kg" } ?: "Sin carga programada"),
                 style = KpknType.bodyStrong, color = WizardColors.text,
                 modifier = Modifier.semantics { contentDescription = "Carga del lado $fixedUnilateralSide" })
             Text("El porcentaje y la referencia se aplican a los dos lados.", style = KpknType.caption, color = WizardColors.textMuted)
