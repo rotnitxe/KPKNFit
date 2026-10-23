@@ -20,7 +20,9 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
 
@@ -63,6 +65,7 @@ internal class LiveSessionVmFixture(
     private val weekId = "lv4-week"
     lateinit var repository: ProgramRepository
         private set
+    val preparedRepository: ProgramRepository? get() = if (::repository.isInitialized) repository else null
     private val opened = mutableListOf<WorkoutViewModel>()
 
     suspend fun prepare(): LiveSessionVmFixture {
@@ -120,7 +123,7 @@ internal class LiveSessionVmFixture(
     /** «Recrear el proceso»: lo pendiente se guarda, el ViewModel muere y otro nuevo hidrata lo que quedó en Room. */
     suspend fun recreate(vm: WorkoutViewModel): WorkoutViewModel {
         vm.flushOngoingForBackgroundAndAwait()
-        vm.viewModelScope.cancel()
+        vm.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
         opened.remove(vm)
         return open()
     }
@@ -139,6 +142,12 @@ internal class LiveSessionVmFixture(
     fun close() {
         opened.forEach { runCatching { it.viewModelScope.cancel() } }
         opened.clear()
+    }
+
+    suspend fun closeAndJoin() {
+        val viewModels = opened.toList()
+        close()
+        viewModels.forEach { it.viewModelScope.coroutineContext[Job]?.cancelAndJoin() }
     }
 
     companion object {
