@@ -7,7 +7,10 @@ import com.example.kpkn.domain.calculations.percentLoadKg
 /** Per-exercise capacities backed by the existing JSON pool. No TM is inferred at an editing boundary. */
 object ExerciseTrainingMax {
     fun exercises(program: Program): List<Exercise> = program.macrocycles.flatMap { it.blocks }
-        .flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }.flatMap { it.allExercises() }
+        .flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }.flatMap(::sessionExercises)
+
+    private fun sessionExercises(session: Session): List<Exercise> = session.allExercises() +
+        listOfNotNull(session.sessionB, session.sessionC, session.sessionD).flatMap(::sessionExercises)
 
     fun request(exercise: Exercise, kind: PlanLoadReferenceKind): PlanLoadReference? {
         val config = exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: return null
@@ -67,7 +70,8 @@ object ExerciseTrainingMax {
                     metadata = PlanLoadReferenceMetadata(
                         origin = if (fromProfile) ExerciseLoadReferenceStore.LEGACY_PROFILE
                             else if (exercise.loadReference != null) "EXPLICIT_REFERENCE"
-                            else ExerciseLoadReferenceStore.MATERIALIZED_RECIPE,
+                            else if (authoredLift(program, exercise) != null) ExerciseLoadReferenceStore.MATERIALIZED_RECIPE
+                            else "EXISTING_PRESCRIPTION",
                         reason = if (fromProfile) "Referencia conservada del perfil anterior" else "Referencia ya presente en la prescripción",
                         sourceId = "migration:${program.id}:${exercise.id}:$kind",
                         tmFraction = program.sourceRecipe?.trainingMaxPercent?.takeIf { it.isFinite() && it > 0.0 },
@@ -83,7 +87,7 @@ object ExerciseTrainingMax {
         nowMs: Long, sourceId: String, reason: String, origin: String = ExerciseLoadReferenceStore.MANUAL): Program {
         require(kind == PlanLoadReferenceKind.EXERCISE_TM || kind == PlanLoadReferenceKind.EXERCISE_1RM)
         require(kg.isFinite() && kg > 0.0)
-        val query = request(exercise, kind) ?: return program
+        val query = requireNotNull(request(exercise, kind)) { "El ejercicio necesita una configuración exacta para guardar su referencia" }
         val current = migrate(program)
         val targetIds = exercises(current).filter { candidate -> request(candidate, kind)?.let {
             ExerciseLoadReferenceStore.sameIdentity(it, query) } == true }.mapTo(mutableSetOf()) { it.id } + exercise.id
@@ -196,6 +200,14 @@ object ExerciseTrainingMax {
         referenceTrainingMax = hydratedKg(program, exercise, PlanLoadReferenceKind.EXERCISE_TM, exercise.referenceTrainingMax),
     )
 
+    fun hydrateSession(program: Program, session: Session): Session = session.copy(
+        exercises = session.exercises.map { hydrate(program, it) },
+        parts = session.parts.map { part -> part.copy(exercises = part.exercises.map { hydrate(program, it) }) },
+        sessionB = session.sessionB?.let { hydrateSession(program, it) },
+        sessionC = session.sessionC?.let { hydrateSession(program, it) },
+        sessionD = session.sessionD?.let { hydrateSession(program, it) },
+    )
+
     /** Pending, unprotected prescriptions only. Existing manual-session and executed evidence are authoritative. */
     fun refreshPending(program: Program, executedWeekIds: Set<String>, executedSessionIds: Set<String>): Program {
         val frozen = program.manualSessionOverrides.mapTo(mutableSetOf()) { it.sessionId } + executedSessionIds
@@ -215,11 +227,17 @@ object ExerciseTrainingMax {
                 }
             })
         }
+        fun refreshSession(session: Session): Session = if (session.id in frozen) session else session.copy(
+            exercises = session.exercises.map(::refresh),
+            parts = session.parts.map { it.copy(exercises = it.exercises.map(::refresh)) },
+            sessionB = session.sessionB?.let(::refreshSession),
+            sessionC = session.sessionC?.let(::refreshSession),
+            sessionD = session.sessionD?.let(::refreshSession),
+        )
         return program.copy(macrocycles = program.macrocycles.map { macro -> macro.copy(blocks = macro.blocks.map { block ->
             block.copy(mesocycles = block.mesocycles.map { meso -> meso.copy(weeks = meso.weeks.map { week ->
                 if (week.id in executedWeekIds) week else week.copy(sessions = week.sessions.map { session ->
-                    if (session.id in frozen) session else session.copy(exercises = session.exercises.map(::refresh),
-                        parts = session.parts.map { it.copy(exercises = it.exercises.map(::refresh)) })
+                    refreshSession(session)
                 })
             }) })
         }) })
