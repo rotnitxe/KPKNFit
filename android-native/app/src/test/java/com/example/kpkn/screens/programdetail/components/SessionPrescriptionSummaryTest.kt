@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.LoadQuantityConvention
 import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.PlanLoadReference
 import com.example.kpkn.data.protocols.PlanLoadReferenceKind
@@ -23,10 +24,13 @@ class SessionPrescriptionSummaryTest {
         descanso: Int? = null,
         referencia: PlanLoadReference? = null,
         convencion: LoadQuantityConvention = LoadQuantityConvention.UNSPECIFIED,
+        modo: TrainingMode = TrainingMode.REPS,
+        customUnit: String? = null,
     ) = Exercise(
         id = "ej",
         name = "Ejercicio",
-        trainingMode = TrainingMode.REPS,
+        trainingMode = modo,
+        customUnit = customUnit,
         sets = sets.toList(),
         restTime = descanso,
         loadReference = referencia,
@@ -49,6 +53,102 @@ class SessionPrescriptionSummaryTest {
     fun tiempoPorSerieVaConSuUnidadYSuDescanso() {
         val sets = (1..3).map { ExerciseSet(id = "s$it", targetDuration = 40) }
         assertEquals("3 × 40${nbsp}s · 45${nbsp}s", formatExercisePrescription(ejercicio(*sets.toTypedArray(), descanso = 45)))
+    }
+
+    @Test
+    fun laUnidadActivaEnResumenEvitaRepeticionesYCargaResiduales() {
+        val timeSets = (1..3).map {
+            ExerciseSet(
+                id = "time-$it",
+                targetRepsRange = RepRange(6, 10),
+                targetDuration = 45,
+                plannedTargetV2 = 400.0,
+                weight = 84.0,
+                targetRIR = 2,
+                targetRPE = 9.0,
+                targetPercentageRM = 80.0,
+                intensityMode = IntensityMode.RPE,
+                loadBasis = LoadBasis.PERCENT_1RM,
+                unitModeV2 = UnitModeV2.TIME,
+            )
+        }
+        val distanceSets = timeSets.map { it.copy(id = "distance-${it.id}", unitModeV2 = UnitModeV2.DISTANCE, intensityMode = IntensityMode.RIR) }
+        val ambiguousTimeSets = timeSets.map { it.copy(id = "ambiguous-${it.id}", intensityMode = null) }
+        val customSets = timeSets.map {
+            it.copy(id = "custom-${it.id}", plannedTargetV2 = 12.0, unitModeV2 = UnitModeV2.CUSTOM, intensityMode = IntensityMode.FAILURE)
+        }
+        val repsSets = timeSets.map {
+            it.copy(
+                id = "reps-${it.id}",
+                plannedTargetV2 = null,
+                weight = null,
+                targetPercentageRM = null,
+                loadBasis = null,
+                intensityMode = IntensityMode.RIR,
+                unitModeV2 = UnitModeV2.REPS,
+            )
+        }
+
+        assertEquals(
+            "3 × 45${nbsp}s · RPE 9 · 2:00",
+            formatExercisePrescription(ejercicio(*timeSets.toTypedArray(), descanso = 120, modo = TrainingMode.TIME)),
+        )
+        assertEquals(
+            "3 × 45${nbsp}s · 2:00",
+            formatExercisePrescription(ejercicio(*ambiguousTimeSets.toTypedArray(), descanso = 120, modo = TrainingMode.TIME)),
+        )        assertEquals(
+            "3 × 400${nbsp}m · RIR 2 · 2:00",
+            formatExercisePrescription(ejercicio(*distanceSets.toTypedArray(), descanso = 120, modo = TrainingMode.DISTANCE)),
+        )
+        assertEquals(
+            "3 × 6–10 · RIR 2 · 2:00",
+            formatExercisePrescription(ejercicio(*repsSets.toTypedArray(), descanso = 120, modo = TrainingMode.REPS)),
+        )
+        assertEquals(
+            "3 × 12${nbsp}pasos · hasta el fallo · 2:00",
+            formatExercisePrescription(ejercicio(*customSets.toTypedArray(), descanso = 120, modo = TrainingMode.CUSTOM, customUnit = "pasos")),
+        )
+    }
+
+    @Test
+    fun modosRpeYRmConservanLaIntensidadDeFuerza() {
+        val soloRpeSets = (1..3).map {
+            ExerciseSet(
+                id = "rpe-$it",
+                targetRepsRange = RepRange(6, 10),
+                targetRPE = 9.0,
+                targetRIR = 2,
+                targetPercentageRM = 80.0,
+                intensityMode = IntensityMode.RPE,
+                weight = 84.0,
+                unitModeV2 = UnitModeV2.REPS,
+            )
+        }
+        val rmSets = (1..3).map {
+            ExerciseSet(
+                id = "rm-$it",
+                targetRepsRange = RepRange(6, 10),
+                targetPercentageRM = 80.0,
+                loadBasis = LoadBasis.PERCENT_1RM,
+                weight = 84.0,
+                targetRIR = 2,
+                unitModeV2 = UnitModeV2.REPS,
+            )
+        }
+
+        assertEquals(
+            "3 series · RPE 9 · 2:00",
+            formatExercisePrescription(ejercicio(*soloRpeSets.toTypedArray(), descanso = 120, modo = TrainingMode.SOLO_RPE)),
+        )
+        val rmTmSets = rmSets.map { it.copy(loadBasis = LoadBasis.PERCENT_TM) }
+        assertEquals(
+            "3 × 6–10 · 84${nbsp}kg · 80${nbsp}% TM · RIR 2 · 2:00",
+            formatExercisePrescription(ejercicio(*rmTmSets.toTypedArray(), descanso = 120, modo = TrainingMode.RM)),
+        )
+        assertEquals(
+            "3 × 6–10 · 84${nbsp}kg · 80${nbsp}% 1RM · RIR 2 · 2:00",
+            formatExercisePrescription(ejercicio(*rmSets.toTypedArray(), descanso = 120, modo = TrainingMode.RM)),
+        )
     }
 
     @Test

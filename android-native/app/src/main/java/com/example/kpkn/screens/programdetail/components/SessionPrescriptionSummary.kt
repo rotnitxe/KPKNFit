@@ -2,9 +2,14 @@ package com.example.kpkn.screens.programdetail.components
 
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadQuantityConvention
+import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.effectiveRepRange
+import com.example.kpkn.data.models.resolveUnitModeV2
+import com.example.kpkn.data.models.toUnitModeV2
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.training.NativeProgressionText
 import com.example.kpkn.ui.design.KpknSetFormat
@@ -29,45 +34,98 @@ internal fun formatExercisePrescription(exercise: Exercise): String? {
     if (sets.isEmpty() && reference == null) return null
 
     val first = sets.firstOrNull()
-    val reps = first?.effectiveRepRange()?.format()
-    val duration = first?.targetDuration?.takeIf { it > 0 }?.let { KpknSetFormat.doseTime(it) }
-    val volume = duration ?: reps
-    // «4 × 6–8» o «3 × 40 s». Sin repeticiones ni duración no se escribe la cruz colgando: solo el número de series.
+    val unit = sets.map { it.resolveUnitModeV2(exercise.trainingMode) }.distinct().singleOrNull()
+    val volume = when (unit) {
+        UnitModeV2.TIME -> commonTimeTarget(sets)?.let { KpknSetFormat.doseTime(it) }
+        UnitModeV2.DISTANCE -> formatQuantityRange(sets, "m")
+        UnitModeV2.CUSTOM -> formatQuantityRange(sets, exercise.customUnit?.takeIf { it.isNotBlank() } ?: "u")
+        UnitModeV2.REPS -> when (exercise.trainingMode) {
+            TrainingMode.SOLO_RPE -> null
+            else -> first?.effectiveRepRange()?.format()
+        }
+        null -> null
+    }
+    // Si hay modos mezclados o falta la cantidad del modo activo, no reciclar una dosis residual.
     val dose = when {
         sets.isEmpty() -> null
         volume == null -> if (sets.size == 1) "1 serie" else "${sets.size} series"
         else -> "${sets.size} × $volume"
     }
+    val usesRepMode = if (sets.isEmpty()) {
+        exercise.trainingMode.toUnitModeV2() == UnitModeV2.REPS
+    } else {
+        unit == UnitModeV2.REPS
+    }
+
     val parts = mutableListOf<String>()
     dose?.let { parts += it }
 
-    // La carga: los kilos si se conocen; si no, el % con su base. Una carga pendiente no tiene dato que escribir: se omite.
-    val percent = first?.targetPercentageRM
-    val explicitWeight = first?.weight ?: reference?.capturedLoadKg
+    // La carga se muestra sólo en modos de fuerza; RM conserva también el porcentaje y su base.
+    val usesFixedLoadMode = usesRepMode && exercise.trainingMode != TrainingMode.SOLO_RPE
+    val percent = first?.targetPercentageRM.takeIf { usesFixedLoadMode }
+    val explicitWeight = if (usesFixedLoadMode) first?.weight ?: reference?.capturedLoadKg else null
     val convention = first?.loadQuantityConvention
         ?.takeIf { it != LoadQuantityConvention.UNSPECIFIED }
         ?: exercise.loadQuantityConvention
-    val load = when {
-        explicitWeight != null -> "${NativeProgressionText.formatKg(explicitWeight)}${NBSP}kg${conventionLabel(convention)}"
-        percent != null -> "${NativeProgressionText.formatKg(percent)}$NBSP%${basisLabel(first?.loadBasis)}"
-        else -> null
+    explicitWeight?.let {
+        parts += "${NativeProgressionText.formatKg(it)}${NBSP}kg${conventionLabel(convention)}"
     }
-    load?.let { parts += it }
+    if (percent != null && (explicitWeight == null || exercise.trainingMode == TrainingMode.RM)) {
+        parts += "${NativeProgressionText.formatKg(percent)}$NBSP%${basisLabel(first?.loadBasis)}"
+    }
 
-    val rir = sets.mapNotNull { it.targetRIR }.distinct().singleOrNull()
-    val rpe = sets.mapNotNull { it.targetRPE }.distinct().singleOrNull()
-    when {
-        rir != null -> parts += "RIR $rir"
-        rpe != null -> parts += "RPE ${NativeProgressionText.formatKg(rpe)}"
-        sets.any { it.purpose.isAmrap } -> parts += "AMRAP"
-        sets.isNotEmpty() && sets.all { it.isFailure || it.intensityMode == IntensityMode.FAILURE } -> parts += "hasta el fallo"
-    }
+    val intensity = sets.map { plannedIntensityLabel(it, exercise.trainingMode) }.distinct().singleOrNull()
+    intensity?.let { parts += it }
     // El descanso va solo con su tiempo, como en el editor: «3:15» o «45 s».
     val rest = first?.restAfterSeconds ?: exercise.restTime
     rest?.takeIf { it > 0 }?.let { parts += KpknSetFormat.doseTime(it) }
-    if (exercise.slotRole == com.example.kpkn.data.protocols.SlotRole.SPEED) parts += "Velocidad"
+    if (usesRepMode && exercise.slotRole == com.example.kpkn.data.protocols.SlotRole.SPEED) parts += "Velocidad"
 
     return parts.joinToString(" · ").ifBlank { null }
+}
+
+private fun plannedIntensityLabel(set: ExerciseSet, trainingMode: TrainingMode): String? {
+    if (trainingMode == TrainingMode.SOLO_RPE) {
+        return set.targetRPE?.let { "RPE ${NativeProgressionText.formatKg(it)}" }
+    }
+    val mode = set.intensityMode ?: when {
+        set.isFailure -> IntensityMode.FAILURE
+        set.targetRIR != null && set.targetRPE == null -> IntensityMode.RIR
+        set.targetRPE != null && set.targetRIR == null -> IntensityMode.RPE
+        set.purpose.isAmrap -> IntensityMode.AMRAP
+        else -> null
+    } ?: return null
+    return when (mode) {
+        IntensityMode.RPE -> set.targetRPE?.let { "RPE ${NativeProgressionText.formatKg(it)}" }
+        IntensityMode.RIR -> set.targetRIR?.let { "RIR $it" }
+        IntensityMode.FAILURE -> "hasta el fallo"
+        IntensityMode.AMRAP -> "AMRAP"
+        IntensityMode.SOLO_RM, IntensityMode.LOAD -> null
+    }
+}
+private fun commonTimeTarget(sets: List<ExerciseSet>): Int? {
+    if (sets.isEmpty()) return null
+    val targets = sets.map { set ->
+        set.targetDuration?.takeIf { it > 0 } ?: set.plannedTargetV2?.toInt()?.takeIf { it > 0 }
+    }
+    if (targets.any { it == null }) return null
+    return targets.filterNotNull().distinct().singleOrNull()
+}
+
+private fun formatQuantityRange(
+    sets: List<ExerciseSet>,
+    unit: String,
+): String? {
+    val values = sets.mapNotNull { it.plannedTargetV2?.takeIf { value -> value.isFinite() } }
+    if (values.size != sets.size) return null
+    val low = values.minOrNull() ?: return null
+    val high = values.maxOrNull() ?: return null
+    val range = if (low == high) {
+        NativeProgressionText.formatKg(low)
+    } else {
+        "${NativeProgressionText.formatKg(low)}–${NativeProgressionText.formatKg(high)}"
+    }
+    return "$range${NBSP}$unit"
 }
 
 /** La base del % en la línea: «80 % 1RM», «80 % TM»… Sin base declarada no se inventa ninguna. */
