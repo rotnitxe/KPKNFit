@@ -114,6 +114,22 @@ class LiveFichaHeadingRegressionTest {
             "El historial recorrió la ficha y sigue visible bajo el título fijo",
             finalHistoryTop < initialHistoryTop - 20f * screenDensity.density,
         )
+        scrollable.performSemanticsAction(SemanticsActions.ScrollBy) {
+            it(0f, screenDensity.density * 32f)
+        }
+        rule.waitForIdle()
+        val headingAfterExtraScroll = fixedHeading.fetchSemanticsNode().boundsInRoot
+        val historyAfterExtraScroll = history.fetchSemanticsNode().boundsInRoot
+        assertTrue(
+            "Tras 32 dp extra, el historial aún empieza debajo del título: " +
+                "heading=$headingAfterExtraScroll history=$historyAfterExtraScroll",
+            headingAfterExtraScroll.bottom <= historyAfterExtraScroll.top,
+        )
+        assertTrue(
+            "Tras 32 dp extra, alguna parte del historial sigue en el viewport",
+            historyAfterExtraScroll.bottom > headingAfterExtraScroll.bottom,
+        )
+        history.assertIsDisplayed()
     }
 
     private fun assertHistoryBelowHeading(fontScale: Float) {
