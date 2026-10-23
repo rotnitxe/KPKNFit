@@ -2264,7 +2264,7 @@ class ProgramDetailViewModelTest {
     @Test
     fun recordPendingOneRmTest_updates_the_profile_and_recalculates_the_weeks_after_the_test() = runBlocking {
         val id = nextId()
-        val program = oneRmGateProgram(id)
+        val program = com.example.kpkn.domain.training.ExerciseTrainingMax.migrate(oneRmGateProgram(id))
         repository.addProgram(program)
         trainedLogs(program, weeksOf(program).first()).forEach { repository.addWorkoutLog(it) }
         repository.flushPendingWrites()
@@ -2291,33 +2291,88 @@ class ProgramDetailViewModelTest {
             assertEquals("ola, semana $index", 0.70 * 189.0, t1Weight(weeks[index], CatalogIds.SQ_LOW), 1e-6)
             assertEquals(0.70 * 112.5, t1Weight(weeks[index], CatalogIds.BP), 1e-6)
         }
+        val exercise = com.example.kpkn.domain.training.ExerciseTrainingMax.exercises(saved)
+            .first { it.catalogConfigurationId == CatalogIds.SQ_LOW }
+        val reference = com.example.kpkn.domain.training.ExerciseTrainingMax.resolved(saved, exercise,
+            com.example.kpkn.data.protocols.PlanLoadReferenceKind.EXERCISE_1RM)!!
+        assertEquals(210.0, reference.capturedLoadKg!!, 0.0)
+        assertEquals("TEST", reference.metadata!!.origin)
+        assertNotNull(reference.capturedAtMs)
+        assertTrue(reference.metadata!!.reason!!.contains("test"))
         assertTrue(saved.macrocycles.flatMap { it.blocks }.none { it.materializationPending })
     }
 
     @Test
-    fun recordPendingOneRmTest_keeps_the_blocks_pending_when_the_weeks_cannot_be_rebuilt() = runBlocking {
+    fun recordPendingOneRmTest_failureKeepsProfilePoolCursorAndWeeksThenRetrySucceeds() = runBlocking {
         val id = nextId()
-        repository.addProgram(oneRmGateProgram(id))
+        repository.addProgram(com.example.kpkn.domain.training.ExerciseTrainingMax.migrate(oneRmGateProgram(id)))
         repository.flushPendingWrites()
         val before = repository.getProgramById(id)!!
         val vm = vmFor(id)
-
         val installed = CompositionMetadataHolder.current
         CompositionMetadataHolder.current = null
         try {
             vm.recordPendingOneRmTest(210.0, 125.0, 230.0)
-        } finally {
-            CompositionMetadataHolder.current = installed
-        }
+            assertTrue(awaitSnackbar(vm).startsWith("No se pudo guardar el test"))
+        } finally { CompositionMetadataHolder.current = installed }
+        assertEquals(before, repository.getProgramById(id))
+        assertEquals(PendingProgramActionType.CONFIRM_1RM_TEST, repository.getProgramById(id)!!.runState!!.pendingAction!!.type)
+        vm.consumeSnackbarMessage()
+        vm.recordPendingOneRmTest(210.0, 125.0, 230.0)
+        assertTrue(awaitSnackbar(vm).startsWith("1RM registrado"))
+        assertEquals(189.0, repository.getProgramById(id)!!.powerliftingProfile!!.squatTM!!, 0.0)
+        assertNull(repository.getProgramById(id)!!.runState!!.pendingAction)
+    }
 
-        assertEquals(
-            "1RM registrado. TM actualizado. Las cargas nuevas se aplican al pulsar «Re-materializar».",
-            awaitSnackbar(vm),
-        )
-        val saved = repository.getProgramById(id)!!
-        assertEquals("los 1RM se guardaron igual", 189.0, saved.powerliftingProfile!!.squatTM!!, 1e-9)
-        assertEquals("las semanas no se tocaron", weeksOf(before), weeksOf(saved))
-        assertTrue(saved.macrocycles.flatMap { it.blocks }.all { it.materializationPending })
+    @Test
+    fun recordPendingOneRmTest_roomFailureNeverPublishesAndRetryCommitsTheSameTest() = runBlocking {
+        val id = nextId()
+        repository.addProgram(com.example.kpkn.domain.training.ExerciseTrainingMax.migrate(oneRmGateProgram(id)))
+        repository.flushPendingWrites()
+        val before = repository.getProgramById(id)!!
+        val beforeRow = repository.databaseForTests().programDao().getById(id)!!
+        val vm = vmFor(id)
+        val db = repository.databaseForTests().openHelper.writableDatabase
+        db.execSQL("CREATE TRIGGER fail_test_insert BEFORE INSERT ON programs BEGIN SELECT RAISE(ABORT, 'test'); END")
+        db.execSQL("CREATE TRIGGER fail_test_update BEFORE UPDATE ON programs BEGIN SELECT RAISE(ABORT, 'test'); END")
+        vm.recordPendingOneRmTest(210.0,125.0,230.0)
+        assertTrue(awaitSnackbar(vm).startsWith("No se pudo guardar el test"))
+        assertEquals(before,repository.getProgramById(id))
+        assertEquals(beforeRow,repository.databaseForTests().programDao().getById(id))
+        db.execSQL("DROP TRIGGER fail_test_insert"); db.execSQL("DROP TRIGGER fail_test_update")
+        vm.consumeSnackbarMessage()
+        vm.recordPendingOneRmTest(210.0,125.0,230.0)
+        assertTrue(awaitSnackbar(vm).startsWith("1RM registrado"))
+        assertEquals(210.0,repository.getProgramById(id)!!.powerliftingProfile!!.squat1RM!!,0.0)
+        assertNotEquals(beforeRow,repository.databaseForTests().programDao().getById(id))
+    }
+
+    @Test
+    fun perExerciseTmAwaitFailureKeepsValuePoolAndWeeksAndRetryIsDurable() = runBlocking {
+        val id = nextId()
+        repository.addProgram(com.example.kpkn.domain.training.ExerciseTrainingMax.migrate(oneRmGateProgram(id)))
+        repository.flushPendingWrites()
+        val before = repository.getProgramById(id)!!
+        val exercise = com.example.kpkn.domain.training.ExerciseTrainingMax.exercises(before).first()
+        val vm = vmFor(id)
+        val installed = CompositionMetadataHolder.current
+        CompositionMetadataHolder.current = null
+        try { assertTrue(vm.updateExerciseTrainingMaxAndAwait(exercise.id,195.0).isFailure) }
+        finally { CompositionMetadataHolder.current = installed }
+        assertEquals(before,repository.getProgramById(id))
+        val db = repository.databaseForTests().openHelper.writableDatabase
+        db.execSQL("CREATE TRIGGER fail_detail_insert BEFORE INSERT ON programs BEGIN SELECT RAISE(ABORT, 'detail'); END")
+        db.execSQL("CREATE TRIGGER fail_detail_update BEFORE UPDATE ON programs BEGIN SELECT RAISE(ABORT, 'detail'); END")
+        assertTrue(vm.updateExerciseTrainingMaxAndAwait(exercise.id,195.0).isFailure)
+        assertEquals(before,repository.getProgramById(id))
+        db.execSQL("DROP TRIGGER fail_detail_insert"); db.execSQL("DROP TRIGGER fail_detail_update")
+        assertTrue(vm.updateExerciseTrainingMaxAndAwait(exercise.id,195.0).isSuccess)
+        val after = repository.getProgramById(id)!!
+        assertEquals(195.0,com.example.kpkn.domain.training.ExerciseTrainingMax.capturedKg(after,exercise,
+            com.example.kpkn.data.protocols.PlanLoadReferenceKind.EXERCISE_TM)!!,0.0)
+        val row = repository.databaseForTests().programDao().getById(id)!!
+        assertTrue(row.data.contains("195"))
+        assertNotEquals(before.exerciseLoadReferences,after.exerciseLoadReferences)
     }
 
     @Test
@@ -2606,6 +2661,7 @@ class ProgramDetailViewModelTest {
         // 1RM de sentadilla 210 (TM 189); el de banca no cambia y conserva su TM de 108.
         vm.recordPendingOneRmTest(210.0, 120.0, 230.0)
 
+        assertTrue(awaitSnackbar(vm).startsWith("1RM registrado"))
         val saved = repository.getProgramById(id)!!
         assertNull(saved.runState?.pendingAction)
         val profile = saved.powerliftingProfile!!

@@ -77,7 +77,7 @@ class Cal5OneRmTestTest {
     @Test
     fun a_program_with_the_overhead_press_asks_for_it_and_records_it() {
         val profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0, overhead1RM = 80.0)
-        val program = gate("wendler-531-bbb", profile)
+        val program = ExerciseTrainingMax.migrate(gate("wendler-531-bbb", profile))
 
         // Sin el press militar el test no se acepta.
         try {
@@ -97,6 +97,15 @@ class Cal5OneRmTestTest {
         assertEquals(85.0, updated.overhead1RM!!, 1e-9)
         assertEquals("TM del press = 85 × 0,9", 76.5, updated.overheadTM!!, 1e-9)
         assertEquals(85.0, result.program.runState?.oneRmAuditTrail?.single()?.overhead1RM)
+        val military = ExerciseTrainingMax.exercises(result.program).first { it.catalogConfigurationId == CatalogIds.OHP }
+        val reference = ExerciseTrainingMax.resolved(result.program, military,
+            com.example.kpkn.data.protocols.PlanLoadReferenceKind.EXERCISE_1RM)!!
+        assertEquals(85.0, reference.capturedLoadKg!!, 0.0)
+        assertEquals("TEST", reference.metadata!!.origin)
+        assertEquals(recorded.resolvedAtMs, reference.capturedAtMs)
+        assertEquals(76.5, ExerciseTrainingMax.capturedKg(result.program,military,
+            com.example.kpkn.data.protocols.PlanLoadReferenceKind.EXERCISE_TM)!!,0.0)
+
     }
 
     @Test

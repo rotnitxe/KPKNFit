@@ -145,4 +145,18 @@ class ExerciseTrainingMaxTest {
         assertEquals(63.75, refreshedAlternate.sets.single().weight!!, 0.0)
     }
 
+    @Test fun confirmingAnUnchangedTestStillRecordsTestEvidenceAndDoesNotTouchOtherVariants() {
+        val canonical = exercise()
+        val variant = exercise("seated", CatalogIds.OHP_SEATED, 60.0,70.0)
+        val original = ExerciseTrainingMax.migrate(program(listOf(canonical,variant),PowerliftingProfile(overhead1RM = 80.0,overheadTM = 72.0)))
+        val resolution = OneRmResolution(OneRmResolutionStatus.RECORDED,overhead1RM = 80.0,resolvedAtMs = 1234)
+        val confirmed = ExerciseTrainingMax.captureTestProfile(original,resolution)
+        val ref = ExerciseTrainingMax.resolved(confirmed,canonical,PlanLoadReferenceKind.EXERCISE_1RM)!!
+        assertEquals("TEST",ref.metadata!!.origin)
+        assertEquals(1234L,ref.capturedAtMs)
+        assertEquals(72.0,ExerciseTrainingMax.capturedKg(confirmed,canonical,PlanLoadReferenceKind.EXERCISE_TM)!!,0.0)
+        assertEquals(60.0,ExerciseTrainingMax.capturedKg(confirmed,variant,PlanLoadReferenceKind.EXERCISE_TM)!!,0.0)
+        assertEquals(original.powerliftingProfile,confirmed.powerliftingProfile)
+        assertEquals(confirmed,ExerciseTrainingMax.captureTestProfile(confirmed,resolution))
+    }
 }

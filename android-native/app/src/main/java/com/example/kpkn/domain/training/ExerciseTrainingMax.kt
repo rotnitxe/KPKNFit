@@ -175,6 +175,23 @@ object ExerciseTrainingMax {
         return result
     }
 
+    /** Each confirmed test is evidence even when its numeric result repeats the previous profile. */
+    fun captureTestProfile(after: Program, resolution: OneRmResolution): Program {
+        var result = migrate(after)
+        exercises(after).forEach { exercise ->
+            val lift = legacyLift(after, exercise) ?: return@forEach
+            val tested = OneRmTestPlan.oneRmOf(resolution, lift)?.takeIf { it.isFinite() && it > 0.0 } ?: return@forEach
+            val event = "test:${after.runState?.runId}:${after.runState?.pendingAction?.nextBlockId}:${resolution.resolvedAtMs}"
+            result = capture(result, exercise, PlanLoadReferenceKind.EXERCISE_1RM, tested, resolution.resolvedAtMs,
+                "$event:1rm", "1RM confirmado en el test del programa", "TEST")
+            storedTm(after.powerliftingProfile, lift)?.let { tm ->
+                result = capture(result, exercise, PlanLoadReferenceKind.EXERCISE_TM, tm, resolution.resolvedAtMs,
+                    "$event:tm", "TM conservado o derivado del test de 1RM confirmado", "TEST")
+            }
+        }
+        return result
+    }
+
     data class Missing(val exercise: Exercise, val suggestedKg: Double?, val fraction: Double?)
 
     fun missing(program: Program?, session: Session): List<Missing> = session.allExercises().filter { exercise ->
