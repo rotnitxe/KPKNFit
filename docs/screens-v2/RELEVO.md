@@ -14,7 +14,7 @@ Este bloque sustituye el inventario operativo de abajo; los inventarios antiguos
 | u17 · ED-D | 8f8a02b95, limpio | 14/0 JVM y 67/0 Android en `edd-codex-20261022-4.log`. Descanso heredado y edición de miembros corregidos. Informe ED-D. |
 | u18 · ED-C | 296bb3ff6, limpio | Dominio f37329fe0, fichas b7381c436, movilidad 142aa2e58, H3/pruebas ae5253498 y cierre 296bb3ff6. JVM 13/0; 34 pruebas Android únicas verificadas (20 Compose finales más VM/persistencia/render de corridas anteriores), 14 PNG. Informe ED-C. |
 
-### Punto de continuación · C3 verificado y ED-C siguiente
+### Punto de continuación · ED-C verificado, CAT-A siguiente
 
 `int-u12-android-codex-20261023-2.log` terminó BUILD SUCCESSFUL en 9 min 31 s: tres clases, 11 pruebas, 0 fallos/errores/omitidas. Se revisó `transferir_s130.png`: las dos etiquetas completas y la acción final son visibles. La prueba nativa nueva verifica 360 × 740 y 130 %, objetivos de 48 dp, ambos atajos, cuerpo útil y pie al copiar/reemplazar/traer. Con los 23 casos sin rutas modificadas de la primera corrida son 34 pruebas únicas verificadas. Wrapper cerrado. ED-B se fusionó después en 67ded417b y pasó 87 pruebas de 10 clases en `int-u14-android-codex-20261023-1.log` (9 min 54 s); su wrapper también cerró. C3/ED-D fusionado en e7fd65eac y corregido en 030e6b522, c3f44fcef y a0332f998. Tercera corrida `int-u17-android-codex-20261023-3.log`: 10 C3/0, 3 min 33 s, wrapper cerrado. Segunda: 50 controles ED-B/0, más9C3/10 antes de corregir la aserción. Primera:67anteriores ED-D/0. PNG al130 revisados con alcance y lado completos. No hay corrida propia activa; siguiente preflight y merge u18 con los cuatro conflictos ya preparados.
 
@@ -177,3 +177,8 @@ Cada agente de relevo arranca con `git diff` en su worktree y lo termina con su 
 ### Preparación de QA en esta continuación
 
 Guía android-emulator-qa leída. La QA sigue pendiente: no se usó adb ni se instaló/generó APK aún. Usar serial explícito emulator-5580 y comprobar paquete .dbg del APK antes de instalar; coordenadas de interacción solo desde UI XML. La compilación QA usa el init dbg-suffix documentado, siempre por v10. Las pruebas instrumentadas nuevas siguen prohibidas; QA manual si no hay APK de tests compatible. Se conserva el chat de vídeo y el servidor adb.
+
+
+### Autonomía y cierre ED-C · 23-oct-2026
+
+El usuario se va a dormir y autoriza tomar decisiones autónomas para completar el proyecto sin pausar esperando respuesta. Se documentan las decisiones, se preservan WIP y datos personales y no se amplía el esquema congelado ni se hace push. ED-C integrado en9d6d11730 y migración de dos pruebas en521f14c38:78 casos únicos verdes (72/0 en primera corrida,6/0 en segunda); wrappers cerrados. Siguiente CAT-A, G1 adaptado y ED-A adicional, después regresión JVM y fase4. No hay QA ni APK de esta continuación.
