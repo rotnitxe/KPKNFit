@@ -1,6 +1,11 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.ApreBlockReference
+import com.example.kpkn.data.models.AutoregulationMode
+import com.example.kpkn.data.models.CalibrationStatus
+import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.Session
+import com.example.kpkn.domain.training.AmrapProgramPreview
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
@@ -148,4 +153,101 @@ class RelatorPlanProgressionContextTest {
         assertNull(noHit.hit)
         assertFalse(noHit.isApreBlock)
     }
+    @Test
+    fun s4_uses_only_a_current_material_capture_for_the_same_logged_set() {
+        val stateBase = WorkoutUiState(programId = "program")
+        val done = CompletedSet(
+            id = "s4-event", weight = 155.0, originalLoad = 155.0, reps = 17,
+            purpose = SetPurpose.AMRAP, amrapPerformed = true, amrapMinimumReps = 10,
+            setIndex = 3, loadMode = LoadModeV2.LOAD,
+        )
+        val context = calibrationContextForSet(stateBase, apreExercise, 3, null, done)
+        val capture = com.example.kpkn.domain.training.captureApreXrm(
+            apreExercise, 3, done, sourceProtocolId = "apre-mann", hasApreProgression = true,
+            incrementKg = 5.0, capturedAtMs = 123L, sourceProgramId = "program", contextOverride = context,
+        )!!
+        val state = stateBase.copy(
+            setJustLoggedKey = "lift_3",
+            completedSets = mapOf("lift_3" to done.copy(apreXrm = capture)),
+        )
+        val progression = relatorProgressionContextFor(
+            state, listOf(apreExercise), apreExercise, apreExercise.sets[0],
+            RelatorProgressionContext(recipe = recipe, sourceProtocolId = "apre-mann"),
+        )
+        val effect = AmrapProgramPreview.preview(recipe, AutoregulationMode.PROPOSE, null, progression.hit!!)
+
+        assertEquals(5.0, progression.hit!!.apreXrmCapture!!.incrementKg, 0.0)
+        assertEquals(160.0, effect.nextWeekXrmKg!!, 1e-9)
+
+        val staleState = state.copy(completedSets = mapOf("lift_3" to done.copy(reps = 18, apreXrm = capture)))
+        val stale = relatorProgressionContextFor(
+            staleState, listOf(apreExercise), apreExercise, apreExercise.sets[0],
+            RelatorProgressionContext(recipe = recipe, sourceProtocolId = "apre-mann"),
+        )
+        assertNull(stale.hit!!.apreXrmCapture)
+        val withoutCapture = AmrapProgramPreview.preview(
+            recipe, AutoregulationMode.PROPOSE, null, stale.hit!!.copy(apreXrmCapture = null),
+        )
+        val stalePreview = AmrapProgramPreview.preview(recipe, AutoregulationMode.PROPOSE, null, stale.hit!!)
+        assertEquals(withoutCapture.nextWeekXrmKg, stalePreview.nextWeekXrmKg)
+    }
+
+    @Test
+    fun s3_uses_its_current_calibration_result_and_labels_proposal_vs_applied_load() {
+        val materialExercise = apreExercise.copy(
+            sets = apreExercise.sets.mapIndexed { index, set ->
+                if (index in 2..3) set.copy(machineBrand = "Máquina", loadModeV2 = LoadModeV2.LOAD) else set
+            },
+        )
+        val session = Session(id = "session", name = "APRE", exercises = listOf(materialExercise))
+        val source = CompletedSet(
+            id = "s3-event", weight = 155.0, originalLoad = 155.0, reps = 17,
+            purpose = SetPurpose.AMRAP, amrapPerformed = true, amrapMinimumReps = 10,
+            setIndex = 2, loadMode = LoadModeV2.LOAD,
+        )
+        val stateBase = WorkoutUiState(
+            programId = "program", session = session, startTimeMs = 123L,
+            completedSets = mapOf("lift_2" to source),
+        )
+        val record = buildRecordedApreCalibration(stateBase, materialExercise, 2, source, 456L)!!
+        val state = stateBase.copy(
+            setJustLoggedKey = "lift_2",
+            calibrationDecisions = listOf(record),
+        )
+        val progression = relatorProgressionContextFor(
+            state, listOf(materialExercise), materialExercise, materialExercise.sets[3],
+            RelatorProgressionContext(recipe = recipe, sourceProtocolId = "apre-mann"),
+        )
+        val hit = progression.hit!!
+        val proposal = AmrapProgramPreview.preview(recipe, AutoregulationMode.AUTO, null, hit)
+
+        assertEquals(5.0, record.loadIncrementKg, 0.0)
+        assertEquals(160.0, record.apre!!.set4LoadKg, 1e-9)
+        assertEquals(record.apre!!.set4LoadKg, hit.apreSet4LoadKg!!, 0.0)
+        assertFalse(hit.apreSet4Applied)
+        assertEquals(record.apre!!.set4LoadKg, proposal.nextSetLoadKg!!, 0.0)
+        assertEquals(162.5, AmrapProgramPreview.preview(
+            recipe, AutoregulationMode.AUTO, null, hit.copy(apreSet4LoadKg = null),
+        ).nextSetLoadKg!!, 1e-9)
+        assertTrue(proposal.observerNote!!.text, proposal.observerNote!!.text.contains("prevista"))
+
+        val appliedExercise = materialExercise.copy(sets = materialExercise.sets.mapIndexed { index, set ->
+            if (index == 3) set.copy(weight = record.apre!!.set4LoadKg) else set
+        })
+        val appliedRecord = record.copy(
+            status = CalibrationStatus.APPLIED,
+            appliedSetIds = setOf(calibrationSetId(appliedExercise.sets[3], null)),
+        )
+        val appliedState = state.copy(
+            session = session.copy(exercises = listOf(appliedExercise)),
+            calibrationDecisions = listOf(appliedRecord),
+        )
+        val appliedHit = relatorProgressionContextFor(
+            appliedState, listOf(appliedExercise), appliedExercise, appliedExercise.sets[3],
+            RelatorProgressionContext(recipe = recipe, sourceProtocolId = "apre-mann"),
+        ).hit!!
+        val appliedNote = AmrapProgramPreview.preview(recipe, AutoregulationMode.AUTO, null, appliedHit).observerNote!!.text
+        assertTrue(appliedNote, appliedNote.contains("ajustada a"))
+    }
+
 }

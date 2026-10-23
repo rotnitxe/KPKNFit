@@ -1,6 +1,11 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.AutoregulationMode
+import com.example.kpkn.data.models.ApreBlockReference
+import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.CalibrationScope
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.SetPurpose
@@ -217,11 +222,11 @@ class AmrapProgramPreviewTest {
     fun apre_shows_the_load_of_set_4_and_the_xrm_of_next_week() {
         val set3 = AmrapHit(LiftSlot.SQUAT, 81.52, prescribedReps = 10, actualReps = 12, weightKg = 150.0, isLastAmrapOfExercise = false)
         val toSet4 = preview("apre-mann", set3)
-        assertEquals("APRE: serie 4 con 155 kg.", toSet4.headline)
+        assertEquals("APRE: serie 4 prevista con 155 kg hoy.", toSet4.headline)
         assertEquals(AmrapEffectKind.NEXT_SET_LOAD, toSet4.kind)
         assertEquals(AmrapEffectTiming.SAME_SESSION, toSet4.timing)
         assertEquals(155.0, toSet4.nextSetLoadKg!!, 1e-9)
-        assertEquals("APRE 10: serie 4 con 155 kg hoy.", toSet4.observerNote!!.text)
+        assertEquals("APRE 10: serie 4 prevista con 155 kg hoy.", toSet4.observerNote!!.text)
 
         val set4 = AmrapHit(LiftSlot.SQUAT, 81.52, prescribedReps = 10, actualReps = 17, weightKg = 155.0, isLastAmrapOfExercise = true)
         val toNextWeek = preview("apre-mann", set4)
@@ -260,4 +265,43 @@ class AmrapProgramPreviewTest {
         assertFalse(noProfile.observerNote!!.text, noProfile.observerNote!!.text.contains("TM"))
         assertFalse(noProfile.observerNote!!.text, noProfile.observerNote!!.text.contains("0 kg"))
     }
+    @Test
+    fun s4_uses_the_material_increment_from_its_validated_capture() {
+        val exercise = Exercise(
+            id = "apre-squat",
+            name = "Sentadilla",
+            catalogConfigurationId = CatalogIds.SQ_LOW,
+            sets = (1..4).mapIndexed { index, ordinal ->
+                ExerciseSet(
+                    id = "s$ordinal",
+                    weight = 150.0,
+                    purpose = if (index >= 2) SetPurpose.AMRAP else SetPurpose.NONE,
+                    amrapMinimumReps = if (index >= 2) 10 else null,
+                    loadModeV2 = LoadModeV2.LOAD,
+                )
+            },
+            apreBlock = ApreBlockReference(10, listOf("s1", "s2", "s3", "s4")),
+        )
+        val done = CompletedSet(
+            id = "s4-event", weight = 155.0, originalLoad = 155.0, reps = 17,
+            purpose = SetPurpose.AMRAP, amrapPerformed = true, amrapMinimumReps = 10,
+            setIndex = 3, loadMode = LoadModeV2.LOAD,
+        )
+        val capture = captureApreXrm(
+            exercise, 3, done, sourceProtocolId = "apre-mann", hasApreProgression = true,
+            incrementKg = 5.0, capturedAtMs = 123L, sourceProgramId = "program",
+        )!!
+        val hit = AmrapHit(
+            LiftSlot.SQUAT, 81.52, prescribedReps = 10, actualReps = 17, weightKg = 155.0,
+            isLastAmrapOfExercise = true, apreXrmCapture = capture, sourceExerciseId = exercise.id,
+        )
+
+        val effect = preview("apre-mann", hit)
+        val recipeFallback = preview("apre-mann", hit.copy(apreXrmCapture = null))
+
+        assertEquals(160.0, effect.nextWeekXrmKg!!, 1e-9)
+        assertEquals(162.5, recipeFallback.nextWeekXrmKg!!, 1e-9)
+        assertTrue(effect.observerNote!!.text, effect.observerNote!!.text.contains("160 kg"))
+    }
+
 }

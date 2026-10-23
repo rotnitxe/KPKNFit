@@ -5,6 +5,8 @@ import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.ApreXrmCapture
+import com.example.kpkn.data.models.CalibrationStatus
 import com.example.kpkn.data.models.Gender
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.MuscleRole
@@ -23,6 +25,9 @@ import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.AmrapHit
+import com.example.kpkn.domain.training.Apre
+import com.example.kpkn.domain.training.captureApreXrm
+import com.example.kpkn.domain.training.validApreXrmCapture
 import com.example.kpkn.domain.training.ProgramAutoregulationEngine
 import com.example.kpkn.domain.training.resolveLiveApreBlock
 import com.example.kpkn.domain.relator.RelatorCoachSlice
@@ -802,6 +807,88 @@ internal fun relatorLoggedPlanSet(
     return RelatorLoggedPlanSet(exercise, planned, parsed.setIdx, done)
 }
 
+private data class RelatorApreSet4Observation(val loadKg: Double, val applied: Boolean)
+
+private fun relatorStoredApreCapture(
+    state: WorkoutUiState,
+    source: RelatorLoggedPlanSet,
+    block: LiveApreBlock,
+    sourceProtocolId: String?,
+    hasApreProgression: Boolean,
+): ApreXrmCapture? {
+    if (source.setIndex != block.fourthIndex) return null
+    val done = source.completed
+    val planned = source.set
+    val stored = done.apreXrm ?: return null
+    if (!validApreXrmCapture(stored) ||
+        stored.sourceExerciseId != source.exercise.id ||
+        stored.sourcePlannedSetId != planned.id ||
+        stored.reference.metadata?.sourceId != done.id ||
+        done.setIndex?.let { it != source.setIndex } == true
+    ) return null
+    val currentProgramId = state.programId.takeIf { it.isNotBlank() }
+    if (stored.reference.sourceProgramId?.let { it != currentProgramId } == true) return null
+    val context = calibrationContextForSet(state, source.exercise, source.setIndex, done.side, done)
+    if (stored.context != context || done.contextKey?.let { it != context.key } == true) return null
+    val regenerated = captureApreXrm(
+        exercise = source.exercise,
+        index = source.setIndex,
+        completed = done,
+        sourceProtocolId = sourceProtocolId,
+        hasApreProgression = hasApreProgression,
+        incrementKg = stored.incrementKg,
+        capturedAtMs = stored.reference.capturedAtMs,
+        sourceProgramId = stored.reference.sourceProgramId,
+        contextOverride = context,
+    )
+    return stored.takeIf { regenerated == stored }
+}
+
+private fun relatorRecordedApreSet4(
+    state: WorkoutUiState,
+    source: RelatorLoggedPlanSet,
+    block: LiveApreBlock,
+): RelatorApreSet4Observation? {
+    if (source.setIndex != block.thirdIndex) return null
+    val done = source.completed
+    val exercise = source.exercise
+    val sourceSet = source.set
+    val targetSet = exercise.sets.getOrNull(block.fourthIndex) ?: return null
+    val context = calibrationContextForSet(state, exercise, source.setIndex, done.side, done)
+    if (done.contextKey?.let { it != context.key } == true) return null
+    val sourceLoad = done.originalLoad ?: done.recordedPayloadV3?.externalLoad
+        ?: done.weight.takeUnless { context.loadMode == com.example.kpkn.data.models.LoadModeV2.LASTRE }
+        ?: return null
+    if (!sourceLoad.isFinite() || sourceLoad <= 0.0) return null
+    val validReps = Apre.validReps(done.reps)
+    val currentProgramId = state.programId.takeIf { it.isNotBlank() }
+    return state.calibrationDecisions.asReversed().firstNotNullOfOrNull { record ->
+        val calibration = record.apre ?: return@firstNotNullOfOrNull null
+        if (record.status in setOf(CalibrationStatus.SUPERSEDED, CalibrationStatus.REVERTED) ||
+            record.sourceSetId != done.id || record.decision.sourceSetId != done.id ||
+            record.decision.exerciseId != exercise.id || record.decision.context != context ||
+            record.sessionLogId != calibrationExecutionId(state) ||
+            record.programId?.let { it != currentProgramId } == true ||
+            calibration.xrmReps != block.variant.xrmReps ||
+            calibration.sourcePlannedSetId != sourceSet.id ||
+            calibration.targetPlannedSetId != targetSet.id ||
+            calibration.sourceLoadKg != sourceLoad || calibration.validReps != validReps ||
+            !record.loadIncrementKg.isFinite() || record.loadIncrementKg <= 0.0 ||
+            !calibration.set4LoadKg.isFinite() || calibration.set4LoadKg <= 0.0
+        ) return@firstNotNullOfOrNull null
+        val recalculated = Apre.set4LoadKg(sourceLoad, validReps, block.variant, record.loadIncrementKg)
+        if (recalculated != calibration.set4LoadKg) return@firstNotNullOfOrNull null
+        val plannedTargetKg = when (done.side) {
+            "left" -> targetSet.leftTarget?.weight ?: targetSet.weight
+            "right" -> targetSet.rightTarget?.weight ?: targetSet.weight
+            else -> targetSet.weight
+        }
+        val applied = record.status == CalibrationStatus.APPLIED &&
+            calibrationSetId(targetSet, done.side) in record.appliedSetIds &&
+            plannedTargetKg?.let { kotlin.math.abs(it - calibration.set4LoadKg) < 1e-6 } == true
+        RelatorApreSet4Observation(calibration.set4LoadKg, applied)
+    }
+}
 /** Construye el mismo AmrapHit que el motor con la serie efectivamente guardada y su prescripción. */
 internal fun relatorAmrapHitForLoggedSet(
     state: WorkoutUiState,
@@ -839,6 +926,10 @@ internal fun relatorAmrapHitForLoggedSet(
         source.exercise.sets.withIndex()
             .none { (index, candidate) -> index > source.setIndex && candidate.purpose.isAmrap }
     }
+    val apreSet4 = apreBlock?.takeIf { isApreSet }?.let { relatorRecordedApreSet4(state, source, it) }
+    val apreCapture = apreBlock?.takeIf { isApreSet }?.let {
+        relatorStoredApreCapture(state, source, it, sourceProtocolId, recipe.progression is ProgressionRule.ApreXrm)
+    }
     return AmrapHit(
         liftSlot = canonicalRecipeLiftSlot(recipe, source.exercise),
         percent = planned.targetPercentageRM,
@@ -854,6 +945,10 @@ internal fun relatorAmrapHitForLoggedSet(
         partialReps = done.partialReps?.coerceAtLeast(0) ?: 0,
         configurationId = configurationId,
         isLastAmrapOfExercise = isLastAmrap,
+        isApreBlock = apreBlock != null,
+        apreXrmCapture = apreCapture,
+        apreSet4LoadKg = apreSet4?.loadKg,
+        apreSet4Applied = apreSet4?.applied == true,
     )
 }
 

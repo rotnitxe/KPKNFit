@@ -623,7 +623,13 @@ object AmrapProgramPreview {
         val band = Apre.band(variant, reps)
         val bandText = if (band == Apre.Band.HOLD) "mantener" else "${signed(band.percent)} %"
         return if (hit.isLastAmrapOfExercise) {
-            val xrm = Apre.nextWeekXrmKg(weight, reps, variant, rule.incrementKg)
+            val capturedXrm = hit.apreXrmCapture?.takeIf { capture ->
+                validApreXrmCapture(capture) &&
+                    capture.reference.repMin == variant.xrmReps &&
+                    capture.reference.repMax == variant.xrmReps &&
+                    (hit.sourceExerciseId == null || hit.sourceExerciseId == capture.sourceExerciseId)
+            }?.reference?.capturedLoadKg?.takeIf { it.isFinite() && it > 0.0 }
+            val xrm = capturedXrm ?: Apre.nextWeekXrmKg(weight, reps, variant, rule.incrementKg)
             val gate = gateOf(mode)
 
             val note = when (gate) {
@@ -646,16 +652,20 @@ object AmrapProgramPreview {
                 observerNote = AmrapProgramObserverNote(note),
             )
         } else {
-            val next = Apre.set4LoadKg(weight, reps, variant, rule.incrementKg)
+            val next = hit.apreSet4LoadKg?.takeIf { it.isFinite() && it > 0.0 }
+                ?: Apre.set4LoadKg(weight, reps, variant, rule.incrementKg)
             AmrapProgramEffect(
                 kind = AmrapEffectKind.NEXT_SET_LOAD,
                 timing = AmrapEffectTiming.SAME_SESSION,
                 gate = AmrapEffectGate.METHOD,
-                headline = "${prefix}serie 4 con ${kg(next)} kg.",
+                headline = if (hit.apreSet4Applied) "${prefix}serie 4 ajustada a ${kg(next)} kg hoy."
+                    else "${prefix}serie 4 prevista con ${kg(next)} kg hoy.",
                 detail = "${SpanishPlurals.reps(reps)} válidas en la serie 3 (${variant.label}: $bandText).",
                 liftSlot = lift,
                 nextSetLoadKg = next,
-                observerNote = AmrapProgramObserverNote("${variant.label}: serie 4 con ${kg(next)} kg hoy."),
+                observerNote = AmrapProgramObserverNote(if (hit.apreSet4Applied)
+                    "${variant.label}: serie 4 ajustada a ${kg(next)} kg hoy."
+                    else "${variant.label}: serie 4 prevista con ${kg(next)} kg hoy."),
             )
         }
     }

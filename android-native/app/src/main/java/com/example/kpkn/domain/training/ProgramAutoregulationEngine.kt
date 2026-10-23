@@ -77,6 +77,10 @@ data class AmrapHit(
     val sourceExerciseId: String? = null,
     /** La serie pertenece a un bloque APRE real, aunque no haya datos suficientes para capturar S4. */
     val isApreBlock: Boolean = false,
+    /** Carga S4 real de la calibración S3, cuando su identidad sigue vigente. */
+    val apreSet4LoadKg: Double? = null,
+    /** true sólo cuando la decisión S3 fue aplicada y S4 conserva esa carga. */
+    val apreSet4Applied: Boolean = false,
 ) {
     /** true si la serie es un calibrador de «próximas sesiones»: su canal es la propuesta de TM del programa. */
     val isNextSessionsCalibrator: Boolean
@@ -812,21 +816,40 @@ object ProgramAutoregulationEngine {
                             (storedCapture.sourceRecipeSlotId == null || exercise.recipeSlotId == null ||
                                 storedCapture.sourceRecipeSlotId == exercise.recipeSlotId)
                         val recordedContextMatches = pair.performed.contextKey?.let { it == plannedContext.key } ?: true
+                        val legacyPurposeFromPlan = pair.performed.performedPurpose() == null
+                        val completedForCapture = if (legacyPurposeFromPlan) {
+                            pair.performed.copy(purpose = pair.prescribed.purpose)
+                        } else pair.performed
+                        val regeneratedStoredCapture = storedCapture?.takeIf {
+                            storedSourceMatches && storedContextMatches && prescribedIndex >= 0 &&
+                                pair.performed.setIndex?.let { it != prescribedIndex } != true
+                        }?.let {
+                            captureApreXrm(
+                                exercise = exercise,
+                                index = prescribedIndex,
+                                completed = completedForCapture,
+                                sourceProtocolId = sourceProtocolId,
+                                hasApreProgression = hasApreProgression,
+                                incrementKg = it.incrementKg,
+                                capturedAtMs = it.reference.capturedAtMs,
+                                sourceProgramId = it.reference.sourceProgramId,
+                                contextOverride = plannedContext,
+                            )
+                        }
+                        val storedPayloadMatches = storedCapture == null || regeneratedStoredCapture == storedCapture
                         val storedIdentityMatches = storedCapture != null && storedSourceMatches &&
-                            storedContextMatches &&
+                            storedContextMatches && storedPayloadMatches &&
                             validApreXrmCapture(storedCapture) && storedCapture.sourceExerciseId == exercise.id &&
                             storedCapture.sourcePlannedSetId == pair.prescribed.id &&
                             storedCapture.reference.metadata?.sourceId == pair.performed.id
                         // Un snapshot o contextKey contradictorio es evidencia de otra variante/contexto;
                         // no se recaptura con la configuración actual para "convertirlo" en una captura nueva.
                         val captureIdentityConflicts = (storedCapture != null && !storedIdentityMatches) || !recordedContextMatches
-                        val incrementKg = (recipe?.progression as? ProgressionRule.ApreXrm)?.incrementKg
-                            ?: storedCapture?.takeIf { storedIdentityMatches }?.incrementKg
+                        // Si existe un snapshot real y compatible, su incremento de material manda sobre la regla;
+                        // sólo los registros sin snapshot usan el incremento de receta.
+                        val incrementKg = storedCapture?.takeIf { storedIdentityMatches }?.incrementKg
+                            ?: (recipe?.progression as? ProgressionRule.ApreXrm)?.incrementKg
                             ?: Apre.DEFAULT_INCREMENT_KG
-                        val legacyPurposeFromPlan = pair.performed.performedPurpose() == null
-                        val completedForCapture = if (legacyPurposeFromPlan) {
-                            pair.performed.copy(purpose = pair.prescribed.purpose)
-                        } else pair.performed
                         val apreCapture = if (captureIdentityConflicts || !storedSourceMatches || prescribedIndex < 0 ||
                             pair.performed.setIndex?.let { it != prescribedIndex } == true) null else
                             captureApreXrm(
