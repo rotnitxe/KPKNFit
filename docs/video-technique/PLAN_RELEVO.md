@@ -74,7 +74,8 @@ La punta inicial era `3596ae3a2`; consultar el estado vigente en `EJECUCION_RELE
     agregados.
   - El código de producto no depende de clips, fuentes ni etiquetas.
 - **Bloqueos:** si una acción queda bloqueada por permisos o por el clasificador, para y avisa. No la intentes por otra vía.
-- **Cuota:** al llegar al 94 % de la cuota semanal, para y deja un relevo.
+- **Cuota · orden humana vigente23-oct:** el usuario revocó expresamente el límite del94% («no tienes que detenerte al94!»).
+  Continuar hacia la entrega autorizada reduciendo consumo innecesario; el límite histórico del94% no obliga a parar.
 
 ---
 
