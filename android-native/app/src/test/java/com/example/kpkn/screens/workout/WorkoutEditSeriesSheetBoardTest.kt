@@ -21,6 +21,12 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isFocused
+import androidx.compose.ui.test.onNode
+import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CardioDetails
@@ -31,6 +37,13 @@ import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnilateralMode
+import com.example.kpkn.data.models.UnilateralTarget
+import com.example.kpkn.data.models.UnilateralSideOrder
+import com.example.kpkn.data.models.UnilateralIntensityMode
+import com.example.kpkn.data.models.SetPurpose
+import com.example.kpkn.data.models.CalibrationScope
+import com.example.kpkn.data.models.RepRange
+import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.ui.components.KpknOverlayHostContent
 import com.example.kpkn.ui.components.KpknOverlayHostController
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
@@ -174,7 +187,7 @@ class WorkoutEditSeriesSheetBoardTest {
 
         rule.onNodeWithTag(liveEditSetChipTag(1)).assertIsSelected()
         rule.onNodeWithText("Serie 2 de 4").assertExists()
-        rule.onNodeWithText("Siguiente: 8 × 100 kg · RIR 2", substring = true).assertExists()
+        rule.onNodeWithText("Siguiente: 8 × 100 kg · RIR 2", substring = true).assertExists()
     }
 
     @Test
@@ -305,6 +318,9 @@ class WorkoutEditSeriesSheetBoardTest {
 
         tap(LIVE_EDIT_MODE_TAG)
         tapText("Tiempo")
+        rule.onNodeWithText("Aplicar Tiempo").assertExists()
+        rule.onNodeWithTag(LIVE_EDIT_MODE_TAG).assertTextContains("Reps")
+        tapText("Aplicar Tiempo")
         rule.waitForIdle()
         confirm()
 
@@ -356,12 +372,10 @@ class WorkoutEditSeriesSheetBoardTest {
 
         rule.onNodeWithTag(LIVE_EDIT_REST_TAG).assertTextContains("Lados 0:45", substring = true)
         tap(LIVE_EDIT_REST_TAG)
-        // Dos relojes, uno detrás de otro: las series y después los lados.
+        // B7 muestra ambos descansos y los confirma en una sola hoja.
         rule.onNodeWithText("Series").assertExists()
-        tapText("Aceptar")
-        rule.waitForIdle()
-        rule.onNodeWithText("Descanso entre lados").assertExists()
-        tapText("Aceptar")
+        rule.onNodeWithText("Entre lados").assertExists()
+        tapText("Listo")
         rule.waitForIdle()
         confirm()
 
@@ -374,8 +388,8 @@ class WorkoutEditSeriesSheetBoardTest {
         mount(romanianDeadlift())
 
         tap(LIVE_EDIT_REST_TAG)
-        rule.onNodeWithText("Minutos : segundos").assertExists()
-        tapText("Aceptar")
+        rule.onNodeWithText("Cuánto esperas antes de la siguiente serie.").assertExists()
+        tapText("Listo")
         rule.waitForIdle()
         confirm()
 
@@ -396,10 +410,10 @@ class WorkoutEditSeriesSheetBoardTest {
     fun theSetFieldsOfTheFocusAreTheOnesOfTheSetEditor() {
         mount(romanianDeadlift(), initialSetIndex = 3)
 
-        // Reps / rango, tipo de carga y las técnicas de la serie siguen en el foco (InlineSetRow en lista).
+        // ED-B: las técnicas solo se muestran al declarar fallo; la serie RIR conserva su prescripción.
         rule.onNodeWithText("Reps / rango").assertExists()
-        rule.onNodeWithText("Drop-set", substring = true).assertExists()
-        rule.onNodeWithText("Rest-pause", substring = true).assertExists()
+        rule.onNodeWithText("Drop-set", substring = true).assertDoesNotExist()
+        rule.onNodeWithText("Rest-pause", substring = true).assertDoesNotExist()
     }
 
     @Test
@@ -411,6 +425,155 @@ class WorkoutEditSeriesSheetBoardTest {
 
         assertNotNull(saved)
         assertNull(sheetState.editSheetExerciseId)
+    }
+
+    private fun rmExercise(basis: LoadBasis = LoadBasis.PERCENT_1RM, oneRm: Double? = 120.0, tm: Double? = null): Exercise =
+        romanianDeadlift().copy(trainingMode = TrainingMode.RM, reference1RM = oneRm, referenceTrainingMax = tm,
+            sets = listOf(ExerciseSet(id = "s1", weight = 95.0, targetPercentageRM = 80.0,
+                loadBasis = basis, targetRepsRange = RepRange(4, 6), targetRIR = 2)))
+
+    private fun editRm(label: String, value: String) {
+        rule.onNodeWithContentDescription(label).performScrollTo().performClick()
+        rule.onNode(hasSetTextAction() and isFocused()).performTextReplacement(value)
+        rule.onNode(hasSetTextAction() and isFocused()).performImeAction()
+        rule.waitForIdle()
+    }
+
+    @Test fun rmRecalculaLaCargaAlEditarPorcentajeSinBorrarRangoNiRir() {
+        mount(rmExercise(), initialSetIndex = 0)
+        rule.onNodeWithText("RIR").assertDoesNotExist()
+        editRm("%RM", "85")
+        rule.onNodeWithContentDescription("Peso (kg)").assertTextContains("102,5")
+        confirm()
+        assertEquals(102.5, saved!!.sets.single().weight!!, 0.001)
+        assertEquals(RepRange(4, 6), saved!!.sets.single().targetRepsRange)
+        assertEquals(2, saved!!.sets.single().targetRIR)
+    }
+
+    @Test fun rmTmUsaLaReferenciaDeclaradaYEnlazaPesoConPorcentaje() {
+        mount(rmExercise(LoadBasis.PERCENT_TM, oneRm = 125.0, tm = 100.0), initialSetIndex = 0)
+        editRm("Peso (kg)", "90")
+        confirm()
+        assertEquals(90.0, saved!!.sets.single().targetPercentageRM!!, 0.001)
+        assertEquals(90.0, saved!!.sets.single().weight!!, 0.001)
+        assertEquals(125.0, saved!!.reference1RM!!, 0.001)
+        assertEquals(100.0, saved!!.referenceTrainingMax!!, 0.001)
+    }
+
+    @Test fun rmSinTmMuestraElRequisitoSinInventarloDesdeElUnoRm() {
+        mount(rmExercise(LoadBasis.PERCENT_TM, oneRm = 125.0), initialSetIndex = 0)
+        rule.onNodeWithText("Falta el TM").assertExists()
+        confirm()
+        assertNull(saved!!.referenceTrainingMax)
+    }
+
+    @Test fun editarTmEnElFocoNoModificaLaReferenciaNiLaCargaDeLasSeriesUnoRm() {
+        val source = rmExercise(LoadBasis.PERCENT_TM, oneRm = 120.0, tm = 100.0).let { exercise ->
+            exercise.copy(sets = exercise.sets + exercise.sets.single().copy(id = "s2", loadBasis = LoadBasis.PERCENT_1RM))
+        }
+        mount(source, initialSetIndex = 0)
+        rule.onNode(hasSetTextAction() and hasText("TM (kg)")).performScrollTo().performTextReplacement("125")
+        rule.onNode(hasSetTextAction() and hasText("TM (kg)")).performImeAction()
+        rule.waitForIdle()
+        confirm()
+        assertEquals(125.0, saved!!.referenceTrainingMax!!, 0.001)
+        assertEquals(120.0, saved!!.reference1RM!!, 0.001)
+        assertEquals(100.0, saved!!.sets[0].weight!!, 0.001)
+        assertEquals(95.0, saved!!.sets[1].weight!!, 0.001)
+        assertEquals(2, saved!!.sets[0].targetRIR)
+    }
+
+    @Test fun rmSinUnoRmMuestraElRequisitoAunqueHayaTm() {
+        mount(rmExercise(oneRm = null, tm = 100.0), initialSetIndex = 0)
+        rule.onNodeWithText("Falta el 1RM").assertExists()
+        confirm()
+        assertNull(saved!!.reference1RM)
+        assertEquals(100.0, saved!!.referenceTrainingMax!!, 0.001)
+    }
+
+    @Test fun cargaInteligenteRecalculaRmAlCambiarLaReferencia() {
+        mount(rmExercise(), initialSetIndex = 0)
+        tap(LIVE_EDIT_SMART_LOAD_TAG)
+        rule.onNode(hasSetTextAction() and hasText("1RM referencial")).performTextReplacement("150")
+        rule.onNode(hasSetTextAction() and hasText("1RM referencial")).performImeAction()
+        rule.waitForIdle()
+        tapText("Listo")
+        confirm()
+        assertEquals(150.0, saved!!.reference1RM!!, 0.001)
+        assertEquals(120.0, saved!!.sets.single().weight!!, 0.001)
+    }
+
+    @Test fun amrapEnRecetaRmTienePrioridadYConservaSuMinimoAlGuardar() {
+        val source = rmExercise().let { it.copy(sets = listOf(it.sets.single().copy(purpose = SetPurpose.AMRAP, amrapMinimumReps = 5))) }
+        mount(source, initialSetIndex = 0)
+        rule.onNodeWithText("Mínimo").assertExists()
+        rule.onNodeWithContentDescription("%RM").assertDoesNotExist()
+        click(rule.onNodeWithContentDescription("Aumentar mínimo AMRAP"))
+        confirm()
+        assertEquals(SetPurpose.AMRAP, saved!!.sets.single().purpose)
+        assertEquals(6, saved!!.sets.single().amrapMinimumReps)
+        assertEquals(TrainingMode.RM, saved!!.trainingMode)
+    }
+
+    @Test fun rightLeftAbreElLadoRConCargaYVistaPreviaPropias() {
+        val source = romanianDeadlift().copy(trainingMode = TrainingMode.RM, isUnilateral = true,
+            unilateralMode = UnilateralMode.UNILATERAL_PAIRED, unilateralSideOrder = UnilateralSideOrder.RIGHT_LEFT,
+            unilateralIntensityMode = UnilateralIntensityMode.INDEPENDENT, sets = listOf(
+                ExerciseSet(id = "s1", purpose = SetPurpose.CALIBRATOR, calibrationScope = CalibrationScope.SESSION,
+                    amrapMinimumReps = 8, weight = 60.0, leftTarget = UnilateralTarget(weight = 30.0), rightTarget = UnilateralTarget(weight = 40.0)),
+                ExerciseSet(id = "s2", weight = 60.0, leftTarget = UnilateralTarget(weight = 35.0), rightTarget = UnilateralTarget(weight = 45.0))))
+        mount(source, initialSetIndex = 0)
+        rule.onNodeWithText("Ajustará S2 · hoy 45 kg").assertExists()
+        tapText("L")
+        rule.onNodeWithText("Ajustará S2 · hoy 35 kg").assertExists()
+        tapText("Orden R/L")
+        // Cambiar el orden no elimina la selección manual de L.
+        rule.onNodeWithText("Ajustará S2 · hoy 35 kg").assertExists()
+        confirm()
+        assertEquals(source.sets.first().leftTarget, saved!!.sets.first().leftTarget)
+        assertEquals(source.sets.first().rightTarget, saved!!.sets.first().rightTarget)
+    }
+
+    @Test fun rmUnilateralAbreRPorDefectoYConservaRirDeCadaLado() {
+        val source = rmExercise().let { it.copy(isUnilateral = true, unilateralMode = UnilateralMode.UNILATERAL_PAIRED,
+            unilateralSideOrder = UnilateralSideOrder.RIGHT_LEFT, sets = listOf(it.sets.single().copy(
+                leftTarget = UnilateralTarget(weight = 70.0, targetRIR = 2), rightTarget = UnilateralTarget(weight = 80.0, targetRIR = 3)))) }
+        mount(source, initialSetIndex = 0)
+        rule.onNodeWithContentDescription("Carga del lado R").assertTextContains("R · 80 kg")
+        editRm("%RM", "75")
+        confirm()
+        assertEquals(90.0, saved!!.sets.single().leftTarget!!.weight!!, 0.001)
+        assertEquals(90.0, saved!!.sets.single().rightTarget!!.weight!!, 0.001)
+        assertEquals(2, saved!!.sets.single().leftTarget!!.targetRIR)
+        assertEquals(3, saved!!.sets.single().rightTarget!!.targetRIR)
+    }
+
+    @Test fun descansoDeSerieSobrescribeSoloElFocoYSePuedeVolverAHerencia() {
+        mount(romanianDeadlift(), initialSetIndex = 1)
+        click(rule.onNodeWithContentDescription("Sumar 15 segundos a esta serie"))
+        rule.onNodeWithText("Usar descanso del ejercicio").assertExists()
+        confirm()
+        assertEquals(165, saved!!.sets[1].restAfterSeconds)
+        assertNull(saved!!.sets[0].restAfterSeconds)
+        assertEquals(150, saved!!.restTime)
+    }
+
+    @Test fun descansoDeSerieSePuedeRestablecerSinCambiarElEjercicio() {
+        val source = romanianDeadlift().let { it.copy(sets = it.sets.map { set -> set.copy(restAfterSeconds = 75) }) }
+        mount(source, initialSetIndex = 1)
+        tapText("Usar descanso del ejercicio")
+        confirm()
+        assertNull(saved!!.sets[1].restAfterSeconds)
+        assertEquals(75, saved!!.sets[0].restAfterSeconds)
+        assertEquals(150, saved!!.restTime)
+    }
+
+    @Test fun seriesRirNoExponenTecnicasYLasDeFalloSiLasConservan() {
+        val source = romanianDeadlift().let { it.copy(sets = listOf(it.sets.first().copy(isFailure = true, intensityMode = IntensityMode.FAILURE))) }
+        mount(source, initialSetIndex = 0)
+        rule.onNodeWithText("¿Vas más allá del fallo?").assertExists()
+        rule.onNodeWithText("Drop-set", substring = true).assertExists()
+        rule.onNodeWithText("Rest-pause", substring = true).assertExists()
     }
 
     // ───────────────────────────── G2 · Editar cardio ─────────────────────────────

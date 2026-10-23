@@ -61,6 +61,7 @@ class WorkoutEditSeriesAuditTest {
     private fun changeToTime() {
         tap("Reps")
         tap("Tiempo")
+        tap("Aplicar Tiempo")
         rule.waitForIdle()
     }
 
