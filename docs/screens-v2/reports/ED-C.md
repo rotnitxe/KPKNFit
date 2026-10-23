@@ -41,3 +41,9 @@ Auditoría externa de solo lectura expresamente autorizada: CommandCode 1.87.1, 
 Commits: f37329fe0 (base de carga y pruebas puras), b7381c436 (fichas/focos y cabeceras), 142aa2e58 (edición y persistencia de movilidad de sesión con la decisión del usuario). ae5253498 guarda H3 y las veinte pruebas Compose verificadas. El cierre documental guarda los renders y este informe.
 
 Al integrar: conservar la sección extraída de preparación y la base única de LV-C. El archivo compartido SessionEditorSeriesChip añadido también por ED-B se resuelve con el slot opcional de ED-C y los valores predeterminados S1 de ED-B, sin alterar geometría. La integración, el QA de teclado y navegación en ZFlip5_QA y la APK son pasos posteriores.
+
+## Seguimiento QA H3 · 23-oct
+
+La búsqueda de gato no tiene coincidencias en el catálogo publicado actual: no demostraba un defecto de altura ni una pérdida de resultados. La captura H3-gato-expanded-1792759359841007300.png en C:/kw/shots/screens-v2-final-emu-20261023-c3 muestra un estado vacío sin explicación. Se agrega Sin resultados y la indicación de cambiar palabra o zona, conservando el buscador y los filtros. No se modifica el reparto de altura sin evidencia de un defecto geométrico.
+
+PreparationChipsComposeTest añade recuperación real en la hoja con portal, viewport360×740 y fuente130: búsqueda imposible, estado vacío visible, reemplazo por Retracción cervical del catálogo, acción Añadir y callback con su ID. Preparado sin Gradle/JVM/ADB en u18; la corrida399 activa usa la fuente anterior y este caso requiere validación posterior. No cambian Room, catálogo ni persistencia.

@@ -1,6 +1,10 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.performScrollTo
+import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.theme.KPKNTheme
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -487,6 +491,35 @@ class PreparationChipsComposeTest {
             })
         }
         rule.onAllNodesWithText("Ver ficha")[0].assertIsDisplayed()
+    }
+
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h740dp-xxhdpi")
+    fun unaBusquedaSinCoincidenciasExplicaElEstadoYPermiteRecuperarUnaMovilidadReal() {
+        val movement = MobilityExerciseCatalog.findById("mob_neck_retraction")!!
+        assertTrue(MobilityExerciseCatalog.searchMobility("zzzzzzkpknqa").isEmpty())
+        var addedId: String? = null
+        rule.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 1.3f)) {
+                KPKNTheme {
+                    EditorOverlayTestHost {
+                        KpknSheet(onDismissRequest = {}) {
+                            MobilityPickerSheet(onAdd = { addedId = it.id }, onDismiss = {})
+                        }
+                    }
+                }
+            }
+        }
+        rule.onNodeWithTag("mobility-picker-search").performTextReplacement("zzzzzzkpknqa")
+        rule.onNodeWithTag("mobility-picker-empty").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("mobility-picker-search").performTextReplacement(movement.name)
+        rule.onNodeWithTag("mobility-picker-empty").assertDoesNotExist()
+        rule.onNodeWithText(movement.name).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Añadir").performScrollTo().performClick()
+        assertEquals(movement.id, addedId)
     }
 
 }
