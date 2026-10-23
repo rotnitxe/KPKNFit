@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -76,7 +77,7 @@ internal fun SessionEditorFrameBottomBar(
             .fillMaxWidth()
             .height(SessionEditorFrameBottomBarHeight)
             .kpknGlass(hazeState = hazeState, shape = KpknShape.island, variant = KpknGlassVariant.ISLAND)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
@@ -91,7 +92,7 @@ internal fun SessionEditorFrameBottomBar(
                 .clickable(role = Role.Button, onClick = onAdd),
             contentAlignment = Alignment.Center,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Icon(
                     imageVector = KpknLineIcons.Plus,
                     contentDescription = null,
@@ -192,12 +193,13 @@ private fun FrameBarTextAction(
     Row(
         modifier = Modifier
             .height(48.dp)
+            .widthIn(min = 48.dp)
             .testTag(tag)
             .clip(KpknShape.pill)
             .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 6.dp),
+            .padding(horizontal = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
             text = label,

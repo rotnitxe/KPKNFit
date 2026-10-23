@@ -108,12 +108,15 @@ class SessionEditorFrameIntegrationGeometryTest {
 
     private fun fullText(label: String) {
         val layout = textLayout(rule.onNodeWithText(label, useUnmergedTree = true))
+        val diagnostic = "$label: size=${layout.size}, lines=${(0 until layout.lineCount).map { listOf(layout.getLineLeft(it), layout.getLineRight(it), layout.getLineEnd(it, visibleEnd = true)) }}, overflowHeight=${layout.didOverflowHeight}"
+        println(diagnostic)
+        save("texto_${label.hashCode()}")
         assertFalse("$label desborda en vertical", layout.didOverflowHeight)
         for (line in 0 until layout.lineCount) assertFalse("$label elidido en línea $line", layout.isLineEllipsized(line))
         assertEquals(label.length, layout.getLineEnd(layout.lineCount - 1, visibleEnd = true))
         for (line in 0 until layout.lineCount) {
             assertTrue("$label recortado a la izquierda", layout.getLineLeft(line) >= -1f)
-            assertTrue("$label recortado a la derecha", layout.getLineRight(line) <= layout.size.width + 1f)
+            assertTrue("$diagnostic recortado a la derecha", layout.getLineRight(line) <= layout.size.width + 1f)
         }
     }
 
@@ -175,11 +178,15 @@ class SessionEditorFrameIntegrationGeometryTest {
         rule.mainClock.advanceTimeBy(2_000)
         rule.onNodeWithText("¿Crear sesión para Domingo?").assertIsDisplayed()
         rule.onNodeWithText("Cancelar").performClick()
+        rule.mainClock.advanceTimeBy(2_000)
+        rule.waitForIdle()
         assertFalse(calls.any { it.startsWith("create-day:") })
         WeekVariant.entries.forEach { variant ->
             val row = rule.onNodeWithTag("session_variant_${variant.name}")
             row.performScrollTo()
             val badge = rule.onNodeWithTag("session_variant_badge_${variant.name}")
+            println("Variante $variant: radio=${row.fetchSemanticsNode().boundsInRoot}, badge=${badge.fetchSemanticsNode().boundsInRoot}")
+            save("variante_${variant.name}_$name")
             badge.assertIsDisplayed()
             val size = badge.fetchSemanticsNode().size
             assertEquals(22f, size.width / density, 0.01f)
