@@ -10,7 +10,7 @@
 - CV de bordes completada en2061 sobre `e1268d050`, log `C:/kw/logs/vt-m5-cv-boundary-20261022-2.log`: 1.229 predicciones retenidas, cuatro rotaciones eligen1.0; MM-Fit ALTA308/327 y MEDIA6/8, aún por debajo de98/90. Sin controles nuevos; integración sigue en9 y default aislado0 hasta MediaPipe.
 - Android91923 terminó correctamente:17 clases y191 pruebas sin fallos, errores ni omisiones; log `C:/kw/logs/vt-fase4-technique-profile-20261022.log`, XML externos en carpeta de igual nombre con sufijo `-results`. Total actual de Fase4:59 clases y569 pruebas correctas.
 - JVM77723 completa:82 clases,602 pruebas,586 correctas y16 omisiones esperadas de bancos/bench opcionales sin configurar, cero fallos/errores. Log `C:/kw/logs/vt-m5-lunge-all-biomechanics-20261022.log`, XML en carpeta de igual nombre con sufijo `-results`.
-- Arreglo horizontal aislado y revisado en `1e2717f31`: conserva caminar/setup/rerack/setdown/ROW. Única corrida Gradle propia actual61504: CV tune contrafactual, log `C:/kw/logs/vt-m5-cv-horizontal-20261022.log`, salida nueva `C:/kw/vt-mmfit/m5-out/openpose-cv-horizontal-20261022`. Sin controles ni integración.
+- Arreglo horizontal `1e2717f31` pasó JVM, pero su CV61504 descubrió regresión en ajuste histórico: FULL229/269 frente230/269 y MEDIA102/106 frente103/104 con guarda1. No aceptarlo ni medirlo como candidato final en ciegos; se investiga el alcance físico. En MM-Fit mejora a340/404 FULL exactas y ALTA317/328. No hay Gradle propio activo al registrar el cierre de61504.
 
 Las secciones siguientes conservan la cronología; sus sesiones «actuales» anteriores ya no describen el estado vigente.
 
@@ -183,3 +183,12 @@ El PID7132 terminó sin publicar nuevos resultados: `GPU required; CPU fallback 
 - B12 ya corrige en integración el falso veto por salidas Java/sistema, pero conserva los vetos existentes durante su versionCode. Se audita la procedencia del APK antiguo y una actualización legítima con B12, sin borrar SharedPreferences, cambiar su significado ni aceptar CPU.
 - El conductor solo admite cambios de APK con nota de src/debug; no usar esa opción para fingir que un cambio main/B12 es solo debug. Cualquier transición compatible necesita atestación veraz de código/modelo/inferencia y adaptación revisada del conductor/constructor, o un banco nuevo coherente. Todavía no se ha construido/instalado otro APK ni modificado esos scripts.
 - El seguimiento20min quedó actualizado a ACTIVE con la nueva disponibilidad del teléfono. Debe leer este estado vigente y no repetir automáticamente el preflight CPU con el APK vetado.
+
+### CV horizontal · candidato genérico no aceptado
+
+La sesión61504 terminó SUCCESS en2m24s tras135s de cola. Informe externo `C:/kw/vt-mmfit/m5-out/openpose-cv-horizontal-20261022/M5_CV.json`, SHA `bf80ca2fadbafbfd84eb7a722cd2799cf84864755ecb44cadbe5d20b96703bcc`. Las cuatro rotaciones eligen1, pero esa selección compara parámetros dentro de este cambio y NO demuestra que la modificación estructural mejore el motor9.
+
+- MM-Fit, guarda1: FULL340/404, ALTA317/328, MEDIA6/7, ofrecidas335/405. Frente a guarda de bordes sola mejora nueve FULL exactas y una salida; aún incumple98/90.
+- Histórico, guarda1: FULL229/269, ALTA44/44, MEDIA102/106, ofrecidas150/345. Frente al candidato anterior pierde una FULL exacta y empeora MEDIA; G2 permanece1/21.
+- Se pide al ajustador diagnóstico solo en ajuste sobre procedencia de proxy/cuenta/veto y alcance de la traslación legítima en LUNGE. No añadir umbrales ni excepciones de clip para corregir las cifras. Ningún control se abrió con este candidato y no se integra.
+- B12/GpuProbe ya tiene20 pruebas Android correctas en la tanda339; la recuperación del teléfono se audita por fuente/APK y política de versión, sin presentar un cambio main como src/debug.
