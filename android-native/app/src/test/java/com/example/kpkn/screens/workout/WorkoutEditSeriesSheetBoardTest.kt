@@ -2,7 +2,10 @@ package com.example.kpkn.screens.workout
 
 import android.app.Application
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
@@ -37,6 +40,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.UnilateralMode
 import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.data.models.UnilateralSideOrder
@@ -73,6 +77,7 @@ class WorkoutEditSeriesSheetBoardTest {
     @get:Rule val rule = createComposeRule()
 
     private var saved: Exercise? = null
+    private var confirmedSession: Session? = null
     private lateinit var sheetState: WorkoutStructureSheetsState
 
     /** Peso muerto rumano, el del tablero: 4 series, la cuarta más pesada, con RIR; 1RM de 140 kg y descanso de 2:30. */
@@ -127,6 +132,66 @@ class WorkoutEditSeriesSheetBoardTest {
     private fun tapText(text: String) = click(rule.onNodeWithText(text))
 
     private fun confirm() = tap(LIVE_EDIT_CONFIRM_TAG)
+
+    @Test
+    fun confirmedCustomGoalInMixedSessionIsVisibleWhenTheEditorReopens() {
+        val exercise = Exercise(
+            id = "press-custom",
+            name = "Press militar QA",
+            trainingMode = TrainingMode.CUSTOM,
+            customUnit = "pasos",
+            unilateralMode = UnilateralMode.BILATERAL,
+            isUnilateral = false,
+            sets = listOf("s1", "s2", "s3").map { setId ->
+                ExerciseSet(id = setId, unitModeV2 = UnitModeV2.CUSTOM, plannedTargetV2 = 12.0)
+            },
+        )
+        val initialSession = Session(
+            id = "ruta-custom",
+            name = "Ruta Press militar QA",
+            exercises = listOf(exercise),
+            parts = listOf(SessionPart(id = "movilidad", name = "Movilidad", isMobilityGroup = true)),
+        )
+        val overlays = KpknOverlayHostController(tourSeen = object : TourSeenStore {
+            override fun seenIds(): Set<String> = emptySet()
+            override fun markSeen(tourId: String) = Unit
+        })
+        rule.setContent {
+            var liveSession by remember { mutableStateOf(initialSession) }
+            val state = rememberWorkoutStructureSheetsState().also { sheetState = it }
+            CompositionLocalProvider(LocalKpknOverlayHost provides overlays) {
+                WorkoutEditSeriesSheet(
+                    state = state,
+                    modeSession = liveSession,
+                    sessionAccentColor = Color(0xFFF49A6E),
+                    bottomHazeState = remember { HazeState() },
+                    initialSetIndex = 1,
+                    onSaveDefinition = { exerciseId, draft ->
+                        liveSession = WorkoutStructuralEditor.replaceExerciseById(liveSession, exerciseId) { current ->
+                            WorkoutEditingRules.normalizeLiveEditedExercise(draft.copy(id = current.id))
+                        }
+                        confirmedSession = liveSession
+                    },
+                )
+                KpknOverlayHostContent(overlays)
+            }
+        }
+        rule.runOnIdle { sheetState.editSheetExerciseId = exercise.id }
+        rule.waitUntil(15_000) { rule.onAllNodesWithText("Confirmar cambios").fetchSemanticsNodes().isNotEmpty() }
+
+        rule.onNodeWithContentDescription("Aumentar pasos").performClick()
+        rule.waitForIdle()
+        rule.onNode(hasSetTextAction() and hasText("13"), useUnmergedTree = true).assertIsDisplayed()
+        confirm()
+        rule.runOnIdle { assertNull(sheetState.editSheetExerciseId) }
+        assertEquals(13.0, confirmedSession!!.exercises.single().sets[1].plannedTargetV2!!, 0.0)
+
+        rule.runOnIdle { sheetState.editSheetExerciseId = exercise.id }
+        rule.waitUntil(15_000) {
+            rule.onAllNodesWithText("Confirmar cambios").fetchSemanticsNodes().isNotEmpty()
+        }
+        rule.onNode(hasSetTextAction() and hasText("13"), useUnmergedTree = true).assertIsDisplayed()
+    }
 
     // ───────────────────────────── G1 · Editar series ─────────────────────────────
 
