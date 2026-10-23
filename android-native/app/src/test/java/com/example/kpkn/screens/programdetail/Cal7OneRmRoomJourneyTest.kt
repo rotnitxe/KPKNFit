@@ -2,6 +2,7 @@ package com.example.kpkn.screens.programdetail
 
 import android.app.Application
 import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.viewModelScope
 import androidx.test.core.app.ApplicationProvider
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.*
@@ -17,6 +18,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.markTag
 import com.example.kpkn.screens.programdetail.design.ONE_RM_SAVE_TAG
 import com.example.kpkn.screens.programdetail.design.ProgramOneRmSheet
 import com.example.kpkn.testsupport.RoomTestRule
+import com.example.kpkn.testsupport.awaitRepositoryScope
 import com.example.kpkn.ui.components.*
 import com.example.kpkn.ui.tour.TourSeenStore
 import kotlinx.coroutines.*
@@ -38,6 +40,7 @@ class Cal7OneRmRoomJourneyTest {
     @get:Rule val room = RoomTestRule()
     @get:Rule val compose = createComposeRule()
     private val store = ViewModelStore()
+    private var detailVm: ProgramDetailViewModel? = null
     private lateinit var repository: ProgramRepository
     private val id = "cal7-one-rm"
     @Before fun setup() = runBlocking {
@@ -48,8 +51,24 @@ class Cal7OneRmRoomJourneyTest {
         repository.resetAllStateSync()
     }
     @After fun cleanup() {
-        try { store.clear(); ProgramRepository.closeInstance(); KpknDatabase.closeInstance() }
-        finally { Dispatchers.resetMain() }
+        try {
+            store.clear()
+            runBlocking {
+                try { detailVm?.viewModelScope?.coroutineContext?.get(Job)?.cancelAndJoin() }
+                finally {
+                    if (::repository.isInitialized) {
+                        try { repository.flushPendingWrites() }
+                        finally { awaitRepositoryScope(repository) }
+                    }
+                }
+            }
+        } finally {
+            try { ProgramRepository.closeInstance() }
+            finally {
+                try { KpknDatabase.closeInstance() }
+                finally { Dispatchers.resetMain() }
+            }
+        }
     }
     private fun weeks(program: Program) = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
     private fun gateProgram(): Program {
@@ -99,7 +118,7 @@ class Cal7OneRmRoomJourneyTest {
         val before = gateProgram()
         repository.addProgram(before)
         repository.flushPendingWrites()
-        val vm = ProgramDetailViewModel(id).also { store.put("detail", it) }
+        val vm = ProgramDetailViewModel(id).also { detailVm = it; store.put("detail", it) }
         withTimeout(10_000) { vm.program.first { it != null } }
         assertEquals(listOf(LiftSlot.BENCH, LiftSlot.OVERHEAD), vm.oneRmTestLifts())
         val beforeOpeningSheet = repository.getProgramById(id)!!

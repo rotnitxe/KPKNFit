@@ -2,7 +2,7 @@
 
 ## Estado y límites
 
-Preparación en `C:/kw/u23`, rama `codex/sv2-cal7`, sobre una base todavía provisional (HEAD de trabajo conocido: `74e58e2037`; la línea previa `bfaa78fc5` aún no contiene la Fase 3 verde). El alcance de este cambio es pruebas e informe: no modifica código de producción, Room, entidades, DAO ni esquemas. **No se ejecutó Gradle, JVM ni adb; todos los resultados quedan pendientes de la corrida central sobre el SHA verde.**
+Preparación en `C:/kw/u23`, rama `codex/sv2-cal7`, sobre una base provisional pendiente de refrescar al SHA verde de Fase 3. El alcance de este cambio es pruebas e informe: no modifica código de producción, Room, entidades, DAO ni esquemas. **No se ejecutó Gradle, JVM ni adb; todos los resultados quedan pendientes de la corrida central sobre el SHA verde.**
 
 La suite preparada reúne 21 recorridos end-to-end con Room en memoria: cuatro ya existentes y 17 añadidos en esta preparación. Se usan Robolectric, repositorio/ViewModels y cierres reales; ningún log de entrenamiento se fabrica en memoria de prueba ni se sustituye por un helper aislado.
 
@@ -14,7 +14,7 @@ La suite preparada reúne 21 recorridos end-to-end con Room en memoria: cuatro y
 
 ## Programas publicados: 12 recorridos
 
-`Cal7ManagedRoomFixture` instala recetas publicadas, prepara un programa COMPLEX en Room, abre sesiones con `WorkoutViewModel`, registra todas las series por el grabador y termina con el controlador real. Verifica la identidad de las series en los logs durables y usa fechas de finalización explícitas, con el check-in sano asociado al mismo día. Accesorios sin kg autor usan una entrada explícita del atleta de 40 kg, que no se convierte en referencia de capacidad. El fixture también protege una sesión manual y una referencia de otra variante.
+`Cal7ManagedRoomFixture` instala recetas publicadas, prepara un programa COMPLEX en Room, abre sesiones con `WorkoutViewModel`, registra todas las series por el grabador y termina con el controlador real. Verifica la identidad de todas las series en los logs durables y busca cada cierre por programa y fecha explícita, evitando confundir una sesión reutilizada en el ciclo siguiente; también verifica el ID base. El check-in sano queda asociado al mismo día. Accesorios sin kg autor usan una entrada explícita del atleta de 40 kg, que no se convierte en referencia de capacidad. El fixture también protege una sesión manual y una referencia de otra variante.
 
 `Cal7ManagedProgramRoomJourneyTest` ejecuta 12 combinaciones (OFF/PROPOSE/AUTO) de `wendler-531-bbb`, `nsuns-531-lp-4d`, `juggernaut-2` y `gzclp`. Cierra el ciclo 5/3/1 y GZCLP tras cuatro semanas, la ola Juggernaut tras cuatro semanas y nSuns tras la semana publicada. En PROPOSE acepta los cambios de método por `ProgramDetailViewModel`; mantiene decisiones de recuperación separadas. Comprueba auditoría y TMs, que no se inventen 1RM, que el pool canónico acompañe al perfil, que las referencias/sesiones manuales y logs históricos queden protegidos, y abre y registra la carga prescrita en una sesión futura real. nSuns PROPOSE/AUTO deben demostrar el +5 kg publicado; OFF conserva el TM.
 
@@ -34,4 +34,4 @@ El quinto activa B desde `WorkoutViewModel.setActiveMode` sobre una sesión base
 
 ## Evidencia
 
-Revisión estática de firmas/fixtures e inspección de diffs. `git diff --check` pasó y el escaneo estricto de los cuatro archivos no encontró BOM, U+FFFD, CR aislado ni whitespace final. No hay compilación, ejecución de pruebas, render ni validación en dispositivo. No se modificaron producción ni Room y no se tocaron otros worktrees.
+Revisión estática de firmas/fixtures e inspección de diffs. Los cierres de las cuatro rutas CAL7 esperan a que terminen los ViewModels, vacían escrituras pendientes y esperan el scope privado de ProgramRepository antes de cerrar Room. `git diff --check` pasó y el escaneo UTF-8 estricto de los archivos editados no encontró BOM, U+FFFD, CR aislado ni whitespace final. No hay compilación, ejecución de pruebas, render ni validación en dispositivo. No se modificaron producción ni Room y no se tocaron otros worktrees.

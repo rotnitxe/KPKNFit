@@ -15,7 +15,8 @@ import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.ExerciseTrainingMax
 import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.*
@@ -29,6 +30,7 @@ internal class Cal7ManagedRoomFixture(private val protocolId: String, private va
     val programId = "cal7-$protocolId-${mode.name.lowercase()}"
     lateinit var repository: ProgramRepository
         private set
+    val preparedRepository: ProgramRepository? get() = if (::repository.isInitialized) repository else null
     private val opened = mutableListOf<WorkoutViewModel>()
     private val detail = mutableListOf<ProgramDetailViewModel>()
     lateinit var manualSession: Session
@@ -124,8 +126,11 @@ internal class Cal7ManagedRoomFixture(private val protocolId: String, private va
             manualBatteryAnchorMs = completionInstant.toEpochMilli()))
         vm.finishWorkout("Recorrido CAL7 $protocolId/$mode", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList(),
             completionInstantIso = completionInstant.toString()))
-        val log = withTimeout(60_000) { repository.history.first { logs -> logs.any { it.sessionId == session.id } } }
-            .last { it.sessionId == session.id }
+        val completionDate = completionInstant.toString()
+        val log = withTimeout(60_000) {
+            repository.history.first { logs -> logs.any { it.programId == programId && it.date == completionDate } }
+                .single { it.programId == programId && it.date == completionDate }
+        }
         withTimeout(20_000) { vm.uiState.first { it.logAlreadyWrittenId != null || it.isComplete || it.showVolumeAdvanceModal } }
         if (vm.uiState.value.showVolumeAdvanceModal) vm.dismissVolumeAdvance()
         withTimeout(60_000) { repository.ongoingWorkout.first { it == null } }
@@ -133,7 +138,7 @@ internal class Cal7ManagedRoomFixture(private val protocolId: String, private va
         assertEquals(recorded, log.completedExercises.flatMap { it.sets }.map { it.id }.toSet())
         assertEquals(programId, log.programId)
         assertEquals(session.id, log.sessionId)
-        vm.viewModelScope.cancel()
+        vm.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
         opened.remove(vm)
         completedLogs += log
         return log
@@ -162,8 +167,13 @@ internal class Cal7ManagedRoomFixture(private val protocolId: String, private va
         repository.flushPendingWrites()
     }
 
-    fun close() {
-        opened.forEach { it.viewModelScope.cancel() }; opened.clear()
-        detail.forEach { it.viewModelScope.cancel() }; detail.clear()
+    suspend fun close() {
+        val workoutViewModels = opened.toList()
+        val detailViewModels = detail.toList()
+        opened.clear()
+        detail.clear()
+        workoutViewModels.forEach { it.viewModelScope.coroutineContext[Job]?.cancelAndJoin() }
+        detailViewModels.forEach { it.viewModelScope.coroutineContext[Job]?.cancelAndJoin() }
+        preparedRepository?.flushPendingWrites()
     }
 }

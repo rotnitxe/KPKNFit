@@ -17,9 +17,11 @@ import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.screens.programdetail.ProgramDetailViewModel
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.testsupport.RoomTestRule
+import com.example.kpkn.testsupport.awaitRepositoryScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -52,10 +54,19 @@ class Cal7ManualApreRoomJourneyTest {
 
     @After fun cleanup() {
         try {
-            fixtures.forEach { it.close() }
-            LiveSessionVmFixture.resetAugeRepository()
-            ProgramRepository.closeInstance()
-            KpknDatabase.closeInstance()
+            runBlocking {
+                try { fixtures.forEach { it.close() } }
+                finally {
+                    try { fixtures.firstOrNull()?.preparedRepository?.let { awaitRepositoryScope(it) } }
+                    finally {
+                        try { LiveSessionVmFixture.resetAugeRepository() }
+                        finally {
+                            try { ProgramRepository.closeInstance() }
+                            finally { KpknDatabase.closeInstance() }
+                        }
+                    }
+                }
+            }
         } finally {
             Dispatchers.resetMain()
         }
@@ -281,6 +292,7 @@ class Cal7ManualApreRoomJourneyTest {
         val manualSessionWeek2: Session
         lateinit var repository: ProgramRepository
             private set
+        val preparedRepository: ProgramRepository? get() = if (::repository.isInitialized) repository else null
         private val opened = mutableListOf<WorkoutViewModel>()
         private val details = mutableListOf<ProgramDetailViewModel>()
         lateinit var foreignReferences: ExerciseLoadReference
@@ -522,7 +534,7 @@ class Cal7ManualApreRoomJourneyTest {
             withTimeout(60_000) { repository.ongoingWorkout.first { it == null } }
             assertEquals(baseSession.id, log.sessionId)
             assertEquals(completionInstant.toString(), log.date)
-            vm.viewModelScope.cancel()
+            vm.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
             opened.remove(vm)
             return log
         }
@@ -538,11 +550,14 @@ class Cal7ManualApreRoomJourneyTest {
             repository.flushPendingWrites()
         }
 
-        fun close() {
-            opened.forEach { it.viewModelScope.cancel() }
+        suspend fun close() {
+            val workoutViewModels = opened.toList()
+            val detailViewModels = details.toList()
             opened.clear()
-            details.forEach { it.viewModelScope.cancel() }
             details.clear()
+            workoutViewModels.forEach { it.viewModelScope.coroutineContext[Job]?.cancelAndJoin() }
+            detailViewModels.forEach { it.viewModelScope.coroutineContext[Job]?.cancelAndJoin() }
+            preparedRepository?.flushPendingWrites()
         }
     }
 }

@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.testsupport.RoomTestRule
+import com.example.kpkn.testsupport.awaitRepositoryScope
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.*
@@ -26,10 +27,24 @@ class Cal7FreeSessionRoomTest {
     @Before fun setup() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetAugeRepository() }
     @After fun cleanup() {
         try {
-            fixtures.forEach { it.close() }
-            LiveSessionVmFixture.resetAugeRepository()
-            ProgramRepository.closeInstance()
-            KpknDatabase.closeInstance()
+            runBlocking {
+                try { fixtures.forEach { it.closeAndJoin() } }
+                finally {
+                    val repositories = fixtures.mapNotNull { it.preparedRepository }.distinct()
+                    try {
+                        repositories.forEach { repository ->
+                            try { repository.flushPendingWrites() }
+                            finally { awaitRepositoryScope(repository) }
+                        }
+                    } finally {
+                        try { LiveSessionVmFixture.resetAugeRepository() }
+                        finally {
+                            try { ProgramRepository.closeInstance() }
+                            finally { KpknDatabase.closeInstance() }
+                        }
+                    }
+                }
+            }
         } finally { Dispatchers.resetMain() }
     }
 
@@ -59,10 +74,20 @@ class Cal7FreeSessionRoomTest {
         assertEquals(status, vm.uiState.value.calibrationDecisions.single { it.id == decisionId }.status)
     }
     private suspend fun finish(fixture: LiveSessionVmFixture, vm: WorkoutViewModel): WorkoutLog {
-        vm.finishWorkout("Recorrido CAL7", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList()))
-        val log = withTimeout(60_000) { fixture.repository.history.first { logs -> logs.any { it.sessionId == fixture.sessionId } } }
-            .single { it.sessionId == fixture.sessionId }
+        val sessionId = vm.uiState.value.session!!.id
+        val completionInstant = Instant.now()
+        val completionDate = completionInstant.toString()
+        vm.finishWorkout("Recorrido CAL7", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList(),
+            completionInstantIso = completionDate))
+        val log = withTimeout(60_000) {
+            fixture.repository.history.first { logs -> logs.any {
+                it.programId == fixture.programId && it.date == completionDate
+            } }.single { it.programId == fixture.programId && it.date == completionDate }
+        }
         withTimeout(60_000) { fixture.repository.ongoingWorkout.first { it == null } }
+        assertEquals(fixture.programId, log.programId)
+        assertEquals(sessionId, log.sessionId)
+        assertEquals(completionDate, log.date)
         assertEquals(log.calibrationDecisions, fixture.repository.calibrationDecisions.forSession(log.id))
         return log
     }
@@ -100,7 +125,7 @@ class Cal7FreeSessionRoomTest {
         assertEquals(listOf(CalibrationStatus.REVERTED, CalibrationStatus.APPLIED), log.calibrationDecisions.map { it.status })
         assertTrue(calibrationSummaryLines(log.calibrationDecisions).any { it.contains("Revertida") })
         assertTrue(calibrationSummaryLines(log.calibrationDecisions).any { it.contains("próxima sesión") })
-        reopened.viewModelScope.cancel()
+        reopened.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
         val next = fixture.open()
         val nextExercise = next.uiState.value.session!!.exercises.first()
         assertEquals(65.0, next.getWeightSuggestionWithAutoRegulation(nextExercise, 2)!!.suggestedWeight, 0.0)
@@ -140,7 +165,7 @@ class Cal7FreeSessionRoomTest {
             if (purpose == SetPurpose.CALIBRATOR) resolve(vm, source.id, CalibrationStatus.KEPT)
             else assertTrue(vm.uiState.value.calibrationDecisions.isEmpty())
             val log = finish(fixture, vm)
-            fixture.close()
+            fixture.closeAndJoin()
             return log
         }
         val normal = completed(SetPurpose.NONE)

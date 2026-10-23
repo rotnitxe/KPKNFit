@@ -7,6 +7,7 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.ExerciseTrainingMax
 import com.example.kpkn.domain.training.Cal5TestSupport
 import com.example.kpkn.testsupport.RoomTestRule
+import com.example.kpkn.testsupport.awaitRepositoryScope
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.*
@@ -28,10 +29,19 @@ class Cal7ManagedProgramRoomJourneyTest {
     @Before fun setup() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetAugeRepository() }
     @After fun cleanup() {
         try {
-            fixture?.close()
-            LiveSessionVmFixture.resetAugeRepository()
-            ProgramRepository.closeInstance()
-            KpknDatabase.closeInstance()
+            runBlocking {
+                try { fixture?.close() }
+                finally {
+                    try { fixture?.preparedRepository?.let { awaitRepositoryScope(it) } }
+                    finally {
+                        try { LiveSessionVmFixture.resetAugeRepository() }
+                        finally {
+                            try { ProgramRepository.closeInstance() }
+                            finally { KpknDatabase.closeInstance() }
+                        }
+                    }
+                }
+            }
         } finally { Dispatchers.resetMain() }
     }
     private val configs = mapOf(LiftSlot.SQUAT to CatalogIds.SQ_LOW, LiftSlot.BENCH to CatalogIds.BP,
