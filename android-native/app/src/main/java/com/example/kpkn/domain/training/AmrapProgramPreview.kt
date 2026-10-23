@@ -461,7 +461,11 @@ object AmrapProgramPreview {
             } else {
                 observerNote?.text ?: "${prefix}el cierre del ciclo decide el siguiente paso."
             },
-            detail = capNote + (stage?.let { " Etapa ${it.number}: ${it.label}." } ?: ""),
+            detail = capNote + when (stage) {
+                is GzclpProgression.T1Stage -> " Etapa ${stage.number}: ${stage.label}."
+                is GzclpProgression.T2Stage -> " Etapa ${stage.number}: ${stage.label}."
+                else -> ""
+            },
             warning = if (
                 tierCheck?.role == SlotRole.T1_MAIN && stage == GzclpProgression.T1Stage.STAGE_3 &&
                 decision?.outcome == GzclpProgression.TierOutcome.RESTART
