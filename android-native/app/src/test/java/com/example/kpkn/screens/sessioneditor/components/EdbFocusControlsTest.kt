@@ -120,6 +120,40 @@ class EdbFocusControlsTest {
         assertEquals(3, saved.rightTarget!!.targetRIR)
     }
 
+    @Test fun rmCaptionHeredaCargaGlobalYRespetaElPesoExplicitoDeCadaLado() {
+        val base = rm(oneRm = 100.0)
+        val source = base.copy(isUnilateral = true, unilateralMode = UnilateralMode.UNILATERAL_PAIRED,
+            unilateralIntensityMode = UnilateralIntensityMode.INDEPENDENT, sets = listOf(base.sets.single().copy(
+                weight = 80.0,
+                leftTarget = UnilateralTarget(targetReps = 10),
+                rightTarget = UnilateralTarget(targetReps = 12),
+            )))
+
+        mount(source, side = "L")
+        rule.onNodeWithContentDescription("Carga del lado L").assertTextContains("L · 80\u00a0kg")
+        rule.onNodeWithContentDescription("Peso (kg)").assertTextContains("80")
+        rule.onNodeWithContentDescription("Reps estimadas").assertTextContains("7")
+
+        rule.onNodeWithTag("set-row-s1:R").performClick()
+        rule.onNodeWithContentDescription("Carga del lado R").assertTextContains("R · 80\u00a0kg")
+        rule.onNodeWithContentDescription("Peso (kg)").assertTextContains("80")
+
+        state.value = state.value.copy(sets = state.value.sets.map { set ->
+            set.copy(rightTarget = set.rightTarget!!.copy(weight = 90.0))
+        })
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Carga del lado R").assertTextContains("R · 90\u00a0kg")
+        rule.onNodeWithContentDescription("Peso (kg)").assertTextContains("80")
+
+        state.value = state.value.copy(sets = state.value.sets.map { set ->
+            set.copy(rightTarget = set.rightTarget!!.copy(weight = 0.0))
+        })
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Carga del lado R").assertTextContains("R · 0\u00a0kg")
+        assertEquals(80.0, state.value.sets.single().weight!!, 0.0)
+        assertEquals(0.0, state.value.sets.single().rightTarget!!.weight!!, 0.0)
+    }
+
     @Test fun amrapMuestraCargaYVistaPreviaDelMismoLado() {
         val source = Exercise(id = "press", name = "Press", trainingMode = TrainingMode.AMRAP,
             isUnilateral = true, unilateralMode = UnilateralMode.UNILATERAL_PAIRED,
