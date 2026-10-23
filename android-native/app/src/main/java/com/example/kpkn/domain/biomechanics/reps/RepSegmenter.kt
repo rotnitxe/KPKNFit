@@ -1071,7 +1071,7 @@ object RepSegmenter {
                 }
                 c.turnInGap = filledNear(c.peak)
             }
-            markNonReps(cands)
+            markNonReps(cands, tRef)
             // Con la referencia aplicada, el reposo de la zona es el nivel más bajo de los valles: en una serie de parciales en
             // estiramiento los valles quedan lejos del reposo y su mediana (Lrest) no lo es. Sin ella, Lrest como siempre.
             anchor = if (referenceApplied) min(lRest, lowestValley(cands)) else lRest
@@ -1303,9 +1303,13 @@ object RepSegmenter {
 
         // ---- paso 5: no-repeticiones ----
 
-        private fun markNonReps(cands: List<Cand>) {
-            val horizontalProfile = series.source == CountSeriesBuilder.SOURCE_PLATE &&
-                profile.plateSignal != null && profile.id != AnalysisProfileId.ROW
+        private fun markNonReps(cands: List<Cand>, periodS: Double) {
+            val horizontalProfile = profile.plateSignal != null && profile.id != AnalysisProfileId.ROW
+            val poseLunge = profile.id == AnalysisProfileId.LUNGE && series.source == CountSeriesBuilder.SOURCE_POSE
+            // El hombro puede trasladarse durante una zancada. Solo deja de ser veto si la cadera muestra varias
+            // excursiones completas y observadas, con una vecina en la cadencia de la propia serie.
+            val comparableLunges = if (poseLunge) cands.filter(::observedCompleteLunge) else emptyList()
+            val hasLungeReference = comparableLunges.size >= tuning.edgeMinFull
             val bx = series.barX
             val by = series.barY
             for (c in cands) {
@@ -1321,10 +1325,34 @@ object RepSegmenter {
                     if (horizontalProfile && bx != null && by != null) {
                         val dx = range(bx, lo, hi)
                         val dy = range(by, lo, hi)
-                        if (!dx.isNaN() && !dy.isNaN() && dx > tuning.horizontalPathRatio * dy) c.drop("nonrep_horizontal")
+                        val repeatedLunge = hasLungeReference && c in comparableLunges && comparableLunges.any { other ->
+                            other !== c && abs(other.peak - c.peak) / fs <= tuning.partialGapPeriods * periodS
+                        }
+                        if (!dx.isNaN() && !dy.isNaN() && dx > tuning.horizontalPathRatio * dy && !repeatedLunge) {
+                            c.drop("nonrep_horizontal")
+                        }
                     }
                 }
             }
+        }
+
+        private fun observedCompleteLunge(c: Cand): Boolean {
+            if (c.turnInGap || c.vL < 0 || c.vR < 0 || c.aUp < tuning.fullFraction ||
+                c.aDn < tuning.fullFraction || max(c.aUp, c.aDn) > tuning.edgeOversizeFactor
+            ) return false
+            val first = firstValidIndex()
+            val last = lastValidIndex()
+            return observedRestAt(c.vL, first + 1, c.peak - 1) &&
+                observedRestAt(c.vR, c.peak + 1, last - 1)
+        }
+
+        /** Un mínimo de borde solo es reposo observado si hay otra muestra real de reposo dentro del vídeo. */
+        private fun observedRestAt(valley: Int, interiorStart: Int, interiorEnd: Int): Boolean {
+            if (valley < 0 || series.filled[valley] || !rd[valley].isFinite() || rd[valley] > lRest + restBand) return false
+            for (k in interiorStart..interiorEnd) {
+                if (!series.filled[k] && rd[k].isFinite() && rd[k] <= lRest + restBand) return true
+            }
+            return false
         }
 
         private fun range(x: DoubleArray, lo: Int, hi: Int): Double {

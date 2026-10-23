@@ -182,6 +182,15 @@ class RepSegmenterRulesTest {
         val squat = AnalysisProfiles.of(AnalysisProfileId.SQUAT).copy(minAmplitude = 0.1)
         val vertical = segment(b.series(raw = r, source = CountSeriesBuilder.SOURCE_PLATE, barX = barX, barY = r.copyOf()), squat)
         fails.check(vertical.fullCount == 4 && vertical.discarded.any { it.reason == "nonrep_horizontal" }) { "perfil vertical: ${describe(vertical)}" }
+        val poseVertical = segment(b.series(raw = r, source = CountSeriesBuilder.SOURCE_POSE, barX = barX, barY = r.copyOf()), squat)
+        fails.check(poseVertical.fullCount == 4 && poseVertical.discarded.any { it.reason == "nonrep_horizontal" }) {
+            "sentadilla con proxy de pose: ${describe(poseVertical)}"
+        }
+        val bench = AnalysisProfiles.of(AnalysisProfileId.BENCH).copy(minAmplitude = 0.1)
+        val poseHand = segment(b.series(raw = r, source = CountSeriesBuilder.SOURCE_POSE, barX = barX, barY = r.copyOf()), bench)
+        fails.check(poseHand.fullCount == 4 && poseHand.discarded.any { it.reason == "nonrep_horizontal" }) {
+            "press banca con proxy de mano: ${describe(poseHand)}"
+        }
         // El remo no es un perfil vertical: la barra se mueve en diagonal y no se descarta.
         val row = AnalysisProfiles.of(AnalysisProfileId.ROW).copy(minAmplitude = 0.1, perSide = false)
         val rowResult = segment(b.series(raw = r, source = CountSeriesBuilder.SOURCE_PLATE, barX = barX, barY = r.copyOf()), row)
@@ -215,6 +224,19 @@ class RepSegmenterRulesTest {
         val plateVertical = segment(b.series(raw = r, source = CountSeriesBuilder.SOURCE_PLATE,
             barX = DoubleArray(r.size), barY = r.copyOf()), lunge)
         assertEquals(describe(plateVertical), 5, plateVertical.fullCount)
+    }
+
+    @Test
+    fun anAlreadyAscendingInitialLungePeakBeforeALongPauseIsNotASecondFullRep() {
+        val b = SignalBuilder(start = 0.075).go(1.4, 0.3).hold(0.5).go(1.5, 0.0).hold(8.0)
+            .rep(0.3).hold(1.5)
+        val r = b.values()
+        val shoulderX = DoubleArray(r.size) { k -> 0.8 * (k / 30.0 / 1.4).coerceIn(0.0, 1.0) }
+        val lunge = AnalysisProfiles.of(AnalysisProfileId.LUNGE)
+        val seg = segment(b.series(raw = r, source = CountSeriesBuilder.SOURCE_POSE,
+            barX = shoulderX, barY = r.copyOf()), lunge)
+        assertEquals(describe(seg), 1, seg.fullCount)
+        assertTrue(describe(seg), seg.discarded.any { it.reason == "nonrep_horizontal" })
     }
 
     @Test
