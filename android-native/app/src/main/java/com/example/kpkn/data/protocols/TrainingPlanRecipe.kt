@@ -84,6 +84,22 @@ data class PlanLoadReference(
     /** Snapshot de la carga elegida cuando [state] es [PlanLoadReferenceState.CAPTURED]. */
     val capturedLoadKg: Double? = null,
     val capturedAtMs: Long? = null,
+    /** JSON-only provenance. Null keeps the exact legacy context; it is never a wildcard. */
+    val metadata: PlanLoadReferenceMetadata? = null,
+)
+
+/** Optional audit attached to the existing reference pool; no separate persistence or inferred dates. */
+@Serializable
+data class PlanLoadReferenceMetadata(
+    val origin: String? = null,
+    val reason: String? = null,
+    /** Existing CAL1 CalibrationContext.key, including equipment/tag/brand/setup and side. */
+    val contextKey: String? = null,
+    /** Stable event identity. A corrected event appends a revision instead of erasing history. */
+    val sourceId: String? = null,
+    val sourceSetId: String? = null,
+    val tmFraction: Double? = null,
+    val revision: Int = 0,
 )
 
 @Serializable
