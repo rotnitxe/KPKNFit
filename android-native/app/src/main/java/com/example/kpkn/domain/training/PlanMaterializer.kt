@@ -386,6 +386,7 @@ object PlanMaterializer {
                                                 scaled, recipe, metadata, idProvider, profile,
                                                 schedule.trainingDays, schedule.startDay,
                                                 warmupPlan, nativeCurate, scope,
+                                                existingSessions = if (foreignRecipe) emptyList() else week.sessions,
                                             )
                                             rebuilt.copy(
                                                 id = week.id,
@@ -860,12 +861,20 @@ object PlanMaterializer {
         warmupPlan: WarmupPlan,
         nativeCurate: Boolean,
         scope: MaterializationScope,
+        existingSessions: List<Session> = emptyList(),
     ): ProgramWeek {
+        val claimed = mutableSetOf<String>()
         val sessions = week.days.mapIndexed { index, day ->
             val dayOfWeek = rotateWeekday(day.weekday, startDay)
                 ?: trainingDays?.getOrNull(index)
                 ?: ((startDay - 1 + index).mod(7) + 1)
-            materializeDay(day, dayOfWeek, week, recipe, metadata, idProvider, profile, warmupPlan, nativeCurate, scope)
+            // Match the persisted occurrence before calculating loads; identity adoption after
+            // materialization is too late to read its capture history (legacy days have no id).
+            val previous = existingSessions.firstOrNull { it.id !in claimed && it.dayOfWeek == dayOfWeek }
+                ?: existingSessions.getOrNull(index)?.takeIf { it.id !in claimed }
+            previous?.let { claimed += it.id }
+            materializeDay(day, dayOfWeek, week, recipe, metadata, idProvider, profile, warmupPlan, nativeCurate, scope,
+                legacySession = previous.takeIf { day.id == null })
         }
         return ProgramWeek(
             id = idProvider.newId(),
@@ -887,6 +896,7 @@ object PlanMaterializer {
         warmupPlan: WarmupPlan,
         nativeCurate: Boolean,
         scope: MaterializationScope,
+        legacySession: Session? = null,
     ): Session {
         // Identidad estable §14.4: solo con `DayRecipe.id` declarado. Las
         // recetas legacy (id de día null) siguen con el [IdProvider] y su
@@ -904,6 +914,10 @@ object PlanMaterializer {
         }
         val assignedWarmups = assignWarmups(day, metadata, idProvider, warmupPlan.explicitSteps, nativeCurate, stableSessionId)
         val seenSlotIds = mutableSetOf<String>()
+        val legacyExercises = LinkedHashMap<String, ArrayDeque<Exercise>>()
+        legacySession?.allExercises()?.forEach { previous ->
+            legacyExercises.getOrPut(exerciseMatchKey(previous)) { ArrayDeque() }.addLast(previous)
+        }
         val exercises = day.slots.mapIndexed { index, slot ->
             // Dos slots con el mismo id no comparten ejercicio: caen al
             // IdProvider para que `allExercises()` nunca tenga duplicados.
@@ -931,6 +945,8 @@ object PlanMaterializer {
                 stableExerciseId = stableExerciseId,
                 recipeDayId = dayId,
                 referencePool = scope.referencePool,
+                referenceExerciseId = stableExerciseId
+                    ?: legacyExercises[slot.lift.configurationId + "|"]?.removeFirstOrNull()?.id,
             )
         }
         val parts = groupParts(day, exercises, idProvider, stableSessionId)
@@ -1046,6 +1062,7 @@ object PlanMaterializer {
         stableExerciseId: String? = null,
         recipeDayId: String? = null,
         referencePool: Map<String, List<PlanLoadReference>> = emptyMap(),
+        referenceExerciseId: String? = stableExerciseId,
     ): Exercise {
         val meta = metadata.metadata(slot.lift.configurationId)
             ?: error("Configuración '${slot.lift.configurationId}' sin metadata del catálogo")
@@ -1066,11 +1083,11 @@ object PlanMaterializer {
         // del programa solo se consulta para ejercientes con identidad estable
         // y MISMA configuración/convención; los capturados ganan a los pendientes.
         val declaredReferences = slot.sets.mapNotNull { it.reference }
-        val pooledReferences = stableExerciseId?.let { referencePool[it].orEmpty() }.orEmpty()
+        val pooledReferences = referenceExerciseId?.let { referencePool[it].orEmpty() }.orEmpty()
             .filter { it.configurationId == slot.lift.configurationId && it.side == null && it.metadata?.contextKey == null }
         val originalExplicit = working.firstNotNullOfOrNull { it.reference }
             ?: slot.sets.firstNotNullOfOrNull { it.reference }
-            ?: resolvedPoolReference(referencePool, stableExerciseId, slot.lift.configurationId,
+            ?: resolvedPoolReference(referencePool, referenceExerciseId, slot.lift.configurationId,
                 slot.explicitReference, allowBilateralReference = !slot.isUnilateral)
         fun resolvedReference(request: PlanLoadReference): PlanLoadReference? =
             ExerciseLoadReferenceStore.resolve(declaredReferences + pooledReferences, request)
@@ -1094,7 +1111,7 @@ object PlanMaterializer {
             }
             ?: explicit?.quantityConvention?.takeIf { it != LoadQuantityConvention.UNSPECIFIED }
         val sideReferenceCandidates = if (slot.isUnilateral) {
-            stableExerciseId?.let { referencePool[it].orEmpty() }.orEmpty()
+            referenceExerciseId?.let { referencePool[it].orEmpty() }.orEmpty()
                 .filter {
                     it.configurationId == slot.lift.configurationId &&
                         it.side in setOf("left", "right") &&
@@ -1281,7 +1298,7 @@ object PlanMaterializer {
         val apre = resolveLiveApreBlock(materializedExercise, recipe.id, recipe.progression is ProgressionRule.ApreXrm)
         val marked = if (apre == null) materializedExercise else materializedExercise.copy(
             apreBlock = ApreBlockReference(apre.variant.xrmReps, apre.setIds))
-        return consumeApreXrmReferences(marked, referencePool[marked.id].orEmpty())
+        return consumeApreXrmReferences(marked, referencePool[referenceExerciseId ?: marked.id].orEmpty())
     }
 
     /**
