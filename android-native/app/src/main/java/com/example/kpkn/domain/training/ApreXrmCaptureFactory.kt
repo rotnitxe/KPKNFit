@@ -47,7 +47,7 @@ fun captureApreXrm(
         sourceProgramId = sourceProgramId, state = PlanLoadReferenceState.CAPTURED,
         capturedLoadKg = next, capturedAtMs = capturedAtMs,
         metadata = PlanLoadReferenceMetadata(origin = ExerciseLoadReferenceStore.APRE_XRM, reason = reason,
-            contextKey = context.key, sourceId = completed.id, sourceSetId = exercise.sets[index].id),
+            contextKey = context.key, sourceId = completed.id, sourceSetId = exercise.sets[index].id, loadIncrementKg = incrementKg),
     )
     return ApreXrmCapture(exercise.id, exercise.sets[index].id, context, reference, incrementKg,
         exercise.recipeDayId, exercise.recipeSlotId)
