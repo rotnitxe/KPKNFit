@@ -266,3 +266,31 @@ de las 494 G1 y el QA físico se completan cuando el usuario regrese. No integra
   necesita estudiar evidencia fuerte y ciclos completos; no se baja la exigencia de escala o visibilidad para aumentar cobertura.
 
 Estos diagnósticos son de desarrollo y no sustituyen la selección retenida, los controles nuevos ni la medición MediaPipe.
+
+### M5 · CV preliminar de la guarda de borde
+
+Ejecutada en `e1268d050` (motor 10, candidato aislado), con rejilla 0/0,5/0,75/1 periodos, entrenamiento de tres folds y
+medición del retenido. Las cuatro rotaciones eligieron **1 periodo**. Se procesaron las 1.229 filas de ajuste (509 MM-Fit y720
+históricas) para cada variante; sus predicciones retenidas son únicas. La variante0 reproduce los agregados del motor9.
+
+| Banco G1 / medida | Guarda0 (motor9 equivalente) | Guarda1 (retenido en las cuatro rotaciones) |
+|---|---:|---:|
+| MM-Fit: ALTA FULL exactas | 309/358 (86,3 %) | 308/327 (94,2 %) |
+| MM-Fit: MEDIA FULL exactas | 6/11 (54,5 %) | 6/8 (75 %) |
+| MM-Fit: ofrecidas ALTA/MEDIA | 369/405 | 335/405 |
+| Histórico: ALTA FULL exactas | 45/45 | 44/44 |
+| Histórico: MEDIA FULL exactas | 104/105 | 103/104 |
+| Histórico: ofrecidas ALTA/MEDIA | 150/345 | 148/345 |
+
+La guarda cambia confianza, no añade repeticiones: FULL exactas/salidas permanecen331/403 en MM-Fit y230/269 en histórico.
+G2 histórico conserva1/21 equivocadas entre ofrecidas. La mejora de precisión procede de abstenerse de ofrecer resultados
+inciertos; también deja de ofrecer una serie exacta MM-Fit y dos históricas. No es una mejora de exactitud del conteo.
+Las metas98/90 siguen **incumplidas en MM-Fit**. Por ejercicio, siguen por debajo del95 % de series G1 exactas OHP43/48 y
+flexiones50/53; remo51/52 y sentadilla50/52 superan solo la meta puntual, sin demostrar generalización ni el contrato de eventos/IC.
+Tríceps conserva0/52 FULL exactas y cuatro ALTA equivocadas; no queda resuelto por bajar la confianza de otros casos.
+
+Informe externo `C:/kw/vt-mmfit/m5-out/openpose-cv-boundary-20261022/M5_CV.json`, SHA-256
+`3fd7f9fc101a6ba187bac49415bc0091638c2c4e7a7731487b000019cf158a16`; `RUN_CONTEXT.json` fija commits/hashes y
+`PROFILE_AGGREGATES.json` desglosa todas las G1 por ejercicio incluyendo abstenciones. Log `C:/kw/logs/vt-m5-cv-boundary-20261022-2.log`.
+No se evaluaron controles del candidato. La selección es preliminar OpenPose y el default del código permanece0 hasta la
+selección con MediaPipe completo. El siguiente experimento es el veto horizontal por procedencia física; no se fusiona motor10.

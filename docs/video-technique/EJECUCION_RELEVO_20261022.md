@@ -7,8 +7,9 @@
 - Fase 4: compilación Android, Room/comparador (39 pruebas) y datos/trabajo/repositorios (339 pruebas) correctos: 42 clases y378 pruebas sin fallos, errores ni omisiones. Faltan las tandas de pantallas, JVM completo y R8.
 - M5 se desarrolla en `codex/vt-m5-20261022`, sin integrar. Se preparan sintéticos y CV real sobre ajuste OpenPose/vt-tune; los controles de partida del motor9 ya terminaron. OpenPose es preliminar hasta disponer de MediaPipe completo.
 - Sintéticos M5 aprobados: sesión97421, `C:/kw/logs/vt-m5-boundary-cv-synthetic-20261022-2.log`, 24 pruebas correctas y una omisión esperada de CV externa sin bancos. Candidato de bordes `229d2f0d7`, ejecutor CV `78b7a92b7`, árbol aislado limpio.
-- La primera CV externa34757 falló en preflight de metadatos, sin abrir etiquetas/trazas ni crear salida. El runner trataba `package.partition` (objeto JSON) como texto. Se corrige su contrato y se repetirá el sintético antes de medir.
-- Única corrida Gradle propia actual: JVM51906, sintéticos del contrato CV reparado; log `C:/kw/logs/vt-m5-cv-contract-synthetic-20261022.log`. No duplicar mientras siga viva. Sin bancos, instalación ni teléfono.
+- CV de bordes completada en2061 sobre `e1268d050`, log `C:/kw/logs/vt-m5-cv-boundary-20261022-2.log`: 1.229 predicciones retenidas, cuatro rotaciones eligen1.0; MM-Fit ALTA308/327 y MEDIA6/8, aún por debajo de98/90. Sin controles nuevos; integración sigue en9 y default aislado0 hasta MediaPipe.
+- Única corrida Gradle propia actual: Android91923, 17 clases de técnica/perfil (excluye el comparador ya aprobado); log `C:/kw/logs/vt-fase4-technique-profile-20261022.log`. No duplicar mientras siga viva. Sin instalación ni teléfono.
+- El ajustador prepara un único cambio siguiente: limitar `nonrep_horizontal` a la fuente física PLATE, preservando caminar/setup/rerack/setdown y la excepción ROW. Todavía sin validar ni integrar.
 
 Las secciones siguientes conservan la cronología; sus sesiones «actuales» anteriores ya no describen el estado vigente.
 
@@ -154,3 +155,7 @@ La CV34757 (`vt-m5-cv-boundary-20261022.log`) no produjo medición: falló al le
 
 - Android83234 terminó BUILD SUCCESSFUL en57s tras330s en cola: 33 clases,339 pruebas, cero fallos, errores u omisiones. XML preservados en `C:/kw/logs/vt-fase4-data-work-20261022-results`. Total de las dos tandas actuales de Fase4:42 clases y378 pruebas correctas, sin sumar de nuevo las de M4b.
 - Reparación del contrato CV en `e1268d050`: preserva `package.partition` como JSON opaco y añade regresión de ida y vuelta. El dato `rule` conserva la errata histórica; la selección usa los folds reales de cada fila y la identidad del manifiesto. Árbol M5 limpio. Se ejecuta primero la clase de protocolo sin bancos (51906), luego se repetirá CV con los mismos hashes de ajuste.
+
+La regresión51906 terminó SUCCESS en43s: siete pruebas de protocolo correctas, una omisión esperada de CV externa sin bancos; XML `C:/kw/logs/vt-m5-cv-contract-synthetic-20261022.xml`. La repetición externa2061 terminó SUCCESS en2m5s y conserva informe, huella y contexto en `C:/kw/vt-mmfit/m5-out/openpose-cv-boundary-20261022`. Variante0 reproduce los agregados del motor9; todas las rotaciones eligen1.0. Las cifras completas y el coste de cobertura están en BANCO_COMPLETO. Es selección de parámetro, no prueba de generalización estructural ni sustituto de los controles/MediaPipe.
+
+Tras2061 se inicia Android91923, sin otra corrida propia. Se encarga el arreglo mecánico de zancada por procedencia física en la rama M5, con regresiones sintéticas y sin modificar otros umbrales ni el evaluador. Medir por banco/fold frente a las partidas guardadas antes de controles; no dar ese arreglo por aceptado solo por diagnóstico.
