@@ -4,11 +4,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import com.example.kpkn.ui.design.KpknSetFormat
+import com.example.kpkn.ui.components.KpknRestPickerChain
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.alpha
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -67,6 +75,7 @@ private const val RIR_DEFAULT = 2
  * nombre y los valores que cambiaron como un solo paso para deshacer; el orden, duplicar y quitar son inmediatos y dejan
  * deshacer. Las decisiones del catálogo también son inmediatas.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun ImportExerciseEditor(
     exercise: ImportedExercise,
@@ -114,10 +123,10 @@ internal fun ImportExerciseEditor(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .importGlassPanel()
+            .importGlassPanel(compact = true)
             .semantics { paneTitle = "Ajusta el ejercicio" }
             .testTag("import-edit-panel"),
-        verticalArrangement = Arrangement.spacedBy(18.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(
             "Ajusta el ejercicio",
@@ -128,13 +137,13 @@ internal fun ImportExerciseEditor(
         Text(
             "Tu archivo dice «${exercise.sourceText ?: exercise.rawName}».",
             style = WizardTypography.note,
-            color = WizardColors.textMuted,
-            maxLines = 3,
+            color = WizardColors.textFaint,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
 
         // Identidad: el catálogo, propio o con dudas. «Cambiar» y «Elegir del catálogo» abren el mismo bloque de elección.
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             when (state) {
                 ImportExerciseState.CHOSEN -> if (choosing) {
                     ImportChoicePanel(
@@ -148,12 +157,19 @@ internal fun ImportExerciseEditor(
                         onCancel = { choosing = false },
                     )
                 } else {
-                    Text("Ejercicio del catálogo: $shownName", style = WizardTypography.controlLabel, color = WizardColors.text)
-                    ImportTextAction(
-                        label = "Cambiar",
-                        onClick = { choosing = true },
-                        modifier = Modifier.testTag("import-edit-change"),
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().heightIn(min = WizardSpacing.touchTarget),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            "Ejercicio del catálogo: $shownName",
+                            style = WizardTypography.cardSubtitle,
+                            color = WizardColors.text,
+                            modifier = Modifier.weight(1f),
+                        )
+                        ImportOutlineButton(label = "Cambiar", onClick = { choosing = true }, testTag = "import-edit-change")
+                    }
                 }
                 ImportExerciseState.OWN -> if (choosing) {
                     ImportChoicePanel(
@@ -197,20 +213,32 @@ internal fun ImportExerciseEditor(
             }
         }
 
-        ImportSection(label = "Series") {
-            ImportStepper(
-                field = "series",
-                valueText = "${form.sets}",
-                canDecrease = form.sets > 1,
-                canIncrease = form.sets < ProgramImportParser.MAX_SETS,
-                onDecrease = { form = form.copy(sets = form.sets - 1) },
-                onIncrease = { form = form.copy(sets = form.sets + 1) },
-                testTag = "import-edit-sets",
-            )
-        }
-
-        ImportSection(label = "Repeticiones") {
-            ImportRepsEditor(
+        ImportSection(label = "Series y repeticiones") {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                ImportStepper(
+                    field = "series",
+                    valueText = "${form.sets}",
+                    suffix = if (form.sets == 1) "serie" else "series",
+                    canDecrease = form.sets > 1,
+                    canIncrease = form.sets < ProgramImportParser.MAX_SETS,
+                    onDecrease = { form = form.copy(sets = form.sets - 1) },
+                    onIncrease = { form = form.copy(sets = form.sets + 1) },
+                    testTag = "import-edit-sets",
+                    modifier = Modifier.weight(1f),
+                )
+                ImportRepsMode(
+                    rangeMode = rangeMode,
+                    repsMin = form.repsMin,
+                    repsMax = form.repsMax,
+                    onChange = { range, low, high ->
+                        rangeMode = range
+                        form = form.copy(repsMin = low, repsMax = high)
+                    },
+                    tagPrefix = "import-edit",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            ImportRepsSteppers(
                 rangeMode = rangeMode,
                 repsMin = form.repsMin,
                 repsMax = form.repsMax,
@@ -280,76 +308,80 @@ internal fun ImportExerciseEditor(
         }
 
         ImportSection(label = "Esfuerzo") {
-            ImportSegmented(
-                options = ImportEffortMode.entries,
-                selected = form.effortMode,
-                label = { mode ->
-                    when (mode) {
-                        ImportEffortMode.NONE -> "Sin esfuerzo"
-                        ImportEffortMode.RPE -> "RPE"
-                        ImportEffortMode.RIR -> "RIR"
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                ImportSegmented(
+                    options = ImportEffortMode.entries,
+                    selected = form.effortMode,
+                    label = { mode ->
+                        when (mode) {
+                            ImportEffortMode.NONE -> "Sin esfuerzo"
+                            ImportEffortMode.RPE -> "RPE"
+                            ImportEffortMode.RIR -> "RIR"
+                        }
+                    },
+                    onSelected = { mode ->
+                        form = form.copy(
+                            effortMode = mode,
+                            rpe = if (mode == ImportEffortMode.RPE) form.rpe ?: RPE_DEFAULT else form.rpe,
+                            rir = if (mode == ImportEffortMode.RIR) form.rir ?: RIR_DEFAULT else form.rir,
+                        )
+                    },
+                    testTag = "import-edit-effort-mode",
+                    modifier = Modifier.weight(1.75f),
+                    weights = listOf(1.7f, 1f, 1f),
+                )
+                when (form.effortMode) {
+                    ImportEffortMode.NONE -> Unit
+                    ImportEffortMode.RPE -> {
+                        val rpe = form.rpe ?: RPE_DEFAULT
+                        ImportStepper(
+                            field = "RPE",
+                            valueText = decimalText(rpe),
+                            canDecrease = rpe > 1.0,
+                            canIncrease = rpe < 10.0,
+                            onDecrease = { form = form.copy(rpe = rpe - 0.5) },
+                            onIncrease = { form = form.copy(rpe = rpe + 0.5) },
+                            testTag = "import-edit-rpe",
+                            modifier = Modifier.weight(1f),
+                        )
                     }
-                },
-                onSelected = { mode ->
-                    form = form.copy(
-                        effortMode = mode,
-                        rpe = if (mode == ImportEffortMode.RPE) form.rpe ?: RPE_DEFAULT else form.rpe,
-                        rir = if (mode == ImportEffortMode.RIR) form.rir ?: RIR_DEFAULT else form.rir,
-                    )
-                },
-                testTag = "import-edit-effort-mode",
-            )
-            when (form.effortMode) {
-                ImportEffortMode.NONE -> Unit
-                ImportEffortMode.RPE -> {
-                    val rpe = form.rpe ?: RPE_DEFAULT
-                    ImportStepper(
-                        field = "RPE",
-                        valueText = decimalText(rpe),
-                        canDecrease = rpe > 1.0,
-                        canIncrease = rpe < 10.0,
-                        onDecrease = { form = form.copy(rpe = rpe - 0.5) },
-                        onIncrease = { form = form.copy(rpe = rpe + 0.5) },
-                        testTag = "import-edit-rpe",
-                    )
-                }
-                ImportEffortMode.RIR -> {
-                    val rir = form.rir ?: RIR_DEFAULT
-                    ImportStepper(
-                        field = "RIR",
-                        valueText = "$rir",
-                        canDecrease = rir > 0,
-                        canIncrease = rir < 10,
-                        onDecrease = { form = form.copy(rir = rir - 1) },
-                        onIncrease = { form = form.copy(rir = rir + 1) },
-                        testTag = "import-edit-rir",
-                    )
+                    ImportEffortMode.RIR -> {
+                        val rir = form.rir ?: RIR_DEFAULT
+                        ImportStepper(
+                            field = "RIR",
+                            valueText = "$rir",
+                            canDecrease = rir > 0,
+                            canIncrease = rir < 10,
+                            onDecrease = { form = form.copy(rir = rir - 1) },
+                            onIncrease = { form = form.copy(rir = rir + 1) },
+                            testTag = "import-edit-rir",
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
         }
 
         ImportSection(label = "Descanso") {
-            ImportSegmented(
-                options = listOf(false, true),
-                selected = form.restSeconds != null,
-                label = { on -> if (on) "Indicar" else "Sin indicar" },
-                onSelected = { on ->
-                    form = form.copy(restSeconds = if (on) form.restSeconds ?: REST_DEFAULT_SECONDS else null)
-                },
-                testTag = "import-edit-rest-mode",
-            )
-            form.restSeconds?.let { seconds ->
-                ImportStepper(
-                    field = "descanso",
-                    valueText = importRestText(seconds),
-                    canDecrease = seconds > 0,
-                    canIncrease = seconds < ProgramImportParser.MAX_REST_SECONDS,
-                    onDecrease = { form = form.copy(restSeconds = (seconds - REST_STEP_SECONDS).coerceAtLeast(0)) },
-                    onIncrease = {
-                        form = form.copy(restSeconds = (seconds + REST_STEP_SECONDS).coerceAtMost(ProgramImportParser.MAX_REST_SECONDS))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                ImportSegmented(
+                    options = listOf(false, true),
+                    selected = form.restSeconds != null,
+                    label = { on -> if (on) "Indicar" else "Sin indicar" },
+                    onSelected = { on ->
+                        form = form.copy(restSeconds = if (on) form.restSeconds ?: REST_DEFAULT_SECONDS else null)
                     },
-                    testTag = "import-edit-rest",
+                    testTag = "import-edit-rest-mode",
+                    modifier = Modifier.weight(1.3f),
+                    weights = listOf(1.2f, 1f),
                 )
+                form.restSeconds?.let { seconds ->
+                    ImportRestStepper(
+                        seconds = seconds,
+                        onChange = { form = form.copy(restSeconds = it.coerceIn(0, ProgramImportParser.MAX_REST_SECONDS)) },
+                        modifier = Modifier.weight(1.2f),
+                    )
+                }
             }
         }
 
@@ -361,54 +393,66 @@ internal fun ImportExerciseEditor(
         )
 
         if (otherWeeks > 0) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                ImportSwitchRow(
-                    label = if (otherWeeks == 1) {
-                        "Aplicar también en la otra semana"
-                    } else {
-                        "Aplicar también en las otras $otherWeeks semanas"
-                    },
-                    checked = form.allWeeks,
-                    onCheckedChange = { on -> form = form.copy(allWeeks = on) },
-                    testTag = "import-edit-allweeks",
-                )
-                Text("Solo cambia lo que tocaste aquí.", style = WizardTypography.note, color = WizardColors.textMuted)
-            }
+            ImportSwitchRow(
+                label = if (otherWeeks == 1) {
+                    "Aplicar también en la otra semana"
+                } else {
+                    "Aplicar también en las otras $otherWeeks semanas"
+                },
+                note = "Solo cambia lo que tocaste aquí.",
+                checked = form.allWeeks,
+                onCheckedChange = { on -> form = form.copy(allWeeks = on) },
+                testTag = "import-edit-allweeks",
+            )
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ImportCta(
                 label = "Guardar cambios",
                 enabled = canSave,
                 onClick = { save() },
                 testTag = "import-edit-save",
                 modifier = Modifier.weight(1f),
+                compact = true,
             )
             ImportTextAction(label = "Cancelar", onClick = onClose, modifier = Modifier.testTag("import-edit-cancel"))
         }
 
-        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(WizardColors.divider))
-
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            ImportTextAction(
+        // Orden y estructura: Subir, Bajar, Mover a otro día, Duplicar y Quitar, como fichas.
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            ImportActionChip(
                 label = "Subir",
                 enabled = position > 0,
                 onClick = { onEdit(ImportEditOp.Move(exercise.id, dayId, position - 1)) },
-                modifier = Modifier.testTag("import-edit-up"),
+                testTag = "import-edit-up",
             )
-            ImportTextAction(
+            ImportActionChip(
                 label = "Bajar",
                 enabled = position < dayExerciseCount - 1,
                 onClick = { onEdit(ImportEditOp.Move(exercise.id, dayId, position + 1)) },
-                modifier = Modifier.testTag("import-edit-down"),
+                testTag = "import-edit-down",
+            )
+            ImportActionChip(
+                label = "Mover a otro día",
+                enabled = moveTargets.isNotEmpty(),
+                onClick = { moving = !moving },
+                testTag = "import-edit-move",
+            )
+            ImportActionChip(
+                label = "Duplicar",
+                onClick = { onEdit(ImportEditOp.Duplicate(exercise.id)) },
+                testTag = "import-edit-duplicate",
+            )
+            ImportActionChip(
+                label = "Quitar ejercicio",
+                danger = true,
+                onClick = {
+                    onEdit(ImportEditOp.Remove(exercise.id))
+                    onClose()
+                },
+                testTag = "import-edit-remove",
             )
         }
-        ImportTextAction(
-            label = "Mover a otro día",
-            enabled = moveTargets.isNotEmpty(),
-            onClick = { moving = !moving },
-            modifier = Modifier.testTag("import-edit-move"),
-        )
         if (moving) {
             moveTargets.forEach { target ->
                 ImportTextAction(
@@ -422,29 +466,28 @@ internal fun ImportExerciseEditor(
                 )
             }
         }
-        ImportTextAction(
-            label = "Duplicar",
-            onClick = { onEdit(ImportEditOp.Duplicate(exercise.id)) },
-            modifier = Modifier.testTag("import-edit-duplicate"),
-        )
-        ImportTextAction(
-            label = "Quitar ejercicio",
-            color = WizardColors.danger,
-            onClick = {
-                onEdit(ImportEditOp.Remove(exercise.id))
-                onClose()
-            },
-            modifier = Modifier.testTag("import-edit-remove"),
-        )
     }
 }
 
-/** El vidrio tenue de los paneles del importador: el de «Elegir», el ajuste, los menús y «Añadir ejercicio». */
-internal fun Modifier.importGlassPanel(): Modifier = this
-    .clip(RoundedCornerShape(16.dp))
-    .background(WizardColors.glassFill)
-    .border(1.dp, WizardColors.glassBorder, RoundedCornerShape(16.dp))
-    .padding(16.dp)
+/**
+ * El panel de los paneles del importador (el de «Elegir», el ajuste, los menús y «Añadir ejercicio»): un módulo #111 con filete de
+ * blanco al 10 % y radio 20 dp. Con [compact], el relleno del tablero G3 (10 × 14 dp); sin él, 16 dp.
+ */
+internal fun Modifier.importGlassPanel(compact: Boolean = false): Modifier = this
+    .clip(RoundedCornerShape(20.dp))
+    .background(ImportModuleFill)
+    .border(1.dp, ImportModuleBorder, RoundedCornerShape(20.dp))
+    .then(if (compact) Modifier.padding(horizontal = 14.dp, vertical = 10.dp) else Modifier.padding(16.dp))
+
+/** Los tonos del tablero G3: el módulo #111, su filete y el elemento tonal #1A1A1A de los controles. */
+private val ImportModuleFill = Color(0xFF111111)
+private val ImportModuleBorder = Color.White.copy(alpha = 0.10f)
+internal val ImportControlFill = Color(0xFF1A1A1A)
+private val ImportControlShape = RoundedCornerShape(14.dp)
+private val ImportPillShape = RoundedCornerShape(24.dp)
+
+/** El peligro de la paleta KPKN (#EF6F64) de «Quitar ejercicio». */
+private val ImportDanger = Color(0xFFEF6F64)
 
 /**
  * Repeticiones: «Fijas» (un selector de 1 a 100) o «Rango» (dos selectores, «de» y «a»). En «Rango», si «de» sube por encima de
@@ -459,48 +502,71 @@ internal fun ImportRepsEditor(
     onChange: (rangeMode: Boolean, repsMin: Int, repsMax: Int) -> Unit,
     tagPrefix: String,
 ) {
+    ImportRepsMode(rangeMode = rangeMode, repsMin = repsMin, repsMax = repsMax, onChange = onChange, tagPrefix = tagPrefix)
+    ImportRepsSteppers(rangeMode = rangeMode, repsMin = repsMin, repsMax = repsMax, onChange = onChange, tagPrefix = tagPrefix)
+}
+
+/** El conmutador «Fijas | Rango» de las repeticiones. Al pasar a «Fijas», las dos repeticiones quedan en la de «de». */
+@Composable
+internal fun ImportRepsMode(
+    rangeMode: Boolean,
+    repsMin: Int,
+    repsMax: Int,
+    onChange: (rangeMode: Boolean, repsMin: Int, repsMax: Int) -> Unit,
+    tagPrefix: String,
+    modifier: Modifier = Modifier,
+) {
     ImportSegmented(
         options = listOf(false, true),
         selected = rangeMode,
         label = { range -> if (range) "Rango" else "Fijas" },
-        // Al pasar a «Fijas», las dos repeticiones quedan en la de «de».
         onSelected = { range -> onChange(range, repsMin, if (range) repsMax else repsMin) },
         testTag = "$tagPrefix-reps-mode",
+        modifier = modifier,
     )
+}
+
+/** Los selectores de repeticiones: uno en «Fijas»; «de» y «a» en «Rango», con el empuje entre ellos. */
+@Composable
+internal fun ImportRepsSteppers(
+    rangeMode: Boolean,
+    repsMin: Int,
+    repsMax: Int,
+    onChange: (rangeMode: Boolean, repsMin: Int, repsMax: Int) -> Unit,
+    tagPrefix: String,
+) {
     if (rangeMode) {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("de", style = WizardTypography.note, color = WizardColors.textMuted)
-                ImportStepper(
-                    field = "repeticiones mínimas",
-                    valueText = "$repsMin",
-                    canDecrease = repsMin > 1,
-                    canIncrease = repsMin < ProgramImportParser.MAX_REPS,
-                    onDecrease = { onChange(true, repsMin - 1, repsMax) },
-                    onIncrease = {
-                        // «de» por encima de «a» empuja «a».
-                        val low = repsMin + 1
-                        onChange(true, low, maxOf(repsMax, low))
-                    },
-                    testTag = "$tagPrefix-reps-min",
-                )
-            }
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("a", style = WizardTypography.note, color = WizardColors.textMuted)
-                ImportStepper(
-                    field = "repeticiones máximas",
-                    valueText = "$repsMax",
-                    canDecrease = repsMax > 1,
-                    canIncrease = repsMax < ProgramImportParser.MAX_REPS,
-                    onDecrease = {
-                        // «a» por debajo de «de» arrastra «de».
-                        val high = repsMax - 1
-                        onChange(true, minOf(repsMin, high), high)
-                    },
-                    onIncrease = { onChange(true, repsMin, repsMax + 1) },
-                    testTag = "$tagPrefix-reps-max",
-                )
-            }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            ImportStepper(
+                field = "repeticiones mínimas",
+                valueText = "$repsMin",
+                prefix = "de",
+                canDecrease = repsMin > 1,
+                canIncrease = repsMin < ProgramImportParser.MAX_REPS,
+                onDecrease = { onChange(true, repsMin - 1, repsMax) },
+                onIncrease = {
+                    // «de» por encima de «a» empuja «a».
+                    val low = repsMin + 1
+                    onChange(true, low, maxOf(repsMax, low))
+                },
+                testTag = "$tagPrefix-reps-min",
+                modifier = Modifier.weight(1f),
+            )
+            ImportStepper(
+                field = "repeticiones máximas",
+                valueText = "$repsMax",
+                prefix = "a",
+                canDecrease = repsMax > 1,
+                canIncrease = repsMax < ProgramImportParser.MAX_REPS,
+                onDecrease = {
+                    // «a» por debajo de «de» arrastra «de».
+                    val high = repsMax - 1
+                    onChange(true, minOf(repsMin, high), high)
+                },
+                onIncrease = { onChange(true, repsMin, repsMax + 1) },
+                testTag = "$tagPrefix-reps-max",
+                modifier = Modifier.weight(1f),
+            )
         }
     } else {
         ImportStepper(
@@ -515,19 +581,19 @@ internal fun ImportRepsEditor(
     }
 }
 
-/** Un bloque del panel: su etiqueta y su control. */
+/** Un bloque del panel: su etiqueta pequeña en mayúsculas y su control. */
 @Composable
 internal fun ImportSection(label: String, content: @Composable () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(label, style = WizardTypography.controlLabel, color = WizardColors.text)
+    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Text(label.uppercase(), style = WizardTypography.eyebrow, color = WizardColors.textMuted, maxLines = 1)
         content()
     }
 }
 
 /**
- * Conmutador de opciones de una sola escala para el panel: ancho completo, cada opción de al menos 48 dp de alto, texto
- * «cardSubtitle» y la pastilla activa en tinta de marca. Es `Role.RadioButton` con `selected`, como `WizardUnitToggle`, pero sin
- * su escala de medida, que cortaba «Sin carga» en tres opciones.
+ * Conmutador de opciones de una sola escala para el panel: pista tonal #1A1A1A de 48 dp de alto, cada opción con su objetivo
+ * táctil de 48 dp y la pastilla activa en tinta de marca. Es `Role.RadioButton` con `selected`, como `WizardUnitToggle`, pero sin
+ * su escala de medida, que cortaba «Sin carga» en tres opciones. [weights] reparte el ancho entre las opciones (iguales si no se da).
  */
 @Composable
 internal fun <T> ImportSegmented(
@@ -536,46 +602,53 @@ internal fun <T> ImportSegmented(
     label: (T) -> String,
     onSelected: (T) -> Unit,
     testTag: String,
+    modifier: Modifier = Modifier,
+    weights: List<Float>? = null,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .clip(WizardShapes.pill)
-            .background(Color.Black)
-            .padding(4.dp)
+            .height(WizardSpacing.touchTarget)
+            .clip(ImportPillShape)
+            .background(ImportControlFill)
             .testTag(testTag),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        options.forEach { option ->
+        options.forEachIndexed { position, option ->
             val active = option == selected
             Box(
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(weights?.getOrNull(position) ?: 1f)
                     .fillMaxHeight()
-                    .heightIn(min = WizardSpacing.touchTarget)
-                    .clip(WizardShapes.pill)
-                    .background(if (active) WizardColors.cta else Color.Transparent)
                     .selectable(selected = active, role = Role.RadioButton, onClick = { onSelected(option) })
-                    .padding(horizontal = 2.dp, vertical = 4.dp),
+                    .padding(3.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    label(option),
-                    style = WizardTypography.cardSubtitle,
-                    color = if (active) WizardColors.ctaContent else WizardColors.textMuted,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(ImportPillShape)
+                        .background(if (active) WizardColors.cta else Color.Transparent)
+                        .padding(horizontal = 2.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        label(option),
+                        style = WizardTypography.cardSubtitle.copy(fontSize = 12.sp),
+                        color = if (active) WizardColors.ctaContent else WizardColors.textMuted,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }
 }
 
 /**
- * Selector «−  4  +»: dos botones de 48 dp con su descripción («Menos series», «Más series») y el valor en medio, en una sola
- * línea y en un estilo contenido para que un descanso de «10 min 30 s» quepa a 320 dp con la letra al 130 %. Se desactiva en
- * los extremos y el valor se anuncia como estado.
+ * Selector «−  4  +»: un módulo tonal de 48 dp con dos botones de 48 dp (descripciones «Menos series», «Más series») y el valor en
+ * medio, en una sola línea; [prefix] («de», «a») y [suffix] («series») van como textos aparte, para que el valor sea el único texto
+ * de su nodo. Se desactiva en los extremos y el valor se anuncia como estado.
  */
 @Composable
 internal fun ImportStepper(
@@ -586,48 +659,125 @@ internal fun ImportStepper(
     onDecrease: () -> Unit,
     onIncrease: () -> Unit,
     testTag: String,
+    modifier: Modifier = Modifier,
+    prefix: String? = null,
+    suffix: String? = null,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().testTag(testTag),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(WizardSpacing.touchTarget)
+            .clip(ImportControlShape)
+            .background(ImportControlFill)
+            .testTag(testTag),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         StepperButton(symbol = "−", description = "Menos $field", enabled = canDecrease, onClick = onDecrease)
-        Text(
-            valueText,
-            style = WizardTypography.cardTitle,
-            color = WizardColors.text,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            modifier = Modifier
-                .weight(1f)
-                .semantics {
+        Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            prefix?.let { Text(it, style = WizardTypography.cardSubtitle, color = WizardColors.textMuted, maxLines = 1) }
+            Text(
+                valueText,
+                style = WizardTypography.cardTitle,
+                color = WizardColors.text,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                modifier = Modifier.semantics {
                     contentDescription = field
                     stateDescription = valueText
                 },
-        )
+            )
+            suffix?.let { Text(it, style = WizardTypography.cardSubtitle, color = WizardColors.textMuted, maxLines = 1) }
+        }
         StepperButton(symbol = "+", description = "Más $field", enabled = canIncrease, onClick = onIncrease)
     }
 }
 
+/**
+ * El descanso: «−15», el valor como m:ss (que abre la hoja de descanso) y «+15», en un módulo tonal de 48 dp. [onChange] recibe los
+ * segundos nuevos, que quien llama acota a lo que admite el importador.
+ */
 @Composable
-private fun StepperButton(symbol: String, description: String, enabled: Boolean, onClick: () -> Unit) {
+private fun ImportRestStepper(seconds: Int, onChange: (Int) -> Unit, modifier: Modifier = Modifier) {
+    var picking by rememberSaveable { mutableStateOf(false) }
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(WizardSpacing.touchTarget)
+            .clip(ImportControlShape)
+            .background(ImportControlFill)
+            .testTag("import-edit-rest"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        StepperButton(
+            symbol = "−15",
+            description = "Quitar $REST_STEP_SECONDS segundos",
+            enabled = seconds > 0,
+            onClick = { onChange(seconds - REST_STEP_SECONDS) },
+            small = true,
+        )
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .semantics { contentDescription = "Abrir la hoja de descanso" }
+                .clickable(role = Role.Button) { picking = true },
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                KpknSetFormat.rest(seconds),
+                style = WizardTypography.cardTitle,
+                color = WizardColors.text,
+                maxLines = 1,
+                modifier = Modifier.semantics { stateDescription = importRestText(seconds) },
+            )
+        }
+        StepperButton(
+            symbol = "+15",
+            description = "Añadir $REST_STEP_SECONDS segundos",
+            enabled = seconds < ProgramImportParser.MAX_REST_SECONDS,
+            onClick = { onChange(seconds + REST_STEP_SECONDS) },
+            small = true,
+        )
+    }
+    if (picking) {
+        KpknRestPickerChain(
+            primaryTitle = "Descanso",
+            primarySeconds = seconds,
+            secondaryTitle = null,
+            secondarySeconds = null,
+            onConfirm = { primary, _ ->
+                onChange(primary)
+                picking = false
+            },
+            onDismiss = { picking = false },
+        )
+    }
+}
+
+@Composable
+private fun StepperButton(symbol: String, description: String, enabled: Boolean, onClick: () -> Unit, small: Boolean = false) {
     Box(
         modifier = Modifier
             .size(WizardSpacing.touchTarget)
-            .clip(CircleShape)
-            .background(WizardColors.glassFill)
             .semantics { contentDescription = description }
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Text(symbol, style = WizardTypography.controlLabel, color = if (enabled) WizardColors.text else WizardColors.textFaint)
+        Text(
+            symbol,
+            style = if (small) WizardTypography.cardSubtitle else WizardTypography.controlLabel,
+            color = if (enabled) WizardColors.text else WizardColors.textFaint,
+        )
     }
 }
 
-/** Interruptor de texto con pista: `Role.Switch`, sin caja; la pista va en tinta de marca cuando está activo. */
+/** Interruptor de texto con su nota: `Role.Switch`, sin caja; la pista va en tinta de marca cuando está activo. */
 @Composable
-private fun ImportSwitchRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit, testTag: String) {
+private fun ImportSwitchRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit, testTag: String, note: String? = null) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -635,20 +785,23 @@ private fun ImportSwitchRow(label: String, checked: Boolean, onCheckedChange: (B
             .testTag(testTag)
             .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text(label, style = WizardTypography.controlLabel, color = WizardColors.text, modifier = Modifier.weight(1f))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(label, style = WizardTypography.cardSubtitle.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold), color = WizardColors.text)
+            note?.let { Text(it, style = WizardTypography.note.copy(fontSize = 12.sp), color = WizardColors.textMuted) }
+        }
         Box(
             modifier = Modifier
-                .size(width = 48.dp, height = 28.dp)
+                .size(width = 44.dp, height = 26.dp)
                 .clip(CircleShape)
-                .background(if (checked) WizardColors.cta else WizardColors.progressTrack)
+                .background(if (checked) WizardColors.cta else Color(0xFF262626))
                 .padding(3.dp),
             contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart,
         ) {
             Box(
                 modifier = Modifier
-                    .size(22.dp)
+                    .size(20.dp)
                     .clip(CircleShape)
                     .background(if (checked) WizardColors.ctaContent else WizardColors.textMuted),
             )
@@ -656,13 +809,20 @@ private fun ImportSwitchRow(label: String, checked: Boolean, onCheckedChange: (B
     }
 }
 
-/** El botón principal del panel: el CTA del wizard (tinta sobre negro), apagado si no se puede guardar. */
+/** El botón principal del panel: el CTA del wizard (tinta sobre negro), apagado si no se puede guardar. Con [compact], de 48 dp. */
 @Composable
-internal fun ImportCta(label: String, enabled: Boolean, onClick: () -> Unit, testTag: String, modifier: Modifier = Modifier) {
+internal fun ImportCta(
+    label: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    testTag: String,
+    modifier: Modifier = Modifier,
+    compact: Boolean = false,
+) {
     Box(
         modifier = modifier
-            .heightIn(min = WizardSpacing.ctaHeight)
-            .clip(WizardShapes.cta)
+            .heightIn(min = if (compact) WizardSpacing.touchTarget else WizardSpacing.ctaHeight)
+            .clip(if (compact) ImportPillShape else WizardShapes.cta)
             .background(if (enabled) WizardColors.cta else WizardColors.ctaDisabled)
             .testTag(testTag)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
@@ -671,9 +831,67 @@ internal fun ImportCta(label: String, enabled: Boolean, onClick: () -> Unit, tes
     ) {
         Text(
             label,
-            style = WizardTypography.cta,
+            style = if (compact) WizardTypography.cardTitle else WizardTypography.cta,
             color = if (enabled) WizardColors.ctaContent else WizardColors.ctaDisabledContent,
         )
+    }
+}
+
+/** «Cambiar» del ejercicio: una píldora con filete de 36 dp de alto dentro de su objetivo de 48. */
+@Composable
+internal fun ImportOutlineButton(label: String, onClick: () -> Unit, testTag: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .heightIn(min = WizardSpacing.touchTarget)
+            .testTag(testTag)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .height(36.dp)
+                .clip(RoundedCornerShape(18.dp))
+                .border(1.dp, Color.White.copy(alpha = 0.14f), RoundedCornerShape(18.dp))
+                .padding(horizontal = 14.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(label, style = WizardTypography.cardSubtitle.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold), color = WizardColors.text, maxLines = 1)
+        }
+    }
+}
+
+/** Una acción de orden o estructura: ficha tonal de 32 dp dentro de su objetivo de 48; «Quitar» lleva el filete de peligro. */
+@Composable
+private fun ImportActionChip(label: String, onClick: () -> Unit, testTag: String, enabled: Boolean = true, danger: Boolean = false) {
+    Box(
+        modifier = Modifier
+            .heightIn(min = WizardSpacing.touchTarget)
+            .alpha(if (enabled) 1f else 0.38f)
+            .testTag(testTag)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .height(32.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .then(
+                    if (danger) {
+                        Modifier.border(1.dp, ImportDanger.copy(alpha = 0.35f), RoundedCornerShape(16.dp))
+                    } else {
+                        Modifier.background(ImportControlFill)
+                    },
+                )
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                label,
+                style = WizardTypography.cardSubtitle.copy(fontSize = 12.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold),
+                color = if (danger) ImportDanger else WizardColors.text,
+                maxLines = 1,
+            )
+        }
     }
 }
 
