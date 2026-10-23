@@ -21,3 +21,8 @@ Ninguna regresión se excluye de antemano por un resultado anterior. ExerciseCat
 ## Límites
 
 Roomv30 congelado; sin cambios Entity/DAO/migración/schema. Sin push/master. Firma reservada al orquestador. Todavía no hay build/install/QA/APK de esta continuación. La QA usará únicamente com.example.kpkn.dbg, emulador5580 y, si está disponible, teléfono con phone_run.py y20min. No tocar paquetes personales ni la sesión de vídeo.
+
+
+### CAT-B cerrado de forma dirigida
+
+Corrección64de531b5 (mergeb2d37d0ec): la descripción usa el nombre humano confirmado; no force técnico ni detección heurística. int-catb-jvm-codex-20261023-1:3clases26/0, exit0; int-catb-android-codex-20261023-2:3clases27/0, exit0, BUILD8min5s. XML archivados. Revisión de3renders nuevos E7/F1/F2 completa y sin knee_dominant; descripción expandible y cues reales. Los27repiten rutas del primer80, no son107casos únicos. CAT-B listo para pasar a APRE; QA de dispositivo y barrido final pendientes.

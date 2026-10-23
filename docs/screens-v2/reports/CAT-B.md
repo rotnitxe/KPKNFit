@@ -1,6 +1,6 @@
 # CAT-B · E7 y fichas F1/F2
 
-Estado: implementación y pruebas preparadas, **sin compilación ni ejecución local**. La validación la centraliza el orquestador; no se declara verde. Worktree `C:/kw/u19`, rama `codex/sv2-catb`, base provisional `acc75872c` con CAT-A. Falta incorporar la integración completa verde antes de validar/entregar esta rama, según el encargo.
+Estado: integrado en u11 y verificado de forma dirigida. Base fase3 actualizada2499dae6b, mergeCAT-B5b4a6e842 y corrección de texto64de531b5 integrada enb2d37d0ec. Dos corridas Android y una JVM cerradas con exit0; detalle al final. Barrido ampliado y QA de dispositivo pendientes. Sin cambios Room, push ni master.
 
 ## Fuentes y límites
 
@@ -75,10 +75,20 @@ com.example.kpkn.domain.exercises.SmartExerciseCreatorRegressionTest
 
 Con `KPKN_RENDER_DIR=C:/kw/shots/catb`, `CatbScreensComposeTest` escribe 24 PNG: E7 inicio/revisión y F1/F2 inicio/cues en cada una de las cuatro combinaciones de altura/fuente. Son renders de los cuerpos reales. Las aserciones se ejecutan incluso sin la variable; solo escribir PNG es opcional. Hay que abrirlos y cotejarlos con E7/F1/F2 antes de declarar validación visual.
 
-Revisión estática: `git diff --check` sin errores. Ninguna prueba nueva ni build ha sido ejecutado desde esta rama. Las métricas heredadas 36/36, fresco top1 93,3 % y top3 97,8 % proceden del informe MOT y todavía no se han repetido aquí; no se presentan como resultado nuevo. La cola central debe confirmar compilación, pruebas y capturas después de actualizar la base provisional.
+La preparación estática anterior queda respaldada por las corridas de integración descritas abajo; no se atribuye QA de dispositivo a los renders.
 
 ## Correccion textual tras validacion central
 
 La validacion CAT-B integrada en u11@5b4a6e842 paso 13 clases, 80/0 y wrapper exit0. La revision visual posterior detecto un defecto real: la descripcion generada de F1/F2 mostraba `knee_dominant` porque `reference.force` contiene un ID tecnico en la proyeccion MOTv2. Se cambia exclusivamente la etiqueta del movimiento por el nombre humano de la referencia CONFIRMADA (o `Movimiento` si no existe nombre), sin inferir del texto solicitado, traducir IDs con tablas propias ni alterar ranking, corpus, metricas o instrucciones. Material, primarios y primera cue siguen siendo datos confirmados. Las descripciones manuales permanecen literales y NONE sigue sin generarlas.
 
 Regresion nueva en SmartExerciseCreatorRegressionTest con MotCatalog real: evidencia force=knee_dominant, nombre confirmado visible, sin ID en texto generado, cue intacta, nota manual literal y abstencion. CatbScreensComposeTest refuerza F1/F2 en los cuatro viewports/fuentes existentes para comprobar que su descripcion visible no expone IDs. Este ajuste aun no fue compilado ni ejecutado localmente; no se repite ni extiende el resultado80/0 anterior. Sin Gradle/JVM/adb.
+
+
+## Validación de integración ·23-oct
+
+- int-catb-android-codex-20261023-1.log:13clases80pruebas,0fallos/errores/omitidas; BUILD SUCCESSFUL8min23s, wrapper exit0. Compilación de producción/tests. XML archivados.
+- La revisión de4PNG detectó knee_dominant expuesto por reference.force. Se corrigió la frase usando el nombre de la referencia CONFIRMADA, sin heurística del nombre solicitado, traducciones inventadas, cambios de ranking/corpus/métricas ni modificación del texto manual. La regresión usa MotCatalog real y conserva USER literal y NONE sin descripción.
+- int-catb-jvm-codex-20261023-1.log:3clases26/0, BUILD SUCCESSFUL2min5s,214s con resumen/cola; wrapper exit0. ExerciseReferenceFinder/SmartExerciseCreator/Regression con MotFixtures y CustomExerciseNameCorpus por archivo.
+- int-catb-android-codex-20261023-2.log:3clases27/0, BUILD SUCCESSFUL8min5s, wrapper exit0; CatbScreensComposeTest, CustomExerciseEditorViewModelTest y CustomExerciseCreationTest. Son rutas afectadas repetidas, no27casos adicionales a los80anteriores ni una sola corrida de107.
+
+Evidencia XML en C:/kw/logs/screens-v2-evidence/ con el nombre de cada corrida. Renders nuevos en C:/kw/shots/int-catb-2/: revisados catb_e7_880_100, catb_f1_detalle_740_130 y catb_f2_detalle_880_100, además de4anteriores. Se conserva la jerarquía del tablero, las fuentes de portada, procedencia y cues; no aparece ID técnico en la descripción. F1 colapsa descripción larga con Leer más; el cuerpo se desplaza y el pie se conserva. Las aserciones de acciones48/texto/guardar/reintentar/cancelar pasan en740/880 al100/130. El dispositivo/IME y barrido final siguen pendientes.

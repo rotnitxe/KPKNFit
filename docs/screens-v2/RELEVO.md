@@ -194,3 +194,8 @@ Por autonomía explícita del usuario se adelanta fase4 en bases provisionales a
 Fusiones u13/u12/u14/u17/u18/u15/u16 y cierre ED-A integrados; fuente2e14b0700, HEAD documental60caa0b4a. Regresión dirigida verde:1936JVM(185clases)+169Android(15)+173Android(15),2278casos en3corridas, wrappers exit0. Evidencia archivada, detalle INT-1.md. Barrido ampliado final de workout/sessioneditor pendiente tras fase4 y antes de QA. Roomv30 sin cambios data/db/schema.
 
 Siguiente: actualizar bases de fase4 desde este hito, integrar/validar CAT-B(u19d28b4d2cf), CAL4-V(u201f235265c, condurabilidadu29ycanalu28integrados), CAL5b(u21f8068e5f4), PLAN-OBS(u22cc35b9388), CAL7(u23,21recorridosRoompreparados y ajuste deesperadelogencurso). Todos esos paquetes siguen sin ejecutar. Después regresión ampliada, QA ZFlip5_QA5580 y APK. Firma sólo orquestador, sin push/master ni paquetes personales.
+
+
+### CAT-B integrado y verificado ·23-oct
+
+Basefase3 incorporada; merge5b4a6e842 y corrección64de531b5/b2d37d0ec del ID técnico expuesto en descripción confirmada. Android inicial13clases80/0; tras ajuste3clases27/0; JVM MOT3clases26/0. Tres wrappers exit0 y XML archivados. Revisados4renders iniciales y3nuevos E7/F1/F2 (CAT-B.md/INT-4.md). Siguiente CAL4-Vu20@992a9bbee, después CAL5bu21@d13139a31, PLAN-OBSu22@4e9b42ce8 y CAL7actualizado. Bases preparatorias APRE/TM/relator resueltas; aún sin ejecución de esos paquetes. QA/APK pendientes, Roomv30 congelado, sin push/master.
