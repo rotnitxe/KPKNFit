@@ -112,7 +112,6 @@ internal fun RmSetFocus(
                     })
             }
         }
-        }
         val minimumPercent = minOf(45f, (percent ?: 45.0).toFloat()).coerceAtLeast(0.01f)
         Slider(value = slider.coerceIn(minimumPercent, maxOf(100f, slider)),
             onValueChange = { slider = it }, onValueChangeFinished = { commitPercent(slider.toDouble()) },
