@@ -2435,13 +2435,13 @@ class ProgramDetailViewModelTest {
 
         val installed = CompositionMetadataHolder.current
         CompositionMetadataHolder.current = null
-        try {
+        val message = try {
             vm.rematerializePending()
+            awaitSnackbar(vm)
         } finally {
             CompositionMetadataHolder.current = installed
         }
 
-        val message = awaitSnackbar(vm)
         assertEquals("No se pudo recalcular lo pendiente del plan. El plan y el historial se conservaron.", message)
         assertEquals("el aviso se pinta como fallo", SnackbarType.DANGER, snackbarTypeFor(message))
         assertEquals("el plan no cambió", before, repository.getProgramById(id))
@@ -2729,10 +2729,10 @@ class ProgramDetailViewModelTest {
         assertFalse(branch, branch.contains("acceptAutoregulation"))
         assertFalse(branch, branch.contains("rejectAutoregulation"))
         // La decisión se toma en la tarjeta de propuestas de la pestaña Semana (aplicar, aceptar todo, rechazar).
-        assertTrue(
-            Regex("""if \(structureSubTab == StructureSubTab\.SEMANA\) \{\s*AutoregulationProposalsCard\(""")
-                .containsMatchIn(source),
-        )
+        val weekBranch = source.substringAfter("if (structureSubTab == StructureSubTab.SEMANA) {")
+            .substringBefore("\n        } else {")
+        assertTrue("TM se muestra en Semana", weekBranch.contains("ExerciseTrainingMaxPanel("))
+        assertTrue("las decisiones se mantienen en Semana", weekBranch.contains("AutoregulationProposalsCard("))
     }
 
     // ─── B.S5 · usesTrainingMax: la tarjeta de TM sale con toda progresión que lo mueve ───

@@ -52,3 +52,8 @@ La regresion nueva `PlanMaterializerLegacyReferenceTest` conserva dos ocurrencia
 ### Fixture legacy corregido tras cuarta JVM central
 
 La nueva prueba anterior reducia indebidamente la receta y fue rechazada por los validadores de composicion antes de ejercitar el materializador. Se conserva ahora Wendler BBB completo (cuatro dias, semanas, dosis, AMRAP, roles y `supplementalOf` reales); unicamente se declaran referencias pendientes en t1 y su BBB ya existente. Las capturas por ocurrencia siguen siendo160/140 y la evidencia130@20 insertada despues160@30 sigue sin ganar; con los porcentajes publicados65/50 las cargas esperadas son104/70. Se mantienen ids e historial intactos. Ningun validador se desactiva y no cambia produccion. Pendiente ejecucion central; sin Gradle/JVM/adb local.
+
+
+## Base Android TM y selectores asincronos
+
+Preflight merge-tree limpio e integracion preparatoria de `846213eda` en u21. Esa corrida central TM Android ejecuto143 pruebas y detecto cinco fallos; no es una base verde. Se corrigen primero tres expectativas del arnes: el campo TM deshabilitado conserva EditableText95 aunque no publica SetText; ahora se comprueban valor95, disabled, error/reintento y cierre solo tras exito durable. La inyeccion de metadata ausente se mantiene hasta recibir el error asincrono. La comprobacion de Semana incluye panel TM y tarjeta de decisiones dentro de la misma rama, conservando navegacion y prohibicion de aceptar/rechazar desde Ver propuesta. No cambian produccion ni expectativas de cargas en este ajuste. Sin ejecucion local.
