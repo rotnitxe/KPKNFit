@@ -48,7 +48,7 @@ fun warmupValidationMessages(
     effectiveSetCount: Int,
 ): List<String> {
     if (warmupSets.isEmpty()) return emptyList()
-    val maxWarmupSets = (effectiveSetCount.coerceAtLeast(1) * 2).coerceAtLeast(4)
+    val maxWarmupSets = warmupMaxRecommended(effectiveSetCount)
     return buildList {
         if (warmupSets.size > maxWarmupSets) {
             add("Demasiadas aproximaciones: máximo recomendado $maxWarmupSets para $effectiveSetCount series efectivas.")

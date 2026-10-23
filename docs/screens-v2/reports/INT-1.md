@@ -10,7 +10,7 @@ Se integra en `feat/screens-v2`, C:/kw/u11, en el orden del relevo. El artefacto
 | u12 · ED-E · a76b4edc2 | Limpio sobre 18985e121, árbol 37860253aecd833693ded31d9bc28882f07ff638 | 6bf182d81, sin conflictos | 33/0 base y 11/0 tras corrección D8; 34 pruebas únicas |
 | u14 · ED-A/ED-B · 385cab731 | Limpio tras D8, árbol 6e533815cb855eccd804bba94e78a7f17f745e07 | 67ded417b, sin conflictos | 10 clases, 87/0 |
 | u17 · ED-D + C3 · 2cf81b677 | Limpio sobre 6487f3059, árbol fadf0ced2030287f8598084998c4c2145287ac30 | e7fd65eac, sin conflictos | 10 C3 finales/0; 67 anteriores ED-D/0 y 50 ED-B/0 en corridas separadas, descritas abajo |
-| u18 · ED-C | Pendiente | Pendiente | Pendiente |
+| u18 · ED-C · 296bb3ff6 | Cuatro conflictos previstos, resueltos conservando LV-C/ED-B | 9d6d11730 | Primera: 78 pruebas, 2 aserciones antiguas H1/H2; nueva corrida pendiente |
 | u15 · CAT-A | Pendiente | Pendiente | Pendiente |
 | u16 · G | Pendiente | Pendiente | Pendiente |
 
@@ -72,3 +72,10 @@ Se revisaron los renders nuevos RM/TM y AMRAP lateral al 130 % en C:/kw/shots/in
 La tercera corrida `int-u17-android-codex-20261023-3.log` termina BUILD SUCCESSFUL en 3 min 33 s: 10 C3/0, incluidos ambos alcances por click y datos L/R. Las correcciones quedan en 030e6b522, c3f44fcef y a0332f998. La segunda pasó también 50 controles ED-B; producción no cambia entre segunda y tercera. Los 67 casos previos de ED-D, de rutas no afectadas por el alcance estrecho AMRAP, estaban verdes en la primera. Son evidencias de varias corridas, no una ejecución única de127.
 
 Render AMRAP lateral al130 revisado: LadoR y las dos etiquetas completas; RM/TM usa fixture coherente100×80%=80kg. Detalle de medidas y diagnóstico de la aserción en INT-C3.md. Wrapper cerrado; siguiente preflight ED-C y resolución conservadora de cuatro conflictos conocidos.
+
+
+## ED-C: integración y primera verificación
+
+Merge 9d6d11730 sobre ba304b1e5; cuatro conflictos: WarmupRules.kt, WarmupRulesTest.kt, ExerciseEditorExpanded.kt y SessionEditorSeriesChip.kt. Se conservan los avisos y constantes de LV-C, los once casos combinados de WarmupRules, la base única warmupTargetLoadKg y los valores/medidas ED-B con el slot opcional de movilidad ED-C. Sin cambios Room. La validación del máximo usa ahora warmupMaxRecommended, sin duplicar su fórmula.
+
+`int-u18-android-codex-20261023-1.log`: producción y pruebas compilan; 7 clases, 78 pruebas, 2 fallos en ExerciseEditorExpandedComposeTest. Las otras seis clases pasan (72/0), incluidas 47 pruebas de tarjetas de preparación en vivo, 20 del editor y la persistencia real. Las dos aserciones esperan la interfaz anterior: tres filas Descanso entre series y el texto Tiempo global de movilidad. Se migran a las fichas, foco y cabeceras H1/H2; se comprueba también el selector real, los callbacks, la conservación de dosis y el valor global al guardar. Las otras cuatro pruebas mantienen sus cuerpos originales. No se rebaja el contrato a una comprobación de existencia. Wrapper cerrado con exit1; nueva corrida de la clase afectada pendiente.
