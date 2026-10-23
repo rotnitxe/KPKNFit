@@ -2,6 +2,8 @@ package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.resolveUnitModeV2
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.screens.sessioneditor.components.cardioDoseLine
 import com.example.kpkn.ui.design.KpknSetFormat
@@ -77,25 +79,26 @@ private fun spokenDuration(seconds: Int): String {
 
 /** Repeticiones de todas las series: «AMRAP», un rango («6–8»), un número («8») o una duración («45 s»). Null si no hay un patrón común. */
 private fun repsLabel(sets: List<ExerciseSet>, mode: TrainingMode, customUnit: String?): String? {
-    if (mode == TrainingMode.DISTANCE || mode == TrainingMode.CUSTOM) {
+    val unit = sets.map { it.resolveUnitModeV2(mode) }.distinct().singleOrNull() ?: return null
+    if (unit == UnitModeV2.DISTANCE || unit == UnitModeV2.CUSTOM) {
         val values = sets.mapNotNull { it.plannedTargetV2 }
         if (values.size != sets.size) return null
-        val unit = if (mode == TrainingMode.DISTANCE) "m" else customUnit?.takeIf { it.isNotBlank() } ?: "u"
-        return valueRange(values, prefix = "", suffix = " $unit")
+        val label = if (unit == UnitModeV2.DISTANCE) "m" else customUnit?.takeIf { it.isNotBlank() } ?: "u"
+        return valueRange(values, prefix = "", suffix = " $label")
     }
     val amrap = sets.count { it.purpose.isAmrap }
     if (amrap == sets.size) return "AMRAP"
     if (amrap > 0) return null
-    val timed = mode == TrainingMode.TIME || sets.all { repRangeOf(it) == null }
-    if (timed) {
+    if (unit == UnitModeV2.TIME) {
         return sets.map { it.targetDuration }.distinct().singleOrNull()?.let { KpknSetFormat.doseTime(it) }
     }
+    if (unit != UnitModeV2.REPS) return null
     val ranges = sets.map { repRangeOf(it) }
     if (ranges.any { it == null }) return null
     val known = ranges.filterNotNull()
     val low = known.minOf { it.first }
     val high = known.maxOf { it.second }
-    return if (low == high) "$low" else "$low–$high"
+    return if (low == high) low.toString() else low.toString() + "–" + high
 }
 
 /** Rango de repeticiones de una serie: el [com.example.kpkn.data.models.RepRange] o el número exacto. */

@@ -43,12 +43,7 @@ internal fun UltraFastRecordSheet(
     error: String? = null,
 ) {
     val current = exercise.sets.getOrNull(currentSetIndex)
-    val mode = current?.unitModeV2 ?: when {
-        exercise.trainingMode == TrainingMode.TIME || current?.targetDuration != null -> UnitModeV2.TIME
-        exercise.trainingMode == TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
-        exercise.trainingMode == TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
-        else -> UnitModeV2.REPS
-    }
+    val mode = current?.resolveUnitModeV2(exercise.trainingMode) ?: exercise.trainingMode.toUnitModeV2()
     val supported = current != null && !exercise.isCardio && mode == UnitModeV2.REPS
     var weightText by remember(exercise.id, currentSetIndex, current?.id) { mutableStateOf(current?.weight?.let(::ultraNumber).orEmpty()) }
     var repsText by remember(exercise.id, currentSetIndex, current?.id) {

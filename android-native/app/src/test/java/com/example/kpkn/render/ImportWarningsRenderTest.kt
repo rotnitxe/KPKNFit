@@ -212,6 +212,9 @@ class ImportWarningsRenderTest {
         rule.setContent {
             Sheet(width = width, fontScale = fontScale) { Warnings(draft) }
         }
+        rule.onNodeWithTag("import-warnings-see").assertExists()
+        rule.onNodeWithTag("import-warnings-see").performClick()
+        rule.onNodeWithTag("import-warning-add-a1").assertExists()
         rule.onNodeWithTag("import-warning-add-a1").performClick()
         save(name)
     }

@@ -15,12 +15,8 @@ internal enum class LiveSetCardMode(val label: String) {
     DISTANCE("Distancia"), CUSTOM("Personalizado"), AMRAP("AMRAP"),
 }
 
-internal fun liveSetUnitMode(exercise: Exercise, set: ExerciseSet): UnitModeV2 = set.unitModeV2 ?: when {
-    exercise.trainingMode == TrainingMode.TIME || set.targetDuration != null -> UnitModeV2.TIME
-    exercise.trainingMode == TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
-    exercise.trainingMode == TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
-    else -> UnitModeV2.REPS
-}
+internal fun liveSetUnitMode(exercise: Exercise, set: ExerciseSet): UnitModeV2 =
+    set.resolveUnitModeV2(exercise.trainingMode)
 
 internal fun liveSetCardMode(exercise: Exercise, set: ExerciseSet, unit: UnitModeV2): LiveSetCardMode = when (unit) {
     UnitModeV2.TIME -> LiveSetCardMode.TIME

@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -76,8 +77,9 @@ internal fun RmSetFocus(
             Text("El porcentaje y la referencia se aplican a los dos lados.", style = KpknType.caption, color = WizardColors.textMuted)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SetValueCell(label = "Reps est.", value = estimatedReps?.toString().orEmpty(), stateKey = "rm-reps-${set.id}",
+            SetValueCell(label = "Reps estimadas", value = estimatedReps?.toString().orEmpty(), stateKey = "rm-reps-${set.id}",
                 listSkin = true, modifier = Modifier.weight(1f), keyboardType = KeyboardType.Number,
+                labelMinLines = 2, labelMaxLines = 2, labelOverflow = TextOverflow.Clip,
                 enabled = !usesTm || (reference != null && exercise.reference1RM != null),
                 onCommit = { input -> input.safeIntOrNull()?.takeIf { it in 1..30 }?.let { reps ->
                     val oneRmValue = estimatePercent1RM(reps)
@@ -85,9 +87,11 @@ internal fun RmSetFocus(
                 } })
             SetValueCell(label = if (usesTm) "% del TM" else "%RM", value = formatEditableNumber(percent),
                 stateKey = "rm-percent-${set.id}", listSkin = true, modifier = Modifier.weight(1f),
+                labelMinLines = 2, labelMaxLines = 2, labelOverflow = TextOverflow.Clip,
                 keyboardType = KeyboardType.Decimal, onCommit = { commitPercent(it.safeDoubleOrNull()) })
             SetValueCell(label = "Peso (kg)", value = formatEditableNumber(weight), stateKey = "rm-weight-${set.id}",
-                listSkin = true, modifier = Modifier.weight(1f), keyboardType = KeyboardType.Decimal,
+                listSkin = true, modifier = Modifier.weight(1f), labelMinLines = 2, labelMaxLines = 2,
+                labelOverflow = TextOverflow.Clip, keyboardType = KeyboardType.Decimal,
                 enabled = reference != null && external, onCommit = { input ->
                     input.safeDoubleOrNull()?.takeIf { it > 0.0 }?.let { kg -> commitPercent(reference?.let { kg * 100.0 / it }) }
                 })

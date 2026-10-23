@@ -50,6 +50,26 @@ enum class UnitModeV2 {
     CUSTOM,
 }
 
+/** Unidad de ejecución que gobierna una serie cuando el ejercicio no declara un override explícito. */
+fun TrainingMode.toUnitModeV2(): UnitModeV2 = when (this) {
+    TrainingMode.TIME -> UnitModeV2.TIME
+    TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
+    TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
+    TrainingMode.REPS, TrainingMode.RM, TrainingMode.SOLO_RPE, TrainingMode.AMRAP -> UnitModeV2.REPS
+}
+
+/**
+ * Resolves a set's execution unit. New exercises persist the unit explicitly; only legacy REPS plans may still use a duration
+ * without a unit marker, so retain that historical TIME interpretation after all declared modes have had precedence.
+ */
+fun ExerciseSet.resolveUnitModeV2(trainingMode: TrainingMode): UnitModeV2 = unitModeV2 ?: when (trainingMode) {
+    TrainingMode.TIME -> UnitModeV2.TIME
+    TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
+    TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
+    TrainingMode.REPS -> if (targetDuration != null) UnitModeV2.TIME else UnitModeV2.REPS
+    TrainingMode.RM, TrainingMode.SOLO_RPE, TrainingMode.AMRAP -> trainingMode.toUnitModeV2()
+}
+
 /**
  * Convención de cantidad de una carga prescrita/registrada (§14.2).
  *

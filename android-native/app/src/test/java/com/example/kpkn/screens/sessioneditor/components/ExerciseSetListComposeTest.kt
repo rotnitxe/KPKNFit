@@ -151,12 +151,12 @@ class ExerciseSetListComposeTest {
         openedRowShows(TrainingMode.AMRAP, "Mínimo", "AMRAP", "Externa")
     }
 
-    /** Una serie RM sin rango ni RIR (pura) enseña su %RM y sus «Reps est.» de siempre (ER2a). */
+    /** Una serie RM sin rango ni RIR (pura) enseña su %RM y sus «Reps estimadas» (ER2a). */
     @Test
     fun laFilaDeRmPuraTieneSusControles() {
         renderList(exerciseWith(rmSet(id = "s1", range = null, rir = null), mode = TrainingMode.RM))
         openRow("s1")
-        listOf("%RM", "Reps est.", "Externa").forEach { label ->
+        listOf("%RM", "Reps estimadas", "Externa").forEach { label ->
             assertTrue("falta el control «$label»", rule.onAllNodesWithText(label).fetchSemanticsNodes().isNotEmpty())
         }
     }
@@ -166,7 +166,7 @@ class ExerciseSetListComposeTest {
     fun laFilaRmMuestraRepsEstimadasPorcentajeYPesoSinRir() {
         renderList(exerciseWith(rmSet(id = "s1", range = RepRange(4, 6), rir = 2), mode = TrainingMode.RM))
         openRow("s1")
-        listOf("%RM", "Reps est.", "Peso (kg)").forEach { rule.onNodeWithText(it).assertExists() }
+        listOf("%RM", "Reps estimadas", "Peso (kg)").forEach { rule.onNodeWithText(it).assertExists() }
         rule.onNodeWithText("RIR").assertDoesNotExist()
     }
 

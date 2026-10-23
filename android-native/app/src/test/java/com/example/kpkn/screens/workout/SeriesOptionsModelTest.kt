@@ -79,6 +79,19 @@ class SeriesOptionsModelTest {
     }
 
     @Test
+    fun activeCustomUnitDoesNotShowAResidualDuration() {
+        val custom = Exercise(
+            id = "e",
+            name = "Press Militar",
+            trainingMode = com.example.kpkn.data.models.TrainingMode.CUSTOM,
+            customUnit = "pasos",
+            sets = listOf(ExerciseSet(id = "s", unitModeV2 = com.example.kpkn.data.models.UnitModeV2.CUSTOM,
+                plannedTargetV2 = 12.0, targetDuration = 45)),
+        )
+        assertEquals("12 pasos", seriesOptionsSummary(custom, 0, emptyMap()).detail)
+    }
+
+    @Test
     fun aSetWithNothingPlannedHasAnEmptyDetailInsteadOfInventedData() {
         val bare = exercise(sets = listOf(ExerciseSet(id = "b")))
 

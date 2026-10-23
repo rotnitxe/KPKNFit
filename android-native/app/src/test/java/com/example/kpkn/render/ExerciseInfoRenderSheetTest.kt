@@ -9,11 +9,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.Density
 import androidx.test.core.app.ApplicationProvider
-import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
@@ -22,11 +22,11 @@ import com.example.kpkn.screens.onboarding.SetupPlanRevealExercise
 import com.example.kpkn.screens.onboarding.design.entreno.plan.DetailSheet
 import com.example.kpkn.screens.onboarding.design.entreno.plan.EXERCISE_INFO_IMAGE_TAG
 import com.example.kpkn.screens.onboarding.design.entreno.plan.EXERCISE_INFO_JOINTS_TAG
-import com.example.kpkn.screens.onboarding.design.entreno.plan.EXERCISE_INFO_NOIMAGE_TAG
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanBlockModel
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCardModel
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDayModel
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanDetailModel
+import com.example.kpkn.screens.sessioneditor.components.exerciseCatalogImageVariants
 import kotlinx.coroutines.runBlocking
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -94,7 +94,9 @@ class ExerciseInfoRenderSheetTest {
     /** Un ejercicio sin imagen del catálogo (el primero que el buscador no ilustra). */
     private fun withoutImage() = catalog.families.asSequence()
         .flatMap { it.definitions.asSequence() }
-        .first { def -> ExerciseTechniqueImageLookup.resolveImageResId(def.id, null, def.id, def.defaultConfigurationId) == null }
+        .first { definition ->
+            exerciseCatalogImageVariants(definition.id, definition.defaultConfigurationId).isEmpty()
+        }
 
     private fun exerciseOf(instanceId: String, definitionId: String, configurationId: String, sets: String) = run {
         val def = definitionOf(definitionId)
@@ -228,7 +230,8 @@ class ExerciseInfoRenderSheetTest {
         onlyWhenAsked()
         host(1f)
         openInfo("jue-3")
-        rule.onNodeWithTag(EXERCISE_INFO_NOIMAGE_TAG).assertExists()
+        rule.onNodeWithText("Sin imagen revisada para esta configuración.").assertExists()
+        rule.onNodeWithTag(EXERCISE_INFO_IMAGE_TAG).assertDoesNotExist()
         save("exercise_info_noimage_s100")
     }
 
@@ -237,7 +240,8 @@ class ExerciseInfoRenderSheetTest {
         onlyWhenAsked()
         host(1.3f)
         openInfo("jue-3")
-        rule.onNodeWithTag(EXERCISE_INFO_NOIMAGE_TAG).assertExists()
+        rule.onNodeWithText("Sin imagen revisada para esta configuración.").assertExists()
+        rule.onNodeWithTag(EXERCISE_INFO_IMAGE_TAG).assertDoesNotExist()
         save("exercise_info_noimage_s130")
     }
 }
