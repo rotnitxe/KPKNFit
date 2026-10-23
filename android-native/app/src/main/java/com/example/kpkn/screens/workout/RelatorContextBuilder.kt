@@ -25,6 +25,7 @@ import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.AmrapHit
+import com.example.kpkn.domain.training.LiveApreBlock
 import com.example.kpkn.domain.training.Apre
 import com.example.kpkn.domain.training.captureApreXrm
 import com.example.kpkn.domain.training.validApreXrmCapture
