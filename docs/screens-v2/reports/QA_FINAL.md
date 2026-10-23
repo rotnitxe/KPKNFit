@@ -24,7 +24,7 @@ La copia local contiene 70 pantallas HTML. canvas.json enumera 71 entradas: la r
 | A6-Estados | Pendiente | — |
 | B1-EjercicioAbierto | Pendiente | — |
 | B2-FocoSerie | Pendiente | — |
-| B3-FocoRM | Pendiente | — |
+| B3-FocoRM | Defecto confirmado; corrección aplicada y regresiones Compose añadidas sin ejecutar; pendiente de revalidar en APK | `C:\kw\shots\screens-v2-final-emu-20261023-c3\B3-rm80-committed-1792758416757982400.png` — «Reps estimadas» y «Peso (kg)» se recortan en el foco RM anidado al 130 %; el foco RM ahora reserva dos líneas compartidas y conserva celdas táctiles de 48 dp. |
 | B3b-FocoAMRAP | Pendiente | — |
 | B3c-FocoSoloRPE | Pendiente | — |
 | B3d-FocoTiempo | Pendiente | — |

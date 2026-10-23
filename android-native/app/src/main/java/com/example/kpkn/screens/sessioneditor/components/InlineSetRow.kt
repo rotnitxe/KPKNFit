@@ -1160,6 +1160,9 @@ internal fun SetValueCell(
     modifier: Modifier,
     keyboardType: KeyboardType = KeyboardType.Text,
     enabled: Boolean = true,
+    labelMinLines: Int = 1,
+    labelMaxLines: Int = 1,
+    labelOverflow: TextOverflow = TextOverflow.Ellipsis,
     onCommit: (String) -> Unit,
 ) {
     if (listSkin) {
@@ -1172,8 +1175,9 @@ internal fun SetValueCell(
                 label,
                 style = KpknType.caption,
                 color = WizardColors.textMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                minLines = labelMinLines,
+                maxLines = labelMaxLines,
+                overflow = labelOverflow,
             )
             // Celda de 48 dp con filete blanco al 12 %: se lee como campo también sobre el panel.
             Box(

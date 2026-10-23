@@ -1,7 +1,11 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.unit.dp
@@ -18,6 +22,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.unit.Density
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.training.ApreVariant
@@ -43,22 +48,26 @@ import org.robolectric.annotation.GraphicsMode
 class EdbFocusControlsTest {
     @get:Rule val rule = createComposeRule()
     private val state = mutableStateOf(Exercise(id = "press", name = "Press"))
+    private val fontScale = mutableStateOf(1f)
 
     private fun mount(exercise: Exercise, side: String? = null) {
         state.value = exercise
         rule.setContent { EditorOverlayTestHost {
-            val current = state.value
-            ExerciseSetList(exercise = current, reference1RM = current.reference1RM, trainingMode = current.trainingMode,
-                customUnit = current.customUnit, predictedMetrics = emptyMap(), accentColor = Color(0xFFF49A6E),
-                backgroundAccentColor = Color(0xFFF49A6E), onAddSet = {}, onRemoveSet = {}, onMoveSet = { _, _ -> },
-                onUpdateSet = { id, transform ->
-                    val before = state.value
-                    state.value = before.copy(sets = before.sets.map { if (it.id == id) transform(it) else it })
-                        .withExplicitRmLoads(before).normalizeExercise()
-                }, onTransformExercise = { transform ->
-                    val before = state.value
-                    state.value = transform(before).withExplicitRmLoads(before).normalizeExercise()
-                })
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale.value)) {
+                val current = state.value
+                ExerciseSetList(exercise = current, reference1RM = current.reference1RM, trainingMode = current.trainingMode,
+                    customUnit = current.customUnit, predictedMetrics = emptyMap(), accentColor = Color(0xFFF49A6E),
+                    backgroundAccentColor = Color(0xFFF49A6E), onAddSet = {}, onRemoveSet = {}, onMoveSet = { _, _ -> },
+                    onUpdateSet = { id, transform ->
+                        val before = state.value
+                        state.value = before.copy(sets = before.sets.map { if (it.id == id) transform(it) else it })
+                            .withExplicitRmLoads(before).normalizeExercise()
+                    }, onTransformExercise = { transform ->
+                        val before = state.value
+                        state.value = transform(before).withExplicitRmLoads(before).normalizeExercise()
+                    })
+            }
         } }
         rule.onNodeWithTag(if (side == null) "set-row-s1" else "set-row-s1:$side").performClick()
     }
@@ -68,6 +77,25 @@ class EdbFocusControlsTest {
         rule.onNode(hasSetTextAction() and isFocused()).performTextReplacement(value)
         rule.onNode(hasSetTextAction() and isFocused()).performImeAction()
         rule.waitForIdle()
+    }
+
+    private fun assertRmLabelIsComplete(label: String) {
+        val layouts = mutableListOf<TextLayoutResult>()
+        rule.onNode(hasText(label) and hasAnyAncestor(hasTestTag("set-focus-s1")), useUnmergedTree = true)
+            .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        val layout = layouts.single()
+        val lines = 0 until layout.lineCount
+        val detail = "${layout.size}, líneas=${lines.map { layout.getLineLeft(it) to layout.getLineRight(it) }}, ${layout.layoutInput.constraints}"
+        assertEquals("Texto completo del rótulo", label, layout.layoutInput.text.text)
+        assertFalse("$label se desborda en alto: $detail", layout.didOverflowHeight)
+        assertTrue("$label supera dos líneas: $detail", layout.lineCount <= 2)
+        assertTrue("$label sigue elidido: $detail", lines.all { !layout.isLineEllipsized(it) })
+        assertEquals("Todos los caracteres quedan visibles: $detail", label.length,
+            layout.getLineEnd(layout.lineCount - 1, visibleEnd = true))
+        assertTrue("$label se recorta en horizontal: $detail", lines.all {
+            layout.getLineLeft(it) >= -1f && layout.getLineRight(it) <= layout.size.width + 1f
+        })
+        rule.onNodeWithContentDescription(label).assertHeightIsEqualTo(48.dp)
     }
 
     private fun rm(basis: LoadBasis = LoadBasis.PERCENT_1RM, oneRm: Double? = 120.0, tm: Double? = null) = Exercise(
@@ -204,12 +232,12 @@ class EdbFocusControlsTest {
         rule.onNodeWithText("RIR").assertDoesNotExist()
         edit("%RM", "85")
         assertEquals(102.5, state.value.sets.single().weight!!, 0.001)
-        rule.onNodeWithContentDescription("Reps est.").assertTextContains("5")
-        edit("Reps est.", "6")
+        rule.onNodeWithContentDescription("Reps estimadas").assertTextContains("5")
+        edit("Reps estimadas", "6")
         assertEquals(83.0, state.value.sets.single().targetPercentageRM!!, 0.001)
         edit("Peso (kg)", "90")
         assertEquals(75.0, state.value.sets.single().targetPercentageRM!!, 0.001)
-        rule.onNodeWithContentDescription("Reps est.").assertTextContains("10")
+        rule.onNodeWithContentDescription("Reps estimadas").assertTextContains("10")
         // La edición de porcentaje no borra la prescripción híbrida que venía en la receta.
         assertEquals(RepRange(4, 6), state.value.sets.single().targetRepsRange)
         assertEquals(2, state.value.sets.single().targetRIR)
@@ -220,11 +248,20 @@ class EdbFocusControlsTest {
         edit("Peso (kg)", "90")
         assertEquals(90.0, state.value.sets.single().targetPercentageRM!!, 0.001)
         assertEquals(90.0, state.value.sets.single().weight!!, 0.001)
-        rule.onNodeWithContentDescription("Reps est.").assertTextContains("12")
+        rule.onNodeWithContentDescription("Reps estimadas").assertTextContains("12")
         edit("% del TM", "80")
         assertEquals(80.0, state.value.sets.single().weight!!, 0.001)
         edit("% del TM", "40")
         assertEquals(40.0, state.value.sets.single().weight!!, 0.001)
+    }
+
+    @Test fun etiquetasRmSeVenCompletasEnFocoNormalAl100Y130() {
+        mount(rm())
+        for (scale in listOf(1f, 1.3f)) {
+            rule.runOnIdle { fontScale.value = scale }
+            rule.waitForIdle()
+            listOf("Reps estimadas", "%RM", "Peso (kg)").forEach(::assertRmLabelIsComplete)
+        }
     }
 
     @Test fun noSustituyeUnTmAusentePorElUnoRm() {

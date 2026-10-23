@@ -19,6 +19,7 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.screens.sessioneditor.normalizeExercise
@@ -118,9 +119,36 @@ class SupersetRoundsFocusIntegrationTest {
         rule.waitForIdle()
     }
 
+    private fun assertRmLabelIsComplete(label: String) {
+        val layouts = mutableListOf<TextLayoutResult>()
+        rule.onNode(hasText(label) and within(), useUnmergedTree = true)
+            .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        val layout = layouts.single()
+        val lines = 0 until layout.lineCount
+        val detail = "${layout.size}, líneas=${lines.map { layout.getLineLeft(it) to layout.getLineRight(it) }}, ${layout.layoutInput.constraints}"
+        assertEquals("Texto completo del rótulo", label, layout.layoutInput.text.text)
+        assertFalse("$label se desborda en alto: $detail", layout.didOverflowHeight)
+        assertTrue("$label supera dos líneas: $detail", layout.lineCount <= 2)
+        assertTrue("$label sigue elidido: $detail", lines.all { !layout.isLineEllipsized(it) })
+        assertEquals("Todos los caracteres quedan visibles: $detail", label.length,
+            layout.getLineEnd(layout.lineCount - 1, visibleEnd = true))
+        assertTrue("$label se recorta en horizontal: $detail", lines.all {
+            layout.getLineLeft(it) >= -1f && layout.getLineRight(it) <= layout.size.width + 1f
+        })
+        rule.onNode(hasContentDescription(label) and within()).assertHeightIsEqualTo(48.dp)
+    }
+
+    private fun assertRmLabelsAreCompleteAtBothFontScales() {
+        for (scale in listOf(1f, 1.3f)) {
+            rule.runOnIdle { fontScale.value = scale }
+            rule.waitForIdle()
+            listOf("Reps estimadas", "%RM", "Peso (kg)").forEach(::assertRmLabelIsComplete)
+        }
+    }
+
     @Test fun rmTieneTresCifrasEnlazadasConservaRangosYRirYAcciones() {
         mount(rm())
-        rule.onNodeWithContentDescription("Reps est.").assertExists()
+        rule.onNodeWithContentDescription("Reps estimadas").assertExists()
         edit("%RM", "75")
         val saved = state.value.sets.first()
         assertEquals(90.0, saved.weight!!, 0.001)
@@ -132,6 +160,18 @@ class SupersetRoundsFocusIntegrationTest {
         assertEquals(listOf("s1" to 1), moved)
         assertEquals(listOf("s1"), removed)
         rule.onNode(hasText("Subir") and within()).assertDoesNotExist()
+    }
+
+    @Test fun etiquetasRmAnidadasSeVenCompletasAl100Y130En880() {
+        mount(rm())
+        assertRmLabelsAreCompleteAtBothFontScales()
+    }
+
+    @Test
+    @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h740dp-mdpi")
+    fun etiquetasRmAnidadasSeVenCompletasAl100Y130En740() {
+        mount(rm())
+        assertRmLabelsAreCompleteAtBothFontScales()
     }
 
     @Test fun referenciaTmSePropagaDesdeElGrupoYRecalculaSoloSuBase() {
