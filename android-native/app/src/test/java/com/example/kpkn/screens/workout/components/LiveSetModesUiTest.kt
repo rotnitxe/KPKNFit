@@ -172,7 +172,7 @@ class LiveSetModesUiTest {
         rule.waitForIdle()
         assertEquals(150.0, draft?.rmReference1RM)
         assertEquals("120", draft?.weightText)
-        rule.onNodeWithText("TM: 120 kg").assertExists()
+        rule.onNodeWithText("TM: 120\u00A0kg").assertExists()
     }
     @Test fun linkedQuarterKilosAreRecordedWithoutDisplayTruncation() {
         show(TrainingMode.RM)
@@ -209,7 +209,7 @@ class LiveSetModesUiTest {
         show(TrainingMode.RM, transform = { e -> e.copy(reference1RM = 150.0, referenceTrainingMax = 120.0,
             sets = e.sets.map { it.copy(loadBasis = LoadBasis.PERCENT_TM) }) })
         rule.onNodeWithText("Tu referencia: 150 kg de 1RM").assertExists()
-        rule.onNodeWithText("TM: 120 kg").assertExists()
+        rule.onNodeWithText("80 % de tu TM (120) → 96\u00A0kg").assertExists()
         mark(); record(); assertEquals(96.0, records.single().weight, 0.0)
     }
     @Test fun soloRpeHasNoFixedOrHistoricalLoadSuggestion() {

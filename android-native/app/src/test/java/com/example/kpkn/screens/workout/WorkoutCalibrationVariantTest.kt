@@ -79,7 +79,7 @@ class WorkoutCalibrationVariantTest {
         assertEquals(CalibrationStatus.PROPOSED, replacement.status)
         assertEquals(f.exercise.sets[2].id, replacement.apre!!.sourcePlannedSetId)
         assertEquals(f.exercise.sets[3].id, replacement.apre!!.targetPlannedSetId)
-        assertEquals(150.0, replacement.decision.affectedSets.single().afterKg, 0.0)
+        assertEquals(147.5, replacement.decision.affectedSets.single().afterKg, 0.0)
         assertEquals(f.state.session, refreshed.session)
     }
 

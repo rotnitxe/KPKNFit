@@ -21,7 +21,7 @@ class WorkoutReplacementPlanSummaryTest {
     fun laDosisDelPlanSeDiceComoEnElDisenoYSinElDescanso() {
         val exercise = Exercise(id = "slot-1", name = "Sentadilla trasera", sets = planned(4), restTime = 150)
 
-        assertEquals("4\u00A0×\u00A04–6 · RIR 2", replacementPlanSummary(exercise))
+        assertEquals("4\u00A0×\u00A04–6 · RIR\u00A02", replacementPlanSummary(exercise))
     }
 
     @Test
@@ -35,7 +35,7 @@ class WorkoutReplacementPlanSummaryTest {
             ),
         )
 
-        assertEquals("2\u00A0×\u00A06–12 · RIR 2", replacementPlanSummary(exercise))
+        assertEquals("2\u00A0×\u00A06–12 · RIR\u00A02", replacementPlanSummary(exercise))
     }
 
     @Test
