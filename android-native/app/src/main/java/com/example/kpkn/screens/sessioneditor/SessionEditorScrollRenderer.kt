@@ -721,7 +721,11 @@ private fun LooseExerciseItem(
                     else viewModel.openSupersetManager(null, groupId)
                 },
                 onOpenMobility = { viewModel.openMobilityPicker(null, exercise.id) },
-                relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
+                relationshipAnchorName = resolveRelationshipAnchorName(
+                    session,
+                    exercise,
+                    uiState.allProgramExerciseCandidates,
+                ),
                 onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, exercise.id) },
                 onClearRelationship = { viewModel.linkExerciseRelativeTo(null, exercise.id, null) },
                 onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(null, exercise.id, type) },
@@ -815,7 +819,11 @@ private fun PartExerciseItem(
                     else viewModel.openSupersetManager(part.id, groupId)
                 },
                 onOpenMobility = { viewModel.openMobilityPicker(part.id, exercise.id) },
-                relationshipAnchorName = resolveRelationshipAnchorName(session, exercise),
+                relationshipAnchorName = resolveRelationshipAnchorName(
+                    session,
+                    exercise,
+                    uiState.allProgramExerciseCandidates,
+                ),
                 onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, exercise.id) },
                 onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, exercise.id, null) },
                 onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(part.id, exercise.id, type) },
@@ -899,7 +907,9 @@ private fun LooseSupersetItem(
         onRemoveSet = { exerciseId, setId -> viewModel.removeSet(null, exerciseId, setId) },
         onMoveSet = { exerciseId, setId, dir -> viewModel.moveSet(null, exerciseId, setId, dir) },
         onRemoveRound = { roundIndex -> viewModel.removeSupersetRound(supersetGroup.id, null, roundIndex) },
-        relationshipAnchorName = { member -> resolveRelationshipAnchorName(session, member) },
+        relationshipAnchorName = { member ->
+            resolveRelationshipAnchorName(session, member, uiState.allProgramExerciseCandidates)
+        },
         onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(null, exerciseId) },
         onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(null, exerciseId, null) },
         onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, null, exerciseId) },
@@ -976,7 +986,11 @@ private fun LooseSupersetItem(
                             else viewModel.openSupersetManager(null, groupId)
                         },
                         onOpenMobility = { viewModel.openMobilityPicker(null, member.id) },
-                        relationshipAnchorName = resolveRelationshipAnchorName(session, member),
+                        relationshipAnchorName = resolveRelationshipAnchorName(
+                            session,
+                            member,
+                            uiState.allProgramExerciseCandidates,
+                        ),
                         onOpenRelationshipPicker = { viewModel.openRelationshipPicker(null, member.id) },
                         onClearRelationship = { viewModel.linkExerciseRelativeTo(null, member.id, null) },
                         onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(null, member.id, type) },
@@ -1057,7 +1071,9 @@ private fun PartSupersetItem(
         onRemoveSet = { exerciseId, setId -> viewModel.removeSet(part.id, exerciseId, setId) },
         onMoveSet = { exerciseId, setId, dir -> viewModel.moveSet(part.id, exerciseId, setId, dir) },
         onRemoveRound = { roundIndex -> viewModel.removeSupersetRound(supersetGroup.id, part.id, roundIndex) },
-        relationshipAnchorName = { member -> resolveRelationshipAnchorName(session, member) },
+        relationshipAnchorName = { member ->
+            resolveRelationshipAnchorName(session, member, uiState.allProgramExerciseCandidates)
+        },
         onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(part.id, exerciseId) },
         onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(part.id, exerciseId, null) },
         onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, part.id, exerciseId) },
@@ -1133,7 +1149,11 @@ private fun PartSupersetItem(
                             else viewModel.openSupersetManager(part.id, groupId)
                         },
                         onOpenMobility = { viewModel.openMobilityPicker(part.id, member.id) },
-                        relationshipAnchorName = resolveRelationshipAnchorName(session, member),
+                        relationshipAnchorName = resolveRelationshipAnchorName(
+                            session,
+                            member,
+                            uiState.allProgramExerciseCandidates,
+                        ),
                         onOpenRelationshipPicker = { viewModel.openRelationshipPicker(part.id, member.id) },
                         onClearRelationship = { viewModel.linkExerciseRelativeTo(part.id, member.id, null) },
                         onUpdateRelationshipType = { type -> viewModel.updateExerciseRelationshipType(part.id, member.id, type) },
