@@ -38,3 +38,7 @@ Con KPKN_RENDER_DIR se preparan12PNG V7 de APRE3/6/10, viewport360×740/880 y fu
 ## Incidencia de compilación previa a validación
 
 La primera ejecución JVM centralizada en u11 (f47cc64e5) terminó con código 1 durante la compilación principal: 0 tests y ningún XML nuevo. Reportó el import ausente de ApreBlockReference en PlanMaterializer y el argumento con nombre incorrecto en evaluateApreXrmOnly; ambos se corrigen en este cambio. No se ejecutaron Gradle, JVM ni pruebas desde este worktree; queda pendiente la repetición centralizada.
+
+## Segunda compilación APRE JVM
+
+La segunda corrida centralizada compiló producción y falló durante compileTestKotlin. El error primario fue la referencia sin calificar a ProgressAdvanceResult en ProgramAutoregulationApreXrmChannelTest; los errores de advancedCycle, program y autoregulationProposals fueron derivados. Se corrigió la referencia al tipo anidado de ProgramProgressEngine. No se ejecutaron tests en esta corrida ni desde este worktree; queda pendiente repetir el wrapper centralizado.
