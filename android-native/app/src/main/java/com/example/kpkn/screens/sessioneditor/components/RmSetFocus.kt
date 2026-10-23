@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -77,25 +78,40 @@ internal fun RmSetFocus(
                 modifier = Modifier.semantics { contentDescription = "Carga del lado $fixedUnilateralSide" })
             Text("El porcentaje y la referencia se aplican a los dos lados.", style = KpknType.caption, color = WizardColors.textMuted)
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SetValueCell(label = "Reps estimadas", value = estimatedReps?.toString().orEmpty(), stateKey = "rm-reps-${set.id}",
-                listSkin = true, modifier = Modifier.weight(1f), keyboardType = KeyboardType.Number,
-                labelMinLines = 2, labelMaxLines = 2, labelOverflow = TextOverflow.Clip,
-                enabled = !usesTm || (reference != null && exercise.reference1RM != null),
-                onCommit = { input -> input.safeIntOrNull()?.takeIf { it in 1..30 }?.let { reps ->
-                    val oneRmValue = estimatePercent1RM(reps)
-                    commitPercent(if (usesTm) reference?.let { oneRmValue * exercise.reference1RM!! / it } else oneRmValue)
-                } })
-            SetValueCell(label = if (usesTm) "% del TM" else "%RM", value = formatEditableNumber(percent),
-                stateKey = "rm-percent-${set.id}", listSkin = true, modifier = Modifier.weight(1f),
-                labelMinLines = 2, labelMaxLines = 2, labelOverflow = TextOverflow.Clip,
-                keyboardType = KeyboardType.Decimal, onCommit = { commitPercent(it.safeDoubleOrNull()) })
-            SetValueCell(label = "Peso (kg)", value = formatEditableNumber(weight), stateKey = "rm-weight-${set.id}",
-                listSkin = true, modifier = Modifier.weight(1f), labelMinLines = 2, labelMaxLines = 2,
-                labelOverflow = TextOverflow.Clip, keyboardType = KeyboardType.Decimal,
-                enabled = reference != null && external, onCommit = { input ->
-                    input.safeDoubleOrNull()?.takeIf { it > 0.0 }?.let { kg -> commitPercent(reference?.let { kg * 100.0 / it }) }
-                })
+        val density = LocalDensity.current
+        val textMeasurer = rememberTextMeasurer()
+        val repsWordWidth = with(density) {
+            textMeasurer.measure("estimadas", KpknType.caption).size.width.toDp() + 2.dp
+        }
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val gaps = 16.dp
+            val availableForCells = (maxWidth - gaps).coerceAtLeast(0.dp)
+            val equalColumnWidth = availableForCells / 3f
+            // En el foco de una ronda anidada el ancho cae por debajo del de la lista normal.
+            // Reservamos lo que necesita la palabra más larga; %RM y Peso siguen usando todo el resto.
+            val widestRepsColumn = (maxWidth - gaps - 48.dp * 2).coerceAtLeast(0.dp)
+            val repsColumnWidth = maxOf(equalColumnWidth, repsWordWidth).coerceAtMost(widestRepsColumn)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SetValueCell(label = "Reps estimadas", value = estimatedReps?.toString().orEmpty(), stateKey = "rm-reps-${set.id}",
+                    listSkin = true, modifier = Modifier.width(repsColumnWidth), keyboardType = KeyboardType.Number,
+                    labelMinLines = 2, labelMaxLines = 2, labelOverflow = TextOverflow.Clip,
+                    enabled = !usesTm || (reference != null && exercise.reference1RM != null),
+                    onCommit = { input -> input.safeIntOrNull()?.takeIf { it in 1..30 }?.let { reps ->
+                        val oneRmValue = estimatePercent1RM(reps)
+                        commitPercent(if (usesTm) reference?.let { oneRmValue * exercise.reference1RM!! / it } else oneRmValue)
+                    } })
+                SetValueCell(label = if (usesTm) "% del TM" else "%RM", value = formatEditableNumber(percent),
+                    stateKey = "rm-percent-${set.id}", listSkin = true, modifier = Modifier.weight(1f),
+                    labelMinLines = 2, labelMaxLines = 2, labelOverflow = TextOverflow.Clip,
+                    keyboardType = KeyboardType.Decimal, onCommit = { commitPercent(it.safeDoubleOrNull()) })
+                SetValueCell(label = "Peso (kg)", value = formatEditableNumber(weight), stateKey = "rm-weight-${set.id}",
+                    listSkin = true, modifier = Modifier.weight(1f), labelMinLines = 2, labelMaxLines = 2,
+                    labelOverflow = TextOverflow.Clip, keyboardType = KeyboardType.Decimal,
+                    enabled = reference != null && external, onCommit = { input ->
+                        input.safeDoubleOrNull()?.takeIf { it > 0.0 }?.let { kg -> commitPercent(reference?.let { kg * 100.0 / it }) }
+                    })
+            }
+        }
         }
         val minimumPercent = minOf(45f, (percent ?: 45.0).toFloat()).coerceAtLeast(0.01f)
         Slider(value = slider.coerceIn(minimumPercent, maxOf(100f, slider)),

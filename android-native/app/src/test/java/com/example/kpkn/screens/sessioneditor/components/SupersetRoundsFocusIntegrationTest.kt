@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
@@ -25,6 +26,8 @@ import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.screens.sessioneditor.normalizeExercise
 import com.example.kpkn.screens.sessioneditor.rmSetLoadKg
 import com.example.kpkn.screens.sessioneditor.withExplicitRmLoads
+import com.example.kpkn.screens.sessioneditor.design.SessionModuleEdge
+import com.example.kpkn.screens.sessioneditor.design.SessionModuleSlot
 import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
 import org.junit.Rule
@@ -78,7 +81,7 @@ class SupersetRoundsFocusIntegrationTest {
         state.value = transform(previous).withExplicitRmLoads(previous).normalizeExercise()
     }
 
-    private fun mount(exercise: Exercise, round: Int = 1) {
+    private fun mount(exercise: Exercise, round: Int = 1, nestedInSessionModule: Boolean = false) {
         state.value = exercise
         rule.setContent { EditorOverlayTestHost {
             hostView = LocalView.current
@@ -86,28 +89,45 @@ class SupersetRoundsFocusIntegrationTest {
             CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale.value)) {
                 Column(Modifier.fillMaxWidth().background(Color.Black).verticalScroll(rememberScrollState())) {
                     val current = state.value
-                    SupersetGroupEditorCard(
-                        group = SupersetGroup(id = "ss", exerciseOrder = listOf(current.id), rounds = 2,
-                            restBetweenExercises = 60, restAfterSuperset = 120),
-                        exercises = listOf(current), accentHex = null, partId = "p",
-                        onOpenSupersetCreator = { _, _ -> }, onUpdateSupersetRest = { _, _, _, _ -> },
-                        onRemoveFromSuperset = { _, _ -> }, onDissolve = {}, onAddRound = {},
-                        onUpdateExercise = { id, transform -> assertEquals(current.id, id); update(transform) },
-                        onUpdateSet = { id, setId, transform ->
-                            assertEquals(current.id, id)
-                            update { e -> e.copy(sets = e.sets.map { if (it.id == setId) transform(it) else it }) }
-                        },
-                        onRemoveSet = { _, setId -> removed += setId },
-                        onMoveSet = { _, setId, delta -> moved += setId to delta },
-                    ) {}
+                    val members = if (nestedInSessionModule) listOf(current, companionExercise()) else listOf(current)
+                    if (nestedInSessionModule) {
+                        SessionModuleSlot(edge = SessionModuleEdge.ONLY) {
+                            SupersetFocusFixture(current, members)
+                        }
+                    } else {
+                        SupersetFocusFixture(current, members)
+                    }
                 }
             }
         } }
         rule.onNodeWithText("2 rondas").performClick()
         rule.onNodeWithText("Ronda $round").performScrollTo().performClick()
-        rule.onNodeWithContentDescription("Ampliar serie").performScrollTo().performClick()
+        rule.onAllNodesWithContentDescription("Ampliar serie").onFirst().performScrollTo().performClick()
         rule.waitForIdle()
     }
+
+    @Composable
+    private fun SupersetFocusFixture(current: Exercise, members: List<Exercise>) {
+        SupersetGroupEditorCard(
+            group = SupersetGroup(id = "ss", exerciseOrder = members.map { it.id }, rounds = 2,
+                restBetweenExercises = 60, restAfterSuperset = 120),
+            exercises = members, accentHex = null, partId = "p",
+            onOpenSupersetCreator = { _, _ -> }, onUpdateSupersetRest = { _, _, _, _ -> },
+            onRemoveFromSuperset = { _, _ -> }, onDissolve = {}, onAddRound = {},
+            onUpdateExercise = { id, transform -> assertEquals(current.id, id); update(transform) },
+            onUpdateSet = { id, setId, transform ->
+                assertEquals(current.id, id)
+                update { e -> e.copy(sets = e.sets.map { if (it.id == setId) transform(it) else it }) }
+            },
+            onRemoveSet = { _, setId -> removed += setId },
+            onMoveSet = { _, setId, delta -> moved += setId to delta },
+        ) {}
+    }
+
+    private fun companionExercise() = Exercise(
+        id = "row-companion", name = "Remo C3", supersetGroupRef = "ss", trainingMode = TrainingMode.REPS,
+        sets = listOf(ExerciseSet(id = "companion-s1", targetReps = 8), ExerciseSet(id = "companion-s2", targetReps = 10)),
+    )
 
     private fun within(side: String? = null, set: String = "s1") =
         hasAnyAncestor(hasTestTag("round-set-focus-$set${side?.let { ":$it" }.orEmpty()}"))
@@ -125,9 +145,12 @@ class SupersetRoundsFocusIntegrationTest {
             .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
         val layout = layouts.single()
         val lines = 0 until layout.lineCount
-        val detail = "${layout.size}, líneas=${lines.map { layout.getLineLeft(it) to layout.getLineRight(it) }}, ${layout.layoutInput.constraints}"
+        val detail = "${layout.size}, párrafo=${layout.multiParagraph.width}, " +
+            "líneas=${lines.map { layout.getLineLeft(it) to layout.getLineRight(it) }}, " +
+            "overflowWidth=${layout.didOverflowWidth}, ${layout.layoutInput.constraints}"
         assertEquals("Texto completo del rótulo", label, layout.layoutInput.text.text)
         assertFalse("$label se desborda en alto: $detail", layout.didOverflowHeight)
+        assertFalse("$label se desborda en ancho: $detail", layout.didOverflowWidth)
         assertTrue("$label supera dos líneas: $detail", layout.lineCount <= 2)
         assertTrue("$label sigue elidido: $detail", lines.all { !layout.isLineEllipsized(it) })
         assertEquals("Todos los caracteres quedan visibles: $detail", label.length,
@@ -172,6 +195,14 @@ class SupersetRoundsFocusIntegrationTest {
     fun etiquetasRmAnidadasSeVenCompletasAl100Y130En740() {
         mount(rm())
         assertRmLabelsAreCompleteAtBothFontScales()
+    }
+
+    @Test
+    @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h740dp-xxhdpi")
+    fun repsEstimadasCompletaEnC3Anidado360x740Al130() {
+        fontScale.value = 1.3f
+        mount(rm(), nestedInSessionModule = true)
+        listOf("Reps estimadas", "%RM", "Peso (kg)").forEach(::assertRmLabelIsComplete)
     }
 
     @Test fun referenciaTmSePropagaDesdeElGrupoYRecalculaSoloSuBase() {
