@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.lifecycle.ViewModelStore
+import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
@@ -429,6 +430,8 @@ class SessionEditorViewModelRulesTest {
             assertEquals("cardio-$suffix", vm.uiState.value.pickerTargetPartId)
 
             vm.openSupersetCreator(null, listOf(active.exercises[0].id, active.exercises[1].id))
+            // ED-D · C2: la hoja es el único creador; se confirma antes de comprobar la variante editada.
+            vm.createSupersetGroupFromDraft()
             val updatedActive = vm.uiState.value.activeVariantSession!!
             assertTrue("Superset debe editar sólo $slot", updatedActive.allSupersetGroups().isNotEmpty())
             assertTrue(vm.uiState.value.session!!.allSupersetGroups().isEmpty())
@@ -638,6 +641,41 @@ class SessionEditorViewModelRulesTest {
         awaitSession(vm)
 
         assertTrue(vm.saveCurrentSessionAsTemplateNow("Modal inválida", "").isFailure)
+    }
+
+    @Test
+    fun editarUnaSuperserieConservaSuIdentidadAunqueSeCambienTodosLosMiembros() = runBlocking {
+        val programId = "program-existing-superset"
+        val sessionId = "session-existing-superset"
+        val writer = SessionEditorDraftStore.getInstance(ApplicationProvider.getApplicationContext<Context>()).writer
+        assertEquals(DraftWriteStatus.WRITTEN,
+            writer.clear(sessionEditorDraftStorageKey(programId, "week", 0, 0, sessionId)).status)
+        val base = Session(id = sessionId, name = "Grupo", exercises = listOf("a", "b", "c", "d").map { id ->
+            Exercise(id = id, name = id, sets = List(3) { ExerciseSet("$id-$it", targetReps = 8) })
+        })
+        val grouped = SupersetRules.createSuperset(base, "own", listOf("a", "b"), 60, 120, rounds = 3)
+        val session = SupersetRules.updateRoundRest(grouped, "own", 1, 15, 90).let {
+            it.copy(supersetGroups = it.supersetGroups.map { group -> group.copy(isOptional = true) })
+        }
+        repository.addProgramNow(programWithSession(programId, session)).getOrThrow()
+        val vm = createViewModel(programId, sessionId)
+        awaitSession(vm)
+        vm.openSupersetCreator(null, listOf("a", "b"))
+        val draft = vm.uiState.value.supersetDraft!!
+        assertEquals("own", draft.sourceGroupId)
+        vm.updateSupersetDraft(draft.copy(exerciseIds = listOf("c", "d")))
+        vm.createSupersetGroupFromDraft()
+        val updated = vm.uiState.value.session!!
+        val group = updated.supersetGroups.single()
+        assertEquals("own", group.id)
+        assertEquals(listOf("c", "d"), group.exerciseOrder)
+        assertTrue(group.isOptional)
+        assertEquals(mapOf(1 to 15), group.roundRestBetweenExercises)
+        assertEquals(mapOf(1 to 90), group.roundRestAfterSuperset)
+        updated.exercises.filter { it.id in listOf("a", "b") }.forEach {
+            assertNull(it.supersetGroupRef)
+            assertEquals(8, it.sets.first().targetReps)
+        }
     }
 
     private fun createViewModel(programId: String, sessionId: String): SessionEditorViewModel =

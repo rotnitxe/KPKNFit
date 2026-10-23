@@ -107,6 +107,8 @@ internal fun SupersetGroupEditorCard(
     onOpenSupersetCreator: (String?, List<String>) -> Unit,
     onUpdateSupersetRest: (String, Int?, Int?, Int?) -> Unit,
     onUpdateRoundRest: (String, Int, Int?, Int?) -> Unit = { _, _, _, _ -> },
+    /** C3 · «Usar el base»: la ronda [Int] del grupo [String] deja de tener descanso propio. */
+    onClearRoundRest: (String, Int) -> Unit = { _, _ -> },
     onToggleOptional: (String) -> Unit = {},
     onUpdateExercise: (String, (Exercise) -> Exercise) -> Unit = { _, _ -> },
     onAddSet: (String) -> Unit = {},
@@ -378,12 +380,28 @@ internal fun SupersetGroupEditorCard(
                     }
                 }
 
+                SupersetBaseRestModule(
+                    rounds = rounds,
+                    minRounds = exercises.maxOfOrNull { it.sets.size }?.coerceAtLeast(1) ?: 1,
+                    restBetweenSeconds = group.restBetweenExercises,
+                    restAfterSeconds = group.restAfterSuperset,
+                    onRoundsStep = { delta ->
+                        val next = (rounds + delta).coerceAtLeast(1)
+                        onUpdateSupersetRest(group.id, null, null, next)
+                    },
+                    onRestBetweenChange = { seconds -> onUpdateSupersetRest(group.id, seconds, null, null) },
+                    onRestAfterChange = { seconds -> onUpdateSupersetRest(group.id, null, seconds, null) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
                 SupersetRoundsCarousel(
+                    onUpdateExercise = onUpdateExercise,
                     group = group,
                     exercises = exercises,
                     rounds = rounds,
                     accentColor = accentColor,
                     onUpdateRoundRest = { roundIndex, restBetween, restAfter -> onUpdateRoundRest(group.id, roundIndex, restBetween, restAfter) },
+                    onClearRoundRest = { roundIndex -> onClearRoundRest(group.id, roundIndex) },
                     onUpdateSet = onUpdateSet,
                     onRemoveSet = onRemoveSet,
                     onMoveSet = onMoveSet,

@@ -113,8 +113,9 @@ sealed class SessionListItem {
     }
 
     /**
-     * La colocación del cardio, «Al inicio / Al final» (ED-A · A2): solo existe cuando la sesión tiene Fuerza y Cardio, y mientras aún no
-     * tiene ejercicios. Con ejercicios, la colocación se mueve desde el rótulo del cardio.
+     * La colocación del cardio, «Al inicio / Al final» (ED-A · A2, ED-D): existe siempre que la sesión tiene Fuerza y Cardio, con o sin
+     * ejercicios. Es el único control de colocación de la lista: los rótulos FUERZA/CARDIO no ofrecen «Mover…» (añadido del
+     * orquestador de ED-D).
      */
     data object CardioPlacement : SessionListItem() {
         override val stableKey: String = "cardio-placement"
@@ -161,20 +162,21 @@ fun buildSessionListItems(
     }
     val emitStrengthDivider = !cardioOnly && (showStrengthDivider || showCardioFirst || hasCardio)
 
-    // La colocación solo existe con los dos espacios; mientras no hay ejercicios se elige con «Al inicio / Al final».
-    val hasNoExercises = session.exercises.isEmpty() && session.parts.all { it.exercises.isEmpty() }
-    if (hasBothSpaces && hasNoExercises) items += SessionListItem.CardioPlacement
+    // Un solo control para la colocación (ED-D · Añadido del orquestador): el selector «Al inicio / Al final» está siempre a la vista
+    // cuando la sesión tiene Fuerza y Cardio, y los rótulos FUERZA/CARDIO no ofrecen «Mover…». La función no se pierde: se mueve con
+    // el selector, y el chip del cardio desplegado sigue funcionando igual.
+    if (hasBothSpaces) items += SessionListItem.CardioPlacement
 
     if (showCardioFirst) {
         // --- 1. BLOQUE CARDIO ARRIBA ---
-        if (!cardioOnly) items += SessionListItem.CardioDivider(showCardioFirst = true, canMove = hasBothSpaces)
+        if (!cardioOnly) items += SessionListItem.CardioDivider(showCardioFirst = true, canMove = false)
         cardioParts.forEach { part ->
             appendCardioPartExercises(items, part)
         }
         items += SessionListItem.CardioAddActions
 
         // --- 2. BLOQUE FUERZA ABAJO ---
-        if (emitStrengthDivider) items += SessionListItem.StrengthDivider(showCardioFirst = true, canMove = hasBothSpaces)
+        if (emitStrengthDivider) items += SessionListItem.StrengthDivider(showCardioFirst = true, canMove = false)
         if (session.exercises.isNotEmpty()) {
             if (strengthParts.isNotEmpty()) items += SessionListItem.LooseGroupLabel
             appendExerciseItems(
@@ -194,7 +196,7 @@ fun buildSessionListItems(
     } else {
         // --- 1. BLOQUE FUERZA ARRIBA ---
         if (emitStrengthDivider) {
-            items += SessionListItem.StrengthDivider(showCardioFirst = false, canMove = hasBothSpaces)
+            items += SessionListItem.StrengthDivider(showCardioFirst = false, canMove = false)
         }
         if (session.exercises.isNotEmpty()) {
             if (strengthParts.isNotEmpty()) items += SessionListItem.LooseGroupLabel
@@ -216,7 +218,7 @@ fun buildSessionListItems(
 
         // --- 2. BLOQUE CARDIO ABAJO (si existe) ---
         if (hasCardio) {
-            items += SessionListItem.CardioDivider(showCardioFirst = false, canMove = hasBothSpaces)
+            items += SessionListItem.CardioDivider(showCardioFirst = false, canMove = false)
             cardioParts.forEach { part ->
                 appendCardioPartExercises(items, part)
             }
