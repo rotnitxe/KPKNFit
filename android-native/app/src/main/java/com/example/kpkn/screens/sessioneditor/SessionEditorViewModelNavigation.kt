@@ -217,6 +217,7 @@ private fun SessionEditorViewModel.completeCreateSessionForDay(dayOfWeek: Int): 
             draftBundle = it.draftBundle?.copy(sessionId = newSession.id, dayOfWeek = dayOfWeek),
             snackbarMessage = "Sesión creada para ${dayLabel(dayOfWeek)}",
             strengthSpaceCommitted = false,
+            cardioSpaceCommitted = false,
             cardioSpacePlacement = null,
         )
     }
@@ -387,6 +388,7 @@ internal fun SessionEditorViewModel.switchToSession(
                 activeVariant = WeekVariant.A,
                 pendingTransferToDays = persistedDraft?.pendingTransferToDays,
                 strengthSpaceCommitted = false,
+                cardioSpaceCommitted = false,
                 cardioSpacePlacement = null,
             )
         }

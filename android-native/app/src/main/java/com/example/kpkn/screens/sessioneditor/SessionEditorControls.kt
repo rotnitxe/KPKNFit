@@ -74,6 +74,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknDropdownMenu
+import com.example.kpkn.ui.components.KpknSheet
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknChip
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSetFormat
+import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.screens.onboarding.design.WizardColors
 
 @Composable
 internal fun CompactRestBundleButton(
@@ -135,6 +143,10 @@ internal fun CompactRestBundleButton(
     }
 }
 
+/**
+ * B7: la única hoja de descanso del editor. Muestra el descanso de las series y, si el ejercicio es unilateral, el de entre
+ * lados en la misma hoja (antes eran dos diálogos nativos encadenados). Presets de un toque y ± 15 s; «Listo» confirma.
+ */
 @Composable
 internal fun RestBundleDialog(
     primaryLabel: String,
@@ -144,14 +156,111 @@ internal fun RestBundleDialog(
     onDismiss: () -> Unit,
     onConfirm: (Int, Int?) -> Unit,
 ) {
-    com.example.kpkn.ui.components.KpknRestPickerChain(
-        primaryTitle = primaryLabel,
-        primarySeconds = initialPrimarySeconds,
-        secondaryTitle = initialSideSeconds?.let { "Descanso entre lados" },
-        secondarySeconds = initialSideSeconds,
-        onConfirm = { primary, side -> onConfirm(primary, side) },
+    RestSheet(
+        primaryLabel = primaryLabel,
+        initialPrimarySeconds = initialPrimarySeconds,
+        initialSideSeconds = initialSideSeconds,
+        accentColor = accentColor,
         onDismiss = onDismiss,
+        onConfirm = onConfirm,
     )
+}
+
+@Composable
+internal fun RestSheet(
+    primaryLabel: String,
+    initialPrimarySeconds: Int,
+    initialSideSeconds: Int?,
+    accentColor: Color,
+    onDismiss: () -> Unit,
+    onConfirm: (Int, Int?) -> Unit,
+) {
+    var primary by remember(initialPrimarySeconds) { mutableStateOf(initialPrimarySeconds.coerceAtLeast(0)) }
+    var side by remember(initialSideSeconds) { mutableStateOf(initialSideSeconds?.coerceAtLeast(0)) }
+    KpknSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("Descanso", style = KpknType.dialogTitle, color = WizardColors.text)
+                Text(
+                    if (initialSideSeconds != null) "Series y entre lados, en un solo sitio." else "Cuánto esperas antes de la siguiente serie.",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
+            }
+            RestSection(
+                label = primaryLabel,
+                seconds = primary,
+                accentColor = accentColor,
+                presets = listOf(15, 30, 45, 60, 90, 120, 180),
+                onChange = { primary = it },
+            )
+            if (initialSideSeconds != null) {
+                RestSection(
+                    label = "Entre lados",
+                    seconds = side ?: 0,
+                    accentColor = accentColor,
+                    presets = listOf(5, 10, 15, 30),
+                    onChange = { side = it },
+                )
+            }
+            KpknPrimaryPill(
+                text = "Listo",
+                onClick = {
+                    onConfirm(primary, if (initialSideSeconds != null) side ?: 0 else null)
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+/** Un bloque de la hoja de descanso: rótulo, valor, −/+ de 15 s y presets. */
+@Composable
+private fun RestSection(
+    label: String,
+    seconds: Int,
+    accentColor: Color,
+    presets: List<Int>,
+    onChange: (Int) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(label, style = KpknType.bodyStrong, color = WizardColors.text, modifier = Modifier.weight(1f))
+            KpknIconButton(
+                icon = KpknLineIcons.Minus,
+                contentDescription = "Quitar 15 segundos a $label",
+                onClick = { onChange((seconds - 15).coerceAtLeast(0)) },
+            )
+            Text(
+                KpknSetFormat.doseTime(seconds),
+                style = KpknType.metricM,
+                color = accentColor,
+                modifier = Modifier.padding(horizontal = 10.dp),
+            )
+            KpknIconButton(
+                icon = KpknLineIcons.Plus,
+                contentDescription = "Sumar 15 segundos a $label",
+                onClick = { onChange(seconds + 15) },
+            )
+        }
+        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            presets.forEach { preset ->
+                KpknChip(
+                    text = KpknSetFormat.doseTime(preset),
+                    selected = seconds == preset,
+                    onClick = { onChange(preset) },
+                )
+            }
+        }
+    }
 }
 
 @Composable

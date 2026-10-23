@@ -171,7 +171,9 @@ class SessionListBehaviorTest {
         rule.onNodeWithText("Press inclinado").assertIsDisplayed()
         rule.onNodeWithText("Aperturas").assertIsDisplayed()
         rule.onNodeWithText("Cruces en polea").assertIsDisplayed()
-        rule.onNodeWithText("Superserie", substring = true).assertIsDisplayed()
+        // ED-A · C1: la cabecera lleva el rótulo «SUPERSERIE» en `mente` y sus fichas de rondas y descansos.
+        rule.onNodeWithText("SUPERSERIE").assertIsDisplayed()
+        rule.onNodeWithText("3 rondas").assertIsDisplayed()
     }
 
     @Test
@@ -185,7 +187,7 @@ class SessionListBehaviorTest {
         )
         rule.setContent { FoldedRow(press) }
 
-        rule.onNodeWithText("4 × 4–6 · 80 % 1RM · RIR 2 · 3:15").assertIsDisplayed()
+        rule.onNodeWithText("4 × 4–6 · 80 % 1RM · RIR\u00A02 · 3:15").assertIsDisplayed()
     }
 
     @Test
@@ -200,7 +202,7 @@ class SessionListBehaviorTest {
         )
         rule.setContent { FoldedRow(curl) }
 
-        rule.onNodeWithText("3 × 8–10 · RIR 2 · 1:30 · por lado").assertIsDisplayed()
+        rule.onNodeWithText("3 × 8–10 · RIR\u00A02 · 1:30 · por\u00A0lado").assertIsDisplayed()
     }
 
     @Test

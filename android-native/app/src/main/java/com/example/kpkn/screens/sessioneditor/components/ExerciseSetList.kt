@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.border
@@ -38,7 +40,7 @@ import com.example.kpkn.screens.sessioneditor.formatMax2Decimals
 import com.example.kpkn.screens.sessioneditor.withPlannedConfigOf
 import com.example.kpkn.screens.sessioneditor.withSetDuplicated
 import com.example.kpkn.screens.sessioneditor.withSideConfigOf
-import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknSecondaryPill
 import com.example.kpkn.ui.design.KpknSetFormat
@@ -48,12 +50,11 @@ import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 
 /**
- * Lista vertical de las series del ejercicio (ER1c1, R1 §4.3). Cada serie es una fila de 56 dp con su número, su dosis, su intensidad y
- * su técnica; al tocarla se despliega en sitio con todos los controles de la tarjeta original ([InlineSetRow] en
- * [SetRowPresentation.List]). Solo una fila abierta a la vez. La fila abierta tiene sus acciones: «Aplicar a todas», «Duplicar» (solo
+ * Carrusel de fichas de serie de 85 × 76 dp y un único foco de edición (B1/B2). Al tocar una ficha se abre su foco con
+ * el contenido propio de RM, AMRAP o [InlineSetRow] en [SetRowPresentation.List]. El foco tiene sus acciones: «Aplicar a todas», «Duplicar» (solo
  * si la pantalla da [onTransformExercise]), «Subir», «Bajar» y «Eliminar» (siempre queda una serie).
  *
- * En unilateral, cada serie son dos filas: I (izquierda) y D (derecha), con su letra y sin el azul y el rojo del original.
+ * En unilateral, cada serie son dos fichas: L (izquierda) y R (derecha), con su letra y sin el azul y el rojo del original (B5).
  */
 @Composable
 internal fun ExerciseSetList(
@@ -109,7 +110,7 @@ internal fun ExerciseSetList(
         }
     }
 
-    /** Añade el lado que falta (I o D) con la carga del otro lado, como «Añadir L/R» del original. */
+    /** Añade el lado que falta (L o R) con la carga del otro lado, como «Añadir L/R» del original. */
     fun addSide(set: ExerciseSet, side: String) {
         onUpdateSet(set.id) { current ->
             val source = if (side == "L") current.rightTarget else current.leftTarget
@@ -132,34 +133,36 @@ internal fun ExerciseSetList(
     fun SetItem(set: ExerciseSet, index: Int, side: String?) {
         val rowKey = if (side == null) set.id else "${set.id}:$side"
         val open = openKey == rowKey
-        val label = if (side == null) "${index + 1}" else "${sideLetter(side)}${index + 1}"
         val predictedWeight = predictedWeights[set.id]
         val estimatedMetric = predictedMetrics[set.id]
-        SetSummaryRow(
-            label = label,
-            summary = setRowSummary(
-                set = set,
-                side = side,
-                mode = trainingMode,
-                customUnit = customUnit,
-                predictedWeight = predictedWeight,
-                estimatedMetric = estimatedMetric,
-            ),
-            open = open,
-            testTag = "set-row-$rowKey",
-            onClick = { openKey = if (open) null else rowKey },
-        )
         if (open) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .testTag("set-focus-$rowKey")
                     .padding(bottom = 10.dp)
                     .background(KpknSurface.module, KpknShape.module)
                     .border(1.dp, KpknSurface.moduleBorder, KpknShape.module)
                     .padding(horizontal = 14.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                InlineSetRow(
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Serie ${index + 1} de ${exercise.sets.size}", style = KpknType.bodyStrong,
+                        color = WizardColors.text, modifier = Modifier.weight(1f))
+                    if (index > 0) KpknIconButton(
+                        icon = KpknLineIcons.ChevronLeft, contentDescription = "Serie anterior",
+                        onClick = { openKey = if (side == null) exercise.sets[index - 1].id else "${exercise.sets[index - 1].id}:$side" },
+                    )
+                    if (index < exercise.sets.lastIndex) KpknIconButton(
+                        icon = KpknLineIcons.ChevronRight, contentDescription = "Serie siguiente",
+                        onClick = { openKey = if (side == null) exercise.sets[index + 1].id else "${exercise.sets[index + 1].id}:$side" },
+                    )
+                }
+                if (set.purpose.isAmrap) {
+                    AmrapSetFocus(exercise, set, index, fixedUnilateralSide = side) { updater -> onUpdateSet(set.id, updater) }
+                } else if (trainingMode == TrainingMode.RM) {
+                    RmSetFocus(exercise, set, { updater -> onUpdateSet(set.id, updater) }, onTransformExercise, fixedUnilateralSide = side)
+                } else InlineSetRow(
                     set = set,
                     index = index,
                     reference1RM = reference1RM,
@@ -182,6 +185,12 @@ internal fun ExerciseSetList(
                     onMoveDown = { onMoveSet(set.id, 1) },
                     fillHeight = false,
                     presentation = SetRowPresentation.List,
+                )
+                SetRestControl(
+                    seconds = set.restAfterSeconds ?: exercise.restTime ?: 90,
+                    inherited = set.restAfterSeconds == null,
+                    onChange = { seconds -> onUpdateSet(set.id) { it.copy(restAfterSeconds = seconds) } },
+                    onReset = { onUpdateSet(set.id) { it.copy(restAfterSeconds = null) } },
                 )
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(18.dp),
@@ -221,45 +230,34 @@ internal fun ExerciseSetList(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        exercise.sets.forEachIndexed { index, set ->
-            key(set.id) {
-                if (set.isEmptySlot) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            "RONDA ${index + 1} · HUECO VACÍO",
-                            style = KpknType.caption,
-                            color = WizardColors.textMuted,
-                        )
-                    }
-                } else if (unilateral) {
-                    orderedSides.forEach { side ->
-                        if (sideTarget(set, side) != null) {
-                            SetItem(set = set, index = index, side = side)
-                        }
-                    }
-                    val missing = orderedSides.filter { side -> sideTarget(set, side) == null }
-                    if (missing.isNotEmpty()) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            missing.forEach { side ->
-                                KpknSecondaryPill(
-                                    text = "+ Añadir ${sideLetter(side)}",
-                                    onClick = { addSide(set, side) },
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    SetItem(set = set, index = index, side = null)
+        val slots = buildList<Triple<ExerciseSet, Int, String?>> {
+            exercise.sets.forEachIndexed { index, set ->
+                if (!unilateral || set.isEmptySlot) add(Triple(set, index, null))
+                else orderedSides.filter { sideTarget(set, it) != null }.forEach { add(Triple(set, index, it)) }
+            }
+        }
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(SessionEditorChipMetrics.gap)) {
+            items(slots, key = { (set, _, side) -> if (side == null) set.id else "${set.id}:$side" }) { (set, index, side) ->
+                val rowKey = if (side == null) set.id else "${set.id}:$side"
+                val summary = setRowSummary(set, side, trainingMode, customUnit, predictedWeights[set.id], predictedMetrics[set.id])
+                EffectiveSeriesChip(
+                    label = if (side == null) "S${index + 1}" else "${sideLetter(side)}${index + 1}",
+                    load = if (set.isEmptySlot) "Hueco" else seriesChipValue(set, side, trainingMode, customUnit, predictedWeights[set.id]),
+                    dose = if (set.isEmptySlot) "vacío" else seriesChipDetail(set, side, trainingMode, customUnit, summary),
+                    description = listOfNotNull("Serie ${index + 1}", summary.load, summary.dose, summary.intensity, summary.technique).joinToString(" · "),
+                    enabled = !set.isEmptySlot,
+                    selected = openKey == rowKey,
+                    tag = "set-row-$rowKey",
+                    onClick = { if (!set.isEmptySlot) openKey = if (openKey == rowKey) null else rowKey },
+                )
+            }
+        }
+        slots.firstOrNull { (set, _, side) -> openKey == (if (side == null) set.id else "${set.id}:$side") }
+            ?.let { (set, index, side) -> SetItem(set, index, side) }
+        if (unilateral) exercise.sets.filterNot { it.isEmptySlot }.forEach { set ->
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                orderedSides.filter { sideTarget(set, it) == null }.forEach { side ->
+                    KpknSecondaryPill(text = "+ Añadir ${sideLetter(side)}", onClick = { addSide(set, side) })
                 }
             }
         }
@@ -271,7 +269,7 @@ internal fun ExerciseSetList(
     }
 
     pendingApply?.let { request ->
-        KpknAlertDialog(
+        EditorConfirmationSheet(
             onDismissRequest = { pendingApply = null },
             title = "Aplicar a todas",
             text = if (request.count == 1) {
@@ -296,70 +294,35 @@ private class PendingApply(val count: Int, val onApply: () -> Unit)
 private fun sideTarget(set: ExerciseSet, side: String): UnilateralTarget? =
     if (side == "L") set.leftTarget else set.rightTarget
 
-private fun sideLetter(side: String): String = if (side == "L") "I" else "D"
+private fun sideLetter(side: String): String = if (side == "L") "L" else "R"
 
-/** Fila colapsada de una serie (56 dp): número, dosis en Syne, tipo de carga si no es la externa, intensidad y técnica. */
-@Composable
-private fun SetSummaryRow(
-    label: String,
-    summary: SetRowSummary,
-    open: Boolean,
-    testTag: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .testTag(testTag)
-            .clickable(role = Role.Button, onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .defaultMinSize(minWidth = 36.dp)
-                .height(32.dp)
-                .background(KpknSurface.inset, RoundedCornerShape(999.dp))
-                .padding(horizontal = 8.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(label, style = KpknType.bodyStrong, color = WizardColors.text, maxLines = 1)
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                summary.dose,
-                style = KpknType.metricM,
-                color = WizardColors.text,
-                // ER2a: al 130 % de letra la dosis pasa a dos líneas antes que cortar el RIR con «…».
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            summary.load?.let { load ->
-                Text(load, style = KpknType.caption, color = WizardColors.textMuted, maxLines = 1)
-            }
-        }
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            summary.intensity?.let { intensity ->
-                Text(intensity, style = KpknType.caption, color = WizardColors.textMuted, maxLines = 1)
-            }
-            summary.technique?.let { technique ->
-                Text(technique, style = KpknType.caption, color = WizardColors.text, maxLines = 1)
-            }
-            Icon(
-                imageVector = if (open) KpknLineIcons.ChevronUp else KpknLineIcons.ChevronDown,
-                contentDescription = if (open) "Plegar serie $label" else "Desplegar serie $label",
-                tint = WizardColors.textMuted,
-                modifier = Modifier.size(18.dp),
-            )
-        }
+/** En la ficha cabe la cifra; al abrir el foco se editan todos los detalles. La semántica conserva la dosis completa. */
+private fun seriesChipValue(set: ExerciseSet, side: String?, mode: TrainingMode, customUnit: String?, predicted: Double?): String {
+    val target = side?.let { sideTarget(set, it) }
+    return when (mode) {
+        TrainingMode.SOLO_RPE -> (target?.targetRPE ?: set.targetRPE)?.let { "RPE\u00a0${formatSummaryNumber(it)}" } ?: "—"
+        TrainingMode.TIME -> (target?.targetDuration ?: set.targetDuration)?.let { KpknSetFormat.doseTime(it) } ?: "—"
+        TrainingMode.DISTANCE, TrainingMode.CUSTOM -> (target?.targetValue ?: set.plannedTargetV2)?.let { formatSummaryNumber(it) } ?: "—"
+        else -> if (set.loadModeV2 == LoadModeV2.BODYWEIGHT) "Corporal"
+            else (target?.weight ?: set.weight ?: predicted)?.let { "${formatSummaryNumber(it)}\u00a0kg" } ?: "—"
     }
 }
 
-/** Lo que se ve de una serie sin abrirla. */
+private fun seriesChipDetail(set: ExerciseSet, side: String?, mode: TrainingMode, customUnit: String?, summary: SetRowSummary): String {
+    val target = side?.let { sideTarget(set, it) }
+    val dose = when {
+        set.purpose.isAmrap -> set.amrapMinimumReps?.let { "$it+" } ?: "AMRAP"
+        mode == TrainingMode.RM -> set.targetPercentageRM?.let { "${formatSummaryNumber(it)} %${if (set.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM) "TM" else "RM"}" } ?: "—"
+        mode == TrainingMode.SOLO_RPE -> "objetivo"
+        mode == TrainingMode.TIME -> summary.intensity.orEmpty()
+        mode == TrainingMode.DISTANCE -> "m"
+        mode == TrainingMode.CUSTOM -> customUnit?.ifBlank { "Unidad" } ?: "Unidad"
+        else -> (target?.targetRepsRange ?: set.targetRepsRange)?.format()
+            ?: (target?.targetReps ?: set.targetReps)?.toString() ?: "—"
+    }
+    return if (mode == TrainingMode.REPS && !set.purpose.isAmrap) listOfNotNull(dose, summary.intensity).joinToString(" · ") else dose
+}
+
 internal data class SetRowSummary(
     val dose: String,
     val load: String?,
@@ -426,11 +389,11 @@ internal fun setRowSummary(
 
     val intensity: String? = when {
         mode == TrainingMode.RM -> set.targetPercentageRM?.let { "${formatSummaryNumber(it)} %" }
-        mode == TrainingMode.SOLO_RPE -> rpe?.let { "RPE ${formatSummaryNumber(it)}" }
+        mode == TrainingMode.SOLO_RPE -> rpe?.let { "RPE\u00A0${formatSummaryNumber(it)}" }
         isAmrap -> null
         else -> when (intensityMode ?: IntensityMode.RPE) {
-            IntensityMode.RPE -> rpe?.let { "RPE ${formatSummaryNumber(it)}" }
-            IntensityMode.RIR -> rir?.let { "RIR $it" }
+            IntensityMode.RPE -> rpe?.let { "RPE\u00A0${formatSummaryNumber(it)}" }
+            IntensityMode.RIR -> rir?.let { "RIR\u00A0$it" }
             IntensityMode.FAILURE -> "Fallo"
             IntensityMode.SOLO_RM -> set.targetPercentageRM?.let { "${formatSummaryNumber(it)} %" }
             IntensityMode.AMRAP, IntensityMode.LOAD -> null

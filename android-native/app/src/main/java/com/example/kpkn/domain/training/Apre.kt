@@ -126,7 +126,7 @@ object Apre {
      * «Bloque APRE» para el editor (CAL4): las cuatro series de un ejercicio a partir de su [oneRmKg].
      * 1. 50 % del XRM × las repeticiones de la serie 1;
      * 2. 75 % del XRM × las de la serie 2;
-     * 3. al máximo con el XRM: AMRAP calibradora de la sesión (mínimo = el XRM), que fija la carga de la serie 4;
+     * 3. al máximo con el XRM: AMRAP (mínimo = el XRM), cuyo resultado fija la carga de la serie 4 con Mann;
      * 4. al máximo con la carga ajustada por la serie 3 (la carga inicial es el XRM): sus repeticiones proponen el XRM de la semana siguiente.
      * Con un 1RM no positivo devuelve una lista vacía: sin referencia no se inventan cargas.
      */
@@ -136,7 +136,7 @@ object Apre {
         return listOf(
             ApreBlockSet(1, LoadSuggestionEngine.roundLoad(xrm * SET1_FRACTION, incrementKg), variant.set1Reps, null, SetPurpose.NONE, null, 50.0),
             ApreBlockSet(2, LoadSuggestionEngine.roundLoad(xrm * SET2_FRACTION, incrementKg), variant.set2Reps, null, SetPurpose.NONE, null, 75.0),
-            ApreBlockSet(3, xrm, null, variant.xrmReps, SetPurpose.CALIBRATOR, CalibrationScope.SESSION, 100.0),
+            ApreBlockSet(3, xrm, null, variant.xrmReps, SetPurpose.AMRAP, null, 100.0),
             ApreBlockSet(4, xrm, null, variant.xrmReps, SetPurpose.AMRAP, null, 100.0),
         )
     }
