@@ -171,6 +171,9 @@ internal fun TemplateCatalogBrowser(
     },
     glassDark: Boolean = false,
     modifier: Modifier = Modifier,
+    /** D4: si quien llama controla la lista «Mis plantillas» (para ocultar el buscador mientras está abierta), pasa su estado aquí. */
+    mineOpen: Boolean? = null,
+    onMineOpenChange: (Boolean) -> Unit = {},
 ) {
     val titleColor = if (glassDark) Color.White else MaterialTheme.colorScheme.primary
     val bodyColor = if (glassDark) Color.White else MaterialTheme.colorScheme.onSurface
@@ -179,6 +182,9 @@ internal fun TemplateCatalogBrowser(
     var templateBeingEdited by remember { mutableStateOf<SessionTemplate?>(null) }
     var showSaveDialog by remember { mutableStateOf(false) }
     var pendingDeleteId by remember { mutableStateOf<String?>(null) }
+    var showMineLocal by rememberSaveable { mutableStateOf(false) }
+    val showMine = mineOpen ?: showMineLocal
+    val setShowMine: (Boolean) -> Unit = { open -> showMineLocal = open; onMineOpenChange(open) }
 
     // Keep first paint independent from the expensive AUGE/ring calculation.
     // Duration and difficulty filters already have metadata fallbacks; detailed
@@ -247,20 +253,21 @@ internal fun TemplateCatalogBrowser(
         contentPadding = PaddingValues(bottom = 8.dp),
     ) {
         val visibleUserTemplates = templates.filter { it.sourceType == SessionTemplateSourceType.USER }
+        item(key = "user-template-actions") {
+            // Una píldora por fila: dos lado a lado cortaban sus textos a 360 dp («Mis plantill…»).
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                KpknSecondaryPill(
+                    text = if (showMine) "Volver al catálogo" else "Mis plantillas · ${visibleUserTemplates.size + archivedUserTemplates.size}",
+                    onClick = { setShowMine(!showMine) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                KpknSecondaryPill(text = "Guardar sesión", onClick = { showSaveDialog = true }, modifier = Modifier.fillMaxWidth())
+            }
+        }
+        if (showMine) {
         item(key = "user-template-management") {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "Mis plantillas",
-                            style = KpknType.bodyStrong,
-                            color = WizardColors.text,
-                            modifier = Modifier.weight(1f),
-                        )
-                        KpknSecondaryPill(
-                            text = "Guardar sesión",
-                            onClick = { showSaveDialog = true },
-                        )
-                    }
+                    Text("Mis plantillas", style = KpknType.bodyStrong, color = WizardColors.text)
                     if (!templatesReady) {
                         Text(
                             "Cargando plantillas…",
@@ -309,6 +316,7 @@ internal fun TemplateCatalogBrowser(
                     }
                 }
         }
+        } else {
         item(key = "filters-header") {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
@@ -443,6 +451,7 @@ internal fun TemplateCatalogBrowser(
                     }
                 }
             }
+        }
         }
     }
     pendingDeleteId?.let { id ->

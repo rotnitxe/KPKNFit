@@ -13,6 +13,7 @@ import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.screens.sessioneditor.SupersetDraft
 import com.example.kpkn.screens.sessioneditor.components.SessionExerciseDetailSheet
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -129,5 +130,20 @@ class SessionEditorSheetWiringTest {
 
         assertEquals(1, deleted)
         rule.onNodeWithText("Eliminar ejercicio").assertDoesNotExist()
+    }
+
+    @Test
+    fun accionesRapidasTienenSeisCeldasTactilesYEliminarSeparado() {
+        rule.setContent {
+            ExerciseQuickActionRows(false, {}, {}, {}, {}, {}, {}, {})
+        }
+        val tags = listOf("ficha", "cambiar", "aproximacion", "movilidad", "superserie", "duplicar")
+        tags.forEach { name ->
+            val bounds = rule.onNodeWithTag("quick-action-$name").fetchSemanticsNode().boundsInRoot
+            assertTrue("$name mide al menos 48 dp de alto", bounds.height >= 48f)
+        }
+        val delete = rule.onNodeWithTag("quick-action-eliminar").fetchSemanticsNode().boundsInRoot
+        assertTrue(delete.height >= 48f)
+        assertTrue(delete.top > rule.onNodeWithTag("quick-action-duplicar").fetchSemanticsNode().boundsInRoot.bottom)
     }
 }

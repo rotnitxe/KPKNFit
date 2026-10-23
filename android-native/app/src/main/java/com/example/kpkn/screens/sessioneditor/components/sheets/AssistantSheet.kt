@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -211,15 +212,22 @@ internal fun AssistantTemplatesTab(
         Result.failure(IllegalStateException("Guardado de plantillas no disponible en esta superficie"))
     },
 ) {
-    KpknTextField(
-        value = searchQuery,
-        onValueChange = onSearchChange,
-        placeholder = "Buscar plantilla…",
-        leadingIcon = KpknLineIcons.Search,
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth(),
-    )
-    Spacer(Modifier.height(4.dp))
+    // D4: el buscador va en primer plano; «Mis plantillas» es un botón que abre su lista y, mientras está abierta, el buscador se oculta.
+    var mineOpen by rememberSaveable { mutableStateOf(false) }
+    if (!mineOpen) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(text = "Buscar plantillas", style = KpknType.bodyStrong, color = WizardColors.text)
+            KpknTextField(
+                value = searchQuery,
+                onValueChange = onSearchChange,
+                placeholder = "Buscar plantilla…",
+                leadingIcon = KpknLineIcons.Search,
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        Spacer(Modifier.height(4.dp))
+    }
     TemplateCatalogBrowser(
         templates = templates,
         searchQuery = searchQuery,
@@ -234,6 +242,8 @@ internal fun AssistantTemplatesTab(
         onSaveCurrentTemplate = onSaveCurrentTemplate,
         exerciseIndex = exerciseCatalogSnapshot().associateBy { it.id.lowercase() },
         glassDark = true,
+        mineOpen = mineOpen,
+        onMineOpenChange = { mineOpen = it },
     )
     if (applyDecision != null) {
         KpknAlertDialog(

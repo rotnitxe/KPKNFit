@@ -33,6 +33,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.ui.design.KpknSwitch
+import androidx.compose.ui.semantics.Role
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -116,49 +119,49 @@ internal fun SessionClonerSheet(
             ),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("Transferir", fontWeight = FontWeight.Black, fontSize = 18.sp, color = KpknSheetTokens.TitleStrong)
+            Text("Transferir", style = KpknType.title, color = KpknSheetTokens.TitleStrong)
             Text(
                 "Se copia ahora: al confirmar, la copia va al programa en el acto.",
                 color = KpknSheetTokens.MutedStrong,
-                style = MaterialTheme.typography.bodySmall,
+                style = KpknType.caption,
             )
             // La copia ya no queda pendiente: se aplica al confirmar, no al guardar.
 
-            // One compact toolbar row: direction + apply mode (uses horizontal space).
+            // D8: cada decisión tiene su fila y un blanco táctil legible a 360 dp.
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 KpknSheetGlassChip(
-                    label = "Copiar",
+                    label = "Copiar a otros días",
                     selected = mode == SessionClonerMode.CLONE_TO_DAYS,
                     onClick = { mode = SessionClonerMode.CLONE_TO_DAYS },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                 )
                 KpknSheetGlassChip(
-                    label = "Traer",
+                    label = "Traer de otra sesión",
                     selected = mode == SessionClonerMode.IMPORT_FROM_DAY,
                     onClick = { mode = SessionClonerMode.IMPORT_FROM_DAY },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                 )
-                Box(
-                    Modifier
-                        .height(20.dp)
-                        .width(1.dp)
-                        .background(Color.White.copy(alpha = 0.2f)),
-                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 KpknSheetGlassChip(
-                    label = "Agregar",
+                    label = "Añadir",
                     selected = applyMode == SessionCloneApplyMode.APPEND,
                     onClick = { applyModeName = SessionCloneApplyMode.APPEND.name },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                 )
                 KpknSheetGlassChip(
                     label = "Reemplazar",
                     selected = applyMode == SessionCloneApplyMode.REPLACE,
                     onClick = { applyModeName = SessionCloneApplyMode.REPLACE.name },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                 )
             }
         }
@@ -186,9 +189,8 @@ internal fun SessionClonerSheet(
                 ) {
                     Text(
                         "Días destino",
-                        fontWeight = FontWeight.Bold,
                         color = KpknSheetTokens.Body,
-                        style = MaterialTheme.typography.labelLarge,
+                        style = KpknType.bodyStrong,
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         if (weekTargets.isNotEmpty()) {
@@ -198,6 +200,7 @@ internal fun SessionClonerSheet(
                                 onClick = {
                                     selectedTargetKeys = weekTargets.map { it.key }.toSet()
                                 },
+                                modifier = Modifier.heightIn(min = 48.dp),
                             )
                         }
                         if (sameDayTargets.isNotEmpty()) {
@@ -207,6 +210,7 @@ internal fun SessionClonerSheet(
                                 onClick = {
                                     selectedTargetKeys = sameDayTargets.map { it.key }.toSet()
                                 },
+                                modifier = Modifier.heightIn(min = 48.dp),
                             )
                         }
                     }
@@ -256,21 +260,22 @@ internal fun SessionClonerSheet(
                         )
                     }
                 }
+            }
 
+            // D8: el aviso de reemplazo va sobre el botón, fuera del desplazamiento, para que no se pierda al bajar la lista.
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(KpknSheetTokens.ContentPaddingHorizontal),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 if (applyMode == SessionCloneApplyMode.REPLACE && replaceLossCount > 0) {
                     Text(
                         "Reemplazar eliminará $replaceLossCount ejercicio(s) en los destinos seleccionados.",
                         color = KpknSheetTokens.Body,
-                        fontWeight = FontWeight.SemiBold,
+                        style = KpknType.caption,
                     )
                 }
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(KpknSheetTokens.ContentPaddingHorizontal),
-            ) {
                 KpknSheetWhiteButton(
                     text = "Copiar ahora",
                     enabled = canSubmitClone,
@@ -292,7 +297,7 @@ internal fun SessionClonerSheet(
                     .padding(horizontal = KpknSheetTokens.ContentPaddingHorizontal),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Text("Sesión origen", fontWeight = FontWeight.Bold, color = KpknSheetTokens.Body)
+                Text("Sesión origen", style = KpknType.bodyStrong, color = KpknSheetTokens.Body)
                 uiState.cloneSourceOptions.forEach { source ->
                     val selected = selectedSourceSessionId == source.sessionId
                     TransferOptionCard(
@@ -326,24 +331,22 @@ internal fun SessionClonerSheet(
                         )
                     }
                 }
-
-                if (applyMode == SessionCloneApplyMode.REPLACE) {
-                    val currentCount = currentSession.allExercises().size
-                    if (currentCount > 0) {
-                        Text(
-                            "Reemplazar sobrescribirá $currentCount ejercicio(s) de la sesión actual.",
-                            color = KpknSheetTokens.Body,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
-                }
             }
 
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(KpknSheetTokens.ContentPaddingHorizontal),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                val currentCount = currentSession.allExercises().size
+                if (applyMode == SessionCloneApplyMode.REPLACE && currentCount > 0) {
+                    Text(
+                        "Reemplazar sobrescribirá $currentCount ejercicio(s) de la sesión actual.",
+                        color = KpknSheetTokens.Body,
+                        style = KpknType.caption,
+                    )
+                }
                 KpknSheetWhiteButton(
                     text = "Traer ahora",
                     enabled = canSubmitImport,
@@ -378,15 +381,21 @@ private fun TransferOptionCard(
         color = if (selected) Color.White.copy(alpha = 0.16f) else KpknSheetTokens.Panel,
     ) {
         Row(
-            Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            Modifier.heightIn(min = 56.dp).padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Column(Modifier.weight(1f)) {
-                Text(title, fontWeight = FontWeight.Black, fontSize = 14.sp, color = KpknSheetTokens.Body)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = KpknSheetTokens.MutedStrong)
+            // El mismo indicador que las filas de ejercicios: círculo vacío o marcado.
+            if (selected) {
+                Icon(Icons.Default.CheckCircle, contentDescription = "Seleccionado", tint = KpknSheetTokens.Body)
+            } else {
+                Box(Modifier.size(24.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.18f)))
             }
-            Text(meta, style = MaterialTheme.typography.labelSmall, color = KpknSheetTokens.MutedStrong)
+            Column(Modifier.weight(1f)) {
+                Text(title, style = KpknType.bodyStrong, color = KpknSheetTokens.Body)
+                Text(subtitle, style = KpknType.caption, color = KpknSheetTokens.MutedStrong)
+            }
+            Text(meta, style = KpknType.caption, color = KpknSheetTokens.MutedStrong)
         }
     }
 }
@@ -402,17 +411,14 @@ private fun TransferToggleRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(KpknSheetTokens.PanelRadius))
             .background(KpknSheetTokens.Panel)
-            .clickable(onClick = onToggle)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .heightIn(min = 48.dp)
+            .clickable(role = Role.Switch, onClick = onToggle)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(label, color = KpknSheetTokens.Body)
-        KpknSheetGlassChip(
-            label = if (enabled) "ON" else "OFF",
-            selected = enabled,
-            onClick = onToggle,
-        )
+        Text(label, style = KpknType.bodyStrong, color = KpknSheetTokens.Body)
+        KpknSwitch(checked = enabled, onCheckedChange = null)
     }
 }
 
@@ -426,6 +432,7 @@ private fun TransferExerciseRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 48.dp)
             .clip(RoundedCornerShape(10.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 4.dp),
@@ -443,8 +450,8 @@ private fun TransferExerciseRow(
             )
         }
         Column(Modifier.weight(1f)) {
-            Text(name, fontWeight = FontWeight.SemiBold, color = KpknSheetTokens.Body)
-            Text(detail, style = MaterialTheme.typography.labelSmall, color = KpknSheetTokens.MutedStrong)
+            Text(name, style = KpknType.bodyStrong, color = KpknSheetTokens.Body)
+            Text(detail, style = KpknType.caption, color = KpknSheetTokens.MutedStrong)
         }
     }
 }

@@ -6,7 +6,7 @@ Este bloque sustituye el inventario operativo de abajo; los inventarios antiguos
 
 | Worktree | HEAD / estado | Evidencia nueva |
 |---|---|---|
-| u11 · integración | 030341408 integra u13 sin conflictos; 08162eed8 registra INT-1 | JVM posterior: 161 clases, 1700 pruebas, 0 fallos/errores/omitidas (`int-u13-jvm-codex-20261023-2.log`). Falta Android antes de fusionar u12. Se conserva `artifacts/aud2-editor-catalogo-20261020/` sin seguimiento. |
+| u11 · integración | 030341408 integra u13 sin conflictos; 08162eed8 registra INT-1 | JVM posterior: 161 clases, 1700 pruebas, 0 fallos/errores/omitidas (`int-u13-jvm-codex-20261023-2.log`). Android posterior 45/0; u12 entra sin conflictos y espera su verificación. Se conserva `artifacts/aud2-editor-catalogo-20261020/` sin seguimiento. |
 | u12 · MOT/ED-E | a76b4edc2, limpio | Código cerrado en f042464ba; se guardó el brief MOT que estaba sin seguimiento. No se repitió su implementación. |
 | u14 · ED-B | 385cab731, limpio | Completo B1–B5/B7–B9, APRE y NBSP. `edb-12.log`: 55/0; `edb-10.log`: otras 55/0; APRE JVM 15/0. Informe ED-B. |
 | u15 · CAT-A | f34b02318 | 66/0 en `cat-a-2.log`; creador E4 conserva su estado al recrear. Artefactos recibidos fuera de commits. |
@@ -14,11 +14,15 @@ Este bloque sustituye el inventario operativo de abajo; los inventarios antiguos
 | u17 · ED-D | 8f8a02b95, limpio | 14/0 JVM y 67/0 Android en `edd-codex-20261022-4.log`. Descanso heredado y edición de miembros corregidos. Informe ED-D. |
 | u18 · ED-C | 142aa2e58 más H3/pruebas/render/informe sin commit | Dominio f37329fe0, fichas b7381c436, movilidad de sesión 142aa2e58. JVM 13/0; Android 33/0 antes de H3. Último detalle H3 en verificación, ver abajo. |
 
-### Punto exacto de espera
+### Punto exacto de espera · actualización 00:53
 
-La única corrida propia es `C:/kw/logs/edc-codex-20261023-5.log`, por la cola v10. Está esperando el carril Android ocupado por el otro chat activo (técnica por vídeo). El identificador de sesión de terminal no se imprimió: para confirmar su cierre, comprobar que desaparecen los procesos pwsh 9348 y bash 19572/35104 (creados 23-oct 00:22:05/06), el log final y el candado de u18 en `gradle_cola.sh`. No matar nada ni lanzar otra corrida propia mientras siga viva.
+La única corrida propia ACTIVA es `C:/kw/logs/edc-codex-20261023-6.log` en u18, sesión terminal 33566. Verifica los 20 casos de PreparationChipsComposeTest. Esperar su salida antes de cualquier otra corrida propia.
 
-H3 al 130 % cortaba «Añadido · Quitar» junto a «Ver ficha». Se separaron las acciones en columna con letra grande. La captura nativa ya muestra el texto completo. `edc-codex-20261023-4.log`: producción compila; 21 pruebas, una falla en TextLayoutResult del caso nuevo. La quinta corrida mantiene la misma aserción estricta, añade diagnóstico y usa GraphicsMode.NATIVE solo en ese método para contrastar renderizadores; las otras 19 pruebas de la clase no cambian. No se rebaja la aserción. Revisar el resultado y la captura antes de cerrar H3.
+u13 ya quedó verde en u11: 1700/0 JVM y 45/0 Android/Room (`int-u13-android-codex-20261023-1.log`, BUILD SUCCESSFUL en 9 min 33 s). Se fusiona ahora u12 sin conflictos, con preflight sobre 18985e121 y a76b4edc2, árbol 37860253aecd833693ded31d9bc28882f07ff638. La siguiente validación Android de u11 debe cubrir las clases ED-E de su informe; no avanzar a u14 hasta que termine.
+
+H3 tiene su disposición final en columna al 130 %, con la captura nativa mostrando «Añadido · Quitar» completo. Las corridas 4 y 5 compilaron y pasaron los otros 19 casos y el render; el caso nuevo fallaba por `didOverflowWidth` aun sin elipsis (tamaño 470 × 74, límite 744 px). La corrida 6 exige todos los caracteres, ninguna elipsis, ningún recorte vertical y límites de línea dentro de la zona con un píxel máximo de redondeo, e imprime medidas. Revisar esas medidas y el resultado antes de cerrar el informe ED-C. No se ha cambiado producción desde la corrida 4.
+
+CLAUDE.md ya dice Room v30 (18985e121), verificado contra KpknDatabase sin editarlo. El brief MOT recibido se guardó en a76b4edc2. No repetir esas tareas.
 
 ### Decisiones y límites de esta continuación
 
@@ -30,10 +34,10 @@ H3 al 130 % cortaba «Añadido · Quitar» junto a «Ver ficha». Se separaron l
 ### Siguientes pasos obligatorios
 
 1. Cerrar ED-C tras su última prueba; commits de H3, pruebas Compose, render e informe final.
-2. Verificación Android de u13 en u11: TrainingPlanRecipeJsonCompatTest, Cal1CapacityContractTest, FixTmWarmupAnchorTest y las regresiones RM del ViewModel. Después, preflight NUEVO (HEAD cambió con docs) y merge u12, u14, u17, u18, u15, u16, compilando y probando cada unión.
+2. u13 ya está verificado y u12 fusionado. Verificar ED-E; después, preflight NUEVO y merge u14, u17, u18, u15, u16, compilando y probando cada unión.
 3. Adaptar C3 y G1 a RmSetFocus/AmrapSetFocus, con TM declarado y lado. C3 necesita propagar su callback de ejercicio desde SupersetGroupEditorCard. G1 necesita recálculo withExplicitRmLoads y modo confirmado por la hoja común; sus fichas de 56 dp son las aprobadas en G1. Mantener acciones y descansos contextuales.
 4. Resolver la ficha común añadida por ED-B/ED-C con el slot opcional de ED-C y los valores S1 predeterminados de ED-B; conservar la sección de preparación extraída y la base única LV-C. Comprobar el aviso único ED-E/ED-A.
-5. Completar fase 3 e INT-1, actualizar CLAUDE a Room v30; fase 4 CAT-B, CAL4-V, CAL5b, PLAN-OBS, CAL7; regresión; QA ZFlip5_QA 5580 y APK. Sin tocar paquetes personales ni firmar: la firma sigue a cargo del orquestador.
+5. Completar fase 3 e INT-1 (CLAUDE ya actualizado a Room v30); fase 4 CAT-B, CAL4-V, CAL5b, PLAN-OBS, CAL7; regresión; QA ZFlip5_QA 5580 y APK. Sin tocar paquetes personales ni firmar: la firma sigue a cargo del orquestador.
 
 
 ## Inventario 2026-10-22 (relevo por fases)
