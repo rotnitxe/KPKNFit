@@ -47,4 +47,10 @@ La entrega de origen descrita arriba fue revisada e integrada en u11. CAL4-V.md 
 
 El recorrido Room de variante B reveló que resolveCalibration buscaba el ejercicio y sus IDs S3/S4 en la sesión base A. Aunque el registro era de B, la validación rechazaba la propuesta y permanecía PROPOSED. Se resuelven ahora las prescripciones desde la variante activa A/B/C/D, con el mismo fallback a base de la sesión en vivo; la identidad de ejecución/log continúa siendo la base. La misma selección se aplica a correcciones de voz/vídeo, reconstrucción de la captura S4 y cargas de la ruta, que también estaban leyendo A. No se relaja la validación de contexto ni de IDs.
 
-WorkoutCalibrationVariantTest añade cinco casos: aplicar/ruta/revertir en B/C/D con IDs propios, rechazar el registro B en A, rechazar un S4 reemplazado, corregir S3 conservando identidad B y corregir S4 conservando el XRM físico. APRE10:150×12→155;145×12→150;S4 155×17→162,5 y150×17→157,5. CAL7 conserva su APRE6:120×9→122,5 y XRM125. Preparado, aún sin compilar ni ejecutar; prueba central posterior obligatoria. Room y tablas intactos.
+WorkoutCalibrationVariantTest añade cinco casos: aplicar/ruta/revertir en B/C/D con IDs propios, rechazar el registro B en A, rechazar un S4 reemplazado, corregir S3 conservando identidad B y corregir S4 conservando el XRM físico. APRE10:150×12→155;145×12→147,5;S4 155×17→162,5 y150×17→157,5. CAL7 conserva su APRE6:120×9→122,5 y XRM125. Preparado, aún sin compilar ni ejecutar; prueba central posterior obligatoria. Room y tablas intactos.
+
+## Expectativas corregidas tras el barrido de399clases
+
+WorkoutCalibrationVariantTest corrige una expectativa propia: APRE10 con145kg y12reps pertenece a RAISE_SMALL (+7,5/300):145×1,025=148,625kg redondea a147,5kg con paso2,5; no150kg. El XML fresco confirma147,5. Se conservan sustitución, SUPERSEDED/PROPOSED, IDs propios y aislamiento de sesión; no cambia producción.
+
+WorkoutReplacementPlanSummaryTest conserva dosis y ausencia de descanso, usando el espacio inseparable aprobado entre RIR y2. LiveSetModesUiTest comprueba el texto TM vigente y su unidad inseparable, incluyendo la línea completa80%/TM120/carga96 y el registro real96kg. Se mantienen referencia1RM150 y borrador independiente. Correcciones preparadas; repetición central pendiente.

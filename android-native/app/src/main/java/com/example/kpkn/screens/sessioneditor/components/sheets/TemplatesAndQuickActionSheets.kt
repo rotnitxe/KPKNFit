@@ -468,7 +468,7 @@ internal fun MobilityPickerSheet(
             onValueChange = { query = it },
             placeholder = "Buscar movilidad, zona o molestia",
             leadingIcon = KpknLineIcons.Search,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("mobility-picker-search"),
         )
         // Body region filter chips
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -491,10 +491,24 @@ internal fun MobilityPickerSheet(
             modifier = Modifier.heightIn(max = 520.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            if (results.isEmpty()) {
+                item(key = "mobility-picker-empty") {
+                    Column(
+                        Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text("Sin resultados", style = KpknType.bodyStrong, color = WizardColors.text,
+                            modifier = Modifier.testTag("mobility-picker-empty"))
+                        Text("Prueba con otra palabra o elige otra zona.",
+                            style = KpknType.caption, color = WizardColors.textMuted)
+                    }
+                }
+            }
             items(results, key = { it.id }) { mobility ->
                 val alreadyAdded = mobility.id in selectedMobilityIds
                 val expanded = expandedMobilityId == mobility.id
-                KpknModule(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)) {
+                KpknModule(modifier = Modifier.testTag("mobility-picker-item-${mobility.id}"),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)) {
                     Text(mobility.name, style = KpknType.bodyStrong, color = WizardColors.text)
                     val details = listOfNotNull(
                         mobilityBodyRegionLabel(mobility.bodyRegion).takeIf { it.isNotBlank() },
