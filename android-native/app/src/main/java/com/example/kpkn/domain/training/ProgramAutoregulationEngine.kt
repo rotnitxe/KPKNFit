@@ -232,7 +232,7 @@ object ProgramAutoregulationEngine {
     ): List<AutoregulationProposal> {
         if (program.autoregulationMode == AutoregulationMode.OFF) return emptyList()
         val hits = collectAmrapHits(
-            completedWeek = completedWeek,
+            week = completedWeek,
             logs = logs,
             cycleNumber = sourceCycleNumber,
             programId = program.id,
