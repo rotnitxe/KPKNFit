@@ -33,6 +33,10 @@ object ExerciseLoadReferenceStore {
     /** Captured wins over pending. Missing capture dates remain unknown; insertion order breaks equal-date ties. */
     fun resolve(references: List<PlanLoadReference>, request: PlanLoadReference): PlanLoadReference? {
         val compatible = references.withIndex().filter { sameIdentity(it.value, request) }
+        val latestEvent = compatible.maxWithOrNull(compareBy<IndexedValue<PlanLoadReference>> {
+            maxOf(it.value.capturedAtMs ?: Long.MIN_VALUE, it.value.metadata?.invalidatedAtMs ?: Long.MIN_VALUE)
+        }.thenBy { it.index })?.value
+        if (latestEvent?.metadata?.invalidatedAtMs != null) return latestEvent
         return compatible.filter { (_, ref) -> ref.state == PlanLoadReferenceState.CAPTURED &&
             ref.capturedLoadKg?.let { it.isFinite() && it > 0.0 } == true }
             .maxWithOrNull(compareBy<IndexedValue<PlanLoadReference>> { it.value.capturedAtMs ?: Long.MIN_VALUE }
@@ -63,6 +67,22 @@ object ExerciseLoadReferenceStore {
             }
         }
         return if (pool == program.exerciseLoadReferences) program else program.copy(exerciseLoadReferences = pool)
+    }
+
+    /** A confirmed clear is an explicit event; ordinary PENDING recipe references never erase captures. */
+    fun invalidate(program: Program, exerciseIds: Set<String>, request: PlanLoadReference,
+        nowMs: Long, sourceId: String, reason: String): Program {
+        var pool = program.exerciseLoadReferences
+        exerciseIds.forEach { id ->
+            val existing = pool.filter { it.exerciseId == id }.flatMap { it.references }
+            if (existing.any { sameIdentity(it, request) && it.metadata?.sourceId == sourceId && it.metadata?.invalidatedAtMs != null }) return@forEach
+            val metadata = (request.metadata ?: com.example.kpkn.data.protocols.PlanLoadReferenceMetadata()).copy(
+                origin = MANUAL, sourceId = sourceId, reason = reason, invalidatedAtMs = nowMs)
+            val cleared = request.copy(state = PlanLoadReferenceState.PENDING, capturedLoadKg = null,
+                capturedAtMs = null, metadata = metadata)
+            pool = pool.filterNot { it.exerciseId == id } + ExerciseLoadReference(id, existing + cleared)
+        }
+        return program.copy(exerciseLoadReferences = pool)
     }
 
     private fun samePayload(first: PlanLoadReference, second: PlanLoadReference): Boolean =

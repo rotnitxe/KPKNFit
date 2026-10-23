@@ -61,11 +61,13 @@ object ExerciseTrainingMax {
             listOf(PlanLoadReferenceKind.EXERCISE_1RM to (exercise.reference1RM ?: profileOneRm),
                 PlanLoadReferenceKind.EXERCISE_TM to (exercise.referenceTrainingMax ?: profileTm)).forEach { (kind, kg) ->
                 val query = request(exercise, kind) ?: return@forEach
-                if (kg == null || !kg.isFinite() || kg <= 0.0 || capturedKg(result, exercise, kind) != null) return@forEach
+                if (kg == null || !kg.isFinite() || kg <= 0.0 || resolved(result, exercise, kind) != null) return@forEach
                 val fromProfile = if (kind == PlanLoadReferenceKind.EXERCISE_TM) profileTm == kg else profileOneRm == kg
                 val reference = query.copy(state = PlanLoadReferenceState.CAPTURED, capturedLoadKg = kg,
                     metadata = PlanLoadReferenceMetadata(
-                        origin = if (fromProfile) ExerciseLoadReferenceStore.LEGACY_PROFILE else ExerciseLoadReferenceStore.MATERIALIZED_RECIPE,
+                        origin = if (fromProfile) ExerciseLoadReferenceStore.LEGACY_PROFILE
+                            else if (exercise.loadReference != null) "EXPLICIT_REFERENCE"
+                            else ExerciseLoadReferenceStore.MATERIALIZED_RECIPE,
                         reason = if (fromProfile) "Referencia conservada del perfil anterior" else "Referencia ya presente en la prescripción",
                         sourceId = "migration:${program.id}:${exercise.id}:$kind",
                         tmFraction = program.sourceRecipe?.trainingMaxPercent?.takeIf { it.isFinite() && it > 0.0 },
@@ -107,20 +109,64 @@ object ExerciseTrainingMax {
         return captured.copy(powerliftingProfile = updated)
     }
 
-    /** Keeps exact canonical pool snapshots in step with an authored cycle or an accepted legacy proposal. */
+    fun clear(program: Program, exercise: Exercise, kind: PlanLoadReferenceKind,
+        nowMs: Long, sourceId: String): Program {
+        val query = request(exercise, kind) ?: return program
+        val migrated = migrate(program)
+        val ids = exercises(migrated).filter { request(it, kind)?.let { candidate ->
+            ExerciseLoadReferenceStore.sameIdentity(candidate, query) } == true }.mapTo(mutableSetOf()) { it.id } + exercise.id
+        val cleared = ExerciseLoadReferenceStore.invalidate(migrated, ids, query, nowMs, sourceId, "Referencia retirada al confirmar")
+        val lift = legacyLift(cleared, exercise) ?: return cleared
+        val profile = cleared.powerliftingProfile ?: return cleared
+        val next = if (kind == PlanLoadReferenceKind.EXERCISE_TM) when (lift) {
+            LiftSlot.SQUAT -> profile.copy(squatTM = null)
+            LiftSlot.BENCH -> profile.copy(benchTM = null)
+            LiftSlot.DEADLIFT -> profile.copy(deadliftTM = null)
+            LiftSlot.OVERHEAD -> profile.copy(overheadTM = null)
+        } else when (lift) {
+            LiftSlot.SQUAT -> profile.copy(squat1RM = null, squatE1RM = null)
+            LiftSlot.BENCH -> profile.copy(bench1RM = null, benchE1RM = null)
+            LiftSlot.DEADLIFT -> profile.copy(deadlift1RM = null, deadliftE1RM = null)
+            LiftSlot.OVERHEAD -> profile.copy(overhead1RM = null, overheadE1RM = null)
+        }
+        return cleared.copy(powerliftingProfile = next)
+    }
+
+    private fun authoredLift(program: Program, exercise: Exercise): LiftSlot? {
+        val slots = program.sourceRecipe?.weeks.orEmpty().flatMap { it.days }.flatMap { day ->
+            day.slots.map { day.id to it }
+        }
+        val linked = if (exercise.recipeDayId != null && exercise.recipeSlotId != null) slots.firstOrNull {
+            it.first == exercise.recipeDayId && it.second.id == exercise.recipeSlotId
+        }?.second else null
+        if (linked != null) return linked.lift.liftSlot
+        val config = exercise.catalogConfigurationId ?: exercise.exerciseDbId ?: return null
+        return slots.map { it.second }.filter { it.lift.configurationId == config &&
+            (exercise.slotRole == null || it.role == exercise.slotRole) }.map { it.lift.liftSlot }.distinct().singleOrNull()
+    }
+
+    /** Canonical edits and authored recipe progression have different scopes; explicit variant overrides remain authoritative. */
     fun syncProfile(before: Program, after: Program, nowMs: Long, sourceId: String,
         reason: String, origin: String = ExerciseLoadReferenceStore.AUTHOR_PROGRESSION): Program {
         var result = migrate(after)
         exercises(after).forEach { exercise ->
-            val lift = legacyLift(after, exercise) ?: return@forEach
+            val canonical = legacyLift(after, exercise)
+            val latest = resolved(result, exercise, PlanLoadReferenceKind.EXERCISE_TM)
+            val derivedRecipeBase = latest?.metadata?.origin in setOf(
+                ExerciseLoadReferenceStore.MATERIALIZED_RECIPE, ExerciseLoadReferenceStore.AUTHOR_PROGRESSION)
+            val lift = canonical ?: if (origin == ExerciseLoadReferenceStore.AUTHOR_PROGRESSION && derivedRecipeBase)
+                authoredLift(after, exercise) else null
+            if (lift == null) return@forEach
             val oldTm = storedTm(before.powerliftingProfile, lift)
             val nextTm = storedTm(after.powerliftingProfile, lift)
             if (nextTm != null && nextTm != oldTm) result = capture(result, exercise,
                 PlanLoadReferenceKind.EXERCISE_TM, nextTm, nowMs, "$sourceId:${lift.name}", reason, origin)
-            val oldOneRm = TrainingMaxResolver.oneRm(before.powerliftingProfile, lift)
-            val nextOneRm = TrainingMaxResolver.oneRm(after.powerliftingProfile, lift)
-            if (nextOneRm != null && nextOneRm != oldOneRm) result = capture(result, exercise,
-                PlanLoadReferenceKind.EXERCISE_1RM, nextOneRm, nowMs, "$sourceId:${lift.name}:1rm", reason, origin)
+            if (canonical != null) {
+                val oldOneRm = TrainingMaxResolver.oneRm(before.powerliftingProfile, lift)
+                val nextOneRm = TrainingMaxResolver.oneRm(after.powerliftingProfile, lift)
+                if (nextOneRm != null && nextOneRm != oldOneRm) result = capture(result, exercise,
+                    PlanLoadReferenceKind.EXERCISE_1RM, nextOneRm, nowMs, "$sourceId:${lift.name}:1rm", reason, origin)
+            }
         }
         return result
     }
@@ -140,22 +186,33 @@ object ExerciseTrainingMax {
         Missing(exercise, if (fraction != null) oneRm?.times(fraction) else null, fraction)
     }
 
+    private fun hydratedKg(program: Program, exercise: Exercise, kind: PlanLoadReferenceKind, fallback: Double?): Double? {
+        val reference = resolved(program, exercise, kind) ?: return fallback
+        return if (reference.state == PlanLoadReferenceState.CAPTURED) reference.capturedLoadKg else null
+    }
+
     fun hydrate(program: Program, exercise: Exercise): Exercise = exercise.copy(
-        reference1RM = capturedKg(program, exercise, PlanLoadReferenceKind.EXERCISE_1RM) ?: exercise.reference1RM,
-        referenceTrainingMax = capturedKg(program, exercise, PlanLoadReferenceKind.EXERCISE_TM) ?: exercise.referenceTrainingMax,
+        reference1RM = hydratedKg(program, exercise, PlanLoadReferenceKind.EXERCISE_1RM, exercise.reference1RM),
+        referenceTrainingMax = hydratedKg(program, exercise, PlanLoadReferenceKind.EXERCISE_TM, exercise.referenceTrainingMax),
     )
 
     /** Pending, unprotected prescriptions only. Existing manual-session and executed evidence are authoritative. */
     fun refreshPending(program: Program, executedWeekIds: Set<String>, executedSessionIds: Set<String>): Program {
         val frozen = program.manualSessionOverrides.mapTo(mutableSetOf()) { it.sessionId } + executedSessionIds
         fun refresh(exercise: Exercise): Exercise {
-            val oneRm = capturedKg(program, exercise, PlanLoadReferenceKind.EXERCISE_1RM) ?: exercise.reference1RM
-            val tm = capturedKg(program, exercise, PlanLoadReferenceKind.EXERCISE_TM) ?: exercise.referenceTrainingMax
+            val oneRm = hydratedKg(program, exercise, PlanLoadReferenceKind.EXERCISE_1RM, exercise.reference1RM)
+            val tm = hydratedKg(program, exercise, PlanLoadReferenceKind.EXERCISE_TM, exercise.referenceTrainingMax)
             val referenced = exercise.copy(reference1RM = oneRm, referenceTrainingMax = tm)
+            val protectedApreIds = observedApreXrmBlock(exercise)?.setIds.orEmpty().toSet()
             return referenced.copy(sets = exercise.sets.map { set ->
-                if (set.completedReps != null || set.completedDuration != null || set.isEmptySlot ||
+                if (set.id in protectedApreIds || set.completedReps != null || set.completedDuration != null || set.isEmptySlot ||
                     set.targetPercentageRM == null || set.loadBasis !in setOf(LoadBasis.PERCENT_TM, LoadBasis.PERCENT_1RM, LoadBasis.PERCENT_DESIRED_MAX)) set
-                else percentLoadKg(referenced, set)?.let { kg -> set.copy(weight = kg) } ?: set
+                else {
+                    val kg = percentLoadKg(referenced, set)
+                    set.copy(weight = kg,
+                        leftTarget = set.leftTarget?.let { if (it.weight != null) it.copy(weight = kg) else it },
+                        rightTarget = set.rightTarget?.let { if (it.weight != null) it.copy(weight = kg) else it })
+                }
             })
         }
         return program.copy(macrocycles = program.macrocycles.map { macro -> macro.copy(blocks = macro.blocks.map { block ->

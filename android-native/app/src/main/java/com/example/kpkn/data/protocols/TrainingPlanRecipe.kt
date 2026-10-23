@@ -99,7 +99,10 @@ data class PlanLoadReferenceMetadata(
     val sourceId: String? = null,
     val sourceSetId: String? = null,
     val tmFraction: Double? = null,
+    val loadIncrementKg: Double? = null,
     val revision: Int = 0,
+    /** Explicit user clearing, distinct from an unresolved recipe reference. The previous captures remain in history. */
+    val invalidatedAtMs: Long? = null,
 )
 
 @Serializable

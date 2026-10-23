@@ -37,3 +37,17 @@ fun resolveLiveApreBlock(
     if (sets.any { it.isEmptySlot }) return null
     return LiveApreBlock(variant, ids.toList(), indices)
 }
+
+/** A captured APRE working max is never a TM/1RM. Only a fully valid block consumes its exact range/configuration. */
+fun observedApreXrmBlock(exercise: Exercise): LiveApreBlock? {
+    val reference = exercise.loadReference ?: return null
+    if (reference.kind != com.example.kpkn.data.protocols.PlanLoadReferenceKind.OBSERVED_WORKING_SET ||
+        reference.state != com.example.kpkn.data.protocols.PlanLoadReferenceState.CAPTURED ||
+        reference.metadata?.origin != ExerciseLoadReferenceStore.APRE_XRM ||
+        reference.capturedLoadKg?.let { it.isFinite() && it > 0.0 } != true ||
+        reference.configurationId != (exercise.catalogConfigurationId ?: exercise.exerciseDbId) ||
+        reference.quantityConvention != exercise.loadQuantityConvention) return null
+    return resolveLiveApreBlock(exercise)?.takeIf {
+        reference.repMin == it.variant.xrmReps && reference.repMax == it.variant.xrmReps
+    }
+}
