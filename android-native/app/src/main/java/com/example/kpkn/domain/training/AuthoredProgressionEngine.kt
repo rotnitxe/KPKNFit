@@ -544,10 +544,12 @@ object AuthoredProgressionEngine {
         }
 
         val updatedProfile = changes.fold(profile) { acc, change -> acc.withTm(change.liftSlot, change.afterKg) }
+        val synchronized = ExerciseTrainingMax.syncProfile(program, program.copy(powerliftingProfile = updatedProfile),
+            nowMs, proposalId, "Progresión del método al cerrar $label")
         val withProfile = if (stageOverlay) {
-            withStageOverlay(program.copy(powerliftingProfile = updatedProfile), recipe, markerCycle, outcome)
+            withStageOverlay(synchronized, recipe, markerCycle, outcome)
         } else {
-            program.copy(powerliftingProfile = updatedProfile)
+            synchronized
         }
 
         val weekIdSet = weekIds.toSet()
