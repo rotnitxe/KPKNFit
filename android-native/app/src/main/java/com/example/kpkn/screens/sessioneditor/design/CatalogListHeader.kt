@@ -30,20 +30,27 @@ import com.example.kpkn.ui.design.KpknType
 /** Etiqueta de prueba de la línea de contexto bajo el título del catálogo (LV5). */
 internal const val CatalogHeaderContextTag = "catalog_header_context"
 
-/** Título de la cabecera: «Reemplazar» al reemplazar (H1, LV5) y «Añadir ejercicios» en el resto. */
-internal fun catalogHeaderTitle(isReplacement: Boolean): String =
-    if (isReplacement) "Reemplazar" else "Añadir ejercicios"
+/** El título describe la acción del origen: añadir, reemplazar, elegir para Técnica o ampliar una superserie. */
+internal fun catalogHeaderTitle(
+    isReplacement: Boolean,
+    isSingleSelection: Boolean = false,
+    isSupersetAddMode: Boolean = false,
+): String = when {
+    isReplacement -> "Reemplazar"
+    isSingleSelection -> "Elegir ejercicio"
+    isSupersetAddMode -> "Añadir a la superserie"
+    else -> "Añadir ejercicios"
+}
 
 /**
- * Línea de contexto bajo el título: al reemplazar no hay (la tarjeta «Reemplazando» ocupa su lugar y «Agrega ejercicios para…» no sería
- * verdad); en el resto, «Agrega ejercicios para <parte>» si el catálogo se abre desde una parte de la sesión.
+ * Al reemplazar, la tarjeta del ejercicio ocupa el contexto; al añadir se nombra la parte de la sesión.
  */
 internal fun catalogHeaderContextLine(
     isReplacement: Boolean,
     targetGroupName: String?,
 ): String? = when {
     isReplacement -> null
-    !targetGroupName.isNullOrBlank() -> "Agrega ejercicios para $targetGroupName"
+    !targetGroupName.isNullOrBlank() -> "Añade ejercicios para $targetGroupName"
     else -> null
 }
 
@@ -80,7 +87,10 @@ internal fun CatalogListHeader(
     replacingCard: CatalogReplacingCardModel? = null,
     sameMuscleSelected: Boolean = false,
     onToggleSameMuscle: (() -> Unit)? = null,
+    isSingleSelection: Boolean = false,
+    isSupersetAddMode: Boolean = false,
 ) {
+    val title = catalogHeaderTitle(isReplacement, isSingleSelection, isSupersetAddMode)
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -96,7 +106,7 @@ internal fun CatalogListHeader(
             ) {
                 KpknIconButton(icon = KpknLineIcons.ChevronLeft, contentDescription = "Atrás", onClick = onBack)
                 Text(
-                    text = catalogHeaderTitle(isReplacement),
+                    text = title,
                     style = KpknType.display.copy(fontSize = 24.sp, lineHeight = 28.sp),
                     color = WizardColors.text,
                     maxLines = 2,
@@ -113,13 +123,13 @@ internal fun CatalogListHeader(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    text = catalogHeaderTitle(isReplacement),
+                    text = title,
                     style = if (onBack != null) KpknType.display.copy(fontSize = 24.sp, lineHeight = 28.sp) else KpknType.title,
                     color = WizardColors.text,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                val contextLine = catalogHeaderContextLine(isReplacement, targetGroupName)
+                val contextLine = catalogHeaderContextLine(isReplacement || isSingleSelection, targetGroupName)
                 if (contextLine != null) {
                     Text(
                         text = contextLine,
@@ -140,6 +150,15 @@ internal fun CatalogListHeader(
             onValueChange = onQueryChange,
             placeholder = if (isReplacement) "Buscar otro ejercicio" else "Buscar ejercicio…",
             leadingIcon = KpknLineIcons.Search,
+            trailing = if (query.isNotEmpty()) {
+                {
+                    KpknIconButton(
+                        icon = KpknLineIcons.Close,
+                        contentDescription = "Borrar búsqueda",
+                        onClick = { onQueryChange("") },
+                    )
+                }
+            } else null,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),

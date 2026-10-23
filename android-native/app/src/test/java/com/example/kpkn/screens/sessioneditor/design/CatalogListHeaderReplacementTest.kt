@@ -100,7 +100,7 @@ class CatalogListHeaderReplacementTest {
         rule.onNodeWithText("Añadir ejercicios").assertExists()
         rule.onNodeWithText("Reemplazar").assertDoesNotExist()
         rule.onNodeWithTag(CatalogReplacingCardTag).assertDoesNotExist()
-        rule.onNodeWithText("Agrega ejercicios para Bloque principal").assertExists()
+        rule.onNodeWithText("Añade ejercicios para Bloque principal").assertExists()
         rule.onNodeWithText("Tren superior").assertExists()
         rule.onNodeWithText("Mismo músculo").assertDoesNotExist()
     }
@@ -112,7 +112,7 @@ class CatalogListHeaderReplacementTest {
         rule.onNodeWithText("Reemplazar").assertExists()
         rule.onNodeWithTag(CatalogReplacingCardTag).assertDoesNotExist()
         rule.onNodeWithTag(CatalogHeaderContextTag).assertDoesNotExist()
-        rule.onNodeWithText("Agrega ejercicios para Bloque principal").assertDoesNotExist()
+        rule.onNodeWithText("Añade ejercicios para Bloque principal").assertDoesNotExist()
     }
 
     @Test
@@ -120,7 +120,7 @@ class CatalogListHeaderReplacementTest {
         assertNull(catalogHeaderContextLine(isReplacement = true, targetGroupName = "Parte"))
         assertNull(catalogHeaderContextLine(isReplacement = false, targetGroupName = null))
         assertNull(catalogHeaderContextLine(isReplacement = false, targetGroupName = "  "))
-        assertEquals("Agrega ejercicios para Parte", catalogHeaderContextLine(isReplacement = false, targetGroupName = "Parte"))
+        assertEquals("Añade ejercicios para Parte", catalogHeaderContextLine(isReplacement = false, targetGroupName = "Parte"))
         assertEquals("Reemplazar", catalogHeaderTitle(true))
         assertEquals("Añadir ejercicios", catalogHeaderTitle(false))
     }
