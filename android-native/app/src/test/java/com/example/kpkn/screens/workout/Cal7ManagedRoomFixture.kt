@@ -74,7 +74,6 @@ internal class Cal7ManagedRoomFixture(private val protocolId: String, private va
                     week.copy(sessions = week.sessions.map { if (it.id == manualSession.id) manualSession else it })
                 }) })
             }) })
-        )
         val unrelated = PlanLoadReference(PlanLoadReferenceKind.EXERCISE_TM, CatalogIds.OHP_SEATED,
             quantityConvention = LoadQuantityConvention.TOTAL_EXTERNAL, state = PlanLoadReferenceState.CAPTURED,
             capturedLoadKg = 45.0, capturedAtMs = 1L, metadata = PlanLoadReferenceMetadata(origin = "MANUAL",

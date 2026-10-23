@@ -2,7 +2,7 @@
 
 ## Estado y límites
 
-Preparación en `C:/kw/u23`, rama `codex/sv2-cal7`, refrescada con `u11@37a03e127` (núcleo APRE/TM/PLAN-OBS). Según el estado comunicado por raíz, el núcleo compila y 13/17 pruebas Android están verdes; cuatro fallos de geometría TM siguen en corrección C3 y son independientes de CAL7. El alcance de este cambio es pruebas e informe: no modifica código de producción, Room, entidades, DAO ni esquemas. **Los 21 recorridos CAL7 no se ejecutaron en Gradle, JVM ni adb; siguen pendientes de la corrida central.**
+Preparación en `C:/kw/u23`, rama `codex/sv2-cal7`, refrescada con `u11@0c642bff1` (núcleo APRE/TM/PLAN-OBS). Según el estado comunicado por raíz, el núcleo compila y 13/17 pruebas Android están verdes; cuatro fallos de geometría TM siguen en corrección C3 y son independientes de CAL7. El alcance de este cambio es pruebas e informe: no modifica código de producción, Room, entidades, DAO ni esquemas. **El primer piloto central llegó a `compileTestKotlin` y falló antes de ejecutar casos; las dos causas se corrigieron en esta rama. Repetir la compilación y ejecutar los 21 recorridos sigue pendiente.**
 
 La suite preparada reúne 21 recorridos end-to-end con Room en memoria: 3 sesiones libres, 1 de 1RM, 12 programas publicados y 5 APRE manuales, cíclicos o de variante B. Se usan Robolectric, repositorio/ViewModels y cierres reales; ningún log de entrenamiento se fabrica en memoria de prueba ni se sustituye por un helper aislado.
 
@@ -28,10 +28,10 @@ El quinto activa B desde `WorkoutViewModel.setActiveMode` sobre una sesión base
 
 ## Hallazgos y dependencias de integración
 
-- La base refrescada `u11@37a03e127` contiene las correcciones APRE revisadas: evaluación S4 al cerrar un ciclo simple, recolección APRE en variantes B/C/D y cierre de B con identidad base A en el log. CAL7 aporta regresiones reales para el ciclo simple y la variante B; aún falta ejecutar esta suite.
+- La base refrescada `u11@0c642bff1` contiene las correcciones APRE revisadas: evaluación S4 al cerrar un ciclo simple, recolección APRE en variantes B/C/D y cierre de B con identidad base A en el log. CAL7 aporta regresiones reales para el ciclo simple y la variante B; aún falta ejecutar esta suite.
 - El recorrido 1RM conserva aserciones para pool sincronizado y rechazo seguro si falla la reconstrucción. La corrección CAL5b está en la base refrescada; su comportamiento en este recorrido sigue pendiente de ejecución.
-- La API APRE manual, las propuestas tipadas y la identidad de sesión B ya están en la base refrescada; su compatibilidad está revisada estáticamente, pero la suite CAL7 aún no se ha compilado ni ejecutado.
+- La API APRE manual, las propuestas tipadas y la identidad de sesión B ya están en la base refrescada. El primer intento de `compileTestKotlin` reportó los dos errores de prueba corregidos aquí; la compilación aún no se ha repetido y CAL7 no ha ejecutado casos.
 
 ## Evidencia
 
-Revisión estática de firmas/fixtures e inspección de diffs. Los cierres de las cuatro rutas CAL7 esperan a que terminen los ViewModels, vacían escrituras pendientes y esperan el scope privado de ProgramRepository antes de cerrar Room. `git diff --check` pasó y el escaneo UTF-8 estricto de los archivos editados no encontró BOM, U+FFFD, CR aislado ni whitespace final. No hay compilación, ejecución de pruebas, render ni validación en dispositivo. No se modificaron producción ni Room y no se tocaron otros worktrees.
+El piloto central CAL7+TM1 llegó a `compileTestKotlin` y falló sin ejecutar casos: había un cierre extra tras `materialized.copy` en `Cal7ManagedRoomFixture.kt` y una importación obsoleta de `CalibrationStatus` en `Cal7ManualApreRoomJourneyTest.kt`. El enum vive en `data.models`, ya cubierto por su import comodín. Esta rama corrige ambos errores sin cambiar los 21 casos ni sus aserciones; no se ha repetido la compilación. La revisión estática y `git diff --check` pasan; el escaneo UTF-8 estricto de los archivos editados no encuentra BOM, U+FFFD, CR aislado ni whitespace final. No hubo ejecución de pruebas, render ni validación en dispositivo. No se modificaron producción ni Room.
