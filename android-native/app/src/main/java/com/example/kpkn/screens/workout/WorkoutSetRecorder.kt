@@ -628,7 +628,9 @@ class WorkoutSetRecorder(
                 persistedLoadModeByExercise = submitted.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode),
             )
             val now = System.currentTimeMillis()
-            val calibrationRecord = if (performedPurpose == SetPurpose.CALIBRATOR && !completedSet.skipped) {
+            val calibrationRecord = buildRecordedApreCalibration(recordedCandidate, exercise, targetSetIdx,
+                completedSet, now, repository.settings.value.resolvedEquipmentInventory())
+                ?: if (performedPurpose == SetPurpose.CALIBRATOR && !completedSet.skipped) {
                 withContext(Dispatchers.IO) {
                     buildRecordedCalibration(recordedCandidate, exercise, targetSetIdx, completedSet,
                         repository.history.value, repository.calibrationDecisions.accepted(now, completedSet.id), now,

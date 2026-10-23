@@ -187,8 +187,11 @@ internal suspend fun refreshCorrectedCalibrations(
                 val parsed = entry?.key?.let(::parseCompletedSetKey)
                 val exercise = next.session?.allExercises()?.firstOrNull { it.id == parsed?.exerciseId }
                 val replacement = if (exercise != null && parsed != null && updated != null && !updated.skipped &&
-                    updated.performedPurpose() == SetPurpose.CALIBRATOR) {
-                    buildRecordedCalibration(result, exercise, parsed.setIdx, updated, history, accepted(updated.id), now, inventory)
+                    updated.performedPurpose()?.isAmrap == true) {
+                    buildRecordedApreCalibration(result, exercise, parsed.setIdx, updated, now, inventory)
+                        ?: if (updated.performedPurpose() == SetPurpose.CALIBRATOR)
+                            buildRecordedCalibration(result, exercise, parsed.setIdx, updated, history, accepted(updated.id), now, inventory)
+                        else null
                 } else null
                 result = result.copy(calibrationDecisions = replaceRecordedCalibration(result.calibrationDecisions,
                     record.sourceSetId, replacement, now))
@@ -205,6 +208,13 @@ internal fun resolveCalibration(
     if (action in setOf(CalibrationStatus.APPLIED, CalibrationStatus.KEPT) && record.status != CalibrationStatus.PROPOSED) return state
     if (action !in setOf(CalibrationStatus.APPLIED, CalibrationStatus.KEPT, CalibrationStatus.REVERTED)) return state
     val d = record.decision
+    if (record.apre != null && action == CalibrationStatus.APPLIED) {
+        val plannedExercise = state.session?.allExercises()?.firstOrNull { it.id == d.exerciseId } ?: return state
+        val block = liveApreBlock(state, plannedExercise) ?: return state
+        if (block.variant.xrmReps != record.apre.xrmReps ||
+            plannedExercise.sets[block.thirdIndex].id != record.apre.sourcePlannedSetId ||
+            plannedExercise.sets[block.fourthIndex].id != record.apre.targetPlannedSetId) return state
+    }
     if (action == CalibrationStatus.APPLIED && d.type == CalibrationDecisionType.NOT_APPLIED) return state
     val exercise = state.session?.allExercises()?.firstOrNull { it.id == d.exerciseId } ?: return state
     val sourceIndex = exercise.sets.indexOfFirst { set ->
@@ -239,6 +249,11 @@ internal fun calibrationLoadForSet(state: WorkoutUiState, exercise: Exercise, in
             (setId in r.pendingPrescriptions || r.decision.affectedSets.any { it.setId == setId })
     }
     val record = records.lastOrNull { it.status != CalibrationStatus.SUPERSEDED } ?: records.lastOrNull() ?: return null
+    record.apre?.let { apre ->
+        val block = liveApreBlock(state, exercise) ?: return null
+        if (block.variant.xrmReps != apre.xrmReps || exercise.sets[block.thirdIndex].id != apre.sourcePlannedSetId ||
+            exercise.sets[block.fourthIndex].id != apre.targetPlannedSetId) return null
+    }
     val prescription = record.pendingPrescriptions[setId]
     val change = record.decision.affectedSets.firstOrNull { it.setId == setId }
         ?: prescription?.let { CalibrationLoadChange(setId, it.beforeKg, it.beforeKg) } ?: return null
@@ -252,7 +267,10 @@ internal fun calibrationLoadForSet(state: WorkoutUiState, exercise: Exercise, in
     val applied = record.status == CalibrationStatus.APPLIED && record.decision.scope == CalibrationScope.SESSION &&
         setId in record.appliedSetIds &&
         (completed == null || (completed.originalLoad ?: completed.weight) == change.afterKg)
-    return CalibrationSetLoad(if (applied) change.afterKg else change.beforeKg, applied, change.beforeKg)
+    val actual = completed?.let { it.originalLoad ?: it.recordedPayloadV3?.externalLoad ?: it.weight }
+    val wasRecordedWithAdjustment = completed != null && setId in record.appliedSetIds && actual == change.afterKg
+    return CalibrationSetLoad(actual ?: if (applied) change.afterKg else change.beforeKg,
+        applied || wasRecordedWithAdjustment, change.beforeKg)
 }
 
 internal fun calibrationRouteLoads(state: WorkoutUiState): Map<String, Double> = buildMap {
@@ -297,5 +315,14 @@ internal fun calibrationSummaryLines(records: List<CalibrationDecisionRecord>): 
             CalibrationStatus.REVERTED -> "Revertida · cargas pendientes restauradas"
             CalibrationStatus.SUPERSEDED -> "Sustituida"
         }
-        "${r.exerciseName} · $resolution"
+        val summary = r.apre?.let { when (r.status) {
+            CalibrationStatus.PROPOSED -> if (r.decision.type == CalibrationDecisionType.NOT_APPLIED)
+                "APRE · ${r.decision.reason}" else "APRE · ajuste de S4 pendiente"
+            CalibrationStatus.APPLIED -> if (r.appliedSetIds.isEmpty()) "APRE · S4 se conserva"
+                else "APRE · S4 ajustada con la tabla de Mann"
+            CalibrationStatus.KEPT -> "APRE · conservaste la carga de S4"
+            CalibrationStatus.REVERTED -> "APRE · carga pendiente de S4 restaurada"
+            CalibrationStatus.SUPERSEDED -> "APRE · sustituida"
+        } } ?: resolution
+        "${r.exerciseName} · $summary"
     }
