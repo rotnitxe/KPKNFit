@@ -1,5 +1,12 @@
 # Integración de fase 4 y regresión final
 
+## Estado más reciente · 23-oct-2026 10:30
+
+JVM final5 está verde en una única corrida: 207 clases/2062 pruebas/0 fallos/0 errores/0 omitidas; fuente `8890750dbe109c8aa5a42bc4b898abb0e0e69de8`, wrapper exit0. Android completo ejecutó 399 clases/3135 pruebas con26 fallos en10 clases; wrapper exit1, sin errores/omitidas/ausentes y381 PNG nuevos. Clasificación, fuentes exactas y límites en [INT-FINAL-REGRESSION.md](INT-FINAL-REGRESSION.md).
+
+Las correcciones posteriores requieren repetición Android. La fuente pura RIR corregida sí está incluida en JVM5. QA de dispositivo sigue abierta y utiliza APK anteriores a las últimas correcciones; hay un defecto G1 confirmado en guardado de modo/dosis, en reparación. Los bloques con horas anteriores que dicen «sin instalación/QA» o «sin completa pura verde» son historial, sustituidos por este estado.
+
+
 Fecha: 23-oct-2026. Rama `feat/screens-v2`, u11. Base verde de fase 3: `2499dae6b`; fuente validada `2e14b0700`. La regresión dirigida previa sumó 1936 JVM + 169 Android + 173 Android = 2278 casos en tres corridas, sin fallos, errores ni omitidas (INT-1.md). No equivale a toda la suite del repositorio.
 
 ## CAT-B cerrado de forma dirigida

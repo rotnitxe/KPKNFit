@@ -1,14 +1,16 @@
 # Relevo de la ola screens-v2 (21-oct-2026, noche)
 
-## Estado operativo · 23-oct09:30
+## Estado operativo · 23-oct-2026 10:30
 
-Fase3 y fase4 integradas. PLAN-OBS:2062casos puros únicos verdes mediante completa3+focused4. TM:núcleo135JVM/144Android y17TM/Relator del piloto2 verdes. El piloto completo2 cerró38casos/15fallos CAL7. b81131ebb corrige arneses sin quitar recorridos;64109519f corrige el defecto real APRE B/C/D y agrega cinco regresiones. Ambos integrados, pendientes de validación central.
+La implementación de las fases 3 y 4 está integrada. JVM final5, fuente `8890750dbe109c8aa5a42bc4b898abb0e0e69de8`: 207 clases, 2062 pruebas, cero fallos, errores u omitidas; BUILD 6 min 56 s, wrapper cerrado exit0 (673 s con cola). Log `int-phase4-final-jvm-codex-20261023-5.log`, XML nuevos archivados. Esta vez es una única corrida completa del alcance puro, no una unión de repeticiones.
 
-QA real ZFlip5_QA5580: APK.dbg fuente0c642bff1 instalado/precompilado; MainActivity real y G4 cambio/deshacer verificados. F1 reproduce cruce del título fijo con el cuerpo al desplazar en740/130; arreglo en curso u19. El agente C3 controla exclusivamente el emulador; root no cambia su APK durante el recorrido.
+El barrido Android completo de la ola, fuente `9b106d664f86a64142b8baf1fe6ac0cc07c263ba`, cerró exit1: 399 clases, 3135 pruebas, 26 fallos, cero errores/omitidas/clases ausentes; BUILD 31 min 45 s y 381 PNG nuevos. No equivale a toda la suite del repositorio. El informe `reports/INT-FINAL-REGRESSION.md` clasifica las diez clases fallidas y las correcciones. RIR sin porcentajes era un defecto real y su arreglo ya pasó JVM5; la repetición Android sigue pendiente. No se excluyeron imágenes: las dos pruebas históricas de cobertura pasaron al recuperar los tres manifiestos originales de Git.
 
-Teléfono: APK QA version51 preparado con AndroidDebug, sin modificar versión del repositorio. Intento50 rechazado por downgrade; último51 detenido por uso reciente(11min/regla20). Ninguna QA telefónica acreditada. Respetar candado y wrapper. Las70pantallas siguen en revisión; el usuario duerme y autorizó decisiones autónomas.
+QA real continúa exclusivamente en ZFlip5_QA5580, APK fuente 0c642bff1. G4, movilidad H3/H5/H6 y varios flujos editor/catálogo verificados; CAL3 ya probó propuesta, reinicio, aplicar, revertir, corregir y conservar. F1 (solape de cabecera) y etiquetas RM truncadas tienen arreglo pendiente de nuevo APK. G1 expuso pérdida de cambios de modo/dosis desde la sesión: corrección en curso en u23. No acreditar como verde ese tablero ni la lista completa de 70.
 
-Siguiente: integrar cabeceraF1, congelar fuente y barrido completo por FQN exactos(una reserva v10, un worker/forkEvery15, todos los fallos), corregir/repetir lo afectado, QA final y release unsigned. Sin corrida propia activa al escribir. Sin push/master/firma; Roomv30 congelado, artefacto ajeno intacto. Los bloques inferiores son historial.
+El APK adicional d24370583, versionCode51 y certificado AndroidDebug, sí se instaló en el teléfono. Captura física validó 1080×2640, 480dpi y letra1.0. La QA de interacción sigue pendiente: otra sesión de técnica de vídeo usó activamente la misma .dbg; no se interfirió. El coordinador puede reanudar sólo con el wrapper/candado, foco y regla20min válidos. No hubo downgrade forzado, desbloqueo ni borrado.
+
+Siguiente: integrar u23 cuando termine el arreglo G1; repetir las diez clases fallidas más regresión de impacto, generar APK QA actualizado y comprobar los defectos en emulador; después release unsigned y cierre documental. No hay corrida propia activa al escribir. No push/master/firma; Roomv30 congelado y artefacto ajeno intacto. Los bloques inferiores son historial.
 
 ## Estado verificado · 23-oct-2026 · integración ED-B comprobada
 
