@@ -67,7 +67,8 @@ internal fun RestTimerOverlay(
     pendingRestSuggestion: PendingRestSuggestion? = null,
     lastSetOutcome: SetOutcomeV2? = null,
     lastCompletedSet: CompletedSet? = null,
-    lastCompletedSets: List<Pair<String, CompletedSet>> = emptyList(),
+    lastCompletedSets: List<RestCompletedSetSummary> = emptyList(),
+    lastCompletedCustomUnit: String? = null,
     isAdaptiveActive: Boolean = false,
     sessionAccentColor: Color = Color.White,
     onDecrease: () -> Unit,
@@ -189,6 +190,7 @@ internal fun RestTimerOverlay(
                             lastSetOutcome = lastSetOutcome,
                             lastCompletedSet = lastCompletedSet,
                             lastCompletedSets = lastCompletedSets,
+                            lastCompletedCustomUnit = lastCompletedCustomUnit,
                             isAdaptiveActive = isAdaptiveActive,
                             sessionAccentColor = sessionAccentColor,
                             onDecrease = onDecrease,
@@ -425,7 +427,8 @@ private fun NormalRestContent(
     pendingRestSuggestion: PendingRestSuggestion?,
     lastSetOutcome: SetOutcomeV2?,
     lastCompletedSet: CompletedSet?,
-    lastCompletedSets: List<Pair<String, CompletedSet>>,
+    lastCompletedSets: List<RestCompletedSetSummary>,
+    lastCompletedCustomUnit: String?,
     isAdaptiveActive: Boolean,
     sessionAccentColor: Color,
     onDecrease: () -> Unit,
@@ -576,12 +579,13 @@ private fun NormalRestContent(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 if (lastCompletedSets.isNotEmpty()) {
-                    lastCompletedSets.forEach { (exerciseName, set) ->
+                    lastCompletedSets.forEach { completed ->
                         RestLastSetModule(
-                            title = exerciseName,
+                            title = completed.exerciseName,
                             titleIsEyebrow = false,
-                            set = set,
-                            outcome = lastSetOutcome ?: set.setOutcomeV2,
+                            set = completed.set,
+                            customUnit = completed.customUnit,
+                            outcome = lastSetOutcome ?: completed.set.setOutcomeV2,
                         )
                     }
                 } else {
@@ -592,6 +596,7 @@ private fun NormalRestContent(
                             title = "Última serie",
                             titleIsEyebrow = true,
                             set = referenceSet,
+                            customUnit = lastCompletedCustomUnit,
                             outcome = referenceOutcome,
                         )
                     }
@@ -745,12 +750,11 @@ private fun RestLastSetModule(
     title: String,
     titleIsEyebrow: Boolean,
     set: CompletedSet,
+    customUnit: String?,
     outcome: SetOutcomeV2?,
 ) {
-    val loadStr = if (set.weight > 0.0) "${formatWeight(set.weight)} kg" else "Peso corporal"
-    val valueStr = if (set.timeSeconds != null) "${set.timeSeconds}s" else "${set.reps} reps"
     // Espacios inseparables: la cifra no se parte al ajustarse (KPKN_UI_V2 §5).
-    val figure = "$loadStr × $valueStr".replace(' ', ' ')
+    val figure = restLastSetFigureText(set, customUnit, timeSuffix = "s").replace(' ', ' ')
     KpknModule(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
@@ -897,14 +901,6 @@ private fun restKindText(kind: RestTimerKind): String = when (kind) {
     RestTimerKind.WARMUP -> "aproximación"
     RestTimerKind.BETWEEN_SIDES -> "entre lados"
     RestTimerKind.STANDARD -> "descanso"
-}
-
-private fun formatWeight(weight: Double): String {
-    return if (weight % 1.0 == 0.0) {
-        weight.toInt().toString()
-    } else {
-        String.format(Locale.forLanguageTag("es"), "%.1f", weight)
-    }
 }
 
 @Suppress("unused")

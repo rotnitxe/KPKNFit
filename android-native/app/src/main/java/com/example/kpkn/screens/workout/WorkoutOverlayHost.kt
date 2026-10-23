@@ -45,7 +45,7 @@ internal fun WorkoutRestOverlayHost(
     pendingRestSuggestion: PendingRestSuggestion?,
     lastSetOutcome: SetOutcomeV2?,
     lastCompletedSet: CompletedSet?,
-    lastCompletedSets: List<Pair<String, CompletedSet>>,
+    lastCompletedSets: List<RestCompletedSetSummary>,
     sessionAccentColor: Color,
     hazeState: HazeState,
     skipExerciseLabel: String?,
@@ -92,6 +92,10 @@ internal fun WorkoutRestOverlayHost(
     val exercises = remember(uiState.session, uiState.activeMode, uiState.skippedExerciseIds) {
         viewModel.visibleExercises(uiState)
     }
+    val lastCompletedCustomUnit = uiState.setJustLoggedKey
+        ?.let(::parseCompletedSetKey)
+        ?.exerciseId
+        ?.let { exerciseId -> exercises.firstOrNull { it.id == exerciseId }?.customUnit }
     val nextSet = remember(
         exercises,
         uiState.currentExerciseIdx,
@@ -138,6 +142,7 @@ internal fun WorkoutRestOverlayHost(
                 lastSetOutcome = lastSetOutcome,
                 lastCompletedSet = lastCompletedSet,
                 lastCompletedSets = lastCompletedSets,
+                lastCompletedCustomUnit = lastCompletedCustomUnit,
                 isAdaptiveActive = adaptiveActive,
                 sessionAccentColor = sessionAccentColor,
                 onDecrease = { viewModel.addRestTime(-15) },

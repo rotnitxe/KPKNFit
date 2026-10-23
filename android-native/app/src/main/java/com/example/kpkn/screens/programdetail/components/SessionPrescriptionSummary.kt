@@ -60,10 +60,16 @@ internal fun formatExercisePrescription(exercise: Exercise): String? {
     val parts = mutableListOf<String>()
     dose?.let { parts += it }
 
-    // La carga se muestra sólo en modos de fuerza; RM conserva también el porcentaje y su base.
+    // El peso escrito en la serie se conserva también en TIME/DISTANCE/CUSTOM. Una referencia capturada
+    // de RM solo puede completar la carga de un modo de fuerza; nunca se recicla en una dosis no fuerza.
     val usesFixedLoadMode = usesRepMode && exercise.trainingMode != TrainingMode.SOLO_RPE
     val percent = first?.targetPercentageRM.takeIf { usesFixedLoadMode }
-    val explicitWeight = if (usesFixedLoadMode) first?.weight ?: reference?.capturedLoadKg else null
+    val explicitWeight = when {
+        exercise.trainingMode == TrainingMode.SOLO_RPE -> null
+        first?.weight != null -> first.weight
+        usesFixedLoadMode -> reference?.capturedLoadKg
+        else -> null
+    }
     val convention = first?.loadQuantityConvention
         ?.takeIf { it != LoadQuantityConvention.UNSPECIFIED }
         ?: exercise.loadQuantityConvention

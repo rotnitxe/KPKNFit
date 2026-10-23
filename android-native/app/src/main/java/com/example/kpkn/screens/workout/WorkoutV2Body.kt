@@ -2001,6 +2001,7 @@ internal fun WorkoutV2Body(
                                         modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                                         shape = restShape,
                                         nextSet = restNext,
+                                        lastCompletedCustomUnit = restAnchorExercise.customUnit,
                                         clockActive = isActivePage,
                                         videoSlot = restVideoSlot,
                                     )
