@@ -29,6 +29,48 @@ La salida Android esperada es `android-native/app/build/outputs/apk/base/release
 
 ## Orden vigente y límites
 
-`PLAN_RELEVO.md` y `EJECUCION_RELEVO_20261022.md` prevalecen sobre el orden cronológico de la lista pendiente de `RELEVO.md`. La aceptación competitiva es posentrega y no bloquea Pre Release 18; los gates originales de Fases 2–6 siguen vigentes. Consultar el contador y los gates pendientes en el Estado vigente de EJECUCION; el snapshot de esta preparación aún tiene MM-Fit activo, QA original, privacidad dinámica y cierre de cifras pendientes. No procede firmar antes de terminar esos gates.
+`PLAN_RELEVO.md` y `EJECUCION_RELEVO_20261022.md` prevalecen sobre el orden cronológico de la lista pendiente de `RELEVO.md`. La aceptación competitiva es posentrega y no bloquea Pre Release 18; los gates originales de Fases 2–6 siguen vigentes. MM-Fit y la integración M5 ya terminaron; consultar en EJECUCION el estado actual de Android/R8, QA original y privacidad dinámica. No procede firmar antes de terminar esos gates.
 
 Esta preparación no cambió versión ni archivos de la app, y no tocó el `RELEVO.md` untracked. No se ejecutó Gradle, teléfono ni firma; `aapt2` y `apksigner` solo leyeron metadatos públicos de los dos APK históricos señalados. La compatibilidad del APK final queda pendiente hasta contrastar su artefacto firmado con el base del 20-oct.
+
+
+
+## BORRADOR — LEEME de entrega Pre Release 18
+
+### Texto propuesto (pendiente del cierre de QA y del artefacto)
+
+Esta versión integra el motor de análisis de técnica 10 sin cambiar el esquema de Room 29. Las métricas de
+velocidad en m/s se muestran como aproximadas (≈); el 1RM estimado por velocidad sigue en beta.
+
+En el control MediaPipe de G1 hubo salida en 88/89 casos; la cobertura se mantuvo con la guarda elegida. Hubo 67/88 FULL
+exactas (frente a 60/88), 50/58 exactas ALTA, 11/12 exactas MEDIA y 70/89 ofertas ALTA/MEDIA. En el control histórico,
+las FULL exactas se mantuvieron en 50/63. Al combinar de forma descriptiva las 405 filas tune y 89 del control ciego MM-Fit,
+hubo 337/489 FULL exactas, 252/293 ALTA exactas, 53/67 MEDIA exactas y 360/494 ofertas ALTA/MEDIA. Este agregado no es
+un ensayo independiente de 494 casos.
+
+Desglose descriptivo por ejercicio, tune más control ciego G1:
+
+| Perfil | FULL exactas / salidas |
+|---|---:|
+| CURL | 38/59 |
+| LUNGE | 49/62 |
+| OHP | 57/60 |
+| PUSH_UP | 44/65 |
+| RAISE | 43/56 |
+| ROW | 48/63 |
+| SQUAT | 56/62 |
+| TRICEPS | 2/62 |
+
+Las metas internas 98/90 siguen sin alcanzarse, especialmente en tríceps. Estos resultados no acreditan paridad con otras
+aplicaciones. La duración de análisis GPU sigue por encima del objetivo de tiempo real: ratio análisis/vídeo mediano
+1,5265 y p95 3,2389.
+
+### Pendiente antes de aprobar o publicar este texto
+
+- El QA de ejecución en el Z Flip y el QA R8 del motor 10 siguen pendientes. Una grabación oscura con preferencia60 activada produjo30fps reales; el fallo del respaldo sigue en depuración. No afirmar60fps ni UI aprobada antes de
+  completar esas verificaciones.
+- El artefacto final debe confirmar versionName Pre Release 18, versionCode mayor que 50 y el certificado público esperado
+  9e8bb57415e409a1f107e70c62b85aa65ce73576e6196470808231f256464bc1. Nombre definitivo, SHA-256 del APK y fecha de
+  archivo quedan PENDIENTES del artefacto firmado. Ejecutar signed_release.py solo al final de los gates; no hay una
+  promesa de hora de entrega.
+- El anexo competitivo, la voz y la revisión de Metric son posentrega.
