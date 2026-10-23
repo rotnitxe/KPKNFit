@@ -507,7 +507,8 @@ internal fun MobilityPickerSheet(
             items(results, key = { it.id }) { mobility ->
                 val alreadyAdded = mobility.id in selectedMobilityIds
                 val expanded = expandedMobilityId == mobility.id
-                KpknModule(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)) {
+                KpknModule(modifier = Modifier.testTag("mobility-picker-item-${mobility.id}"),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)) {
                     Text(mobility.name, style = KpknType.bodyStrong, color = WizardColors.text)
                     val details = listOfNotNull(
                         mobilityBodyRegionLabel(mobility.bodyRegion).takeIf { it.isNotBlank() },

@@ -3,6 +3,7 @@ package com.example.kpkn.screens.sessioneditor.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.hasText
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.theme.KPKNTheme
 import androidx.compose.foundation.layout.width
@@ -517,8 +518,10 @@ class PreparationChipsComposeTest {
         rule.onNodeWithTag("mobility-picker-empty").performScrollTo().assertIsDisplayed()
         rule.onNodeWithTag("mobility-picker-search").performTextReplacement(movement.name)
         rule.onNodeWithTag("mobility-picker-empty").assertDoesNotExist()
-        rule.onNodeWithText(movement.name).performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText("Añadir").performScrollTo().performClick()
+        val movementTag = "mobility-picker-item-${movement.id}"
+        rule.onNodeWithTag(movementTag).performScrollTo().assertIsDisplayed()
+        rule.onNode(hasText("Añadir") and hasAnyAncestor(hasTestTag(movementTag)))
+            .performScrollTo().performClick()
         assertEquals(movement.id, addedId)
     }
 
