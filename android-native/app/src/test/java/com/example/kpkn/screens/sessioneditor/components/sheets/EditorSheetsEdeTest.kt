@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.view.View
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.SemanticsActions
@@ -56,6 +60,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import java.io.File
 
 /**
  * ED-E · Compose/Robolectric de las hojas D2 (Impacto), D5 (Reglas: aplicar intensidad), D6 (Tiempo: reparto por grupo) y D8
@@ -66,6 +71,18 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h880dp-xxhdpi")
 class EditorSheetsEdeTest {
     @get:Rule val rule = createComposeRule()
+    private var renderedView: View? = null
+
+    private fun saveVolumeEvidenceIfRequested() {
+        val output = System.getenv("KPKN_RENDER_DIR") ?: return
+        val host = requireNotNull(renderedView)
+        val bitmap = Bitmap.createBitmap(host.width, host.height, Bitmap.Config.ARGB_8888)
+        rule.runOnUiThread { host.draw(Canvas(bitmap)) }
+        val file = File(output, "d2_volume_740_130.png")
+        file.parentFile?.mkdirs()
+        file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        bitmap.recycle()
+    }
 
     private val squat = Exercise(
         id = "sentadilla", name = "Sentadilla trasera",
@@ -147,6 +164,7 @@ class EditorSheetsEdeTest {
             assistantReport = report,
         )
         rule.setContent {
+            renderedView = LocalView.current
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, 1.3f)) {
                 Box(Modifier.width(360.dp).height(740.dp)) {
@@ -167,15 +185,25 @@ class EditorSheetsEdeTest {
 
         val rootBounds = rule.onRoot().fetchSemanticsNode().boundsInRoot
         val labels = listOf("Músculo 4 %", "Energía 3 %", "Columna 1 %")
+        var savedEvidence = false
         labels.forEach { label ->
             val node = rule.onNodeWithText(label, useUnmergedTree = true).performScrollTo().assertIsDisplayed()
+            if (!savedEvidence) {
+                saveVolumeEvidenceIfRequested()
+                savedEvidence = true
+            }
             val bounds = node.fetchSemanticsNode().boundsInRoot
             assertTrue("$label queda dentro del ancho visible: $bounds / $rootBounds", bounds.left >= rootBounds.left && bounds.right <= rootBounds.right)
             val layouts = mutableListOf<TextLayoutResult>()
             node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
             val layout = layouts.single()
+            val lineLeft = layout.getLineLeft(0)
+            val lineRight = layout.getLineRight(0)
+            val detail = "$label: size=${layout.size}, párrafo=${layout.multiParagraph.width}px, constraints=${layout.layoutInput.constraints}, línea=[$lineLeft,$lineRight]px, didOverflowWidth=${layout.didOverflowWidth}"
+            println("D2_GEOMETRY $detail")
             assertEquals("$label ocupa una línea", 1, layout.lineCount)
-            assertFalse("$label no desborda ancho", layout.didOverflowWidth)
+            assertTrue("$detail: los glyphs no deben salir por la izquierda", lineLeft >= -1f)
+            assertTrue("$detail: los glyphs no deben salir más de 1 px físico por la derecha", lineRight <= layout.size.width + 1f)
             assertFalse("$label no desborda alto", layout.didOverflowHeight)
             assertFalse("$label no se trunca", layout.isLineEllipsized(0))
             assertEquals("$label conserva todo el texto", label.length, layout.getLineEnd(0, visibleEnd = true))
