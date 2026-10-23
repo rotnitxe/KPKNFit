@@ -2,6 +2,7 @@ package com.example.kpkn.screens.programdetail
 
 import android.app.Application
 import androidx.compose.runtime.CompositionLocalProvider
+import kotlinx.coroutines.CompletableDeferred
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
@@ -23,6 +24,8 @@ import org.robolectric.annotation.GraphicsMode
 class Cal5bTrainingMaxPanelTest {
     @get:Rule val rule = createComposeRule()
     private var saved: Pair<String, Double>? = null
+    private var result: CompletableDeferred<Result<Unit>>? = null
+    private var calls = 0
     private fun mount() {
         val exercises = listOf(Exercise("press", "Press militar", catalogConfigurationId = CatalogIds.OHP,
             referenceTrainingMax = 72.0, sets = listOf(ExerciseSet("p", loadBasis = LoadBasis.PERCENT_TM))),
@@ -36,7 +39,7 @@ class Cal5bTrainingMaxPanelTest {
             override fun markSeen(tourId: String) = Unit
         })
         rule.setContent { CompositionLocalProvider(LocalKpknOverlayHost provides overlays) {
-            ExerciseTrainingMaxPanel(program, onConfirm = { id, kg -> saved = id to kg })
+            ExerciseTrainingMaxPanel(program, onConfirm = { id, kg -> calls++; saved = id to kg; result?.await() ?: Result.success(Unit) })
             KpknOverlayHostContent(overlays)
         } }
         rule.waitForIdle()
@@ -54,10 +57,10 @@ class Cal5bTrainingMaxPanelTest {
 
     @Test fun anEditedDraftDoesNotPersistWhenTheSheetIsDismissed() {
         mount()
-        rule.onNodeWithContentDescription("Editar TM de Remo con barra").performClick()
+        rule.onNodeWithContentDescription("Editar TM de Remo con barra").performTouchInput { click() }
         rule.mainClock.advanceTimeBy(3_000); rule.waitForIdle()
         rule.onNode(hasSetTextAction()).performTextReplacement("95")
-        rule.onNodeWithText("Ahora no").performClick()
+        rule.onNodeWithText("Ahora no").performTouchInput { click() }
         rule.waitForIdle()
         assertNull(saved)
         rule.onNodeWithText("TM 90 kg").assertExists()
@@ -65,12 +68,34 @@ class Cal5bTrainingMaxPanelTest {
 
     @Test fun confirmingTheRealEntrySendsTheExerciseIdAndExplicitValue() {
         mount()
-        rule.onNodeWithContentDescription("Editar TM de Remo con barra").performClick()
+        rule.onNodeWithContentDescription("Editar TM de Remo con barra").performTouchInput { click() }
         rule.mainClock.advanceTimeBy(3_000); rule.waitForIdle()
         rule.onNode(hasSetTextAction()).performTextReplacement("95")
-        rule.onNodeWithText("Confirmar TM").performClick()
+        rule.onNodeWithText("Confirmar TM").performTouchInput { click() }
         rule.waitForIdle()
         assertEquals("row", saved!!.first)
         assertEquals(95.0, saved!!.second, 0.0)
+    }
+    @Test fun failureKeepsTypedDraftAndRetriesOnlyAfterDurableSuccess() {
+        result = CompletableDeferred()
+        mount()
+        rule.onNodeWithContentDescription("Editar TM de Remo con barra").performTouchInput { click() }
+        rule.mainClock.advanceTimeBy(3_000); rule.waitForIdle()
+        rule.onNode(hasSetTextAction()).performTextReplacement("95")
+        rule.onNodeWithText("Confirmar TM").performTouchInput { click() }
+        rule.onNodeWithText("Guardando TM…").assertIsDisplayed().assertIsNotEnabled()
+        rule.onNode(hasSetTextAction()).assertIsNotEnabled()
+        assertEquals(1,calls)
+        rule.runOnIdle { result!!.complete(Result.failure(IllegalStateException("Room"))) }
+        rule.waitForIdle()
+        rule.onNode(hasSetTextAction()).assertTextEquals("95")
+        rule.onNodeWithText("No se pudo guardar el TM.",substring = true).assertIsDisplayed()
+        rule.runOnIdle { result = CompletableDeferred() }
+        rule.onNodeWithText("Reintentar TM").performTouchInput { click() }
+        assertEquals(2,calls); assertEquals(95.0,saved!!.second,0.0)
+        rule.onNode(hasSetTextAction()).assertExists()
+        rule.runOnIdle { result!!.complete(Result.success(Unit)) }
+        rule.waitForIdle()
+        rule.onNode(hasSetTextAction()).assertDoesNotExist()
     }
 }

@@ -10,6 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.training.ExerciseTrainingMax
@@ -41,7 +43,8 @@ internal fun TrainingMaxPreparation(missing: List<ExerciseTrainingMax.Missing>, 
 /** Shared manual/confirmed TM entry. The suggested value has an explicit source and remains a draft. */
 @Composable
 internal fun TrainingMaxEntryBody(name: String, suggestedKg: Double?, fraction: Double?,
-    onConfirm: (Double) -> Unit, onDismiss: () -> Unit, missing: Boolean = false) {
+    onConfirm: (Double) -> Unit, onDismiss: () -> Unit, missing: Boolean = false,
+    saving: Boolean = false, error: String? = null) {
     var input by rememberSaveable(name) { mutableStateOf(formatEditableNumber(suggestedKg)) }
     val value = input.safeDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 }
     Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),
@@ -53,9 +56,11 @@ internal fun TrainingMaxEntryBody(name: String, suggestedKg: Double?, fraction: 
             style = KpknType.body, color = WizardColors.textMuted)
         KpknTextField(value = input, onValueChange = { input = it }, label = "TM (kg)",
             modifier = Modifier.fillMaxWidth(), singleLine = true,
-            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal))
-        KpknPrimaryPill(text = "Confirmar TM", onClick = { value?.let(onConfirm) }, enabled = value != null,
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal), enabled = !saving)
+        error?.let { Text(it, style = KpknType.body, color = WizardColors.text) }
+        KpknPrimaryPill(text = if(saving) "Guardando TM…" else if(error != null) "Reintentar TM" else "Confirmar TM", onClick = { value?.let(onConfirm) }, enabled = value != null && !saving,
             modifier = Modifier.fillMaxWidth())
-        KpknTextAction(text = "Ahora no", onClick = onDismiss)
+        KpknTextAction(text = "Ahora no", onClick = { if(!saving) onDismiss() },
+            modifier = Modifier.semantics { if(saving) disabled() })
     }
 }

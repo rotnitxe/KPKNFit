@@ -3235,12 +3235,9 @@ class WorkoutViewModel(
         val base = state.session ?: return
         val exercise = sessionForActiveMode(base, state.activeMode).allExercises().firstOrNull { it.id == exerciseId } ?: return
         if (repository.getProgramById(programId) == null) {
-            updateExerciseDefinitionConfirmed(exerciseId, false, { current -> current.copy(referenceTrainingMax = kg,
-                sets = current.sets.map { set ->
-                    if (set.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM && set.completedReps == null)
-                        com.example.kpkn.domain.calculations.percentLoadKg(current.copy(referenceTrainingMax = kg), set)
-                            ?.let { set.copy(weight = it) } ?: set else set
-                }) }, persistReferences = false)
+            sessionWithConfirmedTrainingMax(state, null, exercise, kg)?.let {
+                applySessionMutation(it, preferredExerciseId = exerciseId)
+            }
             return
         }
         // Save first; only a successful durable update changes the live session and clears the preparation request.
@@ -3252,14 +3249,12 @@ class WorkoutViewModel(
                     repository.rematerializeExerciseReferences(captured)
                 }
                 if (saved) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    updateExerciseDefinitionConfirmed(exerciseId, false, { current ->
-                        val referenced = current.copy(referenceTrainingMax = kg)
-                        referenced.copy(sets = referenced.sets.map { set ->
-                            if (set.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM && set.completedReps == null)
-                                com.example.kpkn.domain.calculations.percentLoadKg(referenced, set)?.let { set.copy(weight = it) } ?: set
-                            else set
-                        })
-                    }, persistReferences = false)
+                    val current = _uiState.value
+                    if(current.startTimeMs != state.startTimeMs || current.session?.id != state.session?.id)
+                        return@withContext
+                    sessionWithConfirmedTrainingMax(current, repository.getProgramById(programId), exercise, kg)?.let {
+                        applySessionMutation(it, preferredExerciseId = exerciseId)
+                    }
                 } else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { showWorkoutToast("No se pudo guardar el TM. Tu referencia anterior se conserva.") }
             } catch (failure: Exception) {
                 if (failure is kotlinx.coroutines.CancellationException) throw failure

@@ -13,6 +13,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.*
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -35,14 +37,14 @@ class Cal5bTrainingMaxUiTest {
     private var confirmed: Double? = null
     private var dismissed = false
 
-    private fun mount(height: Int = 880, fontScale: Float = 1f) {
+    private fun mount(height: Int = 880, fontScale: Float = 1f, error: String? = null) {
         rule.setContent {
             host = LocalView.current
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
                 Box(Modifier.requiredSize(360.dp, height.dp).background(Color.Black).testTag("cal5b-scene")) {
                     TrainingMaxEntryBody("Press militar", suggestedKg = 72.0, fraction = 0.9,
-                        onConfirm = { confirmed = it }, onDismiss = { dismissed = true }, missing = true)
+                        onConfirm = { confirmed = it }, onDismiss = { dismissed = true }, missing = true, error = error)
                 }
             }
         }
@@ -92,4 +94,23 @@ class Cal5bTrainingMaxUiTest {
     @Test fun preparation880font130() = render(880, 1.3f)
     @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun preparation740font100() = render(740, 1f)
     @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun preparation740font130() = render(740, 1.3f)
+    private fun retryAt(height: Int) {
+        mount(height,1.3f,error = "No se pudo guardar el TM. Tu valor sigue aqu\u00ed; puedes reintentar.")
+        val retry = rule.onNodeWithText("Reintentar TM").performScrollTo().assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+        val results = mutableListOf<TextLayoutResult>()
+        retry.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(results) }
+        val layout = results.single()
+        assertEquals("Reintentar TM",layout.layoutInput.text.text)
+        assertFalse(layout.didOverflowHeight)
+        assertEquals(layout.layoutInput.text.length,layout.getLineEnd(layout.lineCount-1,visibleEnd = true))
+        repeat(layout.lineCount) { line ->
+            assertFalse(layout.isLineEllipsized(line))
+            assertTrue(layout.getLineLeft(line) >= -1f)
+            assertTrue(layout.getLineRight(line) <= layout.size.width+1f)
+        }
+        retry.performTouchInput { click() }
+        assertEquals(72.0,confirmed!!,0.0)
+    }
+    @Test fun retry880font130() = retryAt(880)
+    @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi") fun retry740font130() = retryAt(740)
 }
