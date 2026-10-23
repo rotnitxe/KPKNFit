@@ -3,7 +3,6 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.IntensityMode
-import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.domain.workout.isSetDone
 import com.example.kpkn.data.models.isCardio
@@ -78,7 +77,7 @@ internal fun timedStrengthStepAwaitingReport(state: WorkoutUiState, exercises: L
     if (active != null && active.type != WorkoutStepType.WORKING_SET) return null
     val exercise = exercises.getOrNull(state.currentExerciseIdx)?.takeUnless { it.isCardio } ?: return null
     val set = exercise.sets.getOrNull(state.currentSetIdx) ?: return null
-    if (set.unitModeV2 != UnitModeV2.TIME && set.targetDuration == null && exercise.trainingMode != TrainingMode.TIME) return null
+    if (liveSetUnitMode(exercise, set) != UnitModeV2.TIME) return null
     val step = active ?: steps.firstOrNull { it.type == WorkoutStepType.WORKING_SET && it.exerciseId == exercise.id && it.setIndex == state.currentSetIdx } ?: return null
     val index = step.setIndex ?: return null
     val completed = if (step.side != null) {

@@ -50,6 +50,18 @@ class LiveSetModeTest {
         assertEquals(UnitModeV2.TIME, liveSetUnitMode(exercise.copy(trainingMode = TrainingMode.TIME), set))
         assertEquals(UnitModeV2.REPS, liveSetUnitMode(exercise.copy(trainingMode = TrainingMode.TIME), set.copy(unitModeV2 = UnitModeV2.REPS)))
     }
+    @Test fun declaredModesBeatResidualMetricsAndLegacyRepsDurationStillMeansTime() {
+        val stale = set.copy(unitModeV2 = null, targetDuration = 45, plannedTargetV2 = 1.0)
+        assertEquals(UnitModeV2.CUSTOM, liveSetUnitMode(exercise.copy(trainingMode = TrainingMode.CUSTOM), stale))
+        assertEquals(UnitModeV2.TIME, liveSetUnitMode(exercise.copy(trainingMode = TrainingMode.REPS), stale))
+        assertEquals(UnitModeV2.REPS, liveSetUnitMode(exercise.copy(trainingMode = TrainingMode.REPS),
+            stale.copy(unitModeV2 = UnitModeV2.REPS)))
+        assertEquals(UnitModeV2.TIME, liveSetUnitMode(exercise.copy(trainingMode = TrainingMode.REPS),
+            stale.copy(unitModeV2 = UnitModeV2.TIME)))
+        assertEquals(UnitModeV2.REPS, liveSetUnitMode(exercise.copy(trainingMode = TrainingMode.REPS),
+            stale.copy(targetDuration = null)))
+    }
+
     @Test fun minuteSecondEntryPreservesItsMeaningAndLegacySeconds() {
         assertEquals(65, parseLiveDurationSeconds("1:05"))
         assertEquals(65, parseLiveDurationSeconds("1:5"))

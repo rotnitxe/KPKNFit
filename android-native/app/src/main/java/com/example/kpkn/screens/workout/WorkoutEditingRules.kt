@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.toUnitModeV2
 import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isSimpleProgram
@@ -160,16 +161,7 @@ object WorkoutEditingRules {
             session.exercises.joinToString(",") { it.resolvedCanonicalExerciseId().lowercase() }
         }
 
-    fun unitModeForTrainingMode(mode: TrainingMode): UnitModeV2 = when (mode) {
-        TrainingMode.TIME -> UnitModeV2.TIME
-        TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
-        TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
-        TrainingMode.REPS,
-        TrainingMode.RM,
-        TrainingMode.SOLO_RPE,
-        TrainingMode.AMRAP,
-        -> UnitModeV2.REPS
-    }
+    fun unitModeForTrainingMode(mode: TrainingMode): UnitModeV2 = mode.toUnitModeV2()
 
     fun normalizeLiveEditedExercise(exercise: Exercise): Exercise = exercise.copy(
         sets = exercise.sets.map { set -> normalizeLiveEditedSet(exercise.trainingMode, set) },

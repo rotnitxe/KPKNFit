@@ -51,6 +51,20 @@ class SessionExerciseDoseTest {
     }
 
     @Test
+    fun staleDurationIsNotShownOutsideTimeMode() {
+        val stale = ExerciseSet(id = "s", targetReps = 8, targetDuration = 45, unitModeV2 = com.example.kpkn.data.models.UnitModeV2.REPS)
+        val reps = Exercise(id = "press", name = "Press Militar", trainingMode = TrainingMode.REPS, sets = listOf(stale))
+        assertEquals("1 × 8", sessionExerciseListDose(reps, includeRest = false))
+        val legacy = Exercise(id = "legacy", name = "Plan antiguo", trainingMode = TrainingMode.REPS,
+            sets = listOf(stale.copy(unitModeV2 = null, targetReps = null)))
+        assertEquals("1 × 45 s", sessionExerciseListDose(legacy, includeRest = false))
+
+        val custom = Exercise(id = "press", name = "Press Militar", trainingMode = TrainingMode.CUSTOM,
+            customUnit = "pasos", sets = listOf(stale.copy(targetReps = null, plannedTargetV2 = 12.0, unitModeV2 = com.example.kpkn.data.models.UnitModeV2.CUSTOM)))
+        assertEquals("1 × 12 pasos", sessionExerciseListDose(custom, includeRest = false))
+    }
+
+    @Test
     fun unidadesLlevanEspacioInseparable() {
         assertEquals("20 min · Z2", hardUnitSpaces("20 min · Z2"))
         assertEquals("3 × 45 s", hardUnitSpaces("3 × 45 s"))

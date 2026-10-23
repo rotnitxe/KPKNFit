@@ -772,7 +772,7 @@ internal fun Exercise.withTrainingMode(mode: TrainingMode): Exercise = copy(
                 TrainingMode.SOLO_RPE -> changed.copy(isFailure = false, intensityMode = IntensityMode.RPE,
                     targetRPE = changed.targetRPE ?: 8.0, targetRIR = null).withoutBeyondFailureTechniques()
                 else -> changed
-            }
+            }.copy(unitModeV2 = mode.toUnitModeV2())
         }
     },
 )

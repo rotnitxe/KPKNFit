@@ -4,8 +4,8 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.resolveUnitModeV2
 
 /**
  * Lo que la sesión en vivo recuerda de cómo se hace cada serie y que, sin esta regla, pisa lo que la persona edita en el plan (LV5, bug 4).
@@ -140,12 +140,8 @@ private fun hasAnyRecord(completedSets: Map<String, *>, exerciseId: String, setI
 private fun ExerciseSet.effectiveLoadMode(): LoadModeV2 = loadModeV2 ?: LoadModeV2.LOAD
 
 /** La unidad de la serie tal como la ve la tarjeta: la guardada o, si falta, la que deduce el modo del ejercicio (reps, tiempo…). */
-private fun effectiveUnitMode(exercise: Exercise, set: ExerciseSet): UnitModeV2 = set.unitModeV2 ?: when {
-    exercise.trainingMode == TrainingMode.TIME || set.targetDuration != null -> UnitModeV2.TIME
-    exercise.trainingMode == TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
-    exercise.trainingMode == TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
-    else -> UnitModeV2.REPS
-}
+private fun effectiveUnitMode(exercise: Exercise, set: ExerciseSet): UnitModeV2 =
+    set.resolveUnitModeV2(exercise.trainingMode)
 
 /** True si [key] guarda el modo de carga de la serie [setIdx] del ejercicio: `id_serie[_L|_R]` o `id|serie|etiqueta`. */
 private fun isLoadModeKeyOfSet(key: String, exerciseId: String, setIdx: Int): Boolean =

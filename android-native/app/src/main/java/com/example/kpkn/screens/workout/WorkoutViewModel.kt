@@ -664,12 +664,7 @@ class WorkoutViewModel(
                 override fun canonicalExerciseKey(exercise: Exercise) = this@WorkoutViewModel.canonicalExerciseKey(exercise)
                 override fun inferUnitMode(exercise: Exercise, setIdx: Int): UnitModeV2 =
                     exercise.sets.getOrNull(setIdx)?.let { this@WorkoutViewModel.inferUnitMode(exercise, it) }
-                        ?: when (exercise.trainingMode) {
-                            TrainingMode.TIME -> UnitModeV2.TIME
-                            TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
-                            TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
-                            else -> UnitModeV2.REPS
-                        }
+                        ?: exercise.trainingMode.toUnitModeV2()
                 override fun effectiveLoadModeForExercise(exercise: Exercise, setIdx: Int) =
                     this@WorkoutViewModel.effectiveLoadModeForExercise(exercise, setIdx)
                 override suspend fun recordSetV2(
@@ -985,12 +980,7 @@ class WorkoutViewModel(
             val exercises = visibleExercises(s)
             val exercise = exercises.getOrNull(s.currentExerciseIdx) ?: return@provider null
             val plannedSet = exercise.sets.getOrNull(s.currentSetIdx)
-            val unitMode = plannedSet?.let { inferUnitMode(exercise, it) } ?: when (exercise.trainingMode) {
-                TrainingMode.TIME -> UnitModeV2.TIME
-                TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
-                TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
-                else -> UnitModeV2.REPS
-            }
+            val unitMode = plannedSet?.let { inferUnitMode(exercise, it) } ?: exercise.trainingMode.toUnitModeV2()
             val loadMode = effectiveLoadModeForExercise(exercise, s.currentSetIdx)
             val tagNames = s.userCreatedTags[canonicalExerciseKey(exercise)].orEmpty().map { it.name }.toSet()
             val currentStep = s.activeStepKey?.let { key -> workoutStepPositions(s).firstOrNull { it.stepKey == key } }
@@ -1550,14 +1540,8 @@ class WorkoutViewModel(
     ): List<WorkoutTag> = tagsContextController.migrateContextProfilesToTags(profiles, exerciseKey)
 
 
-    private fun inferUnitMode(exercise: Exercise, set: ExerciseSet): UnitModeV2 {
-        return set.unitModeV2 ?: when {
-            exercise.trainingMode == TrainingMode.TIME || set.targetDuration != null -> UnitModeV2.TIME
-            exercise.trainingMode == TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
-            exercise.trainingMode == TrainingMode.CUSTOM -> UnitModeV2.CUSTOM
-            else -> UnitModeV2.REPS
-        }
-    }
+    private fun inferUnitMode(exercise: Exercise, set: ExerciseSet): UnitModeV2 =
+        set.resolveUnitModeV2(exercise.trainingMode)
 
     private fun inferLoadMode(set: ExerciseSet): LoadModeV2 = set.loadModeV2 ?: LoadModeV2.LOAD
 

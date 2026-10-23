@@ -367,7 +367,7 @@ class WorkoutSetRecorder(
                 amrapPerformed = amrapActive,
                 purpose = performedPurpose,
                 amrapMinimumReps = amrapMinimumReps,
-                timerTargetSeconds = report.timerTargetSeconds ?: plannedSet?.targetDuration,
+                timerTargetSeconds = if (resolvedUnitMode == UnitModeV2.TIME) report.timerTargetSeconds ?: plannedSet?.targetDuration else null,
                 timerElapsedSeconds = report.timerElapsedSeconds,
                 failureReason = report.failureReason,
                 executionError = report.executionError,
