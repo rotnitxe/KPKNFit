@@ -235,6 +235,7 @@ internal fun SupersetSmartLoadDialog(
     var rmInputMode by remember(exercise.id, exercise.prFor1RM) { mutableStateOf(if (exercise.prFor1RM != null) "pr" else "direct") }
     // SE11: el texto de cada campo lo escribe la persona; el modelo solo lo corrige si cambia por fuera.
     var directRmInput by rememberEditableNumber(exercise.id, exercise.reference1RM)
+    var trainingMaxInput by rememberEditableNumber(exercise.id, exercise.referenceTrainingMax)
     var prWeightInput by rememberEditableNumber(exercise.id, exercise.prFor1RM?.weight)
     var prRepsInput by rememberEditableNumber(exercise.id, exercise.prFor1RM?.reps?.takeIf { it > 0 }?.toDouble())
     KpknAlertDialog(
@@ -247,6 +248,18 @@ internal fun SupersetSmartLoadDialog(
                     selectedIndex = if (rmInputMode == "pr") 1 else 0,
                     onSelect = { index -> rmInputMode = if (index == 1) "pr" else "direct" },
                 )
+                if (exercise.sets.any { it.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM }) {
+                    // Las series en %TM leen el TM, no el 1RM: tiene su propio campo.
+                    KpknTextField(
+                        value = trainingMaxInput,
+                        onValueChange = { input ->
+                            trainingMaxInput = input
+                            onUpdateExercise { it.copy(referenceTrainingMax = input.safeDoubleOrNull()?.takeIf { value -> value > 0 }) }
+                        },
+                        label = "Training max (TM)",
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    )
+                }
                 if (rmInputMode == "direct") {
                     KpknTextField(
                         value = directRmInput,
@@ -254,7 +267,7 @@ internal fun SupersetSmartLoadDialog(
                             directRmInput = input
                             onUpdateExercise { it.copy(reference1RM = input.safeDoubleOrNull()?.takeIf { value -> value > 0 }) }
                         },
-                        label = "RM referencial",
+                        label = "1RM referencial",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     )
                 } else {
@@ -298,8 +311,15 @@ internal fun SupersetSmartLoadDialog(
                     }
                 }
                 val resolved1RM = resolveReferenceCapacity(exercise)
-                val needsRmReference = exercise.sets.any { it.targetPercentageRM != null } && resolved1RM == null
-                if (needsRmReference) {
+                val missing = com.example.kpkn.domain.calculations.missingPercentReferences(exercise, resolved1RM)
+                if (missing.trainingMax) {
+                    Text(
+                        "Falta el TM para las series en %TM. Escríbelo arriba: el 1RM no lo sustituye.",
+                        style = KpknType.caption,
+                        color = WizardColors.danger,
+                    )
+                }
+                if (missing.oneRm) {
                     Text(
                         "Falta referencia para %RM. Agrega RM o PR.",
                         style = KpknType.caption,
@@ -651,6 +671,7 @@ private fun RoundExerciseSetCard(
                                 set = set,
                                 index = roundIndex,
                                 reference1RM = resolveReferenceCapacity(exercise),
+                                trainingMax = exercise.referenceTrainingMax,
                                 predictedWeight = predictedWeight,
                                 estimatedMetric = estimatedMetric,
                                 trainingMode = exercise.trainingMode,
@@ -705,6 +726,7 @@ private fun RoundExerciseSetCard(
                         set = set,
                         index = roundIndex,
                         reference1RM = resolveReferenceCapacity(exercise),
+                        trainingMax = exercise.referenceTrainingMax,
                         predictedWeight = predictedWeight,
                         estimatedMetric = estimatedMetric,
                         trainingMode = exercise.trainingMode,

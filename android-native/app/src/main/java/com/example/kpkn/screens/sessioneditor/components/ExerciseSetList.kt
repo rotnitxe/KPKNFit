@@ -90,7 +90,7 @@ internal fun ExerciseSetList(
     val unilateral = exercise.isEffectivelyUnilateral()
     val orderedSides = if (exercise.unilateralSideOrder == UnilateralSideOrder.RIGHT_LEFT) listOf("R", "L") else listOf("L", "R")
     val sharedSides = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED
-    val predictedWeights = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM, exercise.sets) {
+    val predictedWeights = remember(exercise.trainingMode, exercise.reference1RM, exercise.referenceTrainingMax, exercise.prFor1RM, exercise.sets) {
         exercise.sets.associate { set -> set.id to calculateSuggestedLoad(exercise, set) }
     }
 
@@ -163,6 +163,7 @@ internal fun ExerciseSetList(
                     set = set,
                     index = index,
                     reference1RM = reference1RM,
+                    trainingMax = exercise.referenceTrainingMax,
                     predictedWeight = predictedWeight,
                     estimatedMetric = estimatedMetric,
                     trainingMode = trainingMode,

@@ -49,8 +49,13 @@ class RecipeContractInventoryTest {
          * CEILING_AFTER_EXEMPTIONS. Cada corrección de datos posterior los baja; si una corrida da menos, la prueba imprime
          * «techo bajable a N». B.S6 parte 2c retira el espejo C7 (12 hallazgos): la ruta real convierte a %1RM
          * efectivo mediante PercentBasis. Techo 100 = C1 46 + C4 5 + C5 8 + C8 23 + C10 18.
+         * 2026-10-22 (decisión del usuario): el crudo subió a 108 con hallazgos deliberados, con fuente y ya
+         * exentos (C1 +4 del T2 de banca de nSuns por PROG; C5 +1 y C10 +3 de apre-mann por la tabla de Mann) y
+         * el remedio del propio assert —declarar la exención— no bajaba el crudo. El primer techo pasa a contar
+         * «crudo menos exentos»: hallazgos que ninguna exención declarada silencia. Baja a 18 (el C10 de apre-mann
+         * exento con ámbito w* deja 21 − 3); subir el techo crudo a 108 estaba prohibido por el ratchet B.S6.
          */
-        private const val CEILING = 100
+        private const val CEILING = 18
 
         /**
          * Segundo techo (ratchet de solo descenso): hallazgos del contrato que siguen vivos TRAS las exenciones declaradas. 2026-10-04,
@@ -249,13 +254,22 @@ class RecipeContractInventoryTest {
     @Test
     fun inventory_size_never_grows_above_the_ceiling() {
         val rows = inventory()
-        val total = rows.sumOf { it.contract.size }
-        println("[B.S6 2b] crudo: $total (${breakdown(rows.flatMap { it.contract })})")
-        if (total < CEILING) println("[B.S2] techo bajable a $total (techo actual=$CEILING)")
+        val raw = rows.sumOf { it.contract.size }
+        val nonExempt = rows.flatMap { row ->
+            row.contract.filter { finding ->
+                finding.rule in NON_EXEMPTABLE_RULES ||
+                    row.entry.declared.none { exemption ->
+                        exemption.rule == finding.rule && SessionCompositionPolicy.scopeMatches(exemption.scope, finding.scope)
+                    }
+            }
+        }
+        println("[B.S6 2b] crudo: $raw (${breakdown(rows.flatMap { it.contract })})")
+        println("[B.S6 2b] crudo menos exentos: ${nonExempt.size} (${breakdown(nonExempt)})")
+        if (nonExempt.size < CEILING) println("[B.S2] techo bajable a ${nonExempt.size} (techo actual=$CEILING)")
         assertTrue(
-            "El inventario del contrato creció: $total hallazgos superan el techo $CEILING. " +
+            "El inventario del contrato creció: ${nonExempt.size} hallazgos sin exención superan el techo $CEILING. " +
                 "Corrige el dato o, si es deliberado, declara una exención justificada (B.S6).",
-            total <= CEILING,
+            nonExempt.size <= CEILING,
         )
     }
 

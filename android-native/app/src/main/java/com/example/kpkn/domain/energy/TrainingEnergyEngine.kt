@@ -192,13 +192,23 @@ object TrainingEnergyEngine {
             return ResolvedPlannedLoad(raw, ResolvedLoadSource.EXPLICIT_WEIGHT)
         }
 
+        // El %RM se lee sobre la referencia de SU base: una serie PERCENT_TM sobre el TM declarado (sin TM no se
+        // multiplica por el 1RM); las demás bases, sobre la capacidad/1RM.
+        val usesTrainingMaxPercent = set.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM
+        if (usesTrainingMaxPercent) {
+            com.example.kpkn.domain.calculations.percentLoadKg(exercise, set)?.let { kg ->
+                return ResolvedPlannedLoad(externalLoadKg = kg, source = ResolvedLoadSource.PERCENT_1RM)
+            }
+        }
         val reference = resolveReferenceCapacity(exercise)
         if (reference != null && reference > 0.0) {
-            set.targetPercentageRM?.takeIf { it > 0.0 }?.let { pct ->
-                return ResolvedPlannedLoad(
-                    externalLoadKg = reference * pct / 100.0,
-                    source = ResolvedLoadSource.PERCENT_1RM,
-                )
+            if (!usesTrainingMaxPercent) {
+                set.targetPercentageRM?.takeIf { it > 0.0 }?.let { pct ->
+                    return ResolvedPlannedLoad(
+                        externalLoadKg = reference * pct / 100.0,
+                        source = ResolvedLoadSource.PERCENT_1RM,
+                    )
+                }
             }
             calculateWeightFrom1RMAndIntensity(reference, set)?.takeIf { it > 0.0 }?.let { raw ->
                 return ResolvedPlannedLoad(raw, ResolvedLoadSource.ONE_RM_INTENSITY)

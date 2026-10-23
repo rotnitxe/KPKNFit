@@ -47,12 +47,15 @@ internal fun Session.withExplicitRmLoads(previous: Session): Session {
 internal fun Exercise.withExplicitRmLoads(previous: Exercise): Exercise {
     if (trainingMode != TrainingMode.RM) return this
     val switchedToRm = previous.trainingMode != TrainingMode.RM
-    val referenceChanged = resolveReferenceCapacity(previous) != resolveReferenceCapacity(this)
+    // Cada base tiene su referencia: cambiar el 1RM recalcula las series en %1RM y cambiar el TM las series en %TM.
+    val oneRmChanged = resolveReferenceCapacity(previous) != resolveReferenceCapacity(this)
+    val trainingMaxChanged = previous.referenceTrainingMax != referenceTrainingMax
     val previousSets = previous.sets.associateBy { it.id }
     return copy(
         sets = sets.map { set ->
             val old = previousSets[set.id] ?: return@map set
             val percentChanged = old.targetPercentageRM != set.targetPercentageRM
+            val referenceChanged = if (set.loadBasis == LoadBasis.PERCENT_TM) trainingMaxChanged else oneRmChanged
             if (switchedToRm || referenceChanged || percentChanged) set.withRmLoad(this) else set
         },
     )

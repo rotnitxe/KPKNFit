@@ -93,12 +93,14 @@ object MuscularSessionImpactEngine {
         val planned = session.allExercises().mapNotNull { exercise ->
             val sets = exercise.sets.mapNotNull { set ->
                 if (set.isIneffective || set.isEmptySlot) return@mapNotNull null
-                val weight = when {
-                    exercise.trainingMode == com.example.kpkn.data.models.TrainingMode.RM &&
-                        set.targetPercentageRM != null && exercise.reference1RM != null && exercise.reference1RM > 0.0 ->
-                        set.targetPercentageRM / 100.0 * exercise.reference1RM
-                    else -> set.weight ?: 60.0
-                }
+                // %RM sobre la referencia de SU base: PERCENT_TM lee el TM, el resto el 1RM.
+                val weight = (
+                    if (exercise.trainingMode == com.example.kpkn.data.models.TrainingMode.RM) {
+                        com.example.kpkn.domain.calculations.percentLoadKg(exercise, set)
+                    } else {
+                        null
+                    }
+                    ) ?: set.weight ?: 60.0
                 CompletedSet(
                     id = set.id,
                     weight = weight,

@@ -33,6 +33,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.domain.calculations.missingPercentReferences
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.components.sheets.formatDecimalComma
@@ -157,7 +158,7 @@ KpknAlertDialog(
                 }
                 if (rmInputMode == "direct") {
                     EditorKpknField(
-                        label = "RM referencial",
+                        label = "1RM referencial",
                         value = directRmInput,
                         keyboardType = KeyboardType.Decimal,
                         modifier = Modifier.fillMaxWidth(),
@@ -251,8 +252,16 @@ KpknAlertDialog(
                     }
                 }
             }
-            val needsRmReference = exercise.sets.any { it.targetPercentageRM != null } && resolved1RM == null
-            if (needsRmReference) {
+            // Cada base avisa de SU falta: un TM no sustituye a un 1RM ni al revés.
+            val missing = missingPercentReferences(exercise, resolved1RM)
+            if (missing.trainingMax) {
+                Text(
+                    "Falta el TM para las series en %TM. Escríbelo arriba: el 1RM no lo sustituye.",
+                    style = KpknType.caption,
+                    color = WizardColors.danger,
+                )
+            }
+            if (missing.oneRm) {
                 Text(
                     "Falta referencia para %RM. Agrega RM directo o PR para autocompletar cargas.",
                     style = KpknType.caption,

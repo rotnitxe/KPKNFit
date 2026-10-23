@@ -223,11 +223,9 @@ object SessionAssistantEngine {
                 totalSpinalLoad += info.axialLoadFactor ?: 0.0
                 accumulated++
 
-                val calculatedWeight = if (exercise.trainingMode == TrainingMode.RM && set.targetPercentageRM != null && exercise.reference1RM != null && exercise.reference1RM!! > 0.0) {
-                    (set.targetPercentageRM / 100.0) * exercise.reference1RM!!
-                } else {
-                    set.weight ?: 60.0
-                }
+                // %RM sobre la referencia de SU base: PERCENT_TM lee el TM, el resto el 1RM.
+                val calculatedWeight = (if (exercise.trainingMode == TrainingMode.RM) com.example.kpkn.domain.calculations.percentLoadKg(exercise, set) else null)
+                    ?: set.weight ?: 60.0
                 val completedSet = CompletedSet(
                     id = set.id,
                     weight = calculatedWeight,

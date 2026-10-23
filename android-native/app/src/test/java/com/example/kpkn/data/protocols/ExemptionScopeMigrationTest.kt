@@ -25,6 +25,9 @@ import org.junit.Test
  * equivalente en la semántica antigua (`contains` / `==`). `scopeUniverse` conoce ahora los
  * ámbitos de las reglas C (por slot, por semana, por día, `recipe`), para que la equivalencia
  * estructural de un ámbito de slot o de semana no sea vacía.
+ *
+ * INV (2026-10-22): la C10 de `apre-mann` (semanas idénticas de cada bloque de cuatro por diseño,
+ * tabla de Mann) se anota igual con su equivalente antiguo para el glob anclado `w*`.
  */
 class ExemptionScopeMigrationTest {
     companion object {
@@ -130,7 +133,9 @@ class ExemptionScopeMigrationTest {
         "gzcl-jt-2" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         "gzcl-rippler" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         "gzcl-uhf-9" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
-        "apre-mann" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
+        // INV: la C10 de APRE (semanas idénticas de cada bloque de cuatro por diseño, tabla de Mann) con el
+        // equivalente antiguo del glob anclado «w*»: el contains "w" cubre w1…w12 igual que el anclado.
+        "apre-mann" to listOf("C5_DELOAD_REQUIRED" to "recipe", "C10_IDENTICAL_WEEKS" to "w"),
         "cube-method" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         "calgary-16" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID to phulAuthoredLegacy,

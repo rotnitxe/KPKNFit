@@ -566,9 +566,12 @@ internal fun computeSessionAugeComputation(
             val effectiveRpe = set.effectiveTargetRpe()
             rpeSum += effectiveRpe
             rpeCount++
-            if (exercise.trainingMode == TrainingMode.RM && set.targetPercentageRM != null) {
-                rmSum += set.targetPercentageRM / 100.0
-                rmCount++
+            // La intensidad media se expresa en %1RM: un %TM se convierte con el TM y el 1RM declarados (sin ambos no se mide).
+            if (exercise.trainingMode == TrainingMode.RM) {
+                com.example.kpkn.domain.calculations.percentOfOneRm(exercise, set)?.let { percent1Rm ->
+                    rmSum += percent1Rm / 100.0
+                    rmCount++
+                }
             }
 
             val volumeMultiplier = AugeClassifiers.getEffectiveVolumeMultiplier(effectiveRpe)

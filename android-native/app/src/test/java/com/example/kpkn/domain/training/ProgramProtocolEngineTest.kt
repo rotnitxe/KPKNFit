@@ -242,12 +242,23 @@ class ProgramProtocolEngineTest {
             .flatMap { it.sets }.mapNotNull { it.targetPercentageRM }.average()
         assertTrue("Taper debe reducir %RM respecto a Peak", taperMainPct < peakMainPct)
 
+        // FIX-TM: `reference1RM` es SIEMPRE el 1RM. Esta prueba comparaba 1RM × % sobre una serie que el protocolo
+        // declara en %TM (mezcla de significados anterior a CAL1). Ahora cada base se comprueba por separado.
         val anchoredMain = firstWeek.sessions.first().allExercises().first()
-            .copy(reference1RM = 200.0)
+            .copy(reference1RM = 200.0, referenceTrainingMax = null)
         val anchoredSet = anchoredMain.sets.first()
-        assertEquals(200.0 * (anchoredSet.targetPercentageRM ?: 0.0) / 100.0,
-            calculateSuggestedLoad(anchoredMain, anchoredSet) ?: -1.0,
-            0.0001)
+        val percent = anchoredSet.targetPercentageRM ?: 0.0
+        assertTrue("El primer set del protocolo lleva porcentaje", percent > 0.0)
+        // Serie en %1RM: lee el 1RM (200).
+        val setOnOneRm = anchoredSet.copy(loadBasis = com.example.kpkn.data.protocols.LoadBasis.PERCENT_1RM)
+        assertEquals(200.0 * percent / 100.0, calculateSuggestedLoad(anchoredMain, setOnOneRm) ?: -1.0, 0.0001)
+        // Serie en %TM sin TM declarado: pendiente (el 1RM no hace de TM ni se deduce un TM del 1RM).
+        val setOnTm = anchoredSet.copy(loadBasis = com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM)
+        assertNull(calculateSuggestedLoad(anchoredMain, setOnTm))
+        // Serie en %TM con TM declarado (180): lee el TM aunque el 1RM sea 200.
+        val withTm = anchoredMain.copy(referenceTrainingMax = 180.0)
+        assertEquals(180.0 * percent / 100.0, calculateSuggestedLoad(withTm, setOnTm) ?: -1.0, 0.0001)
+        assertEquals(200.0 * percent / 100.0, calculateSuggestedLoad(withTm, setOnOneRm) ?: -1.0, 0.0001)
     }
 
     @Test
@@ -265,9 +276,14 @@ class ProgramProtocolEngineTest {
         val main = applied.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
             .sessions.flatMap { it.allExercises() }
             .filter { it.isCompetitionLift }
-        assertTrue(main.all { it.reference1RM != null && it.reference1RM in setOf(180.0, 108.0, 198.0) })
+        // FIX-TM: las metas son 1RM (200/120/220): `reference1RM` los conserva tal cual y los TM (90 %: 180/108/198)
+        // van en `referenceTrainingMax`. Antes de CAL1 esta prueba leía el TM dentro de `reference1RM`.
+        assertTrue(main.all { it.reference1RM != null && it.reference1RM in setOf(200.0, 120.0, 220.0) })
+        assertTrue(main.all { it.referenceTrainingMax != null && it.referenceTrainingMax in setOf(180.0, 108.0, 198.0) })
         val squat = main.first { it.catalogConfigurationId == "low_bar_back_squat__barbell" }
-        assertEquals(180.0 * (squat.sets.first().targetPercentageRM ?: 0.0) / 100.0,
+        val squatPercent = squat.sets.first().targetPercentageRM ?: 0.0
+        val squatBase = if (squat.sets.first().loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM) 180.0 else 200.0
+        assertEquals(squatBase * squatPercent / 100.0,
             calculateSuggestedLoad(squat, squat.sets.first()) ?: -1.0, 0.0001)
 
         val withoutGoals = ProgramProtocolEngine.applyProtocol(
