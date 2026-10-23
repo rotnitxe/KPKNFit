@@ -2,6 +2,15 @@
 
 Estado: **parcial; Fase 5 aún no aprobada**. Este registro distingue el APK preparado, su instalación y lo observado en el flujo real. No incluye la aceptación competitiva ni el anexo de REA/voz en vivo, que son posentrega.
 
+**Reparación de entorno preparada · 16:25UTC:** commit531eb0b06 conserva Room29 y asigna solo a `.dbg` una DB aislada,
+`kpkn-vt-qa-v29.db`, sin leer/borrar/mover la base30 anterior; la app oficial mantiene `kpkn.db`. Backup/restore comparten
+el nombre y un prefijoQA de snapshots, preservando la ruta plana de rollback. Tres pruebas nuevas pasaron y R8 compiló
+SUCCESS14m1. APK nuevo `C:/kw/vt-mmfit/apks/r8-vt-qa-db-isolation-v51-20261023/app-base-release-r8-dbg.apk`,
+SHA7462ed2df7563920000db403f4fdcb2f54cf5647fc95f665e1e3a6f8c22359cd; atestación
+SHA5a4f33232471cc9cdbbaddfc8a0564fc17599e653dc5f923a54436e590e5cda6. **No instalado ni validado físicamente:**
+phone_run no detectó elZFlip en la comprobaciónposterior y no ejecutó instalación/arranque. Las observaciones inferiores
+pertenecen a los APK anteriores; no acreditan arranque, perfilnuevo, FULL ni privacidad de este APK aislado.
+
 **Corrección posterior: PC aprobado; runtime pendiente (15:04 UTC):** el código `69f10a0e3` normaliza la confianza propia de parciales
 tras degradaciones de la confianza global y al leer sidecars previos, sin cambiar conteos, zonas ni amplitudes ni
 reescribir informes históricos. Sus151pruebas afectadas pasaron y R8 compiló/recibió atestación pública; todavía no se instaló y no es el APK observado en estas capturas.
