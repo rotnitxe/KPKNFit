@@ -252,7 +252,10 @@ internal fun LiveRmFocus(
         Column(Modifier.weight(1f)) {
             Text(referenceLabel, Modifier.clickable { editing = true }, style = KpknType.caption.copy(fontSize = 10.sp, lineHeight = 14.sp), color = WizardColors.textMuted)
             prLabel?.let { Text(it, style = KpknType.caption.copy(fontSize = 10.sp, lineHeight = 14.sp), color = WizardColors.textMuted) }
-            values.trainingMax?.let { Text("TM: ${it.toLiveNumberString()} kg", style = KpknType.caption.copy(fontSize = 10.sp, lineHeight = 14.sp), color = WizardColors.textMuted) }
+            values.trainingMax?.let { tm -> Text(
+                if (values.usesTrainingMax) "${values.percent.toLivePercentString()} % de tu TM (${tm.toLiveNumberString()}) → ${values.weight?.toLiveNumberString() ?: "—"} kg"
+                else "TM: ${tm.toLiveNumberString()} kg",
+                style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 16.sp), color = WizardColors.textMuted) }
         }
         if (editing) modeButton()
     }

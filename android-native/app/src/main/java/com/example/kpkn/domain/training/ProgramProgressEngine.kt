@@ -436,8 +436,8 @@ object ProgramProgressEngine {
             new = tested,
             trainingMaxPercent = TrainingMaxMerge.trainingMaxPercentOf(program),
         )
-        if (merged == program.powerliftingProfile) return program
-        val withProfile = program.copy(powerliftingProfile = merged)
+        val withProfile = ExerciseTrainingMax.captureTestProfile(program.copy(powerliftingProfile = merged), resolution)
+        if (merged == program.powerliftingProfile) return withProfile
         val recipe = program.sourceRecipe ?: return withProfile
         return withProfile.copy(
             macrocycles = withProfile.macrocycles.map { macro ->

@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.repository.withConfirmedExerciseReferences
 import com.example.kpkn.data.exercises.isExerciseCatalogV2RuntimeReady
 import com.example.kpkn.data.exercises.catalogv2.catalogV2SelectionIssues
 
@@ -557,7 +558,9 @@ suspend fun SessionEditorViewModel.saveSession(
                         transferOutcome = transfers
                         val written = transfers?.program ?: updatedProgram
                         val frozenSource = freezeManualEdits(written, state, draft, effectiveScope, templateOverrideIds)
-                        val candidate = transfers?.copy(program = frozenSource)?.freezeTransferredSessionOverrides() ?: frozenSource
+                        val frozen = transfers?.copy(program = frozenSource)?.freezeTransferredSessionOverrides() ?: frozenSource
+                        val candidate = repository.withConfirmedExerciseReferences(current, frozen, draft.allExercises(),
+                            System.currentTimeMillis(), "editor:${UUID.randomUUID()}", "Referencia confirmada al guardar la sesión")
                         candidateProgram = candidate
                         candidate
                     }

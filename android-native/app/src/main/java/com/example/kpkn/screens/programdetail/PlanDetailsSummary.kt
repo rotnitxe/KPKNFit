@@ -168,6 +168,7 @@ internal fun trainingMaxLine(profile: PowerliftingProfile?): String? {
         trainingMaxValue(profile?.squatTM)?.let { "sentadilla $it" },
         trainingMaxValue(profile?.benchTM)?.let { "banca $it" },
         trainingMaxValue(profile?.deadliftTM)?.let { "peso muerto $it" },
+        trainingMaxValue(profile?.overheadTM)?.let { "press militar $it" },
     )
     if (parts.isEmpty()) return null
     return "TM: " + parts.joinToString(" · ") + " kg"
