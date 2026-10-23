@@ -1,5 +1,6 @@
 package com.example.kpkn.data.media.technique
 
+import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.domain.biomechanics.metrics.SetTechniqueReport
 import com.example.kpkn.domain.biomechanics.profiles.ExerciseRef
 import kotlinx.serialization.Serializable
@@ -26,6 +27,17 @@ data class AnalysisSidecar(
     val setKey: String? = null,
     val analyzedAtMs: Long,
 )
+
+/** La confianza propia de las parciales no puede superar la confianza general del informe. */
+internal fun SetTechniqueReport.capPartialConfidenceAtOverall(): SetTechniqueReport {
+    val partial = partialConfidence ?: return this
+    val capped = when {
+        confidence == CountConfidence.BAJA -> CountConfidence.BAJA
+        confidence == CountConfidence.MEDIA && partial == CountConfidence.ALTA -> CountConfidence.MEDIA
+        else -> partial
+    }
+    return if (capped == partial) this else copy(partialConfidence = capped)
+}
 
 /**
  * Los archivos que el análisis de técnica deja junto al vídeo, en `workout_media/yyyy-MM/` (§3.8), y cómo se leen y se
@@ -153,7 +165,9 @@ object TechniqueSidecars {
 
     /** Escribe `<id>.analysis.json` de forma atómica. */
     fun writeAnalysis(file: File, sidecar: AnalysisSidecar) {
-        writeAtomically(file, codec.encodeToString(AnalysisSidecar.serializer(), sidecar).toByteArray(Charsets.UTF_8))
+        val normalized = sidecar.copy(report = sidecar.report.capPartialConfidenceAtOverall())
+        val bytes = codec.encodeToString(AnalysisSidecar.serializer(), normalized).toByteArray(Charsets.UTF_8)
+        writeAtomically(file, bytes)
     }
 
     fun writeAnalysis(
@@ -184,6 +198,7 @@ object TechniqueSidecars {
             return null
         }
         return sidecar.takeIf { it.summaryVersion in 1..SUMMARY_VERSION }
+            ?.let { it.copy(report = it.report.capPartialConfidenceAtOverall()) }
     }
 
     /**

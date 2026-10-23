@@ -518,6 +518,13 @@ class TechniqueAnalysisPipelineTest {
         val plain = engineOn(storedPose(video))
         val expected = if (plain.confidence == CountConfidence.ALTA) CountConfidence.MEDIA else plain.confidence
         assertEquals(expected, report.confidence)
+        val expectedPartialConfidence = when {
+            plain.partialConfidence == null -> null
+            expected == CountConfidence.BAJA -> CountConfidence.BAJA
+            expected == CountConfidence.MEDIA && plain.partialConfidence == CountConfidence.ALTA -> CountConfidence.MEDIA
+            else -> plain.partialConfidence
+        }
+        assertEquals("la confianza propia tampoco supera la degradación del pipeline", expectedPartialConfidence, report.partialConfidence)
         assertTrue(report.confidence != CountConfidence.ALTA)
         assertEquals(VideoDecodePath.RETRIEVER, stats.single().decodePath)
 

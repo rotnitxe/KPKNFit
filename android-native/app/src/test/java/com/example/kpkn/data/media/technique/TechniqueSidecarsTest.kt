@@ -1,6 +1,11 @@
 package com.example.kpkn.data.media.technique
 
+import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
+import com.example.kpkn.domain.biomechanics.metrics.PartialZone
+import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.domain.biomechanics.metrics.SetTechniqueReport
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -106,6 +111,72 @@ class TechniqueSidecarsTest {
         assertEquals("squat_2_L", back?.setKey)
         assertEquals(1_780_000_123_456L, back?.analyzedAtMs)
         assertFalse("no debe quedar el temporal", File(file.parentFile, "m1.analysis.json.tmp").exists())
+    }
+
+    @Test
+    fun writing_a_sidecar_caps_partial_confidence_at_the_overall_confidence() {
+        val file = File(folder.root, "m1.analysis.json")
+        val inconsistent = report.copy(
+            confidence = CountConfidence.MEDIA,
+            partialConfidence = CountConfidence.ALTA,
+        )
+
+        TechniqueSidecars.writeAnalysis(file, sidecar(inconsistent))
+
+        assertTrue(file.readText(Charsets.UTF_8).contains("\"partialConfidence\":\"MEDIA\""))
+        assertEquals(CountConfidence.MEDIA, TechniqueSidecars.readAnalysis(file)?.report?.partialConfidence)
+    }
+
+    @Test
+    fun reading_a_historical_sidecar_caps_only_partial_confidence_and_does_not_rewrite_it() {
+        val file = File(folder.root, "historical.analysis.json")
+        val inconsistent = report.copy(
+            confidence = CountConfidence.MEDIA,
+            partialConfidence = CountConfidence.ALTA,
+            reps = report.reps.map { rep ->
+                if (rep.kind == RepKind.PARTIAL) rep.copy(
+                    zone = PartialZone.STRETCHED,
+                    amplitudeFraction = 0.55,
+                    amplitude = 0.44,
+                ) else rep
+            },
+        )
+        val json = Json {
+            encodeDefaults = true
+            allowSpecialFloatingPointValues = true
+        }
+        val originalBytes = json.encodeToString(AnalysisSidecar.serializer(), sidecar(inconsistent))
+        file.writeText(originalBytes, Charsets.UTF_8)
+
+        val back = TechniqueSidecars.readAnalysis(file)!!
+
+        assertEquals(CountConfidence.MEDIA, back.report.partialConfidence)
+        assertEquals(CountConfidence.MEDIA, back.report.confidence)
+        assertEquals(inconsistent.repCount, back.report.repCount)
+        assertEquals(inconsistent.partialReps, back.report.partialReps)
+        assertEquals(inconsistent.reps, back.report.reps)
+        assertEquals(inconsistent.fullAmplitude, back.report.fullAmplitude)
+        assertEquals(
+            "la lectura no modifica el sidecar guardado",
+            originalBytes,
+            file.readText(Charsets.UTF_8),
+        )
+    }
+
+    @Test
+    fun normalization_preserves_low_and_legacy_unknown_partial_confidence() {
+        val low = report.copy(confidence = CountConfidence.MEDIA, partialConfidence = CountConfidence.BAJA)
+        val globalLow = report.copy(confidence = CountConfidence.BAJA, partialConfidence = CountConfidence.ALTA)
+        val legacy = report.copy(confidence = CountConfidence.MEDIA, partialConfidence = null)
+        val high = report.copy(confidence = CountConfidence.ALTA, partialConfidence = CountConfidence.ALTA)
+        val mediumPartial = report.copy(confidence = CountConfidence.ALTA, partialConfidence = CountConfidence.MEDIA)
+
+        assertEquals(CountConfidence.BAJA, low.capPartialConfidenceAtOverall().partialConfidence)
+        assertEquals(globalLow.copy(partialConfidence = CountConfidence.BAJA), globalLow.capPartialConfidenceAtOverall())
+        assertNull(legacy.capPartialConfidenceAtOverall().partialConfidence)
+        assertEquals(CountConfidence.MEDIA, legacy.capPartialConfidenceAtOverall().confidence)
+        assertEquals(high, high.capPartialConfidenceAtOverall())
+        assertEquals(mediumPartial, mediumPartial.capPartialConfidenceAtOverall())
     }
 
     @Test

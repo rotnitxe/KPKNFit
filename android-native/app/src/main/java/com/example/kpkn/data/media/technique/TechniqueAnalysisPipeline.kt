@@ -920,7 +920,9 @@ class TechniqueAnalysisPipeline internal constructor(
         } else {
             report.confidence
         }
-        return if (flags == report.flags && capped == report.confidence) report else report.copy(flags = flags, confidence = capped)
+        val adjusted = if (flags == report.flags && capped == report.confidence) report
+        else report.copy(flags = flags, confidence = capped)
+        return adjusted.capPartialConfidenceAtOverall()
     }
 
     companion object {
