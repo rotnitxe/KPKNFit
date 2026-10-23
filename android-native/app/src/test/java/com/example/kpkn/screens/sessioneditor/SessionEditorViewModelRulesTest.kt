@@ -587,6 +587,44 @@ class SessionEditorViewModelRulesTest {
     }
 
     @Test
+    fun guardarPlantillaExplicaLaDosisIncompletaYPermiteGuardarTrasCorregirla() = runBlocking {
+        val programId = "template-actionable-validation"
+        val sessionId = "template-actionable-validation-session"
+        repository.addProgram(programWithSession(programId, Session(
+            id = sessionId,
+            name = "Sesión incompleta",
+            exercises = listOf(Exercise(id = "incomplete-exercise", name = "Press militar",
+                sets = listOf(ExerciseSet("incomplete-set")))),
+        )))
+        val vm = createViewModel(programId, sessionId)
+        awaitSession(vm)
+        suspend fun save() = executeUserTemplateSave("QA Torso", "") { name, description ->
+            vm.saveCurrentSessionAsTemplateNow(name, description)
+        }
+        val invalid = save()
+        assertTrue(invalid is UserTemplateSaveState.Error)
+        assertEquals("Completa la dosis de los ejercicios y las modalidades antes de guardar la plantilla.",
+            (invalid as UserTemplateSaveState.Error).message)
+        val templates = SessionTemplateRepository.getInstance(ApplicationProvider.getApplicationContext())
+        assertTrue(templates.userTemplates.value.none { it.name == "QA Torso" })
+        vm.updateSet(null, "incomplete-exercise", "incomplete-set") { it.copy(targetReps = 8) }
+        val saved = save()
+        assertTrue(saved is UserTemplateSaveState.Success)
+        val template = (saved as UserTemplateSaveState.Success).template
+        try {
+            assertEquals(8, templates.getByIdAfterReady(template.id)!!.session!!.allExercises().single().sets.single().targetReps)
+            assertEquals("", template.description)
+        } finally {
+            templates.deleteUserTemplateNow(template.id)
+        }
+        val storageFailure = executeUserTemplateSave("QA Torso", "") { _, _ ->
+            Result.failure(IllegalStateException("detalle interno no visible"))
+        }
+        assertEquals("No se pudo guardar la plantilla. Inténtalo de nuevo.",
+            (storageFailure as UserTemplateSaveState.Error).message)
+    }
+
+    @Test
     fun saveCurrentSessionAsTemplate_rejects_mixed_valid_and_placeholder_strength_cards() = runBlocking {
         val programId = "program-template-mixed-invalid"
         val sessionId = "session-template-mixed-invalid"
