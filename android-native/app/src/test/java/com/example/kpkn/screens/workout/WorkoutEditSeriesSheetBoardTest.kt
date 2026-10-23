@@ -1,5 +1,7 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.workout.WorkoutStructuralEditor
+import com.example.kpkn.data.models.SessionPart
 import android.app.Application
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue

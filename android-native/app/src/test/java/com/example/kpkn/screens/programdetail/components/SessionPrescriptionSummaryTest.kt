@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.programdetail.components
 
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.LoadQuantityConvention
