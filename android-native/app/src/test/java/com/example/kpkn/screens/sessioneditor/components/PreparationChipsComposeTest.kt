@@ -515,12 +515,12 @@ class PreparationChipsComposeTest {
             }
         }
         rule.onNode(hasSetTextAction() and hasAnyAncestor(hasTestTag("mobility-picker-search")), useUnmergedTree = true).performTextReplacement("zzzzzzkpknqa")
-        rule.onNodeWithTag("mobility-picker-empty").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("mobility-picker-empty", useUnmergedTree = true).performScrollTo().assertIsDisplayed()
         rule.onNode(hasSetTextAction() and hasAnyAncestor(hasTestTag("mobility-picker-search")), useUnmergedTree = true).performTextReplacement(movement.name)
-        rule.onNodeWithTag("mobility-picker-empty").assertDoesNotExist()
+        rule.onNodeWithTag("mobility-picker-empty", useUnmergedTree = true).assertDoesNotExist()
         val movementTag = "mobility-picker-item-${movement.id}"
-        rule.onNodeWithTag(movementTag).performScrollTo().assertIsDisplayed()
-        rule.onNode(hasText("Añadir") and hasAnyAncestor(hasTestTag(movementTag)))
+        rule.onNodeWithTag(movementTag, useUnmergedTree = true).performScrollTo().assertIsDisplayed()
+        rule.onNode(hasText("Añadir") and hasAnyAncestor(hasTestTag(movementTag)), useUnmergedTree = true)
             .performScrollTo().performClick()
         assertEquals(movement.id, addedId)
     }

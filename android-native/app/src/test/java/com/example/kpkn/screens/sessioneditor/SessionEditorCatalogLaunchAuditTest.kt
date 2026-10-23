@@ -98,11 +98,25 @@ class SessionEditorCatalogLaunchAuditTest {
         repo.clearActiveProgram()
         repo.clearOngoingWorkout()
         val programId = "variant-week-program-${UUID.randomUUID()}"
+        val baseExercise = catalogExerciseForSession(
+            info = ExerciseMuscleInfo(
+                id = "bench_press__standard",
+                name = "Press banca",
+                catalogRevision = "v2-test",
+                catalogDefinitionId = "bench_press",
+                catalogConfigurationId = "bench_press__standard",
+                performanceProfileId = "profile-bench_press__standard",
+            ),
+            history = emptyList(),
+            defaults = SessionEditorRuleDefaults(),
+            isMeetDay = false,
+        ).copy(sets = listOf(ExerciseSet(id = "variant-week-base-set", targetReps = 8)))
         val baseSession = Session(
             id = "variant-week-base-${UUID.randomUUID()}",
             name = "AOriginal",
             dayOfWeek = 6,
             isMainSession = true,
+            exercises = listOf(baseExercise),
             sessionB = Session(id = "variant-week-b", name = "Sesión Sábado–Rápida", dayOfWeek = 6),
             sessionC = Session(id = "variant-week-c", name = "QAC", dayOfWeek = 6),
             sessionD = Session(id = "variant-week-d", name = "QAD", dayOfWeek = 6),
@@ -136,6 +150,7 @@ class SessionEditorCatalogLaunchAuditTest {
             }
         }
         rule.waitUntil(10_000) { firstEditor.currentUiState.session != null }
+        assertEquals(8, firstEditor.currentUiState.activeVariantSession?.exercises?.single()?.sets?.single()?.targetReps)
         rule.onNodeWithText("AOriginal", useUnmergedTree = true).assertIsDisplayed()
         rule.onNodeWithTag("session_editor_open_week").performClick()
         (1..7).forEach { day -> rule.onNodeWithTag("session_week_day_$day").assertIsDisplayed() }
