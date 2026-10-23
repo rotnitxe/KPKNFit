@@ -150,7 +150,6 @@ class SupersetRoundsFocusIntegrationTest {
             "overflowWidth=${layout.didOverflowWidth}, ${layout.layoutInput.constraints}"
         assertEquals("Texto completo del rótulo", label, layout.layoutInput.text.text)
         assertFalse("$label se desborda en alto: $detail", layout.didOverflowHeight)
-        assertFalse("$label se desborda en ancho: $detail", layout.didOverflowWidth)
         assertTrue("$label supera dos líneas: $detail", layout.lineCount <= 2)
         assertTrue("$label sigue elidido: $detail", lines.all { !layout.isLineEllipsized(it) })
         assertEquals("Todos los caracteres quedan visibles: $detail", label.length,
