@@ -5,6 +5,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import kotlinx.coroutines.CompletableDeferred
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.*
@@ -84,18 +86,20 @@ class Cal5bTrainingMaxPanelTest {
         rule.onNode(hasSetTextAction()).performTextReplacement("95")
         rule.onNodeWithText("Confirmar TM").performTouchInput { click() }
         rule.onNodeWithText("Guardando TM…").assertIsDisplayed().assertIsNotEnabled()
-        rule.onNode(hasSetTextAction()).assertIsNotEnabled()
+        val draft95 = SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("95"))
+        rule.onNode(draft95).assertExists().assertIsNotEnabled()
         assertEquals(1,calls)
         rule.runOnIdle { result!!.complete(Result.failure(IllegalStateException("Room"))) }
         rule.waitForIdle()
-        rule.onNode(hasSetTextAction()).assertTextEquals("95")
+        rule.onNode(draft95).assertExists().assertIsEnabled()
         rule.onNodeWithText("No se pudo guardar el TM.",substring = true).assertIsDisplayed()
         rule.runOnIdle { result = CompletableDeferred() }
         rule.onNodeWithText("Reintentar TM").performTouchInput { click() }
         assertEquals(2,calls); assertEquals(95.0,saved!!.second,0.0)
-        rule.onNode(hasSetTextAction()).assertExists()
+        rule.onNode(draft95).assertExists().assertIsNotEnabled()
         rule.runOnIdle { result!!.complete(Result.success(Unit)) }
         rule.waitForIdle()
-        rule.onNode(hasSetTextAction()).assertDoesNotExist()
+        rule.onNode(draft95).assertDoesNotExist()
+        rule.onNodeWithText("Reintentar TM").assertDoesNotExist()
     }
 }

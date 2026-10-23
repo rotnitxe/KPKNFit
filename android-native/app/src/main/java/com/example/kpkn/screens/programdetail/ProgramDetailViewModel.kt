@@ -1492,26 +1492,34 @@ class ProgramDetailViewModel(
     }
 
     fun rematerializePending() {
-        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            try {
-                var failed = false
-                repository.mutateProgramNow(programId) { current ->
-                    val recipe = current.sourceRecipe ?: return@mutateProgramNow current
-                    val rebuilt = rematerializeWithEvidence(current, recipe, onlyPendingBlocks = true)
-                    failed = rebuilt.failed
-                    if (failed) current else rebuilt.program
-                }
-                if (failed) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    _uiState.update { it.copy(snackbarMessage = "No se pudo recalcular lo pendiente del plan. El plan y el historial se conservaron.") }
-                }
-            } catch (failure: Exception) {
-                if (failure is CancellationException) throw failure
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    _uiState.update { it.copy(snackbarMessage = "No se pudo recalcular el plan. Tus datos se conservaron.") }
-                }
-            }
+        viewModelScope.launch {
+            val result = rematerializePendingAndAwait()
+            if (result.isFailure) _uiState.update { it.copy(snackbarMessage =
+                "No se pudo recalcular lo pendiente del plan. El plan y el historial se conservaron.") }
         }
     }
+
+    /** Success means both the pending prescriptions and their references have reached durable storage. */
+    internal suspend fun rematerializePendingAndAwait(): Result<Unit> =
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val saved = repository.mutateProgramNow(programId) { current ->
+                    val recipe = current.sourceRecipe ?: return@mutateProgramNow current
+                    if (current.macrocycles.flatMap { it.blocks }.none { it.materializationPending }) return@mutateProgramNow current
+                    val synchronized = com.example.kpkn.domain.training.ExerciseTrainingMax.syncProfile(
+                        current, current, System.currentTimeMillis(), "pending:${java.util.UUID.randomUUID()}",
+                        "Base derivada del perfil al recalcular el plan pendiente", reconcileDerived = true)
+                    val rebuilt = rematerializeWithEvidence(synchronized, recipe, onlyPendingBlocks = true)
+                    check(!rebuilt.failed) { "No se pudo recalcular el plan pendiente" }
+                    rebuilt.program
+                }
+                check(saved) { "No se pudo guardar el plan recalculado" }
+                Result.success(Unit)
+            } catch (failure: Exception) {
+                if (failure is CancellationException) throw failure
+                Result.failure(failure)
+            }
+        }
 
     /**
      * Reconstruye con la receta las semanas de [program] que quedan por entrenar. Con
