@@ -124,11 +124,11 @@ class SupersetRoundsFocusIntegrationTest {
         assertEquals(RepRange(4, 6), saved.targetRepsRange)
         assertEquals(2, saved.targetRIR)
         assertNull(saved.restAfterSeconds)
-        rule.onNodeWithText("Bajar").performScrollTo().performClick()
-        rule.onNodeWithText("Eliminar").performScrollTo().performClick()
+        rule.onNode(hasText("Bajar") and within()).performScrollTo().performClick()
+        rule.onNode(hasText("Eliminar") and within()).performScrollTo().performClick()
         assertEquals(listOf("s1" to 1), moved)
         assertEquals(listOf("s1"), removed)
-        rule.onNodeWithText("Subir").assertDoesNotExist()
+        rule.onNode(hasText("Subir") and within()).assertDoesNotExist()
     }
 
     @Test fun referenciaTmSePropagaDesdeElGrupoYRecalculaSoloSuBase() {
@@ -155,11 +155,18 @@ class SupersetRoundsFocusIntegrationTest {
         mount(lateral(rm()))
         rule.onNodeWithContentDescription("Carga del lado R").assertTextContains("R · 40\u00a0kg")
         rule.onNodeWithContentDescription("Carga del lado L").assertTextContains("L · 30\u00a0kg")
-        val right = rule.onNodeWithTag("round-set-focus-s1:R").fetchSemanticsNode().boundsInRoot.top
-        val left = rule.onNodeWithTag("round-set-focus-s1:L").fetchSemanticsNode().boundsInRoot.top
-        assertTrue(right < left)
-        rule.onAllNodesWithText("Bajar").assertCountEquals(1)
-        rule.onAllNodesWithText("Eliminar").assertCountEquals(1)
+        // Los focos pueden estar fuera del viewport: boundsInRoot recorta ambos al mismo borde.
+        // La API ya usada por WeekBleedTest mide la posición real, sin ese recorte.
+        val right = rule.onNodeWithTag("round-set-focus-s1:R").getUnclippedBoundsInRoot()
+        val left = rule.onNodeWithTag("round-set-focus-s1:L").getUnclippedBoundsInRoot()
+        assertTrue("R debe preceder a L: $right / $left", right.top < left.top)
+        assertTrue("Los focos laterales no se solapan", right.bottom <= left.top)
+        rule.onNodeWithContentDescription("Carga del lado R").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithContentDescription("Carga del lado L").performScrollTo().assertIsDisplayed()
+        val eitherSide = within("R") or within("L")
+        rule.onAllNodes(hasText("Bajar") and eitherSide).assertCountEquals(1)
+        rule.onAllNodes(hasText("Eliminar") and eitherSide).assertCountEquals(1)
+        rule.onNode(hasText("Eliminar") and within("L")).assertDoesNotExist()
         edit("%RM", "75", side = "R")
         val saved = state.value.sets.first()
         assertEquals(90.0, saved.leftTarget!!.weight!!, 0.001)
@@ -200,16 +207,16 @@ class SupersetRoundsFocusIntegrationTest {
         assertEquals(source.sets.first().weight, saved.weight)
         assertEquals(source.sets.first().targetRepsRange, saved.targetRepsRange)
         assertEquals(2, saved.targetRIR)
-        rule.onAllNodesWithText("Eliminar").assertCountEquals(1)
+        rule.onAllNodes(hasText("Eliminar") and within()).assertCountEquals(1)
     }
 
     @Test fun segundaRondaConservaSubirEliminarYNoBajar() {
         mount(rm(), round = 2)
-        rule.onNodeWithText("Subir").performScrollTo().performClick()
-        rule.onNodeWithText("Eliminar").performScrollTo().performClick()
+        rule.onNode(hasText("Subir") and within(set = "s2")).performScrollTo().performClick()
+        rule.onNode(hasText("Eliminar") and within(set = "s2")).performScrollTo().performClick()
         assertEquals(listOf("s2" to -1), moved)
         assertEquals(listOf("s2"), removed)
-        rule.onNodeWithText("Bajar").assertDoesNotExist()
+        rule.onNode(hasText("Bajar") and within(set = "s2")).assertDoesNotExist()
     }
 
     @Test fun renderRmC3En100Y130() = render(rm(tm = 100.0, basis = LoadBasis.PERCENT_TM), "rm")

@@ -1,6 +1,6 @@
 # INT-C3 · Integración de rondas y focos ED-B
 
-Estado: implementación preparada; compilación, pruebas y renders pendientes de la corrida centralizada del orquestador. No se ejecutó Gradle ni adb en este worktree. No se declara verde.
+Estado actualizado: la primera corrida centralizada integrada compiló y ejecutó 76 pruebas, con cuatro fallos de la clase nueva C3. Se corrigió el arnés tras leer su XML; la repetición sigue pendiente del orquestador. No se ejecutó Gradle ni adb en este worktree. No se declara verde.
 
 ## Base y fusiones
 
@@ -50,3 +50,13 @@ Revisión estática realizada: `git diff --check`, sin errores. Ningún resultad
 ## Límites y riesgos
 
 No se modifican Room, entidades, migraciones ni schemas, ni focos compartidos ED-B. No hay push, master, instalación ni QA. La integración posterior con ED-C deberá conservar su slot opcional de preparación y los valores predeterminados ED-B en `ExerciseEditorCard`; no se anticipa ese conflicto en este paquete. El conflicto real ED-B/ED-D resuelto aquí debe cotejarse con la fusión principal al integrar. Los tests y renders nuevos aún pueden requerir ajuste al correr; no son evidencia de ejecución.
+
+
+## Diagnóstico de la primera corrida integrada y corrección del arnés
+
+Se leyó el XML real `C:/kw/u11/android-native/app/build/test-results/testBaseDebugUnitTest/TEST-com.example.kpkn.screens.sessioneditor.components.SupersetRoundsFocusIntegrationTest.xml`, timestamp `2026-10-23T04:49:27.699Z`: nueve casos ejecutados, cuatro fallos, sin errores ni omitidos. Los cinco casos que pasaron incluyen TM por el callback del grupo, falta TM, AMRAP con vista previa lateral y ambos métodos de render. La corrida global de 76 casos fue ejecutada por el orquestador, no desde u24.
+
+- Tres fallos (`rmTieneTresCifrasEnlazadasConservaRangosYRirYAcciones`, `amrapBilateralConservaCargaYRangoAlCambiarElMinimo`, `segundaRondaConservaSubirEliminarYNoBajar`) son selectores ambiguos: «Eliminar» aparece también en la cabecera de rondas. El XML identifica dos nodos y aborta antes del click o del recuento. Los selectores de acciones ahora exigen el ancestro `round-set-focus-s1` o `round-set-focus-s2`; se conserva el click nativo y se verifica el mismo callback, sin ocultar ni retirar ninguna acción.
+- `rmLateralRespetaOrdenYCargasYRecalculaAmbosLadosConElPorcentajeComun` falló al comparar `boundsInRoot.top`: los dos focos pueden estar fuera del viewport y sus límites quedan recortados al mismo borde. Se usa `getUnclippedBoundsInRoot`, API ya utilizada en `WeekBleedTest`, para exigir R antes de L y ausencia de solapamiento. Además se desplaza hasta la carga de cada lado y se exige que sea visible. Se mantienen todas las cifras de carga, rangos y RIR; el porcentaje sigue editándose con click nativo. Su recuento de acciones también se limita a ambos focos y comprueba que el segundo lado no duplique Eliminar.
+
+La evidencia del XML no señala un fallo de producción en esos cuatro puntos: son errores concretos de selección/medición del arnés. La corrección modifica solo la clase de pruebas y este informe, nunca producción. No hay una segunda ejecución todavía, por lo que el resultado corregido sigue pendiente de validación centralizada.
