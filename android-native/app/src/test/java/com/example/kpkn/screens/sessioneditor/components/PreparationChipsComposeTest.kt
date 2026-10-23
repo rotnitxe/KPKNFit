@@ -22,6 +22,7 @@ import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -513,9 +514,9 @@ class PreparationChipsComposeTest {
                 }
             }
         }
-        rule.onNodeWithTag("mobility-picker-search", useUnmergedTree = true).performTextReplacement("zzzzzzkpknqa")
+        rule.onNode(hasSetTextAction() and hasAnyAncestor(hasTestTag("mobility-picker-search")), useUnmergedTree = true).performTextReplacement("zzzzzzkpknqa")
         rule.onNodeWithTag("mobility-picker-empty").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithTag("mobility-picker-search", useUnmergedTree = true).performTextReplacement(movement.name)
+        rule.onNode(hasSetTextAction() and hasAnyAncestor(hasTestTag("mobility-picker-search")), useUnmergedTree = true).performTextReplacement(movement.name)
         rule.onNodeWithTag("mobility-picker-empty").assertDoesNotExist()
         val movementTag = "mobility-picker-item-${movement.id}"
         rule.onNodeWithTag(movementTag).performScrollTo().assertIsDisplayed()
