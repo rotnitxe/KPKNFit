@@ -249,7 +249,9 @@ un desglose de una única corrida por folds no acredita esa selección.
 su veto GPU persistente impidió reanudar una medición válida. La versión 51 con B12 compiló y se instaló en `.dbg` sin borrar
 datos ni preferencias. Se inició una generación homogénea nueva de los 616 clips en `C:/kw/vt-mmfit/phone-v51`, sin reutilizar
 las 72 trazas anteriores. Su preflight aprobó GPU/Full/stride 1 y traza de 30,0003 Hz sobre fuente de 30 fps;
-el primer lote está en curso. Esta frecuencia acredita muestreo, no velocidad de procesamiento. APK y procedencia
+el primer lote publicó 12/616 recibos GPU completos, con térmico máximo 0 al inicio y al final. Su mediana de análisis fue
+35,28 s, vídeo 20,33 s y ratio individual mediano 1,75: aún no cumple el objetivo ≤1×. Esta frecuencia acredita muestreo,
+no velocidad de procesamiento. APK y procedencia
 registrados en `APK_ATTESTATION.json`.
 En las 72 mediciones antiguas, el análisis mediano fue de 114,6 s para vídeo mediano de 21,57 s, con ratio mediano de 5,32.
 Son tiempos del lote parcial anterior, no fiabilidad ni prueba de tiempo real. La comparación OpenPose/MediaPipe de las 494 G1
@@ -299,3 +301,32 @@ Informe externo `C:/kw/vt-mmfit/m5-out/openpose-cv-boundary-20261022/M5_CV.json`
 `PROFILE_AGGREGATES.json` desglosa todas las G1 por ejercicio incluyendo abstenciones. Log `C:/kw/logs/vt-m5-cv-boundary-20261022-2.log`.
 No se evaluaron controles del candidato. La selección es preliminar OpenPose y el default del código permanece0 hasta la
 selección con MediaPipe completo. El siguiente experimento es el veto horizontal por procedencia física; no se fusiona motor10.
+
+### M5 · Zancada POSE con ciclos completos observados
+
+El veto horizontal genérico de `1e2717f31` se rechazó: aunque pasó 602 pruebas JVM, redujo las FULL exactas históricas
+de 230/269 a 229/269. El candidato acotado `7032c5895` restaura ese veto salvo en zancadas POSE con ida y retorno
+observados, valles con reposo interior, al menos tres excursiones comparables y una vecina a la cadencia de la serie.
+Reutiliza umbrales existentes y no depende de clips, etiquetas ni fuentes de bancos. Sus dos clases de regresión suman
+36 pruebas correctas, incluido el negativo de preparación inicial seguido de una pausa larga.
+
+La CV real de cuatro folds volvió a producir 1.229 predicciones retenidas y eligió guarda 1 en las cuatro rotaciones:
+
+| Banco G1 / medida | Candidato acotado, guarda 0 | Candidato acotado, guarda 1 retenida |
+|---|---:|---:|
+| MM-Fit: FULL exactas / salidas | 340/404 | 340/404 |
+| MM-Fit: ALTA FULL exactas | 318/359 | 317/328 (96,6 %) |
+| MM-Fit: MEDIA FULL exactas | 6/11 | 6/8 (75 %) |
+| MM-Fit: ofrecidas ALTA/MEDIA | 370/405 | 336/405 |
+| Histórico: FULL exactas / salidas | 230/269 | 230/269 |
+| Histórico: ALTA FULL exactas | 45/45 | 44/44 |
+| Histórico: MEDIA FULL exactas | 104/105 | 103/104 |
+| Histórico: ofrecidas ALTA/MEDIA | 150/345 | 148/345 |
+
+Con guarda 0, el histórico reproduce los agregados del motor 9; MM-Fit gana nueve FULL exactas y una salida frente
+a 331/403. La guarda 1 conserva el coste de abstención documentado arriba. G2 histórico permanece en 1/21 ofrecidas
+equivocadas. Las metas MM-Fit 98/90 siguen incumplidas; el agregado entre bancos no oculta ese resultado.
+No se han abierto controles del candidato ni se ha integrado motor 10. Se conserva default 0 hasta repetir selección
+con MediaPipe completo. Informe `C:/kw/vt-mmfit/m5-out/openpose-cv-lunge-observed-20261022/M5_CV.json`, SHA-256
+`5579cba256c1235411382f3cf2858168c30eaa02882fd44aeb25f257bea31b08`, con `RUN_CONTEXT.json` de procedencia;
+log `C:/kw/logs/vt-m5-cv-lunge-observed-20261022.log`, corrida correcta en 3m17s.

@@ -113,7 +113,7 @@ Va solo para los ejercicios compatibles.
 - las estimaciones llevan «≈»;
 - hay m/s solo con disco calibrado, y con «≈» hasta validarlos en el teléfono;
 - 1RM solo en tendencias, con «orientativo · beta»;
-- texto de privacidad: «El vídeo nunca sale del teléfono». Nada más fuerte hasta comprobar la telemetría (VT4b).
+- texto de privacidad: «El análisis se realiza en tu teléfono». El recorrido de análisis no sube el vídeo; la exportación manual de medios sí puede enviarlo al destino que elija la persona. La ausencia de telemetría en el APK actual requiere medición propia (VT4b).
 
 ---
 
