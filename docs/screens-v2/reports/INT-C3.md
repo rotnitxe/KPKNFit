@@ -60,3 +60,17 @@ Se leyó el XML real `C:/kw/u11/android-native/app/build/test-results/testBaseDe
 - `rmLateralRespetaOrdenYCargasYRecalculaAmbosLadosConElPorcentajeComun` falló al comparar `boundsInRoot.top`: los dos focos pueden estar fuera del viewport y sus límites quedan recortados al mismo borde. Se usa `getUnclippedBoundsInRoot`, API ya utilizada en `WeekBleedTest`, para exigir R antes de L y ausencia de solapamiento. Además se desplaza hasta la carga de cada lado y se exige que sea visible. Se mantienen todas las cifras de carga, rangos y RIR; el porcentaje sigue editándose con click nativo. Su recuento de acciones también se limita a ambos focos y comprueba que el segundo lado no duplique Eliminar.
 
 La evidencia del XML no señala un fallo de producción en esos cuatro puntos: son errores concretos de selección/medición del arnés. La corrección modifica solo la clase de pruebas y este informe, nunca producción. No hay una segunda ejecución todavía, por lo que el resultado corregido sigue pendiente de validación centralizada.
+
+
+## Corrección visual real del alcance AMRAP al 130 %
+
+Tras la primera corrida se inspeccionó el PNG nativo `C:/kw/shots/int-edd/int_c3_amrap_lateral_130.png`. Se confirmó un defecto de producción independiente de los cuatro fallos del arnés: el alcance «Próximas sesiones» aparecía elidido dentro del foco C3 anidado.
+
+`AmrapSetFocus` conserva el segmentado común cuando ambas etiquetas caben, incluso con su reducción tipográfica existente. Si la etiqueta más ancha no cabe ni al mínimo de 11 sp del segmentado, el alcance pasa localmente a dos `LoadTypeCell` comunes en columna: nombres completos, selección y callbacks idénticos y objetivos de 48 dp. La decisión depende de ancho disponible y medida real del texto con la densidad/fuente actual; no cambia el componente global ni su altura táctil.
+
+Se añadió `alcanceAmrapEnC3Al130MuestraAmbasDecisionesCompletasYConservaSusClicks`: comprueba `TextLayoutResult` completo, sin elipsis ni desbordes, y pulsa ambos alcances en el foco lateral C3 al 130 %, verificando sus valores de `CalibrationScope` y la conservación de cargas laterales. El fixture exclusivo del render RM/TM ahora calcula su peso con `rmSetLoadKg`: TM 100 × 80 % muestra 80 kg, en lugar de mantener los 95 kg explícitos usados en las pruebas de callbacks. Estas últimas conservan sus cifras/aserciones.
+
+Repetición necesaria: clase C3 nueva completa, `EdbFocusControlsTest` y `EdbRenderSheetTest`, por tocar el foco compartido. Sin ejecución Gradle desde este worktree. El nuevo layout y sus pruebas/renders siguen pendientes de validación centralizada.
+
+
+La inspección del mismo PNG también mostró que AMRAP había perdido la identificación del lado que `InlineSetRow` ofrecía. Se restituye «Lado R» / «Lado L» en el foco AMRAP cuando recibe `fixedUnilateralSide`, sin cambiar el texto exacto de la carga ni duplicar etiquetas RM. La prueba lateral exige ambos rótulos dentro de su foco correspondiente y los alcanza con desplazamiento real. Es una preservación funcional del consumidor, no una nueva lateralidad ni un nuevo porcentaje por lado.

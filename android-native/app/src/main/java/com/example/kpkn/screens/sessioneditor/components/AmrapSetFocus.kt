@@ -2,6 +2,7 @@ package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,7 +15,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.CalibrationScope
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
@@ -44,6 +48,9 @@ internal fun AmrapSetFocus(exercise: Exercise, set: ExerciseSet, index: Int, fix
     var previousMinimum by rememberSaveable(set.id) { mutableStateOf(set.amrapMinimumReps ?: set.targetReps) }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         SetLoadTypeControl(set, onUpdate)
+        if (fixedUnilateralSide != null) {
+            Text("Lado $fixedUnilateralSide", style = KpknType.caption, color = WizardColors.textMuted)
+        }
         Text(previewSet.weight?.let { "${formatEditableNumber(it).replace('.', ',')}\u00a0kg" } ?: "Sin carga programada",
             style = KpknType.metricM, color = WizardColors.text)
         KpknSegmentedControl(options = listOf("AMRAP", "Calibrador"), selectedIndex = if (calibrator) 1 else 0,
@@ -67,9 +74,9 @@ internal fun AmrapSetFocus(exercise: Exercise, set: ExerciseSet, index: Int, fix
         })
         if (calibrator) {
             val future = set.calibrationScope == CalibrationScope.NEXT_SESSIONS
-            KpknSegmentedControl(options = listOf("Esta sesión", "Próximas sesiones"), selectedIndex = if (future) 1 else 0,
-                onSelect = { selected -> onUpdate { it.copy(calibrationScope = if (selected == 0) CalibrationScope.SESSION else CalibrationScope.NEXT_SESSIONS) } },
-                size = KpknSegmentedSize.Compact, modifier = Modifier.fillMaxWidth())
+            AmrapScopeControl(future = future, onSelect = { selected ->
+                onUpdate { it.copy(calibrationScope = if (selected == 0) CalibrationScope.SESSION else CalibrationScope.NEXT_SESSIONS) }
+            })
             Text(calibrationPreview(previewExercise, previewSet, index), style = KpknType.bodyStrong, color = WizardColors.text)
             Text("Para calibrar: carga externa mayor que 0, repeticiones completas y RIR 0–1 o fallo declarado.",
                 style = KpknType.caption, color = WizardColors.textMuted)
@@ -85,6 +92,33 @@ internal fun AmrapSetFocus(exercise: Exercise, set: ExerciseSet, index: Int, fix
             Text("AMRAP registra las repeticiones logradas para la regla del programa. Calibrador mide la capacidad del mismo ejercicio y propone ajustar sus cargas compatibles, con opción de conservarlas o revertirlas.",
                 style = KpknType.body, color = WizardColors.textMuted)
             KpknTextAction(text = "Listo", onClick = { showHelp = false })
+        }
+    }
+}
+
+/** Conserva el segmentado normal; si ni su letra mínima cabe, muestra las mismas dos decisiones completas. */
+@Composable
+private fun AmrapScopeControl(future: Boolean, onSelect: (Int) -> Unit) {
+    val labels = listOf("Esta sesión", "Próximas sesiones")
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    // El segmentado compacto reserva 4 dp de pista y 6 dp de texto a cada lado; su mínimo es 11 sp.
+    val minimumStyle = KpknType.segment.copy(fontSize = 11.sp, lineHeight = 18.sp)
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val availablePx = with(density) { ((maxWidth - 8.dp) / 2 - 12.dp).toPx() }
+        val widestPx = labels.maxOf { label ->
+            measurer.measure(label, minimumStyle, maxLines = 1, softWrap = false).size.width
+        }
+        if (widestPx <= availablePx) {
+            KpknSegmentedControl(options = labels, selectedIndex = if (future) 1 else 0,
+                onSelect = onSelect, size = KpknSegmentedSize.Compact, modifier = Modifier.fillMaxWidth())
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                labels.forEachIndexed { index, label ->
+                    LoadTypeCell(text = label, selected = if (future) index == 1 else index == 0,
+                        onClick = { onSelect(index) }, modifier = Modifier.fillMaxWidth(), testTag = "amrap-scope-$index")
+                }
+            }
         }
     }
 }

@@ -14,12 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.Density
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.screens.sessioneditor.normalizeExercise
+import com.example.kpkn.screens.sessioneditor.rmSetLoadKg
 import com.example.kpkn.screens.sessioneditor.withExplicitRmLoads
 import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
@@ -180,6 +183,8 @@ class SupersetRoundsFocusIntegrationTest {
     @Test fun amrapTienePrioridadSobreRmYPrevisualizaSoloLasCargasDelLado() {
         val source = amrap()
         mount(source)
+        rule.onNode(hasText("Lado R") and within("R")).performScrollTo().assertIsDisplayed()
+        rule.onNode(hasText("Lado L") and within("L")).performScrollTo().assertIsDisplayed()
         rule.onNodeWithContentDescription("%RM").assertDoesNotExist()
         rule.onNode(hasText("Ajustará S2 · hoy 45\u00a0kg") and within("R")).assertExists()
         rule.onNode(hasText("Ajustará S2 · hoy 35\u00a0kg") and within("L")).assertExists()
@@ -219,7 +224,34 @@ class SupersetRoundsFocusIntegrationTest {
         rule.onNode(hasText("Bajar") and within(set = "s2")).assertDoesNotExist()
     }
 
-    @Test fun renderRmC3En100Y130() = render(rm(tm = 100.0, basis = LoadBasis.PERCENT_TM), "rm")
+    @Test fun alcanceAmrapEnC3Al130MuestraAmbasDecisionesCompletasYConservaSusClicks() {
+        fontScale.value = 1.3f
+        val source = amrap()
+        mount(source)
+        fun completeScope(label: String) {
+            val layouts = mutableListOf<TextLayoutResult>()
+            rule.onNode(hasText(label) and within("R"), useUnmergedTree = true)
+                .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+            val layout = layouts.single()
+            assertFalse("$label desborda en ancho", layout.didOverflowWidth)
+            assertFalse("$label desborda en alto", layout.didOverflowHeight)
+            for (line in 0 until layout.lineCount) assertFalse("$label elidido", layout.isLineEllipsized(line))
+            assertEquals(label.length, layout.getLineEnd(layout.lineCount - 1, visibleEnd = true))
+        }
+        completeScope("Esta sesión")
+        completeScope("Próximas sesiones")
+        rule.onNode(hasText("Próximas sesiones") and within("R")).performScrollTo().performClick().assertIsSelected()
+        assertEquals(CalibrationScope.NEXT_SESSIONS, state.value.sets.first().calibrationScope)
+        rule.onNode(hasText("Esta sesión") and within("R")).performScrollTo().performClick().assertIsSelected()
+        assertEquals(CalibrationScope.SESSION, state.value.sets.first().calibrationScope)
+        assertEquals(source.sets.first().leftTarget, state.value.sets.first().leftTarget)
+        assertEquals(source.sets.first().rightTarget, state.value.sets.first().rightTarget)
+    }
+
+    @Test fun renderRmC3En100Y130() {
+        val source = rm(tm = 100.0, basis = LoadBasis.PERCENT_TM)
+        render(source.copy(sets = source.sets.map { set -> set.copy(weight = rmSetLoadKg(source, set)) }), "rm")
+    }
     @Test fun renderAmrapLateralC3En100Y130() = render(amrap(), "amrap_lateral")
 
     private fun render(exercise: Exercise, scene: String) {
