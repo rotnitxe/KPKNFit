@@ -1,5 +1,12 @@
 # INT-CAL5B — revision y correcciones
 
+## Validación central del asistente completo · 23-oct 09:30
+
+Piloto int-cal7-tm-pilot-codex-20261023-2.log, fuente d24370583: los 17 casos de TM/Relator pasan sin errores ni omitidas. TrainingMaxWizardOverheadTest pasa sus seis casos: militar como única marca, TM sin1RM y cuatro medidas reales360×740/880 al100/130. También pasan ProgramOneRmRenderSheetTest(1), TrainingMaxContentTest(2), TrainingMaxWizardCopyTest(4) y RelatorPlanProgressionContextTest(4). El núcleo previo135JVM/144Android sigue verde; no se suman repeticiones como casos únicos.
+
+Se revisaron TM-cuatro-740-130.png y TM-cuatro-880-100-militar.png en C:/kw/shots/int-cal7-tm-pilot-codex-20261023-2: cuatro filas completas, selector militar y pie visibles. Los15fallos de esa corrida pertenecen a CAL7, por lo que el resultado global es fallido aunque TM/Relator esté verde. CAL5b cerrado de forma dirigida; barrido y QA del APK pendientes. Los apartados inferiores conservan el historial.
+
+
 Base revisada: `cc94b308a`, diff contra `acc75872c`. Correcciones autorizadas en `codex/sv2-cal5b` (u21). Implementacion y pruebas preparadas, sin Gradle/JVM/adb. No hay declaracion de compilacion, Room ni renders verdes.
 
 ## Hallazgos corregidos

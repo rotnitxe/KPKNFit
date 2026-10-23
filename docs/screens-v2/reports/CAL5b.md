@@ -1,5 +1,12 @@
 # CAL5b · Referencias y TM por ejercicio
 
+## Validación central del asistente completo · 23-oct 09:30
+
+Piloto int-cal7-tm-pilot-codex-20261023-2.log, fuente d24370583: los 17 casos de TM/Relator pasan sin errores ni omitidas. TrainingMaxWizardOverheadTest pasa sus seis casos: militar como única marca, TM sin1RM y cuatro medidas reales360×740/880 al100/130. También pasan ProgramOneRmRenderSheetTest(1), TrainingMaxContentTest(2), TrainingMaxWizardCopyTest(4) y RelatorPlanProgressionContextTest(4). El núcleo previo135JVM/144Android sigue verde; no se suman repeticiones como casos únicos.
+
+Se revisaron TM-cuatro-740-130.png y TM-cuatro-880-100-militar.png en C:/kw/shots/int-cal7-tm-pilot-codex-20261023-2: cuatro filas completas, selector militar y pie visibles. Los15fallos de esa corrida pertenecen a CAL7, por lo que el resultado global es fallido aunque TM/Relator esté verde. CAL5b cerrado de forma dirigida; barrido y QA del APK pendientes. Los apartados inferiores conservan el historial.
+
+
 Estado central23-oct08:20: núcleo135casos JVM y144Android verdes (corridas2). El press militar del wizard y su resumen de cuatro levantamientos están implementados; su nueva prueba pasó los2casos funcionales y falló4medidas por seleccionar el layout del título fusionado. Corregido el selector en4c37d4c4c; repetición central pendiente. INT-CAL5B e INT-4 contienen la secuencia completa. Los apartados de preparación inferiores son históricos y no sustituyen esta evidencia.
 
 Estado: implementado en `codex/sv2-cal5b` sobre base provisional. Compilación, pruebas y renders pendientes de la cola central del agente principal; no se ejecutó Gradle, JVM ni adb en este trabajo. No se cambió Room.

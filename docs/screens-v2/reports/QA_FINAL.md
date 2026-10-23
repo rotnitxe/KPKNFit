@@ -1,6 +1,6 @@
 # QA final de screens-v2
 
-Fecha de preparación: 23-oct-2026. Estado: **pendiente de ejecución en dispositivo**. Esta tabla inventaría los tableros aprobados; todavía no acredita instalación, arranque, interacción ni revisión visual en el APK integrado. Las pruebas JVM/Room/Compose se documentan en INT-4 y se distinguen de esta QA.
+Fecha:23-oct-2026. Estado: **QA en curso en ZFlip5_QA5580**. APK.dbg instalado y precompilado; MainActivity real y G4 verificados, resto en revisión. La tabla distingue observaciones reales de lo pendiente. JVM/Room/Compose constan en INT-4 y no equivalen a QA del APK.
 
 ## Procedencia y límites
 
@@ -62,19 +62,19 @@ La copia local contiene 70 pantallas HTML. canvas.json enumera 71 entradas: la r
 | E7-CrearEjercicio | Pendiente | — |
 | E8-CargandoError | Pendiente | — |
 | E9-ElegirTecnica | Pendiente | — |
-| F1-FichaCatalogo | Pendiente | — |
+| F1-FichaCatalogo | Defecto confirmado; corrección en curso | F1-cues-1792757772026551400.png: título fijo [60,169][408,240] cruza Tu historial [114,181][900,252] al desplazar en740/130. |
 | F2-FichaSesion | Pendiente | — |
 | G1-EditarSeriesVivo | Pendiente | — |
 | G2-EditarCardioVivo | Pendiente | — |
 | G3-Importador | Pendiente | — |
-| G4-WizardCambiar | Pendiente | — |
+| G4-WizardCambiar | Correcto en740/130 | Cambio confirmado y deshacer conservan ejercicio/dosis; informe provisional C:/kw/shots/screens-v2-final-emu-20261023-c3/emu-qa-report.md. |
 | H1-AproxEditor | Pendiente | — |
 | H2-MovilidadEditor | Pendiente | — |
 | H3-CatalogoMovilidad | Pendiente | — |
 | H4-MovilidadDosis | Pendiente | — |
 | H5-AproxVivo | Pendiente | — |
 | H6-MovilidadVivo | Pendiente | — |
-| Main | Pendiente | — |
+| Main | Arranque real comprobado; revisión en curso | Alta completa y DemoSeed; com.example.kpkn.dbg/.MainActivity observada. |
 | V1-PropuestaLinea | Pendiente | — |
 | V2-IdeaUsuario | Pendiente | — |
 | V3-PantallaCorta | Pendiente | — |
@@ -100,4 +100,4 @@ La copia local contiene 70 pantallas HTML. canvas.json enumera 71 entradas: la r
 
 ## Resultado final
 
-Pendiente. Todavía no se ha compilado, instalado ni ejecutado el APK de esta continuación.
+Pendiente de cierre. APK integrado compilado, instalado y ejecutado en emulador; faltan completar70tableros, CAL3/LQA1, correcciones y teléfono.

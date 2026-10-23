@@ -1,12 +1,14 @@
 # Relevo de la ola screens-v2 (21-oct-2026, noche)
 
-## Estado operativo · 23-oct08:43
+## Estado operativo · 23-oct09:30
 
-Este bloque es el estado actual; los inferiores son historial. Fase3 yCAT-B/CAL4-V verificados dirigidos. PLAN-OBS:2062casos puros únicos verdes mediante completa3+focused4 y4Android/4. TM:núcleo135JVM/144Android verde; militar implementado y selector de geometría corregido, pendiente repetición de cuatro medidas. CAL7 integrado0c642bff1; piloto1 falló compileTestKotlin antes de casos, corregido en1b4126649a(solo tests,21recorridos intactos).
+Fase3 y fase4 integradas. PLAN-OBS:2062casos puros únicos verdes mediante completa3+focused4. TM:núcleo135JVM/144Android y17TM/Relator del piloto2 verdes. El piloto completo2 cerró38casos/15fallos CAL7. b81131ebb corrige arneses sin quitar recorridos;64109519f corrige el defecto real APRE B/C/D y agrega cinco regresiones. Ambos integrados, pendientes de validación central.
 
-APKQA.dbg preparado y certificado AndroidDebug verificado, fuente0c642bff1, SHA256170a26fabb3930af3e5d06fbfd26b564c33c8dc1ca5ee3473eda4c7f8ab77f14; copia/evidencia C:/kw/apk/20261023/. EmuladorZFlip5_QA5580 iniciado; no se acredita todavía instalación ni QA. Teléfono por wrapper/20min; root solo emulador. El usuario duerme y autorizó decisiones autónomas.
+QA real ZFlip5_QA5580: APK.dbg fuente0c642bff1 instalado/precompilado; MainActivity real y G4 cambio/deshacer verificados. F1 reproduce cruce del título fijo con el cuerpo al desplazar en740/130; arreglo en curso u19. El agente C3 controla exclusivamente el emulador; root no cambia su APK durante el recorrido.
 
-Siguiente: piloto2CAL7+TM, barrido398clases exactas en una reserva(con recolección completa de fallos, un worker/forkEvery15), QAreal70tableros+CAL3/LQA1, releaseunsigned. Recuperados deGit los tres manifiestos de imágenes excluidos por sparse-checkout, sin cambios decontenido; se ejecutará esa clase sin excluirla. Método y herramientas locales enINT-4. Root centraliza Gradle/JVM, una corrida propia; subagentes preparan código y uno revisa teléfono porwrapper. Sin push/master/firma; Roomv30congelado, artefacto ajeno intacto.
+Teléfono: APK QA version51 preparado con AndroidDebug, sin modificar versión del repositorio. Intento50 rechazado por downgrade; último51 detenido por uso reciente(11min/regla20). Ninguna QA telefónica acreditada. Respetar candado y wrapper. Las70pantallas siguen en revisión; el usuario duerme y autorizó decisiones autónomas.
+
+Siguiente: integrar cabeceraF1, congelar fuente y barrido completo por FQN exactos(una reserva v10, un worker/forkEvery15, todos los fallos), corregir/repetir lo afectado, QA final y release unsigned. Sin corrida propia activa al escribir. Sin push/master/firma; Roomv30 congelado, artefacto ajeno intacto. Los bloques inferiores son historial.
 
 ## Estado verificado · 23-oct-2026 · integración ED-B comprobada
 

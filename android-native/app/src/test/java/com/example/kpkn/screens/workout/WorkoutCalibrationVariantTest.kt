@@ -5,7 +5,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test
 
-/** Variant prescriptions have their own set IDs while execution/log identity remains the base session. */
+/** Cada variante conserva sus IDs de serie; la ejecución y el registro pertenecen a la sesión base. */
 class WorkoutCalibrationVariantTest {
     private val now = 1_790_000_002_000L
     private data class Fixture(val state: WorkoutUiState, val exercise: Exercise,

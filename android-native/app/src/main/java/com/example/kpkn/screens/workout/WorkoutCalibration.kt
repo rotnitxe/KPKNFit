@@ -12,7 +12,7 @@ import com.example.kpkn.domain.workout.WorkoutPerformanceHomologationEngine
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import java.util.UUID
 
-/** Keep execution/log identity on the base session, but resolve prescriptions from the active variant. */
+/** Conserva la identidad del registro en la sesión base y resuelve las dosis desde la variante activa. */
 private fun calibrationExercises(state: WorkoutUiState): List<Exercise> {
     val base = state.session ?: return emptyList()
     val active = when (state.activeMode) {
