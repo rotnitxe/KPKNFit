@@ -1,5 +1,41 @@
 # Relevo de la ola screens-v2 (21-oct-2026, noche)
 
+## Estado verificado · 23-oct-2026 00:30 · continuación Codex
+
+Este bloque sustituye el inventario operativo de abajo; los inventarios antiguos se conservan como historial. No hay push, merge en master, QA de esta continuación ni APK nuevo. Room permanece congelado.
+
+| Worktree | HEAD / estado | Evidencia nueva |
+|---|---|---|
+| u11 · integración | 030341408 integra u13 sin conflictos; 08162eed8 registra INT-1 | JVM posterior: 161 clases, 1700 pruebas, 0 fallos/errores/omitidas (`int-u13-jvm-codex-20261023-2.log`). Falta Android antes de fusionar u12. Se conserva `artifacts/aud2-editor-catalogo-20261020/` sin seguimiento. |
+| u12 · MOT/ED-E | a76b4edc2, limpio | Código cerrado en f042464ba; se guardó el brief MOT que estaba sin seguimiento. No se repitió su implementación. |
+| u14 · ED-B | 385cab731, limpio | Completo B1–B5/B7–B9, APRE y NBSP. `edb-12.log`: 55/0; `edb-10.log`: otras 55/0; APRE JVM 15/0. Informe ED-B. |
+| u15 · CAT-A | f34b02318 | 66/0 en `cat-a-2.log`; creador E4 conserva su estado al recrear. Artefactos recibidos fuera de commits. |
+| u16 · G | d5e7c7ac4, limpio | 53/0 de hojas/render y 23/0 de importador; total 76/0. Informe G. |
+| u17 · ED-D | 8f8a02b95, limpio | 14/0 JVM y 67/0 Android en `edd-codex-20261022-4.log`. Descanso heredado y edición de miembros corregidos. Informe ED-D. |
+| u18 · ED-C | 142aa2e58 más H3/pruebas/render/informe sin commit | Dominio f37329fe0, fichas b7381c436, movilidad de sesión 142aa2e58. JVM 13/0; Android 33/0 antes de H3. Último detalle H3 en verificación, ver abajo. |
+
+### Punto exacto de espera
+
+La única corrida propia es `C:/kw/logs/edc-codex-20261023-5.log`, por la cola v10. Está esperando el carril Android ocupado por el otro chat activo (técnica por vídeo). El identificador de sesión de terminal no se imprimió: para confirmar su cierre, comprobar que desaparecen los procesos pwsh 9348 y bash 19572/35104 (creados 23-oct 00:22:05/06), el log final y el candado de u18 en `gradle_cola.sh`. No matar nada ni lanzar otra corrida propia mientras siga viva.
+
+H3 al 130 % cortaba «Añadido · Quitar» junto a «Ver ficha». Se separaron las acciones en columna con letra grande. La captura nativa ya muestra el texto completo. `edc-codex-20261023-4.log`: producción compila; 21 pruebas, una falla en TextLayoutResult del caso nuevo. La quinta corrida mantiene la misma aserción estricta, añade diagnóstico y usa GraphicsMode.NATIVE solo en ese método para contrastar renderizadores; las otras 19 pruebas de la clase no cambian. No se rebaja la aserción. Revisar el resultado y la captura antes de cerrar H3.
+
+### Decisiones y límites de esta continuación
+
+- El usuario autorizó priorizar la implementación completa de movilidad: los grupos de sesión, incluidos los generados, siguen editables. Excepción explícita al H2 de solo lectura, registrada en u18 `DECISIONES_PROTOTIPOS_2026-10-20.md`; sin inventar origen ni campos Room.
+- Se cerraron 163 auxiliares MCP de agentes pausados, preservando Codex, ChatGPT, Java y el chat activo de vídeo. No repetir una limpieza global. La cola v10 sigue teniendo un único carril Android.
+- Revisión de solo lectura por CommandCode/MiMo 2.6 Pro expresamente autorizada para el diff ED-C y WarmupLoadBase de u11: informe final `mimo-edc-audit-20261022-2.ndjson`, sin bloqueantes. No ejecutó pruebas ni Gradle y precede a los últimos ajustes de imágenes y letra grande.
+- El filtro JVM de integración inicial incluyó Cal1CapacityContractTest, que importa screens.workout.LiveSetPrPolicy y no compila en el arnés. Se pasó a la lista Android; la segunda corrida pura quedó verde. TrainingPlanRecipeJsonCompatTest también requiere Android por dbJson/Room. No modificar esas pruebas para que quepan en JVM.
+
+### Siguientes pasos obligatorios
+
+1. Cerrar ED-C tras su última prueba; commits de H3, pruebas Compose, render e informe final.
+2. Verificación Android de u13 en u11: TrainingPlanRecipeJsonCompatTest, Cal1CapacityContractTest, FixTmWarmupAnchorTest y las regresiones RM del ViewModel. Después, preflight NUEVO (HEAD cambió con docs) y merge u12, u14, u17, u18, u15, u16, compilando y probando cada unión.
+3. Adaptar C3 y G1 a RmSetFocus/AmrapSetFocus, con TM declarado y lado. C3 necesita propagar su callback de ejercicio desde SupersetGroupEditorCard. G1 necesita recálculo withExplicitRmLoads y modo confirmado por la hoja común; sus fichas de 56 dp son las aprobadas en G1. Mantener acciones y descansos contextuales.
+4. Resolver la ficha común añadida por ED-B/ED-C con el slot opcional de ED-C y los valores S1 predeterminados de ED-B; conservar la sección de preparación extraída y la base única LV-C. Comprobar el aviso único ED-E/ED-A.
+5. Completar fase 3 e INT-1, actualizar CLAUDE a Room v30; fase 4 CAT-B, CAL4-V, CAL5b, PLAN-OBS, CAL7; regresión; QA ZFlip5_QA 5580 y APK. Sin tocar paquetes personales ni firmar: la firma sigue a cargo del orquestador.
+
+
 ## Inventario 2026-10-22 (relevo por fases)
 
 Comprobado al arrancar esta sesión, antes de tocar nada:
