@@ -11,6 +11,54 @@ import org.junit.Test
 
 class SupersetRulesTest {
     @Test
+    fun editarMiembrosConservaDescansosPropiosYOpcionalidadYLiberaAlDesmarcado() {
+        val session = Session(id = "edit", name = "Editar", exercises = listOf("a", "b", "c").map { id ->
+            Exercise(id = id, name = id, sets = List(3) { ExerciseSet("$id-$it", targetReps = 8) })
+        })
+        val initial = SupersetRules.createSuperset(session, "g", listOf("a", "b"), 60, 120, rounds = 4)
+        val custom = SupersetRules.updateRoundRest(initial, "g", 0, 15, 90).let {
+            it.copy(supersetGroups = it.supersetGroups.map { group -> group.copy(isOptional = true) })
+        }
+        val edited = SupersetRules.createSuperset(custom, "g", listOf("b", "c"), 60, 120)
+        val group = edited.supersetGroups.single()
+        assertEquals(listOf("b", "c"), group.exerciseOrder)
+        assertEquals(4, group.rounds)
+        assertEquals(true, group.isOptional)
+        assertEquals(mapOf(0 to 15), group.roundRestBetweenExercises)
+        assertEquals(mapOf(0 to 90), group.roundRestAfterSuperset)
+        val released = edited.exercises.single { it.id == "a" }
+        assertNull(released.supersetGroupRef)
+        assertNull(released.supersetId)
+        assertEquals(session.exercises.first().sets, released.sets)
+        assertEquals(setOf("b", "c"), edited.exercises.filter { it.supersetGroupRef == "g" }.map { it.id }.toSet())
+    }
+
+    @Test
+    fun clearRoundRest_keepsInheritedRoundsLinkedAfterRepeatedBaseChanges() {
+        val session = Session(id = "rest", name = "Descansos", exercises = listOf(
+            Exercise(id = "press", name = "Press", sets = List(3) { ExerciseSet("p$it", targetReps = 8) }),
+            Exercise(id = "row", name = "Remo", sets = List(3) { ExerciseSet("r$it", targetReps = 8) }),
+        ))
+        val grouped = SupersetRules.createSuperset(session, "g", listOf("press", "row"), 60, 120, rounds = 3)
+        val firstCustom = SupersetRules.updateRoundRest(grouped, "g", 0, 15, 60)
+        val twoCustom = SupersetRules.updateRoundRest(firstCustom, "g", 1, 5, 45)
+        val inherited = SupersetRules.clearRoundRest(twoCustom, "g", 1)
+        val changedOnce = SupersetRules.updateRest(inherited, "g", 45, 150)
+        val changedTwice = SupersetRules.updateRest(changedOnce, "g", 90, 180)
+        val group = changedTwice.supersetGroups.single()
+
+        // La ronda personalizada sigue igual; las otras siguen al base, también en su segundo cambio.
+        assertEquals(15, group.roundRestBetweenExercises[0])
+        assertEquals(60, group.roundRestAfterSuperset[0])
+        listOf(1, 2).forEach { round ->
+            assertEquals(90, group.roundRestBetweenExercises[round] ?: group.restBetweenExercises)
+            assertEquals(180, group.roundRestAfterSuperset[round] ?: group.restAfterSuperset)
+        }
+        assertEquals(setOf(0), group.roundRestBetweenExercises.keys)
+        assertEquals(setOf(0), group.roundRestAfterSuperset.keys)
+    }
+
+    @Test
     fun createSuperset_canLinkExercisesAcrossWholeSession() {
         val press = Exercise(id = "press", name = "Press", sets = listOf(ExerciseSet("p1")))
         val row = Exercise(id = "row", name = "Row", sets = listOf(ExerciseSet("r1")))
