@@ -13,3 +13,7 @@ Regresión preparada en SessionEditorViewModelRulesTest: sesión con dosis vací
 C3 guardó una sesión nueva sólo de Cinta20min/RPE6 con nombreQA y descripción vacía: el formulario cerró y Mis plantillas pasó0→1. El incidente original se acota al contenido de TorsoB, sin atribuirlo a un guardado general roto. PNG D4-cardio-simple-save-result-1792763054011707800 en C:/kw/shots/screens-v2-final-emu-20261023-c3.
 
 Al aplicar esa plantilla sobre una sesión ocupada, la confirmación recortaba «Reemplazar» a «…» a740/130 (D4-template-apply-confirm-1792763171240202300). Ambas superficies de plantillas usan ahora el mismo diálogo con decisiones verticales de ancho completo. Se mantienen los callbacks REPLACE/APPEND y no se aplica nada al abrir. TemplateApplyPhysicalViewportTest verifica etiquetas completas, viewport y objetivos48dp a740/880 y100/130, más ambos callbacks y cuatro PNG. Pendiente de ejecución central y retest del APK.
+
+## Ejecución central · 23-oct-2026
+
+La tercera completa Android, fuente b7910feaf, dejó verdes SessionEditorViewModelRulesTest y los cuatro casos de TemplateApplyPhysicalViewportTest. El wrapper global cerró exit1 por seis fallos de otras clases; no se declara verde el barrido completo. El retest nativo con APK nuevo sigue pendiente. Sólo ese contraste puede confirmar si el fallo original de TorsoB era validación de dosis o un error de almacenamiento distinto.

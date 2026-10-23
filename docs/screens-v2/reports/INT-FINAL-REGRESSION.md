@@ -1,5 +1,28 @@
 # Regresión final de la ola screens-v2
 
+## Actualización · 23-oct-2026 11:52
+
+| Corrida | Fuente | Clases / pruebas | Resultado real |
+|---|---|---:|---|
+| int-screen-final-codex-20261023-2 | faa0ea1070fc266f62becb2f40a986b2bd74bc8a | 0 / 0 | Compilación de tests fallida por dos imports; BUILD7min32s, wrapper exit1. Ningún XML antiguo acreditado |
+| int-screen-final-codex-20261023-3 | b7910feaf9c21aac4e8da1ed18b79442268c007c | 400 / 3149 | 6 fallos, 0 errores/omitidas/ausentes; 442 PNG; BUILD26min13s; wrapper exit1 |
+
+Los imports se corrigieron en f8483f3a5 antes de la tercera completa. Su evidencia nueva está en C:/kw/logs/screens-v2-evidence/int-screen-final-codex-20261023-3/. G1 LiveSetModesPersistenceTest, D4 SessionEditorViewModelRulesTest/TemplateApplyPhysicalViewportTest y los recorridos CAL7/RINGS pasaron. Esto no convierte en verde el alcance con seis fallos.
+
+| Fallos de la tercera completa | Corrección integrada; ejecución dirigida pendiente |
+|---|---|
+| ProgramAutoregulationResolutionTest: RIR con volumen | 5769a9b51 exige porcentajes reales antes de atribuir APPLIED al cambio de firma; el cambio de número de series null no aprueba intensidad inexistente. RIR-only sí pasó |
+| ExerciseInfoRenderSheetTest ×2 | ee956c818 valida abstención sin imagen; WIZARD omite placeholder/procedencia, cuyo contrato está en ExerciseInfoOverlayTest |
+| PreparationChipsComposeTest: recuperación tras vacío | 2adecde0e6 consulta el campo semántico en árbol no fusionado; conserva vacío, búsqueda cervical real y callback |
+| LiveFichaHeadingRegressionTest: cruce740/130 | 998dd64d7 mide separación contra el contenedor fijo completo; mantiene comprobación independiente del título y cruce visible |
+| SeriesOptionsModelTest: CUSTOM | 3bad68182 usa espacio no separable entre valor y unidad, como los demás resúmenes |
+
+El nuevo conjunto dirigido comprende estas clases y los consumidores de RIR/importación/variantes/relaciones. A5 usa la sesión base para resolver nombres sin sustituir la variante activa; G3 asigna occurrenceId sólo a importaciones resueltas de catálogo; B8 conserva el nombre canónico de anclas de otras sesiones. La QA adicional encontró B5 (foco lateral10/12 frente a fichas visibles6–10) y D2 (tercera métrica de volumen en10px de ancho a740/130), en corrección. Ningún arreglo posterior se atribuye a la fuente b7910feaf.
+
+**Corrección JVM5:** ProgramAutoregulationResolutionTest está excluida por Room en el arnés, línea24 de excluded-test.txt; no aparece entre sus207XML. El verde2062casos sigue siendo válido para su alcance real. Su ejecución Android posterior es la prueba de RIR, con el caso mixto aún fallido antes de5769a9b51.
+
+Los bloques siguientes conservan el historial de la primera completa. Las frases de integración/ejecución pendientes de esos bloques quedan sustituidas por este estado. Sigue pendiente APK nuevo, retest nativo y release unsigned.
+
 ## Evidencia cerrada · 23-oct-2026 10:30
 
 | Corrida | Fuente | Clases / pruebas | Resultado real |
@@ -15,7 +38,7 @@ El alcance Android incluye las clases concretas de workout/sessioneditor, tres r
 
 | Clase | Fallos | Causa / corrección preparada |
 |---|---:|---|
-| ProgramAutoregulationResolutionTest | 1 | Defecto: una propuesta de intensidad sin porcentajes rematerializaba una receta RIR. 262b30bd15 filtra sólo esa operación no aplicable; conserva volumen, auditoría y otros cambios. Integrado e incluido en JVM5 verde. |
+| ProgramAutoregulationResolutionTest | 1 | Defecto: una propuesta de intensidad sin porcentajes rematerializaba una receta RIR. 262b30bd15 filtra sólo esa operación no aplicable; conserva volumen, auditoría y otros cambios. Integrado; su fuente estuvo en JVM5, pero esta clase Room fue excluida. No atribuir sus casos a JVM. |
 | ExerciseInfoRenderSheetTest | 2 | Ruta de imagen antigua del render. 08de2ff3e actualiza el arnés, sin cambiar el producto. Pendiente de integrar u23 y repetir. |
 | ImportWarningsRenderTest | 2 | El render buscaba acciones dentro de un panel plegado. 08de2ff3e recorre la UI actual. Pendiente de integrar u23 y repetir. |
 | Cal7FreeSessionRoomTest | 1 | Timeout RINGS del segundo recorrido. 3d503ab6d añade diagnóstico sin ampliar timeout; 94294ac34 reinicia AUGE antes de cada fixture que recrea Room. Causa inferida: DAO conservado de la base cerrada; pendiente de confirmación en runtime. Ambos integrados. |
