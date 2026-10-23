@@ -164,6 +164,7 @@ object ImportedProgramBuilder {
             catalogDefinitionId = definition?.id,
             catalogConfigurationId = catalogConfigurationId,
             performanceProfileId = configuration?.profile?.performanceProfileId,
+            occurrenceId = id.takeIf { catalogConfigurationId != null },
             trainingMode = TrainingMode.REPS,
             restTime = members.firstNotNullOfOrNull { it.restSeconds },
             sets = buildSets(id, members, loadUnit),
