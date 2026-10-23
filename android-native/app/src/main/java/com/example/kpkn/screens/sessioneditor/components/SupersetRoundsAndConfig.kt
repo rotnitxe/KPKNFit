@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -521,6 +522,7 @@ internal fun SupersetRoundsCarousel(
     onRestoreSet: (String, Int) -> Unit,
     onAddRound: () -> Unit,
     onRemoveRound: (Int) -> Unit,
+    onUpdateExercise: ((String, (Exercise) -> Exercise) -> Unit)? = null,
 ) {
     var openRound by rememberSaveable(group.id) { mutableStateOf<Int?>(null) }
     var restPickerRound by remember { mutableStateOf<Int?>(null) }
@@ -617,6 +619,7 @@ internal fun SupersetRoundsCarousel(
                                     onUpdateSet = { setId, updater -> onUpdateSet(exercise.id, setId, updater) },
                                     onRemoveSet = { setId -> onRemoveSet(exercise.id, setId) },
                                     onMoveSet = { setId, dir -> onMoveSet(exercise.id, setId, dir) },
+                                    onUpdateExercise = onUpdateExercise?.let { update -> { transform -> update(exercise.id, transform) } },
                                 )
                             } else {
                                 RoundMissingSetCard(
@@ -740,6 +743,7 @@ private fun RoundExerciseSetCard(
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onRemoveSet: (String) -> Unit,
     onMoveSet: (String, Int) -> Unit,
+    onUpdateExercise: (((Exercise) -> Exercise) -> Unit)?,
 ) {
     var expanded by rememberSaveable(exercise.id, roundIndex) { mutableStateOf(false) }
     val predictedWeight = calculateSuggestedLoad(exercise, set)
@@ -818,7 +822,16 @@ private fun RoundExerciseSetCard(
                             if (prior == "L") set.leftTarget != null else set.rightTarget != null
                         }
                         if (showCard) {
-                            InlineSetRow(
+                            if (set.purpose.isAmrap || exercise.trainingMode == TrainingMode.RM) {
+                                RoundCanonicalSetFocus(
+                                    exercise = exercise, set = set, roundIndex = roundIndex,
+                                    side = side, showActions = isFirstVisible,
+                                    canMoveUp = isFirstVisible && roundIndex > 0,
+                                    canMoveDown = isFirstVisible && roundIndex < exercise.sets.lastIndex,
+                                    onUpdateSet = onUpdateSet, onUpdateExercise = onUpdateExercise,
+                                    onRemoveSet = onRemoveSet, onMoveSet = onMoveSet,
+                                )
+                            } else InlineSetRow(
                                 set = set,
                                 index = roundIndex,
                                 reference1RM = resolveReferenceCapacity(exercise),
@@ -873,7 +886,16 @@ private fun RoundExerciseSetCard(
                         }
                     }
                 } else {
-                    InlineSetRow(
+                    if (set.purpose.isAmrap || exercise.trainingMode == TrainingMode.RM) {
+                        RoundCanonicalSetFocus(
+                            exercise = exercise, set = set, roundIndex = roundIndex,
+                            side = null, showActions = true,
+                            canMoveUp = roundIndex > 0,
+                            canMoveDown = roundIndex < exercise.sets.lastIndex,
+                            onUpdateSet = onUpdateSet, onUpdateExercise = onUpdateExercise,
+                            onRemoveSet = onRemoveSet, onMoveSet = onMoveSet,
+                        )
+                    } else InlineSetRow(
                         set = set,
                         index = roundIndex,
                         reference1RM = resolveReferenceCapacity(exercise),
@@ -950,4 +972,39 @@ internal fun SupersetRestPickerDialog(
         onConfirm = { between, after -> onConfirm(between, after ?: initialRestAfterSeconds) },
         onDismiss = onDismiss,
     )
+}
+
+/** C3 conserva las acciones de la serie una sola vez, junto al foco canónico de ED-B. */
+@Composable
+private fun RoundCanonicalSetFocus(
+    exercise: Exercise,
+    set: ExerciseSet,
+    roundIndex: Int,
+    side: String?,
+    showActions: Boolean,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
+    onUpdateExercise: (((Exercise) -> Exercise) -> Unit)?,
+    onRemoveSet: (String) -> Unit,
+    onMoveSet: (String, Int) -> Unit,
+) {
+    Column(
+        modifier = Modifier.testTag("round-set-focus-${set.id}${side?.let { ":$it" }.orEmpty()}"),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (set.purpose.isAmrap) {
+            AmrapSetFocus(exercise, set, roundIndex, fixedUnilateralSide = side) { update -> onUpdateSet(set.id, update) }
+        } else {
+            RmSetFocus(exercise, set, { update -> onUpdateSet(set.id, update) }, onUpdateExercise, fixedUnilateralSide = side)
+        }
+        if (showActions) FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(18.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            if (canMoveUp) KpknTextAction(text = "Subir", onClick = { onMoveSet(set.id, -1) })
+            if (canMoveDown) KpknTextAction(text = "Bajar", onClick = { onMoveSet(set.id, 1) })
+            KpknTextAction(text = "Eliminar", color = WizardColors.danger, onClick = { onRemoveSet(set.id) })
+        }
+    }
 }

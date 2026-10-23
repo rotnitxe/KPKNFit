@@ -395,6 +395,7 @@ internal fun SupersetGroupEditorCard(
                 )
 
                 SupersetRoundsCarousel(
+                    onUpdateExercise = onUpdateExercise,
                     group = group,
                     exercises = exercises,
                     rounds = rounds,
