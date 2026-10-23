@@ -317,8 +317,13 @@ private fun seriesChipDetail(set: ExerciseSet, side: String?, mode: TrainingMode
         mode == TrainingMode.TIME -> summary.intensity.orEmpty()
         mode == TrainingMode.DISTANCE -> "m"
         mode == TrainingMode.CUSTOM -> customUnit?.ifBlank { "Unidad" } ?: "Unidad"
-        else -> (target?.targetRepsRange ?: set.targetRepsRange)?.format()
-            ?: (target?.targetReps ?: set.targetReps)?.toString() ?: "—"
+        else -> {
+            target?.targetRepsRange?.format()
+                ?: target?.targetReps?.toString()
+                ?: set.targetRepsRange?.format()
+                ?: set.targetReps?.toString()
+                ?: "—"
+        }
     }
     return if (mode == TrainingMode.REPS && !set.purpose.isAmrap) listOfNotNull(dose, summary.intensity).joinToString(" · ") else dose
 }
