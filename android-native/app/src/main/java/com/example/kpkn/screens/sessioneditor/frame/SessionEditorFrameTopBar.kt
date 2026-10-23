@@ -40,6 +40,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -64,7 +65,7 @@ internal val SessionEditorFrameTopBarHeight = 56.dp
 /**
  * Fila superior fija del editor (ED-A · A1). A la izquierda, «Atrás»: guarda lo pendiente y sale. En el centro, la píldora «‹ Jue ·
  * Semana 3 ⌄ ›»: las flechas pasan al día anterior o siguiente con sesión (sin pasar por días vacíos) y tocar el texto abre la semana.
- * A la derecha, «⋯» con Transferir y Versiones, lo que había bajo la portada en el original. Todo mide 44 dp o más.
+ * A la derecha, «⋯» con Transferir y Versiones, lo que había bajo la portada en el original. Todo mide 48 dp o más.
  *
  * @param forward true si el día nuevo viene después del anterior: el texto de la píldora entra desde la derecha; si no, desde la izquierda.
  */
@@ -118,6 +119,8 @@ internal fun SessionEditorFrameTopBar(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
+                    .semantics { contentDescription = "Abrir la semana: $dayLabel" }
+                    .testTag("session_editor_open_week")
                     .clickable(role = Role.Button, onClickLabel = "Abrir la semana", onClick = onOpenWeek),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
@@ -130,9 +133,10 @@ internal fun SessionEditorFrameTopBar(
                 ) { label ->
                     Text(
                         text = label,
-                        style = KpknType.bodyStrong.copy(fontSize = 13.sp, lineHeight = 18.sp),
+                        style = KpknType.bodyStrong.copy(fontSize = 13.sp, lineHeight = 16.sp),
                         color = WizardColors.text,
-                        maxLines = 1,
+                        // Día y semana caben en dos líneas al aumentar la letra.
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center,
                     )
@@ -182,7 +186,7 @@ internal fun SessionEditorFrameTopBar(
     }
 }
 
-/** Flecha de día de 44 dp: tinta si hay sesión a donde ir y apagada si no. Sin sesión vecina no hace nada. */
+/** Flecha de día de 48 dp: tinta si hay sesión a donde ir y apagada si no. Sin sesión vecina no hace nada. */
 @Composable
 private fun FrameDayArrow(
     icon: ImageVector,
@@ -192,7 +196,7 @@ private fun FrameDayArrow(
 ) {
     Box(
         modifier = Modifier
-            .size(44.dp)
+            .size(48.dp)
             .semantics { this.contentDescription = contentDescription }
             .clip(CircleShape)
             .clickable(role = Role.Button) { if (enabled) onClick() },
