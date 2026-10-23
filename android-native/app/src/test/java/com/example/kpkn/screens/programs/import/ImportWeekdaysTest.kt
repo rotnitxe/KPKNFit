@@ -8,6 +8,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.Program
@@ -165,11 +166,12 @@ class ImportWeekdaysTest {
         pantalla(vm)
 
         rule.onNodeWithTag("import-weekdays-help").assertTextEquals("2 sesiones en 2 días.")
-        rule.onNodeWithTag("import-weekday-4").performClick()
+        // G3: los días de entrenamiento viven en el contenido, tras la revisión, no en la barra de abajo.
+        rule.onNodeWithTag("import-weekday-4").performScrollTo().performClick()
 
         assertEquals(setOf(1), vm.state.value.weekdays)
         rule.onNodeWithTag("import-weekdays-help").assertTextEquals("Algunos días tendrán más de una sesión.")
-        rule.onNodeWithTag("import-weekday-2").performClick()
+        rule.onNodeWithTag("import-weekday-2").performScrollTo().performClick()
         assertEquals(setOf(1, 2), vm.state.value.weekdays)
         rule.onNodeWithTag("import-weekdays-help").assertTextEquals("2 sesiones en 2 días.")
     }

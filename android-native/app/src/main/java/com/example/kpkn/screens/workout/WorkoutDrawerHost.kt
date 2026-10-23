@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -79,6 +81,12 @@ internal fun WorkoutDrawer(
     dismissible: Boolean = true,
     showCloseButton: Boolean = true,
     hazeState: HazeState? = LocalHazeState.current,
+    /**
+     * G1/G2: la hoja ocupa casi toda la pantalla (bajo la barra de estado) y lleva un asa arriba. Con [footer], ese pie va fijo
+     * debajo del contenido, que es lo único que se desplaza.
+     */
+    fullHeight: Boolean = false,
+    footer: (@Composable ColumnScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     var showContent by remember { mutableStateOf(false) }
@@ -142,7 +150,9 @@ internal fun WorkoutDrawer(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight()
+                    .then(
+                        if (fullHeight) Modifier.fillMaxHeight().statusBarsPadding().padding(top = 8.dp) else Modifier.wrapContentHeight(),
+                    )
                     .navigationBarsPadding()
                     .onSizeChanged { panelHeightPx = it.height }
                     .kpknGlassOrFallback(hazeState = hazeState, shape = panelShape)
@@ -152,10 +162,22 @@ internal fun WorkoutDrawer(
                         onClick = {},
                     ),
             ) {
+              Column(
+                modifier = Modifier.fillMaxWidth().then(if (fullHeight) Modifier.fillMaxHeight() else Modifier.wrapContentHeight()),
+              ) {
+                if (fullHeight) {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .size(width = 36.dp, height = 4.dp)
+                            .background(Color.White.copy(alpha = 0.22f), RoundedCornerShape(2.dp)),
+                    )
+                }
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .wrapContentHeight()
+                        .weight(1f, fill = false)
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 20.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -184,8 +206,10 @@ internal fun WorkoutDrawer(
                         }
                     }
                     content()
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(if (footer != null) 8.dp else 24.dp))
                 }
+                footer?.invoke(this)
+              }
             }
         }
     }

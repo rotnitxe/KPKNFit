@@ -1,6 +1,14 @@
 package com.example.kpkn.screens.programs.importer
 
 import androidx.compose.foundation.background
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,8 +60,8 @@ import kotlinx.coroutines.launch
 
 /**
  * Programas → Nuevo programa → Importar. La misma vista previa que el alta (semanas, días, ejercicios que se ajustan con su
- * panel, deshacer y revisión final). Abajo, fija sobre la barra de navegación, van los días de entrenamiento y «Guardar
- * programa», que solo se activa sin problemas y con al menos un día; respeta los límites del nivel: en Free, más de una semana o
+ * panel, deshacer y revisión final). Abajo, flotando sobre la barra de navegación, va la isla (G3) con «Añadir ejercicio» y
+ * «Guardar programa», que solo se activa sin problemas y con al menos un día; los días de entrenamiento van tras la revisión; respeta los límites del nivel: en Free, más de una semana o
  * más de cinco sesiones piden Pro.
  */
 @Composable
@@ -70,6 +78,8 @@ fun ImportProgramScreen(
     var pasted by rememberSaveable { mutableStateOf("") }
     // Sube cada vez que «Ver avisos» de la revisión final: el panel de avisos se despliega y sube a la vista.
     var warningsReveal by rememberSaveable { mutableStateOf(0) }
+    // «Añadir ejercicio» de la isla de abajo: el catálogo contextual del importador, sobre la pantalla.
+    var addingExercise by rememberSaveable { mutableStateOf(false) }
     // La lectura va en el ViewModel: así su progreso se ve y «Cancelar» la corta.
     val pickFile = rememberImportFilePicker { uri -> viewModel.importFromPicked(uri) }
     val imported = state.imported
@@ -80,21 +90,46 @@ fun ImportProgramScreen(
     // Sin ningún día de entrenamiento no se guarda: la revisión lo dice y «Guardar programa» queda desactivado.
     val weekdaysMissing = imported != null && state.weekdays.isEmpty()
     val canSave = issues.isEmpty() && !weekdaysMissing
-    Column(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        // Lo que se desplaza: bajo la barra de estado. Con la barra de guardar, termina justo encima de ella; sin ella, sobre la
-        // barra de navegación del sistema.
+    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+        // Lo que se desplaza: bajo la barra de estado. Con la isla de abajo, el contenido deja sitio para ella; sin programa
+        // leído, termina sobre la barra de navegación del sistema.
         Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
+                .fillMaxSize()
                 .statusBarsPadding()
                 .then(if (imported == null) Modifier.navigationBarsPadding() else Modifier)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = if (imported == null) 12.dp else ISLAND_CLEARANCE + 12.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            ImportTextAction(label = "Atrás", onClick = onBack)
-            Text("Importar programa", style = WizardTypography.stepTitle, color = WizardColors.text)
+            Column {
+            // Atrás y el título, en una fila (G3): el botón redondo mide 48 dp de alto táctil.
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .testTag("import-back")
+                        .semantics { contentDescription = "Atrás" }
+                        .clickable(role = Role.Button, onClick = onBack),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(
+                        modifier = Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF111111)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(KpknLineIcons.ChevronLeft, contentDescription = null, tint = WizardColors.text, modifier = Modifier.size(18.dp))
+                    }
+                }
+                Text(
+                    "Importar programa",
+                    style = WizardTypography.stepTitle.copy(fontSize = 20.sp),
+                    color = WizardColors.text,
+                    modifier = Modifier.weight(1f).semantics { heading() },
+                )
+            }
+            // La línea de deshacer va justo bajo el título (G3).
+            if (imported != null) state.undoLabel?.let { ImportUndoLine(label = it, onUndo = viewModel::undo) }
+            }
             if (imported == null) {
                 ImportSourceChoices(
                     onChooseFile = pickFile,
@@ -122,7 +157,6 @@ fun ImportProgramScreen(
                         onDismiss = viewModel::dismissImportKnown,
                     )
                 }
-                state.undoLabel?.let { ImportUndoLine(label = it, onUndo = viewModel::undo) }
                 ImportWarningsPanel(
                     imported = imported,
                     reveal = warningsReveal,
@@ -149,6 +183,13 @@ fun ImportProgramScreen(
                     onRestart = viewModel::clear,
                     weekdaysMissing = weekdaysMissing,
                 )
+                // Los días de entrenamiento ya no van en la barra de abajo: con la isla de G3 viven aquí, tras la revisión.
+                ImportWeekdaysSection(
+                    selected = state.weekdays,
+                    sessionsPerWeek = importSessionsPerWeek(imported),
+                    onToggle = viewModel::toggleWeekday,
+                    modifier = Modifier.padding(horizontal = 0.dp),
+                )
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     ImportTextAction(label = "Cambiar archivo", onClick = pickFile)
                     ImportTextAction(label = "Empezar de nuevo", onClick = viewModel::clear)
@@ -159,44 +200,107 @@ fun ImportProgramScreen(
             state.notice?.let { EntrenoPlanNotice(text = it, error = false) }
         }
         if (imported != null) {
-            ImportSaveBar(
-                selected = state.weekdays,
-                sessionsPerWeek = importSessionsPerWeek(imported),
-                onToggleWeekday = viewModel::toggleWeekday,
+            ImportBottomIsland(
                 canSave = canSave,
+                onAddExercise = { addingExercise = true },
                 onSave = { scope.launch { viewModel.save(level)?.let(onSaved) } },
+                modifier = Modifier.align(Alignment.BottomCenter),
             )
+            if (addingExercise) {
+                ImportAddExerciseSheet(
+                    imported = imported,
+                    contextDayId = state.openedExerciseId?.let { id ->
+                        imported.weeks.firstNotNullOfOrNull { week -> week.days.firstOrNull { day -> day.exercises.any { it.id == id } } }?.id
+                    },
+                    search = viewModel::search,
+                    onEdit = viewModel::edit,
+                    onClose = { addingExercise = false },
+                )
+            }
         }
     }
 }
 
+/** Lo que el contenido deja libre bajo sí para la isla de abajo: su alto (64 dp), su margen y la barra de navegación. */
+private val ISLAND_CLEARANCE = 96.dp
+
 /**
- * La barra fija de abajo, solo en la app: los días de entrenamiento y «Guardar programa». Va sobre la barra de navegación del
- * sistema, que nunca la tapa; el contenido de arriba termina justo encima de ella.
+ * La isla de abajo (G3): «Añadir ejercicio», que abre el catálogo contextual del importador, y «Guardar programa», que solo se activa
+ * sin problemas y con al menos un día. Va flotando sobre la barra de navegación del sistema, con un velo que funde lo que pasa por
+ * debajo; los dos botones miden 44 dp dentro de objetivos táctiles de 48.
  */
 @Composable
-private fun ImportSaveBar(
-    selected: Set<Int>,
-    sessionsPerWeek: Int,
-    onToggleWeekday: (Int) -> Unit,
+private fun ImportBottomIsland(
     canSave: Boolean,
+    onAddExercise: () -> Unit,
     onSave: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = Modifier
+    Box(
+        modifier = modifier
             .fillMaxWidth()
-            .background(Color.Black)
+            .background(Brush.verticalGradient(0f to Color.Transparent, 0.55f to Color.Black.copy(alpha = 0.92f), 1f to Color.Black.copy(alpha = 0.92f)))
             .navigationBarsPadding()
-            .padding(vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 28.dp, bottom = 14.dp),
     ) {
-        ImportWeekdaysSection(selected = selected, sessionsPerWeek = sessionsPerWeek, onToggle = onToggleWeekday)
-        Button(
-            onClick = onSave,
-            enabled = canSave,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).testTag("import-save"),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
+                .testTag("import-island")
+                .clip(RoundedCornerShape(32.dp))
+                .background(Color(0xB8161616))
+                .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(32.dp))
+                .padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Text("Guardar programa")
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp)
+                    .testTag("import-add-exercise")
+                    .semantics { contentDescription = "Añadir ejercicio: abre el catálogo" }
+                    .clickable(role = Role.Button, onClick = onAddExercise),
+                contentAlignment = Alignment.Center,
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(44.dp)
+                        .clip(RoundedCornerShape(22.dp))
+                        .border(1.dp, Color.White.copy(alpha = 0.16f), RoundedCornerShape(22.dp)),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(KpknLineIcons.Plus, contentDescription = null, tint = WizardColors.text, modifier = Modifier.size(14.dp))
+                    Text("Añadir ejercicio", style = WizardTypography.cardSubtitle.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold), color = WizardColors.text, maxLines = 1)
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp)
+                    .testTag("import-save")
+                    .clickable(enabled = canSave, role = Role.Button, onClick = onSave),
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(44.dp)
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(if (canSave) WizardColors.cta else WizardColors.ctaDisabled),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        "Guardar programa",
+                        style = WizardTypography.cardSubtitle.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
+                        color = if (canSave) WizardColors.ctaContent else WizardColors.ctaDisabledContent,
+                        maxLines = 1,
+                    )
+                }
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-# INT-1 · Integración de screens-v2 · en curso
+# INT-1 · Integración y regresión dirigida de fase3 verificadas
 
 Se integra en `feat/screens-v2`, C:/kw/u11, en el orden del relevo. El artefacto ajeno `artifacts/aud2-editor-catalogo-20261020/` se conserva fuera de los commits. No se modifica master ni se hace push. Room sigue congelado en v30.
 
@@ -11,8 +11,8 @@ Se integra en `feat/screens-v2`, C:/kw/u11, en el orden del relevo. El artefacto
 | u14 · ED-A/ED-B · 385cab731 | Limpio tras D8, árbol 6e533815cb855eccd804bba94e78a7f17f745e07 | 67ded417b, sin conflictos | 10 clases, 87/0 |
 | u17 · ED-D + C3 · 2cf81b677 | Limpio sobre 6487f3059, árbol fadf0ced2030287f8598084998c4c2145287ac30 | e7fd65eac, sin conflictos | 10 C3 finales/0; 67 anteriores ED-D/0 y 50 ED-B/0 en corridas separadas, descritas abajo |
 | u18 · ED-C · 296bb3ff6 | Cuatro conflictos previstos, resueltos conservando LV-C/ED-B | 9d6d11730 | 78 casos únicos/0; 72/0 iniciales y 6/0 tras migrar H1/H2 |
-| u15 · CAT-A | Pendiente | Pendiente | Pendiente |
-| u16 · G | Pendiente | Pendiente | Pendiente |
+| u15 · CAT-A · f34b02318 | Un conflicto de firma CatalogExerciseRow, conservadas ambas APIs | acc75872c | 66/0 base + 4/0 ventanas físicas E4; 70 casos únicos |
+| u16 · G + adaptación G1 · 0ac8bd0e6 | Limpio, árbol 80bafa8a6dec6a0b6635ff13a3cb8dcdbe1b169a | cca733fe5 | 95 casos únicos verdes en corridas separadas; detalle debajo |
 
 ## Contratos que deben conservarse
 
@@ -82,3 +82,44 @@ Merge 9d6d11730 sobre ba304b1e5; cuatro conflictos: WarmupRules.kt, WarmupRulesT
 
 
 ED-C cerrado: `int-u18-android-codex-20261023-2.log`, BUILD SUCCESSFUL en 8 min 30 s, 6/0 en ExerciseEditorExpandedComposeTest; wrapper exit0. Con los otros 72 casos de la primera corrida, cuyas rutas no se alteraron salvo reutilizar la fórmula idéntica del máximo, hay 78 pruebas únicas verdes. La regla se repetirá también en la regresión JVM de fase 3. Revisados PNG al130 H1/H2/H3, B6, grupo D9 y LV-C a740: controles completos; las fichas se desplazan horizontalmente. Sin QA de dispositivo ni APK todavía.
+
+
+## CAT-A: unión y geometría E4 verificadas
+
+`int-u15-android-codex-20261023-1.log`: BUILD SUCCESSFUL en8min13s; diez clases,66pruebas,0fallos/errores/omitidas, wrapper exit0. Resuelto sólo CatalogExerciseRow.kt, con thumbnailFile(MOT) y onOpenFicha/selectionOrder(CAT-A); el creador MOT conserva catalogV2.
+
+Los22PNG antiguos incluyen un recorte aparente del pie E4 al130 y un Canvas vacío después del scroll. Su raíz física está configurada a1000dp y se recorta a880dp: no bastan para atribuirlo al producto. Nueva clase CatalogSupersetPhysicalViewportTest, commit c2fc2d1d0: cuatro ventanas físicas360×740/880,100/130, cuatro ejercicios; tras desplazar el contenido exige Cancelar/Crear completos dentro del viewport,48dp y TextLayoutResult sin elipsis ni pérdida de caracteres. Pulsa realmente ronda4, confirma4/60/120 y verifica cancelar sin cambiar la confirmación anterior. `int-u15-android-codex-20261023-2.log`: BUILD SUCCESSFUL en3min20s,4/0, wrapper exit0. OchoPNG físicos; revisados los de confirmación al130 a740/880, ambos completos. No fue necesario modificar producción. Total70casos únicos en dos corridas; QA dispositivo pendiente.
+
+
+## G/G1: integración y adaptación del arnés
+
+Preflight80bafa8a6dec6a0b6635ff13a3cb8dcdbe1b169a; merge cca733fe5 sin conflictos, conu16 yadaptaciónu25 0ac8bd0e6. Primera corrida int-u16-android-codex-20261023-1.log: produccióncompila, testno por importonNode inexistente comoextensión; corregida sóloesaimportación en5b476d9f4. Segunda: BUILD FAILED en3min34s, sieteclases95pruebas,8fallos. Cinco clases sinrutasafectadas pasan50/0; Board37/39 yRender0/6. DosselectoresbuscabanetiquetaenelTextFieldenvezdehermana; seis rendersno dejaronDeletevisibletrasperformScrollTo del focoanidado. Las copias revisadas usanhermanoenárbolsinmerge ygestosfísicos sobreelScrollByquecontieneDelete; mantienenaserciones48dp,visibilidad,piefijo,guardadoyrestodedatos. Seefectúanterceracorrida45casosafectados; noatribuirtodavíaelfallodevisibilidadaproducción.
+
+
+## G/G1: cierre verificado
+
+La cuarta corrida `int-u16-android-codex-20261023-4.log` compila y pasa los seis renders físicos; Board conserva 37/39. El selector hermano directo seguía equivocado: la etiqueta pertenece al contenedor de la fila que contiene el BasicTextField. ec4ebc225 lo localiza por ancestro y hermano, sin tocar producción ni llamar callbacks directamente. La quinta corrida `int-u16-android-codex-20261023-5.log` ejecuta únicamente ambos casos pendientes: 2/0, BUILD SUCCESSFUL en 3 min 15 s, wrapper exit0 y XML comprobado. La tercera había fallado solo por importar swipe, corregido en b44478519.
+
+Total: 95 pruebas únicas verdes, con 50 de la segunda corrida, 37 Board y seis renders de la cuarta y dos Board de la quinta. No se atribuyen a una única corrida. Revisados tres PNG nuevos de acciones en C:/kw/shots/int-g: RM/TM a740/130 y880/100 y AMRAP a740/130; Eliminar y Confirmar cambios completos después del desplazamiento físico, pie fijo y objetivos48. G cerrado; sigue la corrección acotada ED-A7114b5872 y la regresión de fase3. QA de dispositivo pendiente.
+
+
+## ED-A adicional cerrado; regresión de fase3
+
+Tras fusionar7114b5872 se corrigieron los recortes reales de Añadir y del párrafo de semana en8e4b54634/2e14b0700 y dos selectores de decoración/animación. ED-A suma96 casos únicos verdes:63 iniciales fuera de las rutas modificadas y33 finales del marco (incluidos11 nuevos). Tercera corrida exit0, XML archivados; ver INT-EDA.md para diagnóstico y las tres ejecuciones. Renders nuevos revisados al100/130,740/880. Todas las ramas de fase3 están integradas.
+
+Sigue la regresión central: JVM de protocolos/training/workout/calibration y motores MOT con fixtures concretos; dos lotes Android de15 clases de sesión en vivo y persistencia. Los tests con dependencias de pantalla/Room no se fuerzan al arnés puro. No se declara aún fase3 completamente verde hasta cerrar estas corridas. No hay QA ni APK de esta continuación.
+
+
+## Hito verde de fase3 · 23-oct 04:42
+
+La fuente validada es2e14b0700 (HEAD documental60caa0b4a); todas las fusiones de fase3 y la corrección ED-A están dentro. CLAUDE.md y KpknDatabase declaran Roomv30 y el diff de data/db y schemas desde3645ba55c está vacío. Se conserva el artefacto ajeno sin seguimiento. Sin push/master.
+
+- JVM: `int-phase3-jvm-codex-20261023-2.log`, log completo `kpknjvm-u11-20261023-042613.log`: BUILD SUCCESSFUL3min42s, wrapper exit0,382s con cola/resumen.185 clases1936 pruebas,0 fallos/errores/omitidas. Incluye protocolos/training/workout/calibration, FIX-TM y tres motores MOT con sus fixtures por archivo. Primera corrida sólo falló en compilación de tests por omitir CustomExerciseNameCorpus.kt del filtro; se añadió el archivo, sin modificar producto ni arnés.
+- Android1: `int-phase3-android-codex-20261023-1.log`:15 clases169/0, BUILD SUCCESSFUL1min1s, wrapper exit0. Línea/hojas, modos, persistencia de modos, preparación, ficha, opciones y geometría en vivo.
+- Android2: `int-phase3-android-codex-20261023-2.log`:15 clases173/0, BUILD SUCCESSFUL55s, wrapper exit0. Calibración/Room, decisiones, resumen/vista previa, voz/vídeo, cierre y preparación.
+
+Son2278 casos en tres corridas dirigidas, no una suite única. XML/summary.json archivados bajo C:/kw/logs/screens-v2-evidence/ con el nombre de cada corrida. MOT se repite sin cambiar corpus: AUD1top1/top3=36/36; validación40/40; fresco42/45 y44/45 (93,3/97,8%).
+
+Esta regresión dirigida se suma a las verificaciones por paquete de arriba. El barrido ampliado de clases concretas de workout/sessioneditor se hará tras unir fase4 y antes de QA, para cubrir también sus cambios nuevos sin repetirlo entero antes de cada unión. Se documenta esta decisión autónoma de orden: no equivale a declarar ahora todos los tests del repositorio verdes. QA, instalación, APK y firma no se han realizado en esta continuación.
+
+Las bases provisionales de CAT-B/CAL4-V/CAL5b/PLAN-OBS deben incorporar este hito antes de validarlas. CAL7 incorporará además todos los paquetes de fase4. Los preflight individuales contra60caa0b4a fueron limpios; se repiten antes de las fusiones reales.
