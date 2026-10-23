@@ -3,6 +3,7 @@ package com.example.kpkn.screens.sessioneditor.components
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
@@ -18,6 +19,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseRelationshipType
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.MobilityConfig
@@ -49,6 +51,7 @@ class ExerciseEditorExpandedComposeTest {
         exercise: Exercise,
         onUpdate: ((Exercise) -> Exercise) -> Unit = {},
         onOpenMobility: () -> Unit = {},
+        relationshipAnchorName: String? = null,
     ) {
         val current = mutableStateOf(exercise)
         rule.setContent {
@@ -64,7 +67,7 @@ class ExerciseEditorExpandedComposeTest {
                     resolved1RM = 100.0,
                     predictedMetrics = emptyMap(),
                     localPrEstimatedRm = null,
-                    relationshipAnchorName = null,
+                    relationshipAnchorName = relationshipAnchorName,
                     cardioFirst = false,
                     showCardioPlacementChip = false,
                     onToggleCardioPlacement = null,
@@ -115,6 +118,34 @@ class ExerciseEditorExpandedComposeTest {
         render(bare, onOpenMobility = { opened = true })
         rule.onNodeWithText("+ Movilidad").performClick()
         assertTrue(opened)
+    }
+
+    @Test
+    fun laRelacionMuestraElNombreDelAnclaYNoElIdDeConfiguracion() {
+        val configurationId = "reverse_pec_fly__bilateral__dumbbells"
+        val variation = bare.copy(
+            relativeToCanonicalExerciseId = configurationId,
+            relationshipType = ExerciseRelationshipType.VARIATION,
+        )
+
+        render(variation, relationshipAnchorName = "Aperturas Inversas")
+
+        rule.onNodeWithText("Variacion de Aperturas Inversas").assertExists()
+        rule.onNodeWithText(configurationId).assertDoesNotExist()
+    }
+
+    @Test
+    fun unaRelacionSinNombreResueltoNoExponeElIdDeConfiguracion() {
+        val configurationId = "reverse_pec_fly__bilateral__dumbbells"
+        val variation = bare.copy(
+            relativeToCanonicalExerciseId = configurationId,
+            relationshipType = ExerciseRelationshipType.VARIATION,
+        )
+
+        render(variation)
+
+        rule.onNodeWithText("Variacion de un ejercicio del programa").assertExists()
+        rule.onNodeWithText(configurationId).assertDoesNotExist()
     }
 
     @Test

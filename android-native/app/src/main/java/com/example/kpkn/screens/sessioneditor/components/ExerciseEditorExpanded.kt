@@ -347,9 +347,10 @@ private fun RelationshipPanel(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            val anchorLabel = anchorName ?: "un ejercicio del programa"
             Text(
-                text = exercise.relationshipType?.displayLabel()?.let { "$it de ${anchorName ?: exercise.relativeToCanonicalExerciseId}" }
-                    ?: "Relacionado con ${anchorName ?: exercise.relativeToCanonicalExerciseId}",
+                text = exercise.relationshipType?.displayLabel()?.let { "$it de $anchorLabel" }
+                    ?: "Relacionado con $anchorLabel",
                 style = KpknType.bodyStrong,
                 color = WizardColors.text,
                 maxLines = 2,
