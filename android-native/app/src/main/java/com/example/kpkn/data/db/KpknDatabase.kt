@@ -95,13 +95,6 @@ abstract class KpknDatabase : RoomDatabase() {
     companion object {
         @Volatile private var INSTANCE: KpknDatabase? = null
 
-        private const val DEFAULT_DATABASE_NAME = "kpkn.db"
-        private const val VT_QA_APPLICATION_ID = "com.example.kpkn.dbg"
-        private const val VT_QA_DATABASE_NAME = "kpkn-vt-qa-v29.db"
-
-        internal fun databaseNameForApplicationId(applicationId: String): String =
-            if (applicationId == VT_QA_APPLICATION_ID) VT_QA_DATABASE_NAME else DEFAULT_DATABASE_NAME
-
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("""
@@ -754,7 +747,7 @@ abstract class KpknDatabase : RoomDatabase() {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     KpknDatabase::class.java,
-                    databaseNameForApplicationId(context.applicationContext.packageName),
+                    "kpkn.db",
                 )
                 .addMigrations(
                     MIGRATION_1_2,
