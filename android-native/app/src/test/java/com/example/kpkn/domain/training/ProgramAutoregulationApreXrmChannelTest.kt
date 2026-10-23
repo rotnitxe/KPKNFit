@@ -286,7 +286,7 @@ class ProgramAutoregulationApreXrmChannelTest {
 
     @Test
     fun closing_a_single_week_cycle_uses_cycle_one_s4_for_the_reused_week_in_cycle_two() {
-        fun close(mode: AutoregulationMode): Pair<com.example.kpkn.domain.training.ProgressAdvanceResult, Double?> {
+        fun close(mode: AutoregulationMode): Pair<ProgramProgressEngine.ProgressAdvanceResult, Double?> {
             val base = program(mode, "apre-cycle-close-${mode.name.lowercase()}").copy(
                 sourceRecipe = null,
                 sourceProtocolId = null,
