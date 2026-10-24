@@ -40,3 +40,10 @@ Fuentes fundamentales ya consultadas; verificar los detalles al cerrar el dossie
 | Craven 2022, DOI 10.1007/s40279-022-01706-y; https://link.springer.com/article/10.1007/s40279-022-01706-y | Pérdida de sueño puede perjudicar rendimiento con heterogeneidad por tarea/condición. Mostrar sueño registrado; no convertir horas en puntos de batería. |
 | Frandsen 2025, PMID 40623829; https://pubmed.ncbi.nlm.nih.gov/40623829/ | Cohorte prospectiva de 5205 corredores: asociación de aumentos de distancia de sesión respecto al máximo de 30 días con sobreuso. No ensayo preventivo, ni regla de 10 % seguro. Comparación descriptiva permitida sin riesgo personal calculado. |
 
+
+Acceso adicional cloud,24-oct-2026: se probaron también OpenAlex (consulta DOI),
+Semantic Scholar (consulta PMID) y NCBI BioC/PMC. Los tres devolvieron denegación del
+túnel del proxy403, registrada en `post-rings-research-additional-access.json`.
+No se declara lectura de abstract ni texto completo a partir de esas peticiones.
+Para verificar las fuentes hace falta acceso autorizado a esos destinos o a los
+sitios primarios; no se reemplazó una allowlist de red cuyo contenido se desconoce.

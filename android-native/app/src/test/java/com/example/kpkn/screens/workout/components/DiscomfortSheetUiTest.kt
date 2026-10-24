@@ -98,22 +98,22 @@ class DiscomfortSheetUiTest {
     }
 
     @Test
-    fun inYourCaseListsOnlyWhatHasEvidenceAndTheClosingAdviceAppearsOnce() {
+    fun previousReportsDoNotBecomeTodaysLoadAdvice() {
         val insight = DiscomfortInsight(
             discomfortId = "knee_patellar",
-            headline = "Hoy llevas 4 series pesadas de sentadilla.",
-            today = listOf(evidence(DiscomfortEvidenceKind.REPORTED_HISTORY, "4 series pesadas de sentadilla", "Deja 2 repeticiones en reserva.")),
-            week = emptyList(),
+            headline = "Registro anterior",
+            today = emptyList(),
+            week = listOf(evidence(DiscomfortEvidenceKind.REPORTED_HISTORY, "Registraste molestia de rodilla el 13-oct-2026.", "")),
             advice = listOf("Deja 2 repeticiones en reserva.", PROFESSIONAL_ADVICE),
             persistent = false,
             strength = 0.8,
         )
         body("knee_patellar", insight = insight)
-        rule.onNodeWithText("EN TU CASO").assertExists()
-        rule.onNodeWithText("Hoy").assertExists()
-        rule.onNodeWithText("4 series pesadas de sentadilla").assertExists()
+        rule.onNodeWithText("REGISTROS ANTERIORES").assertExists()
+        rule.onAllNodesWithText("Hoy").assertCountEquals(0)
+        rule.onNodeWithText("Registraste molestia de rodilla el 13-oct-2026.").assertExists()
         rule.onAllNodesWithText("Esta semana").assertCountEquals(0)
-        rule.onNodeWithText("Deja 2 repeticiones en reserva.").assertExists()
+        rule.onAllNodesWithText("Deja 2 repeticiones en reserva.").assertCountEquals(0)
         rule.onAllNodesWithText(PROFESSIONAL_ADVICE).assertCountEquals(1)
     }
 

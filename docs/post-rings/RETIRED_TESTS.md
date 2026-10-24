@@ -163,3 +163,10 @@ aportan su valor conocido y comprueban que sobrevive, sin fabricar cero. La ener
 histórica independiente requiere método identificado; los fixtures lo declaran y
 conservan los mismos oráculos numéricos. Se añaden pruebas negativas de métodos
 retirados/desconocidos, caché igual a Room, rango inválido y cero explícito genuino.
+
+Segunda regresión ampliada:2033 pruebas,2031 aprobadas y2 fallos de expectativas
+retiradas (rótulo axial del reemplazo y ficha personal de molestias). Se eliminan
+solo los parámetros de coeficiente ya inexistentes de los fixtures de reemplazo;
+se conservan material, lateralidad, anatomía y ausencia de diferencias inventadas.
+La ficha ahora exige registro anterior con fecha, sin rótulo «Hoy» ni consejo de
+carga, incluso si se inyecta un DTO legado con advice. Las pruebas no se omiten.

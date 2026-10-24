@@ -389,6 +389,19 @@ final class PostRingsTrainingEvidenceTests: XCTestCase {
         XCTAssertEqual(log.sessionEffortRpe,0)
         XCTAssertNil(log.actualDurationSeconds)
     }
+    func testRetiredEnergyIsPurgedWithoutLosingOriginalNotesAndPreciseTime() {
+        let old = WorkoutLog(id:"l",programId:"p",sessionId:"s",sessionName:"Original",date:"2026-10-23T12:00:00Z",durationMinutes:17,
+            notes:"Nota original",energySummary:SessionEnergySummary(totalKcal:CalorieRange(low:100,mid:120,high:140),source:.FINAL,methodVersion:"auge-energy-v1"),
+            actualDurationSeconds:61,recordedSportId:"BOXING")
+        let restored = old.toEntity().toWorkoutLog()
+        XCTAssertNil(restored.energySummary)
+        XCTAssertEqual(restored.notes,old.notes)
+        XCTAssertEqual(restored.actualDurationSeconds,61)
+        XCTAssertEqual(restored.recordedSportId,"BOXING")
+        let zero = WorkoutLog(id:"zero",programId:"p",sessionId:"s",sessionName:"Original",date:old.date,durationMinutes:1,
+            energySummary:SessionEnergySummary(totalKcal:CalorieRange(low:0,mid:0,high:0),source:.FINAL,methodVersion:"independent-fixture-v1"))
+        XCTAssertEqual(zero.toEntity().toWorkoutLog().energySummary?.totalKcal.mid,0)
+    }
     func testUnknownContextsNeverBecomeComparable() {
         let fact = TrainingEvidenceFact(sourceId:"x",activityId:"l",occurredAtMs:1,sport:"JUMP",metric:"height",value:31.25,unit:"cm",origin:"OBSERVED",exerciseVariant:nil,method:nil,protocolId:nil,context:[:])
         XCTAssertFalse(TrainingInsightsEngine.comparable(fact,fact))
