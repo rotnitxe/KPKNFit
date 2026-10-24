@@ -8,6 +8,12 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.performSemanticsAction
+import org.junit.Assert.assertFalse
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.onFirst
@@ -28,14 +34,27 @@ import org.robolectric.annotation.Config
 class MuscleVolumePanelScreenTest {
     @get:Rule val rule = createComposeRule()
 
-    private fun show(name: String, actions: MuscleVolumePanelActions = MuscleVolumePanelActions()) {
+    private fun show(name: String, actions: MuscleVolumePanelActions = MuscleVolumePanelActions(), fontScale: Float = 1f) {
         rule.setContent {
             KPKNTheme {
-                CompositionLocalProvider(LocalWizardReducedMotion provides true) {
+                val density = LocalDensity.current
+                CompositionLocalProvider(LocalWizardReducedMotion provides true, LocalDensity provides Density(density.density, fontScale)) {
                     MuscleVolumePanelScreen(MuscleVolumePanelSamples.byName(name), actions)
                 }
             }
         }
+    }
+
+    @Test
+    fun `media semanal se ve entera al ciento treinta por ciento`() {
+        show("data", fontScale = 1.3f)
+        val layouts = mutableListOf<TextLayoutResult>()
+        rule.onNodeWithText("Media semanal", useUnmergedTree = true)
+            .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        assertEquals(1, layouts.size)
+        val layout = layouts.single()
+        assertEquals(1, layout.lineCount)
+        assertFalse("La opción debe verse completa", layout.isLineEllipsized(0))
     }
 
     @Test

@@ -39,7 +39,7 @@ fun MuscleVolumeControls(
         )
         Spacer(Modifier.height(8.dp))
         KpknSegmentedControl(
-            options = listOf("Promedio por semana", "Total"),
+            options = listOf("Media semanal", "Total"),
             selectedIndex = if (request.averagePerWeek) 0 else 1,
             onSelect = { onAverage(it == 0) },
             size = KpknSegmentedSize.Compact,
