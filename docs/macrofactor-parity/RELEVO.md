@@ -1,4 +1,5 @@
 > Instrucción vigente, 24-oct-2026: continuar directamente en local y sin push. Sustituye las restricciones de ejecución en Cloud de la nota siguiente; se conserva como historia. Ver [LOCAL_RESUME.md](LOCAL_RESUME.md).
+> QA en Z Flip: rige la orden posterior del 23-oct, única KPKN Dev `com.example.kpkn.dbg`, `baseDebug`, acceso por `phone_run` y `phone.lock`. Sustituye las instrucciones históricas de `.mfp` de abajo; conservar firma y datos.
 
 > Actualizacion 22-oct-2026: el usuario autorizo el traslado y la subida de las cinco ramas MFP a Codex Cloud. **No fusionar master ni ejecutar Gradle en su equipo.** Leer primero [CLOUD_HANDOFF.md](CLOUD_HANDOFF.md); el estado de corridas y el prompt historico de este documento quedan subordinados a ese relevo.
 
@@ -19,12 +20,13 @@ Documentos de la ola (leer primero): `docs/macrofactor-parity/README.md` (decisi
 | H1, N1, T2, T1, N2a, N2b | en `feat/macrofactor-parity` | Hechos y verificados (ver README). N2b: Decline/Postpone sin probar en teléfono. |
 | T3 modelo de fuerza (RIR) | en `feat/macrofactor-parity` | Hecho, verificado y con dos revisiones de Gemini. La sesión VT (vídeo) ya está avisada. |
 | D1 / D1-b tendencia de peso | `mfp/d`, `C:\kw\mfpd` (`248fdaa92`…`c0e8f77ab`) | Hecho y verificado: 463 tests, 4 rojos heredados, 0 nuevos. Falta QA en teléfono y vuelta final integrada. Conocido: «Meta 76 kg» tachada al 130 % de letra (elevación fija de 18 dp en `BodyTrendChart.kt`, anterior a la ola). |
-| T5a panel de volumen | `mfp/t5a`, `C:\kw\mfpt5` (`202cc4538`…`7b373aa22`) | Hecho y verificado: 69 tests de pantalla/render en verde, 17 de dominio en el arnés JVM. Sin vuelta de regresión amplia ni QA en teléfono. Puntos calientes de fusión: `MainActivity.kt`, `Navigation.kt`, `ProfileScreen.kt`, `RingAdjustBody.kt`. |
+| T5a panel de volumen | `mfp/t5a`, `C:\kw\mfpt5`, `770d9bc4c` | Regresión amplia local del 24-oct: 1.527 JVM/140 clases y 398 Android/34 clases verdes, 20 PNG. Corregido rótulo truncado al 130 %, sin cambiar cálculos. Sin QA física. Puntos calientes de integración: `MainActivity.kt`, `Navigation.kt`, `ProfileScreen.kt`, `RingAdjustBody.kt`. |
 | D2 hábitos | `mfp/h`, `C:\kw\mfph` (`743e23364`…`0fe99e548`) | Hecho y verificado: 81 tests, 0 rojos. Sin QA en teléfono. |
 | N3 escáner + alimento propio | `mfp/n`, `C:\kw\mfpn` (`59e8de788`…`7ca58599d` + correcciones de la revisión `6d8693c85`, `d8906cf84`, `693a82337`, `a6a1e826a`, `07cdd0215`) | Hecho; revisión de Gemini aplicada. `GtinTest` 20/20 en el arnés JVM. Las correcciones de pantalla (permiso al reanudar, micronutrientes) NO se han compilado en Android todavía. |
 | T4 objetivo automático | directamente en `feat/macrofactor-parity` (`609361f5c`, `6eb0f4c7e`, `25954360c`, docs `75eb84167`, `ee17d7216`) | **Escrito, agente PARADO.** Dominio validado en arnés JVM; su primera vuelta Android está en marcha en `C:\kw\mfp` (log `C:\kw\logs\mfp-T4-1.log`, ranura 2 de la cola desde las 23:43). Falta: leer el resultado, `mfp_verify.py`, revisión de Gemini de solo lectura y mi revisión. |
 | N4 reutilización del diario | `mfp/n`, `C:\kw\mfpn` (`0c13693c2`, `0658895f1`, `8a0faab65`, `ad7441828`, `74a21a351`, `703ce877b`) | **Escrito, agente PARADO.** Compila. Su vuelta Android (`C:\kw\logs\mfp-N4-2.log`) estaba en la cola y es posible que su proceso de espera haya muerto al parar el agente: comprobar con `bash /c/kw/tools/gradle_cola.sh` y relanzar UNA vez si no está. Esa vuelta también compila las correcciones de N3. Falta todo lo demás de la revisión. |
-| T5b, P2-Na, P2-Nb, D3 (CSV), P2-E, P2-F, T6, P2-Ta, P2-Tb | — | Sin empezar. Briefs listos en `briefs/` (P2-Nb usa `data/DRI_ADULTOS.csv`). Orden en README. |
+| P2-Na | `mfp/n`, `f684146b9`; harness `b2abea01d` | Implementado en local. 475 pruebas Android previas al último arreglo y 44 JVM posteriores verdes. Pendiente permiso para cuarta tanda Android del arreglo de raciones; sin QA física ni integración. Recibo vigente en `LOCAL_RESUME.md`. |
+| T5b, P2-Nb, D3 (CSV), P2-E, P2-F, T6, P2-Ta, P2-Tb | — | Sin empezar. Briefs listos en `briefs/` (P2-Nb usa `data/DRI_ADULTOS.csv`). Orden en README. |
 
 ## 3. Reglas fijas (no negociables)
 

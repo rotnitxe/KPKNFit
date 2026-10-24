@@ -1,28 +1,36 @@
 # Reanudación local de la ola MFP · 24-oct-2026
 
-## Instrucción vigente
+## Instrucción vigente y base
 
-El usuario pidió: «Implementa tú directamente, en local, con el método más efectivo y rápido y sin despilfarrar tokens. Continúa la ola MFP sin hacer push». Sustituye las instrucciones anteriores de Cloud y de delegación. No lanzar subagentes ni contactar otros chats; no fusionar master.
+El usuario pidió implementar directamente en local, con el método más efectivo y rápido, sin push. Sustituye Cloud y delegación. Un solo agente; no contactar otros chats ni fusionar master. El checkout principal conserva su trabajo ajeno y no se modifica.
 
-## Base comprobada
+Worktrees limpios al comenzar: `mfp`/`feat/macrofactor-parity` en `c488bfbe8`, `mfpn`/`mfp/n` en `00bde8b50`, `mfpd`/`mfp/d` en `c0e8f77ab`, `mfpt5`/`mfp/t5a` en `7b373aa22`, `mfph`/`mfp/h` en `0fe99e548`. La RAM inicial era 1,84 GB libres; el usuario liberó memoria y las guardas de la cola se mantuvieron intactas.
 
-Los cinco worktrees estaban limpios al comenzar: `mfp`/`feat/macrofactor-parity` en `c488bfbe8`, `mfpn`/`mfp/n` en `00bde8b50`, `mfpd`/`mfp/d` en `c0e8f77ab`, `mfpt5`/`mfp/t5a` en `7b373aa22`, `mfph`/`mfp/h` en `0fe99e548`. El checkout principal está en master con trabajo ajeno y no se modifica.
+## Resultado comprobado
 
-La cola local estaba vacía. Inicialmente había 1,84 GB de RAM libre; se dejó la validación esperando con todas las guardas y el usuario liberó memoria. La corrida N3/N4 obtuvo la ranura Android con más de 6 GB libres.
+| Bloque | Evidencia local | Estado |
+|---|---|---|
+| N3/N4 sobre `00bde8b50` | 257 pruebas Android / 22 clases, 0 fallos/errores/omisiones; 38 PNG | Validación focal verde; revisión visual parcial, sin QA física |
+| T4 | Commit `3b6c5153e`; 34 pruebas JVM y 58 Android verdes | Corregida la pérdida de repeticiones aceptadas al regenerar semana; prueba bilateral y por lado, JSON e historial |
+| P2-Na | Commits `f684146b9` y harness separado `b2abea01d`; 475 pruebas Android / 64 clases previas al arreglo final y 44 JVM / 4 clases posteriores | Recetas, favoritos, hora local, preferencias JSON y exportación por fila implementados. **Abierto:** el arreglo posterior de raciones y editor decimal aún requiere comprobación Android |
+| T5a | Commit `770d9bc4c`; 1.527 JVM/140 clases y 398 Android/34 clases verdes, sin omisiones; 20 PNG | Regresión amplia verde; rótulo truncado al 130 % corregido con prueba de texto. Revisión visual parcial, QA física pendiente |
+| P2-Nb | `P2-Nb_FUENTES.md` documenta fuentes, alcance de UL y límites de la revisión | Preparación, sin implementación |
 
-## Evidencia y trabajo en curso
+## Logs y hojas
 
-- Corrida Android N3/N4, 22 clases concretas: `C:/kw/logs/mfp-N4-local-20261024-1.log`, render en `C:/kw/shots/mfp/N4-local-20261024`. Resultado pendiente. Una única corrida, sin alterar el árbol de `mfpn` mientras corre.
-- `mfp_verify.py` sobre las puntas iniciales: Room intacto y sin constantes prohibidas. Sus XML son anteriores a las correcciones: T4 100 tests/1 fallo; N3/N4 358/2 fallos. No son evidencia de las puntas actuales.
-- Revisión T4: corregida la pérdida de repeticiones aceptadas al regenerar una semana. Cambio aditivo en JSON (`PlanLoadReference.capturedTargetReps`), materializador y referencia guardada por el runtime. Nuevas regresiones bilateral y por lado, con JSON, historial y rango. Pendiente validar por el arnés JVM y Android antes de cerrar el paquete.
-- Las fases restantes del plan siguen pendientes; no hay aceptación de dispositivo nueva ni medición p95.
+- N3/N4: `C:/kw/logs/mfp-N4-local-20261024-1.log`; `C:/kw/shots/mfp/N4-local-20261024`.
+- T4: `C:/kw/logs/mfp-T4-local-20261024-jvm-3.log`, `mfp-T4-local-20261024-android-2.log`. Primera tanda Android sin pruebas por heap de 4 GB; segunda verde con 6 GB y guarda de 7 GB libres.
+- P2-Na: `C:/kw/logs/mfp-P2Na-local-20261024-android-3.log`; `C:/kw/shots/mfp/P2Na-local-20261024-final3`, 54 PNG. Regresión final JVM: `C:/kw/logs/kpknjvm-mfpn-20261024-024525.log`. El recibo detallado está en `C:/kw/mfpn/docs/macrofactor-parity/cambios/P2-Na.md`.
+- T5a: `C:/kw/logs/mfp-T5a-local-20261024-jvm-1.log`, `mfp-T5a-local-20261024-android-2.log`; 20 PNG finales en `C:/kw/shots/mfp/T5a-local-20261024-final`. Dos tandas Android, sin necesidad de repetir.
+
+## Siguiente paso y límites
+
+Se pidió autorización para una cuarta tanda Android focalizada de P2-Na: el encargo limita a tres por paquete y ya se consumieron. Está preparada en `C:/kw/logs/mfp-P2Na-local-20261024-extra.sh`, **sin ejecutar**. No eludir este límite etiquetando la comprobación como otro paquete. La nueva regresión de recetas pasa por la tarjeta real, guarda/reabre y conserva raciones fraccionarias, gramos, nutrientes e incertidumbre; la prueba de interacción y el render del editor decimal siguen pendientes de Android.
+
+Después: completar P2-Nb y los restantes paquetes del plan, integración aislada, regresiones completas y QA física. La ola no está terminada. No se ha construido/instalado un APK nuevo ni medido p95 en dispositivo.
 
 ## Guardas
 
-Gradle local solo mediante `gradle_slot.sh`/`kpkn_jvm.sh`, una compilación propia a la vez, máximo de iteraciones del plan intacto. Room congelado; no tocar `.gitignore`, datos del usuario ni catálogo S11/H-i. No push, instalación, limpieza de datos ni eliminación de worktrees durante esta reanudación sin cumplir sus condiciones de cierre.
+Gradle exclusivamente por `gradle_slot.sh` / `kpkn_jvm.sh`; una compilación propia a la vez. Room congelado, esquema intacto y sin constantes prohibidas según verificación local. Sin tocar importador, catálogo S11/H-i, `.gitignore` ni datos del usuario.
 
-## Resultados confirmados
-
-- N3/N4 Android sobre `mfp/n@00bde8b50`: `mfp-N4-local-20261024-1.log`, **257 pruebas en 22 clases, 0 fallos, 0 errores y 0 omitidos**, 38 PNG al 100/130 %. Antes de comenzar P2-Na el worktree seguía limpio. Revisión visual parcial, no aceptación física.
-- T4: commit `3b6c5153e`, **34 pruebas JVM** y **58 Android**, todas verdes y sin omisiones. Logs `mfp-T4-local-20261024-jvm-3.log` y `mfp-T4-local-20261024-android-2.log`. La primera vuelta Android falló por heap de 4 GB sin ejecutar pruebas; la segunda pasó con 6 GB y guarda de 7 GB libres. El verificador confirma Room intacto y ausencia de constantes prohibidas.
-- P2-Na se implementa en `mfp/n`, desde `00bde8b50`: exportación por fila, recetas con instantáneas/rendimiento/versionado, favoritos, hora local y preferencias en copia aditiva v6. Validación de dominio en curso (`mfp-P2Na-local-20261024-jvm-1.log`); no marcar el paquete como terminado hasta Android/render y revisión.
+En el Z Flip rige la orden AGENTS posterior del 23-oct: única **KPKN Dev `com.example.kpkn.dbg`**, `baseDebug`, acceso por `phone_run` y `phone.lock`, comprobar firma y compatibilidad de datos antes de actualizar con `-r`. Sustituye la antigua `.mfp`. No se han usado adb, ejecutores de teléfono, instalaciones ni limpieza de datos durante esta reanudación.
