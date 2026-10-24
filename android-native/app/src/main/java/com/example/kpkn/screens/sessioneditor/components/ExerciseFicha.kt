@@ -191,6 +191,7 @@ internal fun ExerciseFichaContent(
     val implement = model.axes.firstOrNull { it.axis == "implement" }?.options.orEmpty()
     val config = model.axes.filter { it.axis != "implement" }
     val footer = exerciseFichaFooter(model.context, model.isSelected, showFooter)?.let { default -> model.selectionLabel ?: default }
+    val openProgress = com.example.kpkn.screens.progress.LocalExerciseProgressOpener.current
     val wizard = model.context == ExerciseFichaContext.WIZARD
     val hasHero = selectedCatalogImageVariantIndex(model.imageVariants, model.selectedImplementation) != null
     val heroHeight = 400.dp
@@ -247,6 +248,11 @@ internal fun ExerciseFichaContent(
                     model.caption?.takeIf { it.isNotBlank() }?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
                     model.contextLine?.takeIf { it.isNotBlank() }?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
                 }
+                if (!wizard) com.example.kpkn.ui.design.KpknTextAction("Ver progreso", {
+                    val key = if (model.identityKeys.isNotEmpty()) "keys:${model.identityKeys.joinToString(",")}" else
+                        "name:${com.example.kpkn.domain.exercises.normalizeExerciseIdentityToken(model.name)}"
+                    onDismiss(); openProgress(key)
+                }, Modifier.testTag("exercise-open-progress"))
                 model.patternId?.let(::canonicalPatternKnowledge)?.let { pattern ->
                     KpknChip(text = "Patrón · ${pattern.name}", selected = false, onClick = { knowledge = pattern })
                 }
