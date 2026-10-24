@@ -1626,7 +1626,14 @@ object PlanMaterializer {
                                 reachableWarmupLoad(candidate, equipmentKind, inventory, matchedMachine)
                                     ?.takeIf { it >= candidate - LOAD_EPSILON }
                             }
-                            if (finalizedKg == null || finalizedKg <= 0.0) {
+                            // No convertir una aproximación en trabajo al topar con el mínimo físico.
+                            // La única igualdad conservada es la barra sola cuando ya es la carga de trabajo.
+                            val atOrAboveWork = finalizedKg != null && workingLoadKg != null && workingLoadKg.isFinite() &&
+                                (finalizedKg > workingLoadKg + LOAD_EPSILON ||
+                                    (finalizedKg >= workingLoadKg - LOAD_EPSILON &&
+                                        !(matchedMachine == null && equipmentKind !in setOf("dumbbells","kettlebell","plate","machine","cable","smith_machine") &&
+                                            inventory.barbellWeightKg?.let { abs(it-workingLoadKg) < LOAD_EPSILON } == true)))
+                            if (finalizedKg == null || finalizedKg <= 0.0 || atOrAboveWork) {
                                 WarmupLoadEntry(definition, WarmupLoadStatus.PENDING_PERCENT, null, null, isExact = false)
                             } else {
                                 WarmupLoadEntry(

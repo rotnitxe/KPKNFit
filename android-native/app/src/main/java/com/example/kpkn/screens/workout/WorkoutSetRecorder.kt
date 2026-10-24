@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.workout.isMyoReps
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.AugeMetrics
@@ -499,12 +500,13 @@ class WorkoutSetRecorder(
                     com.example.kpkn.data.models.RestPauseData(
                         restTime = scheduledPlan.pauseSeconds,
                         reps = scheduledPlan.followUpReps,
+                        style = scheduledPlan.style,
                     )
                 }
             } else {
                 emptyList()
             }
-            val completedSet = if (plannedSet?.isVolumeReplacedTechnique() == true) {
+            val completedSetWithoutStyle = if (plannedSet?.isVolumeReplacedTechnique() == true) {
                 recordedAfterAdvanced.copy(
                     dropSets = recordedAfterAdvanced.dropSets
                         .ifEmpty { plannedSet.dropSets }
@@ -516,6 +518,9 @@ class WorkoutSetRecorder(
             } else {
                 recordedAfterAdvanced
             }
+
+            val completedSet = if(plannedSet?.isMyoReps() == true) completedSetWithoutStyle.copy(
+                restPauses=completedSetWithoutStyle.restPauses.map { it.copy(style="myo") }) else completedSetWithoutStyle
 
             val key = buildCompletedSetKey(exercise.id, targetSetIdx, resolvedSide)
             val wasExistingSet = state.completedSets.containsKey(key)
@@ -939,7 +944,7 @@ class WorkoutSetRecorder(
                     advancedFeedback = report,
                 )
                 updateState { it.copy(pendingRestSuggestion = pendingSuggestion) }
-                if (effectivePlanned > 0 && !(isExecutionError && !wasLastSet)) {
+                if (repository.settings.value.autoStartRestAfterRecording && effectivePlanned > 0 && !(isExecutionError && !wasLastSet)) {
                     ports.startRestTimer(
                         seconds = effectivePlanned,
                         advanceOnFinish = false,

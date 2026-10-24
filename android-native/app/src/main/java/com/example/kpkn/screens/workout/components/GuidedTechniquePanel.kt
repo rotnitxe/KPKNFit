@@ -55,6 +55,9 @@ internal fun GuidedTechniquePanel(
     onRestPauseRepsChange: (String) -> Unit,
     onSkipTechnique: () -> Unit,
     modifier: Modifier = Modifier,
+    restPauseStyle: String? = null,
+    pauseSeconds: Int = RestPausePlanDefaults.PauseSeconds,
+    targetRestReps: Int = RestPausePlanDefaults.Reps,
 ) {
     var confirmSkipTechnique by remember { mutableStateOf(false) }
     KpknModule(
@@ -71,7 +74,7 @@ internal fun GuidedTechniquePanel(
                         color = accentColor,
                     )
                     Text(
-                        "Sin descanso. Baja el peso y completa ~${RestPausePlanDefaults.Reps} reps.",
+                        "Sin descanso. Baja el peso y completa ~${targetRestReps} reps.",
                         style = KpknType.caption,
                         color = WizardColors.textMuted,
                     )
@@ -95,7 +98,7 @@ internal fun GuidedTechniquePanel(
                         )
                     }
                     Text(
-                        "Sugerido: ${phase.suggestedWeight.toTrimmedNumberString()} kg para ~${RestPausePlanDefaults.Reps} reps",
+                        "Sugerido: ${phase.suggestedWeight.toTrimmedNumberString()} kg para ~${targetRestReps} reps",
                         style = KpknType.caption,
                         color = WizardColors.textFaint,
                     )
@@ -103,7 +106,7 @@ internal fun GuidedTechniquePanel(
 
                 is GuidedTechniquePhase.RestPauseCountdown -> {
                     Text(
-                        "REST-PAUSE ${phase.index + 1}/${phase.total}",
+                        "${if(restPauseStyle == "myo") "MYO-REPS" else "REST-PAUSE"} ${phase.index + 1}/${phase.total}",
                         style = KpknType.eyebrow,
                         color = accentColor,
                     )
@@ -122,13 +125,13 @@ internal fun GuidedTechniquePanel(
                         )
                     }
                     KpknProgressBar(
-                        progress = phase.secondsLeft.toFloat() / RestPausePlanDefaults.PauseSeconds.toFloat(),
+                        progress = phase.secondsLeft.toFloat() / pauseSeconds.coerceAtLeast(1).toFloat(),
                         color = accentColor,
                         trackColor = Color.White.copy(alpha = 0.08f),
                         height = 6.dp,
                     )
                     Text(
-                        "Pausa fija de ${RestPausePlanDefaults.PauseSeconds} s. Luego harás ${RestPausePlanDefaults.Reps} reps.",
+                        "Pausa fija de ${pauseSeconds} s. Luego harás ${targetRestReps} reps.",
                         style = KpknType.caption,
                         color = WizardColors.textMuted,
                     )
@@ -136,12 +139,12 @@ internal fun GuidedTechniquePanel(
 
                 is GuidedTechniquePhase.RestPauseReps -> {
                     Text(
-                        "REST-PAUSE ${phase.index + 1}/${phase.total}",
+                        "${if(restPauseStyle == "myo") "MYO-REPS" else "REST-PAUSE"} ${phase.index + 1}/${phase.total}",
                         style = KpknType.eyebrow,
                         color = accentColor,
                     )
                     Text(
-                        "Confirma las ${RestPausePlanDefaults.Reps} reps de esta mini-serie.",
+                        "Confirma las ${targetRestReps} reps de esta mini-serie.",
                         style = KpknType.caption,
                         color = WizardColors.textMuted,
                     )

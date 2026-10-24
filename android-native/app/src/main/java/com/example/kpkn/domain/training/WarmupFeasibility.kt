@@ -140,7 +140,14 @@ internal fun reachableWarmupLoad(
     machine: MachineLoadRange?,
 ): Double? {
     if (!requestedKg.isFinite() || requestedKg <= 0.0) return null
-    if (machine != null) return machine.snapLoad(requestedKg).achievedKg
+    if (machine != null) {
+        val nearest = machine.snapLoad(requestedKg).achievedKg
+        // 18 kg de aproximación a trabajo de 20 kg, paso 5: elegir 15 en vez de redondear a 20.
+        // El mínimo declarado mantiene su contrato: 40 solicitado con mínimo 50 sigue siendo 50, marcado inexacto.
+        val lower = if(nearest > requestedKg + 0.001 && machine.incrementKg > 0.0)
+            machine.snapLoad(nearest - machine.incrementKg).achievedKg else nearest
+        return if(lower <= requestedKg + 0.001) lower else nearest
+    }
     return when (equipmentKind) {
         "dumbbells" -> inventory.resolveDumbbell(requestedKg).achievedPerUnitKg
         "kettlebell" -> inventory.kettlebells.asSequence()

@@ -468,4 +468,25 @@ class WorkoutSetRecorderDurableRoomTest {
         assertEquals(0, advances)
     }
 
+    @Test fun defaultsStartTheSameRestAndLegacyFalseDoesNotDisableIt() = runBlocking {
+        assertFalse(repository.settings.value.restTimerAutoStart)
+        assertTrue(repository.settings.value.autoStartRestAfterRecording)
+        assertTrue(record() is RecordSetResult.Created)
+        assertEquals(1,rests)
+    }
+    @Test fun disablingNewAutoStartKeepsDurableRecordingWithoutStartingRest() = runBlocking {
+        repository.updateSettings { it.copy(autoStartRestAfterRecording=false) }
+        withTimeout(5000) { repository.settings.first { !it.autoStartRestAfterRecording } }
+        assertTrue(record() is RecordSetResult.Created)
+        assertEquals(0,rests);assertEquals(1,room().completedSets.size);assertEquals(1,advances)
+    }
+    @Test fun miniSeriesMyoSeGuardanComoRestPauseConSuVarianteEnRoom() = runBlocking {
+        val original=state.session!!
+        state=state.copy(session=original.copy(exercises=original.exercises.map { exercise ->
+            exercise.copy(sets=exercise.sets.mapIndexed { index,set -> if(index==0) com.example.kpkn.domain.workout.MyoRepsPreset.applyTo(set) else set })
+        }))
+        assertTrue(record(advanced=SetAdvancedFeedback(restPauses=List(4) { RestPauseData(15,4) })) is RecordSetResult.Created)
+        val rows=room().completedSets.getValue("exercise_0").restPauses
+        assertEquals(4,rows.size);assertTrue(rows.all { it.style=="myo" && it.reps==4 && it.restTime==15 })
+    }
 }

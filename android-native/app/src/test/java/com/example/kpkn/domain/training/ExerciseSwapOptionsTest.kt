@@ -101,4 +101,9 @@ class ExerciseSwapOptionsTest {
             assertNotEquals(barbellBench().id, option.configId)
         }
     }
+    @Test fun materialDesconocidoNoSeConfundeConSoloPesoCorporal() {
+        val options=ExerciseSwapOptions.optionsForUnknownEquipment(exerciseOf(barbellBench().id),catalog)
+        assertTrue(options.isNotEmpty());assertTrue(options.any { index.entry(it.configId)!!.equipmentId!="bodyweight" })
+        assertEquals(options,ExerciseSwapOptions.optionsForUnknownEquipment(exerciseOf(barbellBench().id),catalog))
+    }
 }

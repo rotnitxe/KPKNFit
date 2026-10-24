@@ -295,6 +295,7 @@ internal fun WorkoutStructureSheetsHost(
     onOpenCatalog: ((CatalogLaunchRequest) -> Unit)? = null,
 ) {
     val useFullPageCatalog = onOpenCatalog != null
+    val swapRepository = remember { runCatching { com.example.kpkn.data.repository.ProgramRepository.getInstance() }.getOrNull() }
 
     // Una hoja sin su ejercicio (omitido o eliminado con la hoja abierta) no se pinta, pero su bandera dejaba la sesión con «hay una
     // hoja abierta»: Atrás no hacía nada y no había por dónde salir (LV4, 15).
@@ -1026,6 +1027,10 @@ internal fun WorkoutStructureSheetsHost(
                 replacement = CatalogReplacementContext(
                     exerciseName = replaceTarget?.let(::displayWorkoutExerciseName),
                     planSummary = replaceTarget?.let(::replacementPlanSummary),
+                    exercise = replaceTarget,
+                    availability = com.example.kpkn.screens.sessioneditor.components.liveSwapAvailability(modeSession,
+                        swapRepository?.programs?.value?.firstOrNull { it.id == uiState.programId },swapRepository?.settings?.value?.equipmentAvailability),
+                    avoided = com.example.kpkn.screens.sessioneditor.components.persistedSwapAvoided(swapRepository?.programs?.value?.firstOrNull { it.id == uiState.programId }),
                 ),
             )
         }

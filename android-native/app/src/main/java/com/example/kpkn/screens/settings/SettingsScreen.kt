@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.settings
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -87,6 +88,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val ioScope = rememberCoroutineScope()
+    val trainingSettings by viewModel.settings.collectAsStateWithLifecycle()
     var refreshToken by remember { mutableStateOf(0) }
     var telemetryFolder by remember { mutableStateOf(KpknDiagnosticStorage.configuredLabel(context)) }
     var pendingImport by remember { mutableStateOf<android.net.Uri?>(null) }
@@ -208,6 +210,7 @@ fun SettingsScreen(
             item {
                 SettingsIntroCard()
             }
+            item { TrainingSettingsBlock(trainingSettings,viewModel::update) }
             item {
                 SettingsBlockTitle("Material")
                 SettingsCard {
