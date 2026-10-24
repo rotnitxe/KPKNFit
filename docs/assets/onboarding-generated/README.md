@@ -1,3 +1,6 @@
+> Archivo histórico: la escena de recuperación se retiró el 24-oct-2026. Estos
+> assets no representan el onboarding vigente; ver [retiro POST-RINGS](../../post-rings/README.md).
+
 # Activos editoriales del onboarding
 
 Estos cuatro PNG fueron generados con la herramienta integrada de generación de imágenes para el carrusel inicial. Las capturas de `Desktop/INSPO WIZARDS` se inspeccionaron como referencia de composición, pero no se copiaron ni se incorporaron al APK.
