@@ -278,15 +278,13 @@ sealed class VoiceSessionCommand {
         val notes: String? = null,
         val discomfortId: String? = null,
         val additionalDiscomfortNote: String? = null,
-        val neuralBattery: Int? = null,
-        val spinalBattery: Int? = null,
         val isSaveAction: Boolean = false,
     ) : VoiceSessionCommand() {
         /** True cuando la frase no aportó ningún campo ni acción de cierre:
          *  el handler responde con la instrucción correcta en vez de silencio (P0). */
         val isEmpty: Boolean
             get() = notes == null && discomfortId == null && additionalDiscomfortNote == null &&
-                neuralBattery == null && spinalBattery == null && !isSaveAction
+                !isSaveAction
     }
     data class Unknown(val raw: String) : VoiceSessionCommand()
 }

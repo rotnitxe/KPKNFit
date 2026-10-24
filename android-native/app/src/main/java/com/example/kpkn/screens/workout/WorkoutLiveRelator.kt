@@ -86,8 +86,6 @@ internal enum class RelatorSpeechBucket {
     IDLE_MID,
     IDLE_LAST,
     IDLE_COMPOUND,
-    TISSUE_INTRA,
-    TISSUE_DAY,
     WARMUP_WEIGHT_BELOW,
     WARMUP_WEIGHT_ABOVE,
     WEIGHT_BELOW,
@@ -149,7 +147,6 @@ internal data class LiveRelatorSnapshot(
     val dropSetCount: Int = 0,
     val plannedDropCount: Int = 0,
     val compound: RelatorCompound = RelatorCompound.NONE,
-    val tissueHint: RelatorTissueHint? = null,
     val loadKind: RelatorLoadKind = RelatorLoadKind.LOAD,
     val unit: RelatorUnit = RelatorUnit.REPS,
     val setKey: String = "",
@@ -367,13 +364,6 @@ internal fun LiveRelatorSnapshot.speechBucket(): RelatorSpeechBucket {
 
     if (idleCycle > 0 && discomfortHint != null) return RelatorSpeechBucket.IDLE_DISCOMFORT
 
-    if (idleCycle > 0 && tissueHint != null) {
-        return if (tissueHint.window == RelatorTissueWindow.INTRA) {
-            RelatorSpeechBucket.TISSUE_INTRA
-        } else {
-            RelatorSpeechBucket.TISSUE_DAY
-        }
-    }
     if (idleCycle > 0 && tagProgressHint != null) return RelatorSpeechBucket.TAG_BEST_PROGRESS
     if (shouldSpeakConcept()) return RelatorSpeechBucket.CONCEPT_CUE
     return situateWorkingBucket()

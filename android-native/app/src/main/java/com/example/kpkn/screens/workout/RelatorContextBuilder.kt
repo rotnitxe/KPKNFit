@@ -340,17 +340,6 @@ internal object RelatorContextBuilder {
             else -> detected
         }
         val catalogIndex = catalogExerciseIndex()
-        val tissueHint = if (currentExercise == null || inferredPhase == RelatorPhase.HIDDEN) {
-            null
-        } else {
-            buildRelatorTissueHintFromLogs(
-                state = state,
-                currentExercise = currentExercise,
-                visibleExercises = visible,
-                catalogIndex = catalogIndex,
-                recentLogs = queries.recentWorkoutLogs(36),
-            )
-        }
         val sessionBestPrevious = currentExercise?.let {
             sessionBestPreviousE1rm(
                 uiState = state,
@@ -438,7 +427,6 @@ internal object RelatorContextBuilder {
             dropSetCount = draft?.dropSetCount ?: 0,
             plannedDropCount = plannedDropSetCount(currentSet),
             compound = exerciseContext.compound,
-            tissueHint = tissueHint,
             loadKind = loadKind,
             unit = unit,
             setKey = currentExercise?.let { workoutSetKey(it.id, setIdx, activeSide) }.orEmpty(),
@@ -1018,55 +1006,6 @@ internal fun RelatorPhase.toDomain(): RelatorSessionPhase = when (this) {
     RelatorPhase.REST -> RelatorSessionPhase.REST
 }
 
-internal fun buildRelatorTissueHintFromLogs(
-    state: WorkoutUiState,
-    currentExercise: Exercise,
-    visibleExercises: List<Exercise>,
-    catalogIndex: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo>,
-    recentLogs: List<WorkoutLog>,
-): RelatorTissueHint? {
-    val todayMuscles = ExerciseMuscleResolver.effectiveMusclesForVolume(currentExercise, catalogIndex)
-    val todayPrimary = todayMuscles.filter { it.role == MuscleRole.PRIMARY }.map { it.muscle }
-    val todayStab = todayMuscles.filter { it.role == MuscleRole.STABILIZER }.map { it.muscle }
-    val currentIdx = state.currentExerciseIdx
-    val intra = visibleExercises.take(currentIdx.coerceAtLeast(0)).mapNotNull { prior ->
-        val working = state.completedSets.filter { (key, set) ->
-            val parsed = parseCompletedSetKey(key) ?: return@filter false
-            parsed.exerciseId == prior.id && !set.isWarmup && !set.skipped
-        }.values
-        if (working.isEmpty()) return@mapNotNull null
-        val muscles = ExerciseMuscleResolver.effectiveMusclesForVolume(prior, catalogIndex)
-        RelatorPriorExercise(
-            name = prior.name,
-            primaryMuscles = muscles.filter { it.role == MuscleRole.PRIMARY }.map { it.muscle },
-            secondaryMuscles = muscles.filter { it.role == MuscleRole.SECONDARY }.map { it.muscle },
-            stabilizerMuscles = muscles.filter { it.role == MuscleRole.STABILIZER }.map { it.muscle },
-            highIntensity = working.any { set ->
-                set.isFailure || (set.rpe ?: 0.0) >= 8.0 || (set.rir ?: 99) <= 2
-            },
-        )
-    }
-    val yesterday = recentLogs.flatMap { log ->
-        log.completedExercises.map { completed ->
-            val muscles = completed.effectiveMuscles.orEmpty()
-            RelatorPriorExercise(
-                name = completed.exerciseName,
-                primaryMuscles = muscles.filter { it.role == MuscleRole.PRIMARY }.map { it.muscle },
-                secondaryMuscles = muscles.filter { it.role == MuscleRole.SECONDARY }.map { it.muscle },
-                stabilizerMuscles = muscles.filter { it.role == MuscleRole.STABILIZER }.map { it.muscle },
-                highIntensity = completed.sets.any { set ->
-                    set.isFailure || (set.rpe ?: 0.0) >= 8.0 || (set.rir ?: 99) <= 2
-                },
-            )
-        }
-    }
-    return pickRelatorTissueHint(
-        todayPrimaryMuscles = todayPrimary,
-        todayStabilizers = todayStab,
-        intraSession = intra,
-        yesterday = yesterday,
-    )
-}
 
 internal fun buildRelatorWarmupRows(
     members: List<Exercise>,
