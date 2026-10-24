@@ -10,6 +10,7 @@ import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.unit.Density
 import com.example.kpkn.domain.multisport.SportId
 import com.example.kpkn.domain.training.insights.*
+import com.example.kpkn.testsupport.capturePrivateTrainingEvidence
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -34,6 +35,7 @@ class TrainingFactChartTest {
         }
         compose.onNode(hasClickAction() and hasText("31,25 cm",substring=true)).performScrollTo().performClick()
         compose.onNodeWithText("Actividad: activity-1\nFuente: source-1").assertExists()
+        compose.onNode(isDialog()).capturePrivateTrainingEvidence("history-point-provenance-large-text")
         restore.emulateSavedInstanceStateRestore()
         compose.onNodeWithText("Actividad: activity-1\nFuente: source-1").assertExists()
         compose.onNodeWithText("Cerrar").performClick()

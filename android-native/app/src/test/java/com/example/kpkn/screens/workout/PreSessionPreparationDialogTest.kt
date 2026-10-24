@@ -7,6 +7,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.Density
 import org.junit.Assert.*
+import com.example.kpkn.testsupport.capturePrivateTrainingEvidence
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,6 +27,7 @@ class PreSessionPreparationDialogTest {
                 MaterialTheme { PreSessionPreparationDialog("",emptyList(),emptyList(),{writes++},{continued=true}) }
             }
         }
+        compose.onNode(isDialog()).capturePrivateTrainingEvidence("before-empty-large-text")
         compose.onNodeWithText("Continuar").assertIsDisplayed().performClick()
         assertTrue(continued);assertEquals(0,writes)
     }
@@ -36,6 +38,7 @@ class PreSessionPreparationDialogTest {
                 listOf("Molestia registrada: rodilla"),{notes=it},{continued=true}) }
         }
         compose.onNode(hasSetTextAction()).performScrollTo().performTextInput("Cansancio declarado hoy")
+        compose.onNode(isDialog()).capturePrivateTrainingEvidence("before-recorded-context")
         compose.onNodeWithText("Continuar").performClick()
         assertEquals("Cansancio declarado hoy",notes);assertTrue(continued)
     }
