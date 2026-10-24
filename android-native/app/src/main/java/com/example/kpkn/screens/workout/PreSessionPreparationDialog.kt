@@ -27,7 +27,7 @@ internal fun PreSessionPreparationDialog(
         onDismissRequest = onDismiss,
         title = { Text("Antes de entrenar") },
         text = {
-            Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()).testTag("pre-session-context"),
+            Column(Modifier.fillMaxWidth().heightIn(max = 420.dp).verticalScroll(rememberScrollState()).testTag("pre-session-context"),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Consulta los objetivos del plan. El registro breve es opcional y no cambia tus cargas.")
                 if (previous.isEmpty()) Text("Sin sesiones anteriores con este identificador. Consulta el historial para otras disciplinas.")
