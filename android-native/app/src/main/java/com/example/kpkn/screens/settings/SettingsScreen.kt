@@ -1,5 +1,11 @@
 package com.example.kpkn.screens.settings
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.example.kpkn.screens.settings.export.*
+import com.example.kpkn.data.export.CsvExportService
+import com.example.kpkn.data.db.KpknDatabase
+import com.example.kpkn.data.repository.ProgramRepository
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -87,6 +93,25 @@ fun SettingsScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val ioScope = rememberCoroutineScope()
+    val csvModel: CsvExportViewModel = androidx.lifecycle.viewmodel.compose.viewModel(key = "csv-export") {
+        CsvExportViewModel(CsvExportService(context.applicationContext, ProgramRepository.getInstance()) { KpknDatabase.getInstance(context.applicationContext) })
+    }
+    val csvState by csvModel.state.collectAsStateWithLifecycle()
+    var showCsvExport by rememberSaveable { mutableStateOf(false) }
+    val csvLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { csvModel.destinationChosen(it) }
+    val csvZipLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { csvModel.destinationChosen(it) }
+    LaunchedEffect(csvState.request?.token) {
+        csvState.request?.let { request ->
+            csvModel.acknowledge(request.token)
+            showCsvExport = false
+            if (request.mimeType == "application/zip") csvZipLauncher.launch(request.name) else csvLauncher.launch(request.name)
+        }
+    }
+    LaunchedEffect(csvState.notice) {
+        csvState.notice?.let { Toast.makeText(context, it, Toast.LENGTH_LONG).show(); csvModel.consumeNotice() }
+    }
+    if (showCsvExport) CsvExportSheet(csvState, csvModel::prepare, { showCsvExport = false })
+
     var refreshToken by remember { mutableStateOf(0) }
     var telemetryFolder by remember { mutableStateOf(KpknDiagnosticStorage.configuredLabel(context)) }
     var pendingImport by remember { mutableStateOf<android.net.Uri?>(null) }
@@ -285,6 +310,13 @@ fun SettingsScreen(
                         description = "Rutinas, historial, nutrición, AUGE, competiciones, tags de contexto, rendimiento y metadatos de medios. No incluye el catálogo global de alimentos ni WikiLab (se regeneran).",
                         actionLabel = "Exportar",
                         onClick = { backupExportLauncher.launch("kpkn-backup.json") },
+                    )
+                    SettingsActionRow(
+                        icon = Icons.Default.Folder,
+                        title = "Exportar datos (CSV)",
+                        description = if (csvState.busy) "Preparando exportación…" else "Elige comidas, cuerpo, entrenos o tu biblioteca.",
+                        actionLabel = "Elegir",
+                        onClick = { if (!csvState.busy) showCsvExport = true },
                     )
                     SettingsActionRow(
                         icon = Icons.Default.Restore,

@@ -62,5 +62,28 @@
             android:name="com.example.kpkn.debug.TechniqueBenchActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: escáner de códigos de barras y formulario de alimento propio con datos en memoria y una fuente de códigos falsa (N3); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.BarcodeScanHarnessActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: autocomprobación del lector de ML Kit SIN cámara (códigos dibujados en memoria); resultado en logcat con la etiqueta MfpBarcodeSelfTest (N3); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.BarcodeSelfTestActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
+        <!-- SOLO DEPURACIÓN: reutilización del diario (copiar a varias fechas, repetir ayer, plantillas, entrada rápida) con datos en memoria (N4); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.MealReuseHarnessActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
+        <!-- P2-Na: recetas con datos en memoria; no escribe en Room ni en preferencias. -->
+        <activity android:name="com.example.kpkn.debug.RecipeHarnessActivity"
+            android:exported="true" android:theme="@style/Theme.KPKN" />
+        <!-- P2-Nb: nutrientes en memoria, sin escrituras de usuario. -->
+        <activity android:name="com.example.kpkn.debug.NutrientsHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
+    <activity android:name="com.example.kpkn.debug.CsvExportHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
+    <activity android:name="com.example.kpkn.debug.LabelOcrSelfTestActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
+    <activity android:name="com.example.kpkn.debug.FoodSearchBenchActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>

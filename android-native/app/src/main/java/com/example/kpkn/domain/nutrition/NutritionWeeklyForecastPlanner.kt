@@ -216,7 +216,9 @@ fun revisedWeeklyForecast(input: NutritionForecastRevisionInput): NutritionPlan?
 /** Límites calóricos del plan a partir de la EER guardada en su snapshot (sin fabricar). */
 private fun boundsFor(plan: NutritionPlan): IntRange? {
     val direction = plan.direction ?: return null
-    val eerKcal = plan.calculationSnapshot?.inputs?.get("eerKcal")?.toDoubleOrNull()
+    // Los snapshots actuales guardan el resultado en result; inputs se conserva como compatibilidad legacy.
+    val eerKcal = plan.calculationSnapshot?.result?.get("eerKcal")?.toDoubleOrNull()
+        ?: plan.calculationSnapshot?.inputs?.get("eerKcal")?.toDoubleOrNull()
     return calorieBoundsFor(direction, eerKcal)
 }
 

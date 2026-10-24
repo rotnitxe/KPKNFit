@@ -93,6 +93,25 @@ data class FoodItem(
     val qualityFlags: List<String> = emptyList(),
     val caffeineMg: Double = 0.0,
     val creatineG: Double = 0.0,
+    /** Definición propia con instantáneas; las fichas anteriores no son recetas. */
+    val recipe: RecipeData? = null,
+)
+
+@Serializable
+data class RecipeIngredient(
+    val snapshot: LoggedFood,
+    val foodId: String? = null,
+    val name: String = snapshot.foodName,
+)
+
+@Serializable
+data class RecipeData(
+    val ingredients: List<RecipeIngredient>,
+    val servings: Int,
+    val finalWeightGrams: Double? = null,
+    val version: Int = 1,
+    val notes: String? = null,
+    val updatedAt: String = "",
 )
 
 enum class CookingBehavior { SHRINKS, EXPANDS }
@@ -136,6 +155,15 @@ data class LoggedFood(
     val isUncertain: Boolean = false,
     val caffeineMg: Double = 0.0,
     val creatineG: Double = 0.0,
+    /**
+     * N4: el registro nació de una entrada rápida (solo kcal y macros que la persona escribió, sin alimento detrás). Cuenta para los
+     * totales del día, pero sus micronutrientes (fibra, azúcar, sodio, potasio, lista) son DESCONOCIDOS, no ceros: la lógica de
+     * cobertura debe saltarse el alimento (`MealReuse.micronutrientsKnown`). Valor por defecto: los registros viejos se leen igual.
+     */
+    val isQuickEntry: Boolean = false,
+    /** Procedencia inmutable de receta; campos JSON opcionales, sin cambiar Room. */
+    val recipeId: String? = null,
+    val recipeVersion: Int? = null,
 )
 
 // ─── NutritionLog ─────────────────────────────────────────────────────────────
@@ -507,3 +535,20 @@ data class MeasurementSchedule(
     val reminderHour: Int = 9,
     val reminderMinute: Int = 0,
 )
+
+// ─── Búsqueda por código de barras (N3) ──────────────────────────────────────
+
+/** De dónde sale el producto que devolvió la búsqueda por código: un alimento propio de la persona o el catálogo global. */
+enum class BarcodeOrigin { PROPIO, CATALOGO }
+
+/** Resultado de buscar un código de barras en el teléfono (sin red). */
+sealed interface BarcodeLookup {
+    /** El producto, con sus banderas de calidad tal como las guarda la fila (nunca se completan macros que falten). */
+    data class Found(val food: FoodItem, val origin: BarcodeOrigin) : BarcodeLookup
+
+    /** El código es válido pero ni los alimentos propios ni el catálogo global lo tienen. */
+    data object NotFound : BarcodeLookup
+
+    /** El texto no es un código de producto válido (longitud, caracteres o dígito de control). */
+    data object Invalid : BarcodeLookup
+}

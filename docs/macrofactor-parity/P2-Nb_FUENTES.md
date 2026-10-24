@@ -20,3 +20,19 @@ No se afirma una revisión clínica por web de las 240 filas. El contraste autom
 Solo permiten una alerta del total conocido los UL que aplican a ingesta total: calcio, hierro, zinc, selenio, yodo y vitaminas C, D y B6. Magnesio, folato, niacina, vitamina E y vitamina A (UL de retinol) quedan como referencia sin alarma sobre el total indistinto. Sin UL no se inventa un límite.
 
 Cero declarado y ausencia de dato son estados distintos. Una entrada rápida no declara micronutrientes. No modificar el importador, reimportar el catálogo, cambiar Room ni inventar metas para perfiles ausentes o menores de 19 años. La hoja debe identificar las cantidades como conocidas y potencialmente incompletas, con la referencia general y el aviso del brief.
+
+## Implementación y fidelidad · 24-oct-2026
+
+La tabla Kotlin se deriva mecánicamente del CSV aprobado, conserva sus 240 combinaciones, y las pruebas leen la copia exacta (SHA-256) y comparan valor, tipo, UL, unidad y URL en ambos bordes de cada grupo de edad. No se ha ampliado la revisión clínica de las fuentes.
+
+Se mapearon las claves reales de `FoodDatabase.kt`, `GlobalFoodEntity.toFoodItem` en `data/db/Entities.kt` y `FoodImporter.usdaEntityOrNull`: el catálogo global solo conserva fibra/sodio/potasio/agua; el estático tiene además algunas vitaminas/minerales. El resto se rotula sin dato en catálogo cuando no hay una ficha propia que lo declare. No se toca el importador ni se reimporta.
+
+Las unidades deben ser compatibles: no se convierten IU a RAE, folato genérico a DFE, ni formas no identificadas de vitamina E o niacina a α-tocoferol/NE. Un dato sin forma comparable se presenta sin comparar, nunca como cero. Una receta guardada no conserva cobertura por ingrediente y nutriente, por lo que sus aportes se marcan conservadoramente estimados. Las entradas rápidas no aportan micronutrientes declarados; una procedencia de baja calidad tampoco pasa a cobertura declarada. La cobertura se pondera por kcal; sin kcal se indica explícitamente que usa recuento de alimentos.
+
+La referencia de perfil usa únicamente edad adulta guardada y la ecuación femenina/masculina registrada en el plan, rotulada como tal; no se infiere sexo de identidad de género ni perfil hormonal. Sin esa información o con ecuación promedio no hay referencia. No se añaden campos de embarazo/lactancia; esas filas se prueban como datos, y un perfil que declara ese estado no recibe la referencia adulta ordinaria de esta hoja.
+
+Los campos heredados `MacroGoals.fiberGoal`, `sugarLimit`, `sodiumLimitMg`, `potassiumGoalMg`, `hydrationGoalMl` conservan su contrato. La hoja nueva usa referencias DRI identificadas, no convierte defaults heredados de Ajustes en decisiones expresas del usuario ni inventa una recomendación para azúcar/agua fuera del CSV. La documentación de código huérfano de P2-D registra sus consumidores efectivos sin borrarlos.
+
+## Validación local cerrada · 24-oct-2026
+
+JVM amplio: 1.317 pruebas en 108 clases, sin fallos; comprobación focal posterior de cobertura/DRI: 12 pruebas verdes. Android final: 330 pruebas en 47 clases, cero fallos, errores u omitidos, diez PNG a 360 dp al 100/130 %. Registro `C:/kw/logs/mfp-P2Nb-local-20261024-android-2.log`; renders `C:/kw/shots/mfp/P2Nb-local-20261024-final`. La primera ronda detectó inicio prematuro del flujo derivado y una cantidad cero en la fixture: corregidos con inicio Lazily y cantidad válida, sin cambiar expectativas ajenas. Pendientes integración completa y QA física de la ola. Room y catálogo intactos.

@@ -57,6 +57,10 @@ internal fun GramsEditor(
     onGramsChange: (Double) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    if (tag.loggedFood?.recipeId != null) {
+        RecipeQuantityEditor(tag, onGramsChange, modifier)
+        return
+    }
     val currentGrams = tag.amountGrams ?: tag.loggedFood?.amount ?: FALLBACK_GRAMS
     val committedGrams = GramsSliderSpec.wholeGrams(currentGrams)
     val gramsMax = remember(tag.id) {
@@ -145,4 +149,30 @@ internal fun GramsEditor(
             },
         )
     }
+}
+
+/** Las cantidades decimales conservan su unidad: una ración no se convierte en un gramo ficticio. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun RecipeQuantityEditor(tag: ResolvedTag, onChange: (Double) -> Unit, modifier: Modifier) {
+    val food = tag.loggedFood ?: return
+    var text by remember(tag.id, food.amount) { mutableStateOf(java.text.DecimalFormat("0.##").format(food.amount)) }
+    val focus = LocalFocusManager.current
+    fun commit() {
+        val amount = text.replace(',', '.').toDoubleOrNull()
+        if (amount != null && amount.isFinite() && amount > 0.0 && amount != food.amount) onChange(amount)
+        else text = java.text.DecimalFormat("0.##").format(food.amount)
+    }
+    val keyboardVisible = WindowInsets.isImeVisible
+    LaunchedEffect(keyboardVisible) { if (!keyboardVisible) commit() }
+    KpknTextField(
+        value = text,
+        onValueChange = { text = it },
+        modifier = modifier.fillMaxWidth().onFocusChanged { if (!it.hasFocus) commit() },
+        label = if (food.unit == "g") "Gramos de la receta" else "Raciones de la receta",
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { commit(); focus.clearFocus() }),
+        trailing = { Text(food.unit, style = KpknType.unit, color = WizardColors.textMuted) },
+    )
 }

@@ -77,8 +77,7 @@ fun CheckinEstimateDetails(estimate: ExpenditureEstimate?, modifier: Modifier = 
             Text("Datos hasta ${shortDate(estimate.date)} · ${estimate.quality.weighIns} pesajes",
                 style = KpknType.caption, color = WizardColors.textMuted)
             estimate.trend?.let {
-                Text("Tendencia: ≈ ${String.format(Locale.forLanguageTag("es"), "%.1f", it.trendKg)} kg",
-                    style = KpknType.bodyStrong, color = WizardColors.text)
+                Text(trendLabel(it.trendKg), style = KpknType.bodyStrong, color = WizardColors.text)
             }
         }
         Text("El gasto estimado aproxima la energía que usas al día a partir de tus registros y tu tendencia de peso. Es una estimación, no una medición.",
@@ -86,6 +85,26 @@ fun CheckinEstimateDetails(estimate: ExpenditureEstimate?, modifier: Modifier = 
     }
 }
 
+/**
+ * Lo propio del módulo de pesaje cuando el gasto estimado ya se muestra en otro sitio de la página:
+ * solo los pesajes usados y la tendencia, sin repetir estado, cifra, banda ni la nota de estimación.
+ */
+@Composable
+fun CheckinWeighInSummary(estimate: ExpenditureEstimate?, modifier: Modifier = Modifier) {
+    Column(modifier.testTag("checkin-weighin-summary"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (estimate == null) {
+            Text("Aún no hay pesajes para mostrar tu tendencia.", style = KpknType.body, color = WizardColors.textMuted)
+        } else {
+            Text("Pesajes usados: ${estimate.quality.weighIns}", style = KpknType.bodyStrong, color = WizardColors.text)
+            estimate.trend?.let { Text(trendLabel(it.trendKg), style = KpknType.bodyStrong, color = WizardColors.text) }
+        }
+    }
+}
+
+/**
+ * [showEstimateSummary] = false cuando la página que aloja el flujo ya muestra el gasto estimado (la calibración):
+ * así los módulos de pesaje y objetivo no lo repiten. Con true (vista previa y flujos sueltos) cada módulo lo lleva completo.
+ */
 @Composable
 fun NutritionCheckinContent(
     state: NutritionCheckinUiState,
@@ -101,6 +120,7 @@ fun NutritionCheckinContent(
     onResumeLogging: () -> Unit,
     onWeighIn: () -> Unit,
     modifier: Modifier = Modifier,
+    showEstimateSummary: Boolean = true,
 ) {
     val plan = state.plan
     val interactive = !state.busy && !state.loading
@@ -150,7 +170,7 @@ fun NutritionCheckinContent(
                         }
                     }
                     CheckinModule.WEIGH_IN -> {
-                        CheckinEstimateDetails(plan.estimate)
+                        if (showEstimateSummary) CheckinEstimateDetails(plan.estimate) else CheckinWeighInSummary(plan.estimate)
                         if ((plan.estimate?.quality?.weighIns ?: 0) < ExpenditureParams.V1.minimumWeighIns) {
                             Spacer(Modifier.height(12.dp))
                             Text("Un pesaje reciente ayuda a conocer tu tendencia. Puedes añadirlo ahora o seguir con la revisión.", style = KpknType.body, color = WizardColors.textMuted)
@@ -158,8 +178,10 @@ fun NutritionCheckinContent(
                         KpknTextAction("Registrar pesaje", onWeighIn, icon = KpknLineIcons.Body)
                     }
                     CheckinModule.TARGET_UPDATE -> {
-                        if (CheckinModule.TARGET_UPDATE !in state.preferences.dismissedModules) CheckinEstimateDetails(plan.estimate)
-                        Spacer(Modifier.height(16.dp))
+                        if (showEstimateSummary) {
+                            if (CheckinModule.TARGET_UPDATE !in state.preferences.dismissedModules) CheckinEstimateDetails(plan.estimate)
+                            Spacer(Modifier.height(16.dp))
+                        }
                         CheckinTargetProposal(plan)
                     }
                 }
@@ -258,6 +280,9 @@ private fun moduleTitle(module: CheckinModule): String = when (module) {
     CheckinModule.WEIGH_IN -> "Tu tendencia de peso"
     CheckinModule.TARGET_UPDATE -> "Tu objetivo para mañana"
 }
+
+private fun trendLabel(trendKg: Double): String =
+    "Tendencia: ≈ ${String.format(Locale.forLanguageTag("es"), "%.1f", trendKg)} kg"
 
 private fun shortDate(date: LocalDate): String = date.format(DateTimeFormatter.ofPattern("dd/MM"))
 private fun dayLabel(day: DayOfWeek): String = day.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es"))

@@ -100,6 +100,23 @@ import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknTextAction
+import com.example.kpkn.screens.nutrition.customfood.CustomFoodFormOverlay
+import com.example.kpkn.screens.nutrition.customfood.FoodFavoriteAction
+import com.example.kpkn.screens.nutrition.scan.BarcodeIcon
+import com.example.kpkn.screens.nutrition.scan.BarcodeScanFlow
+import com.example.kpkn.screens.nutrition.scan.CameraPreviewSurface
+import com.example.kpkn.screens.nutrition.scan.rememberCameraBarcodeSource
+import com.example.kpkn.screens.nutrition.scan.scannedFoodTag
+import com.example.kpkn.screens.nutrition.reuse.QuickEntryOverlay
+import com.example.kpkn.screens.nutrition.reuse.ReuseLoggerEntries
+import com.example.kpkn.screens.nutrition.reuse.TemplatesSheet
+import com.example.kpkn.screens.nutrition.recipes.RecipeLibraryOverlay
+import com.example.kpkn.domain.nutrition.MealReuse
+import com.example.kpkn.domain.nutrition.MealTime
+import com.example.kpkn.domain.nutrition.loggedFoodToEditableTag
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.kpkn.domain.nutrition.MealSlots
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import java.time.LocalDate
@@ -196,6 +213,7 @@ fun FoodLoggerDrawer(
     var lastAnalyzedDescription by remember(draft) { draft::lastAnalyzedDescription }
     var mealType by remember(draft) { draft::mealType }
     var logDate by remember(draft) { draft::logDate }
+    var logTime by remember(draft) { draft::logTime }
     var tags by remember(draft) { draft::tags }
     var detectedContext by remember(draft) { draft::detectedContext }
     var searchQuery by remember(draft) { draft::searchQuery }
@@ -237,6 +255,25 @@ fun FoodLoggerDrawer(
     // IT3: utensilios configurables (ml por utensilio).
     var showUtensilDialog by remember { mutableStateOf(false) }
     var showPrivacyInfo by remember { mutableStateOf(false) }
+    // N3: escáner de códigos de barras y formulario de alimento propio (alta, o edición si hay un alimento).
+    var showScanner by rememberSaveable { mutableStateOf(false) }
+    var showCustomForm by remember { mutableStateOf(false) }
+    var customFoodToEdit by remember { mutableStateOf<FoodItem?>(null) }
+    // N4: la lista de plantillas y la entrada rápida (las dos se abren desde la fila discreta bajo las pestañas).
+    var showTemplates by remember { mutableStateOf(false) }
+    var showQuickEntry by remember { mutableStateOf(false) }
+    var showRecipes by remember { mutableStateOf(false) }
+    var recipeToOpen by remember { mutableStateOf<FoodItem?>(null) }
+    var editRecipe by remember { mutableStateOf(false) }
+    val mealTemplates by nutritionRepo.mealTemplates.collectAsState()
+    val favoriteIds by nutritionRepo.favoriteFoodIds.collectAsState()
+    val favoriteFoods by produceState(emptyList<FoodItem>(), favoriteIds, foodDatabase) {
+        try {
+            value = favoriteIds.filterNot { it.startsWith("template:") }.sorted()
+                .mapNotNull { nutritionRepo.getFoodById(it) }.sortedBy { it.name.lowercase(java.util.Locale.ROOT) }
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { saveError = "No se pudieron cargar los favoritos. Inténtalo de nuevo." }
+    }
     // Detalle técnico de un aviso de análisis: oculto hasta pedir «Ver detalle»; cada aviso empieza oculto.
     var showNoticeDetail by remember(analysisNotice) { mutableStateOf(false) }
     // WP-U12 (C11): el diálogo parte de lo vigente (base + lo guardado), no solo de la base.
@@ -1160,6 +1197,35 @@ fun FoodLoggerDrawer(
         tags = tags.map { if (it.id == tagId) it.copy(isExpanded = !it.isExpanded) else it }
     }
 
+    // N3: un producto confirmado en el escáner entra como cualquier fila del buscador (misma ficha, mismo guardado).
+    fun toggleFavorite(id: String) {
+        scope.launch {
+            try { nutritionRepo.toggleFavoriteFood(id) }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { saveError = "No se pudo guardar el favorito. Inténtalo de nuevo." }
+        }
+    }
+
+    fun addScannedFood(food: FoodItem, grams: Double) {
+        tags = tags + scannedFoodTag(food, grams)
+        saveError = null
+    }
+
+    // N4: una plantilla entra como BORRADOR editable: una tarjeta por alimento (id nuevo, su instantánea intacta, sin volver al catálogo).
+    // Las cantidades se editan alimento a alimento y nada se guarda hasta confirmar.
+    fun applyTemplate(template: MealTemplate) {
+        tags = tags + MealReuse.templateDraftFoods(template).map(::loggedFoodToEditableTag)
+        reviewRequired = tags.any { it.hasMaterialQuestion() }
+        saveError = null
+    }
+
+    // N4: la entrada rápida entra como una tarjeta más de la comida (un alimento marcado como rápido); se guarda con la comida.
+    fun addQuickEntry(food: LoggedFood, meal: MealType) {
+        tags = tags + loggedFoodToEditableTag(food)
+        mealType = meal
+        saveError = null
+    }
+
     fun performSearch() {
         searchJob?.cancel()
         if (searchQuery.isBlank()) {
@@ -1203,9 +1269,12 @@ fun FoodLoggerDrawer(
         // save never teaches a habit: editing is not a confirmation.
         val original = draft.editBaseline?.original
         val log = if (original != null) {
-            applyEdit(original, foods, mealType, logDate)
+            val edited = applyEdit(original, foods, mealType, logDate)
+            if (original.date.take(10) == logDate && MealTime.label(original.date) == logTime) edited
+            else edited.copy(date = MealTime.stamp(LocalDate.parse(logDate), logTime, java.time.ZoneId.systemDefault()))
         } else {
-            NutritionLog(id = draftLogId, date = "${logDate}T12:00:00.000Z", mealType = mealType, foods = foods, status = NutritionStatus.CONSUMED)
+            NutritionLog(id = draftLogId, date = MealTime.stamp(LocalDate.parse(logDate), logTime, java.time.ZoneId.systemDefault()),
+                mealType = mealType, foods = foods, status = NutritionStatus.CONSUMED)
         }
         val confirmations = if (original != null) emptyList() else activeTags.mapNotNull { it.confirmedLearning() }
         isSaving = true
@@ -1355,9 +1424,12 @@ fun FoodLoggerDrawer(
             today = LocalDate.now(),
             onPick = { day ->
                 logDate = day.toString()
+                logTime = MealTime.defaultFor(day, LocalDate.now(), java.time.LocalTime.now())
                 showDateSheet = false
             },
             onDismiss = { showDateSheet = false },
+            selectedTime = logTime,
+            onTimePick = { logTime = it; showDateSheet = false },
         )
     }
 
@@ -1448,7 +1520,7 @@ fun FoodLoggerDrawer(
                 val locale = java.util.Locale.forLanguageTag("es")
                 LoggerHeader(
                     title = if (isEditing) "Editar comida" else "Registrar comida",
-                    dateLabel = loggerDateLabel(logDate, locale),
+                    dateLabel = loggerDateLabel(logDate, locale) + " · " + logTime,
                     mealType = mealType,
                     onMealSelect = { mealType = it },
                     onSettings = { showSettingsDialog = true },
@@ -1459,6 +1531,40 @@ fun FoodLoggerDrawer(
 
             // ── Pestañas: Describir · Buscar ─────────────────────────────────
             item { LoggerTabs(activeTab = activeTab, onTabSelect = { activeTab = it }) }
+
+            // ── N4: accesos discretos a las plantillas y a la entrada rápida ──
+            item(key = "reuse_entries") {
+                ReuseLoggerEntries(onTemplates = { showTemplates = true }, onQuickEntry = { showQuickEntry = true })
+            }
+            item(key = "recipe_entry") {
+                KpknTextAction("Recetas", {
+                    recipeToOpen = null; editRecipe = false; showRecipes = true
+                }, leadingIcon = KpknLineIcons.Book)
+            }
+
+            if (favoriteIds.isNotEmpty()) {
+                item(key = "favorite_foods") {
+                    Column {
+                        Text("Favoritos", style = KpknType.bodyStrong, color = WizardColors.text)
+                        favoriteFoods.forEach { food ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                KpknTextAction(food.name, {
+                                    if (food.recipe != null) {
+                                        recipeToOpen = food; editRecipe = false; showRecipes = true
+                                    } else addScannedFood(food, com.example.kpkn.screens.nutrition.scan.defaultGramsForScanned(food))
+                                }, modifier = Modifier.weight(1f))
+                                FoodFavoriteAction(food.name, true, { toggleFavorite(food.id) })
+                            }
+                        }
+                        mealTemplates.filter { "template:${it.id}" in favoriteIds }.forEach { template ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                KpknTextAction(template.name, { applyTemplate(template) }, modifier = Modifier.weight(1f))
+                                FoodFavoriteAction(template.name, true, { toggleFavorite("template:${template.id}") })
+                            }
+                        }
+                    }
+                }
+            }
 
             // ── Describir ────────────────────────────────────────────────────
             if (activeTab == 0) {
@@ -1524,10 +1630,33 @@ fun FoodLoggerDrawer(
             // ── Buscar ───────────────────────────────────────────────────────
             if (activeTab == 1) {
                 item {
-                    LoggerSearchField(
-                        query = searchQuery,
-                        onQueryChange = { searchQuery = it },
-                        onImeSearch = { performSearch() },
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        LoggerSearchField(
+                            query = searchQuery,
+                            onQueryChange = { searchQuery = it },
+                            onImeSearch = { performSearch() },
+                            modifier = Modifier.weight(1f),
+                        )
+                        KpknIconButton(
+                            icon = BarcodeIcon.Barcode,
+                            contentDescription = "Escanear código de barras",
+                            onClick = { showScanner = true },
+                        )
+                    }
+                }
+                item(key = "custom_food_create") {
+                    KpknTextAction(
+                        text = "Crear alimento propio",
+                        onClick = {
+                            customFoodToEdit = null
+                            showCustomForm = true
+                        },
+                        leadingIcon = KpknLineIcons.Plus,
+                        color = WizardColors.textMuted,
                     )
                 }
                 // Mientras el catálogo se prepara, los resultados salen de lo que ya hay: el aviso lo dice.
@@ -1535,13 +1664,25 @@ fun FoodLoggerDrawer(
                     item(key = "catalog_import_progress") { LoggerCatalogProgress(progress) }
                 }
                 items(searchResults, key = { "search_" + it.foodId.ifBlank { "${it.food.name}_${it.food.brand.orEmpty()}" } }) { food ->
+                  Column {
                     LoggerSearchRow(
                         name = food.food.name.trim().replaceFirstChar { it.uppercase() },
                         kcal = kotlin.math.round(food.food.calories).toInt(),
                         basisGrams = kotlin.math.round(NutrientBasis.grams(food.food)).toInt(),
                         caption = loggerSearchCaption(food),
+                        basisLabel = loggerSearchBasisLabel(food.food),
                         onAdd = {
                             val selectedFood = food.food
+                            if (selectedFood.recipe != null) {
+                                val queryUsed = searchQuery.ifBlank { selectedFood.name }
+                                if (!FoodIdentity.matchesDeclaredIdentity(queryUsed, selectedFood)) {
+                                    saveError = "Esa ficha no coincide con lo que buscaste. Elige otra."
+                                    errorPulse++
+                                    return@LoggerSearchRow
+                                }
+                                recipeToOpen = selectedFood; editRecipe = false; showRecipes = true
+                                return@LoggerSearchRow
+                            }
                             if (!NutrientBasis.isVerified(selectedFood)) {
                                 saveError = "Esta ficha no tiene nutrientes verificables. Elige otro alimento."
                                 errorPulse++
@@ -1587,6 +1728,25 @@ fun FoodLoggerDrawer(
                             searchResults = emptyList()
                         },
                     )
+                    FoodFavoriteAction(food.food.name, food.food.id in favoriteIds, { toggleFavorite(food.food.id) })
+                    // N3: acceso discreto a editar un alimento propio (los del catálogo no se editan).
+                    if (food.food.isCustom && !food.food.isAiInferred) {
+                        KpknTextAction(
+                            text = if (food.food.recipe != null) "Editar receta" else "Editar alimento propio",
+                            onClick = {
+                                if (food.food.recipe != null) {
+                                    recipeToOpen = food.food; editRecipe = true; showRecipes = true
+                                } else {
+                                    customFoodToEdit = food.food
+                                    showCustomForm = true
+                                }
+                            },
+                            leadingIcon = KpknLineIcons.Edit,
+                            color = WizardColors.textMuted,
+                            modifier = Modifier.padding(start = 16.dp),
+                        )
+                    }
+                  }
                 }
                 // Sin resultados de una búsqueda ya hecha: lo dice y ofrece describir la comida en lugar de buscarla.
                 if (searchQuery.isNotBlank() && searchResults.isEmpty() && searchedQuery == searchQuery) {
@@ -1655,6 +1815,82 @@ fun FoodLoggerDrawer(
             modifier = Modifier.imePadding().padding(horizontal = 20.dp),
         )
     }
+    }
+
+    // ── N3: escáner de códigos de barras y alimentos propios (pantallas completas sobre la hoja) ──
+    if (showScanner) {
+        val cameraSource = rememberCameraBarcodeSource()
+        BarcodeScanFlow(
+            source = cameraSource,
+            lookup = { code -> nutritionRepo.findFoodByBarcode(code) },
+            saveCustomFood = { food -> nutritionRepo.saveCustomFood(food) },
+            onConfirm = { food, grams ->
+                addScannedFood(food, grams)
+                showScanner = false
+            },
+            onDismiss = { showScanner = false },
+            preview = { previewModifier -> CameraPreviewSurface(cameraSource, previewModifier) },
+        )
+    }
+    if (showCustomForm) {
+        val closeCustomForm = {
+            showCustomForm = false
+            customFoodToEdit = null
+        }
+        CustomFoodFormOverlay(
+            initial = customFoodToEdit,
+            save = { food -> nutritionRepo.saveCustomFood(food) },
+            onSaved = {
+                closeCustomForm()
+                if (searchQuery.isNotBlank()) performSearch()
+            },
+            onDismiss = closeCustomForm,
+            delete = { id -> nutritionRepo.deleteCustomFood(id) },
+            onDeleted = {
+                val removedId = customFoodToEdit?.id
+                closeCustomForm()
+                if (removedId != null) searchResults = searchResults.filterNot { it.foodId == removedId }
+            },
+        )
+    }
+
+    if (showRecipes) {
+        RecipeLibraryOverlay(
+            repository = nutritionRepo, initial = recipeToOpen, startInEditor = editRecipe,
+            onAdd = { food ->
+                tags = tags + loggedFoodToEditableTag(food)
+                saveError = null
+                searchQuery = ""
+                searchResults = emptyList()
+                showRecipes = false
+            }, onDismiss = { showRecipes = false },
+        )
+    }
+
+    // ── N4: plantillas (hoja) y entrada rápida (pantalla completa) ──
+    if (showTemplates) {
+        TemplatesSheet(
+            templates = mealTemplates,
+            onApply = { template ->
+                applyTemplate(template)
+                showTemplates = false
+            },
+            rename = { template, name -> nutritionRepo.saveMealTemplate(template.copy(name = name)) },
+            delete = { template -> nutritionRepo.deleteMealTemplate(template.id) },
+            onDismiss = { showTemplates = false },
+            favoriteIds = favoriteIds.filter { it.startsWith("template:") }.map { it.removePrefix("template:") }.toSet(),
+            onToggleFavorite = { toggleFavorite("template:$it") },
+        )
+    }
+    if (showQuickEntry) {
+        QuickEntryOverlay(
+            initialMeal = mealType,
+            onAdd = { food, meal ->
+                addQuickEntry(food, meal)
+                showQuickEntry = false
+            },
+            onDismiss = { showQuickEntry = false },
+        )
     }
 
     // ── Éxito: el check se queda en la barra y la hoja se cierra al acabar (600 ms; 300 ms con movimiento reducido) ──

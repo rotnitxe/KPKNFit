@@ -20,6 +20,8 @@ import com.example.kpkn.domain.nutrition.ResolvedTag
 import com.example.kpkn.domain.nutrition.SubjectivePortionEngine
 import com.example.kpkn.domain.nutrition.loggedFoodToEditableTag
 import java.time.LocalDate
+import java.time.LocalTime
+import com.example.kpkn.domain.nutrition.MealTime
 import java.util.UUID
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -52,7 +54,7 @@ internal fun currentUtensilValues(): Map<String, Float> {
     return SubjectivePortionEngine.UTENSIL_DEFAULTS.mapValues { (key, base) -> (saved[key] ?: base).toFloat() }
 }
 
-/** Los siete primitivos que se copian al SavedStateHandle (la semilla que sobrevive a la muerte del proceso). */
+/** Los primitivos que se copian al SavedStateHandle (la semilla que sobrevive a la muerte del proceso). */
 internal data class FoodLoggerSeed(
     val description: String,
     val lastAnalyzedDescription: String,
@@ -61,6 +63,7 @@ internal data class FoodLoggerSeed(
     val activeTab: Int,
     val searchQuery: String,
     val draftLogId: String,
+    val logTime: String = "12:00",
 )
 
 /**
@@ -90,6 +93,7 @@ internal class FoodLoggerDraft {
     var consumedInitialDescription by mutableStateOf<String?>(null)
     var mealType by mutableStateOf(MealType.LUNCH)
     var logDate by mutableStateOf("")
+    var logTime by mutableStateOf("12:00")
     var tags by mutableStateOf(emptyList<ResolvedTag>())
     var detectedContext by mutableStateOf<ContextDetector.ContextResult?>(null)
     var searchQuery by mutableStateOf("")
@@ -135,6 +139,7 @@ internal class FoodLoggerDraft {
         get() {
             val base = editBaseline ?: return false
             return description.isBlank() && searchQuery.isBlank() && mealType == base.mealType && logDate == base.logDate &&
+                logTime == MealTime.label(base.original.date) &&
                 tags.map { it.copy(isExpanded = false) } == base.tags.map { it.copy(isExpanded = false) }
         }
 
@@ -146,6 +151,7 @@ internal class FoodLoggerDraft {
         activeTab = activeTab,
         searchQuery = searchQuery,
         draftLogId = draftLogId,
+        logTime = logTime,
     )
 
     /** Deja el holder como recién creado (con un id nuevo): el siguiente borrador no hereda nada del anterior. */
@@ -155,6 +161,7 @@ internal class FoodLoggerDraft {
         consumedInitialDescription = null
         mealType = MealType.LUNCH
         logDate = ""
+        logTime = "12:00"
         tags = emptyList()
         detectedContext = null
         searchQuery = ""
@@ -227,6 +234,8 @@ internal class FoodLoggerViewModel(private val handle: SavedStateHandle) : ViewM
                 return@withoutReadObservation false
             }
             draft.logDate = date
+            val day = runCatching { LocalDate.parse(date.take(10)) }.getOrDefault(LocalDate.now())
+            draft.logTime = MealTime.defaultFor(day, LocalDate.now(), LocalTime.now())
             draft.mealType = meal
             draft.description = description
             draft.activeTab = tab.coerceIn(0, 1)
@@ -249,6 +258,7 @@ internal class FoodLoggerViewModel(private val handle: SavedStateHandle) : ViewM
         draft.draftLogId = log.id
         draft.editingLogId = log.id
         draft.logDate = day
+        draft.logTime = MealTime.label(log.date)
         draft.mealType = log.mealType
         draft.activeTab = 0
         draft.tags = tags
@@ -318,6 +328,7 @@ internal class FoodLoggerViewModel(private val handle: SavedStateHandle) : ViewM
         handle[KEY_LAST_ANALYZED] = seed.lastAnalyzedDescription.take(MAX_PERSISTED_TEXT)
         handle[KEY_MEAL_TYPE] = seed.mealType.name
         handle[KEY_LOG_DATE] = seed.logDate
+        handle[KEY_LOG_TIME] = seed.logTime
         handle[KEY_ACTIVE_TAB] = seed.activeTab
         handle[KEY_SEARCH_QUERY] = seed.searchQuery.take(MAX_PERSISTED_TEXT)
         handle[KEY_DRAFT_LOG_ID] = seed.draftLogId
@@ -330,6 +341,7 @@ internal class FoodLoggerViewModel(private val handle: SavedStateHandle) : ViewM
             ?.let { name -> MealType.entries.firstOrNull { it.name == name } }
             ?.let { draft.mealType = it }
         draft.logDate = readString(KEY_LOG_DATE)?.takeIf { it.isNotBlank() } ?: LocalDate.now().toString()
+        draft.logTime = readString(KEY_LOG_TIME)?.takeIf { MealTime.parse(it) != null } ?: "12:00"
         draft.activeTab = (readInt(KEY_ACTIVE_TAB) ?: 0).coerceIn(0, 1)
         draft.searchQuery = readString(KEY_SEARCH_QUERY).orEmpty()
         readString(KEY_DRAFT_LOG_ID)?.takeIf { it.isNotBlank() }?.let { draft.draftLogId = it }
@@ -344,6 +356,7 @@ internal class FoodLoggerViewModel(private val handle: SavedStateHandle) : ViewM
         const val KEY_LAST_ANALYZED = "food_logger_last_analyzed"
         const val KEY_MEAL_TYPE = "food_logger_meal_type"
         const val KEY_LOG_DATE = "food_logger_log_date"
+        const val KEY_LOG_TIME = "food_logger_log_time"
         const val KEY_ACTIVE_TAB = "food_logger_active_tab"
         const val KEY_SEARCH_QUERY = "food_logger_search_query"
         const val KEY_DRAFT_LOG_ID = "food_logger_draft_log_id"
@@ -353,6 +366,7 @@ internal class FoodLoggerViewModel(private val handle: SavedStateHandle) : ViewM
             KEY_LAST_ANALYZED,
             KEY_MEAL_TYPE,
             KEY_LOG_DATE,
+            KEY_LOG_TIME,
             KEY_ACTIVE_TAB,
             KEY_SEARCH_QUERY,
             KEY_DRAFT_LOG_ID,

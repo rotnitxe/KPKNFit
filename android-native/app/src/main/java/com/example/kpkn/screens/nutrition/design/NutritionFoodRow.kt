@@ -38,6 +38,7 @@ import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.domain.nutrition.NutritionDisplayFormat
 import com.example.kpkn.domain.nutrition.computeFoodTotals
 import com.example.kpkn.screens.nutrition.components.portionPresetLabel
+import com.example.kpkn.screens.nutrition.reuse.QuickEntryTag
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.formatKcalEs
 import com.example.kpkn.ui.design.KpknMetric
@@ -121,7 +122,9 @@ fun NutritionFoodRow(
         fat = log.foods.sumOf { it.fats },
     )
     val name = log.foods.joinToString(", ") { it.foodName }.ifEmpty { "Comida registrada" }
-    val portion = logPortionText(log)
+    // N4: una entrada rápida no tiene porción que mostrar (su cantidad es 1 «porción» interna): lleva la etiqueta «rápida» en su lugar.
+    val quick = log.foods.any { it.isQuickEntry }
+    val portion = if (quick && log.foods.size == 1) null else logPortionText(log)
     var bounds by remember { mutableStateOf<Rect?>(null) }
     var showRange by remember { mutableStateOf(rangeOpen) }
     Column(
@@ -158,6 +161,9 @@ fun NutritionFoodRow(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
+                Text(com.example.kpkn.domain.nutrition.MealTime.label(log.date), style = KpknType.caption,
+                    color = WizardColors.textMuted, modifier = Modifier.testTag("nutrition-log-time"))
+                if (quick) QuickEntryTag(Modifier.padding(top = 4.dp))
                 // La micro barra va 6 dp bajo la porción (o el nombre), dentro de la columna de texto: la zona táctil de las kcal
                 // (48 dp) no le añade hueco.
                 if (shares != null) {

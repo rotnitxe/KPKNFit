@@ -693,7 +693,8 @@ fun duplicateLog(log: NutritionLog, targetDate: String): NutritionLog {
         date = "${targetDate}T12:00:00.000Z",
         mealType = log.mealType,
         foods = log.foods.map { it.copy(id = java.util.UUID.randomUUID().toString()) },
-        notes = log.notes?.let { "$it (duplicado)" },
+        // N4: la marca « (duplicado)» va una sola vez; duplicar un duplicado no la apila (misma regla que las copias a otras fechas).
+        notes = MealReuse.copyNote(log.notes),
         status = NutritionStatus.CONSUMED,
     )
 }

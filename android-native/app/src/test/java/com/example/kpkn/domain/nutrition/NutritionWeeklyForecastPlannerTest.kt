@@ -312,4 +312,11 @@ class NutritionWeeklyForecastPlannerTest {
         // El futuro jamás se fija.
         assertTrue(withoutSnapshot.keys.all { !it.isAfter(thursday) })
     }
+    @Test
+    fun `EER calculada de result prevalece sobre una entrada legacy distinta`() {
+        val original = plan(inputs = forecastInput() + ("eerKcal" to "1500"), direction = PlanDirection.SURPLUS)
+        val current = original.copy(calculationSnapshot = original.calculationSnapshot!!.copy(result = mapOf("eerKcal" to "3000")))
+        val revised = revisedWeeklyForecast(NutritionForecastRevisionInput(plan = current, today = thursday, expenditures = expenditures, snapshots = emptyList()))
+        assertNull(revised)
+    }
 }
