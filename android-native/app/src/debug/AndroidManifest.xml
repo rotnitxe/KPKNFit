@@ -82,5 +82,8 @@
             android:exported="true" android:theme="@style/Theme.KPKN" />
         <!-- P2-Nb: nutrientes en memoria, sin escrituras de usuario. -->
         <activity android:name="com.example.kpkn.debug.NutrientsHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
+    <activity android:name="com.example.kpkn.debug.CsvExportHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
+    <activity android:name="com.example.kpkn.debug.LabelOcrSelfTestActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
+    <activity android:name="com.example.kpkn.debug.FoodSearchBenchActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>
