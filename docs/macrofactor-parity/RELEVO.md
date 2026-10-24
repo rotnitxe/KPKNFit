@@ -1,3 +1,5 @@
+> Instrucción vigente, 24-oct-2026: continuar directamente en local y sin push. Sustituye las restricciones de ejecución en Cloud de la nota siguiente; se conserva como historia. Ver [LOCAL_RESUME.md](LOCAL_RESUME.md).
+
 > Actualizacion 22-oct-2026: el usuario autorizo el traslado y la subida de las cinco ramas MFP a Codex Cloud. **No fusionar master ni ejecutar Gradle en su equipo.** Leer primero [CLOUD_HANDOFF.md](CLOUD_HANDOFF.md); el estado de corridas y el prompt historico de este documento quedan subordinados a ese relevo.
 
 # Relevo de la ola MFP (paridad con MacroFactor) · 21-oct-2026 ~23:55
