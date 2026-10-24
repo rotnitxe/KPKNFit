@@ -82,18 +82,7 @@ public enum BlockTransitionEngine {
             )
         }
 
-        let suggestDeload = (context.augeAutoDeloadEnabled && context.cumulativeFatigue > 75 && context.readinessScore < 40)
-            || context.mesocycleStressEma >= 75
-            || !context.overtrainedMuscles.isEmpty
 
-        if suggestDeload && next?.goal != .DELOAD && next?.goal != .TAPER {
-            return TransitionDecision(
-                kind: .insertDeload,
-                message: "Gate AUGE / estrés alto: insertar descarga antes de continuar.",
-                nextBlockId: nil,
-                updatedProgram: nil
-            )
-        }
 
         return TransitionDecision(
             kind: .advanceNextBlock,

@@ -253,22 +253,11 @@ struct WorkoutScreen: View {
                 }
             }
 
-            // Readiness sheet
             if showReadinessSheet {
-                WorkoutReadinessSheet(
-                    showReadinessSheet: showReadinessSheet,
-                    gender: viewModel.uiState.session?.gender,
-                    sessionMuscleStartingBatteries: [:],
-                    readinessNeuralStart: 0,
-                    readinessMuscularStart: 0,
-                    readinessSpinalStart: 0,
-                    onSave: { _, _, _, _, _ in readinessSheetDismissed = true },
-                    patternReadiness: viewModel.uiState.patternReadiness,
-                    exerciseReadinessMap: viewModel.uiState.exerciseReadinessMap,
-                    sessionExercises: session.exercises,
-                    onDismissWithoutVerify: { readinessSheetDismissed = true },
-                    initialDiscomforts: []
-                )
+                VStack {
+                    Text("Consulta tus registros y molestias anotadas. El registro adicional es opcional.")
+                    Button("Continuar a la sesión") { readinessSheetDismissed = true }
+                }.padding()
             }
 
             // Other sheets, dialogs, etc handled via .sheet and .alert
@@ -674,18 +663,10 @@ private struct WorkoutV2Body: View {
                                 ].compactMap { $0 }
                             }
                         )
-                        let currentExerciseDrain = currentExerciseCompleted.sets.isEmpty
-                            ? PredictedDrain(cns: 0, muscular: 0, spinal: 0)
-                            : AugeFatigueEngine.calculateCompletedSessionDrain(
-                                completedExercises: [currentExerciseCompleted],
-                                exerciseDb: catalogExerciseIndex()
-                            )
-
                         WorkoutExerciseTabs(
                             currentExercise: ex,
                             currentSet: set,
                             currentExerciseInfo: currentExerciseInfo,
-                            drain: currentExerciseDrain,
                             exerciseTag: uiState.exerciseTags[ex.id],
                             profiles: viewModel.profilesForExercise(ex),
                             activeProfileId: uiState.activeContextProfileByExerciseId[ex.id],
@@ -1387,7 +1368,6 @@ private struct WorkoutExerciseTabs: View {
     let currentExercise: Exercise
     let currentSet: ExerciseSet
     let currentExerciseInfo: ExerciseMuscleInfo?
-    let drain: PredictedDrain
     let exerciseTag: String?
     let profiles: [WorkoutContextProfile]
     let activeProfileId: String?
@@ -1453,10 +1433,7 @@ private struct WorkoutExerciseTabs: View {
             }
 
             // Drain / energy summary
-            if drain.cns > 0 || drain.muscular > 0 || drain.spinal > 0 {
-                WorkoutFatigueRings(cns: drain.cns, muscular: drain.muscular, spinal: drain.spinal)
-                    .padding(.horizontal, 10)
-            }
+
 
             if let energy = sessionEnergy {
                 HStack(spacing: 6) {

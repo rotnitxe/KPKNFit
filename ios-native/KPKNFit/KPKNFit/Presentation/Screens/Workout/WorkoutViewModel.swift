@@ -2034,27 +2034,7 @@ import SwiftUI
         persistOngoingState()
     }
 
-    func computeExerciseReadiness(batteries: GlobalBatteries, perMuscle: [String: MuscleRecoveryStatus]) {
-        guard let exercises = uiState.session?.exercises else { return }
-        var readinessMap: [String: ExerciseReadiness] = [:]
-        for exercise in exercises {
-            let canonicalId = canonicalExerciseKey(exercise)
-            let avgErm: Double? = {
-                let entries = getExerciseHistory(canonicalId, limit: 5)
-                let valid = entries.compactMap { $0.e1rm }
-                guard !valid.isEmpty else { return nil }
-                return valid.reduce(0, +) / Double(valid.count)
-            }()
-            if let readiness = ExerciseReadinessEngine.calculatePerExerciseReadiness(exercise: exercise, augeBatteries: batteries, perMuscle: perMuscle, averageErm: avgErm) {
-                readinessMap[exercise.id] = readiness
-            }
-        }
-        let patterns = ExerciseReadinessEngine.calculatePerMovementPatternReadiness(exercises: exercises, exerciseReadinessMap: readinessMap, perMuscle: perMuscle)
-        updateState {
-            $0.exerciseReadinessMap = readinessMap
-            $0.patternReadiness = patterns
-        }
-    }
+
 
     func applyReadinessAdjustment(_ exerciseId: String, setIndex: Int, suggestion: SetAdjustmentSuggestion) {
         let key = "\(exerciseId)_\(setIndex)"

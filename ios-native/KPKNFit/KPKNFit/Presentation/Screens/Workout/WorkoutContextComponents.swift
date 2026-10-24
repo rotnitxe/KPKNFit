@@ -5,7 +5,6 @@ import SwiftUI
 enum WorkoutExerciseContextTab: String, CaseIterable {
     case history
     case tags
-    case drain
     case energy
     case replace
     case edit
@@ -136,7 +135,6 @@ struct WorkoutExerciseTabs: View {
         let tabs: [(WorkoutExerciseContextTab, String)] = [
             (.history, "Historial"),
             (.tags, "Etiquetas"),
-            (.drain, "Drenaje"),
             (.energy, "Gasto calórico"),
             (.replace, "Reemplazar"),
             (.edit, "Editar"),
@@ -260,11 +258,6 @@ struct WorkoutExerciseTabs: View {
                                         .foregroundColor(sessionAccentColor)
                                 }
                             }
-                        case .drain:
-                            WorkoutExerciseDrainContent(
-                                drain: drain,
-                                involvedMuscles: currentExerciseInfo?.involvedMuscles ?? []
-                            )
                         case .rmCalc:
                             WorkoutRmCalcContent(
                                 bodyWeight: rmBodyWeight,
