@@ -97,17 +97,6 @@ class WorkoutSetRecorder(
             advancedFeedback: SetAdvancedFeedback? = null,
             kind: RestTimerKind = RestTimerKind.STANDARD,
         )
-        fun computeAndStoreAutoRegulation(
-            completedSet: CompletedSet,
-            advanced: SetAdvancedFeedback,
-            setDrain: SetDrain,
-            effectiveRpe: Double,
-            sessionProgress: Double,
-        )
-        fun updateCoachMessage(
-            setDrain: SetDrain,
-            sessionProgress: Double,
-        )
         fun checkPaceCoachAlert()
         fun onSetRecordedMilestone(exercise: Exercise, weight: Double, reps: Int)
         fun onRecordingRejected(message: String)

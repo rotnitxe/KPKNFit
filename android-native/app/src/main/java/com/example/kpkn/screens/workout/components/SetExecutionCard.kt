@@ -882,9 +882,6 @@ internal fun SetInputCardV2(
         side: String?,
         onResult: (RecordSetResult) -> Unit,
     ) -> Unit,
-    exerciseReadiness: ExerciseReadiness? = null,
-    readinessAdjustment: SetAdjustmentSuggestion? = null,
-    onApplyReadinessAdjustment: ((SetAdjustmentSuggestion) -> Unit)? = null,
     godModeActionsVisible: Boolean = false,
     isDropSet: Boolean = false,
     isRestPause: Boolean = false,
@@ -1044,12 +1041,6 @@ internal fun SetInputCardV2(
     }
     var valueText by remember(exercise.id, setIndex, lockedSide, sessionCompletedSet) {
         mutableStateOf(draftValueText ?: initialTechniqueValue ?: defaultValue.ifBlank { initialValueGhost })
-    }
-    var showReadinessAdjustmentSheet by remember { mutableStateOf(false) }
-    LaunchedEffect(adaptActionHolder, isActivePage) {
-        if (adaptActionHolder != null && isActivePage) {
-            adaptActionHolder.open = { showReadinessAdjustmentSheet = true }
-        }
     }
     val targetLeftWeight = currentSet.leftTarget?.weight?.toTrimmedNumberString().orEmpty()
     val targetRightWeight = currentSet.rightTarget?.weight?.toTrimmedNumberString().orEmpty()
@@ -3685,37 +3676,7 @@ internal fun SetInputCardV2(
             }
     }
 
-    // ── Overlay de ajuste por readiness ──
-    if (showReadinessAdjustmentSheet && exerciseReadiness != null) {
-        val rm1 = lastHomologatedResultV3?.estimatedRm
-            ?: ghostSet?.let { ghost ->
-                if (ghost.weight > 0 && ghost.reps > 0 && ghost.reps < 37) {
-                    ghost.weight / (1.0278 - 0.0278 * ghost.reps)
-                } else {
-                    null
-                }
-            }
-        SetAdjustmentOverlay(
-            exercise = exercise,
-            currentSet = currentSet,
-            setIndex = setIndex,
-            exerciseReadiness = exerciseReadiness,
-            weightSuggestion = resolvedWeightSuggestion,
-            averageErm = rm1,
-            bodyWeight = initialBodyWeight ?: bodyWeightText.toDoubleOrNull(),
-            loadMode = loadMode,
-            onDismiss = { showReadinessAdjustmentSheet = false },
-            onApply = { suggestion ->
-                loadMode = suggestion.suggestedLoadMode
-                updateActiveWeightText(
-                    if (suggestion.suggestedLoadMode == LoadModeV2.BODYWEIGHT) ""
-                    else suggestion.suggestedWeight.toTrimmedNumberString(),
-                )
-                onApplyReadinessAdjustment?.invoke(suggestion)
-                showReadinessAdjustmentSheet = false
-            },
-        )
-    }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

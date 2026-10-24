@@ -28,14 +28,10 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Gender
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassDialog
 import com.example.kpkn.ui.design.KpknChip
-import com.example.kpkn.screens.workout.components.ReadinessReportedDiscomfort
-import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
-import com.example.kpkn.screens.workout.components.readinessReportedBefore
 import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
 import java.util.UUID
@@ -60,16 +56,19 @@ internal fun WorkoutSessionOverlaysHost(
     onBack: () -> Unit,
 ) {
     // Las molestias que quedaron presentes la sesión anterior, con el día en que se anotaron («Rodilla anterior · lunes»).
-    val reportedBefore = remember(uiState.previousSessionDiscomforts) {
-        reportedBeforeDiscomforts(uiState.previousSessionDiscomforts)
-    }
     TrainingMaxPreparation(viewModel.missingTrainingMaxes(session), enabled = !showReadinessSheet,
         onConfirm = viewModel::confirmTrainingMax)
     if (showReadinessSheet) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = onReadinessDismissed,
             title = { Text("Antes de entrenar") },
-            text = { Text("Consulta tus registros y las molestias anotadas. Puedes registrar sensaciones durante o después de la sesión; es opcional.") },
+            text = { Column {
+                Text("Puedes registrar sensaciones durante o después de la sesión; es opcional.")
+                if (uiState.previousSessionDiscomforts.isEmpty()) Text("Sin molestias anteriores registradas.")
+                else uiState.previousSessionDiscomforts.forEach { id ->
+                    Text(com.example.kpkn.data.models.discomfortLabel(id))
+                }
+            } },
             confirmButton = { androidx.compose.material3.TextButton(onClick = onReadinessDismissed) { Text("Continuar") } },
         )
     }
@@ -253,50 +252,4 @@ internal fun WorkoutSessionOverlaysHost(
             }
         }
     }
-}
-
-/**
- * El registro de bienestar que se guarda al confirmar el estado previo. Solo los canales editados se convierten en ajustes manuales
- * ([manualNeural], [manualSpinal], [manualMuscular] y [manualMuscleBatteries] llegan ya filtrados: lo que la persona no tocó es null o
- * está vacío) y el resto conserva lo que hoy ya había en [today]. La Columna llega en la escala que se ve y se invierte aquí UNA vez
- * ([invertDisplayedStructure]) para anclar el canal crudo; los músculos van por pilar (V1: `saveWellbeing` los fusiona con las anclas V2).
- */
-internal fun buildReadinessWellbeingLog(
-    today: DailyWellbeingLog?,
-    newId: String,
-    date: String,
-    discomforts: List<String>,
-    manualNeural: Int?,
-    manualSpinal: Int?,
-    manualMuscular: Int?,
-    manualMuscleBatteries: Map<String, Int>,
-    invertDisplayedStructure: (Int) -> Int,
-): DailyWellbeingLog = DailyWellbeingLog(
-    id = today?.id ?: newId,
-    date = date,
-    sleepQuality = today?.sleepQuality ?: 3,
-    stressLevel = today?.stressLevel ?: 3,
-    doms = today?.doms ?: 1,
-    motivation = today?.motivation ?: 3,
-    sleepHours = today?.sleepHours,
-    moodState = today?.moodState,
-    workIntensity = today?.workIntensity,
-    studyIntensity = today?.studyIntensity,
-    manualMuscularBattery = manualMuscular ?: today?.manualMuscularBattery,
-    manualNeuralBattery = manualNeural ?: today?.manualNeuralBattery,
-    manualSpinalBattery = manualSpinal?.let(invertDisplayedStructure) ?: today?.manualSpinalBattery,
-    manualMuscleBatteries = if (manualMuscleBatteries.isNotEmpty()) {
-        remapMuscleIntMapToPillars((today?.manualMuscleBatteries.orEmpty()) + manualMuscleBatteries)
-    } else {
-        remapMuscleIntMapToPillars(today?.manualMuscleBatteries.orEmpty())
-    },
-    notes = today?.notes,
-    preWorkoutDiscomforts = discomforts,
-)
-
-/** Las molestias de [previousIds] con su día, según el historial del programa; sin historial legible, solo con su nombre. */
-private fun reportedBeforeDiscomforts(previousIds: List<String>): List<ReadinessReportedDiscomfort> {
-    if (previousIds.isEmpty()) return emptyList()
-    val history = runCatching { ProgramRepository.getInstance().history.value }.getOrDefault(emptyList())
-    return readinessReportedBefore(previousIds = previousIds, history = history, today = LocalDate.now())
 }

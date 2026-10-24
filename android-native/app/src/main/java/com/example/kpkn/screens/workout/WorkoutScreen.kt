@@ -174,7 +174,6 @@ import com.example.kpkn.screens.workout.components.RoadmapPendingAction
 import com.example.kpkn.screens.workout.components.RestTimerOverlay
 import com.example.kpkn.screens.workout.components.RestTimerPill
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
-import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.TourIds

@@ -71,7 +71,6 @@ class WorkoutSessionHydrator(
         fun nextIncompleteStepAfter(state: WorkoutUiState, includeCurrent: Boolean = false): WorkoutStep?
         fun firstIncompleteStep(state: WorkoutUiState): WorkoutStep?
         fun startRestTimer(seconds: Int, preserveElapsed: Boolean = false)
-        fun updateCoachMessage(setDrain: SetDrain, sessionProgress: Double)
         fun startSessionTimer(remainingSeconds: Int)
         fun workoutWidgetsSessionKey(): String
         fun bindActiveWorkoutHolder()

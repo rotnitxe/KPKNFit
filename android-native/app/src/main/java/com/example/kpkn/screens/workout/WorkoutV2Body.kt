@@ -316,7 +316,6 @@ internal fun WorkoutV2Body(
                     ?.let { groupId ->
                         visibleExercises.count { it.supersetGroupRefOrLegacyId() == groupId } > 1
                     } == true,
-                exerciseReadiness = currentExerciseReadiness,
                 activeMainTags = currentExerciseActiveMainTags,
                 activeMainTagLabels = currentExerciseActiveTagLabels,
                 activeSubTags = currentExerciseActiveSubTags,
@@ -338,18 +337,6 @@ internal fun WorkoutV2Body(
                 ultraFastApplied = uiState.ultraFastApplied,
                 ultraFastSavedSeconds = uiState.ultraFastSavedSeconds,
                 onRevertUltraFast = { viewModel.revertUltraFast() },
-                readinessAdjustment = currentReadinessAdjustment,
-                onAdaptClick = if (
-                    currentExerciseReadiness != null && (
-                        currentReadinessAdjustment != null ||
-                            currentExerciseReadiness.overallScore <
-                            com.example.kpkn.domain.auge.ExerciseReadinessEngine.ADJUSTMENT_THRESHOLD
-                        )
-                ) {
-                    { adaptActionHolder.open?.invoke() }
-                } else {
-                    null
-                },
                 onReplaceClick = onExpandReplace,
                 nicknameKey = currentExercise?.nicknameKey(),
                 nicknameValue = currentExercise?.nicknameKey()?.let { key ->
@@ -2326,17 +2313,6 @@ internal fun WorkoutV2Body(
                                         } else {
                                             action.invoke()
                                         }
-                                    },
-                                    exerciseReadiness = exerciseReadinessMap[targetExercise.id],
-                                    readinessAdjustment = uiState.readinessAdjustments[
-                                        "${targetExercise.id}_${activeSetIndex}"
-                                    ],
-                                    onApplyReadinessAdjustment = { suggestion ->
-                                        viewModel.applyReadinessAdjustment(
-                                            targetExercise.id,
-                                            activeSetIndex,
-                                            suggestion,
-                                        )
                                     },
                                     mediaCapture = viewModel.mediaCapture,
                                     onRetryPendingCaptures = onRetryPendingCaptures,

@@ -1,15 +1,8 @@
 package com.example.kpkn.screens.workout
 
-import com.example.kpkn.data.models.ArticularBattery
-import com.example.kpkn.data.models.ArticularBatteryState
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.ExerciseReadiness
-import com.example.kpkn.data.models.GlobalBatteries
-import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.PostExerciseFeedback
-import com.example.kpkn.data.models.SetAdjustmentSuggestion
-import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 
 /**
  * Post-exercise feedback sheets, readiness computation, and related session state.
@@ -97,17 +90,6 @@ class WorkoutFeedbackController(
                 showPostExerciseSheet = false,
                 postExerciseTargetIdx = -1,
                 postExerciseFeedbackTarget = null,
-                postExerciseFeedbackByExerciseId = it.postExerciseFeedbackByExerciseId + targetExercises
-                    .filter { exercise -> exercise.id !in it.postExerciseFeedbackByExerciseId }
-                    .associate { exercise ->
-                        exercise.id to PostExerciseFeedback(
-                            exerciseId = exercise.id,
-                            exerciseDbId = ports.canonicalExerciseKey(exercise),
-                            exerciseName = displayWorkoutExerciseName(exercise),
-                            technicalQuality = 8,
-                            discomfortIds = listOf("none"),
-                        )
-                    },
                 continuityFeedbackExerciseId = it.continuityFeedbackExerciseId.takeUnless { id -> id in exerciseIds },
             )
         }
@@ -142,86 +124,6 @@ class WorkoutFeedbackController(
                 advanceOnFinish = false,
                 lastSet = pending.lastSet,
                 advancedFeedback = pending.advancedFeedback,
-            )
-        }
-    }
-
-    fun saveReadinessAdjustments(
-        neural: Int?,
-        muscular: Int?,
-        spinal: Int?,
-        perMuscle: Map<String, Int>,
-        sleepQuality: Int? = null,
-    ) {
-        updateState {
-            it.copy(
-                readinessNeuralOverride = neural,
-                readinessMuscularOverride = muscular,
-                readinessSpinalOverride = spinal,
-                readinessMuscleOverrides = perMuscle,
-                sleepQuality = sleepQuality,
-            )
-        }
-        ports.persistOngoingState()
-    }
-
-    fun computeExerciseReadiness(
-        batteries: GlobalBatteries,
-        perMuscle: Map<String, MuscleRecoveryStatus>,
-        articularBatteries: Map<ArticularBattery, ArticularBatteryState> = emptyMap(),
-        unresolvedDiscomfortIds: List<String> = emptyList(),
-    ) {
-        val state = getState()
-        val exercises = state.session?.exercises ?: return
-
-        val readinessMap = mutableMapOf<String, ExerciseReadiness>()
-
-        for (exercise in exercises) {
-            val canonicalId = ports.canonicalExerciseKey(exercise)
-            val avgErm = if (canonicalId.isNotBlank()) {
-                ports.getExerciseHistory(canonicalId, limit = 5, preferredTag = null)
-                    .mapNotNull { it.e1rm }
-                    .average()
-                    .takeIf { it > 0.0 }
-            } else null
-
-            val readiness = ExerciseReadinessEngine.calculatePerExerciseReadiness(
-                exercise = exercise,
-                augeBatteries = batteries,
-                perMuscle = perMuscle,
-                averageErm = avgErm,
-                unresolvedDiscomfortIds = unresolvedDiscomfortIds,
-                articularBatteries = articularBatteries,
-            )
-
-            if (readiness != null) {
-                readinessMap[exercise.id] = readiness
-            }
-        }
-
-        val patterns = ExerciseReadinessEngine.calculatePerMovementPatternReadiness(
-            exercises = exercises,
-            exerciseReadinessMap = readinessMap,
-            perMuscle = perMuscle,
-        )
-
-        updateState {
-            it.copy(
-                exerciseReadinessMap = readinessMap,
-                patternReadiness = patterns,
-            )
-        }
-    }
-
-    fun applyReadinessAdjustment(
-        exerciseId: String,
-        setIndex: Int,
-        suggestion: SetAdjustmentSuggestion,
-    ) {
-        val key = "${exerciseId}_${setIndex}"
-        updateState {
-            it.copy(
-                readinessAdjustments = it.readinessAdjustments + (key to suggestion),
             )
         }
     }
