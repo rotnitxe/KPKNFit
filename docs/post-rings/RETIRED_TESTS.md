@@ -170,3 +170,5 @@ solo los parámetros de coeficiente ya inexistentes de los fixtures de reemplazo
 se conservan material, lateralidad, anatomía y ausencia de diferencias inventadas.
 La ficha ahora exige registro anterior con fecha, sin rótulo «Hoy» ni consejo de
 carga, incluso si se inyecta un DTO legado con advice. Las pruebas no se omiten.
+
+Cierre cloud: changed-regression-v3, 200 clases/2033 pruebas, cero fallos, errores y omisiones, exit0. Las dos expectativas UI restantes de v2 se actualizaron manteniendo controles positivos de material y registros originales.

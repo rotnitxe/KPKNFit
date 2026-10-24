@@ -14,7 +14,7 @@ El bundle anterior Rings v4 no se importó; el estado previo sigue recuperable.
 | Backend final | 19 pruebas y 32 subpruebas aprobadas; una advertencia de deprecación; exit0 |
 | Catálogo reproducible | 228 definiciones, 553 configuraciones; `--check` aprobado |
 | Gate de retiro | Cero infracciones detectadas; controles positivos y anillas físicas negativos aprobados |
-| Swift | 36 archivos modificados sin errores sintácticos; **sin compilación/XCTest** |
+| Swift | 38 archivos modificados sin errores sintácticos; **sin compilación/XCTest** |
 
 Hash canónico del catálogo:
 `ce1ed8f4ec0c7476e66a353e567717b86cc896fda797d33ee99bb5c788584ce7`.
@@ -35,13 +35,29 @@ confirmación y el recorrido Room de disciplina/notas, reinicio y siguiente acti
 El bucle se resolvió acotando el ancho de ventana independientemente del contenido;
 no se amplían timeouts ni se omite la prueba. Se mantuvo Robolectric4.12.2 del repo.
 
-La regresión ampliada ejecutó **2027 pruebas/199 clases:1990 aprobadas,37 fallos,
-cero errores/omitidas**, con APK Base compilado. No es aprobación final. Se portan
-expectativas restantes de funciones retiradas y se endurece una frontera real de
-energía: el modelo publicado en caché debe ser el mismo que Room sanea, tanto al
-registrar como al corregir. Un método retirado/desconocido no aporta calorías;
-un cero independiente explícito sigue distinguiéndose de ausencia. Las nuevas
-pruebas y la fuente posterior requieren una ejecución nueva y APK final actualizado.
+La regresión final `changed-regression-v3` aprobó **2033 pruebas en200 clases,
+cero fallos, errores u omisiones; exit0**, junto con `assembleBaseDebug`.
+HEAD probado: `b6c35b9b549cc05b1143f1010c28bcf14607fa1c`.
+La selección comprende todas las clases modificadas no denominadas Render;
+no equivale a ejecutar todo el repositorio. Los XML, selección y comando exacto
+se entregan privados. Las tandas previas fallidas quedan como checkpoints y no
+se cuentan como aprobación. Las correcciones conservaron los oráculos numéricos
+de protocolos con confirmación explícita y retiraron expectativas fisiológicas.
+
+Una tanda posterior de renderizado de los tres componentes aprobó cuatro pruebas,
+exit0; produce fixtures nativos, no capturas de teléfono. El gráfico y Ejemplo
+son legibles; el diálogo conserva Continuar visible con texto grande. La captura
+View.draw del contexto presenta recorte en la parte superior del contenido
+desplazable; no acredita ausencia de problemas visuales en un dispositivo.
+El QA físico debe comprobar desplazamiento, foco y teclado.
+
+APK Base Debug: `com.example.kpkn.dbg`, etiqueta **KPKN Dev**,
+SHA-256 `be0c74696771a39b835fd7b6c1a120bdf9ba95234c919afb8c285ef1b6ffc428`.
+`aapt` y `apksigner verify` finalizaron con exit0. En23 DEX no aparecen los
+cuatro prefijos de clases retiradas auditados y sí la proyección nueva.
+No es una prueba exhaustiva de todos los strings o caminos runtime.
+El binario permanece en cloud; la entrega incluye metadatos, sin APK firmado.
+No se instaló ni publicó.
 
 ## Evidencia conservada por checkpoint
 
