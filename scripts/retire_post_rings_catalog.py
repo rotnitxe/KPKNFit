@@ -20,7 +20,7 @@ def main():
         original = json.loads(path.read_text())
         cleaned = strip_retired(original)
         if cleaned != original:
-            path.write_text(json.dumps(cleaned, ensure_ascii=False, indent=2) + '\n')
+            path.write_text((json.dumps(cleaned, ensure_ascii=False, sort_keys=True, separators=(',', ':')) if path.name == 'catalog_v2.json' else json.dumps(cleaned, ensure_ascii=False, indent=2)) + '\n')
             changed += 1
     print(f'Editorial files migrated: {changed}')
 
