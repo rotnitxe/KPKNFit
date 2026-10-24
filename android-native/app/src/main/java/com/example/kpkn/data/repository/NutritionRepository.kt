@@ -468,6 +468,16 @@ class NutritionRepository private constructor(
      * después en el catálogo global, probando las variantes de [Gtin.candidates] (con y sin ceros a la izquierda). Un producto
      * con nutrientes incompletos se devuelve con sus banderas de calidad para que la interfaz lo diga; nunca se completan macros.
      */
+    /** Duplicado propio para aviso de edición; no guarda ni sustituye ningún alimento. */
+    suspend fun findCustomBarcodeDuplicate(code: String, excludingId: String): FoodItem? = withContext(Dispatchers.IO) {
+        val wanted = Gtin.candidates(code).toSet()
+        if (wanted.isEmpty()) return@withContext null
+        db.nutritionDao().getAllCustomFoods().mapNotNull { row ->
+            try { row.toFoodItem() } catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { null }
+        }.filter { it.id != excludingId && !it.isAiInferred && it.sourceRecordId in wanted }
+            .sortedWith(compareByDescending<FoodItem> { it.usageCount }.thenByDescending { it.verifiedScore }.thenBy { it.id }).firstOrNull()
+    }
+
     suspend fun findFoodByBarcode(code: String): BarcodeLookup = withContext(Dispatchers.IO) {
         val candidates = Gtin.candidates(code)
         if (candidates.isEmpty()) return@withContext BarcodeLookup.Invalid
@@ -479,7 +489,7 @@ class NutritionRepository private constructor(
             .sortedWith(compareByDescending<FoodItem> { it.usageCount }.thenByDescending { it.verifiedScore }.thenBy { it.id })
             .firstOrNull()
         if (own != null) return@withContext BarcodeLookup.Found(normalizeFoodItem(own), BarcodeOrigin.PROPIO)
-        val row = dao.getGlobalFoodsByBarcodes(candidates).firstOrNull() ?: return@withContext BarcodeLookup.NotFound
+        val row = dao.getGlobalFoodsByBarcodes(candidates, Gtin.parse(code)?.digits).firstOrNull() ?: return@withContext BarcodeLookup.NotFound
         BarcodeLookup.Found(withIncompleteFlag(row.toFoodItem()), BarcodeOrigin.CATALOGO)
     }
 

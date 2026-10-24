@@ -231,4 +231,19 @@ class NutritionRepositoryBarcodeTest {
         assertEquals(food.id, found(repo.findFoodByBarcode("4006381333931")).food.id)
         assertFalse(found(repo.findFoodByBarcode("4006381333931")).food.isAiInferred)
     }
+    @Test fun `formato exacto precede a variantes y despues puntua duplicados`() = runBlocking {
+        db.nutritionDao().insertGlobalFoods(listOf(
+            global("036000291452", "UPC exacto", "exact", verified = 0.5),
+            global("0036000291452", "EAN variante", "variant", verified = 0.99)))
+        val repo=repository()
+        assertEquals("UPC exacto", found(repo.findFoodByBarcode("036000291452")).food.name)
+        assertEquals("EAN variante", found(repo.findFoodByBarcode("0036000291452")).food.name)
+    }
+    @Test fun `aviso de duplicado propio excluye el mismo alimento y no modifica los existentes`() = runBlocking {
+        val repo=repository()
+        repo.saveCustomFood(customFood("4006381333931", id="first"))
+        assertEquals("first",repo.findCustomBarcodeDuplicate("4006381333931","second")!!.id)
+        assertEquals(null,repo.findCustomBarcodeDuplicate("4006381333931","first"))
+        assertEquals(1,db.nutritionDao().getAllCustomFoods().size)
+    }
 }

@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.nutrition.customfood
 
+import com.example.kpkn.data.models.FatBreakdown
 import com.example.kpkn.data.models.CarbBreakdown
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.Micronutrient
@@ -12,7 +13,7 @@ import kotlin.math.max
 /** La base de los nutrientes que la persona teclea: los de una porción o los de 100 g. */
 enum class CustomFoodBasis { PER_SERVING, PER_100G }
 
-enum class CustomFoodField { NAME, BRAND, BARCODE, SERVING, BASIS, CALORIES, PROTEIN, CARBS, FATS, FIBER, SUGAR, SODIUM }
+enum class CustomFoodField { NAME, BRAND, BARCODE, SERVING, BASIS, CALORIES, PROTEIN, CARBS, FATS, FIBER, SUGAR, SODIUM, SATURATED }
 
 /**
  * Lo que hay escrito en el formulario de un alimento propio, tal cual (texto). Los números admiten coma o punto decimal.
@@ -32,6 +33,7 @@ data class CustomFoodForm(
     val fiber: String = "",
     val sugar: String = "",
     val sodiumMg: String = "",
+    val saturatedFat: String = "",
 )
 
 /**
@@ -121,6 +123,7 @@ object CustomFoodValidator {
         val fiber = optional(form.fiber, CustomFoodField.FIBER, maxMacro, "g", errors)
         val sugar = optional(form.sugar, CustomFoodField.SUGAR, maxMacro, "g", errors)
         val sodium = optional(form.sodiumMg, CustomFoodField.SODIUM, MAX_SODIUM_MG, "mg", errors)
+        val saturated = optional(form.saturatedFat, CustomFoodField.SATURATED, maxMacro, "g", errors)
 
         if (per100 && protein != null && carbs != null && fats != null && protein + carbs + fats > MAX_MACRO_PER_100G + MACRO_SUM_SLACK) {
             errors[CustomFoodField.PROTEIN] = errors[CustomFoodField.PROTEIN] ?: "Proteína, carbohidratos y grasas suman más de 100 g en 100 g."
@@ -136,6 +139,7 @@ object CustomFoodValidator {
                     if (rejected) " Con tanta diferencia el registro de comidas podría no aceptar este alimento." else " Puedes guardarlo igual."
             }
         }
+        if (fats != null && saturated != null && saturated > fats) warnings += "Las grasas saturadas son mayores que las grasas totales."
         if (carbs != null && fiber != null && fiber > carbs) warnings += "La fibra es mayor que los carbohidratos."
         if (carbs != null && sugar != null && sugar > carbs) warnings += "El azúcar es mayor que los carbohidratos."
 
@@ -160,6 +164,11 @@ object CustomFoodValidator {
             fats = fats,
             isCustom = true,
             isAiInferred = false,
+            fatBreakdown = when {
+                saturated != null -> (seed.fatBreakdown ?: FatBreakdown()).copy(saturated = saturated)
+                seed.fatBreakdown != null -> seed.fatBreakdown.copy(saturated = 0.0).takeIf { it.monounsaturated > 0.0 || it.polyunsaturated > 0.0 || it.trans > 0.0 }
+                else -> null
+            },
             carbBreakdown = if ((fiber ?: 0.0) > 0.0 || (sugar ?: 0.0) > 0.0) CarbBreakdown(fiber = fiber ?: 0.0, sugar = sugar ?: 0.0) else null,
             micronutrients = micronutrientsConSodio(seed.micronutrients, sodium),
             tags = if (zeroEnergy) listOf(NutrientBasis.ZERO_ENERGY_TAG) else emptyList(),
@@ -184,18 +193,19 @@ object CustomFoodValidator {
         protein = format(food.protein),
         carbs = format(food.carbs),
         fats = format(food.fats),
+        saturatedFat = food.fatBreakdown?.let { format(it.saturated) }.orEmpty(),
         fiber = food.carbBreakdown?.fiber?.takeIf { it > 0.0 }?.let { format(it) }.orEmpty(),
         sugar = food.carbBreakdown?.sugar?.takeIf { it > 0.0 }?.let { format(it) }.orEmpty(),
         sodiumMg = food.micronutrients.firstOrNull { it.name.equals("Sodio", ignoreCase = true) }?.amount?.let { format(it) }.orEmpty(),
     )
 
     /**
-     * Los micronutrientes del alimento base sin el sodio, más el sodio que escribió la persona (si escribió uno mayor que 0). Así
+     * Los micronutrientes del alimento base sin el sodio, más el sodio que escribió la persona (si escribió uno, incluido un cero explícito). Así
      * editar o vaciar el sodio no borra el potasio, el calcio… que el formulario no muestra.
      */
     private fun micronutrientsConSodio(base: List<Micronutrient>, sodiumMg: Double?): List<Micronutrient> {
         val otros = base.filterNot { it.name.equals("Sodio", ignoreCase = true) }
-        return if (sodiumMg != null && sodiumMg > 0.0) otros + Micronutrient("Sodio", sodiumMg, "mg") else otros
+        return if (sodiumMg != null && sodiumMg >= 0.0) otros + Micronutrient("Sodio", sodiumMg, "mg") else otros
     }
 
     private fun required(text: String, field: CustomFoodField, max: Double, unit: String, errors: MutableMap<CustomFoodField, String>): Double? {

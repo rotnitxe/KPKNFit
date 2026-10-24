@@ -1,5 +1,17 @@
 package com.example.kpkn.screens.nutrition.customfood
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.foundation.layout.Box
+import com.example.kpkn.data.nutrition.label.*
+import com.example.kpkn.domain.nutrition.label.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -68,6 +80,10 @@ fun CustomFoodFormContent(
     onCancelDelete: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    labelState: LabelFormState? = null,
+    onReadLabel: () -> Unit = {}, onCancelLabel: () -> Unit = {}, onUndoLabel: () -> Unit = {},
+    onLabelBasis: (LabelBasis) -> Unit = {},
+    duplicateWarning: String? = null,
 ) {
     fun errorOf(field: CustomFoodField): String? = if (showErrors) validation.errors[field] else null
     val per100 = form.basis == CustomFoodBasis.PER_100G
@@ -119,6 +135,8 @@ fun CustomFoodFormContent(
                     )
                 }
             }
+            duplicateWarning?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted, modifier = Modifier.testTag("custom-food-duplicate-warning")) }
+            LabelReadPanel(labelState ?: LabelFormState(form), onReadLabel, onCancelLabel, onUndoLabel, onLabelBasis)
             KpknModule(Modifier.fillMaxWidth()) {
                 KpknModuleHeader(label = "Porción y base")
                 Spacer(Modifier.height(8.dp))
@@ -163,12 +181,13 @@ fun CustomFoodFormContent(
                 KpknModuleHeader(label = "Nutrientes")
                 Spacer(Modifier.height(8.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    NumberField("Energía", form.calories, { onChange(form.copy(calories = it)) }, errorOf(CustomFoodField.CALORIES), "kcal", "custom-food-kcal")
+                    NumberField("Energía", form.calories, { onChange(form.copy(calories = it)) }, errorOf(CustomFoodField.CALORIES), "kcal", "custom-food-kcal", source = labelState?.markers?.get(CustomFoodField.CALORIES))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
-                        NumberField("Proteína", form.protein, { onChange(form.copy(protein = it)) }, errorOf(CustomFoodField.PROTEIN), "g", "custom-food-protein", Modifier.weight(1f))
-                        NumberField("Carbohidratos", form.carbs, { onChange(form.copy(carbs = it)) }, errorOf(CustomFoodField.CARBS), "g", "custom-food-carbs", Modifier.weight(1f))
+                        NumberField("Proteína", form.protein, { onChange(form.copy(protein = it)) }, errorOf(CustomFoodField.PROTEIN), "g", "custom-food-protein", Modifier.weight(1f), source = labelState?.markers?.get(CustomFoodField.PROTEIN))
+                        NumberField("Carbohidratos", form.carbs, { onChange(form.copy(carbs = it)) }, errorOf(CustomFoodField.CARBS), "g", "custom-food-carbs", Modifier.weight(1f), source = labelState?.markers?.get(CustomFoodField.CARBS))
                     }
-                    NumberField("Grasas", form.fats, { onChange(form.copy(fats = it)) }, errorOf(CustomFoodField.FATS), "g", "custom-food-fats")
+                    NumberField("Grasas", form.fats, { onChange(form.copy(fats = it)) }, errorOf(CustomFoodField.FATS), "g", "custom-food-fats", source = labelState?.markers?.get(CustomFoodField.FATS))
+                    NumberField("Saturadas (opcional)", form.saturatedFat, { onChange(form.copy(saturatedFat = it)) }, errorOf(CustomFoodField.SATURATED), "g", "custom-food-saturated", source = labelState?.markers?.get(CustomFoodField.SATURATED))
                 }
             }
             KpknModule(Modifier.fillMaxWidth()) {
@@ -176,10 +195,10 @@ fun CustomFoodFormContent(
                 Spacer(Modifier.height(8.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
-                        NumberField("Fibra", form.fiber, { onChange(form.copy(fiber = it)) }, errorOf(CustomFoodField.FIBER), "g", "custom-food-fiber", Modifier.weight(1f))
-                        NumberField("Azúcar", form.sugar, { onChange(form.copy(sugar = it)) }, errorOf(CustomFoodField.SUGAR), "g", "custom-food-sugar", Modifier.weight(1f))
+                        NumberField("Fibra", form.fiber, { onChange(form.copy(fiber = it)) }, errorOf(CustomFoodField.FIBER), "g", "custom-food-fiber", Modifier.weight(1f), source = labelState?.markers?.get(CustomFoodField.FIBER))
+                        NumberField("Azúcar", form.sugar, { onChange(form.copy(sugar = it)) }, errorOf(CustomFoodField.SUGAR), "g", "custom-food-sugar", Modifier.weight(1f), source = labelState?.markers?.get(CustomFoodField.SUGAR))
                     }
-                    NumberField("Sodio", form.sodiumMg, { onChange(form.copy(sodiumMg = it)) }, errorOf(CustomFoodField.SODIUM), "mg", "custom-food-sodium", imeLast = true)
+                    NumberField("Sodio", form.sodiumMg, { onChange(form.copy(sodiumMg = it)) }, errorOf(CustomFoodField.SODIUM), "mg", "custom-food-sodium", imeLast = true, source = labelState?.markers?.get(CustomFoodField.SODIUM))
                 }
             }
             validation.warning?.let {
@@ -219,7 +238,7 @@ fun CustomFoodFormContent(
                 modifier = Modifier.fillMaxWidth(),
                 tag = "custom-food-save",
                 icon = KpknLineIcons.Check,
-                enabled = !saving,
+                enabled = !saving && labelState?.reading != true,
             )
         }
     }
@@ -235,16 +254,20 @@ private fun NumberField(
     tag: String,
     modifier: Modifier = Modifier,
     imeLast: Boolean = false,
+    source: LabelConfidence? = null,
 ) {
+    Column(modifier) {
     KpknTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier.testTag(tag),
+        modifier = Modifier.fillMaxWidth().testTag(tag),
         label = label,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = if (imeLast) ImeAction.Done else ImeAction.Next),
         error = error,
         trailing = { Text(unit, style = KpknType.unit, color = WizardColors.textMuted) },
     )
+    source?.let { LabelSourceMarker(it) }
+    }
 }
 
 /**
@@ -266,21 +289,48 @@ fun CustomFoodFormOverlay(
     /** Solo para la vista previa de depuración: el formulario ya escrito y con los errores a la vista. */
     initialForm: CustomFoodForm? = null,
     showErrorsInitially: Boolean = false,
+    labelReader: LabelReaderPort? = null,
+    duplicateLookup: (suspend (String, String) -> FoodItem?)? = null,
 ) {
-    val id = remember(initial) { initial?.id ?: "custom_${UUID.randomUUID()}" }
-    var form by remember {
-        mutableStateOf(
-            initialForm ?: initial?.let { CustomFoodValidator.fromFood(it) }
-                ?: CustomFoodForm(name = prefillName.orEmpty(), brand = prefillBrand.orEmpty(), barcode = barcode.orEmpty()),
-        )
+    val id = rememberSaveable(initial?.id) { initial?.id ?: "custom_${UUID.randomUUID()}" }
+    val editorSession = rememberSaveable { UUID.randomUUID().toString() }
+    val initialValue = remember { initialForm ?: initial?.let { CustomFoodValidator.fromFood(it) }
+        ?: CustomFoodForm(name = prefillName.orEmpty(), brand = prefillBrand.orEmpty(), barcode = barcode.orEmpty()) }
+    val context = LocalContext.current
+    val focus = LocalFocusManager.current
+    val reader = remember(context, labelReader) { labelReader ?: ReadNutritionLabel(context.contentResolver) }
+    val labelModel: LabelReadViewModel = androidx.lifecycle.viewmodel.compose.viewModel(key = "custom-food-label-$editorSession") {
+        LabelReadViewModel(initialValue, reader)
     }
+    val labelState by labelModel.state.collectAsState()
+    val form = labelState.form
+    var duplicateWarning by remember { mutableStateOf<String?>(null) }
+    val duplicateRepository = remember { runCatching { com.example.kpkn.data.repository.NutritionRepository.getInstance() }.getOrNull() }
+    LaunchedEffect(form.barcode, id, duplicateLookup, duplicateRepository) {
+        duplicateWarning = null
+        if (com.example.kpkn.domain.nutrition.Gtin.normalize(form.barcode) != null) {
+            try {
+                val duplicate = if (duplicateLookup != null) duplicateLookup(form.barcode, id) else duplicateRepository?.findCustomBarcodeDuplicate(form.barcode, id)
+                duplicateWarning = duplicate?.let { "Este código ya está en «${it.name}». Puedes volver y editarlo o guardar otro alimento propio; no sustituiremos el existente." }
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { duplicateWarning = "No se pudo comprobar si el código está duplicado. El guardado sigue disponible." }
+        }
+    }
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) { focus.clearFocus(); labelModel.read(uri) }
+    }
+    DisposableEffect(labelModel) { onDispose { labelModel.cancelReading() } }
     var showErrors by remember { mutableStateOf(showErrorsInitially) }
     var saving by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf<String?>(null) }
     var confirmingDelete by remember { mutableStateOf(false) }
-    val validation = remember(form) { CustomFoodValidator.validate(form, id, initial) }
+    val validation = remember(form, labelState.needsBasisConfirmation) {
+        CustomFoodValidator.validate(form, id, initial).let { checked -> if (labelState.needsBasisConfirmation)
+            checked.copy(errors = checked.errors + (CustomFoodField.BASIS to "Confirma la base leída antes de guardar."), food = null) else checked }
+    }
     val scope = rememberCoroutineScope()
     FullScreenOverlay(onBack = onDismiss) {
+        Box(Modifier.fillMaxSize()) {
         CustomFoodFormContent(
             form = form,
             validation = validation,
@@ -290,13 +340,13 @@ fun CustomFoodFormOverlay(
             saveError = saveError,
             confirmingDelete = confirmingDelete,
             onChange = {
-                form = it
+                labelModel.editForm(it)
                 saveError = null
             },
             onSave = {
                 showErrors = true
                 val food = validation.food
-                if (food != null && validation.isValid && !saving) {
+                if (food != null && validation.isValid && !saving && !labelState.reading) {
                     saving = true
                     saveError = null
                     scope.launch {
@@ -336,6 +386,12 @@ fun CustomFoodFormOverlay(
             onCancelDelete = { confirmingDelete = false },
             onClose = onDismiss,
             modifier = Modifier.fillMaxSize(),
+            labelState = labelState,
+            duplicateWarning = duplicateWarning,
+            onReadLabel = { focus.clearFocus(); photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            onCancelLabel = labelModel::cancelReading, onUndoLabel = labelModel::undo, onLabelBasis = labelModel::selectBasis,
         )
+        if (labelState.reading) LabelReadingOverlay(labelModel::cancelReading)
+        }
     }
 }
