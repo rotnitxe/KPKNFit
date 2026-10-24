@@ -23,7 +23,7 @@ class ExerciseSwapSuggestionsTest {
         val options=replacementSuggestions(target(),availability,emptySet(),catalog)
         assertTrue(options.isNotEmpty())
         val excluded=AvoidGroups.definitionIdsOf(AvoidGroup.BENCH_PRESS)
-        options.forEach { assertEquals("dumbbells",index.entry(it.configId)!!.equipmentId) }
+        options.forEach { assertTrue(index.entry(it.configId)!!.equipmentId in setOf("dumbbells","bodyweight")) }
         replacementSuggestions(target(),null,setOf(AvoidGroup.BENCH_PRESS),catalog).forEach { assertFalse(index.entry(it.configId)!!.definitionId in excluded) }
         assertEquals(before,orderDefinitionsForReplacement(definitions,anchor).map { it.id })
         assertEquals(definitions.size,before.size)

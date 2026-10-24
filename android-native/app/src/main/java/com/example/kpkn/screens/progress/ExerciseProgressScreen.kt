@@ -21,7 +21,7 @@ import com.example.kpkn.domain.training.*
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.design.*
-import java.util.Locale
+import kotlin.math.roundToInt
 
 val LocalExerciseProgressOpener = staticCompositionLocalOf<(String?) -> Unit> { {} }
 @Composable
@@ -32,7 +32,7 @@ fun ExerciseProgressRoute(exerciseId: String?, onBack: () -> Unit) {
     val state by vm.state.collectAsState()
     ExerciseProgressScreen(state, vm::selectExercise, vm::selectMetric, vm::selectWindow, vm::selectPoint, onBack)
 }
-private fun number(value: Double) = String.format(Locale.forLanguageTag("es-CL"), "%.1f", value)
+private fun number(value: Double) = java.math.BigDecimal.valueOf(value).setScale(1, java.math.RoundingMode.HALF_UP).stripTrailingZeros().toPlainString().replace('.',',')
 private fun modeTitle(mode: LoadModeV2) = when(mode) {
     LoadModeV2.LOAD -> "Carga externa"; LoadModeV2.BODYWEIGHT -> "Peso corporal"; LoadModeV2.LASTRE -> "Lastre"; LoadModeV2.ASSISTED -> "Asistencia"
 }
@@ -109,8 +109,8 @@ private fun ProgressChart(points: List<ExerciseProgressPoint>, metric: ExerciseP
     } }
     val summary = "${metric.title}: ${points.size} puntos. De ${number(low)} a ${number(high)}. ${points.count { it.isPr }} marcas PR. ${points.count { it.breaksBefore }} cortes no comparables."
     Text("${number(high)} / ${number(low)} ${pointUnit(points.last(), metric)}", style = KpknType.caption, color = muted)
-    Canvas(Modifier.fillMaxWidth().height(200.dp).semantics { contentDescription = summary }.pointerInput(points) {
-        detectTapGestures { offset -> val index = (((offset.x-12.dp.toPx())/(size.width-24.dp.toPx()).coerceAtLeast(1f))*(points.size-1)).toInt().coerceIn(points.indices); onPoint(index) }
+    Canvas(Modifier.fillMaxWidth().height(200.dp).testTag("exercise-progress-chart").semantics { contentDescription = summary }.pointerInput(points) {
+        detectTapGestures { offset -> val index = (((offset.x-12.dp.toPx())/(size.width-24.dp.toPx()).coerceAtLeast(1f))*(points.size-1)).roundToInt().coerceIn(points.indices); onPoint(index) }
     }) {
         val padding = 12.dp.toPx()
         fun at(index: Int) = Offset(padding + coordinates[index].x*(size.width-2*padding), padding + coordinates[index].y*(size.height-2*padding))

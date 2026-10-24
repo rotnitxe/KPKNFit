@@ -1275,7 +1275,7 @@ internal fun SetInputCardV2(
         mutableStateOf(listOf(DropSetEntry(weight = 0.0, reps = 0)))
     }
     var restPauseSets by remember(exercise.id, setIndex, sideKey) {
-        mutableStateOf(listOf(RestPauseData(restTime = activeRestPauseSeconds, reps = 0)))
+        mutableStateOf(listOf(RestPauseData(restTime = activeRestPauseSeconds, reps = 0, style = if(currentSet.isMyoReps()) "myo" else null)))
     }
     var partialSets by remember(exercise.id, setIndex, sideKey, sessionCompletedSet) {
         mutableStateOf(listOf(restoredPartialReps))
@@ -1374,7 +1374,7 @@ internal fun SetInputCardV2(
         dropSetEnabled = false
         restPauseEnabled = false
         dropSets = listOf(DropSetEntry(weight = 0.0, reps = 0))
-        restPauseSets = listOf(RestPauseData(restTime = activeRestPauseSeconds, reps = activeRestReps))
+        restPauseSets = listOf(RestPauseData(restTime = activeRestPauseSeconds, reps = activeRestReps, style = if(currentSet.isMyoReps()) "myo" else null))
         partialSets = listOf(restoredPartialReps)
         isAmrap = restoredDraft?.amrapOverride ?: plannedAmrap
         showAmrapSheet = false
@@ -1456,6 +1456,7 @@ internal fun SetInputCardV2(
                     RestPauseData(
                         restTime = activeRestPauseSeconds,
                         reps = activeRestReps,
+                        style = if(currentSet.isMyoReps()) "myo" else null,
                     )
                 }
             }
@@ -1514,7 +1515,7 @@ internal fun SetInputCardV2(
         dropSetEnabled = false
         restPauseEnabled = false
         dropSets = listOf(DropSetEntry(weight = 0.0, reps = 0))
-        restPauseSets = listOf(RestPauseData(restTime = activeRestPauseSeconds, reps = activeRestReps))
+        restPauseSets = listOf(RestPauseData(restTime = activeRestPauseSeconds, reps = activeRestReps, style = if(currentSet.isMyoReps()) "myo" else null))
         partialSets = listOf(0)
         isAmrap = currentSet.isAmrap
         showAmrapSheet = false
@@ -1821,7 +1822,7 @@ internal fun SetInputCardV2(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(stableCardHeight),
+            .height(stableCardHeight).testTag("set-input-card"),
     ) {
     Box(
         modifier = Modifier
@@ -2926,6 +2927,7 @@ internal fun SetInputCardV2(
                                     val nextDrafts = guidedRestPauseDrafts + RestPauseData(
                                         restTime = activeRestPauseSeconds,
                                         reps = rpReps,
+                                        style = if(currentSet.isMyoReps()) "myo" else null,
                                     )
                                     guidedRestPauseDrafts = nextDrafts
                                     val nextIndex = phase.index + 1
@@ -3074,6 +3076,7 @@ internal fun SetInputCardV2(
                                             retryRestRows[retryRestRows.lastIndex] = RestPauseData(
                                                 restTime = scheduledPlan.pauseSeconds,
                                                 reps = value.toInt().coerceAtLeast(0),
+                                                style = if(currentSet.isMyoReps()) "myo" else null,
                                             )
                                         }
                                     }
@@ -3119,6 +3122,7 @@ internal fun SetInputCardV2(
                             val currentRestPauseRow = RestPauseData(
                                 restTime = scheduledPlan.pauseSeconds,
                                 reps = value.toInt().coerceAtLeast(0),
+                                style = if(currentSet.isMyoReps()) "myo" else null,
                             )
                             val nextDropRows = if (scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET) {
                                 scheduledDropDrafts + currentDropRow
@@ -3388,7 +3392,7 @@ internal fun SetInputCardV2(
                             listOf(DropSetEntry(0.0, 0))
                         }
                         restPauseEnabled = pauses.isNotEmpty() || restPauseEnabled
-                        restPauseSets = pauses.ifEmpty { listOf(RestPauseData(restTime = activeRestPauseSeconds, reps = 0)) }
+                        restPauseSets = pauses.ifEmpty { listOf(RestPauseData(restTime = activeRestPauseSeconds, reps = 0, style = if(currentSet.isMyoReps()) "myo" else null)) }
                         cardFace = SetCardFace.Front
                     },
                 )

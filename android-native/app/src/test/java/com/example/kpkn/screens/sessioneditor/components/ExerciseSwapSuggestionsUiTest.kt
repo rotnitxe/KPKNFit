@@ -25,8 +25,8 @@ class ExerciseSwapSuggestionsUiTest {
         val configId=first.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.TestTag].removePrefix("swap-suggestion-")
         first.performScrollTo().performClick()
         rule.runOnIdle { assertNull(selected) }
-        rule.onNode(hasText("Reemplazar por",substring=true)).performClick()
-        rule.runOnIdle { assertEquals(configId,selected!!.catalogConfigurationId) }
+        rule.onNode(hasText("Reemplazar por",substring=true)).assertIsEnabled().performClick()
+        rule.runOnIdle { assertNotNull("La confirmación no debe quedar tapada por la isla de Añadir",selected);assertEquals(configId,selected!!.catalogConfigurationId) }
     }
     private fun hasTestTagPrefix(prefix: String)=SemanticsMatcher("tag begins $prefix") { it.config.getOrNull(androidx.compose.ui.semantics.SemanticsProperties.TestTag)?.startsWith(prefix)==true }
 }

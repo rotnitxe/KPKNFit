@@ -43,7 +43,7 @@ internal object MfpTrainingPreview {
             replacement=CatalogReplacementContext(exerciseName=exercise.name,planSummary="3 × 8 · RIR 2",exercise=if(state=="no_suggestions") exercise.copy(catalogConfigurationId=null) else exercise))
     }
     @Composable fun Settings(state: String) {
-        var settings by remember { mutableStateOf(if(state=="custom") Settings(restTimerDefaultSeconds=180,autoStartRestAfterRecording=false) else Settings()) }
+        var settings by remember { mutableStateOf(if(state=="custom") Settings(restTimerDefaultSeconds=180,autoStartRestAfterRecording=false,algorithmSettings=Settings().algorithmSettings.copy(augeAutoDeload=true)) else Settings()) }
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             TrainingSettingsBlock(settings,{transform -> settings=transform(settings)})
         }
