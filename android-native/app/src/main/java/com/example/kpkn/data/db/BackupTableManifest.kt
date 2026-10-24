@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  */
 object BackupTableManifest {
 
-    const val JSON_BACKUP_SCHEMA_VERSION = 6
+    const val JSON_BACKUP_SCHEMA_VERSION = 7
 
     enum class Category { USER_DATA, REGENERABLE, CACHE }
 
@@ -27,11 +27,12 @@ object BackupTableManifest {
         "workout_context_profiles" to Category.USER_DATA,
         "workout_tags" to Category.USER_DATA,
         "workout_replacement_decisions" to Category.USER_DATA,
-        "auge_wellbeing" to Category.USER_DATA,
-        "auge_sleep" to Category.USER_DATA,
-        "auge_sleep_extended" to Category.USER_DATA,
-        "auge_feedback" to Category.USER_DATA,
-        "auge_adaptive_cache" to Category.USER_DATA,
+        "training_observations" to Category.USER_DATA,
+        "auge_wellbeing" to Category.CACHE,
+        "auge_sleep" to Category.CACHE,
+        "auge_sleep_extended" to Category.CACHE,
+        "auge_feedback" to Category.CACHE,
+        "auge_adaptive_cache" to Category.CACHE,
         "nutrition_logs" to Category.USER_DATA,
         "nutrition_plans" to Category.USER_DATA,
         "nutrition_active_state" to Category.USER_DATA,

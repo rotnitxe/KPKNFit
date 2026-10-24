@@ -215,15 +215,19 @@ internal final class KpknDatabaseInternal {
 
     func runMigrations(currentVersion: Int32) throws -> Int32 {
         var version = currentVersion
-        for step in KpknDatabase.migrationSteps {
-            if version < step.fromVersion {
+        try execute("BEGIN IMMEDIATE")
+        do {
+            for step in KpknDatabase.migrationSteps where version == step.fromVersion {
                 try step.migrate(db: self)
                 version = step.toVersion
             }
+            if version != currentVersion { try execute("PRAGMA user_version=\(version)") }
+            try execute("COMMIT")
+        } catch {
+            try? execute("ROLLBACK")
+            throw error
         }
-        if version != currentVersion {
-            try execute("PRAGMA user_version=\(version)")
-        }
+
         return version
     }
 
@@ -291,16 +295,15 @@ public final class KpknDatabase {
     private init() throws {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let dbURL = docs.appendingPathComponent("kpkn.db")
+        let isNew = !FileManager.default.fileExists(atPath: dbURL.path)
         let internalDb = try KpknDatabaseInternal(filePath: dbURL.path)
         self.internalDb = internalDb
 
-        let fm = FileManager.default
-        let dbFile = dbURL.path
-        let isNew = !fm.fileExists(atPath: dbFile)
 
         if isNew {
             try createAllTables(db: internalDb)
             try internalDb.execute("PRAGMA user_version=19")
+            _ = try internalDb.runMigrations(currentVersion: 19)
         } else {
             let currentVersion = try internalDb.getUserVersion()
 
@@ -589,5 +592,51 @@ public final class KpknDatabase {
         MigrationStep(fromVersion: 18, toVersion: 19) { db in
             try db.execute("CREATE TABLE IF NOT EXISTS `auge_adaptive_cache` (`rowId` INTEGER NOT NULL DEFAULT 1, `data` TEXT, PRIMARY KEY(`rowId`))")
         },
+        MigrationStep(fromVersion: 19, toVersion: 20) { db in
+            try db.preserveTrainingOriginals()
+        },
     ]
+}
+
+
+// Isolated legacy preservation boundary. No model result is interpreted as a measurement.
+private extension KpknDatabaseInternal {
+    func preserveTrainingOriginals() throws {
+        try execute("CREATE TABLE IF NOT EXISTS training_observations (sourceIdentity TEXT NOT NULL PRIMARY KEY, kind TEXT NOT NULL, date TEXT NOT NULL, payload TEXT NOT NULL, provenance TEXT NOT NULL)")
+        let wellbeingFields: Set<String> = ["id","date","sleepQuality","stressLevel","doms","motivation","sleepHours","moodState","workIntensity","studyIntensity","notes","preWorkoutDiscomforts","source","capturedFields"]
+        for table in ["auge_wellbeing", "auge_sleep", "auge_sleep_extended", "auge_feedback"] {
+            let id = table == "auge_feedback" ? "logId" : "id"
+            var statement: OpaquePointer?
+            guard sqlite3_prepare_v2(handle, "SELECT `\(id)`, date, data FROM `\(table)`", -1, &statement, nil) == SQLITE_OK else {
+                throw NSError(domain: "TrainingOriginals", code: 1, userInfo: [NSLocalizedDescriptionKey: "No se puede leer la fuente original; se conserva la base sin purgar."])
+            }
+            defer { sqlite3_finalize(statement) }
+            var status = sqlite3_step(statement)
+            while status == SQLITE_ROW {
+                guard let keyText = sqlite3_column_text(statement, 0), let dateText = sqlite3_column_text(statement, 1), let rawText = sqlite3_column_text(statement, 2) else {
+                    throw NSError(domain: "TrainingOriginals", code: 2)
+                }
+                let key = String(cString: keyText), date = String(cString: dateText), raw = String(cString: rawText)
+                guard let data = raw.data(using: .utf8), let object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                    throw NSError(domain: "TrainingOriginals", code: 3)
+                }
+                let original = table == "auge_wellbeing" ? object.filter { wellbeingFields.contains($0.key) } : object
+                let encoded = try JSONSerialization.data(withJSONObject: original, options: [.sortedKeys])
+                guard let payload = String(data: encoded, encoding: .utf8) else { throw NSError(domain: "TrainingOriginals", code: 4) }
+                func quote(_ value: String) -> String { "'" + value.replacingOccurrences(of: "'", with: "''") + "'" }
+                try execute("INSERT OR IGNORE INTO training_observations VALUES (\(quote(table + ":" + key)),\(quote(table.replacingOccurrences(of: "auge_", with: ""))),\(quote(date)),\(quote(payload)),'historical_original;original_scale;defaults_not_confirmed')")
+                if table == "auge_wellbeing" {
+                    let manualKeys: Set<String> = ["manualNeuralBattery","manualMuscularBattery","manualSpinalBattery","manualMuscleBatteries","manualMuscleOverridesV2","manualBatteryAnchorMs"]
+                    let manual = object.filter { manualKeys.contains($0.key) && !($0.value is NSNull) }
+                    if !manual.isEmpty {
+                        let bytes = try JSONSerialization.data(withJSONObject: manual, options: [.sortedKeys])
+                        guard let declaration = String(data: bytes, encoding: .utf8) else { throw NSError(domain: "TrainingOriginals", code: 6) }
+                        try execute("INSERT OR IGNORE INTO training_observations VALUES (\(quote(table + ":" + key + ":manual")),'historical_self_report',\(quote(date)),\(quote(declaration)),'legacy_0_100_self_report;not_neurological_measurement;not_comparable')")
+                    }
+                }
+                status = sqlite3_step(statement)
+            }
+            guard status == SQLITE_DONE else { throw NSError(domain: "TrainingOriginals", code: 5) }
+        }
+    }
 }

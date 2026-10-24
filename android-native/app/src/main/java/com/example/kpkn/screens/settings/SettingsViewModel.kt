@@ -173,7 +173,7 @@ class SettingsViewModel : ViewModel() {
     fun exportData(context: Context, destination: Uri, onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
-                val exportJson = dbJson.encodeToString(buildExportPayload(context))
+                val exportJson = com.example.kpkn.data.compatibility.LegacyTrainingBackup.export(dbJson.encodeToString(buildExportPayload(context)))
                 context.contentResolver.openOutputStream(destination)?.use { output ->
                     output.bufferedWriter(Charsets.UTF_8).use { it.write(exportJson) }
                 } ?: error("No se pudo abrir el archivo de destino")
@@ -187,7 +187,6 @@ class SettingsViewModel : ViewModel() {
 
     private suspend fun buildExportPayload(context: Context): SettingsExportPayload {
         val appContext = context.applicationContext
-        val augeRepository = AugeRepository.getInstance(appContext)
         val bodyRepository = BodyProgressRepository.getInstance(appContext)
         bodyRepository.awaitReady()
         val db = KpknDatabase.getInstance(appContext)
@@ -216,11 +215,11 @@ class SettingsViewModel : ViewModel() {
             measurementSchedule = bodyRepository.measurementSchedule.value,
             calibrationProfile = NutritionCalibrationRepository.getInstance(appContext).get(),
             dailyGoalSnapshots = nutritionRepository.getDailyGoalSnapshots(),
-            wellbeingLogs = augeRepository.getWellbeingLogs(),
-            sleepLogs = augeRepository.getLastNSleepLogs(30),
-            sleepLogsExtended = augeRepository.getAllSleepLogsExtended(),
-            postSessionFeedback = augeRepository.getPostSessionFeedbacks(),
-            adaptiveCache = augeRepository.getAdaptiveCache(),
+            wellbeingLogs = emptyList(),
+            sleepLogs = emptyList(),
+            sleepLogsExtended = emptyList(),
+            postSessionFeedback = emptyList(),
+            adaptiveCache = null,
             sessionTemplates = SessionTemplateRepository.getInstance(appContext).userTemplates.value,
             customExercises = CustomExerciseRepository.customExercises.value,
             db = db,
@@ -251,7 +250,7 @@ class SettingsViewModel : ViewModel() {
                     inputStream.bufferedReader().use { it.readText() }
                 } ?: throw Exception("No se pudo leer el archivo")
 
-                val payload = dbJson.decodeFromString<SettingsExportPayload>(jsonString)
+                val payload = dbJson.decodeFromString<SettingsExportPayload>(com.example.kpkn.data.compatibility.LegacyTrainingBackup.normalize(jsonString))
                 val db = KpknDatabase.getInstance(context)
                 val rollbackName = DatabaseBackupHelper.createSnapshot(context)
                 val rollbackFile = File(context.filesDir, "snapshots/$rollbackName")

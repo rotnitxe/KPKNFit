@@ -21,6 +21,11 @@ data class WorkoutLog(
     /** Canonical muscular impact captured at finish; nullable for legacy logs. */
     val muscularImpactV2: com.example.kpkn.domain.auge.MuscularSessionImpactV2? = null,
     val energySummary: SessionEnergySummary? = null,
+    /** Specialized observations/results of this activity; never extra kcal or extra workouts. */
+    val sportDocuments: List<com.example.kpkn.domain.multisport.tracking.SportTrackingDocument> = emptyList(),
+    /** Optional original time precision; legacy rounded minutes are never expanded into fake seconds. */
+    val actualDurationSeconds: Long? = null,
+    val actualDurationSource: String? = null,
     val weekId: String? = null,
     val macroIndex: Int? = null,
     val mesoIndex: Int? = null,

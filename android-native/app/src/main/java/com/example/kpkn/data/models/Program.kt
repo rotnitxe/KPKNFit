@@ -1,6 +1,8 @@
 package com.example.kpkn.data.models
 
 import kotlinx.serialization.Serializable
+import com.example.kpkn.domain.multisport.TrainingIntent
+import com.example.kpkn.domain.multisport.HybridAppliedWeekSchedule
 import java.time.LocalDate
 import com.example.kpkn.data.protocols.PlanLoadReference
 import com.example.kpkn.data.protocols.PlanProvenance
@@ -125,6 +127,14 @@ data class Program(
     val nativeProgressionProposals: List<NativeProgressionProposal> = emptyList(),
     /** Terminal applied/rejected/expired decisions; proposal IDs are idempotent. */
     val nativeProgressionAudit: List<NativeProgressionResolution> = emptyList(),
+    /** Declared multisport snapshot; null means no declared intent, including legacy JSON. */
+    val trainingIntent: TrainingIntent? = null,
+    /** Exact run/week overlays; never rewrite a reusable training template to move one occurrence. */
+    val hybridOccurrenceSchedules: List<HybridOccurrenceWeekSchedule> = emptyList(),
+    /** Explicit constraints for recoverable hybrid proposals; null keeps legacy behavior. */
+    val hybridPlanning: HybridPlanningConfiguration? = null,
+    /** Explicit added-session recipe provenance; the primary native recipe stays authoritative. */
+    val hybridAuthoredSources: List<HybridAuthoredSessionSource> = emptyList(),
 )
 
 /**
@@ -406,6 +416,12 @@ data class ProgramWeek(
     val progressionIndex: Int? = null,
     /** A rest week completes by design; an empty training week never does. */
     val executionKind: WeekExecutionKind = WeekExecutionKind.TRAINING,
+    /** Proposed placement of existing base sessions; never applied implicitly to the calendar. */
+    val hybridProposal: HybridWeekProposal? = null,
+    /** Explicitly accepted placement; no acceptance is inferred from a saved proposal. */
+    val hybridAppliedSchedule: HybridAppliedWeekSchedule? = null,
+    /** Optional week-specific resources/rules; otherwise the program defaults apply. */
+    val hybridPlanningConfiguration: HybridPlanningConfiguration? = null,
 )
 
 enum class WeekVariant { A, B, C, D }

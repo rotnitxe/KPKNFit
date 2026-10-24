@@ -36,10 +36,10 @@ class WelcomeVideoPlayerTest {
     val rule = createComposeRule()
 
     @Test
-    fun `cada pagina tiene su par de nombres y la de recuperacion usa welcome_rings`() {
+    fun `cada pagina tiene su par de nombres y la de recuperacion usa welcome_entreno`() {
         assertEquals("welcome_entreno" to "welcome_entreno_poster", welcomeVideoNamesOf(WelcomePageIds.Entreno))
         assertEquals("welcome_nutricion" to "welcome_nutricion_poster", welcomeVideoNamesOf(WelcomePageIds.Nutricion))
-        assertEquals("welcome_rings" to "welcome_rings_poster", welcomeVideoNamesOf(WelcomePageIds.Recuperacion))
+        assertNull(welcomeVideoNamesOf(WelcomePageIds.Resultados))
         assertNull(welcomeVideoNamesOf("desconocida"))
     }
 
@@ -53,7 +53,7 @@ class WelcomeVideoPlayerTest {
     @Test
     fun `con los recursos de la app las tres paginas tienen video y poster`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        WelcomePages.forEach { page ->
+        WelcomePages.filter { it.id != WelcomePageIds.Resultados }.forEach { page ->
             val assets = welcomeVideoAssetsOf(page.id) { name, type ->
                 context.resources.getIdentifier(name, type, context.packageName)
             }
@@ -64,18 +64,18 @@ class WelcomeVideoPlayerTest {
     @Test
     fun `el video exige el bucle y el poster, y pide cada uno con su tipo`() {
         val asked = mutableListOf<Pair<String, String>>()
-        val found = welcomeVideoAssetsOf(WelcomePageIds.Recuperacion) { name, type ->
+        val found = welcomeVideoAssetsOf(WelcomePageIds.Entreno) { name, type ->
             asked += name to type
             when (name) {
-                "welcome_rings" -> 11
-                "welcome_rings_poster" -> 22
+                "welcome_entreno" -> 11
+                "welcome_entreno_poster" -> 22
                 else -> 0
             }
         }
         assertEquals(WelcomeVideoAssets(video = 11, poster = 22), found)
-        assertEquals(listOf("welcome_rings" to "raw", "welcome_rings_poster" to "drawable"), asked)
+        assertEquals(listOf("welcome_entreno" to "raw", "welcome_entreno_poster" to "drawable"), asked)
         // Sin póster no hay vídeo: la página se queda con su escena Canvas.
-        assertNull(welcomeVideoAssetsOf(WelcomePageIds.Recuperacion) { name, _ -> if (name == "welcome_rings") 11 else 0 })
+        assertNull(welcomeVideoAssetsOf(WelcomePageIds.Entreno) { name, _ -> if (name == "welcome_entreno") 11 else 0 })
     }
 
     @Test

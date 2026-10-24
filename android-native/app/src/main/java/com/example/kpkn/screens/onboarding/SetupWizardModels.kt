@@ -85,6 +85,7 @@ import com.example.kpkn.domain.onboarding.WizChatValidation
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
 import kotlinx.serialization.Serializable
+import com.example.kpkn.domain.multisport.TrainingIntent
 import java.time.LocalDate
 
 @Serializable
@@ -609,6 +610,10 @@ data class SetupWizardDraft(
     val meetDateIso: String? = null,
     /** Nombre opcional del evento (hasta 40 caracteres); solo con [CompetitionAnswer.WITH_DATE]. */
     val meetName: String = "",
+    /** Explicit ordered goals; legacy answers never synthesize this snapshot. */
+    val trainingIntent: TrainingIntent? = null,
+    /** Nonvisual input for the future discipline-selection UI; legacy drafts keep null. */
+    val hybridComposition: com.example.kpkn.data.models.HybridProgramComposition? = null,
 )
 
 /** Whether a step value was declared by the user: touched here or recorded as DECLARED in the legacy mirror. */
@@ -639,7 +644,7 @@ fun SetupWizardDraft.withNextDraftRevision(previous: SetupWizardDraft): SetupWiz
 fun SetupWizardDraft.stepContext(): SetupStepContext = SetupStepContext(
     includeTraining = includeTraining,
     includeNutrition = includeNutrition,
-    includeRings = draftScope in setOf("full", "resume", "rings_only"),
+    includeRings = false,
     nutritionProfessional = nutritionDraft?.mode == "professional",
     nutritionStarted = includeNutrition && nutritionMode == "create",
     ringsAction = ringsAnswers?.startAction,

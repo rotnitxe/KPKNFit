@@ -13,8 +13,6 @@ import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WorkoutLog
-import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.OvertrainingDetector
 import com.example.kpkn.domain.templates.SessionClonePurpose
 import com.example.kpkn.domain.templates.SessionTemplateEngine
 import kotlin.math.ceil
@@ -135,13 +133,6 @@ object BlockTransitionEngine {
             )
         }
 
-        val hasAugeSnapshot = context.cumulativeFatigue != null && context.readinessScore != null
-        val suggestDeload = (hasAugeSnapshot && AugeFatigueEngine.shouldSuggestAutoDeload(
-            cumulativeFatigue = context.cumulativeFatigue!!,
-            readinessScore = context.readinessScore!!,
-            settings = context.settings,
-        )) || context.mesocycleStressEma >= 75.0 || context.overtrainedMuscles.isNotEmpty()
-
         val blocks = orderedBlocks(program)
         val blockPos = blocks.indexOfFirst { it.id == completedBlockId }
         val next = blocks.getOrNull(blockPos + 1)
@@ -176,22 +167,6 @@ object BlockTransitionEngine {
                 kind = DecisionKind.PROPOSE_1RM_TEST,
                 message = "Descarga/taper post-pico completado. Propón el test final de 1RM antes de continuar.",
                 nextBlockId = next?.id,
-            )
-        }
-
-        if (suggestDeload && next?.goal != BlockGoal.DELOAD && next?.goal != BlockGoal.TAPER) {
-            val withDeload = insertDeloadBlockAfter(program, completedBlockId)
-            if (withDeload == null) {
-                return TransitionDecision(
-                    kind = DecisionKind.HOLD_INCOMPLETE,
-                    message = "El gate de descarga se activó, pero el bloque previo no tiene sesiones ejecutables para construir una descarga segura.",
-                )
-            }
-            return TransitionDecision(
-                kind = DecisionKind.INSERT_DELOAD,
-                message = "Gate AUGE / estrés alto: se inserta un bloque de descarga antes de continuar.",
-                nextBlockId = withDeload.second,
-                updatedProgram = withDeload.first,
             )
         }
 
@@ -338,14 +313,4 @@ object BlockTransitionEngine {
         MesocycleGoal.CUSTOM -> BlockGoal.CUSTOM
     }
 
-    /** Helper para callers que ya tienen logs/feedbacks y quieren rellenar overtraining. */
-    fun detectOvertrained(
-        program: Program,
-        logs: List<WorkoutLog>,
-        feedbacks: List<com.example.kpkn.data.models.PostSessionFeedback> = emptyList(),
-    ): List<String> = OvertrainingDetector.detectOvertrainedMuscles(
-        program = program,
-        historyLogs = logs,
-        feedbacks = feedbacks,
-    )
 }

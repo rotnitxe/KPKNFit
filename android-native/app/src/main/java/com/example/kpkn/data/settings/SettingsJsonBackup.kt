@@ -131,11 +131,12 @@ object SettingsJsonBackup {
             measurementSchedule = measurementSchedule,
             calibrationProfile = calibrationProfile,
             dailyGoalSnapshots = dailyGoalSnapshots,
-            wellbeingLogs = wellbeingLogs,
-            sleepLogs = sleepLogs,
-            sleepLogsExtended = sleepLogsExtended,
-            postSessionFeedback = postSessionFeedback,
-            adaptiveCache = adaptiveCache,
+            wellbeingLogs = emptyList(),
+            sleepLogs = emptyList(),
+            sleepLogsExtended = emptyList(),
+            postSessionFeedback = emptyList(),
+            adaptiveCache = null,
+            trainingObservations = db.trainingObservationDao().all(),
             sessionTemplates = sessionTemplates,
             customExercises = customExercises,
             competitionRecords = competition,
@@ -233,12 +234,7 @@ object SettingsJsonBackup {
                 payload.setupCommitReceipts.orEmpty().forEach { db.setupCommitReceiptDao().insert(it.toEntity()) }
             }
 
-            payload.wellbeingLogs.forEach { db.augeDao().upsertWellbeing(it.toEntity()) }
-            payload.sleepLogsExtended.forEach { db.augeDao().upsertSleepLogExtended(it.toExtendedEntity()) }
-            val extendedIds = payload.sleepLogsExtended.map { it.id }.toSet()
-            payload.sleepLogs.filter { it.id !in extendedIds }.forEach { db.augeDao().upsertSleepLog(it.toEntity()) }
-            payload.postSessionFeedback.forEach { db.augeDao().upsertFeedback(it.toEntity()) }
-            payload.adaptiveCache?.let { db.augeDao().upsertAdaptiveCache(it.toEntity()) }
+            payload.trainingObservations.forEach { db.trainingObservationDao().preserve(it) }
 
             if (v5 && payload.includesCalibrationSection) {
                 if (payload.calibrationProfile != null) {
@@ -313,6 +309,7 @@ object SettingsJsonBackup {
 
 @Serializable
 data class SettingsExportPayload(
+    val trainingObservations: List<com.example.kpkn.data.db.TrainingObservationEntity> = emptyList(),
     val schemaVersion: Int = 1,
     val exportedAt: String,
     val settings: Settings,
@@ -334,10 +331,10 @@ data class SettingsExportPayload(
     val measurementSchedule: MeasurementSchedule? = null,
     val calibrationProfile: NutritionCalibrationProfile? = null,
     val dailyGoalSnapshots: List<com.example.kpkn.data.models.DailyGoalSnapshot> = emptyList(),
-    val wellbeingLogs: List<com.example.kpkn.data.models.DailyWellbeingLog>,
-    val sleepLogs: List<com.example.kpkn.data.models.SleepLog>,
+    val wellbeingLogs: List<com.example.kpkn.data.models.DailyWellbeingLog> = emptyList(),
+    val sleepLogs: List<com.example.kpkn.data.models.SleepLog> = emptyList(),
     val sleepLogsExtended: List<com.example.kpkn.data.models.SleepLogExtended> = emptyList(),
-    val postSessionFeedback: List<com.example.kpkn.data.models.PostSessionFeedback>,
+    val postSessionFeedback: List<com.example.kpkn.data.models.PostSessionFeedback> = emptyList(),
     val adaptiveCache: com.example.kpkn.data.models.AugeAdaptiveCache? = null,
     val sessionTemplates: List<SessionTemplate> = emptyList(),
     val customExercises: List<com.example.kpkn.data.models.ExerciseMuscleInfo> = emptyList(),

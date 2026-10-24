@@ -14,10 +14,10 @@ class WelcomeShellCopyTest {
     @Test
     fun `hay tres paginas en el orden entreno nutricion recuperacion`() {
         assertEquals(
-            listOf(WelcomePageIds.Entreno, WelcomePageIds.Nutricion, WelcomePageIds.Recuperacion),
+            listOf(WelcomePageIds.Entreno, WelcomePageIds.Nutricion, WelcomePageIds.Resultados),
             WelcomePages.map { it.id },
         )
-        assertEquals(listOf("ENTRENO", "NUTRICIÓN", "RECUPERACIÓN"), WelcomePages.map { it.label })
+        assertEquals(listOf("ENTRENO", "NUTRICIÓN", "RESULTADOS"), WelcomePages.map { it.label })
     }
 
     @Test
@@ -42,7 +42,7 @@ class WelcomeShellCopyTest {
     @Test
     fun `la descripcion para TalkBack es una frase que empieza por Video de demostracion`() {
         WelcomePages.forEach { page ->
-            assertTrue(page.demoDescription, page.demoDescription.startsWith("Vídeo de demostración: "))
+            assertTrue(page.demoDescription, page.demoDescription.startsWith(if (page.id == WelcomePageIds.Resultados) "Ejemplo ilustrativo: " else "Vídeo de demostración: "))
             assertTrue(page.demoDescription, page.demoDescription.endsWith("."))
             assertEquals(page.demoDescription, 1, page.demoDescription.count { it == '.' })
         }
@@ -53,7 +53,7 @@ class WelcomeShellCopyTest {
     fun `cada pagina usa el periodo de su escena`() {
         assertEquals(WelcomeEntrenoPeriod, WelcomePages[0].period, 0f)
         assertEquals(WelcomeNutricionPeriod, WelcomePages[1].period, 0f)
-        assertEquals(WelcomeRingsPeriod, WelcomePages[2].period, 0f)
+        assertEquals(12f, WelcomePages[2].period, 0f)
         WelcomePages.forEach { assertTrue(it.period > 1f) }
     }
 

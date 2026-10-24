@@ -66,7 +66,7 @@ class NutritionViewModelTest {
         programRepo.clearActiveProgram()
         programRepo.clearOngoingWorkout()
 
-        vm = NutritionViewModel()
+        vm = NutritionViewModel(computeDispatcher = testDispatcher)
 
         collectors += testScope.launch { vm.todayLogs.collect { } }
         collectors += testScope.launch { vm.dailyTotals.collect { } }
@@ -681,6 +681,7 @@ class NutritionViewModelTest {
         actualDate = actualDate,
         energySummary = SessionEnergySummary(
             totalKcal = CalorieRange(low = burnKcal, mid = burnKcal, high = burnKcal),
+            source = EnergyEstimateSource.FINAL,
         ),
     )
 
@@ -701,6 +702,21 @@ class NutritionViewModelTest {
         programRepo.addWorkoutLog(workoutLog(id = "date-only", date = today.toString(), burnKcal = 50))
 
         assertEquals(350, vm.dailyEnergyBalance.value.trainingBurnKcal)
+    }
+
+    @Test
+    fun `energy balance consumes final accounting while retaining nonfinal quality`() {
+        awaitProgramRepositoryReady()
+        collectors += testScope.launch { vm.dailyEnergyBalance.collect { } }
+        collectors += testScope.launch { vm.completedTrainingDay.collect { } }
+        val today = vm.today.value.toString()
+        programRepo.addWorkoutLog(workoutLog("final", today, 120))
+        programRepo.addWorkoutLog(workoutLog("planned", today, 700).let { log ->
+            log.copy(energySummary = log.energySummary!!.copy(source = EnergyEstimateSource.PLANNED))
+        })
+        assertEquals(120, vm.dailyEnergyBalance.value.trainingBurnKcal)
+        assertTrue(vm.completedTrainingDay.value.hasPartialEnergy)
+        assertEquals(2, vm.completedTrainingDay.value.activities.size)
     }
 
     // ─── Wizard State ──────────────────────────────────────────────────────

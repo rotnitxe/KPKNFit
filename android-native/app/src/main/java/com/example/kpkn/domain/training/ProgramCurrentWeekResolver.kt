@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.domain.multisport.HybridOccurrenceResolver
 import java.time.LocalDate
 
 /**
@@ -41,7 +42,9 @@ object ProgramCurrentWeekResolver {
                     instanceId = instanceId,
                     templateWeekId = location.week.id,
                     cycleNumber = cycleNumber,
-                    week = location.week.copy(
+                    week = HybridOccurrenceResolver.resolveWeek(
+                        program, location.week, program.runState?.runId, cycleNumber, instanceId,
+                    ).copy(
                         id = instanceId,
                         name = if (cycleNumber > 1) "${location.week.name} (C$cycleNumber)" else location.week.name,
                     ),
@@ -66,7 +69,9 @@ object ProgramCurrentWeekResolver {
                     instanceId = instanceId,
                     templateWeekId = location.week.id,
                     cycleNumber = cycleNumber,
-                    week = location.week.copy(
+                    week = HybridOccurrenceResolver.resolveWeek(
+                        program, location.week, program.runState?.runId, cycleNumber, instanceId,
+                    ).copy(
                         id = instanceId,
                         name = if (cycleNumber > 1) "${location.week.name} (C$cycleNumber)" else location.week.name,
                     ),
@@ -114,7 +119,10 @@ object ProgramCurrentWeekResolver {
 
         fun itemForLocation(location: ProgramHierarchyLocation): CurrentWeekItem =
             CurrentWeekItem(
-                week = location.week,
+                week = HybridOccurrenceResolver.resolveWeek(
+                    program, location.week, program.runState?.runId,
+                    program.runState?.cycleNumber, program.runState?.weekInstanceId,
+                ),
                 templateWeekId = location.week.id,
                 cycleNumber = cycle,
                 macroIndex = location.macroIndex,

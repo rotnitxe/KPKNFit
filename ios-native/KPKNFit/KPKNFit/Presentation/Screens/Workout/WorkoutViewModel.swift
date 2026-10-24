@@ -209,16 +209,6 @@ import SwiftUI
             }
         }
 
-        // Calculate mesocycle stress EMA
-        let ema = AugeFatigueEngine.calculateMesocycleStressEMA(
-            logs: repository.history,
-            programId: programId,
-            mesoIndex: uiState.mesoIndex
-        )
-        updateState { $0.mesocycleStressEMA = ema }
-
-        updateCoachMessage(setDrain: SetDrain(cnsDrainPct: 0, muscularDrainPct: 0, spinalDrainPct: 0), sessionProgress: 0)
-
         refreshLoadSuggestions()
         if uiState.activeStepKey == nil || uiState.activeStepKey!.isEmpty {
             updateState { $0.activeStepKey = nextIncompleteStepAfter($0, includeCurrent: true)?.stepKey }
@@ -2159,37 +2149,6 @@ import SwiftUI
             }
         }
         let logId = UUID().uuidString
-        let drain = AugeFatigueEngine.calculateCompletedSessionDrain(completedExercises: completedExercises, exerciseDb: catalogExerciseIndex(), settings: repository.settings)
-        let base = AugeFatigueEngine.calculateCompletedSessionStress(completedExercises: completedExercises, exerciseDb: catalogExerciseIndex(), settings: repository.settings)
-
-        let predictedOverall = max(1.0, drain.cns * 0.45 + drain.muscular * 0.25 + drain.spinal * 0.30)
-        let adjSystem = (drain.cns + Double(closingFeedback.systemAdjustment)).clamped(0, 100)
-        let adjMuscular = (drain.muscular + Double(closingFeedback.muscularAdjustment)).clamped(0, 100)
-        let adjStructure = (drain.spinal + Double(closingFeedback.structureAdjustment)).clamped(0, 100)
-        let adjOverall = max(1.0, adjSystem * 0.45 + adjMuscular * 0.25 + adjStructure * 0.30)
-        let impactFactor = adjOverall / predictedOverall
-
-        let avgSetEffortSignal = calculateUnifiedSessionEffortSignal(completedExercises.flatMap { $0.sets })
-        let avgTechValues = state.postExerciseFeedbackByExerciseId.values.map { Double($0.technicalQuality) }
-        let avgTech = avgTechValues.isEmpty ? 8.0 : avgTechValues.reduce(0, +) / Double(avgTechValues.count)
-        let techniqueQuality5 = max(1, min(5, Int(avgTech - 5.0)))
-        let techniquePenalty = AugeFatigueEngine.calculateTechniquePenalty(technicalQuality: techniqueQuality5, effortSignal: avgSetEffortSignal).clamped(1.0, 1.5)
-        let clarityFactor: Double = {
-            if closingFeedback.clarityRating >= 8 { return 0.96 }
-            if closingFeedback.clarityRating <= 4 { return 1.10 }
-            return 1.0
-        }()
-        let stressScore = max(1.0, base * impactFactor * techniquePenalty * clarityFactor)
-
-        let muscleGroups = completedExercises.compactMap { ex -> String? in
-            let info = catalogInfoForCompletedExercise(ex)
-            if let primary = info?.involvedMuscles.first(where: { $0.role == .PRIMARY }) {
-                let canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(primary.muscle, emphasis: primary.emphasis)
-                return getAugeMuscleDisplayId(canonical, emphasis: primary.emphasis)
-            }
-            return ex.exerciseName
-        }.distinct().prefix(6).map { $0 }
-
         let finalEnergySummary = TrainingEnergyEngine.estimateCompletedSession(completedExercises: completedExercises, settings: repository.settings, postExerciseFeedback: state.postExerciseFeedbackByExerciseId)
 
         let actualDate = ISO8601DateFormatter().string(from: Date()).prefix(10).description
@@ -2211,7 +2170,6 @@ import SwiftUI
             discomforts: (closingFeedback.discomforts + state.postExerciseFeedbackByExerciseId.values.flatMap { $0.discomfortIds }.filter { $0 != "none" }).distinct(),
             notes: notes.isEmpty ? nil : notes,
             totalVolume: totalVolume,
-            sessionStressScore: stressScore,
             weekId: state.weekId,
             macroIndex: state.macroIndex,
             mesoIndex: state.mesoIndex,
@@ -2231,10 +2189,8 @@ import SwiftUI
         )
 
         repository.addWorkoutLog(log)
-        updatePredictionBiasFromClosingFeedback(closingFeedback)
         repository.clearOngoingWorkout()
 
-        onPendingQuestionnaire?(PendingQuestionnaire(logId: logId, sessionName: session.name, muscleGroups: muscleGroups, stillPresentDiscomfortIds: closingFeedback.stillPresentDiscomfortIds, scheduledTimeMs: nowMs() + 86400000))
 
         let deltas = computeWorkoutVolumeDelta(state.session ?? session, completedSets: state.completedSets)
         if !deltas.isEmpty {

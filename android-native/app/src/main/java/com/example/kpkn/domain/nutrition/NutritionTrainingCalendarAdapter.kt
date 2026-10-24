@@ -254,6 +254,8 @@ object NutritionTrainingCalendarAdapter {
             val programWeek = weeksById[weekId] ?: continue
             val weekVariant = programWeek.variant?.let { SessionVariant.valueOf(it.name) }
             for (session in programWeek.sessions) {
+                // An explicit optional omission is a known absence, not an unplaced activity.
+                if (week.sessionDates.containsKey(session.id) && week.sessionDates[session.id] == null) continue
                 val scheduledDate = sessionDateOf(session, week, program)
                 if (scheduledDate == null) {
                     // Sesión sin scheduling: no podemos decir «descanso» en los
@@ -330,6 +332,7 @@ object NutritionTrainingCalendarAdapter {
      * semana; cualquier otra sesión sin día no es programable (null).
      */
     private fun sessionDateOf(session: Session, week: CalendarWeekProjection, program: Program): LocalDate? {
+        if (week.sessionDates.containsKey(session.id)) return week.sessionDates[session.id]
         val day = session.dayOfWeek
         if (day != null) {
             return week.trainingDayDates[day.coerceIn(1, 7)]

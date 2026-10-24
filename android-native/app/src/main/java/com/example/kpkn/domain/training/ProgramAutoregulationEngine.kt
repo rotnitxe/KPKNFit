@@ -32,7 +32,6 @@ import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.domain.auge.AugeUtils
-import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calibration.CalibrationContext
 import com.example.kpkn.domain.calibration.CalibrationDecisionType
@@ -1503,67 +1502,8 @@ object ProgramAutoregulationEngine {
         signals: WeeklyAutoregulationSignals,
     ): List<AutoregulationProposal> {
         val out = mutableListOf<AutoregulationProposal>()
-        val readiness = signals.readinessScore
-        val fatigue = signals.cumulativeFatigue
-        val unload = LoadAdvisoryEngine.rank(signals.loadAdvisoryLevel) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.UNLOAD)
-        val autoDeload = readiness != null && fatigue != null && readiness < 40 && fatigue > 75.0
-        val profile = program.powerliftingProfile
-
-        out += performanceProposals(program.id, recipe, signals, profile, readiness)
-
-        if ((readiness != null && readiness < 40 && unload) || autoDeload || signals.overtrainedMuscles.isNotEmpty()) {
-            out += AutoregulationProposal(
-                kind = AutoregulationProposalKind.INSERT_DELOAD,
-                explanation = buildString {
-                    append("Readiness ${readiness ?: "n/d"}")
-                    if (unload) append(", ACWR UNLOAD")
-                    if (signals.overtrainedMuscles.isNotEmpty()) append(", músculos sobrecargados: ${signals.overtrainedMuscles.joinToString()}")
-                    append(" — AUGE propone una descarga táctica")
-                },
-            )
-        } else if (readiness != null && readiness < 45) {
-            out += AutoregulationProposal(
-                kind = AutoregulationProposalKind.SCALE_WEEK_INTENSITY,
-                percentDelta = if (readiness < 35) -5.0 else -2.5,
-                explanation = "Readiness $readiness — bajar intensidad de la próxima semana",
-            )
-        }
-
-        if (unload && out.none { it.kind == AutoregulationProposalKind.INSERT_DELOAD }) {
-            out += AutoregulationProposal(
-                kind = AutoregulationProposalKind.SCALE_WEEK_VOLUME,
-                volumeFactor = 0.8,
-                explanation = "ACWR UNLOAD — volumen ×0,8 la próxima semana",
-            )
-        }
-
-        if (profile != null && signals.consecutiveHighE1rmWeeks >= 2) {
-            signals.e1rmByLift.forEach { (slot, e1) ->
-                val oneRm = TrainingMaxResolver.oneRm(profile, slot) ?: return@forEach
-                if (e1 > oneRm) {
-                    out += AutoregulationProposal(
-                        kind = AutoregulationProposalKind.PROMOTE_TM,
-                        liftSlot = slot.name,
-                        percentDelta = 2.5,
-                        explanation = "e1RM ${e1.toInt()} kg > 1RM ${oneRm.toInt()} kg dos semanas seguidas",
-                    )
-                }
-            }
-        }
-
-        val nextWeekNumber = (week.progressionIndex ?: 1) + 1
-        val nextGoal = recipe.weeks.firstOrNull { it.weekNumber == nextWeekNumber }?.blockGoal
-        if (nextGoal == com.example.kpkn.data.models.BlockGoal.PEAK && (readiness ?: 100) < 50) {
-            out += AutoregulationProposal(
-                kind = AutoregulationProposalKind.DELAY_PEAK,
-                explanation = "Pico inminente con readiness ${readiness ?: "baja"} — retrasar 1 semana",
-            )
-        }
-
-        // DEC-w3-07: el dolor articular repetido ([WeeklyAutoregulationSignals.repeatedJointPain]) ya no
-        // genera la propuesta «pasar el T1 a variante técnica (pausa)»: las variantes son configuraciones
-        // del catálogo y el cambio de ejercicio va por `PlanAdaptationResolver`. Tampoco queda como aviso
-        // informativo: este motor devuelve propuestas aplicables y no tiene canal de avisos.
+        // Only proposals grounded in the active authored protocol and recorded performance.
+        out += performanceProposals(program.id, recipe, signals, program.powerliftingProfile, null)
 
         val distinct = mutableListOf<AutoregulationProposal>()
         out.forEach { proposal ->

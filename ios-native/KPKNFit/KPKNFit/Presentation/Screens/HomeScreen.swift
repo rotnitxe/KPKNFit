@@ -16,11 +16,6 @@ public struct HomeScreen: View {
     @State private var viewModel = HomeViewModel()
     @State private var showFoodLogger = false
     
-    // Auge State mock
-    @State private var muscularProgress: Double = 0.88
-    @State private var sncProgress: Double = 0.82
-    @State private var columnaProgress: Double = 0.65
-    
     @State private var userName: String = ""
     @State private var greeting: String = ""
     @State private var todaySessions: [TodaySessionItem] = []
@@ -75,17 +70,7 @@ public struct HomeScreen: View {
                     // 1. Header Section
                     HomeHeaderSection(greeting: greeting, userName: userName)
                     
-                    // 2. Rings Section
-                    MyRingsView(
-                        muscularProgress: muscularProgress,
-                        cnsProgress: sncProgress,
-                        spinalProgress: columnaProgress
-                    )
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 24)
-                    
-                    // 3. Auto-Deload Banner Mock (empty here by default)
-                    
+                    RecordedTrainingHistoryView(logs: ProgramRepository.shared.history)
                     // 4. Competition Countdown Card (if present)
                     if let countdown = competitionCountdown {
                         CompetitionCountdownCard(countdown: countdown, onClick: {
@@ -282,4 +267,32 @@ public struct CompetitionCountdown {
 
 #Preview {
     HomeScreen()
+}
+
+
+internal struct RecordedTrainingHistoryView: View {
+    let logs: [WorkoutLog]
+    @State private var weeks = 4
+    var body: some View {
+        let now = Date()
+        let visible = logs.filter { log in
+            guard let date = ISO8601DateFormatter().date(from: log.date) else { return false }
+            return date <= now && date >= now.addingTimeInterval(-Double(weeks * 7 * 86400))
+        }.sorted { $0.date > $1.date }
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Entrenamiento y respuesta").font(.headline)
+            Picker("Periodo", selection: $weeks) {
+                ForEach([1,4,12], id: \.self) { Text("\($0) semanas").tag($0) }
+            }.pickerStyle(.segmented)
+            if visible.isEmpty { Text("Sin registros. No significa descanso ni esfuerzo cero.") }
+            ForEach(Array(visible.prefix(12).enumerated()), id: \.offset) { _, log in
+                VStack(alignment: .leading) {
+                    Text(log.sessionName)
+                    Text("\(log.durationMinutes) min · precisión original en minutos")
+                    Text(String(log.date.prefix(10)))
+                }
+            }
+            Text("Resultados registrados; no miden recuperación ni seguridad.").font(.caption)
+        }.padding()
+    }
 }

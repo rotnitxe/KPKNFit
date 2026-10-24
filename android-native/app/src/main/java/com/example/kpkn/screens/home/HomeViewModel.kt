@@ -24,7 +24,6 @@ import com.example.kpkn.data.repository.BodyProgressRepository
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.domain.auge.OvertrainingDetector
 import com.example.kpkn.domain.nutrition.DayGoalsResult
 import com.example.kpkn.domain.nutrition.GoalsAbsence
 import com.example.kpkn.domain.nutrition.resolveDayGoals
@@ -173,17 +172,8 @@ import java.util.Calendar
         }
     }
 
-    val overtrainedMuscles: StateFlow<List<String>> = combine(
-        activeProgram,
-        repository.history,
-        feedbacks,
-    ) { p, historyLogs, fbs ->
-        if (p == null) emptyList()
-        else OvertrainingDetector.detectOvertrainedMuscles(p, historyLogs, fbs)
-    }
-        .distinctUntilChanged()
-        .flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val overtrainedMuscles: StateFlow<List<String>> = MutableStateFlow<List<String>>(emptyList()).asStateFlow()
+
 
     val userName: StateFlow<String> = repository.settings
         .map { it.username.ifBlank { "Usuario" } }

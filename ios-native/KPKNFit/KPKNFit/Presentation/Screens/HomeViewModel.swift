@@ -30,7 +30,7 @@ public final class HomeViewModel: ObservableObject {
 
     public func loadFeedbacks() {
         Task {
-            feedbacks = await AugeRepository.shared.getPostSessionFeedbacks()
+            feedbacks = []
             refresh()
         }
     }
@@ -68,7 +68,7 @@ public final class HomeViewModel: ObservableObject {
         }
 
         competitionCountdown = activeProgram.flatMap { buildCompetitionCountdown(program: $0) }
-        overtrainedMuscles = calculateOvertrainedMuscles()
+        overtrainedMuscles = []
         todaySessions = resolveTodaySessions()
 
         let plan = nutritionRepository.activeNutritionPlan

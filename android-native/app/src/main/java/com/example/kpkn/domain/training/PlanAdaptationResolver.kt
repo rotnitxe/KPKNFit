@@ -211,7 +211,7 @@ private fun latPulldownToPullUp(): List<CuratedCandidate> = listOf(
 /**
  * Tabla curada §13.4 keyed by `configurationId.substringBefore("__")`
  * (definitionId publicado). Solo ids verificados en el catálogo
- * `v2-approved-2026-08-12-a`: nunca se inventa un id (regla STOP).
+ * `v2-approved-2026-09-29-a`: nunca se inventa un id (regla STOP).
  *
  * Una entrada con SOLO tier 1 (o vacía) documenta que no hay alternativa
  * cruzada curada: si las variantes de la misma definición no están
@@ -246,6 +246,14 @@ private val CURATED_SUBSTITUTIONS: Map<String, List<CuratedCandidate>> = mapOf(
     "t_bar_row" to rowCandidates(),
     "seal_row" to rowCandidates(),
     "chest_supported_row" to rowCandidates(),
+    // Toda definición de tirón horizontal comparte la cadena del slot R de
+    // §13.3 (banda/invertido/gorilla/mancuernas). El crecimiento posterior del
+    // catálogo añadió estas definiciones de remo; sin entrada propia el
+    // clasificador devolvía NO_VALID_SUBSTITUTION en lugar de la cadena curada.
+    "gironda_row" to rowCandidates(),
+    "back_remo_gorilla_mancuernas" to rowCandidates(),
+    "back_remo_renegado_mancuernas" to rowCandidates(),
+    "back_remo_invertido" to rowCandidates(),
     "back_band_pull_apart" to listOf(
         c("back_superman_suelo__default", 2, false, "Superman en suelo: extensores de columna; NO cuenta como remo/vuelo para volumen de espalda (§13.4)."),
     ),

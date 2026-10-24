@@ -365,3 +365,47 @@ public struct VolumeCalculator {
         }
     }
 }
+
+// MARK: Recorded training evidence (parity contract; no physiological predictor)
+internal struct TrainingEvidenceFact: Codable, Equatable {
+    let sourceId: String
+    let activityId: String
+    let occurredAtMs: Int64
+    let sport: String
+    let metric: String
+    let value: Double
+    let unit: String
+    let origin: String
+    let exerciseVariant: String?
+    let method: String?
+    let protocolId: String?
+    let context: [String: String]
+}
+
+internal enum TrainingInsightsEngine {
+    static func comparable(_ a: TrainingEvidenceFact, _ b: TrainingEvidenceFact) -> Bool {
+        guard let variant = a.exerciseVariant, !variant.isEmpty,
+              let method = a.method, !method.isEmpty,
+              let protocolId = a.protocolId, !protocolId.isEmpty else { return false }
+        return a.sport == b.sport && a.metric == b.metric && a.unit == b.unit &&
+            a.origin == b.origin && a.origin != "HISTORICAL_AMBIGUOUS" &&
+            variant == b.exerciseVariant && method == b.method && protocolId == b.protocolId && a.context == b.context
+    }
+    static func previous(_ current: TrainingEvidenceFact, history: [TrainingEvidenceFact], nowMs: Int64) -> [TrainingEvidenceFact] {
+        guard current.value.isFinite, current.occurredAtMs <= nowMs else { return [] }
+        let from = current.occurredAtMs - 90 * 86_400_000
+        var seen = Set<String>()
+        return Array(history.filter {
+            $0.value.isFinite && $0.occurredAtMs >= from && $0.occurredAtMs < current.occurredAtMs &&
+                $0.sourceId != current.sourceId && $0.activityId != current.activityId && comparable(current, $0)
+        }.sorted {
+            $0.occurredAtMs == $1.occurredAtMs ? $0.sourceId < $1.sourceId : $0.occurredAtMs > $1.occurredAtMs
+        }.filter { seen.insert($0.sourceId).inserted }.prefix(6))
+    }
+    static func median(_ facts: [TrainingEvidenceFact]) -> Double? {
+        guard facts.count >= 3 else { return nil }
+        let values = facts.map(\.value).sorted()
+        let middle = values.count / 2
+        return values.count % 2 == 1 ? values[middle] : values[middle - 1] / 2 + values[middle] / 2
+    }
+}

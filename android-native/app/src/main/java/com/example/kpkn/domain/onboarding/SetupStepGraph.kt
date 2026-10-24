@@ -114,7 +114,7 @@ data class SetupStepNode(
 data class SetupStepContext(
     val includeTraining: Boolean = true,
     val includeNutrition: Boolean = true,
-    val includeRings: Boolean = true,
+    val includeRings: Boolean = false,
     val nutritionProfessional: Boolean = false,
     /**
      * false only hides the nutrition CHAIN until an explicit choice exists;
@@ -501,21 +501,6 @@ object SetupStepGraph {
                 }
                 add(SetupStepId.MILESTONE_NUTRITION)
             }
-        }
-        // Bloque 4: Rings (obligatorio; se pregunta siempre). Primero la intro y los días; con días entrenados, los ejercicios
-        // principales y la intensidad, y las series por grupo solo si hubo un día en las últimas 72 h. Las sensaciones y las
-        // molestias SIEMPRE: desconocer el historial no es no entrenar.
-        if (context.includeRings) {
-            add(SetupStepId.RINGS_INTRO)
-            add(SetupStepId.RINGS_SESSION_DAYS)
-            if (context.ringsTrainedDays) {
-                add(SetupStepId.RINGS_MAIN_LIFTS)
-                if (context.ringsTrainedLast72h) add(SetupStepId.RINGS_GROUP_SETS)
-                add(SetupStepId.RINGS_INTENSITY)
-            }
-            addAll(listOf(SetupStepId.RINGS_FEELINGS, SetupStepId.RINGS_DISCOMFORT))
-            add(SetupStepId.RINGS_RESULT)
-            add(SetupStepId.MILESTONE_RINGS)
         }
         add(SetupStepId.REVIEW_ACTIVATE)
     }.map { node -> SetupStepNode(node, blockOf(node), kindOf(node)) }

@@ -13,6 +13,8 @@ import com.example.kpkn.data.models.isCompetitionMeet
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.models.suggestCalendarTrainingDays
+import com.example.kpkn.data.models.HybridPlannedSession
+import com.example.kpkn.domain.multisport.HybridOccurrenceResolver
 import com.example.kpkn.domain.templates.SessionTemplateEngine
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -41,6 +43,10 @@ data class CalendarWeekProjection(
     val outsideProgramDays: Set<Int> = emptySet(),
     val trainingDayDates: Map<Int, LocalDate> = emptyMap(),
     val keyDates: List<ProgramKeyDate> = emptyList(),
+    /** Explicit session identity placement, including null dates for omitted OPTIONAL sessions. */
+    val sessionDates: Map<String, LocalDate?> = emptyMap(),
+    val sessionPlacements: Map<String, HybridPlannedSession> = emptyMap(),
+    val weekInstanceId: String? = null,
 ) {
     fun contains(date: LocalDate): Boolean = !date.isBefore(startDate) && !date.isAfter(endDate)
 }
@@ -63,11 +69,28 @@ data class ProgramCalendarProjection(
         weeks.firstOrNull { it.contains(date) }
 
     fun scheduledDateFor(session: Session, weekId: String): LocalDate? {
-        val week = weeks.firstOrNull { it.weekId == weekId } ?: return null
+        val week = weeks.firstOrNull { it.weekId == weekId || it.weekInstanceId == weekId } ?: return null
+        if (week.sessionDates.containsKey(session.id)) return week.sessionDates[session.id]
         val day = session.dayOfWeek?.coerceIn(1, 7) ?: return week.startDate
         return week.trainingDayDates[day]
     }
+
+    /** Accepted clock times remain separate from day identity; two sessions may share one date. */
+    fun scheduledPlacementFor(session: Session, weekId: String): HybridScheduledPlacement? {
+        val week = weeks.firstOrNull { it.weekId == weekId || it.weekInstanceId == weekId } ?: return null
+        val placement = week.sessionPlacements[session.id] ?: return null
+        val date = scheduledDateFor(session, weekId) ?: return null
+        return HybridScheduledPlacement(date, placement.startMinute, placement.endMinute, placement.placeId, placement.windowId)
+    }
 }
+
+data class HybridScheduledPlacement(
+    val date: LocalDate,
+    val startMinute: Int,
+    val endMinute: Int,
+    val placeId: String,
+    val windowId: String,
+)
 
 object ProgramCalendarEngine {
     fun parseIsoDate(raw: String?): LocalDate? {
@@ -114,11 +137,12 @@ object ProgramCalendarEngine {
             activatedByCompetition = false,
         )
 
-    fun project(program: Program): ProgramCalendarProjection {
+    fun project(program: Program, includeOccurrenceOverlays: Boolean = true): ProgramCalendarProjection {
         val calendar = program.calendarization
         val plan = program.resolvedSchedulePlan()
         val anchorDate = parseIsoDate(plan.anchorDate)
         if (calendar == null || anchorDate == null) {
+            if (includeOccurrenceOverlays) floatingOccurrenceProjection(program)?.let { return it }
             return ProgramCalendarProjection(
                 enabled = false,
                 mode = calendar?.mode,
@@ -143,15 +167,20 @@ object ProgramCalendarEngine {
                     val mesoIndex = globalMesoIndex++
                     meso.weeks.forEach { week ->
                         if (week.isLoopWeek) return@forEach
+                        val identity = if (includeOccurrenceOverlays) HybridOccurrenceResolver.currentIdentity(program) else null
+                        val hybrid = HybridOccurrenceResolver.scheduleFor(program, week, identity)
+                        val effectiveWeek = HybridOccurrenceResolver.resolveWeek(
+                            program, week, identity?.runId, identity?.cycleNumber, identity?.weekInstanceId,
+                        )
                         val weekStart = cursor
                         val weekEnd = weekStart.plusDays(6)
-                        val trainingDays = resolveTrainingDays(program, week) +
+                        val trainingDays = resolveTrainingDays(program, effectiveWeek, includeOccurrenceOverlays = false) +
                             keyDateDaysInWeek(program, week, weekStart, weekEnd)
                         val dayDates = trainingDatesFor(
                             weekStart = weekStart,
                             weekEnd = weekEnd,
                             trainingDays = trainingDays,
-                            explicit = week.trainingDayDates,
+                            explicit = effectiveWeek.trainingDayDates,
                         )
                         val marks = program.keyDates.filter { keyDateIntersects(it, weekStart, weekEnd) }
                         val resolvedDays = dayDates.keys
@@ -172,6 +201,12 @@ object ProgramCalendarEngine {
                             outsideProgramDays = outsideDays,
                             trainingDayDates = dayDates,
                             keyDates = marks,
+                            sessionDates = hybrid?.let { accepted ->
+                                accepted.schedule.assignments.associate { it.sessionId to HybridOccurrenceResolver.dateForWeekday(weekStart, it.weekday) } +
+                                    accepted.schedule.omittedOptionalSessions.associate { it.sessionId to null }
+                            }.orEmpty(),
+                            sessionPlacements = hybrid?.schedule?.assignments?.associateBy { it.sessionId }.orEmpty(),
+                            weekInstanceId = hybrid?.identity?.weekInstanceId,
                         )
                         cursor = weekEnd.plusDays(1)
                         globalWeekIndex++
@@ -197,7 +232,8 @@ object ProgramCalendarEngine {
     }
 
     fun materializeWeekDates(program: Program): Program {
-        val projection = project(program)
+        // An occurrence overlay is runtime data. Persisting its days here would alter all cycles.
+        val projection = project(program, includeOccurrenceOverlays = false)
         if (!projection.enabled || projection.weeks.isEmpty()) return program
         val byId = projection.weeks.associateBy { it.weekId }
         return program.copy(
@@ -210,7 +246,7 @@ object ProgramCalendarEngine {
                                     weeks = meso.weeks.map { week ->
                                         if (week.isLoopWeek) return@map week
                                         val projected = byId[week.id] ?: return@map week
-                                        val preservedTrainingDays = resolveTrainingDays(program, week)
+                                        val preservedTrainingDays = resolveTrainingDays(program, week, includeOccurrenceOverlays = false)
                                         val mergedTrainingDates = projected.trainingDayDates
                                             .filterKeys { day -> day in preservedTrainingDays }
                                             .mapValues { it.value.toString() }
@@ -245,17 +281,21 @@ object ProgramCalendarEngine {
         }
     }
 
-    fun resolveTrainingDays(program: Program, week: ProgramWeek): Set<Int> {
+    fun resolveTrainingDays(program: Program, week: ProgramWeek, includeOccurrenceOverlays: Boolean = true): Set<Int> {
+        val identity = if (includeOccurrenceOverlays) HybridOccurrenceResolver.currentIdentity(program) else null
+        val effectiveWeek = HybridOccurrenceResolver.resolveWeek(
+            program, week, identity?.runId, identity?.cycleNumber, identity?.weekInstanceId,
+        )
         // A global schedule plan is useful as a fallback, but it must not
         // leak days from another block/week after a partial start-day change.
         // Prefer the executable sessions owned by this week whenever they
         // declare days; the plan below remains the program-wide contract for
         // empty/legacy weeks.
-        val fromCompetition = week.sessions
+        val fromCompetition = effectiveWeek.sessions
             .filter { it.isCompetitionMeet }
             .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
             .toSet()
-        val fromExecutableSessions = week.sessions
+        val fromExecutableSessions = effectiveWeek.sessions
             .filter(SessionTemplateEngine::sessionHasExecutableContent)
             .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
             .toSet()
@@ -263,17 +303,43 @@ object ProgramCalendarEngine {
             return fromExecutableSessions + fromCompetition
         }
 
-        val fromWeek = week.trainingDayDates.keys.filter { it in 1..7 }
+        val fromWeek = effectiveWeek.trainingDayDates.keys.filter { it in 1..7 }
         if (fromWeek.isNotEmpty()) return fromWeek.toSet()
 
         val fromPlan = program.resolvedSchedulePlan().trainingDays.filter { it in 1..7 }
         if (fromPlan.isNotEmpty()) return fromPlan.toSet()
         if (program.isSimpleProgram) {
-            val fromSessions = week.sessions.mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
+            val fromSessions = effectiveWeek.sessions.mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
             if (fromSessions.isNotEmpty()) return fromSessions.toSet()
             return program.suggestCalendarTrainingDays()
         }
         return (1..7).toSet()
+    }
+
+    private fun floatingOccurrenceProjection(program: Program): ProgramCalendarProjection? {
+        val identity = HybridOccurrenceResolver.currentIdentity(program) ?: return null
+        val location = ProgramHierarchyIndex(program).locateWeek(identity.weekId) ?: return null
+        val resolved = HybridOccurrenceResolver.scheduleFor(program, location.week, identity) ?: return null
+        if (resolved.identity != identity) return null
+        val start = resolved.weekStartDate ?: return null
+        val end = start.plusDays(6)
+        val assignments = resolved.schedule.assignments
+        val dates = assignments.associate { it.weekday to HybridOccurrenceResolver.dateForWeekday(start, it.weekday) }
+        val week = CalendarWeekProjection(
+            weekId = location.week.id, weekName = location.week.name,
+            macroIndex = location.macroIndex, blockIndex = location.blockIndex,
+            mesoIndex = location.globalMesoIndex, weekIndex = location.globalWeekIndex,
+            blockId = location.blockId, blockName = location.block.name,
+            startDate = start, endDate = end, trainingDayDates = dates,
+            sessionDates = assignments.associate { it.sessionId to HybridOccurrenceResolver.dateForWeekday(start, it.weekday) } +
+                resolved.schedule.omittedOptionalSessions.associate { it.sessionId to null },
+            sessionPlacements = assignments.associateBy { it.sessionId }, weekInstanceId = identity.weekInstanceId,
+        )
+        return ProgramCalendarProjection(
+            enabled = true, mode = null, strictStart = true, activatedByCompetition = false,
+            startDate = start, projectedEndDate = end, manualEndDate = null,
+            endDateStatus = ProgramEndDateStatus.NONE, weeks = listOf(week),
+        )
     }
 
     fun alignToWeekStart(date: LocalDate, weekStartDay: Int?): LocalDate {

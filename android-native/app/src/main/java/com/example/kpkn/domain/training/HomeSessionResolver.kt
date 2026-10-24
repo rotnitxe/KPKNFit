@@ -10,6 +10,7 @@ import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.domain.multisport.HybridOccurrenceResolver
 import java.time.LocalDate
 
 /**
@@ -30,7 +31,9 @@ object HomeSessionResolver {
                 macroIndex = location.macroIndex,
                 blockIndex = location.blockIndex,
                 mesocycleIndex = location.globalMesoIndex,
-                week = location.week,
+                week = HybridOccurrenceResolver.resolveWeek(
+                    this, location.week, runState?.runId, runState?.cycleNumber, runState?.weekInstanceId,
+                ),
             )
         }
     fun Session.matchesDay(dayOfWeek: Int): Boolean =
@@ -163,10 +166,10 @@ object HomeSessionResolver {
         }
 
         val sessions = resolvedWeekLocation.week.sessions
-        val projection = if (ProgramCalendarEngine.isCalendarized(program)) {
-            ProgramCalendarEngine.project(program)
-        } else {
-            null
+        val projection = ProgramCalendarEngine.project(program).takeIf { projected ->
+            projected.enabled && projected.weeks.any {
+                it.weekId == resolvedWeekLocation.week.id || it.weekInstanceId == resolvedWeekLocation.week.id
+            }
         }
         val weekIdForMatch = if (program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC) {
             val cycle = expectedCycle ?: 1

@@ -14,6 +14,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         WorkoutLogEntity::class,
         CompetitionRecordEntity::class,
         SettingsEntity::class,
+        TrainingObservationEntity::class,
         ActiveProgramEntity::class,
         OngoingWorkoutEntity::class,
         WorkoutContextPerformanceEntity::class,
@@ -67,11 +68,12 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         VideoAnalysisEntity::class,
         CalibrationDecisionEntity::class,
     ],
-    version = 30,
+    version = 31,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
 
+    abstract fun trainingObservationDao(): TrainingObservationDao
     abstract fun programDao(): ProgramDao
     abstract fun workoutLogDao(): WorkoutLogDao
     abstract fun competitionRecordDao(): CompetitionRecordDao
@@ -781,6 +783,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_27_28,
                     videoAnalysisMigration(28),
                     CALIBRATION_MIGRATION_29_30,
+                    TRAINING_OBSERVATIONS_30_31,
                 )
                 .addCallback(GlobalFoodsFtsHygiene)
                 .build()
