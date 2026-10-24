@@ -54,9 +54,11 @@ class Cal3ViewModelRoomTest {
         assertEquals("Contexto original de hoy", restored.uiState.value.sessionNotes)
         assertEquals(authored, restored.uiState.value.session)
         assertTrue(record(restored) is RecordSetResult.Created)
-        restored.finishWorkout("Cierre original", null, SessionClosingFeedback(discomforts = emptyList()))
+        restored.finishWorkout("Cierre original", 0, SessionClosingFeedback(discomforts = emptyList()))
         val log = withTimeout(60_000) { f.repository.history.first { logs -> logs.any { it.sessionId == f.sessionId } } }
             .single { it.sessionId == f.sessionId }
+        assertNull("El cierre no fabrica una valoración de fatiga", log.fatigueLevel)
+        assertNull(log.clarityRating)
         assertEquals("BOXING", log.recordedSportId)
         assertEquals("Contexto original de hoy", log.sessionNotes)
         withTimeout(60_000) { f.repository.ongoingWorkout.first { it == null } }
