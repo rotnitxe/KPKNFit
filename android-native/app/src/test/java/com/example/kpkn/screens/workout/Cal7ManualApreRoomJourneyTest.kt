@@ -103,7 +103,7 @@ class Cal7ManualApreRoomJourneyTest {
                 assertTrue(current.runState!!.autoregulationAudit.isEmpty())
                 assertTrue(ExerciseLoadReferenceStore.history(current, f.apreExerciseId, capture.reference).isEmpty())
             }
-            AutoregulationMode.PROPOSE -> {
+            AutoregulationMode.PROPOSE, AutoregulationMode.AUTO -> {
                 assertEquals(PendingProgramActionType.CONFIRM_AUTOREGULATION, pending!!.type)
                 val proposal = assertSingleApreProposal(pending.proposals, capture)
                 assertApreLoads(f, current, targetWeekId, f.apreSessionWeek2Id, 120.0)
@@ -111,10 +111,6 @@ class Cal7ManualApreRoomJourneyTest {
                 f.accept(proposal)
                 current = f.program
                 assertNull(current.runState!!.pendingAction)
-                assertAppliedAudit(current)
-            }
-            AutoregulationMode.AUTO -> {
-                assertNull(pending)
                 assertAppliedAudit(current)
             }
         }
@@ -152,7 +148,7 @@ class Cal7ManualApreRoomJourneyTest {
         journey(AutoregulationMode.PROPOSE)
     }
 
-    @Test fun manualApreAutoAppliesTheS4CaptureToTheNextWeek() = runBlocking {
+    @Test fun manualApreLegacyAutoRequiresConfirmationBeforeApplyingTheS4Capture() = runBlocking {
         journey(AutoregulationMode.AUTO)
     }
 

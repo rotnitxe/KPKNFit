@@ -292,114 +292,6 @@ final class KPKNFitTests: XCTestCase {
     }
     """#
 
-    // MARK: — NutritionRecoveryEngine (paridad con Android, commit ac3ff1c88)
-    // Oracle numérico portado de android-native
-    // app/src/test/java/com/example/kpkn/domain/auge/NutritionRecoveryEngineTest.kt.
-
-    private func todayString() -> String {
-        let f = DateFormatter()
-        f.dateFormat = "yyyy-MM-dd"
-        return f.string(from: Date())
-    }
-
-    private func log(calories: Double, protein: Double) -> NutritionLog {
-        NutritionLog(
-            id: "log-\(UUID().uuidString)",
-            date: todayString(),
-            mealType: .LUNCH,
-            foods: [
-                LoggedFood(
-                    id: "food-\(UUID().uuidString)",
-                    foodName: "Comida",
-                    amount: 100.0,
-                    calories: calories,
-                    protein: protein
-                )
-            ]
-        )
-    }
-
-    func testEmptyLogsDoNotAssumeDeficit() {
-        var settings = Settings()
-        settings.dailyCalorieGoal = 2500
-        settings.dailyProteinGoal = 150
-        settings.calorieGoalObjective = .DEFICIT
-
-        let result = NutritionRecoveryEngine.computeNutritionRecoveryMultiplier(
-            nutritionLogs: [],
-            settings: settings
-        )
-        XCTAssertEqual(result.recoveryTimeMultiplier, 1.0, accuracy: 0.001)
-        XCTAssertEqual(result.status, .maintenance)
-        XCTAssertTrue(result.factors.contains { $0.contains("Sin comidas") })
-    }
-
-    func testNoGoalsDoNotInferDeficitNorProteinPenalty() {
-        // Ingesta muy baja: sin metas no se infiere déficit ni se penaliza la
-        // proteína (mismo criterio neutro que «sin comidas en la ventana»).
-        let settings = Settings() // sin dailyCalorieGoal/dailyProteinGoal, sin plan
-
-        let result = NutritionRecoveryEngine.computeNutritionRecoveryMultiplier(
-            nutritionLogs: [log(calories: 200.0, protein: 5.0)],
-            settings: settings
-        )
-        XCTAssertEqual(result.recoveryTimeMultiplier, 1.0, accuracy: 0.001)
-        XCTAssertEqual(result.status, .maintenance)
-        XCTAssertTrue(result.factors.contains { $0.contains("Sin metas") })
-    }
-
-    func testZeroOrAbsentPlanGoalsDoNotInferDeficitNorProteinPenalty() {
-        // Un plan con 0 explícitos conserva esos 0 como metas declaradas (no
-        // son ausencia), pero la recuperación sigue neutra: las guardas exigen
-        // meta > 0, igual que `explicitZeroGoals` de Android. Sin plan ni
-        // ajustes con metas, todo sigue nil → mismo neutro.
-        let plan = NutritionPlan(calorieTarget: 0, proteinGoal: 0, carbGoal: 0, fatGoal: 0)
-        let settings = Settings()
-
-        let goals = deriveMacroGoals(settings: settings, activePlan: plan)
-        XCTAssertEqual(goals.calorieGoal, 0)
-        XCTAssertEqual(goals.proteinGoal, 0)
-
-        let result = NutritionRecoveryEngine.computeNutritionRecoveryMultiplier(
-            nutritionLogs: [log(calories: 200.0, protein: 5.0)],
-            settings: settings,
-            activePlan: plan
-        )
-        XCTAssertEqual(result.recoveryTimeMultiplier, 1.0, accuracy: 0.001)
-        XCTAssertEqual(result.status, .maintenance)
-        XCTAssertTrue(result.factors.contains { $0.contains("Sin metas") })
-    }
-
-    func testCalorieDeficitIsStillInferredWhenGoalsExist() {
-        // Las fórmulas no cambian: con metas reales el déficit se calcula igual
-        // (200 kcal promedio vs 2000 de meta → ratio 0.1 → DEFICIT > 1.0).
-        var settings = Settings()
-        settings.dailyCalorieGoal = 2000
-        settings.dailyProteinGoal = 100
-
-        let result = NutritionRecoveryEngine.computeNutritionRecoveryMultiplier(
-            nutritionLogs: [log(calories: 400.0, protein: 10.0)],
-            settings: settings
-        )
-        XCTAssertEqual(result.status, .deficit)
-        XCTAssertGreaterThan(result.recoveryTimeMultiplier, 1.0)
-    }
-
-    func testProteinPenaltyNeedsAnExplicitProteinGoal() {
-        // Con meta calórica pero sin meta de proteína no se penaliza la
-        // proteína: 4000 kcal/2 días = 2000 = meta → mantenimiento neutro.
-        var settings = Settings()
-        settings.dailyCalorieGoal = 2000
-        // dailyProteinGoal queda nil
-
-        let result = NutritionRecoveryEngine.computeNutritionRecoveryMultiplier(
-            nutritionLogs: [log(calories: 4000.0, protein: 10.0)],
-            settings: settings
-        )
-        XCTAssertEqual(result.status, .maintenance)
-        XCTAssertEqual(result.recoveryTimeMultiplier, 1.0, accuracy: 0.001)
-    }
-
     // MARK: — Presencia en `NutritionPlan` / `deriveMacroGoals`
     // Contrato: plan activo manda (0 y nil incluidos, sin fallback a
     // ajustes); sin plan, solo objetivos explícitos de ajustes; sin evidencia,
@@ -474,104 +366,6 @@ final class KPKNFitTests: XCTestCase {
         XCTAssertEqual(goals.calorieGoal, 0)
         XCTAssertEqual(goals.proteinGoal, 100)
 
-        let result = NutritionRecoveryEngine.computeNutritionRecoveryMultiplier(
-            nutritionLogs: [log(calories: 4000.0, protein: 200.0)],
-            settings: Settings(),
-            activePlan: plan
-        )
-        XCTAssertEqual(result.status, .maintenance)
-        XCTAssertEqual(result.recoveryTimeMultiplier, 1.0, accuracy: 0.001)
-        XCTAssertTrue(result.factors.contains { $0.contains("Mantenimiento") })
-    }
-
-    // MARK: — Overrides manuales: ventana activa y ancla (paridad Android)
-    // Espejo de `AugeRepository.getActiveWellbeingWithManualOverrides` y
-    // `AugeRecoveryEngine.manualBatteryAnchorMs` de Android (árbol actual).
-
-    private func wellbeingLog(
-        date: String,
-        manualMuscular: Int? = nil,
-        manualNeural: Int? = nil,
-        manualSpinal: Int? = nil,
-        manualMuscles: [String: Int] = [:],
-        overridesV2: [String: ManualMuscleBatteryOverride]? = nil,
-        anchorMs: Int64? = nil
-    ) -> DailyWellbeingLog {
-        DailyWellbeingLog(
-            id: UUID().uuidString,
-            date: date,
-            manualMuscularBattery: manualMuscular,
-            manualNeuralBattery: manualNeural,
-            manualSpinalBattery: manualSpinal,
-            manualMuscleBatteries: manualMuscles,
-            manualMuscleOverridesV2: overridesV2,
-            manualBatteryAnchorMs: anchorMs
-        )
-    }
-
-    /// Oráculo: solo los overrides manuales ACTIVOS cuentan. Fila de hoy con
-    /// cualquier fuente manual (incluido solo per-muscle) → activa; fila de
-    /// ayer → solo con ancla dentro de las últimas 18 h (ancla ausente o
-    /// vencida → no activa); sin fuentes manuales → nunca.
-    func testManualOverrideActiveWindowMatchesAndroid18Hours() {
-        let now = Int64(Date().timeIntervalSince1970 * 1000)
-        let today = "2026-09-25"
-        let yesterday = "2026-09-24"
-        let anchorFresh = now - 17 * 3_600_000
-        let anchorStale = now - 20 * 3_600_000
-        let v2 = ["Pectorales": ManualMuscleBatteryOverride(battery: 90, anchorEpochMs: anchorStale, automaticBatteryAtAnchor: 100)]
-
-        // Hoy: cualquier fuente manual → activa (per-muscle ya no se ignora).
-        XCTAssertTrue(AugeRepository.isActiveManualOverride(
-            wellbeingLog(date: today, overridesV2: v2), nowMs: now, today: today
-        ))
-        XCTAssertTrue(AugeRepository.isActiveManualOverride(
-            wellbeingLog(date: today, manualNeural: 70), nowMs: now, today: today
-        ))
-        // Ayer: dentro de la ventana de 18 h → activa.
-        XCTAssertTrue(AugeRepository.isActiveManualOverride(
-            wellbeingLog(date: yesterday, manualMuscles: ["Isquios": 65], anchorMs: anchorFresh),
-            nowMs: now, today: today
-        ))
-        // Ayer: ancla vencida o ausente → no activa (no se inventa vigencia).
-        XCTAssertFalse(AugeRepository.isActiveManualOverride(
-            wellbeingLog(date: yesterday, manualNeural: 70, anchorMs: anchorStale),
-            nowMs: now, today: today
-        ))
-        XCTAssertFalse(AugeRepository.isActiveManualOverride(
-            wellbeingLog(date: yesterday, manualNeural: 70),
-            nowMs: now, today: today
-        ))
-        // Sin fuentes manuales → nunca activa, aunque sea la fila de hoy.
-        XCTAssertFalse(AugeRepository.isActiveManualOverride(
-            wellbeingLog(date: today), nowMs: now, today: today
-        ))
-    }
-
-    /// Oráculo: sin ancla explícita el motor usa la medianoche del día del
-    /// registro (como Android), NUNCA «ahora» — re-anclar en `nowMs()`
-    /// congelaría el ajuste manual sin decaimiento.
-    func testManualBatteryAnchorFallsBackToWellbeingDateNotNow() {
-        let date = "2026-09-20"
-        let rowWithoutAnchor = wellbeingLog(date: date, manualNeural: 55)
-
-        let expected: Int64 = {
-            let f = ISO8601DateFormatter()
-            f.formatOptions = [.withFullDate]
-            return Int64(f.date(from: date)!.timeIntervalSince1970 * 1000)
-        }()
-        XCTAssertEqual(AugeRecoveryEngine.manualBatteryAnchorMs(rowWithoutAnchor), expected)
-
-        let now = Int64(Date().timeIntervalSince1970 * 1000)
-        XCTAssertLessThan(AugeRecoveryEngine.manualBatteryAnchorMs(rowWithoutAnchor), now)
-
-        // Ancla explícita → se respeta tal cual.
-        XCTAssertEqual(
-            AugeRecoveryEngine.manualBatteryAnchorMs(wellbeingLog(date: date, manualNeural: 55, anchorMs: 1_234_567)),
-            1_234_567
-        )
-        // Sin fila → 0 (ausencia, no un valor fabricado).
-        XCTAssertEqual(AugeRecoveryEngine.manualBatteryAnchorMs(nil), 0)
     }
 }
 
@@ -627,5 +421,18 @@ final class RecordedSportContextTests: XCTestCase {
             XCTAssertEqual(facts.first?.unit,"min")
             XCTAssertEqual(facts.first?.value,17)
         }
+    }
+}
+
+final class RegisteredTrainingDocumentTests: XCTestCase {
+    func testUnknownEnginePreservesRawDataWithoutInventingMeasurements() throws {
+        let raw = #"{"id":"doc","engineId":"future.unknown","version":1,"sportId":"RUNNING","purpose":"RESULT","payload":{"distanceMeters":5000}}"#
+        let document = try JSONDecoder().decode(SportTrackingDocument.self,from:Data(raw.utf8))
+        let log = WorkoutLog(id:"l",programId:"p",sessionId:"s",sessionName:"Registro",date:"2026-10-23T12:00:00Z",durationMinutes:17,sportDocuments:[document])
+        let facts = TrainingHistoryProjection.facts([log],nowMs:1_792_843_200_000)
+        XCTAssertFalse(facts.contains { $0.sourceId.contains("doc") })
+        let restored = try JSONDecoder().decode(WorkoutLog.self,from:JSONEncoder().encode(log))
+        XCTAssertEqual(restored.sportDocuments?.first?.engineId,"future.unknown")
+        XCTAssertEqual(restored.sportDocuments?.first?.payload.count,1)
     }
 }

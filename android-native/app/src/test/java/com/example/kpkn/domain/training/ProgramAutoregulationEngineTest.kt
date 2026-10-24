@@ -114,7 +114,7 @@ class ProgramAutoregulationEngineTest {
             program, week, emptyList(), recipe(),
             WeeklyAutoregulationSignals(  ),
         )
-        assertTrue(proposals.any { it.kind == AutoregulationProposalKind.INSERT_DELOAD })
+        assertTrue("No recovery-based deload is generated", proposals.isEmpty())
     }
 
     @Test
@@ -129,7 +129,7 @@ class ProgramAutoregulationEngineTest {
 
             ),
         )
-        assertTrue(proposals.any { it.kind == AutoregulationProposalKind.PROMOTE_TM && it.liftSlot == "SQUAT" })
+        assertTrue("An e1RM trend cannot silently promote TM", proposals.isEmpty())
     }
 
     @Test
@@ -138,7 +138,7 @@ class ProgramAutoregulationEngineTest {
         val weeks = program.macrocycles.first().blocks.first().mesocycles.first().weeks
         val firstId = weeks.first().id
         val secondId = weeks[1].id
-        val applied = ProgramAutoregulationEngine.apply(
+        val applied = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program = program,
             nextWeekId = firstId,
             proposals = listOf(
@@ -153,7 +153,7 @@ class ProgramAutoregulationEngineTest {
             metadata = CatalogCompositionTestSupport.metadata,
         )
         assertEquals(program.macrocycles.first().blocks.first().mesocycles.first().weeks.first(), applied.program.macrocycles.first().blocks.first().mesocycles.first().weeks.first())
-        val nextApplied = ProgramAutoregulationEngine.apply(
+        val nextApplied = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program = program,
             nextWeekId = secondId,
             proposals = listOf(
@@ -167,7 +167,7 @@ class ProgramAutoregulationEngineTest {
             executedWeekIds = setOf(firstId),
             metadata = CatalogCompositionTestSupport.metadata,
         )
-        assertNotEquals(
+        assertEquals(
             program.macrocycles.first().blocks.first().mesocycles.first().weeks[1].sessions.first().allExercises().first().sets.first().targetPercentageRM,
             nextApplied.program.macrocycles.first().blocks.first().mesocycles.first().weeks[1].sessions.first().allExercises().first().sets.first().targetPercentageRM,
         )
@@ -179,7 +179,7 @@ class ProgramAutoregulationEngineTest {
             runState = ProgramRunState(runId = "run1", weekId = "w2"),
         )
         val weeks = program.macrocycles.first().blocks.first().mesocycles.first().weeks
-        val result = ProgramAutoregulationEngine.apply(
+        val result = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program = program,
             nextWeekId = weeks[1].id,
             proposals = listOf(
@@ -388,7 +388,7 @@ class ProgramAutoregulationEngineTest {
         val propose = materialized(AutoregulationMode.PROPOSE)
         val proposeWeeks = propose.macrocycles.first().blocks.first().mesocycles.first().weeks
         val proposals = ProgramAutoregulationEngine.evaluate(propose, firstWeek(propose), emptyList(), rule, signals)
-        val pending = ProgramAutoregulationEngine.apply(
+        val pending = proposeAndExplicitlyConfirmLegacyAutoForTest(
             propose, proposeWeeks[1].id, proposals, rule, setOf(proposeWeeks.first().id), CatalogCompositionTestSupport.metadata,
         )
         assertFalse(pending.applied)
@@ -399,10 +399,10 @@ class ProgramAutoregulationEngineTest {
         assertEquals(185.0, accepted.powerliftingProfile!!.squatTM!!, 1e-9)
         assertEquals("los 1RM no se tocan", 200.0, accepted.powerliftingProfile!!.squat1RM!!, 1e-9)
 
-        // AUTO: aplica los kilos, audita y la semana siguiente toma el TM nuevo.
+        // AUTO heredado: solo tras confirmación explícita aplica los kilos, audita y la semana siguiente toma el TM nuevo.
         val auto = materialized(AutoregulationMode.AUTO)
         val autoWeeks = auto.macrocycles.first().blocks.first().mesocycles.first().weeks
-        val applied = ProgramAutoregulationEngine.apply(
+        val applied = proposeAndExplicitlyConfirmLegacyAutoForTest(
             auto, autoWeeks[1].id, proposals, rule, setOf(autoWeeks.first().id), CatalogCompositionTestSupport.metadata,
         )
         assertTrue(applied.applied)
@@ -743,7 +743,7 @@ class ProgramAutoregulationEngineTest {
             explanation = "AMRAP 7 reps (objetivo 8)",
         )
 
-        val result = ProgramAutoregulationEngine.apply(
+        val result = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program = auto,
             nextWeekId = null,
             proposals = listOf(legacy),
@@ -908,8 +908,6 @@ class ProgramAutoregulationEngineTest {
         assertEquals(
             listOf(
                 AutoregulationProposalKind.ADJUST_TM,
-                AutoregulationProposalKind.INSERT_DELOAD,
-                AutoregulationProposalKind.PROMOTE_TM,
             ),
             withPain.map { it.kind },
         )
@@ -929,7 +927,7 @@ class ProgramAutoregulationEngineTest {
             explanation = "Molestias articulares repetidas — pasar el T1 a variante técnica (pausa)",
         )
 
-        val result = ProgramAutoregulationEngine.apply(
+        val result = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program = auto,
             nextWeekId = weeks[1].id,
             proposals = listOf(swap),
@@ -942,13 +940,8 @@ class ProgramAutoregulationEngineTest {
         assertEquals("la receta efectiva no se reescribe", auto.macrocycles, result.program.macrocycles)
         assertTrue(result.program.effectiveWeekRecipes.isEmpty())
         assertEquals(auto.powerliftingProfile, result.program.powerliftingProfile)
-        val entry = result.program.runState?.autoregulationAudit.orEmpty().single { it.resolution != null }
-        assertEquals(PendingActionResolutionStatus.EXPIRED, entry.resolution)
-        assertEquals(listOf(AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT), entry.kinds)
-        assertEquals(
-            "La propuesta de variante técnica ya no se aplica: las variantes son configuraciones del catálogo (DEC-w3-07)",
-            entry.resolutionReason,
-        )
+        assertTrue("Retired variant proposals are discarded", result.program.runState?.autoregulationAudit.orEmpty().isEmpty())
+
     }
 }
 

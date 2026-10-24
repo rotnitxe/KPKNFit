@@ -13,7 +13,8 @@ from pathlib import Path
 import sys
 root=Path(sys.argv[1]);dest=Path(sys.argv[2]);source=(root/'ios-native/KPKNFit/KPKNFit/Domain/Training/VolumeCalculator.swift').read_text()
 start=source.index('internal struct TrainingEvidenceFact:')
-(dest/'Facts.swift').write_text('import Foundation\n'+source[start:])
+end=source.index('internal enum TrainingHistoryProjection',start)
+(dest/'Facts.swift').write_text('import Foundation\n'+source[start:end])
 PY
 cat > "$training_temp/main.swift" <<'SWIFT'
 import Foundation

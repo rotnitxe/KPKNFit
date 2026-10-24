@@ -134,7 +134,7 @@ class Cal5PowerCalibratorTest {
         val propose = Cal5TestSupport.materialize(recipe, AutoregulationMode.PROPOSE)
         val proposeWeeks = weeksOf(propose)
         val proposals = proposalsOf(propose, squatLog(propose, 6, 180.0, 1))
-        val pending = ProgramAutoregulationEngine.apply(
+        val pending = proposeAndExplicitlyConfirmLegacyAutoForTest(
             propose, proposeWeeks[1].id, proposals, recipe, setOf(proposeWeeks.first().id), CatalogCompositionTestSupport.metadata,
         )
         assertFalse(pending.applied)
@@ -145,7 +145,7 @@ class Cal5PowerCalibratorTest {
 
         val auto = Cal5TestSupport.materialize(recipe, AutoregulationMode.AUTO)
         val autoWeeks = weeksOf(auto)
-        val applied = ProgramAutoregulationEngine.apply(
+        val applied = proposeAndExplicitlyConfirmLegacyAutoForTest(
             auto, autoWeeks[1].id, proposals, recipe, setOf(autoWeeks.first().id), CatalogCompositionTestSupport.metadata,
         )
         assertTrue(applied.applied)

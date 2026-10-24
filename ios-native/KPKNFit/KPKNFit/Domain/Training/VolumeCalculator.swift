@@ -437,6 +437,29 @@ internal enum TrainingHistoryProjection {
     ]
     private static let quantityUnits: Set<String> = ["KILOGRAMS","POUNDS","KILOGRAM","POUND","METERS","FEET","SECONDS","MINUTES","METER","CENTIMETER","SECOND","MILLISECOND","METER_PER_SECOND","REPETITIONS","CALORIES","BEATS_PER_MINUTE","WATTS","RUNNING_STEPS_PER_MINUTE","REVOLUTIONS_PER_MINUTE","STROKES_PER_MINUTE","METERS_PER_SECOND","SECONDS_PER_KILOMETER"]
     private static let excluded: Set<String> = ["plan","references","complexes","definition","format","prescription","manualFtpReference","events","skills","drills","progressionProposals","ruleset","scaling","division","target","targets","penalties"]
+    /// Mirrors registered Android v1 envelopes. Unknown engines remain recoverable raw documents.
+    private static func supports(_ document: SportTrackingDocument) -> Bool {
+        guard document.version == 1 else { return false }
+        let sport = document.sportId
+        if document.engineId == "performance_lab.manual" {
+            return ["STRENGTH","HYPERTROPHY","POWERLIFTING","POWERBUILDING","WEIGHTLIFTING","CALISTHENICS","STRONGMAN","ARMWRESTLING","SPRINT","JUMP"].contains(sport)
+        }
+        let exact: [String:String] = [
+            "strength.weightlifting":"WEIGHTLIFTING", "strength.calisthenics":"CALISTHENICS",
+            "strength.strongman":"STRONGMAN", "strength.armwrestling":"ARMWRESTLING"
+        ]
+        if let expected = exact[document.engineId] { return expected == sport }
+        let groups: [(String,[String])] = [
+            ("combat.",["BOXING","KICKBOXING","MUAY_THAI","BJJ","WRESTLING","JUDO","MMA"]),
+            ("field.",["CLIMBING","SPRINT","JUMP"]),
+            ("functional.manual.",["CROSSFIT","HYROX"]),
+            ("endurance.manual.",["RUNNING","CYCLING","TRAIL","ROWING","SWIMMING","TRIATHLON"]),
+            ("game.manual.",["TENNIS","PADEL","TEAM_SPORT"])
+        ]
+        return groups.contains { prefix, sports in
+            sports.contains(sport) && document.engineId == prefix + sport.lowercased()
+        }
+    }
     static func instant(_ text: String) -> Int64? {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -478,7 +501,7 @@ internal enum TrainingHistoryProjection {
             for versions in Dictionary(grouping:documents,by: \.id).values {
                 guard let document=versions.first, let first=try? encoder.encode(document),
                       versions.allSatisfy({ (try? encoder.encode($0)) == first }),
-                      ["RESULT","OBSERVATION"].contains(document.purpose), document.version == 1,
+                      ["RESULT","OBSERVATION"].contains(document.purpose), supports(document),
                       let bytes=try? encoder.encode(document.payload), let raw=(try? JSONSerialization.jsonObject(with:bytes)) as? [String:Any] else { continue }
                 if document.engineId == "performance_lab.manual", let marks = raw["marks"] as? [[String:Any]] {
                     // Read explicit mark provenance and protocol; do not reproduce a capacity predictor.

@@ -86,7 +86,7 @@ class Cal5JackedTanAndRecordOnlyTest {
 
         // PROPONER: pendiente, sin tocar el TM; AUTO: aplicado; OFF: nada.
         val weeks = weeksOf(propose)
-        val pending = ProgramAutoregulationEngine.apply(
+        val pending = proposeAndExplicitlyConfirmLegacyAutoForTest(
             propose, weeks[1].id, up, jt, setOf(week1.id), CatalogCompositionTestSupport.metadata,
         )
         assertFalse(pending.applied)
@@ -95,7 +95,7 @@ class Cal5JackedTanAndRecordOnlyTest {
 
         val auto = Cal5TestSupport.materialize(jt, AutoregulationMode.AUTO, lowTmProfile)
         val autoWeeks = weeksOf(auto)
-        val applied = ProgramAutoregulationEngine.apply(auto, autoWeeks[1].id, up, jt, setOf(autoWeeks.first().id), CatalogCompositionTestSupport.metadata)
+        val applied = proposeAndExplicitlyConfirmLegacyAutoForTest(auto, autoWeeks[1].id, up, jt, setOf(autoWeeks.first().id), CatalogCompositionTestSupport.metadata)
         assertTrue(applied.applied)
         assertEquals(150.0 * 1.025, applied.program.powerliftingProfile!!.squatTM!!, 1e-9)
 

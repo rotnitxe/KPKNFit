@@ -132,3 +132,12 @@ El comparador rechaza también `unknown@1` y métodos decorados con un component
 `unknown`; añadir versión o procedencia no convierte una incógnita en dato conocido.
 La fixture Room incluye ahora la versión privada 33 y propuestas mixtas de programa,
 comprobando precisión, notas, identidad y conservación de una propuesta TM explícita.
+
+
+24-oct: XCTest mixto conserva catálogo, transporte de planes, edición y presencia
+de objetivos nutricionales (incluido cero explícito). Se retiran cinco pruebas
+exclusivas del multiplicador de recuperación nutricional y dos de baterías
+manuales, junto con sus helpers sin consumidores. El caso mixto de calorías cero
+conserva sus aserciones de objetivos; elimina únicamente el multiplicador retirado.
+Se añade un caso de documentos desconocidos conservados sin mediciones inventadas.
+Ningún XCTest se considera ejecutado en este host Linux.

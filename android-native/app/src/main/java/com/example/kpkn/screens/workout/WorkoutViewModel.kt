@@ -2294,8 +2294,9 @@ class WorkoutViewModel(
             } catch (error: Exception) {
                 updateUiState { it.copy(calibrationError = CalibrationActionFailure(id, "No se pudo guardar la decisión. Reintenta; las cargas se conservan.")) }
             } finally {
-                updateUiState { it.copy(calibrationActionId = null) }
+                // Publish idle only after releasing the gate: an observer may immediately record S4.
                 recordingGate.finish(gateKey)
+                updateUiState { it.copy(calibrationActionId = null) }
             }
         }
     }

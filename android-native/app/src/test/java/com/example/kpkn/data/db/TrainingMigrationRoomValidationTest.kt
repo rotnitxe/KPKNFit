@@ -61,6 +61,14 @@ class TrainingMigrationRoomValidationTest {
                 old.execSQL("INSERT INTO setup_drafts(draftId,payloadJson,revision,updatedAtEpochMs) VALUES ('draft',?,7,123)",arrayOf("""{"draftId":"draft","commitId":"commit","name":"Ana","includeTraining":false,"includeNutrition":false,"weightKg":70.25,"draftScope":"rings_only","ringsAnswers":{"energyFeeling":3},"stepProgress":{"origin":"NATIVE","currentStepId":"RINGS_RESULT","stalePreviews":["RINGS_BATTERIES"]}}"""))
                 old.execSQL("INSERT INTO setup_commit_receipts(commitId,draftId,bodyGoalIdsJson,committedAtEpochMs) VALUES ('previous-commit','other','[]',456)")
                 if(version>=32) old.execSQL("UPDATE setup_drafts SET payloadJson=? WHERE draftId='draft'",arrayOf("""{"draftId":"draft","commitId":"commit","name":"Ana","includeTraining":false,"includeNutrition":false,"weightKg":70.25,"draftScope":"resume","stepProgress":{"origin":"NATIVE","currentStepId":"REVIEW_ACTIVATE"}}"""))
+                // A v33 fixture has already passed the v32→33 original-data purge.
+                // Seed that prerequisite, then independently exercise v33→34 proposal retirement.
+                if (version >= 33) {
+                    old.execSQL("UPDATE workout_logs SET data=? WHERE id='log'", arrayOf(
+                        com.example.kpkn.data.compatibility.LegacyTrainingImport.log(existingLog.toString())))
+                    old.execSQL("UPDATE custom_exercises SET data=? WHERE id='custom'", arrayOf(
+                        com.example.kpkn.data.compatibility.LegacyExerciseCoefficientImport.customExercise(custom)))
+                }
                 old.version=version
             }
             val db=Room.databaseBuilder(context,KpknDatabase::class.java,"test.db").allowMainThreadQueries()
