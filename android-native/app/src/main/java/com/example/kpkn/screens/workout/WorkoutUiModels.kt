@@ -266,7 +266,7 @@ data class WorkoutUiState(
     val patternReadiness: List<MovementPatternReadiness> = emptyList(),
     // Ajustes de carga aplicados por el usuario (solo sesión actual, en memoria)
     val readinessAdjustments: Map<String, SetAdjustmentSuggestion> = emptyMap(),
-    val liveEnergySummary: SessionEnergySummary = SessionEnergySummary(),
+    val liveEnergySummary: SessionEnergySummary? = null,
     val persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     val persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
     val previousSessionDiscomforts: List<String> = emptyList(),

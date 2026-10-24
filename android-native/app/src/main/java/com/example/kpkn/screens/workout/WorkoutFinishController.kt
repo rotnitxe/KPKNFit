@@ -17,7 +17,6 @@ import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
-import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -225,11 +224,6 @@ class WorkoutFinishController(
                 val finishOperationId = closingFeedback.finishOperationId
                     ?: finishSnapshot?.finishOperationId
                     ?: "finish-$logId"
-                val finalEnergySummary = TrainingEnergyEngine.estimateCompletedSession(
-                    completedExercises = completedExercises,
-                    settings = repository.settings.value,
-                    postExerciseFeedback = state.postExerciseFeedbackByExerciseId,
-                )
                 val actualDate = runCatching {
                     com.example.kpkn.domain.time.ActivityLocalDate.formatIsoDate(
                         com.example.kpkn.domain.time.ActivityLocalDate.fromInstantIso(completionInstantIso),
@@ -303,7 +297,7 @@ class WorkoutFinishController(
                         )
                     },
                     omittedExercises = omittedExercises,
-                    energySummary = finalEnergySummary,
+                    energySummary = null,
                     stillPresentDiscomfortIds = (
                         closingFeedback.stillPresentDiscomfortIds +
                             state.postExerciseFeedbackByExerciseId.values.flatMap { it.stillPresentDiscomfortIds }

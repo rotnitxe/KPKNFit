@@ -74,11 +74,6 @@ class WorkoutSetRecorder(
         fun inferPlannedIntensity(set: com.example.kpkn.data.models.ExerciseSet): Double?
         suspend fun evaluateSetEntryV3(entry: SetEntryV2): WorkoutPerformanceHomologationEngine.EvaluationResult
         fun workoutStepPositions(state: WorkoutUiState): List<WorkoutStep>
-        fun recomputeLiveEnergy(
-            completedSets: Map<String, CompletedSet>,
-            allExercises: List<Exercise>,
-            settings: Settings,
-        ): SessionEnergySummary
         fun computeImbalanceNotice(
             exercise: Exercise,
             setIdx: Int,
@@ -585,11 +580,6 @@ class WorkoutSetRecorder(
             val applyRecorded: (WorkoutUiState) -> WorkoutUiState = { current ->
                 val mergedCompleted = current.completedSets + (key to completedSet)
                 val recordedExerciseIdx = allExercises.indexOfFirst { it.id == exercise.id }
-                val newEnergy = ports.recomputeLiveEnergy(
-                    completedSets = mergedCompleted,
-                    allExercises = allExercises,
-                    settings = repository.settings.value,
-                )
                 current.copy(
                     completedSets = mergedCompleted,
                     showUltraFastSheet = false,
@@ -611,7 +601,6 @@ class WorkoutSetRecorder(
                     } else {
                         null
                     },
-                    liveEnergySummary = newEnergy,
                     continuityFeedbackExerciseId = pendingWorkoutFeedbackHandoffExercise(
                         visibleExercises = allExercises,
                         completedSets = mergedCompleted,
@@ -660,7 +649,6 @@ class WorkoutSetRecorder(
                         lastSetOutcomeV2 = candidate.lastSetOutcomeV2,
                         lastHomologatedResultV3 = candidate.lastHomologatedResultV3,
                         imbalanceNotice = candidate.imbalanceNotice,
-                        liveEnergySummary = candidate.liveEnergySummary,
                         continuityFeedbackExerciseId = candidate.continuityFeedbackExerciseId,
                         setDrafts = remainingDrafts,
                         persistedLoadModeBySet = current.persistedLoadModeBySet + (fallbackKey to resolvedLoadMode),

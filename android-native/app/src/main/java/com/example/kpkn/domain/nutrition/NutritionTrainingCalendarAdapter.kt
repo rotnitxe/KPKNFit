@@ -12,35 +12,13 @@ import com.example.kpkn.data.models.isCompetitionMeet
 import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.domain.calculations.CardioCalorieEngine
 import com.example.kpkn.domain.calculations.CardioCalorieInput
-import com.example.kpkn.domain.energy.TrainingEnergyEngine
-import com.example.kpkn.domain.energy.TrainingEnergyEngine.ResolvedLoadSource
 import com.example.kpkn.domain.training.CalendarWeekProjection
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import java.time.LocalDate
 
-/**
- * Adaptador REAL del calendario de entrenamiento al gasto previsto por fecha:
- * consume los motores existentes ([ProgramCalendarEngine], [TrainingEnergyEngine],
- * [CardioCalorieEngine]) y NO introduce un estimador paralelo.
- *
- * Reglas de honestidad:
- * - Una sesión sin gasto estimable devuelve [DayExpenditure.NotEstimable], NUNCA
- *   0 (el 0 solo existe como descanso explícito cuando no hay sesión).
- * - `totalKcal.mid > 0` NO basta para estimar: el descanso entre series suma
- *   kcal aunque falte carga externa en algún ejercicio. La estimabilidad exige
- *   evidencia de carga ([TrainingEnergyEngine.resolvePlannedExternalLoadKg]) en
- *   TODAS las series de trabajo, o peso corporal conocido cuando la serie se
- *   apoya en el cuerpo.
- * - Solo cuenta UNA variante por (sesión, fecha): la elegida, o A si no hay
- *   elección; B/C/D son alternativas de A y nunca se suman entre sí.
- * - Las sesiones opcionales solo cuentan si están confirmadas para ESA fecha y
- *   ESA sesión (confirmar una opcional no activa a las demás del día).
- * - El cardio se estima solo con `cardioDetails` y peso corporal válido; la
- *   estimación de fuerza de [TrainingEnergyEngine] ya excluye esos ejercicios,
- *   por lo que no hay doble contabilidad.
- * - Un programa con sesiones que no pueden fecharse (calendario sin ancla o
- *   sesión sin `dayOfWeek`) NUNCA se reporta como descanso: no sabemos qué días
- *   hay entrenamiento.
+/** Existing calendar adapter. Only complete cardio sessions with declared inputs can use the independent MET estimate.
+ * Strength, specialized sport documents and mixed sessions remain not estimable, never resting days or partial totals.
+ * Variants and confirmed optional sessions retain the existing calendar identity and deduplication rules.
  */
 object NutritionTrainingCalendarAdapter {
 
@@ -58,114 +36,20 @@ object NutritionTrainingCalendarAdapter {
         SessionVariant.D -> session.sessionD
     }
 
-    /**
-     * Gasto calórico previsto de UNA sesión ya materializada (fuerza vía
-     * [TrainingEnergyEngine] + cardio vía [CardioCalorieEngine]). null = no
-     * estimable: falta carga en alguna serie de trabajo, falta peso corporal
-     * para el cardio o el total no cuadra. El 0 nunca es un gasto válido.
+    /** Whole-session MET estimate only when every authored exercise is compatible cardio.
+     * Null means unavailable; strength or unsupported sport documents are never converted to resting days.
      */
     fun estimateVariantKcal(variantSession: Session, settings: Settings): Double? {
-        val summary = TrainingEnergyEngine.estimatePlannedSession(variantSession, settings)
-        // Fuerza: las contribuciones existen cuando hay series puntuadas, pero
-        // `mid > 0` solo garantiza que el motor pudo sumar algo (el descanso
-        // entre series suma kcal con solo conocer el peso corporal). Exige
-        // además evidencia de carga en TODAS las series de trabajo.
-        val strengthKcal = if (summary.exerciseContributions.isNotEmpty()) {
-            val mid = summary.totalKcal.mid
-            if (mid <= 0) return null
-            if (!workingSetsHaveLoadEvidence(variantSession, settings)) return null
-            mid.toDouble()
-        } else {
-            0.0
+        val groups=variantSession.allExercises().groupBy { it.id }
+        if (groups.values.any { it.distinct().size != 1 }) return null
+        val exercises=groups.values.map { it.first() }
+        if(exercises.isEmpty() || variantSession.sportDocuments.isNotEmpty() || exercises.any { it.cardioDetails == null }) return null
+        val weight=settings.userVitals.weight?.takeIf { it.isFinite() && it>0.0 } ?: return null
+        val total=exercises.sumOf { exercise ->
+            val details=exercise.cardioDetails!!
+            CardioCalorieEngine.estimate(CardioCalorieInput(details=details,weightKg=weight,durationSeconds=details.effectiveDurationSeconds()))
         }
-
-        val weight = settings.userVitals.weight
-        val cardioExercises = (variantSession.exercises + variantSession.parts.flatMap { it.exercises })
-            .filter { it.cardioDetails != null }
-        // Cardio: solo para ejercicios con cardioDetails. Sin peso válido o con
-        // suma 0 el gasto es desconocido, no un descanso.
-        val cardioKcal = if (cardioExercises.isNotEmpty()) {
-            if (weight == null || !weight.isFinite() || weight <= 0.0) return null
-            val total = cardioExercises.sumOf { exercise ->
-                val details = exercise.cardioDetails!!
-                CardioCalorieEngine.estimate(
-                    CardioCalorieInput(
-                        details = details,
-                        weightKg = weight,
-                        durationSeconds = details.effectiveDurationSeconds(),
-                    ),
-                )
-            }
-            if (total <= 0.0) return null
-            total
-        } else {
-            0.0
-        }
-
-        val total = strengthKcal + cardioKcal
-        return if (total > 0.0 && total.isFinite()) total else null
-    }
-
-    /**
-     * Evidencia de carga por serie (NO un cálculo calórico paralelo): se
-     * consulta la MISMA resolución que usa el motor al puntuar
-     * ([TrainingEnergyEngine.resolvePlannedExternalLoadKg]) y manda su
-     * [TrainingEnergyEngine.ResolvedLoadSource]:
-     *
-     * - Fuente externa resuelta (peso explícito, %1RM, 1RM+intensidad,
-     *   sugerida): la carga del implemento es conocida ⇒ estimable.
-     * - `BODYWEIGHT_ONLY`: la fuente declara **0 kg externos de verdad** (el
-     *   cuerpo es la carga) ⇒ estimable sólo con peso corporal conocido y
-     *   participación corporal real (si no, el motor no la puntúa).
-     * - `MISSING`: carga externa **desconocida**. La participación corporal
-     *   parcial NO la tapa: una sentadilla con %1RM sin RM resuelto tiene
-     *   `externalLoad == null` y `bodyweightParticipation > 0`, pero el
-     *   implemento falta ⇒ gasto desconocido ⇒ la sesión no es estimable y el
-     *   reparto cae a uniforme provisional (nunca a un número fabricado).
-     *
-     * Una serie de trabajo (con reps o duración) sin esa evidencia deja la
-     * sesión sin estimar, aunque otras series hayan aportado kcal
-     * (`totalKcal.mid > 0` por sí solo no prueba nada).
-     */
-    private fun workingSetsHaveLoadEvidence(session: Session, settings: Settings): Boolean {
-        val weight = settings.userVitals.weight
-        val bodyweightKnown = weight != null && weight.isFinite() && weight > 0.0
-        val strengthExercises = (session.exercises + session.parts.flatMap { it.exercises })
-            .filter { it.cardioDetails == null }
-        for (exercise in strengthExercises) {
-            val dbInfo = resolveCatalogExerciseInfo(
-                catalogConfigurationId = exercise.catalogConfigurationId,
-                exerciseDbId = exercise.exerciseDbId,
-                exerciseId = exercise.exerciseId,
-                exerciseName = exercise.name,
-            )
-            val bodyweightPart = TrainingEnergyEngine.bodyweightParticipation(dbInfo)
-            for (set in exercise.sets) {
-                val isWorkingSet = set.plannedRepAnchor() != null || set.targetDuration != null
-                if (!isWorkingSet) continue
-                val resolved = TrainingEnergyEngine.resolvePlannedExternalLoadKg(
-                    exercise,
-                    set,
-                    settings.weightUnit,
-                )
-                val externalLoad = resolved.externalLoadKg
-                val hasEvidence = when (resolved.source) {
-                    // Carga del implemento resuelta por la fuente del motor.
-                    ResolvedLoadSource.EXPLICIT_WEIGHT,
-                    ResolvedLoadSource.PERCENT_1RM,
-                    ResolvedLoadSource.ONE_RM_INTENSITY,
-                    ResolvedLoadSource.SUGGESTED_FROM_1RM,
-                    -> externalLoad != null && externalLoad > 0.0
-                    // 0 kg externos declarados por la propia fuente: el cuerpo
-                    // es la carga, pero sólo cuenta si el motor la puntúa.
-                    ResolvedLoadSource.BODYWEIGHT_ONLY -> bodyweightPart > 0.0 && bodyweightKnown
-                    // Externo desconocido: el cuerpo parcial NO lo tapa.
-                    ResolvedLoadSource.MISSING -> false
-                }
-                if (!hasEvidence) return false
-            }
-        }
-        return true
+        return total.takeIf { it.isFinite() && it>0.0 }
     }
 
     /** Estimaciones por variante de UNA sesión; B/C/D solo si están materializadas. */

@@ -51,7 +51,7 @@ internal fun CockpitSessionSummary(
     omittedSetKeys: Set<String>,
     currentExerciseId: String?,
     supersetGroups: List<SupersetGroup>,
-    liveEnergySummary: SessionEnergySummary,
+    liveEnergySummary: SessionEnergySummary?,
     bodyWeight: Double?,
     startTimeMs: Long,
     targetMinutes: Int?,

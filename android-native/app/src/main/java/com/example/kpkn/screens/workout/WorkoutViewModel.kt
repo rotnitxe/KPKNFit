@@ -19,7 +19,6 @@ import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
 import com.example.kpkn.domain.discomfort.DiscomfortHistory
 import com.example.kpkn.domain.discomfort.DiscomfortSession
-import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
@@ -349,11 +348,6 @@ class WorkoutViewModel(
             override fun inferPlannedIntensity(set: ExerciseSet) = this@WorkoutViewModel.inferPlannedIntensity(set)
             override suspend fun evaluateSetEntryV3(entry: SetEntryV2) = this@WorkoutViewModel.evaluateSetEntryV3(entry)
             override fun workoutStepPositions(state: WorkoutUiState) = this@WorkoutViewModel.workoutStepPositions(state)
-            override fun recomputeLiveEnergy(
-                completedSets: Map<String, CompletedSet>,
-                allExercises: List<Exercise>,
-                settings: Settings,
-            ) = this@WorkoutViewModel.recomputeLiveEnergy(completedSets, allExercises, settings)
             override fun computeImbalanceNotice(
                 exercise: Exercise,
                 setIdx: Int,
@@ -580,9 +574,6 @@ class WorkoutViewModel(
         abortRestTimer = ::abortRestTimerHard,
         reconcileFromRoom = {
             if (!_uiState.value.isCancellingWorkout && !_uiState.value.wasCancelled) loadSession()
-        },
-        recomputeLiveEnergy = { completedSets, exercises ->
-            recomputeLiveEnergy(completedSets, exercises, repository.settings.value)
         },
         refreshLoadSuggestions = { state, exerciseId -> refreshLoadSuggestions(state, onlyExerciseId = exerciseId) },
         refreshCalibrations = { previous, next ->
@@ -2201,18 +2192,7 @@ class WorkoutViewModel(
         return (set.weight.coerceAtLeast(0.0) + 1.0) * metric
     }
 
-    private fun recomputeLiveEnergy(
-        completedSets: Map<String, CompletedSet>,
-        allExercises: List<Exercise>,
-        settings: Settings,
-    ): SessionEnergySummary {
-        val completedExercises = buildLiveCompletedExercises(completedSets, allExercises)
 
-        return TrainingEnergyEngine.estimateLiveSession(
-            completedExercises = completedExercises,
-            settings = settings,
-        )
-    }
 
     /** Drenaje acumulado de la sesión en vivo (SNC, muscular, espinal en %). */
     fun liveDrainSummary(): Triple<Int, Int, Int>? = null
@@ -7259,7 +7239,7 @@ class WorkoutViewModel(
             weekNumber = state.livePlanContext?.weekIndexInBlock,
             history = repository.history.value.filter { it.id != currentLogId && com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) < state.startTimeMs },
             photos = (photos + legacyPhotos + state.sessionPhotos.map { StoryPhoto(it) }).distinctBy { it.path },
-            calories = state.liveEnergySummary.totalKcal.mid.takeIf { it > 0 },
+            calories = null,
             records = state.sessionMilestones.count { it.kind == "pr_e1rm" },
         )
     }

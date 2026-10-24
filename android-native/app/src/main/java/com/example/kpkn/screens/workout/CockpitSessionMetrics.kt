@@ -20,7 +20,7 @@ internal fun cockpitSessionMetrics(
     completedSets: Map<String, CompletedSet>,
     completedExercises: List<CompletedExercise>,
     omittedSetKeys: Set<String>,
-    energy: SessionEnergySummary,
+    energy: SessionEnergySummary?,
     bodyWeight: Double?,
 ): CockpitSessionMetrics {
     val sets = completedExercises.filter { it.cardioDetails == null }.flatMap { it.sets }

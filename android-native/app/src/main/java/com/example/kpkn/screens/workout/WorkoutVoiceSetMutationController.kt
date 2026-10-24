@@ -75,7 +75,6 @@ internal class WorkoutVoiceSetMutationController(
     private val abortRestTimer: () -> Unit,
     /** Reloads the session from Room; used only when the committed UI publication failed twice. */
     private val reconcileFromRoom: suspend () -> Unit,
-    private val recomputeLiveEnergy: ((Map<String, CompletedSet>, List<Exercise>) -> SessionEnergySummary)? = null,
     private val refreshLoadSuggestions: ((WorkoutUiState, String) -> Unit)? = null,
     private val gateWaitMs: Long = DEFAULT_GATE_WAIT_MS,
     private val clock: () -> Long = System::currentTimeMillis,
@@ -222,19 +221,7 @@ internal class WorkoutVoiceSetMutationController(
                 is Prepared.Ready -> prepared
             }
 
-            // One transform for Room and for the UI. Live energy is computed once from the captured
-            // result and carried to the publication, like the set recorder does.
-            val exercises = visibleExercises(captured)
-            val energy = recomputeLiveEnergy?.let { recompute ->
-                try {
-                    recompute(ready.transform(captured).completedSets, exercises)
-                } catch (cancelled: CancellationException) {
-                    throw cancelled
-                } catch (error: Throwable) {
-                    logFailure(op, "live_energy", error)
-                    null
-                }
-            }
+            // Preserve the captured mutation and calibration atomically; no physiological/energy predictor runs.
             val transformed = ready.transform(captured)
             val calibrated = refreshCalibrations(captured, transformed)
             // Merge only entries changed by calibration; preserve unrelated concurrent UI entries.
@@ -242,8 +229,7 @@ internal class WorkoutVoiceSetMutationController(
             val apply: (WorkoutUiState) -> WorkoutUiState = { state ->
                 val next = ready.transform(state)
                 next.copy(completedSets = next.completedSets + correctedSets,
-                    calibrationDecisions = calibrated.calibrationDecisions,
-                    liveEnergySummary = energy ?: next.liveEnergySummary)
+                    calibrationDecisions = calibrated.calibrationDecisions)
             }
             val candidate = apply(captured)
             val publish: () -> Unit = {

@@ -67,7 +67,7 @@ internal fun LiveSessionSheetsHost(
     omittedSetKeys: Set<String> = emptySet(),
     currentExerciseId: String? = null,
     supersetGroups: List<SupersetGroup> = emptyList(),
-    liveEnergySummary: SessionEnergySummary = SessionEnergySummary(),
+    liveEnergySummary: SessionEnergySummary? = null,
     bodyWeight: Double? = null,
     startTimeMs: Long = 0L,
     targetMinutes: Int? = null,
@@ -158,10 +158,10 @@ internal fun LiveSessionTimerContent(timer: LiveSessionTimerState, clock: () -> 
 }
 
 @Composable
-internal fun LiveSessionCaloriesContent(summary: SessionEnergySummary, bodyWeight: Double?) {
-    val status = sessionCalorieStatus(summary, summary.exerciseContributions.sumOf { it.completedSets }, bodyWeight)
+internal fun LiveSessionCaloriesContent(summary: SessionEnergySummary?, bodyWeight: Double?) {
+    val status = sessionCalorieStatus(summary, summary?.exerciseContributions?.sumOf { it.completedSets } ?: 0, bodyWeight)
     Column(Modifier.fillMaxWidth().padding(24.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("Calorías quemadas", style = KpknType.bodyStrong, color = WizardColors.textMuted)
+        Text("Energía registrada", style = KpknType.bodyStrong, color = WizardColors.textMuted)
         status.kcal?.let { Text("≈ $it kcal", style = KpknType.metricXL, color = WizardColors.text) }
         status.hint?.let { Text(it, style = KpknType.body, color = WizardColors.textMuted) }
     }

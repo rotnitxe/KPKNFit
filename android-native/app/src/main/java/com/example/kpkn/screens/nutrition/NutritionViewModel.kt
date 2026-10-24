@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.domain.energy.TrainingEnergyEngine
+import com.example.kpkn.domain.nutrition.RecordedEnergyBalance
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.domain.training.AppClock
 import com.example.kpkn.domain.training.SystemAppClock
@@ -516,7 +516,7 @@ class NutritionViewModel(
         // This existing balance presents the known subtotal. The companion state above
         // retains missing/estimated/conflicting data; a missing value is not measured zero.
         val trainingBurn = activity.balanceMidpointKcal ?: 0
-        TrainingEnergyEngine.calculateDailyEnergyBalance(
+        RecordedEnergyBalance.calculateDailyEnergyBalance(
             consumedKcal = consumedKcal,
             trainingBurnKcal = trainingBurn,
             targetKcal = targetKcal,

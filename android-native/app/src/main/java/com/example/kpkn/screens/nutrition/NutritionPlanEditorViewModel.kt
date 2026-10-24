@@ -122,7 +122,7 @@ class NutritionPlanEditorViewModel(
     /**
      * Consumidor REAL del calendario de entrenamiento (no un simple setter): el
      * gasto previsto por fecha llega del adaptador [NutritionTrainingCalendarAdapter]
-     * sobre el programa real vía [ProgramCalendarEngine] + [TrainingEnergyEngine]
+     * sobre el programa real y las estimaciones de cardio compatibles del calendario
      * + [CardioCalorieEngine]. Un cambio de programa activo, de la lista de
      * programas o de los ajustes re-proyecta el gasto y re-reparte la semana
      * (hoy/pasado quedan fijados; el futuro se redistribuye).
