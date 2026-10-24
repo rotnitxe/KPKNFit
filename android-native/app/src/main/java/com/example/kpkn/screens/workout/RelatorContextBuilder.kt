@@ -87,7 +87,6 @@ internal data class RelatorUiSlice(
     val wellbeingStress: Int?,
     val wellbeingDoms: Int?,
     val exerciseReadinessScore: Int?,
-    val coachKey: String?,
     val milestonesSize: Int,
     val targetMinutes: Int?,
     val startTimeMs: Long,
@@ -128,7 +127,6 @@ internal data class RelatorUiSlice(
                 wellbeingStress = state.todayWellbeing?.stressLevel,
                 wellbeingDoms = state.todayWellbeing?.doms,
                 exerciseReadinessScore = readiness?.overallScore,
-                coachKey = state.currentCoachMessage?.key,
                 milestonesSize = state.sessionMilestones.size,
                 targetMinutes = state.customTargetDurationMinutes ?: state.targetDurationMinutes,
                 startTimeMs = state.startTimeMs,
@@ -657,12 +655,6 @@ internal object RelatorContextBuilder {
                 } else {
                     warmupRemaining
                 },
-            ),
-            coach = RelatorCoachSlice(
-                key = state.currentCoachMessage?.key,
-                title = state.currentCoachMessage?.title,
-                body = state.currentCoachMessage?.body,
-                action = state.currentCoachMessage?.action?.name,
             ),
             media = RelatorMediaSlice(previousCount = 0),
             milestone = RelatorMilestoneSlice(

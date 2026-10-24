@@ -1386,7 +1386,6 @@ fun WorkoutScreen(
             onConfirm = { notes, effort ->
                 viewModel.finishWorkout(notes = notes, fatigueLevel = 0,
                     closingFeedback = SessionClosingFeedback(
-                        overallFatigue = 0, systemAdjustment = 0, muscularAdjustment = 0, structureAdjustment = 0,
                         discomforts = emptyList(), sessionEffortRpe = effort,
                         finishOperationId = uiState.finishResumeSnapshot?.finishOperationId,
                         completionInstantIso = uiState.finishResumeSnapshot?.completionInstantIso,

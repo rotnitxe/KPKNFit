@@ -228,7 +228,6 @@ data class WorkoutUiState(
     // Auto-regulación: ajuste dinámico del peso objetivo del siguiente set.
     val currentAutoRegulation: SetAutoRegulation? = null,
     // Mensaje contextual basado en fatiga y recuperación.
-    val currentCoachMessage: CoachMessage? = null,
     val imbalanceNotice: String? = null,
     val setDrafts: Map<String, WorkoutSetDraft> = emptyMap(),
     val manualLoadOverrides: Map<String, Double> = emptyMap(),

@@ -155,32 +155,14 @@ internal fun backfillCompletedSetIntensityFromPostExerciseFeedbacks(
 }
 
 data class SessionClosingFeedback(
-    val overallFatigue: Int,
-    val systemAdjustment: Int,
-    val muscularAdjustment: Int,
-    val structureAdjustment: Int,
     val discomforts: List<String>,
-    val clarityRating: Int = 5,           // 1–10: mental clarity / freshness at end
-    val environmentTags: List<String> = emptyList(), // e.g. "buen sueño", "estresado"
-    val finalNeuralBattery: Int? = null,
-    val finalSpinalBattery: Int? = null,
-    val finalMuscularBattery: Int? = null,
-    val finalMuscleBatteries: Map<String, Int> = emptyMap(),
-    /** True when the user dragged/edited the neural ring vs engine seed. */
-    val neuralEdited: Boolean = false,
-    /** True when the user dragged/edited the spinal ring vs engine seed. */
-    val spinalEdited: Boolean = false,
-    /** True when the user edited any per-muscle slider vs engine seed. */
-    val musclesEdited: Boolean = false,
-    /** Exact per-muscle keys whose final value differs from the automatic seed. */
-    val editedMuscleKeys: Set<String> = emptySet(),
-    /** Frozen finish metadata shared by preview and persisted log. */
+    val clarityRating: Int? = null,
+    val environmentTags: List<String> = emptyList(),
     val finishOperationId: String? = null,
     val completionInstantIso: String? = null,
     val completedSetInputHash: String? = null,
     val additionalDiscomfortNote: String? = null,
     val stillPresentDiscomfortIds: List<String> = emptyList(),
-    val ringStartSnapshot: RingStartSnapshot? = null,
     val sessionEffortRpe: Double? = null,
 )
 

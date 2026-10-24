@@ -6654,12 +6654,6 @@ class WorkoutViewModel(
         if (state.completedSets.isEmpty()) return
         val additionalNote = state.voiceFinalAdditionalDiscomfortNote?.trim()?.takeIf { it.isNotBlank() }
         val closingFeedback = SessionClosingFeedback(
-            overallFatigue = 0,
-            // Sin preview post-sesión en este camino (vive en la sheet): ajustes neutros
-            // para no doble-contar el drenaje que el engine calcula del log real.
-            systemAdjustment = 0,
-            muscularAdjustment = 0,
-            structureAdjustment = 0,
             discomforts = (
                 state.voiceFinalDiscomforts.map { discomfortLabel(it) } +
                     listOfNotNull(additionalNote)
