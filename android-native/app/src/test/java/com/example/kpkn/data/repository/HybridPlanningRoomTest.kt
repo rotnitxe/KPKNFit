@@ -140,7 +140,7 @@ class HybridPlanningRoomTest {
                 exerciseId = "manual-cardio", exerciseName = "Cardio",
                 sets = listOf(CompletedSet("set", calories = 900.0)),
             )),
-            energySummary = SessionEnergySummary(
+            energySummary = SessionEnergySummary(methodVersion = "independent-recorded-fixture-v1",
                 source = EnergyEstimateSource.FINAL, totalKcal = CalorieRange(200, 300, 400),
             ),
         )

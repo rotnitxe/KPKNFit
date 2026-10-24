@@ -22,7 +22,7 @@ private func encodeModel<T: Encodable>(_ value: T) -> String {
         var decoded = try JSONSerialization.jsonObject(with:bytes,options:[.fragmentsAllowed])
         if value is WorkoutLog, var log = decoded as? [String:Any] {
             for key in ["sessionStressScore","muscularImpactV2","ringStartSnapshot","postSessionPreview"] { log.removeValue(forKey:key) }
-            if let energy=log["energySummary"] as? [String:Any], (energy["methodVersion"] as? String ?? "auge-energy-v1").hasPrefix("auge-energy") { log.removeValue(forKey:"energySummary") }
+            if let energy=log["energySummary"] as? [String:Any], isRetiredTrainingEnergyMethod(energy["methodVersion"] as? String) { log.removeValue(forKey:"energySummary") }
             if let exercises=log["completedExercises"] as? [[String:Any]] {
                 log["completedExercises"] = try exercises.map { exercise -> [String:Any] in
                     var item=try LegacyExerciseCoefficientImport.completedExercise(exercise)
@@ -303,7 +303,7 @@ extension WorkoutLog {
 
 extension WorkoutLogEntity {
     func toWorkoutLog() -> WorkoutLog {
-        decodeModel(WorkoutLog.self, from: data)!
+        decodeModel(WorkoutLog.self, from: data)!.copy(discardRetiredEnergy: true)
     }
 }
 

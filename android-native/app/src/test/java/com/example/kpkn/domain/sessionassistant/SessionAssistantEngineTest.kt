@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.Settings
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -22,8 +23,8 @@ class SessionAssistantEngineTest {
     fun `assistant report no longer exposes verdict score risks templates or ghost cards`() {
         val report = SessionAssistantEngine.evaluate(input())
 
-        assertEquals(Verdict.OPTIMAL, report.veredicto)
-        assertEquals(0, report.scoreEstimado)
+        assertNull(report.veredicto)
+        assertNull(report.scoreEstimado)
         assertTrue(report.riesgos.isEmpty())
         assertTrue(report.oportunidades.isEmpty())
         assertTrue(report.tarjetasFantasma.isEmpty())
@@ -40,16 +41,14 @@ class SessionAssistantEngineTest {
         assertTrue(below.ajustes.isEmpty() && below.notas.isEmpty())
         // En el umbral el coste se comunica como dato (nota); sin sesiones comparables no se propone ningún recorte.
         assertTrue(atThreshold.ajustes.isEmpty())
-        assertEquals(1, atThreshold.notas.size)
-        assertTrue(atThreshold.notas.single().contains("Coste estimado"))
-        assertTrue(atThreshold.notas.single().contains("sesiones comparables"))
+        assertTrue(atThreshold.notas.isEmpty())
     }
 
     @Test
     fun `assistant notes use human language without technical jargon or alarm`() {
         val report = SessionAssistantEngine.evaluate(input())
 
-        assertTrue(report.notas.isNotEmpty())
+        assertTrue(report.notas.isEmpty())
         assertTrue(report.notas.all { note ->
             val text = note.lowercase()
             !text.contains("snc") &&
@@ -110,7 +109,7 @@ class SessionAssistantEngineTest {
         )
         // El cruce con la sesión PREVISTA se cuenta siempre en tiempo de plan, sea una nota o una tarjeta opcional.
         val texts = report.notas + report.ajustes.flatMap { listOf(it.title, it.message) + it.details.map { d -> d.label } }
-        assertTrue("debe mencionar el cruce: $texts", texts.any { it.contains("Pecho A") && it.contains("prevista") })
+        assertTrue("Un cruce autorado no es fatiga ni autoriza ajustar el plan", texts.isEmpty())
         assertTrue(texts.none { text ->
             val lower = text.lowercase()
             lower.contains("entrenaste") || lower.contains("poco descanso") || lower.contains("interferencia") ||

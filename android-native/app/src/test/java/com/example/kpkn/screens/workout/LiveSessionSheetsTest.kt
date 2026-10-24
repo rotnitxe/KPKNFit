@@ -155,14 +155,14 @@ class LiveSessionSheetsTest {
         rule.runOnIdle { assertEquals(1, retries) }
         rule.onNodeWithText("Esta sesión", substring = true).assertIsDisplayed()
     }
-    @Test fun routeKeepsRingsSupersetSelectionAndExerciseOptions() {
+    @Test fun routeKeepsAuthoredSupersetSelectionAndExerciseOptions() {
         var selected: String? = null; var options: String? = null
         val first = Exercise("first", "Zancada", sets = listOf(ExerciseSet("s1")))
         val second = Exercise("second", "Curl", sets = listOf(ExerciseSet("s2")))
         val group = SupersetGroup(id = "super", exerciseOrder = listOf(first.id, second.id), rounds = 3)
         content { LiveSessionSheetsHost(LiveSessionDestination.ROUTE, {}, exercises = listOf(first, second),
             supersetGroups = listOf(group), onSelectSuperset = { selected = it }, onOpenSupersetOptions = { options = it }) }
-        rule.onNodeWithText("RINGS EN VIVO").assertIsDisplayed()
+        rule.onNodeWithText("Ruta de la sesión").assertIsDisplayed()
         rule.onNodeWithContentDescription("Opciones de Zancada + Curl").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(first.id, options) }
         rule.onNodeWithText("Zancada + Curl").performScrollTo().performClick()

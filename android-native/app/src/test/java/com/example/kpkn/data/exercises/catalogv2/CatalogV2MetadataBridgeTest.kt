@@ -32,6 +32,7 @@ class CatalogV2MetadataBridgeTest {
         val info = ExerciseMuscleInfo(
             id = configuration.id,
             name = definition.canonicalName,
+            technicalDifficulty = configuration.profile.technicalDifficulty,
             catalogRevision = catalog.catalogRevision,
             catalogDefinitionId = definition.id,
             catalogConfigurationId = configuration.id,

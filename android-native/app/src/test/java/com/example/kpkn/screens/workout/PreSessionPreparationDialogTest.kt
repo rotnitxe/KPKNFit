@@ -37,9 +37,9 @@ class PreSessionPreparationDialogTest {
             MaterialTheme { PreSessionPreparationDialog(notes,listOf("Registro manual · 5 km · 28 min"),
                 listOf("Molestia registrada: rodilla"),{notes=it},{continued=true}) }
         }
-        compose.onNode(hasSetTextAction()).performScrollTo().performTextInput("Cansancio declarado hoy")
         compose.capturePrivateTrainingEvidence("before-recorded-context")
-        compose.onNodeWithText("Continuar").performClick()
+        compose.onNode(hasSetTextAction()).performScrollTo().performTextInput("Cansancio declarado hoy")
+        compose.onNodeWithText("Continuar").assertIsDisplayed().performClick()
         assertEquals("Cansancio declarado hoy",notes);assertTrue(continued)
     }
 }

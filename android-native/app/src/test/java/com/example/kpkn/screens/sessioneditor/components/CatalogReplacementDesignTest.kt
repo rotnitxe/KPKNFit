@@ -115,7 +115,7 @@ class CatalogReplacementDesignTest {
         )
 
     @Test
-    fun sinCargaAxialSoloSiElActualLaTiene() {
+    fun aReplacementDoesNotInventAnAxialDifference() {
         val press = candidate("leg_press", "machine", "quadriceps", axial = 0.0, laterality = ExerciseLateralityV2.BILATERAL)
         val material = exerciseCatalogOptionLabel("machine", "leg_press")
 
@@ -151,7 +151,7 @@ class CatalogReplacementDesignTest {
             },
         )
 
-        assertEquals("Sin carga axial", line(press, anchor(axial = 0.6)))
+        assertNull(line(press, anchor(axial = 0.6)))
         assertNull("sin implemento ni diferencia no hay línea", line(press, anchor(axial = 0.0)))
     }
 

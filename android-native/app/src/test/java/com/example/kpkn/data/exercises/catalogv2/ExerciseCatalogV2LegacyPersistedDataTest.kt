@@ -124,6 +124,7 @@ class ExerciseCatalogV2LegacyPersistedDataTest {
         val info = ExerciseMuscleInfo(
             id = "config",
             name = "Padre",
+            technicalDifficulty = 2.0,
             catalogRevision = "v2",
             catalogDefinitionId = "parent",
             catalogConfigurationId = "config",
@@ -138,6 +139,7 @@ class ExerciseCatalogV2LegacyPersistedDataTest {
         val rebuilt = info.toResolvedExerciseProfileV2()
         assertNotNull(rebuilt)
         assertEquals("profile", rebuilt!!.performanceProfileId)
+        assertEquals(2.0, rebuilt.technicalDifficulty, 0.0)
         assertEquals(listOf("Setup."), rebuilt.setupCues)
         assertEquals(listOf("Execute."), rebuilt.executionCues)
     }

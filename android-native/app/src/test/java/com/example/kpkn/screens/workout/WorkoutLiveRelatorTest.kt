@@ -1237,11 +1237,11 @@ class WorkoutLiveRelatorTest {
      * que es el que pone idleCycle a 1. En el momento de la serie no sale.
      */
     @Test
-    fun axialConceptWaitsForIdleNudgeMoment() {
+    fun authoredRpeConceptWaitsForIdleNudgeMoment() {
         val snap = baseSnapshot(
             family = RelatorFamily.SQUAT,
             exerciseDisplayName = "Sentadilla trasera",
-            
+            intensityMode = IntensityMode.RPE,
         )
         val first = WorkoutLiveRelator.resolve(snap).text!!.lowercase()
         assertTrue(first.contains("serie 1"))
@@ -1252,7 +1252,7 @@ class WorkoutLiveRelatorTest {
         assertEquals(RelatorMoment.IDLE_NUDGE, moment)
         val idleCycle = if (moment == RelatorMoment.IDLE_NUDGE) 1 else 0
         val later = WorkoutLiveRelator.resolve(snap.copy(idleCycle = idleCycle))
-        assertTrue(later.text!!.lowercase().contains("carga axial"))
+        assertTrue(later.text!!.lowercase().contains("rpe"))
         assertEquals(RelatorSpeechBucket.CONCEPT_CUE.phaseKey(), later.phaseKey)
     }
 

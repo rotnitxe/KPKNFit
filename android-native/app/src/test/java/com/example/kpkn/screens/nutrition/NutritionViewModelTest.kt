@@ -679,7 +679,7 @@ class NutritionViewModelTest {
         date = date,
         durationMinutes = 45,
         actualDate = actualDate,
-        energySummary = SessionEnergySummary(
+        energySummary = SessionEnergySummary(methodVersion = "independent-recorded-fixture-v1",
             totalKcal = CalorieRange(low = burnKcal, mid = burnKcal, high = burnKcal),
             source = EnergyEstimateSource.FINAL,
         ),

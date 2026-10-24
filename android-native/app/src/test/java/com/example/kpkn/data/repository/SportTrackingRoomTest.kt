@@ -67,7 +67,7 @@ class SportTrackingRoomTest {
         val repo = fresh()
         val future = doc("future", SportDocumentPurpose.OBSERVATION).copy(engineId = "future.engine", version = 98)
         repo.finalizeWorkout(WorkoutLog("existing", "", "session", "Existing activity", "2026-10-18", 55,
-            energySummary = SessionEnergySummary(totalKcal = CalorieRange(100, 120, 140), source = EnergyEstimateSource.FINAL),
+            energySummary = SessionEnergySummary(methodVersion = "independent-recorded-fixture-v1", totalKcal = CalorieRange(100, 120, 140), source = EnergyEstimateSource.FINAL),
             sportDocuments = listOf(future)))
         val before = repo.history.value.single()
         val service = SportTrackingService(repo, SportTrackingRegistry(listOf(engine)))
@@ -80,6 +80,21 @@ class SportTrackingRoomTest {
         assertTrue(service.upsertCompletedResults(before.id, listOf(doc("manual", SportDocumentPurpose.OBSERVATION))) is SportTrackingSaveResult.Saved)
         assertEquals(1, repo.history.value.size)
         assertEquals(2, repo.history.value.single().sportDocuments.size)
+    }
+
+    @Test fun `retired energy is removed consistently from durable state and cache without losing originals`() = runBlocking {
+        val repo = fresh()
+        val input = WorkoutLog("retired-energy", "", "session", "Original", "2026-10-18", 17,
+            notes = "Nota original", actualDurationSeconds = 61,
+            energySummary = SessionEnergySummary(methodVersion = "auge-energy-v2", totalKcal = CalorieRange(100,120,140)))
+        repo.finalizeWorkout(input)
+        val cached = repo.history.value.single()
+        val stored = repo.databaseForTests().workoutLogDao().getById(input.id)!!.toWorkoutLog()!!
+        assertEquals(cached, stored)
+        assertNull(cached.energySummary)
+        assertEquals(input.notes, cached.notes)
+        assertEquals(input.actualDurationSeconds, cached.actualDurationSeconds)
+        assertEquals(input.id, cached.id)
     }
 
     @Test fun `invalid purpose cannot write or create a log and storage failure cannot report saved`() = runBlocking {

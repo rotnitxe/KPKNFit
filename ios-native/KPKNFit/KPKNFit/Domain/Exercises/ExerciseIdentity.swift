@@ -459,7 +459,8 @@ extension ProgramWeek {
 extension WorkoutLog {
     public func copy(
         completedExercises: [CompletedExercise]? = nil,
-        postExerciseReports: [ExerciseDiscomfortReport]? = nil
+        postExerciseReports: [ExerciseDiscomfortReport]? = nil,
+        discardRetiredEnergy: Bool = false
     ) -> WorkoutLog {
         WorkoutLog(
             id: id,
@@ -473,7 +474,7 @@ extension WorkoutLog {
             discomforts: discomforts,
             notes: notes,
             totalVolume: totalVolume,
-            energySummary: energySummary,
+            energySummary: discardRetiredEnergy && isRetiredTrainingEnergyMethod(energySummary?.methodVersion) ? nil : energySummary,
             weekId: weekId,
             macroIndex: macroIndex,
             mesoIndex: mesoIndex,

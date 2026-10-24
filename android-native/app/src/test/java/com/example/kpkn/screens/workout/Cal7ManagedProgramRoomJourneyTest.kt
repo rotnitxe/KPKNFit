@@ -146,7 +146,7 @@ class Cal7ManagedProgramRoomJourneyTest {
                         assertNull(pending)
                         assertTrue(f.program.runState!!.autoregulationAudit.isEmpty())
                     }
-                    AutoregulationMode.PROPOSE -> {
+                    AutoregulationMode.PROPOSE, AutoregulationMode.AUTO -> {
                         assertTms(initialTms, f.program)
                         assertEquals(PendingProgramActionType.CONFIRM_AUTOREGULATION, pending!!.type)
                         val tmProposals = pending.proposals.filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
@@ -160,13 +160,7 @@ class Cal7ManagedProgramRoomJourneyTest {
                         assertTrue(f.program.runState!!.autoregulationAudit.any {
                             it.resolution == PendingActionResolutionStatus.APPLIED && AutoregulationProposalKind.ADJUST_TM in it.kinds })
                     }
-                    AutoregulationMode.AUTO -> {
-                        assertTms(expected, f.program)
-                        assertNull(pending)
-                        assertTrue(f.program.runState!!.autoregulationAudit.any {
-                            it.mode == AutoregulationMode.AUTO && it.resolution == PendingActionResolutionStatus.APPLIED &&
-                                AutoregulationProposalKind.ADJUST_TM in it.kinds })
-                    }
+
                 }
             } else if (pending != null) {
                 if (pending.type == PendingProgramActionType.CONFIRM_AUTOREGULATION) {

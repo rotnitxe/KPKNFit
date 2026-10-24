@@ -915,7 +915,7 @@ class ProgramRepository private constructor(
     val history: StateFlow<List<WorkoutLog>> = _history.asStateFlow()
 
     fun addWorkoutLog(log: WorkoutLog) = whenHybridCalendarCommitFree {
-        val normalized = log.normalizedIdentityFields()
+        val normalized = checkNotNull(log.normalizedIdentityFields().toEntity().toWorkoutLog()) { "No se pudo preservar el registro" }
         _history.update { listOf(normalized) + it.filterNot { existing -> existing.id == normalized.id } }
         scope.launch {
             ongoingWorkoutMutex.withLock {
@@ -1024,7 +1024,7 @@ class ProgramRepository private constructor(
                 val isComplex = program?.structure == ProgramStructure.COMPLEX
                 val breakId = program?.activeCalendarBreakId
 
-                val enriched = if (isCalendarized) {
+                val enrichedCandidate = if (isCalendarized) {
                     val templateWeekId = log.weekId?.let {
                         ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
                     } ?: log.weekId
@@ -1082,6 +1082,7 @@ class ProgramRepository private constructor(
                     ).normalizedIdentityFields()
                 }
 
+                val enriched = checkNotNull(enrichedCandidate.toEntity().toWorkoutLog()) { "No se pudo preservar el registro" }
                 val historyForProgress = listOf(enriched) + _history.value.filterNot { it.id == enriched.id }
                 val progress = if (
                     program != null &&

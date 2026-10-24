@@ -145,3 +145,21 @@ Ningún XCTest se considera ejecutado en este host Linux.
 El campo DTO `spinalScore` se elimina también de ambos modelos activos; solo
 permanece como clave de purga en importadores. `debt` se conserva: es la diferencia
 repeticiones/tiempo objetivo–ejecutado del registro, no deuda fisiológica.
+
+Regresión ampliada de199 clases: se portan los oráculos restantes de etapas/pager
+sin RINGS, chips de anatomía autorada, contenido del asistente sin score/coste ni
+cruces fisiológicos, reemplazos sin coeficiente axial y voz basada en intensidad
+explícita. Las pruebas de tiempo/estructura, pulsaciones, activación única, APRE,
+TM, identidad, notas y medios se mantienen. CAL6/CAL7 AUTO exige confirmación real.
+
+Las fichas de molestias se prueban con informes originales del mismo ejercicio y
+búsqueda canónica: sin zonas «frecuentes» inferidas, porcentajes de causa ni consejo
+de carga personalizado. Los registros previos ya no se rotulan «hoy/esta semana»
+sin esa precisión. Atrás/toque fuera se envían a la ventana de diálogo visible,
+conservando las aserciones de cierre y borrador sobre la sesión intacta.
+
+El perfil tipado de catálogo requiere dificultad técnica explícita; los fixtures
+aportan su valor conocido y comprueban que sobrevive, sin fabricar cero. La energía
+histórica independiente requiere método identificado; los fixtures lo declaran y
+conservan los mismos oráculos numéricos. Se añaden pruebas negativas de métodos
+retirados/desconocidos, caché igual a Room, rango inválido y cero explícito genuino.

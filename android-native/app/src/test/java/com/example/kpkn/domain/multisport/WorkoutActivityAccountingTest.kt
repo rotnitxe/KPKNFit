@@ -14,6 +14,17 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WorkoutActivityAccountingTest {
+    @Test fun retiredOrUnspecifiedMethodsNeverContributeAnEnergyTotal() {
+        for (method in listOf("auge-energy-v1", "auge-energy-v2", "unknown", "")) {
+            val old = WorkoutLog(id="legacy",programId="p",sessionId="s",sessionName="Original",date="2026-10-18",durationMinutes=17,
+                energySummary=SessionEnergySummary(methodVersion=method,source=EnergyEstimateSource.FINAL,totalKcal=CalorieRange(100,120,140)))
+            val result = WorkoutActivityAccounting.summarize(listOf(old))
+            assertNull(result.totalFinalEnergyKcal)
+            assertNull(result.activities.single().finalEnergyKcal)
+            assertTrue(result.hasPartialEnergyTotal)
+        }
+    }
+
     @Test
     fun mixedStrengthAndCardioCountsOnlyTheExistingSessionEnergySummary() {
         val mixedLog = log(
@@ -31,7 +42,7 @@ class WorkoutActivityAccountingTest {
                     sets = listOf(CompletedSet(id = "cardio-set", calories = 500.0)),
                 ),
             ),
-            energy = SessionEnergySummary(
+            energy = SessionEnergySummary(methodVersion = "independent-recorded-fixture-v1",
                 activeKcal = CalorieRange(20, 30, 40),
                 epocKcal = CalorieRange(1, 2, 3),
                 totalKcal = CalorieRange(21, 32, 43),
@@ -328,7 +339,7 @@ class WorkoutActivityAccountingTest {
         mid: Int,
         high: Int,
         source: EnergyEstimateSource,
-    ) = SessionEnergySummary(
+    ) = SessionEnergySummary(methodVersion = "independent-recorded-fixture-v1",
         totalKcal = CalorieRange(low, mid, high),
         source = source,
     )

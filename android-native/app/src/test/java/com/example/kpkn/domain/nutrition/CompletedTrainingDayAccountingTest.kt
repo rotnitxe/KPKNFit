@@ -33,8 +33,8 @@ class CompletedTrainingDayAccountingTest {
     }
 
     @Test fun `planned and live estimates do not enter actual burn and missing is not known zero`() {
-        val planned = log("plan", 400).copy(energySummary = SessionEnergySummary(totalKcal = CalorieRange(400, 400, 400)))
-        val live = log("live", 200).copy(energySummary = SessionEnergySummary(
+        val planned = log("plan", 400).copy(energySummary = SessionEnergySummary(methodVersion = "independent-recorded-fixture-v1", totalKcal = CalorieRange(400, 400, 400)))
+        val live = log("live", 200).copy(energySummary = SessionEnergySummary(methodVersion = "independent-recorded-fixture-v1",
             totalKcal = CalorieRange(200, 200, 200), source = EnergyEstimateSource.LIVE,
         ))
         val missing = log("missing", 0).copy(energySummary = null)
@@ -67,6 +67,6 @@ class CompletedTrainingDayAccountingTest {
     private fun log(id: String, kcal: Int) = WorkoutLog(
         id = id, programId = "p", sessionId = id, sessionName = id,
         date = day.toString(), actualDate = day.toString(), durationMinutes = 30,
-        energySummary = SessionEnergySummary(totalKcal = CalorieRange(kcal, kcal, kcal), source = EnergyEstimateSource.FINAL),
+        energySummary = SessionEnergySummary(methodVersion = "independent-recorded-fixture-v1", totalKcal = CalorieRange(kcal, kcal, kcal), source = EnergyEstimateSource.FINAL),
     )
 }

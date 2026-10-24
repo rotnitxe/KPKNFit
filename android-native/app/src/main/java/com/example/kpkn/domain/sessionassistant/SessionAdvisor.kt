@@ -28,23 +28,12 @@ internal object SessionAdvisor {
     private const val MAX_CARDS = 3
     private const val MAX_DETAILS_PER_CARD = 3
 
-    /** Pico de coste (puntos) a partir del cual el coste estimado se comunica. Señal interna, no un juicio de recuperación. */
-    const val COST_SIGNAL = 60.0
-
     /** Presupuesto de tiempo (AUD1 §2.7): se propone ajuste si el exceso supera max(120 s, 10 % del tiempo disponible). */
     private const val MIN_TIME_EXCESS_SECONDS = 120
     private const val TIME_EXCESS_FRACTION = 0.10
 
     private const val REST_CUT_SECONDS = 15
     private const val MIN_USEFUL_SAVING_SECONDS = 15
-
-    /** Desde este porcentaje un cruce entre sesiones se valora como ajuste; por debajo es solo un dato (AUD1 §2.7). */
-    private const val OVERLAP_CARD_PERCENT = 25
-    private const val OVERLAP_NOTE_PERCENT = 10
-
-    /** Un plan supera a su historial comparable cuando su estrés proyectado excede este múltiplo de la media realizada. */
-    private const val DEVIATION_FACTOR = 1.3
-    private const val MIN_COST_DROP = 0.5
 
     data class Advice(
         val cards: List<AssistantSuggestion>,

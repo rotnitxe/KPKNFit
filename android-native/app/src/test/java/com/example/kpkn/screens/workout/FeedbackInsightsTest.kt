@@ -308,7 +308,7 @@ class FeedbackInsightsTest {
     fun theSheetExplainsADiscomfortOnlyWithEvidenceAndOnlyOnce() = runTest {
         var runs = 0
         val baseline = listOf(10L, 17L, 24L, 31L).map { log(it, completed(sets(20))) }
-        val hist = history(*(baseline + log(3, completed(sets(20)))).toTypedArray())
+        val hist = history(*(baseline + log(3, completed(sets(20)), reports = listOf(report("knee_patellar")))).toTypedArray())
         val source = FeedbackInsightSource(
             inputs = {
                 runs++

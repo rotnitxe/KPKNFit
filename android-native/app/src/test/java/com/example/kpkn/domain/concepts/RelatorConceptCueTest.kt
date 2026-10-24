@@ -26,11 +26,11 @@ class RelatorConceptCueTest {
     )
 
     @Test
-    fun axialOneSpeaksCargaAxial() {
+    fun aSquatNameDoesNotInventAnAxialCoefficient() {
         val cue = pickRelatorConceptCue(
             RelatorConceptSignals( exerciseName = "Sentadilla trasera"),
         )
-        assertEquals("carga-axial", cue?.id)
+        assertNull(cue)
     }
 
     @Test
@@ -56,7 +56,7 @@ class RelatorConceptCueTest {
     }
 
     @Test
-    fun axialBeatsRpeOnSameExercise() {
+    fun authoredRpeDoesNotBecomeAnAxialWarning() {
         val cue = pickRelatorConceptCue(
             RelatorConceptSignals(
                 
@@ -65,7 +65,7 @@ class RelatorConceptCueTest {
                 plannedIntensity = 8.0,
             ),
         )
-        assertEquals("carga-axial", cue?.id)
+        assertEquals("rpe", cue?.id)
     }
 
     @Test
@@ -204,7 +204,7 @@ class RelatorConceptCueTest {
     @Test
     fun pickAlwaysReturnsKnownCue() {
         val cue = pickRelatorConceptCue(
-            RelatorConceptSignals( exerciseName = "Sentadilla"),
+            RelatorConceptSignals(equipmentId = "barbell", exerciseName = "Sentadilla"),
         )
         assertNotNull(cue)
         assertTrue(cue!!.lines.isNotEmpty())

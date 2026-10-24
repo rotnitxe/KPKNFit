@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.multisport
 
+import com.example.kpkn.data.models.isRetiredTrainingEnergyMethod
+
 import com.example.kpkn.data.models.CalorieRange
 import com.example.kpkn.data.models.EnergyEstimateSource
 import com.example.kpkn.data.models.WorkoutLog
@@ -269,7 +271,7 @@ object WorkoutActivityAccounting {
                         activity.log,
                     ))
                 }
-                val energySummary = activity.log.energySummary
+                val energySummary = activity.log.energySummary?.takeUnless { isRetiredTrainingEnergyMethod(it.methodVersion) }
                 if (energySummary != null && energySummary.source != EnergyEstimateSource.FINAL) {
                     add(record.canonicalKey to WorkoutActivityAccountingWarning(
                         WorkoutActivityWarningCode.NON_FINAL_ENERGY,
@@ -318,7 +320,7 @@ object WorkoutActivityAccounting {
 
     private fun toActivity(candidate: Candidate): WorkoutActivity {
         val log = candidate.log
-        val summary = log.energySummary
+        val summary = log.energySummary?.takeUnless { isRetiredTrainingEnergyMethod(it.methodVersion) }
         val energyRange = summary?.totalKcal?.toAccountingRangeOrNull()
         val finalEnergy = if (summary?.source == EnergyEstimateSource.FINAL) energyRange else null
         val estimatedEnergy = if (

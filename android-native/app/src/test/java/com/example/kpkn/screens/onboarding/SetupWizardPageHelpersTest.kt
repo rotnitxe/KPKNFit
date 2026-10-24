@@ -155,12 +155,11 @@ class SetupWizardPageHelpersTest {
     @Test
     fun `las etapas del primer hito dejan basicos celebrado y entreno como siguiente`() {
         val stages = milestoneStages(SetupStepId.MILESTONE_BASICS, route, completed = emptySet())
-        assertEquals(listOf("Básicos", "Entreno", "Nutrición", "Rings", "Revisión"), stages.map { it.label })
+        assertEquals(listOf("Básicos", "Entreno", "Nutrición", "Revisión"), stages.map { it.label })
         assertEquals(
             listOf(
                 OverlayStageState.JUST_DONE,
                 OverlayStageState.NEXT,
-                OverlayStageState.PENDING,
                 OverlayStageState.PENDING,
                 OverlayStageState.PENDING,
             ),
@@ -181,7 +180,6 @@ class SetupWizardPageHelpersTest {
                 OverlayStageState.DONE,
                 OverlayStageState.JUST_DONE,
                 OverlayStageState.NEXT,
-                OverlayStageState.PENDING,
             ),
             stages.map { it.state },
         )

@@ -38,14 +38,14 @@ class HomeMuscleChipsTest {
         rule.onNodeWithText("—", useUnmergedTree = true).assertDoesNotExist()
         rule.onNodeWithText("78 %", useUnmergedTree = true).assertDoesNotExist()
         rule.onNodeWithText("100 %", useUnmergedTree = true).assertDoesNotExist()
-        rule.onNodeWithContentDescription("Pantorrilla").assertExists()
+        rule.onNodeWithContentDescription("Músculo previsto en la sesión: Pantorrilla").assertExists()
     }
 
     @Test
-    fun cada_chip_describe_su_musculo_y_su_porcentaje() {
+    fun cada_chip_describe_el_musculo_autorado_sin_porcentajes() {
         setChips()
 
-        rule.onNodeWithContentDescription("Isquios").assertExists()
+        rule.onNodeWithContentDescription("Músculo previsto en la sesión: Isquios").assertExists()
     }
 
     @Test
@@ -53,7 +53,7 @@ class HomeMuscleChipsTest {
         var opened = 0
         setChips(onOpen = { opened++ })
 
-        rule.onNodeWithContentDescription("Isquios").performClick()
+        rule.onNodeWithContentDescription("Músculo previsto en la sesión: Isquios").performClick()
         assertEquals(1, opened)
     }
 }

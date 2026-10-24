@@ -4,6 +4,10 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.view.View
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedDispatcherOwner
+import org.robolectric.shadows.ShadowDialog
+import androidx.compose.ui.test.isDialog
+import androidx.compose.ui.test.onNode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -111,12 +115,18 @@ class LiveLayerDismissTest {
     }
 
     private fun pressBack() {
-        rule.runOnIdle { rule.activity.onBackPressedDispatcher.onBackPressed() }
+        rule.runOnIdle {
+            val dialog=ShadowDialog.getLatestDialog()
+            val owner=if(dialog?.isShowing==true) dialog as? OnBackPressedDispatcherOwner else null
+            (owner?.onBackPressedDispatcher ?: rule.activity.onBackPressedDispatcher).onBackPressed()
+        }
         rule.waitForIdle()
     }
 
     private fun tapOutside() {
-        rule.onRoot().performTouchInput { click(Offset(8f, 8f)) }
+        if (ShadowDialog.getLatestDialog()?.isShowing == true)
+            rule.onNode(isDialog()).performTouchInput { click(Offset(8f,8f)) }
+        else rule.onRoot().performTouchInput { click(Offset(8f, 8f)) }
         rule.waitForIdle()
     }
 

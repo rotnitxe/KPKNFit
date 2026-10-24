@@ -264,8 +264,7 @@ class SessionAdvisorTest {
         )
         val report = SessionAssistantEngine.evaluate(input(s2, logs = listOf(doneLog), ))
         val text = everything(report)
-        assertTrue("lo realizado sí se cuenta como hecho: $text", text.contains("hiciste"))
-        assertTrue(text, text.contains("pierna de ayer"))
+        assertTrue("Las series registradas no producen un ajuste ni un aviso fisiológico: $text", text.isEmpty())
     }
 
     // ─── Efecto de aplicar las acciones ──────────────────────────────────────

@@ -665,7 +665,7 @@ private extension KpknDatabaseInternal {
                     if let algorithm = object["algorithmSettings"] as? [String:Any] { object["algorithmSettings"] = algorithm.filter { !settingsDerived.contains($0.key) && $0.key != "failureFatigueFactor" } }
                 } else if table == "workout_logs" {
                     object = object.filter { !logDerived.contains($0.key) }
-                    if let energy=object["energySummary"] as? [String:Any], (energy["methodVersion"] as? String ?? "auge-energy-v1").hasPrefix("auge-energy") { object.removeValue(forKey:"energySummary") }
+                    if let energy=object["energySummary"] as? [String:Any], isRetiredTrainingEnergyMethod(energy["methodVersion"] as? String) { object.removeValue(forKey:"energySummary") }
                     if let exercises = object["completedExercises"] as? [[String:Any]] {
                         object["completedExercises"] = exercises.map { exercise -> [String:Any] in
                             var e = exercise

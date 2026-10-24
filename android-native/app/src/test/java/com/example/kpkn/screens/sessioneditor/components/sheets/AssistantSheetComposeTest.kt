@@ -71,11 +71,11 @@ class AssistantSheetComposeTest {
                 onCancelTemplateApply = {},
             )
         }
-        // Pestaña inicial: Impacto (la torre de RINGS).
-        rule.onNodeWithText("RINGS DE LA SESIÓN").assertExists()
+        // Pestaña inicial: contenido registrado del programa.
+        rule.onNodeWithText("Contenido del programa").assertExists()
         rule.onNodeWithText("Sugerencias").performClick()
         rule.onNodeWithText("Bajar la intensidad").assertExists()
-        rule.onNodeWithText("RINGS DE LA SESIÓN").assertDoesNotExist()
+        rule.onNodeWithText("Contenido del programa").assertDoesNotExist()
     }
 
     @Test

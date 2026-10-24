@@ -19,27 +19,29 @@ El bundle anterior Rings v4 no se importó; el estado previo sigue recuperable.
 Hash canónico del catálogo:
 `ce1ed8f4ec0c7476e66a353e567717b86cc896fda797d33ee99bb5c788584ce7`.
 El gate mecánico incluye main/debug, iOS, backend y recursos; sus excepciones son
-importadores raw aislados, rutas410 y cuatro líneas de saneamiento SQLite/encode
-iOS identificadas por SHA-256. Complementa la revisión semántica, no la sustituye.
+importadores raw aislados, rutas410 y seis líneas de compatibilidad SQLite/encode y clasificación de método
+Android/iOS identificadas por SHA-256. Complementa la revisión semántica, no la sustituye.
 
 Room termina en34: preservación de originales, purga de derivados/coefs y propuestas
 fisiológicas pendientes. Las propuestas de protocolos se conservan con confirmación.
 iOS termina en23 con la misma frontera de datos. No hay destructive fallback.
 
-## Regresión Android en curso
+## Regresión Android
 
-El editor previo a sesión aún necesita aprobación en el componente completo.
-Se aislaron dos casos mínimos que pasan (campo estándar fuera de diálogo y campo
-básico dentro de diálogo); varias composiciones anteriores quedaron atrapadas en
-medida/recomposición. Las ejecuciones cuyos workers se terminaron para diagnosticar
-el bucle no cuentan como aprobación. El control básico y el viewport acotado se
-están comprobando con las mismas aserciones de edición explícita y continuación
-sin respuesta. No se amplían timeouts ni se elimina la prueba para obtener verde.
+La tanda nativa UI/Room v9 termina con **18 pruebas, cero fallos/errores/omitidas,
+cinco XML y exit0**. Comprueba diálogo completo al130 %, edición explícita,
+continuación sin respuesta, gráfico/restauración, bienvenida Ejemplo, AUTO con
+confirmación y el recorrido Room de disciplina/notas, reinicio y siguiente actividad.
+El bucle se resolvió acotando el ancho de ventana independientemente del contenido;
+no se amplían timeouts ni se omite la prueba. Se mantuvo Robolectric4.12.2 del repo.
 
-También se verifica el recorrido Room de disciplina/notas originales: persistencia,
-reinicio, cierre y nueva actividad sin copiar una declaración anterior como actual.
-Tras resolver estos casos se ejecutará la regresión de suites modificadas y el
-APK Base final. Un APK de un checkpoint anterior no acredita la fuente posterior.
+La regresión ampliada ejecutó **2027 pruebas/199 clases:1990 aprobadas,37 fallos,
+cero errores/omitidas**, con APK Base compilado. No es aprobación final. Se portan
+expectativas restantes de funciones retiradas y se endurece una frontera real de
+energía: el modelo publicado en caché debe ser el mismo que Room sanea, tanto al
+registrar como al corregir. Un método retirado/desconocido no aporta calorías;
+un cero independiente explícito sigue distinguiéndose de ausencia. Las nuevas
+pruebas y la fuente posterior requieren una ejecución nueva y APK final actualizado.
 
 ## Evidencia conservada por checkpoint
 

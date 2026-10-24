@@ -229,7 +229,7 @@ class Cal6AprePrescriptionTest {
         assertNull("el fixture no conoce hora de captura", proposal.apreXrm.reference.capturedAtMs)
         assertTrue(proposal.explanation, proposal.explanation.contains("10RM 162,5 kg para la próxima semana"))
 
-        val applied = ProgramAutoregulationEngine.apply(
+        val applied = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program, weeks[1].id, listOf(proposal), recipe, setOf(week1.id), CatalogCompositionTestSupport.metadata,
         )
         assertTrue(applied.applied)

@@ -69,7 +69,7 @@ fun ProgramEntity.toProgram(): Program = dbJson.decodeFromString(data)
 data class WorkoutLogEntity(@PrimaryKey val id: String, val programId: String, val sessionId: String, val date: String, val data: String)
 fun WorkoutLog.toEntity() = WorkoutLogEntity(id = id, programId = programId, sessionId = sessionId, date = date, data = com.example.kpkn.data.compatibility.LegacyTrainingImport.log(dbJson.encodeToString(this)))
 fun WorkoutLogEntity.toWorkoutLog(): WorkoutLog? = runCatching {
-    dbJson.decodeFromString<WorkoutLog>(data)
+    dbJson.decodeFromString<WorkoutLog>(com.example.kpkn.data.compatibility.LegacyTrainingImport.log(data))
 }.getOrNull()
 
 @Entity(

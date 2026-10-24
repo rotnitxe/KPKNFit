@@ -149,7 +149,7 @@ class ReviewCarouselTest {
                         moment(SetupWizardBlock.TRAINING, "Tu programa"),
                     ),
                     state = SetupWizardState(draft = SetupWizardDraft()),
-                    notices = listOf(ActivationNotice("Tus RINGS se ajustarán con tus primeros entrenos.")),
+                    notices = listOf(ActivationNotice("El programa se activa al confirmar.")),
                     activateEnabled = false,
                     onConfirmActivation = { },
                     onConfirmFixedRecipe = { },
@@ -159,7 +159,7 @@ class ReviewCarouselTest {
             }
         }
         rule.onNodeWithTag("setup-activation-overlay").assertExists()
-        rule.onNodeWithContentDescription("Página 1 de 3").assertExists()
+        rule.onNodeWithContentDescription("Página 1 de 2").assertExists()
         rule.onNodeWithContentDescription("Página 4 de 4").assertDoesNotExist()
         rule.onNodeWithTag("setup-continue").assertIsNotEnabled()
     }
@@ -178,7 +178,7 @@ class ReviewCarouselTest {
                 )
             }
         }
-        rule.onNodeWithContentDescription("Página 1 de 4").assertExists()
+        rule.onNodeWithContentDescription("Página 1 de 3").assertExists()
         rule.onNodeWithTag("setup-activation-page-0").assertExists()
     }
 
@@ -246,7 +246,7 @@ class ReviewCarouselTest {
         // Sin líneas de estado internas ni el enlace «Ver cómo funciona».
         assertTrue(texts.none { it.contains("Ver cómo funciona") || it.startsWith("Estado") || it.contains("Sin datos") })
         assertTrue("Aún falta tu plan de comidas." in texts)
-        assertTrue("Tus RINGS se ajustarán con tus primeros entrenos." in texts)
+        assertTrue(texts.none { it.contains("RINGS", ignoreCase = true) })
     }
 
     @Test

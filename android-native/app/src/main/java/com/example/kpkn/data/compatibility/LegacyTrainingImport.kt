@@ -123,7 +123,7 @@ object LegacyTrainingImport {
     fun log(raw: String): String {
         val obj = parseObject(raw)
         val legacyEnergy = (obj["energySummary"] as? JsonObject)?.let {
-            it["methodVersion"]?.jsonPrimitive?.content?.startsWith("auge-energy") ?: true
+            com.example.kpkn.data.models.isRetiredTrainingEnergyMethod(it["methodVersion"]?.jsonPrimitive?.contentOrNull)
         } == true
         return JsonObject(obj.filterKeys { it !in derivedLog && !(it == "energySummary" && legacyEnergy) }.mapValues { (key,value) ->
             when(key) {

@@ -14,8 +14,6 @@ typealias DiscomfortId = String
  * @property muscles músculos del ejercicio tal como los resuelve la app (`ExerciseMuscleResolver.effectiveMuscles…`).
  * @property sets series HECHAS hoy (las de calentamiento se ignoran aquí).
  * @property technicalQuality calidad técnica 1–10 del feedback del ejercicio, si ya existe.
- * @property axialLoadFactor carga axial del ejercicio (`ExerciseMuscleInfo.axialLoadFactor`, 0–1).
- * @property isImpact ejercicio de impacto (saltos…); ver [DiscomfortCauseEngine.isImpactExercise].
  * @property isUnilateral ejercicio a una pierna o un brazo (`Exercise.isEffectivelyUnilateral()`).
  */
 data class DiscomfortSessionExercise(
@@ -32,7 +30,7 @@ data class DiscomfortSessionExercise(
 
 /**
  * La sesión en curso. [focusExerciseId] es el ejercicio para el que se piden los chips «Frecuentes en <ejercicio>»
- * (y el que acota la regla de molestia persistente); sin él, se mira toda la sesión.
+ * y el que acota los registros por identidad; sin él, se mira toda la sesión.
  */
 data class DiscomfortSession(
     val exercises: List<DiscomfortSessionExercise>,
@@ -63,7 +61,7 @@ enum class DiscomfortEvidenceKind {
 /**
  * Un dato que demuestra algo. [number] es el número real (series, %, sesiones…), [text] la frase corta para la
  * celda «Hoy» / «Esta semana» (con su cifra), [headline] la línea del aviso de F2 y [advice] la acción asociada.
- * [strength] (0–1) ordena las evidencias entre sí.
+ * [strength] es compatibilidad inerte y siempre vale0 en el lector de registros; no ordena causas.
  */
 data class DiscomfortEvidence(
     val kind: DiscomfortEvidenceKind,
@@ -79,7 +77,7 @@ data class DiscomfortEvidence(
  * quedan vacías: la interfaz no inventa nada.
  *
  * @property advice una o dos acciones concretas de la evidencia más fuerte y, al final, `PROFESSIONAL_ADVICE`.
- * @property persistent la misma molestia ya cuenta como persistente (3 sesiones seguidas con el ejercicio).
+ * @property persistent compatibilidad inerte, siempre false; no clasifica persistencia clínica.
  */
 data class DiscomfortInsight(
     val discomfortId: DiscomfortId,
@@ -125,7 +123,7 @@ object RecordedDiscomfortHistory {
         val facts = report?.let { listOf(DiscomfortEvidence(
             kind = DiscomfortEvidenceKind.REPORTED_HISTORY,
             number = it.sessionsCount.toDouble(),
-            text = "${it.sessionsCount} sesiones anteriores con esta molestia registrada para el mismo ejercicio.",
+            text = if (it.sessionsCount == 1) "1 sesión anterior con esta molestia registrada para el mismo ejercicio." else "${it.sessionsCount} sesiones anteriores con esta molestia registrada para el mismo ejercicio.",
             headline = "Molestia registrada anteriormente", advice = "", strength = 0.0)) }.orEmpty()
         return DiscomfortInsight(id, if (report != null) "Registro anterior" else null,
             emptyList(), facts, emptyList(), false, 0.0)

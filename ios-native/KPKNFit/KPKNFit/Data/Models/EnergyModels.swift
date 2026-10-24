@@ -82,7 +82,7 @@ public struct SessionEnergySummary: Codable {
         projectedTotalKcal: Int? = nil,
         confidence: EnergyConfidence = .LOW,
         source: EnergyEstimateSource = .PLANNED,
-        methodVersion: String = "auge-energy-v1",
+        methodVersion: String = "unknown",
         exerciseContributions: [ExerciseEnergyContribution] = [],
         notes: [String] = []
     ) {
@@ -121,4 +121,10 @@ public struct DailyEnergyBalance: Codable {
         self.deltaFromTarget = deltaFromTarget
         self.status = status
     }
+}
+
+/// Read/import compatibility only; no estimate is calculated here.
+internal func isRetiredTrainingEnergyMethod(_ method: String?) -> Bool {
+    let key = method?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
+    return key.hasPrefix("auge-energy") || ["", "unknown", "unspecified", "not_recorded", "null"].contains(key)
 }
