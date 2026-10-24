@@ -360,31 +360,7 @@ class SetupDraftCompatibilityTest {
         val migrated = SetupDraftCompatibility.repair(old)
         assertEquals(migrated.stepProgress, SetupDraftCompatibility.repair(migrated).stepProgress)
 
-        val rings = draft(
-            scope = "rings_only",
-            current = WizChatQuestionId.R_RECENT,
-            answers = emptyList(),
-            age = null,
-            height = null,
-            weight = null,
-        )
-        val ringsOnlyDraft = rings.copy(includeTraining = false, includeNutrition = false)
-        val ringsContext = ringsOnlyDraft.stepContext()
-        val native = ringsOnlyDraft.copy(
-            stepProgress = SetupStepProgress.initial(ringsContext)
-                .recordAnswer(
-                    SetupStepId.RINGS_INTRO,
-                    SetupAnswerProvenance.USER_DECLARED,
-                    com.example.kpkn.domain.onboarding.SetupValueState.DECLARED,
-                )
-                .recordAnswer(
-                    SetupStepId.RINGS_SESSION_DAYS,
-                    SetupAnswerProvenance.USER_DECLARED,
-                    com.example.kpkn.domain.onboarding.SetupValueState.DECLARED,
-                )
-                .at(SetupStepId.RINGS_FEELINGS, ringsContext),
-        )
-        assertEquals(native, SetupDraftCompatibility.repair(native))
+
     }
 
     /**
@@ -456,34 +432,7 @@ class SetupDraftCompatibilityTest {
         assertEquals(72.0, repaired.weightKg!!, 0.0001)
     }
 
-    @Test
-    fun nativeRingsDraftStrandedOnLegacyStartResumesInsideTheRingsBlock() {
-        val stranded = draft(
-            scope = "rings_only",
-            current = WizChatQuestionId.R_START,
-            answers = emptyList(),
-            age = null,
-            height = null,
-            weight = null,
-        ).copy(
-            includeTraining = false,
-            includeNutrition = false,
-            stepProgress = SetupStepProgress(
-                origin = SetupProgressOrigin.NATIVE,
-                currentStepId = SetupStepId.RINGS_START,
-                block = SetupWizardBlock.RINGS,
-                visited = listOf(SetupStepId.RINGS_RECENT, SetupStepId.RINGS_START),
-            ),
-        )
-        val repaired = SetupDraftCompatibility.repair(stranded)
 
-        assertEquals(SetupStepId.RINGS_INTRO, repaired.stepProgress.currentStepId)
-        assertEquals(SetupWizardBlock.RINGS, repaired.stepProgress.block)
-        assertEquals(SetupProgressOrigin.NATIVE, repaired.stepProgress.origin)
-        assertEquals(emptySet<SetupWizardBlock>(), repaired.stepProgress.completedBlocks)
-        // El espejo legacy se conserva tal cual (el cursor del paso se reparó).
-        assertEquals(stranded.wizChat, repaired.wizChat)
-    }
 
     @Test
     fun nativeTypedVitalsCountAsDeclaredAndNeverRewindTheCursor() {

@@ -5,10 +5,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** AUD2-P03: editar mientras se calcula Impacto no publica el resultado de la petición anterior. */
-class AugeRequestGateTest {
+class EditorAnalysisRequestGateTest {
     @Test
     fun onlyTheLatestRequestIsCurrent() {
-        val gate = AugeRequestGate()
+        val gate = EditorAnalysisRequestGate()
         val first = gate.next()
         assertTrue(gate.isCurrent(first))
         val second = gate.next()
@@ -21,7 +21,7 @@ class AugeRequestGateTest {
 
     @Test
     fun aSlowFirstCalculation_cannotOverwriteTheNewerOne() {
-        val gate = AugeRequestGate()
+        val gate = EditorAnalysisRequestGate()
         val published = mutableListOf<String>()
         val slow = gate.next()
         val fast = gate.next()

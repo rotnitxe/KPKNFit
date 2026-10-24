@@ -137,16 +137,12 @@ class AssistantSheetComposeTest {
     }
 
     @Test
-    fun impactoDistingueMenosDeUnoCeroYSinEstimacion() {
-        rule.setContent {
-            AssistantRingFigures(
-                musculos = DrainReading.UnderOne(0.4),
-                energia = DrainReading.Zero,
-                columna = DrainReading.Unknown,
-            )
-        }
-        rule.onNodeWithContentDescription("<1 %").assertExists()
-        rule.onNodeWithContentDescription("0 %").assertExists()
-        rule.onNodeWithText("Sin estimación").assertExists()
+    fun contentsShowAuthoredCountsWithoutInventingPhysiology() {
+        rule.setContent { AssistantContentsTab(uiState=com.example.kpkn.screens.sessioneditor.SessionEditorUiState(
+            session=com.example.kpkn.data.models.Session("empty","Mi sesión"))) }
+        rule.onNodeWithText("Contenido del programa").assertExists()
+        rule.onNodeWithText("0 ejercicios · 0 series planificadas").assertExists()
+        rule.onNodeWithText("Los recuentos describen tu plan; no indican recuperación ni seguridad.").assertExists()
+        rule.onNodeWithText("Sin estimación").assertDoesNotExist()
     }
 }

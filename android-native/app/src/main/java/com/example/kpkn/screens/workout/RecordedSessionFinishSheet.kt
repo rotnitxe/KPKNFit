@@ -27,6 +27,7 @@ internal fun RecordedSessionFinishSheet(
     calibrationDecisions: List<CalibrationDecisionRecord> = emptyList(),
     presentation: FinishPresentationContext = FinishPresentationContext(),
     onSummaryReady: (WorkoutSessionSummary) -> Unit = {},
+    onShareAfterSave: (WorkoutStoryData, WorkoutStoryOptions) -> Unit = { _, _ -> },
     onNotes: (String) -> Unit,
     onAlbum: () -> Unit,
     onConfirm: (String, Double?) -> Unit,
@@ -34,6 +35,7 @@ internal fun RecordedSessionFinishSheet(
 ) {
     var notes by rememberSaveable { mutableStateOf(initialNotes) }
     var effort by rememberSaveable { mutableStateOf<Double?>(null) }
+    var shareAfterSave by rememberSaveable { mutableStateOf(false) }
     var showStory by rememberSaveable { mutableStateOf(false) }
     var storyOptions by rememberSaveable(stateSaver = storyOptionsSaver) { mutableStateOf(WorkoutStoryOptions()) }
     val story = remember(completedExercises, presentation, durationMinutes) {
@@ -44,7 +46,7 @@ internal fun RecordedSessionFinishSheet(
     LaunchedEffect(name, completedExercises, durationMinutes) {
         onSummaryReady(WorkoutSessionSummary(durationMinutes,logicalSetCountFromCompleted(completedExercises),discomforts))
     }
-    ModalBottomSheet(onDismissRequest = { onNotes(notes); onDismiss() }) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(name, style = MaterialTheme.typography.headlineSmall)
@@ -63,17 +65,17 @@ internal fun RecordedSessionFinishSheet(
                 FilterChip(selected=effort==null,onClick={effort=null},label={Text("Sin responder")})
                 (0..10).forEach { value -> FilterChip(selected=effort==value.toDouble(),onClick={effort=value.toDouble()},label={Text("$value")}) }
             }
-            OutlinedTextField(value=notes,onValueChange={notes=it;onNotes(it)},label={Text("Notas (opcional)")},modifier=Modifier.fillMaxWidth())
+            OutlinedTextField(value=notes,onValueChange={notes=it;onNotes(it)},label={Text("Notas (opcional)")},modifier=Modifier.fillMaxWidth().testTag("finish-notes"))
             TextButton(onClick=onAlbum) { Text("Fotos y medios de la sesión") }
             val blocked=finishEmptySessionGuidance(completedExercises)
             blocked?.let { Text(it) }
-            Button(enabled=!saving && blocked==null,onClick={onConfirm(notes,effort)},modifier=Modifier.fillMaxWidth()) {
+            Button(enabled=!saving && blocked==null,onClick={if(shareAfterSave) onShareAfterSave(story,storyOptions);onConfirm(notes,effort)},modifier=Modifier.fillMaxWidth()) {
                 Text(if(saving) "Guardando…" else "Guardar sesión")
             }
-            TextButton(enabled=!saving,onClick={onNotes(notes);onDismiss()}) { Text("Volver a la sesión") }
+            TextButton(enabled=!saving,onClick=onDismiss) { Text("Volver a la sesión") }
         }
     }
     if (showStory) WorkoutStorySheet(data=story,hazeState=remember { HazeState() },options=storyOptions,
-        onOptionsChange={storyOptions=it},shareAfterSave=false,onShareAfterSaveChange={},onDismiss={showStory=false})
+        onOptionsChange={storyOptions=it},shareAfterSave=shareAfterSave,onShareAfterSaveChange={shareAfterSave=it},onDismiss={showStory=false})
 
 }

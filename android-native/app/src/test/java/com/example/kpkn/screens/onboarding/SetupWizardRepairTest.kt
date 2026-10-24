@@ -1339,7 +1339,7 @@ class SetupWizardRepairTest {
             )
             assertEquals(listOf("Básicos", "Entreno", "Revisión"), milestoneBlocks(route).map(::milestoneStageLabel))
             assertTrue(route.none { SetupStepGraph.blockOf(it) == SetupWizardBlock.NUTRITION })
-            assertTrue(route.none { SetupStepGraph.blockOf(it) == SetupWizardBlock.RINGS })
+            assertTrue(route.none { it.name.startsWith("RINGS_") })
 
             confirmStep(vm, SetupStepId.NAME, SetupStepId.AGE) { vm.setStepText(SetupStepId.NAME, "Ana") }
             confirmStep(vm, SetupStepId.AGE, SetupStepId.HEIGHT) { vm.setStepNumber(SetupStepId.AGE, 30.0) }

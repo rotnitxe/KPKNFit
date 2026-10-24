@@ -16,6 +16,7 @@ import com.example.kpkn.data.db.toPantryItem
 import com.example.kpkn.data.settings.LearnedResolutionBackup
 import com.example.kpkn.data.settings.SettingsExportPayload
 import com.example.kpkn.data.settings.SettingsJsonBackup
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.example.kpkn.data.models.MeasurementSchedule
@@ -379,7 +380,8 @@ class SettingsViewModel : ViewModel() {
     fun restoreSnapshot(context: Context, file: File, onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
-                DatabaseBackupHelper.restoreSnapshot(context, file)
+                val restoreContext=kotlinx.coroutines.currentCoroutineContext()
+                DatabaseBackupHelper.restoreSnapshot(context, file) { !restoreContext.isActive }
                 programRepository.refreshData()
                 nutritionRepository.refreshData(context)
                 SessionTemplateRepository.getInstance(context.applicationContext).refreshFromStorage()

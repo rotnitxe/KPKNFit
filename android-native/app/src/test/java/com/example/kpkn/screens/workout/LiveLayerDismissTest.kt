@@ -300,36 +300,8 @@ class LiveLayerDismissTest {
 
     @Composable
     private fun SummarySheet(onNotesDraft: (String) -> Unit = {}) {
-        FinishWorkoutSheet(
-            session = Session(id = "s", name = "Sesión", exercises = listOf(sampleExercise)),
-            completedSets = emptyMap(),
-            completedExercises = emptyList(),
-            durationMinutes = 45,
-            sessionIntensityResult = SessionIntensityResult(
-                numericValue = 7.0,
-                adjustedNumericValue = 7.0,
-                displayLabel = "Moderada",
-                hasFailure = false,
-                hasTechniques = false,
-                completitudRatio = 1.0,
-                normalizationFactor = 1.0,
-            ),
-            postSessionPreview = PostSessionPreview(
-                neural = 80,
-                spinal = 80,
-                muscular = 80,
-                perMuscle = emptyMap(),
-                globalCnsDrain = 5,
-                globalMuscularDrain = 5,
-                globalSpinalDrain = 5,
-            ),
-            hazeState = HazeState(),
-            onConfirm = { _, _, _, _ -> },
-            onDismiss = { open = false },
-            onShare = {},
-            onSummaryReady = {},
-            onNotesDraft = onNotesDraft,
-        )
+        RecordedSessionFinishSheet(name="SESIÓN TERMINADA",completedExercises=emptyList(),durationMinutes=45,
+            initialNotes="",saving=false,onNotes=onNotesDraft,onAlbum={},onConfirm={_,_->},onDismiss={open=false})
     }
 
     @Test
@@ -338,7 +310,6 @@ class LiveLayerDismissTest {
         var kept: String? = null
         show { if (open) SummarySheet(onNotesDraft = { kept = it }) }
 
-        rule.onNodeWithText("Notas").performClick()
         rule.waitForIdle()
         // La nota rápida pertenece a la sección Notas y conserva el borrador.
         rule.onNodeWithTag("finish-notes", useUnmergedTree = true).performTextReplacement("Me sentí fuerte")

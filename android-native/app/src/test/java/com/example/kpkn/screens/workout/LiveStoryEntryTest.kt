@@ -57,21 +57,16 @@ class LiveStoryEntryTest {
                             isComplete = false, background = null, sessionTimeRemainingSeconds = null,
                             onAdjustTimeLimit = {}, onStoryClick = { open = true },
                             statusBarInsets = WindowInsets(0, 0, 0, 0))
-                        if (open) FinishWorkoutSheet(
-                            session = Session("story-session", "Pierna A", exercises = listOf(liveExercise("squat", 4))),
-                            completedSets = emptyMap(), completedExercises = emptyList(), durationMinutes = 1,
-                            sessionIntensityResult = SessionIntensityResult(7.0, 7.0, "Moderada", false, false, 0.25, 1.0),
-                            postSessionPreview = PostSessionPreview(80, 80, 80, emptyMap(), 5, 5, 5),
-                            hazeState = remember { HazeState() }, initialShowStory = true,
-                            onConfirm = { _, _, _, _ -> confirmed++ }, onDismiss = { open = false },
-                            onShare = {}, onSummaryReady = {},
-                        )
+                        if (open) RecordedSessionFinishSheet(name="Pierna A",completedExercises=emptyList(),durationMinutes=1,
+                            initialNotes="",saving=false,onNotes={},onAlbum={},onConfirm={_,_->confirmed++},onDismiss={open=false})
+
                         if (host.entries.isNotEmpty()) Box(Modifier.fillMaxSize().zIndex(400f)) { KpknOverlayHostContent(host) }
                     }
                 }
             }
         }
         rule.onNodeWithTag("workout-story-header").performClick()
+        rule.onNodeWithText("Preparar historia para compartir").performClick()
         rule.onNodeWithTag("story-sheet", useUnmergedTree = true).assertIsDisplayed()
         val viewport = rule.onNodeWithTag("story-viewport").fetchSemanticsNode().boundsInRoot
         listOf("story-templates", "story-share-after-save", "story-save-image", "story-share").forEach { tag ->
@@ -109,7 +104,7 @@ class LiveStoryEntryTest {
         rule.runOnIdle { assertEquals(0, confirmed) }
         saveLiveQaRender(rule, view, "lv-af-story-$height-${(font * 100).toInt()}")
         rule.onNodeWithContentDescription("Volver al resumen").performClick()
-        rule.onNodeWithTag("finish-tabs", useUnmergedTree = true).assertIsDisplayed()
+        rule.onNodeWithText("Preparar historia para compartir").assertExists()
         rule.runOnIdle { assertEquals(0, confirmed) }
     }
 }

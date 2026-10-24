@@ -8,7 +8,7 @@ class TrainingInsightsEngineTest {
     private val now = 200L * 86_400_000L
     private fun fact(id: String, day: Long, value: Double = 0.0, sport: SportId = SportId.RUNNING) =
         TrainingFact(id, id, day * 86_400_000L, sport, "distance", value, "m", FactOrigin.OBSERVED,
-            "flat_5k", "manual", "distance_v1")
+            "flat_5k", "manual", "distance_v1",context=mapOf("surface" to "track"))
 
     @Test fun `every sport keeps its own comparisons and a real zero`() {
         for (sport in SportId.entries) {

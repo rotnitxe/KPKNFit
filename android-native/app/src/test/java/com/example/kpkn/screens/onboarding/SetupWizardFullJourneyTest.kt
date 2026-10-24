@@ -640,7 +640,7 @@ class SetupWizardFullJourneyTest {
     /** Rings parcial: historial «No lo sé» + sensaciones declaradas (muscular 2). */
     private fun TestScope.walkRingsPartial(vm: SetupWizardViewModel) {
         assertEquals(SetupStepId.REVIEW_ACTIVATE,vm.state.value.currentStep)
-        assertTrue(SetupStepGraph.nodes(vm.state.value.draft.stepContext()).none { it.block == com.example.kpkn.domain.onboarding.SetupWizardBlock.RINGS })
+        assertTrue(SetupStepGraph.nodes(vm.state.value.draft.stepContext()).none { it.id.name.startsWith("RINGS_") })
     }
 
     // ─── Aserciones sobre Room tras el commit real ────────────────────────────

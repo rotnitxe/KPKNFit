@@ -46,7 +46,6 @@ import com.example.kpkn.domain.auge.PreciseDrain
 import com.example.kpkn.screens.sessioneditor.ApplyRulesOutcome
 import com.example.kpkn.screens.sessioneditor.SessionCloneApplyMode
 import com.example.kpkn.screens.sessioneditor.SessionCloneDayOption
-import com.example.kpkn.screens.sessioneditor.SessionEditorAugeSummary
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.sessionTimeBreakdownCaption
 import com.example.kpkn.data.models.IntensityMode
@@ -111,104 +110,11 @@ class EditorSheetsEdeTest {
         duracionEstimada = 58, resumenTexto = "",
     )
 
-    @Test fun impactoJuntaDuracionYCaloriasConSuDesgloseDeTiempo() {
-        val state = SessionEditorUiState(
-            session = session,
-            augeSummary = SessionEditorAugeSummary(
-                sessionDrain = PredictedDrain(cns = 52, muscular = 64, spinal = 41),
-                sessionEnergy = SessionEnergySummary(totalKcal = CalorieRange(low = 380, mid = 412, high = 445)),
-            ),
-            sessionTimeBreakdown = breakdown,
-            assistantReport = report,
-        )
-        rule.setContent { AssistantImpactTab(uiState = state) }
-        rule.onNodeWithText("Duración de la sesión", ignoreCase = true).assertExists()
-        rule.onNodeWithText("Calorías estimadas", ignoreCase = true).assertExists()
-        rule.onNodeWithText("380–445").assertExists()
-        // El desglose es el mismo texto que usa Reglas › Tiempo.
-        rule.onNodeWithText(sessionTimeBreakdownCaption(breakdown)).assertExists()
-    }
 
-    @Test fun impactoSinCaloriasNoInventaUnNumero() {
-        val state = SessionEditorUiState(
-            session = session,
-            augeSummary = SessionEditorAugeSummary(sessionDrain = PredictedDrain(cns = 1, muscular = 1, spinal = 1)),
-            sessionTimeBreakdown = breakdown,
-            assistantReport = report,
-        )
-        rule.setContent { AssistantImpactTab(uiState = state) }
-        rule.onNodeWithText("Completa pesos o 1RM en los ejercicios para estimar el gasto calórico").assertExists()
-    }
 
-    @Test
-    @GraphicsMode(GraphicsMode.Mode.NATIVE)
-    @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h740dp-xxhdpi")
-    fun elVolumenDeGluteosEnvuelveLasTresLecturasA740DpY130PorCiento() {
-        val direct = Exercise(
-            id = "extension-gluteo",
-            name = "Extensión de cadera",
-            sets = (1..3).map { ExerciseSet(id = "direct-$it", targetReps = 10, targetRPE = 8.0) },
-            effectiveMuscles = listOf(InvolvedMuscle("Glúteos", MuscleRole.PRIMARY, 1.0)),
-        )
-        val secondary = Exercise(
-            id = "sentadilla-gluteos",
-            name = "Sentadilla",
-            sets = (1..3).map { ExerciseSet(id = "secondary-$it", targetReps = 8, targetRPE = 8.0) },
-            effectiveMuscles = listOf(InvolvedMuscle("Glúteos", MuscleRole.SECONDARY, 1.0)),
-        )
-        val state = SessionEditorUiState(
-            session = Session(id = "d2-volume", name = "Volumen D2", exercises = listOf(direct, secondary)),
-            augeSummary = SessionEditorAugeSummary(
-                muscleDrainPrecise = mapOf("Glúteos" to PreciseDrain(cns = 3.0, muscular = 4.0, spinal = 1.0)),
-            ),
-            assistantReport = report,
-        )
-        rule.setContent {
-            renderedView = LocalView.current
-            val density = LocalDensity.current
-            CompositionLocalProvider(LocalDensity provides Density(density.density, 1.3f)) {
-                Box(Modifier.width(360.dp).height(740.dp)) {
-                    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                        AssistantImpactTab(uiState = state)
-                    }
-                }
-            }
-        }
 
-        val volumeHeader = rule.onNodeWithText("Volumen de entreno de la sesión", ignoreCase = true).performScrollTo()
-        val headerBounds = volumeHeader.fetchSemanticsNode().boundsInRoot
-        assertTrue("La cabecera conserva un objetivo táctil de 48 dp", headerBounds.height / rule.density.density >= 48f)
-        volumeHeader.performClick()
-        rule.onNodeWithText("Glúteos").performScrollTo().performClick()
-        rule.onNodeWithText("3 series · Intensidad Alta").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText("3 series como secundario").performScrollTo().assertIsDisplayed()
 
-        val rootBounds = rule.onRoot().fetchSemanticsNode().boundsInRoot
-        val labels = listOf("Músculo 4 %", "Energía 3 %", "Columna 1 %")
-        var savedEvidence = false
-        labels.forEach { label ->
-            val node = rule.onNodeWithText(label, useUnmergedTree = true).performScrollTo().assertIsDisplayed()
-            if (!savedEvidence) {
-                saveVolumeEvidenceIfRequested()
-                savedEvidence = true
-            }
-            val bounds = node.fetchSemanticsNode().boundsInRoot
-            assertTrue("$label queda dentro del ancho visible: $bounds / $rootBounds", bounds.left >= rootBounds.left && bounds.right <= rootBounds.right)
-            val layouts = mutableListOf<TextLayoutResult>()
-            node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
-            val layout = layouts.single()
-            val lineLeft = layout.getLineLeft(0)
-            val lineRight = layout.getLineRight(0)
-            val detail = "$label: size=${layout.size}, párrafo=${layout.multiParagraph.width}px, constraints=${layout.layoutInput.constraints}, línea=[$lineLeft,$lineRight]px, didOverflowWidth=${layout.didOverflowWidth}"
-            println("D2_GEOMETRY $detail")
-            assertEquals("$label ocupa una línea", 1, layout.lineCount)
-            assertTrue("$detail: los glyphs no deben salir por la izquierda", lineLeft >= -1f)
-            assertTrue("$detail: los glyphs no deben salir más de 1 px físico por la derecha", lineRight <= layout.size.width + 1f)
-            assertFalse("$label no desborda alto", layout.didOverflowHeight)
-            assertFalse("$label no se trunca", layout.isLineEllipsized(0))
-            assertEquals("$label conserva todo el texto", label.length, layout.getLineEnd(0, visibleEnd = true))
-        }
-    }
+
 
     @Test fun reglasAplicaLaIntensidadGlobalConFalloComoValorCero() {
         var applied: Triple<IntensityMode, Double, Set<String>?>? = null

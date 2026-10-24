@@ -11,7 +11,7 @@ class SetupDraftResolverTest {
         assertEquals("setup-wizard:full", SetupDraftResolver.canonicalDraftId(SetupDraftScope.FULL))
         assertEquals("setup-wizard:training_only", SetupDraftResolver.canonicalDraftId(SetupDraftScope.TRAINING_ONLY))
         assertEquals("setup-wizard:nutrition_only", SetupDraftResolver.canonicalDraftId(SetupDraftScope.NUTRITION_ONLY))
-        assertEquals("setup-wizard:rings_only", SetupDraftResolver.canonicalDraftId(SetupDraftScope.RINGS_ONLY))
+        assertEquals("setup-wizard:full", SetupDraftResolver.canonicalDraftId(SetupDraftResolver.scopeOf("rings_only")))
         assertEquals("setup-wizard:full", SetupDraftResolver.canonicalDraftId(SetupDraftScope.LEGACY_RESUME))
     }
 

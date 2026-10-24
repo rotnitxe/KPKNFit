@@ -1343,6 +1343,8 @@ fun WorkoutScreen(
         )
     }
 
+    var recordedFinishStory by remember { mutableStateOf<Pair<WorkoutStoryData,WorkoutStoryOptions>?>(null) }
+
     // ─── Finish sheet ─────────────────────────────────────────────────────────
     // Aviso one-shot del guard P0 de sesión vacía (finish abortado sin series).
     LaunchedEffect(uiState.emptyFinishGuardNotice) {
@@ -1380,6 +1382,7 @@ fun WorkoutScreen(
             discomforts = uiState.postExerciseFeedbackByExerciseId.values.flatMap { it.discomfortIds }.filter { it != "none" }.distinct(),
             presentation = viewModel.finishPresentationContext(),
             onSummaryReady = viewModel::announceWorkoutSessionSummary,
+            onShareAfterSave = { story,options -> recordedFinishStory=story to options },
             onNotes = viewModel::setSessionNotes,
             onAlbum = { viewModel.mediaCapture.openAlbumSheet() },
             onConfirm = { notes, effort ->
@@ -1389,7 +1392,10 @@ fun WorkoutScreen(
                         discomforts = emptyList(), sessionEffortRpe = effort,
                         finishOperationId = uiState.finishResumeSnapshot?.finishOperationId,
                         completionInstantIso = uiState.finishResumeSnapshot?.completionInstantIso,
-                    ), onComplete = {})
+                    ), onComplete = {
+                        recordedFinishStory?.let { (story,options) -> WorkoutShareService.shareAfterFinish(context,story,options) }
+                        recordedFinishStory=null
+                    })
             },
             onDismiss = viewModel::hideFinish,
         )

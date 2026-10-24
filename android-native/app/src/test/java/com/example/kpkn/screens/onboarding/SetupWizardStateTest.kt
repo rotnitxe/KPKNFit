@@ -345,14 +345,7 @@ class SetupWizardStateTest {
         )
     }
 
-    @Test
-    fun changingSensationsOnlyAffectsRings() {
-        val base = baseDraft()
-        val changed = base.copy(ringsAnswers = SetupRingsAnswers(muscleFeeling = 2)).withChangeImpacts(base)
 
-        assertEquals(setOf(SetupPreviewKind.RINGS_BATTERIES), changed.stepProgress.stalePreviews)
-        assertTrue(changed.stepProgress.pendingReview.isEmpty())
-    }
 
     @Test
     fun navigationNeverLooksLikeAPhysiologicalChange() {

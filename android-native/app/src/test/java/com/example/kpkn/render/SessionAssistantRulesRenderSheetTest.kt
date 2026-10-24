@@ -46,7 +46,6 @@ import com.example.kpkn.domain.sessionassistant.Verdict
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.sessioneditor.ApplyRulesOutcome
 import com.example.kpkn.screens.sessioneditor.SessionDraftSnapshot
-import com.example.kpkn.screens.sessioneditor.SessionEditorAugeSummary
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import com.example.kpkn.screens.sessioneditor.SessionCloneDayOption
 import com.example.kpkn.screens.sessioneditor.components.ExerciseGoalDialog
@@ -183,13 +182,6 @@ class SessionAssistantRulesRenderSheetTest {
         totalSetCount = 5,
     )
 
-    private val augeSummary = SessionEditorAugeSummary(
-        sessionDrain = PredictedDrain(cns = 42, muscular = 58, spinal = 31),
-        muscleDrainProjection = mapOf("Cuádriceps" to 34, "Pectorales" to 12),
-        muscleEnergyDrain = mapOf("Cuádriceps" to 20),
-        muscleSpinalDrain = mapOf("Cuádriceps" to 10),
-        sessionEnergy = SessionEnergySummary(totalKcal = CalorieRange(low = 320, mid = 360, high = 410)),
-    )
 
     private val suggestion = AssistantSuggestion(
         id = "bajar-rpe",
@@ -238,7 +230,6 @@ class SessionAssistantRulesRenderSheetTest {
 
     private val assistantState = SessionEditorUiState(
         session = session,
-        augeSummary = augeSummary,
         sessionTimeBreakdown = breakdown,
         estimatedDurationMinutes = 80,
         assistantReport = report,
@@ -247,7 +238,6 @@ class SessionAssistantRulesRenderSheetTest {
     /** Reglas y tiempo. Con [limit] en 120 min el reloj queda dentro del límite; con 60, fuera. */
     private fun rulesState(initialTab: Int, limit: Int, suggestions: List<TimeCoachSuggestion>) = SessionEditorUiState(
         session = session.copy(targetDurationMinutes = limit),
-        augeSummary = augeSummary,
         sessionTimeBreakdown = breakdown,
         estimatedDurationMinutes = 80,
         rulesSheetInitialTab = initialTab,

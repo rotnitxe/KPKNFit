@@ -95,6 +95,11 @@ object LegacyTrainingImport {
                         k == "stalePreviews" -> JsonArray(v.jsonArray.filterNot { it.jsonPrimitive.content == "RINGS_BATTERIES" })
                         else -> v
                     }
+                }.toMutableMap().apply {
+                    val old=value.jsonObject
+                    if (old["currentStepId"]?.jsonPrimitive?.content?.let(::retiredStep)==true &&
+                        old["origin"]?.jsonPrimitive?.content in setOf(null,"NOT_CONVERTIBLE"))
+                        put("origin",JsonPrimitive("MIGRATED_FROM_RETIRED_STAGE"))
                 })
                 key == "wizChat" -> JsonObject(value.jsonObject.mapValues { (k,v) ->
                     when {

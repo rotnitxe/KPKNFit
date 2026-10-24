@@ -672,7 +672,7 @@ object SetupStepGraph {
 
 /** How a persisted progress was produced; legacy drafts are migrated in repair(). */
 @Serializable
-enum class SetupProgressOrigin { NOT_CONVERTIBLE, MIGRATED_FROM_WIZCHAT, NATIVE }
+enum class SetupProgressOrigin { NOT_CONVERTIBLE, MIGRATED_FROM_WIZCHAT, MIGRATED_FROM_RETIRED_STAGE, NATIVE }
 
 /**
  * Provenance of a value. Engine/preview results can never be stored as declared

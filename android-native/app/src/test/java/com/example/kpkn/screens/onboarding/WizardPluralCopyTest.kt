@@ -152,7 +152,6 @@ class WizardPluralCopyTest {
                 SetupWizardBlock.BASICS,
                 SetupWizardBlock.TRAINING,
                 SetupWizardBlock.NUTRITION,
-                SetupWizardBlock.RINGS,
                 SetupWizardBlock.REVIEW,
             ),
             milestoneBlocks(routeOf(SetupWizardDraft())),

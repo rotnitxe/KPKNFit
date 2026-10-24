@@ -145,7 +145,6 @@ class SetupWizardPageHelpersTest {
         assertEquals(KpknModule.BASICOS, SetupWizardBlock.BASICS.toKpknModule())
         assertEquals(KpknModule.ENTRENO, SetupWizardBlock.TRAINING.toKpknModule())
         assertEquals(KpknModule.NUTRICION, SetupWizardBlock.NUTRITION.toKpknModule())
-        assertEquals(KpknModule.RINGS, SetupWizardBlock.RINGS.toKpknModule())
         assertNull(SetupWizardBlock.REVIEW.toKpknModule())
         // Todo hito de la ruta completa tiene animación.
         route.filter(SetupStepGraph::isMilestone).forEach { milestone ->
@@ -191,11 +190,11 @@ class SetupWizardPageHelpersTest {
     @Test
     fun `tras el ultimo hito el siguiente es la revision`() {
         val stages = milestoneStages(
-            SetupStepId.MILESTONE_RINGS,
+            SetupStepId.MILESTONE_NUTRITION,
             route,
             completed = setOf(SetupWizardBlock.BASICS, SetupWizardBlock.TRAINING, SetupWizardBlock.NUTRITION),
         )
-        assertEquals(OverlayStageState.JUST_DONE, stages[3].state)
+        assertEquals(OverlayStageState.JUST_DONE, stages[2].state)
         assertEquals(OverlayStageState.NEXT, stages.last().state)
         assertEquals("Revisión", stages.last().label)
     }

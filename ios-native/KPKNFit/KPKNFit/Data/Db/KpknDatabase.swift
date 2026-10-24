@@ -329,7 +329,7 @@ public final class KpknDatabase {
     }
 
     private func createAllTables(db: KpknDatabaseInternal) throws {
-        for sql in initialCreateStatements {
+        for sql in Self.initialCreateStatements {
             try db.execute(sql)
         }
     }
@@ -414,7 +414,7 @@ public final class KpknDatabase {
 
     // MARK: Migrations
 
-    private struct MigrationStep {
+    fileprivate struct MigrationStep {
         let fromVersion: Int32
         let toVersion: Int32
         let migrate: (KpknDatabaseInternal) throws -> Void

@@ -34,9 +34,6 @@ class SetupStepGraphTest {
                 SetupStepId.NUTRITION_DISTRIBUTION, SetupStepId.NUTRITION_WEIGH_INS,
                 SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION,
                 // Bloque 4: Rings sin días entrenados (intro, días, sensaciones en una pantalla, molestias y resultado)
-                SetupStepId.RINGS_INTRO, SetupStepId.RINGS_SESSION_DAYS,
-                SetupStepId.RINGS_FEELINGS, SetupStepId.RINGS_DISCOMFORT, SetupStepId.RINGS_RESULT,
-                SetupStepId.MILESTONE_RINGS,
                 // Revisión
                 SetupStepId.REVIEW_ACTIVATE,
             ),
@@ -52,14 +49,13 @@ class SetupStepGraphTest {
         assertEquals(SetupStepId.REVIEW_ACTIVATE, route.last())
         assertEquals(
             setOf(SetupWizardBlock.BASICS, SetupWizardBlock.TRAINING, SetupWizardBlock.NUTRITION,
-                SetupWizardBlock.RINGS, SetupWizardBlock.REVIEW),
+                SetupWizardBlock.REVIEW),
             route.map(SetupStepGraph::blockOf).toSet(),
         )
+        assertTrue(route.indexOf(SetupStepId.MILESTONE_NUTRITION) < route.indexOf(SetupStepId.REVIEW_ACTIVATE))
         // Los hitos separan los bloques.
         assertTrue(route.indexOf(SetupStepId.MILESTONE_BASICS) < route.indexOf(SetupStepId.EXPERIENCE))
         assertTrue(route.indexOf(SetupStepId.MILESTONE_TRAINING) < route.indexOf(SetupStepId.NUTRITION_START))
-        assertTrue(route.indexOf(SetupStepId.MILESTONE_NUTRITION) < route.indexOf(SetupStepId.RINGS_INTRO))
-        assertTrue(route.indexOf(SetupStepId.MILESTONE_RINGS) < route.indexOf(SetupStepId.REVIEW_ACTIVATE))
     }
 
     @Test
@@ -68,7 +64,6 @@ class SetupStepGraphTest {
         assertFalse(SetupStepId.GENDER in route)
         assertFalse(SetupStepId.HOME_EQUIPMENT in route)
         assertFalse(SetupStepId.NUTRITION_SEX in route)
-        assertFalse(SetupStepId.RINGS_START in route)
         // Los pasos de entreno retirados tampoco: el enum y sus definiciones solo sirven para leer borradores viejos.
         for (retired in listOf(
             SetupStepId.ROUTE, SetupStepId.STYLE, SetupStepId.DAYS, SetupStepId.SPLIT, SetupStepId.TRAINING_MARKS,
@@ -321,42 +316,7 @@ class SetupStepGraphTest {
         assertFalse(SetupStepId.NUTRITION_RHYTHM in SetupStepGraph.stepIds(fullContext.copy(nutritionDirection = null)))
     }
 
-    @Test
-    fun ringsBlockAlwaysAsksDaysFeelingsAndDiscomfortAndOnlyAddsDetailWhenTrained() {
-        // «No entrené» o «No lo recuerdo» (sin días): ni ejercicios, ni series, ni intensidad.
-        val withoutDays = SetupStepGraph.stepIds(fullContext)
-        // Días, pero ninguno en las últimas 72 h.
-        val trained = SetupStepGraph.stepIds(fullContext.copy(ringsTrainedDays = true))
-        // Días y uno de ellos en las últimas 72 h.
-        val recent = SetupStepGraph.stepIds(fullContext.copy(ringsTrainedDays = true, ringsTrainedLast72h = true))
 
-        for (route in listOf(withoutDays, trained, recent)) {
-            assertTrue(SetupStepId.RINGS_INTRO in route)
-            assertTrue(SetupStepId.RINGS_SESSION_DAYS in route)
-            assertTrue(SetupStepId.RINGS_FEELINGS in route)
-            assertTrue(SetupStepId.RINGS_DISCOMFORT in route)
-        }
-        assertFalse(SetupStepId.RINGS_MAIN_LIFTS in withoutDays)
-        assertFalse(SetupStepId.RINGS_GROUP_SETS in withoutDays)
-        assertFalse(SetupStepId.RINGS_INTENSITY in withoutDays)
-        assertTrue(SetupStepId.RINGS_MAIN_LIFTS in trained)
-        assertTrue(SetupStepId.RINGS_INTENSITY in trained)
-        assertFalse(SetupStepId.RINGS_GROUP_SETS in trained)
-        assertTrue(SetupStepId.RINGS_GROUP_SETS in recent)
-        // Orden dentro del detalle: días, ejercicios, series, intensidad y luego las sensaciones.
-        assertTrue(recent.indexOf(SetupStepId.RINGS_SESSION_DAYS) < recent.indexOf(SetupStepId.RINGS_MAIN_LIFTS))
-        assertTrue(recent.indexOf(SetupStepId.RINGS_MAIN_LIFTS) < recent.indexOf(SetupStepId.RINGS_GROUP_SETS))
-        assertTrue(recent.indexOf(SetupStepId.RINGS_GROUP_SETS) < recent.indexOf(SetupStepId.RINGS_INTENSITY))
-        assertTrue(recent.indexOf(SetupStepId.RINGS_INTENSITY) < recent.indexOf(SetupStepId.RINGS_FEELINGS))
-        // Los pasos retirados (recencia, sesiones, sensaciones sueltas…) ya no aparecen en ninguna ruta de RINGS.
-        for (retired in listOf(
-            SetupStepId.RINGS_RECENT, SetupStepId.RINGS_SESSIONS, SetupStepId.RINGS_RECENCY,
-            SetupStepId.RINGS_ACTIVITY, SetupStepId.RINGS_AXIAL, SetupStepId.RINGS_MUSCLE_FEELING,
-            SetupStepId.RINGS_ENERGY_FEELING, SetupStepId.RINGS_STRUCTURE_FEELING,
-        )) {
-            assertFalse("$retired", retired in recent)
-        }
-    }
 
     @Test
     fun questionForStepOnlyReturnsRenderableOneToOneCopies() {
@@ -372,11 +332,10 @@ class SetupStepGraphTest {
         assertNull(SetupStepGraph.questionForStep(SetupStepId.NUTRITION_RHYTHM))
         // Los resultados y el review son pantallas finales, nunca preguntas legacy.
         assertNull(SetupStepGraph.questionForStep(SetupStepId.NUTRITION_RESULT))
-        assertNull(SetupStepGraph.questionForStep(SetupStepId.RINGS_RESULT))
         assertNull(SetupStepGraph.questionForStep(SetupStepId.REVIEW_ACTIVATE))
         // Los hitos no llevan pregunta legacy.
         for (milestone in listOf(SetupStepId.MILESTONE_BASICS, SetupStepId.MILESTONE_TRAINING,
-                SetupStepId.MILESTONE_NUTRITION, SetupStepId.MILESTONE_RINGS)) {
+                SetupStepId.MILESTONE_NUTRITION)) {
             assertNull(SetupStepGraph.questionForStep(milestone))
         }
     }
@@ -423,24 +382,7 @@ class SetupStepGraphTest {
         )
     }
 
-    @Test
-    fun ringsFeelingsAllowUnknownOrOmitWithoutFabricatingAZeroLevel() {
-        for (step in listOf(
-            SetupStepId.RINGS_MUSCLE_FEELING, SetupStepId.RINGS_ENERGY_FEELING,
-            SetupStepId.RINGS_STRUCTURE_FEELING,
-        )) {
-            val definition = requireNotNull(SetupStepDefinitions.of(step))
-            assertTrue("$step must allow skip (omit)", definition.allowSkip)
-            assertEquals("unknown", definition.option("unknown")?.value)
-            assertTrue("$step must offer No lo sé", "unknown" in SetupStepDefinitions.optionValues(step))
-            // "unknown" no es un nivel 0: los niveles declarados siguen siendo 1..5.
-            assertFalse("0" in SetupStepDefinitions.optionValues(step))
-        }
-        // El historial desconocido nunca fabrica sesiones falsas.
-        val unknownHealing = SetupStepGraph.stepIds(fullContext.copy(ringsTrainedDays = false))
-        assertFalse(SetupStepId.RINGS_MAIN_LIFTS in unknownHealing)
-        assertTrue(requireNotNull(SetupStepDefinitions.of(SetupStepId.RINGS_FEELINGS)).allowSkip)
-    }
+
 
     @Test
     fun stepIdentifiersStayStableWhenTheRouteGainsBranches() {
@@ -529,14 +471,7 @@ class SetupStepGraphTest {
         assertEquals(SetupProgressOrigin.MIGRATED_FROM_WIZCHAT, migrated.origin)
     }
 
-    @Test
-    fun legacyRingsStartResumesInsideTheRingsBlock() {
-        // R_START no es un paso productivo; el resume cae en el primer paso Rings.
-        val migrated = SetupStepGraph.migrateFromLegacy(WizChatQuestionId.R_START, fullContext)
-        assertEquals(SetupStepId.RINGS_INTRO, migrated.currentStepId)
-        assertEquals(SetupWizardBlock.RINGS, migrated.block)
-        assertEquals(SetupProgressOrigin.MIGRATED_FROM_WIZCHAT, migrated.origin)
-    }
+
 
     @Test
     fun migrateFromLegacyMarksOutOfScopeQuestionsAsNotConvertible() {
@@ -616,8 +551,8 @@ class SetupStepGraphTest {
             WizChatQuestionId.T_WEEKDAYS, record(WizChatQuestionId.T_WEEKDAYS, WizChatAnswerKind.MULTI_CHOICE, values = listOf("Lunes"))))
         assertFalse(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.T_WEEKDAYS, record(WizChatQuestionId.T_WEEKDAYS, WizChatAnswerKind.MULTI_CHOICE, values = listOf("Finde"))))
-        // R_DISCOMFORT: las etiquetas reales del catálogo ahora migran explícitas.
-        assertTrue(SetupStepGraph.isExplicitLegacy(
+        // Retired conversation answers are preserved as originals, never promoted to current wizard declarations.
+        assertFalse(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.R_DISCOMFORT, record(WizChatQuestionId.R_DISCOMFORT, WizChatAnswerKind.MULTI_CHOICE, values = listOf("Rodilla anterior"))))
         assertFalse(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.R_DISCOMFORT, record(WizChatQuestionId.R_DISCOMFORT, WizChatAnswerKind.MULTI_CHOICE, values = listOf("Algo raro"))))
@@ -770,7 +705,6 @@ class SetupStepGraphTest {
 
         // "Sin iniciar" no desmonta el bloque: el arranque sigue preguntándose.
         assertTrue(SetupStepId.NUTRITION_START in route)
-        assertTrue(SetupStepId.RINGS_INTRO in route)
         assertEquals(SetupStepId.NUTRITION_START, SetupStepGraph.next(SetupStepId.MILESTONE_TRAINING, notStarted))
         // La cadena de referencias espera a una elección explícita.
         assertFalse(SetupStepId.NUTRITION_ELIGIBILITY in route)

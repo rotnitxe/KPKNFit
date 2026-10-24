@@ -1,0 +1,781 @@
+{
+  "schemaVersion": 1,
+  "description": "Synthetic shared contract; no personal records",
+  "cases": [
+    {
+      "name": "known_context_real_zero",
+      "nowMs": 17280000000,
+      "current": {
+        "sourceId": "current",
+        "activityId": "current",
+        "occurredAtMs": 17280000000,
+        "sport": "RUNNING",
+        "metric": "distance",
+        "value": 0,
+        "unit": "m",
+        "origin": "OBSERVED",
+        "exerciseVariant": "track_5k",
+        "method": "manual",
+        "protocolId": "distance_v1",
+        "context": {
+          "surface": "track"
+        }
+      },
+      "history": [
+        {
+          "sourceId": "one",
+          "activityId": "one",
+          "occurredAtMs": 17020800000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 1,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "two",
+          "activityId": "two",
+          "occurredAtMs": 17107200000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 2,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "three",
+          "activityId": "three",
+          "occurredAtMs": 17193600000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 3,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        }
+      ],
+      "expectedPreviousIds": [
+        "three",
+        "two",
+        "one"
+      ],
+      "expectedMedian": 2
+    },
+    {
+      "name": "future_is_not_history",
+      "nowMs": 17280000000,
+      "current": {
+        "sourceId": "current",
+        "activityId": "current",
+        "occurredAtMs": 17280000000,
+        "sport": "RUNNING",
+        "metric": "distance",
+        "value": 0,
+        "unit": "m",
+        "origin": "OBSERVED",
+        "exerciseVariant": "track_5k",
+        "method": "manual",
+        "protocolId": "distance_v1",
+        "context": {
+          "surface": "track"
+        }
+      },
+      "history": [
+        {
+          "sourceId": "one",
+          "activityId": "one",
+          "occurredAtMs": 17020800000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 1,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "two",
+          "activityId": "two",
+          "occurredAtMs": 17107200000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 2,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "three",
+          "activityId": "three",
+          "occurredAtMs": 17193600000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 3,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "future",
+          "activityId": "future",
+          "occurredAtMs": 17366400000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 99,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        }
+      ],
+      "expectedPreviousIds": [
+        "three",
+        "two",
+        "one"
+      ],
+      "expectedMedian": 2
+    },
+    {
+      "name": "unknown_context_is_not_identical",
+      "nowMs": 17280000000,
+      "current": {
+        "sourceId": "current",
+        "activityId": "current",
+        "occurredAtMs": 17280000000,
+        "sport": "RUNNING",
+        "metric": "distance",
+        "value": 0,
+        "unit": "m",
+        "origin": "OBSERVED",
+        "exerciseVariant": "track_5k",
+        "method": "manual",
+        "protocolId": "distance_v1",
+        "context": {}
+      },
+      "history": [
+        {
+          "sourceId": "one",
+          "activityId": "one",
+          "occurredAtMs": 17020800000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 1,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {}
+        },
+        {
+          "sourceId": "two",
+          "activityId": "two",
+          "occurredAtMs": 17107200000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 2,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {}
+        },
+        {
+          "sourceId": "three",
+          "activityId": "three",
+          "occurredAtMs": 17193600000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 3,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {}
+        }
+      ],
+      "expectedPreviousIds": [],
+      "expectedMedian": null
+    },
+    {
+      "name": "unknown_literal_is_not_context",
+      "nowMs": 17280000000,
+      "current": {
+        "sourceId": "current",
+        "activityId": "current",
+        "occurredAtMs": 17280000000,
+        "sport": "RUNNING",
+        "metric": "distance",
+        "value": 0,
+        "unit": "m",
+        "origin": "OBSERVED",
+        "exerciseVariant": "track_5k",
+        "method": "manual",
+        "protocolId": "distance_v1",
+        "context": {
+          "surface": "unknown"
+        }
+      },
+      "history": [
+        {
+          "sourceId": "one",
+          "activityId": "one",
+          "occurredAtMs": 17020800000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 1,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "unknown"
+          }
+        },
+        {
+          "sourceId": "two",
+          "activityId": "two",
+          "occurredAtMs": 17107200000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 2,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "unknown"
+          }
+        },
+        {
+          "sourceId": "three",
+          "activityId": "three",
+          "occurredAtMs": 17193600000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 3,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "unknown"
+          }
+        }
+      ],
+      "expectedPreviousIds": [],
+      "expectedMedian": null
+    },
+    {
+      "name": "different_units_do_not_compare",
+      "nowMs": 17280000000,
+      "current": {
+        "sourceId": "current",
+        "activityId": "current",
+        "occurredAtMs": 17280000000,
+        "sport": "RUNNING",
+        "metric": "distance",
+        "value": 0,
+        "unit": "m",
+        "origin": "OBSERVED",
+        "exerciseVariant": "track_5k",
+        "method": "manual",
+        "protocolId": "distance_v1",
+        "context": {
+          "surface": "track"
+        }
+      },
+      "history": [
+        {
+          "sourceId": "one",
+          "activityId": "one",
+          "occurredAtMs": 17020800000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 1,
+          "unit": "km",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "two",
+          "activityId": "two",
+          "occurredAtMs": 17107200000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 2,
+          "unit": "km",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "three",
+          "activityId": "three",
+          "occurredAtMs": 17193600000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 3,
+          "unit": "km",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        }
+      ],
+      "expectedPreviousIds": [],
+      "expectedMedian": null
+    },
+    {
+      "name": "different_sports_do_not_compare",
+      "nowMs": 17280000000,
+      "current": {
+        "sourceId": "current",
+        "activityId": "current",
+        "occurredAtMs": 17280000000,
+        "sport": "RUNNING",
+        "metric": "distance",
+        "value": 0,
+        "unit": "m",
+        "origin": "OBSERVED",
+        "exerciseVariant": "track_5k",
+        "method": "manual",
+        "protocolId": "distance_v1",
+        "context": {
+          "surface": "track"
+        }
+      },
+      "history": [
+        {
+          "sourceId": "one",
+          "activityId": "one",
+          "occurredAtMs": 17020800000,
+          "sport": "CYCLING",
+          "metric": "distance",
+          "value": 1,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "two",
+          "activityId": "two",
+          "occurredAtMs": 17107200000,
+          "sport": "CYCLING",
+          "metric": "distance",
+          "value": 2,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "three",
+          "activityId": "three",
+          "occurredAtMs": 17193600000,
+          "sport": "CYCLING",
+          "metric": "distance",
+          "value": 3,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        }
+      ],
+      "expectedPreviousIds": [],
+      "expectedMedian": null
+    },
+    {
+      "name": "historical_ambiguous_scale_is_not_current_instrument",
+      "nowMs": 17280000000,
+      "current": {
+        "sourceId": "current",
+        "activityId": "current",
+        "occurredAtMs": 17280000000,
+        "sport": "RUNNING",
+        "metric": "distance",
+        "value": 0,
+        "unit": "m",
+        "origin": "HISTORICAL_AMBIGUOUS",
+        "exerciseVariant": "track_5k",
+        "method": "manual",
+        "protocolId": "distance_v1",
+        "context": {
+          "surface": "track"
+        }
+      },
+      "history": [
+        {
+          "sourceId": "one",
+          "activityId": "one",
+          "occurredAtMs": 17020800000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 1,
+          "unit": "m",
+          "origin": "HISTORICAL_AMBIGUOUS",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "two",
+          "activityId": "two",
+          "occurredAtMs": 17107200000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 2,
+          "unit": "m",
+          "origin": "HISTORICAL_AMBIGUOUS",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "three",
+          "activityId": "three",
+          "occurredAtMs": 17193600000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 3,
+          "unit": "m",
+          "origin": "HISTORICAL_AMBIGUOUS",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        }
+      ],
+      "expectedPreviousIds": [],
+      "expectedMedian": null
+    },
+    {
+      "name": "identical_duplicate_is_one_source",
+      "nowMs": 17280000000,
+      "current": {
+        "sourceId": "current",
+        "activityId": "current",
+        "occurredAtMs": 17280000000,
+        "sport": "RUNNING",
+        "metric": "distance",
+        "value": 0,
+        "unit": "m",
+        "origin": "OBSERVED",
+        "exerciseVariant": "track_5k",
+        "method": "manual",
+        "protocolId": "distance_v1",
+        "context": {
+          "surface": "track"
+        }
+      },
+      "history": [
+        {
+          "sourceId": "one",
+          "activityId": "one",
+          "occurredAtMs": 17020800000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 1,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "two",
+          "activityId": "two",
+          "occurredAtMs": 17107200000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 2,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "three",
+          "activityId": "three",
+          "occurredAtMs": 17193600000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 3,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "one",
+          "activityId": "one",
+          "occurredAtMs": 17020800000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 1,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        }
+      ],
+      "expectedPreviousIds": [
+        "three",
+        "two",
+        "one"
+      ],
+      "expectedMedian": 2
+    },
+    {
+      "name": "conflicting_identity_is_not_first_wins",
+      "nowMs": 17280000000,
+      "current": {
+        "sourceId": "current",
+        "activityId": "current",
+        "occurredAtMs": 17280000000,
+        "sport": "RUNNING",
+        "metric": "distance",
+        "value": 0,
+        "unit": "m",
+        "origin": "OBSERVED",
+        "exerciseVariant": "track_5k",
+        "method": "manual",
+        "protocolId": "distance_v1",
+        "context": {
+          "surface": "track"
+        }
+      },
+      "history": [
+        {
+          "sourceId": "one",
+          "activityId": "one",
+          "occurredAtMs": 17020800000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 1,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "two",
+          "activityId": "two",
+          "occurredAtMs": 17107200000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 2,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "three",
+          "activityId": "three",
+          "occurredAtMs": 17193600000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 3,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "one",
+          "activityId": "one",
+          "occurredAtMs": 17020800000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 100,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        }
+      ],
+      "expectedPreviousIds": [
+        "three",
+        "two"
+      ],
+      "expectedMedian": null
+    },
+    {
+      "name": "same_activity_is_not_reference",
+      "nowMs": 17280000000,
+      "current": {
+        "sourceId": "current",
+        "activityId": "current",
+        "occurredAtMs": 17280000000,
+        "sport": "RUNNING",
+        "metric": "distance",
+        "value": 0,
+        "unit": "m",
+        "origin": "OBSERVED",
+        "exerciseVariant": "track_5k",
+        "method": "manual",
+        "protocolId": "distance_v1",
+        "context": {
+          "surface": "track"
+        }
+      },
+      "history": [
+        {
+          "sourceId": "one",
+          "activityId": "current",
+          "occurredAtMs": 17020800000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 1,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "two",
+          "activityId": "current",
+          "occurredAtMs": 17107200000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 2,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        },
+        {
+          "sourceId": "three",
+          "activityId": "current",
+          "occurredAtMs": 17193600000,
+          "sport": "RUNNING",
+          "metric": "distance",
+          "value": 3,
+          "unit": "m",
+          "origin": "OBSERVED",
+          "exerciseVariant": "track_5k",
+          "method": "manual",
+          "protocolId": "distance_v1",
+          "context": {
+            "surface": "track"
+          }
+        }
+      ],
+      "expectedPreviousIds": [],
+      "expectedMedian": null
+    }
+  ]
+}
