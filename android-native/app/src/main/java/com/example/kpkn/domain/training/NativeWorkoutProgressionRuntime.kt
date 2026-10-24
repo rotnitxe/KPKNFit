@@ -1261,6 +1261,9 @@ object NativeWorkoutProgressionRuntime {
      * mismo ciclo cuyo peso sigue SIN RESOLVER: marcador de carga manual o, en un plan
      * propio recién generado (que no emite referencias PENDING), peso nulo de un
      * ejercicio con progresión nativa gestionada. Nunca pisa una carga ya resuelta.
+     * Incluye la descarga de volumen: captura una base pendiente, no una subida de carga.
+     * Las series reducidas y el RIR objetivo de descarga se conservan; el RIR realizado
+     * se registra aparte y nunca se da por cumplido por llevar ese objetivo.
      */
     private fun captureManualLoadForFuture(
         program: Program,

@@ -1282,7 +1282,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 commitId = draft.commitId,
                 draftId = draft.draftId,
                 settings = base,
-                program = program,
+                program = program?.copy(avoidedExerciseGroups = draft.avoidedExercises.map { it.name }.toSet()),
                 nutritionPlan = nutrition,
                 activateProgram = draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER && draft.activateProgram,
                 activateNutrition = draft.includeNutrition && draft.activateNutrition && !trackingOnly,

@@ -19,6 +19,7 @@ import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -256,5 +257,19 @@ class SettingsJsonBackupTest {
         } finally {
             db.close()
         }
+    }
+    @Test fun `ajustes de entrenamiento viajan por JSON de copia y Room sin reinterpretar legado`() = runBlocking {
+        val db=KpknDatabase.createInMemory(context)
+        try {
+            val selected=Settings(restTimerDefaultSeconds=180,autoStartRestAfterRecording=false,
+                algorithmSettings=Settings().algorithmSettings.copy(augeAutoDeload=false))
+            val encoded=dbJson.encodeToString(minimalPayload().copy(settings=selected))
+            val decoded=dbJson.decodeFromString<SettingsExportPayload>(encoded)
+            SettingsJsonBackup.importPayload(context=context,payload=decoded,db=db,nutritionRepository=nutritionRepo(db),onMeasurementSchedule={})
+            val saved=requireNotNull(db.settingsDao().get()).toSettings()
+            assertEquals(180,saved.restTimerDefaultSeconds);assertFalse(saved.autoStartRestAfterRecording);assertFalse(saved.algorithmSettings.augeAutoDeload)
+            val legacy=dbJson.decodeFromString<Settings>("{\"restTimerAutoStart\":false,\"restTimerDefaultSeconds\":90}")
+            assertTrue(legacy.autoStartRestAfterRecording);assertFalse(legacy.restTimerAutoStart)
+        } finally { db.close() }
     }
 }

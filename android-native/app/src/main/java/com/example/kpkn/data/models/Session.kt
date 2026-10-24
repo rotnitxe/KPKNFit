@@ -722,6 +722,10 @@ data class DropSetData(
 data class RestPauseData(
     val restTime: Int,
     val reps: Int,
+    /** Variante del mismo eslabón; null conserva byte a byte el JSON normal incluso con encodeDefaults. */
+    @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+    @kotlinx.serialization.EncodeDefault(kotlinx.serialization.EncodeDefault.Mode.NEVER)
+    val style: String? = null,
 )
 
 @Serializable

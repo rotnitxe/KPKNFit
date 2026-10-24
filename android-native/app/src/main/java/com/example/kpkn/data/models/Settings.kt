@@ -173,6 +173,8 @@ data class Settings(
      * por defecto: sin migración de Room.
      */
     val techniqueVideo: TechniqueVideoSettings = TechniqueVideoSettings(),
+    /** Inicio de descansos al registrar. true conserva el comportamiento previo; restTimerAutoStart permanece como legado sin reinterpretar backups. */
+    val autoStartRestAfterRecording: Boolean = true,
 ) {
     /**
      * Stock efectivo para alcanzar cargas: el inventario explícito manda,

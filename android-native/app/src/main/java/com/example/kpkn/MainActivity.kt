@@ -675,6 +675,9 @@ fun KPKNApp(
     // AnimatedVisibility retains content during exit — no delayed nulling (that raced remounts).
     val showHomeGlassOverlays = currentRoute == KpknRoute.Home.route
     CompositionLocalProvider(
+        com.example.kpkn.screens.progress.LocalExerciseProgressOpener provides { exerciseId ->
+            navController.navigate(KpknRoute.ExerciseProgress.create(exerciseId))
+        },
         LocalHazeState provides hazeState,
         LocalKpknOverlayHost provides overlayHost,
     ) {
@@ -1437,6 +1440,8 @@ private fun KPKNNavGraph(
                 onOpenMuscleVolume = { navController.navigate(KpknRoute.MuscleVolumePanel.create()) },
                 onOpenHabits = { navController.navigate(KpknRoute.Habits.route) },
 
+                onOpenExerciseProgress = { navController.navigate(KpknRoute.ExerciseProgress.create(it)) },
+
             )
         }
         composable(KpknRoute.WorkoutAlbums.route) {
@@ -1741,6 +1746,13 @@ private fun KPKNNavGraph(
                     }
                 },
             )
+        }
+        composable(KpknRoute.ExerciseProgress.route, arguments = listOf(navArgument(KpknRoute.ExerciseProgress.ARG_EXERCISE_ID) {
+            type = NavType.StringType; nullable = true; defaultValue = null
+        })) { entry ->
+            com.example.kpkn.screens.progress.ExerciseProgressRoute(
+                entry.arguments?.getString(KpknRoute.ExerciseProgress.ARG_EXERCISE_ID)?.takeIf { it.isNotBlank() },
+                { navController.popBackStack() })
         }
         composable(
             route = KpknRoute.MuscleVolumePanel.route,

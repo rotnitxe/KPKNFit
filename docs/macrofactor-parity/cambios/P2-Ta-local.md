@@ -1,0 +1,9 @@
+# P2-Ta · Myo-reps y discos por lado
+
+Preset sobre REST_PAUSE: cuatro mini-series de cuatro repeticiones y 15 s; editable a 1–5 mini-series, 3–5 reps y 10–30 s. La marca style=myo viaja por los parámetros del plan y los RestPauseData registrados. Sin TechniqueType nuevo. JSON ordinario no añade style. Mismo cómputo de AUGE y volumen: se conserva activación más las mini-series como rest-pause, con regresión comparativa explícita.
+
+Editor con chip/configuración; reverso con cuarto segmento y cadena Mini; guiado con objetivos y pausa del preset; historial y resumen identifican la variante y cada mini-serie. Los controles se desplazan dentro del alto existente de la tarjeta. Texto de discos en la etiqueta secundaria de carga, sólo barra TOTAL_EXTERNAL, tara y cantidades finitas declaradas. La carga prescrita no cambia: si no es exacta se identifica la más cercana montable, con semántica completa. Sin inventario o convenio fiable se oculta. Usa PlateCalculator existente, sin cambiarlo.
+
+Verificación JVM y Android/renders agrupadas; resultados pendientes. Harness MyoRepsPlatesHarnessActivity: myo_back, plates, plates_unreachable, no_inventory; además estados de los otros segmentos/editor para renders. Cambios en archivos calientes superan 30 líneas por controles del preset, sin reformatear ni mover el flujo existente.
+
+Validación pura final: `C:/kw/logs/mfp-training-tail-jvm-4.log`, BUILD SUCCESSFUL, 90 pruebas en 10 clases, cero fallos/errores/omitidos. Incluye las regresiones existentes de aproximaciones y viabilidad. La tanda anterior amplió fixtures y detectó que el primer ajuste anulaba el mínimo de máquina; se afinó para preservar 40 solicitado→50 real (trabajo 100), mientras 18 solicitado→15 real (trabajo 20) y mínimos que igualan/superan trabajo quedan pendientes. No se cambiaron expectativas ajenas. Android agrupado pendiente en la cola, `C:/kw/logs/mfp-training-tail-android-1.log`.

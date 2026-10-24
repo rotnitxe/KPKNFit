@@ -1,0 +1,9 @@
+# T5b · progreso por ejercicio (implementación local)
+
+Rama codex/mfp-t5b desde mfp/t5a 770d9bc4c. Conserva master y el cierre T5a. Nuevo motor puro de proyección, pantalla/VM de lectura, entrada de Perfil con ejercicios más entrenados, estrellas pulsables y Ver progreso en la ficha. No cambia registros, fuerza ni estado de homologación.
+
+Identidad: configuración exacta, después definición, después nombre normalizado. El contexto incluye modalidad/unidad, aspectos, variante, perfil, implemento/lado/tags y carga fija en tiempo/distancia. Líneas cortadas al cambiar contexto. Las repeticiones se comparan por carga; mejor serie asistida se compara a las mismas reps y presenta kg de asistencia reales, ordenados por el motor nativo. Una reducción de asistencia mejora. Volumen corporal sólo con masa corporal histórica conocida; no se inventa. e1RM sólo carga externa y modelo StrengthModel con esfuerzo declarado. No se usa la fórmula vieja de la referencia.
+
+PR calculado sobre todo el historial antes de filtrar ventana: un empate conserva primera fecha y una marca anterior al intervalo no se olvida. Récords históricos por trayectoria; no se unen modalidades o configuraciones. Fechas con zona explícita, ventanas de calendario y futuro excluido. Series fallidas/saltadas/calientamientos/invalidas excluidas; parciales antiguas no se reinterpretan como reps completas. Estado escaso muestra lo disponible sin crear cifras.
+
+Canvas con coordenadas calculadas fuera del dibujo, unidades, resumen TalkBack y alternativa de selección con chips ≥48 dp. Siete fixtures y catorce renders 360dp 100/130. Doce pruebas puras ejecutadas: 12 verdes, sin fallos/errores/omisiones, log C:/kw/logs/mfp-T5b-local-jvm-1.log. Tres VM y tres UI preparadas. Android y renders pendientes del lote de entrenamiento/integración. La cola actual admite carriles JVM/Android separados con sus guardas de RAM; no se duplican corridas.

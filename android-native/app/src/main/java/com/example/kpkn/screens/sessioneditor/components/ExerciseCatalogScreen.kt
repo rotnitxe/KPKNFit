@@ -53,9 +53,15 @@ internal fun ExerciseCatalogScreen(
     val editingExisting = request.selectionMode == CatalogSelectionMode.SINGLE ||
         request.selectionMode == CatalogSelectionMode.REPLACEMENT
 
+    val liveRepository = remember { runCatching { com.example.kpkn.data.repository.ProgramRepository.getInstance() }.getOrNull() }
+    val liveSettings = liveRepository?.settings?.collectAsStateWithLifecycle()?.value
+    val liveWorkout = liveRepository?.ongoingWorkout?.collectAsStateWithLifecycle()?.value
+    val livePrograms = liveRepository?.programs?.collectAsStateWithLifecycle()?.value.orEmpty()
+    val liveSession = liveWorkout?.session?.takeIf { session -> session.allExercises().any { it.id == request.targetExerciseId } }
+    val liveTarget = liveSession?.allExercises()?.firstOrNull { it.id == request.targetExerciseId }
     // Reemplazar (LV5, H1): la página arranca en el catálogo con el ejercicio actual de contexto, no en su ficha. El nombre y la dosis
     // del plan vienen en el pedido; si no hay nombre (el editor no lo manda), se saca del catálogo por su identidad.
-    val replacement = remember(request, catalog) {
+    val replacement = remember(request, catalog, liveSession, liveSettings?.equipmentAvailability, livePrograms) {
         val replacing = request.selectionMode == CatalogSelectionMode.REPLACEMENT ||
             request.origin == CatalogLaunchOrigin.REPLACEMENT
         if (!replacing) {
@@ -72,6 +78,9 @@ internal fun ExerciseCatalogScreen(
             CatalogReplacementContext(
                 exerciseName = request.targetExerciseName?.takeIf { it.isNotBlank() } ?: fromCatalog,
                 planSummary = request.targetPlanSummary?.takeIf { it.isNotBlank() },
+                exercise = liveTarget,
+                availability = liveSwapAvailability(liveSession,livePrograms.firstOrNull { it.id == liveWorkout?.programId },liveSettings?.equipmentAvailability),
+                avoided = persistedSwapAvoided(livePrograms.firstOrNull { it.id == liveWorkout?.programId }),
             )
         }
     }

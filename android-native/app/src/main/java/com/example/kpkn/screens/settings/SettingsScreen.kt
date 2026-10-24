@@ -6,6 +6,7 @@ import com.example.kpkn.screens.settings.export.*
 import com.example.kpkn.data.export.CsvExportService
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.repository.ProgramRepository
+
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -111,6 +112,8 @@ fun SettingsScreen(
         csvState.notice?.let { Toast.makeText(context, it, Toast.LENGTH_LONG).show(); csvModel.consumeNotice() }
     }
     if (showCsvExport) CsvExportSheet(csvState, csvModel::prepare, { showCsvExport = false })
+
+    val trainingSettings by viewModel.settings.collectAsStateWithLifecycle()
 
     var refreshToken by remember { mutableStateOf(0) }
     var telemetryFolder by remember { mutableStateOf(KpknDiagnosticStorage.configuredLabel(context)) }
@@ -233,6 +236,7 @@ fun SettingsScreen(
             item {
                 SettingsIntroCard()
             }
+            item { TrainingSettingsBlock(trainingSettings,viewModel::update) }
             item {
                 SettingsBlockTitle("Material")
                 SettingsCard {

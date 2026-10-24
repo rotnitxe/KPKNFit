@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -61,6 +62,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.TechniqueType
 import com.example.kpkn.domain.training.NativeProgressionText
+import com.example.kpkn.domain.workout.isMyoReps
 import com.example.kpkn.domain.workout.SetTechniqueScope
 import com.example.kpkn.domain.workout.techniqueScope
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -94,7 +96,7 @@ internal const val TechniqueChainTag = "technique_chain"
 internal const val TechniqueLinkTag = "technique_link"
 
 /** Segmentos de la técnica (A2, sin «Myo-reps»: no existe en la app) en el orden en que se muestran. */
-private val TechniqueSegments = listOf("Normal", "Drop-set", "Rest-pause")
+private val TechniqueSegments = listOf("Normal", "Drop-set", "Rest-pause", "Myo-reps")
 
 /** Alto de la zona táctil de los botones −/+ y de cada celda del eslabón abierto. */
 private val StepCellHeight = 44.dp
@@ -146,6 +148,8 @@ internal fun SetCardTechniqueBack(
         if (currentSet.techniqueScope() == SetTechniqueScope.VOLUME_REPLACED) null
         else currentSet.resolvePlannedTechniqueGuide()
     }
+    var myo by remember(currentSet.id) { mutableStateOf(currentSet.isMyoReps()) }
+    val restParams = currentSet.plannedIntensityTechniques.firstOrNull { it.type == TechniqueType.REST_PAUSE }?.params.orEmpty()
     var dropEnabled by remember(currentSet.id) {
         mutableStateOf(initialDropEnabled || plannedGuide?.kind == TechniqueType.DROP_SET)
     }
@@ -169,10 +173,11 @@ internal fun SetCardTechniqueBack(
     }
     var restPauseRows by remember(currentSet.id) {
         val count = plannedGuide?.count?.takeIf { plannedGuide.kind == TechniqueType.REST_PAUSE }
-            ?: RestPausePlanDefaults.DefaultCount
+            ?: if(myo) 4 else RestPausePlanDefaults.DefaultCount
         mutableStateOf(
             List(count.coerceIn(RestPausePlanDefaults.MinCount, RestPausePlanDefaults.MaxCount)) {
-                TechniqueCheckRow(repsText = RestPausePlanDefaults.Reps.toString())
+                TechniqueCheckRow(repsText = (restParams["reps"]?.toIntOrNull() ?: if(myo) 4 else RestPausePlanDefaults.Reps).toString(),
+                    restText = (restParams["pauseSeconds"]?.toIntOrNull() ?: RestPausePlanDefaults.PauseSeconds).toString())
             },
         )
     }
@@ -184,21 +189,24 @@ internal fun SetCardTechniqueBack(
     LaunchedEffect(dropEnabled) { onDropEnabledChange(dropEnabled) }
     LaunchedEffect(restPauseEnabled) { onRestPauseEnabledChange(restPauseEnabled) }
     // Con todas las filas marcadas como hechas, la técnica se registra en la serie (LR0).
-    LaunchedEffect(dropEnabled, restPauseEnabled, dropRows, restPauseRows, committed) {
+    LaunchedEffect(dropEnabled, restPauseEnabled, dropRows, restPauseRows, committed, myo) {
         if (committed) return@LaunchedEffect
         val dropsReady = !dropEnabled || shouldAutoCommitTechniqueRows(dropRows.map { it.done })
-        val pausesReady = !restPauseEnabled || shouldAutoCommitTechniqueRows(restPauseRows.map { it.done })
+        val pausesReady = !restPauseEnabled || (shouldAutoCommitTechniqueRows(restPauseRows.map { it.done }) && (!myo || restPauseRows.all { (it.repsText.toIntOrNull() ?: 0) in 3..5 && (it.restText.toIntOrNull() ?: 0) in 10..30 }))
         val hasTechnique = dropEnabled || restPauseEnabled
         if (hasTechnique && dropsReady && pausesReady &&
             ((dropEnabled && dropRows.isNotEmpty()) || (restPauseEnabled && restPauseRows.isNotEmpty()))
         ) {
-            val submitted = commit(dropRows, restPauseRows, dropEnabled, restPauseEnabled, onCompleteTechniques)
+            val submitted = commit(dropRows, restPauseRows, dropEnabled, restPauseEnabled) { drops, pauses ->
+                onCompleteTechniques(drops, if(myo) pauses.map { it.copy(style="myo") } else pauses)
+            }
             if (submitted) committed = true
         }
     }
 
     val segment = when {
         dropEnabled -> 1
+        restPauseEnabled && myo -> 3
         restPauseEnabled -> 2
         else -> 0
     }
@@ -263,7 +271,7 @@ internal fun SetCardTechniqueBack(
                     .verticalScroll(bodyScroll),
                 verticalArrangement = Arrangement.spacedBy(5.dp),
             ) {
-                LiveCompactSegments(
+                MyoTechniqueSegments(
                     options = TechniqueSegments,
                     selectedIndex = segment,
                     onSelect = { index ->
@@ -273,8 +281,12 @@ internal fun SetCardTechniqueBack(
                                 restPauseEnabled = false
                             }
                             2 -> {
-                                restPauseEnabled = true
-                                dropEnabled = false
+                                if(myo) restPauseRows = List(RestPausePlanDefaults.DefaultCount) { TechniqueCheckRow() }
+                                myo=false;restPauseEnabled=true;dropEnabled=false
+                            }
+                            3 -> {
+                                if(!myo) restPauseRows = List(4) { TechniqueCheckRow(repsText="4",restText="15") }
+                                myo=true;restPauseEnabled=true;dropEnabled=false;committed=false
                             }
                             else -> {
                                 dropEnabled = false
@@ -355,11 +367,12 @@ internal fun SetCardTechniqueBack(
                         )
                     }
                     restPauseEnabled -> {
+                        if(myo) Text("Activación y mini-series: 3–5 reps con pausas de 10–30 s. Se registra como rest-pause.",style=KpknType.caption,color=WizardColors.textMuted)
                         val active = activePause.coerceIn(0, (restPauseRows.size - 1).coerceAtLeast(0))
                         TechniqueChain(
                             mainLabel = mainLabel,
                             rows = restPauseRows,
-                            linkTitle = { index -> "Pausa ${index + 1}" },
+                            linkTitle = { index -> if(myo) "Mini ${index + 1}" else "Pausa ${index + 1}" },
                             linkValue = { row -> "${row.repsText.ifBlank { "—" }} reps" },
                             linkSub = { row -> "${row.restText.ifBlank { "—" }} s" },
                             activeIndex = active,
@@ -367,17 +380,17 @@ internal fun SetCardTechniqueBack(
                             canAdd = restPauseRows.size < RestPausePlanDefaults.MaxCount,
                             onAdd = {
                                 restPauseRows = restPauseRows + TechniqueCheckRow(
-                                    repsText = RestPausePlanDefaults.Reps.toString(),
-                                    restText = RestPausePlanDefaults.PauseSeconds.toString(),
+                                    repsText = (if(myo) 4 else RestPausePlanDefaults.Reps).toString(),
+                                    restText = (if(myo) 15 else RestPausePlanDefaults.PauseSeconds).toString(),
                                 )
                                 activePause = restPauseRows.size - 1
                             },
-                            addDescription = "Añadir pausa",
+                            addDescription = if(myo) "Añadir mini-serie" else "Añadir pausa",
                             accent = sessionAccentColor,
                         )
                         restPauseRows.getOrNull(active)?.let { row ->
                             OpenTechniqueRow(
-                                title = "Pausa ${active + 1}",
+                                title = if(myo) "Mini ${active + 1}" else "Pausa ${active + 1}",
                                 suggestion = null,
                                 suggestionSelected = false,
                                 onSuggestion = null,
@@ -1079,4 +1092,23 @@ internal fun nextDropWeightKg(
         (nextIndex + 1).coerceAtMost(DropSetPlanDefaults.MaxDrops),
     ).getOrNull(nextIndex)
     return suggested ?: lastWeightText?.replace(',', '.')?.toDoubleOrNull()?.minus(DropSetPlanDefaults.DropKg)
+}
+
+/** Mismo alto visual de 30 dp, con objetivo táctil de 48 dp y etiquetas completas desplazables. */
+@Composable
+private fun MyoTechniqueSegments(options: List<String>, selectedIndex: Int, onSelect: (Int) -> Unit) {
+    val scroll = rememberScrollState()
+    LaunchedEffect(selectedIndex,scroll.maxValue) { scroll.scrollTo(if(selectedIndex == options.lastIndex) scroll.maxValue else 0) }
+    Row(Modifier.fillMaxWidth().horizontalScroll(scroll),horizontalArrangement=Arrangement.spacedBy(4.dp)) {
+        options.forEachIndexed { index,label ->
+            Box(Modifier.widthIn(min=if(label == "Rest-pause") 100.dp else 92.dp).height(48.dp)
+                .semantics { selected = selectedIndex == index }.clickable(role=Role.Tab) { onSelect(index) },contentAlignment=Alignment.Center) {
+                Box(Modifier.fillMaxWidth().height(30.dp).clip(RoundedCornerShape(15.dp))
+                    .background(if(selectedIndex == index) WizardColors.text else Color.Black).padding(horizontal=8.dp),contentAlignment=Alignment.Center) {
+                    Text(label,style=KpknType.caption.copy(fontSize=12.sp,lineHeight=16.sp),maxLines=1,softWrap=false,
+                        color=if(selectedIndex == index) KpknSurface.canvas else WizardColors.textMuted)
+                }
+            }
+        }
+    }
 }

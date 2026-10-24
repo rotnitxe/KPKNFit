@@ -51,16 +51,23 @@ object ExerciseSwapOptions {
         catalog: ExerciseCatalogV2,
         avoided: Set<AvoidGroup> = emptySet(),
         limit: Int = 6,
-    ): List<SwapOption> {
+    ): List<SwapOption> = optionsWithAvailability(exercise, sessionPlaceAvailability, catalog, avoided, limit)
+
+    /** Ausencia de declaración no equivale a declarar sólo peso corporal. No fabrica un inventario. */
+    fun optionsForUnknownEquipment(exercise: Exercise, catalog: ExerciseCatalogV2, avoided: Set<AvoidGroup> = emptySet(), limit: Int = 6): List<SwapOption> =
+        optionsWithAvailability(exercise, null, catalog, avoided, limit)
+
+    private fun optionsWithAvailability(exercise: Exercise, availability: EquipmentAvailability?, catalog: ExerciseCatalogV2,
+        avoided: Set<AvoidGroup>, limit: Int): List<SwapOption> {
         if (limit <= 0) return emptyList()
         val index = GeneratorCatalog.of(catalog)
         val current = exercise.catalogConfigurationId?.let(index::entry) ?: return emptyList()
-        val equipment = DayEquipment(sessionPlaceAvailability)
+        val equipment = availability?.let(::DayEquipment)
         val avoidedDefinitions = avoided.flatMapTo(mutableSetOf()) { AvoidGroups.definitionIdsOf(it) }
         // Orden fijo por id: el ranking desempata por nombre, así que el resultado no depende del orden del mapa.
         val pool = index.entries.values
             .filter { it.id != current.id && it.definitionId !in avoidedDefinitions }
-            .filter { equipment.allows(it, requires = emptyList()) }
+            .filter { equipment?.allows(it, requires = emptyList()) != false }
             .sortedBy { it.id }
         val byId = pool.associateBy { it.id }
         val ranked = AprendeSimilarityEngine.rank(current.similarityInput(), pool.map { it.similarityInput() }, limit = pool.size)

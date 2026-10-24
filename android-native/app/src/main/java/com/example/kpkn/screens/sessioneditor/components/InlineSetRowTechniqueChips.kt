@@ -8,6 +8,8 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,6 +39,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.PlannedTechnique
+import com.example.kpkn.domain.workout.isMyoReps
+import com.example.kpkn.domain.workout.MyoRepsPreset
 import com.example.kpkn.data.models.TechniqueType
 import com.example.kpkn.domain.workout.ScheduledTechniqueDefaults
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -149,11 +153,11 @@ internal fun InlineSetRowTechniqueChips(
             )
             TechniqueToggleChip(
                 label = "Rest-pause",
-                selected = hasRestPause,
+                selected = hasRestPause && !set.isMyoReps(),
                 modifier = if (listSkin) Modifier else Modifier.weight(1f),
                 listSkin = listSkin,
                 onClick = {
-                    if (hasRestPause) {
+                    if (hasRestPause && !set.isMyoReps()) {
                         onUpdate { current ->
                             current.copy(
                                 plannedIntensityTechniques = current.plannedIntensityTechniques.filter {
@@ -194,6 +198,16 @@ internal fun InlineSetRowTechniqueChips(
             )
         }
 
+        TechniqueToggleChip(label = "Myo-reps", selected = set.isMyoReps(), modifier = Modifier.fillMaxWidth().heightIn(min=48.dp), listSkin = listSkin,
+            onClick = {
+                if(set.isMyoReps()) {
+                    onUpdate { current -> current.copy(isRestPause=false,restPauses=emptyList(),restAfterSeconds=null,
+                        plannedIntensityTechniques=current.plannedIntensityTechniques.filterNot { it.type == TechniqueType.REST_PAUSE }) }
+                    showRestPauseConfig=false
+                } else {
+                    onUpdate { current -> MyoRepsPreset.applyTo(current) };showRestPauseConfig=true;showDropSetConfig=false
+                }
+            })
         AnimatedVisibility(
             visible = showDropSetConfig && hasDropSet,
             enter = expandVertically() + fadeIn(),
@@ -258,7 +272,7 @@ internal fun InlineSetRowTechniqueChips(
             if (rpTechnique != null) {
                 val rpCount = (rpTechnique.params["count"]?.toIntOrNull() ?: RestPausePlanDefaults.DefaultCount)
                     .coerceIn(RestPausePlanDefaults.MinCount, RestPausePlanDefaults.MaxCount)
-                TechniqueConfigPanel(title = "Rest-pause programado", listSkin = listSkin) {
+                TechniqueConfigPanel(title = if(set.isMyoReps()) "Myo-reps programadas" else "Rest-pause programado", listSkin = listSkin) {
                     Text(
                         "¿Cuántas mini-series tras la principal?",
                         style = if (listSkin) KpknType.caption else MaterialTheme.typography.labelSmall,
@@ -279,8 +293,8 @@ internal fun InlineSetRowTechniqueChips(
                                         val updated = rpTechnique.copy(
                                             params = rpTechnique.params + mapOf(
                                                 "count" to n.toString(),
-                                                "pauseSeconds" to RestPausePlanDefaults.PauseSeconds.toString(),
-                                                "reps" to RestPausePlanDefaults.Reps.toString(),
+                                                "pauseSeconds" to (if(set.isMyoReps()) rpTechnique.params["pauseSeconds"] ?: "15" else RestPausePlanDefaults.PauseSeconds.toString()),
+                                                "reps" to (if(set.isMyoReps()) rpTechnique.params["reps"] ?: "4" else RestPausePlanDefaults.Reps.toString()),
                                                 "betweenMarked" to "true",
                                             ),
                                         )
@@ -294,8 +308,22 @@ internal fun InlineSetRowTechniqueChips(
                             )
                         }
                     }
+                    if(set.isMyoReps()) {
+                        Text("Repeticiones por mini-serie",style=KpknType.caption,color=WizardColors.textMuted)
+                        Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) { (3..5).forEach { reps ->
+                            KpknChip("$reps",rpTechnique.params["reps"] == reps.toString(),{
+                                onUpdate { current -> MyoRepsPreset.applyTo(current,rpCount,reps,rpTechnique.params["pauseSeconds"]?.toIntOrNull() ?: 15) }
+                            })
+                        } }
+                        Text("Pausa corta",style=KpknType.caption,color=WizardColors.textMuted)
+                        Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) { listOf(10,15,20,25,30).forEach { seconds ->
+                            KpknChip("$seconds s",rpTechnique.params["pauseSeconds"] == seconds.toString(),{
+                                onUpdate { current -> MyoRepsPreset.applyTo(current,rpCount,rpTechnique.params["reps"]?.toIntOrNull() ?: 4,seconds) }
+                            })
+                        } }
+                    }
                     Text(
-                        "Pausa fija ${KpknSetFormat.doseTime(RestPausePlanDefaults.PauseSeconds)} · ${RestPausePlanDefaults.Reps} reps · $rpCount miniseries",
+                        if(set.isMyoReps()) "Activación cerca del fallo · ${rpTechnique.params["reps"]} reps · ${rpTechnique.params["pauseSeconds"]} s · $rpCount mini-series" else "Pausa fija ${KpknSetFormat.doseTime(RestPausePlanDefaults.PauseSeconds)} · ${RestPausePlanDefaults.Reps} reps · $rpCount miniseries",
                         style = if (listSkin) KpknType.caption else MaterialTheme.typography.labelSmall,
                         color = if (listSkin) WizardColors.textMuted else Color.White.copy(alpha = 0.45f),
                     )

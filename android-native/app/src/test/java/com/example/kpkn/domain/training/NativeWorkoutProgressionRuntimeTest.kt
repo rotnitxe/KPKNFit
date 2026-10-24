@@ -1575,4 +1575,18 @@ class NativeWorkoutProgressionRuntimeTest {
 
     private fun futureSetReferenceState(program: Program, sessionId: String): PlanLoadReferenceState? =
         ProgramHierarchyIndex(program).locateSession(sessionId)?.session?.allExercises()?.single()?.loadReference?.state
+    @Test fun descargaDeVolumenConservaCapturaYRepsConRirObjetivoCuatro() {
+        val sessions=(1..6).map { week ->
+            val session=nativeSession("volume-deload-$week",plannedWeight=null,plannedRir=if(week==6) 4 else 3)
+            if(week==6) session.copy(exercises=session.exercises.map { it.copy(sets=it.sets.take(1)) }) else session
+        }
+        val program=nativeProgram(sessions,deloadWeekIndices=setOf(5))
+        val log=workoutLog(program.id,sessions.first(),"captured-100","w1",loadKg=100.0,reps=8)
+        val observed=observe(program,listOf(log),completedLogId=log.id)
+        val deload=ProgramHierarchyIndex(observed).locateSession(sessions.last().id)!!.session.allExercises().single()
+        assertEquals(1,com.example.kpkn.data.protocols.definitions.NativeDoseTable.deloadSets(2))
+        assertEquals(1,deload.sets.size);assertEquals(100.0,deload.sets.single().weight!!,0.0)
+        assertEquals(RepRange(6,8),deload.sets.single().targetRepsRange)
+        assertEquals(4,deload.sets.single().targetRIR)
+    }
 }

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -97,6 +98,7 @@ import com.example.kpkn.domain.training.buildStarredExerciseProgress
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -106,6 +108,7 @@ data class ProfileUiState(
     val settings: Settings = Settings(),
     val starredExercises: List<StarredExerciseProgress> = emptyList(),
     val nutritionGoal: NutritionGoalProgress? = null,
+    val progressExercises: List<com.example.kpkn.domain.training.ExerciseProgressChoice> = emptyList(),
 )
 
 class ProfileViewModel : ViewModel() {
@@ -127,9 +130,10 @@ class ProfileViewModel : ViewModel() {
         ProfileUiState(
             settings = settings,
             starredExercises = buildStarredExerciseProgress(programs, history),
+            progressExercises = com.example.kpkn.domain.training.ExerciseProgress.choices(history).take(4),
             nutritionGoal = buildNutritionGoalProgress(plan, observations),
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProfileUiState())
+    }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProfileUiState())
 
     fun saveProfile(
         name: String,
@@ -202,6 +206,8 @@ fun ProfileScreen(
     onOpenTechnique: () -> Unit = {},
     onOpenMuscleVolume: () -> Unit = {},
     onOpenHabits: () -> Unit = {},
+
+    onOpenExerciseProgress: (String?) -> Unit = {},
 
 ) {
     // Recorrido de Perfil: la primera vez que se abre. El icono de ajustes y la competición están en esta pantalla.
@@ -307,7 +313,7 @@ fun ProfileScreen(
                 BodyDataCard(settings = state.settings)
             }
 
-            StarredExercisesCard(state.starredExercises)
+            StarredExercisesCard(state.starredExercises, onOpenExerciseProgress)
             ProfileAlbumsCard(onOpenAlbums = onOpenAlbums)
             ProfileTechniqueCard(onOpenTechnique = onOpenTechnique)
             ProfileHabitsCard(onOpenHabits = onOpenHabits)
@@ -318,7 +324,7 @@ fun ProfileScreen(
                 )
             }
             NutritionProgressCard(state.nutritionGoal)
-            ProfileProgressBlock(onOpenMuscleVolume = onOpenMuscleVolume)
+            ProfileProgressBlock(onOpenMuscleVolume = onOpenMuscleVolume, onOpenExerciseProgress = onOpenExerciseProgress, exercises = state.progressExercises)
             Spacer(Modifier.height(64.dp))
         }
     }
@@ -455,13 +461,13 @@ private fun BodyDataCard(settings: Settings) {
 }
 
 @Composable
-private fun StarredExercisesCard(exercises: List<StarredExerciseProgress>) {
+private fun StarredExercisesCard(exercises: List<StarredExerciseProgress>, onOpen: (String?) -> Unit) {
     ProfileCard(title = "Ejercicios estrella", icon = Icons.Default.FitnessCenter) {
         if (exercises.isEmpty()) {
             EmptyProfileHint("Marca ejercicios con estrella desde tus sesiones para seguir aquí su RM y objetivo.")
         } else {
             exercises.forEachIndexed { index, exercise ->
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = androidx.compose.ui.semantics.Role.Button) { onOpen(exercise.key) }, verticalAlignment = Alignment.Top) {
                     Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFC107), modifier = Modifier.size(22.dp))
                     Spacer(Modifier.width(10.dp))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -540,13 +546,15 @@ private fun NutritionProgressCard(progress: NutritionGoalProgress?) {
 
 /** Bloque «Progreso» del perfil: entradas a las vistas de avance. Cada vista es una fila; las nuevas se añaden al final. */
 @Composable
-private fun ProfileProgressBlock(onOpenMuscleVolume: () -> Unit) {
+private fun ProfileProgressBlock(onOpenMuscleVolume: () -> Unit, onOpenExerciseProgress: (String?) -> Unit, exercises: List<com.example.kpkn.domain.training.ExerciseProgressChoice>) {
     ProfileCard(title = "Progreso", icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Layers) {
         ProfileProgressEntry(
             title = "Volumen por músculo",
             description = "Series registradas por músculo en 1, 4 o 12 semanas, con los ejercicios que las explican.",
             onClick = onOpenMuscleVolume,
         )
+        ProfileProgressEntry("Progreso por ejercicio", "Métricas, récords y sesiones de tus ejercicios más entrenados.", { onOpenExerciseProgress(null) })
+        exercises.forEach { exercise -> ProfileProgressEntry(exercise.name, "${exercise.sessions} sesiones · ${exercise.configuration}", { onOpenExerciseProgress(exercise.id) }) }
     }
 }
 

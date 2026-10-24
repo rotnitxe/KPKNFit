@@ -125,6 +125,8 @@ data class Program(
     val nativeProgressionProposals: List<NativeProgressionProposal> = emptyList(),
     /** Terminal applied/rejected/expired decisions; proposal IDs are idempotent. */
     val nativeProgressionAudit: List<NativeProgressionResolution> = emptyList(),
+    /** Grupos realmente evitados al crear el plan; vacío en programas heredados. JSON aditivo, sin migración. */
+    val avoidedExerciseGroups: Set<String> = emptySet(),
 )
 
 /**
