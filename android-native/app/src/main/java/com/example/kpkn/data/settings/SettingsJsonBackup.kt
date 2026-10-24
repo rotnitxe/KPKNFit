@@ -99,6 +99,7 @@ object SettingsJsonBackup {
         db: KpknDatabase,
     ): SettingsExportPayload {
         val v2 = db.workoutV2Dao()
+        val calibrationRows = db.calibrationDecisionDao().getAll()
         val competition = readBackupRows(db.competitionRecordDao().getAll(), "competition_records", { it.id }) { it.toCompetitionRecord() }
         val performanceRanges = readBackupRows(db.performanceRangeDao().getAll(), "performance_range", { it.contextKey }) { it.toPerformanceRangeData() }
         val performanceSnapshots = readBackupRows(db.performanceSnapshotDao().getRecent(10_000), "performance_snapshot", { it.id.toString() }) { it.toPerformanceSnapshotData() }
@@ -143,7 +144,9 @@ object SettingsJsonBackup {
             learnedResolutions = learnedResolutions,
             foodCatalogMeta = foodCatalogMeta,
             nutritionPreferences = NutritionPreferencesBackup.read(context),
-            calibrationDecisions = db.calibrationDecisionDao().getAll(),
+            calibrationDecisions = CalibrationDecisionBackup.canonicalRecords(calibrationRows),
+            calibrationDecisionRows = calibrationRows,
+            includesCalibrationDecisionsSection = true,
             bodyObservations = bodyObservations,
             bodyGoals = bodyGoals,
             measurementSchedule = measurementSchedule,
@@ -196,6 +199,9 @@ object SettingsJsonBackup {
         val hasSetup = payload.schemaVersion >= 6 && payload.includesSetupSection
         // Extensión aditiva de v6: copias antiguas sin esta sección conservan las declaraciones locales.
         val hasDayState = payload.schemaVersion >= 6 && payload.includesNutritionDayStateSection
+        // Resolver antes de borrar: una copia canónica ilegible falla sin modificar los datos locales.
+        val calibrationRowsForRestore = if (payload.schemaVersion >= 6 && payload.includesCalibrationDecisionsSection)
+            payload.calibrationDecisionRows ?: payload.calibrationDecisions?.map(CalibrationDecisionBackup::toEntity) else null
         val tablesToClear = BackupTableManifest.tablesToClearForImport(
             schemaVersion = payload.schemaVersion,
             hasCompetitionSection = v5 && payload.includesCompetitionSection,
@@ -205,7 +211,7 @@ object SettingsJsonBackup {
             hasCalibrationSection = v5 && payload.includesCalibrationSection,
             hasSetupSection = hasSetup,
             hasNutritionDayStateSection = hasDayState,
-            hasCalibrationDecisionsSection = payload.calibrationDecisions != null,
+            hasCalibrationDecisionsSection = calibrationRowsForRestore != null,
         )
         val settingsProfileToken = when {
             payload.profilePhotoJpegBase64 != null -> ProfilePhotoStore.STORAGE_TOKEN
@@ -224,7 +230,7 @@ object SettingsJsonBackup {
                     profilePicture = settingsProfileToken,
                 ).toEntity(),
             )
-            payload.calibrationDecisions?.let { db.calibrationDecisionDao().upsert(it) }
+            calibrationRowsForRestore?.let { db.calibrationDecisionDao().upsert(it) }
             payload.programs.forEach { db.programDao().upsert(it.toEntity()) }
             payload.workoutLogs.forEach { db.workoutLogDao().insert(it.toEntity()) }
             payload.activeProgramState?.let { db.stateDao().upsertActiveProgram(it.toEntity()) }
@@ -405,8 +411,11 @@ data class SettingsExportPayload(
     val nutritionCheckIns: List<NutritionCheckInBackup> = emptyList(),
     /** Extensión opcional de v6: si no existe, importar conserva las preferencias locales. */
     val nutritionPreferences: NutritionPreferencesBackup? = null,
-    /** Null en copias previas conserva decisiones locales; vacío explícito restaura una sección vacía. */
-    val calibrationDecisions: List<com.example.kpkn.data.db.CalibrationDecisionEntity>? = null,
+    /** Forma JSON de CalibrationDecisionRecord publicada por screens-v2, sin acoplar su runtime. */
+    val calibrationDecisions: List<kotlinx.serialization.json.JsonObject>? = null,
+    val includesCalibrationDecisionsSection: Boolean = false,
+    /** Snapshot exacto opcional: conserva también filas opacas/en cuarentena. Ausencia conserva las filas locales. */
+    val calibrationDecisionRows: List<com.example.kpkn.data.db.CalibrationDecisionEntity>? = null,
 )
 
 /** Copia fiel de las filas: conserva incluso una declaración en cuarentena. */

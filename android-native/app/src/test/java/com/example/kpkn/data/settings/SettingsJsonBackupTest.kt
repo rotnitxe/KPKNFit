@@ -128,9 +128,9 @@ class SettingsJsonBackupTest {
                 db = db,
             )
             assertEquals(listOf(programId), exported.programs.map { it.id })
-            assertEquals(listOf(decision),exported.calibrationDecisions)
+            assertEquals(listOf(decision),exported.calibrationDecisionRows)
             val decoded=dbJson.decodeFromString<SettingsExportPayload>(dbJson.encodeToString(exported))
-            assertEquals(listOf(decision),decoded.calibrationDecisions)
+            assertEquals(listOf(decision),decoded.calibrationDecisionRows)
             SettingsJsonBackup.importPayload(
                 context = context,
                 payload = exported,
@@ -272,4 +272,28 @@ class SettingsJsonBackupTest {
             assertTrue(legacy.autoStartRestAfterRecording);assertFalse(legacy.restTimerAutoStart)
         } finally { db.close() }
     }
+    @Test fun `copia canonica de screens v2 conserva contexto y JSON sin requerir su motor`() = runBlocking {
+        val db=KpknDatabase.createInMemory(context)
+        try {
+            val record=kotlinx.serialization.json.Json.parseToJsonElement("""{
+                "id":"canonical","sourceSetId":"set","sessionLogId":"execution","programId":"p","exerciseName":"Press","status":"APPLIED","createdAt":123,"resolvedAt":124,
+                "decision":{"sourceSetId":"set","exerciseId":"e","context":{"configurationId":"bench","equipmentKey":"bar|marca","side":"left","loadQuantityConvention":"TOTAL_EXTERNAL"},
+                "capacityKg":100,"referenceKg":90,"referenceSource":"HISTORY","ratio":1.1,"factor":1,"type":"RAISE","affectedSets":[],"eligibility":"OK","reason":"Captura","note":null,"scope":"SESSION","effectiveRepsToFailure":8,"estimatorVersion":3},
+                "future":{"unknown":17}
+            }""").let { it as kotlinx.serialization.json.JsonObject }
+            val payload=minimalPayload().copy(calibrationDecisions=listOf(record),includesCalibrationDecisionsSection=true)
+            SettingsJsonBackup.importPayload(context,payload,db,nutritionRepo(db),onMeasurementSchedule={})
+            val row=db.calibrationDecisionDao().getAll().single()
+            assertEquals("set-v1|5:bench|9:bar|marca|0:|4:left|14:TOTAL_EXTERNAL",row.contextKey)
+            assertEquals(record,kotlinx.serialization.json.Json.parseToJsonElement(row.data))
+            assertEquals(3,row.estimatorVersion);assertEquals(100.0,row.capacityKg!!,0.0)
+            SettingsJsonBackup.importPayload(context,payload.copy(includesCalibrationDecisionsSection=false,calibrationDecisions=emptyList()),db,nutritionRepo(db),onMeasurementSchedule={})
+            assertEquals(listOf(row),db.calibrationDecisionDao().getAll())
+            val beforePrograms=db.programDao().getAll()
+            val damaged=kotlinx.serialization.json.buildJsonObject { put("id",kotlinx.serialization.json.JsonPrimitive("damaged")) }
+            assertTrue(runCatching { SettingsJsonBackup.importPayload(context,payload.copy(calibrationDecisions=listOf(damaged)),db,nutritionRepo(db),onMeasurementSchedule={}) }.isFailure)
+            assertEquals(listOf(row),db.calibrationDecisionDao().getAll());assertEquals(beforePrograms,db.programDao().getAll())
+        } finally { db.close() }
+    }
+
 }

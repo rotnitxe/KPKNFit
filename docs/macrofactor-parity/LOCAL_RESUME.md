@@ -1,50 +1,57 @@
-# Reanudación local de la ola MFP · 24-oct-2026
+> Actualización vigente: entrenamiento cerrado con 129/129 Android y 40 PNG; commits mfpt5 `4d12c258f` + `75267b6c7`, ya fusionados en mfpi `74de4a6b0`. JVM integrada final 3.067/3.067 en 275 clases, recibo `VALIDACION_JVM_INTEGRADA.md` y commit `f9837855e`. Los arreglos descritos abajo YA están aplicados/mezclados; no reaplicar scripts. La suite de fase 5 se lanzará con KPKN Dev (`mfp-dev.init.gradle`), assembleBaseDebug + suite completa con renders. WIP de integración: columnas CSV de mini-series y compatibilidad canónica/filas opacas de copia de calibración. AVD vacía KPKN_MFP_Local_QA en C:/kw/mfpi-qa-avd, puerto reservado 5590, preparada sin arrancar; arranque exige ≥12 GB libres y emu.lock libre. Otro chat informó que finalizará y cerrará su AVD5580; no se respondió ni se tocó.
 
-## Instrucción vigente y base
+# Continuación local de la ola MFP · 24-oct-2026
 
-El usuario pidió implementar directamente en local, con el método más efectivo y rápido, sin push. Sustituye Cloud y delegación. Un solo agente; no contactar otros chats ni fusionar master. La orden posterior del usuario exige continuar hasta entregar el 100 %, sin detenerse para preguntas rutinarias; las verificaciones adicionales necesarias quedan autorizadas. El checkout principal conserva su trabajo ajeno y no se modifica.
+Orden vigente: implementación directa y local, sin push ni integración a master, sin preguntas rutinarias. La orden posterior de terminar al 100 % permite las comprobaciones adicionales necesarias; los límites históricos de tres rondas no son motivo para parar la entrega. No delegar ni contactar otros chats sin autorización humana fiable. No modificar WIP ajeno, catálogo S11/H-i, importador, .gitignore ni datos de usuario.
 
-Worktrees limpios al comenzar: `mfp`/`feat/macrofactor-parity` en `c488bfbe8`, `mfpn`/`mfp/n` en `00bde8b50`, `mfpd`/`mfp/d` en `c0e8f77ab`, `mfpt5`/`mfp/t5a` en `7b373aa22`, `mfph`/`mfp/h` en `0fe99e548`. La RAM inicial era 1,84 GB libres; el usuario liberó memoria y las guardas de la cola se mantuvieron intactas.
+## Ubicación y commits
 
-## Resultado comprobado
+- `C:/kw/mfpi`, rama `mfp/i`, HEAD `a9885534d`: integración desde `feat/macrofactor-parity` (`026a8c1e3`). Fusionados nutrición, cuerpo, T5a, hábitos y cola de entrenamiento. Master sigue independiente.
+- `C:/kw/mfpn`, `mfp/n`, `f9d6f0406`: P2-Na/Nb, CSV/OCR, EER/GTIN/duplicados, arneses y banco físico. Árbol limpio.
+- `C:/kw/mfpd`, `mfp/d`, `cdc458619`: tendencia y meta con altura tipográfica real; prueba 130 % pendiente de integración.
+- `C:/kw/mfph`, `mfp/h`, `9c5429afc`: cambio de día local sin escrituras nuevas; regresión pendiente de integración.
+- `C:/kw/mfpt5`, `codex/mfp-training-tail`, `64c19e1ca`: T5a/T5b/T6/Myo/discos/ajustes. WIP posterior de correcciones descrito abajo, congelado mientras se compila. `mfp/t5a` permanece en `770d9bc4c`.
+- `C:/kw/mfp`, `feat/macrofactor-parity`, `026a8c1e3`: T4 y recibos anteriores; no se ha fusionado mfp/i de vuelta.
 
-| Bloque | Evidencia local | Estado |
-|---|---|---|
-| N3/N4 sobre `00bde8b50` | 257 pruebas Android / 22 clases, 0 fallos/errores/omisiones; 38 PNG | Validación focal verde; revisión visual parcial, sin QA física |
-| T4 | Commit `3b6c5153e`; 34 pruebas JVM y 58 Android verdes | Corregida la pérdida de repeticiones aceptadas al regenerar semana; prueba bilateral y por lado, JSON e historial |
-| P2-Na | Commits `f684146b9` y harness separado `b2abea01d`; 475 pruebas Android / 64 clases previas al arreglo final, 44 JVM / 4 clases y 73 Android / 9 clases posteriores | Recetas, favoritos, hora local, preferencias JSON y exportación por fila implementados. Validación focal completa, incluido el arreglo de raciones y editor decimal; integración y QA física pendientes |
-| T5a | Commit `770d9bc4c`; 1.527 JVM/140 clases y 398 Android/34 clases verdes, sin omisiones; 20 PNG | Regresión amplia verde; rótulo truncado al 130 % corregido con prueba de texto. Revisión visual parcial, QA física pendiente |
-| P2-Nb | Commits `f237e727f` + debug `616d7b517`; 1.317 JVM/108 clases, 12 focales posteriores, 330 Android/47 clases, diez PNG | Verde; revisión final parcial 130 % realizada. Sin QA física |
+## Evidencia válida
 
-## Logs y hojas
+| Bloque | Resultado |
+|---|---|
+| T4 | 34 JVM + 58 Android verdes; se preserva el par peso/reps aceptado al rematerializar, bilateral/por lado y JSON |
+| N3/N4 | 257 Android/22 clases verdes, 38 PNG; correcciones posteriores GTIN/duplicados incluidas en la tanda CSV/OCR |
+| P2-Na | 44 JVM y 73 Android/9 clases posteriores al arreglo final, sin fallos; 18 PNG |
+| T5a | 1.527 JVM/140 clases y 398 Android/34 clases verdes; 20 PNG |
+| P2-Nb | 1.317 JVM/108 clases, 12 focales y 330 Android/47 clases verdes; diez PNG |
+| CSV/OCR/Nutrición | `mfp-CSVE-local-android-3.log`: 67 clases, 462 declaradas, 460 ejecutadas, cero fallos/errores, 2 omitidas condicionales de PDF/corpus heredadas. 28 PNG en `CSVE-local-20261024-final3`; 33 JVM finales verdes. Commits producción `f151cbc34`, debug `9fbd197a2`, atributos DRI `f9d6f0406` |
+| T5b | 12 JVM verdes; Android está en las tandas de entrenamiento |
+| Banco focal entrenamiento | `mfp-training-tail-jvm-4.log`: 90/90 verdes en diez clases; después se amplió la regresión integrada |
+| Android entrenamiento 1 | `mfp-training-tail-android-1.log`: compila main/debug/tests; 125 pruebas, 123 verdes y 2 fallos. Se corrigieron: expectativa de material (cuerpo también permitido) y barra Añadir que tapaba Reemplazar. 40 PNG |
+| JVM integración 2 | `mfp-integration-jvm-2.log`: 3.066 pruebas/275 clases; un único fallo real: ajuste demasiado amplio del redondeo de polea/Smith. Se acotó sin cambiar expectativas |
 
-- N3/N4: `C:/kw/logs/mfp-N4-local-20261024-1.log`; `C:/kw/shots/mfp/N4-local-20261024`.
-- T4: `C:/kw/logs/mfp-T4-local-20261024-jvm-3.log`, `mfp-T4-local-20261024-android-2.log`. Primera tanda Android sin pruebas por heap de 4 GB; segunda verde con 6 GB y guarda de 7 GB libres.
-- P2-Na: `C:/kw/logs/mfp-P2Na-local-20261024-android-3.log`; `C:/kw/shots/mfp/P2Na-local-20261024-final3`, 54 PNG. Regresión final JVM: `C:/kw/logs/kpknjvm-mfpn-20261024-024525.log`. El recibo detallado está en `C:/kw/mfpn/docs/macrofactor-parity/cambios/P2-Na.md`.
-- T5a: `C:/kw/logs/mfp-T5a-local-20261024-jvm-1.log`, `mfp-T5a-local-20261024-android-2.log`; 20 PNG finales en `C:/kw/shots/mfp/T5a-local-20261024-final`. Dos tandas Android, sin necesidad de repetir.
+No reutilizar XML viejos tras un fallo de compilación. mfp_verify sobre mfpt5 mostró antes 398 tests de T5a: eso sólo sirvió para la revisión estática, no cerró entrenamiento.
 
-## Siguiente paso y límites
+## En curso y siguiente paso
 
-La instrucción posterior del usuario autoriza las comprobaciones adicionales necesarias y exige seguir hasta el 100 %, sin preguntas rutinarias. La tanda adicional de P2-Na ya pasó: **73 pruebas Android / 9 clases**, 0 fallos/errores/omisiones; log `C:/kw/logs/mfp-P2Na-local-20261024-android-extra.log`, 18 PNG y revisión del logger de media ración al 130 %. El límite anterior orienta a agrupar bien el trabajo; no vuelve a usarse como motivo para detener la entrega. P2-Nb terminó verde. CSV/OCR/banco P2-F están implementados en mfpn, aún sin commit: 19 pruebas puras verdes tras corregir la porción FDA; primera ronda Android agrupada (64 clases) en cola, sesión 44189, log `C:/kw/logs/mfp-CSVE-local-android-1.log`. No modificar sus fuentes mientras espera/ejecuta.
+1. JVM integrada corregida: `C:/kw/logs/mfp-integration-jvm-3.log`, sesión 3258. 3.067 casos previstos. La corrección sólo evita que el redondeo alcance el trabajo; conserva redondeo/minimos de otros escalones. Se añadió caso de mínimo que iguala/supera trabajo y excepción de barra sola.
+2. Android entrenamiento 2: `C:/kw/logs/mfp-training-tail-android-2.log`, sesión 81524; 14 clases concretas y renders en `C:/kw/shots/mfp/training-tail-local-20261024-2`. No editar sus fuentes mientras compila.
+3. WIP de mfpt5 ya aplicado: variante Myo en ocho constructores del flujo real; recorder respeta la variante ejecutada si el reverso cambió a rest-pause normal; nueva regresión Room. Confirmación de reemplazo ya no comparte la isla Añadir. Ajuste AUGE true no predeterminado viaja por copia. Renders esperan el cálculo de discos no montables; título del reverso reconoce Myo. Nuevas pruebas de carga no exacta y tamaño real de tarjeta.
+4. **No volver a ejecutar** `mfp-myo-style-fix.py` ni `mfp-warmup-narrow-fix.py` sobre mfpt5: ya están aplicados. En mfpi sólo está aplicada la corrección estrecha de calentamiento y el nuevo caso de mínimos; falta recibir los demás arreglos de mfpt5 al guardar/mezclar su WIP. Tampoco aplicar el viejo staging EER/GTIN: ya está integrado.
+5. Guardar los arreglos de mfpt5, integrar preservando los mismos cambios de calentamiento de mfpi, ejecutar la suite Android completa de fase 5. Lanzador preparado `C:/kw/logs/mfp-integration-android-1.sh` (todavía no ejecutado). Comparador preparado `C:/kw/logs/mfp_classify_run.py`.
+6. Comparar todos los fallos con `ROJOS_BASE.txt` (51 históricos). Se identificaron exactamente 21 fallos de `NutritionCheckinRenderSheetTest` en el log histórico T3-8; verificar por nombre con renders activos. Comprobar también AutoSave/ManualOverride intermitentes. Datos en `mfp-historical-extra-cases.json`.
+7. Revisar las hojas finales 100/130, cerrar recibos/docs, ensamblar KPKN Dev, verificar metadatos/certificado, QA protegida disponible y entregar APK/LEEME en `G:/Mi unidad/`. No limpiar antes del cierre.
 
-Después: completar P2-Nb y los restantes paquetes del plan, integración aislada, regresiones completas y QA física. La ola no está terminada. No se ha construido/instalado un APK nuevo ni medido p95 en dispositivo.
+## Room e integración
 
-## Guardas
+Código en mfpi: calibración 29→30 y nutrición 30→31. Entidad/DAO/migración y 30.json de calibración proceden de master; no se incorporó su runtime ni se fusionó master. 31.json debe generarse por KSP (no editarlo a mano). Cadenas de migración ampliadas desde 27/28/29 y nueva fixture completa 30 con decisiones preservadas. JSON v6 lleva sección opcional calibration_decisions; una copia antigua conserva esas filas. Sin versión 32. Hay WIP de docs y calentamiento en mfpi pendiente de commit/resultados.
 
-Gradle exclusivamente por `gradle_slot.sh` / `kpkn_jvm.sh`; una corrida por paquete y carril, con guardas de RAM intactas. Room congelado, esquema intacto y sin constantes prohibidas según verificación local. Sin tocar importador, catálogo S11/H-i, `.gitignore` ni datos del usuario.
+D19 autoriza continuar T6/Ta/Tb sobre base MFP actual de forma mínima/aditiva; no volver a preguntar por screens-v2. Conflictos resueltos acumulando rutas/Perfil/actividades y bloques de Ajustes. La elección final de integrar a master corresponde al usuario.
 
-En el Z Flip rige la orden AGENTS posterior del 23-oct: única **KPKN Dev `com.example.kpkn.dbg`**, `baseDebug`, acceso por `phone_run` y `phone.lock`, comprobar firma y compatibilidad de datos antes de actualizar con `-r`. Sustituye la antigua `.mfp`. No se han usado adb, ejecutores de teléfono, instalaciones ni limpieza de datos durante esta reanudación.
+## Colas, dispositivo y límites
 
-## Trabajo adicional en curso
+Gradle sólo por `gradle_slot.sh` o `kpkn_jvm.sh`; una corrida por carril y árbol, sin procesos duplicados ni alterar guardas. Android probado con heap 6 GB y `KPKN_MIN_FREE_GB=7`. No matar procesos ajenos ni apropiarse de candados.
 
-- T5b en `C:/kw/mfpt5`, rama `codex/mfp-t5b` desde `770d9bc4c`: proyección, VM, pantalla, entradas, siete fixtures, doce pruebas puras (12/12 verdes) y tres de VM, catorce renders preparados. JVM verde; Android y renders pendientes. Se conserva mfp/t5a intacta.
-- Corrección de meta en mfp/d (altura tipográfica medida, regresión 130 %) y ticker de día local en mfp/h (regresión de medianoche): WIP sin verificar.
-- Arreglos EER result prioritario con fallback legacy, preferencia GTIN exacta en SQL y aviso de duplicado propio: preparados FUERA del árbol pendiente en `C:/kw/logs/mfp-minor-stage`; seis archivos con bases en `mfp-minor-stage-bases.json`, más nueva prueba UI. Aplicar sólo tras terminar la ronda actual y comprobar TODOS los hashes.
-- Comprobación: la punta actual de feat/screens-v2 no es ancestro de master, pero el merge-base es 5ffdff255 (la interfaz nueva ya entró). Además README D19 registra autorización previa del usuario para continuar T6/P2-Ta/P2-Tb sobre base MFP actual, mínimo/aditivo y documentando conflictos. No volver a preguntar ni bloquear por esa condición.
-- Otro chat informó indisponibilidad temporal de Z Flip y cambios Room34 en Pixel5554; no instalar sobre esquemas posteriores. El intento de responder a la coordinación de emulador fue RECHAZADO por revisión automática por autorización no confiable; no se envió. No eludir ni contactar de nuevo sin autorización humana confiable. No hay acceso adb ni instalaciones nuestras.
+Rige AGENTS del 23-oct: única **KPKN Dev com.example.kpkn.dbg**, `baseDebug`, nombre exacto, firma estable. `android-native/mfp-dev.init.gradle` preparado para ensamblar; no se ha construido ni instalado todavía. Acceso físico sólo phone_run/phone.lock y comprobar certificado y compatibilidad de Room/datos antes de `-r`. No desinstalar, borrar datos ni tocar la personal.
 
-## Actualización 24-oct, CSV/OCR cerrados en pruebas locales
+Comprobación protegida de sólo lectura: Z Flip desconectado, sin cambios. P95 físico sigue pendiente, sin cifras de emulador. Pixel5554 tenía Room34 y se preserva; otro chat usaba AVD Room30 en emulator5580 con emu.lock. No iniciar otra AVD ni instalar sobre datos posteriores. Contactar otro chat fue rechazado por revisión automática por autorización no fiable; no se envió nada ni se eludió la restricción.
 
-mfp/n HEAD `f9d6f0406`: producción CSV/OCR/minores `f151cbc34`, arneses/banco `9fbd197a2`, atributos DRI `f9d6f0406`. Ronda Android 3 BUILD SUCCESSFUL: 67 clases, 462 declaradas, 460 ejecutadas, 0 fallos/errores, 2 omitidas heredadas/condicionales de PDF/corpus OCR. 28 PNG finales; revisión visual parcial realizada. JVM final 33/33. El staging de EER/GTIN/duplicados YA ESTÁ APLICADO; no volver a aplicar. Sin cambios de Room según mfp_verify. Falta QA física de galería/SAF/p95 y suite integrada.
-
-Entrenamiento continúa en `codex/mfp-training-tail`, conserva T5a y T5b en su historia. Banco puro activo `C:/kw/logs/mfp-training-tail-jvm-1.log`; T6/Myo/discos/ajustes en WIP. Medianoche y rótulo de meta ya tienen commits locales separados con regresiones pendientes de la tanda integrada.
+G:/Mi unidad está disponible al leer con permisos de la tarea. La limpieza histórica queda subordinada a conservar datos, WIP y evidencia hasta terminar QA.

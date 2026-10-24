@@ -24,3 +24,27 @@ Cada paquete añade aquí lo que la persona ya veía y ahora cambia (cifras, ró
 | T1 | Propuestas de la progresión nativa | Sin kg («elige una carga un poco mayor») cuando no había inventario crudo → con el inventario resuelto (barra 20 kg + discos) propone la siguiente carga formable (p. ej. 60 → 62,5 kg) y los calentamientos con barra dejan de quedar «pendiente» | Un único inventario para el motor de autor y el nativo |
 | N2a | Estado del día bajo los totales de Nutrición | Sin declaración → completo, parcial, ayuno o sin marcar; permite aceptar o rechazar una sugerencia de registro parcial de forma durable | La persona decide qué días son fiables sin borrar comidas; un ayuno vale 0 kcal y un vacío sin marca sigue sin dato. El motor de calibración actual no cambia |
 | N2a | Comidas añadidas a un ayuno declarado o comidas eliminadas de un día marcado | No existía este estado → se pide revisar la marca y la proyección usa las comidas actuales, sin ocultarlas con un cero | Evitar contradicciones sin reescribir el historial. Los tests de migraciones anteriores solo amplían su cadena hasta v30 y comprueban esa versión; mantienen sus expectativas de conservación y DDL |
+
+## Paquetes completados en la continuación local del 24-oct
+
+| Paquete | Qué cambia | Antes → después | Por qué |
+|---|---|---|---|
+| T4 | Objetivo aceptado al regenerar | Se podía perder la repetición aceptada → se conserva el par peso/repeticiones, también por lado | La decisión aceptada permanece en el plan; los registros no cambian |
+| T5a | Panel de volumen en Perfil y detalle | Nuevo desglose por músculo, roles y ventana, con media semanal identificada; rótulo legible al 130 % | Cifras y alcance comparables |
+| T5b | Progreso por ejercicio y récords | Nuevo gráfico y selección accesible, métricas por modalidad y configuración, PR calculado con todo el historial antes de filtrar fechas | Un récord no se reinicia al cambiar ventana; e1RM y umbrales usan el RIR registrado |
+| N3 | Códigos y alimentos propios | Escáner con permiso recuperable, consulta GTIN normalizada y prioridad del formato exacto; aviso al repetir un código propio | Permite corregir manualmente y evita duplicados inadvertidos sin borrar ni bloquear |
+| N4 | Reutilizar el diario | Copiar a varias fechas, repetir ayer, plantillas y entrada rápida con guardado confirmado | Menos pasos sin inventar nutrientes |
+| P2-Na | Recetas, favoritos y hora | Recetas con rendimiento/raciones e instantánea inmutable, favoritos y hora local editable; preferencias en copia JSON | Editar una receta no reescribe comidas anteriores; media ración conserva su cantidad |
+| P2-Nb | Nutrientes | Hoja de cantidades conocidas, cobertura declarada/estimada, contribuyentes y referencias DRI adultas identificadas | Sin dato sigue distinto de cero; sólo se alerta con UL de ingesta total |
+| P2-D · CSV | Ajustes → Exportar datos | Selección comidas/cuerpo/entrenos/biblioteca; CSV individual o ZIP, destino elegido por el sistema | Exportación interoperable con números estables y protección de celdas fórmula |
+| P2-D · Hábitos | Perfil → Hábitos | Calendario y rachas locales; actualización al cambiar el día sin esperar escrituras | Hoy vacío no rompe la racha; un día cerrado sin registro sí |
+| P2-D · Peso | Cuerpo e Inicio | Tendencia robusta y fecha con incertidumbre; Meta 76 kg se separa por la altura real de la tipografía | Legibilidad al 130 %; Inicio conserva su mini gráfica de pesos observados y titular de tendencia |
+| P2-E | Leer etiqueta en alimento propio | Foto de galería experimental → cifras marcadas para revisar, base/porción explícitas y Deshacer | Nunca se guarda sin confirmación; no se inventan ceros ni densidad |
+| T6 | Reemplazar ejercicio en sesión | Sugeridos hasta seis por material/lugar y grupos declarados, encima de la lista completa | Conserva búsqueda, catálogo y confirmación; los planes antiguos no inventan grupos evitados |
+| P2-Ta | Técnicas y carga | Preset Myo-reps editable como rest-pause, mini-series en historial/resumen; discos por lado con stock declarado | Misma fatiga/volumen y tamaño de tarjeta; carga no montable identificada, no sustituida |
+| P2-Tb | Calentamiento | Máquina con paso 5: aproximación 18 a trabajo 20 → 15 kg; sin escalón menor real queda pendiente | No igualar el trabajo por redondeo; mínimo físico y material conservados |
+| P2-Tb | Ajustes de entrenamiento | Descanso por defecto 30–300 s, auto-inicio entre series y criterio AUGE visibles | Preserva auto-inicio previo mediante campo nuevo true; legado y otras señales de descarga no se reinterpretan |
+| Pendientes menores | Previsión semanal | Resultado EER calculado tiene prioridad; inputs sólo como compatibilidad antigua | No usar una entrada vieja en lugar del resultado vigente |
+| Integración | Copia de calibración | Las decisiones v30 se conservan en migración y sección JSON opcional | Una copia antigua sin sección no borra datos de calibración |
+
+Estos cambios describen el comportamiento implementado. El estado de pruebas, APK y dispositivo se registra por separado en README/recibos; una hoja de render no acredita QA física ni latencia.

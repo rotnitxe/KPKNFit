@@ -3,6 +3,8 @@ package com.example.kpkn.data.export
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.importer.CsvReader
 import com.example.kpkn.domain.nutrition.expenditure.DayMark
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.decodeFromString
 import org.junit.Assert.*
 import org.junit.Test
 import java.io.ByteArrayOutputStream
@@ -59,4 +61,16 @@ class CsvDomainRowsTest {
         assertFalse(bundle.isZip); assertEquals(1, rows(bundle, "comidas").size)
         assertEquals("kpkn-comidas-2026-10-24.csv", bundle.suggestedName)
     }
+    @Test fun entrenoConservaVarianteMyoYCadaMiniSerieYDropEnColumnasAdicionales() {
+        val pauses=List(4) { RestPauseData(15,4,"myo") }
+        val drops=listOf(DropSetData(60.0,5))
+        val log=WorkoutLog("log","program","session","Sesión","2026-10-24",30,
+            listOf(CompletedExercise("e","Press",sets=listOf(CompletedSet("s",80.0,12,restPauses=pauses,dropSets=drops)))))
+        val data=rows(CsvDomainRows.build(CsvExportSnapshot(workouts=listOf(log)),setOf(CsvExportDomain.WORKOUTS),day),"entrenos")
+        assertEquals("variante_tecnica",data[0][15]);assertEquals("myo",data[1][15])
+        assertEquals(pauses,Json.decodeFromString<List<RestPauseData>>(data[1][16]))
+        assertEquals(drops,Json.decodeFromString<List<DropSetData>>(data[1][17]))
+        assertEquals("80",data[1][4]);assertEquals("12",data[1][5])
+    }
+
 }
