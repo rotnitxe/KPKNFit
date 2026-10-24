@@ -7065,10 +7065,10 @@ class WorkoutViewModel(
     ) = log.completedExercises.firstOrNull { identityKeysOverlap(identityKeysForCompleted(it), keys) }
 
     /** Logs from the last [maxAgeHours] hours, newest-first, for intra/24h relator hints. */
-    fun recentWorkoutLogs(maxAgeHours: Int = 36): List<com.example.kpkn.data.models.WorkoutLog> {
-        val cutoff = System.currentTimeMillis() - maxAgeHours * 3_600_000L
+    fun recentWorkoutLogs(maxAgeHours: Int = 36, nowMs: Long = System.currentTimeMillis()): List<com.example.kpkn.data.models.WorkoutLog> {
+        val cutoff = nowMs - maxAgeHours * 3_600_000L
         return repository.history.value
-            .filter { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) >= cutoff }
+            .filter { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) in cutoff..nowMs && com.example.kpkn.domain.time.TrainingDates.logDateMs(it) > 0L }
             .sortedByDescending { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) }
     }
 

@@ -1,6 +1,9 @@
 package com.example.kpkn.screens.workout
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -59,11 +62,24 @@ internal fun WorkoutSessionOverlaysHost(
     TrainingMaxPreparation(viewModel.missingTrainingMaxes(session), enabled = !showReadinessSheet,
         onConfirm = viewModel::confirmTrainingMax)
     if (showReadinessSheet) {
+        val previous = remember(session.id, uiState.startTimeMs) {
+            viewModel.recentWorkoutLogs(90 * 24, uiState.startTimeMs).filter { it.sessionId == session.id }
+                .filter { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) < uiState.startTimeMs }
+                .take(6)
+        }
         androidx.compose.material3.AlertDialog(
             onDismissRequest = onReadinessDismissed,
             title = { Text("Antes de entrenar") },
-            text = { Column {
-                Text("Puedes registrar sensaciones durante o después de la sesión; es opcional.")
+            text = { Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Consulta los objetivos del plan. El registro breve es opcional y no cambia tus cargas.")
+                if (previous.isEmpty()) Text("Sin sesiones anteriores con este identificador. Consulta el historial para otras disciplinas.")
+                else {
+                    Text("Registros anteriores de esta sesión")
+                    previous.forEach { log -> Text("${log.date.take(10)} · ${log.durationMinutes} min (precisión original) · ${log.completedExercises.size} ejercicios") }
+                    Text("El contexto puede haber cambiado; estas referencias no miden preparación corporal.")
+                }
+                androidx.compose.material3.OutlinedTextField(value = uiState.sessionNotes, onValueChange = viewModel::setSessionNotes,
+                    label = { Text("Cansancio, molestias o contexto de hoy (opcional)") }, modifier = Modifier.fillMaxWidth())
                 if (uiState.previousSessionDiscomforts.isEmpty()) Text("Sin molestias anteriores registradas.")
                 else uiState.previousSessionDiscomforts.forEach { id ->
                     Text(com.example.kpkn.data.models.discomfortLabel(id))

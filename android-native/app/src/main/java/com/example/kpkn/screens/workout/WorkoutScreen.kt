@@ -305,10 +305,10 @@ fun WorkoutScreen(
     // ─── Readiness sheet state ─────────────────────────────────────────────────
     val overlayHazeState = remember { HazeState() }
     var readinessSheetDismissed by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
-    val showReadinessSheet = !readinessSheetDismissed && uiState.readinessNeuralOverride == null
+    val showReadinessSheet = !readinessSheetDismissed
     // Lo que quedó pendiente al cerrar una capa por accidente (LV4, 15): el estado previo sin responder y el resumen final sin guardar.
     // Mientras estén pendientes, la fila del asa del cockpit enseña la píldora que los vuelve a abrir.
-    val readinessPending = readinessSheetDismissed && uiState.readinessNeuralOverride == null
+    val readinessPending = false // Optional preparation has no unanswered calibration gate.
     val finishPending = uiState.finishClosedPending && !uiState.showFinishSheet
     val structureSheets = rememberWorkoutStructureSheetsState()
     var pendingCatalogRequest by remember { mutableStateOf<CatalogLaunchRequest?>(null) }
