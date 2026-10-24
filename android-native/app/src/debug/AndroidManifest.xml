@@ -91,5 +91,11 @@
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
 
+        <!-- SOLO DEPURACIÓN: panel de volumen por músculo con datos en memoria; extras state (data|empty|sparse|unassigned|body|recovery), fontScale, reducedMotion y widthDp (T5a); no se integra. -->
+        <activity
+            android:name="com.example.kpkn.debug.MuscleVolumePanelHarnessActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KPKN" />
+
     </application>
 </manifest>

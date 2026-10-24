@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.AthleteProfileScore
@@ -47,6 +48,9 @@ import com.example.kpkn.screens.programdetail.design.ProgramVolumeScope
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeSummaryModule
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeZones
 import com.example.kpkn.screens.programdetail.design.programVolumeSplit
+import com.example.kpkn.screens.progress.LocalMuscleVolumePanelOpener
+import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.screens.programdetail.design.programVolumeBreakdown
 import com.example.kpkn.screens.programdetail.parseIsoDateExact
 import java.time.format.DateTimeFormatter
@@ -286,6 +290,16 @@ fun VolumeView(
                 )
             },
         )
+
+        // Enlace discreto al panel de lo REGISTRADO (T5a); sin navegación provista no se muestra.
+        LocalMuscleVolumePanelOpener.current?.let { openPanel ->
+            KpknTextAction(
+                text = "Ver lo que has hecho en 4 semanas",
+                onClick = { openPanel(program.id) },
+                icon = KpknLineIcons.ChevronRight,
+                modifier = Modifier.testTag("volumen_ver_registrado"),
+            )
+        }
 
         ProgramVolumeSummaryModule(
             totalSets = totalWeeklySets,

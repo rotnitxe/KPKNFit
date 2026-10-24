@@ -1433,6 +1433,7 @@ private fun KPKNNavGraph(
                 },
                 onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
                 onOpenTechnique = { navController.navigate(KpknRoute.TechniqueHub.route) },
+                onOpenMuscleVolume = { navController.navigate(KpknRoute.MuscleVolumePanel.create()) },
             )
         }
         composable(KpknRoute.WorkoutAlbums.route) {
@@ -1541,6 +1542,12 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.ProgramDetail.route) { backStack ->
             val id = backStack.arguments?.getString(KpknRoute.ProgramDetail.ARG_PROGRAM_ID) ?: ""
+            // T5a: el enlace «Ver lo que has hecho en 4 semanas» de la pestaña Volumen abre el panel con los registros de este programa.
+            CompositionLocalProvider(
+                com.example.kpkn.screens.progress.LocalMuscleVolumePanelOpener provides { volumeProgramId ->
+                    navController.navigate(KpknRoute.MuscleVolumePanel.create(volumeProgramId))
+                },
+            ) {
             ProgramDetailScreen(
                 programId = id,
                 onBack = {
@@ -1575,6 +1582,7 @@ private fun KPKNNavGraph(
                     }
                 },
             )
+            }
         }
         composable(
             route = KpknRoute.ProgramEditor.route,
@@ -1729,6 +1737,24 @@ private fun KPKNNavGraph(
                         launchSingleTop = true
                     }
                 },
+            )
+        }
+        composable(
+            route = KpknRoute.MuscleVolumePanel.route,
+            arguments = listOf(
+                navArgument(KpknRoute.MuscleVolumePanel.ARG_PROGRAM_ID) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+            ),
+        ) { backStack ->
+            val volumeProgramId = backStack.arguments
+                ?.getString(KpknRoute.MuscleVolumePanel.ARG_PROGRAM_ID)
+                ?.takeIf { it.isNotBlank() }
+            com.example.kpkn.screens.progress.MuscleVolumePanelRoute(
+                programId = volumeProgramId,
+                onBack = { navController.popBackStack() },
             )
         }
     }
