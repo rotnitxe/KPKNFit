@@ -855,7 +855,6 @@ class SetupWizardFullJourneyTest {
         assertEquals(
             "Continuar sobre $step debe aceptarse (errores=${vm.state.value.errors}, " +
                 "selección=${vm.state.value.draft.stepSelections[step]}, " +
-                "rings=${vm.state.value.draft.ringsAnswers}, " +
                 "cursor=${vm.state.value.draft.stepProgress.currentStepId}, " +
                 "últimaEscritura=${vm.lastMutateDiagnostic()}, " +
                 "máquina=${vm.state.value.machineState})",

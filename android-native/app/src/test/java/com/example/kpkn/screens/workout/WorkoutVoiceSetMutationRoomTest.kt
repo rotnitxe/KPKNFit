@@ -539,7 +539,7 @@ class WorkoutVoiceSetMutationRoomTest {
         assertTrue(controller.undo(undo).isCommitted)
 
         assertNull(state.liveEnergySummary)
-        assertNull(room().liveEnergySummary)
+        assertEquals(state.completedSets, room().completedSets)
     }
 
     // ─── edit ────────────────────────────────────────────────────────────────────────────────────

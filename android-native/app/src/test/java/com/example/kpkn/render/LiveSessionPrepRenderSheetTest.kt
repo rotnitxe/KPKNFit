@@ -29,6 +29,7 @@ import com.example.kpkn.data.models.RecoveryChannelSnapshot
 import com.example.kpkn.data.models.RecoveryDashboard
 import com.example.kpkn.data.models.VoiceCaptureMode
 import com.example.kpkn.data.models.WarmupSetDefinition
+import com.example.kpkn.screens.workout.PreSessionPreparationDialog
 import com.example.kpkn.screens.workout.components.MobilityPhaseLiveCard
 import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
 import com.example.kpkn.screens.workout.components.WarmupPhaseLiveCard
