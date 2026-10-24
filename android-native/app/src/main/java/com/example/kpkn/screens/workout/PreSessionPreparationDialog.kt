@@ -1,6 +1,9 @@
 package com.example.kpkn.screens.workout
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -35,7 +38,7 @@ internal fun PreSessionPreparationDialog(
             Column(Modifier.widthIn(max = 560.dp).fillMaxWidth().height(maxHeight.coerceAtMost(600.dp)).padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text("Antes de entrenar", style = MaterialTheme.typography.headlineSmall)
-            Column(Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState()).testTag("pre-session-context"),
+            Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()).testTag("pre-session-context"),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Consulta los objetivos del plan. El registro breve es opcional y no cambia tus cargas.")
                 if (previous.isEmpty()) Text("Sin sesiones anteriores con este identificador. Consulta el historial para otras disciplinas.")
@@ -56,8 +59,12 @@ internal fun PreSessionPreparationDialog(
                     }
                 }
                 Text("Cansancio, molestias o contexto de hoy (opcional)")
-                OutlinedTextField(value = notes, onValueChange = onNotes, minLines = 2, maxLines = 4,
-                    modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Notas opcionales antes de entrenar" })
+                BasicTextField(value = notes, onValueChange = onNotes, minLines = 2, maxLines = 4,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    modifier = Modifier.fillMaxWidth().height(112.dp)
+                        .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.small).padding(12.dp)
+                        .semantics { contentDescription = "Notas opcionales antes de entrenar" })
                 if (discomforts.isEmpty()) Text("Sin molestias anteriores registradas.")
                 else discomforts.forEach { Text(it) }
             }
