@@ -18,6 +18,9 @@ import com.example.kpkn.domain.habits.weighInDays
 import com.example.kpkn.domain.nutrition.expenditure.DayMarkEntry
 import java.time.LocalDate
 import java.time.ZoneId
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,7 +66,8 @@ data class HabitsUiState(
 class HabitsViewModel(
     source: HabitsDataSource,
     private val zone: ZoneId = ZoneId.systemDefault(),
-    private val today: () -> LocalDate = { LocalDate.now(ZoneId.systemDefault()) },
+    private val today: () -> LocalDate = { LocalDate.now(zone) },
+    dayChanges: Flow<LocalDate>? = null,
 ) : ViewModel() {
 
     private val selected = MutableStateFlow(HabitKind.MEALS)
@@ -73,12 +77,13 @@ class HabitsViewModel(
         source.dayMarks,
         source.bodyObservations,
         source.workoutLogs,
-    ) { logs, marks, observations, workouts ->
+        dayChanges ?: flow { while (true) { emit(today()); delay(60_000L) } }.distinctUntilChanged(),
+    ) { logs, marks, observations, workouts, day ->
         buildHabitsSnapshot(
             mealDays = mealRecordDays(logs, marks.values),
             weighInDays = weighInDays(observations, zone),
             trainingSets = trainingSetsByDay(workouts, zone),
-            today = today(),
+            today = day,
         )
     }.flowOn(Dispatchers.IO)
 

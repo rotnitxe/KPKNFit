@@ -14,6 +14,8 @@ import com.example.kpkn.domain.nutrition.expenditure.DayMarkEntry
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,7 +54,7 @@ class HabitsViewModelTest {
     }
 
     private fun viewModel(source: HabitsDataSource): HabitsViewModel =
-        HabitsViewModel(source, zone = ZoneId.of("UTC"), today = { today })
+        HabitsViewModel(source, zone = ZoneId.of("UTC"), today = { today }, dayChanges = kotlinx.coroutines.flow.flowOf(today))
 
     private fun meal(id: String, date: String): NutritionLog =
         NutritionLog(id = id, date = date, status = NutritionStatus.CONSUMED)
@@ -127,5 +129,19 @@ class HabitsViewModelTest {
             vm.uiState.first { it.snapshot?.summary(HabitKind.MEALS)?.streak?.current == 1 }
         }
         assertEquals(1, state.snapshot!!.summary(HabitKind.MEALS).streak.current)
+    }
+    @Test
+    fun `pasar medianoche actualiza calendario y racha sin cambiar repositorios`() = runBlocking {
+        val source=FakeSource();source.nutritionLogs.value=listOf(meal("a","2026-10-20T13:00"))
+        val days=MutableStateFlow(today)
+        val vm=HabitsViewModel(source,zone=ZoneId.of("UTC"),today={days.value},dayChanges=days)
+        try {
+            val initial=withTimeout(5000) { vm.uiState.first { it.snapshot?.today==today } }
+            assertEquals(1,initial.snapshot!!.summary(HabitKind.MEALS).streak.current)
+            days.value=today.plusDays(1)
+            val next=withTimeout(5000) { vm.uiState.first { it.snapshot?.today==today.plusDays(1) } }
+            assertEquals(0,next.snapshot!!.summary(HabitKind.MEALS).streak.current)
+            assertEquals(1,source.nutritionLogs.value.size)
+        } finally { vm.viewModelScope.cancel() }
     }
 }
