@@ -161,6 +161,8 @@ fun NutritionFoodRow(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
+                Text(com.example.kpkn.domain.nutrition.MealTime.label(log.date), style = KpknType.caption,
+                    color = WizardColors.textMuted, modifier = Modifier.testTag("nutrition-log-time"))
                 if (quick) QuickEntryTag(Modifier.padding(top = 4.dp))
                 // La micro barra va 6 dp bajo la porción (o el nombre), dentro de la columna de texto: la zona táctil de las kcal
                 // (48 dp) no le añade hueco.

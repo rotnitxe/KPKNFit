@@ -17,6 +17,7 @@ import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.FoodIdentity
 import com.example.kpkn.domain.nutrition.FoodSearchRanker
 import com.example.kpkn.domain.nutrition.Gtin
+import com.example.kpkn.domain.nutrition.RecipeCalculator
 import com.example.kpkn.domain.nutrition.NutrientBasis
 import com.example.kpkn.domain.nutrition.HouseholdPortions
 import com.example.kpkn.domain.nutrition.NutritionGoalResolver
@@ -137,6 +138,28 @@ class NutritionRepository private constructor(
     private val foodCalibration by lazy { NutritionCalibrationRepository.forDatabase(appContext, db) }
     private val foodPrefs by lazy { appContext.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE) }
 
+    private val _favoriteFoodIds = MutableStateFlow(foodPrefs.getStringSet("favorite_food_ids", emptySet()).orEmpty().toSet())
+    val favoriteFoodIds: StateFlow<Set<String>> = _favoriteFoodIds.asStateFlow()
+
+    /** Cambiar un favorito solo se publica si la preferencia quedó guardada. No altera el ranking por uso. */
+    suspend fun toggleFavoriteFood(id: String) {
+        require(id.isNotBlank()) { "El favorito necesita un identificador." }
+        foodSaveMutex.withLock {
+            withContext(Dispatchers.IO) {
+                val current = foodPrefs.getStringSet("favorite_food_ids", emptySet()).orEmpty().toSet()
+                val next = if (id in current) current - id else current + id
+                check(foodPrefs.edit().putStringSet("favorite_food_ids", next).commit()) { "No se pudo guardar el favorito." }
+                _favoriteFoodIds.value = next
+            }
+        }
+    }
+
+    suspend fun refreshFoodPreferencesFromStorage() = withContext(Dispatchers.IO) {
+        _favoriteFoodIds.value = foodPrefs.getStringSet("favorite_food_ids", emptySet()).orEmpty().toSet()
+        _foodQueryLearning.value = loadFoodLearning()
+        loadUtensilOverrides()
+    }
+
     /** Solo para pruebas JVM: la base con la que trabaja este repositorio (mismo patrón que ProgramRepository). */
     internal fun databaseForTests(): KpknDatabase = db
 
@@ -187,11 +210,17 @@ class NutritionRepository private constructor(
         val importedAt: String,
     )
 
-    /** Backup hooks: custom foods and catalog provenance are user data, not UI-only cache. */
+    /** Exporta las filas legibles; las ilegibles siguen en Room y quedan identificadas en la cuarentena. */
     suspend fun getCustomFoodsForBackup(): List<FoodItem> = withContext(Dispatchers.IO) {
-        db.nutritionDao().getAllCustomFoods().mapNotNull { entity ->
-            runCatching { entity.toFoodItem() }.getOrNull()
-        }
+        decodeUserRows(db.nutritionDao().getAllCustomFoods(), "nutrition_custom_foods", { it.id }) { it.toFoodItem() }
+    }
+
+    suspend fun getPantryItemsForBackup(): List<PantryItem> = withContext(Dispatchers.IO) {
+        decodeUserRows(db.nutritionDao().getAllPantryItems(), "nutrition_pantry", { it.id }) { it.toPantryItem() }
+    }
+
+    suspend fun getMealTemplatesForBackup(): List<MealTemplate> = withContext(Dispatchers.IO) {
+        decodeUserRows(db.nutritionDao().getAllTemplates(), "nutrition_templates", { it.id }) { it.toMealTemplate() }
     }
 
     fun getFoodCatalogMetaForBackup(): FoodCatalogMeta? = loadFoodCatalogMeta()
@@ -403,7 +432,14 @@ class NutritionRepository private constructor(
         }
         foodSaveMutex.withLock {
             withContext(Dispatchers.IO) {
-                val normalized = normalizeFoodItem(food.copy(isCustom = true, isAiInferred = false))
+                val recipeFood = food.recipe?.let { recipe ->
+                    val previous = db.nutritionDao().getAllCustomFoods().firstOrNull { it.id == food.id }
+                        ?.toFoodItem()?.recipe?.version ?: 0
+                    check(previous < Int.MAX_VALUE) { "La receta alcanzó su límite de versiones." }
+                    RecipeCalculator.asFood(food.id, food.name,
+                        recipe.copy(version = previous + 1, updatedAt = Instant.now().toString()), base = food)
+                } ?: food
+                val normalized = normalizeFoodItem(recipeFood.copy(isCustom = true, isAiInferred = false))
                 db.withTransaction { db.nutritionDao().upsertCustomFood(normalized.toEntity()) }
                 val replaced = _foodDatabase.value.any { it.id == normalized.id }
                 _foodDatabase.update { current -> current.filterNot { it.id == normalized.id } + normalized }

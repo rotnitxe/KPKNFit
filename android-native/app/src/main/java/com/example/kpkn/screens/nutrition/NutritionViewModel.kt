@@ -240,7 +240,9 @@ class NutritionViewModel(
         .stateIn(viewModelScope, SharingStarted.Lazily, DailyMacroTotals())
 
     val mealGroups: StateFlow<List<MealGroup>> = todayLogs
-        .map { computeMealGroups(it) }
+        .map { logs -> computeMealGroups(logs).map { group ->
+            group.copy(logs = group.logs.sortedBy { com.example.kpkn.domain.nutrition.MealTime.label(it.date) })
+        } }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 

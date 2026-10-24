@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.MealTemplate
+import com.example.kpkn.screens.nutrition.customfood.FoodFavoriteAction
 import com.example.kpkn.domain.nutrition.MealReuse
 import com.example.kpkn.domain.nutrition.MealReuse.TemplateSummary
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -76,6 +77,8 @@ fun TemplatesSheet(
     rename: suspend (MealTemplate, String) -> Unit,
     delete: suspend (MealTemplate) -> Unit,
     onDismiss: () -> Unit,
+    favoriteIds: Set<String> = emptySet(),
+    onToggleFavorite: (String) -> Unit = {},
 ) {
     val usable = remember(templates) { MealReuse.usableTemplates(templates) }
     var renamingId by remember { mutableStateOf<String?>(null) }
@@ -162,6 +165,8 @@ fun TemplatesSheet(
                 }
             },
             onCancelDelete = { deletingId = null },
+            favoriteIds = favoriteIds,
+            onToggleFavorite = onToggleFavorite,
         )
     }
 }
@@ -182,6 +187,8 @@ fun TemplatesContent(
     onConfirmDelete: (String) -> Unit,
     onCancelDelete: () -> Unit,
     modifier: Modifier = Modifier,
+    favoriteIds: Set<String> = emptySet(),
+    onToggleFavorite: (String) -> Unit = {},
 ) {
     Column(
         modifier
@@ -218,6 +225,8 @@ fun TemplatesContent(
                     onAskDelete = onAskDelete,
                     onConfirmDelete = onConfirmDelete,
                     onCancelDelete = onCancelDelete,
+                    favorite = row.summary.id in favoriteIds,
+                    onToggleFavorite = onToggleFavorite,
                 )
             }
         }
@@ -244,6 +253,8 @@ private fun TemplateRow(
     onAskDelete: (String) -> Unit,
     onConfirmDelete: (String) -> Unit,
     onCancelDelete: () -> Unit,
+    favorite: Boolean,
+    onToggleFavorite: (String) -> Unit,
 ) {
     val summary = row.summary
     Column(Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("template-${summary.id}")) {
@@ -288,6 +299,7 @@ private fun TemplateRow(
                 KpknSecondaryPill("Cancelar", onCancelDelete, Modifier.fillMaxWidth())
             }
             else -> FlowRow(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                FoodFavoriteAction(summary.name, favorite, { onToggleFavorite(summary.id) })
                 KpknTextAction("Usar", { onApply(summary.id) }, leadingIcon = KpknLineIcons.Plus)
                 KpknTextAction("Renombrar", { onStartRename(summary.id) }, color = WizardColors.textMuted, leadingIcon = KpknLineIcons.Edit)
                 KpknTextAction("Eliminar", { onAskDelete(summary.id) }, color = WizardColors.textMuted, leadingIcon = KpknLineIcons.Trash)

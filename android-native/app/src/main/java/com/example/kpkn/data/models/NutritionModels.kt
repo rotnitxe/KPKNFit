@@ -93,6 +93,25 @@ data class FoodItem(
     val qualityFlags: List<String> = emptyList(),
     val caffeineMg: Double = 0.0,
     val creatineG: Double = 0.0,
+    /** Definición propia con instantáneas; las fichas anteriores no son recetas. */
+    val recipe: RecipeData? = null,
+)
+
+@Serializable
+data class RecipeIngredient(
+    val snapshot: LoggedFood,
+    val foodId: String? = null,
+    val name: String = snapshot.foodName,
+)
+
+@Serializable
+data class RecipeData(
+    val ingredients: List<RecipeIngredient>,
+    val servings: Int,
+    val finalWeightGrams: Double? = null,
+    val version: Int = 1,
+    val notes: String? = null,
+    val updatedAt: String = "",
 )
 
 enum class CookingBehavior { SHRINKS, EXPANDS }
@@ -142,6 +161,9 @@ data class LoggedFood(
      * cobertura debe saltarse el alimento (`MealReuse.micronutrientsKnown`). Valor por defecto: los registros viejos se leen igual.
      */
     val isQuickEntry: Boolean = false,
+    /** Procedencia inmutable de receta; campos JSON opcionales, sin cambiar Room. */
+    val recipeId: String? = null,
+    val recipeVersion: Int? = null,
 )
 
 // ─── NutritionLog ─────────────────────────────────────────────────────────────

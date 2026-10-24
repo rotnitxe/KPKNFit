@@ -11,8 +11,6 @@ import com.example.kpkn.data.db.dbJson
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.DatabaseBackupHelper
 import com.example.kpkn.data.db.LearnedResolutionEntity
-import com.example.kpkn.data.db.toMealTemplate
-import com.example.kpkn.data.db.toPantryItem
 import com.example.kpkn.data.settings.LearnedResolutionBackup
 import com.example.kpkn.data.settings.SettingsExportPayload
 import com.example.kpkn.data.settings.SettingsJsonBackup
@@ -153,12 +151,13 @@ class SettingsViewModel : ViewModel() {
     fun exportData(context: Context) {
         viewModelScope.launch {
             runCatching {
-                val payload = buildExportPayload(context)
-                val exportJson = dbJson.encodeToString(payload)
-                val fileName = "kpkn-export-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))}.json"
-                val exportDir = File(context.cacheDir, "exports").apply { mkdirs() }
-                val exportFile = File(exportDir, fileName)
-                exportFile.writeText(exportJson)
+                val exportFile = withContext(Dispatchers.IO) {
+                    val payload = buildExportPayload(context)
+                    val exportJson = dbJson.encodeToString(payload)
+                    val fileName = "kpkn-export-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))}.json"
+                    val exportDir = File(context.cacheDir, "exports").apply { mkdirs() }
+                    File(exportDir, fileName).also { it.writeText(exportJson) }
+                }
                 shareExportFile(context, exportFile)
             }.onFailure { error ->
                 Toast.makeText(
@@ -206,8 +205,8 @@ class SettingsViewModel : ViewModel() {
             nutritionLogs = nutritionRepository.nutritionLogs.value,
             nutritionPlans = nutritionRepository.nutritionPlans.value,
             activeNutritionPlanId = nutritionRepository.activeNutritionPlanId.value,
-            pantryItems = db.nutritionDao().getAllPantryItems().map { it.toPantryItem() },
-            mealTemplates = db.nutritionDao().getAllTemplates().map { it.toMealTemplate() },
+            pantryItems = nutritionRepository.getPantryItemsForBackup(),
+            mealTemplates = nutritionRepository.getMealTemplatesForBackup(),
             customFoods = nutritionRepository.getCustomFoodsForBackup(),
             learnedResolutions = db.learnedResolutionDao().getAll().map(::toBackup),
             foodCatalogMeta = nutritionRepository.getFoodCatalogMetaForBackup(),

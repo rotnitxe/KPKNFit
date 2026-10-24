@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.FoodCandidate
+import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.SearchConfidence
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -50,6 +51,7 @@ fun LoggerSearchRow(
     onAdd: () -> Unit,
     modifier: Modifier = Modifier,
     caption: String? = null,
+    basisLabel: String? = null,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -92,7 +94,7 @@ fun LoggerSearchRow(
             Column(horizontalAlignment = Alignment.End) {
                 KpknMetric(value = kcal.toString(), unit = "kcal", style = KpknType.metricM)
                 Text(
-                    text = "por $basisGrams g",
+                    text = basisLabel ?: "por $basisGrams g",
                     style = KpknType.caption,
                     color = WizardColors.textFaint,
                     maxLines = 1,
@@ -124,3 +126,7 @@ internal fun loggerSearchCaption(candidate: FoodCandidate): String? {
     }
     return listOfNotNull(brand, match).joinToString(" · ").ifEmpty { null }
 }
+
+
+/** Una receta expresa sus kcal por ración, también cuando no se conoce el peso cocinado. */
+internal fun loggerSearchBasisLabel(food: FoodItem): String? = if (food.recipe != null) "por ración" else null
