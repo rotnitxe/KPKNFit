@@ -1,26 +1,10 @@
-"""Volume calculator – faithful port of services/volumeCalculator.ts"""
+"""Descriptive set accounting; role weights are display conventions, not prescriptions."""
 from __future__ import annotations
 from models.common import (
     AthleteProfileScore, Settings, Session, ExerciseMuscleInfo,
     MuscleRole,
 )
 from engines.exercise_index import ExerciseIndex
-
-# ── Constants (Módulos 4 y 5) ────────────────────────────
-
-PHASE_FACTORS: dict[str, float] = {
-    "Acumulación": 1.0,
-    "Intensificación": 0.75,
-    "Realización": 0.50,
-    "Descarga": 0.40,
-    "Custom": 1.0,
-}
-
-INTENSITY_FACTORS: dict[str, float] = {
-    "Failure": 0.6,
-    "RIR_High": 1.0,
-    "RIR_Low": 1.2,
-}
 
 MUSCLE_ROLE_MULTIPLIERS: dict[str, float] = {
     "primary": 1.0,
@@ -29,86 +13,15 @@ MUSCLE_ROLE_MULTIPLIERS: dict[str, float] = {
     "neutralizer": 0.0,
 }
 
-MAX_PRODUCTIVE_SESSION_SETS = 12
-WARNING_THRESHOLD = 10
-
-
-# ── Public API ────────────────────────────────────────────
-
-def calculate_weekly_volume(
-    athlete_score: AthleteProfileScore | None,
-    settings: Settings,
-    phase: str = "Acumulación",
-) -> dict:
-    if not athlete_score:
-        return {
-            "minSets": 10, "maxSets": 20, "optimalSets": 15,
-            "type": "sets",
-            "reasoning": "Perfil no calibrado. Usando estándar genérico de Schoenfeld (10-20 series).",
-        }
-
-    profile_level = athlete_score.profileLevel
-    training_profile = settings.trainingProfile or "Aesthetics"
-
-    if training_profile == "Powerlifting":
-        is_adv = profile_level == "Advanced"
-        min_nl = 1300 if is_adv else 1000
-        max_nl = 2500 if is_adv else 1300
-        pf = PHASE_FACTORS.get(phase, 1.0)
-        wk_min = round((min_nl / 4) * pf)
-        wk_max = round((max_nl / 4) * pf)
-        return {
-            "minSets": wk_min, "maxSets": wk_max,
-            "optimalSets": round((wk_min + wk_max) / 2),
-            "type": "lifts",
-            "reasoning": f"Motor Powerlifting (Sheiko): Perfil {profile_level}. Fase {phase} ({pf}x).",
-        }
-
-    base_min, base_max = (14, 22) if profile_level == "Advanced" else (10, 14)
-    f_fase = PHASE_FACTORS.get(phase, 1.0)
-    intensity_pref = settings.preferredIntensity or "RIR_High"
-    f_int = INTENSITY_FACTORS.get(intensity_pref, 1.0)
-
-    calc_min = base_min * f_fase * f_int
-    calc_max = base_max * f_fase * f_int
-    final_min = max(1, round(calc_min))
-    final_max = max(final_min + 2, round(calc_max))
-    optimal = round((final_min + final_max) / 2)
-
-    return {
-        "minSets": final_min, "maxSets": final_max, "optimalSets": optimal,
-        "type": "sets",
-        "reasoning": (
-            f"Motor Hipertrofia: Base {profile_level} ({base_min}-{base_max}) "
-            f"* Fase {phase} ({f_fase}x) * Intensidad {intensity_pref} ({f_int}x)."
-        ),
-    }
-
-
 def validate_session_volume(sets_in_session: int, muscle_group: str) -> dict:
-    if sets_in_session > MAX_PRODUCTIVE_SESSION_SETS:
-        return {
-            "isValid": False,
-            "message": (
-                f"Volumen Basura: {sets_in_session} series de {muscle_group} en una sesión "
-                f"excede el límite productivo ({MAX_PRODUCTIVE_SESSION_SETS}). Considera dividir en 2 días."
-            ),
-        }
-    if sets_in_session >= WARNING_THRESHOLD:
-        return {
-            "isValid": True,
-            "message": (
-                f"Estás cerca del límite por sesión ({sets_in_session}/{MAX_PRODUCTIVE_SESSION_SETS}). "
-                "Asegúrate de nutrirte bien peri-entrenamiento."
-            ),
-        }
-    return {"isValid": True}
+    # Structural validity only. No universal productive ceiling or physiological prescription.
+    return {"isValid": sets_in_session >= 0, "message": "Recuento declarado; no estima tolerancia ni productividad."}
 
 
 def calculate_fractional_volume(exercises: list[dict]) -> float:
     total = 0.0
     for ex in exercises:
-        mult = 1.0 if ex.get("muscleRole") == "primary" else 0.5
+        mult = MUSCLE_ROLE_MULTIPLIERS.get(ex.get("muscleRole"), 0.0)
         total += ex.get("sets", 0) * mult
     return total
 
@@ -224,7 +137,7 @@ def calculate_unified_muscle_volume(
                 if not m or not m.muscle:
                     continue
                 name = normalize_muscle_group(m.muscle)
-                mult = MUSCLE_ROLE_MULTIPLIERS.get(m.role.value if hasattr(m.role, 'value') else m.role, 0.5)
+                mult = MUSCLE_ROLE_MULTIPLIERS.get(m.role.value if hasattr(m.role, 'value') else m.role, 0.0)
                 if mult > unique.get(name, 0):
                     unique[name] = mult
 

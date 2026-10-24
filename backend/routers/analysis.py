@@ -1,4 +1,5 @@
 """Analysis service endpoints."""
+from datetime import datetime, timezone
 from fastapi import APIRouter
 from pydantic import BaseModel
 from models.common import (
@@ -49,4 +50,4 @@ def session_volume(req: SessionVolumeRequest):
 
 @router.post("/tonnage-comparison")
 def tonnage_comparison(req: TonnageRequest):
-    return calculate_weekly_tonnage_comparison(req.history, req.settings)
+    return calculate_weekly_tonnage_comparison(req.history, req.settings, datetime.now(timezone.utc))

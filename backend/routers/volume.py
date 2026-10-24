@@ -3,19 +3,12 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from models.common import Settings, Session, ExerciseMuscleInfo, AthleteProfileScore
 from engines.volume_engine import (
-    calculate_weekly_volume,
     validate_session_volume,
     calculate_fractional_volume,
     calculate_unified_muscle_volume,
 )
 
 router = APIRouter(prefix="/volume", tags=["volume"])
-
-
-class WeeklyVolumeRequest(BaseModel):
-    athleteScore: AthleteProfileScore | None = None
-    settings: Settings
-    phase: str = "Acumulación"
 
 
 class SessionVolumeValidation(BaseModel):
@@ -32,11 +25,6 @@ class FractionalVolumeRequest(BaseModel):
 class UnifiedVolumeRequest(BaseModel):
     sessions: list[Session]
     exerciseList: list[ExerciseMuscleInfo]
-
-
-@router.post("/weekly")
-def weekly_volume(req: WeeklyVolumeRequest):
-    return calculate_weekly_volume(req.athleteScore, req.settings, req.phase)
 
 
 @router.post("/validate-session")

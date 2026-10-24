@@ -156,30 +156,43 @@ def _get_week_id(d: datetime, start_on: int | None = None) -> str:
 def calculate_weekly_tonnage_comparison(
     history: list[WorkoutLog],
     settings: Settings,
+    today: datetime,
 ) -> dict:
-    today = datetime.now(timezone.utc)
+    if today.tzinfo is None:
+        raise ValueError("An explicit timezone is required")
     cw_id = _get_week_id(today, settings.startWeekOn)
     pw_start = datetime.fromisoformat(cw_id) - timedelta(days=7)
     pw_id = pw_start.strftime("%Y-%m-%d")
 
     current = previous = 0.0
+    grouped: dict[str, list[WorkoutLog]] = {}
+    for item in history:
+        grouped.setdefault(item.id, []).append(item)
+    seen: set[str] = set()
     for log in history:
+        if any(item != log for item in grouped[log.id]):
+            continue  # A conflicting source identity cannot authoritatively contribute either value.
+        if log.id in seen:
+            continue
+        seen.add(log.id)
         try:
             ld = datetime.fromisoformat(log.date.replace("Z", "+00:00"))
         except Exception:
+            continue
+        if ld.tzinfo is None:
+            ld = ld.replace(tzinfo=timezone.utc)
+        if ld > today:
             continue
         lid = _get_week_id(ld, settings.startWeekOn)
         vol = 0.0
         for ex in log.completedExercises:
             for s in ex.sets:
-                w = s.weight or 0
-                r = s.completedReps or 0
-                dur = s.completedDuration or 0
-                if dur > 0:
-                    vol += dur * (w if w > 0 else 1)
-                else:
-                    bw = settings.userVitals.weight or 0 if ex.useBodyweight else 0
-                    vol += (w + bw) * r
+                # kg × repetitions only: timed work and current body mass are not historical tonnage.
+                if s.completedDuration is not None and s.completedDuration > 0:
+                    continue
+                if s.weight is None or s.completedReps is None or s.weight < 0 or s.completedReps < 0:
+                    continue
+                vol += s.weight * s.completedReps
         if lid == cw_id:
             current += vol
         elif lid == pw_id:
