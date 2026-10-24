@@ -2247,9 +2247,6 @@ class WorkoutViewModel(
         return effectiveLoadModeForExercise(exercise, setIdx) == LoadModeV2.ASSISTED
     }
 
-    private fun applyAssistedAdjustment(baseAssistance: Double, factor: Double): Double =
-        LoadSuggestionEngine.applyAssistedAdjustment(baseAssistance, factor)
-
     private fun manualOverrideForSet(exerciseId: String, setIdx: Int, side: String? = null): Double? {
         val state = _uiState.value
         val exact = state.manualLoadOverrides[workoutSetKey(exerciseId, setIdx, side)]

@@ -1149,13 +1149,6 @@ data class SetupWizardState(
     val exitCompleted: Boolean = false,
     /** Message of the last failed operation; cleared on the next successful publish. */
     val lastFailure: String? = null,
-    /**
-     * Cobertura publicada por el preview de RINGS (`SetupRingsPreview.coverage`).
-     * Es la única fuente que consumen Home y Revisión: nunca se deriva una
-     * etiqueta global mezclando canales parciales (un `INCOMPLETE` histórico
-     * convive con un `PARTIAL_CHECK_IN` válido y con «Sin calibrar» explícito).
-     */
-    /** Estimación automática de cada pilar muscular (sin ajustes de la persona): el valor de referencia de sus deslizadores. */
     /** Preparación nutricional REAL del alta (días, gastos y errores), cuando existe. */
     val nutritionPreparation: SetupNutritionPreparationResult? = null,
     /**
