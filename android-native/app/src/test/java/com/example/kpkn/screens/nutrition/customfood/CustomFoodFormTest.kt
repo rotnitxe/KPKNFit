@@ -10,6 +10,9 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 class CustomFoodFormTest {
     private val ok = CustomFoodForm(
@@ -18,6 +21,39 @@ class CustomFoodFormTest {
     )
 
     private fun validate(form: CustomFoodForm, base: FoodItem? = null) = CustomFoodValidator.validate(form, "custom_1", base)
+
+    @Test fun cerosExplicitosDeFibraYAzucarSobrevivenLaCopiaYLaReedicion() {
+        val food = validate(ok.copy(fiber = "0", sugar = "0")).food!!
+        val restored = Json.decodeFromString<FoodItem>(Json.encodeToString(food))
+        assertEquals("0", CustomFoodValidator.fromFood(restored).fiber)
+        assertEquals("0", CustomFoodValidator.fromFood(restored).sugar)
+        val logged = com.example.kpkn.domain.nutrition.scaleFoodByPortion(restored, amountGrams = 30.0)
+        val coverage = com.example.kpkn.domain.nutrition.NutrientCoverage.summarize(listOf(logged), com.example.kpkn.domain.nutrition.NutrientKey.FIBER)
+        assertEquals(0.0, coverage.totalKnown!!, 0.0)
+        assertEquals(1, coverage.declaredCount)
+        assertEquals(com.example.kpkn.domain.nutrition.NutrientCoverageState.COMPLETE, coverage.state)
+    }
+
+    @Test fun unCampoOpcionalVacioNoSeConvierteEnCeroDeclaradoPorSuVecino() {
+        val food = validate(ok.copy(fiber = "2", sugar = "")).food!!
+        assertEquals("", CustomFoodValidator.fromFood(food).sugar)
+        assertFalse(food.micronutrients.any { it.name == "Azúcar" })
+        val missing = validate(ok.copy(fiber = "", sugar = "3")).food!!
+        assertEquals("", CustomFoodValidator.fromFood(missing).fiber)
+        val logged = com.example.kpkn.domain.nutrition.scaleFoodByPortion(missing, amountGrams = 30.0)
+        assertNull(com.example.kpkn.domain.nutrition.NutrientCoverage.summarize(listOf(logged), com.example.kpkn.domain.nutrition.NutrientKey.FIBER).totalKnown)
+    }
+
+    @Test fun vaciarOReemplazarUnCeroEliminaSuDeclaracionSinBorrarOtrosMicros() {
+        val base = validate(ok.copy(fiber = "0", sugar = "0")).food!!.copy(
+            micronutrients = listOf(Micronutrient("Potasio", 400.0, "mg"), Micronutrient("Fibra", 0.0, "g"), Micronutrient("Azúcar", 0.0, "g")))
+        val cleared = validate(CustomFoodValidator.fromFood(base).copy(fiber = "", sugar = ""), base).food!!
+        assertEquals(listOf(Micronutrient("Potasio", 400.0, "mg")), cleared.micronutrients)
+        val positive = validate(CustomFoodValidator.fromFood(base).copy(fiber = "2", sugar = "3"), base).food!!
+        assertFalse(positive.micronutrients.any { it.name in setOf("Fibra", "Azúcar") && it.amount == 0.0 })
+        val logged = com.example.kpkn.domain.nutrition.scaleFoodByPortion(positive, amountGrams = 30.0)
+        assertEquals(2.0, com.example.kpkn.domain.nutrition.NutrientCoverage.summarize(listOf(logged), com.example.kpkn.domain.nutrition.NutrientKey.FIBER).totalKnown!!, 0.0)
+    }
 
     @Test fun `un formulario completo por porcion da un alimento propio con su base y su procedencia`() {
         val result = validate(ok)

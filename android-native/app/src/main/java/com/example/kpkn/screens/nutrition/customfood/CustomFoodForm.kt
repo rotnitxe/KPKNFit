@@ -170,7 +170,7 @@ object CustomFoodValidator {
                 else -> null
             },
             carbBreakdown = if ((fiber ?: 0.0) > 0.0 || (sugar ?: 0.0) > 0.0) CarbBreakdown(fiber = fiber ?: 0.0, sugar = sugar ?: 0.0) else null,
-            micronutrients = micronutrientsConSodio(seed.micronutrients, sodium),
+            micronutrients = micronutrientsConDeclaraciones(seed.micronutrients, sodium, fiber, sugar),
             tags = if (zeroEnergy) listOf(NutrientBasis.ZERO_ENERGY_TAG) else emptyList(),
             source = "custom",
             sourceRecordId = barcode,
@@ -194,18 +194,28 @@ object CustomFoodValidator {
         carbs = format(food.carbs),
         fats = format(food.fats),
         saturatedFat = food.fatBreakdown?.let { format(it.saturated) }.orEmpty(),
-        fiber = food.carbBreakdown?.fiber?.takeIf { it > 0.0 }?.let { format(it) }.orEmpty(),
-        sugar = food.carbBreakdown?.sugar?.takeIf { it > 0.0 }?.let { format(it) }.orEmpty(),
+        fiber = if (tieneCeroDeclarado(food, "Fibra")) "0" else food.carbBreakdown?.fiber?.takeIf { it > 0.0 }?.let { format(it) }.orEmpty(),
+        sugar = if (tieneCeroDeclarado(food, "Azúcar")) "0" else food.carbBreakdown?.sugar?.takeIf { it > 0.0 }?.let { format(it) }.orEmpty(),
         sodiumMg = food.micronutrients.firstOrNull { it.name.equals("Sodio", ignoreCase = true) }?.amount?.let { format(it) }.orEmpty(),
     )
 
-    /**
-     * Los micronutrientes del alimento base sin el sodio, más el sodio que escribió la persona (si escribió uno, incluido un cero explícito). Así
-     * editar o vaciar el sodio no borra el potasio, el calcio… que el formulario no muestra.
-     */
-    private fun micronutrientsConSodio(base: List<Micronutrient>, sodiumMg: Double?): List<Micronutrient> {
-        val otros = base.filterNot { it.name.equals("Sodio", ignoreCase = true) }
-        return if (sodiumMg != null && sodiumMg >= 0.0) otros + Micronutrient("Sodio", sodiumMg, "mg") else otros
+    private fun tieneCeroDeclarado(food: FoodItem, name: String): Boolean =
+        food.micronutrients.any { it.name.equals(name, ignoreCase = true) && it.amount == 0.0 }
+
+    /** El cero legado de CarbBreakdown también significa ausencia: solo el cero escrito se declara aparte. */
+    private fun micronutrientsConDeclaraciones(
+        base: List<Micronutrient>, sodiumMg: Double?, fiber: Double?, sugar: Double?,
+    ): List<Micronutrient> {
+        val otros = base.filterNot { micro ->
+            micro.name.equals("Sodio", ignoreCase = true) ||
+                (micro.amount == 0.0 && (micro.name.equals("Fibra", ignoreCase = true) || micro.name.equals("Azúcar", ignoreCase = true)))
+        }
+        return buildList {
+            addAll(otros)
+            if (sodiumMg != null && sodiumMg >= 0.0) add(Micronutrient("Sodio", sodiumMg, "mg"))
+            if (fiber == 0.0) add(Micronutrient("Fibra", 0.0, "g"))
+            if (sugar == 0.0) add(Micronutrient("Azúcar", 0.0, "g"))
+        }
     }
 
     private fun required(text: String, field: CustomFoodField, max: Double, unit: String, errors: MutableMap<CustomFoodField, String>): Double? {
