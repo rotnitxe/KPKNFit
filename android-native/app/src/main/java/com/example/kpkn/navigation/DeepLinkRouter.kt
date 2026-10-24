@@ -95,10 +95,10 @@ object DeepLinkRouter {
     private fun resolveSetup(mode: String?, draftId: String?): ResolvedRoute {
         val normalizedMode = mode?.trim()?.uppercase().orEmpty()
         val cleanDraftId = draftId?.trim()?.takeIf { it.isNotEmpty() }
+        if (com.example.kpkn.data.compatibility.LegacyTrainingImport.isRetiredSetupMode(normalizedMode)) return ResolvedRoute(KpknRoute.Home.route)
         return when (normalizedMode) {
             "TRAINING_ONLY" -> ResolvedRoute(KpknRoute.ProgramEditor.create())
             "NUTRITION_ONLY" -> ResolvedRoute(KpknRoute.NutritionPlanEditor.create())
-            "RINGS_ONLY" -> ResolvedRoute(KpknRoute.Home.route)
             "RESUME" -> ResolvedRoute(
                 KpknRoute.SetupWizard.create(mode = "RESUME", draftId = cleanDraftId),
             )

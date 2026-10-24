@@ -5,6 +5,7 @@ import kotlinx.serialization.json.*
 /** Isolated v1-v6 importer. Key allowlists are local to known records, never a global word filter. */
 object LegacyTrainingImport {
     private val json = Json { ignoreUnknownKeys = true }
+    fun isRetiredSetupMode(value: String): Boolean = value == "RINGS_ONLY"
     private val wellbeingFields = setOf("id", "date", "sleepQuality", "stressLevel", "doms", "motivation",
         "sleepHours", "moodState", "workIntensity", "studyIntensity", "notes", "preWorkoutDiscomforts", "source", "capturedFields")
     private val manualFields = setOf("manualMuscularBattery", "manualNeuralBattery", "manualSpinalBattery",

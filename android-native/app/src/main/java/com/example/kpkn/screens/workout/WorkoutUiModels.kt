@@ -224,7 +224,6 @@ data class WorkoutUiState(
     // V2 outcome del último set registrado — visible mientras el timer de descanso corre
     val lastSetOutcomeV2: SetOutcomeV2? = null,
     val lastHomologatedResultV3: HomologatedPerformanceResult? = null,
-    val lastDrainOverlay: ExerciseDrainOverlayState? = null,
     // Auto-regulación: ajuste dinámico del peso objetivo del siguiente set.
     val currentAutoRegulation: SetAutoRegulation? = null,
     // Mensaje contextual basado en fatiga y recuperación.

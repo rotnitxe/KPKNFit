@@ -2,24 +2,6 @@ package com.example.kpkn.screens.workout
 
 import androidx.compose.ui.graphics.Color
 
-internal enum class ExerciseDrainOverlayChannelV2 {
-    ENERGY,
-    BACK,
-    MUSCLE,
-}
-
-internal data class ExerciseDrainOverlayItemV2(
-    val label: String,
-    val delta: Int,
-    val channel: ExerciseDrainOverlayChannelV2,
-)
-
-internal data class ExerciseDrainOverlayStateV2(
-    val key: String,
-    val exerciseName: String,
-    val items: List<ExerciseDrainOverlayItemV2>,
-)
-
 internal data class WorkoutStageTransitionTargetV2(
     val exerciseId: String,
     val order: Int,

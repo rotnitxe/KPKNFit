@@ -2497,13 +2497,6 @@ internal fun WorkoutV2Body(
         )
     }
 
-        ExerciseDrainOverlay(
-            state = uiState.lastDrainOverlay,
-            bottomClearance = dockBottomClearance,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .zIndex(4f),
-        )
         if (!showingPostExerciseCard) {
         imbalanceNoticeText(uiState.imbalanceNotice)?.let { notice ->
             Surface(

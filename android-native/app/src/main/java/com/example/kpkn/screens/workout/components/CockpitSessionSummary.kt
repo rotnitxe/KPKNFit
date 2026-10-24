@@ -55,7 +55,6 @@ internal fun CockpitSessionSummary(
     bodyWeight: Double?,
     startTimeMs: Long,
     targetMinutes: Int?,
-    ringPreview: PostSessionPreview?,
     onSelectExercise: (String) -> Unit,
     onSelectSuperset: (String) -> Unit,
     onOpenExerciseOptions: ((String) -> Unit)? = null,
@@ -90,14 +89,6 @@ internal fun CockpitSessionSummary(
         }
         SessionPaceEstimate(startTimeMs, paceWork.completed, paceWork.total, targetMinutes)
         metrics.calories.hint?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
-        if (ringPreview != null) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("RINGS EN VIVO", style = KpknType.eyebrow, color = WizardColors.textMuted)
-                CockpitRingLine("Músculos", ringPreview.muscular, SymbolPalette.musculo)
-                CockpitRingLine("Energía", ringPreview.neural, SymbolPalette.energia)
-                CockpitRingLine("Columna", ringPreview.spinal, SymbolPalette.columna)
-            }
-        }
         Text("RUTA", style = KpknType.eyebrow, color = WizardColors.textMuted)
         val groupByMember = remember(exercises, supersetGroups) {
             buildMap {
@@ -197,14 +188,3 @@ private fun CockpitElapsedClock(startTimeMs: Long, targetMinutes: Int?, modifier
     }
 }
 
-@Composable
-private fun CockpitRingLine(label: String, value: Int, color: Color) {
-    val shown = value.coerceIn(0, 100)
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(label, style = KpknType.caption, color = WizardColors.text, modifier = Modifier.width(76.dp))
-        Box(Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)).background(KpknSurface.inset)) {
-            Box(Modifier.fillMaxWidth(shown / 100f).fillMaxHeight().background(color))
-        }
-        Text("$shown %", style = KpknType.caption, color = WizardColors.textMuted)
-    }
-}
