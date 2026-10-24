@@ -16,7 +16,9 @@ import kotlinx.coroutines.launch
 
 /** Cinco imágenes en memoria pasan por ML Kit, OcrLayout y el parser real. Sin repositorios ni fotos en disco. */
 class LabelOcrSelfTestActivity : ComponentActivity() {
-    private data class Case(val name: String, val lines: List<List<String>>, val energy: Double, val protein: Double, val sodium: Double? = null)
+    private data class Case(val name: String, val lines: List<List<String>>, val energy: Double, val protein: Double,
+        val sodium: Double? = null, val carbs: Double = 20.0, val fat: Double = 8.0,
+        val basis: LabelBasis = LabelBasis.PER_100G, val servingSize: Double? = null)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) { setShowWhenLocked(true); setTurnScreenOn(true) }
@@ -25,7 +27,7 @@ class LabelOcrSelfTestActivity : ComponentActivity() {
         val cases = listOf(
             Case("UE 100g", listOf(listOf("Por 100 g"), listOf("Energia", "200 kcal"), listOf("Proteinas", "10 g"), listOf("Carbohidratos", "20 g"), listOf("Grasas", "8 g")), 200.0, 10.0),
             Case("Dos columnas", listOf(listOf("", "Por 100 g", "Por racion"), listOf("Racion: 30 g"), listOf("Energia", "200 kcal", "60 kcal"), listOf("Proteinas", "10 g", "3 g"), listOf("Carbohidratos", "20 g", "6 g"), listOf("Grasas", "8 g", "2.4 g")), 200.0, 10.0),
-            Case("Estados Unidos", listOf(listOf("Nutrition Facts"), listOf("Serving size 30 g"), listOf("Calories", "120"), listOf("Protein", "3 g"), listOf("Total Carbohydrate", "15 g"), listOf("Total Fat", "5 g")), 120.0, 3.0),
+            Case("Estados Unidos", listOf(listOf("Nutrition Facts"), listOf("Serving size 30 g"), listOf("Calories", "120"), listOf("Protein", "3 g"), listOf("Total Carbohydrate", "15 g"), listOf("Total Fat", "5 g")), 120.0, 3.0, carbs = 15.0, fat = 5.0, basis = LabelBasis.PER_SERVING, servingSize = 30.0),
             Case("Sal", listOf(listOf("Por 100 g"), listOf("Energia", "200 kcal"), listOf("Proteinas", "10 g"), listOf("Carbohidratos", "20 g"), listOf("Grasas", "8 g"), listOf("Sal", "0.5 g")), 200.0, 10.0, 200.0),
             Case("Trazas", listOf(listOf("Por 100 g"), listOf("Energia", "200 kcal"), listOf("Proteinas", "10 g"), listOf("Carbohidratos", "20 g"), listOf("Grasas", "8 g"), listOf("Fibra", "trazas")), 200.0, 10.0),
         )
@@ -45,14 +47,16 @@ class LabelOcrSelfTestActivity : ComponentActivity() {
             cases.forEachIndexed { index, case ->
                 val bitmap = Bitmap.createBitmap(1080, 760, Bitmap.Config.ARGB_8888)
                 val canvas = Canvas(bitmap); canvas.drawColor(Color.WHITE)
-                val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK; textSize = (48 + index * 2).toFloat() }
+                val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK; textSize = (34 + index % 3).toFloat() }
                 case.lines.forEachIndexed { row, cells -> cells.forEachIndexed { col, text ->
-                    canvas.drawText(text, floatArrayOf(24f, 465f, 780f)[col], 65f + row * 84f, paint)
+                    canvas.drawText(text.uppercase(java.util.Locale.ROOT), floatArrayOf(24f, 465f, 780f)[col], 65f + row * 84f, paint)
                 } }
                 val result = reader.readBitmapForDebug(bitmap)
                 val label = (result as? LabelReadResult.Ready)?.label
                 fun near(field: LabelField, expected: Double) = label?.fields?.get(field)?.value?.let { kotlin.math.abs(it - expected) < 0.01 } == true
                 val ok = near(LabelField.ENERGY_KCAL, case.energy) && near(LabelField.PROTEIN_G, case.protein) &&
+                    near(LabelField.CARBS_G, case.carbs) && near(LabelField.FAT_G, case.fat) && label?.basis == case.basis &&
+                    (case.servingSize == null || label?.servingSize == case.servingSize) &&
                     (case.sodium == null || near(LabelField.SODIUM_MG, case.sodium)) &&
                     (index != 4 || label?.fields?.get(LabelField.FIBER_G)?.confidence == LabelConfidence.UNSURE)
                 if (ok) passed++
