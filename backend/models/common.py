@@ -129,7 +129,6 @@ class Session(BaseModel):
 
 class CompletedSet(ExerciseSet):
     weight: float = 0
-    spinalScore: Optional[float] = None
     side: Optional[str] = None
 
 
