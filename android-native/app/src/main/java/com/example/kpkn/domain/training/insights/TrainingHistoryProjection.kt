@@ -26,8 +26,10 @@ object TrainingHistoryProjection {
             val time = TrainingDates.logDateMs(log).takeIf { it in 1..nowMs } ?: return@forEach
             val sports = log.sportDocuments.mapNotNull { doc -> SportId.entries.firstOrNull { it.name == doc.sportId } }.distinct()
             // A generic strength log has no inferred specialized discipline.
-            val sport = sports.singleOrNull() ?: if (sports.isEmpty() && log.completedExercises.isNotEmpty() &&
-                log.completedExercises.all { it.cardioDetails == null }) SportId.STRENGTH else null
+            val declaredSport = SportId.entries.firstOrNull { it.name == log.recordedSportId }
+            val sport = if (sports.isNotEmpty()) sports.singleOrNull()?.takeIf { declaredSport == null || it == declaredSport }
+                else if (log.recordedSportId != null) declaredSport
+                else if (log.completedExercises.isNotEmpty() && log.completedExercises.all { it.cardioDetails == null }) SportId.STRENGTH else null
             fun logFact(metric: String, value: Double?, unit: String, origin: FactOrigin, method: String?, protocol: String? = null) {
                 if (sport == null || value == null || !value.isFinite() || value < 0.0) return
                 add(TrainingFact("log:${log.id}:$metric", log.id, time, sport, metric, value, unit, origin,

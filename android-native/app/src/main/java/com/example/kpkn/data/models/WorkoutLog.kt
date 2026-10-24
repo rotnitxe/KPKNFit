@@ -37,6 +37,8 @@ data class WorkoutLog(
     val exercisePhotos: Map<String, List<String>> = emptyMap(), // exerciseId → local paths (max 2)
     val sessionMilestones: List<SessionMilestone> = emptyList(),
     val sessionNotes: String = "",
+    /** Optional original discipline declaration; never inferred from a recovery model. */
+    val recordedSportId: String? = null,
     val calibrationDecisions: List<CalibrationDecisionRecord> = emptyList(),
     val sessionSavedNotes: List<SessionSavedNote> = emptyList(),
     val sessionPhotos: List<String> = emptyList(),
@@ -302,6 +304,8 @@ data class OngoingWorkoutState(
     val exercisePhotos: Map<String, List<String>> = emptyMap(),
     val sessionMilestones: List<SessionMilestone> = emptyList(),
     val sessionNotes: String = "",
+    /** Optional original discipline declaration; never inferred from a recovery model. */
+    val recordedSportId: String? = null,
     val sessionSavedNotes: List<SessionSavedNote> = emptyList(),
     val plannedSessionBaseline: Session? = null,
     val sessionPhotos: List<String> = emptyList(),

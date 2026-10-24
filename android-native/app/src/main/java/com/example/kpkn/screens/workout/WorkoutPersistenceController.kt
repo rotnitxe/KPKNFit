@@ -228,6 +228,7 @@ class WorkoutPersistenceController(
                     exercisePhotos = state.exercisePhotos,
                     sessionMilestones = state.sessionMilestones,
                     sessionNotes = state.sessionNotes,
+                    recordedSportId = state.recordedSportId,
                     sessionSavedNotes = state.sessionSavedNotes,
                     plannedSessionBaseline = state.plannedSessionBaseline,
                     sessionPhotos = state.sessionPhotos,

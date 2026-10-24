@@ -5,7 +5,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.*
-import androidx.compose.ui.test.junit4.*
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.unit.Density
 import com.example.kpkn.domain.multisport.SportId
 import com.example.kpkn.domain.training.insights.*

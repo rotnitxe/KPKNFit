@@ -272,6 +272,7 @@ class WorkoutFinishController(
                     exercisePhotos = state.exercisePhotos,
                     sessionMilestones = state.sessionMilestones,
                     sessionNotes = state.sessionNotes,
+                    recordedSportId = state.recordedSportId,
                     calibrationDecisions = state.calibrationDecisions.map { it.copy(sessionLogId = logId) },
                     sessionSavedNotes = state.sessionSavedNotes,
                     sessionPhotos = state.sessionPhotos,

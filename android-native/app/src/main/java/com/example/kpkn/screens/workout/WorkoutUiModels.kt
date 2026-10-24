@@ -198,6 +198,7 @@ data class WorkoutUiState(
     val exercisePhotos: Map<String, List<String>> = emptyMap(),
     val sessionMilestones: List<SessionMilestone> = emptyList(),
     val sessionNotes: String = "",
+    val recordedSportId: String? = null,
     val sessionSavedNotes: List<SessionSavedNote> = emptyList(),
     val sessionPhotos: List<String> = emptyList(),
     val sessionChecklist: List<SessionChecklistItem> = emptyList(),

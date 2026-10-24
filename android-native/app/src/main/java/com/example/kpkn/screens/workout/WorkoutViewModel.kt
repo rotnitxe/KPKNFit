@@ -6064,6 +6064,12 @@ class WorkoutViewModel(
 
     private var sessionNotePersistJob: Job? = null
 
+    fun setRecordedSport(sportId: String?) {
+        require(sportId == null || com.example.kpkn.domain.multisport.SportId.entries.any { it.name == sportId })
+        updateUiState { it.copy(recordedSportId = sportId) }
+        persistOngoingState()
+    }
+
     fun setSessionNotes(note: String, flush: Boolean = false) {
         updateUiState { it.copy(sessionNotes = note) }
         sessionNotePersistJob?.cancel()

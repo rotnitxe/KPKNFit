@@ -33,7 +33,7 @@ internal fun TrainingFactChart(allFacts: List<TrainingFact>, nowMs: Long, weeks:
     val sports = visible.map { it.sport }.distinct().sortedBy { it.name }
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         FilterChip(sportName == null, { sportName = null }, label = { Text("Todas las disciplinas") })
-        sports.forEach { sport -> FilterChip(sportName == sport.name, { sportName = sport.name }, label = { Text(sport.name.replace('_', ' ')) }) }
+        sports.forEach { sport -> FilterChip(sportName == sport.name, { sportName = sport.name }, label = { Text(recordedSportLabel(sport)) }) }
     }
     val filtered = visible.filter { sportName == null || it.sport.name == sportName }
     val groups = filtered.groupBy { "${it.sport}:${it.metric}:${it.unit}" }

@@ -81,4 +81,13 @@ class TrainingHistoryProjectionTest {
         assertFalse(TrainingHistoryProjection.facts(listOf(source(EnduranceRecordQuality.INVALIDATED)),now).any { it.unit=="WATTS" })
     }
 
+    @Test fun allDeclaredDisciplinesUseTheSameNativeActivityWithoutInventingMeasurements() {
+        val sources = SportId.entries.map { sport -> log(id=sport.name).copy(recordedSportId=sport.name,completedExercises=emptyList()) }
+        val facts = TrainingHistoryProjection.facts(sources,now)
+        assertEquals(SportId.entries.toSet(),facts.map { it.sport }.toSet())
+        assertEquals(sources.size,facts.size)
+        assertTrue(facts.all { it.unit=="min" && it.value==17.0 && it.origin==FactOrigin.HISTORICAL_AMBIGUOUS })
+        assertEquals(sources.size,TrainingInsightsEngine.coverage(facts,now).activities)
+    }
+
 }

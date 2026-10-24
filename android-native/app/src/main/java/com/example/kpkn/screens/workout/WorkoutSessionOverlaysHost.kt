@@ -75,6 +75,8 @@ internal fun WorkoutSessionOverlaysHost(
             },
             discomforts = uiState.previousSessionDiscomforts.map { com.example.kpkn.data.models.discomfortLabel(it) },
             onNotes = viewModel::setSessionNotes,
+            recordedSportId = uiState.recordedSportId,
+            onSport = viewModel::setRecordedSport,
             onDismiss = onReadinessDismissed,
         )
     }

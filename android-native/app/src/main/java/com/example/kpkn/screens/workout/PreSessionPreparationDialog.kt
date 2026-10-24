@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import com.example.kpkn.domain.multisport.SportId
+import com.example.kpkn.screens.training.recordedSportLabel
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -17,7 +19,10 @@ internal fun PreSessionPreparationDialog(
     discomforts: List<String>,
     onNotes: (String) -> Unit,
     onDismiss: () -> Unit,
+    recordedSportId: String? = null,
+    onSport: (String?) -> Unit = {},
 ) {
+    var choosingSport by remember { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Antes de entrenar") },
@@ -30,6 +35,18 @@ internal fun PreSessionPreparationDialog(
                     Text("Registros anteriores de esta sesión")
                     previous.forEach { Text(it) }
                     Text("El contexto puede haber cambiado; estas referencias no miden preparación corporal.")
+                }
+                Box {
+                    TextButton(onClick = { choosingSport = true }) {
+                        Text("Disciplina (opcional): ${SportId.entries.firstOrNull { it.name == recordedSportId }?.let(::recordedSportLabel) ?: "sin especificar"}")
+                    }
+                    DropdownMenu(expanded = choosingSport, onDismissRequest = { choosingSport = false },
+                        modifier = Modifier.heightIn(max = 300.dp)) {
+                        DropdownMenuItem(text = { Text("Sin especificar") }, onClick = { onSport(null); choosingSport = false })
+                        SportId.entries.forEach { sport ->
+                            DropdownMenuItem(text = { Text(recordedSportLabel(sport)) }, onClick = { onSport(sport.name); choosingSport = false })
+                        }
+                    }
                 }
                 OutlinedTextField(value = notes, onValueChange = onNotes,
                     label = { Text("Cansancio, molestias o contexto de hoy (opcional)") }, modifier = Modifier.fillMaxWidth())

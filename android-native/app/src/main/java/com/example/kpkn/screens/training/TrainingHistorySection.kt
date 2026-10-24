@@ -63,6 +63,7 @@ fun TrainingHistorySection(logs: List<WorkoutLog>, nowMs: Long, modifier: Modifi
                     Text("Documento ${document.id} · ${document.purpose} · ${document.engineId} v${document.version}")
                     Text("Los documentos sin métricas interpretables conservan su contenido original; no se convierten en medidas estimadas.")
                 }
+                selected.sessionNotes.takeIf { it.isNotBlank() && it != selected.notes }?.let { Text(it) }
                 selected.notes?.takeIf { it.isNotBlank() }?.let { Text(it) }
                 selected.discomforts.forEach { Text("Molestia registrada: $it") }
                 Text("Fuente: registro de sesión. Sin medición no se estima recuperación ni seguridad.")
@@ -76,6 +77,7 @@ internal fun trainingLogInstant(log: WorkoutLog): Long? = runCatching { Instant.
 internal fun trainingLogDescription(log: WorkoutLog): String = buildList {
     log.actualDurationSeconds?.let { add("$it s · ${log.actualDurationSource ?: "fuente no indicada"}") }
         ?: add("${log.durationMinutes} min · precisión original en minutos")
+    com.example.kpkn.domain.multisport.SportId.entries.firstOrNull { it.name == log.recordedSportId }?.let { add("${recordedSportLabel(it)} · disciplina declarada") }
     if (log.completedExercises.isNotEmpty()) add("${log.completedExercises.sumOf { it.sets.size }} series registradas")
     if (log.sportDocuments.isNotEmpty()) add(log.sportDocuments.map { it.sportId.lowercase().replace('_',' ') }.distinct().joinToString(" · "))
 }.joinToString(" · ")

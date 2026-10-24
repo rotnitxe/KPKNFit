@@ -398,6 +398,7 @@ class WorkoutSessionHydrator(
                 exercisePhotos = resumedState?.exercisePhotos.orEmpty(),
                 sessionMilestones = resumedState?.sessionMilestones.orEmpty(),
                 sessionNotes = resumedState?.sessionNotes ?: priorSessionLog?.sessionNotes.orEmpty(),
+                recordedSportId = resumedState?.recordedSportId,
                 sessionSavedNotes = resumedState?.sessionSavedNotes ?: priorSessionLog?.sessionSavedNotes.orEmpty(),
                 plannedSessionBaseline = resumedState?.plannedSessionBaseline
                     ?: ports.sessionForActiveMode(
@@ -513,6 +514,7 @@ class WorkoutSessionHydrator(
                     editingSetKey = getState().editingState?.setKey,
                     restModalState = getState().restModalState,
                     sessionNotes = getState().sessionNotes,
+                    recordedSportId = getState().recordedSportId,
                     sessionSavedNotes = getState().sessionSavedNotes,
                     sessionChecklist = getState().sessionChecklist,
                 )
