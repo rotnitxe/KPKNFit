@@ -80,6 +80,8 @@ object ExerciseProgress {
             if (row.mode == LoadModeV2.LOAD || row.mode == LoadModeV2.LASTRE || row.bodyKnown) add(ExerciseProgressMetric.VOLUME)
         }
     }
+    private fun displayNumber(value: Double): String = java.math.BigDecimal.valueOf(value)
+        .setScale(1, java.math.RoundingMode.HALF_UP).stripTrailingZeros().toPlainString().replace('.', ',')
     private fun point(log: WorkoutLog, date: LocalDate, rows: List<Row>, metric: ExerciseProgressMetric): ExerciseProgressPoint? {
         val usable = rows.filter { metric in available(it) }; if (usable.isEmpty()) return null
         val first = usable.first(); val descending = !(metric in setOf(ExerciseProgressMetric.MAX_WEIGHT, ExerciseProgressMetric.BEST_SET) && first.mode == LoadModeV2.ASSISTED)
@@ -101,12 +103,12 @@ object ExerciseProgress {
         if (!value.isFinite() || value <= 0 && !(value == 0.0 && best.mode == LoadModeV2.ASSISTED)) return null
         val loadLabel = when(best.mode) { LoadModeV2.ASSISTED -> "kg de asistencia"; LoadModeV2.LASTRE -> "kg de lastre"; LoadModeV2.BODYWEIGHT -> "peso corporal"; else -> "kg" }
         val detail = when(metric) {
-            ExerciseProgressMetric.E1RM -> "${best.load} kg × ${best.reps}" + (best.set.rir?.let { " @ RIR $it" } ?: best.set.rpe?.let { " @ RPE $it" } ?: " · sin reserva declarada") + " → e1RM $value kg (${StrengthModel.VERSION})"
-            ExerciseProgressMetric.DURATION -> "${best.amount} s · misma carga registrada"
-            ExerciseProgressMetric.DISTANCE -> "${best.amount} m · misma carga registrada"
+            ExerciseProgressMetric.E1RM -> "${displayNumber(best.load)} kg × ${best.reps}" + (best.set.rir?.let { " @ RIR $it" } ?: best.set.rpe?.let { " @ RPE $it" } ?: " · sin reserva declarada") + " → e1RM ${displayNumber(value)} kg estimados"
+            ExerciseProgressMetric.DURATION -> "${displayNumber(best.amount)} s · misma carga registrada"
+            ExerciseProgressMetric.DISTANCE -> "${displayNumber(best.amount)} m · misma carga registrada"
             ExerciseProgressMetric.SETS -> "${usable.size} series válidas"
-            ExerciseProgressMetric.VOLUME -> "$value kg de volumen registrado; no incluye peso corporal sin dato"
-            else -> "${best.load} $loadLabel × ${best.reps} reps"
+            ExerciseProgressMetric.VOLUME -> "${displayNumber(value)} kg de volumen registrado; no incluye peso corporal sin dato"
+            else -> "${displayNumber(best.load)} $loadLabel × ${best.reps} reps"
         }
         val trajectory = best.lineage + when {
             metric == ExerciseProgressMetric.MAX_REPS && best.mode != LoadModeV2.BODYWEIGHT -> "|reps@${best.load}"
