@@ -5,7 +5,6 @@ import com.example.kpkn.data.repository.withConfirmedExerciseReferences
 import com.example.kpkn.data.exercises.isExerciseCatalogV2RuntimeReady
 import com.example.kpkn.data.exercises.catalogv2.catalogV2SelectionIssues
 
-import com.example.kpkn.domain.auge.AugeClassifiers
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.sessionassistant.SessionAssistantEngine

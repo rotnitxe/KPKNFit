@@ -27,8 +27,8 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.repository.CustomExerciseRepository
-import com.example.kpkn.domain.auge.SessionMuscleFilter
-import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
+import com.example.kpkn.domain.exercises.SessionMuscleFilter
+import com.example.kpkn.domain.exercises.muscleDisplayLabel
 import com.example.kpkn.domain.training.CompetitionHomePhase
 import com.example.kpkn.domain.training.HomeCompetitionState
 import com.example.kpkn.domain.training.HomeWeekDay
@@ -395,13 +395,13 @@ private fun getSessionInvolvedMuscles(session: Session): List<String> {
         if (info != null) {
             SessionMuscleFilter.relevantMusclesFor(info)
                 .asSequence()
-                .map { involvement -> getAugeMuscleDisplayId(involvement.muscle, involvement.emphasis) }
+                .map { involvement -> muscleDisplayLabel(involvement.muscle, involvement.emphasis) }
                 .filter { it.isNotBlank() }
                 .forEach(muscles::add)
         } else if (!exercise.effectiveMuscles.isNullOrEmpty()) {
             exercise.effectiveMuscles
                 .asSequence()
-                .map { involvement -> getAugeMuscleDisplayId(involvement.muscle, involvement.emphasis) }
+                .map { involvement -> muscleDisplayLabel(involvement.muscle, involvement.emphasis) }
                 .filter { it.isNotBlank() }
                 .forEach(muscles::add)
         }

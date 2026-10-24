@@ -208,7 +208,6 @@ import com.example.kpkn.domain.templates.SessionTemplateCatalogPolicy
 import com.example.kpkn.domain.templates.SplitTemplateDayGroup
 import com.example.kpkn.domain.templates.FocusTemplateGroup
 import androidx.compose.animation.animateContentSize
-import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.calculations.calculateEstimatedMetric
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.exercises.*
@@ -228,7 +227,6 @@ import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.components.SwipeToDeleteCard
-import com.example.kpkn.screens.wikilab.components.ExerciseFatigueScenarios
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

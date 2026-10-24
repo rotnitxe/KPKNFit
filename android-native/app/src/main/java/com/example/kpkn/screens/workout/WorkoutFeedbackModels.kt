@@ -20,7 +20,6 @@ import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.models.performedPurpose
-import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.training.VolumeCalculator
 import java.time.LocalDate
 

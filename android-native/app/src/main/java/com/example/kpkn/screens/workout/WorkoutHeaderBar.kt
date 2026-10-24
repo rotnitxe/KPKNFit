@@ -49,7 +49,6 @@ import kotlinx.coroutines.delay
 import com.example.kpkn.screens.sessioneditor.sessionCoverAccentColor
 import com.example.kpkn.ui.components.kpknCoverGlass
 import com.example.kpkn.services.workout.VoiceSessionState
-import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
 import com.example.kpkn.data.models.SetAdjustmentSuggestion

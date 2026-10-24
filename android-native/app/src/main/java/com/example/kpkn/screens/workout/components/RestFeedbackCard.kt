@@ -165,7 +165,6 @@ internal fun RestFeedbackCard(
                     onOpenDiscomfort = { openDiscomfortId = it },
                     compact = true,
                 )
-                insights.notice?.headline?.let { DiscomfortNotice(text = it, compact = true) }
             }
 
             FeedbackActions(

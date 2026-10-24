@@ -5,7 +5,7 @@ import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.isEffectivelyUnilateral
-import com.example.kpkn.domain.discomfort.DiscomfortCauseEngine
+import com.example.kpkn.domain.discomfort.RecordedDiscomfortHistory
 import com.example.kpkn.domain.discomfort.DiscomfortHistory
 import com.example.kpkn.domain.discomfort.DiscomfortInsight
 import com.example.kpkn.domain.discomfort.DiscomfortSession
@@ -34,13 +34,11 @@ internal data class ReportedDiscomfort(val id: String, val lastReportedAtMs: Lon
 /** Lo que el motor dice para el ejercicio que acaba de terminar. */
 internal data class FeedbackInsights(
     /** Las molestias más probables para el ejercicio (chips «Frecuentes en…»), sin las ya reportadas. */
-    val likely: List<String> = emptyList(),
     /** Las ya reportadas antes con este ejercicio (o en la última sesión), la más reciente primero. */
     val reported: List<ReportedDiscomfort> = emptyList(),
     /** El aviso de una línea (F2); null si los datos no demuestran nada. */
-    val notice: DiscomfortInsight? = null,
 ) {
-    val isEmpty: Boolean get() = likely.isEmpty() && reported.isEmpty() && notice == null
+    val isEmpty: Boolean get() = reported.isEmpty()
 
     companion object {
         val Empty = FeedbackInsights()
@@ -57,7 +55,7 @@ internal object FeedbackInsightsBuilder {
         history: DiscomfortHistory,
         lastSessionDiscomfortIds: List<String> = emptyList(),
     ): FeedbackInsights {
-        val fromExercise = DiscomfortCauseEngine.previousReports(session, history, REPORTED_LIMIT)
+        val fromExercise = RecordedDiscomfortHistory.previousReports(session, history, REPORTED_LIMIT)
             .map { ReportedDiscomfort(it.discomfortId, it.lastReportedAtMs) }
         val known = fromExercise.map { it.id }.toSet()
         val fromLastSession = lastSessionDiscomfortIds
@@ -65,12 +63,7 @@ internal object FeedbackInsightsBuilder {
             .distinct()
             .map { ReportedDiscomfort(it, null) }
         val reported = (fromExercise + fromLastSession).take(REPORTED_LIMIT)
-        val reportedIds = reported.map { it.id }.toSet()
-        val likely = DiscomfortCauseEngine.rankLikely(session, history, LIKELY_LIMIT + reportedIds.size)
-            .filter { it !in reportedIds }
-            .take(LIKELY_LIMIT)
-        val notice = DiscomfortCauseEngine.sessionNotice(session, history)
-        return FeedbackInsights(likely = likely, reported = reported, notice = notice)
+        return FeedbackInsights(reported = reported)
     }
 }
 
@@ -158,8 +151,6 @@ internal object FeedbackDiscomfortInputs {
                 canonicalExerciseId = exercise.canonicalExerciseId,
                 relativeToCanonicalExerciseId = exercise.relativeToCanonicalExerciseId,
                 technicalQuality = technicalByExerciseId[exercise.id],
-                axialLoadFactor = info?.axialLoadFactor,
-                isImpact = DiscomfortCauseEngine.isImpactExercise(name),
                 isUnilateral = exercise.isEffectivelyUnilateral(),
             )
         }
@@ -178,7 +169,7 @@ internal data class FeedbackInsightsRequest(
 ) {
     companion object {
         /** La técnica solo cambia lo que dice el motor cuando baja de este umbral: por encima, todas valen igual. */
-        private const val ABOVE_THRESHOLD = DiscomfortCauseEngine.LOW_TECHNIQUE_MAX + 1
+        private const val ABOVE_THRESHOLD = 10
 
         fun of(exerciseIds: List<String>, technical: Map<String, Int>, completedSetsCount: Int): FeedbackInsightsRequest =
             FeedbackInsightsRequest(
@@ -240,7 +231,7 @@ internal class FeedbackInsightSource(
         val computed = try {
             withContext(dispatcher) {
                 val (session, history) = inputs(request)
-                DiscomfortCauseEngine.explain(discomfortId, session, history).takeIf { it.hasEvidence }
+                RecordedDiscomfortHistory.explain(discomfortId, session, history).takeIf { it.hasEvidence }
             }
         } catch (cancelled: CancellationException) {
             throw cancelled

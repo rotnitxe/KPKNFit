@@ -134,14 +134,6 @@ import com.example.kpkn.screens.workout.ExerciseHistoryEntry
 import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.unresolvedDiscomfortIdsFrom
 import com.example.kpkn.data.models.PostSessionPreview
-import com.example.kpkn.domain.auge.AugeTtcEngine
-import com.example.kpkn.domain.auge.DiscomfortAggregationEngine
-import com.example.kpkn.domain.auge.SessionDiscomfortSummary
-import com.example.kpkn.domain.auge.SessionIntensityEngine
-import com.example.kpkn.domain.auge.SessionIntensityResult
-import com.example.kpkn.domain.auge.getAugeMusclePillarId
-import com.example.kpkn.domain.auge.lookupMuscleScore
-import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
 import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.calculations.calculateHybrid1RM

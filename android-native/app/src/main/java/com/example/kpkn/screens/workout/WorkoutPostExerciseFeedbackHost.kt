@@ -39,7 +39,6 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.discomfortKnowledge
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
-import com.example.kpkn.domain.auge.AugeTtcEngine
 import com.example.kpkn.domain.discomfort.DiscomfortInsight
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
@@ -134,14 +133,7 @@ internal fun feedbackSave(
 
 /** Las articulaciones que carga un ejercicio (las de sus músculos efectivos): sirven para relacionar molestias de otros ejercicios. */
 internal fun feedbackArticulationsOf(exercise: Exercise): List<ArticularBattery> {
-    val dbInfo = resolveCatalogExerciseInfo(
-        catalogConfigurationId = exercise.catalogConfigurationId,
-        exerciseDbId = exercise.exerciseDbId,
-        exerciseId = exercise.exerciseId,
-        exerciseName = exercise.name,
-    )
-    return (exercise.effectiveMuscles?.takeIf { it.isNotEmpty() } ?: dbInfo?.involvedMuscles.orEmpty())
-        .flatMap { im -> AugeTtcEngine.articularBatteriesFor(im.muscle, im.emphasis) }
+    return ArticularBattery.entries.toList()
 }
 
 /** El motor de molestias para un feedback: los chips y el aviso, y la explicación de una ficha. */
@@ -313,7 +305,6 @@ internal fun PostExerciseFeedbackPanel(
                 onOpenDiscomfort = { openDiscomfortId = it },
             )
         }
-        insights.notice?.headline?.let { DiscomfortNotice(text = it) }
     }
 
     if (bounded) {

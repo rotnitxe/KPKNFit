@@ -18,7 +18,7 @@ import com.example.kpkn.data.sessions.SessionTemplateApplyMode
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTemplate
 import com.example.kpkn.data.splits.isVisibleForApplication
-import com.example.kpkn.domain.auge.SessionMuscleFilter
+import com.example.kpkn.domain.exercises.SessionMuscleFilter
 import com.example.kpkn.domain.templates.SessionTemplateCatalogPolicy
 import com.example.kpkn.domain.templates.SessionTemplateEngine
 import com.example.kpkn.domain.templates.SessionClonePurpose

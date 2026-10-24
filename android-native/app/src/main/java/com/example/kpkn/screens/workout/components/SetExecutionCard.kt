@@ -66,7 +66,6 @@ import androidx.compose.ui.window.PopupProperties
 import kotlin.math.roundToInt
 
 import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.domain.calculations.estimatePercent1RM
 import com.example.kpkn.domain.workout.SetTechniqueScope
