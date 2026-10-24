@@ -1,5 +1,7 @@
 # Plan de relevo · técnica por vídeo y contador de repeticiones al 100 %
 
+**Orden vigente · 24-oct-2026:** el usuario autoriza integrar esta implementación en master, guardar commit y hacer push. Integración local completada por fast-forward desde8ac57c9d42 a f1b60540542cf589bf4aecb0c92cb589f39b2dec; Androidtreee5c8066ea3eef3e047048eb7bf56e8a3c3b0bb2e idéntico al validado. Se conservaron39WIPajenos (32archivosbyteexactos y7uniones verificadas),57064archivosnoseguidos yelíndicelimpio; la política propiaKPKNDev quedó comprometida. No se hizo stagingglobal/reset/stash/restore/descartes ni cambios alAPK/G:. La publicación autorizada corresponde al historial comprometido de master y se verifica contra el SHA remoto al finalizar. Esta orden sustituye exclusivamente la postergación de FF/push; **otro APK sigue diferido hasta petición humana**. Recibo: evidence/MASTER_INTEGRATION_20261024.json.
+
 ## Estado vigente · 24-oct-2026
 
 Recorrido funcional original cerrado con evidencia combinada nueva e histórica identificada en QA_FASE5_RESULTADOS_20261023.md; F6 documenta privacidad acotada y límites reales. Permanecen≈m/s/1RMbeta y metas de calidad/rendimiento no alcanzadas; no equivale a paridad competitiva. Última orden humana: no generar/copiar otro APK aG: hasta petición explícita. F7/firma/FFmaster diferidos; ninguna mutación del principal ni push. Los estados de las secciones siguientes son cronología y se leen bajo este estado vigente.

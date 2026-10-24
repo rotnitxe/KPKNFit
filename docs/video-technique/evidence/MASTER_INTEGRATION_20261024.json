@@ -1,0 +1,17 @@
+{
+  "utc": "2026-10-24T03:30:25.791245+00:00",
+  "oldMaster": "8ac57c9d42a9fb65686866011317d25e840d28d6",
+  "master": "f1b60540542cf589bf4aecb0c92cb589f39b2dec",
+  "fastForward": true,
+  "foreignTrackedWipPreserved": 39,
+  "unaffectedWipByteExact": 32,
+  "overlapUnionsVerified": 7,
+  "devPolicyNowCommitted": true,
+  "otherUntrackedPreservedCount": 57064,
+  "indexClean": true,
+  "androidTree": "e5c8066ea3eef3e047048eb7bf56e8a3c3b0bb2e",
+  "userAuthorization": "Integrar en master, commit y push; sin otro APK hasta que el usuario lo pida.",
+  "remoteBeforePush": "381123d0a59ed8b3afdafe3f6353f1f9b26a1424",
+  "pushAuthorization": true,
+  "scope": "historial comprometido; ningun WIP ajeno agregado"
+}

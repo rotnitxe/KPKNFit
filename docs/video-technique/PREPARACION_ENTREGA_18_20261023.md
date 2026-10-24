@@ -1,5 +1,7 @@
 # Preparación de entrega Pre Release 18 — 2026-10-23
 
+**Orden vigente · 24-oct-2026:** el usuario autoriza integrar esta implementación en master, guardar commit y hacer push. Integración local completada por fast-forward desde8ac57c9d42 a f1b60540542cf589bf4aecb0c92cb589f39b2dec; Androidtreee5c8066ea3eef3e047048eb7bf56e8a3c3b0bb2e idéntico al validado. Se conservaron39WIPajenos (32archivosbyteexactos y7uniones verificadas),57064archivosnoseguidos yelíndicelimpio; la política propiaKPKNDev quedó comprometida. No se hizo stagingglobal/reset/stash/restore/descartes ni cambios alAPK/G:. La publicación autorizada corresponde al historial comprometido de master y se verifica contra el SHA remoto al finalizar. Esta orden sustituye exclusivamente la postergación de FF/push; **otro APK sigue diferido hasta petición humana**. Recibo: evidence/MASTER_INTEGRATION_20261024.json.
+
 ## Orden vigente · 24-oct-2026
 
 El usuario pospone expresamente otro APK final enG: hasta pedirlo. No firmar, recompilar por entrega, copiar artefactos ni hacer FF de master ahora. El APK52 existente no se modificó. La comparación de fuentes públicas (evidence/RELEASE18_FINAL_SOURCE_EQUIVALENCE_20261023.json) acredita main/release idénticos al oficial firmado5ffdff2559; los cambios nuevos son exclusivos de debug/KPKNDev. QA funcional original y privacidad acotada: véase el estado vigente del informeQA. La preparación histórica siguiente queda conservada para una futura petición, no autoriza su ejecución automática.
