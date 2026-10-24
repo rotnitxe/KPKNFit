@@ -16,7 +16,6 @@ struct WorkoutExerciseTabs: View {
     let currentExercise: Exercise
     let currentSet: ExerciseSet
     let currentExerciseInfo: ExerciseMuscleInfo?
-    let drain: PredictedDrain
     let exerciseTag: String?
     let profiles: [WorkoutContextProfile]
     let activeProfileId: String?
@@ -40,7 +39,6 @@ struct WorkoutExerciseTabs: View {
     let onRmWeightSelected: ((Double) -> Void)?
     let allowExerciseManagementActions: Bool
     let userTags: [String]
-    let exerciseReadiness: ExerciseReadiness?
     let userWorkoutTags: [WorkoutTag]
     let activeMainTagIds: [String]
     let activeSubTagIds: [String]
@@ -55,7 +53,6 @@ struct WorkoutExerciseTabs: View {
         currentExercise: Exercise,
         currentSet: ExerciseSet,
         currentExerciseInfo: ExerciseMuscleInfo? = nil,
-        drain: PredictedDrain = PredictedDrain(cns: 0, muscular: 0, spinal: 0),
         exerciseTag: String? = nil,
         profiles: [WorkoutContextProfile] = [],
         activeProfileId: String? = nil,
@@ -79,7 +76,6 @@ struct WorkoutExerciseTabs: View {
         onRmWeightSelected: ((Double) -> Void)? = nil,
         allowExerciseManagementActions: Bool = true,
         userTags: [String] = [],
-        exerciseReadiness: ExerciseReadiness? = nil,
         userWorkoutTags: [WorkoutTag] = [],
         activeMainTagIds: [String] = [],
         activeSubTagIds: [String] = [],
@@ -93,7 +89,6 @@ struct WorkoutExerciseTabs: View {
         self.currentExercise = currentExercise
         self.currentSet = currentSet
         self.currentExerciseInfo = currentExerciseInfo
-        self.drain = drain
         self.exerciseTag = exerciseTag
         self.profiles = profiles
         self.activeProfileId = activeProfileId
@@ -117,7 +112,6 @@ struct WorkoutExerciseTabs: View {
         self.onRmWeightSelected = onRmWeightSelected
         self.allowExerciseManagementActions = allowExerciseManagementActions
         self.userTags = userTags
-        self.exerciseReadiness = exerciseReadiness
         self.userWorkoutTags = userWorkoutTags
         self.activeMainTagIds = activeMainTagIds
         self.activeSubTagIds = activeSubTagIds
@@ -143,27 +137,9 @@ struct WorkoutExerciseTabs: View {
 
         VStack(spacing: 0) {
             // Readiness + ghost row
-            if exerciseReadiness != nil || (selectedTab != .history && ghostSet != nil && (ghostSet?.weight ?? 0) > 0 || (ghostSet?.reps ?? 0) > 0) {
+            if (selectedTab != .history && ghostSet != nil && (ghostSet?.weight ?? 0) > 0 || (ghostSet?.reps ?? 0) > 0) {
                 HStack(spacing: 8) {
-                    if let readiness = exerciseReadiness {
-                        let score = readiness.overallScore
-                        let color: Color = score >= 75 ? Color(hex: 0x4CAF50) : score >= 50 ? Color(hex: 0xFFC107) : Color(hex: 0xFF5252)
-                        let label = readinessLabel(score)
-                        HStack(spacing: 6) {
-                            Circle()
-                                .fill(color)
-                                .frame(width: 8, height: 8)
-                            Text("Prep: \(label) (\(score)%)")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(color)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(color.opacity(0.12))
-                        .cornerRadius(8)
-                    }
+
                     if selectedTab != .history, let ghost = ghostSet, (ghost.weight > 0 || ghost.reps > 0) {
                         HStack(spacing: 6) {
                             Image(systemName: "clock")
@@ -1993,12 +1969,7 @@ func workoutOverlayContentColor(_ color: Color) -> Color {
 
 
 
-func readinessLabel(_ score: Int) -> String {
-    if score >= 80 { return "Óptima" }
-    if score >= 60 { return "Buena" }
-    if score >= 40 { return "Regular" }
-    return "Baja"
-}
+
 
 // MARK: - Helper Views
 

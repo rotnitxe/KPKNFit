@@ -26,7 +26,7 @@ struct WorkoutScreen: View {
     @StateObject private var viewModel: WorkoutViewModel
     @State private var showExitDialog = false
     @State private var roadmapMode: RoadmapMode = .compact
-    @State private var readinessSheetDismissed = false
+    @State private var preparationDismissed = false
     @State private var lastAnnouncedSetKey: String? = nil
     @State private var exerciseContextExerciseId: String? = nil
     @State private var showReplaceExercisePicker = false
@@ -64,7 +64,7 @@ struct WorkoutScreen: View {
 
     var body: some View {
         let isMeetOrComp = viewModel.uiState.session?.isMeetDay == true || viewModel.uiState.session?.isCompetitionSession == true
-        let showReadinessSheet = !readinessSheetDismissed && !isMeetOrComp && viewModel.uiState.readinessNeuralOverride == nil
+        let showPreparation = !preparationDismissed && !isMeetOrComp
 
         ZStack {
             if viewModel.uiState.session == nil {
@@ -198,7 +198,6 @@ struct WorkoutScreen: View {
                     }
                 },
                 onExpandEdit: { editSheetExerciseId = currentExercise?.id },
-                exerciseReadinessMap: viewModel.uiState.exerciseReadinessMap,
                 isUnilateral: isUnilateralDock,
                 selectedUnilateralSideOverride: selectedUnilateralSideOverride,
                 onSelectedUnilateralSideOverride: { selectedUnilateralSideOverride = $0 },
@@ -253,10 +252,10 @@ struct WorkoutScreen: View {
                 }
             }
 
-            if showReadinessSheet {
+            if showPreparation {
                 VStack {
                     Text("Consulta tus registros y molestias anotadas. El registro adicional es opcional.")
-                    Button("Continuar a la sesión") { readinessSheetDismissed = true }
+                    Button("Continuar a la sesión") { preparationDismissed = true }
                 }.padding()
             }
 
@@ -423,7 +422,6 @@ private struct WorkoutHeaderBar: View {
     let onAdjustTimeLimit: (Int) -> Void
     let exerciseTag: String?
     let isSuperset: Bool
-    let exerciseReadiness: ExerciseReadiness?
     let activeMainTags: [WorkoutTag]
     let activeSubTags: [WorkoutSubTag]
     let onTagClick: (String) -> Void
@@ -472,22 +470,7 @@ private struct WorkoutHeaderBar: View {
                             .background(Color.white.opacity(0.12))
                             .clipShape(Capsule())
 
-                            if let readiness = exerciseReadiness {
-                                let score = readiness.overallScore
-                                let chipColor: Color = score >= 75 ? Color(hex: "#4CAF50")! : score >= 50 ? Color(hex: "#FFC107")! : Color(hex: "#FF5252")!
-                                HStack(spacing: 5) {
-                                    Circle()
-                                        .fill(chipColor)
-                                        .frame(width: 6, height: 6)
-                                    Text("\(score)%")
-                                        .font(.system(size: 11, weight: .black))
-                                        .foregroundColor(.white.opacity(0.85))
-                                }
-                                .padding(.horizontal, 9)
-                                .padding(.vertical, 3)
-                                .background(chipColor.opacity(0.18))
-                                .clipShape(Capsule())
-                            }
+
 
                             if isSuperset {
                                 HStack(spacing: 3) {
@@ -596,7 +579,6 @@ private struct WorkoutV2Body: View {
     var onExpandSetup: () -> Void = {}
     var onExpandReplace: () -> Void = {}
     var onExpandEdit: () -> Void = {}
-    var exerciseReadinessMap: [String: ExerciseReadiness] = [:]
     var isUnilateral: Bool = false
     var selectedUnilateralSideOverride: String? = nil
     var onSelectedUnilateralSideOverride: (String?) -> Void = { _ in }
@@ -622,7 +604,6 @@ private struct WorkoutV2Body: View {
             let subTagIds = Set(uiState.activeSubTagsByExercise[exId] ?? [])
             return currentExerciseTags.flatMap { $0.subTags }.filter { subTagIds.contains($0.id) }
         }()
-        let currentExerciseReadiness = currentExercise.flatMap { exerciseReadinessMap[$0.id] }
 
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 0) {
@@ -637,7 +618,6 @@ private struct WorkoutV2Body: View {
                     onAdjustTimeLimit: { viewModel.adjustSessionTimeLimit($0) },
                     exerciseTag: headerExerciseTag,
                     isSuperset: currentExercise?.isInSuperset() == true,
-                    exerciseReadiness: currentExerciseReadiness,
                     activeMainTags: currentExerciseActiveMainTags,
                     activeSubTags: currentExerciseActiveSubTags,
                     onTagClick: { tagId in tagManagerTagId = tagId },
@@ -692,7 +672,6 @@ private struct WorkoutV2Body: View {
                             sessionEnergy: uiState.liveEnergySummary,
                             allowExerciseManagementActions: !ex.isInSuperset(),
                             userTags: viewModel.allUserTags,
-                            exerciseReadiness: uiState.exerciseReadinessMap[ex.id],
                             userWorkoutTags: currentExerciseTags,
                             activeMainTagIds: Set(uiState.activeTagsByExercise[ex.id] ?? []),
                             activeSubTagIds: Set(currentExerciseActiveSubTags.map { $0.id }),
@@ -854,10 +833,7 @@ private struct WorkoutV2Body: View {
                                         } else {
                                             action()
                                         }
-                                    },
-                                    exerciseReadiness: exerciseReadinessMap[ex.id],
-                                    readinessAdjustment: uiState.readinessAdjustments["\(ex.id)_\(activeSetIndex)"],
-                                    onApplyReadinessAdjustment: { viewModel.applyReadinessAdjustment(ex.id, activeSetIndex, $0) }
+                                    }
                                 )
                             }
                         }
@@ -1320,7 +1296,6 @@ private struct WorkoutExerciseTabs: View {
     let sessionEnergy: SessionEnergySummary?
     let allowExerciseManagementActions: Bool
     let userTags: [String]
-    let exerciseReadiness: ExerciseReadiness?
     let userWorkoutTags: [WorkoutTag]
     let activeMainTagIds: Set<String>
     let activeSubTagIds: Set<String>
@@ -1406,20 +1381,7 @@ private struct WorkoutExerciseTabs: View {
             }
 
             // Readiness
-            if let readiness = exerciseReadiness {
-                HStack(spacing: 4) {
-                    Text("Readiness: \(readiness.overallScore)%")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.secondary)
-                    ForEach(readiness.muscleReadiness.prefix(3), id: \.muscleId) { mr in
-                        Text("\(mr.muscleId) \(mr.percentage)%")
-                            .font(.system(size: 8))
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 10)
-            }
+
 
             // Tags section
             if userWorkoutTags.isNotEmpty {

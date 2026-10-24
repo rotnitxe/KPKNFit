@@ -32,11 +32,11 @@ private let tuPrimeraRutina = LearnModule(
                     "Semanas: con días de entrenamiento asignados",
                     "Sesiones: cada día de entreno con ejercicios",
                 ]),
-                ContentBlock(type: .CALLOUT, text: "KPKN adapta tu entrenamiento según tu fatiga y recuperación. ¡No necesitas adivinar cuándo descansar!", accentColor: "0xFF448AFF"),
+                ContentBlock(type: .CALLOUT, text: "KPKN conserva tus registros y las reglas de tu programa. Revisa y confirma las propuestas antes de cambiar cargas.", accentColor: "0xFF448AFF"),
             ],
             quiz: [
                 QuizQuestion(id: "pr1-q1", question: "¿Qué contiene un macrociclo?", options: ["Solo ejercicios", "Mesociclos y semanas", "Solo descansos", "Nutrición"], correctIndex: 1, explanation: "Un macrociclo agrupa mesociclos, que a su vez contienen semanas con sesiones."),
-                QuizQuestion(id: "pr1-q2", question: "¿Qué hace el ajuste de entrenamiento?", options: ["Cuenta calorías", "Adapta el entrenamiento a tu recuperación", "Crea dietas", "Reproduce videos"], correctIndex: 1, explanation: "El sistema usa tu fatiga y readiness para optimizar tu entrenamiento."),
+        QuizQuestion(id: "pr1-q2", question: "¿Qué permite comparar dos resultados?", options: ["Una fecha parecida", "Mismo método, unidades y contexto conocidos", "Mismo nombre solamente", "Un porcentaje de batería"], correctIndex: 1, explanation: "Conserva método, protocolo y contexto. Los datos desconocidos no se equiparan automáticamente."),
             ]
         ),
         LearnSubmodule(
@@ -68,19 +68,13 @@ private let tuPrimeraRutina = LearnModule(
             title: "Tu primera sesión",
             content: [
                 ContentBlock(type: .HEADING, text: "Agregar ejercicios"),
-                ContentBlock(type: .PARAGRAPH, text: "En el editor de sesiones puedes buscar ejercicios por nombre o músculo. Cada ejercicio tiene métricas que muestran su costo de fatiga."),
-                ContentBlock(type: .HEADING, text: "Métricas de fatiga de cada ejercicio"),
-                ContentBlock(type: .BULLET, items: [
-                    "EFC: costo metabólico/fatiga local (1-5)",
-                    "CNC: costo neural central (1-5)",
-                    "SSC: costo estructural/espinal (0-2)",
-                ]),
-                ContentBlock(type: .WARNING, text: "Evita combinar muchos ejercicios con CNC alto en una misma sesión. Tu sistema nervioso necesita recuperarse."),
+                ContentBlock(type: .PARAGRAPH, text: "En el editor de sesiones puedes buscar ejercicios por nombre o músculo. El catálogo describe su técnica, músculos y variantes."),
+                ContentBlock(type: .TIP, text: "Registra lo que realizaste y conserva sus unidades. El objetivo del plan y el resultado son datos distintos."),
                 ContentBlock(type: .HEADING, text: "Series, reps y RPE"),
                 ContentBlock(type: .PARAGRAPH, text: "KPKN te permite definir series objetivo, rango de repeticiones y RPE (esfuerzo percibido) para cada ejercicio. El RPE 7-8 es ideal para la mayoría."),
             ],
             quiz: [
-                QuizQuestion(id: "pr3-q1", question: "¿Qué mide el CNC?", options: ["Calorías", "Costo neural central", "Cardio", "Cadencia"], correctIndex: 1, explanation: "CNC mide el costo neural del ejercicio en una escala 1-5."),
+        QuizQuestion(id: "pr3-q1", question: "¿Qué permite comparar dos resultados?", options: ["Una fecha parecida", "Mismo método, unidades y contexto conocidos", "Mismo nombre solamente", "Un porcentaje de batería"], correctIndex: 1, explanation: "Conserva método, protocolo y contexto. Los datos desconocidos no se equiparan automáticamente."),
                 QuizQuestion(id: "pr3-q2", question: "¿Qué RPE es ideal para la mayoría de entrenamientos?", options: ["5-6", "7-8", "10 siempre", "1-2"], correctIndex: 1, explanation: "RPE 7-8 deja margen para progresar sin sobreentrenar."),
             ]
         ),
@@ -88,7 +82,7 @@ private let tuPrimeraRutina = LearnModule(
     finalQuiz: [
         QuizQuestion(id: "pr-f1", question: "¿Cuál es la estructura de un programa?", options: ["Ejercicio > Serie > Rep", "Macrociclo > Mesociclo > Semana > Sesión", "Solo sesiones sueltas", "No tiene estructura"], correctIndex: 1, explanation: "Los programas siguen una jerarquía desde macrociclo hasta sesión."),
         QuizQuestion(id: "pr-f2", question: "¿Qué frecuencia es ideal para principiantes?", options: ["7 días", "3-4 días", "1 día al mes", "No importa"], correctIndex: 1, explanation: "3-4 días es sostenible y permite recuperación."),
-        QuizQuestion(id: "pr-f3", question: "¿Qué hace el EFC?", options: ["Mide peso", "Mide fatiga local/metabólica", "Cuenta reps", "Mide tiempo"], correctIndex: 1, explanation: "EFC (Exercise Fatigue Cost) mide el costo metabólico y fatiga local."),
+        QuizQuestion(id: "pr-f3", question: "¿Qué permite comparar dos resultados?", options: ["Una fecha parecida", "Mismo método, unidades y contexto conocidos", "Mismo nombre solamente", "Un porcentaje de batería"], correctIndex: 1, explanation: "Conserva método, protocolo y contexto. Los datos desconocidos no se equiparan automáticamente."),
         QuizQuestion(id: "pr-f4", question: "¿Qué split recomienda KPKN para principiantes?", options: ["PPL 6 días", "Full Body o Upper/Lower", "Solo brazos", "Solo cardio"], correctIndex: 1, explanation: "Full Body y Upper/Lower distribuyen volumen eficientemente."),
         QuizQuestion(id: "pr-f5", question: "¿Qué es RPE?", options: ["Ritmo de pulso", "Esfuerzo percibido (Rate of Perceived Exertion)", "Rutina personalizada", "Registro de progreso"], correctIndex: 1, explanation: "RPE mide qué tan duro sientes un set, del 1 al 10."),
     ],
@@ -332,14 +326,14 @@ private let herramientasKpkn = LearnModule(
                 ContentBlock(type: .HEADING, text: "¿Qué es WikiLab?"),
                 ContentBlock(type: .PARAGRAPH, text: "WikiLab es la enciclopedia de entrenamiento de KPKN. Contiene bases de datos de ejercicios, músculos, articulaciones, patrones de movimiento y más."),
                 ContentBlock(type: .BULLET, items: [
-                    "Catálogo de ejercicios con métricas de fatiga",
+                    "Catálogo de ejercicios, variantes y técnica",
                     "Mapa muscular interactivo",
                     "Detalle biomecánico de cada ejercicio",
                     "Ejercicios similares por categoría",
                 ]),
-                ContentBlock(type: .TIP, text: "Usa WikiLab para entender por qué un ejercicio te deja más fatigado que otro. Las métricas de fatiga te lo explican."),
+                ContentBlock(type: .TIP, text: "Usa WikiLab para consultar la técnica y las variantes de cada ejercicio."),
                 ContentBlock(type: .HEADING, text: "Creador de ejercicios"),
-                ContentBlock(type: .PARAGRAPH, text: "¿Tienes un ejercicio que no está en el catálogo? Crea el tuyo propio. KPKN inferirá automáticamente sus métricas de fatiga basándose en el tipo, equipo y patrón de fuerza."),
+                ContentBlock(type: .PARAGRAPH, text: "¿Tienes un ejercicio que no está en el catálogo? Crea el tuyo propio. Conserva los datos y músculos que declares, sin inventar costes fisiológicos."),
             ],
             quiz: [
                 QuizQuestion(id: "hk1-q1", question: "¿Qué contiene WikiLab?", options: ["Solo recetas", "Ejercicios, músculos, articulaciones y biomecánica", "Solo videos", "Redes sociales"], correctIndex: 1, explanation: "WikiLab es la enciclopedia completa de entrenamiento de KPKN."),
@@ -347,29 +341,27 @@ private let herramientasKpkn = LearnModule(
         ),
         LearnSubmodule(
             id: "hk-2",
-            title: "Adaptación del entrenamiento",
+            title: "Entrenamiento y respuesta",
             content: [
-                ContentBlock(type: .HEADING, text: "¿Qué adapta KPKN?"),
-                ContentBlock(type: .PARAGRAPH, text: "KPKN mide tu fatiga acumulada, estado de recuperación y readiness diaria para adaptar tu entrenamiento."),
-                ContentBlock(type: .HEADING, text: "Componentes de la adaptación"),
+                ContentBlock(type: .HEADING, text: "Tus resultados y su contexto"),
+                ContentBlock(type: .PARAGRAPH, text: "Consulta sesiones, marcas y sensaciones registradas por disciplina. Cada punto conserva fecha, unidades y procedencia."),
                 ContentBlock(type: .BULLET, items: [
-                    "Readiness diaria: cómo de preparado estás hoy",
-                    "Baterías de recuperación: muscular, neural, estructural",
-                    "Fatiga acumulada: por grupo muscular",
-                    "Calibración: aprende de tus respuestas post-sesión",
+                    "Periodos de 1, 4 o 12 semanas; por defecto, 4",
+                    "Compara solo método, protocolo y contexto conocidos e iguales",
+                    "Sin registro no significa descanso ni esfuerzo cero",
+                    "El esfuerzo global y las notas de sesión son opcionales",
                 ]),
-                ContentBlock(type: .CALLOUT, text: "El sistema mejora con el tiempo. Cada vez que completas un cuestionario post-sesión, aprende más sobre tu recuperación personal.", accentColor: "0xFFFF8F00"),
-                ContentBlock(type: .HEADING, text: "Cómo usar la readiness"),
-                ContentBlock(type: .PARAGRAPH, text: "Antes de cada sesión, KPKN te muestra tu nivel de readiness. Si está bajo, considera reducir volumen o intensidad. Si está alto, es un buen día para empujar."),
+                ContentBlock(type: .TIP, text: "Las propuestas numéricas proceden de reglas de tu programa. Revisa los datos y confirma antes de aplicarlas."),
+                ContentBlock(type: .PARAGRAPH, text: "El historial muestra registros y cálculos descriptivos; no mide recuperación corporal ni seguridad personal."),
             ],
             quiz: [
-                QuizQuestion(id: "hk2-q1", question: "¿Qué mide la adaptación?", options: ["Calorías", "Fatiga, recuperación y readiness", "Pasos", "Sueño"], correctIndex: 1, explanation: "Mide fatiga acumulada, recuperación y readiness diaria."),
+                QuizQuestion(id: "hk2-q1", question: "¿Qué muestra el seguimiento?", options: ["Riesgo de lesión", "Registros y comparaciones con contexto", "Preparación corporal", "Permiso para entrenar"], correctIndex: 1, explanation: "Las observaciones conservan unidades, método y contexto; no son predicciones fisiológicas."),
             ]
         ),
     ],
     finalQuiz: [
         QuizQuestion(id: "hk-f1", question: "¿Qué es WikiLab?", options: ["Un chat", "Enciclopedia de entrenamiento", "Un foro", "Una tienda"], correctIndex: 1, explanation: "WikiLab es la enciclopedia completa con ejercicios, músculos y biomecánica."),
-        QuizQuestion(id: "hk-f2", question: "¿Qué mide la adaptación?", options: ["Peso corporal", "Fatiga, recuperación y readiness", "Temperatura", "Nada"], correctIndex: 1, explanation: "Mide tu estado de entrenamiento."),
-        QuizQuestion(id: "hk-f3", question: "¿Cómo mejora el sistema?", options: ["Comprando suplementos", "Completando cuestionarios post-sesión", "No mejora", "Con cardio"], correctIndex: 1, explanation: "Aprende de tus respuestas para personalizar las recomendaciones."),
+        QuizQuestion(id: "hk-f2", question: "¿Qué permite comparar dos resultados?", options: ["Una fecha parecida", "Mismo método, unidades y contexto conocidos", "Mismo nombre solamente", "Un porcentaje de batería"], correctIndex: 1, explanation: "Conserva método, protocolo y contexto. Los datos desconocidos no se equiparan automáticamente."),
+        QuizQuestion(id: "hk-f3", question: "¿Qué permite comparar dos resultados?", options: ["Una fecha parecida", "Mismo método, unidades y contexto conocidos", "Mismo nombre solamente", "Un porcentaje de batería"], correctIndex: 1, explanation: "Conserva método, protocolo y contexto. Los datos desconocidos no se equiparan automáticamente."),
     ]
 )

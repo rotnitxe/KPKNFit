@@ -133,7 +133,6 @@ class SettingsJsonBackupTest {
                 sleepLogs = emptyList(),
                 sleepLogsExtended = emptyList(),
                 postSessionFeedback = emptyList(),
-                adaptiveCache = null,
                 sessionTemplates = emptyList(),
                 customExercises = emptyList(),
                 db = db,

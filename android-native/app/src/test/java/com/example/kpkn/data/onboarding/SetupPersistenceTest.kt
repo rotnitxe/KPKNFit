@@ -15,7 +15,6 @@ import com.example.kpkn.data.models.CalibrationResponseState
 import com.example.kpkn.data.models.AthleteProfileLevel
 import com.example.kpkn.data.models.AthleteProfileScore
 import com.example.kpkn.data.models.DailyWellbeingLog
-import com.example.kpkn.data.models.ManualMuscleBatteryOverride
 import com.example.kpkn.data.models.BodyGoal
 import com.example.kpkn.data.models.BodyMetric
 import com.example.kpkn.data.models.CalculationOrigin
@@ -139,9 +138,9 @@ class SetupPersistenceTest {
         val wellbeing = DailyWellbeingLog(
             id = "onboarding-wellbeing",
             date = "2026-09-20",
-            manualNeuralBattery = 75,
+            sleepHours = 7.25,
             source = com.example.kpkn.data.models.WellbeingSource.ONBOARDING_INITIAL,
-            capturedFields = setOf("energy_rating"),
+            capturedFields = setOf("sleep_hours"),
         )
         val settings = Settings(
             onboardingCompleted = true,

@@ -98,19 +98,21 @@ object TrainingHistoryProjection {
                 } else {
                     // Generic fallback is deliberately conservative: registered result documents only,
                     // exact field units, no recursive totals or inferred protocol/context.
-                    fun visit(element: JsonElement, path: String) {
+                    fun visit(element: JsonElement, path: String, inheritedUnit: String? = null, inheritedTime: Long = time) {
                         when (element) {
-                            is JsonArray -> element.forEachIndexed { index, child -> visit(child, "$path[$index]") }
+                            is JsonArray -> element.forEachIndexed { index, child -> visit(child, "$path[$index]", inheritedUnit, inheritedTime) }
                             is JsonObject -> {
-                                if ((element["status"] as? JsonPrimitive)?.content in setOf("FAILED", "INVALIDATED", "UNRECORDED", "MISSED")) return
+                                if (listOf("status", "quality").any { (element[it] as? JsonPrimitive)?.content in setOf("FAILED", "INVALIDATED", "UNRECORDED", "MISSED") }) return
                                 val capturedAt = (element["capturedAtEpochMillis"] as? JsonPrimitive)?.longOrNull
                                 if (capturedAt != null && capturedAt !in 1..nowMs) return
-                                val explicitUnit = (element["unit"] as? JsonPrimitive)?.content
+                                val explicitUnit = (element["unit"] as? JsonPrimitive)?.content ?: inheritedUnit
                                 val quantity = (element["value"] as? JsonPrimitive)?.takeUnless { it.isString }?.doubleOrNull
                                 val quantityUnits = setOf("KILOGRAMS", "POUNDS", "KILOGRAM", "POUND", "METERS", "FEET", "SECONDS", "MINUTES",
-                                    "METER", "CENTIMETER", "SECOND", "MILLISECOND", "METER_PER_SECOND", "REPETITIONS", "CALORIES", "METERS", "SECONDS")
+                                    "METER", "CENTIMETER", "SECOND", "MILLISECOND", "METER_PER_SECOND", "REPETITIONS", "CALORIES", "METERS", "SECONDS",
+                                    "BEATS_PER_MINUTE", "WATTS", "RUNNING_STEPS_PER_MINUTE", "REVOLUTIONS_PER_MINUTE",
+                                    "STROKES_PER_MINUTE", "METERS_PER_SECOND", "SECONDS_PER_KILOMETER")
                                 if (explicitUnit in quantityUnits && quantity != null && quantity.isFinite() && quantity >= 0.0) {
-                                    add(TrainingFact("document:${document.id}:$path.value", log.id, capturedAt ?: time, documentSport,
+                                    add(TrainingFact("document:${document.id}:$path.value", log.id, capturedAt ?: inheritedTime, documentSport,
                                         path, quantity, checkNotNull(explicitUnit), FactOrigin.HISTORICAL_AMBIGUOUS, null, null, null))
                                 }
                                 element.forEach { (key, child) ->
@@ -120,9 +122,9 @@ object TrainingHistoryProjection {
                                     if (unit != null && value != null && value.isFinite() && value >= 0.0) {
                                         // The log is the sole owner of whole-session duration; no duplicate point.
                                         if (key != "actualDurationSeconds") add(TrainingFact("document:${document.id}:$path.$key", log.id,
-                                            time, documentSport, "$path.$key", value, unit, FactOrigin.HISTORICAL_AMBIGUOUS,
+                                            capturedAt ?: inheritedTime, documentSport, "$path.$key", value, unit, FactOrigin.HISTORICAL_AMBIGUOUS,
                                             null, null, null))
-                                    } else if (child is JsonObject || child is JsonArray) visit(child, "$path.$key")
+                                    } else if (child is JsonObject || child is JsonArray) visit(child, "$path.$key", explicitUnit, capturedAt ?: inheritedTime)
                                 }
                             }
                             else -> Unit

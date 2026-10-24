@@ -367,7 +367,8 @@ public struct VolumeCalculator {
 }
 
 // MARK: Recorded training evidence (parity contract; no physiological predictor)
-internal struct TrainingEvidenceFact: Codable, Equatable {
+internal struct TrainingEvidenceFact: Codable, Equatable, Identifiable {
+    var id: String { sourceId }
     let sourceId: String
     let activityId: String
     let occurredAtMs: Int64
@@ -421,5 +422,82 @@ internal enum TrainingInsightsEngine {
         let values = facts.map(\.value).sorted()
         let middle = values.count / 2
         return values.count % 2 == 1 ? values[middle] : values[middle - 1] / 2 + values[middle] / 2
+    }
+}
+
+/// Read projection of existing session records. Unknown document semantics stay descriptive.
+internal enum TrainingHistoryProjection {
+    private static let units: [String:String] = [
+        "actualWorkSeconds":"s", "actualWorkingSeconds":"s", "actualHangSeconds":"s",
+        "actualRestSecondsAfter":"s", "actualRestSecondsBefore":"s", "actualExternalDurationSeconds":"s",
+        "elapsedMillis":"ms", "movingMillis":"ms", "elapsedDurationMillis":"ms", "finishTimeMillis":"ms",
+        "distanceMeters":"m", "elevationGainMeters":"m", "elevationLossMeters":"m",
+        "attemptedCount":"intentos", "successfulCount":"aciertos", "repetitions":"rep", "holdSeconds":"s",
+        "completedRounds":"rondas", "completedRepetitions":"rep", "splitMillis":"ms"
+    ]
+    private static let quantityUnits: Set<String> = ["KILOGRAMS","POUNDS","KILOGRAM","POUND","METERS","FEET","SECONDS","MINUTES","METER","CENTIMETER","SECOND","MILLISECOND","METER_PER_SECOND","REPETITIONS","CALORIES","BEATS_PER_MINUTE","WATTS","RUNNING_STEPS_PER_MINUTE","REVOLUTIONS_PER_MINUTE","STROKES_PER_MINUTE","METERS_PER_SECOND","SECONDS_PER_KILOMETER"]
+    private static let excluded: Set<String> = ["plan","references","complexes","definition","format","prescription","manualFtpReference","events","skills","drills","progressionProposals","ruleset","scaling","division","target","targets","penalties"]
+    static func instant(_ text: String) -> Int64? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let date = formatter.date(from:text) ?? ISO8601DateFormatter().date(from:text)
+        return date.map { Int64($0.timeIntervalSince1970 * 1000) }
+    }
+    static func facts(_ logs: [WorkoutLog], nowMs: Int64) -> [TrainingEvidenceFact] {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        var result: [TrainingEvidenceFact] = []
+        for versions in Dictionary(grouping:logs,by: \.id).values {
+            guard let log=versions.first, !log.id.isEmpty,
+                  let first=try? encoder.encode(log), versions.allSatisfy({ (try? encoder.encode($0)) == first }),
+                  let time=instant(log.date), time > 0, time <= nowMs else { continue }
+            let documents=log.sportDocuments ?? []
+            let sports=Set(documents.map(\.sportId))
+            let sport=sports.count == 1 ? sports.first : (sports.isEmpty && !log.completedExercises.isEmpty ? "STRENGTH" : nil)
+            func add(_ id:String,_ metric:String,_ value:Double,_ unit:String,_ origin:String="HISTORICAL_AMBIGUOUS",_ at:Int64?=nil,_ documentSport:String?=nil) {
+                guard let family=documentSport ?? sport, value.isFinite, value >= 0 else { return }
+                result.append(TrainingEvidenceFact(sourceId:id,activityId:log.id,occurredAtMs:at ?? time,sport:family,metric:metric,value:value,unit:unit,origin:origin,exerciseVariant:nil,method:nil,protocolId:nil,context:[:]))
+            }
+            if let seconds=log.actualDurationSeconds { add("log:\(log.id):duration","Duración de sesión",Double(seconds),"s","OBSERVED") }
+            else { add("log:\(log.id):duration","Duración de sesión (precisión original)",Double(log.durationMinutes),"min") }
+            if let rpe=log.sessionEffortRpe {
+                add("log:\(log.id):effort","Esfuerzo global declarado",rpe,"puntos 0–10","SELF_REPORTED")
+                if let seconds=log.actualDurationSeconds, log.actualDurationSource != nil, log.sessionEffortProtocol != nil {
+                    add("log:\(log.id):effort-duration","Esfuerzo × duración",rpe * Double(seconds) / 60,"u.a. (puntos·min)","DESCRIPTIVE_CALCULATION")
+                }
+            }
+            for exercise in log.completedExercises {
+                for set in exercise.sets where !set.isWarmup {
+                    if set.weight > 0 { add("log:\(log.id):\(exercise.exerciseId):\(set.id):load","\(exercise.exerciseName) · Carga histórica registrada",set.weight,"kg") }
+                    if set.reps > 0 { add("log:\(log.id):\(exercise.exerciseId):\(set.id):reps","\(exercise.exerciseName) · Repeticiones históricas",Double(set.reps),"rep") }
+                    if let seconds=set.timeSeconds { add("log:\(log.id):\(exercise.exerciseId):\(set.id):time","Tiempo registrado",Double(seconds),"s") }
+                }
+            }
+            for versions in Dictionary(grouping:documents,by: \.id).values {
+                guard let document=versions.first, let first=try? encoder.encode(document),
+                      versions.allSatisfy({ (try? encoder.encode($0)) == first }),
+                      ["RESULT","OBSERVATION"].contains(document.purpose), document.version == 1,
+                      let bytes=try? encoder.encode(document.payload), let raw=(try? JSONSerialization.jsonObject(with:bytes)) as? [String:Any] else { continue }
+                // Original values only: iOS has no native sport validator yet; no derived summaries or comparisons are invented.
+                func visit(_ item:Any,_ path:String,_ inheritedUnit:String?=nil,_ inheritedTime:Int64?=nil) {
+                    if let array=item as? [Any] { for (i,child) in array.enumerated() { visit(child,"\(path)[\(i)]",inheritedUnit,inheritedTime) }; return }
+                    guard let object=item as? [String:Any] else { return }
+                    for key in ["status","quality"] { if let status=object[key] as? String, ["FAILED","INVALIDATED","UNRECORDED","MISSED"].contains(status) { return } }
+                    let at=(object["capturedAtEpochMillis"] as? NSNumber)?.int64Value ?? inheritedTime ?? time
+                    guard at > 0, at <= nowMs else { return }
+                    let unit=object["unit"] as? String ?? inheritedUnit
+                    if let unit, quantityUnits.contains(unit), let number=object["value"] as? NSNumber, String(cString:number.objCType) != "c" {
+                        add("document:\(document.id):\(path).value",path,number.doubleValue,unit,"HISTORICAL_AMBIGUOUS",at,document.sportId)
+                    }
+                    for (key,child) in object {
+                        if excluded.contains(key) || key.hasPrefix("target") || key.hasPrefix("planned") || key.hasPrefix("declared") { continue }
+                        if let fieldUnit=units[key], let number=child as? NSNumber, String(cString:number.objCType) != "c" {
+                            add("document:\(document.id):\(path).\(key)","\(path).\(key)",number.doubleValue,fieldUnit,"HISTORICAL_AMBIGUOUS",at,document.sportId)
+                        } else if child is [Any] || child is [String:Any] { visit(child,"\(path).\(key)",unit,at) }
+                    }
+                }
+                visit(raw,document.engineId)
+            }
+        }
+        return result
     }
 }

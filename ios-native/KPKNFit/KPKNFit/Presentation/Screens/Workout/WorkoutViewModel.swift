@@ -176,10 +176,6 @@ import SwiftUI
             $0.contextProfilesV3 = hydratedProfiles.0
             $0.activeContextProfileByExerciseId = restoredActiveProfiles
             $0.headerWidgets = headerWidgets
-            $0.readinessNeuralOverride = resumedState?.readinessNeuralOverride
-            $0.readinessMuscularOverride = resumedState?.readinessMuscularOverride
-            $0.readinessSpinalOverride = resumedState?.readinessSpinalOverride
-            $0.readinessMuscleOverrides = resumedState?.readinessMuscleOverrides ?? [:]
             $0.setDrafts = resumedState?.setDrafts ?? [:]
             $0.manualLoadOverrides = resumedState?.manualLoadOverrides ?? [:]
             $0.persistedLoadModeBySet = resumedState?.persistedLoadModeBySet ?? [:]
@@ -257,10 +253,6 @@ import SwiftUI
                 skippedExerciseIds: restoredSkippedExerciseIds,
                 warmupCompletedExerciseIds: restoredWarmupCompletedExerciseIds,
                 mobilityCompletedExerciseIds: restoredMobilityCompletedExerciseIds,
-                readinessNeuralOverride: resumedState?.readinessNeuralOverride,
-                readinessMuscularOverride: resumedState?.readinessMuscularOverride,
-                readinessSpinalOverride: resumedState?.readinessSpinalOverride,
-                readinessMuscleOverrides: resumedState?.readinessMuscleOverrides ?? [:],
                 restModalState: uiState.restModalState,
                 persistedLoadModeBySet: [:],
                 persistedLoadModeByExercise: [:]
@@ -396,7 +388,7 @@ import SwiftUI
             let candidatesList = exercise.contextProfilesV3
                 + repository.getContextProfilesForExercise(exerciseKey)
                 + (resumedState?.contextProfilesV3.values.filter { $0.exerciseKey == exerciseKey } ?? [])
-            
+
             var uniqueCandidates: [WorkoutContextProfile] = []
             var seenIds = Set<String>()
             for candidate in candidatesList {
@@ -806,15 +798,15 @@ import SwiftUI
                 allSubTags.append(contentsOf: tag.subTags)
             }
         }
-        
+
         let filteredSubTags = allSubTags.filter { subTag in
             resolvedSubTagIds.contains(subTag.id) && (subTag.category == .TECNICA || subTag.category == .MARCA)
         }
-        
+
         let mappedNames = filteredSubTags.map { subTag in
             subTag.name.lowercased().replacingOccurrences(of: " ", with: "_")
         }
-        
+
         let sortedNames = mappedNames.sorted()
         let techSubTags = sortedNames.joined(separator: "+")
         let contextKey = buildWorkoutContextKey(exerciseId: canonicalExerciseKey(exercise), machineBrand: resolvedMachineBrand, tagId: resolvedTagId, loadMode: resolvedLoadMode, unitMode: resolvedUnitMode, techSubTags: techSubTags.isEmpty ? nil : techSubTags)
@@ -2001,23 +1993,11 @@ import SwiftUI
 
     // MARK: - Readiness Adjustments
 
-    func saveReadinessAdjustments(neural: Int?, muscular: Int?, spinal: Int?, perMuscle: [String: Int], sleepQuality: Int? = nil) {
-        updateState {
-            $0.readinessNeuralOverride = neural
-            $0.readinessMuscularOverride = muscular
-            $0.readinessSpinalOverride = spinal
-            $0.readinessMuscleOverrides = perMuscle
-            $0.sleepQuality = sleepQuality
-        }
-        persistOngoingState()
-    }
 
 
 
-    func applyReadinessAdjustment(_ exerciseId: String, setIndex: Int, suggestion: SetAdjustmentSuggestion) {
-        let key = "\(exerciseId)_\(setIndex)"
-        updateState { $0.readinessAdjustments[key] = suggestion }
-    }
+
+
 
     // MARK: - Tags/Setup
 
@@ -2523,10 +2503,6 @@ import SwiftUI
                 skippedExerciseIds: s.skippedExerciseIds,
                 warmupCompletedExerciseIds: s.warmupCompletedExerciseIds,
                 mobilityCompletedExerciseIds: s.mobilityCompletedExerciseIds,
-                readinessNeuralOverride: s.readinessNeuralOverride,
-                readinessMuscularOverride: s.readinessMuscularOverride,
-                readinessSpinalOverride: s.readinessSpinalOverride,
-                readinessMuscleOverrides: s.readinessMuscleOverrides,
                 restModalState: s.restModalState,
                 persistedLoadModeBySet: s.persistedLoadModeBySet,
                 persistedLoadModeByExercise: s.persistedLoadModeByExercise,
@@ -2925,7 +2901,7 @@ import SwiftUI
     private func applyReplacementToProgram(program: Program, currentLocation: SessionLocationCursor?, sourceExerciseDbId: String?, sourceExerciseId: String, sourceExerciseSlot: Int?, replacement: ExerciseMuscleInfo, scope: ReplacementPersistenceScopeV2) -> Program {
         guard scope != .SESSION_ONLY else { return program }
         var changed = false
-        
+
         let newMacros = program.macrocycles.enumerated().map { macroIndex, macro -> Macrocycle in
             let newBlocks = macro.blocks.enumerated().map { blockIndex, block -> Block in
                 var mesoOffset = 0
@@ -2959,7 +2935,7 @@ import SwiftUI
             }
             return Macrocycle(id: macro.id, name: macro.name, blocks: newBlocks)
         }
-        
+
         return changed ? program.withMacrocycles(newMacros) : program
     }
 

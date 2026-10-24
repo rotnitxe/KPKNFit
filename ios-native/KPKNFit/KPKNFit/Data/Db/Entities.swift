@@ -32,6 +32,8 @@ private func encodeModel<T: Encodable>(_ value: T) -> String {
                 }
             }
             decoded=log
+        } else if value is Program, let program = decoded as? [String:Any] {
+            decoded = LegacyProgramProposalImport.program(program)
         } else if value is ExerciseMuscleInfo, let exercise=decoded as? [String:Any] {
             decoded=try LegacyExerciseCoefficientImport.customExercise(exercise)
         } else if value is OngoingWorkoutState, let ongoing=decoded as? [String:Any] {
@@ -171,15 +173,9 @@ internal struct PostSessionFeedbackEntity: Codable {
     let data: String
 }
 
-internal struct PendingQuestionnaireEntity: Codable {
-    let rowId: Int
-    let data: String?
-}
 
-internal struct AugeAdaptiveCacheEntity: Codable {
-    let rowId: Int
-    let data: String?
-}
+
+
 
 internal struct NutritionLogEntity: Codable {
     let id: String
@@ -490,31 +486,15 @@ extension PostSessionFeedbackEntity {
 
 // MARK: - PendingQuestionnaire Conversions
 
-extension PendingQuestionnaire {
-    func toEntity() -> PendingQuestionnaireEntity {
-        PendingQuestionnaireEntity(rowId: 1, data: encodeModel(self))
-    }
-}
 
-extension PendingQuestionnaireEntity {
-    func toPendingQuestionnaire() -> PendingQuestionnaire {
-        decodeModel(PendingQuestionnaire.self, from: data ?? "{}")!
-    }
-}
+
+
 
 // MARK: - AugeAdaptiveCache Conversions
 
-extension AugeAdaptiveCache {
-    func toEntity() -> AugeAdaptiveCacheEntity {
-        AugeAdaptiveCacheEntity(rowId: 1, data: encodeModel(self))
-    }
-}
 
-extension AugeAdaptiveCacheEntity {
-    func toAdaptiveCache() -> AugeAdaptiveCache {
-        decodeModel(AugeAdaptiveCache.self, from: data ?? "{}")!
-    }
-}
+
+
 
 // MARK: - NutritionLog Conversions
 
@@ -749,5 +729,45 @@ internal enum LegacyExerciseCoefficientImport {
         if custom { result=try customExercise(result) }
         else if let exercises=result["completedExercises"] as? [[String:Any]] { result["completedExercises"]=try exercises.map(completedExercise) }
         return try encode(result)
+    }
+}
+
+/// Compatibility boundary for retired pending model actions, without changing authored sessions.
+internal enum LegacyProgramProposalImport {
+    static func program(_ source: [String: Any]) -> [String: Any] {
+        let retained: Set<String> = ["ADJUST_TM", "ADJUST_XRM", "PROMOTE_TM"]
+        func run(_ value: [String: Any]) -> [String: Any] {
+            var result = value
+            if var action = value["pendingAction"] as? [String: Any] {
+                if action["type"] as? String == "CONFIRM_DELOAD" { result["pendingAction"] = NSNull() }
+                else if action["type"] as? String == "CONFIRM_AUTOREGULATION" {
+                    let proposals = (action["proposals"] as? [[String: Any]] ?? []).filter { retained.contains($0["kind"] as? String ?? "") }
+                    if proposals.isEmpty { result["pendingAction"] = NSNull() }
+                    else {
+                        action["proposals"] = proposals
+                        action["message"] = "Revisa las propuestas del protocolo; se aplican solo con tu confirmación."
+                        result["pendingAction"] = action
+                    }
+                }
+            }
+            if let entries = value["autoregulationAudit"] as? [[String: Any]] {
+                result["autoregulationAudit"] = entries.compactMap { entry -> [String: Any]? in
+                    let kinds = (entry["kinds"] as? [String] ?? []).filter { retained.contains($0) }
+                    guard !kinds.isEmpty else { return nil }
+                    var row = entry; row["kinds"] = kinds; return row
+                }
+            }
+            return result
+        }
+        var result = source
+        if let state = source["runState"] as? [String: Any] { result["runState"] = run(state) }
+        if let breaks = source["calendarBreaks"] as? [[String: Any]] {
+            result["calendarBreaks"] = breaks.map { item -> [String: Any] in
+                var row = item
+                if let state = item["pausedRunState"] as? [String: Any] { row["pausedRunState"] = run(state) }
+                return row
+            }
+        }
+        return result
     }
 }

@@ -578,6 +578,9 @@ public final class KpknDatabase {
         MigrationStep(fromVersion: 21, toVersion: 22) { db in
             try db.retireCatalogCoefficients()
         },
+        MigrationStep(fromVersion: 22, toVersion: 23) { db in
+            try db.retirePendingTrainingProposals()
+        },
     ]
 }
 
@@ -710,5 +713,30 @@ private extension KpknDatabaseInternal {
             }
             guard status==SQLITE_DONE else { throw NSError(domain:"TrainingCatalogPreservation",code:5) }
         }
+    }
+}
+
+
+private extension KpknDatabaseInternal {
+    func retirePendingTrainingProposals() throws {
+        var statement: OpaquePointer?
+        guard sqlite3_prepare_v2(handle, "SELECT id,data FROM programs", -1, &statement, nil) == SQLITE_OK else {
+            throw NSError(domain: "TrainingProposalPreservation", code: 1)
+        }
+        defer { sqlite3_finalize(statement) }
+        var status = sqlite3_step(statement)
+        while status == SQLITE_ROW {
+            guard let id = sqlite3_column_text(statement,0), let raw = sqlite3_column_text(statement,1),
+                  let bytes = String(cString:raw).data(using:.utf8),
+                  let object = try JSONSerialization.jsonObject(with:bytes) as? [String:Any] else {
+                throw NSError(domain: "TrainingProposalPreservation", code: 2)
+            }
+            let encoded = try JSONSerialization.data(withJSONObject: LegacyProgramProposalImport.program(object), options:[.sortedKeys])
+            guard let text = String(data:encoded,encoding:.utf8) else { throw NSError(domain: "TrainingProposalPreservation", code: 3) }
+            func quote(_ value: String) -> String { "'" + value.replacingOccurrences(of:"'",with:"''") + "'" }
+            try execute("UPDATE programs SET data=\(quote(text)) WHERE id=\(quote(String(cString:id)))")
+            status = sqlite3_step(statement)
+        }
+        guard status == SQLITE_DONE else { throw NSError(domain: "TrainingProposalPreservation", code: 4) }
     }
 }

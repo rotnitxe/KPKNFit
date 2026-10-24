@@ -574,3 +574,31 @@ final class KPKNFitTests: XCTestCase {
         XCTAssertEqual(AugeRecoveryEngine.manualBatteryAnchorMs(nil), 0)
     }
 }
+
+/// Cloud supplies source coverage; execution requires the macOS gate.
+final class PostRingsTrainingEvidenceTests: XCTestCase {
+    func testRetiredPendingActionsDoNotChangeAuthoredData() {
+        let original: [String:Any] = ["id":"p","notes":"Nota original","runState":["runId":"run","weekId":"w","pendingAction":["type":"CONFIRM_DELOAD"]]]
+        let migrated = LegacyProgramProposalImport.program(original)
+        XCTAssertEqual(migrated["notes"] as? String,"Nota original")
+        let run = migrated["runState"] as? [String:Any]
+        XCTAssertEqual(run?["runId"] as? String,"run")
+        XCTAssertEqual(run?["weekId"] as? String,"w")
+        XCTAssertTrue(run?["pendingAction"] is NSNull)
+    }
+    func testExplicitZeroAndOriginalMinutePrecisionStayDifferent() {
+        let log = WorkoutLog(id:"log",programId:"p",sessionId:"s",sessionName:"Registro",date:"2026-10-23T12:00:00Z",durationMinutes:17,
+            sessionEffortRpe:0,sessionEffortProtocol:"own-scale",sportDocuments:[])
+        let now: Int64 = 1_792_843_200_000
+        // No discipline is fabricated from an empty log; explicit originals remain in the source.
+        XCTAssertTrue(TrainingHistoryProjection.facts([log],nowMs:now).isEmpty)
+        XCTAssertEqual(log.sessionEffortRpe,0)
+        XCTAssertNil(log.actualDurationSeconds)
+    }
+    func testUnknownContextsNeverBecomeComparable() {
+        let fact = TrainingEvidenceFact(sourceId:"x",activityId:"l",occurredAtMs:1,sport:"JUMP",metric:"height",value:31.25,unit:"cm",origin:"OBSERVED",exerciseVariant:nil,method:nil,protocolId:nil,context:[:])
+        XCTAssertFalse(TrainingInsightsEngine.comparable(fact,fact))
+        XCTAssertTrue(TrainingInsightsEngine.visible([fact],nowMs:0).isEmpty)
+        XCTAssertNil(TrainingInsightsEngine.median([fact,fact]))
+    }
+}

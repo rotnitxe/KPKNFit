@@ -54,7 +54,7 @@ internal enum DatabaseBackupHelper {
         let candidate = try KpknDatabaseInternal(filePath: staging.path)
         do {
             let version = try candidate.getUserVersion()
-            guard (1...22).contains(version), try candidate.runMigrations(currentVersion: version) == 22 else {
+            guard (1...23).contains(version), try candidate.runMigrations(currentVersion: version) == 23 else {
                 throw NSError(domain: "DatabaseBackupHelper", code: 3, userInfo: [NSLocalizedDescriptionKey: "Versión de respaldo no compatible; se conserva la base activa."])
             }
             var statement: OpaquePointer?
@@ -66,7 +66,7 @@ internal enum DatabaseBackupHelper {
         defer { candidate.close() }
         _ = try createSnapshot() // Recoverable active state before the atomic SQLite transaction.
         let active = KpknDatabase.instance().internalDb
-        guard try active.getUserVersion() == 22 else {
+        guard try active.getUserVersion() == 23 else {
             throw NSError(domain: "DatabaseBackupHelper", code: 6,
                 userInfo: [NSLocalizedDescriptionKey: "La base activa no tiene el esquema esperado."])
         }

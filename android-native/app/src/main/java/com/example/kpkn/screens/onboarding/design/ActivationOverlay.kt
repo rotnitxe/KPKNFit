@@ -168,7 +168,6 @@ private val SheetSymbolSize = 72.dp
 
 /** Anillos de macros y torre de RINGS. */
 private val MacroRingsSize = 200.dp
-private val RingsTowerHeight = 170.dp
 
 /** Lo que puede ocupar el bloque de avisos y confirmaciones antes de desplazarse por dentro. */
 private val FooterNoticesMaxHeight = 200.dp
@@ -179,7 +178,6 @@ private val DAY_LETTERS = listOf("L", "M", "X", "J", "V", "S", "D")
 private const val PHRASE_YOU = "Con esto calculamos tu gasto y tus cargas."
 private const val PHRASE_NUTRITION_PLAN = "Tu plan de comidas empieza hoy."
 private const val PHRASE_NUTRITION_TRACKING = "Registra lo que comes y KPKN aprende contigo."
-private const val PHRASE_RINGS = "Así llegas hoy. Tus RINGS se ajustan con cada entreno."
 
 // ─── Overlay ─────────────────────────────────────────────────────────────────
 

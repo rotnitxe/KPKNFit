@@ -115,7 +115,7 @@ struct WorkoutEditingRules {
             return [.SESSION_ONLY, .MESOCYCLE_MATCHING]
         }
     }
-    
+
     static func buildEditingState(
         completedSets: [String: CompletedSet],
         exercise: Exercise?,
@@ -126,11 +126,11 @@ struct WorkoutEditingRules {
         let maxIdx = max(0, exercise.sets.count - 1)
         let safeSetIdx = min(max(0, setIdx), maxIdx)
         let isUnilateral = exercise.isEffectivelyUnilateral()
-        
+
         let key = workoutSetKey(exerciseId: exercise.id, setIdx: safeSetIdx, side: nil)
         let leftKey = workoutSetKey(exerciseId: exercise.id, setIdx: safeSetIdx, side: "left")
         let rightKey = workoutSetKey(exerciseId: exercise.id, setIdx: safeSetIdx, side: "right")
-        
+
         let isDone = completedSets[key] != nil || (isUnilateral && completedSets[leftKey] != nil && completedSets[rightKey] != nil)
         if !isDone { return nil }
 
@@ -233,10 +233,10 @@ struct WorkoutStepRules {
         for roundIdx in 0..<rounds {
             for (memberIdx, exercise) in members.enumerated() {
                 if roundIdx >= exercise.sets.count { continue }
-                
+
                 let remainingMembers = members.suffix(from: memberIdx + 1)
                 let isLastMemberWithSet = !remainingMembers.contains(where: { roundIdx < $0.sets.count })
-                
+
                 appendWorkingSetSteps(
                     exercise: exercise,
                     setIndex: roundIdx,
@@ -342,7 +342,7 @@ struct WorkoutStepRules {
 
         let hasLeftOnly = setIndex < exercise.sets.count && exercise.sets[setIndex].leftTarget != nil && exercise.sets[setIndex].rightTarget == nil
         let hasRightOnly = setIndex < exercise.sets.count && exercise.sets[setIndex].rightTarget != nil && exercise.sets[setIndex].leftTarget == nil
-        
+
         let sides: [String]
         if hasLeftOnly {
             sides = ["left"]
@@ -556,9 +556,9 @@ extension Exercise {
                 barWeightKg: nil
             )
         }
-        
+
         let canonicalId = info.id.lowercased().folding(options: .diacriticInsensitive, locale: .current)
-        
+
         let equipment = info.equipment?.lowercased() ?? ""
         let nameLower = info.name.lowercased()
         let defaultLoadMode: LoadModeV2
@@ -569,7 +569,7 @@ extension Exercise {
         } else {
             defaultLoadMode = .LOAD
         }
-        
+
         let newSets = sets.map { set -> ExerciseSet in
             set.copy(
                 intensityMode: nil,
@@ -603,7 +603,7 @@ extension Exercise {
                 plannedIntensityTechniques: []
             )
         }
-        
+
         return copy(
             name: info.name,
             exerciseDbId: info.id,
@@ -838,10 +838,6 @@ extension OngoingWorkoutState {
         skippedExerciseIds: Set<String>? = nil,
         warmupCompletedExerciseIds: Set<String>? = nil,
         mobilityCompletedExerciseIds: Set<String>? = nil,
-        readinessNeuralOverride: Int? = nil,
-        readinessMuscularOverride: Int? = nil,
-        readinessSpinalOverride: Int? = nil,
-        readinessMuscleOverrides: [String: Int]? = nil,
         restModalState: WorkoutRestModalState? = nil,
         persistedLoadModeBySet: [String: LoadModeV2]? = nil,
         persistedLoadModeByExercise: [String: LoadModeV2]? = nil,
@@ -877,10 +873,6 @@ extension OngoingWorkoutState {
             skippedExerciseIds: skippedExerciseIds ?? self.skippedExerciseIds,
             warmupCompletedExerciseIds: warmupCompletedExerciseIds ?? self.warmupCompletedExerciseIds,
             mobilityCompletedExerciseIds: mobilityCompletedExerciseIds ?? self.mobilityCompletedExerciseIds,
-            readinessNeuralOverride: readinessNeuralOverride ?? self.readinessNeuralOverride,
-            readinessMuscularOverride: readinessMuscularOverride ?? self.readinessMuscularOverride,
-            readinessSpinalOverride: readinessSpinalOverride ?? self.readinessSpinalOverride,
-            readinessMuscleOverrides: readinessMuscleOverrides ?? self.readinessMuscleOverrides,
             restModalState: restModalState ?? self.restModalState,
             persistedLoadModeBySet: persistedLoadModeBySet ?? self.persistedLoadModeBySet,
             persistedLoadModeByExercise: persistedLoadModeByExercise ?? self.persistedLoadModeByExercise,

@@ -14,8 +14,6 @@ public struct WorkoutLog: Codable {
     public let discomforts: [String]
     public let notes: String?
     public let totalVolume: Double
-    public let sessionStressScore: Double?
-    public let muscularImpactV2: MuscularSessionImpactV2?
     public let energySummary: SessionEnergySummary?
     public let weekId: String?
     public let macroIndex: Int?
@@ -53,8 +51,6 @@ public struct WorkoutLog: Codable {
         discomforts: [String] = [],
         notes: String? = nil,
         totalVolume: Double = 0.0,
-        sessionStressScore: Double? = nil,
-        muscularImpactV2: MuscularSessionImpactV2? = nil,
         energySummary: SessionEnergySummary? = nil,
         weekId: String? = nil,
         macroIndex: Int? = nil,
@@ -90,8 +86,6 @@ public struct WorkoutLog: Codable {
         self.discomforts = discomforts
         self.notes = notes
         self.totalVolume = totalVolume
-        self.sessionStressScore = sessionStressScore
-        self.muscularImpactV2 = muscularImpactV2
         self.energySummary = energySummary
         self.weekId = weekId
         self.macroIndex = macroIndex
@@ -391,10 +385,6 @@ public struct OngoingWorkoutState: Codable {
     public var skippedExerciseIds: Set<String>
     public var warmupCompletedExerciseIds: Set<String>
     public var mobilityCompletedExerciseIds: Set<String>
-    public var readinessNeuralOverride: Int?
-    public var readinessMuscularOverride: Int?
-    public var readinessSpinalOverride: Int?
-    public var readinessMuscleOverrides: [String: Int]
     public var restModalState: WorkoutRestModalState?
     public var persistedLoadModeBySet: [String: LoadModeV2]
     public var persistedLoadModeByExercise: [String: LoadModeV2]
@@ -430,10 +420,6 @@ public struct OngoingWorkoutState: Codable {
         skippedExerciseIds: Set<String> = [],
         warmupCompletedExerciseIds: Set<String> = [],
         mobilityCompletedExerciseIds: Set<String> = [],
-        readinessNeuralOverride: Int? = nil,
-        readinessMuscularOverride: Int? = nil,
-        readinessSpinalOverride: Int? = nil,
-        readinessMuscleOverrides: [String: Int] = [:],
         restModalState: WorkoutRestModalState? = nil,
         persistedLoadModeBySet: [String: LoadModeV2] = [:],
         persistedLoadModeByExercise: [String: LoadModeV2] = [:],
@@ -468,10 +454,6 @@ public struct OngoingWorkoutState: Codable {
         self.skippedExerciseIds = skippedExerciseIds
         self.warmupCompletedExerciseIds = warmupCompletedExerciseIds
         self.mobilityCompletedExerciseIds = mobilityCompletedExerciseIds
-        self.readinessNeuralOverride = readinessNeuralOverride
-        self.readinessMuscularOverride = readinessMuscularOverride
-        self.readinessSpinalOverride = readinessSpinalOverride
-        self.readinessMuscleOverrides = readinessMuscleOverrides
         self.restModalState = restModalState
         self.persistedLoadModeBySet = persistedLoadModeBySet
         self.persistedLoadModeByExercise = persistedLoadModeByExercise

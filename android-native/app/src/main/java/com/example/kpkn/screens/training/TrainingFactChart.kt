@@ -106,7 +106,9 @@ internal fun factOrigin(origin: FactOrigin): String = when(origin) {
 }
 internal fun factUnit(unit: String): String = when(unit) {
     "KILOGRAM", "KILOGRAMS" -> "kg"; "POUND", "POUNDS" -> "lb"; "METER", "METERS" -> "m"; "CENTIMETER" -> "cm"
-    "SECOND", "SECONDS" -> "s"; "MINUTES" -> "min"; "FEET" -> "ft"; "MILLISECOND" -> "ms"; "METER_PER_SECOND" -> "m/s"; else -> unit
+    "BEATS_PER_MINUTE" -> "lat/min"; "WATTS" -> "W"; "RUNNING_STEPS_PER_MINUTE" -> "pasos/min"
+    "REVOLUTIONS_PER_MINUTE" -> "rpm"; "STROKES_PER_MINUTE" -> "paladas/min"; "METERS_PER_SECOND" -> "m/s"
+    "SECONDS_PER_KILOMETER" -> "s/km"; "SECOND", "SECONDS" -> "s"; "MINUTES" -> "min"; "FEET" -> "ft"; "MILLISECOND" -> "ms"; "METER_PER_SECOND" -> "m/s"; else -> unit
 }
 
 /** Display wording only; the original metric identity remains unchanged for comparison. */

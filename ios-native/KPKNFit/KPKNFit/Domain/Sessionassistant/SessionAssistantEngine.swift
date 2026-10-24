@@ -8,7 +8,7 @@ enum SessionAssistantEngine {
         let work = sets * 45 // Explicit planning estimate, never an observed duration.
         return SessionAssistantReport(veredicto: nil, scoreEstimado: nil, riesgos: [], ajustes: [], oportunidades: [],
             tarjetasFantasma: [], plantillasCompatibles: [], volumenPorMusculo: [:], umbralesPorMusculo: [:],
-            drenajeEstimado: nil, duracionEstimada: (rest + work + 59) / 60,
+            duracionEstimada: (rest + work + 59) / 60,
             resumenTexto: "Contenido registrado en tu programa; duración estimada", totalRestSeconds: rest, estimatedWorkSeconds: work)
     }
     static func resolveExerciseInfo(exercise: Exercise, exerciseIndex: [String: ExerciseMuscleInfo]) -> ExerciseMuscleInfo? {

@@ -93,3 +93,13 @@ modelos activos. El importador raw aislado conserva las declaraciones originales
 El chat antiguo pierde su etapa, preguntas, dependencias y textos RINGS; la
 migración sanea también completedStages. Las pruebas de esas APIs deben portarse
 sin resucitar modelos ni relajar pruebas de protocolos independientes.
+
+## Propuestas de descarga retiradas
+
+Se eliminan los casos que exigían generar, aceptar o rechazar descargas AUGE a
+partir de estrés/score, pues ese comportamiento queda expresamente retirado.
+Se conservan las regresiones de progresión de autor/TM que comprueban bloques
+ajenos a la receta, ahora con un bloque sintético editado sin fórmulas ni motor.
+RetiredPendingDeloadTest verifica que aceptar/rechazar un pendiente antiguo
+solo lo caduque, sin tocar bloques, cursor ni TM. LegacyProgramProposalImportTest
+conserva propuestas APRE y originales al eliminar propuestas fisiológicas mezcladas.
