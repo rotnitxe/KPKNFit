@@ -17,7 +17,6 @@ import com.example.kpkn.data.models.performedPurpose
 import com.example.kpkn.data.models.normalizeMobilityCompatibility
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.StartWorkoutResult
-import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler
 import com.example.kpkn.domain.training.ProgramProgressEngine
@@ -539,16 +538,6 @@ class WorkoutSessionHydrator(
         if (!persistBlocked) {
             ports.bindActiveWorkoutHolder()
         }
-        val ema = AugeFatigueEngine.calculateMesocycleStressEMA(
-            logs = repository.history.value,
-            programId = programId,
-            mesoIndex = getState().mesoIndex ?: 0,
-        )
-        updateState { it.copy(mesocycleStressEMA = ema) }
-        ports.updateCoachMessage(
-            setDrain = SetDrain(cnsDrainPct = 0.0, muscularDrainPct = 0.0, spinalDrainPct = 0.0),
-            sessionProgress = 0.0,
-        )
         val lastLog = repository.history.value.firstOrNull { it.programId == programId && it.id != sessionId }
         // Solo molestias marcadas como aún presentes (no resueltas) en la sesión pasada.
         val lastDiscomforts = lastLog?.stillPresentDiscomfortIds

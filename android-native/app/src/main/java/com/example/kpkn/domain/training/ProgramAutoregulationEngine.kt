@@ -31,7 +31,6 @@ import com.example.kpkn.data.protocols.SlotRecipe
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
-import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calibration.CalibrationContext
 import com.example.kpkn.domain.calibration.CalibrationDecisionType
@@ -1206,7 +1205,7 @@ object ProgramAutoregulationEngine {
             log.sessionId == session.id || log.sessionId !in weekSessionIds ||
                 (sessionVariants.isNotEmpty() && hasUnambiguousVariantExercise(log, session, sessionVariants))
         }
-        .sortedByDescending { AugeUtils.logDateMs(it) }
+        .sortedByDescending { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) }
 
     /** Asocia un log de A a B/C/D solo con identidad única o snapshot/contexto exacto. */
     private fun hasUnambiguousVariantExercise(

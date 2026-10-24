@@ -5,7 +5,6 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.WorkoutLog
-import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import java.text.NumberFormat
@@ -60,7 +59,7 @@ private fun bestFinishSet(exercise: CompletedExercise): CompletedSet? = exercise
 
 internal fun buildFinishLiftProgress(completed: List<CompletedExercise>, history: List<WorkoutLog>): List<FinishLiftProgress> =
     completed.map { exercise ->
-        val points = history.sortedBy { AugeUtils.logDateMs(it) }.mapNotNull { log ->
+        val points = history.sortedBy { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) }.mapNotNull { log ->
             val current=bestFinishSet(exercise) ?: return@mapNotNull null
             val context=current.contextKey?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
             val best = log.completedExercises.filter { sameFinishExercise(exercise, it) }

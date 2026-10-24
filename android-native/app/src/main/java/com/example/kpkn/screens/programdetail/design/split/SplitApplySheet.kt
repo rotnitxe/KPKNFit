@@ -297,7 +297,6 @@ internal fun SplitApplySheet(
                 SplitTemplatePreview(
                     days = templatePreview,
                     warnings = weekPreview.warnings,
-                    exceedsWeeklyBudget = weekPreview.exceedsWeeklyBudget,
                     onPickTemplate = { dayIndex, templateId ->
                         focusOverrides = focusOverrides + (dayIndex to templateId)
                     },

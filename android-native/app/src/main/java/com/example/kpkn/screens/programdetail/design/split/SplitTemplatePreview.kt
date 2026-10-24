@@ -28,13 +28,12 @@ import com.example.kpkn.ui.design.KpknType
 internal fun SplitTemplatePreview(
     days: List<SplitTemplateSessionPreview>,
     warnings: List<String>,
-    exceedsWeeklyBudget: Boolean,
     onPickTemplate: (dayIndex: Int, templateId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     KpknModule(modifier = modifier.fillMaxWidth()) {
         KpknModuleHeader(label = "Plantillas por día")
-        if (exceedsWeeklyBudget || warnings.isNotEmpty()) {
+        if (warnings.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
             Text(
                 text = warnings.joinToString(separator = " · ")

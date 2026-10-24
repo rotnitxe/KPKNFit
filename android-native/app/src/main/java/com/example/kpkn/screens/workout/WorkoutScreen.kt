@@ -99,7 +99,6 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
-import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.data.models.HistoryColorV2
 import com.example.kpkn.data.models.DiscomfortCatalogEntry
 import com.example.kpkn.data.models.DiscomfortSection

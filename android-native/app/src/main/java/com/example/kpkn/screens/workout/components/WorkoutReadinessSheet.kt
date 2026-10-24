@@ -71,7 +71,6 @@ import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.VoiceCaptureMode
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.discomfortLabel
-import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.domain.auge.DiscomfortSuggestionEngine
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
 import com.example.kpkn.domain.auge.LoadAdvisoryEngine
@@ -484,7 +483,7 @@ internal fun readinessReportedBefore(
     zone: ZoneId = ZoneId.systemDefault(),
 ): List<ReadinessReportedDiscomfort> {
     val dated = history
-        .mapNotNull { log -> AugeUtils.logDateMs(log).takeIf { it > 0L }?.let { ms -> log to ms } }
+        .mapNotNull { log -> com.example.kpkn.domain.time.TrainingDates.logDateMs(log).takeIf { it > 0L }?.let { ms -> log to ms } }
         .sortedByDescending { it.second }
     return previousIds.filter { it != "none" }.distinct().map { id ->
         val last = dated.firstOrNull { (log, _) -> id in log.stillPresentDiscomfortIds }

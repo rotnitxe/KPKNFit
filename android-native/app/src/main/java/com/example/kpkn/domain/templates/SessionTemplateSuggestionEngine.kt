@@ -1,7 +1,6 @@
 package com.example.kpkn.domain.templates
 
 import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.sessions.SESSION_TEMPLATES_SYSTEM
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.sessions.SessionTemplateDurationClass
@@ -29,10 +28,8 @@ data class SuggestedDayPlan(
 
 data class SuggestedWeekPlan(
     val days: List<SuggestedDayPlan>,
-    val weeklyDrain: PredictedDrain,
     val weeklyVolume: Map<String, Double>,
     val warnings: List<String>,
-    val exceedsWeeklyBudget: Boolean,
 )
 
 object SessionTemplateSuggestionEngine {
@@ -102,7 +99,6 @@ object SessionTemplateSuggestionEngine {
         val metrics = TemplateScoreCache(exerciseIndex)
 
         val chosen = mutableListOf<SuggestedDayPlan>()
-        val drains = mutableListOf<PredictedDrain>()
         val warnings = mutableListOf<String>()
         var weeklyVolume = emptyMap<String, Double>()
 
@@ -141,7 +137,6 @@ object SessionTemplateSuggestionEngine {
                         softCategories = softCategories,
                         chosen = chosen,
                         weeklyVolume = weeklyVolume,
-                        drainsSoFar = drains,
                         metrics = metrics,
                         preserveSpecializedRecipes = SessionTemplateCatalogPolicy.isSpecializedSplit(split.id),
                     ),
@@ -173,7 +168,6 @@ object SessionTemplateSuggestionEngine {
                         softCategories = softCategories,
                         chosen = chosen,
                         weeklyVolume = weeklyVolume,
-                        drainsSoFar = drains,
                         metrics = metrics,
                         preserveSpecializedRecipes = SessionTemplateCatalogPolicy.isSpecializedSplit(split.id),
                     )
@@ -187,9 +181,7 @@ object SessionTemplateSuggestionEngine {
 
             if (selected != null && exerciseIndex.isNotEmpty()) {
                 weeklyVolume = mergeVolume(weeklyVolume, metrics.volume(selected))
-                drains += metrics.drain(selected)
             } else if (selected != null) {
-                drains += PredictedDrain(0, 0, 0)
             }
 
             chosen += SuggestedDayPlan(
@@ -202,28 +194,10 @@ object SessionTemplateSuggestionEngine {
             )
         }
 
-        val weeklyDrain = RingBudgetPolicy.aggregateWeeklyDrain(drains)
-        val weeklyCaps = RingBudgetPolicy.weeklyWarningCaps()
-        val exceeds = weeklyDrain.cns > weeklyCaps.cns ||
-            weeklyDrain.muscular > weeklyCaps.muscular ||
-            weeklyDrain.spinal > weeklyCaps.spinal
-
-        if (weeklyDrain.cns > weeklyCaps.cns) {
-            warnings += "Fatiga SNC semanal elevada (${weeklyDrain.cns}% > ${weeklyCaps.cns}%)"
-        }
-        if (weeklyDrain.muscular > weeklyCaps.muscular) {
-            warnings += "Fatiga muscular semanal elevada (${weeklyDrain.muscular}% > ${weeklyCaps.muscular}%)"
-        }
-        if (weeklyDrain.spinal > weeklyCaps.spinal) {
-            warnings += "Carga espinal semanal elevada (${weeklyDrain.spinal}% > ${weeklyCaps.spinal}%)"
-        }
-
         return SuggestedWeekPlan(
             days = chosen,
-            weeklyDrain = weeklyDrain,
             weeklyVolume = weeklyVolume,
             warnings = warnings,
-            exceedsWeeklyBudget = exceeds,
         )
     }
 
@@ -235,7 +209,6 @@ object SessionTemplateSuggestionEngine {
         softCategories: Set<SessionTemplateFocusCategory>,
         chosen: List<SuggestedDayPlan>,
         weeklyVolume: Map<String, Double>,
-        drainsSoFar: List<PredictedDrain>,
         metrics: TemplateScoreCache,
         preserveSpecializedRecipes: Boolean,
     ): Double {
@@ -293,31 +266,7 @@ object SessionTemplateSuggestionEngine {
             val projectedVol = mergeVolume(weeklyVolume, sessionVol)
             score += volumeFitnessContribution(weeklyVolume, projectedVol)
 
-            val drain = metrics.drain(candidate)
-            val isPl = SessionTemplateCatalogPolicy.isPowerliftingTemplate(candidate)
-            val sessionCaps = RingBudgetPolicy.sessionWarningCaps(isPl)
-            if (drain.cns > sessionCaps.cns) score -= (drain.cns - sessionCaps.cns).toDouble()
-            if (drain.muscular > sessionCaps.muscular) score -= (drain.muscular - sessionCaps.muscular).toDouble()
-            if (drain.spinal > sessionCaps.spinal) score -= (drain.spinal - sessionCaps.spinal).toDouble()
 
-            val projectedWeekly = RingBudgetPolicy.aggregateWeeklyDrain(drainsSoFar + drain)
-            val weeklyCaps = RingBudgetPolicy.weeklyWarningCaps()
-            val wouldExceed = projectedWeekly.cns > weeklyCaps.cns ||
-                projectedWeekly.muscular > weeklyCaps.muscular ||
-                projectedWeekly.spinal > weeklyCaps.spinal
-            val nearBudget = projectedWeekly.cns >= (weeklyCaps.cns * 0.85).toInt() ||
-                projectedWeekly.muscular >= (weeklyCaps.muscular * 0.85).toInt() ||
-                projectedWeekly.spinal >= (weeklyCaps.spinal * 0.85).toInt()
-
-            if (wouldExceed) score -= 200.0
-            if (wouldExceed || nearBudget) {
-                if (candidate.durationClass == SessionTemplateDurationClass.SHORT ||
-                    candidate.id.endsWith("-low") ||
-                    candidate.weeklyVolumePolicyId == "high_freq_low"
-                ) {
-                    score += 30.0
-                }
-            }
         }
 
         if (candidate.weeklyVolumePolicyId == "beginner_machine" &&
@@ -380,14 +329,10 @@ object SessionTemplateSuggestionEngine {
         private val exerciseIndex: Map<String, ExerciseMuscleInfo>,
     ) {
         val hasIndex: Boolean = exerciseIndex.isNotEmpty()
-        private val drainCache = mutableMapOf<String, PredictedDrain>()
         private val volumeCache = mutableMapOf<String, Map<String, Double>>()
         private val p0Cache = mutableMapOf<String, Int>()
 
-        fun drain(template: SessionTemplate): PredictedDrain =
-            drainCache.getOrPut(template.id) {
-                SessionTemplateCatalogPolicy.evaluateTemplateRings(template, exerciseIndex)
-            }
+
 
         fun volume(template: SessionTemplate): Map<String, Double> =
             volumeCache.getOrPut(template.id) {

@@ -14,7 +14,6 @@ import com.example.kpkn.data.models.PROFESSIONAL_ADVICE
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.ArticularBattery
 import com.example.kpkn.domain.auge.AugeTtcEngine
-import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.training.VolumeCalculator
 import java.time.Instant
@@ -297,7 +296,7 @@ object DiscomfortCauseEngine {
         val perDiscomfort = linkedMapOf<DiscomfortId, MutableList<Long>>()
         history.logs.forEach { log ->
             reportedIdsForLog(log, keys).forEach { id ->
-                perDiscomfort.getOrPut(id) { mutableListOf() }.add(AugeUtils.logDateMs(log))
+                perDiscomfort.getOrPut(id) { mutableListOf() }.add(com.example.kpkn.domain.time.TrainingDates.logDateMs(log))
             }
         }
         return perDiscomfort.map { (id, dates) ->
@@ -598,7 +597,7 @@ object DiscomfortCauseEngine {
             fun build(entry: DiscomfortCatalogEntry, session: DiscomfortSession, history: DiscomfortHistory): WeekContext {
                 val nowMs = history.now.toEpochMilli()
                 val today = todayAsLog(session, history.now)
-                val allLogs = (history.logs + listOfNotNull(today)).map { it to AugeUtils.logDateMs(it) }
+                val allLogs = (history.logs + listOfNotNull(today)).map { it to com.example.kpkn.domain.time.TrainingDates.logDateMs(it) }
                 val zoneMuscles = entry.relatedMuscles.map(::canonical).distinct()
                 val windows = (0 until WINDOWS).map { i ->
                     val to = nowMs - i * DAYS_PER_WEEK * DAY_MS
@@ -672,7 +671,7 @@ object DiscomfortCauseEngine {
     ): Int {
         val keys = scope.flatMap { keysOf(it) }.toSet()
         if (keys.isEmpty()) return 0
-        val sessions = logs.sortedByDescending { AugeUtils.logDateMs(it) }
+        val sessions = logs.sortedByDescending { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) }
             .mapNotNull { log -> reportedIdsForLog(log, keys).takeIf { it.isNotEmpty() } }
         val first = sessions.firstOrNull() ?: return 0
         if (discomfortId !in first) return 0
@@ -805,8 +804,8 @@ object DiscomfortCauseEngine {
         val keys = keysOf(exercise)
         val nowMs = history.now.toEpochMilli()
         return history.logs
-            .filter { AugeUtils.logDateMs(it) <= nowMs }
-            .sortedByDescending { AugeUtils.logDateMs(it) }
+            .filter { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) <= nowMs }
+            .sortedByDescending { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) }
             .firstNotNullOfOrNull { log ->
                 log.completedExercises
                     .filter { completed -> keysOf(completed).any { it in keys } }

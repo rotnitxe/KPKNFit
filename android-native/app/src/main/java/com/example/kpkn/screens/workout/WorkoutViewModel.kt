@@ -16,7 +16,6 @@ import com.example.kpkn.domain.training.ExerciseTrainingMax
 import com.example.kpkn.data.protocols.PlanLoadReferenceKind
 import com.example.kpkn.data.repository.StartWorkoutResult
 import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
 import com.example.kpkn.domain.discomfort.DiscomfortHistory
 import com.example.kpkn.domain.discomfort.DiscomfortSession
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
@@ -2602,7 +2601,7 @@ class WorkoutViewModel(
                 currentSetIdx = snapshotSetIdx,
                 finishOperationId = UUID.randomUUID().toString(),
                 completionInstantIso = Instant.now().toString(),
-                completedSetInputHash = MuscularSessionImpactEngine.completedSetInputHash(state.completedSets),
+                completedSetInputHash = com.example.kpkn.domain.workout.WorkoutCompletionFingerprint.completedSetInputHash(state.completedSets),
             )
             state.copy(
                 showFinishSheet = true,
@@ -6387,7 +6386,7 @@ class WorkoutViewModel(
         )
         val nowMs = System.currentTimeMillis()
         val cutoffMs = nowMs - FEEDBACK_HISTORY_DAYS * 24L * 60L * 60L * 1000L
-        val logs = repository.history.value.filter { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) >= cutoffMs }
+        val logs = repository.history.value.filter { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) >= cutoffMs }
         val history = DiscomfortHistory(
             logs = logs,
             now = java.time.Instant.ofEpochMilli(nowMs),
@@ -6700,23 +6699,9 @@ class WorkoutViewModel(
         if (state.isFinishingWorkout || state.isComplete) return
         // Sin series no hay nada que guardar; el guard de finish da el feedback.
         if (state.completedSets.isEmpty()) return
-        val unifiedEffort = calculateUnifiedSessionEffortSignal(state.completedSets.values.toList())
-        val inferredFatigue = when {
-            unifiedEffort >= 10.5 -> 5
-            unifiedEffort >= 9.2 -> 4
-            unifiedEffort >= 7.8 -> 3
-            unifiedEffort >= 6.4 -> 2
-            else -> 1
-        }
-        val averageTechnique = state.postExerciseFeedbackByExerciseId.values
-            .map { it.technicalQuality }
-            .average()
-            .takeIf { !it.isNaN() }
-            ?.coerceIn(1.0, 10.0)
-            ?: 8.0
         val additionalNote = state.voiceFinalAdditionalDiscomfortNote?.trim()?.takeIf { it.isNotBlank() }
         val closingFeedback = SessionClosingFeedback(
-            overallFatigue = inferredFatigue,
+            overallFatigue = 0,
             // Sin preview post-sesión en este camino (vive en la sheet): ajustes neutros
             // para no doble-contar el drenaje que el engine calcula del log real.
             systemAdjustment = 0,
@@ -6726,18 +6711,14 @@ class WorkoutViewModel(
                 state.voiceFinalDiscomforts.map { discomfortLabel(it) } +
                     listOfNotNull(additionalNote)
                 ).distinct(),
-            clarityRating = averageTechnique.toInt().coerceIn(1, 10),
+            clarityRating = null,
             environmentTags = emptyList(),
-            finalNeuralBattery = state.voiceFinalNeural,
-            finalSpinalBattery = state.voiceFinalSpinal,
-            neuralEdited = state.voiceFinalNeural != null,
-            spinalEdited = state.voiceFinalSpinal != null,
             additionalDiscomfortNote = additionalNote,
             stillPresentDiscomfortIds = state.voiceFinalDiscomforts,
         )
         finishWorkout(
             notes = state.voiceFinalNotes.orEmpty().trim(),
-            fatigueLevel = inferredFatigue,
+            fatigueLevel = 0,
             closingFeedback = closingFeedback,
             onComplete = {
                 // TTS post-write: suena recién cuando finalizeWorkout ya persistió el log.
@@ -7140,8 +7121,8 @@ class WorkoutViewModel(
     fun recentWorkoutLogs(maxAgeHours: Int = 36): List<com.example.kpkn.data.models.WorkoutLog> {
         val cutoff = System.currentTimeMillis() - maxAgeHours * 3_600_000L
         return repository.history.value
-            .filter { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) >= cutoff }
-            .sortedByDescending { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) }
+            .filter { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) >= cutoff }
+            .sortedByDescending { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) }
     }
 
     /** First working-set load (kg) for [exercise] — same source as the tag overlay. */
@@ -7237,7 +7218,7 @@ class WorkoutViewModel(
         return FinishPresentationContext(
             program = repository.getProgramById(programId),
             weekNumber = state.livePlanContext?.weekIndexInBlock,
-            history = repository.history.value.filter { it.id != currentLogId && com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) < state.startTimeMs },
+            history = repository.history.value.filter { it.id != currentLogId && com.example.kpkn.domain.time.TrainingDates.logDateMs(it) in 1 until state.startTimeMs },
             photos = (photos + legacyPhotos + state.sessionPhotos.map { StoryPhoto(it) }).distinctBy { it.path },
             calories = null,
             records = state.sessionMilestones.count { it.kind == "pr_e1rm" },

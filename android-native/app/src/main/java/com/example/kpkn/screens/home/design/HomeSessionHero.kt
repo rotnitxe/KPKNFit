@@ -95,7 +95,7 @@ internal fun HomeSessionHero(
     state: HomeHeroState,
     actions: HomeHeroActions,
     modifier: Modifier = Modifier,
-    muscles: List<HomeMuscleGauge> = emptyList(),
+    muscles: List<HomeSessionMuscle> = emptyList(),
     onOpenMuscles: () -> Unit = {},
 ) {
     Column(

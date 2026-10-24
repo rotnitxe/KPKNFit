@@ -45,12 +45,12 @@ import kotlin.math.roundToInt
  * desplaza en horizontal. Sin estado: la fila recuerda solo si su arco ya creció (HomeGaugeMemory).
  */
 
-/** Un músculo de la sesión con su % de recuperación. [score] null = sin dato: se pinta «—», nunca un 100 % inventado. */
-internal data class HomeMuscleGauge(val name: String, val score: Int?)
+/** A muscle named in the authored session. */
+internal data class HomeSessionMuscle(val name: String)
 
-/** De menor a mayor % de recuperación, con los sin dato al final: lo que más pide descanso, primero. */
-internal fun homeMuscleOrder(muscles: List<HomeMuscleGauge>): List<HomeMuscleGauge> =
-    muscles.sortedWith(compareBy<HomeMuscleGauge>({ it.score == null }, { it.score ?: 0 }))
+/** Keep the authored order; a name does not imply a recovery measurement. */
+internal fun homeMuscleOrder(muscles: List<HomeSessionMuscle>): List<HomeSessionMuscle> =
+    muscles.distinctBy { it.name }
 
 /**
  * Recuerda la última fila de chips que ya trazó. El arco crece al verla por primera vez y al cambiar de día; al volver a una fila ya
@@ -88,14 +88,14 @@ private fun Modifier.bleed(edge: Dp): Modifier = layout { measurable, constraint
  */
 @Composable
 internal fun HomeMuscleChips(
-    muscles: List<HomeMuscleGauge>,
+    muscles: List<HomeSessionMuscle>,
     onOpen: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (muscles.isEmpty()) return
     val reduced = wizardReducedMotion()
     val shown = remember(muscles) { homeMuscleOrder(muscles) }
-    val rowKey = shown.joinToString("|") { "${it.name}:${it.score}" }
+    val rowKey = shown.joinToString("|") { it.name }
     // Con `key`, cada lista nueva (otro día) recompone la fila y sus arcos empiezan de cero.
     key(rowKey) {
         val play = remember { HomeGaugeMemory.firstPlay(rowKey) && !reduced }
@@ -131,14 +131,8 @@ internal fun HomeMuscleChips(
  * centrada. Sin dato: «—» y el anillo vacío. Con [play], el arco y la cifra suben de 0 al valor en 700 ms. Sin ripple de Material.
  */
 @Composable
-private fun MuscleChip(gauge: HomeMuscleGauge, play: Boolean, onOpen: () -> Unit) {
-    val score = gauge.score
-    val target = (score ?: 0).coerceIn(0, 100) / 100f
-    val sweep = remember { Animatable(if (play && score != null) 0f else target) }
-    LaunchedEffect(Unit) {
-        if (play && score != null) sweep.animateTo(target, tween(durationMillis = 700, easing = FastOutSlowInEasing))
-    }
-    val description = if (score == null) "${gauge.name}, sin dato" else "${gauge.name}, $score %"
+private fun MuscleChip(gauge: HomeSessionMuscle, play: Boolean, onOpen: () -> Unit) {
+    val description = "Músculo previsto en la sesión: ${gauge.name}"
     Box(
         modifier = Modifier
             .defaultMinSize(minHeight = 48.dp)
@@ -159,8 +153,6 @@ private fun MuscleChip(gauge: HomeMuscleGauge, play: Boolean, onOpen: () -> Unit
                 .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            MuscleRing(fraction = { sweep.value }, hasData = score != null)
-            Spacer(Modifier.width(6.dp))
             Text(
                 text = gauge.name,
                 style = KpknType.caption,
@@ -169,62 +161,8 @@ private fun MuscleChip(gauge: HomeMuscleGauge, play: Boolean, onOpen: () -> Unit
                 softWrap = false,
                 overflow = TextOverflow.Ellipsis,
             )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = if (score == null) "—" else "${(sweep.value * 100f).roundToInt()} %",
-                style = HomeTypography.chipValue,
-                color = if (score == null) WizardColors.textFaint else WizardColors.text,
-                maxLines = 1,
-                softWrap = false,
-            )
+
         }
     }
 }
 
-/** El mini anillo de 16 dp: pista luminosa, degradado Músculos (#C7704A → #FFC2A3) y halo suave. Sin dato, solo la pista. */
-@Composable
-private fun MuscleRing(fraction: () -> Float, hasData: Boolean) {
-    Canvas(Modifier.size(16.dp)) {
-        val stroke = 2.5.dp.toPx()
-        val arcSize = Size(size.width - stroke, size.height - stroke)
-        val topLeft = Offset(stroke / 2f, stroke / 2f)
-        drawArc(
-            color = Color(0xFF151515),
-            startAngle = 0f,
-            sweepAngle = 360f,
-            useCenter = false,
-            topLeft = topLeft,
-            size = arcSize,
-            style = Stroke(width = stroke),
-        )
-        val sweep = if (hasData) fraction() else 0f
-        if (sweep > 0f) {
-            val sweepDeg = 360f * sweep
-            // Halo detrás del arco
-            drawArc(
-                color = Color(0xFFF49A6E).copy(alpha = 0.22f),
-                startAngle = 0f,
-                sweepAngle = sweepDeg,
-                useCenter = false,
-                topLeft = topLeft,
-                size = arcSize,
-                style = Stroke(width = stroke + 2.dp.toPx(), cap = StrokeCap.Round),
-            )
-            // Arco con degradado horizontal #C7704A → #FFC2A3
-            val brush = Brush.horizontalGradient(
-                colors = listOf(Color(0xFFC7704A), Color(0xFFFFC2A3)),
-                startX = topLeft.x,
-                endX = topLeft.x + arcSize.width,
-            )
-            drawArc(
-                brush = brush,
-                startAngle = 0f,
-                sweepAngle = sweepDeg,
-                useCenter = false,
-                topLeft = topLeft,
-                size = arcSize,
-                style = Stroke(width = stroke, cap = StrokeCap.Round),
-            )
-        }
-    }
-}

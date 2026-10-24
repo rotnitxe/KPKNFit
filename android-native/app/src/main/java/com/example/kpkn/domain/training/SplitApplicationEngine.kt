@@ -76,9 +76,7 @@ data class SplitTemplateSessionPreview(
 
 data class PrebuiltWeekPreview(
     val days: List<SplitTemplateSessionPreview>,
-    val weeklyDrain: PredictedDrain = PredictedDrain(0, 0, 0),
     val warnings: List<String> = emptyList(),
-    val exceedsWeeklyBudget: Boolean = false,
 )
 
 data class SplitImpactSummary(
@@ -381,9 +379,7 @@ object SplitApplicationEngine {
                     },
                 )
             },
-            weeklyDrain = plan.weeklyDrain,
             warnings = plan.warnings,
-            exceedsWeeklyBudget = plan.exceedsWeeklyBudget,
         )
     }
 
