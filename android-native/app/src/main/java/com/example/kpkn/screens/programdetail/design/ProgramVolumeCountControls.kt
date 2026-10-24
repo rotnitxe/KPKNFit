@@ -25,8 +25,6 @@ import com.example.kpkn.ui.design.KpknType
 fun ProgramVolumeCountControls(
     indirectMode: Int,
     onIndirectMode: (Int) -> Unit,
-    adjustByIntensity: Boolean,
-    onAdjustByIntensity: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -49,18 +47,6 @@ fun ProgramVolumeCountControls(
                     onClick = { onIndirectMode(mode) },
                 )
             }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = "Ajustar por fatiga",
-                style = KpknType.bodyStrong,
-                color = WizardColors.text,
-                modifier = Modifier.weight(1f),
-            )
-            KpknSwitch(checked = adjustByIntensity, onCheckedChange = onAdjustByIntensity)
         }
     }
 }

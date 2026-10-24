@@ -49,8 +49,6 @@ object SessionAnalysisContextBuilder {
     const val MIN_COMPARABLE_SESSIONS = 6
 
     /** Umbrales de «movimiento principal» por heurística, solo cuando el plan no marca ninguno de forma explícita. */
-    private const val MAIN_MIN_EFC = 2.5
-    private const val MAIN_MIN_AXIAL = 0.7
     private const val MAIN_HEURISTIC_COUNT = 2
 
     private val PROTECTED_SLOTS = setOf(SlotRole.T1_MAIN, SlotRole.SPEED, SlotRole.TECHNIQUE)
@@ -108,8 +106,7 @@ object SessionAnalysisContextBuilder {
         } else {
             strength.filter { ex ->
                 val info = SessionAssistantEngine.resolveExerciseInfo(ex, input.exerciseIndex) ?: return@filter false
-                info.articulationType == "MULTIARTICULAR" &&
-                    ((info.efc ?: 0.0) >= MAIN_MIN_EFC || (info.axialLoadFactor ?: 0.0) >= MAIN_MIN_AXIAL)
+                info.articulationType == "MULTIARTICULAR"
             }.take(MAIN_HEURISTIC_COUNT).map { it.id }.toSet()
         }
         return exercises.associate { ex ->

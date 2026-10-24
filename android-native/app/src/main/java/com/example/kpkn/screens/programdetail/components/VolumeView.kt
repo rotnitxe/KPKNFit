@@ -34,7 +34,6 @@ import com.example.kpkn.domain.training.DiscomfortEntry
 import com.example.kpkn.domain.training.ExerciseDiscomfortAssociationEntry
 import com.example.kpkn.domain.training.ProgramAnalyticsReport
 import com.example.kpkn.domain.training.VolumeCalculator
-import com.example.kpkn.screens.programdetail.MuscleOvertrainingStatus
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeAssociation
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeBreakdown
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeCalibrationInvite
@@ -119,14 +118,12 @@ fun VolumeView(
     programDiscomforts: List<DiscomfortEntry>,
     exerciseDiscomfortAssociations: List<ExerciseDiscomfortAssociationEntry>,
     analyticsReport: ProgramAnalyticsReport? = null,
-    muscleCdbsStatus: Map<String, MuscleOvertrainingStatus> = emptyMap(),
     programLogs: List<WorkoutLog> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val volumeScopeOptions = remember(program) { buildVolumeScopeOptions(program) }
     var selectedVolumeScopeId by rememberSaveable(program.id) { mutableStateOf("") }
     var indirectMode by rememberSaveable(program.id) { mutableStateOf(0) }
-    var adjustVolumeByIntensity by rememberSaveable(program.id) { mutableStateOf(false) }
     LaunchedEffect(volumeScopeOptions) {
         if (volumeScopeOptions.none { it.id == selectedVolumeScopeId }) {
             selectedVolumeScopeId = volumeScopeOptions.firstOrNull()?.id.orEmpty()
@@ -135,13 +132,12 @@ fun VolumeView(
     val selectedVolumeScope = remember(volumeScopeOptions, selectedVolumeScopeId) {
         volumeScopeOptions.firstOrNull { it.id == selectedVolumeScopeId } ?: volumeScopeOptions.firstOrNull()
     }
-    val canonicalVolumes = remember(program, selectedVolumeScope, indirectMode, adjustVolumeByIntensity) {
+    val canonicalVolumes = remember(program, selectedVolumeScope, indirectMode) {
         mergeCanonicalVolumeCatalog(
             calculateDisplayWeeklyMuscleVolume(
                 weeks = selectedVolumeScope?.weeks ?: program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks },
                 averageByWeek = selectedVolumeScope?.averageByWeek ?: false,
                 indirectMode = indirectMode,
-                adjustByIntensity = adjustVolumeByIntensity
             )
         )
     }
@@ -181,7 +177,7 @@ fun VolumeView(
             .groupBy { VolumeCalculator.normalizeCanonicalMuscleGroup(it.key) }
             .mapValues { (_, entries) -> entries.sumOf { it.value }.toDouble() }
     }
-    val muscleRows = remember(canonicalVolumes, personalizedTargets, isVolumeCalibrated, completedVolumes, muscleCdbsStatus, priorityByMuscle) {
+    val muscleRows = remember(canonicalVolumes, personalizedTargets, isVolumeCalibrated, completedVolumes, priorityByMuscle) {
         val fallbackMax = max(canonicalVolumes.maxOfOrNull { it.weeklySets } ?: 0.0, 1.0)
         canonicalVolumes
             .sortedWith(
@@ -192,15 +188,12 @@ fun VolumeView(
                 val target = if (isVolumeCalibrated) personalizedTargets[entry.muscleName] else null
                 val zones = target?.let { ProgramVolumeZones(it.minEffective, it.maxAdaptive, it.maxRecoverable) }
                 val canonicalName = VolumeCalculator.normalizeCanonicalMuscleGroup(entry.muscleName)
-                val status = muscleCdbsStatus[canonicalName]
                 val completed = completedVolumes.find { it.muscleName == canonicalName }?.weeklySets ?: 0.0
                 ProgramVolumeMuscle(
                     name = entry.muscleName,
                     sets = entry.weeklySets,
                     zones = zones,
                     real = completed.takeIf { it > 0.0 },
-                    overtrained = status?.isOvertrained == true,
-                    overreaching = status?.isOverreaching == true,
                     scaleMax = if (zones != null) {
                         max(entry.weeklySets, zones.maxRecoverable.toDouble()).coerceAtLeast(1.0)
                     } else {
@@ -211,7 +204,7 @@ fun VolumeView(
     }
 
     // El desglose solo se calcula para la fila desplegada.
-    val breakdown = remember(expandedMuscleName, selectedVolumeScope, indirectMode, adjustVolumeByIntensity) {
+    val breakdown = remember(expandedMuscleName, selectedVolumeScope, indirectMode) {
         expandedMuscleName?.let { muscle ->
             val weeks = selectedVolumeScope?.weeks ?: emptyList()
             val averageByWeek = selectedVolumeScope?.averageByWeek ?: false
@@ -225,7 +218,6 @@ fun VolumeView(
                     exerciseIndex = catalogExerciseIndex(),
                     divisor = divisor,
                     indirectMode = indirectMode,
-                    adjustByIntensity = adjustVolumeByIntensity,
                 ).map { sub ->
                     ProgramVolumeSubMuscle(
                         name = sub.subMuscleName,
@@ -305,8 +297,6 @@ fun VolumeView(
                 ProgramVolumeCountControls(
                     indirectMode = indirectMode,
                     onIndirectMode = { indirectMode = it },
-                    adjustByIntensity = adjustVolumeByIntensity,
-                    onAdjustByIntensity = { adjustVolumeByIntensity = it },
                 )
             },
         )
@@ -582,21 +572,14 @@ private fun com.example.kpkn.data.models.ExerciseSet.effectiveTargetRpe(): Doubl
     return 8.0
 }
 
-private fun countDisplaySets(exerciseSets: List<com.example.kpkn.data.models.ExerciseSet>, adjustByIntensity: Boolean): Double {
+private fun countDisplaySets(exerciseSets: List<com.example.kpkn.data.models.ExerciseSet>): Double {
     var total = 0.0
     val activeSets = exerciseSets.filterNot { it.isIneffective }
     val counted = activeSets.filter { set ->
         ((set.completedReps ?: set.targetReps ?: 0) > 0 || (set.weight ?: 0.0) > 0.0)
     }
     val targetList = if (counted.isEmpty()) activeSets else counted
-    targetList.forEach { set ->
-        val mult = if (adjustByIntensity) {
-            com.example.kpkn.domain.auge.AugeClassifiers.getEffectiveVolumeMultiplier(set.effectiveTargetRpe())
-        } else {
-            1.0
-        }
-        total += mult
-    }
+    total = targetList.size.toDouble()
     return total
 }
 
@@ -604,7 +587,6 @@ private fun calculateDisplayWeeklyMuscleVolume(
     weeks: List<ProgramWeek>,
     averageByWeek: Boolean,
     indirectMode: Int,
-    adjustByIntensity: Boolean
 ): List<CanonicalMuscleVolumeEntry> {
     val sessions = weeks.flatMap { it.sessions }
     val divisor = if (averageByWeek) weeks.size.coerceAtLeast(1).toDouble() else 1.0
@@ -613,7 +595,6 @@ private fun calculateDisplayWeeklyMuscleVolume(
         exerciseList = catalogExerciseIndex().values.toList(),
         aliases = catalogSearchRedirects(),
         divisor = divisor,
-        adjustByIntensity = adjustByIntensity,
     )
 
     return roleSeparated.map { (muscleName, volume) ->
@@ -647,7 +628,6 @@ private fun calculateSubMuscleBreakdown(
     exerciseIndex: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo>,
     divisor: Double,
     indirectMode: Int,
-    adjustByIntensity: Boolean
 ): List<SubMuscleContribution> {
     val targetSubMuscles = when (canonicalMuscle) {
         "Deltoides" -> listOf("Deltoides Anterior", "Deltoides Lateral", "Deltoides Posterior")
@@ -662,7 +642,7 @@ private fun calculateSubMuscleBreakdown(
 
     for (session in sessions) {
         for (exercise in session.allExercises()) {
-            val effectiveSets = countDisplaySets(exercise.sets, adjustByIntensity)
+            val effectiveSets = countDisplaySets(exercise.sets)
             if (effectiveSets <= 0.0) continue
             val musclesToCount = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, exerciseIndex)
 

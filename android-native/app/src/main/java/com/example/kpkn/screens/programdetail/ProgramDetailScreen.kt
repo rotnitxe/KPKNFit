@@ -974,7 +974,6 @@ private fun TrainingPanel(
             StructureSubTab.VOLUMEN -> {
                 val progLogs by viewModel.programLogs.collectAsState()
                 val isActiveProg by viewModel.isActiveProgram.collectAsState()
-                val muscleCdbs by viewModel.muscleCdbsStatus.collectAsState()
                 val discomforts by viewModel.programDiscomforts.collectAsState()
                 val exDiscomfortAssoc by viewModel.exerciseDiscomfortAssociations.collectAsState()
                 val analyticsReport = remember(program, progLogs) {
@@ -1020,7 +1019,6 @@ private fun TrainingPanel(
                     programDiscomforts = discomforts,
                     exerciseDiscomfortAssociations = exDiscomfortAssoc,
                     analyticsReport = analyticsReport,
-                    muscleCdbsStatus = muscleCdbs,
                     programLogs = progLogs,
                 )
             }

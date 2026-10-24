@@ -18,7 +18,6 @@ import kotlin.math.roundToInt
 data class ProgramAnalyticsReport(
     val coverage: CoverageAnalytics,
     val balance: BalanceAnalytics,
-    val fatigue: FatigueAnalytics,
     val efficiency: EfficiencyAnalytics,
     val adherence: AdherenceAnalytics,
     val progression: List<ExerciseProgressionAnalytics>,
@@ -48,25 +47,11 @@ data class BalanceAnalytics(
     val notes: List<String>,
 )
 
-data class FatigueAnalytics(
-    val structures: List<NamedMetric>,
-    val residualHeatmap: List<MuscleMetric>,
-    val residualCalendar: List<NamedMetric>,
-    val recoveryDebtByMuscle: List<MuscleMetric>,
-    val readinessByMuscle: List<MuscleMetric>,
-    val axialLoad: Double,
-    val gripDemand: Double,
-    val lumbarFatigue: Double,
-    val anteriorShoulderStress: Double,
-    val sourceSummary: String,
-)
-
 data class EfficiencyAnalytics(
     val densitySetsPerHour: Double,
     val sessionDensity: List<NamedMetric>,
     val paretoTopExercises: List<NamedMetric>,
     val topStimulusShare: Double,
-    val topFatiguingExercises: List<NamedMetric>,
     val restCompliance: RatioMetric,
     val blockIdentity: String,
 )
@@ -86,7 +71,6 @@ data class ExerciseProgressionAnalytics(
     val lastE1rm: Double?,
     val deltaE1rm: Double?,
     val sparkline: List<Double>,
-    val stagnationRisk: Double,
 )
 
 data class ProgramDiagnostic(
@@ -135,17 +119,6 @@ object ProgramAnalyticsEngine {
 
     private val trackedMuscles = VolumeCalculator.standardVolumeMuscles.toList()
 
-    private val tendonStructureKeywords = mapOf(
-        "Rodilla" to listOf("cuadriceps", "sentadilla", "prensa", "zancada", "sissy"),
-        "Cadera" to listOf("glute", "peso muerto", "hip thrust", "bisagra"),
-        "Lumbar" to listOf("erector", "lumbar", "peso muerto", "rdl", "pendlay", "remo"),
-        "Hombro anterior" to listOf("press", "pectoral", "deltoides anterior"),
-        "Codo" to listOf("biceps", "triceps", "curl", "extension"),
-        "Muñeca" to listOf("agarre", "antebrazo", "curl", "remo"),
-        "Tendón rotuliano" to listOf("cuadriceps", "sentadilla", "sissy", "prensa"),
-        "Aquiles" to listOf("pantorrilla", "gemelo", "soleo", "salto"),
-    )
-
     fun analyze(
         program: Program,
         logs: List<WorkoutLog>,
@@ -157,16 +130,14 @@ object ProgramAnalyticsEngine {
 
         val coverage = buildCoverage(plannedRows)
         val balance = buildBalance(plannedRows)
-        val fatigue = buildFatigue(plannedRows, completedRows)
         val efficiency = buildEfficiency(plannedRows, completedRows, logs)
         val adherence = buildAdherence(plannedRows, logs)
         val progression = buildProgression(completedRows)
-        val diagnostics = buildDiagnostics(coverage, fatigue, adherence, progression)
+        val diagnostics = buildDiagnostics(coverage, adherence, progression)
 
         return ProgramAnalyticsReport(
             coverage = coverage,
             balance = balance,
-            fatigue = fatigue,
             efficiency = efficiency,
             adherence = adherence,
             progression = progression,
@@ -325,65 +296,6 @@ object ProgramAnalyticsEngine {
         )
     }
 
-    private fun buildFatigue(
-        plannedRows: List<PlannedExerciseRow>,
-        completedRows: List<CompletedExerciseRow>,
-    ): FatigueAnalytics {
-        val sourceRows = if (completedRows.isNotEmpty()) completedRows.map { it.asFatigueSource() } else plannedRows.map { it.asFatigueSource() }
-        val structures = tendonStructureKeywords.keys.associateWith { 0.0 }.toMutableMap()
-        val muscleStress = mutableMapOf<String, Double>()
-        val dayStress = mutableMapOf<String, Double>()
-        var axial = 0.0
-        var grip = 0.0
-        var lumbar = 0.0
-        var shoulder = 0.0
-
-        sourceRows.forEach { row ->
-            val info = row.info ?: return@forEach
-            val sets = row.sets
-            val intensity = row.rpe?.let { (it / 8.0).coerceIn(0.7, 1.35) } ?: 1.0
-            val localStress = sets * (info.efc ?: 2.5) * intensity
-            val systemic = sets * (info.cnc ?: 2.5) * intensity
-            val structural = sets * (info.ssc ?: 0.5) * intensity
-            row.dayLabel?.let { day -> dayStress[day] = dayStress.orZero(day) + localStress + systemic + structural }
-            axial += sets * (info.axialLoadFactor ?: 0.0)
-            if (info.strapsRecommended == true || info.involvedMuscles.any { it.muscle.normalizeForAnalytics().contains("antebrazo") }) {
-                grip += sets * 1.0
-            }
-            row.muscles.forEach { muscle ->
-                val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
-                val contribution = resolveMuscleVolumeContribution(muscle)
-                muscleStress[canonical] = muscleStress.orZero(canonical) + localStress * contribution
-                if (canonical == "Erectores Espinales") lumbar += structural + localStress * contribution
-                if (canonical == "Pectorales" || muscle.emphasis.normalizeForAnalytics().contains("anterior")) {
-                    shoulder += structural * 0.6 + systemic * 0.12
-                }
-            }
-            val haystack = "${info.name} ${info.force} ${info.chain} ${info.involvedMuscles.joinToString(" ") { it.muscle }}"
-                .normalizeForAnalytics()
-            tendonStructureKeywords.forEach { (structure, keywords) ->
-                if (keywords.any { haystack.contains(it.normalizeForAnalytics()) }) {
-                    structures[structure] = structures.orZero(structure) + structural + (info.ttc ?: 1.0) * sets
-                }
-            }
-        }
-
-        return FatigueAnalytics(
-            structures = structures.toNamedMetrics("estrés estimado por estructura articular/tendinosa"),
-            residualHeatmap = muscleStress.toMuscleMetrics("fatiga local residual estimada"),
-            residualCalendar = dayStress.toNamedMetrics("nube de fatiga por día o sesión"),
-            recoveryDebtByMuscle = muscleStress.mapValues { (_, value) -> (value / 10.0).coerceAtMost(100.0) }
-                .toMuscleMetrics("deuda de recuperación estimada"),
-            readinessByMuscle = muscleStress.mapValues { (_, value) -> (100.0 - value / 10.0).coerceIn(0.0, 100.0) }
-                .toMuscleMetrics("readiness estimado desde estrés residual"),
-            axialLoad = axial.round1(),
-            gripDemand = grip.round1(),
-            lumbarFatigue = lumbar.round1(),
-            anteriorShoulderStress = shoulder.round1(),
-            sourceSummary = if (completedRows.isNotEmpty()) "Usa logs reales completados." else "Usa plan porque no hay logs suficientes.",
-        )
-    }
-
     private fun buildEfficiency(
         plannedRows: List<PlannedExerciseRow>,
         completedRows: List<CompletedExerciseRow>,
@@ -406,15 +318,6 @@ object ProgramAnalyticsEngine {
             .take(5)
         val totalStimulus = exerciseVolumes.sumOf { it.value }.takeIf { it > 0.0 } ?: 1.0
         val topStimulusShare = exerciseVolumes.take(max(1, (exerciseVolumes.size * 0.2).roundToInt())).sumOf { it.value } / totalStimulus
-        val fatiguing = plannedRows
-            .mapNotNull { row ->
-                val info = row.info ?: return@mapNotNull null
-                val stress = row.exercise.effectiveSetCount() * ((info.efc ?: 2.5) + (info.cnc ?: 2.5) + (info.ssc ?: 0.5))
-                info.id to info.name to stress
-            }
-            .map { (pair, stress) -> NamedMetric(pair.first, pair.second, stress.round1(), "EFC + CNC + SSC por series planificadas.") }
-            .sortedByDescending { it.value }
-            .take(5)
         val actualRest = completedRows.flatMap { row -> row.exercise.sets.map { row.exercise.restTime.toDouble() } }.averageOrNull()
         val recommendedRest = completedRows.mapNotNull { it.info?.averageRestSeconds?.toDouble() }.averageOrNull()
 
@@ -423,7 +326,6 @@ object ProgramAnalyticsEngine {
             sessionDensity = densityBySession,
             paretoTopExercises = exerciseVolumes,
             topStimulusShare = topStimulusShare.round2(),
-            topFatiguingExercises = fatiguing,
             restCompliance = ratio(
                 "Real",
                 actualRest ?: 0.0,
@@ -492,8 +394,6 @@ object ProgramAnalyticsEngine {
                 if (values.isEmpty()) return@mapNotNull null
                 val first = values.first()
                 val last = values.last()
-                val recent = values.takeLast(4)
-                val stagnation = if (recent.size >= 3 && recent.maxOrNull()!! - recent.minOrNull()!! < 1.0) 0.85 else 0.2
                 ExerciseProgressionAnalytics(
                     exerciseId = id,
                     exerciseName = ordered.last().exercise.exerciseName,
@@ -501,14 +401,12 @@ object ProgramAnalyticsEngine {
                     lastE1rm = last.round1(),
                     deltaE1rm = (last - first).round1(),
                     sparkline = values.map { it.round1() },
-                    stagnationRisk = stagnation,
                 )
             }
             .sortedByDescending { abs(it.deltaE1rm ?: 0.0) }
 
     private fun buildDiagnostics(
         coverage: CoverageAnalytics,
-        fatigue: FatigueAnalytics,
         adherence: AdherenceAnalytics,
         progression: List<ExerciseProgressionAnalytics>,
     ): List<ProgramDiagnostic> = buildList {
@@ -522,42 +420,12 @@ object ProgramAnalyticsEngine {
                 )
             )
         }
-        if (fatigue.lumbarFatigue >= 18.0) {
-            add(
-                ProgramDiagnostic(
-                    id = "high-lumbar-fatigue",
-                    title = "Fatiga lumbar alta",
-                    detail = "La suma de bisagras, remos pesados y carga axial concentra estrés lumbar.",
-                    severity = DiagnosticSeverity.CRITICAL,
-                )
-            )
-        }
-        if (fatigue.anteriorShoulderStress >= 14.0) {
-            add(
-                ProgramDiagnostic(
-                    id = "anterior-shoulder-stress",
-                    title = "Estrés de hombro anterior",
-                    detail = "El volumen de presses y pectoral eleva el estrés anterior.",
-                    severity = DiagnosticSeverity.WARNING,
-                )
-            )
-        }
         if (adherence.completedExerciseRatio < 0.7) {
             add(
                 ProgramDiagnostic(
                     id = "execution-first",
                     title = "Primero adherencia",
                     detail = adherence.diagnosis,
-                    severity = DiagnosticSeverity.WARNING,
-                )
-            )
-        }
-        progression.filter { it.stagnationRisk >= 0.8 }.take(3).forEach { item ->
-            add(
-                ProgramDiagnostic(
-                    id = "stagnation-${item.exerciseId}",
-                    title = "Riesgo de estancamiento",
-                    detail = "${item.exerciseName}: e1RM reciente casi plano.",
                     severity = DiagnosticSeverity.WARNING,
                 )
             )
@@ -577,32 +445,6 @@ object ProgramAnalyticsEngine {
         val exercise: CompletedExercise,
         val info: ExerciseMuscleInfo?,
     )
-
-    private data class FatigueSourceRow(
-        val sets: Double,
-        val rpe: Double?,
-        val dayLabel: String?,
-        val info: ExerciseMuscleInfo?,
-        val muscles: List<InvolvedMuscle>,
-    )
-
-    private fun PlannedExerciseRow.asFatigueSource(): FatigueSourceRow =
-        FatigueSourceRow(
-            sets = exercise.effectiveSetCount().toDouble(),
-            rpe = exercise.sets.mapNotNull { it.targetRPE }.averageOrNull(),
-            dayLabel = dayOfWeek?.let(::dayLabel) ?: sessionName,
-            info = info,
-            muscles = effectiveVolumeMuscles(exercise.effectiveMuscles, info),
-        )
-
-    private fun CompletedExerciseRow.asFatigueSource(): FatigueSourceRow =
-        FatigueSourceRow(
-            sets = exercise.sets.count { !it.skipped }.toDouble(),
-            rpe = exercise.sets.mapNotNull { it.rpe }.averageOrNull(),
-            dayLabel = log.sessionName.ifBlank { log.date.take(10) },
-            info = info,
-            muscles = effectiveVolumeMuscles(exercise.effectiveMuscles, info),
-        )
 
     private fun effectiveVolumeMuscles(
         effectiveMuscles: List<InvolvedMuscle>?,

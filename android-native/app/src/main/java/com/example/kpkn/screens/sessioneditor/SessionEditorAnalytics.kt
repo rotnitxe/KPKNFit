@@ -175,14 +175,7 @@ internal fun countDisplaySets(exerciseSets: List<com.example.kpkn.data.models.Ex
         ((set.completedReps ?: set.plannedRepAnchor() ?: 0) > 0 || (set.weight ?: 0.0) > 0.0)
     }
     val targetList = if (counted.isEmpty()) activeSets else counted
-    targetList.forEach { set ->
-        val mult = if (adjustByIntensity) {
-            com.example.kpkn.domain.auge.AugeClassifiers.getEffectiveVolumeMultiplier(set.editorEffectiveTargetRpe())
-        } else {
-            1.0
-        }
-        total += mult
-    }
+    total = targetList.size.toDouble()
     return total
 }
 

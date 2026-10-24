@@ -11,9 +11,7 @@ import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
-import com.example.kpkn.domain.auge.AugeClassifiers
 
 data class RoleSeparatedMuscleVolume(
     val directSets: Double = 0.0,
@@ -244,22 +242,7 @@ object VolumeCalculator {
         sessions.flatMap { it.allExercises() }.forEach { exercise ->
             val effectiveSets = countEffectiveSets(exercise.sets)
             if (effectiveSets <= 0) return@forEach
-            val setWeight = if (adjustByIntensity) {
-                exercise.sets.filterNot { it.isIneffective || it.isEmptySlot }
-                    .sumOf { set ->
-                        val rpe = when {
-                            set.isFailure || set.intensityMode == com.example.kpkn.data.models.IntensityMode.FAILURE -> 10.0
-                            set.targetRPE != null -> set.targetRPE.coerceIn(1.0, 10.0)
-                            set.targetRIR != null -> (10 - set.targetRIR).toDouble().coerceIn(1.0, 10.0)
-                            else -> 8.0
-                        }
-                        AugeClassifiers.getEffectiveVolumeMultiplier(rpe)
-                    }
-                    .takeIf { it > 0.0 }
-                    ?: effectiveSets.toDouble()
-            } else {
-                effectiveSets.toDouble()
-            }
+            val setWeight = effectiveSets.toDouble()
             val muscles = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, baseIndex)
             if (muscles.isEmpty()) return@forEach
 
@@ -527,7 +510,7 @@ object VolumeCalculator {
                                 targetReps = set.reps,
                                 weight = set.weight,
                                 completedReps = if (set.skipped) 0 else set.reps,
-                                isIneffective = set.isWarmup || !AugeFatigueEngine.isSetEffective(set),
+                                isIneffective = set.isWarmup || set.skipped,
                             )
                         }
                     )
