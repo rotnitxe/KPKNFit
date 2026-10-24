@@ -13,11 +13,11 @@ data class WorkoutLog(
     val date: String, // ISO-8601: "2025-03-23T10:00:00.000Z"
     val durationMinutes: Int,
     val completedExercises: List<CompletedExercise> = emptyList(),
-    val fatigueLevel: Int? = null,         // 1–10
+    val fatigueLevel: Int? = null,         // Historical original declaration only; never session RPE or readiness.
     val discomforts: List<String> = emptyList(),
     val notes: String? = null,
     val totalVolume: Double = 0.0,         // kg × reps total
-    /** Canonical muscular impact captured at finish; nullable for legacy logs. */
+    /** Optional independent historical energy estimate; retired methods are purged at import/export. */
     val energySummary: SessionEnergySummary? = null,
     /** Specialized observations/results of this activity; never extra kcal or extra workouts. */
     val sportDocuments: List<com.example.kpkn.domain.multisport.tracking.SportTrackingDocument> = emptyList(),
@@ -60,7 +60,7 @@ data class WorkoutLog(
      * para completar semanas/ciclos del run cíclico restaurado.
      */
     val calendarBreakId: String? = null,
-    /** Rings just before this session (or at finish without this log). */
+    /** Optional explicit global effort report, with its original protocol; never inferred from sets. */
     val sessionEffortRpe: Double? = null,
     val sessionEffortProtocol: String? = null,
 )
