@@ -21,7 +21,7 @@ import java.nio.file.Files
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest=Config.NONE,sdk=[34],application=Application::class)
 class TrainingMigrationRoomValidationTest {
-    @Test fun populated28_29_30_32OpenWithFullRoom33IdentityAndPreserveUsefulData() = runBlocking {
+    @Test fun populated28_29_30_32OpenWithFullRoom34IdentityAndPreserveUsefulData() = runBlocking {
         for(version in listOf(28,29,30,32)) {
             val dir=Files.createTempDirectory("post-rings-synthetic-").toFile()
             val context=object: ContextWrapper(ApplicationProvider.getApplicationContext<Context>()) {
@@ -63,10 +63,10 @@ class TrainingMigrationRoomValidationTest {
                 old.version=version
             }
             val db=Room.databaseBuilder(context,KpknDatabase::class.java,"test.db").allowMainThreadQueries()
-                .addMigrations(videoAnalysisMigration(28),CALIBRATION_MIGRATION_29_30,TRAINING_OBSERVATIONS_30_31,RETIRE_DERIVED_TRAINING_31_32,RETIRE_CATALOG_COEFFICIENTS_32_33).build()
+                .addMigrations(videoAnalysisMigration(28),CALIBRATION_MIGRATION_29_30,TRAINING_OBSERVATIONS_30_31,RETIRE_DERIVED_TRAINING_31_32,RETIRE_CATALOG_COEFFICIENTS_32_33,RETIRE_PENDING_TRAINING_PROPOSALS_33_34).build()
             try {
                 val sqlite=db.openHelper.writableDatabase // Full Room delegate validates the final schema, not only SQL execution.
-                assertEquals(33,sqlite.version)
+                assertEquals(34,sqlite.version)
                 sqlite.query("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'auge_%'").use { assertEquals(0,it.count) }
                 sqlite.query("SELECT data FROM workout_logs WHERE id='log'").use { c ->
                     assertTrue(c.moveToFirst());val log=JSONObject(c.getString(0))

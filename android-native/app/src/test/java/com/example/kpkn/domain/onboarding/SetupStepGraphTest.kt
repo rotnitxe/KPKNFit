@@ -326,7 +326,7 @@ class SetupStepGraphTest {
         // Identidad de género, material en casa y arranque de Rings no migran.
         assertNull(SetupStepGraph.stepForQuestion(WizChatQuestionId.P_GENDER))
         assertNull(SetupStepGraph.stepForQuestion(WizChatQuestionId.T_HOME_EQUIPMENT))
-        assertNull(SetupStepGraph.stepForQuestion(WizChatQuestionId.R_START))
+
         // Los pasos nuevos no pretenden tener copia conversacional.
         assertNull(SetupStepGraph.questionForStep(SetupStepId.PRIORITIES))
         assertNull(SetupStepGraph.questionForStep(SetupStepId.NUTRITION_RHYTHM))
@@ -506,8 +506,7 @@ class SetupStepGraphTest {
             WizChatQuestionId.P_GENDER, record(WizChatQuestionId.P_GENDER, WizChatAnswerKind.CHOICE, text = "Mujer")))
         assertFalse(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.T_HOME_EQUIPMENT, record(WizChatQuestionId.T_HOME_EQUIPMENT, WizChatAnswerKind.MULTI_CHOICE, values = listOf("Bandas"))))
-        assertFalse(SetupStepGraph.isExplicitLegacy(
-            WizChatQuestionId.R_START, record(WizChatQuestionId.R_START, WizChatAnswerKind.ACTION, text = "Calibrar")))
+
         // Un número sin valor nunca cuenta como respuesta declarada.
         assertFalse(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.P_AGE, record(WizChatQuestionId.P_AGE, WizChatAnswerKind.NUMBER)))
@@ -552,10 +551,8 @@ class SetupStepGraphTest {
         assertFalse(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.T_WEEKDAYS, record(WizChatQuestionId.T_WEEKDAYS, WizChatAnswerKind.MULTI_CHOICE, values = listOf("Finde"))))
         // Retired conversation answers are preserved as originals, never promoted to current wizard declarations.
-        assertFalse(SetupStepGraph.isExplicitLegacy(
-            WizChatQuestionId.R_DISCOMFORT, record(WizChatQuestionId.R_DISCOMFORT, WizChatAnswerKind.MULTI_CHOICE, values = listOf("Rodilla anterior"))))
-        assertFalse(SetupStepGraph.isExplicitLegacy(
-            WizChatQuestionId.R_DISCOMFORT, record(WizChatQuestionId.R_DISCOMFORT, WizChatAnswerKind.MULTI_CHOICE, values = listOf("Algo raro"))))
+
+
         // T_PLAN responde con el id del candidato generado: explícito por declaración.
         assertTrue(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.T_PLAN, record(WizChatQuestionId.T_PLAN, WizChatAnswerKind.CHOICE, text = "plan-abc")))
@@ -603,10 +600,7 @@ class SetupStepGraphTest {
         assertFalse(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.T_WEEKDAYS,
             record(WizChatQuestionId.T_WEEKDAYS, WizChatAnswerKind.MULTI_CHOICE, values = listOf("Lunes", "Finde"))))
-        assertFalse(SetupStepGraph.isExplicitLegacy(
-            WizChatQuestionId.R_DISCOMFORT,
-            record(WizChatQuestionId.R_DISCOMFORT, WizChatAnswerKind.MULTI_CHOICE,
-                values = listOf("Rodilla anterior", "Algo raro"))))
+
         // Valores 100% mapeados o lista vacía sin respuesta.
         assertTrue(SetupStepGraph.isExplicitLegacy(
             WizChatQuestionId.T_WEEKDAYS,

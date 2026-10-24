@@ -55,6 +55,9 @@ object LegacyTrainingBackup {
         return JsonObject(root.filterKeys { it !in sections && it != "adaptiveCache" }.toMutableMap().apply {
             put("trainingObservations", json.encodeToJsonElement(ListSerializer(TrainingObservationEntity.serializer()), observations.distinctBy { it.sourceIdentity }))
             drafts?.let { put("setupDrafts", JsonArray(it)) }
+            root["programs"]?.let { programs ->
+                put("programs", JsonArray(programs.jsonArray.map { json.parseToJsonElement(LegacyProgramProposalImport.program(it.toString())) }))
+            }
             root["customExercises"]?.takeIf { it != JsonNull }?.let { exercises ->
                 put("customExercises", JsonArray(exercises.jsonArray.map { json.parseToJsonElement(LegacyExerciseCoefficientImport.customExercise(it.toString())) }))
             }

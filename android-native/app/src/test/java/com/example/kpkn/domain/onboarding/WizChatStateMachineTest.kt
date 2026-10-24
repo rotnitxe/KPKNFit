@@ -90,36 +90,21 @@ class WizChatStateMachineTest {
 
     @Test
     fun partialScopesSkipUnrelatedConversations() {
-        assertEquals(WizChatQuestionId.R_START, WizChatGraph.firstFor(WizChatGraphContext(false, false)))
+        assertEquals(WizChatQuestionId.P_NAME, WizChatGraph.firstFor(WizChatGraphContext(false, false)))
         assertEquals(WizChatQuestionId.N_START, WizChatGraph.firstFor(WizChatGraphContext(false, true)))
         assertEquals(WizChatQuestionId.P_NAME, WizChatGraph.firstFor(WizChatGraphContext(true, false)))
         assertEquals(WizChatQuestionId.REVIEW, WizChatGraph.next(WizChatQuestionId.N_RESULT,
-            WizChatGraphContext(includeTraining = false, includeNutrition = true, includeRings = false)))
+            WizChatGraphContext(includeTraining = false, includeNutrition = true)))
         assertEquals(WizChatQuestionId.REVIEW, WizChatGraph.next(WizChatQuestionId.T_REVIEW,
-            WizChatGraphContext(includeTraining = true, includeNutrition = false, includeRings = false)))
+            WizChatGraphContext(includeTraining = true, includeNutrition = false)))
     }
 
     @Test
-    fun deferredNutritionAtNResultStillAdvancesToRings() {
-        assertEquals(WizChatQuestionId.R_START, WizChatGraph.next(WizChatQuestionId.N_RESULT,
-            WizChatGraphContext(includeTraining = true, includeNutrition = false, includeRings = true)))
+    fun deferredNutritionAdvancesDirectlyToReview() {
         assertEquals(WizChatQuestionId.REVIEW, WizChatGraph.next(WizChatQuestionId.N_RESULT,
-            WizChatGraphContext(includeTraining = false, includeNutrition = false, includeRings = false)))
-    }
-
-    @Test
-    fun unknownRecentTrainingDoesNotDemandAHistoryOrInventSessions() {
-        // "No lo sé" no exige historial (se saltan sesiones, recencia, tipo, intensidad
-        // y axial) pero TAMPOCO equivale a ausencia: se siguen preguntando las tres
-        // sensaciones y las molestias para permitir una calibración parcial.
-        assertEquals(WizChatQuestionId.R_FEELINGS_MUSCLE, WizChatGraph.next(WizChatQuestionId.R_RECENT,
-            WizChatGraphContext(recentTraining = null, recentTrainingUnknown = true)))
-        assertEquals(WizChatQuestionId.R_FEELINGS_MUSCLE, WizChatGraph.next(WizChatQuestionId.R_RECENT,
-            WizChatGraphContext(recentTraining = false)))
-        val unknown = WizChatGraphContext(recentTraining = null, recentTrainingUnknown = true)
-        assertEquals(WizChatQuestionId.R_FEELINGS_ENERGY, WizChatGraph.next(WizChatQuestionId.R_FEELINGS_MUSCLE, unknown))
-        assertEquals(WizChatQuestionId.R_DISCOMFORT, WizChatGraph.next(WizChatQuestionId.R_FEELINGS_STRUCTURE, unknown))
-        assertEquals(WizChatQuestionId.R_RESULT, WizChatGraph.next(WizChatQuestionId.R_DISCOMFORT, unknown))
+            WizChatGraphContext(includeTraining = true, includeNutrition = false)))
+        assertEquals(WizChatQuestionId.REVIEW, WizChatGraph.next(WizChatQuestionId.N_RESULT,
+            WizChatGraphContext(includeTraining = false, includeNutrition = false)))
     }
 
     @Test
@@ -200,8 +185,6 @@ class WizChatStateMachineTest {
         val gender = requireNotNull(WizChatGraph.question(WizChatQuestionId.P_GENDER))
         assertTrue(gender.allowSkip)
         assertTrue("Prefiero no responder" in gender.options)
-        val ringsRecent = requireNotNull(WizChatGraph.question(WizChatQuestionId.R_RECENT))
-        assertTrue("No lo sé" in ringsRecent.options)
     }
 
     @Test

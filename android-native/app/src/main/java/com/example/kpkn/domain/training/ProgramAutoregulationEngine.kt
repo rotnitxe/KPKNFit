@@ -1374,9 +1374,10 @@ object ProgramAutoregulationEngine {
         executedSessionIds: Set<String> = emptySet(),
         nowMs: Long = System.currentTimeMillis(),
     ): Program {
+        val permittedProposals = proposals.filter { it.kind in setOf(AutoregulationProposalKind.ADJUST_TM, AutoregulationProposalKind.ADJUST_XRM, AutoregulationProposalKind.PROMOTE_TM) }
         var working = program
         var profile = working.powerliftingProfile
-        proposals.filter { it.kind == AutoregulationProposalKind.ADJUST_TM || it.kind == AutoregulationProposalKind.PROMOTE_TM }
+        permittedProposals.filter { it.kind == AutoregulationProposalKind.ADJUST_TM || it.kind == AutoregulationProposalKind.PROMOTE_TM }
             .forEach { proposal ->
                 // Sin levantamiento no hay TM que ajustar: antes escalaba los cuatro (L-16, las
                 // dominadas de Texas). Una propuesta antigua sin levantamiento queda sin efecto.
@@ -1393,51 +1394,14 @@ object ProgramAutoregulationEngine {
             }
         if (profile != null) working = ExerciseTrainingMax.syncProfile(program,
             working.copy(powerliftingProfile = profile), nowMs,
-            "autoregulation:${program.runState?.runId}:$nextWeekId:" + proposals.hashCode(),
+            "autoregulation:${program.runState?.runId}:$nextWeekId:" + permittedProposals.hashCode(),
             "Propuesta de autorregulación aceptada")
 
-        // La intensidad solo se materializa si la receta efectiva de la ocurrencia
-        // objetivo contiene porcentajes; una semana RIR no debe reconstruirse sin efecto.
-        val targetWeekUsesPercent = nextWeekId?.let { targetWeekId ->
-            PlanMaterializer.weekRecipeSourceFor(working, recipe, targetWeekId)
-                ?.weekRecipe
-                ?.days
-                ?.any { day -> day.slots.any { slot -> slot.sets.any { it.percent != null } } }
-        } == true
-        val mutationProposals = if (targetWeekUsesPercent) proposals else proposals.filterNot {
-            it.kind == AutoregulationProposalKind.SCALE_WEEK_INTENSITY
-        }
-        val intensity = mutationProposals
-            .filter { it.kind == AutoregulationProposalKind.SCALE_WEEK_INTENSITY }
-            .mapNotNull { it.percentDelta }
-            .fold(1.0) { acc, delta -> acc * (1.0 + delta / 100.0) }
-        val volume = proposals
-            .filter { it.kind == AutoregulationProposalKind.SCALE_WEEK_VOLUME }
-            .mapNotNull { it.volumeFactor }
-            .fold(1.0) { acc, factor -> acc * factor }
-
-        // DEC-w3-07: una propuesta SWAP_TO_TECHNIQUE_VARIANT guardada se IGNORA aquí: no reescribe la receta
-        // efectiva ni reconstruye la semana. Antes solo disparaba una reconstrucción sin cambios (el cambio
-        // de variante nunca se implementó) y quedaba «sin efecto»; `outcomeEntries` la marca caducada con motivo.
-        val delayPeak = proposals.any { it.kind == AutoregulationProposalKind.DELAY_PEAK }
-        var recipeForNext = recipe
-        if (delayPeak) {
-            recipeForNext = recipe.copy(
-                weeks = recipe.weeks.map { week ->
-                    week.copy(
-                        days = week.days.map { day ->
-                            day.copy(
-                                slots = day.slots.map { slot ->
-                                    slot.copy(sets = slot.sets.map { set -> set.copy(percent = set.percent?.times(0.95)) })
-                                },
-                            )
-                        },
-                    )
-                },
-            )
-        }
-
-        if (nextWeekId != null && (intensity != 1.0 || volume != 1.0 || delayPeak || proposals.any { it.kind == AutoregulationProposalKind.ADJUST_TM || it.kind == AutoregulationProposalKind.PROMOTE_TM })) {
+        val intensity = 1.0
+        val volume = 1.0
+        val mutationProposals = permittedProposals
+        val recipeForNext = recipe
+        if (nextWeekId != null && (permittedProposals.any { it.kind == AutoregulationProposalKind.ADJUST_TM || it.kind == AutoregulationProposalKind.PROMOTE_TM })) {
             val beforeWeeks = working.macrocycles
             working = PlanMaterializer.rematerializeWeek(
                 program = working,
@@ -1477,7 +1441,7 @@ object ProgramAutoregulationEngine {
             }
         }
 
-        if (proposals.any { it.kind == AutoregulationProposalKind.INSERT_DELOAD }) {
+) {
             val currentBlockId = working.runState?.blockId
                 ?: working.macrocycles.firstOrNull()?.blocks?.firstOrNull()?.id
             if (currentBlockId != null) {

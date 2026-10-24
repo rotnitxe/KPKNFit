@@ -82,8 +82,4 @@ class WizChatCopyCatalogTest {
         }
     }
 
-    @Test
-    fun rResultBelongsToRingsStage() {
-        assertEquals(WizChatStage.RINGS, WizChatGraph.stageFor(WizChatQuestionId.R_RESULT))
-    }
 }

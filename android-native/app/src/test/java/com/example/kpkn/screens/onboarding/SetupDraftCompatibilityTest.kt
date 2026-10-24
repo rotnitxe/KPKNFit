@@ -160,25 +160,6 @@ class SetupDraftCompatibilityTest {
     }
 
     @Test
-    fun ringsOnlyDraftsNeverAskForProfileVitals() {
-        val rings = draft(
-            scope = "rings_only",
-            current = WizChatQuestionId.R_RECENT,
-            answers = emptyList(),
-            age = null,
-            height = null,
-            weight = null,
-        )
-        assertEquals(emptyList<WizChatQuestionId>(), SetupDraftCompatibility.pendingMandatoryVitals(rings))
-        val repaired = SetupDraftCompatibility.repair(rings)
-        // El payload legacy se conserva completo y no se piden vitales.
-        assertEquals(rings.wizChat, repaired.wizChat)
-        assertNull(repaired.ageYears)
-        assertNull(repaired.heightCm)
-        assertNull(repaired.weightKg)
-    }
-
-    @Test
     fun completeDraftsKeepTheLegacyCursorAndDeclaredVitals() {
         val complete = draft(
             answers = listOf(

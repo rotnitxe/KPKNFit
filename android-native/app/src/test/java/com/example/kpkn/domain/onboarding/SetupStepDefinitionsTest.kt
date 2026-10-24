@@ -312,8 +312,8 @@ class SetupStepDefinitionsTest {
         assertEquals(SetupStepId.GOAL, targets[WizChatQuestionId.T_GOAL])
         assertEquals(SetupStepId.PLAN, targets[WizChatQuestionId.T_PLAN])
         // Los pasos de RINGS retirados (recencia, sesiones, sensaciones sueltas) no migran: su pregunta la sustituyen los días.
-        assertNull(targets[WizChatQuestionId.R_RECENT])
-        assertNull(targets[WizChatQuestionId.R_FEELINGS_MUSCLE])
+
+
 
         // N_SEX goes to the basics block, never to the legacy nutrition step.
         assertEquals(SetupStepId.EQUATION_SEX, targets[WizChatQuestionId.N_SEX])
@@ -323,7 +323,7 @@ class SetupStepDefinitionsTest {
         // Legacy-only questions are never a migration target.
         assertFalse(WizChatQuestionId.P_GENDER in targets)
         assertFalse(WizChatQuestionId.T_HOME_EQUIPMENT in targets)
-        assertFalse(WizChatQuestionId.R_START in targets)
+
 
         // Every renderable step maps: legacyQuestion + renders and not legacyOnly.
         // El puente es question -> STEP: comparar question con question ocultaba
@@ -352,7 +352,7 @@ class SetupStepDefinitionsTest {
         assertFalse(SetupStepId.NUTRITION_RHYTHM in renderable)
         assertFalse(SetupStepId.NUTRITION_TARGET in renderable)
 
-        assertNull(WizChatGraph.question(WizChatQuestionId.R_DISCOMFORT))
+
 
     }
 
