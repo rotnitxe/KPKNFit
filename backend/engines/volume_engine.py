@@ -2,7 +2,7 @@
 from __future__ import annotations
 from models.common import (
     AthleteProfileScore, Settings, Session, ExerciseMuscleInfo,
-    MuscleRole, PostSessionFeedback, PostSessionMuscle,
+    MuscleRole,
 )
 from engines.exercise_index import ExerciseIndex
 
@@ -27,13 +27,6 @@ MUSCLE_ROLE_MULTIPLIERS: dict[str, float] = {
     "secondary": 0.5,
     "stabilizer": 0.0,
     "neutralizer": 0.0,
-}
-
-FATIGUE_ROLE_MULTIPLIERS: dict[str, float] = {
-    "primary": 1.0,
-    "secondary": 0.6,
-    "stabilizer": 0.3,
-    "neutralizer": 0.15,
 }
 
 MAX_PRODUCTIVE_SESSION_SETS = 12
@@ -182,66 +175,10 @@ MUSCLE_ALIASES: dict[str, list[str]] = {
 }
 
 
-def _get_normalized_feedback_for_muscle(
-    muscle_group: str,
-    feedback_history: list[PostSessionFeedback],
-) -> list[PostSessionFeedback]:
-    """Build feedback history with normalized keys for a given muscle group."""
-    accept = {muscle_group}
-    accept.update(MUSCLE_ALIASES.get(muscle_group, []))
-    result: list[PostSessionFeedback] = []
-    for log in feedback_history:
-        if not log.feedback:
-            continue
-        merged: dict[str, PostSessionMuscle] = {}
-        for key, val in log.feedback.items():
-            norm = normalize_muscle_group(key)
-            if norm in accept:
-                mg = muscle_group
-                if mg not in merged:
-                    merged[mg] = val
-                else:
-                    m = merged[mg]
-                    merged[mg] = PostSessionMuscle(
-                        doms=(m.doms + val.doms) / 2,
-                        jointPain=m.jointPain or val.jointPain,
-                        strengthCapacity=(m.strengthCapacity + val.strengthCapacity) / 2,
-                        notes=m.notes or val.notes or "",
-                    )
-        if merged:
-            result.append(
-                PostSessionFeedback(
-                    logId=log.logId,
-                    date=log.date,
-                    cnsRecovery=log.cnsRecovery,
-                    feedback=merged,
-                )
-            )
-    return result
 
 
-def _ema(values: list[float], alpha: float = 0.3) -> float:
-    """Exponential moving average."""
-    if not values:
-        return 0.0
-    ema_val = values[0]
-    for v in values[1:]:
-        ema_val = alpha * v + (1 - alpha) * ema_val
-    return ema_val
 
 
-def _simple_linear_trend(values: list[float]) -> float:
-    """Slope of simple linear regression (values over indices). Positive = increasing."""
-    n = len(values)
-    if n < 2:
-        return 0.0
-    x_mean = (n - 1) / 2
-    y_mean = sum(values) / n
-    num = sum((i - x_mean) * (v - y_mean) for i, v in enumerate(values))
-    den = sum((i - x_mean) ** 2 for i in range(n))
-    if den == 0:
-        return 0.0
-    return num / den
 
 
 

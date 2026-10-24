@@ -1,7 +1,7 @@
 """Volume calculator endpoints."""
 from fastapi import APIRouter
 from pydantic import BaseModel
-from models.common import Settings, Session, ExerciseMuscleInfo, AthleteProfileScore, PostSessionFeedback
+from models.common import Settings, Session, ExerciseMuscleInfo, AthleteProfileScore
 from engines.volume_engine import (
     calculate_weekly_volume,
     validate_session_volume,

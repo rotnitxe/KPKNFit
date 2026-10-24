@@ -146,33 +146,10 @@ class CompletedExercise(BaseModel):
     totalSpinalScore: Optional[float] = None
 
 
-class MuscleSessionImpactV2(BaseModel):
-    """Canonical local muscular impact for one muscle at session finish."""
-
-    stressUnits: float
-    capacityAtCompletion: float
-    immediateDrainPct: float
-    directStressUnits: float
-    indirectStressUnits: float
 
 
-class ManualMuscleBatteryOverride(BaseModel):
-    battery: int
-    anchorEpochMs: int
-    sourceSessionId: Optional[str] = None
-    automaticBatteryAtAnchor: int = 100
 
 
-class MuscularSessionImpactV2(BaseModel):
-    """Versioned finish snapshot shared with the Android/iOS JSONL contract."""
-
-    modelVersion: int = 2
-    completionInstantIso: str
-    globalMuscularDrain: float
-    perMuscle: dict[str, MuscleSessionImpactV2] = {}
-    involvedVolumeMuscles: list[str] = []
-    setInputHash: str
-    contextHash: str
 
 
 class WorkoutLog(BaseModel):
@@ -186,10 +163,8 @@ class WorkoutLog(BaseModel):
     completedExercises: list[CompletedExercise] = []
     notes: Optional[str] = None
     discomforts: Optional[list[str]] = None
-    fatigueLevel: float = 5
-    mentalClarity: float = 5
-    sessionStressScore: Optional[float] = None
-    muscularImpactV2: Optional[MuscularSessionImpactV2] = None
+    fatigueLevel: Optional[float] = None
+    mentalClarity: Optional[float] = None
     sessionVariant: Optional[str] = None
 
 
@@ -221,48 +196,12 @@ class NutritionLog(BaseModel):
     fats: Optional[float] = None
 
 
-class InitialRecoveryEvidence(BaseModel):
-    capturedAtMs: int
-    coveredFromMs: int
-    coveredToMs: int
-    expiresAtMs: int
-    sessions: int
-    activityType: Literal["STRENGTH", "CARDIO", "MIXED"]
-    intensity: Literal["EASY", "MODERATE", "HARD", "VERY_HARD"]
-    zones: list[str] = []
-    sensations: dict[str, Optional[int]] = {}
-    muscularScore: int
-    systemScore: int
-    structureScore: int
-    confidence: int
-    estimatorVersion: int = 1
-    sourceId: str = "initial-recovery"
 
 
-class DailyWellbeingLog(BaseModel):
-    id: str
-    date: str
-    sleepQuality: float = 3
-    stressLevel: float = 3
-    doms: float = 1
-    motivation: float = 5
-    workIntensity: Optional[str] = None
-    studyIntensity: Optional[str] = None
-    manualMuscleOverridesV2: Optional[dict[str, ManualMuscleBatteryOverride]] = None
 
 
-class PostSessionMuscle(BaseModel):
-    doms: float = 1
-    jointPain: bool = False
-    strengthCapacity: float = 7
-    notes: str = ""
 
 
-class PostSessionFeedback(BaseModel):
-    logId: str
-    date: str
-    cnsRecovery: float = 5
-    feedback: dict[str, PostSessionMuscle] = {}
 
 
 class WaterLog(BaseModel):
@@ -280,21 +219,8 @@ class UserVitals(BaseModel):
     workIntensity: Optional[str] = None
 
 
-class AlgorithmSettings(BaseModel):
-    oneRMDecayRate: float = 0.05
-    failureFatigueFactor: float = 1.5
-    legVolumeMultiplier: float = 1.0
-    torsoVolumeMultiplier: float = 1.0
-    synergistFactor: float = 0.3
-    augeEnableNutritionTracking: bool = True
-    augeEnableSleepTracking: bool = True
 
 
-class BatteryCalibration(BaseModel):
-    cnsDelta: float = 0
-    muscularDelta: float = 0
-    spinalDelta: float = 0
-    lastCalibrated: str = ""
 
 
 class AthleteProfileScore(BaseModel):
@@ -315,9 +241,6 @@ class Settings(BaseModel):
     dailyFatGoal: Optional[float] = None
     sleepTargetHours: Optional[float] = None
     userVitals: UserVitals = Field(default_factory=UserVitals)
-    algorithmSettings: AlgorithmSettings = Field(default_factory=AlgorithmSettings)
-    batteryCalibration: Optional[BatteryCalibration] = None
-    initialRecoveryEvidence: Optional[InitialRecoveryEvidence] = None
     startWeekOn: Optional[int] = None
     workDays: Optional[list[int]] = None
     wakeTimeWork: Optional[str] = None
