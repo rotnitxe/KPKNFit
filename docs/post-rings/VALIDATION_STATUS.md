@@ -1,74 +1,89 @@
 # Validación privada: entrenamiento y respuesta
 
-Base pública verificada: edc237f66d8474c3a9922296b61940e7030b7f8a.
-Paquete POST-RINGS: 481310 bytes; SHA-256 c7baf4d85e097ded24e8c0f45fd676d48a3173bcffd564bf17c5990363f44161.
-El bundle antiguo Rings v4 no se importa. Las ramas anteriores permanecen recuperables.
+Base pública verificada: `edc237f66d8474c3a9922296b61940e7030b7f8a`.
+Paquete POST-RINGS: 481310 bytes; SHA-256
+`c7baf4d85e097ded24e8c0f45fd676d48a3173bcffd564bf17c5990363f44161`.
+Los 95 archivos seleccionados y sus hashes se verificaron antes de aplicar el WIP.
+El bundle anterior Rings v4 no se importó; el estado previo sigue recuperable.
 
-## Evidencia y límites actuales
+## Comprobaciones completadas
 
-- Room 33: 20 pruebas, cero fallos/errores/omitidas, Gradle exit 0.
-  XML privados en `/workspace/private-results/post-rings/evidence/room33-checkpoint/`.
-- Room 34, primera regresión integrada ejecutada: 235 pruebas, 217 pasan y 18
-  fallan. No representa aprobación final. Se identificaron expectativas de calorías
-  de fuerza retiradas, un recorrido sin selección de plan, una diferencia de texto
-  y memoria insuficiente en Compose. XML en `evidence/room34-v3/`.
-- Room 34 incorpora purga de propuestas fisiológicas pendientes sin editar
-  sesiones/cursor/cargas; preserva propuestas de protocolos y originales.
-  iOS avanza 22 → 23 con la misma frontera de datos.
-- Gate semántico incluye main/debug, iOS, backend y recursos, controles positivos
-  y anillas físicas negativas. Excepciones: importadores raw aislados, rutas 410 y
-  cuatro líneas de saneamiento SQLite/encode de iOS identificadas por SHA-256.
-  Un gate de patrones complementa la revisión; no la sustituye.
-- Catálogo: compilador reproducible `--check`, 228 definiciones, 553 configuraciones,
-  hash canónico ce1ed8f4ec0c7476e66a353e567717b86cc896fda797d33ee99bb5c788584ce7.
-- Swift: revisión de código y análisis sintáctico; no hay macOS/Xcode. Las nuevas
-  pruebas XCTest y la restauración SQLite requieren ejecución real en macOS.
-- Dossier: acceso a fuentes científicas bloqueado por 403; las cifras aportadas
-  quedan identificadas como no verificadas independientemente y no autorizan
-  afirmaciones fisiológicas de producto.
+| Comprobación | Resultado efectivo |
+|---|---|
+| Python, herramientas del catálogo | 218 pruebas aprobadas, 54,305 s, exit0 |
+| Backend final | 19 pruebas y 32 subpruebas aprobadas; una advertencia de deprecación; exit0 |
+| Catálogo reproducible | 228 definiciones, 553 configuraciones; `--check` aprobado |
+| Gate de retiro | Cero infracciones detectadas; controles positivos y anillas físicas negativos aprobados |
+| Swift | 36 archivos modificados sin errores sintácticos; **sin compilación/XCTest** |
 
-## Ejecución cloud
+Hash canónico del catálogo:
+`ce1ed8f4ec0c7476e66a353e567717b86cc896fda797d33ee99bb5c788584ce7`.
+El gate mecánico incluye main/debug, iOS, backend y recursos; sus excepciones son
+importadores raw aislados, rutas410 y cuatro líneas de saneamiento SQLite/encode
+iOS identificadas por SHA-256. Complementa la revisión semántica, no la sustituye.
 
-Activar `/workspace/kpkn-env/activate.sh` (JDK 21, SDK Android). El JDK 17 permanece
-para arneses portables independientes; no se reanuda el arnés de Rings retirado.
-Gradle desde android-native: `--no-daemon --console=plain --max-workers=2`.
-Las suites Robolectric se ejecutan con init script privado
-`/workspace/kpkn-env/test-memory.gradle`: un fork concurrente, heap 3 GiB y rotación
-cada cuatro clases para aislar cachés de Room/Compose. No cambia compuertas.
-No editar fuentes de un checkout mientras compile; se usa un checkout privado de
-edición y cherry-picks de commits propios para validación estable.
+Room termina en34: preservación de originales, purga de derivados/coefs y propuestas
+fisiológicas pendientes. Las propuestas de protocolos se conservan con confirmación.
+iOS termina en23 con la misma frontera de datos. No hay destructive fallback.
 
-Pendiente de registrar al cerrar: última ejecución de regresión, XML/recuentos,
-assembleBaseDebug sin firma de distribución y manifiesto de artefactos actualizado.
+## Regresión Android en curso
+
+El editor previo a sesión aún necesita aprobación en el componente completo.
+Se aislaron dos casos mínimos que pasan (campo estándar fuera de diálogo y campo
+básico dentro de diálogo); varias composiciones anteriores quedaron atrapadas en
+medida/recomposición. Las ejecuciones cuyos workers se terminaron para diagnosticar
+el bucle no cuentan como aprobación. El control básico y el viewport acotado se
+están comprobando con las mismas aserciones de edición explícita y continuación
+sin respuesta. No se amplían timeouts ni se elimina la prueba para obtener verde.
+
+También se verifica el recorrido Room de disciplina/notas originales: persistencia,
+reinicio, cierre y nueva actividad sin copiar una declaración anterior como actual.
+Tras resolver estos casos se ejecutará la regresión de suites modificadas y el
+APK Base final. Un APK de un checkpoint anterior no acredita la fuente posterior.
+
+## Evidencia conservada por checkpoint
+
+| Checkpoint | Pruebas | Fallos | Errores | Omitidas | Alcance/límite |
+|---|---:|---:|---:|---:|---|
+| Room33 | 20 | 0 | 0 | 0 | Checkpoint de preservación, exit0 |
+| Final-regression-v2 | 505 | 2 | 0 | 0 | Dos fallos UI del diálogo; no aprobación final |
+| Final-regression-v3 | 713 | 28 | 0 | 1 | Expectativas retiradas y worker UI interrumpido |
+| Confirmation-dialog-v5 | 229 | 3 | 0 | 1 | AUTO antiguo/captura PixelCopy; worker UI interrumpido |
+
+Los oráculos nativos APRE/TM se portan a confirmación explícita: primero se exige
+que AUTO heredado no muta, después se confirma y se comprueban los mismos valores,
+identidades, auditoría y protección del trabajo ya registrado. Escalados fisiológicos
+retirados deben caducar sin cambiar intensidad, volumen o calendario.
+
+Las capturas de gráfico/procedencia y bienvenida «Ejemplo» se generaron mediante
+renderizado nativo Robolectric de la vista y se inspeccionaron visualmente a130 %.
+PixelCopy no entrega callbacks en este host; no se usa como evidencia exitosa.
+Son fixtures de componentes, no capturas de dispositivo ni aprobación de toda la app.
+
+## Reproducir el flujo cloud
+
+Activar `/workspace/kpkn-env/activate.sh`: JDK21 y SDK36/build-tools36.0.0. JDK17
+permanece disponible para arneses independientes; no se reanuda el arnés Rings.
+Gradle desde `android-native`: `--no-daemon --console=plain --max-workers=2`.
+Los tests focalizados usan heap3GiB y un fork concurrente mediante init privado;
+la regresión ampliada rota forks para acotar cachés Room/Compose. No modifica
+aserciones ni compuertas. No editar fuentes del checkout mientras compile.
+
+Backend, desde raíz: definir `PYTHONPATH` con raíz del repo **y** `backend`, y ejecutar
+`/workspace/kpkn-env/backend-venv/bin/python -m pytest backend/tests -q`.
+Catálogo: `python -m unittest discover -s scripts/tests -v` y
+`python scripts/compile_exercise_catalog_v2.py --check`.
+Retiro: `python scripts/verify_post_rings_retirement.py`.
 
 ## Gates externos
 
-macOS: abrir el proyecto Xcode, compilar y ejecutar XCTest de preservación,
-comparabilidad y proyección; verificar gráfico, texto grande, offline y reinicio.
-La sintaxis Swift por sí sola no prueba tipos, enlaces ni comportamiento.
+[EXTERNAL_GATES.md](EXTERNAL_GATES.md) detalla macOS/Xcode/XCTest, contrato Swift,
+migraciones iOS con contenedor sintético y QA físico Z Flip bajo `phone_run` y
+`phone.lock`. No hay acceso al dispositivo ni al PC desde cloud. La única app de
+QA permitida es `com.example.kpkn.dbg`, KPKN Dev; verificar firma, compatibilidad
+Room y respaldo recuperable antes de `-r`. No borrar datos ni tocar la app personal.
 
-Z Flip: no conectado desde cloud; ninguna instalación ni lectura de datos personales.
-Solo `com.example.kpkn.dbg` KPKN Dev, bajo `phone_run` y `phone.lock`, un dueño.
-Verificar certificado, compatibilidad Room y respaldo recuperable antes de `-r`.
-No borrar datos ni desinstalar; no tocar `com.example.kpkn`. Comprobar migración,
-wizard reanudado sin calibración, sesión/voz/cierre, historial multideporte, 130 %
-de texto, offline, rotación/reinicio y vuelta a Home. Guardar capturas/logs sin datos
-personales. No afirmar QA físico aprobado antes de ejecutarlo.
-
-## Segundo checkpoint integrado
-
-La ejecución `post-rings-final-regression-v2.log` termina con 505 pruebas, 503
-aprobadas, 2 fallos y cero errores/omitidas (50 XML). Incluye todos los tests WIP
-multideporte/PerformanceLab seleccionados, migraciones, restauración, APRE/TM,
-voz/cancelación y gráfico con restauración de estado. Los dos fallos corresponden
-a inactividad de Compose del nuevo diálogo en el modo gráfico legacy de Robolectric;
-se alinea su configuración al modo NATIVE y densidad real usado por las suites UI.
-Los XML completos se conservan en `evidence/final-regression-v2/`.
-
-Backend final: 19 pruebas y 32 subpruebas aprobadas; endpoints retirados 410 sin cálculo.
-No hay publicación en GitHub ni acceso al dispositivo.
-
-Cambios siguientes requieren ejecución nueva: confirmación de propuestas AUTO
-heredadas, rechazo de identidades `unknown@version`, cierre/voz/contexto originales
-en iOS y fixture poblada de propuestas mixtas. No se atribuye el checkpoint anterior
-a esos cambios posteriores.
+El dossier conserva las fuentes aportadas como **no verificadas independientemente**:
+PubMed/PMC/Crossref/Europe PMC devolvieron denegación del proxy. No acredita revisión
+sistemática, GRADE propio ni promesas fisiológicas. No hay build iOS, XCTest,
+QA físico o publicación afirmados a partir de comprobaciones sintácticas.
