@@ -51,6 +51,9 @@ class MyoRepsPlatesRenderSheetTest {
         }
         rule.waitForIdle()
         rule.waitUntil(15_000) { rule.onAllNodesWithTag("training-card").fetchSemanticsNodes().isNotEmpty() || name == "editor" }
+        if(name == "plates" || name == "plates_unreachable") {
+            rule.waitUntil(20_000) { rule.onAllNodesWithTag("load-plate-label",useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty() }
+        }
         rule.waitForIdle()
         val bounds = rule.onNodeWithTag("exercise-progress-render").fetchSemanticsNode().boundsInRoot
         val view = host!!
