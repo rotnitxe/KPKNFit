@@ -1,0 +1,673 @@
+{
+  "schemaVersion": 1,
+  "baseCommit": "edc237f66d8474c3a9922296b61940e7030b7f8a",
+  "purpose": "private source snapshot for authorized post-Rings cloud execution",
+  "validation": "UNVALIDATED_LOCAL_WIP",
+  "files": [
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/data/models/HybridOccurrencePlanningModels.kt",
+      "bytes": 2306,
+      "sha256": "f32af7ffdac2837efcb1af11638b7ae353bab992885ec7432965669e4f90143c",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/data/models/HybridOccurrenceScheduleModels.kt",
+      "bytes": 1007,
+      "sha256": "7068605f2548a4ea657cfa6698c3bf04e2ffb26bb468d33892de41d79ab400e2",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/data/models/HybridPlanningModels.kt",
+      "bytes": 3238,
+      "sha256": "a66e98cc54dce89a10c3834459911295059ba90bc0321bb83956db4706e806ea",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/data/models/HybridProgramCompositionModels.kt",
+      "bytes": 1183,
+      "sha256": "95052f2db3492a129d7f645453ca33b2c31a3d176f5dfe5ebcb7b45bec775462",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/data/models/Program.kt",
+      "bytes": 43199,
+      "sha256": "5c778473c93cfe93d086866f3999fc6342e82afc1b69c639aba457a3986f6319",
+      "trackedInBase": true,
+      "baseSha256": "ba6f7d9f4a3e4576562658a63077a50b1c0443d3854203d27363ed44debe531a"
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/data/models/Session.kt",
+      "bytes": 30566,
+      "sha256": "a850859799b029a193fd9b1388e58b87b7c64de57283f6d2dc19280cd27ad32d",
+      "trackedInBase": true,
+      "baseSha256": "1a58fe2f2ba33a84945140a59709b7b1477662964d53eb77aa2c70ba1400452c"
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/data/models/WorkoutLog.kt",
+      "bytes": 18848,
+      "sha256": "dd6751cf9d9c86ad9bfe648c1ef6c9dec660b8feb6864b466666ae7f5d7dc0a4",
+      "trackedInBase": true,
+      "baseSha256": "14e2975f58422dad03f32d9e175d61984dc82677f575166c1e493a6cf8976fe3"
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/data/repository/ExternalSportCompletionService.kt",
+      "bytes": 9052,
+      "sha256": "958245ee616b89265e00ab59e921c3ef575b3a82d7ed24a324aa33499041c36c",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/data/repository/HybridCalendarApplicationService.kt",
+      "bytes": 5137,
+      "sha256": "03a268d376a6655ca541f39a3a984211e1db6dd59dee3216a2c28a44360b0420",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/data/repository/HybridPlanningService.kt",
+      "bytes": 5981,
+      "sha256": "63c4ab4598718c0814f070d5932f19934cd287c9640af30448e28b12fcb74594",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/data/repository/ProgramRepository.kt",
+      "bytes": 130715,
+      "sha256": "deb319589d0633446c51a47f0be1d8afababc3c21671c020fe9c23ae44eb76bc",
+      "trackedInBase": true,
+      "baseSha256": "1cae40ecf138da0f37b3ff401dbbae8b63d4045728bd2e82842da24f4175ce26"
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/data/repository/SportTrackingService.kt",
+      "bytes": 5700,
+      "sha256": "3faed0265b61ca7e48bc00dab14c3db00bc82429aade88db8679c17ff9e2b188",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridCalendarApplicator.kt",
+      "bytes": 15850,
+      "sha256": "5f42b2d9ad72c5cbd7f16180186f3abcf19b824cc26fca481954da9a50fb4c51",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridOccurrenceResolver.kt",
+      "bytes": 9945,
+      "sha256": "e5915eadac03492030e34e4341f9c612917b490c0504ee40029a368b3d8ac265",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridProgramAssembler.kt",
+      "bytes": 6721,
+      "sha256": "96d16e6fc2e886c2316b7c9920024254582e90c5f6e09d22a94fe8d25afc2cd7",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridProgramPlanner.kt",
+      "bytes": 26820,
+      "sha256": "aae99e33f729539faf8bd94493fba160daf14a2f044101cb1ca6e2bfeb222f64",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridRemainingWeekPlanner.kt",
+      "bytes": 17167,
+      "sha256": "bab8fa234147e22f2680d3327ebbe1c994bc83d66454ebac4b4f288cddde29b2",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridSessionDurationPolicy.kt",
+      "bytes": 11175,
+      "sha256": "573c98516a89a020d78226d348eca349b0cae34efe89dd43fae3017c0f4a8241",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridTrainingPolicy.kt",
+      "bytes": 14059,
+      "sha256": "8a61a03973b9dd6eb7a585003192e7866ca35b7d7489532e694f8f6283e6046c",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/HybridWeekPlanner.kt",
+      "bytes": 27650,
+      "sha256": "760ebb9b99a644538bd7e6b69d3f003ca0dd27a0cce353491aa8bfeb2d4ac5e0",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/MultisportIntentPolicy.kt",
+      "bytes": 2421,
+      "sha256": "57caf1fd8400ee0620548a3951c11ab903106498527691f82c1c82bb9459d9e4",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/MultisportModels.kt",
+      "bytes": 8212,
+      "sha256": "dea841b14e7fa05d51c3daebc6e7582275310848466fc617476f806f70b2ac54",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/WorkoutActivityAccounting.kt",
+      "bytes": 16389,
+      "sha256": "04b0637cf1708583083542a17054eae700a09d55573e8eca8892a4bf635d1e2d",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/combat/CombatSportEngine.kt",
+      "bytes": 23561,
+      "sha256": "d61abd3164b41309b1a06cc322da6c293699856299561d4c95973f40211d48f2",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/combat/CombatSportModels.kt",
+      "bytes": 8920,
+      "sha256": "1787e97352e1c8c593f7bb3e97c5147bdd417a3d01b45d514e9658bf568022db",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/endurance/EnduranceSportEngine.kt",
+      "bytes": 34060,
+      "sha256": "c78426499310c67fedb078f59376a23b65d3a3820dd6e4c0aaf50363b73c9bc3",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/endurance/EnduranceSportModels.kt",
+      "bytes": 8212,
+      "sha256": "ccb95eef5c76dc894d4bb61cafcfcfe4034cb9761855704a50ac44503b1151c1",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/field/FieldSportEngine.kt",
+      "bytes": 52031,
+      "sha256": "d5cbc3edd66cedb23beb196eb4bfc42d02baa8d67f1285f67e9fcb73ce402522",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/field/FieldSportModels.kt",
+      "bytes": 11623,
+      "sha256": "fbfe19156311db4efa3d5e5e19ad8ba91f22391d0d97afb4e9405f6b2ab9d89e",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/functional/FunctionalSportEngine.kt",
+      "bytes": 39019,
+      "sha256": "db2eafd3a8346f4dce44664c92e9ef858ab194086b5d795e2e96c1e09bd19ad7",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/functional/FunctionalSportModels.kt",
+      "bytes": 7895,
+      "sha256": "5c9b94507ffbb25d5f172886d86bab6ba7468fa3bd4c92af0a01ffefb5825578",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/games/GameSportEngine.kt",
+      "bytes": 39640,
+      "sha256": "6f5830963106e289b64de5a736618cde177b81dc1b82a128b007c77e9d0ca1a5",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/games/GameSportModels.kt",
+      "bytes": 9104,
+      "sha256": "0da9579f3106acfb25f6b078f33998cc4a4c72926689dcdf97d711359a7232f3",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/strength/StrengthSportEngine.kt",
+      "bytes": 42633,
+      "sha256": "0cf0775a4436b88af43af48ed143e0664fe32936012a82b307e434ffbeecc8eb",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/strength/StrengthSportModels.kt",
+      "bytes": 8750,
+      "sha256": "1aa38f232009198ab56f7663c37486d0d56239b06f0fada5193978a670ab7622",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/tracking/ExternalSportSessionPolicy.kt",
+      "bytes": 984,
+      "sha256": "92dda1ceee03d46a3c18e6ff6556655da0ab6a968d7b6c4bf36e8cbabfe4a968",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/tracking/NativeSportTrackingEngines.kt",
+      "bytes": 1217,
+      "sha256": "f8b15c4cd1a7245a369d3fe009ec1a40f0b25c924cff52d78a8df14117f58636",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/multisport/tracking/SportTrackingDocument.kt",
+      "bytes": 7542,
+      "sha256": "6a4cc944c4cab8ae1bc51eed8f63822508b90bb5f881ff24d44be810f9cf53ba",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/nutrition/CompletedTrainingDayAccounting.kt",
+      "bytes": 2499,
+      "sha256": "3284c17dee58b3dc3c2db5524107539a98c353bd880b05b7c4305c5a735be98b",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/nutrition/NutritionTrainingCalendarAdapter.kt",
+      "bytes": 25058,
+      "sha256": "570249f9b910960ea06c087a608eb45ee1adda5e649f6569d1a4bbabdc815154",
+      "trackedInBase": true,
+      "baseSha256": "911af0313f5faea52e849e333c31575dbe489c24f95777d7a6f1f3cad2f17065"
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/performance/lab/PerformanceLabEngine.kt",
+      "bytes": 21733,
+      "sha256": "cd86dc0e4639943a04171754df8423021f4718535cf1c2c8b5c4e517af1af7f0",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/performance/lab/PerformanceLabModels.kt",
+      "bytes": 4787,
+      "sha256": "648bd4dc987b1b9bc47b4a7ee7308f0da265c9b610f98d286da0c34474518622",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/training/HomeSessionResolver.kt",
+      "bytes": 10000,
+      "sha256": "5cb3e511d05bd83522feef10ebc27f022e13bc49474cac0b680e0b7c57e4e506",
+      "trackedInBase": true,
+      "baseSha256": "2c7bc2c408492a723cc07b1b004a29e993a09fcbbd9f80844337960a70522111"
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/training/HomeWeekResolver.kt",
+      "bytes": 7832,
+      "sha256": "0ce75dc4c9b6a26e37b62c4632c440ec8412c5662d51c928963760733802178c",
+      "trackedInBase": true,
+      "baseSha256": "9028cb96631f5d8c58d3468ab9769b2706028a8d42b96dc21c1e25eefac7f58b"
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/training/PlanAdaptationResolver.kt",
+      "bytes": 71189,
+      "sha256": "f738114ed48c6b4a4bfc7b17747df1c1ffbdbfbf7cfefb8aaba9408e4de190ef",
+      "trackedInBase": true,
+      "baseSha256": "2627dfc29f5abb7848a6a5b6041a0376fde06e7e7746441adbe0a3a3f2d9c0d9"
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/training/ProgramCalendarEngine.kt",
+      "bytes": 21188,
+      "sha256": "dc1fb881a80910570f3a949936b1088dd99048b5a9feb8002901d7733a5f5a7e",
+      "trackedInBase": true,
+      "baseSha256": "e94f2cb0ab0fe5d88e222ceeea07f93b9e9f00d1a7363ffad243b87787673814"
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/domain/training/ProgramCurrentWeekResolver.kt",
+      "bytes": 8773,
+      "sha256": "e27539d175ca20f3f5ffaa7002e57aed9facf2f887c425eacacbd3dbed8295d7",
+      "trackedInBase": true,
+      "baseSha256": "789ca9103720182e9cbc6d3b42ce3e5964ae294d98a3c31eef3ca71087a532f9"
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/screens/nutrition/NutritionViewModel.kt",
+      "bytes": 29829,
+      "sha256": "af984e824f118e99c2e9099e5fa1230aec65ba64f59d8e26d238a4d712354b7d",
+      "trackedInBase": true,
+      "baseSha256": "470598cde4f691194fed6a1e424844f30e8a28c2cde29a0d414792d684228782"
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupActivationPayload.kt",
+      "bytes": 11920,
+      "sha256": "835650b299f491523a503647d88ade7531572ab4bb249cbc95dea1afbf53a57a",
+      "trackedInBase": true,
+      "baseSha256": "e3d006a9e64f5a538c89b383b1166680a332eda3f2fbbb92d933ae5fd42dfe9d"
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupHybridPlanningBridge.kt",
+      "bytes": 1687,
+      "sha256": "59642e40fceb0384c22490c660cd81ee4e271c2e6db27e20f27ef1c3f86ec1b5",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupMultisportIntent.kt",
+      "bytes": 2221,
+      "sha256": "a127349dce116bb1b1379f618387b318c338e3ab3f215a36b6e34d00c118a8e8",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardModels.kt",
+      "bytes": 114574,
+      "sha256": "deffc0037f6615ece2a87832dbc2a2927fd70ead016fcf592f36f0b886dc5420",
+      "trackedInBase": true,
+      "baseSha256": "e8cfb9f5fb258291652f527a902d33a6c4e34cf8a2bb135a4d09d489f6eb6784"
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardViewModel.kt",
+      "bytes": 281784,
+      "sha256": "f91c4895afbf56925f62591672a8539a18e2a967acd8f7316a1009470ef21b1b",
+      "trackedInBase": true,
+      "baseSha256": "398d175803f7c0006246fc1afb78b57c341e81f950d43de38e2c4cf40a9bf962"
+    },
+    {
+      "path": "android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutFinishController.kt",
+      "bytes": 44620,
+      "sha256": "27c488ddd5026fe90c1d6e47aac92953e50fc805dddafcab5ac0d9e6906d044a",
+      "trackedInBase": true,
+      "baseSha256": "17e67d0a530eacbbd94697d2d20700dd91519dd24f303cdffd8223ca17925f03"
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/data/ProgramTrainingIntentSerializationTest.kt",
+      "bytes": 2177,
+      "sha256": "483ad009bc943d123633c25af195f607c2cb454b625c9ed8f9316698f53bc282",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/data/repository/HybridCalendarApplicationServiceTest.kt",
+      "bytes": 5813,
+      "sha256": "7ddf26650d172ee1e3da10ae354636a158379d2c6965b9b925e754ecb2efc9e3",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/data/repository/HybridPlanningFixtures.kt",
+      "bytes": 2796,
+      "sha256": "fe34b9be59e10f118e2603538d14f1fe568a94eb7810ce447e7182fb295f4d4c",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/data/repository/HybridPlanningRoomTest.kt",
+      "bytes": 8091,
+      "sha256": "451c3abc16430b17c183e6c7e01cff3c919dd08e76c6b5d383251b680d0f89ed",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/data/repository/HybridPlanningServiceTest.kt",
+      "bytes": 5068,
+      "sha256": "66013859271ff33638eec5af31a10287ff7d7c14df4c9e4cd1bf563a2dbbba1c",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/data/repository/SportTrackingRoomTest.kt",
+      "bytes": 6091,
+      "sha256": "cd51b047403ab596b6cb22bbc725ca71b3daf0c114474a602a415a6f8493ceeb",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridCalendarApplicatorTest.kt",
+      "bytes": 12100,
+      "sha256": "de8e39e2a6b7f6d59b240560c5ec52d9b71069b023611498d0e466cad7b2364a",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridCalendarFixtures.kt",
+      "bytes": 4994,
+      "sha256": "45e5f9a2ba89b3d3097aabd0aca709c37b3f0f997b744fbd00b9886aa5c56494",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridMmaFixtures.kt",
+      "bytes": 3095,
+      "sha256": "217cb44c6c80b635f8e7a5bd2b7f23c502454366c85b94259625232bb8a73d90",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridOccurrenceResolverTest.kt",
+      "bytes": 9258,
+      "sha256": "569baff8cdd5bc0c707f507cdd09a760146eaa162e8522461c983ded2a69fce2",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridProgramAssemblerTest.kt",
+      "bytes": 4956,
+      "sha256": "301b574eb83ef0bfbe8e6f2492b8a372e5aeb9bf5200b1da2e2534f35cea9510",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridProgramPlannerTest.kt",
+      "bytes": 31334,
+      "sha256": "33f9e530803a7bcc0d6d6bc33293e6c00bfc90e7ef9cfc49e12d47d9b74ff48d",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridProgramTrainingPolicyTest.kt",
+      "bytes": 6949,
+      "sha256": "ccaac06a2f3f5cbf4dd56c124961c7f855bb3751cd318a520c23fdc29e53002e",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridSessionDurationPolicyTest.kt",
+      "bytes": 6911,
+      "sha256": "0cd8baf0f71503a9cac56dea597b0c3a510cce7ee17ec4953335c450a83c060e",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridTrainingPolicyTest.kt",
+      "bytes": 10194,
+      "sha256": "c5ff3dc62d456cc5deb2d3182855f9ade8e41e7c7f500d48a8ffe4978bffa717",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/HybridWeekPlannerTest.kt",
+      "bytes": 14712,
+      "sha256": "41c54fd1b50594bbe51ad19f0333a8db6a7a4c1e0e020ab4a0759ba2a95a45d9",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/MultisportIntentPolicyTest.kt",
+      "bytes": 8517,
+      "sha256": "b272e893f6d5b8a036b5d97ceadaf969be8ae7f40fda49c30a7fcaf9facc97f9",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/WorkoutActivityAccountingTest.kt",
+      "bytes": 13711,
+      "sha256": "a777af6e6654caa13322b2a00ed7cddd6ce23f23cc6d69ae197b288660e2dcbf",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/combat/CombatSportEngineTest.kt",
+      "bytes": 20092,
+      "sha256": "fe35b3dd4dba467f1b7a7a487f890ffd349ac8447fff78f681f84a98dd6da71d",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/endurance/EnduranceSportEngineTest.kt",
+      "bytes": 18064,
+      "sha256": "d63f036ac2269a96293a16d2d6e58cd24df738715fde1365f7f75bcc00146f2c",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/endurance/EnduranceSportModelsTest.kt",
+      "bytes": 2974,
+      "sha256": "eafac08319e9ca19cfa6d87f25285cccfac6d11a06bb755d3a28b0b93e431c7c",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/field/FieldSportEngineTest.kt",
+      "bytes": 32134,
+      "sha256": "417a205360a38ee9cf3a2a650509390e621540b4e8b1694819a39928c2f8f8ba",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/functional/FunctionalSportEngineTest.kt",
+      "bytes": 22896,
+      "sha256": "125febc3a4e41360da398c4427a1900b8127ff4ab612962b51a7fdd49448f50a",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/functional/FunctionalSportModelsTest.kt",
+      "bytes": 1756,
+      "sha256": "06a0516ed26fdebb9575c2dfe1b520cba0da191231e3fc266eea828869454301",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/games/GameSportEngineTest.kt",
+      "bytes": 16343,
+      "sha256": "75d545559cafd4c3be885b55678155a8fbf7152cb3bcfe0c5975e1b1aba440e9",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/games/GameSportModelsTest.kt",
+      "bytes": 2626,
+      "sha256": "b6998325a40e92441a2cb8fe7e221ae037f3526551002da5fdc57572d8dc0a3a",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/strength/StrengthSportEngineTest.kt",
+      "bytes": 28833,
+      "sha256": "64d813de1207905dda0997e18067caffba3597a93b94e7610d220986fa2eec10",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/multisport/tracking/SportTrackingRegistryTest.kt",
+      "bytes": 3880,
+      "sha256": "0ec7b5d526791bdd691b4dd72d8d73d5310d66479161c129ab6d31e3053376b5",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/nutrition/CompletedTrainingDayAccountingTest.kt",
+      "bytes": 3724,
+      "sha256": "5be88d6df49bdcb9dc669dfd28c7be3775fd7ef8896b67e2e49244626d723a47",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/performance/lab/PerformanceLabEngineTest.kt",
+      "bytes": 13039,
+      "sha256": "2d7a0483d22a54058e0d72c98b83e40334ddd76467ece0528a169a581dd75c02",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/performance/lab/PerformanceLabModelsTest.kt",
+      "bytes": 1334,
+      "sha256": "e0703e024222cdcb1fa9870965280402ee2913198eaf4885b5300a96e45c4560",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/training/HybridOccurrenceCalendarTest.kt",
+      "bytes": 5019,
+      "sha256": "9b494e2d6b2bccb32ec50d98dea3c65dee1f0771a92e05dc1d32e3c4c667555d",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/domain/training/PlanAdaptationResolverTest.kt",
+      "bytes": 64640,
+      "sha256": "c920813335cc0e44b1696fcab6a38d5ba3a1dff37f30e56690aac2b358045a1a",
+      "trackedInBase": true,
+      "baseSha256": "84e101b6dba0272f91ac44270957b02e1063a6b491d5f07d4f52ecc8a0065bda"
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/screens/nutrition/NutritionViewModelTest.kt",
+      "bytes": 31188,
+      "sha256": "1b2b6b609691cf8d9a21e0540472686972b6808ed426499d6a530ac7a1191b3a",
+      "trackedInBase": true,
+      "baseSha256": "358ef580d582196788a5098cedfbfa83274abc80c362bc1584812126ad64c0ba"
+    },
+    {
+      "path": "android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupMultisportIntentTest.kt",
+      "bytes": 6058,
+      "sha256": "ce70c0b9a62d4f1d5ae52df27bd3e323ed005a238e62d505135bba0ef73af7c9",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "docs/multisport-v1/INTEGRATION-CONTRACT.md",
+      "bytes": 4898,
+      "sha256": "923023cc9e20162c898c89568479b06de12c43936971496f1f309cc211d2d8b9",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "docs/multisport-v1/NEW-FUNCTIONALITY-AUDIT.md",
+      "bytes": 3567,
+      "sha256": "f24f50f8604248522c6c0ffa4bfa7102493511ed64bd50e0d1dfad24f58b9b77",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "docs/multisport-v1/README.md",
+      "bytes": 6883,
+      "sha256": "fd852411ae585c218cb693537eedfea97e7aa06a8e040542dffdc7e3bbecb5bc",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "docs/multisport-v1/ROADMAP.md",
+      "bytes": 7665,
+      "sha256": "a6efa57ac0ce3c8a3d86a83ad4ef622da32d2269c796c5a3eec5a6879c3d49aa",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "docs/multisport-v1/VISUAL-CONTRACT.md",
+      "bytes": 3634,
+      "sha256": "f88232f2a84b3d5b75df7127aae148337796b996bcf77b7266f9c08cf6ef1dc2",
+      "trackedInBase": false,
+      "baseSha256": null
+    },
+    {
+      "path": "docs/multisport-v1/execution-state.json",
+      "bytes": 11061,
+      "sha256": "e832afcc0fc94f3c10afe569da9473c31b78c8125e91e97d3f2635d8a31cd738",
+      "trackedInBase": false,
+      "baseSha256": null
+    }
+  ]
+}
