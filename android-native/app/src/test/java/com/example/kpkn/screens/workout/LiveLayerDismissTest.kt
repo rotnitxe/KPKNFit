@@ -38,10 +38,8 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.MuscleAdvance
-import com.example.kpkn.data.models.PostSessionPreview
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.screens.workout.components.RoadmapPendingAction
@@ -164,26 +162,7 @@ class LiveLayerDismissTest {
 
     private val sampleExercise: Exercise = liveExercise("a", sets = 3)
 
-    private val sampleReadiness = ExerciseReadiness(
-        exerciseId = "a",
-        exerciseName = "Ejercicio A",
-        overallScore = 62,
-        muscularComponent = 70,
-        cnsComponent = 55,
-        spinalComponent = 48,
-        articularComponent = 80,
-        structuralComponent = 75,
-        relatedArticular = emptyList(),
-        muscularWeight = 0.5,
-        cnsWeight = 0.3,
-        spinalWeight = 0.2,
-        articularWeight = 0.0,
-        setsPenaltyFactor = 1.0,
-        intensityPenaltyFactor = 1.0,
-        ermProximityFactor = 1.0,
-        patternId = null,
-        involvedMuscleIds = emptyList(),
-    )
+
 
     // ── Hojas que se cierran con Atrás o tocando fuera ─────────────────────────────────────────────────────────────────────────
 

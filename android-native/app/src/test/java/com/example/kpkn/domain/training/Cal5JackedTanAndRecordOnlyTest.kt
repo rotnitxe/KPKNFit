@@ -73,14 +73,14 @@ class Cal5JackedTanAndRecordOnlyTest {
         val propose = Cal5TestSupport.materialize(jt, AutoregulationMode.PROPOSE, lowTmProfile)
         val week1 = weeksOf(propose).first()
         val up = ProgramAutoregulationEngine.evaluate(
-            propose, week1, listOf(squatRmLog(propose, 10, 140.0)), jt, WeeklyAutoregulationSignals(readinessScore = 80),
+            propose, week1, listOf(squatRmLog(propose, 10, 140.0)), jt, WeeklyAutoregulationSignals(),
         ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
         assertEquals("SQUAT", up.single().liftSlot)
         assertEquals("e1RM ≥ 1,025 × el 1RM implícito: +2,5 %", 2.5, up.single().percentDelta!!, 1e-9)
 
         // 100 kg × 10: e1RM 133,3 kg ≤ 0,95 × 166,7 kg → baja el 2,5 %.
         val down = ProgramAutoregulationEngine.evaluate(
-            propose, week1, listOf(squatRmLog(propose, 10, 100.0)), jt, WeeklyAutoregulationSignals(readinessScore = 80),
+            propose, week1, listOf(squatRmLog(propose, 10, 100.0)), jt, WeeklyAutoregulationSignals(),
         ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
         assertEquals(-2.5, down.single().percentDelta!!, 1e-9)
 
@@ -101,7 +101,7 @@ class Cal5JackedTanAndRecordOnlyTest {
 
         val off = Cal5TestSupport.materialize(jt, AutoregulationMode.OFF, lowTmProfile)
         assertTrue(
-            ProgramAutoregulationEngine.evaluate(off, weeksOf(off).first(), listOf(squatRmLog(off, 10, 140.0)), jt, WeeklyAutoregulationSignals(readinessScore = 80)).isEmpty(),
+            ProgramAutoregulationEngine.evaluate(off, weeksOf(off).first(), listOf(squatRmLog(off, 10, 140.0)), jt, WeeklyAutoregulationSignals()).isEmpty(),
         )
     }
 

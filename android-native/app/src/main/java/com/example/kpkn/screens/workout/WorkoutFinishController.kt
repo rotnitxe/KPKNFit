@@ -119,7 +119,6 @@ class WorkoutFinishController(
         scope.launch {
             var durableLogId: String? = null
             var retainedVolumeModal = false
-            var committedStressScore = 0.0
             var committedVolumeAdvances: List<MuscleAdvance> = emptyList()
             var onCompleteAttempted = false
             try {
@@ -442,7 +441,6 @@ class WorkoutFinishController(
                                 it.copy(
                                     isComplete = true,
                                     showFinishSheet = false,
-                                    sessionStressScore = committedStressScore,
                                     isFinishingWorkout = false,
                                     finishResumeSnapshot = null,
                                     logAlreadyWrittenId = savedLogId,

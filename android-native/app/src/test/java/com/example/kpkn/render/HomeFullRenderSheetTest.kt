@@ -27,7 +27,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.screens.home.HomePageSample
 import com.example.kpkn.screens.home.HomeProgramsSection
@@ -160,7 +159,7 @@ class HomeFullRenderSheetTest {
                 HomeSessionSection(
                     sessions = sample.sessions,
                     hasActiveProgram = sample.hasActiveProgram,
-                    
+
                     onStartWorkout = { _, _ -> },
                     onResumeWorkout = {},
                     onEditSession = { _, _ -> },

@@ -4,7 +4,6 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.SessionInterference
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.ceil

@@ -20,7 +20,7 @@ object SessionAssistantEngine {
         return SessionAssistantReport(veredicto=null,scoreEstimado=null,riesgos=emptyList(),ajustes=advice.cards,
             oportunidades=emptyList(),tarjetasFantasma=emptyList(),plantillasCompatibles=emptyList(),
             volumenPorMusculo=volume.volumeMap.mapValues { it.value.flat },umbralesPorMusculo=emptyMap(),
-            drenajeEstimado=null,duracionEstimada=duration.totalMinutes,resumenTexto="Datos del programa y límites que elegiste",
+            duracionEstimada=duration.totalMinutes,resumenTexto="Datos del programa y límites que elegiste",
             totalRestSeconds=duration.resistanceRestSeconds,
             estimatedWorkSeconds=(duration.totalSeconds-duration.resistanceRestSeconds).coerceAtLeast(0),notas=advice.notes)
     }
@@ -52,14 +52,14 @@ object SessionAssistantEngine {
     ): com.example.kpkn.data.models.Session? {
         val currentIdx = weekSessions.indexOfFirst { it.id == currentSessionId }
         if (currentIdx == -1) return null
-        
+
         for (i in (currentIdx + 1) until weekSessions.size) {
             val session = weekSessions[i]
             if (sessionContainsAnyMuscle(session, muscleIds, exerciseIndex)) {
                 return session
             }
         }
-        
+
         for (i in 0 until currentIdx) {
             val session = weekSessions[i]
             if (sessionContainsAnyMuscle(session, muscleIds, exerciseIndex)) {
@@ -142,7 +142,7 @@ object SessionAssistantEngine {
 
             val proposals = mutableListOf<com.example.kpkn.data.models.VolumeDiscountProposal>()
             var remainingDiscount = delta
-            
+
             for (ex in nextSession.allExercises()) {
                 if (remainingDiscount <= 0.0) break
                 var trainsMuscle = false
@@ -154,7 +154,7 @@ object SessionAssistantEngine {
                         break
                     }
                 }
-                
+
                 if (trainsMuscle) {
                     val maxDiscount = (ex.sets.size - 1).coerceAtLeast(0).toDouble()
                     if (maxDiscount > 0) {

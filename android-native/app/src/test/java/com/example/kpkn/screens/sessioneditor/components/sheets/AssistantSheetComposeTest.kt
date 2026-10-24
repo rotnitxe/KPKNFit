@@ -10,7 +10,6 @@ import com.example.kpkn.domain.sessionassistant.AssistantSuggestion
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestionDetail
 import com.example.kpkn.domain.sessionassistant.SessionAssistantReport
 import com.example.kpkn.domain.sessionassistant.Verdict
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -53,7 +52,7 @@ class AssistantSheetComposeTest {
         plantillasCompatibles = emptyList(),
         volumenPorMusculo = emptyMap(),
         umbralesPorMusculo = emptyMap(),
-        drenajeEstimado = PredictedDrain(cns = 0, muscular = 0, spinal = 0),
+
         duracionEstimada = 0,
         resumenTexto = "",
     )

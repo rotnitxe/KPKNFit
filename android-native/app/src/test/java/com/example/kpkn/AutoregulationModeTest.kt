@@ -4,7 +4,6 @@ import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.AutoregulationProposal
 import com.example.kpkn.data.models.AutoregulationProposalKind
 import com.example.kpkn.data.models.BlockGoal
-import com.example.kpkn.data.models.LoadAdvisoryLevel
 import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
@@ -119,9 +118,9 @@ class AutoregulationModeTest {
             logs = emptyList(),
             recipe = recipe(),
             signals = WeeklyAutoregulationSignals(
-                readinessScore = 10,
-                cumulativeFatigue = 90.0,
-                loadAdvisoryLevel = LoadAdvisoryLevel.UNLOAD,
+
+
+
                 amrapHits = listOf(AmrapHit(LiftSlot.SQUAT, 95.0, prescribedReps = 5, actualReps = 1)),
             ),
         )
@@ -219,7 +218,7 @@ class AutoregulationModeTest {
                 completedWeek = week,
                 logs = emptyList(),
                 recipe = periodic,
-                signals = WeeklyAutoregulationSignals(readinessScore = 80, cumulativeFatigue = 40.0),
+                signals = WeeklyAutoregulationSignals( ),
             )
             assertTrue(
                 "Semana ${week.progressionIndex}: sin descarga periódica fija",

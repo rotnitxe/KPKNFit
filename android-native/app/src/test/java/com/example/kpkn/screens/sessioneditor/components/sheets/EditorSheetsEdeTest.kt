@@ -35,7 +35,6 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionEnergySummary
 import com.example.kpkn.data.models.SessionPart
@@ -105,7 +104,7 @@ class EditorSheetsEdeTest {
     private val report = SessionAssistantReport(
         veredicto = Verdict.OPTIMAL, scoreEstimado = 80, riesgos = emptyList(), ajustes = emptyList(), oportunidades = emptyList(),
         tarjetasFantasma = emptyList(), plantillasCompatibles = emptyList(), volumenPorMusculo = emptyMap(),
-        umbralesPorMusculo = emptyMap(), drenajeEstimado = PredictedDrain(cns = 10, muscular = 20, spinal = 5),
+        umbralesPorMusculo = emptyMap(),
         duracionEstimada = 58, resumenTexto = "",
     )
 

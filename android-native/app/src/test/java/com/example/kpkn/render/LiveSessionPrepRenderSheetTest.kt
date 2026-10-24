@@ -21,12 +21,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.data.models.AugeSnapshot
 import com.example.kpkn.data.models.MobilitySeries
-import com.example.kpkn.data.models.RecoveryBand
-import com.example.kpkn.data.models.RecoveryChannelId
-import com.example.kpkn.data.models.RecoveryChannelSnapshot
-import com.example.kpkn.data.models.RecoveryDashboard
 import com.example.kpkn.data.models.VoiceCaptureMode
 import com.example.kpkn.data.models.WarmupSetDefinition
 import com.example.kpkn.screens.workout.PreSessionPreparationDialog
@@ -58,44 +53,8 @@ private const val VOZ_TAG = "lr1b-voz"
 private val SESSION_ACCENT = Color(0xFFF49A6E)
 
 // Datos de ejemplo tomados de la captura original de la hoja de estado: músculos 90 %, energía 89 %, columna 83 %.
-private val SAMPLE_AUGE = AugeSnapshot(
-    dashboard = RecoveryDashboard(
-        overallScore = 89,
-        headline = "Listo para entrenar",
-        summary = "Recuperación buena en todos los canales.",
-        recommendation = "Entrena con normalidad.",
-        confidenceLabel = "Alta",
-        channels = listOf(
-            RecoveryChannelSnapshot(
-                id = RecoveryChannelId.MUSCULAR,
-                title = "Músculos",
-                shortTitle = "Músculos",
-                score = 90,
-                band = RecoveryBand.NORMAL,
-                description = "Recuperación muscular.",
-                action = "Volumen normal y buena ejecución.",
-            ),
-            RecoveryChannelSnapshot(
-                id = RecoveryChannelId.SYSTEM,
-                title = "Energía",
-                shortTitle = "Energía",
-                score = 89,
-                band = RecoveryBand.HIGH,
-                description = "Sistema nervioso.",
-                action = "Buen día para intensidad y coordinación.",
-            ),
-            RecoveryChannelSnapshot(
-                id = RecoveryChannelId.STRUCTURE,
-                title = "Columna",
-                shortTitle = "Columna",
-                score = 83,
-                band = RecoveryBand.NORMAL,
-                description = "Carga estructural.",
-                action = "Carga estructural normal con buena técnica.",
-            ),
-        ),
-    ),
-)
+
+
 
 /** Aproximación de ejemplo: dos series hechas (una con peso distinto del sugerido) y una pendiente. */
 private fun aproxRows(): List<WarmupPhaseRow> = listOf(

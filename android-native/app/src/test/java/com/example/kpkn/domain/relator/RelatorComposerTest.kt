@@ -109,7 +109,7 @@ class RelatorComposerTest {
             isTopSet = true,
             restActive = true,
             phase = RelatorSessionPhase.REST,
-            dailyScore = 40,
+
             warmupRemaining = 2,
             prJustNow = true,
             mediaCount = 2,

@@ -29,7 +29,6 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
@@ -90,26 +89,7 @@ private val EJERCICIO_PM = Exercise(
     ),
 )
 
-private val PREPARACION = ExerciseReadiness(
-    exerciseId = "pm",
-    exerciseName = "Peso Muerto Convencional",
-    overallScore = 62,
-    muscularComponent = 70,
-    cnsComponent = 55,
-    spinalComponent = 48,
-    articularComponent = 80,
-    structuralComponent = 75,
-    relatedArticular = emptyList(),
-    muscularWeight = 0.5,
-    cnsWeight = 0.3,
-    spinalWeight = 0.2,
-    articularWeight = 0.0,
-    setsPenaltyFactor = 1.0,
-    intensityPenaltyFactor = 1.0,
-    ermProximityFactor = 1.0,
-    patternId = null,
-    involvedMuscleIds = emptyList(),
-)
+
 
 private val PREVISUALIZACION = UltraFastPreview(
     beforeSeconds = 2520,

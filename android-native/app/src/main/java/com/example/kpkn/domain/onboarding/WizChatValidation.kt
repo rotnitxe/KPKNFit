@@ -27,7 +27,7 @@ object WizChatValidation {
             "El tiempo debe estar entre ${EntrenoStepValues.SESSION_MINUTES_MIN} y 100 minutos",
             false,
         )
-        WizChatQuestionId.N_ELIGIBILITY, WizChatQuestionId.R_DISCOMFORT -> {
+        WizChatQuestionId.N_ELIGIBILITY -> {
             if (values.isEmpty() && !question.allowSkip) "Elige al menos una opción" else if (values.contains("Sin material") && values.size > 1) "Sin material es una opción exclusiva" else if (values.contains("Ninguna de estas") && values.size > 1) "Ninguna de estas es exclusiva" else null
         }
         else -> if (question.kind == WizChatAnswerKind.CHOICE) when {

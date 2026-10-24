@@ -220,7 +220,6 @@ class SettingsViewModel : ViewModel() {
             sleepLogs = emptyList(),
             sleepLogsExtended = emptyList(),
             postSessionFeedback = emptyList(),
-            adaptiveCache = null,
             sessionTemplates = SessionTemplateRepository.getInstance(appContext).userTemplates.value,
             customExercises = CustomExerciseRepository.customExercises.value,
             db = db,

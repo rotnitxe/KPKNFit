@@ -57,7 +57,7 @@ fun TrainingHistorySection(logs: List<WorkoutLog>, nowMs: Long, modifier: Modifi
                 Text(trainingLogDescription(selected))
                 selected.sportDocuments.map { it.sportId }.distinct().forEach { Text("Disciplina registrada: ${it.lowercase().replace('_',' ')}") }
                 facts.filter { it.activityId == selected.id }.forEach { fact ->
-                    Text("${fact.metric}: ${factNumber(fact.value)} ${factUnit(fact.unit)} · ${factOrigin(fact.origin)}")
+                    Text("${factMetricLabel(fact.metric)}: ${factNumber(fact.value)} ${factUnit(fact.unit)} · ${factOrigin(fact.origin)}")
                 }
                 selected.sportDocuments.forEach { document ->
                     Text("Documento ${document.id} · ${document.purpose} · ${document.engineId} v${document.version}")

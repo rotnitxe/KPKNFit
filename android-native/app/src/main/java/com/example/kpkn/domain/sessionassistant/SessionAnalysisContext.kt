@@ -18,10 +18,7 @@ enum class AssistantPhase { ACCUMULATION, TRANSFORMATION, REALIZATION, UNSPECIFI
 enum class ExerciseRole { MAIN, ACCESSORY, CARDIO }
 
 /** Historial REALIZADO comparable (misma sesión del mismo programa, con puntuación de estrés). Lo previsto no cuenta aquí. */
-data class AssistantHistory(
-    val comparableSessions: Int,
-    val averageStress: Double?,
-) {
+ {
     /** Con menos sesiones comparables no se certifica ninguna tolerancia ni se compara contra el historial. */
     val isSufficient: Boolean get() = comparableSessions >= SessionAnalysisContextBuilder.MIN_COMPARABLE_SESSIONS
 }
@@ -35,7 +32,6 @@ data class SessionAnalysisContext(
     val objective: AssistantObjective,
     val phase: AssistantPhase,
     val roles: Map<String, ExerciseRole>,
-    val history: AssistantHistory,
     /** Tiempo que la persona fijó para la sesión; null = sin límite. */
     val availableSeconds: Int?,
     /** Duración estimada con el estimador común (el mismo reloj que ve en la cabecera del editor). */
@@ -73,7 +69,6 @@ object SessionAnalysisContextBuilder {
                 null -> AssistantPhase.UNSPECIFIED
             },
             roles = rolesOf(input, exercises),
-            history = historyOf(input, session),
             availableSeconds = input.targetDurationMinutes?.takeIf { it > 0 }?.times(60),
             clockSeconds = clockSeconds,
         )
@@ -118,15 +113,4 @@ object SessionAnalysisContextBuilder {
         }
     }
 
-    private fun historyOf(input: SessionAssistantInput, session: Session): AssistantHistory {
-        val comparable = input.workoutLogs.filter { log ->
-            log.programId == input.programId &&
-                log.sessionStressScore != null &&
-                (log.sessionId == session.id || log.sessionName.equals(session.name, ignoreCase = true))
-        }
-        return AssistantHistory(
-            comparableSessions = comparable.size,
-            averageStress = comparable.mapNotNull { it.sessionStressScore }.takeIf { it.isNotEmpty() }?.average(),
-        )
-    }
 }

@@ -5,7 +5,6 @@ import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.Gender
-import com.example.kpkn.data.models.GlobalBatteries
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.AthleteProfileScore
@@ -1756,22 +1755,22 @@ object SetupWizardValidation {
             }
             // RINGS v2: la intro no declara nada; los días y los ejercicios piden su respuesta («No entrené», «No lo recuerdo»,
             // «Ninguno de estos» y «No lo sé» la valen); las series y las sensaciones son omitibles.
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         }
     }
 

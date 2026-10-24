@@ -55,13 +55,8 @@ object WizChatReducer {
         WizChatQuestionId.T_MARKS -> setOf(WizChatQuestionId.T_PLAN, WizChatQuestionId.T_REVIEW)
         WizChatQuestionId.T_PLAN -> setOf(WizChatQuestionId.T_REVIEW)
         WizChatQuestionId.N_START, WizChatQuestionId.N_SEX, WizChatQuestionId.N_ELIGIBILITY,
-        WizChatQuestionId.N_DIRECTION, WizChatQuestionId.N_ACTIVITY -> setOf(WizChatQuestionId.N_RESULT, WizChatQuestionId.R_RESULT, WizChatQuestionId.REVIEW)
-        WizChatQuestionId.R_START, WizChatQuestionId.R_RECENT, WizChatQuestionId.R_SESSIONS,
-        WizChatQuestionId.R_RECENCY, WizChatQuestionId.R_ACTIVITY, WizChatQuestionId.R_INTENSITY,
-        WizChatQuestionId.R_AXIAL, WizChatQuestionId.R_FEELINGS_MUSCLE,
-        WizChatQuestionId.R_FEELINGS_ENERGY, WizChatQuestionId.R_FEELINGS_STRUCTURE,
-        WizChatQuestionId.R_DISCOMFORT -> setOf(WizChatQuestionId.R_RESULT, WizChatQuestionId.REVIEW)
-        WizChatQuestionId.T_REVIEW, WizChatQuestionId.N_RESULT, WizChatQuestionId.R_RESULT,
+        WizChatQuestionId.N_DIRECTION, WizChatQuestionId.N_ACTIVITY -> setOf(WizChatQuestionId.N_RESULT, WizChatQuestionId.REVIEW)
+        WizChatQuestionId.T_REVIEW, WizChatQuestionId.N_RESULT,
         WizChatQuestionId.REVIEW -> emptySet()
     }
 

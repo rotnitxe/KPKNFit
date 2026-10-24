@@ -51,11 +51,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.MarksMath
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.data.exercises.exerciseCatalogReady
-import com.example.kpkn.data.models.AugeSnapshot
-import com.example.kpkn.data.models.LoadAdvisoryLevel
-import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.Program
-import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.data.models.TodaySessionItem

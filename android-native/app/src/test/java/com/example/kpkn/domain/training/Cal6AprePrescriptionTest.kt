@@ -219,7 +219,7 @@ class Cal6AprePrescriptionTest {
             repsOf = { index, planned -> when (index) { 2 -> 12; 3 -> 17; else -> planned.targetReps ?: 10 } },
         )
         val proposal = ProgramAutoregulationEngine.evaluate(
-            program, week1, listOf(log), recipe, WeeklyAutoregulationSignals(readinessScore = 80),
+            program, week1, listOf(log), recipe, WeeklyAutoregulationSignals(),
         ).single { it.kind == AutoregulationProposalKind.ADJUST_XRM }
 
         assertNull(proposal.liftSlot)
@@ -266,7 +266,7 @@ class Cal6AprePrescriptionTest {
             repsOf = { index, planned -> when (index) { 2 -> 12; 3 -> 17; else -> planned.targetReps ?: 10 } },
         )
         val observed = ProgramAutoregulationEngine.evaluate(
-            propose, week, listOf(log), recipe, WeeklyAutoregulationSignals(readinessScore = 80),
+            propose, week, listOf(log), recipe, WeeklyAutoregulationSignals(),
         )
         assertEquals(listOf(AutoregulationProposalKind.ADJUST_XRM), observed.map { it.kind })
 

@@ -81,3 +81,15 @@ modifica la carga del plan. El diálogo de preparación se extrae como component
 opcional y sus renders sustituyen los del calibrador. Las pruebas de voz verifican
 que frases de baterías retiradas no creen registros; guardar y notas se conservan.
 Esta pasada aún requiere compilación y ejecución; no constituye evidencia de éxito.
+
+## Residuos del relator y exportación
+
+La revisión semántica encontró observadores Readiness/Coach con recortes -5/-10 %
+y acciones de saltar calentamiento condicionadas por un score. Se retiran los
+observadores y sus datos calculados; Warmup conserva referencias del plan y la
+opción manual por tiempo. Los DTO de predicción, snapshots de batería, señales
+fisiológicas no consumidas y claves derivadas de WorkoutLog se eliminan de los
+modelos activos. El importador raw aislado conserva las declaraciones originales.
+El chat antiguo pierde su etapa, preguntas, dependencias y textos RINGS; la
+migración sanea también completedStages. Las pruebas de esas APIs deben portarse
+sin resucitar modelos ni relajar pruebas de protocolos independientes.

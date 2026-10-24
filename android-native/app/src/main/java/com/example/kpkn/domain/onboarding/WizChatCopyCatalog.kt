@@ -13,7 +13,6 @@ object WizChatCopyCatalog {
         WizChatStage.PROFILE to listOf("Anotado.", "De acuerdo.", "Recibido."),
         WizChatStage.TRAINING to listOf("Entendido.", "De acuerdo.", "Anotado."),
         WizChatStage.NUTRITION to listOf("Anotado.", "De acuerdo.", "Recibido."),
-        WizChatStage.RINGS to listOf("Entendido.", "Anotado.", "De acuerdo."),
         WizChatStage.REVIEW to listOf("De acuerdo."),
     )
 
@@ -164,91 +163,17 @@ object WizChatCopyCatalog {
             }
             WizChatQuestionId.N_ACTIVITY -> "Con eso estimo tu gasto fuera del entrenamiento, sin sumar tus sesiones dos veces."
             WizChatQuestionId.N_RESULT -> "Estas son tus referencias iniciales: son un punto de partida ajustable, no una medición."
-            WizChatQuestionId.R_START -> contextualRingsStart(value)
-            WizChatQuestionId.R_RECENT -> when (value) {
-                "Sí" -> "Perfecto: con eso sitúo la carga con la que llegas de tus últimos entrenamientos."
-                "No" -> "De acuerdo: llegas sin carga reciente y partimos de ahí."
-                else -> "Sin problema: no inventamos sesiones. Responderé con lo que sí me has contado."
-            }
-            WizChatQuestionId.R_SESSIONS -> "Eso me da una idea del volumen de la última semana, sin convertirlo en una cifra exacta."
-            WizChatQuestionId.R_RECENCY -> "La distancia a tu última sesión importa: no pesa igual una sesión de hoy que una de la semana pasada."
-            WizChatQuestionId.R_ACTIVITY -> "Una sesión de fuerza, de cardio o mixta deja una huella distinta; lo tengo en cuenta para cada anillo."
-            WizChatQuestionId.R_INTENSITY -> "Una sesión suave no deja lo mismo que una exigente; por eso pregunto cómo la sentiste."
-            WizChatQuestionId.R_AXIAL -> "La carga sobre la columna (sentadillas, peso muerto…) pesa sobre el anillo de columna; lo registro aparte."
-            WizChatQuestionId.R_FEELINGS_MUSCLE -> "Tus sensaciones de hoy complementan lo que me has contado de tus entrenamientos."
-            WizChatQuestionId.R_FEELINGS_ENERGY -> "Con tu energía de hoy ajusto el anillo de energía junto a lo entrenado."
-            WizChatQuestionId.R_FEELINGS_STRUCTURE -> "Con cómo está tu columna ajusto ese anillo junto a la carga que declaraste."
-            WizChatQuestionId.R_DISCOMFORT -> when {
-                value.contains("Sin molestias") -> "Anoto que hoy no hay molestias que debamos tener en cuenta."
-                value.contains("omitirlo") -> "De acuerdo, seguimos sin registrar molestias."
-                else -> "Anoto esas molestias como contexto de hoy; no son un diagnóstico ni lo sustituyen."
-            }
-            WizChatQuestionId.R_RESULT -> "Este es el punto de partida que declaraste. Es una estimación con tus datos, no una medición de tu cuerpo."
             WizChatQuestionId.REVIEW -> null
         }
     }
 
-    private fun contextualRingsStart(value: String): String = when {
-        value.contains("Dejar") || value.contains("omit") -> "De acuerdo: tus RINGS quedan sin calibrar y la app usará lo que vayas registrando al entrenar."
-        value.contains("Conservar") -> "Mantendré la estimación que ya tienes, sin darla por más reciente de lo que es."
-        value.contains("Quitar") -> "Quitaré la estimación inicial; un check-in real que tengas se conserva."
-        value.contains("Actualizar") -> "Actualizamos el punto de partida con lo que me cuentes ahora."
-        else -> "Vale: preparo tu punto de partida con lo que me vayas contando. Es una estimación, no una medición."
-    }
-
-    /**
-     * Short context messages shown before a question is asked. RINGS carries the
-     * most explanation: what each indicator is, why each answer matters and what
-     * the estimate can and cannot say.
-     */
+    /** Context for active training and nutrition questions. */
     fun prefaces(questionId: WizChatQuestionId): List<String> = when (questionId) {
         WizChatQuestionId.N_SEX -> listOf(
             "Para estimar tu energía necesito un dato más: el sexo que usamos solo en esa ecuación.",
         )
         WizChatQuestionId.T_STYLE -> listOf(
             "Una última pregunta de enfoque y con eso ajusto el volumen.",
-        )
-        WizChatQuestionId.R_START -> listOf(
-            "Ahora vamos con tus RINGS: tres indicadores para orientarte sobre cómo vienes de recuperación: músculos, energía y columna.",
-            "Para empezar, usaré lo que me cuentes de tus entrenamientos recientes y cómo te sientes hoy.",
-            "Es una estimación basada en lo que declaras, no una medición de tu cuerpo ni un diagnóstico.",
-        )
-        WizChatQuestionId.R_RECENT -> listOf(
-            "Antes de los anillos, cuéntame por tus entrenamientos recientes: me sitúan la carga con la que llegas a hoy.",
-            "Pregunto por los últimos siete días solo como referencia de actividad reciente; eso no caduca tu resultado.",
-        )
-        WizChatQuestionId.R_SESSIONS -> listOf(
-            "Cuántas sesiones hiciste me ayuda a situar el volumen de esos días, sin convertirlo en una cifra exacta.",
-        )
-        WizChatQuestionId.R_RECENCY -> listOf(
-            "Cuándo fue tu última sesión importa: el cuerpo recupera con el tiempo y no pesa igual hoy que hace una semana.",
-        )
-        WizChatQuestionId.R_ACTIVITY -> listOf(
-            "No deja la misma huella una sesión de fuerza que una de cardio o una mixta; por eso pregunto qué predominó.",
-        )
-        WizChatQuestionId.R_INTENSITY -> listOf(
-            "Una sesión suave no supone lo mismo que una exigente: elige cómo la sentiste de verdad.",
-        )
-        WizChatQuestionId.R_AXIAL -> listOf(
-            "Ahora la carga sobre la columna: me refiero a esfuerzos que la comprimen, como sentadillas o peso muerto con barra, o cargar peso a la espalda.",
-            "Pesa sobre el anillo de columna, así que lo registro aparte del resto del entrenamiento.",
-        )
-        WizChatQuestionId.R_FEELINGS_MUSCLE -> listOf(
-            "Ahora, cómo te sientes hoy: tus sensaciones complementan lo que me has contado de tus entrenamientos.",
-        )
-        WizChatQuestionId.R_FEELINGS_ENERGY -> listOf(
-            "Tu energía de hoy aporta algo que el entrenamiento por sí solo no cuenta.",
-        )
-        WizChatQuestionId.R_FEELINGS_STRUCTURE -> listOf(
-            "Y tu columna de hoy completa los tres indicadores junto a músculos y energía.",
-        )
-        WizChatQuestionId.R_DISCOMFORT -> listOf(
-            "Por último, las molestias: las anoto como contexto para orientarte, no como diagnóstico ni en lugar de uno.",
-        )
-        WizChatQuestionId.R_RESULT -> listOf(
-            "Cada anillo representa una estimación distinta: cómo llegan tus músculos, tu energía y la carga de tu columna.",
-            "Salen de combinar lo que me has declarado con el mismo motor que usa la app en Inicio, y te indico la fuente real bajo el resultado.",
-            "Si lo dejas sin calibrar, la app irá estimando con lo que registre al entrenar y con tus check-ins reales.",
         )
         else -> emptyList()
     }
@@ -280,13 +205,6 @@ object WizChatCopyCatalog {
             WizChatQuestionId.N_DIRECTION, WizChatQuestionId.N_ACTIVITY ->
                 "Seguimos con un par de datos para tus referencias de comida."
             WizChatQuestionId.N_RESULT -> "Ya casi ves tus referencias de alimentación."
-            WizChatQuestionId.R_START -> "Por último, situamos tu punto de partida con los RINGS."
-            WizChatQuestionId.R_RECENT, WizChatQuestionId.R_SESSIONS, WizChatQuestionId.R_RECENCY,
-            WizChatQuestionId.R_ACTIVITY, WizChatQuestionId.R_INTENSITY, WizChatQuestionId.R_AXIAL,
-            WizChatQuestionId.R_FEELINGS_MUSCLE, WizChatQuestionId.R_FEELINGS_ENERGY,
-            WizChatQuestionId.R_FEELINGS_STRUCTURE, WizChatQuestionId.R_DISCOMFORT ->
-                "Unas preguntitas rápidas sobre cómo vienes entrenando."
-            WizChatQuestionId.R_RESULT -> "Ya casi tienes tu punto de partida listo."
             WizChatQuestionId.REVIEW -> "Vamos al resumen: ahí podrás activar todo."
         }
     }
@@ -295,7 +213,6 @@ object WizChatCopyCatalog {
         WizChatStage.PROFILE -> "Tus datos"
         WizChatStage.TRAINING -> "Tu entrenamiento"
         WizChatStage.NUTRITION -> "Tu alimentación"
-        WizChatStage.RINGS -> "Tu punto de partida — RINGS"
         WizChatStage.REVIEW -> "Resumen y activación"
     }
 

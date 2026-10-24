@@ -48,12 +48,6 @@ object TourScripts {
             kind = TourStepKind.TRY,
         ),
         TourStep(
-            anchorId = TourAnchors.HOME_RINGS,
-            title = "Tus RINGS",
-            body = "Tus RINGS: músculos, energía y columna. Toca uno para ver el detalle.",
-            kind = TourStepKind.TRY,
-        ).takeIf { conTorre },
-        TourStep(
             anchorId = TourAnchors.HOME_PROGRAMAS,
             title = "Tus programas",
             body = "Aquí están tus programas. Puedes cambiar de programa cuando quieras.",

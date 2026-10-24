@@ -88,7 +88,7 @@ class Cal5PowerCalibratorTest {
 
     private fun proposalsOf(program: com.example.kpkn.data.models.Program, log: com.example.kpkn.data.models.WorkoutLog) =
         ProgramAutoregulationEngine.evaluate(
-            program, weeksOf(program).first(), listOf(log), recipe, WeeklyAutoregulationSignals(readinessScore = 80),
+            program, weeksOf(program).first(), listOf(log), recipe, WeeklyAutoregulationSignals(),
         ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
 
     @Test
@@ -126,7 +126,7 @@ class Cal5PowerCalibratorTest {
 
     @Test
     fun the_modes_off_propose_and_auto_are_respected_and_the_next_week_uses_the_new_tm() {
-        val signals = WeeklyAutoregulationSignals(readinessScore = 80)
+        val signals = WeeklyAutoregulationSignals()
 
         val off = Cal5TestSupport.materialize(recipe, AutoregulationMode.OFF)
         assertTrue(ProgramAutoregulationEngine.evaluate(off, weeksOf(off).first(), listOf(squatLog(off, 6, 180.0, 1)), recipe, signals).isEmpty())
@@ -167,7 +167,7 @@ class Cal5PowerCalibratorTest {
         assertNull(ProgramAutoregulationEngine.amrapTmChange(recipe.progression, hit))
         val program = Cal5TestSupport.materialize(recipe)
         val proposals = ProgramAutoregulationEngine.evaluate(
-            program, weeksOf(program).first(), emptyList(), recipe, WeeklyAutoregulationSignals(amrapHits = listOf(hit), readinessScore = 80),
+            program, weeksOf(program).first(), emptyList(), recipe, WeeklyAutoregulationSignals(amrapHits = listOf(hit), ),
         ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
         assertTrue(proposals.isEmpty())
     }

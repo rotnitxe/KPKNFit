@@ -62,7 +62,7 @@ class Cal5Wendler531Test {
         listOf(1, 12).forEach { reps ->
             val proposals = ProgramAutoregulationEngine.evaluate(
                 program, week, emptyList(), bbb,
-                WeeklyAutoregulationSignals(amrapHits = listOf(AmrapHit(LiftSlot.SQUAT, 85.0, 5, reps)), readinessScore = 80),
+                WeeklyAutoregulationSignals(amrapHits = listOf(AmrapHit(LiftSlot.SQUAT, 85.0, 5, reps)), ),
             ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
             assertTrue("con $reps reps no hay propuesta de TM: $proposals", proposals.isEmpty())
         }

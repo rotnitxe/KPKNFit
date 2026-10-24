@@ -2,7 +2,6 @@ package com.example.kpkn.domain.sessionassistant
 
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.Session
@@ -37,7 +36,7 @@ class SessionAdvisorTest {
         week: List<Session> = emptyList(),
         logs: List<WorkoutLog> = emptyList(),
         program: Program? = Program(id = "p1", name = "P"),
-        customDrain: PredictedDrain? = null,
+
         limits: SessionEditorRuleLimits = SessionEditorRuleLimits(),
         settings: Settings = Settings(),
     ) = SessionAssistantInput(
@@ -52,7 +51,7 @@ class SessionAdvisorTest {
         mesoIndex = 0,
         programId = "p1",
         targetDurationMinutes = session.targetDurationMinutes,
-        customDrain = customDrain,
+
         supersetGroups = session.allSupersetGroups(),
         sessionWarmup = session.warmup,
         session = session,
@@ -214,7 +213,7 @@ class SessionAdvisorTest {
     @Test
     fun costBelowTheSignal_saysNothing() {
         val session = MotSessions.session("s10", "Cadena anterior", MotSessions.S10, dayOfWeek = 3)
-        val report = SessionAssistantEngine.evaluate(input(session, customDrain = PredictedDrain(59, 59, 59)))
+        val report = SessionAssistantEngine.evaluate(input(session, ))
         assertTrue(report.ajustes.isEmpty() && report.notas.isEmpty())
     }
 
@@ -263,7 +262,7 @@ class SessionAdvisorTest {
                 )
             },
         )
-        val report = SessionAssistantEngine.evaluate(input(s2, logs = listOf(doneLog), customDrain = PredictedDrain(30, 30, 20)))
+        val report = SessionAssistantEngine.evaluate(input(s2, logs = listOf(doneLog), ))
         val text = everything(report)
         assertTrue("lo realizado sí se cuenta como hecho: $text", text.contains("hiciste"))
         assertTrue(text, text.contains("pierna de ayer"))
@@ -308,7 +307,7 @@ class SessionAdvisorTest {
         val current = MotSessions.session("cur", "Cadena anterior", MotSessions.S10, dayOfWeek = 2, targetDurationMinutes = 10)
         val monday = MotSessions.session("mon", "Lunes", MotSessions.S10, dayOfWeek = 1)
         val sunday = MotSessions.session("sun", "Domingo", MotSessions.S10, dayOfWeek = 7)
-        val all = SessionAssistantEngine.evaluate(input(current, week = listOf(monday, sunday), customDrain = PredictedDrain(70, 70, 65)))
+        val all = SessionAssistantEngine.evaluate(input(current, week = listOf(monday, sunday), ))
         println("MOT-S medición todas las familias · tarjetas=${all.ajustes.map { it.id }} notas=${all.notas.size}")
     }
 
@@ -317,7 +316,7 @@ class SessionAdvisorTest {
         val current = MotSessions.session("cur", "Cadena anterior", MotSessions.S10, dayOfWeek = 2, targetDurationMinutes = 10)
         val monday = MotSessions.session("mon", "Lunes", MotSessions.S10, dayOfWeek = 1)
         val sunday = MotSessions.session("sun", "Domingo", MotSessions.S10, dayOfWeek = 7)
-        val report = SessionAssistantEngine.evaluate(input(current, week = listOf(monday, sunday), customDrain = PredictedDrain(70, 70, 65)))
+        val report = SessionAssistantEngine.evaluate(input(current, week = listOf(monday, sunday), ))
         assertTrue("${report.ajustes.map { it.id }} + ${report.notas}", report.ajustes.size + report.notas.size <= SessionAdvisor.MAX_NOTICES)
         assertTrue(report.ajustes.all { it.details.isNotEmpty() && it.details.size <= 3 })
     }

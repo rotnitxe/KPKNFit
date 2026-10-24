@@ -66,7 +66,6 @@ internal fun WorkoutV2Body(
     modifier: Modifier,
     uiState: WorkoutUiState,
     settings: com.example.kpkn.data.models.Settings,
-    adaptiveCache: com.example.kpkn.data.models.AugeAdaptiveCache = com.example.kpkn.data.models.AugeAdaptiveCache(),
     viewModel: WorkoutViewModel,
     currentExercise: Exercise?,
     visibleExercises: List<Exercise>,
@@ -96,7 +95,6 @@ internal fun WorkoutV2Body(
     /** «Editar» de las opciones de una serie: abre las series del ejercicio en el que se pulsó (no siempre el de turno). */
     onEditExercise: (exerciseId: String) -> Unit = {},
     onRequestCardioGps: (exerciseId: String, setIndex: Int) -> Unit = { _, _ -> },
-    exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
     recordActionHolder: RecordActionHolder = remember { RecordActionHolder() },
     recordFabHolder: RecordFabHolder = remember { RecordFabHolder() },
     adaptActionHolder: AdaptActionHolder = remember { AdaptActionHolder() },
@@ -239,10 +237,7 @@ internal fun WorkoutV2Body(
 
     BoxWithConstraints(modifier = modifier) {
         val compactHeaderLayout = maxHeight < 800.dp
-        val currentExerciseReadiness = currentExercise?.let { exerciseReadinessMap[it.id] }
-        val currentReadinessAdjustment = currentExercise?.let { ex ->
-            uiState.readinessAdjustments["${ex.id}_${uiState.currentSetIdx}"]
-        }
+
         val sessionTimeRemainingSeconds by viewModel.sessionTimeRemainingSeconds.collectAsStateWithLifecycle()
         val relatorResolution by viewModel.relatorResolution.collectAsStateWithLifecycle()
         val relatorLoadPopTrigger by viewModel.relatorLoadPopTrigger.collectAsStateWithLifecycle()

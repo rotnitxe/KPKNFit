@@ -8,7 +8,6 @@ enum class WizChatStage {
     PROFILE,
     TRAINING,
     NUTRITION,
-    RINGS,
     REVIEW,
 }
 
@@ -44,18 +43,6 @@ enum class WizChatQuestionId {
     N_DIRECTION,
     N_ACTIVITY,
     N_RESULT,
-    R_START,
-    R_RECENT,
-    R_SESSIONS,
-    R_RECENCY,
-    R_ACTIVITY,
-    R_INTENSITY,
-    R_AXIAL,
-    R_FEELINGS_MUSCLE,
-    R_FEELINGS_ENERGY,
-    R_FEELINGS_STRUCTURE,
-    R_DISCOMFORT,
-    R_RESULT,
     REVIEW,
 }
 

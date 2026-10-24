@@ -1,6 +1,5 @@
 package com.example.kpkn.domain.sessionassistant
 
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.Settings
@@ -24,7 +23,7 @@ class SessionAssistantRedesignReproTest {
     private fun input(
         session: Session,
         week: List<Session> = emptyList(),
-        customDrain: PredictedDrain? = null,
+
     ): SessionAssistantInput = SessionAssistantInput(
         allExercisesInSession = session.allExercises(),
         weekSessions = (week + session).distinctBy { it.id },
@@ -37,7 +36,7 @@ class SessionAssistantRedesignReproTest {
         mesoIndex = 0,
         programId = "p1",
         targetDurationMinutes = session.targetDurationMinutes,
-        customDrain = customDrain,
+
         supersetGroups = session.allSupersetGroups(),
         sessionWarmup = session.warmup,
     )
@@ -62,7 +61,7 @@ class SessionAssistantRedesignReproTest {
     @Test
     fun costCardUsesNeutralLanguage_noClaimsAboutRecoveryOrInjury() {
         val session = MotSessions.session("s10", "Cadena anterior", MotSessions.S10, dayOfWeek = 3)
-        val report = SessionAssistantEngine.evaluate(input(session, customDrain = PredictedDrain(cns = 70, muscular = 70, spinal = 65)))
+        val report = SessionAssistantEngine.evaluate(input(session, ))
         val text = allText(report.ajustes)
         listOf("demasiado", "fatigante", "recuperación", "lesión", "lesion", "columna", "proteg", "peligro").forEach { word ->
             assertFalse("El asistente no debe usar «$word»: $text", text.contains(word))
@@ -72,7 +71,7 @@ class SessionAssistantRedesignReproTest {
     @Test
     fun reduceSetActionsPointAtAnExplicitExercise_notAMuscleName() {
         val session = MotSessions.session("s10", "Cadena anterior", MotSessions.S10, dayOfWeek = 3, targetDurationMinutes = 20)
-        val report = SessionAssistantEngine.evaluate(input(session, customDrain = PredictedDrain(cns = 70, muscular = 70, spinal = 65)))
+        val report = SessionAssistantEngine.evaluate(input(session, ))
         val reduce = report.ajustes.flatMap { it.details }.map { it.action }.filterIsInstance<AssistantDetailAction.ReduceSet>()
         assertTrue(
             "Cada «quitar una serie» debe apuntar a un ejercicio concreto: $reduce",
@@ -86,7 +85,7 @@ class SessionAssistantRedesignReproTest {
         val monday = MotSessions.session("mon", "Cadena anterior lunes", MotSessions.S10, dayOfWeek = 1)
         val sunday = MotSessions.session("sun", "Cadena anterior domingo", MotSessions.S10, dayOfWeek = 7)
         val report = SessionAssistantEngine.evaluate(
-            input(current, week = listOf(monday, sunday), customDrain = PredictedDrain(cns = 70, muscular = 70, spinal = 65)),
+            input(current, week = listOf(monday, sunday), ),
         )
         assertTrue("Como mucho 3 avisos, hay ${report.ajustes.size}: ${report.ajustes.map { it.id }}", report.ajustes.size <= 3)
     }
@@ -95,7 +94,7 @@ class SessionAssistantRedesignReproTest {
     fun plannedSessionsAreNeverPresentedAsDone() {
         val s1 = MotSessions.session("s1", "SBD Sentadilla", MotSessions.S1, dayOfWeek = 1)
         val s2 = MotSessions.session("s2", "SBD Peso muerto", MotSessions.S2, dayOfWeek = 2)
-        val report = SessionAssistantEngine.evaluate(input(s2, week = listOf(s1), customDrain = PredictedDrain(30, 30, 20)))
+        val report = SessionAssistantEngine.evaluate(input(s2, week = listOf(s1), ))
         val text = allText(report.ajustes)
         assertFalse("Una sesión prevista no se «entrenó»: $text", text.contains("entrenaste"))
         assertFalse("Un cruce bajo (10–24 %) no es «poco descanso»: $text", text.contains("poco descanso"))
@@ -124,7 +123,7 @@ class SessionAssistantRedesignReproTest {
     fun sanity_costOnlyCard_stillSurfacesAtTheThreshold() {
         // Control: el umbral interno 59/60 sigue existiendo como señal; solo cambia lo que se dice y se propone.
         val session = MotSessions.session("s10", "Cadena anterior", MotSessions.S10, dayOfWeek = 3)
-        val below = SessionAssistantEngine.evaluate(input(session, customDrain = PredictedDrain(59, 59, 59)))
+        val below = SessionAssistantEngine.evaluate(input(session, ))
         assertEquals(0, below.ajustes.size)
     }
 }

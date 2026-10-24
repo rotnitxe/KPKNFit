@@ -405,27 +405,6 @@ class RelatorPlanAwareTest {
     }
 }
 
-class RelatorReadinessActionTest {
-    @Test
-    fun low_readiness_offers_adjust_load() {
-        val ctx = relatorContext(
-            dailyScore = 42,
-            autoregulationMode = AutoregulationMode.PROPOSE,
-        )
-        val actions = ReadinessObserver.observe(ctx).flatMap { it.actions }
-        assertTrue(actions.any { it.kind == RelatorActionKind.ADJUST_LOAD })
-        assertTrue(actions.any { it.kind == RelatorActionKind.OPEN_REPLACE })
-        assertTrue(actions.any { it.kind == RelatorActionKind.OPEN_READINESS })
-        val picked = RelatorEngine.resolve(ctx)
-        val kinds = picked.line.actions.map { it.kind }
-        assertTrue(
-            "low readiness should surface ADJUST_LOAD on the winning line or a readiness candidate",
-            RelatorActionKind.ADJUST_LOAD in kinds ||
-                ReadinessObserver.observe(ctx).any { it.actions.any { a -> a.kind == RelatorActionKind.ADJUST_LOAD } },
-        )
-    }
-}
-
 class RelatorRestIndependenceTest {
     @Test
     fun rest_observer_ignores_overlay_minimized() {

@@ -8,7 +8,6 @@ import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
-import com.example.kpkn.data.models.LoadAdvisoryLevel
 import com.example.kpkn.data.models.PendingActionResolutionStatus
 import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.PowerliftingProfile
@@ -100,7 +99,7 @@ class ProgramAutoregulationEngineTest {
             recipe = recipe().copy(progression = ProgressionRule.RepTargetDrivenTm()),
             signals = WeeklyAutoregulationSignals(
                 amrapHits = listOf(AmrapHit(LiftSlot.SQUAT, 95.0, prescribedReps = 5, actualReps = 1, meanRpe = 9.4)),
-                readinessScore = 38,
+
             ),
         )
         assertTrue(proposals.any { it.kind == AutoregulationProposalKind.ADJUST_TM && (it.percentDelta ?: 0.0) < 0 })
@@ -113,7 +112,7 @@ class ProgramAutoregulationEngineTest {
         val week = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
         val proposals = ProgramAutoregulationEngine.evaluate(
             program, week, emptyList(), recipe(),
-            WeeklyAutoregulationSignals(readinessScore = 32, cumulativeFatigue = 90.0, loadAdvisoryLevel = LoadAdvisoryLevel.UNLOAD),
+            WeeklyAutoregulationSignals(  ),
         )
         assertTrue(proposals.any { it.kind == AutoregulationProposalKind.INSERT_DELOAD })
     }
@@ -127,7 +126,7 @@ class ProgramAutoregulationEngineTest {
             WeeklyAutoregulationSignals(
                 e1rmByLift = mapOf(LiftSlot.SQUAT to 220.0),
                 consecutiveHighE1rmWeeks = 2,
-                readinessScore = 80,
+
             ),
         )
         assertTrue(proposals.any { it.kind == AutoregulationProposalKind.PROMOTE_TM && it.liftSlot == "SQUAT" })
@@ -209,7 +208,7 @@ class ProgramAutoregulationEngineTest {
         val week = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
         val proposals = ProgramAutoregulationEngine.evaluate(
             program, week, emptyList(), recipe(),
-            WeeklyAutoregulationSignals(readinessScore = 10, loadAdvisoryLevel = LoadAdvisoryLevel.UNLOAD),
+            WeeklyAutoregulationSignals( ),
         )
         assertTrue(proposals.isEmpty())
     }
@@ -227,7 +226,7 @@ class ProgramAutoregulationEngineTest {
             completedWeek = firstWeek(program),
             logs = emptyList(),
             recipe = recipe().copy(progression = rule),
-            signals = WeeklyAutoregulationSignals(amrapHits = hits.toList(), readinessScore = 80),
+            signals = WeeklyAutoregulationSignals(amrapHits = hits.toList(), ),
         ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
     }
 
@@ -378,7 +377,7 @@ class ProgramAutoregulationEngineTest {
     @Test
     fun a_kilo_proposal_respects_off_propose_and_auto() {
         val hit = AmrapHit(LiftSlot.SQUAT, 95.0, prescribedReps = 1, actualReps = 5)
-        val signals = WeeklyAutoregulationSignals(amrapHits = listOf(hit), readinessScore = 80)
+        val signals = WeeklyAutoregulationSignals(amrapHits = listOf(hit), )
         val rule = recipe()
 
         // OFF: ni propuesta ni cambio.
@@ -514,7 +513,7 @@ class ProgramAutoregulationEngineTest {
             completedWeek = week,
             logs = logs,
             recipe = recipe().copy(progression = ProgressionRule.RepTargetDrivenTm()),
-            signals = WeeklyAutoregulationSignals(readinessScore = 80),
+            signals = WeeklyAutoregulationSignals(),
         ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
 
         // El ciclo 1 (1 rep, corto) ya pasó: el 4+ del ciclo 2 cumple su objetivo y no propone nada.
@@ -730,7 +729,7 @@ class ProgramAutoregulationEngineTest {
             completedWeek = week,
             logs = listOf(log),
             recipe = recipe,
-            signals = WeeklyAutoregulationSignals(readinessScore = 80),
+            signals = WeeklyAutoregulationSignals(),
         )
         assertTrue("antes escalaba los cuatro TM", proposals.none { it.kind == AutoregulationProposalKind.ADJUST_TM })
     }
@@ -802,7 +801,7 @@ class ProgramAutoregulationEngineTest {
                     completedWeek = week,
                     logs = emptyList(),
                     recipe = candidate,
-                    signals = WeeklyAutoregulationSignals(amrapHits = listOf(hit), readinessScore = 80),
+                    signals = WeeklyAutoregulationSignals(amrapHits = listOf(hit), ),
                 ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
 
             val short = AmrapHit(lift, 70.0, prescribedReps = 8, actualReps = 5)
@@ -849,7 +848,7 @@ class ProgramAutoregulationEngineTest {
             completedWeek = apreWeek,
             logs = listOf(apreLog),
             recipe = apreRecipe,
-            signals = WeeklyAutoregulationSignals(readinessScore = 80),
+            signals = WeeklyAutoregulationSignals(),
         ).single { it.kind == AutoregulationProposalKind.ADJUST_XRM }
         assertNull(apreProposal.liftSlot)
         assertNull(apreProposal.percentDelta)
@@ -872,7 +871,7 @@ class ProgramAutoregulationEngineTest {
             completedWeek = firstWeek(program),
             logs = emptyList(),
             recipe = recipe(),
-            signals = WeeklyAutoregulationSignals(repeatedJointPain = true, readinessScore = 80),
+            signals = WeeklyAutoregulationSignals(repeatedJointPain = true, ),
         )
 
         assertTrue(
@@ -887,9 +886,9 @@ class ProgramAutoregulationEngineTest {
         val program = materialized()
         // AMRAP corto de sentadilla + readiness bajo con ACWR UNLOAD + e1RM alto dos semanas: tres propuestas distintas.
         val signals = WeeklyAutoregulationSignals(
-            readinessScore = 38,
-            cumulativeFatigue = 90.0,
-            loadAdvisoryLevel = LoadAdvisoryLevel.UNLOAD,
+
+
+
             e1rmByLift = mapOf(LiftSlot.SQUAT to 220.0),
             consecutiveHighE1rmWeeks = 2,
             amrapHits = listOf(AmrapHit(LiftSlot.SQUAT, 95.0, prescribedReps = 5, actualReps = 1, meanRpe = 9.4)),
@@ -1036,7 +1035,7 @@ class ProgramProgressEngineAutoregulationTest {
                     meanRpe = 8.0,
                     weightRatio = 1.0,
                 )),
-                readinessScore = 70,
+
             ),
             compositionMetadata = CatalogCompositionTestSupport.metadata,
         )

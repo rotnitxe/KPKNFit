@@ -111,7 +111,6 @@ import com.example.kpkn.data.models.MobilityExerciseCatalog
 import com.example.kpkn.data.models.SetOutcomeV2
 import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.MuscleRole
-import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SupersetGroup
@@ -133,7 +132,6 @@ import com.example.kpkn.data.models.WorkoutHeaderWidgets
 import com.example.kpkn.screens.workout.ExerciseHistoryEntry
 import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.unresolvedDiscomfortIdsFrom
-import com.example.kpkn.data.models.PostSessionPreview
 import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
@@ -180,10 +178,7 @@ import com.example.kpkn.data.models.ringScore
 import kotlinx.coroutines.launch
 import java.util.Locale
 import com.example.kpkn.data.models.DailyWellbeingLog
-import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.Gender
-import com.example.kpkn.data.models.MovementPatternReadiness
-import com.example.kpkn.data.models.SetAdjustmentSuggestion
 import java.time.LocalDate
 import java.util.UUID
 import dev.chrisbanes.haze.HazeState
@@ -932,7 +927,6 @@ fun WorkoutScreen(
             onToggleVoice = onToggleVoice,
             onStoryClick = { storyFromHeader = true; viewModel.showFinish() },
             onMoreSessionOptionsClick = { liveSessionDestination = LiveSessionDestination.MENU },
-            exerciseReadinessMap = uiState.exerciseReadinessMap,
             recordActionHolder = recordActionHolder,
             recordFabHolder = recordFabHolder,
             liveSetStepperHolder = liveSetStepperHolder,

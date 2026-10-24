@@ -17,7 +17,6 @@ data class WorkoutLog(
     val discomforts: List<String> = emptyList(),
     val notes: String? = null,
     val totalVolume: Double = 0.0,         // kg × reps total
-    val sessionStressScore: Double? = null, // AUGE: computed CNC drain for this session
     /** Canonical muscular impact captured at finish; nullable for legacy logs. */
     val energySummary: SessionEnergySummary? = null,
     /** Specialized observations/results of this activity; never extra kcal or extra workouts. */
@@ -60,18 +59,8 @@ data class WorkoutLog(
      */
     val calendarBreakId: String? = null,
     /** Rings just before this session (or at finish without this log). */
-    val ringStartSnapshot: RingStartSnapshot? = null,
     val sessionEffortRpe: Double? = null,
     val sessionEffortProtocol: String? = null,
-)
-
-@Serializable
-data class RingStartSnapshot(
-    val capturedAtIso: String,
-    val muscular: Int,
-    val energy: Int,
-    val structure: Int,
-    val isInitialEstimate: Boolean = false,
 )
 
 @Serializable

@@ -8,7 +8,6 @@ import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
-import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.nutrition.EerSex

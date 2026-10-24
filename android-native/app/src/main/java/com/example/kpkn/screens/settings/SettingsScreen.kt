@@ -269,7 +269,7 @@ fun SettingsScreen(
                     SettingsActionRow(
                         icon = Icons.Default.Backup,
                         title = "Exportar backup (JSON)",
-                        description = "Rutinas, historial, nutrición, AUGE, competiciones, tags de contexto, rendimiento y metadatos de medios. No incluye el catálogo global de alimentos ni WikiLab (se regeneran).",
+                        description = "Rutinas, historial, nutrición, observaciones originales, competiciones, tags de contexto, rendimiento y metadatos de medios. No incluye el catálogo global de alimentos ni WikiLab (se regeneran).",
                         actionLabel = "Exportar",
                         onClick = { backupExportLauncher.launch("kpkn-backup.json") },
                     )
@@ -376,7 +376,7 @@ fun SettingsScreen(
             title = { Text("¿Importar este backup?") },
             text = {
                 Text(
-                    "Se restaurarán rutinas, historial, nutrición y AUGE según el JSON. " +
+                    "Se restaurarán rutinas, historial, nutrición y observaciones originales según el JSON. " +
                         "Si el archivo es antiguo, competiciones y datos de contexto no listados se mantienen. " +
                         "Se crea un snapshot local antes de importar por si algo falla.",
                 )

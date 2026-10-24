@@ -2,7 +2,6 @@ package com.example.kpkn.domain.templates
 
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.sessions.SessionTemplate

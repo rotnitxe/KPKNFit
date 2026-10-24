@@ -12,7 +12,6 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.performedPurpose
-import com.example.kpkn.data.models.LoadAdvisoryLevel
 import com.example.kpkn.data.models.PendingActionResolutionStatus
 import com.example.kpkn.data.models.PendingProgramAction
 import com.example.kpkn.data.models.PendingProgramActionType
@@ -105,11 +104,6 @@ data class RepMaxHit(
 )
 
 data class WeeklyAutoregulationSignals(
-    val readinessScore: Int? = null,
-    val cumulativeFatigue: Double? = null,
-    val stressLevel: Int? = null,
-    val loadAdvisoryLevel: LoadAdvisoryLevel = LoadAdvisoryLevel.NONE,
-    val overtrainedMuscles: List<String> = emptyList(),
     val amrapHits: List<AmrapHit> = emptyList(),
     val e1rmByLift: Map<LiftSlot, Double> = emptyMap(),
     val consecutiveHighE1rmWeeks: Int = 0,
@@ -306,7 +300,7 @@ object ProgramAutoregulationEngine {
     }
 
     private fun pendingMessage(proposals: List<AutoregulationProposal>): String =
-        proposals.joinToString(" · ") { it.explanation }.ifBlank { "AUGE propone ajustes para la próxima semana." }
+        proposals.joinToString(" · ") { it.explanation }.ifBlank { "El protocolo propone cambios para la próxima semana; revisa y confirma." }
 
     /** Las señales sin identidad no pueden volver a introducir como TM una serie APRE del registro real. */
     private fun shadowsObservedApre(signal: AmrapHit, observedApre: List<AmrapHit>): Boolean {
@@ -383,7 +377,7 @@ object ProgramAutoregulationEngine {
                 }
                 val merged = mergePendingProposals(pending?.proposals.orEmpty(), newProposals)
                 val message = merged.joinToString(" · ") { it.explanation }
-                    .ifBlank { "AUGE propone ajustes para la próxima semana." }
+                    .ifBlank { "El protocolo propone cambios para la próxima semana; revisa y confirma." }
                 val pendingAction = PendingProgramAction(
                     type = PendingProgramActionType.CONFIRM_AUTOREGULATION,
                     message = message,
@@ -400,7 +394,7 @@ object ProgramAutoregulationEngine {
                 if (regular.isNotEmpty() && (provider == null || recipe == null)) {
                     val merged = mergePendingProposals(pending?.proposals.orEmpty(), regular)
                     val message = merged.joinToString(" · ") { it.explanation }
-                        .ifBlank { "AUGE propone ajustes para la próxima semana." }
+                        .ifBlank { "El protocolo propone cambios para la próxima semana; revisa y confirma." }
                     val pendingAction = PendingProgramAction(
                         type = PendingProgramActionType.CONFIRM_AUTOREGULATION,
                         message = message,

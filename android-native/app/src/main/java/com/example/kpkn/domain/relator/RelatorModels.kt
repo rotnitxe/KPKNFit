@@ -145,17 +145,11 @@ data class RelatorRestSlice(
 )
 
 data class RelatorReadinessSlice(
-    val dailyScore: Int? = null,
-    val dailyLabel: String? = null,
-    val dailyDetails: List<String> = emptyList(),
-    val exerciseScore: Int? = null,
-    val limitingFactor: String? = null,
     val sleepQuality: Int? = null,
     val stressLevel: Int? = null,
     val doms: Int? = null,
     val motivation: Int? = null,
     val preWorkoutDiscomforts: List<String> = emptyList(),
-    val muscleDrainLabel: String? = null,
 )
 
 data class RelatorWarmupSlice(

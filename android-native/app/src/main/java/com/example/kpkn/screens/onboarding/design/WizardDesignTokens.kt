@@ -26,7 +26,6 @@ enum class WizardBlock(val accent: Color) {
     BASICS(Color(0xFFFFA15C)),
     TRAINING(Color(0xFF74B5FF)),
     NUTRITION(Color(0xFF6EDB9A)),
-    RINGS(Color(0xFFF0D36A)),
     REVIEW(Color(0xFF74B5FF)),
 }
 

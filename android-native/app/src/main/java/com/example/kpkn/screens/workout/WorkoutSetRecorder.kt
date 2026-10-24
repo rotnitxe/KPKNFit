@@ -3,7 +3,6 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
-import com.example.kpkn.data.models.AugeMetrics
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.DifficultySignalV2
 import com.example.kpkn.data.models.Exercise
@@ -37,7 +36,6 @@ import com.example.kpkn.domain.workout.ScheduledTechniqueKind
 import com.example.kpkn.domain.workout.isInlineEditorScheduledTechnique
 import com.example.kpkn.domain.workout.techniqueScope
 import com.example.kpkn.data.models.SessionEnergySummary
-import com.example.kpkn.data.models.SetDrain
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.effectiveSupersetGroupFor
 import com.example.kpkn.data.models.effectiveRepRange

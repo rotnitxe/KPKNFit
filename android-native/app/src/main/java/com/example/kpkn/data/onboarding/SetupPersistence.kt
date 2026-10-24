@@ -436,12 +436,6 @@ internal fun mergeSetupWellbeing(existing: DailyWellbeingLog?, incoming: DailyWe
     val incomingHas = { key: String -> key in incoming.capturedFields }
     return existing.copy(
         id = existing.id,
-        manualMuscularBattery = if (incomingHas("muscular")) incoming.manualMuscularBattery else existing.manualMuscularBattery,
-        manualMuscleBatteries = if (incomingHas("muscle_batteries")) existing.manualMuscleBatteries + incoming.manualMuscleBatteries else existing.manualMuscleBatteries,
-        manualMuscleOverridesV2 = if (incomingHas("muscle_batteries")) existing.manualMuscleOverridesV2 + incoming.manualMuscleOverridesV2 else existing.manualMuscleOverridesV2,
-        manualBatteryAnchorMs = if (incomingHas("muscle_batteries")) incoming.manualBatteryAnchorMs else existing.manualBatteryAnchorMs,
-        manualNeuralBattery = if (incomingHas("energy")) incoming.manualNeuralBattery else existing.manualNeuralBattery,
-        manualSpinalBattery = if (incomingHas("structure")) incoming.manualSpinalBattery else existing.manualSpinalBattery,
         preWorkoutDiscomforts = if (incomingHas("discomforts")) incoming.preWorkoutDiscomforts else existing.preWorkoutDiscomforts,
         capturedFields = fields,
     )

@@ -60,7 +60,7 @@ class TopSetProgressionTest {
 
     private val metadata get() = CatalogCompositionTestSupport.metadata
 
-    private val signals = WeeklyAutoregulationSignals(readinessScore = 80)
+    private val signals = WeeklyAutoregulationSignals()
 
     // ─── La regla de TopSetPr ──────────────────────────────────────────────────────
 

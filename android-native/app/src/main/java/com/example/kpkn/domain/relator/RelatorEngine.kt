@@ -7,11 +7,9 @@ object RelatorEngine {
         SessionProgressObserver,
         RestObserver,
         SetOutcomeObserver,
-        ReadinessObserver,
         TechniqueObserver,
         MilestoneObserver,
         WarmupObserver,
-        CoachObserver,
         MediaObserver,
     )
 

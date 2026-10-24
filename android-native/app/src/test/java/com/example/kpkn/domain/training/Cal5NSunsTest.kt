@@ -94,7 +94,7 @@ class Cal5NSunsTest {
         val log = exerciseLog(program, week1, ohpDay, ohp, repsOf = { _, planned -> if (planned.purpose.isAmrap) 5 else planned.targetReps ?: 5 })
 
         val proposals = ProgramAutoregulationEngine.evaluate(
-            program, week1, listOf(log), nsuns, WeeklyAutoregulationSignals(readinessScore = 80),
+            program, week1, listOf(log), nsuns, WeeklyAutoregulationSignals(),
         ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
 
         val proposal = proposals.single()
@@ -105,7 +105,7 @@ class Cal5NSunsTest {
 
     @Test
     fun the_modes_off_propose_and_auto_are_respected() {
-        val hits = WeeklyAutoregulationSignals(amrapHits = listOf(hit(LiftSlot.OVERHEAD, 5)), readinessScore = 80)
+        val hits = WeeklyAutoregulationSignals(amrapHits = listOf(hit(LiftSlot.OVERHEAD, 5)), )
 
         // OFF: ni propuesta ni cambio.
         val off = Cal5TestSupport.materialize(nsuns, AutoregulationMode.OFF)

@@ -6,7 +6,6 @@ import com.example.kpkn.data.models.OngoingWorkoutState
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.SetDrain
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutContextProfile

@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.isActive
-import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.SessionBackground
 import com.example.kpkn.data.models.WorkoutSubTag
 import com.example.kpkn.data.models.WorkoutTag
@@ -51,7 +50,6 @@ import com.example.kpkn.ui.components.kpknCoverGlass
 import com.example.kpkn.services.workout.VoiceSessionState
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
-import com.example.kpkn.data.models.SetAdjustmentSuggestion
 import dev.chrisbanes.haze.HazeState
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.TextStyle
@@ -380,7 +378,6 @@ internal fun WorkoutHeaderBar(
     coachPaceAlert: String? = null,
     exerciseTag: String? = null,
     isSuperset: Boolean = false,
-    exerciseReadiness: ExerciseReadiness? = null,
     activeMainTags: List<WorkoutTag> = emptyList(),
     activeMainTagLabels: Map<String, String> = emptyMap(),
     activeSubTags: List<WorkoutSubTag> = emptyList(),
@@ -397,7 +394,6 @@ internal fun WorkoutHeaderBar(
     ultraFastApplied: Boolean = false,
     ultraFastSavedSeconds: Int = 0,
     onRevertUltraFast: (() -> Unit)? = null,
-    readinessAdjustment: SetAdjustmentSuggestion? = null,
     onAdaptClick: (() -> Unit)? = null,
     godModeActive: Boolean = false,
     onStoryClick: (() -> Unit)? = null,

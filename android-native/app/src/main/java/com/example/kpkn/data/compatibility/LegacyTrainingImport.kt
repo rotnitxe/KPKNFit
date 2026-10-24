@@ -106,6 +106,7 @@ object LegacyTrainingImport {
                     when {
                         k == "currentQuestionId" && v.jsonPrimitive.content.startsWith("R_") -> JsonPrimitive("REVIEW")
                         k == "stage" && v.jsonPrimitive.content == "RINGS" -> JsonPrimitive("REVIEW")
+                        k == "completedStages" -> JsonArray(v.jsonArray.filterNot { it.jsonPrimitive.content == "RINGS" })
                         k == "acceptedAnswers" -> JsonArray(v.jsonArray.filterNot { it.jsonObject["questionId"]?.jsonPrimitive?.content?.startsWith("R_") == true })
                         else -> v
                     }

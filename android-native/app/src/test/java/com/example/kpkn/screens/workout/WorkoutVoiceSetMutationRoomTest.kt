@@ -191,7 +191,7 @@ class WorkoutVoiceSetMutationRoomTest {
             val ongoing = repository.databaseForTests().stateDao().getOngoingWorkout()!!.toOngoingWorkoutState()!!
             state = state.copy(completedSets = ongoing.completedSets)
         },
-        
+
         refreshLoadSuggestions = { _, exerciseId -> refreshedExercises += exerciseId },
         gateWaitMs = gateWaitMs,
     )

@@ -9,7 +9,6 @@ import com.example.kpkn.data.models.PlanDeviation
 import com.example.kpkn.data.models.PlanDeviationType
 import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.PostSessionFeedback
-import com.example.kpkn.data.models.RingStartSnapshot
 import com.example.kpkn.data.models.MuscleFeedbackEntry
 import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.ExerciseSet

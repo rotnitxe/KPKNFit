@@ -8,14 +8,10 @@ data class WizChatGraphContext(
     val includeNutrition: Boolean = true,
     val programRouteLater: Boolean = false,
     val trainingPlanSelected: Boolean = false,
-    val recentTraining: Boolean? = null,
-    val recentTrainingUnknown: Boolean = false,
     val nutritionStarted: Boolean = false,
     val nutritionProfessional: Boolean = false,
-    val ringsAction: String? = null,
     val homeEquipmentSelected: Boolean = false,
     val hasTrainingMarks: Boolean = false,
-    val includeRings: Boolean = true,
     val mixedTraining: Boolean = false,
     /** True when the goal already implies its training reference (Fuerza/Músculo/Fuerza y músculo). */
     val goalStyleInferred: Boolean = false,
@@ -109,10 +105,7 @@ object WizChatGraph {
         WizChatQuestionId.N_DIRECTION -> WizChatQuestionId.N_ACTIVITY
         WizChatQuestionId.N_ACTIVITY -> WizChatQuestionId.N_RESULT
         WizChatQuestionId.N_RESULT -> WizChatQuestionId.REVIEW
-        WizChatQuestionId.R_START, WizChatQuestionId.R_RECENT, WizChatQuestionId.R_SESSIONS,
-        WizChatQuestionId.R_RECENCY, WizChatQuestionId.R_ACTIVITY, WizChatQuestionId.R_INTENSITY,
-        WizChatQuestionId.R_AXIAL, WizChatQuestionId.R_FEELINGS_MUSCLE, WizChatQuestionId.R_FEELINGS_ENERGY,
-        WizChatQuestionId.R_FEELINGS_STRUCTURE, WizChatQuestionId.R_DISCOMFORT, WizChatQuestionId.R_RESULT -> WizChatQuestionId.REVIEW
+
         WizChatQuestionId.REVIEW -> null
     }
 

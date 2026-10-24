@@ -194,7 +194,7 @@ class ProgramAutoregulationResolutionTest {
             completedSession = week1.sessions.first(),
             weekInstanceId = week1.id,
             logs = listOf(log(program, week1.id, week1.sessions.first(), "log-w1")),
-            weeklySignals = WeeklyAutoregulationSignals(readinessScore = 38),
+            weeklySignals = WeeklyAutoregulationSignals(),
             compositionMetadata = CatalogCompositionTestSupport.metadata,
         )
         assertTrue("La semana 2 debe ser el nuevo cursor", advanced.advancedWeek)
@@ -581,7 +581,7 @@ class ProgramAutoregulationResolutionTest {
             completedSession = week1.sessions.first(),
             weekInstanceId = week1.id,
             logs = listOf(log(seeded, week1.id, week1.sessions.first(), "log-expire")),
-            weeklySignals = WeeklyAutoregulationSignals(readinessScore = 80),
+            weeklySignals = WeeklyAutoregulationSignals(),
             compositionMetadata = CatalogCompositionTestSupport.metadata,
         )
 

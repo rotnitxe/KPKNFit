@@ -103,11 +103,7 @@ data class FinishResumeSnapshot(
     val completedSetInputHash: String? = null,
 )
 
-sealed interface FinishAugePreviewState {
-    data object Loading : FinishAugePreviewState
-    data class Ready(val preview: PostSessionPreview) : FinishAugePreviewState
-    data class Error(val reason: String) : FinishAugePreviewState
-}
+
 
 data class PendingRestSuggestion(
     val plannedSeconds: Int,
@@ -177,7 +173,6 @@ data class WorkoutUiState(
     val pendingPostExerciseIdx: Int = -1,
     val setAdvancedFeedback: Map<String, SetAdvancedFeedback> = emptyMap(),
     val postExerciseFeedbackByExerciseId: Map<String, PostExerciseFeedback> = emptyMap(),
-    val sessionStressScore: Double = 0.0,
     val readinessMuscularOverride: Int? = null,
     val readinessNeuralOverride: Int? = null,
     val readinessSpinalOverride: Int? = null,
@@ -253,15 +248,11 @@ data class WorkoutUiState(
     val continuityTransitionTarget: WorkoutContinuityTransitionTarget? = null,
     val continuityFeedbackExerciseId: String? = null,
     // EMA de estrés acumulado en el mesociclo actual
-    val mesocycleStressEMA: MesocycleStressEMA? = null,
     // sleepQuality (1-5) del último DailyWellbeingLog — para el sleep modifier de carga
     val sleepQuality: Int? = null,
     // Readiness por ejercicio calculado desde AUGE real
-    val exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
     // Readiness agregado por patrón de movimiento
-    val patternReadiness: List<MovementPatternReadiness> = emptyList(),
     // Ajustes de carga aplicados por el usuario (solo sesión actual, en memoria)
-    val readinessAdjustments: Map<String, SetAdjustmentSuggestion> = emptyMap(),
     val liveEnergySummary: SessionEnergySummary? = null,
     val persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     val persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
@@ -304,7 +295,6 @@ data class WorkoutUiState(
     /** Protocol / block / recipe context for Relator 2.0. Null = sesión suelta. */
     val livePlanContext: LivePlanContext? = null,
     /** Veredicto diario AUGE (`calculateDailyReadiness` vía snapshot). */
-    val dailyReadiness: AugeReadinessVerdict? = null,
     /** Wellbeing de hoy (`getTodayWellbeing`), no solo sleepQuality del sheet. */
     val todayWellbeing: DailyWellbeingLog? = null,
 )

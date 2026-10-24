@@ -143,8 +143,8 @@ class BlockTransitionEngineTest {
             completedBlockId = "b0",
             logs = logs,
             context = BlockTransitionEngine.TransitionContext(
-                cumulativeFatigue = 90.0,
-                readinessScore = 20,
+
+
                 settings = settings,
             ),
         )
@@ -170,8 +170,8 @@ class BlockTransitionEngineTest {
             completedBlockId = "b0",
             logs = logs,
             context = BlockTransitionEngine.TransitionContext(
-                cumulativeFatigue = 90.0,
-                readinessScore = null,
+
+
                 settings = settings,
             ),
         )
@@ -181,8 +181,8 @@ class BlockTransitionEngineTest {
             completedBlockId = "b0",
             logs = logs,
             context = BlockTransitionEngine.TransitionContext(
-                cumulativeFatigue = 90.0,
-                readinessScore = 20,
+
+
                 settings = settings,
             ),
         )
@@ -294,8 +294,8 @@ class BlockTransitionEngineTest {
             weekInstanceId = week.id,
             logs = completeLogs(program, "b0"),
             transitionContext = BlockTransitionEngine.TransitionContext(
-                cumulativeFatigue = 90.0,
-                readinessScore = 20,
+
+
                 settings = Settings(algorithmSettings = AlgorithmSettings(augeAutoDeload = true)),
             ),
         )

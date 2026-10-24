@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CalorieRange
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.SessionEnergySummary
@@ -214,7 +213,7 @@ class SessionAssistantRulesRenderSheetTest {
         plantillasCompatibles = emptyList(),
         volumenPorMusculo = mapOf("Cuádriceps" to 8.0, "Pectorales" to 4.0),
         umbralesPorMusculo = emptyMap(),
-        drenajeEstimado = PredictedDrain(cns = 42, muscular = 58, spinal = 31),
+
         duracionEstimada = 80,
         resumenTexto = "",
     )

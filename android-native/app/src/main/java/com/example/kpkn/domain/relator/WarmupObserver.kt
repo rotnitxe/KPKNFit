@@ -17,7 +17,6 @@ object WarmupObserver : RelatorObserver {
             add("Rampas de {ex} a $kgBit, con el gesto idéntico al de trabajo.")
             add("Si $kgBit se siente pesado, recorta el salto.")
         }
-        val highReadiness = (context.readiness.dailyScore ?: context.readiness.exerciseScore ?: 70) >= 80
         val timeCrunch = (context.progress.remainingSeconds ?: Int.MAX_VALUE) in 1..480
         val actions = buildList {
             kg?.let {
@@ -32,7 +31,7 @@ object WarmupObserver : RelatorObserver {
                     ),
                 )
             }
-            if (highReadiness || timeCrunch) {
+            if (timeCrunch) {
                 add(
                     RelatorActionSpec(
                         kind = RelatorActionKind.SKIP_REMAINING_WARMUPS,

@@ -82,11 +82,9 @@ internal data class RelatorUiSlice(
     val restSuggested: Int,
     val showPostExercise: Boolean,
     val livePlan: LivePlanContext?,
-    val dailyScore: Int?,
     val wellbeingSleep: Int?,
     val wellbeingStress: Int?,
     val wellbeingDoms: Int?,
-    val exerciseReadinessScore: Int?,
     val milestonesSize: Int,
     val targetMinutes: Int?,
     val startTimeMs: Long,
@@ -103,7 +101,6 @@ internal data class RelatorUiSlice(
         fun from(state: WorkoutUiState): RelatorUiSlice {
             val exercises = state.session?.allExercises().orEmpty()
             val current = exercises.getOrNull(state.currentExerciseIdx)
-            val readiness = current?.id?.let { state.exerciseReadinessMap[it] }
             return RelatorUiSlice(
                 sessionId = state.session?.id.orEmpty(),
                 currentExerciseIdx = state.currentExerciseIdx,
@@ -122,11 +119,9 @@ internal data class RelatorUiSlice(
                 restSuggested = state.restModalState?.suggestedSeconds ?: 0,
                 showPostExercise = state.showPostExerciseSheet,
                 livePlan = state.livePlanContext,
-                dailyScore = state.dailyReadiness?.score,
                 wellbeingSleep = state.todayWellbeing?.sleepQuality,
                 wellbeingStress = state.todayWellbeing?.stressLevel,
                 wellbeingDoms = state.todayWellbeing?.doms,
-                exerciseReadinessScore = readiness?.overallScore,
                 milestonesSize = state.sessionMilestones.size,
                 targetMinutes = state.customTargetDurationMinutes ?: state.targetDurationMinutes,
                 startTimeMs = state.startTimeMs,
@@ -521,7 +516,6 @@ internal object RelatorContextBuilder {
         val nextKg = nextExercise?.let {
             queries.getWeightSuggestion(it, 0, state.exerciseTags[it.id], null)?.suggestedWeight
         }
-        val readiness = current?.id?.let { state.exerciseReadinessMap[it] }
         val warmupRemaining = (snapshot.warmupCount - (snapshot.warmupIncompleteIndex ?: snapshot.warmupCount))
             .coerceAtLeast(if (snapshot.warmupIsLastIncomplete) 1 else 0)
         val concept = snapshot.conceptCueOrNull()
@@ -620,17 +614,11 @@ internal object RelatorContextBuilder {
                 overlayMinimized = false, // F4: relator does not depend on isRestMinimized
             ),
             readiness = RelatorReadinessSlice(
-                dailyScore = state.dailyReadiness?.score,
-                dailyLabel = state.dailyReadiness?.label,
-                dailyDetails = state.dailyReadiness?.details.orEmpty(),
-                exerciseScore = readiness?.overallScore,
-                limitingFactor = readiness?.limitingFactor,
                 sleepQuality = state.todayWellbeing?.sleepQuality ?: state.sleepQuality,
                 stressLevel = state.todayWellbeing?.stressLevel,
                 doms = state.todayWellbeing?.doms,
                 motivation = state.todayWellbeing?.motivation,
                 preWorkoutDiscomforts = state.todayWellbeing?.preWorkoutDiscomforts.orEmpty(),
-                muscleDrainLabel = readiness?.limitingDetail,
             ),
             warmup = RelatorWarmupSlice(
                 incompleteIndex = snapshot.warmupIncompleteIndex,

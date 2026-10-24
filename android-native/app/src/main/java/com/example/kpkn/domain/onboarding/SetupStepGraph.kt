@@ -575,7 +575,6 @@ object SetupStepGraph {
             WizChatStage.PROFILE -> context.includeTraining || context.includeNutrition
             WizChatStage.TRAINING -> context.includeTraining
             WizChatStage.NUTRITION -> context.includeNutrition
-            WizChatStage.RINGS -> false
             WizChatStage.REVIEW -> true
         }
 

@@ -40,7 +40,7 @@ internal fun TrainingFactChart(allFacts: List<TrainingFact>, nowMs: Long, weeks:
     val activeKey = metricKey?.takeIf { it in groups } ?: groups.keys.firstOrNull()
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         groups.forEach { (key, points) -> FilterChip(key == activeKey, { metricKey = key; selectedSource = null },
-            label = { Text("${points.first().metric} (${factUnit(points.first().unit)})") }) }
+            label = { Text("${factMetricLabel(points.first().metric)} (${factUnit(points.first().unit)})") }) }
     }
     val points = groups[activeKey].orEmpty()
     if (points.isEmpty()) {
@@ -59,7 +59,7 @@ internal fun TrainingFactChart(allFacts: List<TrainingFact>, nowMs: Long, weeks:
             height-12f-((point.value-minValue) / (maxValue-minValue).takeIf { it > 0.0 }.let { it ?: 1.0 }).toFloat()*(height-24f))
     }
     Canvas(Modifier.fillMaxWidth().height(150.dp).semantics {
-        contentDescription = "Gráfico de ${points.first().metric}, ${points.size} puntos. Todos disponibles como botones debajo."
+        contentDescription = "Gráfico de ${factMetricLabel(points.first().metric)}, ${points.size} puntos. Todos disponibles como botones debajo."
     }.pointerInput(points) {
         detectTapGestures { tap ->
             val offsets = coordinates(size.width.toFloat(), size.height.toFloat())
@@ -82,7 +82,7 @@ internal fun TrainingFactChart(allFacts: List<TrainingFact>, nowMs: Long, weeks:
     Text("Puntos independientes: un contexto desconocido no se considera equivalente.", style = MaterialTheme.typography.bodySmall)
     if (selected != null) {
         val comparison = TrainingInsightsEngine.compare(selected, allFacts, nowMs)
-        AlertDialog(onDismissRequest = { selectedSource = null }, title = { Text(selected.metric) }, text = {
+        AlertDialog(onDismissRequest = { selectedSource = null }, title = { Text(factMetricLabel(selected.metric)) }, text = {
             Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("${factNumber(selected.value)} ${factUnit(selected.unit)} · ${factDate(selected.occurredAtMs)}")
                 Text("Origen: ${factOrigin(selected.origin)}")
@@ -107,4 +107,29 @@ internal fun factOrigin(origin: FactOrigin): String = when(origin) {
 internal fun factUnit(unit: String): String = when(unit) {
     "KILOGRAM", "KILOGRAMS" -> "kg"; "POUND", "POUNDS" -> "lb"; "METER", "METERS" -> "m"; "CENTIMETER" -> "cm"
     "SECOND", "SECONDS" -> "s"; "MINUTES" -> "min"; "FEET" -> "ft"; "MILLISECOND" -> "ms"; "METER_PER_SECOND" -> "m/s"; else -> unit
+}
+
+/** Display wording only; the original metric identity remains unchanged for comparison. */
+internal fun factMetricLabel(metric: String): String {
+    val key = metric.substringAfterLast('.').substringBefore('[')
+    val labels = mapOf(
+        "MAX_STRENGTH" to "Marca de fuerza", "SPRINT_TIME" to "Tiempo de sprint",
+        "SPLIT_TIME" to "Tiempo parcial", "JUMP_HEIGHT" to "Altura de salto",
+        "JUMP_DISTANCE" to "Distancia de salto", "FLIGHT_TIME" to "Tiempo de vuelo",
+        "CONTACT_TIME" to "Tiempo de contacto", "REP_VELOCITY" to "Velocidad de repetición",
+        "RSI" to "Índice reactivo registrado", "actualDurationSeconds" to "Duración registrada",
+        "actualWorkSeconds" to "Tiempo de trabajo", "actualWorkingSeconds" to "Tiempo de trabajo",
+        "actualHangSeconds" to "Tiempo de suspensión", "holdSeconds" to "Tiempo de sostén",
+        "actualRestSecondsAfter" to "Descanso posterior", "actualRestSecondsBefore" to "Descanso previo",
+        "actualExternalDurationSeconds" to "Duración externa registrada", "elapsedMillis" to "Tiempo transcurrido",
+        "movingMillis" to "Tiempo en movimiento", "elapsedDurationMillis" to "Tiempo transcurrido",
+        "finishTimeMillis" to "Tiempo final", "distanceMeters" to "Distancia",
+        "elevationGainMeters" to "Desnivel positivo", "elevationLossMeters" to "Desnivel negativo",
+        "attemptedCount" to "Intentos", "successfulCount" to "Aciertos", "repetitions" to "Repeticiones",
+        "completedRepetitions" to "Repeticiones completadas", "completedRounds" to "Rondas completadas",
+        "splitMillis" to "Tiempo parcial",
+    )
+    labels[key]?.let { return it }
+    if (!metric.contains('.')) return metric
+    return "Valor registrado"
 }
