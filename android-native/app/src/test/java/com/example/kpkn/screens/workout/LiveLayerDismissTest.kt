@@ -7,7 +7,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedDispatcherOwner
 import org.robolectric.shadows.ShadowDialog
 import androidx.compose.ui.test.isDialog
-import androidx.compose.ui.test.onNode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
