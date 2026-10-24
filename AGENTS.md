@@ -44,7 +44,7 @@ KPKN Fit is a local-first native Android application with an iOS parity port and
 - Read `.opencode/kpkn-map.md` before broad repository searches.
 - Durable agent memory lives in `.opencode/memory/MEMORY.md` and `.opencode/memory/USER.md`.
 - Architecture references are `docs/ARCHITECTURE.md`, `docs/ANDROID_ARCHITECTURE_MAP.md`, and `docs/ANDROID_UI_SCREENS_MAP.md`.
-- The code and exported Room schema are authoritative when documentation disagrees. The current Room database is **v28** (v27->v28 adds the `workout_media_session_associations` table); some older docs still say v25/v24/v23/v20/v19.
+- The code and exported Room schema are authoritative when documentation disagrees. The current Room database is **v31**: v27->v28 adds workout media associations, v28->v29 video analysis, v29->v30 calibration, and v30->v31 nutrition day state. Published schemas 30/31 are frozen; version 32 requires explicit authorization.
 
 ## Safety
 

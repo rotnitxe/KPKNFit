@@ -1,5 +1,8 @@
 package com.example.kpkn.screens.programdetail.design
 
+import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.domain.training.ExerciseVolumeContributor
+import com.example.kpkn.domain.training.MuscleVolumeBreakdown
 import com.example.kpkn.screens.onboarding.design.formatDecimalEs
 import com.example.kpkn.screens.programdetail.design.structure.SIMPLE_WEEK_NAME
 import kotlin.math.roundToInt
@@ -15,8 +18,7 @@ internal fun volumeScopeLabelOf(label: String, simpleProgram: Boolean): String =
     if (simpleProgram) label.replace(REPEATING_WEEK_DOMAIN_NAME, SIMPLE_WEEK_NAME) else label
 
 /**
- * Datos de la pestaña Volumen (P4). `VolumeView` los calcula con la lógica de siempre y las piezas de `design/` solo los pintan, así
- * que ninguna pieza toca el dominio.
+ * Datos de la pestaña Volumen. `VolumeView` entrega el cálculo común del alcance; estas piezas solo lo presentan y redondean.
  */
 
 /** Zonas del objetivo personalizado de un músculo, en series semanales: mínimo efectivo, máximo adaptativo y máximo recuperable. */
@@ -49,7 +51,39 @@ data class ProgramVolumeMuscle(
 data class ProgramVolumeLine(val name: String, val sets: Double)
 
 /** Una cabeza de un músculo (deltoides anterior, glúteo medio...) con los ejercicios que la cargan. */
-data class ProgramVolumeSubMuscle(val name: String, val sets: Double, val exercises: List<ProgramVolumeLine>)
+data class ProgramVolumeSubMuscle(
+    val name: String,
+    val sets: Double,
+    val exercises: List<ProgramVolumeLine>,
+    val role: MuscleRole? = null,
+)
+
+/** Reparte el redondeo a décimas para que las líneas visibles sumen la cifra de la barra. */
+internal fun programVolumeLines(contributors: List<ExerciseVolumeContributor>): List<ProgramVolumeLine> {
+    val tenths = contributors.map { kotlin.math.floor(it.sets * 10.0).toInt() }.toMutableList()
+    val target = (contributors.sumOf { it.sets } * 10.0).roundToInt()
+    val order = contributors.indices.sortedByDescending { contributors[it].sets * 10.0 - tenths[it] }
+    order.take((target - tenths.sum()).coerceAtLeast(0)).forEach { tenths[it]++ }
+    return contributors.mapIndexed { index, contributor -> ProgramVolumeLine(contributor.exerciseName, tenths[index] / 10.0) }
+}
+
+/** Mantiene las porciones sin datos y conserva el rol de cada exposición calculada. */
+internal fun programVolumeBreakdown(muscle: String, entry: MuscleVolumeBreakdown?): ProgramVolumeBreakdown {
+    val portions = entry?.portions.orEmpty().map {
+        ProgramVolumeSubMuscle(it.name, it.sets, programVolumeLines(it.exercises), it.role)
+    }
+    val names = when (muscle) {
+        "Deltoides" -> listOf("Deltoides Anterior", "Deltoides Lateral", "Deltoides Posterior")
+        "Glúteos" -> listOf("Glúteo Mayor", "Glúteo Medio", "Glúteo Menor")
+        "Pectorales" -> listOf("Pectoral Superior", "Pectoral Medio", "Pectoral Inferior")
+        "Trapecio" -> listOf("Trapecio Superior", "Trapecio Medio", "Trapecio Inferior")
+        "Pantorrillas" -> listOf("Gastrocnemio", "Sóleo")
+        else -> emptyList()
+    }
+    val empty = names.filter { name -> portions.none { it.name == name } }
+        .map { ProgramVolumeSubMuscle(it, 0.0, emptyList()) }
+    return ProgramVolumeBreakdown(programVolumeLines(entry?.exercises.orEmpty()), (portions + empty).sortedBy { names.indexOf(it.name) })
+}
 
 /** Desglose de la fila desplegada: los ejercicios que aportan volumen y, si el músculo tiene cabezas, sus cabezas. */
 data class ProgramVolumeBreakdown(val exercises: List<ProgramVolumeLine>, val subMuscles: List<ProgramVolumeSubMuscle>)
@@ -81,7 +115,7 @@ data class ProgramVolumeAssociation(val exercise: String, val discomfort: String
  * parece más precisa de lo que es.
  */
 fun programVolumeSeries(value: Double): String =
-    if (value % 1.0 == 0.0) value.toLong().toString() else formatDecimalEs(value, 1)
+    formatDecimalEs(value, 1).removeSuffix(",0")
 
 /** Porcentaje entero de [part] sobre [total]; 0 si no hay total, para no inventar un reparto. */
 fun programVolumeShare(part: Double, total: Double): Int =

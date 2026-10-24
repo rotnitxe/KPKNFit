@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.SetPurpose
+import com.example.kpkn.domain.workout.isMyoReps
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.AugeMetrics
@@ -74,6 +75,8 @@ class WorkoutSetRecorder(
         fun inferPlannedTarget(set: com.example.kpkn.data.models.ExerciseSet, unitMode: UnitModeV2): Double?
         fun inferPlannedIntensity(set: com.example.kpkn.data.models.ExerciseSet): Double?
         suspend fun evaluateSetEntryV3(entry: SetEntryV2): WorkoutPerformanceHomologationEngine.EvaluationResult
+        suspend fun evaluateSetEntryV3(entry: SetEntryV2, actualIntensityMode: IntensityMode? = null): WorkoutPerformanceHomologationEngine.EvaluationResult =
+            evaluateSetEntryV3(entry)
         fun workoutStepPositions(state: WorkoutUiState): List<WorkoutStep>
         fun recomputeLiveEnergy(
             completedSets: Map<String, CompletedSet>,
@@ -417,7 +420,7 @@ class WorkoutSetRecorder(
                 state.featureFlags.workoutV2LoadModes ||
                 state.featureFlags.workoutV3UnifiedFlow
             ) {
-                scope.async(Dispatchers.Default) { ports.evaluateSetEntryV3(entry) }.await()
+                scope.async(Dispatchers.Default) { ports.evaluateSetEntryV3(entry, actualIntensityMode) }.await()
             } else {
                 null
             }
@@ -530,6 +533,7 @@ class WorkoutSetRecorder(
                     com.example.kpkn.data.models.RestPauseData(
                         restTime = scheduledPlan.pauseSeconds,
                         reps = scheduledPlan.followUpReps,
+                        style = scheduledPlan.style,
                     )
                 }
             } else {
@@ -551,6 +555,8 @@ class WorkoutSetRecorder(
             val completedSet = completedBeforeApre.copy(apreXrm = buildRecordedApreXrm(
                 state, exercise, targetSetIdx, completedBeforeApre, System.currentTimeMillis(),
                 repository.settings.value.resolvedEquipmentInventory()))
+            // La variante proviene de las mini-series ejecutadas, no se impone desde un plan que el reverso pudo cambiar.
+
             val key = buildCompletedSetKey(exercise.id, targetSetIdx, resolvedSide)
             val wasExistingSet = state.completedSets.containsKey(key)
             val existingSet = state.completedSets[key]
@@ -993,7 +999,7 @@ class WorkoutSetRecorder(
                     advancedFeedback = report,
                 )
                 updateState { it.copy(pendingRestSuggestion = pendingSuggestion) }
-                if (effectivePlanned > 0 && !(isExecutionError && !wasLastSet)) {
+                if (repository.settings.value.autoStartRestAfterRecording && effectivePlanned > 0 && !(isExecutionError && !wasLastSet)) {
                     ports.startRestTimer(
                         seconds = effectivePlanned,
                         advanceOnFinish = false,

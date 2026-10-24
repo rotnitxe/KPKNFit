@@ -12,8 +12,10 @@ object DatabaseBackupHelper {
 
     fun createSnapshot(context: Context): String {
         val db = KpknDatabase.getInstance(context)
-        // Checkpoint completo para asegurar que todos los logs WAL se consoliden en el archivo .db principal
-        db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(FULL)").close()
+        // La consulta es diferida: leer el cursor ejecuta el checkpoint antes de copiar el archivo.
+        db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(FULL)").use { cursor ->
+            check(cursor.moveToFirst() && cursor.getInt(0) == 0) { "No se pudo confirmar la base de datos para la copia." }
+        }
 
         val dbFile = context.getDatabasePath("kpkn.db")
         if (!dbFile.exists()) {

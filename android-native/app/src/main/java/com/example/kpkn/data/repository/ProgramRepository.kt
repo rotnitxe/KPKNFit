@@ -992,7 +992,7 @@ class ProgramRepository private constructor(
                     NativeWorkoutProgressionRuntime.observeCompletedWorkout(
                         program = progressionBase,
                         logs = historyForProgress,
-                        inventory = _settings.value.equipmentInventory,
+                        inventory = _settings.value.resolvedEquipmentInventory(),
                         curatedConfigurations = exerciseCatalogSnapshot().mapNotNullTo(mutableSetOf()) {
                             it.catalogConfigurationId
                         },
@@ -1660,6 +1660,16 @@ class ProgramRepository private constructor(
         scope.launch {
             PersistenceWriteCoordinator.mutex.withLock {
                 db.settingsDao().upsert(_settings.value.toEntity())
+            }
+        }
+    }
+
+    /** Guarda solo el material y confirma Room antes de cerrar el editor. */
+    suspend fun saveEquipmentInventory(inventory: EquipmentInventory) = withContext(Dispatchers.IO) {
+        PersistenceWriteCoordinator.mutex.withLock {
+            db.settingsDao().upsert(_settings.value.copy(equipmentInventory = inventory).toEntity())
+            withContext(Dispatchers.Main.immediate) {
+                _settings.update { it.copy(equipmentInventory = inventory) }
             }
         }
     }

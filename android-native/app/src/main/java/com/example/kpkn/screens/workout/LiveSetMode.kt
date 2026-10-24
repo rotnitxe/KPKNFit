@@ -70,7 +70,7 @@ internal fun completedLiveQuantity(set: CompletedSet, unit: UnitModeV2): Double?
 internal fun liveRmReference(exercise: Exercise, ghost: CompletedSet?): Double? =
     resolveReferenceCapacity(exercise.copy(trainingMode = TrainingMode.RM))?.takeIf { it.isFinite() && it > 0 }
         ?: ghost?.takeIf { it.weight > 0 && it.reps > 0 }
-            ?.let { calculateHybrid1RM(it.weight, it.reps) }?.takeIf { it.isFinite() && it > 0 }
+            ?.let { com.example.kpkn.domain.performance.StrengthModel.estimate1RM(it) }?.takeIf { it.isFinite() && it > 0 }
 
 internal data class LiveRmValues(
     val percent: Double,

@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
@@ -8,7 +9,6 @@ import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.unresolvedDiscomfortIds
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.exercises.normalizeExerciseIdentityToken
 import com.example.kpkn.domain.exercises.resolveCanonicalExerciseId
 
@@ -149,10 +149,12 @@ internal fun resolveRelatorPrHint(
     sessionBestPreviousE1rm: Double,
     isStar: Boolean,
     goal1RmKg: Double?,
+    effort: CompletedSet? = null,
 ): RelatorPrHint? {
     val weight = liveWeightKg?.takeIf { it > 0.0 } ?: return null
     val reps = liveReps?.takeIf { it > 0 } ?: return null
-    val e1rm = calculateHybrid1RM(weight, reps)
+    val e1rm = effort?.let { StrengthModel.estimate1RM(it.copy(weight = weight, reps = reps)) }
+        ?: StrengthModel.estimate1RM(weight, reps)
     if (!shouldRecordPrE1rmMilestone(e1rm, historyBestE1rm, sessionBestPreviousE1rm)) return null
     val goal = goal1RmKg?.takeIf { it > 0.0 }
     val pct = goal?.let { ((e1rm / it) * 100.0).toInt().coerceAtLeast(0) }

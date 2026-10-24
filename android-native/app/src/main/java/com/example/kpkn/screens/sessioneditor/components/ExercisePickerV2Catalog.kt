@@ -221,6 +221,9 @@ internal const val CatalogCurrentExerciseLabel = "Ejercicio actual"
 internal data class CatalogReplacementContext(
     val exerciseName: String? = null,
     val planSummary: String? = null,
+    val exercise: com.example.kpkn.data.models.Exercise? = null,
+    val availability: com.example.kpkn.data.models.EquipmentAvailability? = null,
+    val avoided: Set<com.example.kpkn.domain.onboarding.AvoidGroup> = emptySet(),
 )
 
 /**
@@ -689,6 +692,14 @@ private fun ColumnScope.CatalogReadyContent(
     val singleChoice = singleSelectionLabel != null && replacement == null
     val confirmSelection = replacement != null || singleChoice
     var replacementSelectionIds by rememberSaveable { mutableStateOf<List<String>?>(null) }
+    val suggestions by produceState<List<com.example.kpkn.domain.training.SwapOption>>(emptyList(), catalog, replacement, initialCatalogConfigurationId) {
+        value = if(replacement == null) emptyList() else withContext(Dispatchers.Default) {
+            val target = replacement.exercise ?: initialCatalogConfigurationId?.takeIf { it.isNotBlank() }?.let {
+                com.example.kpkn.data.models.Exercise(id="replacement-preview",name=replacement.exerciseName.orEmpty(),catalogConfigurationId=it)
+            }
+            replacementSuggestions(target,replacement.availability,replacement.avoided,catalog)
+        }
+    }
     val projectionCache = remember(catalog) {
         object : LinkedHashMap<CatalogDefinitionFilterKey, CatalogDefinitionProjection>(8, 0.75f, true) {}
     }
@@ -991,8 +1002,13 @@ private fun ColumnScope.CatalogReadyContent(
     }
 
     // La isla solo con algo elegido, fuera de la edición de una sola pieza y sin teclado abierto.
-    val showIsland = !editingExisting && !singleChoice && selectedRows.value.isNotEmpty() && !imeVisible
+    val showIsland = replacement == null && !editingExisting && !singleChoice && selectedRows.value.isNotEmpty() && !imeVisible
     // Al reemplazar (H1), la barra con la nota y el botón va siempre, salvo con el teclado abierto.
+    fun selectReplacement(definitionId: String, info: ExerciseMuscleInfo) {
+        selectedRows.value = mapOf(definitionId to info)
+        replacementSelectionIds = listOf(info.id)
+        onSelectionChange(listOf(info))
+    }
     val showReplaceBar = replacement != null && !imeVisible
     val showChoiceBar = singleChoice && !imeVisible
     CatalogPickerViewport {
@@ -1033,6 +1049,21 @@ private fun ColumnScope.CatalogReadyContent(
                     style = KpknType.caption,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
+            }
+            if(replacement != null && query.isBlank() && suggestions.isNotEmpty()) {
+                item("replacement-suggestions") {
+                    ExerciseSwapSuggestions(suggestions,selectedRows.value.values.firstOrNull()?.catalogConfigurationId,{ configId ->
+                        val definition = catalog.families.flatMap { it.definitions }.firstOrNull { def -> def.configurations.any { it.id == configId } }
+                        if(definition != null) {
+                            val config = definition.configurations.first { it.id == configId }
+                            val info = exactInfo(catalog,definition,configId)
+                            if(info != null) {
+                                draftByDefinition.value = draftByDefinition.value + (definition.id to config.selectedOptions)
+                                selectReplacement(definition.id,info)
+                            }
+                        }
+                    })
+                }
             }
             if (visibleCustomExercises.isNotEmpty()) {
                 item("custom-heading") {

@@ -1,10 +1,15 @@
 package com.example.kpkn.domain.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.performedPurpose
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.plannedRepAnchor
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -44,6 +49,46 @@ object LoadSuggestionEngine {
             2 -> 0.6
             else -> 0.5
         }
+
+    /** Umbral de caída de capacidad (real frente a planificada) que cuenta como fatiga real; el mismo de «Fatiga detectada». */
+    const val CAPACITY_DROP_RATIO = 0.97
+
+    /**
+     * Factor de fatiga por series previas. Back-off/drop conserva la reducción por conteo.
+     * En series rectas el conteo solo se aplica si la última serie previa rindió claramente
+     * por debajo de lo planificado ([capacityRatio], de [performanceRatio]) o si no hay
+     * comparación posible (se mantiene el comportamiento heredado); si cumplió el plan, la carga se mantiene.
+     */
+    fun contextualFatigueFactor(priorCompletedCount: Int, isBackOff: Boolean, capacityRatio: Double? = null): Double {
+        val legacy = fatigueFactorForPriorCompletedSets(priorCompletedCount)
+        return when {
+            isBackOff -> legacy
+            capacityRatio == null -> legacy
+            capacityRatio <= CAPACITY_DROP_RATIO -> legacy
+            else -> 1.0
+        }
+    }
+
+    /** Compara capacidades con el mismo modelo y esfuerzo; carga/e1RM no es una señal de fatiga. */
+    fun performanceRatio(actual: CompletedSet, planned: ExerciseSet): Double? {
+        val mode = resolvedLoadMode(actual)
+        if (mode == LoadModeV2.ASSISTED || mode == LoadModeV2.BODYWEIGHT) return null
+        if (actual.recordedPayloadV3?.unitMode?.let { it != UnitModeV2.REPS } == true) return null
+        val reps = planned.plannedRepAnchor() ?: return null
+        val plannedLoad = planned.weight ?: planned.consolidatedWeight
+        val expectedLoad = if (mode == LoadModeV2.LASTRE && plannedLoad != null) {
+            actual.recordedPayloadV3?.bodyWeightSnapshot?.let { it + plannedLoad } ?: actual.weight
+        } else plannedLoad ?: actual.weight
+        val hasEffort = actual.rir != null || actual.rpe != null || actual.actualIntensityValue != null ||
+            actual.recordedPayloadV3?.actualIntensityValue != null || actual.isFailure || actual.isFailedSet
+        val expected = StrengthModel.estimate1RM(
+            expectedLoad, reps,
+            rir = planned.targetRIR.takeIf { hasEffort }, rpe = planned.targetRPE.takeIf { hasEffort },
+            toFailure = planned.isFailure || planned.purpose.isAmrap || planned.intensityMode == IntensityMode.FAILURE ||
+                planned.intensityMode == IntensityMode.AMRAP || planned.intensityMode == IntensityMode.SOLO_RM,
+        ).takeIf { it > 0.0 } ?: return null
+        return StrengthModel.estimate1RM(actual).takeIf { it > 0.0 }?.div(expected)
+    }
 
     fun tagMultiplier(tag: String?): Double {
         if (tag.isNullOrBlank()) return 1.0
@@ -97,10 +142,10 @@ object LoadSuggestionEngine {
     fun estimatedCapacity(set: CompletedSet): Double? {
         val mode = resolvedLoadMode(set)
         if (mode == LoadModeV2.ASSISTED || mode == LoadModeV2.BODYWEIGHT) return null
-        // Recompute from the performed full reps and normalized load. Old persisted
-        // homologations may contain the v1 AMRAP bonus; they remain untouched.
+        set.homologatedResultV3?.takeIf { it.estimatorVersion >= com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION }?.estimatedRm?.takeIf { it > 0.0 }?.let { return it }
+        // Sin valor guardado: modelo único con el esfuerzo registrado, con el mismo rango de repeticiones de siempre.
         return if (set.weight > 0.0 && set.reps > 0) {
-            calculateHybrid1RM(set.weight, set.reps)
+            StrengthModel.estimate1RM(set).takeIf { it > 0.0 }
         } else {
             null
         }

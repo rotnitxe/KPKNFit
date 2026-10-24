@@ -1,0 +1,59 @@
+# P2-D · Peso: tendencia como cifra principal y fecha robusta · exportación CSV · hábitos
+
+**Prioridad P2 (con un P1: la fecha estimada) · esfuerzo M–L.** Informe §4.2 (T4, T5), §4.3 (C7), §4.9/O1. Depende de **N1** (estimador de tendencia), **N2a/N2b** (marcas del día) y **P2-Na** (hora de la comida), ya integrados cuando llegue su turno. Tres bloques independientes; si uno se atasca (tope de 3 intentos), cierra los otros y descríbelo en el informe.
+
+## Bloque 1 · La tendencia es la cifra del peso; la fecha de la meta se apoya en una pendiente robusta (T4 + T5)
+
+### Qué hay hoy (léelo antes de editar)
+- `domain/body/BodyWeightSummary.kt`: `summarizeWeight` toma como «actual» **el último pesaje bruto** (`latestValidByMetric`, l. ≈ 218) y calcula el ritmo con `measuredWeeklyRate` → `weeklyRate(bodyDailySeries(últimos 28 días))` en `domain/body/BodyProgressCalculations.kt` (último menos primero sobre medianas diarias). `goalEtaMonth` usa ese ritmo: **un solo pesaje atípico en el primer o el último día de la ventana cambia el mes**.
+- `screens/body/design/BodyWeightModule.kt` muestra `summary.current` como cifra principal (`metricXL`), «hoy / hace n días», el cambio desde el primer punto del rango y el ritmo. La gráfica ya dibuja la tendencia EWMA (`ewmaTrend`, semivida de 7 días).
+- `screens/nutrition/BodyProgressViewModel.kt` (l. ≈ 172-180) arma `weightSummary` y `weightSummary30Days`; `screens/home/HomeBodyState.kt` usa `goalEtaMonth` y «el último peso» para la tarjeta de Inicio.
+- N1 ya ofrece un estimador causal y robusto: `domain/nutrition/expenditure/WeightTrendEstimator.estimate(weights: List<WeightObservation>, from, through): List<WeightTrendPoint>` (cada punto trae `trendKg`, `slopeKgPerDay`, `slopeStdErrKgPerDay`, `wasOutlier`, `isProvisional`).
+
+### Cambio exacto
+1. **Dominio puro `domain/body/BodyWeightTrend.kt`** (sin `android.*`): adaptador de `BodyObservation` de peso (mediana diaria por día local, ya existente en `bodyDailySeries`) a `WeightObservation`, y resultado `BodyWeightTrendSnapshot(trendKg, slopeKgPerWeek, slopeStdErrKgPerWeek, lastWeighIn, isProvisional, daysOfData)`. Sin datos suficientes (< 2 días con pesaje, o `isProvisional`), `slope` es null y la pantalla lo dice como hoy («Sin ritmo medido aún»).
+2. **Fecha estimada con intervalo:** `goalEtaMonth` sigue existiendo (no la borres ni cambies su firma: la usan otros), y añade `goalEtaRange(current, target, slope, stdErr, today): EtaRange?` que devuelve el mes central (con la pendiente robusta) y, si los extremos de ±1 desviación estándar caen en meses distintos, el mes inicial y el final. Reglas: sin pendiente hacia la meta o |pendiente| < 0,05 kg/semana → null (igual que hoy); **al inicio** (< 14 días de pesajes), mezcla la pendiente medida con el ritmo objetivo del plan de nutrición si existe sin tocar nada más (pesos: la proporción de datos crece linealmente de 0 a 1 entre el día 3 y el 14); si el ritmo objetivo no está disponible sin cambios ajenos, no mezcles y dilo en el informe.
+3. **UI de Cuerpo (`BodyWeightModule`):** la cifra grande pasa a ser la **tendencia** (`WizardWeightScale.toDisplay`, misma unidad de Ajustes), con la etiqueta «Tendencia» y, debajo, el pesaje como dato: «Último pesaje: 78,4 kg · hoy». **Refinar, no quitar:** el último pesaje sigue visible; el cambio, el ritmo, la gráfica y la meta siguen. Sin tendencia (un solo pesaje) la cifra principal es ese pesaje con la etiqueta «Último pesaje» (nada de números inventados). La fecha de la meta usa el rango si lo hay («entre abril y junio»), sino el mes.
+4. **Inicio (`screens/home/HomeBodyState.kt` y su tarjeta):** que la cifra y la fecha coincidan con Cuerpo (misma tendencia, misma regla de rango). Si la tarjeta no tiene hueco para la etiqueta «tendencia» a 360 dp al 130 % sin cambiar su tamaño, mantén el último peso y agrega la etiqueta mínima; documenta lo que hagas.
+5. **Criterios de aceptación (tests con valores escritos a mano):** (a) un pesaje atípico de +2 kg el último día **no cambia el mes** de la fecha estimada ni invierte el signo de la pendiente; (b) con ruido de ±0,6 kg y 3 pesajes por semana la tendencia mostrada difiere ≤ 0,3 kg de la verdadera en una serie sintética de 28 días; (c) < 14 días: la mezcla con el ritmo del plan, y sin plan, sin mezcla; (d) un único pesaje: no hay tendencia ni ritmo; (e) `goalEtaMonth` y `summarizeWeight` conservan su comportamiento para sus llamadores (test de regresión de los existentes sin cambiar expectativas ajenas).
+
+## Bloque 2 · Exportación CSV por dominio (O1)
+Hoy solo existe la copia JSON completa. Añade en Ajustes → Datos (`screens/settings/SettingsScreen.kt`, junto a «Exportar backup (JSON)») una fila **«Exportar datos (CSV)»** que abre una hoja con casillas por dominio y un botón «Exportar»:
+- **Comidas:** `fecha` (AAAA-MM-DD, día local), `hora` (HH:MM, la de la comida; `12:00` si es la heredada), `comida`, `alimento`, `cantidad`, `unidad`, `kcal`, `proteina_g`, `carbohidratos_g`, `grasa_g`, `fibra_g`, `azucar_g`, `sodio_mg`, `marca_dia` (completo/parcial/ayuno/vacío, de N2a), `origen` (catálogo/propio/receta/entrada rápida).
+- **Cuerpo:** `fecha`, `hora`, `metrica`, `valor`, `unidad` (la de Ajustes), `valor_si` (kg, %, cm…).
+- **Entrenos:** `fecha`, `sesion`, `ejercicio`, `serie`, `kg`, `reps`, `rir`, `tecnica`, `completada`, `notas`.
+- **Mi biblioteca:** ejercicios propios y alimentos/recetas propios (dos archivos), con sus campos principales.
+Formato: **CSV estándar (RFC 4180)**: coma como separador, punto decimal, UTF-8 con BOM, saltos CRLF, comillas dobles escapadas, fechas ISO; **sin** fórmulas ni texto que una hoja de cálculo pudiera ejecutar (prefija con `'` cualquier celda de texto que empiece por `=`, `+`, `-`, `@`, salvo números). Una casilla → un `.csv`; varias → un `.zip` con un CSV por dominio. Nombre: `kpkn-<dominio>-AAAA-MM-DD.csv` / `kpkn-export-AAAA-MM-DD.zip`. Se escribe con el selector de documentos del sistema (como las otras exportaciones de la pantalla), en `Dispatchers.IO`, y un error se muestra, no se traga.
+- **Dominio puro `domain/export/CsvWriter.kt`** (escape, BOM, CRLF, protección de fórmulas) y un exportador por dominio en `data/export/*` (lee de los repositorios existentes; no cambia sus consultas).
+- **Criterios:** un CSV por dominio con fechas locales y unidades; la ida y vuelta por un lector de CSV (`data/importer/CsvReader.kt` o el de las pruebas) recupera las filas y los valores sin pérdida (acentos, comas, comillas, saltos de línea y números con muchos decimales); una fila ilegible no rompe el resto (patrón de cuarentena de H1); datos vacíos → archivo con solo la cabecera.
+
+## Bloque 3 · Hábitos: rachas y calendario anual (C7)
+Hoy solo hay una racha de creatina. Crea una pantalla **«Hábitos»** (`screens/habits/*`, ruta `KpknRoute.Habits` = `"habits"` con enlace desde Perfil, `screens/profile/ProfileScreen.kt`, y deep link `kpkn://habits` si el patrón de `DeepLinkRouter` lo admite sin tocar otros):
+- **Tres hábitos:** *Registro de comidas* (día con alguna comida o con marca de día completo/ayuno), *Pesaje* (día con pesaje) y *Entrenamiento* (día con una sesión completada).
+- Por hábito: **racha actual** y **mejor racha**, en **días** seguidos para registro y pesaje y en **semanas** seguidas (con ≥ 1 sesión) para entrenamiento, con la unidad escrita. Regla de la racha actual: hoy sin registro aún **no** la rompe (se cuenta hasta ayer); un día sin registro anterior a ayer sí. Días del calendario según la zona local, sin saltos por UTC.
+- **Calendario anual** (53 semanas × 7) por hábito con intensidad por día (hecho / no hecho; para entrenamiento el número de series con 3 niveles) y un selector de hábito; sin colores como única señal (forma o relleno + descripción accesible por día), ≥ 48 dp en lo tocable, 360 dp al 130 %.
+- **Dominio puro `domain/habits/HabitStreaks.kt`** (conjuntos de fechas → rachas y celdas; testeado con casos de borde: cambio de año, año bisiesto, hoy vacío, huecos, una sola fecha, fechas futuras ignoradas) y un `HabitsViewModel` con `StateFlow` de solo lectura que lee de los repositorios sin cambiarlos.
+- Vista previa `HabitsHarnessActivity` con `state` = `empty` | `streaks` | `long_gap`.
+
+## Bloque 4 · Código huérfano: documentar, no borrar (D9, S5)
+Crea `docs/macrofactor-parity/CODIGO_HUERFANO.md` con una tabla honesta (nombre, ruta y línea, qué hace, quién lo llama hoy —verifícalo con búsqueda—, recomendación para que decida el usuario): `diffSessionPlan`/`revertPlanAspect` (`screens/workout/WorkoutViewModel.kt` ≈ l. 4403), la preparación (`readiness`) sin consumidor, los campos de `MacroGoals` sin lector que P2-Nb no haya conectado, y lo que encuentres tras `rg` de funciones públicas sin referencias en las áreas que tocó la ola. **No borres ni conectes nada.**
+
+## Archivos permitidos
+- Bloque 1: nuevos `domain/body/BodyWeightTrend.kt` y tests; `domain/body/BodyWeightSummary.kt` (solo añadidos: campos con valor por defecto y la función de rango), `screens/nutrition/BodyProgressViewModel.kt` (solo el armado del resumen), `screens/body/design/BodyWeightModule.kt` (+ `BodyFormat.kt` si hace falta texto), `screens/home/HomeBodyState.kt` y la tarjeta de peso de Inicio (solo la cifra, la etiqueta y la fecha).
+- Bloque 2: nuevos `domain/export/CsvWriter.kt`, `data/export/*`, `screens/settings/export/*` (hoja), `screens/settings/SettingsScreen.kt` y `SettingsViewModel.kt` (solo la fila y el lanzador), y tests.
+- Bloque 3: nuevos `domain/habits/*`, `screens/habits/*`, `screens/profile/ProfileScreen.kt` (el enlace), `navigation/Navigation.kt` y `MainActivity.kt` (bloque de ruta nuevo solamente), `navigation/DeepLinkRouter.kt` solo si hace falta.
+- `app/src/debug/.../BodyTrendHarnessActivity.kt` (`state` = `trend` | `single_weighin` | `outlier`), `CsvExportHarnessActivity.kt` (hoja con y sin datos), `HabitsHarnessActivity.kt` + bloques de manifiesto; hojas de render (PNG a 360 dp, 100 % y 130 %); `docs/macrofactor-parity/CODIGO_HUERFANO.md`, `docs/macrofactor-parity/CAMBIOS_VISIBLES.md`.
+
+## Pruebas obligatorias
+- Bloque 1: los cinco criterios de arriba, más: sin datos, mismo día con varios pesajes (mediana), pesajes en el futuro ignorados, `isProvisional`.
+- Bloque 2: `CsvWriter` (escape, BOM, CRLF, protección de fórmulas con y sin números negativos legítimos como `-1,5`); un exportador por dominio con datos de ejemplo que incluyan acentos, comas, comillas y saltos de línea, fechas en la frontera de medianoche/zona horaria y marca de día; ida y vuelta por lector.
+- Bloque 3: casos de borde de rachas (arriba) y el `HabitsViewModel` con repositorios falsos.
+- Regresión de `domain.body.*`, `screens.nutrition.*`, `screens.home.*`, `screens.settings.*` y `screens.profile.*` sin cambiar expectativas ajenas.
+
+## Comandos
+1. `:app:compileBaseDebugKotlin`
+2. `:app:testBaseDebugUnitTest --tests "com.example.kpkn.domain.body.*" --tests "com.example.kpkn.domain.export.*" --tests "com.example.kpkn.domain.habits.*" --tests "com.example.kpkn.data.export.*" --tests "com.example.kpkn.screens.body.*" --tests "com.example.kpkn.screens.habits.*" --tests "com.example.kpkn.screens.home.*" --tests "com.example.kpkn.screens.settings.*" --tests "com.example.kpkn.screens.profile.*" --tests "com.example.kpkn.screens.nutrition.*"`
+3. La hoja: `KPKN_RENDER_DIR=C:/kw/shots/mfp/P2D` con `--tests "com.example.kpkn.render.BodyHabitsExportRenderSheetTest"`.
+
+## Fuera de alcance
+G13/G6 (punto de partida con contexto histórico o masa magra): **no se implementan** (decisión D14 de la ola): sin datos reales no se puede validar un multiplicador y el informe exige descartarlo si el banco no lo demuestra; ciclo menstrual (D6); vocabulario de acciones articulares y `catalogRevision` (D10, diferidos con permiso); cambiar el estimador de N1 o el motor de energía; Room.

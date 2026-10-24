@@ -16,6 +16,9 @@ import com.example.kpkn.domain.nutrition.FoodKnowledge
 import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.FoodIdentity
 import com.example.kpkn.domain.nutrition.FoodSearchRanker
+import com.example.kpkn.domain.nutrition.Gtin
+import com.example.kpkn.domain.nutrition.RecipeCalculator
+import com.example.kpkn.domain.nutrition.NutrientBasis
 import com.example.kpkn.domain.nutrition.HouseholdPortions
 import com.example.kpkn.domain.nutrition.NutritionGoalResolver
 import com.example.kpkn.domain.nutrition.NutritionGoalSource
@@ -27,6 +30,10 @@ import com.example.kpkn.domain.nutrition.FoodLearningConfirmation
 import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardEngine
 import com.example.kpkn.domain.nutrition.dailyGoalSnapshotOf
 import com.example.kpkn.domain.nutrition.planDayTargetForDate
+import com.example.kpkn.domain.nutrition.expenditure.DayMark
+import com.example.kpkn.domain.nutrition.expenditure.DayMarkEntry
+import com.example.kpkn.domain.nutrition.expenditure.DayMarkSource
+import com.example.kpkn.domain.nutrition.expenditure.validateDayMark
 import androidx.room.withTransaction
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
@@ -94,6 +101,9 @@ internal interface FoodCatalogImporter {
     }
 }
 
+/** Fila excluida de la publicación por ser ilegible; su contenido permanece intacto en Room. */
+data class UnreadableNutritionRow(val id: String, val table: String)
+
 /**
  * NutritionRepository — Write-through cache para estado nutricional.
  */
@@ -127,6 +137,28 @@ class NutritionRepository private constructor(
     private val catalogImportMutex = Mutex()
     private val foodCalibration by lazy { NutritionCalibrationRepository.forDatabase(appContext, db) }
     private val foodPrefs by lazy { appContext.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE) }
+
+    private val _favoriteFoodIds = MutableStateFlow(foodPrefs.getStringSet("favorite_food_ids", emptySet()).orEmpty().toSet())
+    val favoriteFoodIds: StateFlow<Set<String>> = _favoriteFoodIds.asStateFlow()
+
+    /** Cambiar un favorito solo se publica si la preferencia quedó guardada. No altera el ranking por uso. */
+    suspend fun toggleFavoriteFood(id: String) {
+        require(id.isNotBlank()) { "El favorito necesita un identificador." }
+        foodSaveMutex.withLock {
+            withContext(Dispatchers.IO) {
+                val current = foodPrefs.getStringSet("favorite_food_ids", emptySet()).orEmpty().toSet()
+                val next = if (id in current) current - id else current + id
+                check(foodPrefs.edit().putStringSet("favorite_food_ids", next).commit()) { "No se pudo guardar el favorito." }
+                _favoriteFoodIds.value = next
+            }
+        }
+    }
+
+    suspend fun refreshFoodPreferencesFromStorage() = withContext(Dispatchers.IO) {
+        _favoriteFoodIds.value = foodPrefs.getStringSet("favorite_food_ids", emptySet()).orEmpty().toSet()
+        _foodQueryLearning.value = loadFoodLearning()
+        loadUtensilOverrides()
+    }
 
     /** Solo para pruebas JVM: la base con la que trabaja este repositorio (mismo patrón que ProgramRepository). */
     internal fun databaseForTests(): KpknDatabase = db
@@ -178,11 +210,17 @@ class NutritionRepository private constructor(
         val importedAt: String,
     )
 
-    /** Backup hooks: custom foods and catalog provenance are user data, not UI-only cache. */
+    /** Exporta las filas legibles; las ilegibles siguen en Room y quedan identificadas en la cuarentena. */
     suspend fun getCustomFoodsForBackup(): List<FoodItem> = withContext(Dispatchers.IO) {
-        db.nutritionDao().getAllCustomFoods().mapNotNull { entity ->
-            runCatching { entity.toFoodItem() }.getOrNull()
-        }
+        decodeUserRows(db.nutritionDao().getAllCustomFoods(), "nutrition_custom_foods", { it.id }) { it.toFoodItem() }
+    }
+
+    suspend fun getPantryItemsForBackup(): List<PantryItem> = withContext(Dispatchers.IO) {
+        decodeUserRows(db.nutritionDao().getAllPantryItems(), "nutrition_pantry", { it.id }) { it.toPantryItem() }
+    }
+
+    suspend fun getMealTemplatesForBackup(): List<MealTemplate> = withContext(Dispatchers.IO) {
+        decodeUserRows(db.nutritionDao().getAllTemplates(), "nutrition_templates", { it.id }) { it.toMealTemplate() }
     }
 
     fun getFoodCatalogMetaForBackup(): FoodCatalogMeta? = loadFoodCatalogMeta()
@@ -196,15 +234,42 @@ class NutritionRepository private constructor(
     private val _nutritionLogs = MutableStateFlow<List<NutritionLog>>(emptyList())
     val nutritionLogs: StateFlow<List<NutritionLog>> = _nutritionLogs.asStateFlow()
 
+    private val _dayMarks = MutableStateFlow<Map<LocalDate, DayMarkEntry>>(emptyMap())
+    val dayMarks: StateFlow<Map<LocalDate, DayMarkEntry>> = _dayMarks.asStateFlow()
+
+    /** Valida contra Room bajo el mismo candado que las comidas; publica solo después del commit. */
+    suspend fun setDayMark(date: LocalDate, mark: DayMark, source: DayMarkSource = DayMarkSource.USER) = foodSaveMutex.withLock {
+        withContext(Dispatchers.IO) {
+            val entry = DayMarkEntry(date, mark, source, Instant.now())
+            db.withTransaction {
+                val meals = db.nutritionDao().getLogsForDayPrefix(date.toString()).map { row ->
+                    try { row.toNutritionLog() }
+                    catch (error: Exception) {
+                        if (error is CancellationException) throw error
+                        throw IllegalArgumentException("Hay un registro ilegible: revisa las comidas de este día.")
+                    }
+                }
+                validateDayMark(date, mark, meals, LocalDate.now())
+                db.nutritionDao().upsertDayMark(entry.toEntity())
+            }
+            _dayMarks.update { it + (date to entry) }
+        }
+    }
+
+    suspend fun clearDayMark(date: LocalDate) = foodSaveMutex.withLock {
+        withContext(Dispatchers.IO) {
+            db.withTransaction { db.nutritionDao().deleteDayMark(date.toString()) }
+            _dayMarks.update { it - date }
+        }
+    }
+
+    private val _unreadableRows = MutableStateFlow<List<UnreadableNutritionRow>>(emptyList())
+    /** Diagnóstico de la última lectura de cada tabla, sin incluir el contenido de las filas. */
+    val unreadableRows: StateFlow<List<UnreadableNutritionRow>> = _unreadableRows.asStateFlow()
+
     private val _dailyGoalSnapshots = MutableStateFlow<List<DailyGoalSnapshot>>(emptyList())
     /** Immutable per-day targets exposed for historical charts and audits. */
     val dailyGoalSnapshots: StateFlow<List<DailyGoalSnapshot>> = _dailyGoalSnapshots.asStateFlow()
-
-    fun addNutritionLog(log: NutritionLog) {
-        _nutritionLogs.update { it + log }
-        scope.launch { db.nutritionDao().upsertLog(log.toEntity()) }
-        captureDailyGoalSnapshot(log.date.take(10))
-    }
 
     /** Await durable storage before publishing success or teaching a confirmed habit. */
     suspend fun saveNutritionLog(log: NutritionLog, confirmations: List<FoodLearningConfirmation> = emptyList()) = foodSaveMutex.withLock {
@@ -348,6 +413,92 @@ class NutritionRepository private constructor(
         // E16/IT2: el resolver debe ver los alimentos del usuario.
         foodIndex.addStaticFood(normalized)
         scope.launch { db.nutritionDao().upsertCustomFood(normalized.toEntity()) }
+    }
+
+    // ─── Alimentos propios y búsqueda por código de barras (N3) ──────────────────
+
+    /**
+     * Guarda un alimento propio ESPERANDO el commit de Room y solo entonces lo publica en [foodDatabase] y en el índice del
+     * resolvedor: si Room falla, la excepción llega a quien llama y nada queda publicado. Reintentar con el mismo id no duplica
+     * (es un upsert por id). A diferencia de [addCustomFood] (caché de la IA, sin esperar), este es el camino de la interfaz.
+     * Editar un alimento ya publicado sube la generación del catálogo: el índice no sabe quitar nombres viejos y se reconstruye.
+     */
+    suspend fun saveCustomFood(food: FoodItem) {
+        require(food.id.isNotBlank()) { "El alimento propio necesita un id" }
+        require(food.name.isNotBlank()) { "El alimento propio necesita un nombre" }
+        require(food.servingSize.isFinite() && food.servingSize > 0.0) { "La porción tiene que ser mayor que cero" }
+        require(listOf(food.calories, food.protein, food.carbs, food.fats).all { it.isFinite() && it >= 0.0 }) {
+            "Los nutrientes tienen que ser números finitos y no negativos"
+        }
+        foodSaveMutex.withLock {
+            withContext(Dispatchers.IO) {
+                val recipeFood = food.recipe?.let { recipe ->
+                    val previous = db.nutritionDao().getAllCustomFoods().firstOrNull { it.id == food.id }
+                        ?.toFoodItem()?.recipe?.version ?: 0
+                    check(previous < Int.MAX_VALUE) { "La receta alcanzó su límite de versiones." }
+                    RecipeCalculator.asFood(food.id, food.name,
+                        recipe.copy(version = previous + 1, updatedAt = Instant.now().toString()), base = food)
+                } ?: food
+                val normalized = normalizeFoodItem(recipeFood.copy(isCustom = true, isAiInferred = false))
+                db.withTransaction { db.nutritionDao().upsertCustomFood(normalized.toEntity()) }
+                val replaced = _foodDatabase.value.any { it.id == normalized.id }
+                _foodDatabase.update { current -> current.filterNot { it.id == normalized.id } + normalized }
+                foodIndex.addStaticFood(normalized)
+                if (replaced) bumpCatalogGeneration()
+            }
+        }
+    }
+
+    /**
+     * Borra un alimento propio. Las comidas ya registradas con él no cambian (guardan su propia copia de los nutrientes).
+     * Espera el commit; solo toca la tabla de alimentos propios, nunca el catálogo estático ni el global.
+     */
+    suspend fun deleteCustomFood(id: String) {
+        foodSaveMutex.withLock {
+            withContext(Dispatchers.IO) {
+                db.withTransaction { db.nutritionDao().deleteCustomFood(id) }
+                _foodDatabase.update { current -> current.filterNot { it.id == id && it.isCustom } }
+                bumpCatalogGeneration()
+            }
+        }
+    }
+
+    /**
+     * Busca un código de barras SIN red: primero entre los alimentos propios de la persona (su código va en `sourceRecordId`) y
+     * después en el catálogo global, probando las variantes de [Gtin.candidates] (con y sin ceros a la izquierda). Un producto
+     * con nutrientes incompletos se devuelve con sus banderas de calidad para que la interfaz lo diga; nunca se completan macros.
+     */
+    /** Duplicado propio para aviso de edición; no guarda ni sustituye ningún alimento. */
+    suspend fun findCustomBarcodeDuplicate(code: String, excludingId: String): FoodItem? = withContext(Dispatchers.IO) {
+        val wanted = Gtin.candidates(code).toSet()
+        if (wanted.isEmpty()) return@withContext null
+        db.nutritionDao().getAllCustomFoods().mapNotNull { row ->
+            try { row.toFoodItem() } catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { null }
+        }.filter { it.id != excludingId && !it.isAiInferred && it.sourceRecordId in wanted }
+            .sortedWith(compareByDescending<FoodItem> { it.usageCount }.thenByDescending { it.verifiedScore }.thenBy { it.id }).firstOrNull()
+    }
+
+    suspend fun findFoodByBarcode(code: String): BarcodeLookup = withContext(Dispatchers.IO) {
+        val candidates = Gtin.candidates(code)
+        if (candidates.isEmpty()) return@withContext BarcodeLookup.Invalid
+        val wanted = candidates.toSet()
+        val dao = db.nutritionDao()
+        val own = dao.getAllCustomFoods()
+            .mapNotNull { row -> runCatching { row.toFoodItem() }.getOrNull() }
+            .filter { food -> !food.isAiInferred && food.sourceRecordId?.let { it in wanted } == true }
+            .sortedWith(compareByDescending<FoodItem> { it.usageCount }.thenByDescending { it.verifiedScore }.thenBy { it.id })
+            .firstOrNull()
+        if (own != null) return@withContext BarcodeLookup.Found(normalizeFoodItem(own), BarcodeOrigin.PROPIO)
+        val row = dao.getGlobalFoodsByBarcodes(candidates, Gtin.parse(code)?.digits).firstOrNull() ?: return@withContext BarcodeLookup.NotFound
+        BarcodeLookup.Found(withIncompleteFlag(row.toFoodItem()), BarcodeOrigin.CATALOGO)
+    }
+
+    /** Una ficha sin energía ni macros (y que no se declara de energía nula) lleva la bandera INCOMPLETE aunque la fila no la traiga. */
+    private fun withIncompleteFlag(food: FoodItem): FoodItem {
+        val empty = listOf(food.calories, food.protein, food.carbs, food.fats).all { it <= 0.0 }
+        return if (empty && !NutrientBasis.isZeroEnergy(food) && "INCOMPLETE" !in food.qualityFlags) {
+            food.copy(qualityFlags = food.qualityFlags + "INCOMPLETE")
+        } else food
     }
 
     /**
@@ -516,7 +667,7 @@ class NutritionRepository private constructor(
      */
     suspend fun publishNutritionPlanCommit() {
         val committedPlans = withContext(Dispatchers.IO) {
-            db.nutritionDao().getAllPlans().map { it.toNutritionPlan() }
+            decodeUserRows(db.nutritionDao().getAllPlans(), "nutrition_plans", { it.id }) { it.toNutritionPlan() }
         }
         val committedActiveId = withContext(Dispatchers.IO) {
             db.nutritionDao().getActiveState()?.activePlanId
@@ -870,6 +1021,39 @@ class NutritionRepository private constructor(
         return template
     }
 
+    // ─── Plantillas de comida durables (N4) ─────────────────────────────────────
+
+    /**
+     * Guarda una plantilla ESPERANDO el commit de Room y solo entonces la publica en [mealTemplates]: si Room falla, la excepción llega a
+     * quien llama y nada queda publicado. Reintentar con el mismo id no duplica (upsert por id); también sirve para renombrar. A diferencia
+     * de [upsertMealTemplate] (que publica antes y escribe en segundo plano), este es el camino de la interfaz.
+     */
+    suspend fun saveMealTemplate(template: MealTemplate) {
+        require(template.id.isNotBlank()) { "La plantilla necesita un id" }
+        require(template.name.isNotBlank()) { "La plantilla necesita un nombre" }
+        require(template.foods.isNotEmpty()) { "La plantilla necesita al menos un alimento" }
+        require(template.foods.all { food ->
+            food.amount.isFinite() && food.amount > 0.0 &&
+                listOf(food.calories, food.protein, food.carbs, food.fats).all { it.isFinite() && it >= 0.0 }
+        }) { "Cantidad o nutrientes no válidos en la plantilla" }
+        foodSaveMutex.withLock {
+            withContext(Dispatchers.IO) {
+                db.withTransaction { db.nutritionDao().upsertTemplate(template.toEntity()) }
+                _mealTemplates.update { current -> current.filterNot { it.id == template.id } + template }
+            }
+        }
+    }
+
+    /** Borra una plantilla esperando el commit; las comidas ya registradas con ella no cambian (guardan su propia copia). */
+    suspend fun deleteMealTemplate(id: String) {
+        foodSaveMutex.withLock {
+            withContext(Dispatchers.IO) {
+                db.withTransaction { db.nutritionDao().deleteTemplate(id) }
+                _mealTemplates.update { current -> current.filterNot { it.id == id } }
+            }
+        }
+    }
+
     // ─── SmartFoodResolver Integration (Phase B) ────────────────────────────────
 
     /** Serializa las reconstrucciones del índice: una llamada que espera encuentra la generación ya vigente. */
@@ -988,7 +1172,15 @@ class NutritionRepository private constructor(
                 habitualPortionsGrams = emptyMap(), maturePortionsGrams = emptyMap(), confirmedPortions = emptyMap(),
                 identityMappings = emptyMap(), statePreferences = emptyMap(), preparationProfiles = emptyMap(), oilProfiles = emptyMap(),
             ) }
-            db.withTransaction { db.nutritionDao().getAllTemplates().forEach { db.nutritionDao().deleteTemplate(it.id) } }
+            db.withTransaction {
+                val dao = db.nutritionDao()
+                // Olvidar el aprendizaje no elimina las plantillas en cuarentena.
+                val readableIds = decodeUserRows(dao.getAllTemplates(), "nutrition_templates", { it.id }) {
+                    it.toMealTemplate()
+                    it.id
+                }
+                readableIds.forEach { dao.deleteTemplate(it) }
+            }
             _mealTemplates.value = emptyList()
             _foodQueryLearning.value = emptyMap()
             check(foodPrefs.edit().remove("food_query_learning_v2").commit()) { "Could not clear food selection memory" }
@@ -1012,6 +1204,31 @@ class NutritionRepository private constructor(
     }
 
     // ─── Bootstrap ──────────────────────────────────────────────────────────
+
+    /** Una fila ilegible no impide publicar las demás ni modifica su representación en Room. */
+    private fun <E, T : Any> decodeUserRows(
+        rows: List<E>,
+        table: String,
+        id: (E) -> String,
+        decode: (E) -> T,
+    ): List<T> {
+        val unreadable = mutableListOf<UnreadableNutritionRow>()
+        val readable = rows.mapNotNull { row ->
+            try {
+                decode(row)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                val diagnostic = UnreadableNutritionRow(id(row), table)
+                unreadable += diagnostic
+                // Las excepciones de JSON pueden contener datos del usuario: solo se registra la identidad de la fila.
+                android.util.Log.w("NutritionRepository", "Fila ilegible en $table (id=${diagnostic.id})")
+                null
+            }
+        }
+        _unreadableRows.update { current -> current.filterNot { it.table == table } + unreadable }
+        return readable
+    }
 
     /** Última carga de arranque; las pruebas la esperan para observar el final de sus tres fases. */
     @Volatile
@@ -1082,14 +1299,16 @@ class NutritionRepository private constructor(
             // espera el catálogo sabe que el resto del estado ya está publicado.
             foodSaveMutex.withLock {
                 val dao = db.nutritionDao()
-                val logs = dao.getAllLogs().map { it.toNutritionLog() }
-                val templates = dao.getAllTemplates().map { it.toMealTemplate() }
+                val logs = decodeUserRows(dao.getAllLogs(), "nutrition_logs", { it.id }) { it.toNutritionLog() }
+                val templates = decodeUserRows(dao.getAllTemplates(), "nutrition_templates", { it.id }) { it.toMealTemplate() }
                 val learning = loadFoodLearning()
                 val snapshots = dao.getAllDailyGoalSnapshots().mapNotNull { it.toDailyGoalSnapshot() }
-                val plans = dao.getAllPlans().map { it.toNutritionPlan() }
+                val plans = decodeUserRows(dao.getAllPlans(), "nutrition_plans", { it.id }) { it.toNutritionPlan() }
                 val activeId = dao.getActiveState()?.activePlanId
+                val marks = decodeUserRows(dao.getAllDayMarks(), "nutrition_day_marks", { it.date }) { it.toDayMarkEntry() }
 
                 _nutritionLogs.value = logs
+                _dayMarks.value = marks.associateBy { it.date }
                 _mealTemplates.value = templates
                 _foodQueryLearning.value = learning
                 _dailyGoalSnapshots.value = snapshots

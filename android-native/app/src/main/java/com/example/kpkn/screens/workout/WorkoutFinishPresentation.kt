@@ -1,12 +1,12 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.auge.AugeUtils
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import java.text.NumberFormat
 import java.time.LocalDate
@@ -56,15 +56,15 @@ private fun sameFinishExercise(a: CompletedExercise, b: CompletedExercise): Bool
 
 private fun bestFinishSet(exercise: CompletedExercise): CompletedSet? = exercise.takeIf { it.cardioDetails == null }?.sets.orEmpty()
     .filter { !it.skipped && !it.isWarmup && !it.isFailedSet && it.reps > 0 && it.weight.isFinite() && it.weight >= 0 }
-    .maxWithOrNull(compareBy<CompletedSet> { calculateHybrid1RM(it.weight, it.reps) }.thenBy { it.weight }.thenBy { it.reps })
+    .maxWithOrNull(compareBy<CompletedSet> { StrengthModel.estimate1RM(it) }.thenBy { it.weight }.thenBy { it.reps })
 
 internal fun buildFinishLiftProgress(completed: List<CompletedExercise>, history: List<WorkoutLog>): List<FinishLiftProgress> =
     completed.map { exercise ->
         val points = history.sortedBy { AugeUtils.logDateMs(it) }.mapNotNull { log ->
             val best = log.completedExercises.filter { sameFinishExercise(exercise, it) }
                 .mapNotNull(::bestFinishSet)
-                .maxByOrNull { calculateHybrid1RM(it.weight, it.reps) } ?: return@mapNotNull null
-            FinishProgressPoint(log.date, best.weight, best.reps, calculateHybrid1RM(best.weight, best.reps))
+                .maxByOrNull { StrengthModel.estimate1RM(it) } ?: return@mapNotNull null
+            FinishProgressPoint(log.date, best.weight, best.reps, StrengthModel.estimate1RM(best))
         }
         FinishLiftProgress(exercise.exerciseId, exercise.exerciseName, bestFinishSet(exercise),
             logicalSetCountFromCompleted(listOf(exercise)), points.lastOrNull(), points.takeLast(24), points.size, points.firstOrNull())

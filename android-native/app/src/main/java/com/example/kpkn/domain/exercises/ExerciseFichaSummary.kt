@@ -1,10 +1,10 @@
 package com.example.kpkn.domain.exercises
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.WorkoutLog
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -38,7 +38,7 @@ fun exerciseHistorySummary(history: List<WorkoutLog>, identityKeys: Set<String>,
     }
     val last = matching.maxOfOrNull { it.first } ?: return null
     fun estimate(set: CompletedSet): Double? = set.homologatedResultV3?.estimatedRm?.takeIf { it.isFinite() && it > 0 }
-        ?: if (set.weight.isFinite() && set.weight > 0 && set.reps > 0) calculateHybrid1RM(set.weight, set.reps).takeIf { it.isFinite() && it > 0 } else null
+        ?: if (set.weight.isFinite() && set.weight > 0 && set.reps > 0) StrengthModel.estimate1RM(set).takeIf { it.isFinite() && it > 0 } else null
     val best = matching.mapNotNull { (_, set) -> estimate(set)?.let { set to it } }.maxByOrNull { it.second }
     return ExerciseHistorySummary(best?.first, best?.second, last)
 }

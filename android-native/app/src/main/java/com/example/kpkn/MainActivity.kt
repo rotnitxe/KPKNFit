@@ -108,6 +108,7 @@ import com.example.kpkn.screens.sessioneditor.SessionEditorScreen
 import com.example.kpkn.screens.settings.SettingsScreen
 import com.example.kpkn.screens.workout.WorkoutScreen
 import com.example.kpkn.screens.workout.RepairBenchmarkTrace
+import com.example.kpkn.screens.habits.HabitsRoute
 
 import com.example.kpkn.services.workout.ActiveWorkoutHolder
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
@@ -455,7 +456,8 @@ fun KPKNApp(
     val telemetryHelper = remember { TelemetryHelper(context) }
     val navController = rememberNavController()
     val programsViewModel: ProgramsViewModel = viewModel()
-    val nutritionViewModel: NutritionViewModel = viewModel { NutritionViewModel() }
+    val nutritionCheckinStore = remember { com.example.kpkn.screens.nutrition.checkin.NutritionCheckinRuntime.store(context) }
+    val nutritionViewModel: NutritionViewModel = viewModel { NutritionViewModel(checkinRecords = nutritionCheckinStore.records) }
     val activeProgram by programsViewModel.activeProgram.collectAsState()
     val allPrograms by programsViewModel.programs.collectAsState()
     val currentBackStack by navController.currentBackStackEntryAsState()
@@ -541,6 +543,7 @@ fun KPKNApp(
         // quedar tapado por la bottom bar.
         currentRoute?.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE) == true ||
         currentRoute == KpknRoute.ImportProgram.route ||
+        currentRoute == KpknRoute.EquipmentInventory.route ||
         currentRoute == KpknRoute.CompetitionDetail.route ||
         resolvedRoute?.startsWith("competition/") == true
     val primaryProgramId = activeProgram?.id ?: allPrograms.firstOrNull()?.id
@@ -672,6 +675,9 @@ fun KPKNApp(
     // AnimatedVisibility retains content during exit — no delayed nulling (that raced remounts).
     val showHomeGlassOverlays = currentRoute == KpknRoute.Home.route
     CompositionLocalProvider(
+        com.example.kpkn.screens.progress.LocalExerciseProgressOpener provides { exerciseId ->
+            navController.navigate(KpknRoute.ExerciseProgress.create(exerciseId))
+        },
         LocalHazeState provides hazeState,
         LocalKpknOverlayHost provides overlayHost,
     ) {
@@ -1215,6 +1221,7 @@ private fun KPKNNavGraph(
         composable(KpknRoute.Nutrition.route) {
             NutritionScreen(
                 viewModel = nutritionViewModel,
+                onOpenCheckin = { navController.navigate(KpknRoute.NutritionCalibration.route) { launchSingleTop = true } },
                 onNavigateToMealHistory = {
                     navController.navigate(KpknRoute.MealHistory.route)
                 },
@@ -1396,10 +1403,25 @@ private fun KPKNNavGraph(
                 onBack = { navController.popBackStack() },
                 healthConnectAvailable = healthConnectRouteAvailable(),
                 onOpenHealthConnect = { navController.navigate(KpknRoute.HealthConnect.route) },
+                onOpenEquipmentInventory = { navController.navigate(KpknRoute.EquipmentInventory.route) },
+            )
+        }
+        composable(KpknRoute.EquipmentInventory.route) {
+            com.example.kpkn.screens.settings.equipment.EquipmentInventoryRoute(
+                onBack = { navController.popBackStack() },
             )
         }
         composable(KpknRoute.NutritionCalibration.route) {
-            NutritionCalibrationScreen(onBack = { navController.popBackStack() })
+            NutritionCalibrationScreen(
+                onBack = { navController.popBackStack() },
+                onResumeLogging = {
+                    navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
+                    nutritionViewModel.refreshToday()
+                    nutritionViewModel.setSelectedDate(nutritionViewModel.today.value.toString())
+                    nutritionViewModel.requestFoodLoggerOpen()
+                },
+                onWeighIn = { navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true } },
+            )
         }
         addHealthConnectRoute(navController)
         composable(KpknRoute.Profile.route) {
@@ -1417,6 +1439,11 @@ private fun KPKNNavGraph(
                 onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
                 onOpenTechnique = { navController.navigate(KpknRoute.TechniqueHub.route) },
                 onOpenTechniqueAnalysis = { id -> navController.navigate(KpknRoute.TechniqueAnalysis.create(id)) },
+                onOpenMuscleVolume = { navController.navigate(KpknRoute.MuscleVolumePanel.create()) },
+                onOpenHabits = { navController.navigate(KpknRoute.Habits.route) },
+
+                onOpenExerciseProgress = { navController.navigate(KpknRoute.ExerciseProgress.create(it)) },
+
             )
         }
         composable(KpknRoute.WorkoutAlbums.route) {
@@ -1525,6 +1552,12 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.ProgramDetail.route) { backStack ->
             val id = backStack.arguments?.getString(KpknRoute.ProgramDetail.ARG_PROGRAM_ID) ?: ""
+            // T5a: el enlace «Ver lo que has hecho en 4 semanas» de la pestaña Volumen abre el panel con los registros de este programa.
+            CompositionLocalProvider(
+                com.example.kpkn.screens.progress.LocalMuscleVolumePanelOpener provides { volumeProgramId ->
+                    navController.navigate(KpknRoute.MuscleVolumePanel.create(volumeProgramId))
+                },
+            ) {
             ProgramDetailScreen(
                 programId = id,
                 onBack = {
@@ -1559,6 +1592,7 @@ private fun KPKNNavGraph(
                     }
                 },
             )
+            }
         }
         composable(
             route = KpknRoute.ProgramEditor.route,
@@ -1714,6 +1748,35 @@ private fun KPKNNavGraph(
                     }
                 },
             )
+        }
+        composable(KpknRoute.ExerciseProgress.route, arguments = listOf(navArgument(KpknRoute.ExerciseProgress.ARG_EXERCISE_ID) {
+            type = NavType.StringType; nullable = true; defaultValue = null
+        })) { entry ->
+            com.example.kpkn.screens.progress.ExerciseProgressRoute(
+                entry.arguments?.getString(KpknRoute.ExerciseProgress.ARG_EXERCISE_ID)?.takeIf { it.isNotBlank() },
+                { navController.popBackStack() })
+        }
+        composable(
+            route = KpknRoute.MuscleVolumePanel.route,
+            arguments = listOf(
+                navArgument(KpknRoute.MuscleVolumePanel.ARG_PROGRAM_ID) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+            ),
+        ) { backStack ->
+            val volumeProgramId = backStack.arguments
+                ?.getString(KpknRoute.MuscleVolumePanel.ARG_PROGRAM_ID)
+                ?.takeIf { it.isNotBlank() }
+            com.example.kpkn.screens.progress.MuscleVolumePanelRoute(
+                programId = volumeProgramId,
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(KpknRoute.Habits.route) {
+            HabitsRoute(onBack = { navController.popBackStack() })
+
         }
     }
 }

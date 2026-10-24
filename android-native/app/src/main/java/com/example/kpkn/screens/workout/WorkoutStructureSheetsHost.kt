@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.screens.sessioneditor.withTrainingMode
+import com.example.kpkn.domain.performance.StrengthModel
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -84,7 +85,6 @@ import androidx.compose.ui.draw.clip
 import com.example.kpkn.data.models.PrReference
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.screens.sessioneditor.components.ExerciseSmartLoadDialog
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.normalizeExercise
@@ -111,7 +111,6 @@ import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionMode
 import com.example.kpkn.screens.sessioneditor.toggledBilateralUnilateral
 import com.example.kpkn.ui.components.KpknAlertDialog
-import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknSheetTokens
 import dev.chrisbanes.haze.HazeState
 import java.util.UUID
@@ -301,6 +300,7 @@ internal fun WorkoutStructureSheetsHost(
     onOpenCatalog: ((CatalogLaunchRequest) -> Unit)? = null,
 ) {
     val useFullPageCatalog = onOpenCatalog != null
+    val swapRepository = remember { runCatching { com.example.kpkn.data.repository.ProgramRepository.getInstance() }.getOrNull() }
 
     // Una hoja sin su ejercicio (omitido o eliminado con la hoja abierta) no se pinta, pero su bandera dejaba la sesión con «hay una
     // hoja abierta»: Atrás no hacía nada y no había por dónde salir (LV4, 15).
@@ -1033,6 +1033,10 @@ internal fun WorkoutStructureSheetsHost(
                 replacement = CatalogReplacementContext(
                     exerciseName = replaceTarget?.let(::displayWorkoutExerciseName),
                     planSummary = replaceTarget?.let(::replacementPlanSummary),
+                    exercise = replaceTarget,
+                    availability = com.example.kpkn.screens.sessioneditor.components.liveSwapAvailability(modeSession,
+                        swapRepository?.programs?.value?.firstOrNull { it.id == uiState.programId },swapRepository?.settings?.value?.equipmentAvailability),
+                    avoided = com.example.kpkn.screens.sessioneditor.components.persistedSwapAvoided(swapRepository?.programs?.value?.firstOrNull { it.id == uiState.programId }),
                 ),
             )
         }
@@ -1192,7 +1196,7 @@ internal fun localPrEstimated1RM(weightText: String, repsText: String, trainingM
     return if (trainingMode == TrainingMode.TIME || trainingMode == TrainingMode.DISTANCE || trainingMode == TrainingMode.CUSTOM) {
         calculateGeneralizedCapacity(w, r.toDouble())
     } else {
-        calculateHybrid1RM(w, r)
+        StrengthModel.estimate1RM(w, r)
     }
 }
 

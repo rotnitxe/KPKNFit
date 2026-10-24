@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.exercises.displayNameWithSelectedChips
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.auge.ExerciseReadinessEngine
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.workout.*
@@ -69,7 +70,9 @@ internal fun SetAdjustmentOverlay(
             ?: (averageErm?.let { erm ->
                 val plannedReps = currentSet.plannedRepAnchor()
                 if (plannedReps != null && plannedReps > 0) {
-                    erm * (1.0278 - 0.0278 * plannedReps)
+                    StrengthModel.weightFor(erm, plannedReps, rir = currentSet.targetRIR, rpe = currentSet.targetRPE,
+                        toFailure = currentSet.isFailure || currentSet.purpose.isAmrap || currentSet.intensityMode == IntensityMode.FAILURE ||
+                            currentSet.intensityMode == IntensityMode.AMRAP || currentSet.intensityMode == IntensityMode.SOLO_RM)
                 } else null
             })
             ?: 0.0

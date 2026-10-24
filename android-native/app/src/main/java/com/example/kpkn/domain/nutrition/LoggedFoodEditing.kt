@@ -103,6 +103,7 @@ private fun evidenceSource(food: LoggedFood): String? {
  * reconstruye desde el rango guardado de la porción comida.
  */
 private fun savedEstimateOf(food: LoggedFood): NutritionEstimateEvidence? {
+    if (food.recipeId != null) return null // La nota de versión identifica la receta; no es una densidad supuesta.
     val note = food.nutritionReferenceNote?.takeIf { it.isNotBlank() } ?: return null
     val grams = food.amount.takeIf { it.isFinite() && it > 0.0 } ?: return null
     fun per100(value: Double?, central: Double) = (value ?: central) * 100.0 / grams
@@ -142,7 +143,7 @@ fun refreshAfterEdit(tag: ResolvedTag, dimension: String? = null): ResolvedTag {
             confirmedDimensions = confirmed,
             explicitDecision = if (dimension == null) tag.explicitDecision else reopened,
             // Rebuild intervals from the newly selected source/amount.
-            loggedFood = tag.loggedFood?.copy(
+            loggedFood = if (tag.loggedFood?.recipeId != null && dimension == "portion") tag.loggedFood else tag.loggedFood?.copy(
                 caloriesMin = null, caloriesMax = null, proteinMin = null, proteinMax = null,
                 carbsMin = null, carbsMax = null, fatsMin = null, fatsMax = null,
             ),

@@ -1,0 +1,117 @@
+{
+  "date": "2026-10-22",
+  "repository": "rotnitxe/KPKNFit",
+  "starting_branch": "feat/macrofactor-parity",
+  "source_heads_before_transport_documentation": {
+    "feat/macrofactor-parity": "216bcb16ee475cdc3349603b8d1fce9695e5fc69",
+    "mfp/n": "00bde8b504f0a37a059bcdf337199149bcde7687",
+    "mfp/d": "c0e8f77ab76fb7e50dd0ab2c1528cd4e9464bea2",
+    "mfp/t5a": "7b373aa224d6ef11049e7971fd33e96ebd83c2e4",
+    "mfp/h": "0fe99e5489ca2c429b73025187a45dfc69b7259e"
+  },
+  "local_master_read_only": "8ac57c9d42a9fb65686866011317d25e840d28d6",
+  "origin_master_observed_before_push": "381123d0a59ed8b3afdafe3f6353f1f9b26a1424",
+  "user_authorization": "Publicar las cinco ramas MFP con los cambios pendientes. No fusionar master. No volver a ejecutar Gradle en el equipo local.",
+  "tests_executed_during_transport": false,
+  "historical_xml_evidence": {
+    "feat/macrofactor-parity": {
+      "suites": 6,
+      "tests": 100,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "failing_tests": [
+        {
+          "test": "com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest.finalizeWorkoutPersistsNativeProposalAlongsideTheRealCompletedLogs",
+          "message": "java.lang.AssertionError: expected:<1> but was:<0>"
+        }
+      ],
+      "warning": "Resultados historicos del ultimo XML disponible; no certifican la punta trasladada ni sustituyen una nueva corrida cloud."
+    },
+    "mfp/n": {
+      "suites": 25,
+      "tests": 358,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "failing_tests": [
+        {
+          "test": "com.example.kpkn.data.repository.NutritionMealReuseRepositoryTest.un fallo de Room al guardar una plantilla no la publica",
+          "message": "java.lang.AssertionError"
+        },
+        {
+          "test": "com.example.kpkn.screens.nutrition.reuse.MealReuseScreensTest.la fila de una entrada rapida lleva la etiqueta rapida y una comida normal no",
+          "message": "java.lang.AssertionError: Failed: assertExists.\nReason: Expected exactly '1' node but could not find any node that satisfies: (TestTag = 'quick-entry-tag')\nHowever, the unmerged tree contains '1' node that matches. Are you missing `useUnmergedNode = true` in your finder?\n"
+        }
+      ],
+      "warning": "Resultados historicos del ultimo XML disponible; no certifican la punta trasladada ni sustituyen una nueva corrida cloud."
+    },
+    "mfp/d": {
+      "suites": 69,
+      "tests": 463,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0,
+      "failing_tests": [
+        {
+          "test": "com.example.kpkn.screens.home.RingDetailSheetTest.mover el anillo activa Guardar ajuste",
+          "message": "java.lang.AssertionError: Failed to assert the following: (Text + EditableText = [Tu ajuste: 60 %])\nReason: Expected exactly '1' node but could not find any node that satisfies: (TestTag = 'home-ring-adjust-summary')\n"
+        },
+        {
+          "test": "com.example.kpkn.screens.home.RingDetailSheetTest.sin personalBaseline sale el texto de 4 sesiones",
+          "message": "java.lang.AssertionError: Failed: assertExists.\nReason: Expected exactly '1' node but could not find any node that satisfies: (Text + InputText + EditableText contains 'Tu normal aparecerá tras unas 4 sesiones con RINGS al inicio.' (ignoreCase: false))\n"
+        },
+        {
+          "test": "com.example.kpkn.screens.home.RingDetailSheetTest.Musculos abre el cuerpo y guarda cada musculo por su pilar",
+          "message": "java.lang.AssertionError: Failed to assert the following: (Text + EditableText = [1 músculo ajustado])\nReason: Expected exactly '1' node but could not find any node that satisfies: (TestTag = 'home-ring-adjust-summary')\n"
+        },
+        {
+          "test": "com.example.kpkn.screens.home.RingDetailSheetTest.Ajustar abre la hoja de ajuste en ese canal y sin pestañas",
+          "message": "java.lang.AssertionError: Failed: assertExists.\nReason: Expected exactly '1' node but could not find any node that satisfies: (TestTag = 'ring-adjust-sheet')\n"
+        }
+      ],
+      "warning": "Resultados historicos del ultimo XML disponible; no certifican la punta trasladada ni sustituyen una nueva corrida cloud."
+    },
+    "mfp/t5a": {
+      "suites": 6,
+      "tests": 69,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failing_tests": [],
+      "warning": "Resultados historicos del ultimo XML disponible; no certifican la punta trasladada ni sustituyen una nueva corrida cloud."
+    },
+    "mfp/h": {
+      "suites": 10,
+      "tests": 81,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failing_tests": [],
+      "warning": "Resultados historicos del ultimo XML disponible; no certifican la punta trasladada ni sustituyen una nueva corrida cloud."
+    }
+  },
+  "portable_tool_sha256": {
+    "tools/macrofactor-cloud/.gitignore": "8e102531bdc918d4a7f251fc46b847c5be5a800fabfb99164d507666b324cf89",
+    "tools/macrofactor-cloud/jvm/build.gradle.kts": "07cb59df495c395fa2d04a2a18999ec3395c0166ed07881a434d2fb089b7dc13",
+    "tools/macrofactor-cloud/jvm/excluded-main.txt": "f62ccd6f5a3808e109b6c0ab3afdbcd87bcd877ea15acb774018b368319f8775",
+    "tools/macrofactor-cloud/jvm/excluded-test-methods.txt": "7242a62ba333a3eb00a197768046d6caca65102b36868086c9b21368833073a5",
+    "tools/macrofactor-cloud/jvm/excluded-test.txt": "4f4835d5349ffb6d12c8a54513ac9dd4a0187ba07a9fa1b83bea0ac2dca3f273",
+    "tools/macrofactor-cloud/jvm/gradle.properties": "5e8a2416ffc9bb5cfc12f8e4752402ba32b44b0cfd2e5104d8039325fbc8f287",
+    "tools/macrofactor-cloud/jvm/included-extra.txt": "41414fd6decbdf014dd13d27e0f4031bacf6d69535774261546859da0cc8ed5d",
+    "tools/macrofactor-cloud/jvm/settings.gradle.kts": "4d9a4ee621c5fc10c5ec96ed9db9fc70edb364cf970db76851dc727b1cd74e4c",
+    "tools/macrofactor-cloud/jvm/stubs/android/content/HarnessContextStub.kt": "02e45195af972d06c9fd6b5cf58a944ae859322fb27900785d0ebef40e4b790b",
+    "tools/macrofactor-cloud/jvm/stubs/android/content/res/HarnessAssetManagerStub.kt": "606d7be4b4b1e89524363c98fcfdeacc534dcab275abb50a5316c214a7494319",
+    "tools/macrofactor-cloud/jvm/stubs/androidx/compose/ui/graphics/HarnessColorStub.kt": "d481765f5bcb556cdd546543c634b82bd66e0d00a483ca73036de5f29139fe38",
+    "tools/macrofactor-cloud/jvm/stubs/com/example/kpkn/data/db/HarnessDbStubs.kt": "684bcce63dd3b6b88b77677fe4e8f98a4613037ac64b60b56e397ec30f7a7e7b",
+    "tools/macrofactor-cloud/jvm/stubs/com/example/kpkn/data/exercises/ExerciseDatabaseHarnessStub.kt": "01d3e1179726302f98f8bd5018d23bf978d55ae2a35084fde565950b072420e8",
+    "tools/macrofactor-cloud/jvm/stubs/com/example/kpkn/data/programs/ProgramCoverHarnessStub.kt": "a0c7cd7f80be939624a9d11f8179ec5740d434dcb943bdff6a6510601c618c03",
+    "tools/macrofactor-cloud/jvm/stubs/com/example/kpkn/data/repository/HarnessRepositoryStubs.kt": "0ca11e520bb6f52eda35fc592f87b5b6a51e98e0b46456703fe596e018dade74",
+    "tools/macrofactor-cloud/jvm/stubs/com/example/kpkn/screens/workout/HarnessWorkoutStubs.kt": "f8048c9335a1325889de979db313f30940bfb4103ae5843485be7cb59832a656",
+    "tools/macrofactor-cloud/jvm/stubs/com/example/kpkn/telemetry/nutrition/NutritionTelemetryHarnessStub.kt": "9a924870db6a5702515fcd5effb06bdc1f1d1b07a3543b1647804faf86bc247e",
+    "tools/macrofactor-cloud/mfp_verify.py": "3b47203a126db62b5b9330ef94a321dfa29a1a5e6475e07497b491be7e2f8dc5",
+    "tools/macrofactor-cloud/README.md": "fc35122e59c2afe8db2ea15da0d9153be2d47193003448c49b58b96b4cddaf71",
+    "tools/macrofactor-cloud/run-android.sh": "804de37aaa3119557aea70ab1d8d0bfa3b91823cf6aa1ee2e822c042a725fb60",
+    "tools/macrofactor-cloud/run-jvm.sh": "e97bf45d21956ac13493d189612ae0c1d17cb5a8cc12678fd611424b58718b23"
+  }
+}

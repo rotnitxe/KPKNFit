@@ -70,8 +70,6 @@ fun ProgramVolumeScopeSelector(
                     style = KpknType.caption,
                     color = WizardColors.textMuted,
                     textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }

@@ -25,6 +25,7 @@ import com.example.kpkn.domain.body.ResolvedBodyGoal
 import com.example.kpkn.domain.body.bmi
 import com.example.kpkn.domain.body.bodyDailySeries
 import com.example.kpkn.domain.body.bodyGoalTrack
+import com.example.kpkn.domain.body.bodyWeightTrendSeries
 import com.example.kpkn.domain.body.buildBodyHistory
 import com.example.kpkn.domain.body.dailyMedianSeries
 import com.example.kpkn.domain.body.ewmaTrend
@@ -33,8 +34,10 @@ import com.example.kpkn.domain.body.latestValidByMetric
 import com.example.kpkn.domain.body.localMeasurementEpochMs
 import com.example.kpkn.domain.body.measuredWeeklyRate
 import com.example.kpkn.domain.body.observationsInLastDays
+import com.example.kpkn.domain.body.planWeeklyRateKg
 import com.example.kpkn.domain.body.resolveBodyGoal
 import com.example.kpkn.domain.body.summarizeWeight
+import com.example.kpkn.domain.body.weightChartTrend
 import com.example.kpkn.domain.body.weeklyRate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -147,8 +150,15 @@ class BodyProgressViewModel(
     }
 
     /** Resumen del peso, series del rango y ritmo de grasa: se calculan una vez y la pantalla solo los pinta. */
-    private val bodyPart: Flow<BodyDerived> = combine(repository.observations, resolvedGoal, _range) { observations, goal, range ->
+    private val bodyPart: Flow<BodyDerived> = combine(
+        repository.observations,
+        resolvedGoal,
+        _range,
+        activePlan,
+    ) { observations, goal, range, plan ->
         val zone = ZoneId.systemDefault()
+        // Ritmo del plan activo: solo mezcla la fecha estimada de la meta durante los primeros 14 días de pesajes.
+        val planRate = planWeeklyRateKg(plan)
         val today = LocalDate.now(zone)
         val latest = latestValidByMetric(observations)
         val composition = latestCompatibleComposition(observations)
@@ -169,15 +179,20 @@ class BodyProgressViewModel(
         )
         BodyDerived(
             goal = goal,
-            weightSummary = summarizeWeight(observations, range, goal, zone, today),
+            weightSummary = summarizeWeight(observations, range, goal, zone, today, planRate),
             weightSeries = weightSeries,
-            weightTrend = ewmaTrend(weightSeries),
+            // La línea de la gráfica es la misma tendencia que la cifra (estimador de N1); sin ella, la EWMA de siempre.
+            weightTrend = weightChartTrend(
+                bodyWeightTrendSeries(observations, zone, today),
+                weightSeries,
+                range.days?.let { today.minusDays(it - 1) },
+            ),
             bodyFatSeries = bodyFatSeries,
             bodyFatTrend = ewmaTrend(bodyFatSeries),
             bodyFatWeeklyRate = measuredWeeklyRate(observations, BodyMetric.BODY_FAT_PERCENT, zone, today),
             goalTrack = goal?.takeIf { it.metric != GoalMetric.WEIGHT }
                 ?.let { bodyGoalTrack(observations, it, goalCurrent, zone, today) },
-            weightSummary30Days = summarizeWeight(observations, BodyChartRange.ONE_MONTH, goal, zone, today),
+            weightSummary30Days = summarizeWeight(observations, BodyChartRange.ONE_MONTH, goal, zone, today, planRate),
         )
     }
 

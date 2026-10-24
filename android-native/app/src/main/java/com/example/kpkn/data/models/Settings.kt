@@ -27,6 +27,8 @@ data class Settings(
      * elección persistida y reversible, y nunca borra los planes anteriores.
      */
     val nutritionTrackingOnly: Boolean = false,
+    /** Día elegido y módulos omitidos del check-in; JSON con valor por defecto, sin migración. */
+    val nutritionCheckin: com.example.kpkn.domain.nutrition.checkin.CheckinPreferences = com.example.kpkn.domain.nutrition.checkin.CheckinPreferences(),
     /**
      * ¿Compites? «Sí, sin fecha»: compite, pero aún no tiene la fecha. Inicio pide añadirla en las fechas clave del programa.
      * JSON con valor por defecto: sin migración de Room.
@@ -81,6 +83,7 @@ data class Settings(
     /** Display nicknames keyed by catalogDefinitionId / exerciseDbId / canonical id. */
     val exerciseNicknames: Map<String, String> = emptyMap(),
     val showPRsInWorkout: Boolean = true,
+    /** Preferencia heredada: se conserva al importar; el cálculo usa el modelo único versionado StrengthModel. */
     val oneRMFormula: OneRMFormula = OneRMFormula.BRZYCKI,
     val workoutLoggerMode: WorkoutLoggerMode = WorkoutLoggerMode.PRO,
     val sessionCompactView: Boolean = false,
@@ -170,6 +173,8 @@ data class Settings(
      * por defecto: sin migración de Room.
      */
     val techniqueVideo: TechniqueVideoSettings = TechniqueVideoSettings(),
+    /** Inicio de descansos al registrar. true conserva el comportamiento previo; restTimerAutoStart permanece como legado sin reinterpretar backups. */
+    val autoStartRestAfterRecording: Boolean = true,
 ) {
     /**
      * Stock efectivo para alcanzar cargas: el inventario explícito manda,

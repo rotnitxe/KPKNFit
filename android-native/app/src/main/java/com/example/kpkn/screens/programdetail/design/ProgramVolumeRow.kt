@@ -37,11 +37,10 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknEntranceMemory
-import com.example.kpkn.ui.design.KpknMetric
 import com.example.kpkn.ui.design.KpknType
 
 /**
- * Fila de un músculo (P4): el nombre en `bodyStrong`, las series a la derecha en `metricM` con su unidad, la barra por zonas y el
+ * Fila de un músculo (P4): el nombre en `bodyStrong`, las series a la derecha en `metricM` con la unidad debajo, la barra por zonas y el
  * estado en su color, con «Real» a la derecha si hay registros. Toda la parte superior es un botón que despliega el desglose de
  * [breakdown] (ejercicios y cabezas) con 220 ms; sin movimiento reducido, solo un fundido.
  *
@@ -56,12 +55,14 @@ fun ProgramVolumeRow(
     breakdown: ProgramVolumeBreakdown? = null,
     /** Falso cuando el estado lo dice el módulo una sola vez (todo el volumen sin calibrar); la semántica sigue leyéndolo. */
     showStateLabel: Boolean = true,
+    totalVolume: Boolean = false,
 ) {
     val reduced = wizardReducedMotion()
     val state = muscle.state
     val stateColor = programVolumeStateColor(state)
     val label = programVolumeStateLabel(state, muscle.sets, muscle.zones, muscle.overtrained)
     val seriesText = programVolumeSeries(muscle.sets)
+    val unit = if (totalVolume) "series" else "series/sem"
     val interaction = remember { MutableInteractionSource() }
     val chevronTurn by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
@@ -80,7 +81,7 @@ fun ProgramVolumeRow(
                 .defaultMinSize(minHeight = 48.dp)
                 .testTag("volumen_fila_${muscle.name}")
                 .semantics(mergeDescendants = true) {
-                    contentDescription = "${muscle.name}, $seriesText series, $label"
+                    contentDescription = "${muscle.name}, $seriesText $unit, $label"
                     stateDescription = if (expanded) "Desplegado" else "Plegado"
                 }
                 .clickable(
@@ -97,11 +98,33 @@ fun ProgramVolumeRow(
                     text = muscle.name,
                     style = KpknType.bodyStrong,
                     color = WizardColors.text,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
-                KpknMetric(value = seriesText, unit = "series", style = KpknType.metricM)
+                Spacer(Modifier.width(8.dp))
+                // La unidad conserva su ancho natural; no comparte una línea estrecha con la cifra.
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    modifier = Modifier.semantics(mergeDescendants = true) {
+                        contentDescription = "$seriesText $unit"
+                    },
+                ) {
+                    Text(
+                        text = seriesText,
+                        style = KpknType.metricM,
+                        color = WizardColors.text,
+                        maxLines = 1,
+                        softWrap = false,
+                    )
+                    Text(
+                        text = unit,
+                        style = KpknType.unit,
+                        color = WizardColors.textMuted,
+                        maxLines = 1,
+                        softWrap = false,
+                    )
+                }
                 Spacer(Modifier.width(10.dp))
                 Icon(
                     imageVector = KpknLineIcons.ChevronDown,
@@ -134,10 +157,11 @@ fun ProgramVolumeRow(
                 }
                 muscle.real?.let { real ->
                     Text(
-                        text = "Real ${programVolumeSeries(real)}",
+                        text = "Real ${programVolumeSeries(real)} $unit",
                         style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
                         color = WizardColors.textMuted,
                         maxLines = 1,
+                        softWrap = false,
                     )
                 }
             }

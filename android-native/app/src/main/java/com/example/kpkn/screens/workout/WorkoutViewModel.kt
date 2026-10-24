@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
@@ -20,7 +21,6 @@ import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
 import com.example.kpkn.domain.discomfort.DiscomfortHistory
 import com.example.kpkn.domain.discomfort.DiscomfortSession
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.cardio.CardioIntervalEngine
@@ -348,6 +348,8 @@ class WorkoutViewModel(
                 this@WorkoutViewModel.inferPlannedTarget(set, unitMode)
             override fun inferPlannedIntensity(set: ExerciseSet) = this@WorkoutViewModel.inferPlannedIntensity(set)
             override suspend fun evaluateSetEntryV3(entry: SetEntryV2) = this@WorkoutViewModel.evaluateSetEntryV3(entry)
+            override suspend fun evaluateSetEntryV3(entry: SetEntryV2, actualIntensityMode: IntensityMode?) =
+                this@WorkoutViewModel.evaluateSetEntryV3(entry, actualIntensityMode)
             override fun workoutStepPositions(state: WorkoutUiState) = this@WorkoutViewModel.workoutStepPositions(state)
             override fun recomputeLiveEnergy(
                 completedSets: Map<String, CompletedSet>,
@@ -1446,7 +1448,7 @@ class WorkoutViewModel(
                 if (!WorkoutTagResolver.logMatchesTag(log, completed, tag, tags)) return@mapNotNull null
                 completed.sets
                     .filter { set -> !set.isWarmup && !set.skipped && set.weight > 0 && set.reps > 0 }
-                    .maxOfOrNull { set -> calculateHybrid1RM(set.weight, set.reps) }
+                    .maxOfOrNull { set -> StrengthModel.estimate1RM(set) }
                     ?.takeIf { it > 0.0 }
             }
             TagProgressionAnalyzer.TagSeries(
@@ -1499,7 +1501,7 @@ class WorkoutViewModel(
             if (taggedSets.isEmpty()) return@mapNotNull null
             val best1rm = taggedSets
                 .filter { s -> !s.isWarmup && s.weight > 0 && s.reps > 0 }
-                .maxOfOrNull { s -> calculateHybrid1RM(s.weight, s.reps) }
+                .maxOfOrNull { s -> StrengthModel.estimate1RM(s) }
             ExerciseHistoryEntry(
                 date = log.date,
                 sets = taggedSets,
@@ -1581,7 +1583,7 @@ class WorkoutViewModel(
 
     private fun globalPerformanceKey(entry: SetEntryV2): String = entry.resolvedCanonicalExerciseId()
 
-    private fun evaluateSetEntryV3(entry: SetEntryV2): WorkoutPerformanceHomologationEngine.EvaluationResult {
+    private fun evaluateSetEntryV3(entry: SetEntryV2, actualIntensityMode: IntensityMode? = null): WorkoutPerformanceHomologationEngine.EvaluationResult {
         val previousContext = _uiState.value.contextualPerformanceCache[entry.contextKey]
             ?: repository.getContextPerformanceState(entry.contextKey)
         val previousGlobal = _uiState.value.globalPerformanceCache[globalPerformanceKey(entry)]
@@ -1590,6 +1592,7 @@ class WorkoutViewModel(
             entry = entry,
             previous = previousContext,
             previousGlobal = previousGlobal,
+            actualIntensityMode = actualIntensityMode,
         )
         val canonicalId = entry.resolvedCanonicalExerciseId()
         val rangeData = performanceRangeStore.getCached(canonicalId)
@@ -6080,8 +6083,10 @@ class WorkoutViewModel(
 
     fun considerSessionMilestoneForSet(exercise: Exercise, weight: Double, reps: Int) {
         if (weight <= 0 || reps <= 0) return
-        val e1rm = calculateHybrid1RM(weight, reps)
         val state = _uiState.value
+        val recorded = state.setJustLoggedKey?.let { state.completedSets[it] }
+            ?.takeIf { it.weight == weight && it.reps == reps }
+        val e1rm = recorded?.let { StrengthModel.estimate1RM(it) } ?: StrengthModel.estimate1RM(weight, reps)
         val historyBest = getExerciseHistory(exercise, limit = 20)
             .mapNotNull { it.e1rm }
             .maxOrNull() ?: 0.0
@@ -6093,7 +6098,7 @@ class WorkoutViewModel(
             }
             .values
             .filter { !it.isWarmup && !it.skipped && (it.weight ?: 0.0) > 0.0 && it.reps > 0 }
-            .map { calculateHybrid1RM(it.weight ?: 0.0, it.reps) }
+            .map { StrengthModel.estimate1RM(it) }
             .sortedDescending()
         // Current set is already in completedSets; previous best excludes the top match of this e1rm once.
         val sessionBestPrevious = when {
@@ -7189,7 +7194,7 @@ class WorkoutViewModel(
             }
             val best1rm = relevantSets
                 .filter { s -> !s.isWarmup && s.weight > 0 && s.reps > 0 }
-                .maxOfOrNull { s -> calculateHybrid1RM(s.weight, s.reps) }
+                .maxOfOrNull { s -> StrengthModel.estimate1RM(s) }
             val latestV2Outcome = relevantSets
                 .asReversed()
                 .mapNotNull { it.setOutcomeV2 }
@@ -7327,7 +7332,7 @@ class WorkoutViewModel(
         val allSets = last.completedExercises.flatMap { it.sets }
         val bestEstimated1RM = allSets
             .filter { it.weight > 0 && it.reps > 0 }
-            .maxOfOrNull { calculateHybrid1RM(it.weight, it.reps) }
+            .maxOfOrNull { StrengthModel.estimate1RM(it) }
         return WorkoutShareSnapshot(
             totalVolume = last.totalVolume,
             totalSets = allSets.size,
@@ -7687,7 +7692,7 @@ class WorkoutViewModel(
 
     fun estimateBrzycki1RM(weight: Double, reps: Int): Double? {
         if (reps <= 0 || reps >= 37 || weight <= 0) return null
-        return weight * (36.0 / (37.0 - reps))
+        return StrengthModel.estimate1RM(weight, reps).takeIf { it > 0.0 }
     }
 
     fun shouldShowRealtimeRingsWidget(): Boolean =

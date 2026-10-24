@@ -212,7 +212,6 @@ import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.calculations.calculateEstimatedMetric
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.exercises.*
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.estimatePercent1RM
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity

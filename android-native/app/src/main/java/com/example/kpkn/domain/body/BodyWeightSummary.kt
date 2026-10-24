@@ -159,6 +159,51 @@ fun goalEtaMonth(current: Double?, target: Double?, measuredWeeklyRate: Double?,
     return YearMonth.from(today.plusDays(days))
 }
 
+/** Más allá de 30 años una fecha estimada no dice nada útil: sin estimación. */
+private const val MAX_ETA_DAYS = 365L * 30
+
+/**
+ * Fecha estimada de la meta con su margen: el mes central (con el ritmo estimado) y los meses a ±1 desviación estándar del ritmo.
+ *
+ * @param earliest mes con el ritmo más rápido dentro del margen (igual al central si el margen no cambia de mes).
+ * @param latest mes con el ritmo más lento dentro del margen; null si ese ritmo ya no alcanza el mínimo para estimar una
+ * fecha (entonces solo se puede decir «a partir de» [earliest]).
+ */
+data class EtaRange(val central: YearMonth, val earliest: YearMonth, val latest: YearMonth?) {
+    /** Hay margen que mostrar: los extremos caen en meses distintos o el tardío no existe. */
+    val isRange: Boolean get() = latest == null || latest != earliest
+}
+
+/** Días hasta la meta al ritmo [weeklyRate] (con las mismas reglas que [goalEtaMonth]), o null si no hay fecha estimable. */
+private fun etaDaysToGoal(current: Double, target: Double, weeklyRate: Double): Long? {
+    if (!weeklyRate.isFinite() || abs(weeklyRate) < MIN_RATE_FOR_ETA) return null
+    val remaining = target - current
+    if (sign(remaining) != sign(weeklyRate)) return null
+    val days = ceil(remaining / weeklyRate * 7.0)
+    return if (days.isFinite() && days <= MAX_ETA_DAYS) days.toLong() else null
+}
+
+/**
+ * Fecha estimada con intervalo. [slope] es la pendiente robusta (kg por semana, con signo) y [stdErr] su error estándar
+ * (null = sin margen). Misma regla que [goalEtaMonth] para la fecha central: sin pendiente hacia la meta o con
+ * |pendiente| < 0,05 por semana no hay fecha (null). Los extremos usan |pendiente| ± [stdErr]; si el lento baja de 0,05
+ * por semana, el rango queda abierto por ese lado.
+ */
+fun goalEtaRange(current: Double?, target: Double?, slope: Double?, stdErr: Double?, today: LocalDate): EtaRange? {
+    if (current == null || target == null || slope == null) return null
+    val centralDays = etaDaysToGoal(current, target, slope) ?: return null
+    val spread = stdErr?.takeIf { it.isFinite() && it > 0.0 } ?: 0.0
+    val direction = sign(slope)
+    fun monthAfter(days: Long): YearMonth = YearMonth.from(today.plusDays(days))
+    val earliestDays = etaDaysToGoal(current, target, direction * (abs(slope) + spread)) ?: centralDays
+    val latestDays = etaDaysToGoal(current, target, direction * (abs(slope) - spread))
+    return EtaRange(
+        central = monthAfter(centralDays),
+        earliest = monthAfter(earliestDays),
+        latest = latestDays?.let { monthAfter(it) },
+    )
+}
+
 /** Ritmo, avance y fecha estimada de un objetivo de grasa o de músculo. */
 data class BodyGoalTrack(
     val measuredWeeklyRate: Double? = null,
@@ -206,14 +251,32 @@ data class BodyWeightSummary(
     val remaining: Double? = null,
     val progressPercent: Int? = null,
     val eta: YearMonth? = null,
+    // Tendencia robusta (N1). Los campos de arriba conservan su cálculo; Cuerpo e Inicio leen estos cuando [trendKg] existe.
+    /** Tendencia del peso (kg) al día del último pesaje; null con menos de 2 días con pesaje. */
+    val trendKg: Double? = null,
+    /** kg por semana de la tendencia, solo con 14 días de datos o más; null antes («Sin ritmo medido aún»). */
+    val trendWeeklyRate: Double? = null,
+    /** Meta menos tendencia: negativo si hay que bajar. */
+    val trendRemaining: Double? = null,
+    val trendProgressPercent: Int? = null,
+    /** Fecha estimada con la pendiente robusta (mezclada con el plan al inicio) y su margen. */
+    val etaRange: EtaRange? = null,
+    /** Cambio por tendencia: la de hoy menos la del primer día del rango (o del día con dato más cercano); null sin tendencia. */
+    val trendChange: Double? = null,
 )
 
+/**
+ * [planWeeklyRateKg]: ritmo del plan de nutrición activo (kg por semana, con signo) o null. Solo afecta a la fecha estimada
+ * ([BodyWeightSummary.etaRange]): durante los primeros 14 días de datos se mezcla con el ritmo medido. El resto de las cifras
+ * no lo usan.
+ */
 fun summarizeWeight(
     observations: List<BodyObservation>,
     range: BodyChartRange,
     goal: ResolvedBodyGoal?,
     zone: ZoneId,
     today: LocalDate,
+    planWeeklyRateKg: Double? = null,
 ): BodyWeightSummary {
     val last = latestValidByMetric(observations)[BodyMetric.WEIGHT]
     val current = last?.valueSi
@@ -225,6 +288,10 @@ fun summarizeWeight(
     val weightGoal = goal?.takeIf { it.metric == GoalMetric.WEIGHT }
     val target = weightGoal?.targetValueSi
     val baseline = weightGoal?.let { goalBaselineValue(observations, BodyMetric.WEIGHT, it.createdAtEpochMs) }
+    val snapshot = bodyWeightTrendSnapshot(observations, zone, today)
+    val trendKg = snapshot?.trendKg
+    val trendRate = blendedTrendRate(snapshot, planWeeklyRateKg)
+    val trendChange = rangeStart?.let { bodyTrendChange(bodyWeightTrendSeries(observations, zone, today), it.date) }
     return BodyWeightSummary(
         current = current,
         currentDate = last?.let { bodyLocalDate(it, zone) },
@@ -239,5 +306,15 @@ fun summarizeWeight(
             null
         },
         eta = goalEtaMonth(current, target, rate, today),
+        trendKg = trendKg,
+        trendWeeklyRate = snapshot?.let { s -> s.slopeKgPerWeek.takeIf { s.daysOfData >= TREND_FULL_DATA_DAY } },
+        trendRemaining = if (trendKg != null && target != null) target - trendKg else null,
+        trendProgressPercent = if (baseline != null && trendKg != null && target != null) {
+            goalProgressPercent(baseline, trendKg, target)
+        } else {
+            null
+        },
+        etaRange = goalEtaRange(trendKg, target, trendRate?.kgPerWeek, trendRate?.stdErrKgPerWeek, today),
+        trendChange = trendChange,
     )
 }

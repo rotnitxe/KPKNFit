@@ -1164,6 +1164,18 @@ object PlanMaterializer {
             explicit == null -> oneRm
             else -> null
         }
+        // §12.4: solo F/H/I de un plan con progresión propia llevan carga gestionada.
+        val nativeProgressionManaged = recipe.nativeProgression?.strategy
+            ?.takeIf { it != NativeProgressionStrategy.NONE } != null &&
+            slot.intent in setOf(SlotIntent.F, SlotIntent.H, SlotIntent.I)
+        // El par aceptado se reconstruye junto a su carga, sin cambiar el rango ni las recetas ajenas.
+        fun acceptedTargetReps(reference: PlanLoadReference?, set: ExerciseSet): Int? = reference
+            ?.takeIf { nativeProgressionManaged && it.state == PlanLoadReferenceState.CAPTURED &&
+                it.kind in setOf(PlanLoadReferenceKind.OBSERVED_WORKING_SET, PlanLoadReferenceKind.BODYWEIGHT_EXTERNAL) }
+            ?.capturedTargetReps
+            ?.takeIf { reps -> reps > 0 &&
+                set.purpose != com.example.kpkn.data.models.SetPurpose.CALIBRATOR && !set.isTopSet && !set.isDropSet && !set.isRestPause && !set.purpose.isAmrap &&
+                (set.targetRepsRange?.let { reps in it.min..it.max } ?: true) }
         val sets = working.mapIndexed { index, set ->
             val materialized = materializeSet(
                 set = set,
@@ -1176,7 +1188,10 @@ object PlanMaterializer {
                 oneRmKg = weeklyKgOneRmKg,
             )
             if (set.percent == null && directWorkingLoadKg != null) {
-                materialized.copy(weight = directWorkingLoadKg)
+                materialized.copy(
+                    weight = directWorkingLoadKg,
+                    targetReps = acceptedTargetReps(explicit, materialized) ?: materialized.targetReps,
+                )
             } else {
                 materialized
             }
@@ -1212,6 +1227,7 @@ object PlanMaterializer {
                     intensityMode = resolved.intensityMode,
                 )
                 val nextTarget = baseTarget.copy(
+                    targetReps = acceptedTargetReps(reference, resolved) ?: baseTarget.targetReps,
                     weight = if (reference.state == PlanLoadReferenceState.CAPTURED) {
                         reference.capturedLoadKg?.takeIf { it > 0.0 }
                     } else {
@@ -1230,10 +1246,6 @@ object PlanMaterializer {
             }
             resolved
         }
-        // §12.4: solo F/H/I de un plan con progresión propia llevan carga gestionada.
-        val nativeProgressionManaged = recipe.nativeProgression?.strategy
-            ?.takeIf { it != NativeProgressionStrategy.NONE } != null &&
-            slot.intent in setOf(SlotIntent.F, SlotIntent.H, SlotIntent.I)
         // F-03: la convención de cantidad de un slot nativo sale del equipo del
         // catálogo (barra/máquina → TOTAL_EXTERNAL, mancuerna/kettlebell →
         // PER_IMPLEMENT), no de subcadenas del id. Una referencia declarada o
@@ -1662,6 +1674,7 @@ object PlanMaterializer {
                             equipmentKind = equipmentKind,
                             inventory = inventory,
                             machine = matchedMachine,
+                            workingLoadKg = workingLoadKg,
                         )
                         if (achieved == null || achieved <= 0.0) {
                             WarmupLoadEntry(definition, WarmupLoadStatus.PENDING_PERCENT, null, null, isExact = false)
@@ -1679,10 +1692,17 @@ object PlanMaterializer {
                             val finalizedKg = if (candidate == achieved) {
                                 achieved
                             } else {
-                                reachableWarmupLoad(candidate, equipmentKind, inventory, matchedMachine)
+                                reachableWarmupLoad(candidate, equipmentKind, inventory, matchedMachine, workingLoadKg)
                                     ?.takeIf { it >= candidate - LOAD_EPSILON }
                             }
-                            if (finalizedKg == null || finalizedKg <= 0.0) {
+                            // No convertir una aproximación en trabajo al topar con el mínimo físico.
+                            // La única igualdad conservada es la barra sola cuando ya es la carga de trabajo.
+                            val atOrAboveWork = finalizedKg != null && workingLoadKg != null && workingLoadKg.isFinite() &&
+                                (finalizedKg > workingLoadKg + LOAD_EPSILON ||
+                                    (finalizedKg >= workingLoadKg - LOAD_EPSILON &&
+                                        !(matchedMachine == null && equipmentKind !in setOf("dumbbells","kettlebell","plate","machine","cable","smith_machine") &&
+                                            inventory.barbellWeightKg?.let { abs(it-workingLoadKg) < LOAD_EPSILON } == true)))
+                            if (finalizedKg == null || finalizedKg <= 0.0 || atOrAboveWork) {
                                 WarmupLoadEntry(definition, WarmupLoadStatus.PENDING_PERCENT, null, null, isExact = false)
                             } else {
                                 WarmupLoadEntry(

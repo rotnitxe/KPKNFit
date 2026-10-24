@@ -1,14 +1,14 @@
 package com.example.kpkn.domain.auge
 
 import com.example.kpkn.data.exercises.catalogExerciseIndex
-import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.training.VolumeCalculator
-import kotlin.math.max
+import com.example.kpkn.domain.training.TrainingVolumeResult
+import com.example.kpkn.domain.training.TrainingWindow
 
 /**
  * Detects overtrained muscle groups from volume, pain, fatigue, DOMS/strength and load drops.
@@ -16,34 +16,33 @@ import kotlin.math.max
  */
 object OvertrainingDetector {
 
+    /** Promedio de la misma ventana que usa el estado muscular del detalle del programa. */
+    fun completedVolume(
+        program: Program,
+        historyLogs: List<WorkoutLog>,
+        exerciseDb: Map<String, ExerciseMuscleInfo> = catalogExerciseIndex(),
+        window: TrainingWindow = TrainingWindow.last28Days(),
+    ): TrainingVolumeResult = VolumeCalculator.calculateCompletedVolume(
+        logs = historyLogs,
+        exerciseIndex = exerciseDb,
+        window = window,
+        programId = program.id,
+    )
+
     fun detectOvertrainedMuscles(
         program: Program,
         historyLogs: List<WorkoutLog>,
         feedbacks: List<PostSessionFeedback>,
         exerciseDb: Map<String, ExerciseMuscleInfo> = catalogExerciseIndex(),
+        window: TrainingWindow = TrainingWindow.last28Days(),
     ): List<String> {
-        val logs = historyLogs.filter { it.programId == program.id }
+        val logs = window.selectLogs(historyLogs, program.id).logs
         if (logs.isEmpty() || program.volumeRecommendations.isEmpty()) return emptyList()
 
         val overtrainedList = mutableListOf<String>()
         val exerciseList = exerciseDb.values.toList()
         val sortedLogs = logs
-            .filter { AugeUtils.logDateMs(it) > 0L }
-            .sortedByDescending { AugeUtils.logDateMs(it) }
-        val dateMs = sortedLogs.map { AugeUtils.logDateMs(it) }
-        val spanDays = if (dateMs.size >= 2) {
-            (dateMs.max() - dateMs.min()) / (24.0 * 3600_000.0)
-        } else {
-            7.0
-        }
-        val weeksCount = max(1, (spanDays / 7.0).toInt())
-
-        val completedVolumes = VolumeCalculator.calculateCompletedWeeklyMuscleVolume(
-            logs = sortedLogs,
-            exerciseList = exerciseList,
-            aliases = catalogSearchRedirects(),
-            weeksCount = weeksCount,
-        )
+        val completedVolumes = completedVolume(program, historyLogs, exerciseDb, window)
 
         program.volumeRecommendations.forEach { rec ->
             val muscle = rec.muscleGroup
@@ -51,7 +50,7 @@ object OvertrainingDetector {
             val mrv = rec.maxRecoverableVolume
             val normalizedMuscleLower = canonical.lowercase()
 
-            val completedSets = completedVolumes.find { it.muscleName == canonical }?.weeklySets ?: 0.0
+            val completedSets = completedVolumes.muscles[canonical]?.sets ?: 0.0
             val factorVol = completedSets > mrv
 
             val factorPain = sortedLogs.take(5).any { log ->

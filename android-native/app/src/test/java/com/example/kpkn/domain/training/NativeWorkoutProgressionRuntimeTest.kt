@@ -682,6 +682,11 @@ class NativeWorkoutProgressionRuntimeTest {
         val repository = ProgramRepository.initForTests(context)
         withTimeout(10_000) { repository.isReady.first { it } }
         repository.resetAllStateSync()
+        // El salto comercial de 2,5 kg no cabe en 6-8 reps a 20 kg con T4.
+        // Material explicito para seguir verificando la persistencia de una propuesta alcanzable.
+        repository.updateSettings {
+            it.copy(equipmentInventory = EquipmentInventory(plates = listOf(PlateStock(weightKg = 0.5, countPerSide = 2))))
+        }
 
         val sessions = (1..3).map { nativeSession("durable$it") }
         val weekIds = (1..3).map { "durable-week-$it" }
@@ -929,7 +934,9 @@ class NativeWorkoutProgressionRuntimeTest {
             equipmentIdOf = { "barbell" },
         ).nativeProgressionProposals.single()
         assertEquals(
-            "Lo hiciste dos veces con 8 reps en todas las series. Propuesta: subir de 20 a 21 kg en total.",
+            // T4: 20 kg x 8 con 2 en reserva -> e1RM 26,7; a 21 kg el modelo da 6 repeticiones (mínimo del rango) con 2 en reserva.
+            "Lo hiciste dos veces con 8 reps en todas las series. " +
+                "Propuesta: subir de 20 a 21 kg en total y buscar 6 repeticiones con 2 en reserva.",
             known.explanation,
         )
 
@@ -972,7 +979,8 @@ class NativeWorkoutProgressionRuntimeTest {
         assertEquals(20.0, proposal.targetLoadKg!!, 0.0001)
         assertEquals(
             "Las últimas dos veces no llegaste a las 6 reps mínimas o terminaste con menos repeticiones en " +
-                "reserva de las previstas. Propuesta: bajar de 22 a 20 kg en total.",
+                // T4: 22 kg x 5 con 2 en reserva -> e1RM 26,4; a 20 kg el modelo da 7 repeticiones con 2 en reserva.
+                "reserva de las previstas. Propuesta: bajar de 22 a 20 kg en total y buscar 7 repeticiones con 2 en reserva.",
             proposal.explanation,
         )
     }
@@ -1567,4 +1575,18 @@ class NativeWorkoutProgressionRuntimeTest {
 
     private fun futureSetReferenceState(program: Program, sessionId: String): PlanLoadReferenceState? =
         ProgramHierarchyIndex(program).locateSession(sessionId)?.session?.allExercises()?.single()?.loadReference?.state
+    @Test fun descargaDeVolumenConservaCapturaYRepsConRirObjetivoCuatro() {
+        val sessions=(1..6).map { week ->
+            val session=nativeSession("volume-deload-$week",plannedWeight=null,plannedRir=if(week==6) 4 else 3)
+            if(week==6) session.copy(exercises=session.exercises.map { it.copy(sets=it.sets.take(1)) }) else session
+        }
+        val program=nativeProgram(sessions,deloadWeekIndices=setOf(5))
+        val log=workoutLog(program.id,sessions.first(),"captured-100","w1",loadKg=100.0,reps=8)
+        val observed=observe(program,listOf(log),completedLogId=log.id)
+        val deload=ProgramHierarchyIndex(observed).locateSession(sessions.last().id)!!.session.allExercises().single()
+        assertEquals(1,com.example.kpkn.data.protocols.definitions.NativeDoseTable.deloadSets(2))
+        assertEquals(1,deload.sets.size);assertEquals(100.0,deload.sets.single().weight!!,0.0)
+        assertEquals(RepRange(6,8),deload.sets.single().targetRepsRange)
+        assertEquals(4,deload.sets.single().targetRIR)
+    }
 }

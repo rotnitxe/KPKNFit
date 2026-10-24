@@ -26,6 +26,7 @@ data class NutritionCalibrationResult(
  * Conservative energy calibration. It never produces an adjustment until the
  * minimum sample is present, and it caps each check-in at ±150 kcal.
  */
+@Deprecated("Sustituido por domain/nutrition/expenditure")
 object NutritionCalibrationEngine {
     const val MINIMUM_DAYS = 14
     const val TARGET_DAYS = 21

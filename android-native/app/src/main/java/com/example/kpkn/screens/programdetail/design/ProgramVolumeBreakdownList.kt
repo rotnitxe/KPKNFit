@@ -15,12 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.data.models.MuscleRole
 import java.util.Locale
 
 /**
@@ -67,9 +67,20 @@ fun ProgramVolumeBreakdownList(
                 style = KpknType.eyebrow,
                 color = WizardColors.textMuted,
             )
+            Text(
+                text = "Las porciones comparten series; no se suman al músculo.",
+                style = KpknType.caption,
+                color = WizardColors.textMuted,
+            )
             breakdown.subMuscles.forEach { sub ->
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    BreakdownLine(name = sub.name, sets = sub.sets, nameStyle = KpknType.bodyStrong)
+                    val role = when (sub.role) {
+                        MuscleRole.PRIMARY -> "Directo"
+                        MuscleRole.SECONDARY -> "Secundario"
+                        MuscleRole.STABILIZER -> "Estabilizador"
+                        else -> null
+                    }
+                    BreakdownLine(name = listOfNotNull(sub.name, role).joinToString(" · "), sets = sub.sets, nameStyle = KpknType.bodyStrong)
                     if (sub.exercises.isEmpty()) {
                         Text(
                             text = "Sin ejercicios registrados para esta cabeza.",
@@ -111,8 +122,6 @@ private fun BreakdownLine(
             text = name,
             style = nameStyle,
             color = WizardColors.text,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
         Spacer(Modifier.width(12.dp))

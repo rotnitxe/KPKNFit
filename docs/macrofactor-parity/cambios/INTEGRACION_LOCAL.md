@@ -1,0 +1,13 @@
+# Integración local, sin publicación
+
+Base feat/macrofactor-parity `026a8c1e3`, worktree C:/kw/mfpi, rama mfp/i. Se fusionan mfp/n, mfp/d, mfp/t5a y mfp/h preservando rutas, entradas de Perfil y actividades de depuración. Conflictos aditivos en manifiesto, navegación, MainActivity, Perfil y documentación; doble guarda de render mantenida.
+
+Contrato de datos: se copian únicamente entidad/DAO, migración y esquema exportado de calibración v30 ya presentes en master; no se integra master ni su runtime. Nutrición pasa a 30→31. 31.json debe generarse con KSP, nunca a mano. Las pruebas abren bases completas v27, v28, v29 y v30; la fixture v30 incluye las decisiones de calibración y comprueba que sobrevivan. No hay versión 32 ni cambio de tablas nutricionales publicadas.
+
+La integración a master sigue pendiente de decisión del usuario. La orden posterior de AGENTS sustituye la antigua app .mfp por KPKN Dev com.example.kpkn.dbg, sin borrar datos ni instalar sobre Room posterior.
+
+La clasificación de copias incluye calibration_decisions como datos del usuario. Extensión opcional de JSON v6: exporta las filas completas (incluido su JSON opaco), restaura sólo si la sección existe, y una copia anterior sin sección conserva los datos locales. Regresión exportar/importar/exportar con una decisión real y round-trip JSON. Esto acompaña exclusivamente la conservación del esquema v30 prestado; no añade el runtime de otra ola.
+
+Comparación histórica preparada: el log completo mfp-T3-8.log contiene exactamente 21 fallos de NutritionCheckinRenderSheetTest fuera de la lista nominal de base; se comprobará individualmente su estado con KPKN_RENDER_DIR definido. También se comprobarán los 3 AutoSave y 16 ManualOverride que fallaron sólo en algunas tandas. La comparación completa incluye todos los casos, sin declarar herencia sólo por coincidir el número.
+
+Compatibilidad de copia comprobada contra master: calibrationDecisions usa la forma JSON canónica de CalibrationDecisionRecord y su flag includesCalibrationDecisionsSection; no se reutiliza ese nombre para filas SQL. Una extensión calibrationDecisionRows conserva exactamente las filas, incluidas las opacas/en cuarentena. Al importar una copia canónica sin la extensión se reconstruyen sólo metadatos de almacenamiento usando el formato público de clave con longitudes; los campos desconocidos del JSON se conservan. No se portan motor, política, umbrales ni cálculo de calibración. La importación se resuelve antes del borrado, y una copia antigua/sin flag conserva las decisiones locales. Hay regresión de copia canónica y contexto con separador en la marca, además del snapshot opaco.

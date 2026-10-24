@@ -700,6 +700,11 @@ object KpknLineIcons {
         )
     }
 
+    /** Estrella de favoritos, con el mismo trazo y retícula del resto del set. */
+    val Star: ImageVector by lazy {
+        icono("KpknLine.Star", listOf("M12 3.5 14.6 8.8 20.5 9.65 16.25 13.8 17.25 19.65 12 16.9 6.75 19.65 7.75 13.8 3.5 9.65 9.4 8.8z"))
+    }
+
     /**
      * Construye un icono con los trazados [trazados] (cadenas SVG `d` sobre la retícula de 24). Con [relleno] se pinta
      * sólido y sin trazo; si no, en trazo de 1,75 dp con extremos y uniones redondeados.

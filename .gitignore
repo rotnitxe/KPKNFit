@@ -25,3 +25,8 @@ android-native/fab_glass*.png
 
 # Candado de Gradle entre sesiones de agentes (run-gradle-locked.ps1)
 android-native/.gradle-session.lock/
+
+# Los paquetes de terceros y sus entradas de referencia no deben incorporarse al repositorio.
+artifacts/macrofactor-reference-review-20261017/inputs/
+artifacts/**/*.xapk
+artifacts/**/*.apk

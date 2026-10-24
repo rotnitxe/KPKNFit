@@ -12,101 +12,38 @@ import com.example.kpkn.data.models.plannedRepAnchor
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.training.TrainingMaxResolver
+import com.example.kpkn.domain.performance.StrengthModel
 import kotlin.math.exp
 import kotlin.math.pow
 import kotlin.math.round
 import kotlin.math.roundToInt
 
-// ─── 1RM Formulas ────────────────────────────────────────────────────────────
-// 1:1 port from utils/calculations.ts
+// ─── Adaptadores heredados de 1RM ────────────────────────────────────────────
 
-/** v2 removes the AMRAP label bonus. Stored v1 evaluations remain historical snapshots. */
+/** Version vigente de los snapshots de capacidad; los anteriores se conservan como historia. */
 const val CAPACITY_ESTIMATOR_VERSION = 2
 
-/**
- * Brzycki formula. Best for ≤10 reps.
- * Partial reps NOT included — they don't contribute to 1RM.
- */
-@Suppress("UNUSED_PARAMETER") // Source compatibility; the label never changes capacity.
-fun calculateBrzycki1RM(weight: Double, reps: Int, isAmrap: Boolean = false): Double {
-    if (weight <= 0 || reps <= 0) return 0.0
-    if (reps == 1) return weight
-    val effectiveReps = reps.coerceAtMost(30)
-    val e1rm = weight * (36.0 / (37 - effectiveReps))
-    return round(e1rm * 10.0) / 10.0
-}
+/** El modelo único sustituye las fórmulas seleccionables anteriores. */
+@Deprecated("Usa StrengthModel.estimate1RM")
+fun calculateBrzycki1RM(weight: Double, reps: Int, isAmrap: Boolean = false): Double =
+    StrengthModel.estimate1RM(weight, reps, isAmrap = isAmrap)
 
-/** Epley formula. Better for higher reps (11–20). */
-fun calculateEpley1RM(weight: Double, reps: Int): Double {
-    if (weight <= 0 || reps <= 0) return 0.0
-    if (reps == 1) return weight
-    val e1rm = weight * (1 + reps / 30.0)
-    return round(e1rm * 10.0) / 10.0
-}
+@Deprecated("Usa StrengthModel.estimate1RM")
+fun calculateEpley1RM(weight: Double, reps: Int): Double = StrengthModel.estimate1RM(weight, reps)
 
-/**
- * Lander formula.
- * e1RM = (100 * weight) / (101.3 - 2.67123 * reps)
- */
-fun calculateLander1RM(weight: Double, reps: Int): Double {
-    if (weight <= 0 || reps <= 0) return 0.0
-    if (reps == 1) return weight
-    val denominator = 101.3 - 2.67123 * reps
-    if (denominator <= 0) return 0.0
-    return round(weight * 10000.0 / denominator) / 100.0
-}
+@Deprecated("Usa StrengthModel.estimate1RM")
+fun calculateLander1RM(weight: Double, reps: Int): Double = StrengthModel.estimate1RM(weight, reps)
 
-/**
- * Hybrid: Brzycki ≤10, Epley 11–20, smooth extrapolation >20.
- * 1:1 port of calculateHybrid1RM from calculations.ts.
- */
-@Suppress("UNUSED_PARAMETER") // Kept for callers compiled against v1; no AMRAP bonus in v2.
-fun calculateHybrid1RM(weight: Double, reps: Int, isAmrap: Boolean = false): Double {
-    if (weight <= 0 || reps <= 0) return 0.0
-    if (reps == 1) return weight
-    val r = reps.coerceAtMost(50)
-    val e1rm = when {
-        r <= 10 -> weight * (36.0 / (37 - r))
-        r <= 20 -> weight * (1 + r / 30.0)
-        else    -> weight * (1 + 20.0 / 30) * (1 + (r - 20) / 80.0).pow(0.9)
-    }
-    return round(e1rm * 10.0) / 10.0
-}
+@Deprecated("Usa StrengthModel.estimate1RM")
+fun calculateHybrid1RM(weight: Double, reps: Int, isAmrap: Boolean = false): Double =
+    StrengthModel.estimate1RM(weight, reps, isAmrap = isAmrap)
 
-/** Inverse of Hybrid1RM: weight from 1RM and target reps. */
-fun calculateWeightFrom1RM(e1rm: Double, reps: Int): Double {
-    if (reps <= 0 || e1rm <= 0) return 0.0
-    if (reps == 1) return e1rm
-    val r = reps.coerceAtMost(50)
-    val weight = when {
-        r <= 10 -> e1rm * ((37 - r) / 36.0)
-        r <= 20 -> e1rm / (1 + r / 30.0)
-        else    -> e1rm / ((1 + 20.0 / 30) * (1 + (r - 20) / 80.0).pow(0.9))
-    }
-    return maxOf(0.0, round(weight * 10.0) / 10.0)
-}
+@Deprecated("Usa StrengthModel.weightFor")
+fun calculateWeightFrom1RM(e1rm: Double, reps: Int): Double = StrengthModel.weightFor(e1rm, reps)
 
-/**
- * Weight suggestion from 1RM + set intensity (RPE/RIR/failure).
- * 1:1 port of calculateWeightFrom1RMAndIntensity.
- */
-fun calculateWeightFrom1RMAndIntensity(reference1RM: Double, set: ExerciseSet): Double? {
-    if (reference1RM <= 0) return null
-    val reps = set.plannedRepAnchor() ?: return null
-    if (reps <= 0) return null
-
-    val effectiveReps = when {
-        set.intensityMode == IntensityMode.FAILURE ||
-        set.purpose.isAmrap ||
-        set.intensityMode == IntensityMode.SOLO_RM -> reps
-        set.targetRIR != null -> reps + set.targetRIR
-        set.targetRPE != null -> reps + (10 - set.targetRPE).toInt()
-        else -> reps + 2   // default RPE 8
-    }
-    if (effectiveReps <= 0) return null
-    val weight = calculateWeightFrom1RM(reference1RM, effectiveReps)
-    return if (weight > 0) weight else null
-}
+@Deprecated("Usa StrengthModel.weightFor")
+fun calculateWeightFrom1RMAndIntensity(reference1RM: Double, set: ExerciseSet): Double? =
+    StrengthModel.weightFor(reference1RM, set)
 
 fun calculateGeneralizedCapacity(load: Double, metric: Double): Double {
     if (load <= 0 || metric <= 0) return 0.0
@@ -226,13 +163,13 @@ fun resolveReferenceCapacity(exercise: Exercise): Double? {
     return when (exercise.trainingMode) {
         TrainingMode.REPS,
         TrainingMode.RM,
-        -> calculateHybrid1RM(pr.weight, pr.reps)
+        -> StrengthModel.estimate1RM(pr.weight, pr.reps)
         TrainingMode.TIME,
         TrainingMode.DISTANCE,
         TrainingMode.CUSTOM,
         -> calculateGeneralizedCapacity(pr.weight, pr.reps.toDouble())
         TrainingMode.SOLO_RPE -> null
-        TrainingMode.AMRAP -> calculateHybrid1RM(pr.weight, pr.reps)
+        TrainingMode.AMRAP -> StrengthModel.estimate1RM(pr.weight, pr.reps)
     }
 }
 
@@ -248,7 +185,7 @@ fun resolveReferenceCapacity(
         .filter { completed -> completed.resolvedCanonicalExerciseId() == canonicalId }
         .flatMap { completed -> completed.sets.asSequence() }
         .filter { set -> !set.isWarmup && set.weight > 0.0 && set.reps > 0 }
-        .map { set -> calculateHybrid1RM(set.weight, set.reps) }
+        .map { set -> StrengthModel.estimate1RM(set) }
         .maxOrNull()
 }
 
@@ -341,7 +278,7 @@ fun calculateSuggestedLoad(exercise: Exercise, set: ExerciseSet): Double? {
         TrainingMode.SOLO_RPE -> null
         TrainingMode.REPS -> {
             val effectiveMetric = effectiveMetricForSuggestion(set, exercise.trainingMode)?.roundToInt() ?: return null
-            calculateWeightFrom1RM(referenceCapacity, effectiveMetric)
+            StrengthModel.weightFor(referenceCapacity, effectiveMetric)
         }
         TrainingMode.TIME,
         TrainingMode.DISTANCE,
@@ -352,7 +289,7 @@ fun calculateSuggestedLoad(exercise: Exercise, set: ExerciseSet): Double? {
         }
         TrainingMode.AMRAP -> {
             val effectiveMetric = effectiveMetricForSuggestion(set, exercise.trainingMode)?.roundToInt() ?: return null
-            calculateWeightFrom1RM(referenceCapacity, effectiveMetric)
+            StrengthModel.weightFor(referenceCapacity, effectiveMetric)
         }
     } ?: return null
     return if (suggested > 0.0) roundSuggestedLoad(suggested) else null
@@ -396,7 +333,7 @@ fun calculateSuggestedLoad(
         TrainingMode.SOLO_RPE -> null
         TrainingMode.REPS -> {
             val effectiveMetric = effectiveMetricForSuggestion(set, exercise.trainingMode)?.roundToInt() ?: return null
-            calculateWeightFrom1RM(referenceCapacity, effectiveMetric)
+            StrengthModel.weightFor(referenceCapacity, effectiveMetric)
         }
         TrainingMode.TIME,
         TrainingMode.DISTANCE,
@@ -407,7 +344,7 @@ fun calculateSuggestedLoad(
         }
         TrainingMode.AMRAP -> {
             val effectiveMetric = effectiveMetricForSuggestion(set, exercise.trainingMode)?.roundToInt() ?: return null
-            calculateWeightFrom1RM(referenceCapacity, effectiveMetric)
+            StrengthModel.weightFor(referenceCapacity, effectiveMetric)
         }
     } ?: return null
     return if (suggested > 0.0) roundSuggestedLoad(suggested) else null

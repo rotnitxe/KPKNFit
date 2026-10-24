@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding.design.entreno
 
+import com.example.kpkn.domain.performance.StrengthModel
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animate
@@ -73,7 +74,6 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardTypography
@@ -476,7 +476,7 @@ private fun RepsBlock(
     onValueKg: (Double?) -> Unit,
     onReps: (Int?) -> Unit,
 ) {
-    val estimate = if (valueKg != null && reps != null) calculateHybrid1RM(valueKg, reps) else null
+    val estimate = if (valueKg != null && reps != null) StrengthModel.estimate1RM(valueKg, reps) else null
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         CountRuler(
             range = MarkRepsRange,

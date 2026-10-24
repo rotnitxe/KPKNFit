@@ -10,6 +10,9 @@ import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.domain.training.TrainingWindow
+import com.example.kpkn.domain.training.TrainingVolumeFixtures
+import com.example.kpkn.screens.programdetail.components.calculateProgramVolume
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -134,8 +137,45 @@ class OvertrainingDetectorTest {
             ),
         )
 
-        val result = OvertrainingDetector.detectOvertrainedMuscles(program, logs, feedbacks, exerciseDb)
+        val result = OvertrainingDetector.detectOvertrainedMuscles(
+            program, logs, feedbacks, exerciseDb,
+            window = TrainingWindow.last28Days(today = java.time.LocalDate.of(2026, 7, 20)),
+        )
         assertTrue(result.isNotEmpty())
         assertEquals("Cuádriceps", result.first())
+    }
+
+    @Test
+    fun `detalle del programa y Home obtienen el mismo volumen para los mismos veintiocho dias`() {
+        val f = TrainingVolumeFixtures
+        val weeks = (0..3).map { f.week("w$it", f.today.minusDays(27).plusWeeks(it.toLong())) }
+        val program = f.program(weeks)
+        val logs = listOf(f.log("hoy", sets = 8), f.log("limite", f.today.minusDays(27).toString(), 8), f.log("fuera", f.today.minusDays(28).toString(), 80))
+        val home = OvertrainingDetector.completedVolume(program, logs, f.catalog, TrainingWindow.last28Days(f.zone, f.today))
+        val detail = calculateProgramVolume(program, weeks, true, logs, f.catalog, indirectMode = 2, zone = f.zone, today = f.today)
+        assertEquals(4.0, home.muscles.getValue("Pectorales").sets, 1e-9)
+        assertEquals(home, detail.completed)
+    }
+
+    @Test
+    fun `el detector excluye el volumen y los factores de registros anteriores al dia veintiocho`() {
+        val f = TrainingVolumeFixtures
+        val program = f.program(emptyList()).copy(volumeRecommendations = listOf(VolumeRecommendation("Pectorales", 1, 1, 1)))
+        val old = f.log("viejo", f.today.minusDays(28).toString(), 80).copy(fatigueLevel = 9, discomforts = listOf("Pectorales"))
+        val current = f.log("hoy", sets = 8).copy(fatigueLevel = 9, discomforts = listOf("Pectorales"))
+        val window = TrainingWindow.last28Days(f.zone, f.today)
+        assertTrue(OvertrainingDetector.detectOvertrainedMuscles(program, listOf(old), emptyList(), f.catalog, window).isEmpty())
+        assertEquals(listOf("Pectorales"), OvertrainingDetector.detectOvertrainedMuscles(program, listOf(current, old), emptyList(), f.catalog, window))
+    }
+
+    @Test
+    fun `sin concentracion suficiente en cuatro semanas el volumen no activa un tercer factor`() {
+        val f = TrainingVolumeFixtures
+        val program = f.program(emptyList()).copy(volumeRecommendations = listOf(VolumeRecommendation("Pectorales", 1, 1, 2)))
+        val current = f.log("hoy", sets = 8).copy(fatigueLevel = 9, discomforts = listOf("Pectorales"))
+        val result = OvertrainingDetector.detectOvertrainedMuscles(
+            program, listOf(current), emptyList(), f.catalog, TrainingWindow.last28Days(f.zone, f.today),
+        )
+        assertTrue(result.isEmpty())
     }
 }

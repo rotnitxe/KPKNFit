@@ -1,6 +1,6 @@
 package com.example.kpkn.domain.training.generator
 
-import com.example.kpkn.domain.calculations.calculateWeightFrom1RM
+import com.example.kpkn.domain.performance.StrengthModel
 import kotlin.math.roundToInt
 
 /**
@@ -106,7 +106,7 @@ internal object Prescriber {
     /** Porcentaje del 1RM que corresponde a [repMax] repeticiones con [rir] en reserva (Brzycki/híbrida de la app), a pasos de 2,5 %. */
     fun percentOfOneRm(repMax: Int, rir: Int): Double {
         val effective = (repMax + rir).coerceIn(1, 20)
-        val raw = calculateWeightFrom1RM(100.0, effective)
+        val raw = StrengthModel.weightFor(100.0, effective)
         val stepped = (raw / 2.5).roundToInt() * 2.5
         return stepped.coerceIn(50.0, 95.0)
     }

@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.exercises.catalogConfigurationDisplayName
 import com.example.kpkn.data.exercises.catalogExerciseIndex
-import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.AutoregulationProposal
@@ -61,6 +60,8 @@ import com.example.kpkn.domain.training.StartDaySessionMode
 import com.example.kpkn.domain.training.StartDayTemporalScope
 import com.example.kpkn.domain.training.TrainingMaxMerge
 import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.domain.training.TrainingWindow
+import com.example.kpkn.domain.auge.OvertrainingDetector
 import com.example.kpkn.domain.training.WeekWithMeta
 import android.content.Context
 import android.util.Log
@@ -329,20 +330,16 @@ class ProgramDetailViewModel(
         program,
         programLogs,
         feedbacks
-    ) { p, logs, fbs ->
+    ) { p, historyLogs, fbs ->
         if (p == null) return@combine emptyMap()
 
         val statusMap = mutableMapOf<String, MuscleOvertrainingStatus>()
-        val exerciseList = catalogExerciseIndex().values.toList()
-
-        val completedVolumes = VolumeCalculator.calculateCompletedWeeklyMuscleVolume(
-            logs = logs,
-            exerciseList = exerciseList,
-            aliases = catalogSearchRedirects(),
-            weeksCount = p.volumeRecommendations.firstOrNull()?.let {
-                (logs.size / 3).coerceAtLeast(1)
-            } ?: 1
-        )
+        val exerciseIndex = catalogExerciseIndex()
+        val exerciseList = exerciseIndex.values.toList()
+        val zone = java.time.ZoneId.systemDefault()
+        val window = TrainingWindow.last28Days(zone, appClock.today(zone))
+        val logs = window.selectLogs(historyLogs, p.id).logs
+        val completedVolumes = OvertrainingDetector.completedVolume(p, historyLogs, exerciseIndex, window)
 
         p.volumeRecommendations.forEach { rec ->
             val muscle = rec.muscleGroup
@@ -350,7 +347,7 @@ class ProgramDetailViewModel(
             val mrv = rec.maxRecoverableVolume
 
             // 1. Factor 1: Volumen Real > MRV
-            val completedSets = completedVolumes.find { it.muscleName == canonical }?.weeklySets ?: 0.0
+            val completedSets = completedVolumes.muscles[canonical]?.sets ?: 0.0
             val factorVol = completedSets > mrv
 
             // 2. Factor 2: Rendimiento Estancado (progression stagnationRisk)

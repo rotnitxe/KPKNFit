@@ -27,6 +27,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.workout.restPauseDescription
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.workout.WorkoutStepRules
@@ -139,6 +140,11 @@ internal fun CockpitSessionSummary(
                     verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(title, style = KpknType.bodyStrong, color = if (current) WizardColors.text else WizardColors.textMuted)
                     Text(status, style = KpknType.caption, color = if (complete) SymbolPalette.ok else WizardColors.textMuted)
+                    members.forEach { member ->
+                        completedSets.filterKeys { it.startsWith("${member.id}_") }.values.mapNotNull { it.restPauseDescription() }.forEach {
+                            Text(it, style = KpknType.caption, color = WizardColors.textMuted)
+                        }
+                    }
                     members.forEach { member -> member.sets.indices.forEach { index ->
                         listOf(null, "left", "right").forEach { side ->
                             calibratedLoads[com.example.kpkn.screens.workout.workoutSetKey(member.id, index, side)]?.let { load ->

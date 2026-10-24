@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
@@ -499,7 +500,7 @@ class WorkoutLoadSuggestionController(
         } else {
             exercise.reference1RM?.takeIf { it > 0.0 }
                 ?: exercise.prFor1RM?.takeIf { it.weight > 0.0 && it.reps > 0 }?.let {
-                    calculateHybrid1RM(it.weight, it.reps)
+                    StrengthModel.estimate1RM(it.weight, it.reps)
                 }
         }
         if (referenceKg != null && plannedPercent != null) {
@@ -695,7 +696,7 @@ class WorkoutLoadSuggestionController(
         activeTag: String?,
         side: String?,
     ): Double {
-        val priorCompletedCount = completedSessionSetsForExercise(exercise, activeTag)
+        val priorSets = completedSessionSetsForExercise(exercise, activeTag)
             .asSequence()
             .filter { snapshot -> snapshot.setIndex < setIdx }
             .filter { snapshot -> !snapshot.completedSet.skipped }
@@ -705,9 +706,15 @@ class WorkoutLoadSuggestionController(
                     else -> snapshot.completedSet.side == null
                 }
             }
-            .count()
+            .toList()
 
-        return LoadSuggestionEngine.fatigueFactorForPriorCompletedSets(priorCompletedCount)
+        val isBackOff = exercise.sets.getOrNull(setIdx)?.isDropSet == true || activeTag?.trim()?.equals("back-off", ignoreCase = true) == true
+        // Solo para series rectas: capacidad real frente a la planificada de la última serie previa.
+        val capacityRatio = priorSets.maxByOrNull { it.setIndex }?.let { snapshot ->
+            exercise.sets.getOrNull(snapshot.setIndex)
+                ?.let { LoadSuggestionEngine.performanceRatio(snapshot.completedSet, it) }
+        }
+        return LoadSuggestionEngine.contextualFatigueFactor(priorSets.size, isBackOff, capacityRatio)
     }
 
     internal fun computeSessionImprovementAdjustment(

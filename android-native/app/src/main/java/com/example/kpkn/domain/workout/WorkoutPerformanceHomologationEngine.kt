@@ -1,8 +1,10 @@
 package com.example.kpkn.domain.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.ContextPerformanceStateV2
 import com.example.kpkn.data.models.DifficultySignalV2
 import com.example.kpkn.data.models.GlobalPerformanceStateV3
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.HistoryColorV2
 import com.example.kpkn.data.models.HomologatedPerformanceResult
 import com.example.kpkn.data.models.LoadModeV2
@@ -12,7 +14,6 @@ import com.example.kpkn.data.models.TimeProgressionStrategyV3
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import kotlin.math.round
 import kotlin.math.max
 import kotlin.math.min
@@ -41,12 +42,13 @@ object WorkoutPerformanceHomologationEngine {
         entry: SetEntryV2,
         previous: ContextPerformanceStateV2?,
         previousGlobal: GlobalPerformanceStateV3? = null,
+        actualIntensityMode: IntensityMode? = null,
     ): EvaluationResult {
         val prior = previous ?: ContextPerformanceStateV2(contextKey = entry.contextKey)
         val globalKey = buildGlobalKey(entry)
         val priorGlobal = previousGlobal ?: GlobalPerformanceStateV3(globalKey = globalKey)
 
-        val metric = computeMetric(entry)
+        val metric = computeMetric(entry, actualIntensityMode)
         val difficultySignal = computeDifficultySignal(entry)
 
         val contextStats = updateStats(
@@ -517,7 +519,7 @@ object WorkoutPerformanceHomologationEngine {
         }
     }
 
-    private fun computeMetric(entry: SetEntryV2): Double {
+    private fun computeMetric(entry: SetEntryV2, actualIntensityMode: IntensityMode?): Double {
         return when (entry.unitMode) {
             UnitModeV2.TIME -> {
                 val load = normalizeLoad(entry)
@@ -553,7 +555,12 @@ object WorkoutPerformanceHomologationEngine {
                 } else if (entry.loadMode == LoadModeV2.BODYWEIGHT) {
                     reps.toDouble()
                 } else {
-                    if (reps == 0) 0.0 else calculateHybrid1RM(load, reps).coerceAtLeast(1.0)
+                    // El número sin unidad no permite distinguir RIR de RPE.
+                    StrengthModel.estimate1RM(load, reps,
+                        rir = entry.actualIntensity?.takeIf { actualIntensityMode == IntensityMode.RIR }?.toInt(),
+                        rpe = entry.actualIntensity?.takeIf { actualIntensityMode == IntensityMode.RPE },
+                        toFailure = entry.reachedFailure || entry.failedSet || actualIntensityMode == IntensityMode.FAILURE || actualIntensityMode == IntensityMode.SOLO_RM,
+                        isAmrap = entry.amrapOverride || actualIntensityMode == IntensityMode.AMRAP).coerceAtLeast(1.0)
                 }
             }
         }

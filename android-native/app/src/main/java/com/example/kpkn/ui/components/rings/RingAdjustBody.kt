@@ -120,7 +120,7 @@ private const val TurnInMillis = 210
 private class MuscleEntry(val id: String, val pillar: String?, val value: Int)
 
 /** Las piezas de la silueta y las formas de cada zona, ya como `Path` en unidades del dibujo. Se construyen una vez. */
-private class BodyPaths(
+internal class BodyPaths(
     val silhouette: List<Path>,
     val front: Map<String, List<Path>>,
     val back: Map<String, List<Path>>,
@@ -130,7 +130,7 @@ private class BodyPaths(
     fun of(view: RingAdjustBodyView): Map<String, List<Path>> = if (view == RingAdjustBodyView.FRONT) front else back
 }
 
-private fun buildBodyPaths(): BodyPaths {
+internal fun buildBodyPaths(): BodyPaths {
     // Same proportional native vectors used by the reviewed HTML; no polygon smoothing/distortion.
     val native = MuscleArtPaths
     fun path(data: String, mirrored: Boolean = false): Path = PathParser().parsePathString(data).toPath().also {
@@ -169,7 +169,7 @@ private fun buildBodyPaths(): BodyPaths {
     )
 }
 
-private fun bodyPathContains(path: Path, x: Float, y: Float): Boolean {
+internal fun bodyPathContains(path: Path, x: Float, y: Float): Boolean {
     val bounds = path.getBounds()
     val region = android.graphics.Region()
     region.setPath(path.asAndroidPath(), android.graphics.Region(bounds.left.toInt() - 1, bounds.top.toInt() - 1, bounds.right.toInt() + 2, bounds.bottom.toInt() + 2))
@@ -789,3 +789,33 @@ private fun MiniRing(value: Int?, modifier: Modifier = Modifier) {
         }
     }
 }
+
+// ──────────────────────────────────────────────────────────────────────────────────────────────
+// Geometría reutilizable (T5a): el mismo cuerpo y las mismas regiones en una vista de solo lectura, sin tocar [MuscleBodyAdjust].
+// ──────────────────────────────────────────────────────────────────────────────────────────────
+
+/** Silueta, relleno y línea media de [view], como los pinta [drawBody]; va dentro del `scale` a las unidades del dibujo (220 × 360). */
+internal fun DrawScope.drawBodyShell(paths: BodyPaths, view: RingAdjustBodyView) {
+    paths.silhouette.forEach { drawPath(it, BodyEdge, style = Stroke(width = 1f)) }
+    val fill = Brush.verticalGradient(listOf(BodyTop, BodyBottom), startY = 0f, endY = RingAdjustBodyHeight)
+    paths.silhouette.forEach { drawPath(it, brush = fill) }
+    val mid = RingAdjustBodyWidth / 2f
+    if (view == RingAdjustBodyView.FRONT) {
+        drawLine(Color.White.copy(alpha = 0.07f), Offset(mid, 76f), Offset(mid, 176f), strokeWidth = 1f)
+    } else {
+        drawLine(Color.White.copy(alpha = 0.07f), Offset(mid, 66f), Offset(mid, 214f), strokeWidth = 1f)
+    }
+}
+
+/** Trazos finos de detalle anatómico de [view], encima de las regiones; pide el mismo recorte a la silueta que [drawBody]. */
+internal fun DrawScope.drawBodyDetails(paths: BodyPaths, view: RingAdjustBodyView) {
+    (if (view == RingAdjustBodyView.FRONT) paths.frontDetails else paths.backDetails).forEach {
+        drawPath(it, Ink.copy(alpha = 0.24f), style = Stroke(width = 0.55f, cap = StrokeCap.Round))
+    }
+}
+
+/** Tinta de los trazos de selección del cuerpo. */
+internal val RingAdjustBodyInk: Color get() = Ink
+
+/** Radio de toque de una región pequeña (medio objetivo táctil de 48 dp), en dp. */
+internal val RingAdjustBodyTouchRadius: Dp get() = ZoneTouchRadius
