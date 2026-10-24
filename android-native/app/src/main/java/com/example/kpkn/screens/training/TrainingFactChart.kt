@@ -105,6 +105,6 @@ internal fun factOrigin(origin: FactOrigin): String = when(origin) {
     FactOrigin.HISTORICAL_AMBIGUOUS -> "Registro con método o contexto incompleto"
 }
 internal fun factUnit(unit: String): String = when(unit) {
-    "KILOGRAM" -> "kg"; "POUND" -> "lb"; "METER" -> "m"; "CENTIMETER" -> "cm"
-    "SECOND" -> "s"; "MILLISECOND" -> "ms"; "METER_PER_SECOND" -> "m/s"; else -> unit
+    "KILOGRAM", "KILOGRAMS" -> "kg"; "POUND", "POUNDS" -> "lb"; "METER", "METERS" -> "m"; "CENTIMETER" -> "cm"
+    "SECOND", "SECONDS" -> "s"; "MINUTES" -> "min"; "FEET" -> "ft"; "MILLISECOND" -> "ms"; "METER_PER_SECOND" -> "m/s"; else -> unit
 }

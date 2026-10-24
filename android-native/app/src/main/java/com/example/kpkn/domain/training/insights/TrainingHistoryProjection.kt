@@ -16,10 +16,10 @@ object TrainingHistoryProjection {
         "actualExternalDurationSeconds" to "s", "elapsedMillis" to "ms", "movingMillis" to "ms",
         "elapsedDurationMillis" to "ms", "finishTimeMillis" to "ms", "distanceMeters" to "m",
         "elevationGainMeters" to "m", "elevationLossMeters" to "m", "attemptedCount" to "intentos",
-        "successfulCount" to "aciertos", "completedRounds" to "rondas", "completedRepetitions" to "rep",
+        "successfulCount" to "aciertos", "repetitions" to "rep", "holdSeconds" to "s", "splitMillis" to "ms", "completedRounds" to "rondas", "completedRepetitions" to "rep",
     )
     private val excludedBranches = setOf("plan", "references", "complexes", "definition", "format", "prescription",
-        "manualFtpReference", "ruleset", "scaling", "division", "target", "targets", "penalties")
+        "manualFtpReference", "events", "skills", "drills", "progressionProposals", "ruleset", "scaling", "division", "target", "targets", "penalties")
 
     fun facts(logs: List<WorkoutLog>, nowMs: Long): List<TrainingFact> = buildList {
         logs.groupBy { it.id }.values.mapNotNull { it.distinct().singleOrNull() }.forEach { log ->
@@ -103,6 +103,16 @@ object TrainingHistoryProjection {
                             is JsonArray -> element.forEachIndexed { index, child -> visit(child, "$path[$index]") }
                             is JsonObject -> {
                                 if ((element["status"] as? JsonPrimitive)?.content in setOf("FAILED", "INVALIDATED", "UNRECORDED", "MISSED")) return
+                                val capturedAt = (element["capturedAtEpochMillis"] as? JsonPrimitive)?.longOrNull
+                                if (capturedAt != null && capturedAt !in 1..nowMs) return
+                                val explicitUnit = (element["unit"] as? JsonPrimitive)?.content
+                                val quantity = (element["value"] as? JsonPrimitive)?.takeUnless { it.isString }?.doubleOrNull
+                                val quantityUnits = setOf("KILOGRAMS", "POUNDS", "KILOGRAM", "POUND", "METERS", "FEET", "SECONDS", "MINUTES",
+                                    "METER", "CENTIMETER", "SECOND", "MILLISECOND", "METER_PER_SECOND", "REPETITIONS", "CALORIES", "METERS", "SECONDS")
+                                if (explicitUnit in quantityUnits && quantity != null && quantity.isFinite() && quantity >= 0.0) {
+                                    add(TrainingFact("document:${document.id}:$path.value", log.id, capturedAt ?: time, documentSport,
+                                        path, quantity, checkNotNull(explicitUnit), FactOrigin.HISTORICAL_AMBIGUOUS, null, null, null))
+                                }
                                 element.forEach { (key, child) ->
                                     if (key in excludedBranches || key.startsWith("target") || key.startsWith("planned") || key.startsWith("declared")) return@forEach
                                     val unit = recordedUnits[key]
