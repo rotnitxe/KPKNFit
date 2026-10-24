@@ -1618,6 +1618,7 @@ object PlanMaterializer {
                             equipmentKind = equipmentKind,
                             inventory = inventory,
                             machine = matchedMachine,
+                            workingLoadKg = workingLoadKg,
                         )
                         if (achieved == null || achieved <= 0.0) {
                             WarmupLoadEntry(definition, WarmupLoadStatus.PENDING_PERCENT, null, null, isExact = false)
@@ -1635,7 +1636,7 @@ object PlanMaterializer {
                             val finalizedKg = if (candidate == achieved) {
                                 achieved
                             } else {
-                                reachableWarmupLoad(candidate, equipmentKind, inventory, matchedMachine)
+                                reachableWarmupLoad(candidate, equipmentKind, inventory, matchedMachine, workingLoadKg)
                                     ?.takeIf { it >= candidate - LOAD_EPSILON }
                             }
                             // No convertir una aproximación en trabajo al topar con el mínimo físico.

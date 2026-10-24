@@ -45,4 +45,15 @@ class MfpWarmupInventoryBankTest {
             assertTrue(result.entries.all { it.realizedKg==null })
         }
     }
+    @Test fun minimoQueIgualaOSuperaTrabajoQuedaPendienteSalvoBarraSolaIgualAlTrabajo() {
+        val warmups=ApproachRamp.definitions("low",ApproachRamp.long(ApproachLevel.NOVICE,false))
+        val machine=MachineLoadRange("Máquina",20.0,100.0,5.0)
+        val atMinimum=PlanMaterializer.realizeWarmupLoads(warmups,20.0,EquipmentInventory(machines=listOf(machine)),machine=machine,equipmentKind="machine")
+        assertTrue(atMinimum.entries.none { it.status==WarmupLoadStatus.READY })
+        val tooHeavyBar=PlanMaterializer.realizeWarmupLoads(warmups,15.0,EquipmentInventory(20.0),equipmentKind="barbell")
+        assertTrue(tooHeavyBar.entries.none { it.status==WarmupLoadStatus.READY })
+        val emptyBar=PlanMaterializer.realizeWarmupLoads(warmups,20.0,EquipmentInventory(20.0),equipmentKind="barbell")
+        assertEquals(listOf(20.0),emptyBar.entries.mapNotNull { it.realizedKg })
+    }
+
 }

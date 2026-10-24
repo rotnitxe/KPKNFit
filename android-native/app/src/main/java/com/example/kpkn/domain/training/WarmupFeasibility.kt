@@ -138,15 +138,16 @@ internal fun reachableWarmupLoad(
     equipmentKind: String?,
     inventory: EquipmentInventory,
     machine: MachineLoadRange?,
+    workingLoadKg: Double? = null,
 ): Double? {
     if (!requestedKg.isFinite() || requestedKg <= 0.0) return null
     if (machine != null) {
         val nearest = machine.snapLoad(requestedKg).achievedKg
-        // 18 kg de aproximación a trabajo de 20 kg, paso 5: elegir 15 en vez de redondear a 20.
-        // El mínimo declarado mantiene su contrato: 40 solicitado con mínimo 50 sigue siendo 50, marcado inexacto.
-        val lower = if(nearest > requestedKg + 0.001 && machine.incrementKg > 0.0)
-            machine.snapLoad(nearest - machine.incrementKg).achievedKg else nearest
-        return if(lower <= requestedKg + 0.001) lower else nearest
+        // Conservar el redondeo nativo salvo que convierta una aproximación en trabajo (18→20, trabajo 20).
+        if(workingLoadKg != null && workingLoadKg.isFinite() && nearest >= workingLoadKg - 0.001 && machine.incrementKg > 0.0) {
+            return machine.snapLoad(nearest - machine.incrementKg).achievedKg.takeIf { it < workingLoadKg - 0.001 }
+        }
+        return nearest
     }
     return when (equipmentKind) {
         "dumbbells" -> inventory.resolveDumbbell(requestedKg).achievedPerUnitKg
@@ -227,6 +228,7 @@ object WarmupFeasibilityChecker {
                 equipmentKind = equipmentKind,
                 inventory = material,
                 machine = matchedMachine,
+                workingLoadKg = workingLoadKg,
             )
             WarmupFeasibilityStep(
                 percentage = warmup.percentageOfWorkingWeight,
