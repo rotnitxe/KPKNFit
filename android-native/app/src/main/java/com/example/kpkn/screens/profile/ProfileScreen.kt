@@ -201,6 +201,8 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel { ProfileViewModel() },
     onOpenTechnique: () -> Unit = {},
     onOpenMuscleVolume: () -> Unit = {},
+    onOpenHabits: () -> Unit = {},
+
 ) {
     // Recorrido de Perfil: la primera vez que se abre. El icono de ajustes y la competición están en esta pantalla.
     val tourHost = LocalKpknOverlayHost.current
@@ -308,6 +310,7 @@ fun ProfileScreen(
             StarredExercisesCard(state.starredExercises)
             ProfileAlbumsCard(onOpenAlbums = onOpenAlbums)
             ProfileTechniqueCard(onOpenTechnique = onOpenTechnique)
+            ProfileHabitsCard(onOpenHabits = onOpenHabits)
             Box(Modifier.fillMaxWidth().tourAnchor(TourAnchors.PROFILE_COMPETICION)) {
                 ProfileCompetitionsArchive(
                     onOpenCompetition = onOpenCompetition,
@@ -632,3 +635,17 @@ private fun GoalMetric.unitLabel(): String = when (this) {
 private fun displayWeight(weightKg: Double, unit: WeightUnit): Double = if (unit == WeightUnit.LBS) weightKg * 2.2046226218 else weightKg
 
 private fun Double.formatInput(): String = if (this % 1.0 == 0.0) toInt().toString() else String.format(java.util.Locale.US, "%.1f", this)
+
+@Composable
+private fun ProfileHabitsCard(onOpenHabits: () -> Unit) {
+    ProfileCard(title = "Hábitos", icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Calendar) {
+        Text(
+            "Rachas de comidas, pesaje y entrenos, con su calendario del último año.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        TextButton(onClick = onOpenHabits, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+            Text("Ver hábitos")
+        }
+    }
+}

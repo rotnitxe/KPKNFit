@@ -82,6 +82,7 @@ object DeepLinkRouter {
             "exercise", "ejercicio", "muscle", "musculo", "músculo",
             "joint", "articulacion", "articulación", "pattern", "patron", "patrón",
             "chain", "cadena", "action" -> ResolvedRoute(KpknRoute.Home.route)
+            "habits", "habitos", "hábitos" -> ResolvedRoute(KpknRoute.Habits.route)
             else -> null
         }
     }

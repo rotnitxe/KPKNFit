@@ -108,6 +108,7 @@ import com.example.kpkn.screens.sessioneditor.SessionEditorScreen
 import com.example.kpkn.screens.settings.SettingsScreen
 import com.example.kpkn.screens.workout.WorkoutScreen
 import com.example.kpkn.screens.workout.RepairBenchmarkTrace
+import com.example.kpkn.screens.habits.HabitsRoute
 
 import com.example.kpkn.services.workout.ActiveWorkoutHolder
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
@@ -1434,6 +1435,8 @@ private fun KPKNNavGraph(
                 onOpenAlbums = { navController.navigate(KpknRoute.WorkoutAlbums.route) },
                 onOpenTechnique = { navController.navigate(KpknRoute.TechniqueHub.route) },
                 onOpenMuscleVolume = { navController.navigate(KpknRoute.MuscleVolumePanel.create()) },
+                onOpenHabits = { navController.navigate(KpknRoute.Habits.route) },
+
             )
         }
         composable(KpknRoute.WorkoutAlbums.route) {
@@ -1756,6 +1759,9 @@ private fun KPKNNavGraph(
                 programId = volumeProgramId,
                 onBack = { navController.popBackStack() },
             )
+        composable(KpknRoute.Habits.route) {
+            HabitsRoute(onBack = { navController.popBackStack() })
+
         }
     }
 }

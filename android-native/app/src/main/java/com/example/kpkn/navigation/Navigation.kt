@@ -255,6 +255,9 @@ sealed class KpknRoute(val route: String) {
 
         fun create(programId: String? = null): String = "$BASE_ROUTE?programId=${Uri.encode(programId.orEmpty())}"
     }
+    // ─── Hábitos: rachas y calendario anual (P2-D) ────────────────────
+    object Habits : KpknRoute("habits")
+
 
 }
 
