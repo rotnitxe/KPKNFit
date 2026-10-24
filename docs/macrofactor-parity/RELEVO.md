@@ -1,3 +1,5 @@
+> **Entrega local24-oct:** implementación y APK final terminados; estado vigente en [INFORME_FINAL_LOCAL.md](INFORME_FINAL_LOCAL.md). Sólo QA física y p95 pendientes por teléfono desconectado. El resto de este documento es histórico.
+
 > Instrucción vigente, 24-oct-2026: continuar directamente en local y sin push. Sustituye las restricciones de ejecución en Cloud de la nota siguiente; se conserva como historia. Ver [LOCAL_RESUME.md](LOCAL_RESUME.md).
 > QA en Z Flip: rige la orden posterior del 23-oct, única KPKN Dev `com.example.kpkn.dbg`, `baseDebug`, acceso por `phone_run` y `phone.lock`. Sustituye las instrucciones históricas de `.mfp` de abajo; conservar firma y datos.
 

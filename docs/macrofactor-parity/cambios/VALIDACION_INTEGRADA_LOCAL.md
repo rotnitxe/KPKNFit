@@ -22,4 +22,4 @@ Evidencia fuera del repositorio: `C:/kw/logs/mfp-final-failure-classification.js
 
 Room31 fue generado por KSP y registrado en286ad8a45: identidad e66961026467b8dc05ef995dc8c01938. Conserva calibración30, añade nutrición31 y no consume32.
 
-La QA nativa y la comprobación final de identidad/OCR se registrarán con sus recibos propios. La medición p95 requiere el ZFlip físico y no se reemplaza por un número de emulador.
+QA final: baseDebug ordinario sin init;27/27 identidad/parser/selector y88/88 alimento propio/ceros/recetas/CSV/backup. Barcode8/8 y OCR5/5 con ML Kit en APK final, imágenes sintéticas. Actualización-r guardada con certificado y Room31 compatibles; MainActivity real abre. Recibos mfp-zero-declarations-8-receipt.json, mfp-native-update8-receipt.json y mfp-final8-native-selftests.json en C:/kw/logs. Ver INFORME_FINAL_LOCAL.md para separar los flujos reales de los arneses en memoria. La medición p95 requiere el ZFlip físico y no se reemplaza por un número de emulador.

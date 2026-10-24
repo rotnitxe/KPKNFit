@@ -15,4 +15,8 @@ Usa NutritionRepository.searchFoodCandidates, loggerFilter=true y limit=20. El c
 - Cinco consultas más lentas:
 - PSS antes / después (KB):
 
-Sin cifras de emulador para tomar la decisión. Top-20 caliente p95 ≤120 ms: conservar búsqueda; >120 ms: proponer FTS a la persona. Nunca cambiar automáticamente índices, Room, importador o búsqueda. El Z Flip está temporalmente indisponible según la coordinación recibida; no se ha medido aún.
+Sin cifras de emulador para tomar la decisión. Top-20 caliente p95 ≤120 ms: conservar búsqueda; >120 ms: proponer FTS a la persona. Nunca cambiar automáticamente índices, Room, importador o búsqueda. El Z Flip está temporalmente indisponible en las comprobaciones locales protegidas del24-oct; no se ha medido aún.
+
+## Ejecución preparada, sin alterar datos
+
+Antes de ejecutar: verificar certificado/Room del teléfono y APK final, disponibilidad del dispositivo y las guardas originales. Sólo `phone_run.py` con phone.lock; no usar `.mfp`, no desbloquear ni borrar datos. No cambiar índices ni importador. Componente: `com.example.kpkn.dbg/com.example.kpkn.debug.FoodSearchBenchActivity`, extras `--ez warm true --ei repeat 3`. Son600 mediciones después de20 calentamientos descartados. Capturar resultado/log MfpSearchBench y completar la tabla con modelo/SO/commit/catálogo/PSS. No hay resultado físico que registrar hoy.

@@ -1,5 +1,7 @@
 # Cambios visibles de la ola MFP
 
+Entrega local24-oct: ver [INFORME_FINAL_LOCAL.md](INFORME_FINAL_LOCAL.md). Último focal88/88; Barcode8/8 y OCR5/5 nativos en APK final. KPKN Dev estable también con baseDebug ordinario; fibra/azúcar explícitamente0 conservan su presencia al reabrir. QA física/p95 pendientes.
+
 Cada paquete añade aquí lo que la persona ya veía y ahora cambia (cifras, rótulos, comportamientos). Es la base de las notas de versión. Nunca se reescriben registros guardados: solo cambia la presentación o el cálculo hacia delante.
 
 | Paquete | Qué cambia | Antes → después | Por qué |
