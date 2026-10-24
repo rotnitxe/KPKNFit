@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -32,10 +33,12 @@ internal fun PreSessionPreparationDialog(
 ) {
     var choosingSport by remember { mutableStateOf(false) }
     // A bounded dialog keeps the action outside the scrolling context, including at large font sizes.
-    val maxHeight = (LocalConfiguration.current.screenHeightDp.dp - 48.dp).coerceAtLeast(240.dp)
-    Dialog(onDismissRequest = onDismiss) {
+    val configuration = LocalConfiguration.current
+    val maxHeight = (configuration.screenHeightDp.dp - 48.dp).coerceAtLeast(240.dp)
+    val panelWidth = (configuration.screenWidthDp.dp - 48.dp).coerceIn(240.dp, 560.dp)
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(shape = MaterialTheme.shapes.extraLarge, tonalElevation = 6.dp) {
-            Column(Modifier.widthIn(max = 560.dp).fillMaxWidth().height(maxHeight.coerceAtMost(600.dp)).padding(24.dp),
+            Column(Modifier.width(panelWidth).height(maxHeight.coerceAtMost(600.dp)).padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text("Antes de entrenar", style = MaterialTheme.typography.headlineSmall)
             Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()).testTag("pre-session-context"),
