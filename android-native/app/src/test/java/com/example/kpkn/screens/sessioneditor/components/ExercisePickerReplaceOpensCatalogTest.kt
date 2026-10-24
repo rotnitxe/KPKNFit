@@ -8,6 +8,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -138,7 +141,9 @@ class ExercisePickerReplaceOpensCatalogTest {
         setReplaceContent()
 
         val tops = listOf("Press de Banca Plano", "Press Inclinado", "Aperturas", "Sentadilla").associateWith { name ->
-            rule.onNodeWithText(name).fetchSemanticsNode().boundsInRoot.top
+            // Las sugerencias son otra sección; la lista completa conserva su orden original.
+            rule.onNode(hasText(name) and !hasAnyAncestor(hasTestTag("exercise-swap-suggestions")))
+                .fetchSemanticsNode().boundsInRoot.top
         }
 
         assertTrue(

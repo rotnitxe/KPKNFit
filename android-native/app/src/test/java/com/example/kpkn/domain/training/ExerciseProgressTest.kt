@@ -20,6 +20,13 @@ class ExerciseProgressTest {
             assertEquals(StrengthModel.estimate1RM(set),report(listOf(log("a","2026-10-01",listOf(set)))).points.single().value,0.0)
         }
     }
+    @Test fun explicacionUsaComaDecimalYExponeLaReservaSinIdsInternos() {
+        val text = report(listOf(log("a", "2026-10-01", listOf(set(82.5))))).points.single().explanation
+        assertTrue(text, text.startsWith("82,5 kg × 5 @ RIR 2 → e1RM "))
+        assertTrue(text, text.endsWith(" kg estimados"))
+        assertFalse(text, text.contains("strength-v"))
+        assertFalse(text, text.contains("82.5"))
+    }
     @Test fun prNoDuplicaEmpatesYRecuperaMarcaTrasUnaBajada() {
         val logs = listOf(100.0,100.0,90.0,110.0).mapIndexed { i,w -> log("$i","2026-10-0${i+1}",listOf(set(w))) }
         val result = report(logs)

@@ -104,13 +104,13 @@ class SetCardTechniqueBackTest {
     }
 
     @Test
-    fun elSegmentadoTieneNormalDropSetYRestPauseYNoMyoReps() {
+    fun elSegmentadoConservaLasTecnicasYAnadeElPresetMyoReps() {
         mostrarReverso()
 
         rule.onNodeWithText("Normal").assertExists()
         rule.onNodeWithText("Drop-set").assertExists()
         rule.onNodeWithText("Rest-pause").assertExists()
-        rule.onNodeWithText("Myo-reps").assertDoesNotExist()
+        rule.onNodeWithText("Myo-reps").assertExists()
         rule.onNodeWithText("Serie 3").assertExists()
         rule.onNodeWithText("AVANZADO").assertExists()
     }

@@ -95,7 +95,7 @@ class VideoAnalysisMigrationValidateTest {
             .allowMainThreadQueries()
             .build()
         try {
-            // Abrir por Room = migración real + validación completa del esquema v29.
+            // Abrir por Room = migración real + validación completa del esquema integrado v31.
             val db = upgraded.openHelper.writableDatabase
             assertEquals(31L, scalar(db, "PRAGMA user_version"))
 
@@ -109,6 +109,7 @@ class VideoAnalysisMigrationValidateTest {
                 scalar(db, "SELECT COUNT(*) FROM workout_media WHERE catalogDefinitionId IS NULL AND catalogConfigurationId IS NULL"),
             )
             assertEquals(0L, scalar(db, "SELECT COUNT(*) FROM video_analysis"))
+            assertEquals(0L, scalar(db, "SELECT COUNT(*) FROM calibration_decisions"))
 
             db.query("PRAGMA foreign_key_check").use { assertFalse("claves foráneas rotas", it.moveToFirst()) }
             db.query("PRAGMA integrity_check").use { cursor ->
@@ -336,7 +337,7 @@ class VideoAnalysisMigrationValidateTest {
             .filterNot { it.startsWith("sqlite_") || it.startsWith("room_") || it.startsWith("global_foods_fts") }
             .filterNot { it == "android_metadata" || it == "video_analysis" }
             // La comparación sigue limitada a las tablas anteriores a v29.
-            .filterNot { it == "nutrition_day_marks" || it == "nutrition_checkins" }
+            .filterNot { it == "calibration_decisions" || it == "nutrition_day_marks" || it == "nutrition_checkins" }
         return tables.associateWith { table ->
             val columns = if (table == "workout_media") {
                 V28_MEDIA_COLUMNS

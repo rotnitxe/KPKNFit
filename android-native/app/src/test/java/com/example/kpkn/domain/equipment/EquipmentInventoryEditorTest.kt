@@ -126,8 +126,12 @@ class EquipmentInventoryEditorTest {
         val warmups = listOf(WarmupSetDefinition("a", 50.0, 8), WarmupSetDefinition("b", 75.0, 5), WarmupSetDefinition("c", 100.0, 3))
         val plan = PlanMaterializer.realizeWarmupLoads(warmups = warmups, workingLoadKg = 60.0,
             inventory = editor.validate(commercial()).inventory!!, equipmentKind = "barbell", deduplicate = false)
-        assertEquals(listOf(30.0, 45.0, 60.0), plan.entries.map { it.realizedKg })
-        assertTrue(plan.entries.all { it.status == WarmupLoadStatus.READY })
+        // P2-Tb: el 100 % ya es trabajo, aunque los discos permitan montarlo.
+        assertEquals(listOf(30.0, 45.0, null), plan.entries.map { it.realizedKg })
+        assertTrue(plan.entries.take(2).all { it.status == WarmupLoadStatus.READY })
+        assertEquals(WarmupLoadStatus.PENDING_PERCENT, plan.entries.last().status)
+        assertNull(plan.entries.last().realizedKg)
+        assertTrue(plan.validationMessages.any { it.contains("85%") })
         assertEquals(WarmupFeasibilityStatus.REALIZABLE, plan.feasibility.status)
         val empty = PlanMaterializer.realizeWarmupLoads(warmups = warmups, workingLoadKg = 60.0,
             inventory = EquipmentInventory(), equipmentKind = "barbell", deduplicate = false)
