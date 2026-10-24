@@ -2,9 +2,7 @@
 allprojects {
     afterEvaluate { p ->
         if (p.plugins.hasPlugin('com.android.application')) {
-            p.android.buildFeatures.resValues = true
             p.android.buildTypes.debug.applicationIdSuffix = '.dbg'
-            p.android.buildTypes.debug.resValue 'string', 'app_name', 'KPKN Dev'
             p.android.buildTypes.debug.signingConfig = p.android.signingConfigs.debug
         }
     }

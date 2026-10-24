@@ -75,11 +75,9 @@ android {
             }
         }
         debug {
-            // Misma firma que release cuando hay keystore local, para no pelear
-            // con una APK ya instalada. Sin keystore.properties, firma debug de Android.
-            if (releaseStoreFile != null) {
-                signingConfig = signingConfigs.getByName("release")
-            }
+            // Identidad y firma estables de KPKN Dev; una prueba nunca reemplaza la app personal.
+            applicationIdSuffix = ".dbg"
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     
