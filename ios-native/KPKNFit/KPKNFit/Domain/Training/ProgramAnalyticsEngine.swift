@@ -5,7 +5,6 @@ import Foundation
 struct ProgramAnalyticsReport {
     let coverage: CoverageAnalytics
     let balance: BalanceAnalytics
-    let fatigue: FatigueAnalytics
     let efficiency: EfficiencyAnalytics
     let adherence: AdherenceAnalytics
     let progression: [ExerciseProgressionAnalytics]
@@ -35,25 +34,11 @@ struct BalanceAnalytics {
     let notes: [String]
 }
 
-struct FatigueAnalytics {
-    let structures: [NamedMetric]
-    let residualHeatmap: [MuscleMetric]
-    let residualCalendar: [NamedMetric]
-    let recoveryDebtByMuscle: [MuscleMetric]
-    let readinessByMuscle: [MuscleMetric]
-    let axialLoad: Double
-    let gripDemand: Double
-    let lumbarFatigue: Double
-    let anteriorShoulderStress: Double
-    let sourceSummary: String
-}
-
 struct EfficiencyAnalytics {
     let densitySetsPerHour: Double
     let sessionDensity: [NamedMetric]
     let paretoTopExercises: [NamedMetric]
     let topStimulusShare: Double
-    let topFatiguingExercises: [NamedMetric]
     let restCompliance: RatioMetric
     let blockIdentity: String
 }
@@ -73,7 +58,6 @@ struct ExerciseProgressionAnalytics {
     let lastE1rm: Double?
     let deltaE1rm: Double?
     let sparkline: [Double]
-    let stagnationRisk: Double
 }
 
 struct ProgramDiagnostic {
@@ -134,17 +118,6 @@ enum ProgramAnalyticsEngine {
         "Abdomen",
     ]
 
-    private static let tendonStructureKeywords: [String: [String]] = [
-        "Rodilla": ["cuadriceps", "sentadilla", "prensa", "zancada", "sissy"],
-        "Cadera": ["glute", "peso muerto", "hip thrust", "bisagra"],
-        "Lumbar": ["erector", "lumbar", "peso muerto", "rdl", "pendlay", "remo"],
-        "Hombro anterior": ["press", "pectoral", "deltoides anterior"],
-        "Codo": ["biceps", "triceps", "curl", "extension"],
-        "Muñeca": ["agarre", "antebrazo", "curl", "remo"],
-        "Tendón rotuliano": ["cuadriceps", "sentadilla", "sissy", "prensa"],
-        "Aquiles": ["pantorrilla", "gemelo", "soleo", "salto"],
-    ]
-
     // MARK: - Public Entry Point
 
     static func analyze(
@@ -158,16 +131,14 @@ enum ProgramAnalyticsEngine {
 
         let coverage = buildCoverage(plannedRows)
         let balance = buildBalance(plannedRows)
-        let fatigue = buildFatigue(plannedRows: plannedRows, completedRows: completedRows)
         let efficiency = buildEfficiency(plannedRows: plannedRows, completedRows: completedRows, logs: logs)
         let adherence = buildAdherence(rows: plannedRows, logs: logs)
         let progression = buildProgression(completedRows)
-        let diagnostics = buildDiagnostics(coverage: coverage, fatigue: fatigue, adherence: adherence, progression: progression)
+        let diagnostics = buildDiagnostics(coverage: coverage, adherence: adherence, progression: progression)
 
         return ProgramAnalyticsReport(
             coverage: coverage,
             balance: balance,
-            fatigue: fatigue,
             efficiency: efficiency,
             adherence: adherence,
             progression: progression,
@@ -309,78 +280,6 @@ enum ProgramAnalyticsEngine {
         )
     }
 
-    // MARK: - Fatigue
-
-    private static func buildFatigue(
-        plannedRows: [PlannedRow],
-        completedRows: [CompletedRow]
-    ) -> FatigueAnalytics {
-        let sourceRows: [FatigueSource] = completedRows.isEmpty
-            ? plannedRows.map { fatigueSource($0) }
-            : completedRows.map { fatigueSource($0) }
-
-        var structures: [String: Double] = Dictionary(
-            uniqueKeysWithValues: tendonStructureKeywords.keys.map { ($0, 0.0) }
-        )
-        var muscleStress: [String: Double] = [:]
-        var dayStress: [String: Double] = [:]
-        var axial = 0.0
-        var grip = 0.0
-        var lumbar = 0.0
-        var shoulder = 0.0
-
-        for row in sourceRows {
-            guard let info = row.info else { continue }
-            let sets = row.sets
-            let intensity = row.rpe.map { min(max($0 / 8.0, 0.7), 1.35) } ?? 1.0
-            let localStress = sets * (info.efc ?? 2.5) * intensity
-            let systemic = sets * (info.cnc ?? 2.5) * intensity
-            let structural = sets * (info.ssc ?? 0.5) * intensity
-            if let day = row.dayLabel {
-                dayStress[day, default: 0.0] += localStress + systemic + structural
-            }
-            axial += sets * (info.axialLoadFactor ?? 0.0)
-            if info.strapsRecommended == true || info.involvedMuscles.contains(where: { $0.muscle.normalizeForAnalytics().contains("antebrazo") }) {
-                grip += sets * 1.0
-            }
-            for muscle in info.involvedMuscles {
-                let canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, emphasis: muscle.emphasis)
-                let contribution = VolumeCalculator.resolveMuscleVolumeContribution(muscle)
-                muscleStress[canonical, default: 0.0] += localStress * contribution
-                if canonical == "Erectores Espinales" {
-                    lumbar += structural + localStress * contribution
-                }
-                if canonical == "Pectorales" || muscle.emphasis?.normalizeForAnalytics().contains("anterior") == true {
-                    shoulder += structural * 0.6 + systemic * 0.12
-                }
-            }
-            let haystack = "\(info.name) \(info.force ?? "") \(info.chain ?? "") \(info.involvedMuscles.map(\.muscle).joined(separator: " "))"
-                .normalizeForAnalytics()
-            for (structure, keywords) in tendonStructureKeywords {
-                if keywords.contains(where: { haystack.contains($0.normalizeForAnalytics()) }) {
-                    structures[structure, default: 0.0] += structural + (info.ttc ?? 1.0) * sets
-                }
-            }
-        }
-
-        return FatigueAnalytics(
-            structures: structures.toNamedMetrics("estrés estimado por estructura articular/tendinosa"),
-            residualHeatmap: muscleStress.toMuscleMetrics("fatiga local residual estimada"),
-            residualCalendar: dayStress.toNamedMetrics("nube de fatiga por día o sesión"),
-            recoveryDebtByMuscle: muscleStress.mapValues { min($0.value / 10.0, 100.0) }
-                .toMuscleMetrics("deuda de recuperación estimada"),
-            readinessByMuscle: muscleStress.mapValues { min(max(100.0 - $0.value / 10.0, 0.0), 100.0) }
-                .toMuscleMetrics("readiness estimado desde estrés residual"),
-            axialLoad: axial.round1(),
-            gripDemand: grip.round1(),
-            lumbarFatigue: lumbar.round1(),
-            anteriorShoulderStress: shoulder.round1(),
-            sourceSummary: completedRows.isEmpty
-                ? "Usa plan porque no hay logs suficientes."
-                : "Usa logs reales completados."
-        )
-    }
-
     // MARK: - Efficiency
 
     private static func buildEfficiency(
@@ -414,19 +313,6 @@ enum ProgramAnalyticsEngine {
         let topCount = max(1, Int((Double(exerciseVolumes.count) * 0.2).rounded()))
         let topStimulusShare = exerciseVolumes.prefix(topCount).reduce(0.0) { $0 + $1.value } / safeTotalStimulus
 
-        let fatiguing: [NamedMetric] = {
-            var results: [(id: String, name: String, stress: Double)] = []
-            for row in plannedRows {
-                guard let info = row.info else { continue }
-                let stress = Double(row.exercise.effectiveSetCount()) * ((info.efc ?? 2.5) + (info.cnc ?? 2.5) + (info.ssc ?? 0.5))
-                results.append((id: info.id, name: info.name, stress: stress))
-            }
-            return results.map { NamedMetric(id: $0.id, label: $0.name, value: $0.stress.round1(), explanation: "EFC + CNC + SSC por series planificadas.") }
-                .sorted { $0.value > $1.value }
-                .prefix(5)
-                .map { $0 }
-        }()
-
         let actualRestValues = completedRows.flatMap { row -> [Double] in
             let rest = Double(row.exercise.restTime)
             return row.exercise.sets.map { _ in rest }
@@ -440,7 +326,6 @@ enum ProgramAnalyticsEngine {
             sessionDensity: densityBySession,
             paretoTopExercises: exerciseVolumes,
             topStimulusShare: topStimulusShare.round2(),
-            topFatiguingExercises: fatiguing,
             restCompliance: ratio(
                 "Real", actualRest ?? 0.0,
                 "Recomendado", recommendedRest ?? 0.0,
@@ -501,21 +386,13 @@ enum ProgramAnalyticsEngine {
             guard !values.isEmpty else { continue }
             let first = values.first!
             let last = values.last!
-            let recent = values.suffix(4).map { $0 }
-            let stagnation: Double
-            if recent.count >= 3, let maxVal = recent.max(), let minVal = recent.min(), maxVal - minVal < 1.0 {
-                stagnation = 0.85
-            } else {
-                stagnation = 0.2
-            }
             results.append(ExerciseProgressionAnalytics(
                 exerciseId: id,
                 exerciseName: ordered.last!.exercise.exerciseName,
                 firstE1rm: first.round1(),
                 lastE1rm: last.round1(),
                 deltaE1rm: (last - first).round1(),
-                sparkline: values.map { $0.round1() },
-                stagnationRisk: stagnation
+                sparkline: values.map { $0.round1() }
             ))
         }
 
@@ -526,7 +403,6 @@ enum ProgramAnalyticsEngine {
 
     private static func buildDiagnostics(
         coverage: CoverageAnalytics,
-        fatigue: FatigueAnalytics,
         adherence: AdherenceAnalytics,
         progression: [ExerciseProgressionAnalytics]
     ) -> [ProgramDiagnostic] {
@@ -540,22 +416,6 @@ enum ProgramAnalyticsEngine {
                 severity: .warning
             ))
         }
-        if fatigue.lumbarFatigue >= 18.0 {
-            diagnostics.append(ProgramDiagnostic(
-                id: "high-lumbar-fatigue",
-                title: "Fatiga lumbar alta",
-                detail: "La suma de bisagras, remos pesados y carga axial concentra estrés lumbar.",
-                severity: .critical
-            ))
-        }
-        if fatigue.anteriorShoulderStress >= 14.0 {
-            diagnostics.append(ProgramDiagnostic(
-                id: "anterior-shoulder-stress",
-                title: "Estrés de hombro anterior",
-                detail: "El volumen de presses y pectoral eleva el estrés anterior.",
-                severity: .warning
-            ))
-        }
         if adherence.completedExerciseRatio < 0.7 {
             diagnostics.append(ProgramDiagnostic(
                 id: "execution-first",
@@ -564,15 +424,6 @@ enum ProgramAnalyticsEngine {
                 severity: .warning
             ))
         }
-        for item in progression.filter({ $0.stagnationRisk >= 0.8 }).prefix(3) {
-            diagnostics.append(ProgramDiagnostic(
-                id: "stagnation-\(item.exerciseId)",
-                title: "Riesgo de estancamiento",
-                detail: "\(item.exerciseName): e1RM reciente casi plano.",
-                severity: .warning
-            ))
-        }
-
         return diagnostics
     }
 
@@ -589,13 +440,6 @@ enum ProgramAnalyticsEngine {
     fileprivate struct CompletedRow {
         let log: WorkoutLog
         let exercise: CompletedExercise
-        let info: ExerciseMuscleInfo?
-    }
-
-    private struct FatigueSource {
-        let sets: Double
-        let rpe: Double?
-        let dayLabel: String?
         let info: ExerciseMuscleInfo?
     }
 
@@ -627,26 +471,6 @@ enum ProgramAnalyticsEngine {
             dayOfWeek: row.dayOfWeek,
             exercise: row.exercise,
             info: resolved
-        )
-    }
-
-    // MARK: - Fatigue Source Conversions
-
-    private static func fatigueSource(_ row: PlannedRow) -> FatigueSource {
-        FatigueSource(
-            sets: Double(row.exercise.effectiveSetCount()),
-            rpe: row.exercise.sets.compactMap(\.targetRPE).averageOrNull(),
-            dayLabel: row.dayOfWeek.map(dayLabelFor) ?? row.sessionName,
-            info: row.info
-        )
-    }
-
-    private static func fatigueSource(_ row: CompletedRow) -> FatigueSource {
-        FatigueSource(
-            sets: Double(row.exercise.sets.filter { !$0.skipped }.count),
-            rpe: row.exercise.sets.compactMap(\.rpe).averageOrNull(),
-            dayLabel: row.log.sessionName.isEmpty ? String(row.log.date.prefix(10)) : row.log.sessionName,
-            info: row.info
         )
     }
 
