@@ -84,6 +84,8 @@ data class PlanLoadReference(
     /** Snapshot de la carga elegida cuando [state] es [PlanLoadReferenceState.CAPTURED]. */
     val capturedLoadKg: Double? = null,
     val capturedAtMs: Long? = null,
+    /** Objetivo aceptado junto a la carga nativa; null conserva las recetas y referencias anteriores. */
+    val capturedTargetReps: Int? = null,
 )
 
 @Serializable

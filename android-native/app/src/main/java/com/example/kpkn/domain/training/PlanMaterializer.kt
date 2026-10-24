@@ -1117,6 +1117,18 @@ object PlanMaterializer {
                 explicit.capturedLoadKg?.takeIf { it > 0.0 }
             else -> null
         }
+        // §12.4: solo F/H/I de un plan con progresión propia llevan carga gestionada.
+        val nativeProgressionManaged = recipe.nativeProgression?.strategy
+            ?.takeIf { it != NativeProgressionStrategy.NONE } != null &&
+            slot.intent in setOf(SlotIntent.F, SlotIntent.H, SlotIntent.I)
+        // El par aceptado se reconstruye junto a su carga, sin cambiar el rango ni las recetas ajenas.
+        fun acceptedTargetReps(reference: PlanLoadReference?, set: ExerciseSet): Int? = reference
+            ?.takeIf { nativeProgressionManaged && it.state == PlanLoadReferenceState.CAPTURED &&
+                it.kind in setOf(PlanLoadReferenceKind.OBSERVED_WORKING_SET, PlanLoadReferenceKind.BODYWEIGHT_EXTERNAL) }
+            ?.capturedTargetReps
+            ?.takeIf { reps -> reps > 0 &&
+                !set.isCalibrator && !set.isTopSet && !set.isDropSet && !set.isRestPause && !set.isAmrap &&
+                (set.targetRepsRange?.let { reps in it.min..it.max } ?: true) }
         val sets = working.mapIndexed { index, set ->
             val materialized = materializeSet(
                 set = set,
@@ -1129,7 +1141,10 @@ object PlanMaterializer {
                 oneRmKg = weeklyKgOneRmKg,
             )
             if (set.percent == null && directWorkingLoadKg != null) {
-                materialized.copy(weight = directWorkingLoadKg)
+                materialized.copy(
+                    weight = directWorkingLoadKg,
+                    targetReps = acceptedTargetReps(explicit, materialized) ?: materialized.targetReps,
+                )
             } else {
                 materialized
             }
@@ -1165,6 +1180,7 @@ object PlanMaterializer {
                     intensityMode = resolved.intensityMode,
                 )
                 val nextTarget = baseTarget.copy(
+                    targetReps = acceptedTargetReps(reference, resolved) ?: baseTarget.targetReps,
                     weight = if (reference.state == PlanLoadReferenceState.CAPTURED) {
                         reference.capturedLoadKg?.takeIf { it > 0.0 }
                     } else {
@@ -1183,10 +1199,6 @@ object PlanMaterializer {
             }
             resolved
         }
-        // §12.4: solo F/H/I de un plan con progresión propia llevan carga gestionada.
-        val nativeProgressionManaged = recipe.nativeProgression?.strategy
-            ?.takeIf { it != NativeProgressionStrategy.NONE } != null &&
-            slot.intent in setOf(SlotIntent.F, SlotIntent.H, SlotIntent.I)
         // F-03: la convención de cantidad de un slot nativo sale del equipo del
         // catálogo (barra/máquina → TOTAL_EXTERNAL, mancuerna/kettlebell →
         // PER_IMPLEMENT), no de subcadenas del id. Una referencia declarada o

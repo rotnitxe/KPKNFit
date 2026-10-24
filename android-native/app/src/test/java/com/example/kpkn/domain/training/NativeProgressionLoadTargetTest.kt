@@ -24,6 +24,7 @@ import com.example.kpkn.domain.training.NativeProgressionTestSupport.completedLo
 import com.example.kpkn.domain.training.NativeProgressionTestSupport.exercisesOf
 import com.example.kpkn.domain.training.NativeProgressionTestSupport.managedOf
 import com.example.kpkn.domain.training.NativeProgressionTestSupport.sessionOf
+import com.example.kpkn.domain.training.NativeProgressionTestSupport.weeksOf
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -291,6 +292,89 @@ class NativeProgressionLoadTargetTest {
         val after = managedOf(legacyAccepted, sessionOf(legacyAccepted, 3).id).single().sets
         assertEquals(before.map { it.targetReps }, after.map { it.targetReps })
         assertEquals(before.map { it.targetRepsRange }, after.map { it.targetRepsRange })
+    }
+
+    private fun rebuildThirdWeek(program: Program): Program = PlanMaterializer.rematerializeWeek(
+        program = Json.decodeFromString<Program>(Json.encodeToString(program)),
+        weekId = weeksOf(program)[2].id,
+        metadata = CatalogCompositionTestSupport.metadata,
+    )
+
+    @Test
+    fun `el par aceptado sobrevive al JSON y a regenerar la semana sin cambiar el rango ni el pasado`() {
+        val program = materialized(GOBLET)
+        val logs = twoExposures(program, 20.0)
+        val observed = observe(program, logs, everyTwoKilos)
+        val proposal = observed.nativeProgressionProposals.single()
+        val accepted = NativeWorkoutProgressionRuntime.resolveProposal(
+            program = observed, proposalId = proposal.proposalId, accept = true,
+            logs = logs, ongoingSessionIds = emptySet(), curatedExercises = emptyMap(), nowMs = 600L,
+        )
+        val rebuilt = rebuildThirdWeek(accepted)
+        val before = managedOf(accepted, sessionOf(accepted, 3).id).single()
+        val after = managedOf(rebuilt, sessionOf(rebuilt, 3).id).single()
+        assertEquals(listOf(22.0, 22.0), after.sets.map { it.weight })
+        assertEquals(listOf(8, 8), after.sets.map { it.targetReps })
+        assertEquals(before.sets.map { it.targetRepsRange }, after.sets.map { it.targetRepsRange })
+        for (week in 1..2) assertEquals(sessionOf(accepted, week), sessionOf(rebuilt, week))
+        assertEquals(accepted.nativeProgressionAudit, rebuilt.nativeProgressionAudit)
+
+        // Las referencias antiguas, y los objetivos incompatibles con un rango nuevo, conservan la receta.
+        for (target in listOf(null, 99)) {
+            val legacy = accepted.copy(exerciseLoadReferences = accepted.exerciseLoadReferences.map { entry ->
+                entry.copy(references = entry.references.map { it.copy(capturedTargetReps = target) })
+            })
+            val legacyExercise = managedOf(rebuildThirdWeek(legacy), sessionOf(legacy, 3).id).single()
+            val original = managedOf(program, sessionOf(program, 3).id).single()
+            assertEquals(original.sets.map { it.targetReps }, legacyExercise.sets.map { it.targetReps })
+            assertEquals(listOf(22.0, 22.0), legacyExercise.sets.map { it.weight })
+        }
+    }
+
+    @Test
+    fun `aceptar y regenerar el par de un lado conserva los objetivos del otro lado`() {
+        val recipe = recipeOf("t4-lateral", GOBLET).let { source ->
+            source.copy(weeks = source.weeks.map { week -> week.copy(days = week.days.map { day ->
+                day.copy(slots = day.slots.map { it.copy(isUnilateral = true) })
+            }) })
+        }
+        val program = PlanMaterializer.materialize(
+            program = Program(id = "t4-lateral", name = "T4 lateral"), recipe = recipe,
+            metadata = CatalogCompositionTestSupport.metadata, strict = false,
+        )
+        val logs = twoExposures(program, 20.0).map { log ->
+            log.copy(completedExercises = log.completedExercises.map { exercise ->
+                exercise.copy(sets = exercise.sets.flatMap { set ->
+                    listOf("left", "right").map { side ->
+                        set.copy(id = "${set.id}-$side", side = side, recordedPayloadV3 = set.recordedPayloadV3!!.copy(side = side))
+                    }
+                })
+            })
+        }
+        val initial = observe(program, logs, everyTwoKilos)
+        // El otro lado ya tiene un par aceptado: debe sobrevivir a aceptar el izquierdo y regenerar.
+        val rightProposal = initial.nativeProgressionProposals.single { it.identity.side == "right" }
+        val observed = NativeWorkoutProgressionRuntime.resolveProposal(
+            program = initial, proposalId = rightProposal.proposalId, accept = true,
+            logs = logs, ongoingSessionIds = emptySet(), curatedExercises = emptyMap(), nowMs = 550L,
+        )
+        val proposal = observed.nativeProgressionProposals.single { it.identity.side == "left" }
+        val before = managedOf(observed, sessionOf(observed, 3).id).single()
+        assertEquals(listOf(22.0, 22.0), before.sets.map { it.rightTarget?.weight })
+        assertEquals(listOf(8, 8), before.sets.map { it.rightTarget?.targetReps })
+        val accepted = NativeWorkoutProgressionRuntime.resolveProposal(
+            program = observed, proposalId = proposal.proposalId, accept = true,
+            logs = logs, ongoingSessionIds = emptySet(), curatedExercises = emptyMap(), nowMs = 600L,
+        )
+        val acceptedExercise = managedOf(accepted, sessionOf(accepted, 3).id).single()
+        assertEquals(before.sets.map { it.rightTarget }, acceptedExercise.sets.map { it.rightTarget })
+        val rebuilt = rebuildThirdWeek(accepted)
+        val after = managedOf(rebuilt, sessionOf(rebuilt, 3).id).single()
+        assertEquals(listOf(22.0, 22.0), after.sets.map { it.leftTarget?.weight })
+        assertEquals(listOf(8, 8), after.sets.map { it.leftTarget?.targetReps })
+        assertEquals(before.sets.map { it.rightTarget }, after.sets.map { it.rightTarget })
+        assertEquals(before.sets.map { it.targetRepsRange }, after.sets.map { it.targetRepsRange })
+        for (week in 1..2) assertEquals(sessionOf(accepted, week), sessionOf(rebuilt, week))
     }
 
     @Test

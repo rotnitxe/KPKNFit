@@ -1664,6 +1664,7 @@ object NativeWorkoutProgressionRuntime {
             state = if (requiresManualLoad) PlanLoadReferenceState.PENDING else PlanLoadReferenceState.CAPTURED,
             capturedLoadKg = proposal.targetLoadKg,
             capturedAtMs = nowMs.takeIf { !requiresManualLoad },
+            capturedTargetReps = proposal.targetReps?.takeIf { !requiresManualLoad && it > 0 },
         )
         return exercise.copy(sets = updatedSets, loadReference = loadReference)
     }
