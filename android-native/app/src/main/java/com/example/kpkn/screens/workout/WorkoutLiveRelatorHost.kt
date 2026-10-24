@@ -60,17 +60,3 @@ internal fun sessionBestPreviousE1rm(
         values.maxOfOrNull { it.second } ?: 0.0
     }
 }
-
-internal fun buildRelatorTissueHint(
-    uiState: WorkoutUiState,
-    viewModel: WorkoutViewModel,
-    currentExercise: Exercise,
-    visibleExercises: List<Exercise>,
-    catalogIndex: Map<String, com.example.kpkn.data.models.ExerciseMuscleInfo>,
-): RelatorTissueHint? = buildRelatorTissueHintFromLogs(
-    state = uiState,
-    currentExercise = currentExercise,
-    visibleExercises = visibleExercises,
-    catalogIndex = catalogIndex,
-    recentLogs = viewModel.recentWorkoutLogs(36),
-)

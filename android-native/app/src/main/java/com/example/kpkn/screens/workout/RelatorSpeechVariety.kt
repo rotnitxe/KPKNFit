@@ -35,7 +35,6 @@ internal fun RelatorSpeechBucket.varietyKey(): String = when (this) {
     RelatorSpeechBucket.IDLE_LAST,
     RelatorSpeechBucket.IDLE_COMPOUND,
     -> "IDLE_SITUATE"
-    -> "TISSUE"
     else -> name
 }
 
