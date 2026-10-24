@@ -1759,6 +1759,7 @@ private fun KPKNNavGraph(
                 programId = volumeProgramId,
                 onBack = { navController.popBackStack() },
             )
+        }
         composable(KpknRoute.Habits.route) {
             HabitsRoute(onBack = { navController.popBackStack() })
 
