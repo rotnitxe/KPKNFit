@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training.insights
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.multisport.endurance.*
 import com.example.kpkn.domain.multisport.SportId
 import com.example.kpkn.domain.multisport.tracking.SportTrackingDocument
 import com.example.kpkn.domain.performance.lab.*
@@ -63,4 +64,21 @@ class TrainingHistoryProjectionTest {
             CompletedSet("skip",weight=500.0,reps=20,skipped=true),CompletedSet("warm",weight=1.0,reps=3,isWarmup=true)))))
         assertFalse(TrainingHistoryProjection.facts(listOf(source),now).any { it.sourceId.contains(":set:") })
     }
+    @Test fun enduranceSamplesKeepExplicitParentUnitsAndDoNotBecomeAggregatedPower() {
+        val series = EnduranceMeasurementSeries("meter",EnduranceSeriesKind.POWER,EnduranceUnit.WATTS,
+            EnduranceDataSource.IMPORTED_DEVICE,instrumentId="meter-a",
+            coverage=EnduranceSampleCoverage(0,1000,1000,expectedSampleIntervalMillis=1000),
+            samples=listOf(EnduranceSample(0,0.0),EnduranceSample(1000,153.125)))
+        fun source(quality: EnduranceRecordQuality): WorkoutLog {
+            val payload=EnduranceSportPayload(SportId.CYCLING,observation=EnduranceSportObservation(
+                segmentKind=EnduranceSegmentKind.CYCLING,series=series,quality=quality))
+            return log(documents=listOf(SportTrackingDocument("power-document",EnduranceSportEngine.cycling.id,1,
+                "CYCLING","OBSERVATION",payload.toJsonObject())))
+        }
+        val points=TrainingHistoryProjection.facts(listOf(source(EnduranceRecordQuality.COMPLETE)),now).filter { it.unit=="WATTS" }
+        assertEquals(listOf(0.0,153.125),points.map { it.value })
+        assertTrue(points.all { it.origin==FactOrigin.HISTORICAL_AMBIGUOUS && it.method==null })
+        assertFalse(TrainingHistoryProjection.facts(listOf(source(EnduranceRecordQuality.INVALIDATED)),now).any { it.unit=="WATTS" })
+    }
+
 }
