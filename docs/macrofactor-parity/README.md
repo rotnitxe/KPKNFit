@@ -75,7 +75,7 @@ Archivos calientes con un único dueño por paquete (no se tocan fuera de él): 
 
 ## Estado vigente · entrega local24-oct-2026
 
-Todos los paquetes de implementación están integrados en `mfp/i` para su incorporación local a `feat/macrofactor-parity`; sin push ni master. Código final df1d52776. APK **KPKN Dev** baseDebug ordinario, Room31 generado por KSP, sin init. Los párrafos históricos de relevo no describen el estado actual.
+Todos los paquetes de implementación están integrados localmente en `feat/macrofactor-parity`, fuente canónica `C:/kw/mfp`; sin push ni master. Código final df1d52776. APK **KPKN Dev** baseDebug ordinario, Room31 generado por KSP, sin init. Los párrafos históricos de relevo no describen el estado actual.
 
 | Paquetes | Estado local y evidencia |
 |---|---|
@@ -95,3 +95,5 @@ Todos los paquetes de implementación están integrados en `mfp/i` para su incor
 Entrega, decisiones, hallazgos y límites: [INFORME_FINAL_LOCAL.md](INFORME_FINAL_LOCAL.md). Clasificación y XML: [cambios/VALIDACION_INTEGRADA_LOCAL.md](cambios/VALIDACION_INTEGRADA_LOCAL.md). Inventario por paquete: [CAMBIOS_VISIBLES.md](CAMBIOS_VISIBLES.md). Medición física pendiente: [P2-F_RESULTADO.md](P2-F_RESULTADO.md).
 
 D20: la orden local del24-oct sustituye la antigua continuidad Cloud. La identidad de la orden23-oct es KPKN Dev `.dbg` con firma debug estable. El contrato vigente es29→30 calibración y30→31 nutrición;31.json ya generado por KSP y validado. No se consume32. La integración a master sigue siendo una decisión posterior.
+
+Limpieza final completada: ocho worktrees componentes/control retirados, ramas/commits conservados; builds/caches propios retirados y evidencia visual archivada/verificada en C:/kw/logs/mfp-evidencia-visual-20261024.zip. APK y LEEME entregados en G:/Mi unidad/KPKN_MFP_local_2026-10-24/.
