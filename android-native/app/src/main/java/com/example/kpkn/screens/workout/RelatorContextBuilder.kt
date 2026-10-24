@@ -1047,7 +1047,6 @@ internal fun buildRelatorTissueHintFromLogs(
         )
     }
     val yesterday = recentLogs.flatMap { log ->
-        val drain = log.muscularImpactV2?.perMuscle?.mapValues { it.value.immediateDrainPct }.orEmpty()
         log.completedExercises.map { completed ->
             val muscles = completed.effectiveMuscles.orEmpty()
             RelatorPriorExercise(
@@ -1058,7 +1057,6 @@ internal fun buildRelatorTissueHintFromLogs(
                 highIntensity = completed.sets.any { set ->
                     set.isFailure || (set.rpe ?: 0.0) >= 8.0 || (set.rir ?: 99) <= 2
                 },
-                drainByMuscle = drain,
             )
         }
     }

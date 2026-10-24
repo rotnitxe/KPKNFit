@@ -37,12 +37,9 @@ import com.example.kpkn.screens.onboarding.touchStep
 import com.example.kpkn.screens.onboarding.withCapability
 import com.example.kpkn.screens.onboarding.withCompetition
 import com.example.kpkn.screens.onboarding.withDayPlace
-import com.example.kpkn.screens.onboarding.withFeelings
 import com.example.kpkn.screens.onboarding.withFreshestDay
 import com.example.kpkn.screens.onboarding.withGoalProfile
-import com.example.kpkn.screens.onboarding.withGroupSets
 import com.example.kpkn.screens.onboarding.withLiftMark
-import com.example.kpkn.screens.onboarding.withMainLiftToggled
 import com.example.kpkn.screens.onboarding.withMarksUnit
 import com.example.kpkn.screens.onboarding.withMaterial
 import com.example.kpkn.screens.onboarding.withMuscles
@@ -52,7 +49,6 @@ import com.example.kpkn.screens.onboarding.withStepChoice
 import com.example.kpkn.screens.onboarding.withStepChoices
 import com.example.kpkn.screens.onboarding.withStepNumber
 import com.example.kpkn.screens.onboarding.withStepText
-import com.example.kpkn.screens.onboarding.withTrainedDayToggled
 import com.example.kpkn.screens.onboarding.withWeekStart
 import com.example.kpkn.screens.onboarding.withWeekdays
 import java.time.LocalDate
