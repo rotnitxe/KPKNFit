@@ -83,7 +83,7 @@ object DatabaseBackupHelper {
                 android.database.sqlite.SQLiteDatabase.OPEN_READONLY,
                 android.database.DatabaseErrorHandler { throw IllegalStateException("Snapshot corrupto; se conservan los datos activos y el archivo externo") })
             try {
-                require(checked.version in 1..32) { "Versión de snapshot no compatible" }
+                require(checked.version in 1..33) { "Versión de snapshot no compatible" }
                 checked.rawQuery("PRAGMA quick_check",null).use { check ->
                     require(check.count==1 && check.moveToFirst() && check.getString(0)=="ok") { "Snapshot SQLite corrupto" }
                 }
