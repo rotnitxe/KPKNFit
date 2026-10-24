@@ -1,8 +1,5 @@
 package com.example.kpkn.debug
 
-import com.example.kpkn.data.models.InitialRecoveryIntensity
-import com.example.kpkn.data.models.RingsLiftPattern
-import com.example.kpkn.data.models.RingsMuscleGroup
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.nutrition.EerActivity
 import com.example.kpkn.domain.onboarding.CapabilityLevel

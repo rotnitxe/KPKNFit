@@ -754,12 +754,10 @@ private fun TrainingPanel(
                 Spacer(modifier = Modifier.height(12.dp))
                 val explicit = banner.requiresExplicitConfirmation
                 val isAutoreg = explicit && banner.pendingType == PendingProgramActionType.CONFIRM_AUTOREGULATION
-                val isDeload = explicit && !isAutoreg && banner.kind == BlockTransitionEngine.DecisionKind.INSERT_DELOAD
                 ProgramTransitionModule(
                     message = banner.message,
                     primaryLabel = when {
                         isAutoreg -> "Ver propuesta"
-                        isDeload -> "Aceptar descarga"
                         explicit -> "Registrar resultado"
                         else -> null
                     },
@@ -767,17 +765,15 @@ private fun TrainingPanel(
                         when {
                             // R-03: «Ver propuesta» solo lleva a la pestaña Semana, donde las propuestas se aplican una a una.
                             isAutoreg -> viewModel.setStructureSubTab(StructureSubTab.SEMANA)
-                            isDeload -> viewModel.acceptPendingDeload()
                             else -> onOpenOneRmDialog()
                         }
                     },
                     secondaryLabel = when {
-                        isDeload -> "Rechazar"
                         explicit && !isAutoreg -> "Omitir"
                         else -> null
                     },
                     onSecondary = {
-                        if (isDeload) viewModel.rejectPendingDeload() else viewModel.skipPendingOneRmTest()
+                        viewModel.skipPendingOneRmTest()
                     },
                     dismissLabel = if (explicit) "Más tarde: el programa espera tu decisión" else "Entendido",
                     onDismiss = { viewModel.dismissBlockTransitionBanner() },

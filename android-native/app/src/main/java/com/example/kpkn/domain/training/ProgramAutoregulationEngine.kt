@@ -1441,14 +1441,6 @@ object ProgramAutoregulationEngine {
             }
         }
 
-) {
-            val currentBlockId = working.runState?.blockId
-                ?: working.macrocycles.firstOrNull()?.blocks?.firstOrNull()?.id
-            if (currentBlockId != null) {
-                val withDeload = BlockTransitionEngine.insertDeloadBlockAfter(working, currentBlockId)
-                if (withDeload != null) working = withDeload.first
-            }
-        }
         return working
     }
 

@@ -53,7 +53,6 @@ import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.data.exercises.exerciseCatalogReady
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.domain.training.HomeWeekDay
 import com.example.kpkn.domain.training.HomeWeekResolver

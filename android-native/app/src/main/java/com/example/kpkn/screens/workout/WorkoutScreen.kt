@@ -174,7 +174,6 @@ import com.example.kpkn.screens.workout.components.MinimalMuscleSlider
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.DropSetData
 import com.example.kpkn.data.models.RestPauseData
-import com.example.kpkn.data.models.ringScore
 import kotlinx.coroutines.launch
 import java.util.Locale
 import com.example.kpkn.data.models.DailyWellbeingLog

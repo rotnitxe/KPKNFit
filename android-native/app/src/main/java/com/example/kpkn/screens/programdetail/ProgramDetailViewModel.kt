@@ -402,10 +402,10 @@ class ProgramDetailViewModel(
                 .map { it?.runState?.pendingAction }
                 .distinctUntilChanged()
                 .collect { action ->
-                    if (action != null) {
+                    if (action != null && action.type != PendingProgramActionType.CONFIRM_DELOAD) {
                         _blockTransitionBanner.value = BlockTransitionBanner(
                             kind = when (action.type) {
-                                PendingProgramActionType.CONFIRM_DELOAD -> BlockTransitionEngine.DecisionKind.INSERT_DELOAD
+                                PendingProgramActionType.CONFIRM_DELOAD -> BlockTransitionEngine.DecisionKind.HOLD_INCOMPLETE
                                 PendingProgramActionType.CONFIRM_1RM_TEST -> BlockTransitionEngine.DecisionKind.PROPOSE_1RM_TEST
                                 PendingProgramActionType.CONFIRM_AUTOREGULATION -> BlockTransitionEngine.DecisionKind.HOLD_INCOMPLETE
                             },

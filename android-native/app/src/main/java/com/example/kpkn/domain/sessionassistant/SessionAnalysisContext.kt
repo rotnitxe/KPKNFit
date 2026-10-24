@@ -17,12 +17,6 @@ enum class AssistantPhase { ACCUMULATION, TRANSFORMATION, REALIZATION, UNSPECIFI
 /** Papel de un ejercicio en la sesión: los MAIN se protegen; los ACCESSORY son lo primero que un ajuste puede tocar. */
 enum class ExerciseRole { MAIN, ACCESSORY, CARDIO }
 
-/** Historial REALIZADO comparable (misma sesión del mismo programa, con puntuación de estrés). Lo previsto no cuenta aquí. */
- {
-    /** Con menos sesiones comparables no se certifica ninguna tolerancia ni se compara contra el historial. */
-    val isSufficient: Boolean get() = comparableSessions >= SessionAnalysisContextBuilder.MIN_COMPARABLE_SESSIONS
-}
-
 /**
  * Lo que el asistente sabe de la sesión antes de decidir nada (AUD1 §2.7): tipo, objetivo, fase, papel de cada ejercicio,
  * historial realizado comparable y el tiempo (disponible y estimado con el reloj común). Una sola construcción para todas las reglas.
