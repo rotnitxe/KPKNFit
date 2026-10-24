@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "La barra reposa en el suelo entre repeticiones y la altura de los discos marca el punto de salida, a media espinilla con discos de tamaño olímpico. Las manos la toman en prono, un poco más abiertas que los hombros, y la barra sube hasta tocar la parte baja del pecho.",
-              "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
                 "Arranca de golpe y lleva la barra hasta tocar la parte baja del pecho.",
                 "No levantes el torso: la espalda sigue paralela al suelo durante el tirón.",
                 "Devuelve la barra al suelo y espera a que se quede quieta antes del siguiente."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -190,14 +186,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -213,7 +201,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -246,7 +233,6 @@
                 "Tensa la espalda y los brazos sin despegar la barra antes de cada tirón."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -254,8 +240,7 @@
                 "gluteus_maximus",
                 "forearm"
               ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -275,18 +260,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Cada mancuerna parte del suelo, debajo de su hombro, con el asa a poca altura, y se agarra en neutro. Los dos brazos arrancan a la vez, pero cada uno levanta y vuelve a posar su propia carga.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Tira de las dos mancuernas a la vez hacia los lados de la cintura, rápido y sin levantar el torso.",
                 "Pósalas en el suelo y deja que se queden quietas antes de repetir."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -441,14 +422,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -464,7 +437,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -496,7 +468,6 @@
                 "Inclínate hasta dejar la espalda paralela al suelo, dobla algo las rodillas y agarra cada asa con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -504,8 +475,7 @@
                 "gluteus_maximus",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -525,18 +495,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "En una estación de palanca de pie, la parada consiste en dejar que el brazo de la máquina vuelva a su tope entre repeticiones. El eje marca el arco de los mangos, y el tronco, sin cojín delante, tiene que quedarse horizontal por su cuenta.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Tira con fuerza hasta acercar los mangos al pecho, sin levantar el torso.",
                 "Devuelve la palanca a su tope y para un instante antes del siguiente tirón."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -691,14 +657,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -714,7 +672,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -746,7 +703,6 @@
                 "Toma los mangos con la palanca todavía apoyada en su tope y los codos rectos."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -754,8 +710,7 @@
                 "gluteus_maximus",
                 "forearm"
               ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {
               "implement": "machine"
@@ -775,18 +730,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "La barra arranca de los topes de seguridad, puestos a la altura que alcanzan las manos con el torso horizontal, y sube por dos guías verticales. Esa parada en los topes hace de suelo, y la barra no puede salirse de la vertical.",
-              "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Arranca en vertical, rápido, y lleva la barra a la parte baja del pecho.",
                 "Baja hasta apoyar la barra en los topes y deja que se pare antes de repetir."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -944,14 +895,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -967,7 +910,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -999,7 +941,6 @@
                 "Deja la barra sobre los topes, agárrala en prono y gírala para que los ganchos queden libres."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -1007,8 +948,7 @@
                 "gluteus_maximus",
                 "forearm"
               ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -1028,18 +968,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Las dos kettlebells esperan en el suelo bajo los hombros, y su asa alta se alcanza con el torso horizontal sin doblar mucho las rodillas. Cada mano agarra en neutro y la base plana de la bola vuelve a tocar el suelo en cada parada.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Tira de las dos kettlebells hacia la cintura de forma explosiva, con los codos cerca del cuerpo.",
                 "Posa las bolas en el suelo sin soltar las asas y para un instante antes de repetir."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1194,14 +1130,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1217,7 +1145,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1249,7 +1176,6 @@
                 "Inclina el torso hasta la horizontal y agarra cada asa con las palmas hacia dentro."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -1257,8 +1183,7 @@
                 "gluteus_maximus",
                 "forearm"
               ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1278,18 +1203,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con la polea baja delante, la parada llega cuando la pila de placas se apoya entre repeticiones; al arrancar, el cable tira de las manos hacia abajo y hacia la máquina. El torso se queda horizontal sin ningún apoyo.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Arranca con fuerza y lleva la barra hasta la parte baja del pecho sin que el torso suba.",
                 "Vuelve hasta que la pila se apoye y para un instante antes del siguiente tirón."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1447,14 +1368,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1470,7 +1383,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1502,7 +1414,6 @@
                 "Inclina el torso hasta dejarlo paralelo al suelo y agarra la barra en prono."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -1510,8 +1421,7 @@
                 "gluteus_maximus",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "cable"

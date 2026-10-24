@@ -1,6 +1,8 @@
 package com.example.kpkn.domain.exercises.catalogv2
 
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonArray
 
 /** Runtime gate: draft or partially reviewed catalog data is never loadable. */
 object ExerciseCatalogV2Loader {
@@ -17,6 +19,22 @@ object ExerciseCatalogV2Loader {
         require(values.all { it.isNotBlank() }) { "$label contains blank text" }
     }
     fun decodeApproved(payload: String): ExerciseCatalogV2 {
+        val root = json.parseToJsonElement(payload) as JsonObject
+        ((root["families"] as? JsonArray).orEmpty()).forEach { family ->
+            ((family as JsonObject)["definitions"] as? JsonArray).orEmpty().forEach { definition ->
+                ((definition as JsonObject)["configurations"] as? JsonArray).orEmpty().forEach { configuration ->
+                    val profile = (configuration as JsonObject)["profile"] as JsonObject
+                    require(listOf("efc", "cnc", "ssc", "ttc", "axialLoadFactor", "fatigueTier").none { it in profile }) {
+                        "Retired body-state coefficient in catalog profile"
+                    }
+                    val rich = profile["richMetadata"] as? JsonObject
+                    require(rich?.containsKey("fatigue") != true &&
+                        ((rich?.get("programming") as? JsonObject)?.containsKey("fatigueCost") != true)) {
+                        "Retired fatigue metadata in catalog"
+                    }
+                }
+            }
+        }
         val decoded = json.decodeFromString(ExerciseCatalogV2.serializer(), payload)
         // Fields retired in F1 are unknown keys here (ignored when an older asset
         // still carries them). The canonical runtime asset never emits them: the
@@ -160,11 +178,6 @@ object ExerciseCatalogV2Loader {
                     }) {
                         "jointInvolvement entry is incomplete: ${configuration.id}"
                     }
-                    require(profile.efc.isFinite() && profile.efc >= 0.0)
-                    require(profile.cnc.isFinite() && profile.cnc >= 0.0)
-                    require(profile.ssc.isFinite() && profile.ssc >= 0.0)
-                    require(profile.ttc.isFinite() && profile.ttc >= 0.0)
-                    require(profile.axialLoadFactor.isFinite() && profile.axialLoadFactor >= 0.0)
                     require(profile.technicalDifficulty in 1.0..10.0)
                     require(profile.automationEligible) {
                         "Automation is not eligible: ${configuration.id}"
@@ -190,12 +203,6 @@ object ExerciseCatalogV2Loader {
                     require(rich.biomechanics.equipmentId == profile.equipmentId)
                     require(rich.biomechanics.loadMode == profile.loadMode)
                     require(rich.biomechanics.resistanceProfile == profile.resistanceProfile)
-                    require(rich.fatigue.efc == profile.efc)
-                    require(rich.fatigue.cnc == profile.cnc)
-                    require(rich.fatigue.ssc == profile.ssc)
-                    require(rich.fatigue.ttc == profile.ttc)
-                    require(rich.fatigue.axialLoadFactor == profile.axialLoadFactor)
-                    require(rich.fatigue.technicalDifficulty == profile.technicalDifficulty)
                     require(rich.replacement.replacementGroup == profile.replacementGroup)
                     require(rich.replacement.replacementPriority == profile.replacementPriority)
                     require(rich.display.displayName == definition.canonicalName)
@@ -215,7 +222,6 @@ object ExerciseCatalogV2Loader {
                     }
                     requireNonBlank(rich.programming.role ?: "", "rich.programming.role")
                     require(rich.programming.indicativeRestSeconds != null)
-                    requireNonBlank(rich.programming.fatigueCost ?: "", "rich.programming.fatigueCost")
                     requireNonBlankList(rich.programming.requiredEquipment, "rich.programming.requiredEquipment")
                     requireNonBlankList(rich.replacement.compatibleEquipmentIds, "rich.replacement.compatibleEquipmentIds", allowEmpty = true)
                     requireNonBlankList(rich.replacement.preservesIntent, "rich.replacement.preservesIntent")

@@ -55,11 +55,6 @@ public struct ExerciseCatalogProfileV2: Codable {
     public let primaryMuscles: [String]
     public let secondaryMuscles: [String]
     public let stabilizerMuscles: [String]
-    public let efc: Double
-    public let cnc: Double
-    public let ssc: Double
-    public let ttc: Double
-    public let axialLoadFactor: Double
     public let technicalDifficulty: Double
     public let resistanceProfile: String
     public let setupCues: [String]
@@ -76,7 +71,6 @@ public struct ExerciseCatalogRichMetadataV2: Codable {
     public let anatomy: ExerciseCatalogAnatomyV2
     public let biomechanics: ExerciseCatalogBiomechanicsV2
     public let programming: ExerciseCatalogProgrammingV2
-    public let fatigue: ExerciseCatalogFatigueV2
     public let replacement: ExerciseCatalogReplacementV2
     public let display: ExerciseCatalogDisplayV2
     public let evidenceConfidence: String
@@ -114,7 +108,6 @@ public struct ExerciseCatalogBiomechanicsV2: Codable {
 }
 
 public struct ExerciseCatalogProgrammingV2: Codable {
-    public let fatigueCost: String
     public let indicativeRestSeconds: ExerciseCatalogRestRangeV2
     public let requiredEquipment: [String]
     public let role: String
@@ -123,15 +116,6 @@ public struct ExerciseCatalogProgrammingV2: Codable {
 public struct ExerciseCatalogRestRangeV2: Codable {
     public let max: Int
     public let min: Int
-}
-
-public struct ExerciseCatalogFatigueV2: Codable {
-    public let axialLoadFactor: Double
-    public let cnc: Double
-    public let efc: Double
-    public let ssc: Double
-    public let technicalDifficulty: Double
-    public let ttc: Double
 }
 
 public struct ExerciseCatalogReplacementV2: Codable {

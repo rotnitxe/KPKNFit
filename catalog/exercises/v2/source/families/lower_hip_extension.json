@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Dos cargas cuelgan bajo los hombros, una por mano, mientras el torso pivota sobre el apoyo inclinado. Los brazos largos dejan el peso separado del pecho y el agarre sostiene ambas mancuernas durante todo el recorrido.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Pliega la cadera dejando que las mancuernas cuelguen sin golpear el banco.",
                 "Extiende la cadera hasta alinear el torso con las piernas.",
                 "Termina la repetición sin subir el pecho por encima de la línea corporal."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -168,14 +164,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Hiperextensiones a 45° para Glúteos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -192,7 +180,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -223,14 +210,12 @@
                 "Agarra una mancuerna en cada mano con los brazos largos."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -250,19 +235,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El eje apoyado en la espalda alta acompaña al torso y deja las manos dedicadas a fijar ese contacto. Su posición posterior exige acomodar la barra y los discos sin que rocen el banco al inclinarse.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Baja desde la cadera conservando la forma del tronco.",
                 "Devuelve la pelvis y el torso a su alineación inicial.",
                 "Afirma la barra con las manos sin empujarla por separado."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -381,14 +362,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Hiperextensiones a 45° para Glúteos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -405,7 +378,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -436,13 +408,11 @@
                 "Coloca la cadera libre sobre el borde del banco y fija los tobillos."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -462,19 +432,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El disco se abraza cerca del pecho con los codos doblados, de modo que la carga queda pegada al torso. Esa proximidad permite sujetarlo durante la bisagra sin una barra que sobresalga hacia los lados del banco.",
-              "efc": 2.8,
               "equipmentId": "plate",
               "executionCues": [
                 "Inclina el torso sin separar el disco del pecho.",
                 "Eleva el cuerpo extendiendo las caderas con las rodillas quietas.",
                 "Acaba al llegar a la línea de las piernas sin arquear la cintura."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -627,14 +593,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Hiperextensiones a 45° para Glúteos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -651,7 +609,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -682,15 +639,13 @@
                 "Afirma los tobillos y deja el pliegue de cadera fuera del borde del apoyo."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm",
                 "biceps"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "plate"
@@ -710,19 +665,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra Smith queda bloqueada y acolchada como apoyo fijo para la parte anterior alta de los muslos. Con los pies en el suelo detrás del apoyo, la cadera permite plegar y elevar el tronco; la barra no descansa sobre la espalda ni se desplaza por los rieles.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Pliega el tronco desde las caderas sobre el apoyo acolchado manteniendo los pies plantados.",
                 "Regresa extendiendo las caderas hasta la línea corporal, sin añadir un arqueo lumbar.",
                 "Mantén el contacto anterior con el pad y la barra bloqueada durante todo el movimiento."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -841,14 +792,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Hiperextensiones a 45° para Glúteos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -865,7 +808,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -897,13 +839,11 @@
                 "Cruza los brazos sobre el pecho y comprueba que la barra permanece fija."
               ],
               "setupTimeSeconds": 40,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -949,17 +889,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con polea, la pierna se extiende hacia atrás y arriba con el glúteo contrayéndose en lo alto del arco. Con la polea, la tensión sobre el glúteo mayor se mantiene viva de principio a fin.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea en el tobillo: empujas el talón atrás y arriba contra la tensión constante. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1070,14 +1006,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Patada de Glúteo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1094,7 +1022,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1122,10 +1049,8 @@
                 "Preparación: Polea en el tobillo: empujas el talón atrás y arriba contra la tensión constante."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1145,17 +1070,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con mancuernas, la pierna se extiende hacia atrás y arriba con el glúteo contrayéndose en lo alto del arco. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuerna detrás de la rodilla: la patada tradicional con carga libre. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1266,14 +1187,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Patada de Glúteo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1290,7 +1203,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1318,10 +1230,8 @@
                 "Preparación: Mancuerna detrás de la rodilla: la patada tradicional con carga libre."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -1341,19 +1251,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "En cuadrupedia, un solo lazo elástico pasa bajo la rodilla de apoyo y alrededor de la suela del pie activo. La pierna empuja hacia atrás contra la banda mientras la pelvis permanece estable.",
-              "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
                 "Extiende la cadera llevando el pie activo hacia atrás contra la banda.",
                 "Mantén la pelvis orientada al suelo y detén la subida antes de arquear la zona lumbar.",
                 "Vuelve despacio conservando la banda apoyada en la suela."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1464,14 +1370,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Patada de Glúteo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1488,7 +1386,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1517,10 +1414,8 @@
                 "Fija una parte del lazo bajo la rodilla de apoyo y coloca la parte opuesta alrededor de la suela del pie activo, sin torsiones."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "band"
@@ -1566,17 +1461,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con barra y a dos lados, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra en la cadera con ambas piernas: el puente tradicional con carga. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1688,14 +1579,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1712,7 +1595,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1740,10 +1622,8 @@
                 "Preparación: Barra en la cadera con ambas piernas: el puente tradicional con carga."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -1764,17 +1644,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con barra y a un lado, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra en la cadera con una pierna: el glúteo de un lado hace la mayor parte de la carga y el equilibrio suma reto. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1886,14 +1762,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1910,7 +1778,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1938,10 +1805,8 @@
                 "Preparación: Barra en la cadera con una pierna: el glúteo de un lado hace la mayor parte de la carga y el equilibrio suma reto."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -1962,17 +1827,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con mancuernas y a dos lados, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuerna en la cadera con ambas piernas: carga cómoda y recorrido libre. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2084,14 +1945,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2108,7 +1961,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2136,10 +1988,8 @@
                 "Preparación: Mancuerna en la cadera con ambas piernas: carga cómoda y recorrido libre."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -2160,17 +2010,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con mancuernas y a un lado, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuerna con una pierna: el glúteo trabaja sin ayuda del otro lado y el equilibrio se entrena de regalo. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2282,14 +2128,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2306,7 +2144,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2334,10 +2171,8 @@
                 "Preparación: Mancuerna con una pierna: el glúteo trabaja sin ayuda del otro lado y el equilibrio se entrena de regalo."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -2358,17 +2193,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con máquina Smith y a dos lados, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Smith en la cadera con ambas piernas: la barra guiada sube en línea recta y el glúteo se concentra en empujar. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2480,14 +2311,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2504,7 +2327,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2532,10 +2354,8 @@
                 "Preparación: Smith en la cadera con ambas piernas: la barra guiada sube en línea recta y el glúteo se concentra en empujar."
               ],
               "setupTimeSeconds": 40,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -2556,17 +2376,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con máquina Smith y a un lado, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Smith con una pierna: el guiado sostiene la barra y el lado trabajado hace el esfuerzo. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2678,14 +2494,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2702,7 +2510,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2730,10 +2537,8 @@
                 "Preparación: Smith con una pierna: el guiado sostiene la barra y el lado trabajado hace el esfuerzo."
               ],
               "setupTimeSeconds": 40,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -2754,17 +2559,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Sin carga sobre la cadera y boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor levanta solo el peso del torso y la pelvis se extiende sin apoyo externo alguno.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Boca arriba con las rodillas dobladas y los pies firmes: la cadera sube hasta formar una línea recta entre hombros, cadera y rodillas y baja sin apoyar la espalda baja."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2876,14 +2677,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Puente de Glúteos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2900,7 +2693,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2926,10 +2718,8 @@
                 "Preparación: Boca arriba con las rodillas dobladas y los pies firmes: la cadera sube hasta formar una línea recta entre hombros, cadera y rodillas y baja sin apoyar la espalda baja."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "bodyweight",
@@ -2977,17 +2767,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con máquina, boca abajo sobre el aparato, las piernas se elevan hacia atrás balanceándose sin comprimir la columna. El glúteo mayor trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina con la pelvis apoyada: las piernas se desplazan hacia atrás y la cadera produce la extensión mientras el tronco queda descargado. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3099,14 +2885,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Reverse Hyper",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3122,7 +2900,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3151,10 +2928,8 @@
                 "Preparación: Máquina con la pelvis apoyada: las piernas se desplazan hacia atrás y la cadera produce la extensión mientras el tronco queda descargado."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.4,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {}
           }
@@ -3195,19 +2970,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los pliegues internos de los codos reciben el eje y las manos se juntan por encima, sin hacer un agarre pesado de dedos. El borde bajo las caderas deja libre el pivote mientras los discos quedan a los lados del banco.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Inclina el torso desde las caderas sin redondear la zona lumbar.",
                 "Levanta el cuerpo hasta la línea de las piernas con la barra cerca del pecho.",
                 "Sostén el ángulo de los codos durante toda la repetición."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3341,14 +3112,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Hiperextensión a 45 Zercher para Glúteos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3364,7 +3127,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3392,14 +3154,12 @@
                 "Recibe la barra en ambos codos doblados y junta las manos frente al pecho."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "biceps"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

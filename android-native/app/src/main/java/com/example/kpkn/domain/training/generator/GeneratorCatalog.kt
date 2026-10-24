@@ -58,7 +58,6 @@ internal class CatalogEntry(
     val setupSeconds: Int get() = configuration.profile.setupTimeSeconds ?: 30
     val isCompound: Boolean get() = configuration.profile.articulationType == ExerciseArticulationTypeV2.MULTIARTICULAR
     val loadMode: String get() = configuration.profile.loadMode
-    val axialLoadFactor: Double get() = configuration.profile.axialLoadFactor
 
     /** Soportes que exige la configuración según el contrato compartido de la app (`supportRequirementsFor`). */
     val sharedRequirements: Set<String> by lazy { supportRequirementsFor(configuration.id) }

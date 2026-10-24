@@ -28,7 +28,6 @@ data class ExerciseCompositionMetadata(
     val movementPatternId: String?,
     val primaryMuscles: List<String>,
     val secondaryMuscles: List<String>,
-    val axialLoadFactor: Double,
     val replacementGroup: String?,
     val laterality: String?,
     val performanceProfileId: String?,

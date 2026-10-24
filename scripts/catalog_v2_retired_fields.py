@@ -31,12 +31,20 @@ RETIRED_FIELD_PATHS: tuple[str, ...] = (
     "family.evidence.rationale",
     "definition.evidence.rationale",
     "configuration.evidence.rationale",
+    "profile.efc",
+    "profile.cnc",
+    "profile.ssc",
+    "profile.ttc",
+    "profile.axialLoadFactor",
+    "profile.fatigueTier",
     "profile.benefits",
     "profile.techniqueSummary",
     "profile.variantRationale",
     "profile.commonMistakes",
     "profile.muscleNotes",
     "profile.jointInvolvement[].note",
+    "richMetadata.fatigue",
+    "richMetadata.programming.fatigueCost",
     "richMetadata.editorial",
     "richMetadata.coaching",
     "richMetadata.safety",
@@ -53,12 +61,13 @@ RETIRED_FIELD_PATHS: tuple[str, ...] = (
     "richMetadata.programming.splitSuitability",
 )
 
-_PROFILE_KEYS = ("benefits", "techniqueSummary", "variantRationale", "commonMistakes", "muscleNotes")
-_RICH_BLOCKS = ("editorial", "coaching", "safety")
+_PROFILE_KEYS = ('efc', 'cnc', 'ssc', 'ttc', 'axialLoadFactor', 'fatigueTier', 'benefits', 'techniqueSummary', 'variantRationale', 'commonMistakes', 'muscleNotes')
+_RICH_BLOCKS = ("fatigue", "editorial", "coaching", "safety")
 _RICH_FIELDS = {
     "anatomy": ("targetRegions", "muscleLengthBias", "stabilizationDemand"),
     "biomechanics": ("rangeOfMotion", "relevantTendons"),
     "programming": (
+        "fatigueCost",
         "objectives",
         "suitableRepRanges",
         "recoveryCost",

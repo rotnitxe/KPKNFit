@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Sin anclaje, una mano tira contra la otra: con las manos al ancho de los hombros la goma apenas se estira, y la mayor resistencia llega con los brazos en cruz, justo cuando las escápulas están más cerca.",
-              "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
                 "Abre los brazos hacia los lados, sin doblar los codos, hasta que la banda toque el pecho.",
                 "Junta los omóplatos al abrir y deja los hombros bajos.",
                 "Regresa despacio hasta tener otra vez las manos delante del pecho."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -146,14 +142,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Band Pull-Apart",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -167,7 +155,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -197,12 +184,10 @@
                 "Sube los brazos estirados al frente hasta la altura de los hombros, con la banda ya algo estirada."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }
@@ -241,19 +226,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "La goma sale de un anclaje a la altura del pecho y pide más fuerza cuanto más atrás llegan los codos. De pie y sin respaldo, el cuerpo hace de contrapeso: inclinarse hacia atrás estira la banda con el peso y abarata el tirón.",
-              "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
                 "Lleva los codos atrás, rozando el costado, hasta que las manos lleguen a las costillas.",
                 "Aprieta las escápulas al final con el torso quieto y vertical.",
                 "Vuelve despacio hasta estirar los brazos, sin dejar que la banda tire de ti."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -386,14 +367,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo en Banda Elástica",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -407,7 +380,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -440,13 +412,11 @@
                 "Gira las palmas una hacia la otra y deja las muñecas rectas."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }
@@ -485,19 +455,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Las mancuernas descansan en el suelo por dentro de los pies, con las asas paralelas a ellos, y se agarran en neutro. La mano libre empuja sobre la mancuerna que espera; con mancuernas hexagonales ese apoyo no rueda.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Rema una mancuerna hasta la cadera mientras la otra mano empuja la otra mancuerna contra el suelo.",
                 "Deja que el pecho gire un poco hacia el brazo que sube, sin que la cadera se levante.",
                 "Posa la mancuerna, cambia de brazo y alterna hasta terminar las repeticiones."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -654,14 +620,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Gorilla",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -677,7 +635,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -711,7 +668,6 @@
                 "Lleva la cadera atrás, dobla las rodillas y agarra las dos asas con el torso casi paralelo al suelo."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -719,8 +675,7 @@
                 "gluteus_maximus",
                 "forearm"
               ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -740,19 +695,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Cada kettlebell se apoya sobre su base plana, así que la que espera aguanta el empuje de la mano libre sin rodar. El asa queda alta y fácil de alcanzar, y al remar la bola cuelga por debajo del puño hasta la altura de la cadera.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Rema una kettlebell hasta la cadera y empuja la otra contra el suelo con la mano libre.",
                 "Abre un poco el pecho hacia el lado que rema y vuelve a cuadrarlo al bajar.",
                 "Apoya la kettlebell en el suelo antes de remar con el otro brazo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -909,14 +860,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Gorilla",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -932,7 +875,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -966,7 +908,6 @@
                 "Lleva la cadera atrás hasta dejar el torso casi horizontal y agarra cada asa con la palma hacia dentro."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -974,8 +915,7 @@
                 "gluteus_maximus",
                 "forearm"
               ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -995,18 +935,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con dos poleas bajas delante del cuerpo, cada mano sujeta un agarre y los brazos se alternan, pero nada queda apoyado en el suelo: el brazo que espera sostiene su cable estirado con la misma carga. Ese peso compensa buena parte de la torsión, así que el tronco gira poco.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Rema un agarre hasta la cadera mientras el otro brazo sigue estirado sosteniendo su cable.",
                 "Estira ese brazo de nuevo y rema con el otro, sin que el tronco gire hacia la polea."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1160,14 +1096,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Gorilla",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1183,7 +1111,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1217,7 +1144,6 @@
                 "Abre bien los pies, lleva la cadera atrás y deja el torso casi horizontal con los brazos estirados hacia las poleas."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -1225,8 +1151,7 @@
                 "gluteus_maximus",
                 "forearm"
               ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1271,19 +1196,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Sin lastre, lo que pesa es la parte del cuerpo que no descansa en los talones: bajar la barra o subir los pies a un cajón aumenta esa parte, y doblar las rodillas la reduce.",
-              "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Lleva los codos hacia el suelo y atrás hasta que el pecho roce la barra.",
                 "Junta las escápulas arriba, sin adelantar la barbilla.",
                 "Baja despacio hasta estirar los brazos, con la cadera en línea."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1438,14 +1359,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Invertido",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1459,7 +1372,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1492,7 +1404,6 @@
                 "Alinea hombros, cadera y tobillos antes del primer tirón."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm",
                 "erector_spinae",
@@ -1500,8 +1411,7 @@
                 "gluteus_maximus",
                 "hamstrings"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }
@@ -1540,19 +1450,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Las mancuernas de caras planas, como las hexagonales, no ruedan bajo la mano de apoyo y dan una base ancha y baja. El asa queda cerca del suelo, así que el cuerpo forma una plancha casi horizontal y la mancuerna sube hasta la costilla.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Empuja una mancuerna contra el suelo y sube la otra hasta la costilla, con el codo pegado al costado.",
                 "No dejes que la cadera gire hacia el brazo que rema.",
                 "Posa la mancuerna sin golpe y repite con el otro brazo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1689,14 +1595,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Renegado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1712,7 +1610,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1746,14 +1643,12 @@
                 "Estira las piernas atrás con los pies más abiertos que la cadera y el cuerpo recto."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "triceps",
                 "pectoralis",
                 "forearm"
               ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -1773,19 +1668,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "La bola queda bajo el asa: la mano de apoyo empuja más lejos del suelo y sobre una base redonda y pequeña, que vuelca si la muñeca se tuerce. En el brazo que rema, la bola cuelga bajo el puño y tira del antebrazo hacia el suelo.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Aprieta el asa de apoyo y lleva la otra kettlebell hacia la cadera, codo cerca del costado.",
                 "Vigila que la kettlebell de apoyo no se incline y que la cadera no rote.",
                 "Deja la kettlebell en el suelo con suavidad antes de cambiar de brazo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1922,14 +1813,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Renegado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1945,7 +1828,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1979,14 +1861,12 @@
                 "Abre los pies más que la cadera y estira el cuerpo en plancha alta."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "triceps",
                 "pectoralis",
                 "forearm"
               ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -2031,19 +1911,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Colocada por encima de la cabeza, la polea tira de las manos hacia delante y algo hacia arriba en todo el recorrido, sin tramos de descanso; al final, ese tiro intenta girar los antebrazos hacia delante y los hombros lo frenan rotando hacia fuera.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Tira del centro de la cuerda hacia tu frente con los codos altos, a la altura de los hombros.",
                 "Separa los extremos al final hasta dejar las manos junto a las orejas, nudillos hacia el techo.",
                 "Aguanta un segundo y estira los brazos hacia la polea sin dejar que te arrastre."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2161,14 +2037,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Face Pull",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2182,7 +2050,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -2213,12 +2080,10 @@
                 "Agarra un extremo con cada mano, pulgares hacia atrás, y retrocede con un pie adelantado hasta notar el tiro."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {}
           }

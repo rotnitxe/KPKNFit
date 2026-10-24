@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con TRX, inclinado hacia delante con las asas, los codos se extienden para enderezar el cuerpo. Con el TRX, el propio cuerpo es la pila de placas y la estabilidad se suma al trabajo del tríceps.",
-              "efc": 2.2,
               "equipmentId": "trx",
               "executionCues": [
                 "Colgado del TRX con los codos extendiendo: tu peso carga el tríceps y el core aguanta el cuerpo. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -125,14 +121,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps en TRX",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -148,7 +136,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -176,10 +163,8 @@
                 "Preparación: Colgado del TRX con los codos extendiendo: tu peso carga el tríceps y el core aguanta el cuerpo."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {}
           }
@@ -220,17 +205,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, tumbado, la carga baja por detrás de la nuca y el tríceps se estira al máximo antes de empujar. Con mancuernas, cada lado ajusta su línea y el trabajo del tríceps se equilibra solo.",
-              "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuerna bajando hacia la cadera con un brazo: el tríceps se estira y se concentra a la vez. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -325,14 +306,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps PJR con Mancuerna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -347,7 +320,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -375,10 +347,8 @@
                 "Preparación: Mancuerna bajando hacia la cadera con un brazo: el tríceps se estira y se concentra a la vez."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {}
           }
@@ -418,17 +388,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con peso corporal, desde los antebrazos en el suelo, el cuerpo sube extendiendo los codos con el tronco en línea. El tríceps trabaja con el peso corporal como única carga.",
-              "efc": 2.2,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Flexiones con los codos pegados y apuntando atrás: el tríceps hace el trabajo completo. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -521,14 +487,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Flexiones Esfinge",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -544,7 +502,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -570,10 +527,8 @@
                 "Preparación: Flexiones con los codos pegados y apuntando atrás: el tríceps hace el trabajo completo."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {}
           }
@@ -614,17 +569,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con peso corporal, con las manos en un banco y los pies en otro, el cuerpo baja entre ambos con el tríceps frenando. Sin más carga que el propio cuerpo, la exigencia del tríceps es la justa.",
-              "efc": 2.2,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Manos en el banco y cuerpo bajando: el tríceps sube y baja todo el peso. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -722,14 +673,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Fondos Entre Bancos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -744,7 +687,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -773,12 +715,10 @@
                 "Preparación: Manos en el banco y cuerpo bajando: el tríceps sube y baja todo el peso."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {}
           }
@@ -818,17 +758,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, tumbado, la carga baja hacia la frente con los codos quietos y la extensión completa al subir. Con mancuernas, cada lado ajusta su línea y el trabajo del tríceps se equilibra solo.",
-              "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas acostado: bajas hacia la frente flexionando los codos. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -923,14 +859,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Francés",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -946,7 +874,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -976,10 +903,8 @@
                 "Preparación: Mancuernas acostado: bajas hacia la frente flexionando los codos."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -999,17 +924,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con barra, tumbado, la carga baja hacia la frente con los codos quietos y la extensión completa al subir. El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-              "efc": 2.2,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra acostado: bajas la barra hacia la frente y estiras. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1104,14 +1025,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Francés",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1127,7 +1040,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1157,10 +1069,8 @@
                 "Preparación: Barra acostado: bajas la barra hacia la frente y estiras."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -1180,17 +1090,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con barra EZ, tumbado, la carga baja hacia la frente con los codos quietos y la extensión completa al subir. El tríceps trabaja con la barra EZ, que cuida las muñecas en todo el arco.",
-              "efc": 2.2,
               "equipmentId": "ez_bar",
               "executionCues": [
                 "Barra EZ acostado: el ángulo de las manos suele resultar más cómodo para muñecas y codos mientras la carga desciende hacia la frente. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1285,14 +1191,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Francés",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1308,7 +1206,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1338,10 +1235,8 @@
                 "Preparación: Barra EZ acostado: el ángulo de las manos suele resultar más cómodo para muñecas y codos mientras la carga desciende hacia la frente."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "ez_bar"
@@ -1361,17 +1256,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea, tumbado, la carga baja hacia la frente con los codos quietos y la extensión completa al subir. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea acostado: la tensión constante estira el tríceps en todo el recorrido. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1466,14 +1357,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Francés",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1489,7 +1372,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1519,10 +1401,8 @@
                 "Preparación: Polea acostado: la tensión constante estira el tríceps en todo el recorrido."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1542,17 +1422,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con kettlebell, tumbado, la carga baja hacia la frente con los codos quietos y la extensión completa al subir. El tríceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-              "efc": 2.2,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Kettlebell acostado: la campana baja hacia la frente con un agarre distinto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1647,14 +1523,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Francés",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1670,7 +1538,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1700,10 +1567,8 @@
                 "Preparación: Kettlebell acostado: la campana baja hacia la frente con un agarre distinto."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1748,17 +1613,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con máquina, sentado en el aparato, los codos se extienden contra la resistencia guiada. En la máquina, la trayectoria guiada concentra todo el esfuerzo del tríceps.",
-              "efc": 2.2,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina de tríceps: empujas la palanca con el recorrido guiado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1851,14 +1712,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press de Tríceps en Máquina",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1872,7 +1725,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1898,10 +1750,8 @@
                 "Preparación: Máquina de tríceps: empujas la palanca con el recorrido guiado."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {}
           }
@@ -1940,17 +1790,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea y a dos lados, de pie frente a la polea alta, las manos empujan hacia abajo con los codos pegados al torso. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin. A dos lados, el trabajo del tríceps admite más carga total.",
-              "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea alta con ambas manos: estiras los brazos hacia abajo con los codos pegados. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2046,14 +1892,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2070,7 +1908,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -2098,10 +1935,8 @@
                 "Preparación: Polea alta con ambas manos: estiras los brazos hacia abajo con los codos pegados."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "cable",
@@ -2122,17 +1957,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea y a un lado, de pie frente a la polea alta, las manos empujan hacia abajo con los codos pegados al torso. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. A un lado, el trabajo del tríceps se hace en solitario y las diferencias salen a la vista.",
-              "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea alta con una mano: cada tríceps trabaja por separado con tensión constante. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2228,14 +2059,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2252,7 +2075,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -2280,10 +2102,8 @@
                 "Preparación: Polea alta con una mano: cada tríceps trabaja por separado con tensión constante."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "cable",
@@ -2304,17 +2124,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con máquina y a dos lados, de pie frente a la polea alta, las manos empujan hacia abajo con los codos pegados al torso. El tríceps trabaja en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
-              "efc": 2.2,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina de tríceps con ambas manos: la palanca baja guiada y el tríceps concentrado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2410,14 +2226,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2434,7 +2242,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -2462,10 +2269,8 @@
                 "Preparación: Máquina de tríceps con ambas manos: la palanca baja guiada y el tríceps concentrado."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "machine",
@@ -2486,17 +2291,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con máquina y a un lado, de pie frente a la polea alta, las manos empujan hacia abajo con los codos pegados al torso. El tríceps trabaja en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
-              "efc": 2.2,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina con una mano: un tríceps a la vez con el guiado de la palanca. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2592,14 +2393,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2616,7 +2409,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -2644,10 +2436,8 @@
                 "Preparación: Máquina con una mano: un tríceps a la vez con el guiado de la palanca."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "machine",
@@ -2668,17 +2458,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con banda elástica y a dos lados, de pie frente a la polea alta, las manos empujan hacia abajo con los codos pegados al torso. El tríceps trabaja con la banda, cuya resistencia crece con el recorrido. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
-              "efc": 2.2,
               "equipmentId": "band",
               "executionCues": [
                 "Banda anclada arriba con ambas manos: la resistencia crece cuando los codos se acercan a la extensión completa. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2774,14 +2560,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2798,7 +2576,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -2826,10 +2603,8 @@
                 "Preparación: Banda anclada arriba con ambas manos: la resistencia crece cuando los codos se acercan a la extensión completa."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "band",
@@ -2850,17 +2625,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con banda elástica y a un lado, de pie frente a la polea alta, las manos empujan hacia abajo con los codos pegados al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del tríceps. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
-              "efc": 2.2,
               "equipmentId": "band",
               "executionCues": [
                 "Banda con una mano: tensión progresiva en un tríceps a la vez. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2956,14 +2727,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2980,7 +2743,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -3008,10 +2770,8 @@
                 "Preparación: Banda con una mano: tensión progresiva en un tríceps a la vez."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "band",
@@ -3059,17 +2819,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, tumbado en el suelo, la carga rueda desde la cadera hasta detrás de la cabeza y se extiende sobre el pecho. Con mancuernas, cada lado ajusta su línea y el trabajo del tríceps se equilibra solo.",
-              "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Barra que rueda por los muslos mientras extiendes: una variante rara con una sensación fresca. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3162,14 +2918,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Rolling Extension de Tríceps",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3184,7 +2932,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -3210,10 +2957,8 @@
                 "Preparación: Barra que rueda por los muslos mientras extiendes: una variante rara con una sensación fresca."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {}
           }
@@ -3253,17 +2998,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con la barra recta tomada a la anchura de los hombros y el cuerpo tumbado en el banco, la carga baja hacia la frente mientras los codos permanecen fijos hacia el techo y vuelve a subir hasta extender los brazos: el tríceps recorre todo el codo con el hombro sostenido, que es lo que distingue al skullcrusher de un press de banca.",
-              "efc": 2.2,
               "equipmentId": "barbell",
               "executionCues": [
                 "Con la barra sobre el pecho y los codos hacia el techo, la carga baja hacia la frente doblando el antebrazo sin mover el hombro, pausa breve en el punto de mayor tensión y extensión completa hasta los brazos rectos sin chocar la barra contra la frente."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3356,14 +3097,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Tumbada",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3380,7 +3113,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3407,10 +3139,8 @@
                 "Preparación: Tumbado en el banco con la barra recta sobre el pecho, pies apoyados en el suelo y codos hacia el techo, la barra se toma a la anchura de los hombros y los hombros quedan fijos antes de empezar la serie."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.6
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }

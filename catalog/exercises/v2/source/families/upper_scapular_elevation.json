@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Las mancuernas cuelgan a los costados con las palmas hacia los muslos, en la vertical de los hombros, y nada roza el cuerpo al subir. Cada brazo carga su propio peso, así que si un hombro sube menos que el otro se nota enseguida.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Sube los hombros hacia las orejas en línea recta, sin doblar los codos.",
                 "Arriba, comprueba que las dos mancuernas quedan a la misma altura y baja despacio.",
                 "No gires los hombros en círculo ni al subir ni al bajar."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -147,14 +143,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Encogimientos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -171,7 +159,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -204,12 +191,10 @@
                 "Deja los brazos estirados a los costados, con las palmas mirando a los muslos."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -229,19 +214,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Los rieles fijan la barra en vertical y los ganchos dejan sacarla ya a la altura de los muslos, sin levantarla desde el suelo. Al no tener que estabilizar la barra hacia delante o hacia atrás, solo queda subir y bajar los hombros.",
-              "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Sube los hombros en vertical a lo largo de los rieles, sin doblar los codos.",
                 "Baja hasta sentir el cuello largo y vuelve a subir sin rebotar.",
                 "Al terminar, gira la barra para engancharla antes de soltarla."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -356,14 +337,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Encogimientos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -380,7 +353,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -414,12 +386,10 @@
                 "Gira la barra para soltar los ganchos y estira los brazos."
               ],
               "setupTimeSeconds": 40,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -439,18 +409,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "La polea baja queda por delante de los pies y tira de la barra hacia ella, así que la resistencia no es del todo vertical. Un paso hacia la polea o hacia atrás cambia ese ángulo, y el peso se ajusta con el pasador.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Sube los hombros hacia las orejas sin dejar que la polea te incline hacia delante.",
                 "Frena la bajada de los hombros, porque el cable tira de la barra hacia la polea."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -565,14 +531,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Encogimientos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -589,7 +547,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -622,12 +579,10 @@
                 "Agarra la barra en prono al ancho de los hombros y retrocede hasta que el cable quede tirante."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "cable"
@@ -647,18 +602,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Cada kettlebell cuelga bajo el puño con la bola pegada al lateral del muslo, y su asa gruesa obliga a cerrar la mano con más fuerza. Si los hombros no suben en línea recta, la bola roza o golpea la pierna.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Sube los hombros hacia las orejas sin que las bolas choquen con las piernas.",
                 "Aprieta el asa toda la serie y baja despacio."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -773,14 +724,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Encogimientos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -797,7 +740,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -830,12 +772,10 @@
                 "Ponte de pie con los brazos estirados y las palmas mirando al cuerpo."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -855,19 +795,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "La barra libre cuelga delante de los muslos en agarre prono al ancho de los hombros y se carga con discos hasta pesos altos. Al quedar el peso por delante del cuerpo, tira de los hombros hacia el frente, y la barra puede rozar los muslos en la subida.",
-              "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
                 "Sube los hombros hacia las orejas sin doblar los codos ni adelantar la barra.",
                 "Haz una pausa arriba y baja despacio, sin que el peso de la barra te incline hacia delante.",
                 "Deja que la barra roce los muslos sin apoyarla en ellos."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -982,14 +918,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Encogimientos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1006,7 +934,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1039,12 +966,10 @@
                 "Agarra la barra en prono al ancho de los hombros, con los brazos estirados delante de los muslos."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -1090,19 +1015,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Sin apoyo para el pecho, el tronco se inclina casi paralelo al suelo y la barra cuelga bajo los hombros en agarre prono. La zona lumbar y las caderas sostienen esa inclinación toda la serie, de modo que la espalda baja trabaja además de las escápulas.",
-              "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
                 "Junta las escápulas hacia la columna sin doblar los codos ni subir los hombros.",
                 "Aguanta un segundo con las escápulas juntas.",
                 "Sepáralas despacio sin perder la inclinación del tronco."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1252,14 +1173,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1275,7 +1188,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1309,15 +1221,13 @@
                 "Deja colgar la barra bajo los hombros con los brazos estirados."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm",
                 "erector_spinae",
                 "hamstrings",
                 "gluteus_maximus"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -1337,19 +1247,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "El pecho descansa en el acolchado de una máquina de remo con apoyo y las manos sostienen las asas con los brazos estirados. Solo se mueven las escápulas, y la carga avanza unos centímetros sin que la espalda baja tenga que sostener el tronco.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Junta las escápulas y lleva las asas unos centímetros atrás, con los codos rectos.",
                 "Mantén el pecho pegado al acolchado durante toda la serie.",
                 "Vuelve despacio hasta notar las escápulas separadas."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1464,14 +1370,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1487,7 +1385,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1520,12 +1417,10 @@
                 "Apoya el pecho, agarra las asas y deja los brazos estirados con las escápulas separadas."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "machine"
@@ -1545,18 +1440,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Sentado en la estación de remo, con el tronco vertical, el cable sube en diagonal desde la polea, junto a los pies, hasta las manos a la altura del pecho. Juntar las escápulas aleja la barra unos centímetros de la polea, con la carga tirando hacia delante y hacia abajo.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Junta las escápulas y lleva los hombros hacia atrás sin doblar los codos ni echar el tronco atrás.",
                 "Deja que la polea separe las escápulas despacio antes de repetir."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1688,14 +1579,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1711,7 +1594,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1744,13 +1626,11 @@
                 "Agarra la barra con las palmas hacia abajo y siéntate erguido con los brazos estirados al frente."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1770,18 +1650,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con el pecho sobre un banco inclinado, cada mano sostiene una kettlebell que cuelga bajo el hombro y se mueve por su cuenta. La bola por debajo del puño tiende a balancearse si las escápulas se sueltan de golpe.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Junta las escápulas sin doblar los codos y nota cómo las dos kettlebells suben a la vez.",
                 "Aguanta un segundo arriba y baja las kettlebells despacio, sin que se balanceen."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1896,14 +1772,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1919,7 +1787,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1952,12 +1819,10 @@
                 "Deja colgar una kettlebell en cada mano bajo los hombros, con los brazos estirados."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1977,18 +1842,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.2,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Un banco inclinado unos 45 grados se coloca entre los rieles, con el pecho sobre el extremo alto y la barra colgando delante. La barra solo puede subir en vertical y se desengancha a la altura de los brazos, sin recogerla del suelo.",
-              "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Junta las escápulas y deja que la barra suba por los rieles, con los codos rectos.",
                 "Baja despacio hasta separar las escápulas y engancha la barra al terminar."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2103,14 +1964,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Kelso Shrugs",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2126,7 +1979,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2160,12 +2012,10 @@
                 "Desengancha la barra girándola y deja que los brazos cuelguen estirados."
               ],
               "setupTimeSeconds": 40,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -2210,19 +2060,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con una mancuerna ligera en cada mano, cada brazo dibuja su lado de la Y sin nada que lo una al otro. El tronco se sostiene solo, inclinado desde la cadera, durante toda la serie, y la zona lumbar trabaja en isometría para que la espalda no se redondee.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Pega la parte baja de las escápulas a las costillas antes de subir los brazos.",
                 "Sube los brazos estirados en diagonal hasta formar una Y con el tronco, con los pulgares hacia arriba.",
                 "Aguanta un segundo arriba y baja despacio sin enderezar el tronco."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2340,14 +2186,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Y-Raises",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2362,7 +2200,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2391,14 +2228,12 @@
                 "Deja colgar los brazos bajo los hombros, con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "hamstrings",
                 "gluteus_maximus"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }

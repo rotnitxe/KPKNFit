@@ -20,18 +20,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "El cable llega desde detrás de la cabeza hasta la anilla occipital del arnés. La altura de los ojos sitúa la tracción en sentido posterior y permite flexionar el cuello de pie, sin arrastrar el torso hacia la máquina.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Acerca suavemente la barbilla al pecho mediante flexión del cuello, conservando el torso estable.",
                 "Regresa despacio hacia la posición neutra sin tirar con el cuerpo ni forzar el final del recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -110,14 +106,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Flexiones de Cuello",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -134,7 +122,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -162,10 +149,8 @@
                 "Coloca un arnés de cabeza apto para cable y conecta la anilla occipital posterior; recoge el cabello para dejar la conexión libre."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "cable"
@@ -185,17 +170,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con disco, la barbilla baja hacia el pecho contra la carga sujeta en la frente. El cuello trabaja con el disco, que añade lastre directo y simple.",
-              "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
                 "Disco en la frente: flexionas la cabeza contra el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -274,14 +255,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Flexiones de Cuello",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -298,7 +271,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -325,10 +297,8 @@
                 "Preparación: Disco en la frente: flexionas la cabeza contra el peso."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "plate"

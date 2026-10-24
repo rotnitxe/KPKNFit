@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -143,14 +139,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -167,7 +155,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -198,10 +185,8 @@
                 "Preparación: Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -221,17 +206,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea sentado: tensión constante y sin impulso posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -344,14 +325,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -368,7 +341,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -399,10 +371,8 @@
                 "Preparación: Polea sentado: tensión constante y sin impulso posible."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "cable"
@@ -422,17 +392,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con máquina, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -545,14 +511,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -569,7 +527,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -600,10 +557,8 @@
                 "Preparación: Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "machine"
@@ -623,17 +578,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con kettlebell, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -746,14 +697,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -770,7 +713,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -801,10 +743,8 @@
                 "Preparación: Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -850,17 +790,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -973,14 +909,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -997,7 +925,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -1028,10 +955,8 @@
                 "Preparación: Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -1051,17 +976,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1174,14 +1095,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1198,7 +1111,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -1229,10 +1141,8 @@
                 "Preparación: Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1252,17 +1162,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con máquina, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1375,14 +1281,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1399,7 +1297,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -1430,10 +1327,8 @@
                 "Preparación: Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "machine"
@@ -1453,17 +1348,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con kettlebell, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1576,14 +1467,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1600,7 +1483,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -1631,10 +1513,8 @@
                 "Preparación: Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1680,18 +1560,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Un cable bajo cruza por delante del cuerpo hacia la mano alejada de la columna. El brazo describe el arco lateral hasta una Y alta y recibe resistencia unilateral mientras los pies estabilizan el cuerpo de pie.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Eleva el brazo hacia fuera y ligeramente hacia delante hasta una Y alta por encima de la línea del hombro, con el codo suavemente flexionado.",
                 "Desciende controladamente; evita balancear el tronco o convertir el movimiento en un press."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1804,14 +1680,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Super ROM",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1828,7 +1696,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -1859,10 +1726,8 @@
                 "Sujeta el asa con ese brazo dejando que el cable cruce por delante del cuerpo; estabiliza los pies y el tronco."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1882,17 +1747,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2005,14 +1866,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Super ROM",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2029,7 +1882,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -2059,10 +1911,8 @@
                 "Preparación: Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -2082,18 +1932,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Los rodillos móviles reciben la parte superior de ambos brazos mientras la espalda descansa en el respaldo. El arco bilateral continúa por encima de los hombros hasta formar una Y alta, dentro del recorrido disponible del aparato.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Eleva ambos brazos lateralmente hasta una Y alta por encima de la línea de hombros, dentro del recorrido de la máquina y sin dolor.",
                 "Desciende controladamente sin despegar el tronco del respaldo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2206,14 +2052,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Super ROM",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2230,7 +2068,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -2261,10 +2098,8 @@
                 "Coloca la parte superior de los brazos en contacto con los rodillos de la máquina; deja las manos libres y los pulgares hacia arriba."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "machine"

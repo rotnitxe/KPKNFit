@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con barra, una flexión rápida de rodillas lanza la carga y los brazos terminan el bloqueo arriba. El deltoide trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-              "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
                 "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -142,14 +138,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Push Press",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -164,7 +152,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -193,10 +180,8 @@
                 "Preparación: Impulso de piernas y empuje de hombros: la barra vuela hasta arriba."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {}
           }
@@ -236,18 +221,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Manos y pies están en el suelo y las caderas suben hasta formar una V invertida, con la cabeza apuntando entre las manos. Cuanto más se acercan los pies a las manos, más vertical queda el tronco y más pesa el hombro.",
-              "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Dobla los codos y baja la cabeza entre las manos, hasta casi tocar el suelo.",
                 "Empuja el suelo hasta estirar los codos, con las caderas altas."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -361,14 +342,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Flexiones en Pica",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -387,7 +360,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -417,10 +389,8 @@
                 "Acerca los pies a las manos hasta subir las caderas lo máximo que puedas con las piernas estiradas."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "support_angle": "flat"
@@ -440,18 +410,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Los pies suben a un banco o a un cajón y las caderas quedan aún más altas que en la versión plana, con el tronco más vertical y el peso desplazado hacia las manos. El empuje se acerca así al de un press por encima de la cabeza y exige más al hombro.",
-              "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Baja la cabeza entre las manos con los codos hacia atrás, hasta casi tocar el suelo.",
                 "Empuja el suelo para estirar los codos sin bajar las caderas."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -565,14 +531,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Flexiones en Pica",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -591,7 +549,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -621,10 +578,8 @@
                 "Camina con las manos hacia atrás hasta que el tronco quede casi vertical."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.6
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {
               "support_angle": "feet_elevated"
@@ -673,12 +628,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "La barra sale de la posición de rack frontal con una flexión corta de rodillas y se recibe con una segunda flexión bajo ella, con los pies planos en el mismo sitio. Exige más coordinación que el push press, que termina el recorrido solo con los brazos.",
-              "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
                 "Flexiona las rodillas un poco, con el tronco vertical y la barra apoyada en los hombros.",
@@ -686,7 +638,6 @@
                 "Vuelve a flexionar las rodillas y mete el cuerpo bajo la barra mientras bloqueas los codos sobre la cabeza.",
                 "Estira las piernas hasta quedar erguido con la barra arriba y bájala con control a los hombros."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -881,14 +832,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 6.0,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Envión de Empuje",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -910,7 +853,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -942,15 +884,13 @@
                 "Coloca los pies a la anchura de las caderas, con el tronco erguido y la mirada al frente."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "calves",
                 "core",
                 "erector_spinae",
                 "forearm"
               ],
-              "technicalDifficulty": 6.0,
-              "ttc": 1.6
+              "technicalDifficulty": 6.0
             },
             "selectedOptions": {}
           }
@@ -998,12 +938,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Desde la posición de rack frontal, la barra se recibe con un pie adelantado y otro atrasado, la pierna delantera flexionada y la trasera casi estirada, para recuperar después los pies hasta juntarlos. Esa base larga da más apoyo, pero añade el paso de la tijera y su recuperación.",
-              "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
                 "Dobla las rodillas un poco, con el tronco vertical, y empuja el suelo con fuerza.",
@@ -1011,7 +948,6 @@
                 "Recibe con el pie de delante plano, la rodilla sobre el tobillo y la pierna de atrás casi estirada.",
                 "Recupera primero el pie de delante y luego el de atrás, ponte erguido y baja la barra con control a los hombros."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1210,14 +1146,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 6.5,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Envión de Tijera",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1237,7 +1165,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -1269,7 +1196,6 @@
                 "Decide antes de empezar con qué pie das el paso adelante y repítelo siempre igual."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "calves",
                 "gluteus_medius",
@@ -1277,8 +1203,7 @@
                 "erector_spinae",
                 "forearm"
               ],
-              "technicalDifficulty": 6.5,
-              "ttc": 1.6
+              "technicalDifficulty": 6.5
             },
             "selectedOptions": {}
           }

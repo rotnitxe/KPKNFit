@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, con el torso inclinado, los brazos se abren hacia atrás trabajando la cara posterior del hombro. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas inclinado: abres los brazos hacia los lados con el torso paralelo al suelo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -144,14 +140,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Elevaciones Posteriores",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -168,7 +156,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -199,10 +186,8 @@
                 "Preparación: Mancuernas inclinado: abres los brazos hacia los lados con el torso paralelo al suelo."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -222,17 +207,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea, con el torso inclinado, los brazos se abren hacia atrás trabajando la cara posterior del hombro. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea para abrir los brazos hacia atrás: la tensión permanece activa cuando el deltoides posterior se acerca a su contracción. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -346,14 +327,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Elevaciones Posteriores",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -370,7 +343,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -401,10 +373,8 @@
                 "Preparación: Polea para abrir los brazos hacia atrás: la tensión permanece activa cuando el deltoides posterior se acerca a su contracción."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "cable"
@@ -424,17 +394,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con máquina, con el torso inclinado, los brazos se abren hacia atrás trabajando la cara posterior del hombro. En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina de deltoides posterior: el guiado concentra la espalda alta del hombro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -548,14 +514,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Elevaciones Posteriores",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -572,7 +530,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -603,10 +560,8 @@
                 "Preparación: Máquina de deltoides posterior: el guiado concentra la espalda alta del hombro."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "machine"

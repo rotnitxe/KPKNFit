@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Apoyada sobre la cadera, la barra viaja con la pelvis y ambas manos la aprietan contra el cuerpo. Los extremos cargados quedan a los lados del muslo delantero, separados del banco.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Dobla la rodilla y la cadera delanteras, con la barra pegada al pliegue y el talón apoyado.",
                 "Aprieta la barra contra la cadera para impedir que ruede hacia el muslo.",
                 "Empuja el suelo con el pie delantero y extiende su rodilla y cadera sin inclinarte hacia un lado."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -177,14 +173,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 5.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara Somersault",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -199,7 +187,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -232,15 +219,13 @@
                 "Ajusta la separación del banco para que los discos no choquen con él."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
                 "erector_spinae",
                 "forearm"
               ],
-              "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "technicalDifficulty": 5.2
             },
             "selectedOptions": {}
           }
@@ -280,19 +265,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Todo el peso corporal recae en el pie de trabajo, con la pierna opuesta suspendida delante. Los brazos adelantados ayudan a compensar el descenso, pero las manos no reciben apoyo ni sujetan el pie libre.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Dobla la pierna de apoyo y lleva la cadera por debajo de su rodilla.",
                 "Deja el talón de apoyo pegado al suelo y la rodilla orientada hacia los dedos.",
                 "Conserva el pie libre en el aire mientras vuelves a estar de pie."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -440,14 +421,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 5.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Pistola",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -462,7 +435,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -494,15 +466,13 @@
                 "Extiende los brazos al frente sin agarrarte a ningún apoyo."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "hip_flexors",
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "technicalDifficulty": 5.2
             },
             "selectedOptions": {}
           }
@@ -542,19 +512,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Las dos asas transmiten parte del peso a un anclaje alto frente al atleta. La ayuda de las manos permite explorar el fondo con un solo pie en el suelo, y aumenta o disminuye según cuánto tiren los brazos.",
-              "efc": 2.8,
               "equipmentId": "trx",
               "executionCues": [
                 "Siéntate hacia abajo sin dejar flojas las correas.",
                 "Preserva el contacto del talón de trabajo y deja la pierna contraria suspendida durante toda la repetición.",
                 "Empuja con la pierna de trabajo y usa las asas solo para la ayuda que necesites."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -760,14 +726,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 5.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Pistola Asistida en TRX",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -781,7 +739,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -816,7 +773,6 @@
                 "Despega el pie que no trabajará y proyecta esa pierna recta al frente."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "hip_flexors",
                 "gluteus_medius",
@@ -824,8 +780,7 @@
                 "erector_spinae",
                 "forearm"
               ],
-              "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "technicalDifficulty": 5.2
             },
             "selectedOptions": {}
           }
@@ -864,19 +819,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El eje apoya sobre los deltoides anteriores y las manos lo fijan con los codos elevados. A diferencia de llevar una carga colgante, el apoyo frontal debe conservarse mientras el cuerpo pasa del suelo al cajón.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Levanta el cuerpo con la pierna del cajón y conserva el eje contra los hombros anteriores.",
                 "Lleva el pie libre arriba sin impulsarte desde el suelo.",
                 "Regresa ese pie abajo y conserva el apoyo sobre los hombros."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1054,14 +1005,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón Frontal",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1076,7 +1019,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1109,7 +1051,6 @@
                 "Acerca los dedos al eje sin trasladar toda la carga a las muñecas."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "erector_spinae",
@@ -1117,8 +1058,7 @@
                 "forearm",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -1158,19 +1098,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra cruza ambos pliegues del codo y las manos pueden juntarse delante del pecho. El agarre no soporta una pesa por mano: los flexores del codo conservan la recepción durante el ascenso y al volver al suelo.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Presiona el cajón y endereza las articulaciones de esa pierna para elevarte con el eje entre los brazos.",
                 "Conserva la barra cerca del abdomen y los codos doblados.",
                 "Toca el suelo con el pie libre sin apoyar el eje en el cajón."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1348,14 +1284,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón Zercher",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1370,7 +1298,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1403,7 +1330,6 @@
                 "Deja la otra pierna en el suelo, con la pelvis orientada al frente."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "erector_spinae",
@@ -1411,8 +1337,7 @@
                 "biceps",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -1452,19 +1377,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El estante de los hombros transporta la barra de un apoyo al siguiente. Los dedos sostienen su posición y los codos siguen elevados cuando una pierna abandona el apoyo posterior para dar el próximo paso.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Inicia el avance con un paso y desciende entre los apoyos.",
                 "Extiende la pierna anterior y pasa la otra por delante sin bajar los codos.",
                 "Repite más adelante conservando la barra sobre los hombros."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1658,14 +1579,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Caminando Frontal con Barra Recta",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1679,7 +1592,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1711,7 +1623,6 @@
                 "Orienta los codos al frente y despeja el espacio donde vas a caminar."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -1719,8 +1630,7 @@
                 "deltoid",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -1759,19 +1669,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los pliegues de los codos transportan el eje por delante del vientre mientras se suceden los pasos. La mano no sostiene una pesa colgante; el bíceps conserva la cuna de los brazos durante cada cambio de apoyo.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Avanza una pierna y baja el cuerpo sin alejar la barra del abdomen.",
                 "Levántate sobre el pie de delante y lleva el posterior al siguiente apoyo.",
                 "Continúa los pasos con los codos cerrados, sin levantar el peso con los antebrazos."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1949,14 +1855,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Caminando Zercher con Barra Recta",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1970,7 +1868,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2002,7 +1899,6 @@
                 "Revisa el pasillo para que los extremos del eje no encuentren obstáculos."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -2010,8 +1906,7 @@
                 "biceps",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -2050,19 +1945,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra apoya en ambos pliegues de los codos, a poca distancia del abdomen, durante la recepción del paso. Los antebrazos forman una cuna y los bíceps sostienen ese ángulo mientras la pierna adelantada devuelve el cuerpo.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Da un paso hacia delante sin abrir los codos.",
                 "Desciende con la rodilla posterior suspendida sobre el piso.",
                 "Empuja con la pierna que avanzó y devuelve ese pie sin elevar la barra con los brazos."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2240,14 +2131,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Frontal Zercher",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2262,7 +2145,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2294,7 +2176,6 @@
                 "Junta las manos delante del pecho y sitúa la carga cerca del abdomen."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -2302,8 +2183,7 @@
                 "biceps",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -2343,19 +2223,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El eje descansa en la parte anterior de los hombros con los dedos por debajo y los codos hacia delante. El pie fijo sostiene la subida mientras la barra permanece sobre ese estante durante el retroceso.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Retrasa un pie dejando el otro pegado al suelo.",
                 "Baja la pelvis entre las piernas sin hundir los codos.",
                 "Sube con la pierna delantera y retorna el pie libre al lado del apoyo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2549,14 +2425,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Inversa Frontal",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2571,7 +2439,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2603,7 +2470,6 @@
                 "Sostén los dedos debajo del eje y eleva los codos antes del paso."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -2611,8 +2477,7 @@
                 "deltoid",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -2652,18 +2517,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El carro inclinado acompaña la espalda apoyada y recibe la carga por los hombros. Un pie ocupa la plataforma mientras el antepié contrario toca el suelo exterior libre del bastidor; la rodilla de atrás permanece sin apoyo.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Desciende doblando la rodilla de trabajo; el contacto posterior se limita al antepié y su rodilla se aproxima al piso sin apoyarse.",
                 "Empuja con el pie delantero para subir manteniendo el respaldo y controla la vuelta."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2773,14 +2634,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Inversa en Máquina Hack",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2794,7 +2647,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2826,12 +2678,10 @@
                 "Sitúa toda la planta delantera sobre la plataforma y lleva la otra pierna al suelo lateral exterior, dejando libre el espacio junto a los raíles."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -2870,18 +2720,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El yugo del brazo articulado descansa sobre los hombros y acompaña la espalda contra el acolchado. La planta delantera recibe el esfuerzo sobre la plataforma; detrás, el antepié encuentra el suelo exterior al bastidor con el talón elevado.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Flexiona la pierna delantera mientras el antepié posterior permanece en el suelo con el talón elevado y la espalda en contacto con el respaldo.",
                 "Empuja principalmente con el pie delantero para subir y vuelve al inicio de forma controlada."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2991,14 +2837,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Inversa en Máquina V-Squat",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3012,7 +2850,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3044,12 +2881,10 @@
                 "Busca un apoyo delantero amplio en la plataforma y retrasa la otra pierna hacia el exterior de los tubos, donde el antepié pueda contactar el suelo sin rozar la estructura."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -3088,19 +2923,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El retroceso ocurre con la barra dentro de los codos flexionados, sin depender de un estante sobre los hombros. La carga queda delante del abdomen y el bíceps sostiene la flexión durante la subida de la pierna fija.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Retrocede con un pie mientras sostienes la barra abrazada al vientre.",
                 "Flexiona la rodilla de delante hasta acercar la posterior al suelo.",
                 "Extiende la pierna de apoyo y recoge el pie retrasado sin hacer un curl."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3278,14 +3109,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Inversa Zercher",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3300,7 +3123,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3332,7 +3154,6 @@
                 "Acerca los antebrazos y reúne las manos por encima del eje."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -3340,8 +3161,7 @@
                 "biceps",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

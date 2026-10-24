@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con barra, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. La barra es la referencia para cargar el deltoide con peso de verdad.",
-              "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -145,14 +141,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Militar",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -169,7 +157,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -197,12 +184,10 @@
                 "Preparación: Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -222,17 +207,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -347,14 +328,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Militar",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -371,7 +344,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -399,12 +371,10 @@
                 "Preparación: Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -424,17 +394,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con máquina Smith, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
-              "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -549,14 +515,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Militar",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -573,7 +531,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -601,12 +558,10 @@
                 "Preparación: Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -626,17 +581,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con máquina, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -751,14 +702,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Militar",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -775,7 +718,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -803,12 +745,10 @@
                 "Preparación: Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "machine"
@@ -828,17 +768,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea desde los hombros: la tensión constante acompaña todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -953,14 +889,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Militar",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -977,7 +905,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -1005,12 +932,10 @@
                 "Preparación: Polea desde los hombros: la tensión constante acompaña todo el empuje."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1030,17 +955,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con kettlebell, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1155,14 +1076,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Militar",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1179,7 +1092,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -1207,12 +1119,10 @@
                 "Preparación: Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "kettlebell"

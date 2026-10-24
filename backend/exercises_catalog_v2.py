@@ -51,12 +51,20 @@ RETIRED_FIELD_PATHS: tuple[str, ...] = (
     "family.evidence.rationale",
     "definition.evidence.rationale",
     "configuration.evidence.rationale",
+    "profile.efc",
+    "profile.cnc",
+    "profile.ssc",
+    "profile.ttc",
+    "profile.axialLoadFactor",
+    "profile.fatigueTier",
     "profile.benefits",
     "profile.techniqueSummary",
     "profile.variantRationale",
     "profile.commonMistakes",
     "profile.muscleNotes",
     "profile.jointInvolvement[].note",
+    "richMetadata.fatigue",
+    "richMetadata.programming.fatigueCost",
     "richMetadata.editorial",
     "richMetadata.coaching",
     "richMetadata.safety",
@@ -72,12 +80,12 @@ RETIRED_FIELD_PATHS: tuple[str, ...] = (
     "richMetadata.programming.setupTransitionCost",
     "richMetadata.programming.splitSuitability",
 )
-_RETIRED_PROFILE_KEYS = ("benefits", "techniqueSummary", "variantRationale", "commonMistakes", "muscleNotes")
-_RETIRED_RICH_BLOCKS = ("editorial", "coaching", "safety")
+_RETIRED_PROFILE_KEYS = ('efc', 'cnc', 'ssc', 'ttc', 'axialLoadFactor', 'fatigueTier', 'benefits', 'techniqueSummary', 'variantRationale', 'commonMistakes', 'muscleNotes')
+_RETIRED_RICH_BLOCKS = ("fatigue", "editorial", "coaching", "safety")
 _RETIRED_RICH_FIELDS = {
     "anatomy": ("targetRegions", "muscleLengthBias", "stabilizationDemand"),
     "biomechanics": ("rangeOfMotion", "relevantTendons"),
-    "programming": ("objectives", "suitableRepRanges", "recoveryCost", "setupTransitionCost", "splitSuitability"),
+    "programming": ("fatigueCost", "objectives", "suitableRepRanges", "recoveryCost", "setupTransitionCost", "splitSuitability"),
 }
 
 
@@ -326,13 +334,6 @@ def validate_runtime_catalog(catalog: dict[str, Any]) -> None:
                 _require_text_list(biomechanics.get("relevantJoints"), f"rich_biomechanics_joints:{configuration_id}")
                 if set(biomechanics["relevantJoints"]) != set(joint_ids):
                     raise CatalogV2Error(f"rich_biomechanics_joint_involvement_mismatch:{configuration_id}")
-                fatigue = rich.get("fatigue")
-                if not isinstance(fatigue, dict) or any(fatigue.get(key) != profile.get(key) for key in ("efc", "cnc", "ssc", "ttc", "axialLoadFactor", "technicalDifficulty")):
-                    raise CatalogV2Error(f"rich_fatigue_mismatch:{configuration_id}")
-                for key in ("efc", "cnc", "ssc", "ttc", "axialLoadFactor", "technicalDifficulty"):
-                    value = profile.get(key)
-                    if not isinstance(value, (int, float)) or value != value or value == float("inf") or value == float("-inf") or value < 0:
-                        raise CatalogV2Error(f"profile_metric_invalid:{configuration_id}:{key}")
                 if not 1 <= profile.get("technicalDifficulty", 0) <= 10:
                     raise CatalogV2Error(f"profile_technical_difficulty_invalid:{configuration_id}")
                 programming = rich.get("programming")
@@ -340,7 +341,6 @@ def validate_runtime_catalog(catalog: dict[str, Any]) -> None:
                     raise CatalogV2Error(f"rich_programming_missing:{configuration_id}")
                 _require_non_blank(programming.get("role"), f"rich_programming_role:{configuration_id}")
                 _require_range(programming.get("indicativeRestSeconds"), f"rich_programming_rest:{configuration_id}")
-                _require_non_blank(programming.get("fatigueCost"), f"rich_programming_fatigue:{configuration_id}")
                 _require_text_list(programming.get("requiredEquipment"), f"rich_programming_equipment:{configuration_id}")
                 replacement = rich.get("replacement")
                 if not isinstance(replacement, dict):

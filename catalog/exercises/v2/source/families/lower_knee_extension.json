@@ -20,18 +20,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Ambas tibias empujan el mismo rodillo y la pila sube con la fuerza sumada de las dos piernas, lo que permite cargar más kilos. Si una pierna es más fuerte, puede asumir más parte del esfuerzo sin que el peso lo delate.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Estira las dos rodillas hasta dejar las piernas rectas, sin despegar la cadera del asiento.",
                 "Aguanta un instante arriba y baja despacio hasta que las placas casi toquen la pila."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -97,14 +93,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps en Máquina",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -120,7 +108,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -147,10 +134,8 @@
                 "Mete los pies bajo el rodillo, que debe quedar justo encima de los tobillos, y agarra las asas del asiento."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "laterality": "bilateral"
@@ -170,18 +155,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El rodillo lo sube una sola tibia mientras la otra pierna espera doblada detrás, así que ninguna puede cubrir a la otra. En mujeres poco entrenadas, trabajar así subió más la fuerza isométrica de cada pierna que hacerlo con ambas, con un crecimiento muscular parecido.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Extiende esa rodilla hasta que la pierna quede casi horizontal, con la cadera pegada al asiento y las manos en las asas.",
                 "Baja despacio y no cambies de pierna hasta acabar la serie con esta."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -247,14 +228,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps en Máquina",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -270,7 +243,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -297,10 +269,8 @@
                 "Engancha esa pierna bajo el rodillo, justo encima del tobillo, y deja la otra doblada por detrás sin tocarlo."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "laterality": "unilateral"
@@ -345,18 +315,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "De pie no se pueden estirar las dos rodillas a la vez contra la tobillera: una pierna tiene que sostener el cuerpo. Por eso, aquí las dos piernas hacen la serie por turnos, primero una y después la otra, pasando la tobillera de tobillo.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Estira y dobla la rodilla con el muslo quieto hasta completar las repeticiones de esa pierna.",
                 "Cambia la tobillera de tobillo y haz el mismo número de repeticiones con la otra pierna."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -444,14 +410,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps de Pie en Polea",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -467,7 +425,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -494,13 +451,11 @@
                 "Sujétate a la estructura y eleva el muslo de esa pierna hacia delante, a medio camino de la horizontal."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "hip_flexors",
                 "gluteus_medius"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "laterality": "bilateral"
@@ -520,18 +475,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La tobillera va en un solo tobillo y esa pierna hace la serie entera mientras la otra soporta todo el peso del cuerpo. Al terminar se cambia la tobillera de lado, así que cada pierna tiene sus propias series y su propio peso en la pila.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Estira la rodilla hasta dejar la pierna recta, sin bajar el muslo ni echar el tronco atrás.",
                 "Dobla la rodilla despacio hasta que el pie vuelva bajo la cadera, con el cable siempre tenso."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -619,14 +570,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps de Pie en Polea",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -642,7 +585,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -669,13 +611,11 @@
                 "Agárrate a la estructura con una mano y eleva ese muslo hacia delante, a medio camino de la horizontal."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "hip_flexors",
                 "gluteus_medius"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "laterality": "unilateral"

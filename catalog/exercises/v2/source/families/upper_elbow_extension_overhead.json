@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con barra, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-              "efc": 2.2,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -125,14 +121,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -148,7 +136,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -174,10 +161,8 @@
                 "Preparación: Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -197,17 +182,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con máquina, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. En la máquina, la trayectoria guiada concentra todo el esfuerzo del tríceps.",
-              "efc": 2.2,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -302,14 +283,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -325,7 +298,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -351,10 +323,8 @@
                 "Preparación: Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "machine"
@@ -375,17 +345,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -480,14 +446,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -503,7 +461,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -529,10 +486,8 @@
                 "Preparación: Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -553,17 +508,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
-              "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -658,14 +609,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -681,7 +624,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -707,10 +649,8 @@
                 "Preparación: Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "cable"
@@ -730,17 +670,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con barra EZ por encima de la cabeza, la carga baja detrás del cuello con las manos en ángulo y sube hasta la extensión completa. El agarre mixto descarga las muñecas mientras la cabeza larga del tríceps se estira.",
-              "efc": 2.2,
               "equipmentId": "ez_bar",
               "executionCues": [
                 "Barra EZ sobre la cabeza con las manos en pronación parcial: los codos apuntan al techo y la carga desciende por detrás de la nuca antes de volver a la extensión sin abrir los antebrazos."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -835,14 +771,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -858,7 +786,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -884,10 +811,8 @@
                 "Preparación: Barra EZ sobre la cabeza con las manos en pronación parcial: los codos apuntan al techo y la carga desciende por detrás de la nuca antes de volver a la extensión sin abrir los antebrazos."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "ez_bar"

@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con polea, la cuerda viaja en diagonal de arriba abajo cruzando el cuerpo con los oblicuos dirigiendo el giro. El abdomen trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo. El torso rota alrededor de la pelvis con la carga cerca; la dirección diagonal decide qué lado inicia y cuál frena el gesto."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -123,14 +119,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Leñador en Polea",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -147,7 +135,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -173,10 +160,8 @@
                 "Preparación: Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {}
           }

@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La plataforma y los rodillos fijan los pies, y el cojín curvo sostiene la parte baja de los muslos: al doblar las rodillas, los muslos ruedan sobre él y el cuerpo sube recto hasta la vertical. El empuje de las puntas contra la plataforma suma a los gemelos a la flexión de rodilla.",
-              "efc": 2.8,
               "equipmentId": "ghd",
               "executionCues": [
                 "Empieza con el cuerpo horizontal y recto de las rodillas a la cabeza, con los glúteos apretados.",
                 "Empuja la plataforma con la punta de los pies y dobla las rodillas hasta quedar vertical, sin doblar la cadera.",
                 "Baja despacio estirando las rodillas hasta volver a la horizontal, con la cadera extendida."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -149,14 +145,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 5.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Glute Ham Raise",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -172,7 +160,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -201,13 +188,11 @@
                 "Apoya las plantas contra la plataforma con los tobillos bajo los rodillos y cruza los brazos sobre el pecho."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_maximus",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "technicalDifficulty": 5.2
             },
             "selectedOptions": {}
           }

@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con barra, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
-              "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -143,14 +139,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -167,7 +155,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -195,10 +182,8 @@
                 "Preparación: Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -218,17 +203,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -341,14 +322,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -365,7 +338,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -393,10 +365,8 @@
                 "Preparación: Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -416,17 +386,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con máquina Smith, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
-              "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -539,14 +505,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -563,7 +521,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -591,10 +548,8 @@
                 "Preparación: Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -614,17 +569,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con máquina, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina sentada: el guiado lleva el trabajo directo al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -737,14 +688,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -761,7 +704,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -789,10 +731,8 @@
                 "Preparación: Máquina sentada: el guiado lleva el trabajo directo al hombro."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "machine"
@@ -812,17 +752,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -935,14 +871,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -959,7 +887,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -987,10 +914,8 @@
                 "Preparación: Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1010,17 +935,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con kettlebell, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Kettlebell sentado: el empuje inestable suma trabajo al core. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1133,14 +1054,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press de Hombros Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1157,7 +1070,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -1185,10 +1097,8 @@
                 "Preparación: Kettlebell sentado: el empuje inestable suma trabajo al core."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "kettlebell"

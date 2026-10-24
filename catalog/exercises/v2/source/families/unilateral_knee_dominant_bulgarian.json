@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra cruza la parte superior de la espalda, en la posición de la sentadilla trasera, y el agarre deja de limitar el peso que se puede mover. Al ir libre y alta sobre una sola pierna de apoyo, cualquier balanceo hacia un lado se nota y la pelvis tiene que frenarlo.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Baja en vertical: la rodilla de atrás cae entre el banco y el pie de delante, sin tocar el suelo.",
                 "Lleva el pecho alto para que la barra no se vaya hacia delante.",
                 "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -162,14 +158,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -185,7 +173,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -217,14 +204,12 @@
                 "Apoya el empeine de un pie sobre el banco, con los cordones hacia abajo, y adelanta el otro una zancada larga."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -244,18 +229,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los rieles fijan la subida y la bajada de la barra en vertical, de modo que la carga no se escapa hacia delante ni hacia los lados y la atención va entera a la pierna. El pie de atrás descansa en un banco simple, colocado detrás y separado de la estructura.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Deja que los rieles marquen la bajada hasta que la rodilla de atrás casi roce el suelo.",
                 "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -385,14 +366,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -408,7 +381,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -440,14 +412,12 @@
                 "Gira la barra para soltarla, lleva el empeine trasero al banco y deja el pie delantero un paso por delante de la línea de la barra."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -467,19 +437,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Las manos toman los mangos de una máquina de palanca, cargada con discos o con una pila de placas, a los lados de la cadera, y el arco de subida lo marcan los brazos de la palanca. El empeine trasero descansa en el rodillo de la propia estación, regulable en altura.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Baja en vertical: la rodilla de atrás cae entre el rodillo y el pie de delante, sin tocar el suelo.",
                 "Sube estirando la pierna delantera y deja que la palanca marque el arco.",
                 "No te impulses con la pierna de atrás."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -643,14 +609,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -666,7 +624,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -698,7 +655,6 @@
                 "Agáchate y agarra los mangos a los lados de la cadera, con los brazos estirados."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -706,8 +662,7 @@
                 "forearm",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "machine"
@@ -727,19 +682,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una mancuerna cuelga de cada mano junto a la cadera, con el peso bajo y cerca del cuerpo, y el tronco puede ir erguido sin que la carga tire de él. Con pesos altos, el agarre puede cansarse antes que las piernas.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Baja en vertical: la rodilla de atrás cae entre el banco y el pie de delante, sin tocar el suelo.",
                 "Deja los brazos estirados y las mancuernas quietas junto a la cadera.",
                 "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -903,14 +854,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -926,7 +869,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -958,7 +900,6 @@
                 "Ponte de espaldas al banco, apoya encima el empeine de un pie y adelanta el otro una zancada larga."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -966,8 +907,7 @@
                 "forearm",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -987,19 +927,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Cada mano sujeta el mango de una polea baja de una máquina de poleas, una a cada lado, y el peso de la torre sube por los cables al estirar la pierna. Los cables tiran hacia abajo y algo hacia fuera, hacia su torre, por eso los brazos sujetan los mangos pegados a los costados.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Baja en vertical: la rodilla de atrás cae entre el banco y el pie de delante, sin tocar el suelo.",
                 "Lleva los mangos pegados a los costados, sin dejar que los cables te abran los brazos.",
                 "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1163,14 +1099,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1186,7 +1114,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1218,7 +1145,6 @@
                 "Colócate en el centro con el banco detrás y apoya en él el empeine de un pie."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -1226,8 +1152,7 @@
                 "forearm",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1247,19 +1172,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una sola kettlebell, sujeta por los cuernos del asa delante del pecho, adelanta la carga: el tronco va más erguido para que el peso no lo arrastre hacia delante. Los codos apuntan al suelo y sostienen la bola pegada al esternón durante toda la serie.",
-              "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Baja en vertical: la rodilla de atrás cae entre el banco y el pie de delante, sin tocar el suelo.",
                 "Lleva la kettlebell pegada al esternón durante toda la bajada.",
                 "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1440,14 +1361,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1463,7 +1376,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1495,7 +1407,6 @@
                 "Ponte de espaldas al banco, apoya encima el empeine de un pie y adelanta el otro una zancada larga."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -1504,8 +1415,7 @@
                 "deltoid",
                 "biceps"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1525,19 +1435,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El peso del cuerpo ya basta para exigir mucho a la pierna de delante, porque el pie de atrás apenas empuja. Las manos van en la cintura o cruzadas sobre el pecho, y inclinar un poco el tronco hacia delante carga más el glúteo.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Dobla la rodilla de delante hasta que la de atrás quede a pocos centímetros del suelo.",
                 "Empuja con el pie de delante para subir, sin impulsarte con el de atrás.",
                 "Completa la serie con una pierna y repite con la otra."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1667,14 +1573,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1690,7 +1588,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1722,14 +1619,12 @@
                 "Adelanta el otro pie hasta poder bajar con el talón apoyado y deja las manos en la cintura."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "bodyweight"
@@ -1774,19 +1669,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra se apoya en la cara interna de los codos doblados, a la altura del ombligo, con los antebrazos en vertical y las manos unidas frente al esternón. Desde el soporte hasta la última repetición, los brazos sostienen la carga y el tronco sube y baja erguido detrás de ella.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Desciende hasta dejar la rodilla de atrás a pocos centímetros del suelo, con la barra pegada al abdomen.",
                 "Lleva el pecho alto y los codos por delante para que la barra no se escurra.",
                 "Empuja el suelo con la planta adelantada y vuelve arriba sin ayudarte del pie del banco."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1948,14 +1839,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara Zercher",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1971,7 +1854,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2003,7 +1885,6 @@
                 "Junta las manos delante del pecho, retrocede hasta el banco y apoya encima el dorso del pie de atrás."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -2011,8 +1892,7 @@
                 "deltoid",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

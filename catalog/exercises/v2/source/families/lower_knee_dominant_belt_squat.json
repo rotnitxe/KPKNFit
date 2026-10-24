@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los dos pies pisan la plataforma, a la anchura de los hombros o algo más, y la cadena cuelga centrada entre ellos. Es la versión que admite más carga, y las manos solo acompañan en las asas.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Baja con el tronco erguido hasta que los muslos lleguen a la horizontal o la pasen.",
                 "Abre las rodillas siguiendo la dirección de los pies.",
                 "Sube empujando el suelo con toda la planta y usa las asas solo para no perder el sitio."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -152,14 +148,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla \"Belt Squat\"",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -174,7 +162,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -205,10 +192,8 @@
                 "Agarra las asas y ponte de pie para levantar la carga de su apoyo."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "laterality": "bilateral"
@@ -228,19 +213,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una sola pierna sostiene y empuja el peso del cinturón mientras el otro pie queda en el aire, sin apoyar. Sin la segunda pierna la pelvis tiende a ladearse y el glúteo medio trabaja para sostenerla nivelada; las asas ayudan a no perder la vertical.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Baja sobre la pierna de apoyo con la rodilla en la línea del pie y la cadera nivelada.",
                 "Detente cuando el muslo quede paralelo al suelo, sin apoyar el otro pie.",
                 "Extiende la pierna de apoyo hasta quedar de pie y completa la serie antes de cambiar de lado."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -365,14 +346,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla \"Belt Squat\"",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -387,7 +360,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -418,12 +390,10 @@
                 "Agarra las asas con las dos manos para sostener la vertical."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "laterality": "unilateral"

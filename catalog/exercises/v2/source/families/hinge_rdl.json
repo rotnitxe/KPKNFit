@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra cruza delante de ambos muslos y ofrece una señal clara para reconocer si la carga se aleja al bajar. Los dos pies comparten el apoyo mientras la cadera retrocede con poco cambio de rodilla.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Retrasa la pelvis mientras el peso baja junto a tus piernas.",
                 "Deja las rodillas algo flexionadas y frena antes de redondear la espalda.",
                 "Recupera la vertical desde la cadera, sin buscar un apoyo del peso abajo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -171,14 +167,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -197,7 +185,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -227,14 +214,12 @@
                 "Toma la barra en prono justo por fuera de las piernas y empieza con ella junto a los muslos."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -255,12 +240,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una pierna sostiene la bisagra y la otra se extiende hacia atrás, mientras ambas manos sujetan una carga común. La barra exige que los hombros no giren cuando la pelvis pasa sobre el pie de apoyo.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Retrasa la pelvis mientras el peso baja junto a tus piernas.",
@@ -268,7 +250,6 @@
                 "Recupera la vertical desde la cadera, sin buscar un apoyo del peso abajo.",
                 "Orienta la pelvis hacia el suelo y alarga la pierna libre detrás de ti."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -412,14 +393,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -438,7 +411,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -468,7 +440,6 @@
                 "Toma la barra en prono justo por fuera de las piernas y empieza con ella junto a los muslos."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -476,8 +447,7 @@
                 "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -498,19 +468,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El carril limita el desplazamiento del peso y permite repetir una bajada vertical frente a los muslos. La ubicación de ambos pies debe dejar espacio para que la pelvis retroceda sin arrastrar la barra lejos del cuerpo.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Retrasa la pelvis mientras el peso baja junto a tus piernas.",
                 "Deja las rodillas algo flexionadas y frena antes de redondear la espalda.",
                 "Recupera la vertical desde la cadera, sin buscar un apoyo del peso abajo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -649,14 +615,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -675,7 +633,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -705,14 +662,12 @@
                 "Ajusta los topes del carro y prueba de pie dónde ubicarte para retrasar la pelvis."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -733,12 +688,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El peso desciende por el carril mientras un solo pie sostiene al cuerpo y la pierna libre acompaña la inclinación hacia atrás. La estación reduce el desplazamiento de la carga, pero el apoyo pequeño aún exige sostén pélvico.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Retrasa la pelvis mientras el peso baja junto a tus piernas.",
@@ -746,7 +698,6 @@
                 "Recupera la vertical desde la cadera, sin buscar un apoyo del peso abajo.",
                 "Orienta la pelvis hacia el suelo y alarga la pierna libre detrás de ti."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -890,14 +841,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -916,7 +859,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -946,7 +888,6 @@
                 "Ajusta los topes del carro y prueba de pie dónde ubicarte para retrasar la pelvis."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -954,8 +895,7 @@
                 "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -976,19 +916,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Dos cargas independientes permiten elegir cuánto se acercan las manos a los muslos durante la bajada. Con ambos pies apoyados, cada brazo puede quedar en agarre neutro sin que una barra imponga la separación de las manos.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Retrasa la pelvis mientras el peso baja junto a tus piernas.",
                 "Deja las rodillas algo flexionadas y frena antes de redondear la espalda.",
                 "Recupera la vertical desde la cadera, sin buscar un apoyo del peso abajo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1127,14 +1063,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1153,7 +1081,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1183,14 +1110,12 @@
                 "Sostén los dos pesos junto a los muslos con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -1211,12 +1136,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El cuerpo bascula sobre una pierna y las mancuernas cuelgan a los lados de su rodilla. Dos manos cargadas conservan una distribución simétrica; la pierna libre se alarga detrás para acompañar al torso sin abrir la pelvis.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Retrasa la pelvis mientras el peso baja junto a tus piernas.",
@@ -1224,7 +1146,6 @@
                 "Recupera la vertical desde la cadera, sin buscar un apoyo del peso abajo.",
                 "Orienta la pelvis hacia el suelo y alarga la pierna libre detrás de ti."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1368,14 +1289,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1394,7 +1307,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1424,7 +1336,6 @@
                 "Sostén los dos pesos junto a los muslos con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -1432,8 +1343,7 @@
                 "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -1454,19 +1364,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Las asas laterales dejan la carga alrededor del cuerpo en vez de por delante de las tibias. El rumano empieza erguido y conserva la bisagra; flexionar más las rodillas para acercar los discos al suelo cambia el gesto.",
-              "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
                 "Retrasa la pelvis mientras el peso baja junto a tus piernas.",
                 "Deja las rodillas algo flexionadas y frena antes de redondear la espalda.",
                 "Recupera la vertical desde la cadera, sin buscar un apoyo del peso abajo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1605,14 +1511,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1631,7 +1529,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1661,14 +1558,12 @@
                 "Sitúate dentro de la jaula y empuña las asas con los brazos a los lados."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "hex_bar",
@@ -1689,12 +1584,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El pie que trabaja queda dentro del marco y la pierna libre necesita espacio para extenderse hacia atrás. Las asas a ambos lados facilitan la sujeción simétrica, aunque un travesaño posterior puede limitar esa extensión.",
-              "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
                 "Retrasa la pelvis mientras el peso baja junto a tus piernas.",
@@ -1702,7 +1594,6 @@
                 "Recupera la vertical desde la cadera, sin buscar un apoyo del peso abajo.",
                 "Orienta la pelvis hacia el suelo y alarga la pierna libre detrás de ti."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1846,14 +1737,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1872,7 +1755,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1902,7 +1784,6 @@
                 "Sitúate dentro de la jaula y empuña las asas con los brazos a los lados."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -1910,8 +1791,7 @@
                 "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "hex_bar",
@@ -1932,19 +1812,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los brazos cuelgan largos delante del cuerpo o se cruzan sobre el pecho, y el torso que se inclina es la única resistencia sobre una sola pierna. La pierna libre se alarga detrás como contrapeso, de modo que el equilibrio del pie de apoyo pasa a formar parte del ejercicio.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Echa la pelvis atrás mientras el torso se inclina y la pierna libre se estira detrás.",
                 "Baja hasta notar que tira la parte posterior del muslo de apoyo, con la espalda recta.",
                 "Vuelve a la vertical extendiendo la cadera del pie de apoyo, sin tocar el suelo con el otro pie."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2071,14 +1947,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2097,7 +1965,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2127,15 +1994,13 @@
                 "Fija la mirada en un punto del suelo, a un par de metros, y no la muevas durante la serie."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "bodyweight",
@@ -2185,19 +2050,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El agarre queda entre los muslos separados y los pies giran hacia afuera en una base ancha. La barra viaja junto a los muslos y la flexión de rodilla cambia poco mientras la pelvis se retrasa, sin un despegue desde el piso.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Haz retroceder la cadera con los pies abiertos y las rodillas siguiendo sus puntas.",
                 "Desciende con los brazos rectos hasta el alcance de la pelvis, sin hundirte en una sentadilla.",
                 "Vuelve erguido mediante extensión de cadera, dejando la carga suspendida."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2335,14 +2196,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.5,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Sumo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2359,7 +2212,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2393,14 +2245,12 @@
                 "Cierra el agarre prono entre los muslos abiertos, sin apoyar la barra en ellos."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -2420,19 +2270,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los muslos se abren a ambos lados de las manos y el carro marca una bajada fija. El espacio entre soportes y la posición de los pies deben permitir la base amplia sin que las rodillas choquen con el carril.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Haz retroceder la cadera con los pies abiertos y las rodillas siguiendo sus puntas.",
                 "Desciende con los brazos rectos hasta el alcance de la pelvis, sin hundirte en una sentadilla.",
                 "Vuelve erguido mediante extensión de cadera, dejando la carga suspendida."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2570,14 +2416,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.5,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Sumo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2594,7 +2432,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2628,14 +2465,12 @@
                 "Comprueba que la anchura del soporte deja sitio a ambos pies abiertos bajo el carro."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -2655,19 +2490,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Las cargas pequeñas caben entre las piernas abiertas y las manos pueden girar sin imponer un agarre prono. La separación de los pies ofrece espacio a las mancuernas para descender sin chocar con las rodillas.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Haz retroceder la cadera con los pies abiertos y las rodillas siguiendo sus puntas.",
                 "Desciende con los brazos rectos hasta el alcance de la pelvis, sin hundirte en una sentadilla.",
                 "Vuelve erguido mediante extensión de cadera, dejando la carga suspendida."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2805,14 +2636,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.5,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Sumo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2829,7 +2652,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2863,14 +2685,12 @@
                 "Sitúa cada mano por dentro de los muslos para que los pesos no choquen con las rodillas."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -2890,19 +2710,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La anchura interior del marco decide si los pies caben en una postura sumo real. Solo una jaula suficientemente amplia permite abrirlos sin tocar los largueros; las manos sostienen las asas laterales y no un tramo entre los muslos.",
-              "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
                 "Haz retroceder la cadera con los pies abiertos y las rodillas siguiendo sus puntas.",
                 "Desciende con los brazos rectos hasta el alcance de la pelvis, sin hundirte en una sentadilla.",
                 "Vuelve erguido mediante extensión de cadera, dejando la carga suspendida."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3040,14 +2856,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.5,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Sumo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3064,7 +2872,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3098,14 +2905,12 @@
                 "Comprueba que ambos pies caben abiertos dentro del marco antes de tomar sus asas."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "hex_bar"

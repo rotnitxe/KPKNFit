@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con peso corporal, colgado con los brazos extendidos, cada segundo suma trabajo de agarre. Sin más carga que el propio cuerpo, la exigencia del antebrazo es la justa.",
-              "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Cuélgate de la barra y aguanta el mayor tiempo posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -125,14 +121,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Suspensión Isométrica en Barra Fija (Dead Hang)",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -146,7 +134,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -174,10 +161,8 @@
                 "Preparación: Cuélgate de la barra y aguanta el mayor tiempo posible."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {}
           }
@@ -216,17 +201,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con mancuernas, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -325,14 +306,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -348,7 +321,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -379,12 +351,10 @@
                 "Preparación: Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "technicalDifficulty": 4.5
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -404,17 +374,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con kettlebell, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del antebrazo.",
-              "efc": 2.0,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -513,14 +479,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -536,7 +494,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -567,12 +524,10 @@
                 "Preparación: Kettlebells en cada mano y a caminar: el agarre sufre un poco más."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "technicalDifficulty": 4.5
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -592,17 +547,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con disco, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. Con el disco, el lastre es simple y directo sobre el antebrazo.",
-              "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
                 "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -701,14 +652,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -724,7 +667,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -755,12 +697,10 @@
                 "Preparación: Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.2,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "technicalDifficulty": 4.5
             },
             "selectedOptions": {
               "implement": "plate"
@@ -780,17 +720,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con barra hexagonal, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. El antebrazo trabaja con la barra hexagonal, que centra la carga y alivia la espalda.",
-              "efc": 2.0,
               "equipmentId": "hex_bar",
               "executionCues": [
                 "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -889,14 +825,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Paseo del Granjero",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -912,7 +840,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -943,12 +870,10 @@
                 "Preparación: Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.2,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "technicalDifficulty": 4.5
             },
             "selectedOptions": {
               "implement": "hex_bar"
@@ -993,19 +918,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con una mancuerna, el peso cuelga junto al muslo y se agarra por la empuñadura, de modo que la carga puede subir en escalones pequeños. Es la opción que permite ajustar mejor el peso en cada serie.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Camina en línea recta con pasos cortos y el tronco recto, sin dejar que el peso te incline hacia su lado.",
                 "Aprieta el abdomen y mantén la pelvis nivelada con cada paso.",
                 "Da la vuelta al final y cambia la pesa de mano para repetir el mismo recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1143,14 +1064,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Paseo del Maletín",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1171,7 +1084,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1204,13 +1116,11 @@
                 "Saca el pecho, nivela los hombros y mira al frente."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [
                 "trapezius",
                 "core"
               ],
-              "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "technicalDifficulty": 4.5
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -1230,19 +1140,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con una kettlebell, el asa gruesa se sostiene con toda la mano y la masa cuelga por debajo del agarre, de modo que la pesa roza el muslo si el paso es largo. La carga se concentra en un único punto bajo la mano, lo que cambia el tacto del agarre.",
-              "efc": 2.0,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Camina en línea recta con pasos cortos y el tronco recto, sin dejar que el peso te incline hacia su lado.",
                 "Aprieta el abdomen y mantén la pelvis nivelada con cada paso.",
                 "Da la vuelta al final y cambia la pesa de mano para repetir el mismo recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1380,14 +1286,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Paseo del Maletín",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1408,7 +1306,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1441,13 +1338,11 @@
                 "Saca el pecho, nivela los hombros y mira al frente."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [
                 "trapezius",
                 "core"
               ],
-              "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "technicalDifficulty": 4.5
             },
             "selectedOptions": {
               "implement": "kettlebell"

@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "El acolchado sostiene la pelvis y los muslos mientras los tobillos quedan fijados bajo los rodillos. Con los brazos cruzados, el peso del torso basta para cargar el cambio de curvatura de la espalda.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Redondea suavemente el tronco sin retirar la pelvis del acolchado.",
                 "Recupera la línea del cuerpo extendiendo la espalda.",
                 "Termina la subida sin llevar los hombros por encima de esa línea."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -150,14 +146,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Hiperextensiones de Espalda Baja",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -173,7 +161,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -200,13 +187,11 @@
                 "Apoya los antebrazos contra el pecho y prolonga con el torso la línea de las piernas."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "gluteus_maximus",
                 "hamstrings"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }
@@ -247,19 +232,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "La zona ventral del tronco y la pelvis sirven de apoyo mientras el pecho, las manos y los pies quedan apenas separados del suelo. Los brazos se prolongan delante de la cabeza y las rodillas permanecen extendidas durante la pausa.",
-              "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Eleva un poco el pecho, los brazos y las piernas sin doblar las rodillas.",
                 "Sostén la posición sin levantar la barbilla.",
                 "Devuelve el cuerpo al suelo sin dejar caer las extremidades."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -392,14 +373,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Superman en Suelo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -413,7 +386,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -443,12 +415,10 @@
                 "Apoya el abdomen y deja el cuello en línea con la espalda."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "deltoid"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }
@@ -487,19 +457,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Los pliegues de los codos reciben el eje y el banco inclinado sostiene la base de la pelvis. Las manos se juntan para cerrar el sostén de la barra, que acompaña el cambio de curvatura del tronco.",
-              "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
                 "Deja que la espalda se flexione suavemente sin perder el contacto de la pelvis.",
                 "Extiende el tronco hasta recuperar la línea de las piernas.",
                 "Conserva la barra cerca del cuerpo sin abrir los codos."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -632,14 +598,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Hiperextensión a 45 Zercher para Espalda Baja",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -655,7 +613,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -682,15 +639,13 @@
                 "Recibe la barra en los pliegues de ambos codos y junta las manos cerca del pecho."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "gluteus_maximus",
                 "hamstrings",
                 "core",
                 "biceps"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }
@@ -731,12 +686,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra descansa en el pliegue de ambos codos, con las manos unidas ante el pecho y sin agarrarla, y se camina sin dejar que ruede hacia las muñecas. Es un acarreo con la carga por delante del tronco, que obliga a llevar los codos pegados al cuerpo.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Camina con pasos cortos y regulares, manteniendo el pecho abierto y la vista adelante.",
@@ -744,7 +696,6 @@
                 "Sostén la tensión del abdomen y no dejes que el tronco se incline hacia delante.",
                 "Al terminar, agáchate con la espalda recta y deja la barra en el suelo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -889,14 +840,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Paseo Zercher",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -916,7 +859,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -944,14 +886,12 @@
                 "Levántate con la barra apoyada en los codos, saca el pecho y mira al frente."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "core",
                 "trapezius",
                 "biceps"
               ],
-              "technicalDifficulty": 5.0,
-              "ttc": 2.0
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {}
           }

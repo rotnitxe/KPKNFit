@@ -50,20 +50,7 @@ data class ExerciseBiomechanicsMetadataV2(
 data class ExerciseProgrammingMetadataV2(
     val role: String? = null,
     val indicativeRestSeconds: IntRangeV2? = null,
-    val fatigueCost: String? = null,
     val requiredEquipment: List<String> = emptyList(),
-)
-
-@Serializable
-data class ExerciseFatigueMetadataV2(
-    val efc: Double,
-    val cnc: Double,
-    val ssc: Double,
-    val ttc: Double,
-    val axialLoadFactor: Double,
-    val technicalDifficulty: Double,
-    val localCost: String? = null,
-    val systemicCost: String? = null,
 )
 
 @Serializable
@@ -102,7 +89,6 @@ data class ResolvedExerciseMetadataV2(
     val anatomy: ExerciseAnatomyMetadataV2,
     val biomechanics: ExerciseBiomechanicsMetadataV2,
     val programming: ExerciseProgrammingMetadataV2,
-    val fatigue: ExerciseFatigueMetadataV2,
     val replacement: ExerciseReplacementMetadataV2,
     val display: ExerciseDisplayMetadataV2,
     val evidenceConfidence: CatalogConfidenceV2,
@@ -142,14 +128,6 @@ fun ResolvedExerciseProfileV2.toRichMetadata(
         resistanceProfile = resistanceProfile,
     ),
     programming = ExerciseProgrammingMetadataV2(),
-    fatigue = ExerciseFatigueMetadataV2(
-        efc = efc,
-        cnc = cnc,
-        ssc = ssc,
-        ttc = ttc,
-        axialLoadFactor = axialLoadFactor,
-        technicalDifficulty = technicalDifficulty,
-    ),
     replacement = ExerciseReplacementMetadataV2(
         replacementGroup = replacementGroup,
         replacementPriority = replacementPriority,

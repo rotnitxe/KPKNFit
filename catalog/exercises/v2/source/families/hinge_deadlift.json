@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los discos fijan la altura de salida de la barra recta, que asciende delante de las espinillas con las manos por fuera de las piernas. El contacto cercano al cuerpo facilita repetir el mismo arranque en ambos apoyos.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Empuja el suelo con ambos pies y eleva hombros y caderas juntos al empezar.",
                 "Acerca la cadera a la barra después de pasar las rodillas, hasta quedar erguido.",
                 "Devuelve los discos al suelo doblando cadera y rodillas, sin rebote."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -195,14 +191,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -219,7 +207,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -251,14 +238,12 @@
                 "Tensa el tronco con los codos estirados antes de despegar los discos."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -279,19 +264,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Ambas manos sostienen el eje recto, pero solo una pierna empuja desde el suelo y la rodilla libre permanece doblada detrás. Su anchura añade dificultad para impedir que un extremo baje antes que el otro durante el arranque.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Eleva la barra desde el suelo extendiendo cadera y rodilla de la pierna apoyada.",
                 "Conserva los extremos a igual altura y la pelvis mirando al frente.",
                 "Vuelve al apoyo inicial sin apoyar el pie libre durante la repetición."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -456,14 +437,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -480,7 +453,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -512,7 +484,6 @@
                 "Flexiona la rodilla de apoyo lo necesario para alcanzar la barra con la columna neutra."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -520,8 +491,7 @@
                 "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -542,19 +512,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los raíles determinan por dónde asciende la barra, por lo que los pies se ubican según esa línea y no según el borde de la máquina. La altura mínima del carro puede recortar el tramo inicial respecto de una salida desde el suelo.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Empuja contra el suelo sin alejar los pies de la línea de los raíles.",
                 "Termina de pie sin inclinarte hacia atrás contra la barra.",
                 "Baja el carro hasta el apoyo previsto y vuelve a engancharlo al terminar."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -717,14 +683,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -741,7 +699,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -773,14 +730,12 @@
                 "Libera los ganchos con ambas manos por fuera de las rodillas y los brazos largos."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -801,19 +756,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Un solo pie recibe el empuje mientras el carro limita el desplazamiento de las manos. La pierna libre queda recogida detrás y la pelvis todavía necesita sostén propio, aunque los raíles reduzcan la inclinación lateral de la carga.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Presiona el suelo con la pierna apoyada mientras el carro asciende.",
                 "Llega erguido sin desplazar la pelvis hacia el pie que está en el aire.",
                 "Desciende hasta la altura inicial y engancha la barra antes de cambiar de pierna."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -978,14 +929,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1002,7 +945,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1034,7 +976,6 @@
                 "Comprueba el espacio entre la rodilla libre y la máquina durante la salida."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -1042,8 +983,7 @@
                 "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -1064,19 +1004,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Dos cargas independientes pasan junto a la cara externa de las piernas y permiten usar las palmas enfrentadas. Su tamaño determina cuánto hay que doblar cadera y rodillas para alcanzarlas desde el suelo, sin un eje rígido que una las manos.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Levanta ambas mancuernas a la vez mientras empujas con las dos piernas.",
                 "Deja las pesas junto a tus muslos al terminar, con los brazos extendidos.",
                 "Apoya las dos cargas sin adelantarlas respecto de los pies."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1239,14 +1175,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1263,7 +1191,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1295,14 +1222,12 @@
                 "Revisa que las dos pesas estén a la misma altura antes de levantarlas."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -1323,19 +1248,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una mancuerna en cada mano deja libre el espacio delante de la rodilla de apoyo. El pie contrario queda en el aire y las dos cargas se desplazan a los lados de la pierna, sin convertir el gesto en una zancada con apoyo trasero.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Empuja con el pie apoyado y sube las pesas por ambos lados de esa pierna.",
                 "Acaba con el tronco erguido y la rodilla libre todavía recogida.",
                 "Deja las cargas a la vez en el suelo sin girar hacia una de ellas."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1500,14 +1421,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1524,7 +1437,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1556,7 +1468,6 @@
                 "Dobla la rodilla apoyada para que las pesas lleguen al suelo sin redondear el tronco."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -1564,8 +1475,7 @@
                 "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -1586,19 +1496,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El cuerpo queda dentro del marco y las asas laterales llevan las manos junto a las caderas. Esta disposición puede favorecer una mayor participación de la extensión de rodillas; las asas altas acortan la salida respecto de las bajas.",
-              "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
                 "Despega todo el marco a la vez empujando el suelo con ambos apoyos.",
                 "Extiende las rodillas y lleva la pelvis debajo del tronco hasta ponerte de pie.",
                 "Regresa el marco horizontal al suelo sin apoyar antes un lado."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1761,14 +1667,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1785,7 +1683,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1817,14 +1714,12 @@
                 "Deja el marco nivelado y dobla las rodillas sin elevar los talones."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "hex_bar",
@@ -1845,19 +1740,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El apoyo único queda dentro del marco, con una mano en cada asa y el otro pie recogido en el aire. La estructura rodea al atleta, de modo que el espacio para la pierna libre debe comprobarse antes de iniciar cada repetición.",
-              "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
                 "Levanta el marco con la pierna de apoyo sin balancearlo hacia los lados.",
                 "Extiende esa rodilla hasta quedar alto con el pie libre separado de la barra.",
                 "Apoya la estructura entera antes de recolocar los pies."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2022,14 +1913,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2046,7 +1929,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2078,7 +1960,6 @@
                 "Dobla la rodilla apoyada y nivela el marco antes de despegarlo."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -2086,8 +1967,7 @@
                 "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "hex_bar",
@@ -2135,19 +2015,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Las manos quedan juntas dentro de las piernas y el eje pasa por delante de las espinillas abiertas. El agarre interno permite acercar la pelvis a la barra sin que los antebrazos choquen con las rodillas.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Empuja el suelo con ambas plantas y abre las rodillas hacia las puntas.",
                 "Sube la barra cerca de las piernas hasta quedar erguido, sin inclinarte hacia atrás.",
                 "Dobla cadera y rodillas para devolver los discos al suelo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2309,14 +2185,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Sumo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2332,7 +2200,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2364,14 +2231,12 @@
                 "Acerca las espinillas al eje dejando las rodillas alineadas con los pies."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -2391,19 +2256,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Las dos mancuernas cuelgan en el hueco entre los muslos con palmas enfrentadas. Al no haber un eje transversal, el tamaño de cada pesa condiciona la altura de salida y el espacio disponible para bajar entre las piernas.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Eleva las mancuernas por el centro de la postura abierta sin acercar las rodillas entre sí.",
                 "Acaba de pie con las cargas bajo la pelvis y los codos largos.",
                 "Baja las pesas dentro del hueco entre los pies hasta apoyarlas."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2565,14 +2426,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Sumo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2588,7 +2441,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2620,14 +2472,12 @@
                 "Deja espacio entre ambas pesas y alinea cada rodilla con su pie abierto."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -2672,19 +2522,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra olímpica empieza con los discos apoyados en el suelo y sube pegada a las piernas hasta la altura de la rodilla. Como arriba no hay bloqueo, la bajada parte de esa altura y también cuenta como trabajo.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Empuja el suelo con los pies y sube la barra pegada a las piernas hasta la altura de las rodillas.",
                 "Detente al llegar a la rodilla, sin estirar del todo la cadera.",
                 "Baja la barra despacio por el mismo camino hasta dejarla en el suelo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2806,14 +2652,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto hasta la Rodilla",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2832,7 +2670,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2862,13 +2699,11 @@
                 "Fija antes de empezar la altura final: la barra no pasa de la rodilla."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

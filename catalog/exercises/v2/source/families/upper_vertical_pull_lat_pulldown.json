@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Una barra larga cuelga de un solo cable que baja derecho desde la polea alta, y la pila pesa lo mismo con los brazos arriba que con la barra en el pecho. Con las palmas al frente y las manos algo por fuera de los hombros, los codos bajan por los lados del tronco.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Baja primero las escápulas y después trae la barra hasta la parte alta del pecho.",
                 "Baja los codos por los lados del tronco, sin echar el cuerpo hacia atrás para ayudarte.",
                 "Deja subir la barra despacio, sin dejar caer la pila sobre el resto de placas."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -163,14 +159,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -187,7 +175,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -219,7 +206,6 @@
                 "Siéntate con los brazos estirados, el pecho alto y el tronco apenas reclinado."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -227,8 +213,7 @@
                 "forearm",
                 "rhomboids"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "cable",
@@ -249,19 +234,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con un maneral en una sola mano, el brazo baja por su lado y el codo puede terminar algo por detrás del tronco, con la palma girando hacia dentro. El tronco tiende a rotar hacia la polea y los oblicuos lo frenan en cada repetición.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Baja el codo junto a las costillas hasta que la mano llegue al costado del pecho.",
                 "Deja que la palma gire hacia dentro al final, sin girar el tronco hacia la polea.",
                 "Vuelve despacio hasta tener el brazo estirado y la escápula arriba."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -408,14 +389,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -432,7 +405,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -463,7 +435,6 @@
                 "Agarra el maneral con una mano y apoya la otra en el muslo."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -471,8 +442,7 @@
                 "forearm",
                 "rhomboids"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "cable",
@@ -493,19 +463,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Los manerales van en palancas que giran sobre un eje fijo, así que las manos bajan por un arco que dibuja la máquina y que converge hacia el pecho. No hay cable que oscile ni barra que se incline, y la carga suele ir en discos sobre las palancas.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Baja los dos manerales a la vez hasta que las manos queden junto al pecho.",
                 "Saca el pecho y junta las escápulas abajo, sin despegar los muslos.",
                 "Vuelve despacio hasta que las palancas lleguen arriba sin golpear el tope."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -636,14 +602,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -660,7 +618,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -691,7 +648,6 @@
                 "Traba los muslos bajo el rodillo y agarra un maneral con cada mano."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -699,8 +655,7 @@
                 "forearm",
                 "rhomboids"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "machine",
@@ -721,19 +676,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con una sola palanca en marcha, la otra mano descansa en el muslo y el arco fijo lleva el codo hacia la cadera sin que haga falta buscar el recorrido. Cada lado mueve su propia carga, así que se nota enseguida si un brazo tira menos.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Baja la palanca hasta que el codo quede junto a las costillas.",
                 "Tira sin ladear el tronco hacia la palanca que trabaja.",
                 "Sube despacio hasta estirar el brazo y cambia de lado al terminar la serie."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -880,14 +831,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -904,7 +847,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -935,7 +877,6 @@
                 "Agarra un solo maneral y apoya la otra mano en el muslo o en el asiento."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -943,8 +884,7 @@
                 "forearm",
                 "rhomboids"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "machine",
@@ -965,19 +905,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "La banda, anclada por encima de la cabeza, tira poco con los brazos estirados y opone su máxima resistencia cuando las manos llegan al pecho. Se monta de rodillas en el suelo bajo cualquier punto alto firme, sin asiento ni pila de placas.",
-              "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
                 "Tira de los codos hacia abajo hasta que las manos queden junto al pecho.",
                 "Aguanta un instante abajo, donde la banda tira más fuerte.",
                 "Deja subir las manos despacio hasta estirar los brazos."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1108,14 +1044,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1132,7 +1060,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1163,7 +1090,6 @@
                 "Arrodíllate debajo, toma un extremo en cada mano y estira los brazos hacia arriba."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -1171,8 +1097,7 @@
                 "forearm",
                 "rhomboids"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "band",
@@ -1193,19 +1118,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Una sola mano tira del extremo de la banda, con la rodilla de ese lado en el suelo y la otra pierna adelantada, y el codo baja hasta rozar las costillas. Como la banda tira más cuanto más se estira, el tramo final junto al costado es el más duro.",
-              "efc": 2.5,
               "equipmentId": "band",
               "executionCues": [
                 "Baja el codo hacia el bolsillo de atrás hasta que la mano llegue al costado.",
                 "Aprieta el abdomen para que el tronco no gire hacia el anclaje.",
                 "Sube despacio hasta estirar el brazo del todo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1352,14 +1273,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1376,7 +1289,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1407,7 +1319,6 @@
                 "Toma el extremo con la mano del lado de la rodilla apoyada y estira el brazo hacia el anclaje."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -1415,8 +1326,7 @@
                 "forearm",
                 "rhomboids"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "band",
@@ -1464,19 +1374,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "El cable cae casi vertical desde la polea alta hasta el asa y, con las manos juntas, el asa sube y baja justo delante de la cara hasta rozar la parte alta del pecho. La resistencia del cable no cambia a lo largo del recorrido.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Lleva los codos hacia abajo y hacia las costillas hasta que el asa toque la parte alta del pecho.",
                 "Baja las escápulas al terminar, sin encoger los hombros hacia las orejas.",
                 "Sube el asa despacio hasta estirar los brazos del todo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1604,14 +1510,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Jalón al Pecho con Agarre Cerrado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1631,7 +1529,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1663,7 +1560,6 @@
                 "Inclina el tronco un poco hacia atrás, con el pecho alto y los brazos estirados hacia arriba."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "pectoralis",
@@ -1671,8 +1567,7 @@
                 "forearm",
                 "rhomboids"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }

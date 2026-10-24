@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El cajón detrás del atleta, a la altura del fondo buscado, convierte cada repetición en una parada sentada: con la barra sobre la espalda alta, la subida arranca sin el impulso de la bajada.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Lleva la cadera atrás y baja con las tibias casi verticales hasta sentarte en el cajón.",
                 "Quédate sentado un instante con el abdomen apretado, sin dejarte caer ni relajar la espalda.",
                 "Sube empujando el suelo hacia los lados, sin balancearte hacia delante."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -158,14 +154,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla a Cajón",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -180,7 +168,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -210,14 +197,12 @@
                 "Saca la barra del rack sobre la espalda alta y abre los pies algo más que en tu sentadilla habitual."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "hamstrings",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -257,19 +242,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los dedos sujetan la barra por debajo, por fuera de los hombros, con las muñecas dobladas hacia atrás y los codos apuntando al frente a la altura de los hombros. Quien no llega con las muñecas puede cruzar los brazos sobre la barra, con cada mano en el hombro contrario.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Desciende con los codos altos y el pecho arriba, dejando que la cadera se cuele entre las rodillas.",
                 "Separa las rodillas en la dirección de los pies hasta que los muslos queden horizontales.",
                 "Al subir, lleva los codos hacia el techo desde el primer momento para que la barra no caiga hacia delante."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -426,14 +407,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Sumo Frontal",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -448,7 +421,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -479,13 +451,11 @@
                 "Coloca los talones bien por fuera de la línea de los hombros, con las puntas abiertas en diagonal."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -525,19 +495,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los antebrazos apuntan hacia arriba, con las manos unidas a la altura del pecho y la barra apoyada en la cara interna de los codos, a menudo envuelta en una almohadilla. Sin muñecas en extensión ni barra sobre la espalda, lo primero que se nota es la presión de la carga sobre los brazos.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Baja con el tronco erguido hasta que tus codos queden entre las rodillas.",
                 "Frena cuando los muslos estén horizontales, sin apoyar los codos en ellos.",
                 "Sube empujando el suelo y deja la barra quieta en los codos, sin separar las manos."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -695,14 +661,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Sumo Zercher",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -717,7 +675,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -748,14 +705,12 @@
                 "Planta los pies muy abiertos, casi dos anchos de hombros, con las puntas en diagonal."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "biceps"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

@@ -66,10 +66,6 @@ class ExerciseMuscleInfo(BaseModel):
     type: ExerciseType = ExerciseType.accesorio
     tier: Optional[ExerciseTier] = None
     equipment: Equipment = Equipment.otro
-    efc: Optional[float] = None
-    ssc: Optional[float] = None
-    cnc: Optional[float] = None
-    axialLoadFactor: Optional[float] = None
     calculated1RM: Optional[float] = None
 
 

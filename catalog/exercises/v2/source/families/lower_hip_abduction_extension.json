@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con polea, la pierna se aleja hacia el costado con la cadera nivelada y el torso sin balanceo. Con la polea, la tensión sobre el glúteo medio se mantiene viva de principio a fin.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -125,14 +121,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Patada de Glúteo Lateral",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -149,7 +137,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -177,10 +164,8 @@
                 "Preparación: Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable"
@@ -200,18 +185,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Tumbado de lado, la pierna superior se separa de la inferior mientras una mano mantiene una mancuerna sobre el lateral del muslo. La pelvis conserva su orientación y el tronco permanece apoyado.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Eleva la pierna superior sin girar la pelvis ni lanzar el peso.",
                 "Desciende despacio manteniendo la mancuerna controlada por la mano."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -306,14 +287,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Patada de Glúteo Lateral",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -330,7 +303,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -359,10 +331,8 @@
                 "Coloca una mancuerna sobre la cara externa del muslo superior y sujétala con la mano para que no ruede."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -382,17 +352,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con banda elástica, la pierna se aleja hacia el costado con la cadera nivelada y el torso sin balanceo. El glúteo medio trabaja con la banda, cuya resistencia crece con el recorrido.",
-              "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
                 "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -487,14 +453,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Patada de Glúteo Lateral",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -511,7 +469,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -539,10 +496,8 @@
                 "Preparación: Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "band"

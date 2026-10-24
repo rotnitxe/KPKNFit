@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con máquina, a dos lados y sentado, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo medio. A dos lados, el trabajo del glúteo medio admite más carga total. Sentado, el tronco queda fijo y el aislamiento del glúteo medio mejora.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -129,14 +125,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -153,7 +141,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -183,10 +170,8 @@
                 "Preparación: Máquina sentado con ambas piernas: abres y cierras contra las almohadillas con el glúteo medio concentrado."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "machine",
@@ -208,17 +193,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con máquina, a un lado y sentado, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. El glúteo medio trabaja en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. Sentado, el tronco queda fijo y el aislamiento del glúteo medio mejora.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -317,14 +298,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -341,7 +314,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -371,10 +343,8 @@
                 "Preparación: Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "machine",
@@ -396,18 +366,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Las plataformas de trabajo se abren junto con los brazos móviles de la estación. Cada muslo empuja una almohadilla lateral y ambas piernas participan de pie, con las manos sujetas a las asas fijas para estabilizar el tronco.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Separa ambos muslos hacia fuera desplazando los brazos y plataformas de trabajo de la máquina.",
                 "Vuelve despacio sin perder los contactos ni girar el tronco."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -506,14 +472,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.5,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -530,7 +488,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -561,10 +518,8 @@
                 "Apoya la cara externa de los muslos contra las almohadillas y sujeta las asas fijas."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.5,
-              "ttc": 2.0
+              "technicalDifficulty": 4.5
             },
             "selectedOptions": {
               "implement": "machine",
@@ -586,17 +541,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con máquina, a un lado y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. La máquina guía la trayectoria y el trabajo a una pierna deja al descubierto las diferencias entre caderas. El apoyo de pie exige estabilizar la pelvis mientras el glúteo medio de la pierna que abre concentra el esfuerzo.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -695,14 +646,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.5,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -719,7 +662,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -749,10 +691,8 @@
                 "Preparación: Máquina de pie de un lado a la vez: ajusta la almohadilla a la altura de la rodilla y afirma el apoyo antes de abrir."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.5,
-              "ttc": 2.0
+              "technicalDifficulty": 4.5
             },
             "selectedOptions": {
               "implement": "machine",
@@ -774,17 +714,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con polea, a dos lados y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. El glúteo medio trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del glúteo medio se reparte. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -883,14 +819,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -907,7 +835,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -937,10 +864,8 @@
                 "Preparación: Polea de pie con ambas piernas: la tensión constante acompaña la apertura y el glúteo medio trabaja todo el recorrido."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable",
@@ -962,17 +887,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con polea, a un lado y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. Con la polea, la tensión sobre el glúteo medio se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1071,14 +992,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1095,7 +1008,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1125,10 +1037,8 @@
                 "Preparación: Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1150,17 +1060,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con banda elástica, a dos lados y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo medio. A dos lados, el trabajo del glúteo medio admite más carga total. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
-              "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
                 "Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1259,14 +1165,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1283,7 +1181,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1313,10 +1210,8 @@
                 "Preparación: Banda de pie con ambas piernas: la resistencia elástica aumenta en el punto más amplio."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "band",
@@ -1338,17 +1233,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con banda elástica, a un lado y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. El glúteo medio trabaja con la banda, cuya resistencia crece con el recorrido. Un lado cada vez: el esfuerzo del glúteo medio se aísla y las asimetrías quedan al descubierto. En la posición de pie, el equilibrio y la zona media se suman al trabajo del glúteo medio.",
-              "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
                 "Banda en una pierna: aperturas contra la resistencia elástica lado a lado. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1447,14 +1338,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Abducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1471,7 +1354,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1501,10 +1383,8 @@
                 "Preparación: Banda en una pierna: aperturas contra la resistencia elástica lado a lado."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "band",

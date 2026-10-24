@@ -66,8 +66,6 @@ internal data class MovableUnit(
     val compoundPatterns: List<PatternFamily> = emptyList(),
     /** Músculo primario dominante de cada ejercicio de fuerza clasificado: cuenta para el máximo por músculo. */
     val dominantMuscles: List<KpknMuscleGroup> = emptyList(),
-    /** Fatiga de la unidad: series × fatiga por serie de cada ejercicio de fuerza (ver [WeekGather.fatigueOf]). */
-    val fatigue: Double = 0.0,
 ) {
     val exerciseCount: Int get() = if (block != null) block.exercises.size else exercises.size
 
@@ -83,9 +81,6 @@ internal object WeekGather {
     /** Tiempo general de calentamiento que el estimador suma una vez por sesión con fuerza (se resta de cada unidad). */
     const val GENERAL_WARMUP_SECONDS = 180
 
-    /** Fatiga por serie cuando el catálogo no la trae: la mediana de `efc + cnc` del catálogo v2. */
-    const val DEFAULT_FATIGUE_PER_SET = 4.5
-
     private val HEAVY_PATTERNS = setOf(
         PatternFamily.SQUAT, PatternFamily.HINGE, PatternFamily.HORIZONTAL_PUSH, PatternFamily.VERTICAL_PUSH,
         PatternFamily.HORIZONTAL_PULL, PatternFamily.VERTICAL_PULL,
@@ -99,12 +94,8 @@ internal object WeekGather {
     internal fun heavyPatternsOf(traits: List<ExerciseTraits>, minReps: Int?): Set<PatternFamily> =
         traits.filter { t ->
             t.isCompound && t.pattern in HEAVY_PATTERNS &&
-                (t.equipmentId in BARBELL_LIKE || t.axialLoad >= 0.5 || (minReps != null && minReps <= 6))
+                (t.equipmentId in BARBELL_LIKE || (minReps != null && minReps <= 6))
         }.mapNotNullTo(linkedSetOf()) { it.pattern }
-
-    /** Fatiga por serie de un ejercicio: `efc + cnc` del catálogo (o la mediana si no lo sabemos), con el factor axial como recargo. */
-    fun fatigueOf(traits: ExerciseTraits?): Double =
-        (traits?.fatigue ?: DEFAULT_FATIGUE_PER_SET) * (1.0 + (traits?.axialLoad ?: 0.0))
 
     private class Entry(val exercise: Exercise, val origin: PartOrigin?, val position: Int)
 
@@ -277,9 +268,6 @@ internal object WeekGather {
             heavyPatterns = heavyPatterns,
             compoundPatterns = strengthTraits.filter { it.isCompound }.mapNotNull { it.pattern },
             dominantMuscles = strengthTraits.mapNotNull { it.primaryMuscles.firstOrNull() },
-            fatigue = exercises.indices.filter { isStrength(exercises[it]) }.sumOf { i ->
-                fatigueOf(traits[i]) * VolumeCalculator.countEffectiveSets(exercises[i].sets)
-            },
         )
     }
 

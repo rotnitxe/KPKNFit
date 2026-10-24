@@ -65,11 +65,6 @@ data class ResolvedExerciseProfileV2(
     val stabilizerMuscles: List<String> = emptyList(),
     /** One resolved entry per relevant joint for this exact configuration. */
     val jointInvolvement: List<JointInvolvementV2> = emptyList(),
-    val efc: Double,
-    val cnc: Double,
-    val ssc: Double,
-    val ttc: Double,
-    val axialLoadFactor: Double,
     val technicalDifficulty: Double,
     val resistanceProfile: String,
     val setupCues: List<String>,
@@ -87,21 +82,12 @@ data class ResolvedExerciseProfileV2(
     val articulationType: ExerciseArticulationTypeV2? = null,
     /** Tiempo de set-up estimado en segundos para la configuración exacta. */
     val setupTimeSeconds: Int? = null,
-    /** Tier de fatiga de la configuración derivado del coste editorial (efc). */
-    val fatigueTier: ExerciseFatigueTierV2? = null,
 )
 
 @Serializable
 enum class ExerciseArticulationTypeV2 {
     MULTIARTICULAR,
     AISLADO,
-}
-
-@Serializable
-enum class ExerciseFatigueTierV2 {
-    BAJA,
-    MEDIA,
-    ALTA,
 }
 
 @Serializable

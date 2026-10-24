@@ -31,15 +31,6 @@ object SessionCompositionPolicy {
      * Umbrales de programación razonable, no leyes biomecánicas.
      * Ajustar aquí si un protocolo fiel necesita otro criterio global.
      */
-    /** T1/T2 axial slots at or above this factor count toward H5a. */
-    const val AXIAL_SLOT_THRESHOLD = 0.6
-
-    /** Sets with factor >= this contribute to H5b spinal budget. */
-    const val SPINAL_BUDGET_THRESHOLD = 0.5
-
-    /** Max Σ(effective sets × axialLoadFactor) per session. */
-    const val SPINAL_BUDGET_MAX = 12.0
-
     const val MAX_SESSION_MINUTES = 100
     const val MIN_EXERCISES = 3
     const val MAX_EXERCISES = 9
@@ -147,7 +138,6 @@ object SessionCompositionPolicy {
         findings += checkH2(day, resolved, scope)
         findings += checkH3(resolved, scope)
         findings += checkH4(day, resolved, scope)
-        findings += checkH5(resolved, week, scope, trainingMaxPercent)
         findings += checkH6(resolved, week.blockGoal, scope, compositionProfile, day)
         findings += checkH7(resolved, scope)
         findings += checkH8(resolved, week, scope, trainingMaxPercent)
@@ -272,43 +262,6 @@ object SessionCompositionPolicy {
                     slots.any { it.first.supplementalOf == slot.id }
             }
             if (!paired) findings += hard("H4", scope, "Más de un ejercicio del replacementGroup $group")
-        }
-        return findings
-    }
-
-    private fun checkH5(
-        resolved: List<Triple<SlotRecipe, ExerciseCompositionMetadata?, PatternFamily?>>,
-        week: WeekRecipe,
-        scope: String,
-        trainingMaxPercent: Double,
-    ): List<CompositionFinding> {
-        val findings = mutableListOf<CompositionFinding>()
-        val axialSlots = resolved.filter { (slot, meta, _) ->
-            slot.role in setOf(SlotRole.T1_MAIN, SlotRole.T2_SUPPLEMENTAL) &&
-                (meta?.axialLoadFactor ?: 0.0) >= AXIAL_SLOT_THRESHOLD
-        }
-        if (axialSlots.size > 2) {
-            findings += hard("H5a", scope, "Más de 2 slots T1/T2 axiales (>= $AXIAL_SLOT_THRESHOLD)")
-        }
-        val heavy = axialSlots.count { (slot, _, _) ->
-            if (slot.supplementalOf != null) return@count false
-            slot.sets.any { set ->
-                val pct = PercentBasis.effective1RmPercent(set, slot, week, trainingMaxPercent) ?: 0.0
-                set.isTopSet || pct >= HEAVY_PERCENT || set.loadBasis == LoadBasis.REP_MAX
-            }
-        }
-        if (heavy > 1) {
-            findings += hard("H5a", scope, "Más de un axial T1/T2 a >= $HEAVY_PERCENT% o top set")
-        }
-        val budget = resolved.sumOf { (slot, meta, _) ->
-            val factor = meta?.axialLoadFactor ?: 0.0
-            if (factor < SPINAL_BUDGET_THRESHOLD) 0.0 else {
-                val pairFactor = if (slot.supplementalOf != null) 0.5 else 1.0
-                slot.workingSets().size * factor * pairFactor
-            }
-        }
-        if (budget > SPINAL_BUDGET_MAX) {
-            findings += hard("H5b", scope, "Presupuesto espinal $budget > $SPINAL_BUDGET_MAX")
         }
         return findings
     }
@@ -889,19 +842,6 @@ object SessionCompositionPolicy {
                     findings += hard("W2", scope, "$group fuera de MEV en pico")
                 }
             }
-        }
-        val heavyDays = week.days.mapIndexedNotNull { index, day ->
-            val heavyAxial = day.slots.any { slot ->
-                val meta = metadata.metadata(slot.lift.configurationId)
-                slot.role == SlotRole.T1_MAIN &&
-                    (meta?.axialLoadFactor ?: 0.0) >= AXIAL_SLOT_THRESHOLD &&
-                    slot.sets.any { (PercentBasis.effective1RmPercent(it, slot, week, recipe.trainingMaxPercent) ?: 0.0) >= HEAVY_PERCENT || it.isTopSet }
-            }
-            val position = day.weekday ?: (index * 2)
-            position.takeIf { heavyAxial }
-        }
-        heavyDays.zipWithNext().forEach { (a, b) ->
-            if (b - a < 2) findings += hard("W3", scope, "T1 axiales >=85% en días consecutivos ($a y $b)")
         }
         val orderedDays = week.days.sortedBy { it.weekday ?: Int.MAX_VALUE }
         orderedDays.zipWithNext().forEach { (prev, next) ->

@@ -193,11 +193,6 @@ private func legacyExerciseInfo(
         chain: profile.kineticChain.lowercased(),
         bodyPart: profile.bodyRegion.lowercased(),
         tier: rich.programming.role,
-        efc: profile.efc,
-        cnc: profile.cnc,
-        ssc: profile.ssc,
-        ttc: profile.ttc,
-        axialLoadFactor: profile.axialLoadFactor,
         technicalDifficulty: profile.technicalDifficulty,
         resistanceProfile: ResistanceProfile(
             curve: profile.resistanceProfile,

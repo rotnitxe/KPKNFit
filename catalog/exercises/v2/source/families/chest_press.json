@@ -20,18 +20,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "Las dos manos comparten una barra y un solo arco, con los discos libres a los lados. Si un brazo se adelanta, la barra se tuerce y ambos lados tienen que empujar a la vez.",
-              "efc": 4.2,
               "equipmentId": "barbell",
               "executionCues": [
                 "Baja la barra hasta rozar la parte baja del pecho, sin rebotar.",
                 "Vuelve a dejar los codos rectos sin despegar la pelvis del banco."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -150,14 +146,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -181,7 +169,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -212,12 +199,10 @@
                 "Saca la barra hasta tenerla sobre el pecho con los codos estirados."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -237,18 +222,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "Cada mancuerna traza su arco y la muñeca puede rotar hasta donde el hombro lo pide. Un codo puede bajar más que el otro porque las cargas no van unidas.",
-              "efc": 4.2,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Baja cada mancuerna hacia el lado del pecho hasta que el codo quede bajo el hombro.",
                 "Empuja las dos a la vez hasta extender los codos, sin que una se adelante."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -367,14 +348,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -398,7 +371,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -428,12 +400,10 @@
                 "Apoya las escápulas y deja las mancuernas sobre los hombros, codos estirados."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -453,18 +423,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "Los rieles verticales imponen la línea de subida y la barra no se va hacia la cara ni hacia las costillas. El banco se corre hasta que el pecho queda debajo de esa línea.",
-              "efc": 4.2,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Baja la barra por los rieles hasta el pecho, sin sacar la cadera del banco.",
                 "Empuja en vertical hasta estirar los codos, con la barra dentro de los rieles."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -583,14 +549,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -614,7 +572,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -644,12 +601,10 @@
                 "Túmbate, apoya los pies y agarra la barra un poco más ancha que los hombros."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -669,18 +624,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "Los agarres viajan en brazos articulados y la pila no cuelga de las manos. En culturistas, esa prensa excitó menos el tríceps y el deltoides lateral que el peso libre, con la porción del esternón parecida al plano.",
-              "efc": 4.2,
               "equipmentId": "machine",
               "executionCues": [
                 "Acerca los mangos al pecho sin despegar la espalda del respaldo.",
                 "Empuja hasta extender los codos y deja que los brazos de la estación marquen el arco."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -799,14 +750,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -830,7 +773,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -860,12 +802,10 @@
                 "Agarra ambos mangos a la altura del pecho, con las muñecas firmes."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "machine"
@@ -885,18 +825,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "La polea arrastra los agarres en todo el arco, también cuando los codos ya están casi estirados. La dirección de la carga apunta a las poleas, no solo hacia el suelo.",
-              "efc": 4.2,
               "equipmentId": "cable",
               "executionCues": [
                 "Deja que los mangos bajen hacia los lados del pecho sin perder la espalda en el banco.",
                 "Cierra los brazos con los mangos, porque las poleas tiran también arriba."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1015,14 +951,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1046,7 +974,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -1076,12 +1003,10 @@
                 "Agarra un mango en cada mano y llévalos sobre el pecho con los codos estirados."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1101,18 +1026,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "La bola cuelga bajo el asa y cada kettlebell puede girar dentro del puño. El centro de la masa no coincide con la muñeca, así que el agarre tiene que frenar el vuelco.",
-              "efc": 4.2,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Baja cada kettlebell hacia el lado del pecho sin soltar el asa.",
                 "Extiende los codos y no dejes que las bolas roten al final."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1231,14 +1152,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Plano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1262,7 +1175,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -1292,12 +1204,10 @@
                 "Cierra el asa con fuerza y deja las bolas sobre el pecho, codos estirados."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1350,18 +1260,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "Las piernas quedan en los rodillos y la barra baja hacia la parte baja del esternón, en un arco más corto que el horizontal. Las manos van unidas y la carga puede ser alta porque el respaldo ya mira a los pies.",
-              "efc": 4.2,
               "equipmentId": "barbell",
               "executionCues": [
                 "Baja la barra hasta la parte baja del esternón, sin rebotar.",
                 "Empuja en la línea del torso hasta estirar los codos, sin deslizarte hacia la cabeza."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1480,14 +1386,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1503,7 +1401,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -1533,12 +1430,10 @@
                 "Agarra la barra poco más ancha que los hombros y sácala sobre el pecho bajo."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -1558,18 +1453,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "Las mancuernas entran por separado junto a la parte baja del pecho, con la cabeza ya más baja que las caderas. El codo puede cerrarse sin chocar una pieza rígida contra las costillas.",
-              "efc": 4.2,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Baja las mancuernas hacia los lados de la parte baja del pecho.",
                 "Empuja hasta extender los codos sin que una mancuerna se adelante a la otra."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1688,14 +1579,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1711,7 +1594,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -1741,12 +1623,10 @@
                 "Apoya las escápulas en el respaldo declinado antes de abrir el arco."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -1766,18 +1646,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "Hay que colocar el banco declinado bajo los rieles, porque la barra solo se desplaza en vertical. Si el pecho queda fuera de esa línea, el contacto no cae en el esternón.",
-              "efc": 4.2,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Baja la barra por los rieles hasta la parte baja del pecho.",
                 "Sube pegado a los rieles hasta los codos rectos, sin resbalar hacia la cabeza."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1896,14 +1772,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1919,7 +1787,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -1949,12 +1816,10 @@
                 "Con los tobillos en los rodillos, toma la barra y deja las muñecas alineadas."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -1974,18 +1839,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "Cada kettlebell se empuja con la bola bajo el asa desde un torso que ya apunta hacia abajo. El desnivel del respaldo hace que la masa tienda a vencer el puño hacia la cara.",
-              "efc": 4.2,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Baja las kettlebells hacia los lados del pecho sin abrir las manos.",
                 "Cierra los brazos y sujeta el asa para que la bola no gire hacia la cara."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2104,14 +1965,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Declinado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2127,7 +1980,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -2157,12 +2009,10 @@
                 "Apoya la espalda en el respaldo declinado, con las muñecas firmes en el asa."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -2207,18 +2057,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "La barra baja hacia la clavícula, por encima de un respaldo elevado, y las dos manos comparten ese arco alto. Los discos cuelgan a los lados, separados del suelo si el banco está a la altura habitual.",
-              "efc": 4.2,
               "equipmentId": "barbell",
               "executionCues": [
                 "Baja la barra hacia la clavícula, sin dejar que se te venga a la cara.",
                 "Empuja hasta estirar los codos, con la espalda pegada al respaldo elevado."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2337,14 +2183,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2360,7 +2198,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -2390,12 +2227,10 @@
                 "Agarra la barra un poco más ancha que los hombros, alineada con la clavícula."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -2415,18 +2250,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "Cada mancuerna puede pasar por fuera del hombro, un descenso que una barra alta suele cortar al tocar el pecho. Las muñecas rotan y los codos no están obligados a la misma profundidad.",
-              "efc": 4.2,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Baja las mancuernas por fuera de los hombros, hacia la clavícula.",
                 "Empuja ambas hasta extender los codos, sin despegar la espalda del respaldo."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2545,14 +2376,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2568,7 +2391,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -2598,12 +2420,10 @@
                 "Apoya las escápulas en el banco inclinado y planta los pies en el suelo."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -2623,18 +2443,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "El respaldo inclinado se alinea bajo rieles que solo dejan subir y bajar. La barra no puede adelantarse hacia la cara ni caer hacia las costillas aunque el banco mire hacia arriba.",
-              "efc": 4.2,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Baja la barra por los rieles hasta la parte alta del pecho.",
                 "Sube en la línea de los rieles hasta bloquear los codos, con la pelvis quieta."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2753,14 +2569,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2776,7 +2584,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -2806,12 +2613,10 @@
                 "Espalda y pies apoyados, manos en la barra y muñecas sin vencimiento."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -2831,18 +2636,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "Los brazos de la estación marcan un arco ya elevado y la carga vive en la pila, junto al asiento. Las manos empujan agarres, no una pieza libre que haya que estabilizar sobre el pecho.",
-              "efc": 4.2,
               "equipmentId": "machine",
               "executionCues": [
                 "Acerca los mangos a la parte alta del pecho sin despegar la espalda.",
                 "Empuja hasta extender los codos, dejando el arco a los brazos de la estación."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2961,14 +2762,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2984,7 +2777,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -3014,12 +2806,10 @@
                 "Apoya la espalda en el respaldo y sujeta ambos mangos con las muñecas firmes."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "machine"
@@ -3039,18 +2829,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "Los cables tiran de los agarres hacia las poleas durante todo el empuje, también arriba del arco. Ahí una carga libre inclinada ya no presiona el pecho con la misma dirección.",
-              "efc": 4.2,
               "equipmentId": "cable",
               "executionCues": [
                 "Deja bajar los mangos hacia los lados de la parte alta del pecho.",
                 "Estira los brazos en lo alto del arco, con el tiro de las poleas todavía presente."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3169,14 +2955,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3192,7 +2970,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -3222,12 +2999,10 @@
                 "Agarra un mango en cada mano por encima de la altura de la clavícula."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "cable"
@@ -3247,18 +3022,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "Sobre un torso reclinado, cada kettlebell cuelga del asa y puede girar hacia la cara si el puño cede. Los brazos no van atados y cada arco es independiente.",
-              "efc": 4.2,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Baja las kettlebells hacia los lados de la clavícula sin soltar el asa.",
                 "Empuja hasta extender los codos y controla el giro de cada bola."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3377,14 +3148,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca Inclinado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3400,7 +3163,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -3430,12 +3192,10 @@
                 "Apoya la espalda en el respaldo y planta los pies antes de bajar."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -3480,19 +3240,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "La barra se queda quieta sobre el esternón unos dos segundos y el empuje empieza después, sin rebote. En el estudio de la pausa, la ayuda del estiramiento previo se reducía a la mitad en menos de un segundo.",
-              "efc": 4.2,
               "equipmentId": "barbell",
               "executionCues": [
                 "Baja la barra hasta el esternón y detenla ahí dos segundos, sin rebotar.",
                 "Empuja solo cuando la barra haya estado quieta, hasta estirar los codos.",
                 "No aflojes el torso durante esa parada."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3609,14 +3365,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca con Pausa",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3633,7 +3381,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -3663,12 +3410,10 @@
                 "Junta las escápulas contra el banco antes de la primera bajada."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {}
           }
@@ -3710,19 +3455,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 4.0,
               "description": "La barra recta sube y baja casi vertical sobre el pecho, con las manos casi bajo los hombros. Con este agarre las manos empujan la barra algo hacia dentro, al revés que con las manos muy abiertas, que la empujan hacia fuera.",
-              "efc": 4.2,
               "equipmentId": "barbell",
               "executionCues": [
                 "Baja la barra con los codos pegados a las costillas hasta tocar la parte baja del pecho.",
                 "Deja los antebrazos verticales durante toda la bajada.",
                 "Empuja la barra hacia arriba hasta estirar los codos, sin despegar la cadera del banco."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3839,14 +3580,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 4.0,
-                  "efc": 4.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca con Agarre Cerrado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3865,7 +3598,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -3896,12 +3628,10 @@
                 "Saca la barra del soporte y llévala sobre el pecho con los codos estirados."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.2
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {}
           }

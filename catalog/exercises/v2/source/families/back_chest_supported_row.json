@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Palmas hacia los pies y codos abiertos casi en cruz con el tronco: así se traduce el agarre amplio con mancuernas. Cada carga termina junto a la axila, y el trapecio y el deltoides posterior trabajan más que con los codos pegados.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Abre los codos hacia fuera y súbelos hasta la altura de los hombros.",
                 "Aprieta las escápulas arriba sin separar el esternón del respaldo.",
                 "Baja despacio hasta que los brazos vuelvan a colgar estirados."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -155,14 +151,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -179,7 +167,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -211,12 +198,10 @@
                 "Agarra las mancuernas con las palmas mirando hacia tus pies y deja los brazos colgando."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "wide",
@@ -237,19 +222,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "En agarre amplio, cada asa queda atravesada en la palma y los codos se abren hasta la altura de los hombros. La bola cuelga por debajo del puño y se balancea si el tirón es brusco, así que la subida pide un ritmo parejo.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Abre los codos hacia fuera hasta la altura de los hombros, sin dar tirones.",
                 "Cierra las escápulas en lo alto con el pecho quieto sobre el respaldo.",
                 "Baja despacio hasta estirar los brazos."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -372,14 +353,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -396,7 +369,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -428,12 +400,10 @@
                 "Échate boca abajo y agarra cada asa con las palmas mirando hacia tus pies."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "wide",
@@ -454,19 +424,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "En los mangos exteriores, con las palmas hacia abajo, los codos salen a la altura de los hombros y el tirón se vuelve una apertura hacia atrás. Los brazos de la máquina fijan el arco, y el trapecio y el deltoides posterior suben su parte del trabajo.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Separa los codos del cuerpo y tira hasta que lleguen a la línea de los hombros.",
                 "No despegues el pecho de la almohadilla al final.",
                 "Deja volver los mangos hasta estirar los brazos sin que la carga golpee."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -589,14 +555,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -613,7 +571,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -645,12 +602,10 @@
                 "Apoya el pecho en la almohadilla y agarra los mangos horizontales de fuera con las palmas hacia abajo."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "wide",
@@ -671,19 +626,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Desde la polea alta, la barra larga baja hacia el pecho con las manos muy separadas y los codos abiertos, que descienden hacia los costados. Las escápulas, además de juntarse, bajan, y el trapecio y el deltoides posterior aportan más que con un agarre estrecho.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Tira de la barra hacia la parte alta del pecho bajando los codos hacia los costados.",
                 "Junta y baja las escápulas sin despegar el pecho del respaldo.",
                 "Deja subir la barra hasta estirar los brazos hacia la polea."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -810,14 +761,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -834,7 +777,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -866,12 +808,10 @@
                 "Apoya el pecho en el respaldo y sujeta la barra larga bien abierta, con las palmas mirando a la polea."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "wide",
@@ -893,19 +833,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Sentado frente a la columna con el pecho en una almohadilla casi vertical, el cable llega en horizontal a la barra larga y los codos se abren hasta la línea de los hombros. La barra frena delante de la almohadilla, y el trapecio y el deltoides posterior llevan buena parte del tirón.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Tira con los codos hacia fuera hasta que la barra quede justo delante de la almohadilla.",
                 "Aprieta las escápulas sin separar el pecho de la almohadilla.",
                 "Estira los brazos hacia la polea sin soltar la barra."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1029,14 +965,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1053,7 +981,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1085,12 +1012,10 @@
                 "Apoya el pecho en la almohadilla, los pies en el suelo, y sujeta la barra larga bien abierta con las palmas hacia abajo."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "wide",
@@ -1112,19 +1037,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Desde la polea baja, la barra larga sube en diagonal hacia el pecho con los codos abiertos, y el recorrido se corta poco antes de tocar el banco. Las escápulas se juntan arriba con el trapecio llevando una parte grande del trabajo.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Tira con los codos hacia fuera hasta que la barra quede a un palmo del banco.",
                 "Aprieta las escápulas sin separar el pecho del respaldo.",
                 "Baja la barra hasta estirar los brazos hacia el suelo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1248,14 +1169,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1272,7 +1185,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1304,12 +1216,10 @@
                 "Apoya el pecho en el respaldo y sujeta la barra larga bien abierta, con las palmas hacia abajo."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "wide",
@@ -1331,19 +1241,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Cada mancuerna cuelga bajo su hombro y sube por fuera del banco hasta las costillas bajas, con el codo a medio camino entre el costado y la cruz. Los brazos van sueltos, así que si un lado se queda corto se nota enseguida.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Lleva los codos hacia atrás en diagonal hasta que las mancuernas lleguen a las costillas bajas.",
                 "Aprieta las escápulas arriba sin separar el esternón del respaldo.",
                 "Vuelve despacio hasta estirar los codos y deja que las escápulas se abran."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1465,14 +1371,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1489,7 +1387,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1521,12 +1418,10 @@
                 "Toma una mancuerna con cada mano y deja que cuelguen bajo los hombros, con los pies firmes detrás."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "medium",
@@ -1547,19 +1442,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "La bola cuelga bastante por debajo del asa, de modo que el banco necesita altura para que no roce el suelo con los brazos estirados. Los codos salen en diagonal y las asas terminan a la altura de las costillas.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Tira de los codos en diagonal hasta que las asas lleguen a las costillas.",
                 "Sube a un ritmo parejo para que las bolas no se balanceen.",
                 "Baja hasta estirar los brazos sin soltar las asas."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1681,14 +1572,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1705,7 +1588,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1737,12 +1619,10 @@
                 "Échate boca abajo con un kettlebell colgando de cada mano bajo los hombros."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "medium",
@@ -1763,19 +1643,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Sentado frente a la almohadilla, los mangos quedan a la altura del pecho y recorren el arco fijo de los brazos de la máquina. Sin carga que estabilizar, la serie puede acercarse al fallo sin que la postura cambie.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Tira de los mangos hacia ti hasta que los codos pasen la línea de la espalda.",
                 "No despegues el pecho de la almohadilla al final.",
                 "Deja volver los mangos hasta estirar los brazos sin que la carga golpee."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1897,14 +1773,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1921,7 +1789,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1953,12 +1820,10 @@
                 "Apoya el pecho en la almohadilla y toma los mangos a la anchura de tus hombros."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "medium",
@@ -1979,19 +1844,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "La polea alta tira desde arriba y por delante, así que los brazos arrancan elevados y los codos bajan y retroceden hasta las costillas. Con las manos al ancho de los hombros, el tirón mezcla la extensión del hombro con el cierre de las escápulas.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Baja y retrasa los codos hasta que lleguen a las costillas.",
                 "Junta y baja las escápulas sin despegar el pecho del respaldo.",
                 "Deja subir la barra hasta estirar los brazos hacia la polea."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2117,14 +1978,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2141,7 +1994,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2173,12 +2025,10 @@
                 "Apoya el pecho en el respaldo y sujeta la barra corta con las manos a la anchura de tus hombros."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "medium",
@@ -2200,19 +2050,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "El tronco queda vertical contra la almohadilla y el cable llega en horizontal a la altura del pecho, perpendicular al cuerpo. Las asas pasan por los lados del apoyo hasta las costillas, y el cable no afloja ni con los brazos estirados delante.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Lleva los codos hacia atrás en diagonal hasta que pasen la línea de la espalda.",
                 "Aprieta las escápulas sin separar el pecho de la almohadilla.",
                 "Estira los brazos hacia la polea sin soltar las asas."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2335,14 +2181,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2359,7 +2197,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2391,12 +2228,10 @@
                 "Apoya el pecho en la almohadilla, los pies en el suelo, y toma un asa en cada mano a la anchura de tus hombros."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "medium",
@@ -2418,19 +2253,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "El cable sale de abajo y por delante, así que el tirón empieza con los brazos estirados hacia el suelo y acaba con las manos frente a la parte baja del pecho. El banco marca el final: la barra frena antes de tocar el acolchado.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Lleva los codos hacia atrás en diagonal hasta que la barra quede a un palmo del banco.",
                 "Aprieta las escápulas sin separar el pecho del respaldo.",
                 "Baja la barra hasta estirar los brazos hacia el suelo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2553,14 +2384,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2577,7 +2400,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2609,12 +2431,10 @@
                 "Apoya el pecho en el respaldo y sujeta la barra corta con las manos a la anchura de tus hombros."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "medium",
@@ -2636,19 +2456,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con las palmas enfrentadas, los codos rozan las costillas y las mancuernas suben hacia la cadera, por detrás de la línea del tronco. Así el dorsal ancho gana protagonismo frente a la espalda alta, y se mueve más carga que con los codos abiertos.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Sube los codos rozando las costillas hasta que pasen la línea de la espalda.",
                 "Aguanta un segundo arriba con las escápulas juntas.",
                 "Baja hasta que los brazos cuelguen estirados."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2770,14 +2586,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2794,7 +2602,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2826,12 +2633,10 @@
                 "Agarra las mancuernas con las palmas enfrentadas, una a cada lado del banco."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "close",
@@ -2852,19 +2657,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con las palmas mirando al banco, las asas quedan en línea con el cuerpo y cada bola cuelga pegada a un lateral. Los codos suben rozando el tronco hasta pasar la espalda, y el dorsal ancho gana peso en el tirón.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Sube los codos pegados al tronco hasta que pasen la línea de la espalda.",
                 "Aguanta arriba un instante sin que las bolas se balanceen.",
                 "Baja hasta que los brazos queden estirados."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2986,14 +2787,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3010,7 +2803,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3042,12 +2834,10 @@
                 "Échate boca abajo y agarra cada asa con la palma mirando hacia el banco."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "close",
@@ -3068,19 +2858,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Los agarres verticales del centro juntan las manos con las palmas enfrentadas, y los codos pasan rozando el costado. El arco de la máquina termina con las manos junto a las costillas bajas y el dorsal ancho como protagonista.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Lleva los codos pegados al cuerpo hasta que las manos lleguen a las costillas.",
                 "No despegues el pecho de la almohadilla al final.",
                 "Deja volver los mangos hasta estirar los brazos sin que la carga golpee."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3202,14 +2988,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3226,7 +3004,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3258,12 +3035,10 @@
                 "Apoya el pecho y agarra los mangos verticales del centro con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "close",
@@ -3284,19 +3059,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con el agarre en V colgando de lo alto, los codos descienden junto al tronco desde un brazo elevado hasta quedar a la altura de las costillas. Es el ajuste de este remo que más recorrido de extensión de hombro pide, la acción propia del dorsal ancho.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Baja los codos pegados al cuerpo hasta que queden junto a las costillas.",
                 "Aprieta las escápulas abajo y atrás un instante.",
                 "Deja subir el agarre hasta estirar los brazos."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3419,14 +3190,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3443,7 +3206,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3475,12 +3237,10 @@
                 "Apoya el pecho en el respaldo y toma el agarre en V con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "close",
@@ -3502,19 +3262,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con las dos asas juntas a los lados de la almohadilla y las palmas enfrentadas, los codos se deslizan pegados a las costillas con el tronco vertical. Así el dorsal ancho toma la delantera y el hombro se extiende por detrás del tronco.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Lleva los codos rozando las costillas hasta que las asas lleguen a los costados del pecho.",
                 "Aprieta las escápulas sin separar el pecho de la almohadilla.",
                 "Estira los brazos hacia la polea sin soltar las asas."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3637,14 +3393,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3661,7 +3409,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3693,12 +3440,10 @@
                 "Apoya el pecho en la almohadilla, los pies en el suelo, y toma las dos asas juntas con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "close",
@@ -3720,19 +3465,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Enganchado a la polea baja, el agarre en V sube hacia el final del esternón y los codos pasan pegados al tronco hasta quedar detrás de la espalda. El dorsal ancho lleva la delantera, y el banco frena el agarre justo antes de tocarlo.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Lleva los codos pegados al cuerpo hasta que el agarre quede a un palmo del banco.",
                 "Aprieta las escápulas sin separar el pecho del respaldo.",
                 "Baja el agarre hasta estirar los brazos hacia el suelo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3855,14 +3596,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo con Pecho Apoyado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3879,7 +3612,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3911,12 +3643,10 @@
                 "Apoya el pecho en el respaldo y toma el agarre en V con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "close",

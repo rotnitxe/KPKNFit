@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El peso descansa sobre la espalda alta mientras una pierna retrocede. La barra baja con el torso y vuelve a su altura inicial sin desplazarse de lado a lado al recoger el pie.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Lleva un pie atrás y apoya sus dedos.",
                 "Hunde la rodilla posterior sin levantar el talón de delante.",
                 "Extiende rodilla y cadera delanteras y trae el pie de atrás junto al fijo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -178,14 +174,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -201,7 +189,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -233,14 +220,12 @@
                 "Elige un lugar con suelo despejado detrás de los talones."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -260,19 +245,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La pierna de trabajo queda delante del eje del carro y el otro pie retrocede bajo la barra. La guía restringe el movimiento lateral de la carga, sin apoyar la pelvis ni reemplazar el trabajo de las piernas.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Desengancha el carro y retrasa un pie hasta apoyar su antepié.",
                 "Desciende por las guías doblando ambas rodillas.",
                 "Sube sobre la planta delantera y recupera el pie posterior bajo el cuerpo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -418,14 +399,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -441,7 +414,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -473,14 +445,12 @@
                 "Fija los seguros debajo de la altura inferior que vas a usar."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -500,19 +470,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Las mancuernas bajan a ambos lados del apoyo delantero mientras el pie libre retrocede. Los brazos permanecen largos y dejan que el peso acompañe el descenso sin sujetarlo sobre los hombros.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Retira un pie hacia atrás sin estrechar los apoyos en una sola línea.",
                 "Acerca la rodilla trasera al piso con las pesas separadas de las piernas.",
                 "Pisa firme con el pie de delante y reúne las piernas tras extenderte."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -692,14 +658,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -715,7 +673,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -747,7 +704,6 @@
                 "Apoya ambos pies antes de iniciar el retroceso."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -755,8 +711,7 @@
                 "forearm",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -776,19 +731,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El asa se sujeta con las dos manos frente al esternón y el cuerpo baja por detrás del pie fijo. Esa carga anterior exige sostener los brazos flexionados durante el retroceso y el regreso.",
-              "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Retrocede con una pierna sin mover la pesa hacia la cara.",
                 "Dobla la rodilla de apoyo mientras los codos siguen cerca del tronco.",
                 "Vuelve a estar de pie sobre la pierna delantera y recoge la posterior."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -985,14 +936,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1008,7 +951,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1040,7 +982,6 @@
                 "Deja las plantas separadas para dar un paso hacia atrás."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -1049,8 +990,7 @@
                 "biceps",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1070,19 +1010,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Un asa sostenida junto a la cadera conecta el cuerpo con la polea baja de delante. Al retroceder, el cable tira hacia la estación y exige resistir ese arrastre sin inclinar ni girar el tronco.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Lleva el pie libre atrás sin acercar la mano a la polea.",
                 "Flexiona la pierna fija y deja el brazo largo junto a la cadera.",
                 "Presiona el suelo con el pie delantero y vuelve sin soltar el agarre."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1262,14 +1198,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1285,7 +1213,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1317,7 +1244,6 @@
                 "Aléjate hasta separar las placas y retrocede con la pierna contraria al asa."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -1325,8 +1251,7 @@
                 "forearm",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1346,19 +1271,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los brazos quedan libres y el pie delantero recibe el peso del cuerpo durante todo el descenso. El retroceso permite practicar la subida de rodilla y cadera sin una carga que condicione la posición de las manos.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Da un paso atrás dejando la planta delantera en el mismo sitio.",
                 "Acerca la rodilla que retrocede al suelo y conserva el pecho orientado al frente.",
                 "Eleva el cuerpo con la pierna fija antes de acercar el pie posterior."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1504,14 +1425,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Inversa",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1527,7 +1440,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1559,14 +1471,12 @@
                 "Deja las manos a la cintura y comprueba que tienes espacio detrás."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "bodyweight"

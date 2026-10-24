@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "En este banco cabeza abajo cada mancuerna pesa más con el brazo abierto, por debajo de la línea del hombro, y menos al reunir las manos sobre las costillas bajas. Las piernas quedan enganchadas para que el cuerpo no se deslice hacia la cabeza.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Abre los brazos por debajo de los hombros sin cambiar el ángulo de los codos.",
                 "Para antes de que el hombro se vaya detrás del banco.",
                 "Reúne las mancuernas sobre las costillas bajas sin despegar la cabeza."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -146,14 +142,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.5,
-                  "ssc": 0.6,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Aperturas Declinadas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -169,7 +157,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -198,13 +185,11 @@
                 "Lleva una mancuerna en cada mano sobre las costillas bajas, con las palmas mirándose y una flexión corta de codo."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.6,
               "stabilizerMuscles": [
                 "biceps",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 1.8
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -245,19 +230,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Cada mano carga su propio peso, y ese peso pide más con el brazo abierto, lejos del hombro, que cuando las manos ya se han reunido sobre el esternón. Si un hombro se cansa, ese lado puede quedarse más bajo que el otro.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Separa los brazos en arco hasta la altura del pecho sin abrir ni cerrar más los codos.",
                 "Detén la bajada antes de perder el hombro detrás del banco.",
                 "Vuelve a juntar las manos sobre el esternón sin golpear las mancuernas."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -374,14 +355,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.5,
-                  "ssc": 0.6,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Aperturas Planas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -397,7 +370,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -426,14 +398,12 @@
                 "Sostén una mancuerna en cada mano sobre el esternón, con las palmas una frente a la otra y los codos un poco flexionados."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.6,
               "stabilizerMuscles": [
                 "biceps",
                 "trapezius",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 1.8
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -453,19 +423,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Tumbado en el banco plano, los mangos de las poleas tiran de los brazos también cuando las manos ya están juntas delante del esternón, el tramo en el que dos pesos libres casi dejan de pesar. El torso permanece apoyado y el cable cruza el pecho de lado a lado.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Deja que los mangos se abran hasta la línea del pecho sin cambiar la flexión del codo.",
                 "Cruza las manos delante del esternón mientras el cable todavía tira.",
                 "No te incorpores del banco para ayudar al cierre."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -582,14 +548,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.5,
-                  "ssc": 0.6,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Aperturas Planas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -605,7 +563,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -634,14 +591,12 @@
                 "Agarra un mango con cada mano sobre el esternón, codos levemente doblados."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.6,
               "stabilizerMuscles": [
                 "biceps",
                 "trapezius",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 1.8
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable"
@@ -661,19 +616,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Las palancas repiten el mismo arco y el respaldo sostiene la espalda, así que el hombro no tiene que sujetar un peso suelto en la apertura. El cruce termina delante del pecho, con los codos todavía flexionados.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Abre los brazos hasta el tope cómodo del arco, sin enderezar los codos.",
                 "Cierra hasta juntar las manos delante del esternón.",
                 "Deja la espalda pegada al respaldo durante todo el arco."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -790,14 +741,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.5,
-                  "ssc": 0.6,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Aperturas Planas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -813,7 +756,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -842,14 +784,12 @@
                 "Agarra las dos empuñaduras a la altura del pecho, con los codos levemente doblados."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.6,
               "stabilizerMuscles": [
                 "biceps",
                 "trapezius",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 1.8
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "machine"
@@ -894,19 +834,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El respaldo alto lleva el encuentro de las dos mancuernas hacia la clavícula, y cada brazo puede abrirse un poco más o menos según su hombro. El peso libre se nota sobre todo con los brazos separados, no cuando las manos ya se tocan arriba.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Abre el arco por debajo de la clavícula sin subir los hombros hacia las orejas.",
                 "Cierra delante de la clavícula con el mismo ángulo de codo del inicio.",
                 "No conviertas el cierre en una elevación frontal hacia el techo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1025,14 +961,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.5,
-                  "ssc": 0.6,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Aperturas Inclinadas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1048,7 +976,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1077,13 +1004,11 @@
                 "Sostén una mancuerna en cada mano delante de la clavícula, con los codos levemente doblados."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.6,
               "stabilizerMuscles": [
                 "biceps",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 1.8
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -1103,19 +1028,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Unas poleas bajas, por detrás del banco inclinado, tiran del brazo durante el cruce alto, justo cuando dos mancuernas ya se aliviarían al juntarse sobre la clavícula. El respaldo deja el torso en el ángulo alto durante todo el arco.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Deja abrir los mangos por debajo de la clavícula sin cambiar el codo.",
                 "Cruza las manos delante de la clavícula mientras el cable todavía tira.",
                 "Mantén la espalda en el respaldo inclinado, sin encoger los hombros."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1234,14 +1155,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.5,
-                  "ssc": 0.6,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Aperturas Inclinadas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1257,7 +1170,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1286,13 +1198,11 @@
                 "Agarra un mango con cada mano delante de la clavícula y dobla un poco los codos."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.6,
               "stabilizerMuscles": [
                 "biceps",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 1.8
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1312,19 +1222,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El asiento y el respaldo inclinado fijan el torso, y las palancas suben el cruce hacia la clavícula. El arco no depende de sostener dos pesos sueltos a la vez, así que una repetición se parece a la siguiente.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Abre los brazos en el arco de las palancas, con los codos siempre levemente doblados.",
                 "Cierra hasta que las manos se acerquen delante de la clavícula.",
                 "No levantes el torso del cojín para hacer más corto el cierre."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1443,14 +1349,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.5,
-                  "ssc": 0.6,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Aperturas Inclinadas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1466,7 +1364,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1495,13 +1392,11 @@
                 "Apoya la espalda en el respaldo inclinado y agarra las dos empuñaduras."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.6,
               "stabilizerMuscles": [
                 "biceps",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 1.8
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "machine"
@@ -1546,19 +1441,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Las dos palancas se abren a la vez con el pecho pegado al respaldo, así que el tronco no puede columpiarse para ayudar. En esta máquina, el agarre con el pulgar hacia arriba activó más el deltoides posterior que el agarre prono.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Abre los dos brazos a la vez hasta la línea de los hombros, sin estirar los codos.",
                 "Acerca las escápulas sin subir los hombros hacia las orejas.",
                 "Vuelve despacio hasta que las manos queden delante del pecho."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1676,14 +1567,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1702,7 +1585,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -1734,13 +1616,11 @@
                 "Agarra las dos empuñaduras con los pulgares hacia arriba y los codos levemente doblados."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "biceps",
                 "forearm"
               ],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "machine",
@@ -1761,19 +1641,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Una sola palanca se mueve y el otro brazo queda fuera del apoyo. El pecho permanece en el respaldo, y el hombro que trabaja no puede acortar el arco apoyándose en el lado contrario.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Abre solo ese brazo hasta la línea del hombro, con el codo levemente doblado.",
                 "No gires el tronco para llegar más atrás.",
                 "Regresa el mango delante del pecho y repite luego el otro lado."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1891,14 +1767,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1917,7 +1785,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -1949,13 +1816,11 @@
                 "Deja el otro brazo caído junto al tronco y el pecho pegado al respaldo."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "biceps",
                 "forearm"
               ],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "machine",
@@ -1976,19 +1841,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Dos poleas a la altura de los hombros, cruzadas por delante, tiran de ambos brazos durante todo el camino hacia atrás, también en el instante en que las manos están juntas. Los dos lados salen y regresan juntos, de pie y con el tronco quieto.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Abre los dos brazos hacia los lados, a la altura del hombro, con los codos quietos.",
                 "Para cuando las manos queden en la línea de los hombros, sin echar el tronco atrás.",
                 "Regresa hasta que los mangos vuelvan a cruzarse delante del pecho."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2106,14 +1967,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2132,7 +1985,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -2164,13 +2016,11 @@
                 "Agarra un mango con cada mano, pulgares hacia arriba, y da un paso atrás hasta notar el tiro."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "biceps",
                 "forearm"
               ],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "cable",
@@ -2191,19 +2041,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Un solo mango cruza por delante del cuerpo y tira de un hombro durante toda la apertura posterior. El otro brazo no carga, así que el tronco tiene que quedarse quieto sin un contrapeso del lado contrario.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Abre ese brazo hacia fuera, a la altura del hombro, sin girar la cadera.",
                 "Mantén el codo levemente doblado hasta el final de la apertura.",
                 "Vuelve a cruzar el mango por delante del pecho y cambia de lado."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2321,14 +2167,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2347,7 +2185,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -2379,13 +2216,11 @@
                 "Da un paso lateral hasta que el cable tire con el brazo delante del pecho."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "biceps",
                 "forearm"
               ],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "cable",
@@ -2406,19 +2241,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Boca abajo sobre un banco inclinado, cada mancuerna pesa más cuando el brazo cuelga hacia el suelo y menos cuando el codo sube hacia atrás, a la altura del hombro. Los dos brazos se abren juntos y el pecho no se despega.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Eleva los dos brazos hacia los lados hasta la altura del hombro, sin doblar más los codos.",
                 "Acerca las escápulas arriba y no levantes el pecho del banco.",
                 "Baja las mancuernas hasta que los brazos vuelvan a colgar."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2536,14 +2367,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2562,7 +2385,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -2594,13 +2416,11 @@
                 "Toma una mancuerna en cada mano bajo los hombros, con los pulgares hacia arriba."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "biceps",
                 "forearm"
               ],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -2621,19 +2441,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Una mancuerna y el pecho apoyado: la mano libre se apoya en el banco y no comparte el peso. La apertura posterior de ese hombro se ve sola, desde el brazo colgando hasta la altura del hombro.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Sube ese brazo hacia el lado hasta la altura del hombro, sin tirar del codo a la cintura.",
                 "No levantes el pecho para impulsar la mancuerna.",
                 "Baja hasta colgar el brazo y luego cambia de lado."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2751,14 +2567,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Aperturas Inversas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2777,7 +2585,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -2809,13 +2616,11 @@
                 "Toma una mancuerna con la otra mano, pulgar hacia arriba, y deja el brazo colgando."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.3,
               "stabilizerMuscles": [
                 "biceps",
                 "forearm"
               ],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "dumbbells",

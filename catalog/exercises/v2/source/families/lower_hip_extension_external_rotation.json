@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con peso corporal, con las plantas juntas y las rodillas abiertas, la cadera sube y baja en un recorrido corto y quemante. Sin más carga que el propio cuerpo, la exigencia del glúteo mayor es la justa.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -139,14 +135,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Frog Pumps",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -160,7 +148,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -186,10 +173,8 @@
                 "Preparación: Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas y a dos lados, con el torso inclinado y el codo en alto, el antebrazo se extiende hacia atrás hasta la línea del cuerpo. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
-              "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -126,14 +122,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Patada de Tríceps",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -149,7 +137,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -175,10 +162,8 @@
                 "Preparación: Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -200,17 +185,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea y a dos lados, con el torso inclinado y el codo en alto, el antebrazo se extiende hacia atrás hasta la línea del cuerpo. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
-              "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea inclinado con ambas manos: la tensión constante acompaña la patada. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -306,14 +287,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Patada de Tríceps",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -329,7 +302,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -355,10 +327,8 @@
                 "Preparación: Polea inclinado con ambas manos: la tensión constante acompaña la patada."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "cable",
@@ -380,17 +350,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas y a un lado, con el torso inclinado y el codo en alto, el antebrazo se extiende hacia atrás hasta la línea del cuerpo. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
-              "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -486,14 +452,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Patada de Tríceps",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -509,7 +467,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -535,10 +492,8 @@
                 "Preparación: Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -559,17 +514,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea y una sola mano, el torso inclinado mantiene el codo en alto y el antebrazo se extiende hacia atrás hasta la línea del cuerpo. Un brazo por vez y la tensión de la polea sin descansar en el tríceps.",
-              "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
                 "Con una mano en la empuñadura de la polea baja: el codo queda fijo a la altura del hombro y el antebrazo se extiende hasta alinearse con el tronco sin girar el cuerpo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -665,14 +616,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Patada de Tríceps",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -688,7 +631,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -714,10 +656,8 @@
                 "Preparación: Con una mano en la empuñadura de la polea baja: el codo queda fijo a la altura del hombro y el antebrazo se extiende hasta alinearse con el tronco sin girar el cuerpo."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "cable",

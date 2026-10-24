@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra descansa sobre la espalda alta y asciende junto al torso, dejando ambas manos ocupadas en sujetarla. El cajón queda fuera del soporte de salida y la carga no puede apoyarse en él al bajar.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Empuja el cajón con la pierna elevada hasta enderezar cadera y rodilla.",
                 "Acerca el pie libre arriba sin dar un salto ni descargar el peso sobre él.",
                 "Vuelve a tocar el suelo con el pie libre mientras flexionas la pierna del cajón."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -178,14 +174,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -201,7 +189,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -233,14 +220,12 @@
                 "Sitúa un cajón firme delante y apoya un pie entero, con la rodilla cerca de un ángulo recto."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -260,19 +245,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El eje de la Smith corre por sus guías mientras la barra apoya sobre los hombros posteriores. La posición del cajón debe permitir esa subida dentro de la estación, sin que el pie libre choque con la base ni la barra llegue al tope superior.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Eleva el cuerpo por la pierna del cajón y deja que el eje suba por sus guías.",
                 "Baja el pie libre hasta el suelo sin soltar la barra ni empujar con esa pierna.",
                 "Engancha el eje antes de retirar el pie del cajón."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -418,14 +399,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -441,7 +414,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -474,14 +446,12 @@
                 "Desengancha el eje con las manos y apoya un pie entero en el cajón."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -501,19 +471,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Las dos mancuernas quedan suspendidas por fuera de los muslos, con un agarre independiente a cada lado. Los laterales del cajón dejan pasar esas cargas durante la subida; el borde no sirve como descanso para las pesas.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Levanta el cuerpo extendiendo la pierna apoyada y conserva las pesas separadas del cajón.",
                 "Deja el pie libre cerca del pie elevado al terminar, sin trasladarle el peso.",
                 "Desciende hasta tocar el suelo con ese pie y repite desde el apoyo elevado."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -693,14 +659,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -716,7 +674,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -748,7 +705,6 @@
                 "Elige un cajón donde quepa todo el pie y apoya la pierna de trabajo."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "erector_spinae",
@@ -756,8 +712,7 @@
                 "forearm",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -777,19 +732,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una kettlebell sostenida por las dos manos queda delante del pecho. Ese apoyo anterior ocupa los brazos y exige conservar la pesa cerca del torso mientras la pierna elevada inicia el ascenso; separarla hacia delante añade esfuerzo de sostén.",
-              "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Presiona la superficie con el pie elevado y sube con la pesa junto al pecho.",
                 "Endereza la pierna de trabajo sin lanzar la kettlebell hacia delante.",
                 "Regresa el pie libre al suelo y conserva los codos flexionados."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -986,14 +937,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1009,7 +952,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1041,7 +983,6 @@
                 "Apoya todo el pie sobre un cajón que puedas alcanzar sin torcer la pelvis."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "erector_spinae",
@@ -1050,8 +991,7 @@
                 "deltoid",
                 "biceps"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1071,19 +1011,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Dos poleas bajas próximas al cajón tiran de las asas hacia abajo y hacia sus puntos de salida. Los brazos cuelgan a los lados y los cables quedan por fuera de las piernas; la dirección de esa resistencia cambia al ganar altura.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Sube por extensión de la pierna elevada, sin remar con las asas.",
                 "Acerca el pie libre al cajón cuando la pierna apoyada esté extendida.",
                 "Baja hasta tocar el suelo y conserva las asas fuera del borde de la plataforma."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1263,14 +1199,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1286,7 +1214,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1319,7 +1246,6 @@
                 "Apoya el pie de trabajo entero sin pisar ningún cable."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "erector_spinae",
@@ -1327,8 +1253,7 @@
                 "forearm",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1348,19 +1273,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Las manos quedan libres y la altura del cajón decide cuánto cuesta cada subida: a más altura, más trabajo para la pierna. La atención va al pie apoyado entero sobre el cajón y a una bajada sin caída.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Presiona con todo el pie apoyado y estira cadera y rodilla hasta quedar erguido sobre el cajón.",
                 "Acerca el pie libre arriba sin impulso, sin saltar y sin cargar el peso en él.",
                 "Baja despacio por la misma pierna hasta tocar el suelo con el pie libre."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1506,14 +1427,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1529,7 +1442,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1561,14 +1473,12 @@
                 "Deja las manos libres, en la cintura o a los lados, para equilibrarte."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "bodyweight"
