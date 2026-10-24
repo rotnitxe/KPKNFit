@@ -13,7 +13,6 @@ import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.example.kpkn.data.models.CompletedExercise
-import com.example.kpkn.ui.components.rings.TowerRingValues
 import java.io.File
 import java.io.FileOutputStream
 import kotlinx.coroutines.CoroutineScope

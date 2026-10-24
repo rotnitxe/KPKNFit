@@ -19,7 +19,6 @@ data class WorkoutLog(
     val totalVolume: Double = 0.0,         // kg × reps total
     val sessionStressScore: Double? = null, // AUGE: computed CNC drain for this session
     /** Canonical muscular impact captured at finish; nullable for legacy logs. */
-    val muscularImpactV2: com.example.kpkn.domain.auge.MuscularSessionImpactV2? = null,
     val energySummary: SessionEnergySummary? = null,
     /** Specialized observations/results of this activity; never extra kcal or extra workouts. */
     val sportDocuments: List<com.example.kpkn.domain.multisport.tracking.SportTrackingDocument> = emptyList(),

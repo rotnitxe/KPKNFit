@@ -1,7 +1,5 @@
 package com.example.kpkn.data.models
 
-import com.example.kpkn.domain.auge.MuscularSessionImpactV2
-import com.example.kpkn.domain.onboarding.RingsCoverage
 import kotlinx.serialization.Serializable
 
 // ─── Wellbeing & Logging ──────────────────────────────────────────────────────
@@ -103,7 +101,6 @@ data class PostSessionPreview(
     val completionInstantIso: String? = null,
     val inputHash: String? = null,
     val source: PostSessionPreviewSource = PostSessionPreviewSource.FINISH_AUTO_PREVIEW,
-    val automaticImpact: MuscularSessionImpactV2? = null,
     val involvedVolumeMuscles: Set<String> = emptySet(),
 )
 
@@ -200,7 +197,6 @@ data class AugeSnapshot(
      * deriva de etiquetas globales ni asume que un canal sin cobertura es
      * «conocido».
      */
-    val coverage: RingsCoverage? = null,
 )
 
 @Serializable

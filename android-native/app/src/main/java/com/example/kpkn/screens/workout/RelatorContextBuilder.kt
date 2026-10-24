@@ -478,7 +478,6 @@ internal object RelatorContextBuilder {
             assistAck = assistAck,
             ultraFastApplied = state.ultraFastApplied,
             loadFromPreviousSession = loadAnchor.fromPreviousSession,
-            axialLoadFactor = exerciseContext.axialLoadFactor,
             equipmentId = exerciseContext.equipmentId,
             movementPatternId = exerciseContext.movementPatternId,
             plannedIsoHold = currentSet?.plannedIntensityTechniques.orEmpty()

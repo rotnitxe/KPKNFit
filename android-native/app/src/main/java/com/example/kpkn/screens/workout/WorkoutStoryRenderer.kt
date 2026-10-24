@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import com.example.kpkn.data.programs.ProgramCoverRepository
 import com.example.kpkn.data.programs.programCoverEntryIdOf
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
-import com.example.kpkn.ui.components.rings.TowerRingValues
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File

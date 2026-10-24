@@ -48,7 +48,6 @@ import com.example.kpkn.data.models.SessionChecklistItem
 import com.example.kpkn.data.models.SessionMilestone
 import com.example.kpkn.data.models.SessionSavedNote
 import com.example.kpkn.ui.components.rememberStableUriImageRequest
-import com.example.kpkn.ui.components.rings.*
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.screens.workout.components.WorkoutPhotoViewer
 import kotlinx.coroutines.launch
@@ -126,40 +125,6 @@ private fun FinishRoundAction(label: String, tag: String, icon: androidx.compose
         colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color(0xFF1A1A1A), contentColor = FinishCream)) {
         Icon(icon, label, Modifier.size(20.dp))
     }
-}
-
-@Composable
-internal fun ColumnScope.FinishTodayPage(
-    values: TowerRingValues, before: TowerRingValues, drains: List<Int>, onRing: (RingChannel) -> Unit,
-    metrics: List<Pair<String, String>>, onDetails: () -> Unit,
-) {
-    Row(Modifier.weight(1f).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-        KpknTowerRings(values = values, from = before, onRingTap = onRing,
-            modifier = Modifier.weight(1f).heightIn(max = 224.dp).fillMaxHeight().testTag("finish-rings"))
-        Column(Modifier.width(110.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            listOf(RingChannel.ENERGIA, RingChannel.MUSCULOS, RingChannel.COLUMNA).forEach { channel ->
-                Column(Modifier.fillMaxWidth().clickable { onRing(channel) }.padding(vertical = 2.dp)) {
-                    Text(when(channel) { RingChannel.ENERGIA -> "ENERGÍA"; RingChannel.MUSCULOS -> "MÚSCULOS"; RingChannel.COLUMNA -> "COLUMNA" },
-                        style = KpknType.eyebrow.copy(fontSize = 11.sp), color = FinishCream.copy(alpha = .7f))
-                    Text(values[channel]?.let { "$it %" } ?: "—", style = KpknType.title.copy(fontSize = 22.sp), color = FinishCream)
-                }
-            }
-        }
-    }
-    Text("Toca un anillo para ajustarlo", style = KpknType.caption.copy(fontSize = 12.sp), color = FinishMuted, modifier = Modifier.align(Alignment.CenterHorizontally))
-    metrics.chunked(3).forEach { row ->
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            row.forEach { (name, value) ->
-                Column(Modifier.weight(1f).background(FinishSurface, RoundedCornerShape(16.dp)).padding(10.dp)) {
-                    Text(name, style = KpknType.caption.copy(fontSize = 11.sp), color = FinishMuted, maxLines = 1)
-                    Text(value, style = KpknType.bodyStrong.copy(fontSize = 17.sp), color = FinishCream, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            }
-            repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
-        }
-    }
-    Text("Ver detalles de la carga", style = KpknType.caption.copy(fontSize = 11.sp), color = FinishMuted,
-        modifier = Modifier.align(Alignment.CenterHorizontally).clickable(onClick = onDetails).padding(2.dp).testTag("finish-details"))
 }
 
 @Composable

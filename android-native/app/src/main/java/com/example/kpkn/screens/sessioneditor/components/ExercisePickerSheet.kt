@@ -340,18 +340,6 @@ internal fun ExercisePickerSheet(
                     },
                     label = if (normalizedQuery.isNotBlank()) "Relevancia" else "Alfabético",
                 )
-                CompactCatalogFilterChip(
-                    selected = sortMode == ExerciseCatalogSort.FATIGUE_HIGH,
-                    onClick = {
-                        if (sortMode == ExerciseCatalogSort.FATIGUE_HIGH) {
-                            sortAscending = !sortAscending
-                        } else {
-                            sortMode = ExerciseCatalogSort.FATIGUE_HIGH
-                            sortAscending = false
-                        }
-                    },
-                    label = "Fatiga",
-                )
                 Spacer(modifier = Modifier.weight(1f))
                 TextButton(
                     onClick = {

@@ -1,8 +1,6 @@
 package com.example.kpkn.screens.onboarding
 
-import com.example.kpkn.data.models.InitialRecoveryResponseState
 import com.example.kpkn.data.models.NutritionPlan
-import com.example.kpkn.data.models.RingsMuscleGroup
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
@@ -13,7 +11,6 @@ import com.example.kpkn.domain.onboarding.CompetitionRules
 import com.example.kpkn.domain.onboarding.LiftVariants
 import com.example.kpkn.domain.onboarding.MuscleSymbols
 import com.example.kpkn.domain.onboarding.ProgramSource
-import com.example.kpkn.domain.onboarding.RingsSessionDaysState
 import com.example.kpkn.domain.onboarding.SetupEquationSexValues
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
@@ -417,13 +414,6 @@ private fun SetupWizardDraft.summaryFeeling(step: SetupStepId, level: Int?): Str
         summaryChoice(step)
     }
 
-/** Respuesta de «¿cargas pesadas para la espalda?» desde el tipado, para borradores sin selección guardada. */
-private fun SetupWizardDraft.summaryAxialAnswer(): String? {
-    val axial = ringsAnswers?.axialExposure ?: return null
-    if (axial.state != InitialRecoveryResponseState.DECLARED) return null
-    return if (axial.sessions == 1) "yes" else "no"
-}
-
 /** Etiquetas del catálogo en el orden del catálogo; un valor que ya no existe se muestra legible, nunca crudo. */
 private fun summaryLabels(step: SetupStepId, values: Set<String>): List<String> {
     val options = SetupStepDefinitions.options(step)
@@ -709,74 +699,6 @@ private fun summaryPlanLine(plan: NutritionPlan): String {
     return "$kcal · P ${plan.proteinGoal} · H ${plan.carbGoal} · G ${plan.fatGoal}"
 }
 
-// ─── RINGS ───────────────────────────────────────────────────────────────────
-
-/**
- * Cobertura por canal que publicó la vista previa: solo los canales con dato («Músculos 82 · Energía 75»).
- * Con la vista previa sin dato en ningún canal, «Sin calibrar» (no afirma un porcentaje); sin vista previa, «Listo».
- */
-private fun summaryRingsResult(state: SetupWizardState): String {
-    val coverage = state.ringsCoveragePreview ?: return SUMMARY_READY
-    if (!coverage.hasAnyData) return SUMMARY_UNCALIBRATED
-    return listOfNotNull(
-        coverage.muscular.score?.let { score -> "Músculos $score" },
-        coverage.system.score?.let { score -> "Energía $score" },
-        coverage.structure.score?.let { score -> "Columna $score" },
-    ).joinToString(" · ")
-}
-
-/** Días de RINGS: «3 días · último ayer»; «No entrené» y «No lo recuerdo» sin más. Sin responder, el marcador del paso. */
-private fun summaryTrainingDays(draft: SetupWizardDraft, page: SetupStepId): String {
-    val answers = draft.ringsAnswers
-    val days = answers?.trainedDayOffsets.orEmpty().sorted()
-    return when (answers?.sessionDaysState) {
-        RingsSessionDaysState.DECLARED -> if (days.isEmpty()) draft.summaryMissing(page)
-            else "${SpanishPlurals.days(days.size)} · ${summaryLastTrained(days.first())}"
-        RingsSessionDaysState.NONE -> "No entrené"
-        RingsSessionDaysState.UNKNOWN -> "No lo recuerdo"
-        RingsSessionDaysState.NOT_ANSWERED, null -> draft.summaryMissing(page)
-    }
-}
-
-/** Cuándo fue el último día entrenado (el desplazamiento más pequeño): «último hoy», «último ayer» o «último hace N días». */
-private fun summaryLastTrained(offset: Int): String = when (offset) {
-    0 -> "último hoy"
-    1 -> "último ayer"
-    else -> "último hace $offset días"
-}
-
-/** Series por grupo, los más cargados primero: «Piernas 14 · Espalda 10». Sin cifras pero con grupos en «No lo sé», eso. */
-private fun summaryGroupSets(draft: SetupWizardDraft, page: SetupStepId): String {
-    val answers = draft.ringsAnswers
-    val sets = answers?.groupSets.orEmpty().entries
-        .sortedWith(compareByDescending<Map.Entry<RingsMuscleGroup, Int>> { it.value }.thenBy { it.key.ordinal })
-        .map { (group, count) -> "${group.label} $count" }
-    return when {
-        sets.isNotEmpty() -> sets.joinToString(SUMMARY_SEPARATOR)
-        answers?.groupSetsUnknown.orEmpty().isNotEmpty() -> "No lo sé"
-        else -> draft.summaryMissing(page)
-    }
-}
-
-/** Las tres sensaciones: «Músculos 3 · Energía 4 · Columna —»; sin ninguna, el marcador del paso. */
-private fun summaryFeelings(draft: SetupWizardDraft, page: SetupStepId): String {
-    val answers = draft.ringsAnswers
-    val levels = listOf(
-        "Músculos" to answers?.muscleFeeling,
-        "Energía" to answers?.energy,
-        "Columna" to answers?.structureFeeling,
-    )
-    if (levels.all { (_, level) -> level == null }) return draft.summaryMissing(page)
-    return levels.joinToString(SUMMARY_SEPARATOR) { (label, level) -> "$label ${level ?: "—"}" }
-}
-
-// ─── Una línea ───────────────────────────────────────────────────────────────
-
-/**
- * Una sola línea de como máximo [max] caracteres: colapsa espacios y saltos y, si no cabe, recorta y termina en «…». El corte
- * cae en la última palabra entera que cabe: nunca a media palabra (solo una palabra suelta más larga que el tope se parte). No
- * parte un par suplente (emoji) por la mitad.
- */
 private fun summaryFit(text: String, max: Int): String {
     val line = text.replace(SUMMARY_WHITESPACE, " ").trim()
     if (line.length <= max) return line

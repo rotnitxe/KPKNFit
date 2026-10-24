@@ -120,7 +120,6 @@ data class Settings(
 
     val algorithmSettings: AlgorithmSettings = AlgorithmSettings(),
     val augePredictionBias: PredictionBiasProfile = PredictionBiasProfile(),
-    val initialRecoveryEvidence: InitialRecoveryEvidence? = null,
     /** Global volume reference captured by the setup wizard, even without a program. */
     val volumeCalibrationProfile: VolumeCalibrationProfile? = null,
 

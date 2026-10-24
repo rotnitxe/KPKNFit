@@ -48,7 +48,6 @@ import com.example.kpkn.screens.sessioneditor.components.sheets.SheetCaption
 import com.example.kpkn.screens.sessioneditor.components.sheets.SheetEyebrow
 import com.example.kpkn.screens.sessioneditor.components.sheets.SheetTag
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknSurface

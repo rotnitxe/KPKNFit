@@ -1,7 +1,6 @@
 package com.example.kpkn.data.onboarding
 
 import com.example.kpkn.data.models.AthleteType
-import com.example.kpkn.data.models.InitialRecoveryEvidence
 import com.example.kpkn.data.models.NutritionTrackingChoice
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentInventory
@@ -48,7 +47,6 @@ data class SetupSettingsPatch(
     val onboardingProgramDone: SetupPatchField<Boolean> = SetupPatchField.Unchanged,
     val onboardingNutritionDone: SetupPatchField<Boolean> = SetupPatchField.Unchanged,
     val nutritionTrackingChoice: SetupPatchField<NutritionTrackingChoice> = SetupPatchField.Unchanged,
-    val initialRecoveryEvidence: SetupPatchField<InitialRecoveryEvidence?> = SetupPatchField.Unchanged,
     val volumeCalibrationProfile: SetupPatchField<VolumeCalibrationProfile?> = SetupPatchField.Unchanged,
     /**
      * Inventario principal del gimnasio confirmado en el alta. Set persiste el
@@ -87,7 +85,6 @@ data class SetupSettingsPatch(
         onboardingProgramDone = onboardingProgramDone.resolve(base.onboardingProgramDone),
         onboardingNutritionDone = onboardingNutritionDone.resolve(base.onboardingNutritionDone),
         nutritionTrackingChoice = nutritionTrackingChoice.resolve(base.nutritionTrackingChoice),
-        initialRecoveryEvidence = initialRecoveryEvidence.resolve(base.initialRecoveryEvidence),
         volumeCalibrationProfile = volumeCalibrationProfile.resolve(base.volumeCalibrationProfile),
         equipmentInventory = equipmentInventory.resolve(base.equipmentInventory),
         nutritionTrackingOnly = nutritionTrackingOnly.resolve(base.nutritionTrackingOnly),

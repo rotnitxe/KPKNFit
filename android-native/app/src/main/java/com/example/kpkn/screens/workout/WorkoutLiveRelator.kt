@@ -168,7 +168,6 @@ internal data class LiveRelatorSnapshot(
     val assistAck: RelatorAssistAck? = null,
     val ultraFastApplied: Boolean = false,
     val loadFromPreviousSession: Boolean = false,
-    val axialLoadFactor: Double? = null,
     val equipmentId: String? = null,
     val movementPatternId: String? = null,
     val plannedIsoHold: Boolean = false,
@@ -391,7 +390,6 @@ internal fun LiveRelatorSnapshot.conceptCueOrNull(): RelatorConceptCue? =
     pickRelatorConceptCue(toConceptSignals())
 
 internal fun LiveRelatorSnapshot.toConceptSignals(): RelatorConceptSignals = RelatorConceptSignals(
-    axialLoadFactor = axialLoadFactor,
     equipmentId = equipmentId,
     movementPatternId = movementPatternId,
     exerciseName = exerciseDisplayName,
@@ -585,7 +583,6 @@ internal fun LiveRelatorSnapshot.weightBandOrNull(): RelatorWeightBand? {
 internal fun detectRelatorCompound(
     exerciseName: String,
     movementPatternId: String? = null,
-    axialLoadFactor: Double? = null,
 ): RelatorCompound {
     val name = exerciseName.lowercase()
     val pattern = movementPatternId.orEmpty().lowercase()
@@ -598,7 +595,7 @@ internal fun detectRelatorCompound(
     }
     val benchLike = has("banca", "bench") &&
         !has("mancuerna", "dumbbell", "máquina", "maquina", "machine", "smith")
-    if (benchLike && (has("barra", "barbell", "bar ") || axialLoadFactor != null && axialLoadFactor >= 0.6 || has("press"))) {
+    if (benchLike && (has("barra", "barbell", "bar ") || has("press"))) {
         if (has("barra", "barbell") || (!has("mancuerna") && has("banca", "bench"))) {
             return RelatorCompound.BENCH_BAR
         }
@@ -611,9 +608,6 @@ internal fun detectRelatorCompound(
         } else {
             RelatorCompound.BACK_SQUAT_HIGH
         }
-    }
-    if (squatLike && (axialLoadFactor != null && axialLoadFactor >= 0.7)) {
-        return RelatorCompound.BACK_SQUAT_HIGH
     }
     return RelatorCompound.NONE
 }

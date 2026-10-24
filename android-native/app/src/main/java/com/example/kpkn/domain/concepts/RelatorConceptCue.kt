@@ -2,10 +2,8 @@ package com.example.kpkn.domain.concepts
 
 import com.example.kpkn.data.models.IntensityMode
 
-const val RELATOR_AXIAL_CUE_MIN = 0.7
 
 data class RelatorConceptSignals(
-    val axialLoadFactor: Double? = null,
     val equipmentId: String? = null,
     val movementPatternId: String? = null,
     val exerciseName: String = "",
@@ -92,7 +90,6 @@ fun relatorConceptLines(id: String): List<String> = RELATOR_CONCEPT_LINES[id].or
 
 fun pickRelatorConceptCue(signals: RelatorConceptSignals): RelatorConceptCue? {
     val candidates = buildList {
-        if ((signals.axialLoadFactor ?: 0.0) >= RELATOR_AXIAL_CUE_MIN) add("carga-axial")
         if (isPlyometricConcept(signals.exerciseName, signals.movementPatternId)) add("pliometria")
         if (isIsometricConcept(signals)) add("isometria")
         if (signals.plannedFailure || signals.intensityMode == IntensityMode.FAILURE) add("fallo-muscular")
@@ -162,5 +159,5 @@ private fun shouldCueRpe(signals: RelatorConceptSignals): Boolean {
 private fun isFuerzaConcept(signals: RelatorConceptSignals): Boolean {
     val reps = signals.plannedReps ?: return false
     if (reps > 5.0) return false
-    return signals.isCompound || (signals.axialLoadFactor ?: 0.0) >= RELATOR_AXIAL_CUE_MIN
+    return signals.isCompound
 }

@@ -36,13 +36,11 @@ data class ProgramVolumeMuscle(
     val sets: Double,
     val zones: ProgramVolumeZones?,
     val real: Double?,
-    val overtrained: Boolean,
-    val overreaching: Boolean,
     val scaleMax: Double,
 ) {
     /** Estado de volumen de la fila: decide su color y su etiqueta. */
     val state: ProgramVolumeState
-        get() = programVolumeStateOf(sets, zones, overtrained, overreaching)
+        get() = programVolumeStateOf(sets, zones)
 }
 
 /** Una línea del desglose: un ejercicio, o un ejercicio dentro de una cabeza muscular, con sus series semanales. */

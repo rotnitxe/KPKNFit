@@ -105,22 +105,12 @@ data class SetupStepNode(
 data class SetupStepContext(
     val includeTraining: Boolean = true,
     val includeNutrition: Boolean = true,
-    val includeRings: Boolean = false,
     val nutritionProfessional: Boolean = false,
     /**
      * false only hides the nutrition CHAIN until an explicit choice exists;
      * it never removes the block (NUTRITION_START stays in the route).
      */
     val nutritionStarted: Boolean = true,
-    val ringsAction: String? = null,
-    val recentTraining: Boolean? = null,
-    /**
-     * RINGS: hubo días entrenados declarados. Solo entonces la ruta pregunta los ejercicios principales y la intensidad
-     * («No entrené» y «No lo recuerdo» no preguntan detalle).
-     */
-    val ringsTrainedDays: Boolean = false,
-    /** RINGS: hubo un día entrenado en las últimas 72 h (hoy, ayer o anteayer); solo entonces se preguntan las series por grupo. */
-    val ringsTrainedLast72h: Boolean = false,
     // New minimal route data (defaults keep the normal FULL route intact).
     /** Inventory groups whose steps are included (legacy: the wizard no longer asks stock). */
     val inventoryGroups: Set<SetupInventoryGroup> = emptySet(),
@@ -155,16 +145,7 @@ data class SetupStepContext(
     val programImportEnabled: Boolean = ProgramSourceOptions.IMPORT_ENABLED,
     /** COMPETITION: disciplina de competición con experiencia intermedia o avanzada (`CompetitionRules.disciplines`). */
     val asksCompetition: Boolean = false,
-) {
-    /** Same skip rules the WizChat graph applied to the RINGS start action. */
-    val ringsSkipsCalibration: Boolean
-        get() {
-            val action = ringsAction?.trim()?.lowercase().orEmpty()
-            return action == "omit" || action == "keep" || action == "preserve" || action == "remove" ||
-                action.contains("dejar") || action.contains("conservar") ||
-                action.contains("quitar") || action.contains("uncalibrated")
-        }
-}
+)
 
 object SetupStepGraph {
 
@@ -594,7 +575,7 @@ object SetupStepGraph {
             WizChatStage.PROFILE -> context.includeTraining || context.includeNutrition
             WizChatStage.TRAINING -> context.includeTraining
             WizChatStage.NUTRITION -> context.includeNutrition
-            WizChatStage.RINGS -> context.includeRings
+            WizChatStage.RINGS -> false
             WizChatStage.REVIEW -> true
         }
 
@@ -908,7 +889,6 @@ data class SetupInputFootprint(
     val autoregulationMode: String? = null,
     val warmupsPreference: String? = null,
     val sessionsSignature: List<String> = emptyList(),
-    val ringsSignature: List<String> = emptyList(),
     val nutritionSignature: List<String> = emptyList(),
     val nutritionStartChoice: String? = null,
     val nutritionDirection: String? = null,
@@ -992,7 +972,6 @@ object SetupChangeDetector {
         if (old.competition != new.competition || old.meetDateIso != new.meetDateIso) {
             add(SetupChangeSource.CALENDAR)
         }
-        if (old.ringsSignature != new.ringsSignature) add(SetupChangeSource.SENSATIONS)
     }
 }
 

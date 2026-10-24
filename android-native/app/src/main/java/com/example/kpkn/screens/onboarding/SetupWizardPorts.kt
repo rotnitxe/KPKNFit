@@ -87,7 +87,6 @@ interface SetupWizardEnvironment {
     fun activeNutritionPlanId(): String?
     fun activeNutritionPlan(): NutritionPlan?
     fun nutritionPlan(id: String): NutritionPlan?
-    fun hasInitialRecoveryEvidence(): Boolean
 
     /**
      * Re-reads Body Progress after a successful commit so the newly written
@@ -122,8 +121,6 @@ class RealSetupWizardEnvironment(
     override fun nutritionPlan(id: String): NutritionPlan? =
         NutritionRepository.getInstance().nutritionPlans.value.firstOrNull { it.id == id }
 
-    override fun hasInitialRecoveryEvidence(): Boolean =
-        ProgramRepository.getInstance().settings.value.initialRecoveryEvidence != null
 
     override suspend fun refreshBodyProgress() {
         try {

@@ -60,7 +60,7 @@ fun ProgramVolumeRow(
     val reduced = wizardReducedMotion()
     val state = muscle.state
     val stateColor = programVolumeStateColor(state)
-    val label = programVolumeStateLabel(state, muscle.sets, muscle.zones, muscle.overtrained)
+    val label = programVolumeStateLabel(state, muscle.sets, muscle.zones)
     val seriesText = programVolumeSeries(muscle.sets)
     val interaction = remember { MutableInteractionSource() }
     val chevronTurn by animateFloatAsState(

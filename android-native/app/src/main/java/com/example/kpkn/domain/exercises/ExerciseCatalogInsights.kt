@@ -3,7 +3,6 @@ package com.example.kpkn.domain.exercises
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
-import com.example.kpkn.domain.auge.ExerciseFatigueIndex
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.abs
 import kotlin.math.max
@@ -30,8 +29,6 @@ enum class ExerciseCatalogSort(val label: String, val isGrouped: Boolean = false
     GROUP_BY_REGION("Agrupar por región", isGrouped = true),
     RELEVANCE("Relevancia"),
     NAME("Alfabético"),
-    FATIGUE_HIGH("Más fatigante"),
-    FATIGUE_LOW("Menos fatigante"),
 }
 
 /** Single exclusive filter for the simplified catalog picker. Selecting one replaces any previous. */
@@ -129,13 +126,6 @@ val CATALOG_MOVEMENT_PATTERNS: List<String> = listOf(
     "Elevación",
 )
 
-data class FriendlyFatigueBreakdown(
-    val muscle: Int,
-    val snc: Int,
-    val spinal: Int,
-    val overall: Int,
-)
-
 enum class ExerciseKinshipBand(val label: String) {
     VERY_CLOSE("Parentesco alto"),
     CLOSE_VARIANT("Variante cercana"),
@@ -222,20 +212,6 @@ fun matchesCatalogTrait(info: ExerciseMuscleInfo, trait: ExerciseCatalogTrait): 
     }
 }
 
-fun calculateFriendlyFatigue(info: ExerciseMuscleInfo): FriendlyFatigueBreakdown {
-    val index = ExerciseFatigueIndex.fromIntrinsic(
-        efc = info.efc,
-        cnc = info.cnc,
-        ssc = info.ssc,
-    )
-    return FriendlyFatigueBreakdown(
-        muscle = index.muscle,
-        snc = index.snc,
-        spinal = index.spinal,
-        overall = index.overall,
-    )
-}
-
 fun inferSetupTimeLabel(info: ExerciseMuscleInfo): String {
     info.setupTime?.takeIf { it > 0 }?.let { seconds ->
         return when {
@@ -264,12 +240,7 @@ fun inferLearningCurveLabel(info: ExerciseMuscleInfo): String {
             else -> "Alta"
         }
     }
-    val fatigue = calculateFriendlyFatigue(info).overall
-    return when {
-        info.type.equals("Aislamiento", true) && fatigue <= 4 -> "Baja"
-        info.type.equals("Básico", true) || info.equipment == "Barra" || resolveExerciseRegion(info) == ExerciseCatalogRegion.FULL -> "Alta"
-        else -> "Media"
-    }
+    return "Sin dato"
 }
 
 fun inferTransferLabel(info: ExerciseMuscleInfo): String {
@@ -339,11 +310,6 @@ private fun movementFamily(info: ExerciseMuscleInfo): String {
     }
 }
 
-private fun fatigueSimilarity(target: ExerciseMuscleInfo, candidate: ExerciseMuscleInfo): Double {
-    val delta = abs(calculateFriendlyFatigue(target).overall - calculateFriendlyFatigue(candidate).overall)
-    return (1.0 - (delta / 10.0)).coerceIn(0.0, 1.0)
-}
-
 private val COMPETITION_BASIC_PATTERNS = listOf(
     "peso muerto", "deadlift", "sentadilla", "squat", "press banca", "bench press",
 )
@@ -401,7 +367,6 @@ fun buildExerciseKinships(
             val sameForce = target.force.equals(candidate.force, true)
             val sameChain = target.chain.equals(candidate.chain, true)
             val sameEquipmentFamily = equipmentFamily(target.equipment) == equipmentFamily(candidate.equipment)
-            val fatigueMatch = fatigueSimilarity(target, candidate)
 
             val similarity = (
                 muscleOverlap * 0.56 +
@@ -409,8 +374,7 @@ fun buildExerciseKinships(
                     (if (sameForce) 0.10 else 0.0) +
                     (if (sameFamily) 0.10 else 0.0) +
                     (if (sameEquipmentFamily) 0.05 else 0.0) +
-                    (if (sameRegion) 0.03 else 0.0) +
-                    fatigueMatch * 0.02
+                    (if (sameRegion) 0.03 else 0.0)
                 ).coerceIn(0.0, 1.0)
 
             val transfer = (
@@ -418,8 +382,7 @@ fun buildExerciseKinships(
                     (if (sameForce) 0.24 else 0.0) +
                     (if (sameChain) 0.16 else 0.0) +
                     (if (sameRegion) 0.14 else 0.0) +
-                    (if (sameFamily) 0.10 else 0.0) +
-                    fatigueMatch * 0.06
+                    (if (sameFamily) 0.10 else 0.0)
                 ).coerceIn(0.0, 1.0)
 
             KinshipScoredCandidate(
@@ -433,7 +396,6 @@ fun buildExerciseKinships(
 
     val targetType = target.type?.lowercase().orEmpty()
     // "Otras opciones": mismo patron, region similar y tipo cercano (basico/accesorio/aislamiento)
-    val targetFatigue = calculateFriendlyFatigue(target).overall
     val similar = scored
         .filter { candidate ->
             val info = candidate.exercise
@@ -452,24 +414,17 @@ fun buildExerciseKinships(
         }
         .sortedWith(
             compareByDescending<KinshipScoredCandidate> { it.similarity }
-                .thenBy { calculateFriendlyFatigue(it.exercise).overall } // menor fatiga primero
                 .thenBy { it.exercise.name }
         )
         .take(similarLimit)
         .map { candidate ->
-            val candidateFatigue = calculateFriendlyFatigue(candidate.exercise).overall
-            val fatigueNote = when {
-                candidateFatigue < targetFatigue - 1 -> " · menos fatigante"
-                candidateFatigue > targetFatigue + 1 -> " · más fatigante"
-                else -> ""
-            }
             val band = if (candidate.similarity >= 0.72) ExerciseKinshipBand.VERY_CLOSE else ExerciseKinshipBand.CLOSE_VARIANT
             ExerciseKinship(
                 exercise = candidate.exercise,
                 band = band,
                 similarityScore = (candidate.similarity * 100).toInt().coerceIn(0, 100),
                 transferScore = (candidate.transfer * 100).toInt().coerceIn(0, 100),
-                rationale = candidate.rationale + fatigueNote,
+                rationale = candidate.rationale,
             )
         }
 
@@ -530,113 +485,6 @@ fun computeExerciseVolumeSummary(info: ExerciseMuscleInfo): ExerciseVolumeSummar
         primarySeries = primary,
         secondarySeries = secondary,
         stabilizerSeries = stabilizer,
-    )
-}
-
-data class ThreeBandKinship(
-    val lessSetup: List<ExerciseKinship>,
-    val moreTransfer: List<ExerciseKinship>,
-    val lessFatigue: List<ExerciseKinship>,
-)
-
-fun buildThreeBandKinships(
-    target: ExerciseMuscleInfo,
-    catalog: List<ExerciseMuscleInfo>,
-    limitPerBand: Int = 3,
-): ThreeBandKinship {
-    val targetProfile = muscleProfile(target)
-    val targetPrimary = resolvePrimaryMuscleLabel(target)
-    val targetFatigue = calculateFriendlyFatigue(target).overall
-    val targetSetupTime = target.setupTime ?: inferSetupTimeLabel(target).let { label ->
-        when {
-            label.contains("Rápido") -> 20
-            label.contains("1 min") -> 60
-            label.contains("2") -> 120
-            else -> 180
-        }
-    }
-    val targetTransfer = target.functionalTransfer ?: inferTransferLabel(target)
-
-    val candidates = catalog
-        .asSequence()
-        .filter { it.id != target.id }
-        .map { candidate ->
-            val candidateProfile = muscleProfile(candidate)
-            val muscleOverlap = weightedJaccard(targetProfile, candidateProfile)
-            val candidateFatigue = calculateFriendlyFatigue(candidate).overall
-            val candidateSetup = candidate.setupTime ?: when {
-                inferSetupTimeLabel(candidate).contains("Rápido") -> 20
-                inferSetupTimeLabel(candidate).contains("1 min") -> 60
-                else -> 150
-            }
-            val similarity = (
-                muscleOverlap * 0.56 +
-                    (if (resolvePrimaryMuscleLabel(candidate) == targetPrimary) 0.14 else 0.0) +
-                    (if (target.force.equals(candidate.force, true)) 0.10 else 0.0) +
-                    (if (movementFamily(candidate) == movementFamily(target)) 0.10 else 0.0) +
-                    (if (equipmentFamily(target.equipment) == equipmentFamily(candidate.equipment)) 0.05 else 0.0) +
-                    fatigueSimilarity(target, candidate) * 0.05
-                ).coerceIn(0.0, 1.0)
-            val transfer = (
-                muscleOverlap * 0.30 +
-                    (if (target.force.equals(candidate.force, true)) 0.24 else 0.0) +
-                    (if (target.chain.equals(candidate.chain, true)) 0.16 else 0.0) +
-                    (if (resolveExerciseRegion(candidate) == resolveExerciseRegion(target)) 0.14 else 0.0) +
-                    (if (movementFamily(candidate) == movementFamily(target)) 0.10 else 0.0) +
-                    fatigueSimilarity(target, candidate) * 0.06
-                ).coerceIn(0.0, 1.0)
-
-            Triple(similarity, transfer, Triple(candidateFatigue, candidateSetup, candidate))
-        }
-        .filter { (sim, _, _) -> sim >= 0.25 }
-        .toList()
-
-    val lessSetup = candidates
-        .filter { (_, _, setupInfo) -> setupInfo.second <= targetSetupTime }
-        .sortedByDescending { (sim, _, _) -> sim }
-        .take(limitPerBand)
-        .map { (sim, trans, triple) ->
-            ExerciseKinship(
-                exercise = triple.third,
-                band = ExerciseKinshipBand.CLOSE_VARIANT,
-                similarityScore = (sim * 100).toInt(),
-                transferScore = (trans * 100).toInt(),
-                rationale = inferSetupTimeLabel(triple.third),
-            )
-        }
-
-    val moreTransfer = candidates
-        .filter { (_, transfer, _) -> transfer > 0.45 }
-        .sortedByDescending { (_, transfer, _) -> transfer }
-        .take(limitPerBand)
-        .map { (sim, trans, triple) ->
-            ExerciseKinship(
-                exercise = triple.third,
-                band = ExerciseKinshipBand.TRANSFER_USEFUL,
-                similarityScore = (sim * 100).toInt(),
-                transferScore = (trans * 100).toInt(),
-                rationale = inferTransferLabel(triple.third),
-            )
-        }
-
-    val lessFatigue = candidates
-        .filter { (_, _, fatigueInfo) -> fatigueInfo.first < targetFatigue - 1 }
-        .sortedBy { (_, _, fatigueInfo) -> fatigueInfo.first }
-        .take(limitPerBand)
-        .map { (sim, trans, triple) ->
-            ExerciseKinship(
-                exercise = triple.third,
-                band = ExerciseKinshipBand.CLOSE_VARIANT,
-                similarityScore = (sim * 100).toInt(),
-                transferScore = (trans * 100).toInt(),
-                rationale = "Fatiga: ${triple.first}/10",
-            )
-        }
-
-    return ThreeBandKinship(
-        lessSetup = lessSetup,
-        moreTransfer = moreTransfer,
-        lessFatigue = lessFatigue,
     )
 }
 

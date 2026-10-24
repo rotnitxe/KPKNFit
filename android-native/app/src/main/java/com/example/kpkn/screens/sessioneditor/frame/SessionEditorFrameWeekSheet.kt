@@ -49,7 +49,6 @@ import com.example.kpkn.screens.sessioneditor.sessionEditorDayLabel
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSheet
-import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknModule
@@ -539,7 +538,7 @@ private fun FrameDayCircle(
                 .align(Alignment.Center)
                 .clip(CircleShape)
                 .background(fill)
-                .then(if (isCompetition) Modifier.border(1.5.dp, KpknRingColors.energia, CircleShape) else Modifier),
+                .then(if (isCompetition) Modifier.border(1.5.dp, com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette.energia, CircleShape) else Modifier),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -565,7 +564,7 @@ private fun FrameDayCircle(
                     .offset(x = (-4).dp, y = (-4).dp)
                     .size(14.dp)
                     .clip(CircleShape)
-                    .background(KpknRingColors.energia),
+                    .background(com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette.energia),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(

@@ -1,7 +1,6 @@
 package com.example.kpkn.domain.onboarding
 
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG
-import com.example.kpkn.data.models.RingsLiftPattern
 import kotlinx.serialization.Serializable
 
 /**
@@ -265,19 +264,6 @@ val ORDER_MUSCLE_OPTIONS: List<SetupOptionDefinition> = listOf(
     "Pectorales", "Dorsales", "Deltoides", "Bíceps", "Tríceps", "Antebrazo", "Cuádriceps",
     "Isquiosurales", "Glúteos", "Pantorrillas", "Abdomen", "Trapecio", "Erectores Espinales",
 ).map { SetupOptionDefinition(it, it) }
-
-/** Patrones de «¿Qué ejercicios principales hiciste?» (RINGS v2), en el orden en que se muestran. */
-private val ringsLiftOptions: List<SetupOptionDefinition> = listOf(
-    RingsLiftPattern.SQUAT to "Sentadilla",
-    RingsLiftPattern.DEADLIFT to "Peso muerto",
-    RingsLiftPattern.HINGE_ROW to "Rumano o remo",
-    RingsLiftPattern.BENCH to "Press banca",
-    RingsLiftPattern.OVERHEAD to "Press militar",
-    RingsLiftPattern.PULL_UP to "Dominadas",
-    RingsLiftPattern.LUNGE to "Zancadas",
-    RingsLiftPattern.CARDIO_LONG to "Cardio largo",
-    RingsLiftPattern.INTERVALS to "Intervalos",
-).map { (pattern, label) -> SetupOptionDefinition(pattern.name, label) }
 
 object SetupStepDefinitions {
 

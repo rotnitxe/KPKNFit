@@ -69,8 +69,6 @@ import java.io.File
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
-import com.example.kpkn.data.models.RingsLiftPattern
-import com.example.kpkn.data.models.RingsMuscleGroup
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -197,7 +195,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             isCandidateLoading = false,
             planSweep = SetupPlanSweep.IDLE, planReveals = emptyList(), weekLayout = null,
             isPreviewLoading = false,
-            nutritionPlanPreview = null, nutritionPreparation = null, ringsBatteriesPreview = null, ringsCoveragePreview = null, ringsMuscleEstimates = emptyMap(),
+            nutritionPlanPreview = null, nutritionPreparation = null,
             errors = emptyMap(), lastFailure = null)
         initializeJob = viewModelScope.launch {
             try {
@@ -690,7 +688,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
     }
 
     fun activeNutritionPlan(): NutritionPlan? = environment.activeNutritionPlan()
-    fun hasInitialRecoveryEvidence(): Boolean = environment.hasInitialRecoveryEvidence()
     fun searchExercises(query: String) {
         exerciseSearchJob?.cancel()
         val term = query.trim()
@@ -1036,7 +1033,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
     fun setLowerEmphasisMuscles(value: Set<String>) = mutateDraft {
         it.copy(lowerEmphasisMuscles = value.map(String::trim).filter(String::isNotBlank).toSet() - it.priorityMuscles)
     }
-    fun resetManualRecoveryAdjustments() = mutateDraft { it.copy(manualMuscleOverrides = emptyMap(), manualEnergyOverride = null, manualStructureOverride = null) }
 
     fun addExercise(weekday: Int, info: ExerciseMuscleInfo) {
         val id = "${_state.value.draft.commitId}-exercise-$weekday-${info.id}"

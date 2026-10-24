@@ -6,7 +6,6 @@ import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.domain.exercises.ExerciseCatalogExclusiveFilter
 import com.example.kpkn.domain.exercises.ExerciseCatalogSort
-import com.example.kpkn.domain.exercises.calculateFriendlyFatigue
 import com.example.kpkn.domain.exercises.calculateSearchScore
 import com.example.kpkn.domain.exercises.deduplicateCatalogVisualResults
 import com.example.kpkn.domain.exercises.matchesExclusiveCatalogFilter
@@ -38,8 +37,6 @@ internal fun filterAndSortExerciseCatalog(
     }
 
     val byNameAsc = compareBy<ExerciseMuscleInfo> { it.name.lowercase() }
-    val byFatigueAsc = compareBy<ExerciseMuscleInfo> { calculateFriendlyFatigue(it).overall }
-        .thenBy { it.name.lowercase() }
 
     // With an active query, keep relevance ranking for alphabetical/relevance modes.
     // Re-sorting A→Z was wiping search order and making multi-word queries look like
@@ -50,9 +47,6 @@ internal fun filterAndSortExerciseCatalog(
             searched
         sortMode == ExerciseCatalogSort.NAME ->
             if (ascending) searched.sortedWith(byNameAsc) else searched.sortedWith(byNameAsc.reversed())
-        sortMode == ExerciseCatalogSort.FATIGUE_HIGH || sortMode == ExerciseCatalogSort.FATIGUE_LOW ->
-            // ascending = menos → más fatigante; descending = más → menos
-            if (ascending) searched.sortedWith(byFatigueAsc) else searched.sortedWith(byFatigueAsc.reversed())
         sortMode == ExerciseCatalogSort.GROUP_BY_MUSCLE ->
             searched.sortedWith(compareBy({ resolvePrimaryMuscleLabel(it) }, { it.name.lowercase() }))
         sortMode == ExerciseCatalogSort.RELEVANCE ->

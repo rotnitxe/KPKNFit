@@ -277,7 +277,6 @@ fun HomeScreen(
     val handoffDistancePx = with(density) { 48.dp.toPx() }
     var headerBottomY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
     var sessionAnchorY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
-    var ringsAnchorY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
     var nutritionAnchorY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
     // Borde inferior de la cabecera de la página (coordenadas de la raíz): decide el fundido de la barra superior.
     var mastheadBottomY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
@@ -289,7 +288,6 @@ fun HomeScreen(
 
     val greetingProgress = 1f
     val sessionProgress by remember { derivedStateOf { anchorProgress(sessionAnchorY) } }
-    val ringsProgress by remember { derivedStateOf { anchorProgress(ringsAnchorY) } }
     val nutritionProgress by remember { derivedStateOf { anchorProgress(nutritionAnchorY) } }
     // La barra aparece cuando la cabecera de la página sale por arriba (los últimos 48 dp antes de cruzarse).
     val mastheadBarAlpha by remember {
@@ -301,13 +299,9 @@ fun HomeScreen(
             greeting = uiState.greeting,
             userName = uiState.userName,
             greetingProgress = greetingProgress,
-            ringsProgress = ringsProgress,
             sessionProgress = sessionProgress,
              nutritionProgress = if (showNutrition) nutritionProgress else 0f,
             hasPrograms = uiState.hasActiveProgram,
-            muscularProgress = 0f,
-            sncProgress = 0f,
-            columnaProgress = 0f,
             primarySession = uiState.primarySession,
             homeCompetition = uiState.homeCompetition,
             isRestDay = uiState.primarySession == null && (uiState.isRestDay || uiState.todaySessions.isEmpty()),
@@ -363,7 +357,6 @@ fun HomeScreen(
                 programs = uiState.programs,
                 listState = listState,
                 onSessionAnchorPositionChanged = { sessionAnchorY = it },
-                onRingsAnchorPositionChanged = { ringsAnchorY = it },
                 onNutritionAnchorPositionChanged = { nutritionAnchorY = it },
                 onStartWorkout = onStartWorkout,
                 onRegisterCompetition = onRegisterCompetition,
@@ -609,7 +602,6 @@ private fun HomeWithProgram(
     programs: List<Program>,
     listState: androidx.compose.foundation.lazy.LazyListState,
     onSessionAnchorPositionChanged: (Float) -> Unit,
-    onRingsAnchorPositionChanged: (Float) -> Unit,
     onNutritionAnchorPositionChanged: (Float) -> Unit,
     onStartWorkout: (Session, Program) -> Unit,
     onRegisterCompetition: (String) -> Unit,
@@ -774,13 +766,9 @@ internal fun HomeTopBar(
     greeting: String,
     userName: String,
     @Suppress("UNUSED_PARAMETER") greetingProgress: Float,
-    ringsProgress: Float,
     sessionProgress: Float,
     nutritionProgress: Float,
     hasPrograms: Boolean,
-    muscularProgress: Float,
-    sncProgress: Float,
-    columnaProgress: Float,
     primarySession: TodaySessionItem?,
     homeCompetition: com.example.kpkn.domain.training.HomeCompetitionState?,
     isRestDay: Boolean,
@@ -793,7 +781,6 @@ internal fun HomeTopBar(
     onNavigateToProfile: () -> Unit,
     hazeState: HazeState,
     onBottomPositionChanged: (Float) -> Unit,
-    ringsCoverage: com.example.kpkn.domain.onboarding.RingsCoverage = com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
     /** Opacidad de la cabecera de la página respecto a la barra: con histéresis (≥ 0,55 la muestra, ≤ 0,45 la oculta). */
     barAlpha: Float = 1f,
 ) {
@@ -808,7 +795,6 @@ internal fun HomeTopBar(
     val context = homeBarContextAfter(
         previous = contextState.value,
         sessionProgress = sessionProgress,
-        ringsProgress = ringsProgress,
         nutritionProgress = nutritionProgress,
     )
     SideEffect { contextState.value = context }
@@ -933,11 +919,6 @@ internal fun HomeTopBar(
                                         onRegisterCompetition = onRegisterCompetition,
                                         onCreateProgram = onCreateProgram,
                                     )
-                                    HomeBarContext.RINGS -> HomeBarRingsLine(
-                                        energia = ringPercent(sncProgress, ringsCoverage.channel(RecoveryChannelId.SYSTEM).hasData),
-                                        musculos = ringPercent(muscularProgress, ringsCoverage.channel(RecoveryChannelId.MUSCULAR).hasData),
-                                        columna = ringPercent(columnaProgress, ringsCoverage.channel(RecoveryChannelId.STRUCTURE).hasData),
-                                    )
                                     HomeBarContext.NUTRITION -> MiniNutritionCard(
                                         dailyCalorieGoal = dailyCalorieGoal,
                                         consumedCalories = consumedCalories,
@@ -962,7 +943,7 @@ internal fun HomeTopBar(
 }
 
 /** Contexto que muestra la isla, en el orden de la página: saludo, sesión, RINGS y nutrición. */
-internal enum class HomeBarContext { GREETING, SESSION, RINGS, NUTRITION }
+internal enum class HomeBarContext { GREETING, SESSION, NUTRITION }
 
 /**
  * Contexto de la isla (I12): el de la última sección cuyo ancla ya pasó bajo la isla. Cada sección «pasa» al llegar a 0,55 y «vuelve»
@@ -972,7 +953,6 @@ internal enum class HomeBarContext { GREETING, SESSION, RINGS, NUTRITION }
 internal fun homeBarContextAfter(
     previous: HomeBarContext,
     sessionProgress: Float,
-    ringsProgress: Float,
     nutritionProgress: Float,
 ): HomeBarContext = when {
     homeBarPassed(nutritionProgress, wasPassed = previous == HomeBarContext.NUTRITION) -> HomeBarContext.NUTRITION
@@ -998,7 +978,6 @@ internal fun homeBarShownAfter(previous: Boolean, barAlpha: Float): Boolean = wh
 internal fun homeBarIcon(context: HomeBarContext): ImageVector = when (context) {
     HomeBarContext.GREETING -> KpknLineIcons.Tower
     HomeBarContext.SESSION -> KpknLineIcons.Training
-    HomeBarContext.RINGS -> KpknLineIcons.Tower
     HomeBarContext.NUTRITION -> KpknLineIcons.Nutrition
 }
 
@@ -1006,7 +985,6 @@ internal fun homeBarIcon(context: HomeBarContext): ImageVector = when (context) 
 internal fun homeBarAccent(context: HomeBarContext): Color = when (context) {
     HomeBarContext.GREETING -> WizardColors.text
     HomeBarContext.SESSION -> SymbolPalette.musculo
-    HomeBarContext.RINGS -> SymbolPalette.columna
     HomeBarContext.NUTRITION -> SymbolPalette.energia
 }
 
@@ -1143,50 +1121,6 @@ internal fun fitHomeGreeting(
     sizeFor(short)?.let { return HomeGreetingFit(short, it, truncated = false) }
     return HomeGreetingFit(short, homeGreetingSizesSp.last(), truncated = true)
 }
-
-/**
- * Contexto de RINGS en la isla (I12): «Tus RINGS» y el valor de cada canal; el icono Tower en columna lo pone la isla. Sin acción, con la
- * misma plantilla que los demás contextos: título y línea de apoyo (dos si el ancho no basta).
- */
-@Composable
-private fun HomeBarRingsLine(energia: Int?, musculos: Int?, columna: Int?) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = "Tus RINGS",
-            style = HomeTypography.barLabel,
-            color = WizardColors.text,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.semantics { heading() },
-        )
-        Text(
-            text = homeBarRingsSubtitle(energia = energia, musculos = musculos, columna = columna),
-            style = KpknType.islandSubtitle,
-            color = WizardColors.textMuted,
-            // A 360 dp los tres canales no caben en una línea a 13 sp: el subtítulo baja a dos antes que cortar una cifra (I12).
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-/**
- * Subtítulo de RINGS en la isla (I12): «Energía 86 · Músculos 74 · Columna 81». Un canal sin dato sale como «—» en su sitio; si ninguno
- * tiene dato, «Sin calibrar».
- */
-internal fun homeBarRingsSubtitle(energia: Int?, musculos: Int?, columna: Int?): String {
-    if (energia == null && musculos == null && columna == null) return "Sin calibrar"
-    return "Energía ${energia ?: "—"} · Músculos ${musculos ?: "—"} · Columna ${columna ?: "—"}"
-}
-
-/** Cifra de un canal para la isla: el progreso redondeado (así 0,86 da 86); sin dato, null, nunca un 100 % por defecto. */
-private fun ringPercent(progress: Float, hasData: Boolean): Int? =
-    if (hasData) (progress * 100f).roundToInt().coerceIn(0, 100) else null
 
 @Composable
 private fun MiniSessionCard(
