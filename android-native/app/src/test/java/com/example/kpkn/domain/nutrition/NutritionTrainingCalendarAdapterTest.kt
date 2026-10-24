@@ -517,10 +517,10 @@ class NutritionTrainingCalendarAdapterTest {
                 force = "Empuje",
                 type = "Básico",
                 category = "Fuerza",
-                efc = 2.5,
-                cnc = 2.0,
-                ssc = 1.0,
-                ttc = 1.5,
+                
+                
+                
+                
             ),
         )
         val set = ExerciseSet(
@@ -575,10 +575,10 @@ class NutritionTrainingCalendarAdapterTest {
                 force = "Empuje",
                 type = "Básico",
                 category = "Fuerza",
-                efc = 4.0,
-                cnc = 3.0,
-                ssc = 1.5,
-                ttc = 3.0,
+                
+                
+                
+                
             ),
         )
         val set = ExerciseSet(

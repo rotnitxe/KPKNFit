@@ -75,7 +75,6 @@ class CustomExerciseEngineReproTest {
         listOf("dragón lunar mancuernas", "mi ejercicio inventado", "XQZ 123").forEach { name ->
             val created = SmartExerciseCreator.createAutomatic(name, catalog)
             assertTrue("«$name» no debe heredar músculos de un parecido débil: ${created.involvedMuscles}", created.involvedMuscles.isEmpty())
-            assertNull("«$name» no debe certificar carga axial (null = desconocida, no cero)", created.axialLoadFactor)
             assertNull("«$name» no genera texto sin una configuración confirmada: ${created.description}", created.description)
         }
     }

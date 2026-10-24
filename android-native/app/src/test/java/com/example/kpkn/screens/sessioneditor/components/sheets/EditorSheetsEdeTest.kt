@@ -42,7 +42,6 @@ import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.domain.calculations.SessionTimeBreakdown
 import com.example.kpkn.domain.sessionassistant.SessionAssistantReport
 import com.example.kpkn.domain.sessionassistant.Verdict
-import com.example.kpkn.domain.auge.PreciseDrain
 import com.example.kpkn.screens.sessioneditor.ApplyRulesOutcome
 import com.example.kpkn.screens.sessioneditor.SessionCloneApplyMode
 import com.example.kpkn.screens.sessioneditor.SessionCloneDayOption

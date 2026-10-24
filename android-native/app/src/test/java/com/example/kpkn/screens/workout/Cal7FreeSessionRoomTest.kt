@@ -4,7 +4,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.testsupport.RoomTestRule
 import com.example.kpkn.testsupport.awaitRepositoryScope
 import kotlinx.coroutines.*
@@ -234,8 +233,8 @@ class Cal7FreeSessionRoomTest {
         assertEquals(normalSet.reps, calibratorSet.reps)
         assertEquals(normalSet.rir, calibratorSet.rir)
         val now = Instant.parse("2026-10-23T12:00:00Z")
-        val muscle = ExerciseMuscleInfo("cal3-barbell-squat", "Sentadilla", equipment = "barra", efc = 4.2,
-            cnc = 4.5, ssc = 1.0, axialLoadFactor = 1.0,
+        val muscle = ExerciseMuscleInfo("cal3-barbell-squat", "Sentadilla", equipment = "barra", 
+              
             involvedMuscles = listOf(InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY, volumeContribution = 1.0)))
         val db = listOf("cal3-exercise", "cal3-barbell-squat", "cal3-squat").associateWith { muscle }
         fun preview(log: WorkoutLog) = AugeRecoveryEngine.previewPostSessionBatteries(emptyList(),

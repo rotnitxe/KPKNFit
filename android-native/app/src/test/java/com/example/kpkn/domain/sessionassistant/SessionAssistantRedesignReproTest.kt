@@ -5,7 +5,6 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.SupersetGroup
-import com.example.kpkn.domain.auge.InterferenceEngine
 import com.example.kpkn.testsupport.MotCatalog
 import com.example.kpkn.testsupport.MotSessions
 import org.junit.Assert.assertEquals

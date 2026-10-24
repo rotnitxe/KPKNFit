@@ -475,7 +475,7 @@ class SetupStepGraphTest {
 
     @Test
     fun migrateFromLegacyMarksOutOfScopeQuestionsAsNotConvertible() {
-        val ringsOnly = SetupStepContext(includeTraining = false, includeNutrition = false, includeRings = true)
+        val ringsOnly = SetupStepContext(includeTraining = false, includeNutrition = false)
         val migrated = SetupStepGraph.migrateFromLegacy(WizChatQuestionId.T_WEEKDAYS, ringsOnly)
 
         assertEquals(SetupProgressOrigin.NOT_CONVERTIBLE, migrated.origin)

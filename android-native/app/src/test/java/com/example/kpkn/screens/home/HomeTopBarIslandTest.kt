@@ -69,13 +69,13 @@ class HomeTopBarIslandTest {
                     greeting = "Buenos días",
                     userName = "Alex",
                     greetingProgress = 1f,
-                    ringsProgress = 0f,
+                    
                     sessionProgress = sessionProgress,
                     nutritionProgress = 0f,
                     hasPrograms = true,
-                    muscularProgress = 0.62f,
-                    sncProgress = 0.48f,
-                    columnaProgress = 0.71f,
+                    
+                    
+                    
                     primarySession = null,
                     homeCompetition = null,
                     isRestDay = true,

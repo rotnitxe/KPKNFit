@@ -170,11 +170,11 @@ class ExerciseCatalogV2ResolverTest {
             primaryMuscles = listOf("biceps_brachii"),
             secondaryMuscles = listOf("brachialis"),
             stabilizerMuscles = emptyList(),
-            efc = 2.0,
-            cnc = 1.5,
-            ssc = 0.0,
-            ttc = 1.0,
-            axialLoadFactor = 0.0,
+            
+            
+            
+            
+            
             technicalDifficulty = 3.0,
             resistanceProfile = "gravity_arc",
             setupCues = listOf("Torso estable."),
@@ -199,11 +199,11 @@ class ExerciseCatalogV2ResolverTest {
         primaryMuscles = primary,
         secondaryMuscles = secondary,
         stabilizerMuscles = emptyList(),
-        efc = 2.0,
-        cnc = 1.5,
-        ssc = 0.0,
-        ttc = 1.0,
-        axialLoadFactor = 0.0,
+        
+        
+        
+        
+        
         technicalDifficulty = 3.0,
         resistanceProfile = "gravity_arc",
         setupCues = listOf("Posición estable."),
@@ -282,11 +282,11 @@ class ExerciseCatalogV2ResolverTest {
                     JointInvolvementV2("tobillo", JointRoleV2.SECONDARY, listOf("Equilibrio Y Dorsiflexión")),
                     JointInvolvementV2("sacroiliaca", JointRoleV2.STABILIZER, listOf("Transferencia Unilateral")),
                 ),
-                efc = 2.8,
-                cnc = 2.2,
-                ssc = 0.5,
-                ttc = 2.0,
-                axialLoadFactor = 0.0,
+                
+                
+                
+                
+                
                 technicalDifficulty = 4.2,
                 resistanceProfile = when (equipmentId) {
                     "smith_machine" -> "guided_constant"

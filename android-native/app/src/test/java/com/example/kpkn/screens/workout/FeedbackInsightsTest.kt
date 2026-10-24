@@ -56,7 +56,7 @@ class FeedbackInsightsTest {
             muscles = squatMuscles,
             sets = sets,
             technicalQuality = technical,
-            axialLoadFactor = 0.7,
+            
         )
 
     private fun session(vararg exercises: DiscomfortSessionExercise, focus: String? = "squat") =
@@ -245,7 +245,7 @@ class FeedbackInsightsTest {
             id = "db-squat",
             name = "Sentadilla trasera",
             involvedMuscles = squatMuscles,
-            axialLoadFactor = 0.7,
+            
         )
         val done = mapOf("squat_0" to set(), "jump_0" to set(), "bench_0" to set())
         val s = inputs(

@@ -28,7 +28,6 @@ import com.example.kpkn.screens.onboarding.design.WizardDock
 import com.example.kpkn.screens.onboarding.design.WizardGenderMark
 import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.WizardWeightScale
-import com.example.kpkn.ui.components.rings.TowerRingValues
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue

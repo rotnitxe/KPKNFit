@@ -182,7 +182,7 @@ class FeedbackSurfacesUiTest {
     fun theHighlightedChipsListWhatWasReportedBeforeAndThenWhatIsFrequentInTheExercise() {
         panel(
             insights = FeedbackInsights(
-                likely = listOf("knee_patellar", "lumbar"),
+                
                 reported = listOf(ReportedDiscomfort("hip_front", lastReportedAtMs = nowMs - 3 * day)),
             ),
         )
@@ -205,7 +205,7 @@ class FeedbackSurfacesUiTest {
 
     @Test
     fun theNoticeOfTheEngineShowsOnlyWhenThereIsEvidence() {
-        panel(insights = FeedbackInsights(notice = kneeInsight))
+        panel(insights = FeedbackInsights())
         rule.onNodeWithText(kneeInsight.headline!!).assertExists()
     }
 
@@ -247,7 +247,7 @@ class FeedbackSurfacesUiTest {
     @Test
     fun tappingAChipOpensTheSheetAndReportingAddsTheDiscomfortToTheFeedback() {
         val saved = mutableListOf<List<PostExerciseFeedback>>()
-        panel(onSave = { saved += it }, insights = FeedbackInsights(likely = listOf("knee_patellar")))
+        panel(onSave = { saved += it }, insights = FeedbackInsights())
         rule.onNodeWithText("Rodilla anterior").performClick()
         rule.waitForIdle()
         rule.onNodeWithText("Molestia delante de la rodilla").assertExists()
@@ -272,7 +272,7 @@ class FeedbackSurfacesUiTest {
     fun theSheetOfAChosenDiscomfortOffersToTakeItOff() {
         val draft = PostExerciseFeedbackDraft.from(listOf(squat), emptyMap())
         draft.select("knee_patellar")
-        panel(draft = draft, insights = FeedbackInsights(likely = listOf("knee_patellar")))
+        panel(draft = draft, insights = FeedbackInsights())
         rule.onNode(hasText("Rodilla anterior") and hasClickAction()).performClick()
         rule.waitForIdle()
         rule.onNodeWithText("Quitar molestia").assertExists()
@@ -284,7 +284,7 @@ class FeedbackSurfacesUiTest {
     @Test
     fun theSheetShowsInYourCaseOnlyWhatTheEngineProves() {
         panel(
-            insights = FeedbackInsights(likely = listOf("knee_patellar")),
+            insights = FeedbackInsights(),
             explain = { id -> kneeInsight.takeIf { id == "knee_patellar" } },
         )
         rule.onNodeWithText("Rodilla anterior").performClick()
@@ -301,7 +301,7 @@ class FeedbackSurfacesUiTest {
 
     @Test
     fun withoutEvidenceTheSheetHasNoInYourCaseBlock() {
-        panel(insights = FeedbackInsights(likely = listOf("lumbar")))
+        panel(insights = FeedbackInsights())
         rule.onNodeWithText("Lumbar").performClick()
         rule.waitForIdle()
         rule.onAllNodesWithText("EN TU CASO").assertCountEquals(0)
@@ -346,9 +346,9 @@ class FeedbackSurfacesUiTest {
                 draft = draft,
                 save = {},
                 insights = FeedbackInsights(
-                    likely = listOf("knee_patellar"),
+                    
                     reported = listOf(ReportedDiscomfort("hip_front", lastReportedAtMs = nowMs - 3 * day)),
-                    notice = kneeInsight,
+                    
                 ),
                 onSkip = { skips++ },
                 onExpand = { expands++ },

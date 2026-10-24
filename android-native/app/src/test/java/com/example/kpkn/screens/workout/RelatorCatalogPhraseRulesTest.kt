@@ -77,6 +77,6 @@ class RelatorCatalogPhraseRulesTest {
         plannedIntensity = 8.0,
         sessionLastSet = RelatorSessionSetMemory(1, 80.0, 8),
         idleCycle = 1,
-        axialLoadFactor = 1.0,
+        
     )
 }

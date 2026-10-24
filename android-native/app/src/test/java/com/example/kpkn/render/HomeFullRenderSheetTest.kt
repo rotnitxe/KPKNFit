@@ -160,7 +160,7 @@ class HomeFullRenderSheetTest {
                 HomeSessionSection(
                     sessions = sample.sessions,
                     hasActiveProgram = sample.hasActiveProgram,
-                    perMuscle = sample.perMuscle,
+                    
                     onStartWorkout = { _, _ -> },
                     onResumeWorkout = {},
                     onEditSession = { _, _ -> },

@@ -1364,7 +1364,7 @@ class WorkoutLiveRelatorTest {
         val snap = baseSnapshot(
             family = RelatorFamily.SQUAT,
             exerciseDisplayName = "Sentadilla trasera",
-            axialLoadFactor = 1.0,
+            
         )
         val first = WorkoutLiveRelator.resolve(snap).text!!.lowercase()
         assertTrue(first.contains("serie 1"))
@@ -1383,7 +1383,7 @@ class WorkoutLiveRelatorTest {
     fun axialConceptDoesNotBeatWeightReaction() {
         val line = WorkoutLiveRelator.resolve(
             weightSnapshot(entered = 70.0, lastLifted = 80.0, suggested = 80.0, feminine = false).copy(
-                axialLoadFactor = 1.0,
+                
                 idleCycle = 1,
                 family = RelatorFamily.SQUAT,
             ),
@@ -1397,7 +1397,7 @@ class WorkoutLiveRelatorTest {
         val line = WorkoutLiveRelator.resolve(
             baseSnapshot(
                 idleCycle = 1,
-                axialLoadFactor = 1.0,
+                
                 discomfortHint = RelatorDiscomfortHint(label = "Lumbar", fromThisSession = false),
             ),
         ).text!!.lowercase()
@@ -1410,7 +1410,7 @@ class WorkoutLiveRelatorTest {
         val line = WorkoutLiveRelator.resolve(
             baseSnapshot(
                 idleCycle = 1,
-                axialLoadFactor = 1.0,
+                
                 intensityMode = IntensityMode.RPE,
                 plannedIntensity = 8.0,
                 shownConceptIds = setOf("carga-axial"),

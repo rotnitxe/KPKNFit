@@ -28,7 +28,7 @@ class RelatorConceptCueTest {
     @Test
     fun axialOneSpeaksCargaAxial() {
         val cue = pickRelatorConceptCue(
-            RelatorConceptSignals(axialLoadFactor = 1.0, exerciseName = "Sentadilla trasera"),
+            RelatorConceptSignals( exerciseName = "Sentadilla trasera"),
         )
         assertEquals("carga-axial", cue?.id)
     }
@@ -37,7 +37,7 @@ class RelatorConceptCueTest {
     fun axialPointThreeDoesNotSpeakCargaAxial() {
         val cue = pickRelatorConceptCue(
             RelatorConceptSignals(
-                axialLoadFactor = 0.3,
+                
                 exerciseName = "Press banca",
                 intensityMode = IntensityMode.RPE,
                 plannedIntensity = 8.0,
@@ -59,7 +59,7 @@ class RelatorConceptCueTest {
     fun axialBeatsRpeOnSameExercise() {
         val cue = pickRelatorConceptCue(
             RelatorConceptSignals(
-                axialLoadFactor = 0.8,
+                
                 exerciseName = "Press militar",
                 intensityMode = IntensityMode.RPE,
                 plannedIntensity = 8.0,
@@ -72,7 +72,7 @@ class RelatorConceptCueTest {
     fun afterAxialShownFallsThroughToRpe() {
         val cue = pickRelatorConceptCue(
             RelatorConceptSignals(
-                axialLoadFactor = 1.0,
+                
                 exerciseName = "Sentadilla",
                 intensityMode = IntensityMode.RPE,
                 plannedIntensity = 8.0,
@@ -204,7 +204,7 @@ class RelatorConceptCueTest {
     @Test
     fun pickAlwaysReturnsKnownCue() {
         val cue = pickRelatorConceptCue(
-            RelatorConceptSignals(axialLoadFactor = 1.0, exerciseName = "Sentadilla"),
+            RelatorConceptSignals( exerciseName = "Sentadilla"),
         )
         assertNotNull(cue)
         assertTrue(cue!!.lines.isNotEmpty())

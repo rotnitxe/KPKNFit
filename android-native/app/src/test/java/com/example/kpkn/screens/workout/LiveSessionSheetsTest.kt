@@ -161,9 +161,7 @@ class LiveSessionSheetsTest {
         val second = Exercise("second", "Curl", sets = listOf(ExerciseSet("s2")))
         val group = SupersetGroup(id = "super", exerciseOrder = listOf(first.id, second.id), rounds = 3)
         content { LiveSessionSheetsHost(LiveSessionDestination.ROUTE, {}, exercises = listOf(first, second),
-            supersetGroups = listOf(group), onSelectSuperset = { selected = it }, onOpenSupersetOptions = { options = it },
-            ringPreview = PostSessionPreview(muscular = 70, neural = 65, spinal = 80, perMuscle = emptyMap(),
-                globalCnsDrain = 0, globalMuscularDrain = 0, globalSpinalDrain = 0)) }
+            supersetGroups = listOf(group), onSelectSuperset = { selected = it }, onOpenSupersetOptions = { options = it }) }
         rule.onNodeWithText("RINGS EN VIVO").assertIsDisplayed()
         rule.onNodeWithContentDescription("Opciones de Zancada + Curl").performScrollTo().performClick()
         rule.runOnIdle { assertEquals(first.id, options) }

@@ -44,7 +44,6 @@ import com.example.kpkn.data.models.MuscleAdvance
 import com.example.kpkn.data.models.PostSessionPreview
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
-import com.example.kpkn.domain.auge.SessionIntensityResult
 import com.example.kpkn.screens.workout.components.RoadmapPendingAction
 import com.example.kpkn.screens.workout.components.SeriesOptionsSheet
 import com.example.kpkn.screens.workout.components.SetAdjustmentOverlay

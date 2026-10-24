@@ -12,7 +12,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.auge.SessionIntensityResult
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.theme.KPKNTheme

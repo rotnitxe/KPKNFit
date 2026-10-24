@@ -31,7 +31,6 @@ import com.example.kpkn.domain.sessionassistant.*
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.workout.components.*
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
-import com.example.kpkn.ui.components.rings.MuscleBodyAdjust
 import com.example.kpkn.ui.theme.KPKNTheme
 import java.io.File
 import org.junit.Assert.*

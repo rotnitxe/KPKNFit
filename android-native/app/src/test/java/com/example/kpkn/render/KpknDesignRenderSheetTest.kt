@@ -220,13 +220,13 @@ class KpknDesignRenderSheetTest {
                 greeting = "Buenos días",
                 userName = "Alex",
                 greetingProgress = 1f,
-                ringsProgress = if (context == HomeBarContext.RINGS) 1f else 0f,
+                
                 sessionProgress = if (context == HomeBarContext.SESSION) 1f else 0f,
                 nutritionProgress = if (context == HomeBarContext.NUTRITION) 1f else 0f,
                 hasPrograms = true,
-                muscularProgress = 0.62f,
-                sncProgress = 0.48f,
-                columnaProgress = 0.71f,
+                
+                
+                
                 primarySession = primarySession,
                 homeCompetition = null,
                 isRestDay = false,

@@ -80,9 +80,9 @@ class SessionAssistantEngineTest {
         val info = ExerciseMuscleInfo(
             id = "bench",
             name = "Press banca",
-            efc = 3.2,
-            cnc = 3.5,
-            ssc = 0.8,
+            
+            
+            
             involvedMuscles = listOf(
                 InvolvedMuscle("Pectorales", MuscleRole.PRIMARY, 1.0),
                 InvolvedMuscle("Tríceps", MuscleRole.SECONDARY, 0.5),

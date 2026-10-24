@@ -62,3 +62,10 @@ contratos de protocolos, voz, cierre e historial mantienen su regresión.
 - `android-native/app/src/test/java/com/example/kpkn/ui/components/rings/KpknTowerRingsTest.kt`: comportamiento AUGE/RINGS retirado.
 - `android-native/app/src/test/java/com/example/kpkn/ui/components/rings/RingAdjustMathTest.kt`: comportamiento AUGE/RINGS retirado.
 - `android-native/app/src/test/java/com/example/kpkn/ui/components/rings/RingAdjustTest.kt`: comportamiento AUGE/RINGS retirado.
+- `android-native/app/src/test/java/com/example/kpkn/domain/energy/TrainingEnergyEngineTest.kt`: motor/prefill/superficie dedicados retirados; sin caller productivo.
+- `android-native/app/src/test/java/com/example/kpkn/domain/exercises/CustomExerciseCreationTest.kt`: motor/prefill/superficie dedicados retirados; sin caller productivo.
+- `android-native/app/src/test/java/com/example/kpkn/screens/workout/LiveDrainOverlayTest.kt`: motor/prefill/superficie dedicados retirados; sin caller productivo.
+- LoadSuggestionEngineTest: conserva redondeo; retira cinco casos de curvas de fatiga, multiplicadores y prescripción automática eliminados.
+- ProgramAnalyticsEngineTest: retira el caso de fatiga lumbar calculada; conserva cobertura, adherencia y analítica independiente.
+- DiscomfortCauseEngineTest: conserva reportes anteriores/orden/recuento como RecordedDiscomfortHistoryTest; retira las pruebas del predictor causal y sus umbrales eliminados.
+- ProgramVolumeStatesTest: compara rangos del programa con etiquetas descriptivas y color neutro; se retiran dos tests exclusivos de alertas inferidas.

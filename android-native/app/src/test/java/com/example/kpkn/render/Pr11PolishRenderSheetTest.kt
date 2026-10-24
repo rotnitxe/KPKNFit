@@ -155,16 +155,16 @@ class Pr11PolishRenderSheetTest {
 
     /** Un volumen sin calibrar: ningún músculo tiene zonas, y tres no tienen series esta semana. */
     private val uncalibratedMuscles = listOf(
-        ProgramVolumeMuscle("Glúteos", 20.0, null, null, overtrained = false, overreaching = false, scaleMax = 20.0),
-        ProgramVolumeMuscle("Deltoides", 19.0, null, null, overtrained = false, overreaching = false, scaleMax = 20.0),
-        ProgramVolumeMuscle("Cuádriceps", 19.0, null, null, overtrained = false, overreaching = false, scaleMax = 20.0),
-        ProgramVolumeMuscle("Dorsales", 14.0, null, null, overtrained = false, overreaching = false, scaleMax = 20.0),
-        ProgramVolumeMuscle("Isquiosurales", 12.0, null, null, overtrained = false, overreaching = false, scaleMax = 20.0),
-        ProgramVolumeMuscle("Pectorales", 8.0, null, null, overtrained = false, overreaching = false, scaleMax = 20.0),
-        ProgramVolumeMuscle("Trapecio", 7.0, null, null, overtrained = false, overreaching = false, scaleMax = 20.0),
-        ProgramVolumeMuscle("Cuello", 0.0, null, null, overtrained = false, overreaching = false, scaleMax = 20.0),
-        ProgramVolumeMuscle("Bíceps", 0.0, null, null, overtrained = false, overreaching = false, scaleMax = 20.0),
-        ProgramVolumeMuscle("Tríceps", 0.0, null, null, overtrained = false, overreaching = false, scaleMax = 20.0),
+        ProgramVolumeMuscle("Glúteos", 20.0, null, null,   scaleMax = 20.0),
+        ProgramVolumeMuscle("Deltoides", 19.0, null, null,   scaleMax = 20.0),
+        ProgramVolumeMuscle("Cuádriceps", 19.0, null, null,   scaleMax = 20.0),
+        ProgramVolumeMuscle("Dorsales", 14.0, null, null,   scaleMax = 20.0),
+        ProgramVolumeMuscle("Isquiosurales", 12.0, null, null,   scaleMax = 20.0),
+        ProgramVolumeMuscle("Pectorales", 8.0, null, null,   scaleMax = 20.0),
+        ProgramVolumeMuscle("Trapecio", 7.0, null, null,   scaleMax = 20.0),
+        ProgramVolumeMuscle("Cuello", 0.0, null, null,   scaleMax = 20.0),
+        ProgramVolumeMuscle("Bíceps", 0.0, null, null,   scaleMax = 20.0),
+        ProgramVolumeMuscle("Tríceps", 0.0, null, null,   scaleMax = 20.0),
     )
 
     private val volumeScope = ProgramVolumeScope(

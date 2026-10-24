@@ -2861,7 +2861,7 @@ class SetupExecutableAvailabilityMatrixTest {
             state.machineState != WizChatMachineState.PersistingAnswer &&
             state.machineState != WizChatMachineState.Committing &&
             state.machineState != WizChatMachineState.PreparingPreview &&
-            !state.isPreviewLoading && !state.isCandidateLoading && !state.ringsPreviewLoading
+            !state.isPreviewLoading && !state.isCandidateLoading
 
     /** El borrador real tiene que conservar EXACTAMENTE lo pedido: no se cambia ninguna respuesta. */
     private fun matchesRequested(draft: SetupWizardDraft, row: MatrixRow): Boolean =
@@ -3010,7 +3010,7 @@ class SetupExecutableAvailabilityMatrixTest {
     private fun stateDump(state: SetupWizardState): String =
         "machine=${state.machineState} errores=${state.errors} lastFailure=${state.lastFailure} " +
             "previewError=${state.previewError} cargando=${state.isPreviewLoading}/${state.isCandidateLoading}/" +
-            "${state.ringsPreviewLoading} candidatos=${state.planCandidates.size}/${state.availablePlanCandidates.size} " +
+            "retirado candidatos=${state.planCandidates.size}/${state.availablePlanCandidates.size} " +
             "borrador=${draftFingerprint(state.draft)}"
 
     private fun printMatrixRow(outcome: RowOutcome) {
@@ -3356,7 +3356,6 @@ class SetupExecutableAvailabilityMatrixTest {
         override fun activeNutritionPlanId(): String? = null
         override fun activeNutritionPlan(): NutritionPlan? = null
         override fun nutritionPlan(id: String): NutritionPlan? = null
-        override fun hasInitialRecoveryEvidence(): Boolean = false
         override suspend fun refreshBodyProgress() = Unit
     }
 

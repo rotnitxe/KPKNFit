@@ -5,7 +5,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import com.example.kpkn.domain.sessionassistant.AssistantActionType
-import com.example.kpkn.domain.auge.DrainReading
 import com.example.kpkn.domain.sessionassistant.AssistantDetailAction
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestion
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestionDetail

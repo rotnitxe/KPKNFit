@@ -12,8 +12,6 @@ import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.TrainingPhase
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.protocols.SlotRole
-import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.InterferenceEngine
 import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.testsupport.MotCatalog
 import com.example.kpkn.testsupport.MotRecipeLine
@@ -214,58 +212,10 @@ class SessionAdvisorTest {
     // ─── Tono, techo y duplicados ────────────────────────────────────────────
 
     @Test
-    fun highCostWithoutHistory_isAnInformativeNote_withNoCutsAndNoAlarm() {
-        val session = MotSessions.session("s10", "Cadena anterior", MotSessions.S10, dayOfWeek = 3)
-        val report = SessionAssistantEngine.evaluate(input(session, customDrain = PredictedDrain(cns = 54, muscular = 62, spinal = 0)))
-        assertTrue("sin historial comparable no se propone recortar: ${report.ajustes.map { it.id }}", report.ajustes.isEmpty())
-        val text = everything(report)
-        assertTrue(text, text.contains("coste estimado"))
-        assertTrue(text, text.contains("sesiones comparables"))
-        // «Columna» es el nombre del anillo y puede aparecer; lo que no se admite es hablar de la espalda de la persona.
-        listOf("demasiado", "fatigante", "recuperación", "lesión", "lesion", "proteg", "peligro", "debes", "no añadir", "tu columna", "la columna").forEach {
-            assertFalse("no debe decir «$it»: $text", text.contains(it))
-        }
-    }
-
-    @Test
     fun costBelowTheSignal_saysNothing() {
         val session = MotSessions.session("s10", "Cadena anterior", MotSessions.S10, dayOfWeek = 3)
         val report = SessionAssistantEngine.evaluate(input(session, customDrain = PredictedDrain(59, 59, 59)))
         assertTrue(report.ajustes.isEmpty() && report.notas.isEmpty())
-    }
-
-    @Test
-    fun withComparableHistory_aHeavierPlanOffersVerifiedOptionalCuts() {
-        val base = MotSessions.session("s10", "Cadena anterior", MotSessions.S10, dayOfWeek = 3)
-        // Una versión pesada de la receta: el doble de series a RPE 9.
-        val heavy = base.copy(
-            exercises = base.exercises.map { ex ->
-                ex.copy(sets = ex.sets + ex.sets.map { it.copy(id = it.id + "-b") }.map { it.copy(targetRPE = 9.0) })
-            },
-        )
-        val projection = AugeFatigueEngine.projectPlannedSession(heavy, index, Settings())
-        org.junit.Assume.assumeTrue("la sesión de prueba debe superar la señal de coste: pico=${projection.peak}", projection.peak >= SessionAdvisor.COST_SIGNAL)
-        val logs = (1..6).map { i ->
-            WorkoutLog(id = "l$i", programId = "p1", sessionId = "s10", sessionName = "Cadena anterior",
-                date = Instant.ofEpochMilli(now - i * 7L * 24 * 3600_000).toString(), durationMinutes = 50, sessionStressScore = 15.0)
-        }
-        val report = SessionAssistantEngine.evaluate(input(heavy, logs = logs))
-        val card = report.ajustes.firstOrNull { it.id == "dose_deviation" }
-        assertNotNull("se esperaba la tarjeta de desviación: ${report.ajustes.map { it.id }} ${report.notas}", card)
-        assertTrue(card!!.details.isNotEmpty())
-        card.details.forEach { d ->
-            assertFalse("las opciones de coste no vienen marcadas", d.defaultAccepted)
-            assertTrue("cada opción baja de verdad el pico estimado: ${d.effect}", (d.effect?.deltaPeakCost ?: 0.0) < 0.0)
-            assertTrue(d.label, d.label.contains("el pico estimado baja de"))
-        }
-        // Con menos de seis sesiones comparables, solo informa.
-        val few = SessionAssistantEngine.evaluate(input(heavy, logs = logs.take(5)))
-        assertTrue(few.ajustes.none { it.id == "dose_deviation" })
-        // En una fase de realización un coste alto puede ser deliberado: tampoco recorta.
-        val realization = SessionAssistantEngine.evaluate(
-            input(heavy, logs = logs, program = Program(id = "p1", name = "P", trainingPhase = TrainingPhase.REALIZATION)),
-        )
-        assertTrue(realization.ajustes.none { it.id == "dose_deviation" })
     }
 
     @Test

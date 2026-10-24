@@ -2,7 +2,6 @@ package com.example.kpkn.screens.workout
 
 import androidx.compose.ui.graphics.Color
 import com.example.kpkn.domain.exercises.exerciseFichaEffects
-import com.example.kpkn.ui.components.rings.muscleRecoveryColor
 import org.junit.Assert.*
 import org.junit.Test
 

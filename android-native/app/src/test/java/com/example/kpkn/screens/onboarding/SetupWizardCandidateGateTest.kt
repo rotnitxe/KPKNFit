@@ -949,7 +949,7 @@ class SetupWizardCandidateGateTest {
             state.machineState != WizChatMachineState.PersistingAnswer &&
             state.machineState != WizChatMachineState.Committing &&
             state.machineState != WizChatMachineState.PreparingPreview &&
-            !state.isPreviewLoading && !state.isCandidateLoading && !state.ringsPreviewLoading
+            !state.isPreviewLoading && !state.isCandidateLoading
 
     private fun TestScope.awaitUntil(
         vm: SetupWizardViewModel,
@@ -1055,7 +1055,6 @@ class SetupWizardCandidateGateTest {
         override fun activeNutritionPlanId(): String? = null
         override fun activeNutritionPlan(): NutritionPlan? = null
         override fun nutritionPlan(id: String): NutritionPlan? = null
-        override fun hasInitialRecoveryEvidence(): Boolean = false
         override suspend fun refreshBodyProgress() = Unit
     }
 

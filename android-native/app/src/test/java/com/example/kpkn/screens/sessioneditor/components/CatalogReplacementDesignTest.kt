@@ -88,7 +88,7 @@ class CatalogReplacementDesignTest {
         val base = definition(id, "Candidato $id", "knee_dominant", listOf(muscle), listOf(implement))
         return base.copy(
             configurations = base.configurations.map { configuration ->
-                configuration.copy(profile = configuration.profile.copy(axialLoadFactor = axial, laterality = laterality))
+                configuration.copy(profile = configuration.profile.copy( laterality = laterality))
             },
         )
     }
@@ -104,7 +104,7 @@ class CatalogReplacementDesignTest {
         configurationId = "back_squat__barbell",
         mainMuscle = "quadriceps",
         laterality = laterality,
-        axialLoadFactor = axial,
+        
     )
 
     private fun line(definition: ExerciseDefinitionV2, anchor: CatalogReplacementAnchor): String? =
@@ -146,7 +146,7 @@ class CatalogReplacementDesignTest {
         val press = base.copy(
             configurations = base.configurations.map { configuration ->
                 configuration.copy(
-                    profile = configuration.profile.copy(axialLoadFactor = 0.0, laterality = ExerciseLateralityV2.BILATERAL),
+                    profile = configuration.profile.copy( laterality = ExerciseLateralityV2.BILATERAL),
                 )
             },
         )

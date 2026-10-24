@@ -11,7 +11,7 @@ import org.junit.Test
 class PostRingsWizardMigrationTest {
     @Test fun `no scope or old include switch restores a retired stage`() {
         for(training in listOf(false,true)) for(nutrition in listOf(false,true)) {
-            val route=SetupStepGraph.nodes(SetupStepContext(includeTraining=training,includeNutrition=nutrition,includeRings=true))
+            val route=SetupStepGraph.nodes(SetupStepContext(includeTraining=training,includeNutrition=nutrition))
             assertTrue(route.none { it.id.name.startsWith("RINGS_") || it.id.name=="MILESTONE_RINGS" })
             assertEquals(SetupStepId.REVIEW_ACTIVATE,route.last().id)
         }

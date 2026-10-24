@@ -344,7 +344,6 @@ class SetupWizardBodyFatViewModelTest {
         override fun activeNutritionPlanId(): String? = null
         override fun activeNutritionPlan(): NutritionPlan? = null
         override fun nutritionPlan(id: String): NutritionPlan? = null
-        override fun hasInitialRecoveryEvidence(): Boolean = false
         override suspend fun refreshBodyProgress() = Unit
     }
 }

@@ -132,8 +132,8 @@ class ProgramVolumeRenderSheetTest {
             ProgramVolumeCountControls(
                 indirectMode = 0,
                 onIndirectMode = {},
-                adjustByIntensity = false,
-                onAdjustByIntensity = {},
+                
+                
             )
         }
         when (name) {

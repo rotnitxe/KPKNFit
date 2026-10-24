@@ -20,7 +20,7 @@ class VolumeCalculatorTest {
     )
 
     private val exerciseDb = listOf(
-        ExerciseMuscleInfo("squat", "Sentadilla Back", involvedMuscles = squatMuscles, equipment = "Barra", ssc = 1.5),
+        ExerciseMuscleInfo("squat", "Sentadilla Back", involvedMuscles = squatMuscles, equipment = "Barra"),
         ExerciseMuscleInfo("bench", "Press Banca", involvedMuscles = benchMuscles, equipment = "Barra"),
     )
 
@@ -52,7 +52,7 @@ class VolumeCalculatorTest {
         val info = ExerciseMuscleInfo(
             id = "knee_control",
             name = "Control de Rodilla",
-            ssc = 0.0,
+            
             involvedMuscles = listOf(
                 InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY, 1.0),
                 InvolvedMuscle("Glúteos", MuscleRole.STABILIZER, 0.4, "medio"),
@@ -665,7 +665,7 @@ class VolumeCalculatorTest {
             InvolvedMuscle("Glúteos", MuscleRole.NEUTRALIZER, 0.15, emphasis = "mayor"),
             InvolvedMuscle("Cuádriceps", MuscleRole.STABILIZER, 0.4),
         )
-        val db = listOf(ExerciseMuscleInfo("plank", "Plancha", involvedMuscles = plankMuscles, ssc = 0.5))
+        val db = listOf(ExerciseMuscleInfo("plank", "Plancha", involvedMuscles = plankMuscles))
         val session = makeSession("s1", listOf(makeExercise("plank", List(3) { makeSet() })))
 
         val result = VolumeCalculator.calculateUnifiedMuscleVolume(listOf(session), db)
@@ -689,7 +689,7 @@ class VolumeCalculatorTest {
             InvolvedMuscle("Deltoides", MuscleRole.PRIMARY, 1.0),
             InvolvedMuscle("Trapecio", MuscleRole.STABILIZER, 0.4),
         )
-        val db = listOf(ExerciseMuscleInfo("shoulder_press", "Press Hombro", involvedMuscles = shoulderPressMuscles, ssc = 0.9))
+        val db = listOf(ExerciseMuscleInfo("shoulder_press", "Press Hombro", involvedMuscles = shoulderPressMuscles))
         val session = makeSession("s1", listOf(makeExercise("shoulder_press", List(3) { makeSet() })))
 
         val result = VolumeCalculator.calculateUnifiedMuscleVolume(listOf(session), db)

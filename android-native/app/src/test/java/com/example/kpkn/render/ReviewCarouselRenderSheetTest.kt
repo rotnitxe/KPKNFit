@@ -50,7 +50,6 @@ import com.example.kpkn.screens.onboarding.reviewBodyFatPercentOf
 import com.example.kpkn.screens.onboarding.reviewGenderMarkOf
 import com.example.kpkn.screens.onboarding.reviewSexLabelOf
 import com.example.kpkn.screens.onboarding.withStepChoice
-import com.example.kpkn.ui.components.rings.TowerRingValues
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.Rule

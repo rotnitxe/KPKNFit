@@ -9,7 +9,6 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.PlanDeviationType
 import com.example.kpkn.data.models.effectiveRepEquivalent
-import com.example.kpkn.domain.auge.AugeFatigueEngine
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -249,7 +248,5 @@ class PlannedIntensityPolicyTest {
         assertEquals(2, recorded.partialReps)
         assertEquals(1, recorded.assistedReps)
         assertEquals(9.0, recorded.effectiveRepEquivalent(), 0.001)
-        // AUGE reads the same persisted flags that the history surface shows.
-        assertEquals(10.0, AugeFatigueEngine.getEffectiveRPE(recorded), 0.001)
     }
 }

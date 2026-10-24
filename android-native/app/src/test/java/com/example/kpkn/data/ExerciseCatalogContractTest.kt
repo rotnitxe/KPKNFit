@@ -172,7 +172,6 @@ class ExerciseCatalogContractTest {
                 configuration.profile.primaryMuscles.map { "${configuration.profile.movementPatternId}:$it" },
                 metadata.replacement.preservesIntent,
             )
-            assertEquals(configuration.profile.efc, metadata.fatigue.efc, 0.0)
             assertEquals(configuration.profile.performanceProfileId, metadata.identity.performanceProfileId)
         }
     }

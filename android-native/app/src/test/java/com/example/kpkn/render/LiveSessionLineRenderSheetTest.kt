@@ -128,7 +128,7 @@ class LiveSessionLineRenderSheetTest {
                 completedExercises = listOf(CompletedExercise(exercise.id, exercise.name,
                     sets = listOf(CompletedSet("s0", weight = 95.0, reps = 6, rir = 2)))),
                 startTimeMs = System.currentTimeMillis() - 150_000L, targetMinutes = 55,
-                ringPreview = rings, milestones = listOf(SessionMilestone("pr", "squat", "Sentadilla", "pr_e1rm", "Nuevo récord", 114.0)),
+                 milestones = listOf(SessionMilestone("pr", "squat", "Sentadilla", "pr_e1rm", "Nuevo récord", 114.0)),
                 sessionNotes = "Mantener el abdomen firme.", sessionSavedNotes = listOf(SessionSavedNote("note", "Primera serie estable.")),
                 sessionChecklist = listOf(SessionChecklistItem("water", "Beber agua")), bodyWeight = 80.0)
         }

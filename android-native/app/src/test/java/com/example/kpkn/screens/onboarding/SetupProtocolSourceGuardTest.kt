@@ -95,7 +95,6 @@ class SetupProtocolSourceGuardTest {
         override fun activeNutritionPlanId(): String? = null
         override fun activeNutritionPlan(): com.example.kpkn.data.models.NutritionPlan? = null
         override fun nutritionPlan(id: String): com.example.kpkn.data.models.NutritionPlan? = null
-        override fun hasInitialRecoveryEvidence(): Boolean = false
         override suspend fun refreshBodyProgress() = Unit
     }
 

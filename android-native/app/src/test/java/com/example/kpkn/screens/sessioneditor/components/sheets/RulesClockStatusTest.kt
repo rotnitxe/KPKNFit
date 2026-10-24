@@ -1,7 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.ui.components.rings.KpknRingColors
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

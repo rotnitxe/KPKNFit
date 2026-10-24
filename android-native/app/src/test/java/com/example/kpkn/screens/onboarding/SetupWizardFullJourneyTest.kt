@@ -275,7 +275,7 @@ class SetupWizardFullJourneyTest {
         assertNull("el coordinador real rechaza el duplicado", failed)
         assertNotNull(
             "el fallo viene del coordinador, no de la puerta de revisión: " +
-                "errors=${vm.state.value.errors} ringsPreviewError=${vm.state.value.ringsPreviewError} " +
+                "errors=${vm.state.value.errors} ringsPreviewError=retirado " +
                 "lastFailure=${vm.state.value.lastFailure}",
             vm.state.value.errors["commit"],
         )
@@ -798,10 +798,10 @@ class SetupWizardFullJourneyTest {
                 fail(
                     "Timeout esperando $what en ${state.currentStep}: machine=${state.machineState}, " +
                         "errores=${state.errors}, lastFailure=${state.lastFailure}, preview=${state.previewError} " +
-                        "(cargando=${state.isPreviewLoading}/${state.isCandidateLoading}/${state.ringsPreviewLoading}), " +
+                        "(cargando=${state.isPreviewLoading}/${state.isCandidateLoading}/retirado), " +
                         "candidatos=${state.planCandidates.size}/${state.availablePlanCandidates.size}, " +
-                        "nutrition=${state.nutritionErrors}, rings=${state.ringsPreviewError}, " +
-                        "bateriasAusentes=${state.ringsBatteriesPreview == null}",
+                        "nutrition=${state.nutritionErrors}, rings=retirado, " +
+                        "bateriasAusentes=retirado",
                 )
             }
         }
@@ -822,7 +822,7 @@ class SetupWizardFullJourneyTest {
                 state.machineState != WizChatMachineState.PersistingAnswer &&
                 state.machineState != WizChatMachineState.Committing &&
                 state.machineState != WizChatMachineState.PreparingPreview &&
-                !state.isPreviewLoading && !state.isCandidateLoading && !state.ringsPreviewLoading
+                !state.isPreviewLoading && !state.isCandidateLoading
         }
         awaitCondition(vm, "previews en reposo", timeoutMs = 30_000, condition = idle)
         repeat(25) { advanceUntilIdle() }
@@ -838,8 +838,8 @@ class SetupWizardFullJourneyTest {
      * valida el commit con el preview roto.
      */
     private fun TestScope.assertRingsPreviewReady(vm: SetupWizardViewModel) {
-        assertNull(vm.state.value.ringsBatteriesPreview)
-        assertFalse(vm.state.value.ringsPreviewLoading)
+
+
     }
 
     /** Escribe, confirma y exige el paso siguiente; registra la cobertura. */
@@ -961,7 +961,6 @@ class SetupWizardFullJourneyTest {
         override fun activeNutritionPlanId(): String? = null
         override fun activeNutritionPlan(): NutritionPlan? = null
         override fun nutritionPlan(id: String): NutritionPlan? = null
-        override fun hasInitialRecoveryEvidence(): Boolean = false
         override suspend fun refreshBodyProgress() = Unit
     }
 

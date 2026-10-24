@@ -129,7 +129,7 @@ class RelatorSpeechVarietyTest {
             plannedIntensity = 8.0,
             sessionLastSet = RelatorSessionSetMemory(1, 80.0, 8),
             idleCycle = 1,
-            axialLoadFactor = 1.0,
+            
         )
         RelatorSpeechBucket.entries.forEach { bucket ->
             WorkoutLiveRelatorCatalog.variantsFor(bucket, snap).forEach { template ->
