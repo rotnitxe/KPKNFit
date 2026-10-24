@@ -575,6 +575,9 @@ public final class KpknDatabase {
         MigrationStep(fromVersion: 20, toVersion: 21) { db in
             try db.retireDerivedTraining()
         },
+        MigrationStep(fromVersion: 21, toVersion: 22) { db in
+            try db.retireCatalogCoefficients()
+        },
     ]
 }
 
@@ -687,5 +690,25 @@ private extension KpknDatabaseInternal {
             guard status == SQLITE_DONE else { throw NSError(domain:"TrainingOriginals",code:14) }
         }
         for table in ["wellbeing","sleep_logs","post_session_feedback","auge_sleep_extended","auge_adaptive_cache","pending_questionnaire"] { try execute("DROP TABLE IF EXISTS \(table)") }
+    }
+}
+
+
+private extension KpknDatabaseInternal {
+    func retireCatalogCoefficients() throws {
+        func quote(_ value: String) -> String { "'" + value.replacingOccurrences(of:"'",with:"''") + "'" }
+        for table in ["custom_exercises","workout_logs"] {
+            var statement: OpaquePointer?
+            guard sqlite3_prepare_v2(handle,"SELECT id,data FROM \(table) WHERE data IS NOT NULL",-1,&statement,nil)==SQLITE_OK else { throw NSError(domain:"TrainingCatalogPreservation",code:3) }
+            defer { sqlite3_finalize(statement) }
+            var status=sqlite3_step(statement)
+            while status==SQLITE_ROW {
+                guard let id=sqlite3_column_text(statement,0), let raw=sqlite3_column_text(statement,1) else { throw NSError(domain:"TrainingCatalogPreservation",code:4) }
+                let cleaned=try LegacyExerciseCoefficientImport.record(String(cString:raw),custom:table=="custom_exercises")
+                try execute("UPDATE \(table) SET data=\(quote(cleaned)) WHERE id=\(quote(String(cString:id)))")
+                status=sqlite3_step(statement)
+            }
+            guard status==SQLITE_DONE else { throw NSError(domain:"TrainingCatalogPreservation",code:5) }
+        }
     }
 }

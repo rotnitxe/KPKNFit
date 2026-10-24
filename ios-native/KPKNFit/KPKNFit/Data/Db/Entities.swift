@@ -24,14 +24,16 @@ private func encodeModel<T: Encodable>(_ value: T) -> String {
             for key in ["sessionStressScore","muscularImpactV2","ringStartSnapshot","postSessionPreview"] { log.removeValue(forKey:key) }
             if let energy=log["energySummary"] as? [String:Any], (energy["methodVersion"] as? String ?? "auge-energy-v1").hasPrefix("auge-energy") { log.removeValue(forKey:"energySummary") }
             if let exercises=log["completedExercises"] as? [[String:Any]] {
-                log["completedExercises"] = exercises.map { exercise -> [String:Any] in
-                    var item=exercise
+                log["completedExercises"] = try exercises.map { exercise -> [String:Any] in
+                    var item=try LegacyExerciseCoefficientImport.completedExercise(exercise)
                     item.removeValue(forKey:"totalSpinalScore")
                     if let sets=item["sets"] as? [[String:Any]] { item["sets"]=sets.map { $0.filter { !["spinalScore","batteryDrain","cnsDrain","muscularDrain","spinalDrain","readinessScore"].contains($0.key) } } }
                     return item
                 }
             }
             decoded=log
+        } else if value is ExerciseMuscleInfo, let exercise=decoded as? [String:Any] {
+            decoded=try LegacyExerciseCoefficientImport.customExercise(exercise)
         } else if value is OngoingWorkoutState, let ongoing=decoded as? [String:Any] {
             decoded=ongoing.filter { !["readinessNeuralOverride","readinessMuscularOverride","readinessSpinalOverride","readinessMuscleOverrides","lastDrainOverlay","sessionStressScore","postSessionPreview","exerciseReadinessMap","patternReadiness","currentAutoRegulation"].contains($0.key) }
         }
@@ -702,5 +704,50 @@ private extension Array where Element: Hashable {
     func uniqued() -> [Element] {
         var seen: Set<Element> = []
         return filter { seen.insert($0).inserted }
+    }
+}
+
+
+/// Isolated compatibility paths; no global deletion of words in user content.
+internal enum LegacyExerciseCoefficientImport {
+    private static let fields: Set<String> = ["efc","cnc","ssc","ttc","axialLoadFactor","fatigueTier"]
+    private static func rich(_ object: [String:Any]) -> [String:Any] {
+        var result=object.filter { $0.key != "fatigue" }
+        if let programming=result["programming"] as? [String:Any] { result["programming"]=programming.filter { $0.key != "fatigueCost" } }
+        return result
+    }
+    private static func profile(_ object: [String:Any]) -> [String:Any] {
+        var result=object.filter { !fields.contains($0.key) }
+        if let metadata=result["richMetadata"] as? [String:Any] { result["richMetadata"]=rich(metadata) }
+        return result
+    }
+    private static func encode(_ object: [String:Any]) throws -> String {
+        let data=try JSONSerialization.data(withJSONObject:object,options:[.sortedKeys])
+        guard let text=String(data:data,encoding:.utf8) else { throw NSError(domain:"TrainingCatalogPreservation",code:1) }
+        return text
+    }
+    private static func decode(_ raw: String) throws -> [String:Any] {
+        guard let object=try JSONSerialization.jsonObject(with:Data(raw.utf8)) as? [String:Any] else { throw NSError(domain:"TrainingCatalogPreservation",code:2) }
+        return object
+    }
+    static func customExercise(_ object: [String:Any]) throws -> [String:Any] {
+        var result=object.filter { !fields.contains($0.key) }
+        if let raw=result["catalogRichMetadataJson"] as? String { result["catalogRichMetadataJson"]=try encode(rich(decode(raw))) }
+        return result
+    }
+    static func completedExercise(_ object: [String:Any]) throws -> [String:Any] {
+        var result=object
+        if let raw=result["resolvedProfileSnapshotJson"] as? String {
+            var snapshot=try decode(raw)
+            if let resolved=snapshot["resolvedProfile"] as? [String:Any] { snapshot["resolvedProfile"]=profile(resolved) }
+            result["resolvedProfileSnapshotJson"]=try encode(snapshot)
+        }
+        return result
+    }
+    static func record(_ raw: String, custom: Bool) throws -> String {
+        var result=try decode(raw)
+        if custom { result=try customExercise(result) }
+        else if let exercises=result["completedExercises"] as? [[String:Any]] { result["completedExercises"]=try exercises.map(completedExercise) }
+        return try encode(result)
     }
 }
