@@ -95,7 +95,7 @@ internal fun TrainingFactChart(allFacts: List<TrainingFact>, nowMs: Long, weeks:
         }, confirmButton = { TextButton(onClick = { selectedSource = null }) { Text("Cerrar") } })
     }
 }
-internal fun factNumber(value: Double): String = String.format(Locale.forLanguageTag("es"), "%.3f", value).trimEnd('0').trimEnd(',')
+internal fun factNumber(value: Double): String = value.toBigDecimal().stripTrailingZeros().toPlainString().replace('.', ',')
 internal fun factDate(time: Long): String = Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d MMM yyyy"))
 internal fun factOrigin(origin: FactOrigin): String = when(origin) {
     FactOrigin.OBSERVED -> "Observación registrada"
