@@ -20,11 +20,6 @@ data class ExerciseMuscleInfo(
     val isCustom: Boolean = false,
 
     // AUGE Metrics
-    val efc: Double? = null, // Fatiga Local/Cost (1-5)
-    val cnc: Double? = null, // Neural Cost (1-5)
-    val ssc: Double? = null, // Structural/Spinal Cost (0-2)
-    val ttc: Double? = null, // Tendon Stress (weeks to recover)
-    val axialLoadFactor: Double? = null,
 
     // Difficulty
     val technicalDifficulty: Double? = null, // 1-5
@@ -102,8 +97,6 @@ data class ExerciseMuscleInfo(
     val catalogVariantChips: List<String> = emptyList(),
     /** Articulación del patrón: "MULTIARTICULAR" o "AISLADO". */
     val articulationType: String? = null,
-    /** Tier de fatiga de la configuración: "BAJA", "MEDIA" o "ALTA". */
-    val fatigueTier: String? = null,
     /**
      * Solo ejercicios propios creados por parecido (MOT · E2): de qué definición/configuración confirmada salen sus datos. Separada
      * de la identidad (`catalogDefinitionId`/`catalogConfigurationId` siguen null en un propio) y de la imagen.

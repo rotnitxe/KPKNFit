@@ -3628,10 +3628,7 @@ private fun v3ExerciseSignals(
     val maxRpe = exercise.sets.mapNotNull {
         it.targetRPE ?: it.targetRIR?.let { rir -> (10 - rir).toDouble() }
     }.maxOrNull() ?: 0.0
-    val heavy = maxRpe >= 8.0 ||
-        info?.fatigueTier?.equals("ALTA", ignoreCase = true) == true ||
-        (info?.cnc ?: 0.0) >= 3.5 ||
-        (info?.axialLoadFactor ?: 0.0) >= 1.0
+    val heavy = maxRpe >= 8.0
     return V3ExerciseSignals(
         primaryMuscles = primaries,
         movementPattern = info?.movementPattern.orEmpty().lowercase(),

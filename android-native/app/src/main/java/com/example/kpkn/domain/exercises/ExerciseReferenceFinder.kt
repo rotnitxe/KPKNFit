@@ -386,7 +386,7 @@ class ExerciseReferenceFinder private constructor(
 
         /** Motor sobre una instantánea plana (una configuración por ejercicio): sin catálogo v2 no se puede afirmar que una variante no exista. */
         fun forSnapshot(snapshot: List<ExerciseMuscleInfo>): ExerciseReferenceFinder {
-            val entries = snapshot.filter { it.efc != null && it.cnc != null || it.isCustom || it.involvedMuscles.isNotEmpty() }.map { entryOf(it) }
+            val entries = snapshot.filter { it.isCustom || it.involvedMuscles.isNotEmpty() }.map { entryOf(it) }
             return ExerciseReferenceFinder(entries, vocabularyOf(entries), snapshot.firstOrNull { it.catalogRevision != null }?.catalogRevision)
         }
     }
