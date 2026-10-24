@@ -606,7 +606,6 @@ private struct WorkoutV2Body: View {
     @State private var tagManagerTagId: String? = nil
     @State private var showCreateTagDialog = false
     @State private var newTagName = ""
-    @State private var drainOverlayState: ExerciseDrainOverlayStateV2? = nil
     @State private var expandedSupersetWarmups: Set<String> = []
     @State private var pendingUpdateAction: (() -> Void)? = nil
 
@@ -750,10 +749,10 @@ private struct WorkoutV2Body: View {
                                         let key: String = {
                                             switch tp.type {
                                             case .mobility:
-                                                return ex.mobilitySeries.first { "\(ex.id)_\($0.id)" !in uiState.mobilityCompletedExerciseIds }
+                                                return ex.mobilitySeries.first { !uiState.mobilityCompletedExerciseIds.contains("\(ex.id)_\($0.id)") }
                                                     .map { "\(ex.id)_\($0.id)" } ?? ""
                                             case .warmup:
-                                                return ex.warmupSets.first { "\(ex.id)_warmup_\($0.id)" !in uiState.warmupCompletedExerciseIds }
+                                                return ex.warmupSets.first { !uiState.warmupCompletedExerciseIds.contains("\(ex.id)_warmup_\($0.id)") }
                                                     .map { "\(ex.id)_warmup_\($0.id)" } ?? ""
                                             case .normal:
                                                 return WorkoutStepRules.workingStepKey(ex.id, tp.setIndex, tp.side)
@@ -975,12 +974,7 @@ private struct WorkoutV2Body: View {
         }
 
         // Drain overlay
-        if let overlay = drainOverlayState {
-            ExerciseDrainOverlayCard(state: overlay)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-                .transition(.opacity)
-        }
+
     }
 
     private func buildSetPagerPages(exercise: Exercise, isUnilateral: Bool) -> [WorkoutSetSwipePage] {
@@ -1033,11 +1027,11 @@ private struct WorkoutV2Body: View {
             let isDone: Bool = {
                 switch page.type {
                 case .mobility:
-                    return currentExercise.mobilitySeries.allSatisfy { "\(currentExercise.id)_\($0.id)" in uiState.mobilityCompletedExerciseIds }
+                    return currentExercise.mobilitySeries.allSatisfy { uiState.mobilityCompletedExerciseIds.contains("\(currentExercise.id)_\($0.id)") }
                 case .warmup:
                     return currentExercise.warmupSets.allSatisfy {
-                        "\(currentExercise.id)_warmup_\($0.id)" in uiState.warmupCompletedExerciseIds ||
-                        currentExercise.id in uiState.warmupCompletedExerciseIds
+                        uiState.warmupCompletedExerciseIds.contains("\(currentExercise.id)_warmup_\($0.id)") ||
+                        uiState.warmupCompletedExerciseIds.contains(currentExercise.id)
                     }
                 case .normal:
                     let bilateralDone = uiState.completedSets.keys.contains("\(currentExercise.id)_\(page.setIndex)")
@@ -1086,7 +1080,7 @@ private struct MobilitySetCard: View {
                 .foregroundColor(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             ForEach(Array(exercise.mobilitySeries.enumerated()), id: \.offset) { mobIdx, mob in
-                let mobDone = "\(exercise.id)_\(mob.id)" in uiState.mobilityCompletedExerciseIds
+                let mobDone = uiState.mobilityCompletedExerciseIds.contains("\(exercise.id)_\(mob.id)")
                 HStack(spacing: 8) {
                     Button(action: {
                         viewModel.markMobilityComplete(exerciseId: exercise.id, mobilityId: mob.id, completed: !mobDone)
@@ -1151,8 +1145,8 @@ private struct WarmupSetCard: View {
                 .foregroundColor(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             ForEach(Array(exercise.warmupSets.enumerated()), id: \.offset) { warmIdx, ws in
-                let wsDone = "\(exercise.id)_warmup_\(ws.id)" in uiState.warmupCompletedExerciseIds ||
-                    exercise.id in uiState.warmupCompletedExerciseIds
+                let wsDone = uiState.warmupCompletedExerciseIds.contains("\(exercise.id)_warmup_\(ws.id)") ||
+                    uiState.warmupCompletedExerciseIds.contains(exercise.id)
                 let warmupKg = (warmupWorkingWeight != nil && warmupWorkingWeight! > 0)
                     ? warmupWorkingWeight! * (ws.percentageOfWorkingWeight / 100.0) : nil
 
@@ -1198,27 +1192,7 @@ private struct WarmupSetCard: View {
 
 // MARK: - ExerciseDrainOverlayCard
 
-private struct ExerciseDrainOverlayCard: View {
-    let state: ExerciseDrainOverlayStateV2
 
-    var body: some View {
-        VStack(spacing: 8) {
-            Text("Drenaje de \(state.exerciseName)")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(.secondary)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            ForEach(Array(state.items.enumerated()), id: \.offset) { index, item in
-                ExerciseDrainAnimatedRow(item: item, index: index)
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(Color(.systemBackground).opacity(0.97))
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-        .shadow(color: .black.opacity(0.15), radius: 18, y: 10)
-    }
-}
 
 // MARK: - ExerciseDrainAnimatedRow
 
@@ -1272,48 +1246,7 @@ private struct ExerciseDrainAnimatedRow: View {
 
 // MARK: - WorkoutFatigueRings
 
-private struct WorkoutFatigueRings: View {
-    let cns: Int
-    let muscular: Int
-    let spinal: Int
 
-    var body: some View {
-        let values = [muscular, cns, spinal].map { CGFloat($0) / 100.0 }
-        let colors: [Color] = [Color(hex: "#FF5252")!, Color(hex: "#448AFF")!, Color(hex: "#FFD740")!]
-        let labels = ["Músc.", "Sist.", "Estr."]
-
-        VStack(spacing: 6) {
-            Text("Fatiga en tiempo real")
-                .font(.system(size: 12, weight: .bold))
-            HStack(spacing: 0) {
-                ForEach(0..<3, id: \.self) { i in
-                    VStack(spacing: 4) {
-                        ZStack {
-                            Circle()
-                                .stroke(colors[i].opacity(0.15), lineWidth: 5)
-                                .frame(width: 48, height: 48)
-                            Circle()
-                                .trim(from: 0, to: values[i])
-                                .stroke(colors[i], style: StrokeStyle(lineWidth: 5, lineCap: .round))
-                                .rotationEffect(.degrees(-90))
-                                .frame(width: 48, height: 48)
-                            Text("\(Int(values[i] * 100))")
-                                .font(.system(size: 10, weight: .black))
-                                .foregroundColor(colors[i])
-                        }
-                        Text(labels[i])
-                            .font(.system(size: 9))
-                            .foregroundColor(colors[i].opacity(0.7))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            }
-        }
-        .padding(12)
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-    }
-}
 
 // MARK: - WorkoutRmCalcContent
 

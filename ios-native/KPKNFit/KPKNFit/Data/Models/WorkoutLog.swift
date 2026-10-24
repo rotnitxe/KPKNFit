@@ -34,6 +34,11 @@ public struct WorkoutLog: Codable {
     public let scheduledDate: String?
     public let actualDate: String?
     public let scheduleDeltaDays: Int?
+    public let durationSeconds: Int64?
+    public let sessionEffortRpe: Double?
+    public let sessionEffortProtocol: String?
+    public let sportDocuments: [SportTrackingDocument]?
+
 
     public init(
         id: String,
@@ -66,7 +71,11 @@ public struct WorkoutLog: Codable {
         omittedExercises: [OmittedExercise] = [],
         scheduledDate: String? = nil,
         actualDate: String? = nil,
-        scheduleDeltaDays: Int? = nil
+        scheduleDeltaDays: Int? = nil,
+        durationSeconds: Int64? = nil,
+        sessionEffortRpe: Double? = nil,
+        sessionEffortProtocol: String? = nil,
+        sportDocuments: [SportTrackingDocument]? = nil
     ) {
         self.id = id
         self.programId = programId
@@ -99,6 +108,10 @@ public struct WorkoutLog: Codable {
         self.scheduledDate = scheduledDate
         self.actualDate = actualDate
         self.scheduleDeltaDays = scheduleDeltaDays
+        self.durationSeconds = durationSeconds
+        self.sessionEffortRpe = sessionEffortRpe
+        self.sessionEffortProtocol = sessionEffortProtocol
+        self.sportDocuments = sportDocuments
     }
 }
 
@@ -536,4 +549,15 @@ public struct ActiveProgramState: Codable {
 
 public enum ProgramStatus: String, Codable {
     case ACTIVE, PAUSED, COMPLETED
+}
+
+/// Native activity extension. Unknown engines remain recoverable; an envelope alone proves no metric.
+public struct SportTrackingDocument: Codable {
+    public let id: String
+    public let engineId: String
+    public let version: Int
+    public let sportId: String
+    public let purpose: String
+    public let payload: [String: JSONValue]
+    public let durationContribution: String?
 }

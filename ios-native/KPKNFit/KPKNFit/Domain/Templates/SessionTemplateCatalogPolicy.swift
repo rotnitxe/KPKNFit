@@ -57,17 +57,7 @@ enum SessionTemplateCatalogPolicy {
                 estimatedVol = [:]
             }
 
-            var warnings: [String] = []
-            if let rep = representative, !exerciseIndex.isEmpty {
-                let drain = evaluateTemplateRings(template: rep, exerciseIndex: exerciseIndex)
-                let isPl = isPowerliftingTemplate(rep)
-                let maxCns = isPl ? 45 : 35
-                let maxMuscular = isPl ? 50 : 45
-                let maxSpinal = isPl ? 40 : 30
-                if drain.cns > maxCns { warnings.append("Fatiga SNC elevada (\(drain.cns)% > \(maxCns)%)") }
-                if drain.muscular > maxMuscular { warnings.append("Fatiga Muscular elevada (\(drain.muscular)% > \(maxMuscular)%)") }
-                if drain.spinal > maxSpinal { warnings.append("Carga axial/espinal elevada (\(drain.spinal)% > \(maxSpinal)%)") }
-            }
+            let warnings: [String] = []
 
             groups.append(SplitTemplateDayGroup(
                 splitId: split.id, splitName: split.name,
@@ -110,9 +100,7 @@ enum SessionTemplateCatalogPolicy {
         return Dictionary(uniqueKeysWithValues: entries.map { ($0.muscleName, $0.displayVolume) })
     }
 
-    static func evaluateTemplateRings(template: SessionTemplate, exerciseIndex: [String: ExerciseMuscleInfo]) -> PredictedDrain {
-        (try? AugeFatigueEngine.calculateAdjustedPredictedDrain(session: template.session, exerciseIndex: exerciseIndex, settings: Settings())) ?? PredictedDrain(cns: 100, muscular: 100, spinal: 100)
-    }
+
 
     static func isPowerliftingTemplate(_ template: SessionTemplate) -> Bool {
         template.focusCategory == .powerlifting ||

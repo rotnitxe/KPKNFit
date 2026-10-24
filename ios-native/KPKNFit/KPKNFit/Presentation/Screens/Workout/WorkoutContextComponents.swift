@@ -5,7 +5,6 @@ import SwiftUI
 enum WorkoutExerciseContextTab: String, CaseIterable {
     case history
     case tags
-    case energy
     case replace
     case edit
     case rmCalc
@@ -135,7 +134,6 @@ struct WorkoutExerciseTabs: View {
         let tabs: [(WorkoutExerciseContextTab, String)] = [
             (.history, "Historial"),
             (.tags, "Etiquetas"),
-            (.energy, "Gasto calórico"),
             (.replace, "Reemplazar"),
             (.edit, "Editar"),
             (.rmCalc, "Calc. RM"),
@@ -265,8 +263,6 @@ struct WorkoutExerciseTabs: View {
                                 onWeightSelected: onRmWeightSelected != nil ? { w, _ in onRmWeightSelected?(w) } : nil,
                                 sessionAccentColor: sessionAccentColor
                             )
-                        case .energy:
-                            WorkoutSessionEnergyContent(sessionEnergy: sessionEnergy)
                         default:
                             EmptyView()
                         }
@@ -436,7 +432,7 @@ struct WorkoutExerciseHistoryContent: View {
                             }
                         }
                     }
-                })
+                }
             }
         }
     }
@@ -1883,355 +1879,19 @@ struct WorkoutRmCalcContent: View {
 
 // MARK: - WorkoutExerciseDrainContent
 
-struct WorkoutExerciseDrainContent: View {
-    let drain: PredictedDrain
-    let involvedMuscles: [InvolvedMuscle]
 
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 8) {
-                ForEach([("Energia", drain.cns), ("Columna", drain.spinal)], id: \.0) { label, value in
-                    VStack(spacing: 2) {
-                        Text(label)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        Text("-\(value)%")
-                            .font(.title)
-                            .fontWeight(.black)
-                            .foregroundColor(value >= 20 ? .red : value >= 10 ? .accentColor : .blue)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(14)
-                }
-            }
-
-            if !involvedMuscles.isEmpty {
-                let roleWeights: [Double] = involvedMuscles.map { inv in
-                    switch inv.role {
-                    case .PRIMARY: return 1.0
-                    case .SECONDARY: return 0.5
-                    case .STABILIZER: return 0.25
-                    case .NEUTRALIZER: return 0.15
-                    }
-                }
-                let totalWeight = max(0.001, roleWeights.reduce(0, +))
-
-                VStack(spacing: 0) {
-                    ForEach(Array(involvedMuscles.enumerated()), id: \.offset) { i, inv in
-                        let muscleDrain = Int(((roleWeights[i] / totalWeight) * Double(drain.muscular)).rounded())
-                        let dotColor: Color = {
-                            switch inv.role {
-                            case .PRIMARY: return .red
-                            case .SECONDARY: return .blue
-                            case .STABILIZER: return .accentColor
-                            case .NEUTRALIZER: return .gray
-                            }
-                        }()
-                        HStack {
-                            HStack(spacing: 8) {
-                                Circle()
-                                    .fill(dotColor)
-                                    .frame(width: 7, height: 7)
-                                Text(inv.muscle)
-                                    .font(.caption)
-                                    .fontWeight(inv.role == .PRIMARY ? .bold : .regular)
-                            }
-                            Spacer()
-                            Text("-\(muscleDrain)%")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(muscleDrain >= 20 ? .red : muscleDrain >= 10 ? .accentColor : .secondary)
-                        }
-                        .padding(.vertical, 5)
-
-                        if i < involvedMuscles.count - 1 {
-                            Divider()
-                                .background(Color.gray.opacity(0.2))
-                        }
-                    }
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
-            }
-        }
-    }
-}
 
 // MARK: - WorkoutSessionEnergyContent
 
-struct WorkoutSessionEnergyContent: View {
-    let sessionEnergy: SessionEnergySummary
 
-    @State private var expanded: Bool = false
-
-    var body: some View {
-        let contributions = sessionEnergy.exerciseContributions
-        let hasSets = contributions.contains { $0.completedSets > 0 } || sessionEnergy.totalKcal.mid > 0
-
-        VStack(spacing: 10) {
-            Text("Calorías de la sesión")
-                .font(.subheadline)
-                .fontWeight(.bold)
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            if !hasSets {
-                Text("Completa series para estimar las calorías")
-                    .font(.body)
-                    .foregroundColor(.secondary.opacity(0.6))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                return
-            }
-
-            let confidenceLabel: String = {
-                switch sessionEnergy.confidence {
-                case .HIGH: return "alta"
-                case .MEDIUM: return "media"
-                case .LOW: return "baja"
-                }
-            }()
-
-            HStack(spacing: 8) {
-                VStack(spacing: 2) {
-                    Text("Total estimado")
-                        .font(.caption)
-                        .foregroundColor(.blue.opacity(0.8))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text("\(sessionEnergy.totalKcal.mid)")
-                        .font(.title)
-                        .fontWeight(.black)
-                        .foregroundColor(.blue)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text("\(sessionEnergy.totalKcal.low)–\(sessionEnergy.totalKcal.high) kcal")
-                        .font(.caption)
-                        .foregroundColor(.blue.opacity(0.7))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(14)
-
-                VStack(spacing: 2) {
-                    Text("Activo")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text("\(sessionEnergy.activeKcal.mid) kcal")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(Color(.systemGray6))
-                .cornerRadius(14)
-            }
-
-            HStack(spacing: 8) {
-                VStack(spacing: 2) {
-                    Text("EPOC")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text("\(sessionEnergy.epocKcal.mid) kcal")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(Color(.systemGray6))
-                .cornerRadius(14)
-
-                VStack(spacing: 2) {
-                    Text("Confianza")
-                        .font(.caption)
-                        .foregroundColor(.accentColor.opacity(0.8))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(confidenceLabel)
-                        .font(.caption)
-                        .fontWeight(.black)
-                        .foregroundColor(.accentColor)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(Color.accentColor.opacity(0.1))
-                .cornerRadius(14)
-            }
-
-            if hasSets {
-                let maxForBar = max(1, sessionEnergy.totalKcal.high)
-                let fraction = max(0, min(1, Float(sessionEnergy.totalKcal.mid) / Float(maxForBar)))
-
-                VStack(spacing: 4) {
-                    HStack {
-                        Text("Barra de calorías totales")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        Text("\(sessionEnergy.totalKcal.mid) / \(sessionEnergy.totalKcal.high) kcal")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundColor(.blue)
-                    }
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 5)
-                                .fill(Color(.systemGray5))
-                                .frame(height: 10)
-                            RoundedRectangle(cornerRadius: 5)
-                                .fill(Color.blue)
-                                .frame(width: geo.size.width * CGFloat(fraction), height: 10)
-                        }
-                    }
-                    .frame(height: 10)
-                }
-            }
-
-            if let projected = sessionEnergy.projectedTotalKcal {
-                Text("Proyección al finalizar: ~\(projected) kcal")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.blue.opacity(0.08))
-                    .cornerRadius(10)
-            }
-
-            if !contributions.isEmpty {
-                let totalKcal = max(1, contributions.reduce(0) { $0 + $1.totalKcal })
-
-                HStack {
-                    Text(expanded ? "Ocultar desglose" : "Ver desglose")
-                        .font(.footnote)
-                        .fontWeight(.bold)
-                        .foregroundColor(.blue)
-                    Spacer()
-                    Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 12))
-                        .foregroundColor(.blue)
-                }
-                .onTapGesture { expanded.toggle() }
-
-                if expanded {
-                    VStack(spacing: 6) {
-                        Divider()
-                            .background(Color.gray.opacity(0.3))
-
-                        Text("Por ejercicio")
-                            .font(.footnote)
-                            .fontWeight(.bold)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                        ForEach(contributions.indices, id: \.self) { i in
-                            let contribution = contributions[i]
-                            let fraction = max(0, min(1, Float(contribution.totalKcal) / Float(totalKcal)))
-
-                            VStack(spacing: 4) {
-                                HStack {
-                                    Text(contribution.exerciseName)
-                                        .font(.caption)
-                                        .fontWeight(.semibold)
-                                        .lineLimit(1)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                    Text("\(contribution.totalKcal) kcal")
-                                        .font(.caption)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.blue)
-                                }
-                                GeometryReader { geo in
-                                    ZStack(alignment: .leading) {
-                                        RoundedRectangle(cornerRadius: 3)
-                                            .fill(Color(.systemGray5))
-                                            .frame(height: 6)
-                                        RoundedRectangle(cornerRadius: 3)
-                                            .fill(Color.blue)
-                                            .frame(width: geo.size.width * CGFloat(fraction), height: 6)
-                                    }
-                                }
-                                .frame(height: 6)
-
-                                HStack {
-                                    Text("\(String(format: "%.1f", contribution.percentageOfSession))% del total")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary.opacity(0.7))
-                                    Spacer()
-                                    Text("\(contribution.completedSets)/\(contribution.totalSets) sets")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary.opacity(0.7))
-                                }
-                            }
-                            .padding(10)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
-                        }
-                    }
-                }
-            }
-
-            if !sessionEnergy.notes.isEmpty {
-                ForEach(sessionEnergy.notes, id: \.self) { note in
-                    Text(note)
-                        .font(.caption)
-                        .foregroundColor(.secondary.opacity(0.6))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
-        }
-    }
-}
 
 // MARK: - ExerciseDrainOverlayHost
 
-struct ExerciseDrainOverlayHost: View {
-    let state: ExerciseDrainOverlayStateV2?
 
-    var body: some View {
-        if let overlay = state {
-            ExerciseDrainOverlayCard(state: overlay)
-                .frame(maxWidth: .infinity)
-                .frame(maxWidth: 520)
-                .transition(.opacity)
-        }
-    }
-}
 
 // MARK: - ExerciseDrainOverlayCard
 
-private struct ExerciseDrainOverlayCard: View {
-    let state: ExerciseDrainOverlayStateV2
 
-    var body: some View {
-        VStack(spacing: 8) {
-            Text("Drenaje de \(state.exerciseName)")
-                .font(.footnote)
-                .fontWeight(.bold)
-                .lineLimit(1)
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            ForEach(Array(state.items.enumerated()), id: \.offset) { index, item in
-                ExerciseDrainAnimatedRow(item: item, index: index)
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(Color(.systemBackground).opacity(0.97))
-        .cornerRadius(18)
-        .shadow(color: .black.opacity(0.3), radius: 18)
-    }
-}
 
 // MARK: - ExerciseDrainAnimatedRow
 
@@ -2331,65 +1991,7 @@ func workoutOverlayContentColor(_ color: Color) -> Color {
     return luminance > 0.55 ? .black : .white
 }
 
-func buildExerciseDrainOverlayState(
-    exerciseName: String,
-    drain: PredictedDrain,
-    involvedMuscles: [InvolvedMuscle]
-) -> ExerciseDrainOverlayStateV2 {
-    var items: [ExerciseDrainOverlayItemV2] = []
 
-    if drain.cns > 0 {
-        items.append(ExerciseDrainOverlayItemV2(
-            label: "Energia",
-            delta: max(1, drain.cns),
-            channel: .energy
-        ))
-    }
-    if drain.spinal > 0 {
-        items.append(ExerciseDrainOverlayItemV2(
-            label: "Columna",
-            delta: max(1, drain.spinal),
-            channel: .back
-        ))
-    }
-    if drain.muscular > 0 {
-        let totalWeight = max(0.001, involvedMuscles.reduce(0.0) { $0 + resolveMuscleVolumeContribution(involvement: $1) })
-        let topMuscles = involvedMuscles
-            .sorted { resolveMuscleVolumeContribution(involvement: $0) > resolveMuscleVolumeContribution(involvement: $1) }
-            .prefix(3)
-
-        let topArray = Array(topMuscles)
-        if !topArray.isEmpty && totalWeight > 0 {
-            for involved in topArray {
-                let label: String = {
-                    if let e = involved.emphasis, !e.isEmpty {
-                        return "\(involved.muscle) · \(e)"
-                    }
-                    return involved.muscle
-                }()
-                let share = resolveMuscleVolumeContribution(involvement: involved) / totalWeight
-                let delta = max(1, Int((share * Double(drain.muscular)).rounded()))
-                items.append(ExerciseDrainOverlayItemV2(
-                    label: label,
-                    delta: delta,
-                    channel: .muscle
-                ))
-            }
-        } else {
-            items.append(ExerciseDrainOverlayItemV2(
-                label: "Muscular",
-                delta: max(1, drain.muscular),
-                channel: .muscle
-            ))
-        }
-    }
-
-    return ExerciseDrainOverlayStateV2(
-        key: "\(Date().timeIntervalSince1970)",
-        exerciseName: exerciseName,
-        items: items
-    )
-}
 
 func readinessLabel(_ score: Int) -> String {
     if score >= 80 { return "Óptima" }

@@ -31,7 +31,7 @@ enum ExerciseCatalogTrait: String {
 
 enum ExerciseCatalogSort: String {
     case GROUP_BY_PATTERN, GROUP_BY_MUSCLE, GROUP_BY_REGION
-    case RELEVANCE, NAME, FATIGUE_HIGH, FATIGUE_LOW
+    case RELEVANCE, NAME
 
     var label: String {
         switch self {
@@ -40,8 +40,6 @@ enum ExerciseCatalogSort: String {
         case .GROUP_BY_REGION: return "Agrupar por región"
         case .RELEVANCE: return "Relevancia"
         case .NAME: return "Nombre A-Z"
-        case .FATIGUE_HIGH: return "Fatiga alta"
-        case .FATIGUE_LOW: return "Fatiga baja"
         }
     }
 
@@ -67,12 +65,7 @@ enum ExerciseKinshipBand: String {
 
 // MARK: - Structs
 
-struct FriendlyFatigueBreakdown {
-    let muscle: Int
-    let snc: Int
-    let spinal: Int
-    let overall: Int
-}
+
 
 struct ExerciseKinship {
     let exercise: ExerciseMuscleInfo
@@ -109,7 +102,6 @@ struct ExerciseVolumeSummary {
 struct ThreeBandKinship {
     let lessSetup: [ExerciseKinship]
     let moreTransfer: [ExerciseKinship]
-    let lessFatigue: [ExerciseKinship]
 }
 
 // MARK: - Private Constants
@@ -226,10 +218,7 @@ private func movementFamily(_ info: ExerciseMuscleInfo) -> String {
     return [info.force?.lowercased(), resolveExerciseRegion(info).rawValue.lowercased()].compactMap { $0 }.joined(separator: "_")
 }
 
-private func fatigueSimilarity(_ target: ExerciseMuscleInfo, _ candidate: ExerciseMuscleInfo) -> Double {
-    let delta = abs(Double(calculateFriendlyFatigue(target).overall - calculateFriendlyFatigue(candidate).overall))
-    return min(max(1.0 - (delta / 10.0), 0.0), 1.0)
-}
+
 
 private func isCompetitionBasic(_ info: ExerciseMuscleInfo) -> Bool {
     let lower = info.name.lowercased()
@@ -323,19 +312,7 @@ func matchesCatalogTrait(_ info: ExerciseMuscleInfo, _ trait: ExerciseCatalogTra
     }
 }
 
-func calculateFriendlyFatigue(_ info: ExerciseMuscleInfo) -> FriendlyFatigueBreakdown {
-    let index = ExerciseFatigueIndex.fromIntrinsic(
-        efc: info.efc,
-        cnc: info.cnc,
-        ssc: info.ssc
-    )
-    return FriendlyFatigueBreakdown(
-        muscle: index.muscle,
-        snc: index.snc,
-        spinal: index.spinal,
-        overall: index.overall
-    )
-}
+
 
 func inferSetupTimeLabel(_ info: ExerciseMuscleInfo) -> String {
     if let seconds = info.setupTime, seconds > 0 {
@@ -362,13 +339,12 @@ func inferLearningCurveLabel(_ info: ExerciseMuscleInfo) -> String {
         }
         return "Alta"
     }
-    let fatigue = calculateFriendlyFatigue(info).overall
     let isIsolation = info.type?.lowercased() == "aislamiento"
     let isBasic = info.type?.lowercased() == "básico" || info.type?.lowercased() == "basico"
     let isBarra = info.equipment == "Barra"
     let isFull = resolveExerciseRegion(info) == .FULL
 
-    if isIsolation && fatigue <= 4 { return "Baja" }
+    if isIsolation { return "Baja" }
     if isBasic || isBarra || isFull { return "Alta" }
     return "Media"
 }
@@ -410,7 +386,6 @@ func buildExerciseKinships(
             let sameForce = (target.force ?? "").lowercased() == (candidate.force ?? "").lowercased()
             let sameChain = (target.chain ?? "").lowercased() == (candidate.chain ?? "").lowercased()
             let sameEquipmentFamily = equipmentFamily(target.equipment) == equipmentFamily(candidate.equipment)
-            let fatigueMatch = fatigueSimilarity(target, candidate)
 
             let similarity = min(max(
                 muscleOverlap * 0.56
@@ -418,8 +393,7 @@ func buildExerciseKinships(
                     + (sameForce ? 0.10 : 0.0)
                     + (sameFamily ? 0.10 : 0.0)
                     + (sameEquipmentFamily ? 0.05 : 0.0)
-                    + (sameRegion ? 0.03 : 0.0)
-                    + fatigueMatch * 0.02,
+                    + (sameRegion ? 0.03 : 0.0) ,
                 0.0), 1.0)
 
             let transfer = min(max(
@@ -427,8 +401,7 @@ func buildExerciseKinships(
                     + (sameForce ? 0.24 : 0.0)
                     + (sameChain ? 0.16 : 0.0)
                     + (sameRegion ? 0.14 : 0.0)
-                    + (sameFamily ? 0.10 : 0.0)
-                    + fatigueMatch * 0.06,
+                    + (sameFamily ? 0.10 : 0.0) ,
                 0.0), 1.0)
 
             return KinshipScoredCandidate(
@@ -440,7 +413,6 @@ func buildExerciseKinships(
         }
 
     let targetType = (target.type ?? "").lowercased()
-    let targetFatigue = calculateFriendlyFatigue(target).overall
 
     let similar: [ExerciseKinship] = scored
         .filter { candidate in
@@ -466,29 +438,17 @@ func buildExerciseKinships(
         }
         .sorted {
             if $0.similarity != $1.similarity { return $0.similarity > $1.similarity }
-            let f0 = calculateFriendlyFatigue($0.exercise).overall
-            let f1 = calculateFriendlyFatigue($1.exercise).overall
-            if f0 != f1 { return f0 < f1 }
             return $0.exercise.name < $1.exercise.name
         }
         .prefix(similarLimit)
         .map { candidate -> ExerciseKinship in
-            let candidateFatigue = calculateFriendlyFatigue(candidate.exercise).overall
-            let fatigueNote: String
-            if candidateFatigue < targetFatigue - 1 {
-                fatigueNote = " · menos fatigante"
-            } else if candidateFatigue > targetFatigue + 1 {
-                fatigueNote = " · más fatigante"
-            } else {
-                fatigueNote = ""
-            }
             let band: ExerciseKinshipBand = candidate.similarity >= 0.72 ? .VERY_CLOSE : .CLOSE_VARIANT
             return ExerciseKinship(
                 exercise: candidate.exercise,
                 band: band,
                 similarityScore: min(max(Int(candidate.similarity * 100), 0), 100),
                 transferScore: min(max(Int(candidate.transfer * 100), 0), 100),
-                rationale: candidate.rationale + fatigueNote
+                rationale: candidate.rationale
             )
         }
 
@@ -553,7 +513,6 @@ func buildThreeBandKinships(
 ) -> ThreeBandKinship {
     let targetProfile = muscleProfile(target)
     let targetPrimary = resolvePrimaryMuscleLabel(target)
-    let targetFatigue = calculateFriendlyFatigue(target).overall
     let targetSetupTime: Int
     if let setup = target.setupTime {
         targetSetupTime = setup
@@ -570,7 +529,6 @@ func buildThreeBandKinships(
     struct CandidateBundle {
         let similarity: Double
         let transfer: Double
-        let fatigue: Int
         let setup: Int
         let exercise: ExerciseMuscleInfo
     }
@@ -580,7 +538,6 @@ func buildThreeBandKinships(
         .map { candidate -> CandidateBundle in
             let candidateProfile = muscleProfile(candidate)
             let muscleOverlap = weightedJaccard(targetProfile, candidateProfile)
-            let candidateFatigue = calculateFriendlyFatigue(candidate).overall
             let candidateSetup: Int
             if let setup = candidate.setupTime {
                 candidateSetup = setup
@@ -595,22 +552,19 @@ func buildThreeBandKinships(
                     + (resolvePrimaryMuscleLabel(candidate) == targetPrimary ? 0.14 : 0.0)
                     + ((target.force ?? "").lowercased() == (candidate.force ?? "").lowercased() ? 0.10 : 0.0)
                     + (movementFamily(candidate) == movementFamily(target) ? 0.10 : 0.0)
-                    + (equipmentFamily(target.equipment) == equipmentFamily(candidate.equipment) ? 0.05 : 0.0)
-                    + fatigueSimilarity(target, candidate) * 0.05,
+                    + (equipmentFamily(target.equipment) == equipmentFamily(candidate.equipment) ? 0.05 : 0.0) ,
                 0.0), 1.0)
             let transfer = min(max(
                 muscleOverlap * 0.30
                     + ((target.force ?? "").lowercased() == (candidate.force ?? "").lowercased() ? 0.24 : 0.0)
                     + ((target.chain ?? "").lowercased() == (candidate.chain ?? "").lowercased() ? 0.16 : 0.0)
                     + (resolveExerciseRegion(candidate) == resolveExerciseRegion(target) ? 0.14 : 0.0)
-                    + (movementFamily(candidate) == movementFamily(target) ? 0.10 : 0.0)
-                    + fatigueSimilarity(target, candidate) * 0.06,
+                    + (movementFamily(candidate) == movementFamily(target) ? 0.10 : 0.0) ,
                 0.0), 1.0)
 
             return CandidateBundle(
                 similarity: similarity,
                 transfer: transfer,
-                fatigue: candidateFatigue,
                 setup: candidateSetup,
                 exercise: candidate
             )
@@ -645,24 +599,9 @@ func buildThreeBandKinships(
             )
         }
 
-    let lessFatigue: [ExerciseKinship] = candidates
-        .filter { $0.fatigue < targetFatigue - 1 }
-        .sorted { $0.fatigue < $1.fatigue }
-        .prefix(limitPerBand)
-        .map { c in
-            ExerciseKinship(
-                exercise: c.exercise,
-                band: .CLOSE_VARIANT,
-                similarityScore: Int(c.similarity * 100),
-                transferScore: Int(c.transfer * 100),
-                rationale: "Fatiga: \(c.fatigue)/10"
-            )
-        }
-
     return ThreeBandKinship(
         lessSetup: lessSetup,
-        moreTransfer: moreTransfer,
-        lessFatigue: lessFatigue
+        moreTransfer: moreTransfer
     )
 }
 

@@ -225,53 +225,9 @@ func applyAdvancedFeedback(base: CompletedSet, advanced: SetAdvancedFeedback) ->
     )
 }
 
-func calculateUnifiedSessionEffortSignal(sets: [CompletedSet]) -> Double {
-    let effectiveSets = sets.filter { set in
-        !set.isWarmup && AugeFatigueEngine.isSetEffective(set)
-    }
-    guard !effectiveSets.isEmpty else { return 7.0 }
-    let signals = effectiveSets.map { set -> Double in
-        var signal = AugeFatigueEngine.getEffectiveRPE(set)
-        if set.isFailure { signal += 0.6 }
-        if !set.dropSets.isEmpty { signal += 0.4 }
-        if !set.restPauses.isEmpty { signal += 0.5 }
-        return signal.clamped(to: 1.0...12.0)
-    }
-    let avg = signals.reduce(0.0, +) / Double(signals.count)
-    return avg.clamped(to: 1.0...12.0)
-}
 
-func mapWorkoutToPostSessionFeedback(
-    log: WorkoutLog,
-    postExerciseFeedback: [PostExerciseFeedback],
-    exerciseDbById: [String: ExerciseMuscleInfo]
-) -> PostSessionFeedback {
-    let grouped = Dictionary(grouping: postExerciseFeedback) { feedback -> String in
-        let exercise = log.completedExercises.first { $0.exerciseId == feedback.exerciseId }
-        let dbInfo = exercise.flatMap { exerciseDbById[$0.exerciseDbId ?? $0.exerciseId] }
-        if let primary = dbInfo?.involvedMuscles.first(where: { $0.role == .primary }) {
-            let canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(primary.muscle, primary.emphasis)
-            return getAugeMuscleDisplayId(canonical: canonical, emphasis: primary.emphasis)
-        }
-        return feedback.exerciseName
-    }
-    let feedbackByMuscle = grouped.mapValues { list in
-        let avgTech = list.isEmpty ? 8 : list.map { $0.technicalQuality }.reduce(0, +) / list.count
-        let hasJointPain = list.contains { $0.discomfortIds.contains { $0 != "none" } }
-        return MuscleFeedbackEntry(
-            doms: (11 - avgTech).clamped(to: 1...5),
-            jointPain: hasJointPain,
-            strengthCapacity: 7,
-            notes: list.flatMap { $0.discomfortIds }.filter { $0 != "none" }.joined(separator: ", ")
-        )
-    }
-    return PostSessionFeedback(
-        logId: log.id,
-        date: Date().formatted(.iso8601),
-        cnsRecovery: 7,
-        muscleFeedback: feedbackByMuscle
-    )
-}
+
+
 
 struct SetAutoRegulation {
     let exerciseId: String

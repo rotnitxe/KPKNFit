@@ -267,7 +267,6 @@ import SwiftUI
             ))
         }
 
-        updateCoachMessage(setDrain: SetDrain(cnsDrainPct: 0, muscularDrainPct: 0, spinalDrainPct: 0), sessionProgress: 0)
 
         let lastLogEntry = repository.history.first { $0.programId == programId && $0.id != sessionId }
         let lastDiscomforts = lastLogEntry?.postExerciseReports.flatMap { $0.discomfortIds }.filter { $0 != "none" } ?? []
@@ -1059,8 +1058,6 @@ import SwiftUI
             }
         }
 
-        computeAndStoreAutoRegulation(completedSet: completedSet, advanced: advanced, setDrain: SetDrain(cnsDrainPct: 0, muscularDrainPct: 0, spinalDrainPct: 0), effectiveRpe: 0, sessionProgress: sessionProgress)
-        updateCoachMessage(setDrain: SetDrain(cnsDrainPct: 0, muscularDrainPct: 0, spinalDrainPct: 0), sessionProgress: sessionProgress)
         recordingGate.finish(key: recordingKey)
         finishRecording(recordingKey)
     }
@@ -1348,26 +1345,7 @@ import SwiftUI
 
     // MARK: - Live Energy
 
-    private func recomputeLiveEnergy(completedSets: [String: CompletedSet], allExercises: [Exercise]) -> SessionEnergySummary {
-        let completedExercises = allExercises.map { exercise -> CompletedExercise in
-            let sets = exercise.sets.indices.flatMap { setIdx -> [CompletedSet] in
-                [completedSets["\(exercise.id)_\(setIdx)"],
-                 completedSets["\(exercise.id)_\(setIdx)_L"],
-                 completedSets["\(exercise.id)_\(setIdx)_R"]].compactMap { $0 }
-            }
-            return CompletedExercise(
-                exerciseId: exercise.id,
-                exerciseName: exercise.name,
-                exerciseDbId: exercise.exerciseDbId ?? exercise.exerciseId,
-                canonicalExerciseId: exercise.canonicalExerciseId ?? canonicalExerciseKey(exercise),
-                sets: sets,
-                restTime: exercise.restTime ?? 90,
-                supersetId: exercise.supersetGroupRefOrLegacyId()
-            )
-        }.filter { !$0.sets.isEmpty }
 
-        return TrainingEnergyEngine.estimateLiveSession(completedExercises: completedExercises, settings: repository.settings)
-    }
 
     // MARK: - Resume Position
 
@@ -2095,7 +2073,7 @@ import SwiftUI
         let state = uiState
         guard let session = state.session else { return }
         let durationMs = nowMs() - state.startTimeMs
-        let durationMinutes = max(1, Int(durationMs / 60000))
+        let durationMinutes = max(0, Int(durationMs / 60000))
         let activeSession = sessionForActiveMode(session, state.activeMode)
         let allExercises = activeSession.allExercises()
 
@@ -2129,7 +2107,7 @@ import SwiftUI
             }
         }
         let logId = UUID().uuidString
-        let finalEnergySummary = TrainingEnergyEngine.estimateCompletedSession(completedExercises: completedExercises, settings: repository.settings, postExerciseFeedback: state.postExerciseFeedbackByExerciseId)
+        let finalEnergySummary: SessionEnergySummary? = nil // No validated source of training energy was recorded.
 
         let actualDate = ISO8601DateFormatter().string(from: Date()).prefix(10).description
         let scheduledDate = scheduledDateForSession(state.weekId, session: session)
@@ -2165,7 +2143,8 @@ import SwiftUI
             },
             omittedExercises: [],
             energySummary: finalEnergySummary,
-            stillPresentDiscomfortIds: closingFeedback.stillPresentDiscomfortIds
+            stillPresentDiscomfortIds: closingFeedback.stillPresentDiscomfortIds,
+            durationSeconds: max(0, durationMs / 1000)
         )
 
         repository.addWorkoutLog(log)
@@ -2183,7 +2162,7 @@ import SwiftUI
             return
         }
 
-        updateState { $0.isComplete = true; $0.showFinishSheet = false; $0.sessionStressScore = stressScore }
+        updateState { $0.isComplete = true; $0.showFinishSheet = false }
         onComplete()
     }
 
@@ -2523,36 +2502,11 @@ import SwiftUI
 
     // MARK: - Readiness
 
-    private func computeAndStoreAutoRegulation(completedSet: CompletedSet, advanced: SetAdvancedFeedback, setDrain: SetDrain, effectiveRpe: Double, sessionProgress: Double) {
-        guard !uiState.showFinishSheet else { return }
-        let allExercises = visibleExercises(uiState)
-        guard let nextExercise = allExercises[safe: uiState.currentExerciseIdx] else { return }
-        let nextSetIdx = uiState.currentSetIdx
 
-        let weightedDrain = setDrain.cnsDrainPct * 0.45 + setDrain.muscularDrainPct * 0.25 + setDrain.spinalDrainPct * 0.30
-        let adjustmentFactor = WorkoutAutoRegulation.computeAdjustmentFactor(weightedDrainPct: weightedDrain, effectiveRpe: effectiveRpe, reachedFailure: advanced.reachedFailure, isFailedSet: advanced.isFailedSet, isPartial: advanced.isPartial, sessionProgress: sessionProgress)
 
-        let nextLoadMode = effectiveLoadModeForExercise(nextExercise, setIdx: nextSetIdx)
-        let rawWeight = nextExercise.sets[safe: nextSetIdx]?.weight ?? completedSet.weight
-        let adjustedWeight: Double
-        if nextLoadMode == .ASSISTED { adjustedWeight = rawWeight / max(0.70, adjustmentFactor) }
-        else { adjustedWeight = rawWeight * adjustmentFactor }
 
-        let regulation = SetAutoRegulation(exerciseId: nextExercise.id, nextSetIdx: nextSetIdx, adjustmentFactor: adjustmentFactor, adjustedWeight: roundWorkoutLoadSuggestion(max(0, adjustedWeight)), reason: WorkoutAutoRegulation.buildReason(factor: adjustmentFactor, weightedDrainPct: weightedDrain, effectiveRpe: effectiveRpe, reachedFailure: advanced.reachedFailure))
-        currentAutoRegulation = regulation
-        updateState { $0.currentAutoRegulation = regulation }
-    }
 
-    private func updateCoachMessage(setDrain: SetDrain, sessionProgress: Double) {
-        let state = uiState
-        let weightedDrain = setDrain.cnsDrainPct * 0.45 + setDrain.muscularDrainPct * 0.25 + setDrain.spinalDrainPct * 0.30
-        let readinessScore = WorkoutCoachMessages.getReadinessScore(neural: state.readinessNeuralOverride, spinal: state.readinessSpinalOverride, muscular: state.readinessMuscularOverride)
-        let message = WorkoutCoachMessages.getMessage(weightedDrainPct: weightedDrain, readinessScore: readinessScore, sessionProgress: sessionProgress)
-        currentCoachMessage = message
-        updateState { $0.currentCoachMessage = message }
-    }
 
-    func shouldShowRealtimeRingsWidget() -> Bool { uiState.featureFlags.workoutV2HeaderWidgets && uiState.headerWidgets.showRealtimeRings }
     func shouldShowRmCalculatorWidget() -> Bool { uiState.featureFlags.workoutV2HeaderWidgets && uiState.headerWidgets.showRmCalculator }
 
     func estimateBrzycki1RM(_ weight: Double, reps: Int) -> Double? {

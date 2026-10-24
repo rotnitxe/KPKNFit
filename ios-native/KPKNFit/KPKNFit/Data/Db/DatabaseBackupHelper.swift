@@ -42,15 +42,32 @@ internal enum DatabaseBackupHelper {
             throw NSError(domain: "DatabaseBackupHelper", code: 2, userInfo: [NSLocalizedDescriptionKey: "Archivo de snapshot no encontrado"])
         }
 
-        KpknDatabase.closeInstance()
-
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let staging = docs.appendingPathComponent("restore-\(UUID().uuidString).db")
+        defer {
+            for suffix in ["", "-wal", "-shm"] { try? FileManager.default.removeItem(atPath: staging.path + suffix) }
+        }
+        // Migrate a private copy. Failure leaves both the source backup and active DB untouched.
+        try copyFile(from: snapshotFile, to: staging)
+        let candidate = try KpknDatabaseInternal(filePath: staging.path)
+        do {
+            let version = try candidate.getUserVersion()
+            guard (1...21).contains(version), try candidate.runMigrations(currentVersion: version) == 21 else {
+                throw NSError(domain: "DatabaseBackupHelper", code: 3, userInfo: [NSLocalizedDescriptionKey: "Versión de respaldo no compatible; se conserva la base activa."])
+            }
+            var statement: OpaquePointer?
+            guard sqlite3_prepare_v2(candidate.handle, "PRAGMA quick_check", -1, &statement, nil) == SQLITE_OK else { throw NSError(domain: "DatabaseBackupHelper", code: 4) }
+            defer { sqlite3_finalize(statement) }
+            guard sqlite3_step(statement) == SQLITE_ROW, let result=sqlite3_column_text(statement,0), String(cString:result) == "ok" else { throw NSError(domain: "DatabaseBackupHelper", code: 5) }
+            try candidate.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        } catch { candidate.close(); throw error }
+        candidate.close()
+        _ = try createSnapshot() // Recoverable active state before replacement.
+        KpknDatabase.closeInstance()
         let destDbFile = docs.appendingPathComponent("kpkn.db")
+        for suffix in ["-wal", "-shm"] { try? FileManager.default.removeItem(atPath: destDbFile.path + suffix) }
+        try copyFile(from: staging, to: destDbFile) // Atomic file write; external snapshot is never modified.
 
-        try? FileManager.default.removeItem(at: docs.appendingPathComponent("kpkn.db-wal"))
-        try? FileManager.default.removeItem(at: docs.appendingPathComponent("kpkn.db-shm"))
-
-        try copyFile(from: snapshotFile, to: destDbFile)
     }
 
     static func deleteSnapshot(snapshotFile: URL) -> Bool {

@@ -342,7 +342,7 @@ public struct VolumeCalculator {
                                 targetReps: set.reps,
                                 weight: set.weight,
                                 completedReps: set.skipped ? 0 : set.reps,
-                                isIneffective: set.isWarmup || !AugeFatigueEngine.isSetEffective(set: set)
+                                isIneffective: set.isWarmup || set.skipped || (set.reps <= 0 && (set.timeSeconds ?? 0) <= 0)
                             )
                         }
                     )

@@ -149,7 +149,7 @@ struct TemplatePreview {
     let template: SessionTemplate
     let modoRecomendado: SessionTemplateApplyMode
     let volumenPorMusculo: [String: Double]
-    let drenajeEstimado: PredictedDrain
+    let drenajeEstimado: PredictedDrain?
     let advertencias: [String]
     let duracionEstimada: Int
 }
@@ -165,8 +165,8 @@ struct VolumeThreshold {
 }
 
 struct SessionAssistantReport {
-    let veredicto: Verdict
-    let scoreEstimado: Int
+    let veredicto: Verdict?
+    let scoreEstimado: Int?
     let riesgos: [SessionRisk]
     let ajustes: [AssistantSuggestion]
     let oportunidades: [AssistantSuggestion]
@@ -174,15 +174,15 @@ struct SessionAssistantReport {
     let plantillasCompatibles: [TemplatePreview]
     let volumenPorMusculo: [String: Double]
     let umbralesPorMusculo: [String: VolumeThreshold]
-    let drenajeEstimado: PredictedDrain
+    let drenajeEstimado: PredictedDrain?
     let duracionEstimada: Int
     let resumenTexto: String
     let totalRestSeconds: Int
     let estimatedWorkSeconds: Int
 
     init(
-        veredicto: Verdict,
-        scoreEstimado: Int,
+        veredicto: Verdict?,
+        scoreEstimado: Int?,
         riesgos: [SessionRisk],
         ajustes: [AssistantSuggestion],
         oportunidades: [AssistantSuggestion],
@@ -190,7 +190,7 @@ struct SessionAssistantReport {
         plantillasCompatibles: [TemplatePreview],
         volumenPorMusculo: [String: Double],
         umbralesPorMusculo: [String: VolumeThreshold],
-        drenajeEstimado: PredictedDrain,
+        drenajeEstimado: PredictedDrain?,
         duracionEstimada: Int,
         resumenTexto: String,
         totalRestSeconds: Int = 0,
