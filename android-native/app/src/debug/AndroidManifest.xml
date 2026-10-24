@@ -77,5 +77,8 @@
             android:name="com.example.kpkn.debug.MealReuseHarnessActivity"
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
+        <!-- P2-Na: recetas con datos en memoria; no escribe en Room ni en preferencias. -->
+        <activity android:name="com.example.kpkn.debug.RecipeHarnessActivity"
+            android:exported="true" android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>
