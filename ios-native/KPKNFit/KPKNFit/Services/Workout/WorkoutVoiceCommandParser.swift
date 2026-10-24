@@ -433,15 +433,6 @@ internal enum WorkoutVoiceCommandParser {
         ]
         let isSaveAction = saveKeywords.contains(where: { lower.contains($0) })
 
-        var neural: Int?
-        var spinal: Int?
-        if lower.contains("nerviosa") || lower.contains("neural") || lower.contains("cns") || lower.contains("sistema") {
-            neural = extractNumberFromText(lower).flatMap { Int($0) }.map { max(0, min(100, $0)) }
-        }
-        if lower.contains("espinal") || lower.contains("columna") || lower.contains("espalda") {
-            spinal = extractNumberFromText(lower).flatMap { Int($0) }.map { max(0, min(100, $0)) }
-        }
-
         var discomfortId: String?
         if lower.contains("molestia") || lower.contains("dolor") || lower.contains("tiron") {
             discomfortId = matchDiscomfortJointId(lower)
@@ -490,8 +481,6 @@ internal enum WorkoutVoiceCommandParser {
             notes: sessionNote,
             discomfortId: discomfortId,
             additionalDiscomfortNote: discomfortNote,
-            neuralBattery: neural,
-            spinalBattery: spinal,
             isSaveAction: isSaveAction
         )
     }

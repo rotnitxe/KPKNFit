@@ -70,8 +70,9 @@ object TrainingInsightsEngine {
             else "Comparación descriptiva de ${previous.size} registros anteriores; no mide recuperación ni seguridad.")
     }
 
-    private fun known(value: String?): Boolean = !value.isNullOrBlank() && value.trim().lowercase() !in
-        setOf("unknown", "desconocido", "desconocida", "sin datos", "null", "unspecified")
+    private fun known(value: String?): Boolean = !value.isNullOrBlank() &&
+        value.trim().lowercase().split(':', '@').all { it.trim() !in
+            setOf("", "unknown", "desconocido", "desconocida", "sin datos", "null", "unspecified", "not_recorded") }
 
     fun comparable(a: TrainingFact, b: TrainingFact): Boolean =
         known(a.exerciseVariant) && known(a.method) && known(a.protocol) && known(a.metric) && known(a.unit) &&

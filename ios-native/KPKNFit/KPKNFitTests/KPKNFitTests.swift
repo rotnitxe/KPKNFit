@@ -602,3 +602,30 @@ final class PostRingsTrainingEvidenceTests: XCTestCase {
         XCTAssertNil(TrainingInsightsEngine.median([fact,fact]))
     }
 }
+
+final class RecordedSportContextTests: XCTestCase {
+    func testCorrectionKeepsExplicitDisciplineTimeEffortAndOriginalNotes() throws {
+        let original = WorkoutLog(id:"activity",programId:"p",sessionId:"s",sessionName:"Registro",date:"2026-10-23T12:00:00Z",durationMinutes:2,
+            actualDurationSeconds:61,actualDurationSource:"SESSION_TIMER",sessionEffortRpe:0,sessionEffortProtocol:"session_rpe_0_10_v1",
+            sportDocuments:[],recordedSportId:"BOXING",preSessionNotes:"Contexto original")
+        let corrected = original.copy(completedExercises:[])
+        XCTAssertEqual(corrected.recordedSportId,"BOXING")
+        XCTAssertEqual(corrected.preSessionNotes,"Contexto original")
+        XCTAssertEqual(corrected.actualDurationSeconds,61)
+        XCTAssertEqual(corrected.sessionEffortRpe,0)
+        let restored = try JSONDecoder().decode(WorkoutLog.self,from:JSONEncoder().encode(corrected))
+        XCTAssertEqual(restored.recordedSportId,original.recordedSportId)
+        XCTAssertEqual(restored.actualDurationSeconds,original.actualDurationSeconds)
+    }
+    func testEveryDeclaredDisciplineUsesAnExistingActivityWithoutAnExtraDocument() {
+        let now: Int64 = 1_792_843_200_000
+        for id in RecordedSportNames.labels.keys {
+            let log = WorkoutLog(id:id,programId:"p",sessionId:"s",sessionName:"Registro",date:"2026-10-23T12:00:00Z",durationMinutes:17,recordedSportId:id)
+            let facts = TrainingHistoryProjection.facts([log],nowMs:now)
+            XCTAssertEqual(facts.count,1)
+            XCTAssertEqual(facts.first?.sport,id)
+            XCTAssertEqual(facts.first?.unit,"min")
+            XCTAssertEqual(facts.first?.value,17)
+        }
+    }
+}

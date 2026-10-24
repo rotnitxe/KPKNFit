@@ -90,4 +90,10 @@ class TrainingHistoryProjectionTest {
         assertEquals(sources.size,TrainingInsightsEngine.coverage(facts,now).activities)
     }
 
+    @Test fun unknownProtocolCannotBecomeComparableByAppendingItsVersion() {
+        val facts=TrainingHistoryProjection.facts(listOf(log(documents=listOf(doc(mark(protocol="unknown"))))),now)
+        val point=facts.single { it.metric=="JUMP_HEIGHT" }
+        assertFalse(TrainingInsightsEngine.comparable(point,point.copy(sourceId="other",activityId="other")))
+    }
+
 }

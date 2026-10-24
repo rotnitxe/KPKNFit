@@ -220,7 +220,7 @@ object AmrapProgramPreview {
                         true -> when (mode) {
                             AutoregulationMode.OFF -> "Al completar S4, OFF calcula el XRM; no lo aplica."
                             AutoregulationMode.PROPOSE -> "Al completar S4, se propone el XRM de la próxima semana."
-                            AutoregulationMode.AUTO -> "Al completar S4, AUTO ajusta el XRM para la próxima semana."
+                            AutoregulationMode.AUTO -> "Al completar S4, revisa y confirma la propuesta XRM para la próxima semana."
                         }
                         null -> return null
                     }
@@ -724,7 +724,7 @@ object AmrapProgramPreview {
     private fun gateOf(mode: AutoregulationMode): AmrapEffectGate = when (mode) {
         AutoregulationMode.OFF -> AmrapEffectGate.OFF
         AutoregulationMode.PROPOSE -> AmrapEffectGate.PROPOSE
-        AutoregulationMode.AUTO -> AmrapEffectGate.AUTO
+        AutoregulationMode.AUTO -> AmrapEffectGate.PROPOSE
     }
 
     private fun gateDetail(gate: AmrapEffectGate, change: String?): String? {

@@ -294,7 +294,7 @@ internal struct RecordedTrainingHistoryView: View {
             ScrollView(.horizontal) {
                 HStack {
                     Button("Todas las disciplinas") { sport = "" }
-                    ForEach(sports, id: \.self) { family in Button(family.replacingOccurrences(of:"_",with:" ")) { sport = family } }
+                    ForEach(sports, id: \.self) { family in Button(RecordedSportNames.labels[family] ?? family) { sport = family } }
                 }
             }
             ScrollView(.horizontal) {
@@ -343,6 +343,7 @@ internal struct RecordedTrainingHistoryView: View {
                 else { Text("Sin tres observaciones anteriores comparables. No se estima recuperación ni seguridad.") }
                 if let log = logs.first(where:{$0.id == point.activityId}) {
                     Text(log.sessionName); Text(log.date)
+                    if let context = log.preSessionNotes { Text(context) }
                     if let notes = log.notes { Text(notes) }
                     ForEach(log.discomforts,id: \.self) { Text("Molestia registrada: \($0)") }
                 }
@@ -357,5 +358,5 @@ private func recordedUnit(_ value:String) -> String {
 }
 private func recordedMetric(_ value:String) -> String {
     let key = String(value.split(separator:".").last ?? Substring(value))
-    return ["actualWorkSeconds":"Tiempo de trabajo","actualWorkingSeconds":"Tiempo de trabajo","distanceMeters":"Distancia","elapsedMillis":"Tiempo transcurrido","movingMillis":"Tiempo en movimiento","elevationGainMeters":"Desnivel positivo","elevationLossMeters":"Desnivel negativo","attemptedCount":"Intentos","successfulCount":"Aciertos","repetitions":"Repeticiones","completedRounds":"Rondas","completedRepetitions":"Repeticiones completadas","holdSeconds":"Tiempo de sostén"][key] ?? (value.contains(".") ? "Valor registrado" : value)
+    return ["actualWorkSeconds":"Tiempo de trabajo","actualWorkingSeconds":"Tiempo de trabajo","distanceMeters":"Distancia","elapsedMillis":"Tiempo transcurrido","movingMillis":"Tiempo en movimiento","elevationGainMeters":"Desnivel positivo","elevationLossMeters":"Desnivel negativo","attemptedCount":"Intentos","successfulCount":"Aciertos","repetitions":"Repeticiones","completedRounds":"Rondas","completedRepetitions":"Repeticiones completadas","holdSeconds":"Tiempo de sostén","JUMP_HEIGHT":"Altura de salto","SPRINT_TIME":"Tiempo de sprint","JUMP_DISTANCE":"Distancia de salto","MAX_STRENGTH":"Marca de fuerza","SPLIT_TIME":"Tiempo parcial","FLIGHT_TIME":"Tiempo de vuelo","CONTACT_TIME":"Tiempo de contacto","REP_VELOCITY":"Velocidad de repetición","RSI":"Índice reactivo registrado"][key] ?? (value.contains(".") ? "Valor registrado" : value)
 }

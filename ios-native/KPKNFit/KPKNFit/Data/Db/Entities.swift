@@ -735,7 +735,7 @@ internal enum LegacyExerciseCoefficientImport {
 /// Compatibility boundary for retired pending model actions, without changing authored sessions.
 internal enum LegacyProgramProposalImport {
     static func program(_ source: [String: Any]) -> [String: Any] {
-        let retained: Set<String> = ["ADJUST_TM", "ADJUST_XRM", "PROMOTE_TM"]
+        let retained: Set<String> = ["ADJUST_TM", "ADJUST_XRM"]
         func run(_ value: [String: Any]) -> [String: Any] {
             var result = value
             if var action = value["pendingAction"] as? [String: Any] {

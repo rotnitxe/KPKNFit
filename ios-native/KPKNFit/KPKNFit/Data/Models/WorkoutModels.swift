@@ -367,37 +367,7 @@ internal func backfillCompletedSetIntensityFromPostExerciseFeedbacks(
     }
 }
 
-internal struct SessionClosingFeedback {
-    var overallFatigue: Int
-    var systemAdjustment: Int
-    var muscularAdjustment: Int
-    var structureAdjustment: Int
-    var discomforts: [String]
-    var clarityRating: Int
-    var environmentTags: [String]
-    var finalNeuralBattery: Int?
-    var finalSpinalBattery: Int?
-    var finalMuscularBattery: Int?
-    var finalMuscleBatteries: [String: Int]
-    var additionalDiscomfortNote: String?
-    var stillPresentDiscomfortIds: [String]
 
-    init(overallFatigue: Int = 5, systemAdjustment: Int = 0, muscularAdjustment: Int = 0, structureAdjustment: Int = 0, discomforts: [String] = [], clarityRating: Int = 5, environmentTags: [String] = [], finalNeuralBattery: Int? = nil, finalSpinalBattery: Int? = nil, finalMuscularBattery: Int? = nil, finalMuscleBatteries: [String: Int] = [:], additionalDiscomfortNote: String? = nil, stillPresentDiscomfortIds: [String] = []) {
-        self.overallFatigue = overallFatigue
-        self.systemAdjustment = systemAdjustment
-        self.muscularAdjustment = muscularAdjustment
-        self.structureAdjustment = structureAdjustment
-        self.discomforts = discomforts
-        self.clarityRating = clarityRating
-        self.environmentTags = environmentTags
-        self.finalNeuralBattery = finalNeuralBattery
-        self.finalSpinalBattery = finalSpinalBattery
-        self.finalMuscularBattery = finalMuscularBattery
-        self.finalMuscleBatteries = finalMuscleBatteries
-        self.additionalDiscomfortNote = additionalDiscomfortNote
-        self.stillPresentDiscomfortIds = stillPresentDiscomfortIds
-    }
-}
 
 internal struct ExerciseHistoryEntry {
     let date: String

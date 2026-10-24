@@ -1,5 +1,7 @@
 # UI Screens Mapping: KPKN Fit Android App (For iOS SwiftUI Porting)
 
+**Rama privada POST-RINGS · 24-oct-2026:** el recorrido y seguimiento vigentes se describen abajo. El estado VT de publicación se conserva aparte. QA y límites: [post-rings/VALIDATION_STATUS.md](post-rings/VALIDATION_STATUS.md).
+
 **Estado VT vigente · 24-oct-2026:** unión actual motor10/Room30. Android release permanece equivalente al APK oficial52; pruebas físicas únicamente en una KPKN Dev estable (`com.example.kpkn.dbg`, firma debug compatible), aparte de la personal. Rutas/worker/sidecars siguen vigentes. Recorrido funcional original y privacidad acotada documentados en `video-technique/QA_FASE5_RESULTADOS_20261023.md`; ≈m/s y1RMbeta sin referencia externa. No nueva entrega ni FFmaster hasta petición humana.
 
 This document provides a detailed breakdown of the user interface (UI) screens, Jetpack Compose layouts, ViewModels, and state interactions of the native Android app. Use this as a direct reference to construct matching SwiftUI Views and ViewModels in Xcode.
@@ -57,9 +59,9 @@ The Home screen is the default landing page. Since Home v1 it uses the wizard's 
 +-----------------------------------------------------+
 | Session hero: today's session, rest, other day,     |
 | no program, competition, countdown                  |
-| Muscle rings: one per muscle of the session         |
+| Músculos declarados en la sesión, sin porcentajes   |
 +-----------------------------------------------------+
-| RINGS: tower + three channel rows, (i) introduction |  detail = glass sheet
+| Entrenamiento y respuesta: historial con unidades   |  detalle por punto
 +-----------------------------------------------------+
 | Notices (no box), only when there is something      |
 | Nutrition today: macro rings + four meals           |  day overlay (glass)
@@ -77,9 +79,8 @@ The Home screen is the default landing page. Since Home v1 it uses the wizard's 
 
 1. `HomeMasthead` (`screens/home/design/HomeMasthead.kt`): `homeDateLine`, `HomeMastheadState`, profile button.
 2. `HomeWeekStrip` (`design/HomeWeekStrip.kt`): only with an active program and days.
-3. `HomeSessionSection` (`screens/home/HomeSessionSection.kt`): a pager of `HomeSessionHero` (`design/HomeSessionHero.kt`), with the muscle rings of `HomeMuscleGauges` (`design/HomeMuscleGauges.kt`) below.
-4. `HomeRingsSection` (`screens/home/HomeRingsSection.kt`): the tower (`ui/components/rings/KpknTowerRings`) and one `HomeRingRow` per channel (`design/HomeRingRow.kt`). The (i) opens `RingsIntroOverlay` in review mode. The detail is `RingDetailSheet.kt`, with `HomeRingRange`, `HomeRingMuscleGrid` and `HomeRingSparkline` in `design/`.
-5. `HomeNotice` (`design/HomeNotice.kt`): the auto-deload advisory and the overtraining notice. Each one appears only when it applies.
+3. `HomeSessionSection` (`screens/home/HomeSessionSection.kt`): a pager of `HomeSessionHero` (`design/HomeSessionHero.kt`), con nombres de músculos de la sesión, sin estimaciones de preparación.
+4. `TrainingHistorySection` y `TrainingFactChart` (`screens/training/`): registros existentes, periodo/disciplina/métrica y detalle accesible de cada punto.
 6. `HomeNutritionToday` (`design/HomeNutritionToday.kt`, state in `screens/home/HomeNutritionState.kt`) and `HomeBodyToday` (`design/HomeBodyToday.kt`, state in `screens/home/HomeBodyState.kt`).
 7. `HomeProgramsSection` (`screens/home/HomeProgramsSection.kt`): posters with `fitPosterTitleSp` and `posterTitleOneLine`, so no title breaks inside a word.
 8. `HomeWikiLabSection` (`screens/home/HomeWikiLabSection.kt`): the «APRENDE» concept of the day.
@@ -97,7 +98,7 @@ Two overlays hang from the root glass host, not from the list:
 
 ### 1.3 State (`HomeViewModel.kt`)
 
-- `uiState: StateFlow<HomeUiState>`: name, greeting, active program, today's sessions, primary session, rest day, competition, daily calorie goal, today's nutrition totals, overtrained muscles and programs.
+- `uiState: StateFlow<HomeUiState>`: name, greeting, active program, today's sessions, primary session, rest day, competition, daily calorie goal, today's nutrition totals, programs and existing recorded activity.
 - `bodyToday: StateFlow<HomeBodyState>`, the daily goals (`dailyCalorieGoal`, `dailyProteinGoal`, `dailyCarbGoal`, `dailyFatGoal`), `todayNutritionTotals`, `competitionDatePromptProgramId` and `onboardingState`.
 - `heightCm` is the real height from the profile, or null. It is never a default, so the IMC and the FFMI appear only with a real height.
 - Program sheet and volume calibration state (`showCreateProgramSheet`, `pending*`).
@@ -106,13 +107,13 @@ Two overlays hang from the root glass host, not from the list:
 ### 1.4 Tests
 
 - Domain (JVM): `HomeWeekResolverTest`, `HomeSessionResolverTest`, `HomeCompetitionResolverTest`, `HomeBodyStateTest`.
-- UI (Robolectric): `HomeProgramsSectionTest`, `HomeRingsSectionTest`, `RingDetailSheetTest`, `HomeNutritionTodayTest`, `HomeSessionHeroTest`, `HomeWeekStripTest`, `CompetitionDatePromptTest`.
-- Render sheets (`src/test/java/com/example/kpkn/render/`): they write PNG only when `KPKN_RENDER_DIR` is set. `HomeTopRenderSheetTest`, `HomeHeroRenderSheetTest`, `HomeRingsRenderSheetTest`, `HomeCardsRenderSheetTest`, `HomeProgramsRenderSheetTest`, `HomeBarsRenderSheetTest` (the bars) and `HomeFullRenderSheetTest` (the whole page, four cases, 100 % and 130 %).
+- UI (Robolectric): `HomeProgramsSectionTest`, `TrainingFactChartTest`, `HomeNutritionTodayTest`, `HomeSessionHeroTest`, `HomeWeekStripTest`, `CompetitionDatePromptTest`.
+- Render sheets (`src/test/java/com/example/kpkn/render/`): they write PNG only when `KPKN_RENDER_DIR` is set. `HomeTopRenderSheetTest`, `HomeHeroRenderSheetTest`, `HomeCardsRenderSheetTest`, `HomeProgramsRenderSheetTest`, `HomeBarsRenderSheetTest` (the bars) and `HomeFullRenderSheetTest` (the whole page, four cases, 100 % and 130 %).
 - Shared sample data: `src/test/java/com/example/kpkn/screens/home/HomeSamples.kt` (`pageCases()` for the full page).
 
 ### 1.5 Known gaps
 
-- Still on Material colours and typography, outside the page body: the recovery recommendation dialog in `HomeScreen.kt` (`KpknAlertDialog`, with `MaterialTheme`) and the «Conceptos clave» screens (`ConceptosClaveScreen.kt`, `ConceptoClaveAccordion.kt`), which MainActivity still opens.
+- Still on Material colours and typography, outside the page body: «Conceptos clave» screens (`ConceptosClaveScreen.kt`, `ConceptoClaveAccordion.kt`), which MainActivity still opens.
 - `SingleRingCanvas` (in `HomeRingsSection.kt`) has no caller inside Home, but four sessioneditor files still import it. It stays until those imports are removed.
 
 ---
@@ -211,23 +212,18 @@ Tracks set performance, manages rest intervals, controls voice dictation, and ca
 
 ---
 
-## 🧬 4. Auge Details & Sheets (`screens/auge/`)
+## 4. Entrenamiento y respuesta integrado
 
-Files: `ReadinessSheet.kt`, `PostExerciseSheet.kt`, `PostSessionSheet.kt`, `AugeViewModel.kt`.
-
-Shows the physiological diagnostic overview from the AUGE Engine.
-
-### 4.1 UI Component breakdown
-
-1.  **Readiness Verdict Panel (`ReadinessSheet.kt`):**
-    *   Large color badge showing readiness status: `GREEN` (Go heavy), `YELLOW` (Caution, leave reps in reserve), `RED` (Deload or rest).
-    *   Lists limiting physiological factors (e.g. "Primary Limiter: Low Spinal Battery (20%) due to deadlifts 24h ago").
-2.  **Articular Readiness Breakdown:**
-    *   List view mapping joints to estimated recovery times (TTC). Shows joint safety flags.
-3.  **Post-Exercise / Post-Session Questionnaire sheets (`PostExerciseSheet.kt`, `PostSessionSheet.kt`):**
-    *   Interactive panels loaded after saving logs, using 1-5 sliders for DOMS, joint pain checkbox triggers, and quality checks. Persisted to the `auge_feedback` table.
-
----
+- Home/historial: `TrainingHistorySection` y `TrainingFactChart`; unidades y procedencia,
+  periodos 1/4/12 semanas, filtros y detalle de cada punto. Sin series fisiológicas estimadas.
+- Antes: `PreSessionPreparationDialog`; objetivos del programa, registros anteriores,
+  molestias originales y notas/disciplina opcionales. Omitir no crea una respuesta.
+- Durante: referencia y objetivo del programa frente a ejecución registrada; propuestas
+  de protocolos solo con confirmación. No ajustes por score, sueño o batería.
+- Cierre: `RecordedSessionFinishSheet`, resultados, notas/medios y esfuerzo global opcional.
+- Wizard: Perfil → Entrenamiento → Nutrición opcional → Revisión; borradores migran sin
+  reiniciar ni depender de preview. Bienvenida con resultados ilustrativos rotulados Ejemplo.
+- Los registros originales antiguos se conservan; el motor y su bloque se retiran.
 
 ## 📁 5. Additional Feature Screens
 
@@ -248,8 +244,7 @@ Shows the physiological diagnostic overview from the AUGE Engine.
     *   **Detail Pages:** Show structural descriptions, origins/insertions, and related exercises.
 4.  **Settings & Overrides (`screens/settings/`):**
     *   **Hub:** `SettingsScreen.kt` + `SettingsViewModel.kt` + `components/` (`SettingsCategoryRow.kt`, `SettingsListItems.kt`, `SettingsProfileHeader.kt`).
-    *   **Subscreens (one route each):** `SettingsGeneralScreen.kt`, `SettingsProfileScreen.kt`, `SettingsNutritionScreen.kt`, `SettingsTrainingScreen.kt`, `SettingsAugeScreen.kt`, `SettingsNotificationsScreen.kt`, `SettingsDataScreen.kt`.
-    *   **Manual Battery Sliders:** 0-100% sliders to manually force the Muscular, CNS, or Spinal batteries to a specific value (overriding the engine).
+    *   **Subscreens (one route each):** `SettingsGeneralScreen.kt`, `SettingsProfileScreen.kt`, `SettingsNutritionScreen.kt`, `SettingsTrainingScreen.kt`, `SettingsNotificationsScreen.kt`, `SettingsDataScreen.kt`.
     *   **Theme & Haptics:** Toggles for Dark/Light mode and haptic engine intensity.
     *   **Data Backup:** Export/Import JSON database files (via `data/db/DatabaseBackupHelper.kt`).
 5.  **Learn / Education (`screens/learn/`):**

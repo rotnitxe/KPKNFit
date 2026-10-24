@@ -95,19 +95,12 @@ func backfillCompletedSetIntensityFromPostExerciseFeedbacks(
 }
 
 struct SessionClosingFeedback {
-    let overallFatigue: Int
-    let systemAdjustment: Int
-    let muscularAdjustment: Int
-    let structureAdjustment: Int
-    let discomforts: [String]
-    var clarityRating: Int = 5
+    var discomforts: [String] = []
+    var clarityRating: Int? = nil
     var environmentTags: [String] = []
-    var finalNeuralBattery: Int? = nil
-    var finalSpinalBattery: Int? = nil
-    var finalMuscularBattery: Int? = nil
-    var finalMuscleBatteries: [String: Int] = [:]
     var additionalDiscomfortNote: String? = nil
     var stillPresentDiscomfortIds: [String] = []
+    var sessionEffortRpe: Double? = nil
 }
 
 struct ExerciseHistoryEntry {

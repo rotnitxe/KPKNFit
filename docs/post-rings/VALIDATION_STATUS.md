@@ -54,3 +54,21 @@ No borrar datos ni desinstalar; no tocar `com.example.kpkn`. Comprobar migració
 wizard reanudado sin calibración, sesión/voz/cierre, historial multideporte, 130 %
 de texto, offline, rotación/reinicio y vuelta a Home. Guardar capturas/logs sin datos
 personales. No afirmar QA físico aprobado antes de ejecutarlo.
+
+## Segundo checkpoint integrado
+
+La ejecución `post-rings-final-regression-v2.log` termina con 505 pruebas, 503
+aprobadas, 2 fallos y cero errores/omitidas (50 XML). Incluye todos los tests WIP
+multideporte/PerformanceLab seleccionados, migraciones, restauración, APRE/TM,
+voz/cancelación y gráfico con restauración de estado. Los dos fallos corresponden
+a inactividad de Compose del nuevo diálogo en el modo gráfico legacy de Robolectric;
+se alinea su configuración al modo NATIVE y densidad real usado por las suites UI.
+Los XML completos se conservan en `evidence/final-regression-v2/`.
+
+Backend final: 19 pruebas y 32 subpruebas aprobadas; endpoints retirados 410 sin cálculo.
+No hay publicación en GitHub ni acceso al dispositivo.
+
+Cambios siguientes requieren ejecución nueva: confirmación de propuestas AUTO
+heredadas, rechazo de identidades `unknown@version`, cierre/voz/contexto originales
+en iOS y fixture poblada de propuestas mixtas. No se atribuye el checkpoint anterior
+a esos cambios posteriores.

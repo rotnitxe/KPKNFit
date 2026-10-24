@@ -36,6 +36,8 @@ public struct WorkoutLog: Codable {
     public let actualDurationSource: String?
     public let sessionEffortRpe: Double?
     public let sessionEffortProtocol: String?
+    public let recordedSportId: String?
+    public let preSessionNotes: String?
     public let sportDocuments: [SportTrackingDocument]?
 
 
@@ -73,7 +75,8 @@ public struct WorkoutLog: Codable {
         actualDurationSource: String? = nil,
         sessionEffortRpe: Double? = nil,
         sessionEffortProtocol: String? = nil,
-        sportDocuments: [SportTrackingDocument]? = nil
+        sportDocuments: [SportTrackingDocument]? = nil,
+        recordedSportId: String? = nil, preSessionNotes: String? = nil
     ) {
         self.id = id
         self.programId = programId
@@ -109,6 +112,8 @@ public struct WorkoutLog: Codable {
         self.sessionEffortRpe = sessionEffortRpe
         self.sessionEffortProtocol = sessionEffortProtocol
         self.sportDocuments = sportDocuments
+        self.recordedSportId = recordedSportId
+        self.preSessionNotes = preSessionNotes
     }
 }
 
@@ -356,6 +361,8 @@ extension CompletedSet {
 // ─── OngoingWorkoutState ─────────────────────────────────────────────────────
 
 public struct OngoingWorkoutState: Codable {
+    public var recordedSportId: String?
+    public var preSessionNotes: String?
     public let programId: String
     public let session: Session
     public var isPaused: Bool
@@ -423,7 +430,8 @@ public struct OngoingWorkoutState: Codable {
         restModalState: WorkoutRestModalState? = nil,
         persistedLoadModeBySet: [String: LoadModeV2] = [:],
         persistedLoadModeByExercise: [String: LoadModeV2] = [:],
-        customTargetDurationMinutes: Int? = nil
+        customTargetDurationMinutes: Int? = nil,
+        recordedSportId: String? = nil, preSessionNotes: String? = nil
     ) {
         self.programId = programId
         self.session = session
@@ -458,6 +466,8 @@ public struct OngoingWorkoutState: Codable {
         self.persistedLoadModeBySet = persistedLoadModeBySet
         self.persistedLoadModeByExercise = persistedLoadModeByExercise
         self.customTargetDurationMinutes = customTargetDurationMinutes
+        self.recordedSportId = recordedSportId
+        self.preSessionNotes = preSessionNotes
     }
 }
 

@@ -490,7 +490,10 @@ extension WorkoutLog {
             omittedExercises: omittedExercises,
             scheduledDate: scheduledDate,
             actualDate: actualDate,
-            scheduleDeltaDays: scheduleDeltaDays
+            scheduleDeltaDays: scheduleDeltaDays,
+            actualDurationSeconds: actualDurationSeconds, actualDurationSource: actualDurationSource,
+            sessionEffortRpe: sessionEffortRpe, sessionEffortProtocol: sessionEffortProtocol,
+            sportDocuments: sportDocuments, recordedSportId: recordedSportId, preSessionNotes: preSessionNotes
         )
     }
 }
@@ -530,7 +533,8 @@ extension OngoingWorkoutState {
             restModalState: restModalState,
             persistedLoadModeBySet: persistedLoadModeBySet,
             persistedLoadModeByExercise: persistedLoadModeByExercise,
-            customTargetDurationMinutes: customTargetDurationMinutes
+            customTargetDurationMinutes: customTargetDurationMinutes,
+            recordedSportId: recordedSportId, preSessionNotes: preSessionNotes
         )
     }
 }

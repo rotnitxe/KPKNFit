@@ -12,15 +12,17 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk=[34],qualifiers="w360dp-h740dp",application=android.app.Application::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk=[34],qualifiers="w360dp-h740dp-xxhdpi",application=android.app.Application::class)
 class PreSessionPreparationDialogTest {
     @get:Rule val compose = createComposeRule()
     @Test fun largeTextAllowsContinuingWithoutCreatingAnAnswer() {
         var writes=0;var continued=false
         compose.setContent {
-            CompositionLocalProvider(LocalDensity provides Density(1f,1.3f)) {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density,1.3f)) {
                 MaterialTheme { PreSessionPreparationDialog("",emptyList(),emptyList(),{writes++},{continued=true}) }
             }
         }

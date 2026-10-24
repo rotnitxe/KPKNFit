@@ -254,12 +254,24 @@ struct WorkoutScreen: View {
 
             if showPreparation {
                 VStack {
-                    Text("Consulta tus registros y molestias anotadas. El registro adicional es opcional.")
+                    Text("Antes de entrenar").font(.headline)
+                    Text("Consulta los objetivos de tu programa. El registro breve es opcional y no cambia tus cargas.")
+                    Picker("Disciplina (opcional)", selection:Binding(get:{viewModel.uiState.recordedSportId ?? ""},set:{viewModel.setRecordedSport($0.isEmpty ? nil : $0)})) {
+                        Text("Sin especificar").tag("")
+                        ForEach(RecordedSportNames.labels.keys.sorted(),id: \.self) { id in Text(RecordedSportNames.labels[id] ?? id).tag(id) }
+                    }
+                    TextField("Cansancio, molestias o contexto (opcional)",text:Binding(get:{viewModel.uiState.preSessionNotes ?? ""},set:{viewModel.setPreSessionNotes($0)}))
+                    Text("El historial conserva las sesiones anteriores; un dato ausente no equivale a esfuerzo cero.").font(.caption)
                     Button("Continuar a la sesión") { preparationDismissed = true }
                 }.padding()
             }
 
             // Other sheets, dialogs, etc handled via .sheet and .alert
+        }
+        .sheet(isPresented:Binding(get:{viewModel.uiState.showFinishSheet},set:{if !$0 { viewModel.hideFinish() }})) {
+            RecordedSessionFinishView(completedSets:viewModel.uiState.completedSets.count, onCancel:{viewModel.hideFinish()}) { notes, effort in
+                viewModel.finishWorkout(notes:notes,closingFeedback:SessionClosingFeedback(sessionEffortRpe:effort),onComplete:{onComplete?()})
+            }
         }
     }
 
@@ -2864,5 +2876,28 @@ private extension Array {
     subscript(safe index: Int) -> Element? {
         guard indices.contains(index) else { return nil }
         return self[index]
+    }
+}
+
+
+private struct RecordedSessionFinishView: View {
+    let completedSets: Int
+    let onCancel: () -> Void
+    let onSave: (String, Double?) -> Void
+    @State private var notes = ""
+    @State private var effort = ""
+    private var parsedEffort: Double? { Double(effort.replacingOccurrences(of:",",with:".")) }
+    private var valid: Bool { effort.isEmpty || (parsedEffort.map { $0.isFinite && (0...10).contains($0) } ?? false) }
+    var body: some View {
+        ScrollView { VStack(alignment:.leading,spacing:16) {
+            Text("Resultados de sesión").font(.title2)
+            Text("\(completedSets) series registradas. Consulta las marcas y sus unidades en el historial.")
+            TextField("Esfuerzo global 0–10 (opcional)",text:$effort).keyboardType(.decimalPad)
+            Text("Escala declarada de esta sesión; no se infiere desde las series ni mide recuperación.").font(.caption)
+            if !valid { Text("Introduce un valor entre 0 y 10, o deja el campo vacío.") }
+            TextField("Notas o molestias (opcional)",text:$notes)
+            Button("Guardar sesión") { onSave(notes,parsedEffort) }.disabled(!valid)
+            Button("Volver a la sesión",action:onCancel)
+        }.padding() }
     }
 }

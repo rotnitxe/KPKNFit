@@ -841,7 +841,8 @@ extension OngoingWorkoutState {
         restModalState: WorkoutRestModalState? = nil,
         persistedLoadModeBySet: [String: LoadModeV2]? = nil,
         persistedLoadModeByExercise: [String: LoadModeV2]? = nil,
-        customTargetDurationMinutes: Int? = nil
+        customTargetDurationMinutes: Int? = nil,
+        recordedSportId: String?? = nil, preSessionNotes: String?? = nil
     ) -> OngoingWorkoutState {
         OngoingWorkoutState(
             programId: programId ?? self.programId,
@@ -876,7 +877,8 @@ extension OngoingWorkoutState {
             restModalState: restModalState ?? self.restModalState,
             persistedLoadModeBySet: persistedLoadModeBySet ?? self.persistedLoadModeBySet,
             persistedLoadModeByExercise: persistedLoadModeByExercise ?? self.persistedLoadModeByExercise,
-            customTargetDurationMinutes: customTargetDurationMinutes ?? self.customTargetDurationMinutes
+            customTargetDurationMinutes: customTargetDurationMinutes ?? self.customTargetDurationMinutes,
+            recordedSportId: recordedSportId ?? self.recordedSportId, preSessionNotes: preSessionNotes ?? self.preSessionNotes
         )
     }
 }

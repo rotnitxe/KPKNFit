@@ -118,3 +118,17 @@ usan ahora cardio con duración y peso declarados: su estimación MET independie
 sigue permitida. Fuerza, sesiones mixtas y carga corporal permanecen NotEstimable;
 los ceros de carga originales se verifican aparte. No se restauran fórmulas de kcal
 por series o fatiga para satisfacer expectativas antiguas.
+
+## Confirmación y contexto histórico
+
+AUTO heredado se trata como propuesta pendiente: cada cambio requiere confirmación,
+sin excepción por un modo guardado anteriormente. La generación y aplicación del
+protocolo tras confirmar siguen siendo independientes. PROMOTE_TM por semanas de
+rendimiento inferido se retira junto con escalados, descarga y retraso del pico;
+ADJUST_TM y ADJUST_XRM de reglas activas se conservan. Se añade un contrato negativo
+contra cambios silenciosos en perfil, bloques y cursor.
+
+El comparador rechaza también `unknown@1` y métodos decorados con un componente
+`unknown`; añadir versión o procedencia no convierte una incógnita en dato conocido.
+La fixture Room incluye ahora la versión privada 33 y propuestas mixtas de programa,
+comprobando precisión, notas, identidad y conservación de una propuesta TM explícita.

@@ -25,6 +25,8 @@ struct PendingRestSuggestion {
 }
 
 struct WorkoutUiState {
+    var recordedSportId: String? = nil
+    var preSessionNotes: String? = nil
     var session: Session? = nil
     var activeMode: WeekVariant = .A
     var programId: String = ""
@@ -83,8 +85,6 @@ struct WorkoutUiState {
     var voiceFinalNotes: String? = nil
     var voiceFinalDiscomforts: [String] = []
     var voiceFinalAdditionalDiscomfortNote: String? = nil
-    var voiceFinalNeural: Int? = nil
-    var voiceFinalSpinal: Int? = nil
     var voiceFinalConfirmTriggered: Bool = false
     var continuityTransitionTarget: WorkoutContinuityTransitionTarget? = nil
     var continuityFeedbackExerciseId: String? = nil

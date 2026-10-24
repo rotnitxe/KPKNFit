@@ -4,7 +4,7 @@ import kotlinx.serialization.json.*
 
 /** Known persisted proposal paths only; never rewrites sessions, weights, dates, notes or run identity. */
 object LegacyProgramProposalImport {
-    private val retained = setOf("ADJUST_TM", "ADJUST_XRM", "PROMOTE_TM")
+    private val retained = setOf("ADJUST_TM", "ADJUST_XRM")
     private fun proposal(value: JsonElement): Boolean = value.jsonObject["kind"]?.jsonPrimitive?.content in retained
     private fun run(value: JsonElement): JsonElement {
         if (value == JsonNull) return value

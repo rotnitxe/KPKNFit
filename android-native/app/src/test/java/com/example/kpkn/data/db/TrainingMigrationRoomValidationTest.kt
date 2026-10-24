@@ -22,7 +22,7 @@ import java.nio.file.Files
 @Config(manifest=Config.NONE,sdk=[34],application=Application::class)
 class TrainingMigrationRoomValidationTest {
     @Test fun populated28_29_30_32OpenWithFullRoom34IdentityAndPreserveUsefulData() = runBlocking {
-        for(version in listOf(28,29,30,32)) {
+        for(version in listOf(28,29,30,32,33)) {
             val dir=Files.createTempDirectory("post-rings-synthetic-").toFile()
             val context=object: ContextWrapper(ApplicationProvider.getApplicationContext<Context>()) {
                 override fun getApplicationContext(): Context = this
@@ -45,6 +45,7 @@ class TrainingMigrationRoomValidationTest {
                 }
                 val setup=schema.optJSONArray("setupQueries")
                 if(setup!=null) for(i in 0 until setup.length()) old.execSQL(setup.getString(i))
+                old.execSQL("INSERT INTO programs(id,name,data) VALUES ('program','Programa original',?)",arrayOf("""{"id":"program","name":"Programa original","notes":"Mi nota AUGE","macrocycles":[{"id":"manual","originalLoad":73.125}],"runState":{"runId":"run","weekId":"week","pendingAction":{"type":"CONFIRM_AUTOREGULATION","proposals":[{"kind":"SCALE_WEEK_VOLUME","volumeFactor":0.7},{"kind":"ADJUST_TM","liftSlot":"SQUAT","kgDelta":2.5,"explanation":"Regla del programa"}]}}}"""))
                 old.execSQL("INSERT INTO workout_logs VALUES ('log','program','session','2026-10-01',?)",arrayOf("""{"id":"log","programId":"program","sessionId":"session","sessionName":"Síntesis de prueba","date":"2026-10-01","notes":"Mi nota personal AUGE no se borra","durationMinutes":17,"sessionStressScore":88,"completedExercises":[]}"""))
                 val sleepRaw="""{"id":"sleep","date":"2026-10-01","duration":7.25,"endTime":"2026-10-01T08:00:00Z"}"""
                 if(version<31) old.execSQL("INSERT INTO auge_sleep(id,date,data) VALUES ('sleep','2026-10-01',?)",arrayOf(sleepRaw))
@@ -68,6 +69,16 @@ class TrainingMigrationRoomValidationTest {
                 val sqlite=db.openHelper.writableDatabase // Full Room delegate validates the final schema, not only SQL execution.
                 assertEquals(34,sqlite.version)
                 sqlite.query("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'auge_%'").use { assertEquals(0,it.count) }
+                sqlite.query("SELECT data FROM programs WHERE id='program'").use { c ->
+                    assertTrue(c.moveToFirst());val program=JSONObject(c.getString(0))
+                    assertEquals("Mi nota AUGE",program.getString("notes"))
+                    assertEquals(73.125,program.getJSONArray("macrocycles").getJSONObject(0).getDouble("originalLoad"),0.0)
+                    val run=program.getJSONObject("runState")
+                    assertEquals("run",run.getString("runId"));assertEquals("week",run.getString("weekId"))
+                    val proposals=run.getJSONObject("pendingAction").getJSONArray("proposals")
+                    assertEquals(1,proposals.length());assertEquals("ADJUST_TM",proposals.getJSONObject(0).getString("kind"))
+                    assertEquals(2.5,proposals.getJSONObject(0).getDouble("kgDelta"),0.0)
+                }
                 sqlite.query("SELECT data FROM workout_logs WHERE id='log'").use { c ->
                     assertTrue(c.moveToFirst());val log=JSONObject(c.getString(0))
                     assertEquals("Mi nota personal AUGE no se borra",log.getString("notes"));assertEquals(17,log.getInt("durationMinutes"));assertFalse(log.has("sessionStressScore"))

@@ -177,6 +177,8 @@ import SwiftUI
             $0.activeContextProfileByExerciseId = restoredActiveProfiles
             $0.headerWidgets = headerWidgets
             $0.setDrafts = resumedState?.setDrafts ?? [:]
+            $0.recordedSportId = resumedState?.recordedSportId
+            $0.preSessionNotes = resumedState?.preSessionNotes
             $0.manualLoadOverrides = resumedState?.manualLoadOverrides ?? [:]
             $0.persistedLoadModeBySet = resumedState?.persistedLoadModeBySet ?? [:]
             $0.customTargetDurationMinutes = resumedState?.customTargetDurationMinutes
@@ -2030,6 +2032,16 @@ import SwiftUI
 
     // MARK: - Finish Sheet
 
+    func setRecordedSport(_ id: String?) {
+        guard id == nil || RecordedSportNames.labels[id!] != nil else { return }
+        updateState { $0.recordedSportId = id }
+        persistOngoingState()
+    }
+    func setPreSessionNotes(_ notes: String) {
+        updateState { $0.preSessionNotes = notes.isEmpty ? nil : notes }
+        persistOngoingState()
+    }
+
     func showFinish() {
         stopRestTimer()
         updateState { $0.showFinishSheet = true; $0.pendingRestSuggestion = nil; $0.editingState = nil }
@@ -2049,7 +2061,7 @@ import SwiftUI
 
     // MARK: - Finish Workout
 
-    func finishWorkout(notes: String, fatigueLevel: Int, closingFeedback: SessionClosingFeedback, onPendingQuestionnaire: ((PendingQuestionnaire) -> Void)? = nil, onComplete: @escaping () -> Void = {}) {
+    func finishWorkout(notes: String, fatigueLevel: Int? = nil, closingFeedback: SessionClosingFeedback, onComplete: @escaping () -> Void = {}) {
         let state = uiState
         guard let session = state.session else { return }
         let durationMs = nowMs() - state.startTimeMs
@@ -2099,20 +2111,19 @@ import SwiftUI
             sessionId: sessionId,
             sessionName: session.name,
             date: nowIso(),
-            scheduledDate: scheduledDate,
-            actualDate: String(actualDate),
-            scheduleDeltaDays: scheduleDeltaDays,
             durationMinutes: durationMinutes,
             completedExercises: completedExercises,
             fatigueLevel: fatigueLevel,
             discomforts: (closingFeedback.discomforts + state.postExerciseFeedbackByExerciseId.values.flatMap { $0.discomfortIds }.filter { $0 != "none" }).distinct(),
             notes: notes.isEmpty ? nil : notes,
             totalVolume: totalVolume,
+            energySummary: finalEnergySummary,
             weekId: state.weekId,
             macroIndex: state.macroIndex,
             mesoIndex: state.mesoIndex,
             clarityRating: closingFeedback.clarityRating,
             environmentTags: closingFeedback.environmentTags,
+            stillPresentDiscomfortIds: closingFeedback.stillPresentDiscomfortIds,
             planDeviations: state.planDeviations,
             exerciseTags: state.exerciseTags,
             contextualPerformanceStateV2: state.contextualPerformanceCache,
@@ -2122,10 +2133,15 @@ import SwiftUI
                 ExerciseDiscomfortReport(exerciseId: fb.exerciseId, exerciseDbId: fb.exerciseDbId, canonicalExerciseId: fb.canonicalExerciseId, exerciseName: fb.exerciseName, technicalQuality: fb.technicalQuality, discomfortIds: fb.discomfortIds.filter { $0 != "none" }, notes: fb.notes, perceivedIntensityRpe: fb.perceivedIntensityRpe, perceivedFailure: fb.perceivedFailure)
             },
             omittedExercises: [],
-            energySummary: finalEnergySummary,
-            stillPresentDiscomfortIds: closingFeedback.stillPresentDiscomfortIds,
+            scheduledDate: scheduledDate,
+            actualDate: String(actualDate),
+            scheduleDeltaDays: scheduleDeltaDays,
             actualDurationSeconds: max(0, durationMs / 1000),
-            actualDurationSource: "SESSION_TIMER"
+            actualDurationSource: "SESSION_TIMER",
+            sessionEffortRpe: closingFeedback.sessionEffortRpe,
+            sessionEffortProtocol: closingFeedback.sessionEffortRpe == nil ? nil : "session_rpe_0_10_v1",
+            recordedSportId: state.recordedSportId,
+            preSessionNotes: state.preSessionNotes
         )
 
         repository.addWorkoutLog(log)
@@ -2506,7 +2522,8 @@ import SwiftUI
                 restModalState: s.restModalState,
                 persistedLoadModeBySet: s.persistedLoadModeBySet,
                 persistedLoadModeByExercise: s.persistedLoadModeByExercise,
-                customTargetDurationMinutes: s.customTargetDurationMinutes
+                customTargetDurationMinutes: s.customTargetDurationMinutes,
+                recordedSportId: .some(s.recordedSportId), preSessionNotes: .some(s.preSessionNotes)
             )
             ongoing = current
         }
@@ -3275,8 +3292,8 @@ import SwiftUI
         case .cancelSession: cancelWorkout()
         case .logFeedback(let tech, let discomfort, let intensity, let save, let search):
             handleVoiceLogFeedback(technicalQuality: tech, discomfortId: discomfort, perceivedIntensity: intensity, isSaveAction: save, exerciseSearchName: search)
-        case .logFinalFeedback(let notes, let discomfort, let additional, let neural, let spinal, let save):
-            handleVoiceLogFinalFeedback(notes: notes, discomfortId: discomfort, additionalDiscomfortNote: additional, neuralBattery: neural, spinalBattery: spinal, isSaveAction: save)
+        case .logFinalFeedback(let notes, let discomfort, let additional, let save):
+            handleVoiceLogFinalFeedback(notes: notes, discomfortId: discomfort, additionalDiscomfortNote: additional, isSaveAction: save)
         case .unknown: break
         }
     }
@@ -3337,7 +3354,7 @@ import SwiftUI
         }
     }
 
-    private func handleVoiceLogFinalFeedback(notes: String?, discomfortId: String?, additionalDiscomfortNote: String?, neuralBattery: Int?, spinalBattery: Int?, isSaveAction: Bool) {
+    private func handleVoiceLogFinalFeedback(notes: String?, discomfortId: String?, additionalDiscomfortNote: String?, isSaveAction: Bool) {
         if isSaveAction {
             updateState { $0.voiceFinalConfirmTriggered = true }
             return
@@ -3351,14 +3368,8 @@ import SwiftUI
             updateState { $0.voiceFinalAdditionalDiscomfortNote = additional }
             updates.append("Detalles de molestia actualizados")
         }
-        if let neural = neuralBattery {
-            updateState { $0.voiceFinalNeural = neural }
-            updates.append("Batería nerviosa en \(neural)")
-        }
-        if let spinal = spinalBattery {
-            updateState { $0.voiceFinalSpinal = spinal }
-            updates.append("Batería espinal en \(spinal)")
-        }
+
+
         if let discomfortId = discomfortId {
             let nextDiscomforts = discomfortId == "none" ? [] : (uiState.voiceFinalDiscomforts + [discomfortId]).distinct()
             updateState { $0.voiceFinalDiscomforts = nextDiscomforts }

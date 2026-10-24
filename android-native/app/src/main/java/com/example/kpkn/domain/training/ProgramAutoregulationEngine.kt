@@ -349,7 +349,9 @@ object ProgramAutoregulationEngine {
         }
         val invalidXrm = proposals.filter { it.kind == AutoregulationProposalKind.ADJUST_XRM &&
             !validXrmProposalForProgram(it, program.id) }
-        val candidates = proposals.filterNot { it in invalidXrm }
+        val candidates = proposals.filterNot { it in invalidXrm }.filter {
+            it.kind in setOf(AutoregulationProposalKind.ADJUST_TM, AutoregulationProposalKind.ADJUST_XRM)
+        }
         val newProposals = filterNewProposals(program, nextWeekId, candidates)
         val invalidEntries = invalidXrm.map { proposal ->
             resolutionEntry(proposal, PendingActionResolutionStatus.EXPIRED,
@@ -367,7 +369,7 @@ object ProgramAutoregulationEngine {
         val xrm = newProposals.filter { it.kind == AutoregulationProposalKind.ADJUST_XRM }
         val regular = newProposals.filterNot { it.kind == AutoregulationProposalKind.ADJUST_XRM }
         return when (program.autoregulationMode) {
-            AutoregulationMode.PROPOSE -> {
+            AutoregulationMode.PROPOSE, AutoregulationMode.AUTO -> {
                 if (newProposals.isEmpty()) {
                     val run = (program.runState ?: com.example.kpkn.data.models.ProgramRunState(
                         runId = ProgramProgressEngine.newRunId())).copy(
@@ -388,50 +390,7 @@ object ProgramAutoregulationEngine {
                     .copy(pendingAction = pendingAction, autoregulationAudit = program.runState?.autoregulationAudit.orEmpty() + generationAudit + invalidEntries)
                 AutoregulationEvaluation(newProposals, program.copy(runState = run), applied = false)
             }
-            AutoregulationMode.AUTO -> {
-                val xrmResult = ApreXrmProgression.apply(program, nextWeekId, xrm, executedWeekIds, executedSessionIds)
-                val provider = if (regular.isEmpty()) null else metadata ?: runCatching { CompositionMetadataHolder.resolve() }.getOrNull()
-                if (regular.isNotEmpty() && (provider == null || recipe == null)) {
-                    val merged = mergePendingProposals(pending?.proposals.orEmpty(), regular)
-                    val message = merged.joinToString(" · ") { it.explanation }
-                        .ifBlank { "El protocolo propone cambios para la próxima semana; revisa y confirma." }
-                    val pendingAction = PendingProgramAction(
-                        type = PendingProgramActionType.CONFIRM_AUTOREGULATION,
-                        message = message,
-                        proposals = merged,
-                        targetWeekId = nextWeekId,
-                    )
-                    val xrmOutcomes = outcomeEntries(program, xrmResult.program, xrm, nextWeekId,
-                        executedWeekIds, program.autoregulationMode, nowMs, xrmResult)
-                    val run = (xrmResult.program.runState ?: com.example.kpkn.data.models.ProgramRunState(
-                        runId = ProgramProgressEngine.newRunId())).copy(
-                        pendingAction = pendingAction,
-                        autoregulationAudit = program.runState?.autoregulationAudit.orEmpty() + generationAudit + xrmOutcomes + invalidEntries,
-                    )
-                    return AutoregulationEvaluation(newProposals, xrmResult.program.copy(runState = run),
-                        applied = xrmOutcomes.any { it.resolution == PendingActionResolutionStatus.APPLIED })
-                }
-                var mutated = xrmResult.program
-                if (regular.isNotEmpty()) {
-                    mutated = applyMutations(
-                        program = mutated,
-                        nextWeekId = nextWeekId,
-                        proposals = regular,
-                        recipe = recipe!!,
-                        executedWeekIds = executedWeekIds,
-                        metadata = provider!!,
-                        executedSessionIds = executedSessionIds,
-                        nowMs = nowMs,
-                    )
-                }
-                val outcomes = outcomeEntries(program, mutated, newProposals, nextWeekId,
-                    executedWeekIds, program.autoregulationMode, nowMs, xrmResult)
-                val baseRun = mutated.runState
-                    ?: com.example.kpkn.data.models.ProgramRunState(runId = ProgramProgressEngine.newRunId())
-                val run = baseRun.copy(autoregulationAudit = program.runState?.autoregulationAudit.orEmpty() + generationAudit + outcomes + invalidEntries)
-                AutoregulationEvaluation(newProposals, mutated.copy(runState = run),
-                    applied = outcomes.any { it.resolution == PendingActionResolutionStatus.APPLIED })
-            }
+
             AutoregulationMode.OFF -> AutoregulationEvaluation(emptyList(), program)
         }
     }
@@ -658,7 +617,6 @@ object ProgramAutoregulationEngine {
                 }
 
                 AutoregulationProposalKind.ADJUST_TM,
-                AutoregulationProposalKind.PROMOTE_TM,
                 -> when {
                     // El TM de SU levantamiento cambió, ya sea por kilos (`kgDelta`) o por porcentaje.
                     tmChangedFor(before, after, proposal) ->
@@ -670,32 +628,12 @@ object ProgramAutoregulationEngine {
                         "No aplicada: el programa no tiene perfil de cargas para ajustar el TM."
                 }
 
-                AutoregulationProposalKind.INSERT_DELOAD -> when {
-                    deloadChanged -> PendingActionResolutionStatus.APPLIED to "Aplicada: ${proposal.explanation}"
-                    protectedTarget -> PendingActionResolutionStatus.EXPIRED to trainedReason
-                    else -> PendingActionResolutionStatus.EXPIRED to "No aplicada: no se pudo insertar la descarga propuesta."
-                }
-
+                AutoregulationProposalKind.PROMOTE_TM,
+                AutoregulationProposalKind.INSERT_DELOAD,
                 AutoregulationProposalKind.SCALE_WEEK_INTENSITY,
-                AutoregulationProposalKind.DELAY_PEAK,
-                -> when {
-                    hasPercent && percentsBefore != percentsAfter ->
-                        PendingActionResolutionStatus.APPLIED to "Aplicada: ${proposal.explanation}"
-                    protectedTarget -> PendingActionResolutionStatus.EXPIRED to trainedReason
-                    !hasPercent -> PendingActionResolutionStatus.EXPIRED to
-                        "No aplicable: la prescripción de esa semana no usa porcentajes (RIR/esfuerzo); " +
-                        "usa una propuesta explícita de carga/esfuerzo de la misma configuración (§12.4)."
-                    else -> PendingActionResolutionStatus.EXPIRED to "Sin efecto observable sobre la semana objetivo."
-                }
-
-                AutoregulationProposalKind.SCALE_WEEK_VOLUME -> when {
-                    countsBefore != countsAfter -> PendingActionResolutionStatus.APPLIED to "Aplicada: ${proposal.explanation}"
-                    protectedTarget -> PendingActionResolutionStatus.EXPIRED to trainedReason
-                    proposal.volumeFactor == null || proposal.volumeFactor!! >= 1.0 ->
-                        PendingActionResolutionStatus.EXPIRED to "No aplicable: el factor de volumen propuesto no reduce la semana."
-                    else -> PendingActionResolutionStatus.EXPIRED to
-                        "Sin efecto observable: la semana no perdió series (respetando SPEED y mínimos)."
-                }
+                AutoregulationProposalKind.SCALE_WEEK_VOLUME,
+                AutoregulationProposalKind.DELAY_PEAK ->
+                    PendingActionResolutionStatus.EXPIRED to "Propuesta del modelo retirado: no cambia cargas, volumen ni calendario."
 
                 // DEC-w3-07: la propuesta de variante técnica se retiró y el enum se conserva solo para leer
                 // las guardadas. Nunca se aplica, ni con la semana objetivo sin entrenar: caduca con motivo.
@@ -1374,10 +1312,10 @@ object ProgramAutoregulationEngine {
         executedSessionIds: Set<String> = emptySet(),
         nowMs: Long = System.currentTimeMillis(),
     ): Program {
-        val permittedProposals = proposals.filter { it.kind in setOf(AutoregulationProposalKind.ADJUST_TM, AutoregulationProposalKind.ADJUST_XRM, AutoregulationProposalKind.PROMOTE_TM) }
+        val permittedProposals = proposals.filter { it.kind in setOf(AutoregulationProposalKind.ADJUST_TM, AutoregulationProposalKind.ADJUST_XRM) }
         var working = program
         var profile = working.powerliftingProfile
-        permittedProposals.filter { it.kind == AutoregulationProposalKind.ADJUST_TM || it.kind == AutoregulationProposalKind.PROMOTE_TM }
+        permittedProposals.filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
             .forEach { proposal ->
                 // Sin levantamiento no hay TM que ajustar: antes escalaba los cuatro (L-16, las
                 // dominadas de Texas). Una propuesta antigua sin levantamiento queda sin efecto.
@@ -1401,7 +1339,7 @@ object ProgramAutoregulationEngine {
         val volume = 1.0
         val mutationProposals = permittedProposals
         val recipeForNext = recipe
-        if (nextWeekId != null && (permittedProposals.any { it.kind == AutoregulationProposalKind.ADJUST_TM || it.kind == AutoregulationProposalKind.PROMOTE_TM })) {
+        if (nextWeekId != null && (permittedProposals.any { it.kind == AutoregulationProposalKind.ADJUST_TM })) {
             val beforeWeeks = working.macrocycles
             working = PlanMaterializer.rematerializeWeek(
                 program = working,

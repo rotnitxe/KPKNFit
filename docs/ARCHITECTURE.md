@@ -25,11 +25,11 @@ graph TD
 Responsible for persistence, local assets, and remote calls.
 
 *   **Room Database (`data/db/`):**
-    *   `KpknDatabase.kt` — single database, **version 29**, entities + JSON blobs.
+    *   `KpknDatabase.kt` — single database, **version 34**, entities + JSON blobs.
     *   Entities: `Entities.kt`, `WikiLabEntities.kt`, `PerformanceRangeEntity.kt`, `PerformanceSnapshotEntity.kt`. Complex models (`Program`, `Settings`, …) are serialized to JSON strings (Kotlinx Serialization) in a `data` column — **no Room migration** when only adding optional JSON fields.
     *   DAOs: `Daos.kt`, `WikiLabDao.kt`. FTS4 virtual table (`global_foods_fts`) powers food search.
     *   **Offline-First:** every read/write passes through Room; network sync is a secondary concern.
-    *   `DatabaseBackupHelper.kt` — full-database JSON export/import (used for cross-platform migration and user backups).
+    *   `DatabaseBackupHelper.kt` — validated SQLite snapshots restored transactionally into the active connection; `SettingsJsonBackup.kt` — JSON backup v7 with isolated legacy original-data extraction.
 *   **Repositories (`data/repository/`):** Single source of truth per domain: `ProgramRepository`, `NeutralTrainingObservationRepository`, `NutritionRepository`, `WikiLabRepository`, `CompetitionRepository`, `SessionTemplateRepository`, `CustomExerciseRepository`, `LearnRepository`.
 *   **Models (`data/models/`):** Serializable domain models (`Program`, `Session`, `WorkoutLog`, `Settings`, `NutritionModels`, `CompetitionModels`, `WorkoutV2Models`, `EnergyModels`) plus hardcoded catalogs (`DiscomfortCatalog`, `MobilityExerciseCatalog`).
 *   **Static content loaders:** `exercises/ExerciseDatabase.kt`, `food/FoodDatabase.kt` + `food/FoodImporter.kt` (USDA + OpenFoodFacts Chile prepopulation, see the next bullet), `WikiLabPrepopulate.kt` (anatomy JSONs → Room), `programs/`, `sessions/`, `splits/`, `protocols/`, `learn/`, `wikilab/` (bundled templates and content).

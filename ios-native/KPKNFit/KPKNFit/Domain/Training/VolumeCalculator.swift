@@ -386,7 +386,7 @@ internal struct TrainingEvidenceFact: Codable, Equatable, Identifiable {
 internal enum TrainingInsightsEngine {
     private static func known(_ value: String?) -> Bool {
         guard let text = value?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !text.isEmpty else { return false }
-        return !["unknown", "desconocido", "desconocida", "sin datos", "null", "unspecified"].contains(text)
+        return text.components(separatedBy:CharacterSet(charactersIn:":@")).allSatisfy { !["", "unknown", "desconocido", "desconocida", "sin datos", "null", "unspecified", "not_recorded"].contains($0.trimmingCharacters(in:.whitespacesAndNewlines)) }
     }
     static func comparable(_ a: TrainingEvidenceFact, _ b: TrainingEvidenceFact) -> Bool {
         guard known(a.exerciseVariant), known(a.method), known(a.protocolId), known(a.metric), known(a.unit),
@@ -452,7 +452,10 @@ internal enum TrainingHistoryProjection {
                   let time=instant(log.date), time > 0, time <= nowMs else { continue }
             let documents=log.sportDocuments ?? []
             let sports=Set(documents.map(\.sportId))
-            let sport=sports.count == 1 ? sports.first : (sports.isEmpty && !log.completedExercises.isEmpty ? "STRENGTH" : nil)
+            let sport: String?
+            if !sports.isEmpty { sport = sports.count == 1 && (log.recordedSportId == nil || sports.first == log.recordedSportId) ? sports.first : nil }
+            else if let declared = log.recordedSportId { sport = RecordedSportNames.labels[declared] == nil ? nil : declared }
+            else { sport = !log.completedExercises.isEmpty ? "STRENGTH" : nil }
             func add(_ id:String,_ metric:String,_ value:Double,_ unit:String,_ origin:String="HISTORICAL_AMBIGUOUS",_ at:Int64?=nil,_ documentSport:String?=nil) {
                 guard let family=documentSport ?? sport, value.isFinite, value >= 0 else { return }
                 result.append(TrainingEvidenceFact(sourceId:id,activityId:log.id,occurredAtMs:at ?? time,sport:family,metric:metric,value:value,unit:unit,origin:origin,exerciseVariant:nil,method:nil,protocolId:nil,context:[:]))
@@ -477,6 +480,41 @@ internal enum TrainingHistoryProjection {
                       versions.allSatisfy({ (try? encoder.encode($0)) == first }),
                       ["RESULT","OBSERVATION"].contains(document.purpose), document.version == 1,
                       let bytes=try? encoder.encode(document.payload), let raw=(try? JSONSerialization.jsonObject(with:bytes)) as? [String:Any] else { continue }
+                if document.engineId == "performance_lab.manual", let marks = raw["marks"] as? [[String:Any]] {
+                    // Read explicit mark provenance and protocol; do not reproduce a capacity predictor.
+                    for versions in Dictionary(grouping:marks,by: { $0["id"] as? String ?? "" }).values {
+                        guard let mark=versions.first, let id=mark["id"] as? String, !id.isEmpty,
+                              let bytes=try? JSONSerialization.data(withJSONObject:mark,options:[.sortedKeys]),
+                              versions.allSatisfy({ (try? JSONSerialization.data(withJSONObject:$0,options:[.sortedKeys])) == bytes }),
+                              mark["status"] as? String == "VALID", let value=mark["value"] as? NSNumber,
+                              String(cString:value.objCType) != "c", value.doubleValue.isFinite, value.doubleValue >= 0,
+                              let metric=mark["metric"] as? String, let unit=mark["unit"] as? String,
+                              quantityUnits.contains(unit) else { continue }
+                        let at=(mark["capturedAtEpochMillis"] as? NSNumber)?.int64Value ?? time
+                        guard at > 0, at <= nowMs else { continue }
+                        let context=mark["context"] as? [String:Any] ?? [:]
+                        let protocolInfo=mark["protocol"] as? [String:Any] ?? [:]
+                        let protocolId=protocolInfo["id"] as? String
+                        let revision=(protocolInfo["version"] as? NSNumber)?.intValue
+                        let provenance=mark["provenance"] as? String ?? "unknown"
+                        let method=context["method"] as? String
+                        let origin: String
+                        switch provenance {
+                        case "INSTRUMENT_MEASURED","MANUAL_MEASURED","IMPORTED_MEASURED": origin="OBSERVED"
+                        case "DERIVED": origin="DESCRIPTIVE_CALCULATION"
+                        case "MANUAL_ESTIMATE","VIDEO_ESTIMATE": origin="ESTIMATED"
+                        default: origin="HISTORICAL_AMBIGUOUS"
+                        }
+                        var conditions=context["conditions"] as? [String:String] ?? [:]
+                        for key in ["method","instrument","surface"] { if let text=context[key] as? String { conditions[key]=text } }
+                        if let formula=mark["formulaId"] as? String { conditions["formula"]=formula }
+                        result.append(TrainingEvidenceFact(sourceId:"document:\(document.id):mark:\(id)",activityId:log.id,
+                            occurredAtMs:at,sport:document.sportId,metric:metric,value:value.doubleValue,unit:unit,origin:origin,
+                            exerciseVariant:mark["dimension"] as? String,method:method.map { "\(provenance):\($0)" },
+                            protocolId:protocolId.flatMap { name in revision.flatMap { $0 > 0 ? "\(name)@\($0)" : nil } },context:conditions))
+                    }
+                    continue
+                }
                 // Original values only: iOS has no native sport validator yet; no derived summaries or comparisons are invented.
                 func visit(_ item:Any,_ path:String,_ inheritedUnit:String?=nil,_ inheritedTime:Int64?=nil) {
                     if let array=item as? [Any] { for (i,child) in array.enumerated() { visit(child,"\(path)[\(i)]",inheritedUnit,inheritedTime) }; return }
@@ -500,4 +538,15 @@ internal enum TrainingHistoryProjection {
         }
         return result
     }
+}
+
+internal enum RecordedSportNames {
+    static let labels: [String:String] = [
+        "STRENGTH":"Fuerza","HYPERTROPHY":"Hipertrofia","POWERLIFTING":"Powerlifting","POWERBUILDING":"Powerbuilding",
+        "WEIGHTLIFTING":"Halterofilia","CALISTHENICS":"Calistenia","STRONGMAN":"Strongman","ARMWRESTLING":"Lucha de brazos",
+        "RUNNING":"Carrera","CYCLING":"Ciclismo","TRAIL":"Trail","ROWING":"Remo","SWIMMING":"Natación","TRIATHLON":"Triatlón",
+        "CROSSFIT":"CrossFit","HYROX":"HYROX","BOXING":"Boxeo","KICKBOXING":"Kickboxing","MUAY_THAI":"Muay thai",
+        "BJJ":"Jiu-jitsu brasileño","WRESTLING":"Lucha","JUDO":"Judo","MMA":"Artes marciales mixtas","CLIMBING":"Escalada",
+        "SPRINT":"Sprint","JUMP":"Salto","TENNIS":"Tenis","PADEL":"Pádel","TEAM_SPORT":"Deporte de equipo"
+    ]
 }
