@@ -31,7 +31,7 @@
 
 ### Protocolo vigente de QA (orden AGENTS, 23-oct; sustituye D12 anterior)
 - Una app personal `com.example.kpkn` y una app de pruebas **KPKN Dev**, identidad estable `com.example.kpkn.dbg`. No crear variantes de paquete ni borrar datos para facilitar QA.
-- Pruebas ordinarias con `baseDebug`; `android-native/mfp-dev.init.gradle` fija identidad/nombre/firma debug estable. Antes de actualizar con `-r`, comprobar certificado instalado y compatibilidad Room/datos. Una prueba R8 conserva la misma identidad y firma.
+- Pruebas ordinarias con `baseDebug`; `android-native/app/mfp-dev.init.gradle` fija identidad/nombre/firma debug estable. Antes de actualizar con `-r`, comprobar certificado instalado y compatibilidad Room/datos. Una prueba R8 conserva la misma identidad y firma.
 - Acceso físico únicamente por `phone_run.py` y `phone.lock`, un dueño, sin eludir guardas de actividad/bloqueo ni apropiarse de candados. No desinstalar paquetes antiguos ni tocar la app personal. No contactar otros chats sin autorización humana específica.
 - 24-oct: comprobación protegida de sólo lectura: Z Flip desconectado; no se instaló ni manejó la pantalla. La medición física P2-F y la QA física continúan pendientes. El emulador con Room34 se preserva: no se instala una base inferior encima.
 - Se preservan worktrees, datos, capturas y evidencia hasta terminar la entrega; la antigua limpieza que desinstalaba `.mfp` queda subordinada a la orden actual.

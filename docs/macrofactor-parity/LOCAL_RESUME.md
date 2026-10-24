@@ -50,7 +50,7 @@ D19 autoriza continuar T6/Ta/Tb sobre base MFP actual de forma mínima/aditiva; 
 
 Gradle sólo por `gradle_slot.sh` o `kpkn_jvm.sh`; una corrida por carril y árbol, sin procesos duplicados ni alterar guardas. Android probado con heap 6 GB y `KPKN_MIN_FREE_GB=7`. No matar procesos ajenos ni apropiarse de candados.
 
-Rige AGENTS del 23-oct: única **KPKN Dev com.example.kpkn.dbg**, `baseDebug`, nombre exacto, firma estable. `android-native/mfp-dev.init.gradle` preparado para ensamblar; no se ha construido ni instalado todavía. Acceso físico sólo phone_run/phone.lock y comprobar certificado y compatibilidad de Room/datos antes de `-r`. No desinstalar, borrar datos ni tocar la personal.
+Rige AGENTS del 23-oct: única **KPKN Dev com.example.kpkn.dbg**, `baseDebug`, nombre exacto, firma estable. `android-native/app/mfp-dev.init.gradle` preparado para ensamblar; no se ha construido ni instalado todavía. Acceso físico sólo phone_run/phone.lock y comprobar certificado y compatibilidad de Room/datos antes de `-r`. No desinstalar, borrar datos ni tocar la personal.
 
 Comprobación protegida de sólo lectura: Z Flip desconectado, sin cambios. P95 físico sigue pendiente, sin cifras de emulador. Pixel5554 tenía Room34 y se preserva; otro chat usaba AVD Room30 en emulator5580 con emu.lock. No iniciar otra AVD ni instalar sobre datos posteriores. Contactar otro chat fue rechazado por revisión automática por autorización no fiable; no se envió nada ni se eludió la restricción.
 
