@@ -27,7 +27,7 @@ class PreSessionPreparationDialogTest {
                 MaterialTheme { PreSessionPreparationDialog("",emptyList(),emptyList(),{writes++},{continued=true}) }
             }
         }
-        compose.onNode(isDialog()).capturePrivateTrainingEvidence("before-empty-large-text")
+        compose.capturePrivateTrainingEvidence("before-empty-large-text")
         compose.onNodeWithText("Continuar").assertIsDisplayed().performClick()
         assertTrue(continued);assertEquals(0,writes)
     }
@@ -38,7 +38,7 @@ class PreSessionPreparationDialogTest {
                 listOf("Molestia registrada: rodilla"),{notes=it},{continued=true}) }
         }
         compose.onNode(hasSetTextAction()).performScrollTo().performTextInput("Cansancio declarado hoy")
-        compose.onNode(isDialog()).capturePrivateTrainingEvidence("before-recorded-context")
+        compose.capturePrivateTrainingEvidence("before-recorded-context")
         compose.onNodeWithText("Continuar").performClick()
         assertEquals("Cansancio declarado hoy",notes);assertTrue(continued)
     }

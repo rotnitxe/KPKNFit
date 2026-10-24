@@ -12,6 +12,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
 /** Optional context in the existing session; there is no readiness score or activation gate. */
@@ -30,7 +32,7 @@ internal fun PreSessionPreparationDialog(
     val maxHeight = (LocalConfiguration.current.screenHeightDp.dp - 48.dp).coerceAtLeast(240.dp)
     Dialog(onDismissRequest = onDismiss) {
         Surface(shape = MaterialTheme.shapes.extraLarge, tonalElevation = 6.dp) {
-            Column(Modifier.widthIn(max = 560.dp).fillMaxWidth().heightIn(max = maxHeight).padding(24.dp),
+            Column(Modifier.widthIn(max = 560.dp).fillMaxWidth().height(maxHeight.coerceAtMost(600.dp)).padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text("Antes de entrenar", style = MaterialTheme.typography.headlineSmall)
             Column(Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState()).testTag("pre-session-context"),
@@ -42,20 +44,20 @@ internal fun PreSessionPreparationDialog(
                     previous.forEach { Text(it) }
                     Text("El contexto puede haber cambiado; estas referencias no miden preparación corporal.")
                 }
-                Box {
-                    TextButton(onClick = { choosingSport = true }) {
-                        Text("Disciplina (opcional): ${SportId.entries.firstOrNull { it.name == recordedSportId }?.let(::recordedSportLabel) ?: "sin especificar"}")
-                    }
-                    DropdownMenu(expanded = choosingSport, onDismissRequest = { choosingSport = false },
-                        modifier = Modifier.heightIn(max = 300.dp)) {
-                        DropdownMenuItem(text = { Text("Sin especificar") }, onClick = { onSport(null); choosingSport = false })
+                TextButton(onClick = { choosingSport = !choosingSport }) {
+                    Text("Disciplina (opcional): ${SportId.entries.firstOrNull { it.name == recordedSportId }?.let(::recordedSportLabel) ?: "sin especificar"}")
+                }
+                if (choosingSport) {
+                    Column(Modifier.fillMaxWidth().heightIn(max = 240.dp).verticalScroll(rememberScrollState())) {
+                        TextButton(onClick = { onSport(null); choosingSport = false }) { Text("Sin especificar") }
                         SportId.entries.forEach { sport ->
-                            DropdownMenuItem(text = { Text(recordedSportLabel(sport)) }, onClick = { onSport(sport.name); choosingSport = false })
+                            TextButton(onClick = { onSport(sport.name); choosingSport = false }) { Text(recordedSportLabel(sport)) }
                         }
                     }
                 }
-                OutlinedTextField(value = notes, onValueChange = onNotes,
-                    label = { Text("Cansancio, molestias o contexto de hoy (opcional)") }, modifier = Modifier.fillMaxWidth())
+                Text("Cansancio, molestias o contexto de hoy (opcional)")
+                OutlinedTextField(value = notes, onValueChange = onNotes, minLines = 2, maxLines = 4,
+                    modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Notas opcionales antes de entrenar" })
                 if (discomforts.isEmpty()) Text("Sin molestias anteriores registradas.")
                 else discomforts.forEach { Text(it) }
             }

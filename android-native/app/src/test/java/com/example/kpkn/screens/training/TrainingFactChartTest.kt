@@ -35,7 +35,7 @@ class TrainingFactChartTest {
         }
         compose.onNode(hasClickAction() and hasText("31,25 cm",substring=true)).performScrollTo().performClick()
         compose.onNodeWithText("Actividad: activity-1\nFuente: source-1").assertExists()
-        compose.onNode(isDialog()).capturePrivateTrainingEvidence("history-point-provenance-large-text")
+        compose.capturePrivateTrainingEvidence("history-point-provenance-large-text")
         restore.emulateSavedInstanceStateRestore()
         compose.onNodeWithText("Actividad: activity-1\nFuente: source-1").assertExists()
         compose.onNodeWithText("Cerrar").performClick()

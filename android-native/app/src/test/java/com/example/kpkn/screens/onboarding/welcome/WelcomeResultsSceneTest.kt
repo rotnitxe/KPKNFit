@@ -7,6 +7,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.Density
@@ -24,7 +25,9 @@ import org.robolectric.annotation.GraphicsMode
 class WelcomeResultsSceneTest {
     @get:Rule val compose = createComposeRule()
     @Test fun exampleHasUnitsAndDoesNotPresentPersonalResults() {
+        var host: android.view.View? = null
         compose.setContent {
+            host = LocalView.current
             CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density,1.3f)) {
                 MaterialTheme { WelcomeResultsScene(Modifier.fillMaxSize().background(Color.Black)) }
             }
@@ -34,6 +37,6 @@ class WelcomeResultsSceneTest {
         compose.onNodeWithText("Sesión anterior · 30 min").assertIsDisplayed()
         compose.onNodeWithText("Sesión reciente · 29 min").assertIsDisplayed()
         compose.onNodeWithText("Resultados ilustrativos, no tus registros").assertIsDisplayed()
-        compose.onRoot().capturePrivateTrainingEvidence("welcome-example-large-text")
+        compose.capturePrivateTrainingEvidence("welcome-example-large-text", dialog = false, host = host)
     }
 }
