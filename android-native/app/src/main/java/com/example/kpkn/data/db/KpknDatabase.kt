@@ -62,7 +62,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         VideoAnalysisEntity::class,
         CalibrationDecisionEntity::class,
     ],
-    version = 32,
+    version = 33,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -784,6 +784,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     CALIBRATION_MIGRATION_29_30,
                     TRAINING_OBSERVATIONS_30_31,
                     RETIRE_DERIVED_TRAINING_31_32,
+                    RETIRE_CATALOG_COEFFICIENTS_32_33,
                 )
                 .addCallback(GlobalFoodsFtsHygiene)
                 .apply { source?.let { createFromFile(it) } }

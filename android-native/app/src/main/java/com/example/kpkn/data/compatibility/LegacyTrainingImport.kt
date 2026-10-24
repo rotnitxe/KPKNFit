@@ -127,7 +127,7 @@ object LegacyTrainingImport {
         return JsonObject(obj.filterKeys { it !in derivedLog && !(it == "energySummary" && legacyEnergy) }.mapValues { (key,value) ->
             when(key) {
                 "completedExercises" -> JsonArray(value.jsonArray.map { ex ->
-                    JsonObject(ex.jsonObject.filterKeys { it != "totalSpinalScore" }.mapValues { (k,v) -> if (k == "sets") JsonArray(v.jsonArray.map { set ->
+                    JsonObject(LegacyExerciseCoefficientImport.completedExercise(ex.jsonObject).filterKeys { it != "totalSpinalScore" }.mapValues { (k,v) -> if (k == "sets") JsonArray(v.jsonArray.map { set ->
                         JsonObject(set.jsonObject.filterKeys { it !in setOf("batteryDrain", "cnsDrain", "spinalDrain", "muscularDrain", "readinessScore", "spinalScore") })
                     }) else v })
                 })
