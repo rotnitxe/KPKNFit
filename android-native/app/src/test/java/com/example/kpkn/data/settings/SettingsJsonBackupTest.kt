@@ -16,6 +16,8 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.testsupport.RoomTestRule
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -84,6 +86,8 @@ class SettingsJsonBackupTest {
         val db = KpknDatabase.createInMemory(context)
         try {
             val programId = UUID.randomUUID().toString()
+            val decision=com.example.kpkn.data.db.CalibrationDecisionEntity("cal","set","log",programId,"bench","ctx",100.0,90.0,"USER",1.1,1.0,"EXERCISE","ELIGIBLE","[]","[]","APPLIED",123L,124L,1,"{original}")
+            db.calibrationDecisionDao().upsert(listOf(decision))
             val payload1 = minimalPayload(programId)
             SettingsJsonBackup.importPayload(
                 context = context,
@@ -123,6 +127,9 @@ class SettingsJsonBackupTest {
                 db = db,
             )
             assertEquals(listOf(programId), exported.programs.map { it.id })
+            assertEquals(listOf(decision),exported.calibrationDecisions)
+            val decoded=dbJson.decodeFromString<SettingsExportPayload>(dbJson.encodeToString(exported))
+            assertEquals(listOf(decision),decoded.calibrationDecisions)
             SettingsJsonBackup.importPayload(
                 context = context,
                 payload = exported,
@@ -130,6 +137,7 @@ class SettingsJsonBackupTest {
                 nutritionRepository = nutritionRepo(db),
                 onMeasurementSchedule = {},
             )
+            assertEquals(listOf(decision),db.calibrationDecisionDao().getAll())
             assertEquals(1, db.programDao().getAll().size)
             assertEquals(programId, db.programDao().getAll().single().id)
         } finally {

@@ -15,6 +15,7 @@ object BackupTableManifest {
     enum class Category { USER_DATA, REGENERABLE, CACHE }
 
     val tableCategory: Map<String, Category> = mapOf(
+        "calibration_decisions" to Category.USER_DATA,
         "programs" to Category.USER_DATA,
         "workout_logs" to Category.USER_DATA,
         "competition_records" to Category.USER_DATA,
@@ -103,6 +104,7 @@ object BackupTableManifest {
         hasCalibrationSection: Boolean,
         hasSetupSection: Boolean = false,
         hasNutritionDayStateSection: Boolean = false,
+        hasCalibrationDecisionsSection: Boolean = false,
     ): List<String> {
         val tables = coreJsonBackedTables.filterNot { table ->
             (table == "setup_drafts" || table == "setup_commit_receipts") && !(schemaVersion >= 6 && hasSetupSection)
@@ -127,6 +129,7 @@ object BackupTableManifest {
         if (schemaVersion >= 6 && hasNutritionDayStateSection) {
             tables += listOf("nutrition_day_marks", "nutrition_checkins")
         }
+        if (schemaVersion >= 6 && hasCalibrationDecisionsSection) tables += "calibration_decisions"
         return tables.distinct()
     }
 

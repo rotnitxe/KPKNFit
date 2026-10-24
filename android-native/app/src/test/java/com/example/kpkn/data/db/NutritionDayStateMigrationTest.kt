@@ -28,10 +28,12 @@ class NutritionDayStateMigrationTest {
     @get:Rule val folder = TemporaryFolder()
     private val context get() = ApplicationProvider.getApplicationContext<Context>()
 
-    @Test fun `Room migra la base v29 completa conservando cada fila e indexa los codigos`() {
-        val directory = folder.newFolder("v29-30")
+    @Test fun `Room migra la base v29 completa conservando cada fila e indexa los codigos`() = verifyUpgrade(29)
+    @Test fun `Room migra calibracion v30 conservando decisiones y cada fila anterior`() = verifyUpgrade(30)
+    private fun verifyUpgrade(fromVersion: Int) {
+        val directory = folder.newFolder("v$fromVersion-31")
         val file = File(directory, "day.db")
-        val legacySchema = schema(29)
+        val legacySchema = schema(fromVersion)
         val entities = legacySchema.getJSONArray("entities").let { list -> (0 until list.length()).map { list.getJSONObject(it) } }
         val old = SQLiteDatabase.openOrCreateDatabase(file, null)
         val before = try {
@@ -61,7 +63,7 @@ class NutritionDayStateMigrationTest {
                 }
             }
             old.execSQL("INSERT INTO global_foods_fts(global_foods_fts) VALUES('rebuild')")
-            old.version = 29
+            old.version = fromVersion
             entities.associate { entity ->
                 val table = entity.getString("tableName")
                 table to old.rawQuery("SELECT * FROM `$table` ORDER BY rowid", null).rows()
@@ -79,10 +81,10 @@ class NutritionDayStateMigrationTest {
                 SQLiteDatabase.openDatabase(getDatabasePath(name).absolutePath, factory, mode or SQLiteDatabase.CREATE_IF_NECESSARY, errorHandler)
         }
         val upgraded = Room.databaseBuilder(shortContext, KpknDatabase::class.java, file.name)
-            .addMigrations(nutritionDayStateMigration(29)).allowMainThreadQueries().build()
+            .addMigrations(CALIBRATION_MIGRATION_29_30, nutritionDayStateMigration(30)).allowMainThreadQueries().build()
         try {
             val db = upgraded.openHelper.writableDatabase
-            db.query("PRAGMA user_version").use { assertTrue(it.moveToFirst()); assertEquals(30, it.getInt(0)) }
+            db.query("PRAGMA user_version").use { assertTrue(it.moveToFirst()); assertEquals(31, it.getInt(0)) }
             before.forEach { (table, rows) -> assertEquals("filas de $table", rows, db.query("SELECT * FROM `$table` ORDER BY rowid").rows()) }
             db.query("PRAGMA foreign_key_check").use { assertFalse(it.moveToFirst()) }
             db.query("PRAGMA integrity_check").use { assertTrue(it.moveToFirst()); assertEquals("ok", it.getString(0)) }
@@ -95,11 +97,11 @@ class NutritionDayStateMigrationTest {
                 val checkin = NutritionCheckInEntity("2026-10-05", "PENDING", null, "{}", null, mark.updatedAt)
                 upgraded.nutritionDao().upsertDayMark(mark)
                 upgraded.nutritionDao().upsertCheckIn(checkin)
-                nutritionDayStateMigration(29).migrate(db)
+                nutritionDayStateMigration(30).migrate(db)
                 assertEquals(listOf(mark), upgraded.nutritionDao().getAllDayMarks())
                 assertEquals(checkin, upgraded.nutritionDao().getCheckIn(checkin.weekKey))
             }
-            val current = schema(30).getJSONArray("entities")
+            val current = schema(31).getJSONArray("entities")
             for (table in listOf("nutrition_day_marks", "nutrition_checkins")) {
                 val entity = (0 until current.length()).map { current.getJSONObject(it) }.single { it.getString("tableName") == table }
                 db.query("SELECT sql FROM sqlite_master WHERE type='table' AND name=?", arrayOf(table)).use {

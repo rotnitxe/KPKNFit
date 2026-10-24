@@ -3,7 +3,7 @@ package com.example.kpkn.data.db
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-/** Room v30: solo añade tablas e índice; es idempotente y conserva todas las filas anteriores. */
+/** Room v31, después de calibración v30: solo añade tablas e índice; es idempotente y conserva todas las filas anteriores. */
 fun nutritionDayStateMigration(from: Int): Migration = object : Migration(from, from + 1) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(NUTRITION_DAY_MARKS_CREATE_SQL)

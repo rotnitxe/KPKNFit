@@ -143,6 +143,7 @@ object SettingsJsonBackup {
             learnedResolutions = learnedResolutions,
             foodCatalogMeta = foodCatalogMeta,
             nutritionPreferences = NutritionPreferencesBackup.read(context),
+            calibrationDecisions = db.calibrationDecisionDao().getAll(),
             bodyObservations = bodyObservations,
             bodyGoals = bodyGoals,
             measurementSchedule = measurementSchedule,
@@ -204,6 +205,7 @@ object SettingsJsonBackup {
             hasCalibrationSection = v5 && payload.includesCalibrationSection,
             hasSetupSection = hasSetup,
             hasNutritionDayStateSection = hasDayState,
+            hasCalibrationDecisionsSection = payload.calibrationDecisions != null,
         )
         val settingsProfileToken = when {
             payload.profilePhotoJpegBase64 != null -> ProfilePhotoStore.STORAGE_TOKEN
@@ -222,6 +224,7 @@ object SettingsJsonBackup {
                     profilePicture = settingsProfileToken,
                 ).toEntity(),
             )
+            payload.calibrationDecisions?.let { db.calibrationDecisionDao().upsert(it) }
             payload.programs.forEach { db.programDao().upsert(it.toEntity()) }
             payload.workoutLogs.forEach { db.workoutLogDao().insert(it.toEntity()) }
             payload.activeProgramState?.let { db.stateDao().upsertActiveProgram(it.toEntity()) }
@@ -402,6 +405,8 @@ data class SettingsExportPayload(
     val nutritionCheckIns: List<NutritionCheckInBackup> = emptyList(),
     /** Extensión opcional de v6: si no existe, importar conserva las preferencias locales. */
     val nutritionPreferences: NutritionPreferencesBackup? = null,
+    /** Null en copias previas conserva decisiones locales; vacío explícito restaura una sección vacía. */
+    val calibrationDecisions: List<com.example.kpkn.data.db.CalibrationDecisionEntity>? = null,
 )
 
 /** Copia fiel de las filas: conserva incluso una declaración en cuarentena. */

@@ -91,13 +91,13 @@ class VideoAnalysisMigrationValidateTest {
         assertEquals(1, before.getValue("programs").size)
 
         val upgraded = Room.databaseBuilder(shortPathContext(databaseDirectory), KpknDatabase::class.java, databaseName)
-            .addMigrations(videoAnalysisMigration(28), nutritionDayStateMigration(29))
+            .addMigrations(videoAnalysisMigration(28), CALIBRATION_MIGRATION_29_30, nutritionDayStateMigration(30))
             .allowMainThreadQueries()
             .build()
         try {
             // Abrir por Room = migración real + validación completa del esquema v29.
             val db = upgraded.openHelper.writableDatabase
-            assertEquals(30L, scalar(db, "PRAGMA user_version"))
+            assertEquals(31L, scalar(db, "PRAGMA user_version"))
 
             val after = snapshotUserTables { sql -> db.query(sql).readRows() }
             assertEquals("ninguna tabla anterior puede perder ni cambiar filas", before.keys, after.keys)
@@ -150,7 +150,7 @@ class VideoAnalysisMigrationValidateTest {
         createPhysicalRoom(28, File(databaseDirectory, databaseName))
 
         val upgraded = Room.databaseBuilder(shortPathContext(databaseDirectory), KpknDatabase::class.java, databaseName)
-            .addMigrations(videoAnalysisMigration(28), nutritionDayStateMigration(29))
+            .addMigrations(videoAnalysisMigration(28), CALIBRATION_MIGRATION_29_30, nutritionDayStateMigration(30))
             .allowMainThreadQueries()
             .build()
         try {

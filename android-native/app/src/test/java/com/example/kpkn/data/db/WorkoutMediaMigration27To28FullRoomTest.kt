@@ -125,13 +125,13 @@ class WorkoutMediaMigration27To28FullRoomTest {
 
         val upgraded = Room.databaseBuilder(shortPathContext, KpknDatabase::class.java, databaseName)
             // Se conserva la comprobación de 27→28 y se encadenan las migraciones aditivas hasta la versión actual.
-            .addMigrations(KpknDatabase.MIGRATION_27_28, videoAnalysisMigration(28), nutritionDayStateMigration(29))
+            .addMigrations(KpknDatabase.MIGRATION_27_28, videoAnalysisMigration(28), CALIBRATION_MIGRATION_29_30, nutritionDayStateMigration(30))
             .allowMainThreadQueries()
             .build()
         try {
             // Room ejecuta 27→28→29→30 y valida el esquema completo actual.
             val db = upgraded.openHelper.writableDatabase
-            assertEquals(30, scalarLong(db, "PRAGMA user_version"))
+            assertEquals(31, scalarLong(db, "PRAGMA user_version"))
             assertEquals(0L, scalarLong(db, "SELECT COUNT(*) FROM video_analysis"))
             assertEquals(
                 4L,
