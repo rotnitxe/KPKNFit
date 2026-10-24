@@ -261,7 +261,6 @@ public struct CompletedSet: Identifiable, Codable {
     public let restAfterKind: String?
     public let isWarmup: Bool
     public let side: String?
-    public let spinalScore: Double?
     public let performanceMode: PerformanceMode?
     public let actualIntensityMode: IntensityMode?
     public let actualIntensityValue: Double?
@@ -298,7 +297,6 @@ public struct CompletedSet: Identifiable, Codable {
         restAfterKind: String? = nil,
         isWarmup: Bool = false,
         side: String? = nil,
-        spinalScore: Double? = nil,
         performanceMode: PerformanceMode? = nil,
         actualIntensityMode: IntensityMode? = nil,
         actualIntensityValue: Double? = nil,
@@ -334,7 +332,6 @@ public struct CompletedSet: Identifiable, Codable {
         self.restAfterKind = restAfterKind
         self.isWarmup = isWarmup
         self.side = side
-        self.spinalScore = spinalScore
         self.performanceMode = performanceMode
         self.actualIntensityMode = actualIntensityMode
         self.actualIntensityValue = actualIntensityValue

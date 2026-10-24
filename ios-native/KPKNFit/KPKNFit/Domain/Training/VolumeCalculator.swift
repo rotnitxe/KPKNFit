@@ -474,7 +474,7 @@ internal enum TrainingHistoryProjection {
                   let first=try? encoder.encode(log), versions.allSatisfy({ (try? encoder.encode($0)) == first }),
                   let time=instant(log.date), time > 0, time <= nowMs else { continue }
             let documents=log.sportDocuments ?? []
-            let sports=Set(documents.map(\.sportId))
+            let sports=Set(documents.map(\.sportId).filter { RecordedSportNames.labels[$0] != nil })
             let sport: String?
             if !sports.isEmpty { sport = sports.count == 1 && (log.recordedSportId == nil || sports.first == log.recordedSportId) ? sports.first : nil }
             else if let declared = log.recordedSportId { sport = RecordedSportNames.labels[declared] == nil ? nil : declared }
@@ -492,12 +492,28 @@ internal enum TrainingHistoryProjection {
                 }
             }
             for exercise in log.completedExercises {
-                for set in exercise.sets where !set.isWarmup {
-                    if set.weight > 0 { add("log:\(log.id):\(exercise.exerciseId):\(set.id):load","\(exercise.exerciseName) · Carga histórica registrada",set.weight,"kg") }
-                    if set.reps > 0 { add("log:\(log.id):\(exercise.exerciseId):\(set.id):reps","\(exercise.exerciseName) · Repeticiones históricas",Double(set.reps),"rep") }
-                    if let seconds=set.timeSeconds { add("log:\(log.id):\(exercise.exerciseId):\(set.id):time","Tiempo registrado",Double(seconds),"s") }
+                for set in exercise.sets where !set.isWarmup && !set.skipped && set.recordedPayloadV3?.skipped != true {
+                    let prefix = "log:\(log.id):\(exercise.exerciseId):\(set.id)"
+                    if let payload = set.recordedPayloadV3 {
+                        let load = payload.loadInputMode == .ASSISTED ? payload.assistedLoad : payload.externalLoad
+                        if let load {
+                            add(prefix + ":load", "\(exercise.exerciseName) · " + (payload.loadInputMode == .ASSISTED ? "Asistencia registrada" : "Carga externa registrada"),load,"kg")
+                        }
+                        if payload.unitMode == .REPS, let repetitions = payload.completedReps {
+                            add(prefix + ":reps","\(exercise.exerciseName) · Repeticiones registradas",Double(repetitions),"rep")
+                        }
+                        if let mode = payload.actualIntensityMode, let value = payload.actualIntensityValue {
+                            if mode == .RPE { add(prefix + ":effort","RPE de serie declarado",value,"puntos 0–10","SELF_REPORTED") }
+                            if mode == .RIR { add(prefix + ":reserve","RIR de serie declarado",value,"rep en reserva","SELF_REPORTED") }
+                        }
+                    } else {
+                        if set.weight > 0 { add(prefix + ":load","\(exercise.exerciseName) · Carga histórica registrada",set.weight,"kg") }
+                        if set.reps > 0 && set.timeSeconds == nil { add(prefix + ":reps","\(exercise.exerciseName) · Repeticiones históricas",Double(set.reps),"rep") }
+                    }
+                    if let seconds=set.timeSeconds { add(prefix + ":time","Tiempo registrado",Double(seconds),"s") }
                 }
             }
+
             for versions in Dictionary(grouping:documents,by: \.id).values {
                 guard let document=versions.first, let first=try? encoder.encode(document),
                       versions.allSatisfy({ (try? encoder.encode($0)) == first }),

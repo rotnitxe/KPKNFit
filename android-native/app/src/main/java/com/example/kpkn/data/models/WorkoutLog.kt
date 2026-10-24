@@ -157,7 +157,6 @@ data class CompletedSet(
     val restAfterKind: String? = null,
     val isWarmup: Boolean = false,
     val side: String? = null,      // "left" / "right" for unilateral
-    val spinalScore: Double? = null,
     val performanceMode: PerformanceMode? = null,
     val actualIntensityMode: IntensityMode? = null,
     val actualIntensityValue: Double? = null,

@@ -141,3 +141,7 @@ manuales, junto con sus helpers sin consumidores. El caso mixto de calorías cer
 conserva sus aserciones de objetivos; elimina únicamente el multiplicador retirado.
 Se añade un caso de documentos desconocidos conservados sin mediciones inventadas.
 Ningún XCTest se considera ejecutado en este host Linux.
+
+El campo DTO `spinalScore` se elimina también de ambos modelos activos; solo
+permanece como clave de purga en importadores. `debt` se conserva: es la diferencia
+repeticiones/tiempo objetivo–ejecutado del registro, no deuda fisiológica.
