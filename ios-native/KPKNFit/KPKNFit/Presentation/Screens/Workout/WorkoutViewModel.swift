@@ -1022,7 +1022,7 @@ import SwiftUI
         let totalSetsInSession = allExercises.reduce(0) { $0 + $1.sets.count }
         let sessionProgress = totalSetsInSession > 0 ? Double(completedCount) / Double(totalSetsInSession) : 0
 
-        let adaptiveRest = WorkoutAdaptiveRest.compute(baseRestSeconds: baseRest, advanced: advanced)
+        let adaptiveRest = baseRest
 
         if !wasExistingSet {
             let plannedRest: Int
@@ -2144,7 +2144,8 @@ import SwiftUI
             omittedExercises: [],
             energySummary: finalEnergySummary,
             stillPresentDiscomfortIds: closingFeedback.stillPresentDiscomfortIds,
-            durationSeconds: max(0, durationMs / 1000)
+            actualDurationSeconds: max(0, durationMs / 1000),
+            actualDurationSource: "SESSION_TIMER"
         )
 
         repository.addWorkoutLog(log)
@@ -2450,30 +2451,9 @@ import SwiftUI
     // MARK: - Weight Suggestion
 
     func getWeightSuggestion(_ exercise: Exercise, setIdx: Int, activeTag: String? = nil) -> WeightSuggestion? {
-        let dbId = canonicalExerciseKey(exercise)
-        let loadMode = effectiveLoadModeForExercise(exercise, setIdx: setIdx)
-        guard loadMode != .BODYWEIGHT else { return WeightSuggestion(suggestedWeight: 0, reason: "Peso corporal", suggestedLoadMode: .BODYWEIGHT) }
-
-        let history = getExerciseHistory(dbId, limit: 5, preferredTag: activeTag)
-        guard !history.isEmpty else {
-            if let refWeight = exercise.consolidatedWeight?.weight ?? exercise.sets[safe: setIdx]?.weight ?? exercise.sets[safe: setIdx]?.consolidatedWeight, refWeight > 0 {
-                return WeightSuggestion(suggestedWeight: refWeight, reason: "Del programa")
-            }
-            return nil
-        }
-
-        let baseEntry = history.first(where: { $0.tag == activeTag }) ?? history[0]
-        let lastSet = baseEntry.sets.filter { !$0.isWarmup }[safe: setIdx] ?? baseEntry.sets.filter { !$0.isWarmup }.last
-
-        if let ls = lastSet, ls.weight > 0 {
-            let lastSetWeight = inputLoadForSuggestion(ls, loadMode: loadMode)
-            let suggestedWeight: Double
-            if ls.isFailedSet || ls.isFailure { suggestedWeight = lastSetWeight * 0.95 }
-            else if ls.reps > 0, let target = exercise.sets[safe: setIdx]?.targetReps, target <= ls.reps { suggestedWeight = lastSetWeight * 1.025 }
-            else { suggestedWeight = lastSetWeight }
-            return WeightSuggestion(suggestedWeight: (suggestedWeight * 2).rounded() / 2, reason: "Última sesión")
-        }
-        return nil
+        let mode=effectiveLoadModeForExercise(exercise,setIdx:setIdx)
+        guard mode != .BODYWEIGHT, let planned=plannedWorkingWeightForSet(exercise,setIdx:setIdx), planned > 0 else { return nil }
+        return WeightSuggestion(suggestedWeight:planned,reason:"Carga del programa",suggestedLoadMode:mode)
     }
 
     func getWeightSuggestionWithAutoRegulation(_ exercise: Exercise, setIdx: Int, activeTag: String? = nil, side: String? = nil) -> WeightSuggestion? {
@@ -2886,23 +2866,9 @@ import SwiftUI
         return set.weight != nil || set.consolidatedWeight != nil || calculateSuggestedLoad(exercise, set: set) != nil
     }
 
-    private func determineFatigueFactor(_ exercise: Exercise, setIdx: Int, activeTag: String?, side: String?) -> Double {
-        let priorCount = completedSessionSetsForExercise(exercise, activeTag: activeTag).filter { $0.setIndex < setIdx && !$0.completedSet.skipped && (side == nil || $0.completedSet.side == side) }.count
-        return WorkoutLoadSuggestionRules.fatigueFactorForPriorCompletedSets(priorCompletedCount: priorCount)
-    }
 
-    private func computeSessionImprovementAdjustment(_ exercise: Exercise, activeTag: String?, side: String?) -> Double {
-        let sessionSets = completedSessionSetsForExercise(exercise, activeTag: activeTag).filter { $0.completedSet.side == side || side == nil }.filter { !$0.completedSet.skipped }
-        guard !sessionSets.isEmpty else { return 1.0 }
-        let sessionBest = sessionSets.compactMap { estimatedSessionCapacity($0.completedSet) }.max() ?? 0
-        let dbId = canonicalExerciseKey(exercise)
-        let historyBaselineRm = getExerciseHistory(dbId, limit: 1, preferredTag: activeTag).first?.e1rm ?? exercise.reference1RM ?? exercise.goal1RM
-        guard let baseline = historyBaselineRm, baseline > 0, sessionBest > 0 else { return 1.0 }
-        let ratio = sessionBest / baseline
-        if ratio >= 1.025 { return min(1.05, ratio) }
-        if ratio <= 0.97 { return max(0.92, ratio) }
-        return 1.0
-    }
+
+
 
     // MARK: - Prediction bias
 
@@ -3208,78 +3174,14 @@ import SwiftUI
     // MARK: - Build load suggestion for set
 
     private func buildLoadSuggestionForSet(_ exercise: Exercise, setIdx: Int, activeTag: String?, side: String?) -> WorkoutLoadSuggestionUi? {
-        let currentLoadMode = effectiveLoadModeForExercise(exercise, setIdx: setIdx)
-        guard currentLoadMode != .BODYWEIGHT else { return nil }
-
-        let manualOverride = manualOverrideForSet(exercise.id, setIdx: setIdx, side: side)
-        let (resolvedBase, resolvedSource) = determineSessionBaseWeight(exercise, setIdx: setIdx, activeTag: activeTag, side: side)
-        let historySuggestion = getWeightSuggestion(exercise, setIdx: setIdx, activeTag: activeTag)
-        guard let baseWeight = (manualOverride ?? resolvedBase), baseWeight > 0.0 else { return nil }
-        let originalWeight = plannedWorkingWeightForSet(exercise, setIdx: setIdx) ?? historySuggestion?.suggestedWeight ?? baseWeight
-        let shouldRespectPlan = shouldUsePlanAsDominantBase(exercise, setIdx: setIdx)
-        let improvementFactor = shouldRespectPlan ? 1.0 : computeSessionImprovementAdjustment(exercise, activeTag: activeTag, side: side)
-        let fatigueFactor = determineFatigueFactor(exercise, setIdx: setIdx, activeTag: activeTag, side: side)
-        var computedWeight = baseWeight * fatigueFactor
-        if manualOverride == nil {
-            computedWeight *= shouldRespectPlan ? improvementFactor.clamped(0.95, 1.05) : improvementFactor
-        }
-
-        let exerciseHistory = completedSessionSetsForExercise(exercise, activeTag: activeTag).filter { side == nil || $0.completedSet.side == side }.filter { !$0.completedSet.skipped }
-        let bestRatio = exerciseHistory.compactMap { performanceRatioForSet($0.completedSet) }.max()
-        let worstRatio = exerciseHistory.compactMap { performanceRatioForSet($0.completedSet) }.min()
-        let latestRatio = exerciseHistory.last.flatMap { performanceRatioForSet($0.completedSet) }
-        let severePerformanceDrop = exerciseHistory.last != nil && (
-            exerciseHistory.last?.completedSet.failureReason == "execution_error" ||
-            (exerciseHistory.last?.completedSet.isPartial ?? false && (latestRatio ?? 1.0) <= 0.85) ||
-            (latestRatio != nil && latestRatio! <= 0.70)
-        )
-
-        var reason: String
-        if let mo = manualOverride {
-            reason = "Override manual"
-        } else {
-            switch resolvedSource {
-            case .MANUAL_BASE: reason = "Base manual de la sesión"
-            case .HISTORY: reason = "Historial del usuario"
-            case .SESSION_ERM: reason = "eRM de la sesión"
-            case .PROGRAM: reason = "Plan de la sesión"
-            }
-        }
-
-        if let best = bestRatio, best >= 1.025 {
-            let capped = max(originalWeight * 1.05, originalWeight)
-            computedWeight = min(computedWeight, capped)
-            if computedWeight < baseWeight * fatigueFactor { computedWeight = min(baseWeight * fatigueFactor, capped) }
-            reason += " · eRM +\(Int((best - 1.0) * 100))%"
-        }
-        if let worst = worstRatio, worst <= 0.97 {
-            computedWeight *= 0.97
-            reason += " · Fatiga detectada"
-        }
-
-        if !severePerformanceDrop {
-            computedWeight = max(computedWeight, baseWeight * 0.80)
-        } else {
-            computedWeight = max(computedWeight, baseWeight * 0.70)
-            reason += " · Rendimiento muy bajo"
-        }
-
-        let finalWeight: Double
-        if currentLoadMode == .ASSISTED {
-            let adjustmentRatio = baseWeight > 0.0 ? (computedWeight / baseWeight).clamped(0.60, 1.50) : 1.0
-            finalWeight = coerceLoadStep(applyAssistedAdjustment(baseWeight, factor: adjustmentRatio)).clamped(min: 0.5)
-        } else {
-            finalWeight = coerceLoadStep(computedWeight)
-        }
-
-        return WorkoutLoadSuggestionUi(
-            suggestedWeight: finalWeight,
-            originalWeight: coerceLoadStep(originalWeight),
-            isRecalculated: abs(finalWeight - originalWeight) >= 0.25,
-            reason: reason,
-            source: manualOverride != nil ? .MANUAL_BASE : resolvedSource,
-            suggestedLoadMode: currentLoadMode == .ASSISTED ? .ASSISTED : historySuggestion?.suggestedLoadMode
-        )
+        let mode=effectiveLoadModeForExercise(exercise,setIdx:setIdx)
+        guard mode != .BODYWEIGHT else { return nil }
+        let manual=manualOverrideForSet(exercise.id,setIdx:setIdx,side:side)
+        let planned=plannedWorkingWeightForSet(exercise,setIdx:setIdx)
+        guard let weight=manual ?? planned, weight > 0 else { return nil }
+        return WorkoutLoadSuggestionUi(suggestedWeight:weight,originalWeight:planned ?? weight,
+            isRecalculated:false,reason:manual == nil ? "Carga del programa" : "Carga elegida por ti",
+            source:manual == nil ? .PROGRAM : .MANUAL_BASE,suggestedLoadMode:mode)
     }
 
     // MARK: - Suggest next load V2

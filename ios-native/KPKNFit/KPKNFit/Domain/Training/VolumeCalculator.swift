@@ -383,24 +383,38 @@ internal struct TrainingEvidenceFact: Codable, Equatable {
 }
 
 internal enum TrainingInsightsEngine {
+    private static func known(_ value: String?) -> Bool {
+        guard let text = value?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !text.isEmpty else { return false }
+        return !["unknown", "desconocido", "desconocida", "sin datos", "null", "unspecified"].contains(text)
+    }
     static func comparable(_ a: TrainingEvidenceFact, _ b: TrainingEvidenceFact) -> Bool {
-        guard let variant = a.exerciseVariant, !variant.isEmpty,
-              let method = a.method, !method.isEmpty,
-              let protocolId = a.protocolId, !protocolId.isEmpty else { return false }
+        guard known(a.exerciseVariant), known(a.method), known(a.protocolId), known(a.metric), known(a.unit),
+              !a.context.isEmpty, a.context.allSatisfy({ known($0.key) && known($0.value) }) else { return false }
         return a.sport == b.sport && a.metric == b.metric && a.unit == b.unit &&
             a.origin == b.origin && a.origin != "HISTORICAL_AMBIGUOUS" &&
-            variant == b.exerciseVariant && method == b.method && protocolId == b.protocolId && a.context == b.context
+            a.exerciseVariant == b.exerciseVariant && a.method == b.method && a.protocolId == b.protocolId && a.context == b.context
+    }
+    private static func unique(_ history: [TrainingEvidenceFact]) -> [TrainingEvidenceFact] {
+        Dictionary(grouping: history, by: \.sourceId).values.compactMap { values in
+            guard let first=values.first, !first.sourceId.isEmpty, !first.activityId.isEmpty, values.allSatisfy({ $0 == first }) else { return nil }
+            return first
+        }
+    }
+    static func visible(_ facts: [TrainingEvidenceFact], nowMs: Int64, weeks: Int = 4) -> [TrainingEvidenceFact] {
+        guard [1,4,12].contains(weeks) else { return [] }
+        let from=nowMs-Int64(weeks)*7*86_400_000
+        return unique(facts).filter { $0.value.isFinite && $0.occurredAtMs >= from && $0.occurredAtMs <= nowMs }
+            .sorted { $0.occurredAtMs == $1.occurredAtMs ? $0.sourceId < $1.sourceId : $0.occurredAtMs < $1.occurredAtMs }
     }
     static func previous(_ current: TrainingEvidenceFact, history: [TrainingEvidenceFact], nowMs: Int64) -> [TrainingEvidenceFact] {
         guard current.value.isFinite, current.occurredAtMs <= nowMs else { return [] }
         let from = current.occurredAtMs - 90 * 86_400_000
-        var seen = Set<String>()
-        return Array(history.filter {
+        return Array(unique(history).filter {
             $0.value.isFinite && $0.occurredAtMs >= from && $0.occurredAtMs < current.occurredAtMs &&
                 $0.sourceId != current.sourceId && $0.activityId != current.activityId && comparable(current, $0)
         }.sorted {
             $0.occurredAtMs == $1.occurredAtMs ? $0.sourceId < $1.sourceId : $0.occurredAtMs > $1.occurredAtMs
-        }.filter { seen.insert($0.sourceId).inserted }.prefix(6))
+        }.prefix(6))
     }
     static func median(_ facts: [TrainingEvidenceFact]) -> Double? {
         guard facts.count >= 3 else { return nil }

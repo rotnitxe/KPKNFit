@@ -34,7 +34,8 @@ public struct WorkoutLog: Codable {
     public let scheduledDate: String?
     public let actualDate: String?
     public let scheduleDeltaDays: Int?
-    public let durationSeconds: Int64?
+    public let actualDurationSeconds: Int64?
+    public let actualDurationSource: String?
     public let sessionEffortRpe: Double?
     public let sessionEffortProtocol: String?
     public let sportDocuments: [SportTrackingDocument]?
@@ -72,7 +73,8 @@ public struct WorkoutLog: Codable {
         scheduledDate: String? = nil,
         actualDate: String? = nil,
         scheduleDeltaDays: Int? = nil,
-        durationSeconds: Int64? = nil,
+        actualDurationSeconds: Int64? = nil,
+        actualDurationSource: String? = nil,
         sessionEffortRpe: Double? = nil,
         sessionEffortProtocol: String? = nil,
         sportDocuments: [SportTrackingDocument]? = nil
@@ -108,7 +110,8 @@ public struct WorkoutLog: Codable {
         self.scheduledDate = scheduledDate
         self.actualDate = actualDate
         self.scheduleDeltaDays = scheduleDeltaDays
-        self.durationSeconds = durationSeconds
+        self.actualDurationSeconds = actualDurationSeconds
+        self.actualDurationSource = actualDurationSource
         self.sessionEffortRpe = sessionEffortRpe
         self.sessionEffortProtocol = sessionEffortProtocol
         self.sportDocuments = sportDocuments

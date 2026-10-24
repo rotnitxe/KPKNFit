@@ -426,7 +426,6 @@
 		D41201038531F3BD0C47871E /* Color.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		D50A2F9E3077030BD0329D82 /* ExerciseAugeInference.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExerciseAugeInference.swift; sourceTree = "<group>"; };
 		D6661175D7F1E1E6E49B0664 /* LearnBadgeScreen.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LearnBadgeScreen.swift; sourceTree = "<group>"; };
-		D6A13B760CEAA5F7EEDA9365 /* WorkoutLoadSuggestionRules.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkoutLoadSuggestionRules.swift; sourceTree = "<group>"; };
 		D7EF4DA7C91E540F35CE1FC5 /* VolumeAdvanceModal.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VolumeAdvanceModal.swift; sourceTree = "<group>"; };
 		D81B66A5D167E1B335ED76B9 /* PhoneticEs.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhoneticEs.swift; sourceTree = "<group>"; };
 		DA2731A360EA732ADC52FE4D /* LearnContent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LearnContent.swift; sourceTree = "<group>"; };
@@ -453,7 +452,6 @@
 		F6816554D43762BB6BE58537 /* LoopsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LoopsView.swift; sourceTree = "<group>"; };
 		F7B5DC132A3EC5727EB189B6 /* MobilityExerciseCatalog.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MobilityExerciseCatalog.swift; sourceTree = "<group>"; };
 		F808E5E0806B57D387F4CC3F /* LocaleManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocaleManager.swift; sourceTree = "<group>"; };
-		FB1EF190FA3B925D00F06560 /* WorkoutAdaptiveRest.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkoutAdaptiveRest.swift; sourceTree = "<group>"; };
 		FB8A99AE80879B537683026A /* NutritionViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NutritionViewModel.swift; sourceTree = "<group>"; };
 		FCFDD367184601EE7324DE76 /* WorkoutWarmupCards.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkoutWarmupCards.swift; sourceTree = "<group>"; };
 		FDAD7B125E1637DAFBECE150 /* CookingMethodParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CookingMethodParser.swift; sourceTree = "<group>"; };
@@ -1175,13 +1173,11 @@
 				2104FAFCE286D75C2BD3C98C /* WorkoutExtensions.swift */,
 				C0C32DD31A7B264A17736FFD /* BarbellPlateVisualizer.swift */,
 				574AD33FA705D194362DC612 /* Components */,
-				FB1EF190FA3B925D00F06560 /* WorkoutAdaptiveRest.swift */,
 				717E2262DF9BFBA33D343D2D /* WorkoutContextComponents.swift */,
 				2EE8932C2874FD8D97B577CD /* WorkoutContinuityComponents.swift */,
 				3DB7FFB85B41F522CD39A473 /* WorkoutEditingRules.swift */,
 				157A436A9E7782C89165A8AA /* WorkoutFeedbackModels.swift */,
 				A6CDD9CEF39665723E2BAE2B /* WorkoutGuidanceComponents.swift */,
-				D6A13B760CEAA5F7EEDA9365 /* WorkoutLoadSuggestionRules.swift */,
 				6971A2DDD71D16E3646F0A5B /* WorkoutReadinessBridge.swift */,
 				9315D35AF13502928C0547A9 /* WorkoutRestComponents.swift */,
 				224B42AD029C3375183C6F87 /* WorkoutRestRecoveryModel.swift */,
