@@ -123,13 +123,7 @@ public struct ApiKeys: Codable {
     public var deepseek: String? = nil
 }
 
-public struct PredictionBiasProfile: Codable {
-    public var cnsBias: Double = 0.0
-    public var muscularBias: Double = 0.0
-    public var spinalBias: Double = 0.0
-    public var sampleCount: Int = 0
-    public var lastUpdatedMs: Int64 = 0
-}
+
 
 public struct AlgorithmSettings: Codable {
     public var oneRMDecayRate: Double = 0.03

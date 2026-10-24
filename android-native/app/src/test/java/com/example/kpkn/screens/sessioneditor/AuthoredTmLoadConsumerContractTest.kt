@@ -164,11 +164,11 @@ class AuthoredTmLoadConsumerContractTest {
         assertTrue(pending.sets.all { it.weight == null })
         val hydrated = pending.withSharedPerformanceFromHistory(historyWithOneRm200(pending))
         assertNull(hydrated.referenceTrainingMax)
-        assertKg(200.0, hydrated.reference1RM)
+        assertNull(hydrated.reference1RM)
         assertTrue(hydrated.sets.all { it.weight == null })
         assertEquals(pending.sets.map { it.targetPercentageRM }, hydrated.sets.map { it.targetPercentageRM })
-        assertKg(200.0, hydrated.prFor1RM?.weight)
-        assertKg(200.0, hydrated.consolidatedWeight?.weightKg)
+        assertNull(hydrated.prFor1RM)
+        assertNull(hydrated.consolidatedWeight)
     }
 
     @Test
@@ -227,9 +227,9 @@ class AuthoredTmLoadConsumerContractTest {
             sets = listOf(ExerciseSet(id = "manual", targetReps = 5)),
         )
         val hydrated = manual.withSharedPerformanceFromHistory(historyWithOneRm200(manual))
-        assertKg(200.0, hydrated.reference1RM)
-        assertEquals(75.0, requireNotNull(hydrated.sets.single().targetPercentageRM), 0.0)
-        assertKg(150.0, hydrated.sets.single().weight)
+        assertNull(hydrated.reference1RM)
+        assertNull(hydrated.sets.single().targetPercentageRM)
+        assertNull(hydrated.sets.single().weight)
         val withPrOnly = manual.copy(prFor1RM = PrReference(200.0, 1)).normalizeExercise()
         assertKg(200.0, withPrOnly.reference1RM)
     }

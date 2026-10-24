@@ -18,7 +18,7 @@ class WizChatRetirementTest {
     }
     @Test fun everyActiveConversationScopeHasNoCalibrationStage() {
         for (training in listOf(false, true)) for (nutrition in listOf(false, true)) {
-            val context = WizChatGraphContext(includeTraining = training, includeNutrition = nutrition)
+            val context = WizChatGraphContext(includeTraining = training, includeNutrition = nutrition, trainingPlanSelected = true)
             var current: WizChatQuestionId? = WizChatGraph.firstFor(context)
             val visited = mutableSetOf<WizChatQuestionId>()
             while (current != null) {

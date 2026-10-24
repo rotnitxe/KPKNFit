@@ -59,14 +59,12 @@ class SessionEditorSharedPerformanceTest {
         )
 
         val hydrated = newExercise.withSharedPerformanceFromHistory(history)
-        val expectedRm = calculateHybrid1RM(previousSet.weight, previousSet.reps)
-
-        assertEquals(expectedRm, hydrated.reference1RM!!, 0.001)
-        assertEquals(previousSet.weight, hydrated.prFor1RM!!.weight, 0.001)
-        assertEquals(previousSet.reps, hydrated.prFor1RM!!.reps)
-        assertEquals(previousSet.weight, hydrated.consolidatedWeight!!.weightKg, 0.001)
-        assertEquals(previousSet.reps, hydrated.consolidatedWeight!!.reps)
-        assertNotNull(hydrated.sets.single().weight)
+        val observed = newExercise.resolveSharedPerformance(history)
+        assertNotNull(observed)
+        assertEquals(calculateHybrid1RM(previousSet.weight, previousSet.reps), observed!!.reference1RM, 0.001)
+        assertEquals(newExercise.sets, hydrated.sets)
+        assertEquals(null, hydrated.reference1RM)
+        assertEquals(null, hydrated.sets.single().weight)
     }
 
     @Test

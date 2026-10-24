@@ -100,8 +100,8 @@ class WorkoutPerformanceHomologationEngineTest {
         val result = WorkoutPerformanceHomologationEngine.evaluate(entry, previous, previousGlobal)
         assertEquals("TRM", result.outcome.metricType)
         assertNotNull(result.outcome.trm)
-        assertEquals("Subir tiempo objetivo +5s", result.outcome.suggestionReason)
-        assertTrue((result.outcome.suggestedTargetSeconds ?: 0) >= 55)
+        assertNull(result.outcome.suggestionReason)
+        assertNull(result.outcome.suggestedTargetSeconds)
     }
 
     @Test
@@ -129,8 +129,8 @@ class WorkoutPerformanceHomologationEngineTest {
         )
 
         val result = WorkoutPerformanceHomologationEngine.evaluate(entry, previous)
-        assertEquals(25.0, result.outcome.suggestedNextLoad ?: 0.0, 0.001)
-        assertEquals("Mantener asistencia", result.outcome.suggestionReason)
+        assertNull(result.outcome.suggestedNextLoad)
+        assertNull(result.outcome.suggestionReason)
     }
 
     @Test
@@ -159,8 +159,8 @@ class WorkoutPerformanceHomologationEngineTest {
 
         val result = WorkoutPerformanceHomologationEngine.evaluate(entry, previous)
 
-        assertTrue((result.outcome.suggestedNextLoad ?: 0.0) >= 45.0)
-        assertEquals("Mantener asistencia", result.outcome.suggestionReason)
+        assertNull(result.outcome.suggestedNextLoad)
+        assertNull(result.outcome.suggestionReason)
     }
 
     @Test
@@ -190,8 +190,8 @@ class WorkoutPerformanceHomologationEngineTest {
 
         val result = WorkoutPerformanceHomologationEngine.evaluate(entry, previous)
 
-        assertTrue((result.outcome.suggestedNextLoad ?: 25.0) < 25.0)
-        assertEquals("Reducir asistencia", result.outcome.suggestionReason)
+        assertNull(result.outcome.suggestedNextLoad)
+        assertNull(result.outcome.suggestionReason)
     }
 
     @Test
@@ -221,9 +221,9 @@ class WorkoutPerformanceHomologationEngineTest {
 
         val result = WorkoutPerformanceHomologationEngine.evaluate(entry, previous)
 
-        assertEquals(LoadModeV2.BODYWEIGHT, result.outcome.suggestedLoadMode)
-        assertEquals(0.0, result.outcome.suggestedNextLoad ?: -1.0, 0.001)
-        assertEquals("Consolidar peso corporal", result.outcome.suggestionReason)
+        assertNull(result.outcome.suggestedLoadMode)
+        assertNull(result.outcome.suggestedNextLoad)
+        assertNull(result.outcome.suggestionReason)
     }
 
     @Test
@@ -270,9 +270,9 @@ class WorkoutPerformanceHomologationEngineTest {
 
         val result = WorkoutPerformanceHomologationEngine.evaluate(entry, previous)
 
-        assertEquals("Iniciar con lastre", result.outcome.suggestionReason)
-        assertEquals(LoadModeV2.LASTRE, result.outcome.suggestedLoadMode)
-        assertEquals(2.5, result.outcome.suggestedNextLoad ?: -1.0, 0.001)
+        assertNull(result.outcome.suggestionReason)
+        assertNull(result.outcome.suggestedLoadMode)
+        assertNull(result.outcome.suggestedNextLoad)
     }
 
     @Test
@@ -292,8 +292,8 @@ class WorkoutPerformanceHomologationEngineTest {
 
         val result = WorkoutPerformanceHomologationEngine.evaluate(entry, null)
 
-        assertEquals(LoadModeV2.BODYWEIGHT, result.outcome.suggestedLoadMode)
-        assertEquals(0.0, result.outcome.suggestedNextLoad ?: -1.0, 0.001)
+        assertNull(result.outcome.suggestedLoadMode)
+        assertNull(result.outcome.suggestedNextLoad)
     }
 
     @Test
@@ -368,8 +368,8 @@ class WorkoutPerformanceHomologationEngineTest {
 
         val result = WorkoutPerformanceHomologationEngine.evaluate(entry, previous)
 
-        assertEquals(100.0, result.outcome.suggestedNextLoad ?: 0.0, 0.001)
-        assertEquals("Mantener por deuda/fallida", result.outcome.suggestionReason)
+        assertNull(result.outcome.suggestedNextLoad)
+        assertNull(result.outcome.suggestionReason)
     }
 
     @Test
@@ -401,9 +401,9 @@ class WorkoutPerformanceHomologationEngineTest {
 
         val result = WorkoutPerformanceHomologationEngine.evaluate(entry, previous)
 
-        assertEquals(LoadModeV2.BODYWEIGHT, result.outcome.suggestedLoadMode)
-        assertEquals(0.0, result.outcome.suggestedNextLoad ?: -1.0, 0.001)
-        assertEquals("Volver a peso corporal", result.outcome.suggestionReason)
+        assertNull(result.outcome.suggestedLoadMode)
+        assertNull(result.outcome.suggestedNextLoad)
+        assertNull(result.outcome.suggestionReason)
     }
 
     @Test

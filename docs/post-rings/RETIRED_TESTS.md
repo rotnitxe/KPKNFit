@@ -103,3 +103,18 @@ ajenos a la receta, ahora con un bloque sintético editado sin fórmulas ni moto
 RetiredPendingDeloadTest verifica que aceptar/rechazar un pendiente antiguo
 solo lo caduque, sin tocar bloques, cursor ni TM. LegacyProgramProposalImportTest
 conserva propuestas APRE y originales al eliminar propuestas fisiológicas mezcladas.
+
+## Registro descriptivo sin prescripción genérica
+
+El homologador conservaba una segunda vía de sugerencias (+2,5 %, transiciones
+cuerpo/asistencia/lastre y +5 s) desde colores/puntuaciones. Se retira esa vía.
+Las pruebas conservan los cálculos descriptivos y comprueban propuestas nulas.
+Leer historial en el editor ya no importa silenciosamente PR, 1RM, porcentajes
+por defecto o cargas estimadas; sí puede resolver una fórmula TM explícita del
+programa con su referencia existente. Las pruebas de consumidores TM se conservan.
+
+Los casos de calendario que comprueban deduplicación, variantes y confirmaciones
+usan ahora cardio con duración y peso declarados: su estimación MET independiente
+sigue permitida. Fuerza, sesiones mixtas y carga corporal permanecen NotEstimable;
+los ceros de carga originales se verifican aparte. No se restauran fórmulas de kcal
+por series o fatiga para satisfacer expectativas antiguas.

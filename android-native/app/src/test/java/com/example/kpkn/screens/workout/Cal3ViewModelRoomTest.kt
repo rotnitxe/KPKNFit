@@ -55,7 +55,7 @@ class Cal3ViewModelRoomTest {
         assertTrue(restored.uiState.value.isRestMinimized)
         val restoredExercise = restored.uiState.value.session!!.exercises.first()
         assertEquals(62.5, restored.getWeightSuggestionWithAutoRegulation(restoredExercise, 1)!!.suggestedWeight, 0.0)
-        assertEquals("calibrada", restored.getWeightSuggestionWithAutoRegulation(restoredExercise, 1)!!.reason)
+        assertEquals("Calibración del protocolo activo", restored.getWeightSuggestionWithAutoRegulation(restoredExercise, 1)!!.reason)
         resolve(restored, CalibrationStatus.REVERTED)
         assertEquals(60.0, restored.getWeightSuggestionWithAutoRegulation(restoredExercise, 1)!!.suggestedWeight, 0.0)
         assertEquals(otherBefore, restored.uiState.value.session!!.exercises.last())
