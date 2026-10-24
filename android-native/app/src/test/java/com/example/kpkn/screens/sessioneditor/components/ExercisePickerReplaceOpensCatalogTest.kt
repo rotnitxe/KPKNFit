@@ -160,7 +160,8 @@ class ExercisePickerReplaceOpensCatalogTest {
         rule.onNodeWithContentDescription("Cerrar definición").assertDoesNotExist()
 
         // Una definición con variantes despliega sus implementos y «Ver ficha» abre la hoja de hoy.
-        rule.onNodeWithText("Press de Banca Plano").performClick()
+        rule.onNode(hasText("Press de Banca Plano") and !hasAnyAncestor(hasTestTag("exercise-swap-suggestions")))
+            .performClick()
         rule.waitForIdle()
         rule.onNodeWithText("Ver ficha").performClick()
         rule.waitForIdle()

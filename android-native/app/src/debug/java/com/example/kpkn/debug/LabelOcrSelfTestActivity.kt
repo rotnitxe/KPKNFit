@@ -31,7 +31,17 @@ class LabelOcrSelfTestActivity : ComponentActivity() {
         )
         lifecycleScope.launch {
             var passed = 0
-            val reader = ReadNutritionLabel(contentResolver)
+            // Diagnóstico exclusivo de estas imágenes sintéticas: nunca intercepta fotos de la galería.
+            val delegate = com.example.kpkn.data.importer.ocr.MlKitTextRecognizer()
+            val reader = ReadNutritionLabel(contentResolver, object : com.example.kpkn.data.importer.ocr.TextRecognizerPort {
+                override suspend fun recognize(bitmap: Bitmap): List<com.example.kpkn.domain.training.importer.OcrWord> {
+                    val words = delegate.recognize(bitmap)
+                    val rows = com.example.kpkn.domain.training.importer.OcrLayout.reconstruct(listOf(
+                        com.example.kpkn.domain.training.importer.OcrPage(bitmap.width, bitmap.height, words)))
+                    Log.i("MfpLabelSelfTest", "SYNTHETIC OCR ROWS: $rows")
+                    return words
+                }
+            })
             cases.forEachIndexed { index, case ->
                 val bitmap = Bitmap.createBitmap(1080, 760, Bitmap.Config.ARGB_8888)
                 val canvas = Canvas(bitmap); canvas.drawColor(Color.WHITE)
