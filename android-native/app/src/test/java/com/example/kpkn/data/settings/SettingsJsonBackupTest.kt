@@ -256,12 +256,12 @@ class SettingsJsonBackupTest {
         val db=KpknDatabase.createInMemory(context)
         try {
             val selected=Settings(restTimerDefaultSeconds=180,autoStartRestAfterRecording=false,
-                algorithmSettings=Settings().algorithmSettings.copy(augeAutoDeload=false))
+                algorithmSettings=Settings().algorithmSettings.copy(augeAutoDeload=true))
             val encoded=dbJson.encodeToString(minimalPayload().copy(settings=selected))
             val decoded=dbJson.decodeFromString<SettingsExportPayload>(encoded)
             SettingsJsonBackup.importPayload(context=context,payload=decoded,db=db,nutritionRepository=nutritionRepo(db),onMeasurementSchedule={})
             val saved=requireNotNull(db.settingsDao().get()).toSettings()
-            assertEquals(180,saved.restTimerDefaultSeconds);assertFalse(saved.autoStartRestAfterRecording);assertFalse(saved.algorithmSettings.augeAutoDeload)
+            assertEquals(180,saved.restTimerDefaultSeconds);assertFalse(saved.autoStartRestAfterRecording);assertTrue(saved.algorithmSettings.augeAutoDeload)
             val legacy=dbJson.decodeFromString<Settings>("{\"restTimerAutoStart\":false,\"restTimerDefaultSeconds\":90}")
             assertTrue(legacy.autoStartRestAfterRecording);assertFalse(legacy.restTimerAutoStart)
         } finally { db.close() }

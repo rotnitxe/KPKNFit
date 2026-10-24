@@ -367,7 +367,7 @@ internal fun SetCardTechniqueBack(
                         )
                     }
                     restPauseEnabled -> {
-                        if(myo) Text("Activación y mini-series: 3–5 reps con pausas de 10–30 s. Se registra como rest-pause.",style=KpknType.caption,color=WizardColors.textMuted)
+                        if(myo) Text("Activación cerca del fallo y mini-series de 3–5 reps con pausas de 10–30 s.",style=KpknType.caption,color=WizardColors.textMuted)
                         val active = activePause.coerceIn(0, (restPauseRows.size - 1).coerceAtLeast(0))
                         TechniqueChain(
                             mainLabel = mainLabel,
@@ -419,7 +419,7 @@ internal fun SetCardTechniqueBack(
                             )
                         }
                         TechniqueExplanation(
-                            title = "ASÍ SE VE UN REST-PAUSE",
+                            title = if(myo) "ASÍ SE VE MYO-REPS" else "ASÍ SE VE UN REST-PAUSE",
                             blocks = buildList {
                                 add(TechniqueBlock(mainLabel, ghost = false))
                                 restPauseRows.forEach { row ->

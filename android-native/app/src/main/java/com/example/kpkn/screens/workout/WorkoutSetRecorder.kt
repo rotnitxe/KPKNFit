@@ -506,7 +506,7 @@ class WorkoutSetRecorder(
             } else {
                 emptyList()
             }
-            val completedSetWithoutStyle = if (plannedSet?.isVolumeReplacedTechnique() == true) {
+            val completedSet = if (plannedSet?.isVolumeReplacedTechnique() == true) {
                 recordedAfterAdvanced.copy(
                     dropSets = recordedAfterAdvanced.dropSets
                         .ifEmpty { plannedSet.dropSets }
@@ -519,8 +519,7 @@ class WorkoutSetRecorder(
                 recordedAfterAdvanced
             }
 
-            val completedSet = if(plannedSet?.isMyoReps() == true) completedSetWithoutStyle.copy(
-                restPauses=completedSetWithoutStyle.restPauses.map { it.copy(style="myo") }) else completedSetWithoutStyle
+            // La variante proviene de las mini-series ejecutadas, no se impone desde un plan que el reverso pudo cambiar.
 
             val key = buildCompletedSetKey(exercise.id, targetSetIdx, resolvedSide)
             val wasExistingSet = state.completedSets.containsKey(key)

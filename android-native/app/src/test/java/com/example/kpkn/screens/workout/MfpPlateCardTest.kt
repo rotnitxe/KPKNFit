@@ -21,10 +21,22 @@ class MfpPlateCardTest {
         rule.setContent { KPKNTheme { MfpTrainingPreview.Myo(state) } }
         rule.waitUntil(20_000) { rule.onAllNodesWithTag("load-plate-label",useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithTag("load-plate-label",useUnmergedTree=true).assertTextContains("por lado: 25 + 10 + 5")
-        val before=rule.onNodeWithTag("training-card").fetchSemanticsNode().boundsInRoot.height
+        val before=rule.onNodeWithTag("set-input-card",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot.height
         rule.runOnIdle { state="no_inventory" }
         rule.waitForIdle()
         rule.onNodeWithTag("load-plate-label",useUnmergedTree=true).assertDoesNotExist()
-        assertEquals(before,rule.onNodeWithTag("training-card").fetchSemanticsNode().boundsInRoot.height,.01f)
+        assertEquals(before,rule.onNodeWithTag("set-input-card",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot.height,.01f)
     }
+    @Test fun cargaNoMontableIdentificaLaMasCercanaYSuDistribucionSinCambiarCargaOriginal() {
+        rule.setContent { KPKNTheme { MfpTrainingPreview.Myo("plates_unreachable") } }
+        rule.waitUntil(20_000) { rule.onAllNodesWithTag("load-plate-label",useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithTag("load-plate-label",useUnmergedTree=true).assertContentDescriptionEquals("60 kg · más cercana montable · por lado: 20")
+        rule.onNodeWithText("59.0").assertExists()
+    }
+    @Test fun reversoIdentificaMyoSinConfundirLaExplicacionConRestPauseNormal() {
+        rule.setContent { KPKNTheme { MfpTrainingPreview.Myo("myo_back") } }
+        rule.onNodeWithText("ASÍ SE VE MYO-REPS").assertExists()
+        assertTrue(rule.onAllNodesWithText("Mini 1").fetchSemanticsNodes().isNotEmpty())
+    }
+
 }

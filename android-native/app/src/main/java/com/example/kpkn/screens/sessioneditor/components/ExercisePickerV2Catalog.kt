@@ -919,7 +919,7 @@ private fun ColumnScope.CatalogReadyContent(
     }
 
     // La isla solo con algo elegido, fuera de la edición de una sola pieza y sin teclado abierto.
-    val showIsland = !editingExisting && selectedRows.value.isNotEmpty() && !imeVisible
+    val showIsland = replacement == null && !editingExisting && selectedRows.value.isNotEmpty() && !imeVisible
     // Al reemplazar (H1), la barra con la nota y el botón va siempre, salvo con el teclado abierto.
     fun selectReplacement(definitionId: String, info: ExerciseMuscleInfo) {
         selectedRows.value = mapOf(definitionId to info)
