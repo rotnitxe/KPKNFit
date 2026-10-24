@@ -397,7 +397,7 @@ class WorkoutSessionHydrator(
                 exerciseNotes = resumedState?.exerciseNotes.orEmpty(),
                 exercisePhotos = resumedState?.exercisePhotos.orEmpty(),
                 sessionMilestones = resumedState?.sessionMilestones.orEmpty(),
-                sessionNotes = resumedState?.sessionNotes ?: priorSessionLog?.sessionNotes.orEmpty(),
+                sessionNotes = resumedState?.sessionNotes.orEmpty(),
                 recordedSportId = resumedState?.recordedSportId,
                 sessionSavedNotes = resumedState?.sessionSavedNotes ?: priorSessionLog?.sessionSavedNotes.orEmpty(),
                 plannedSessionBaseline = resumedState?.plannedSessionBaseline

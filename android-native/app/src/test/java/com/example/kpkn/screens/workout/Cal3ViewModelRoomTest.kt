@@ -41,6 +41,31 @@ class Cal3ViewModelRoomTest {
         assertNull(vm.uiState.value.calibrationError)
         assertEquals(status, vm.uiState.value.calibrationDecisions.last().status)
     }
+    @Test fun optionalOriginalContextSurvivesRecreationButIsNotCopiedIntoTheNextActivity() = runBlocking {
+        val (f, vm) = open()
+        val authored = vm.uiState.value.session
+        vm.setSessionNotes("Contexto original de hoy", flush = true)
+        vm.setRecordedSport("BOXING")
+        withTimeout(20_000) { f.repository.ongoingWorkout.first {
+            it?.recordedSportId == "BOXING" && it.sessionNotes == "Contexto original de hoy"
+        } }
+        val restored = f.recreate(vm)
+        assertEquals("BOXING", restored.uiState.value.recordedSportId)
+        assertEquals("Contexto original de hoy", restored.uiState.value.sessionNotes)
+        assertEquals(authored, restored.uiState.value.session)
+        assertTrue(record(restored) is RecordSetResult.Created)
+        restored.finishWorkout("Cierre original", null, SessionClosingFeedback(discomforts = emptyList()))
+        val log = withTimeout(60_000) { f.repository.history.first { logs -> logs.any { it.sessionId == f.sessionId } } }
+            .single { it.sessionId == f.sessionId }
+        assertEquals("BOXING", log.recordedSportId)
+        assertEquals("Contexto original de hoy", log.sessionNotes)
+        withTimeout(60_000) { f.repository.ongoingWorkout.first { it == null } }
+        restored.viewModelScope.cancel()
+        val next = f.open()
+        assertNull("Una nueva actividad no hereda una declaración anterior", next.uiState.value.recordedSportId)
+        assertEquals("", next.uiState.value.sessionNotes)
+        assertEquals(log, f.repository.history.value.single { it.id == log.id })
+    }
     @Test fun realViewModelAppliesPersistsReopensAndRevertsWithoutEditingAnotherExercise() = runBlocking {
         val (f, vm) = open()
         assertTrue(record(vm) is RecordSetResult.Created)
