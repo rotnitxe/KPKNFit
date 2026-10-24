@@ -1,6 +1,10 @@
 # Ola VT · registro de decisiones
 
-## QA-DB-1 · aislamiento del entorno de pruebas (23-oct-2026)
+## Estado vigente · 24-oct-2026
+
+Unión actual Room30/motor10; el aislamiento QA531eb0b06 fue retirado en8024bfb13 y no describe el producto vigente. Personal yDev usan `kpkn.db` dentro de paquetes distintos. Una única KPKN Dev estable y ninguna comunicación con otroschats sin permiso actual. QA original funcional cerrado con evidencias separadas nuevas/históricas; medición de privacidad condicionada al UID/ventana,≈m/s/1RMbeta y calidad/rendimiento limitados permanecen explícitos. El usuario difiere otro APK final aG: hasta pedirlo; firma/copia/FFmaster pendientes de esa orden. Las decisiones históricas siguientes no reactivan el aislamiento ni la entrega.
+
+## QA-DB-1 · histórico retirado: aislamiento del entorno de pruebas (23-oct-2026)
 
 La instalación QA detectó una base persistida30 mientras los APK VT conservados compilan29; no se acreditó qué APK la
 actualizó. Para preservar ese estado,531eb0b06 asigna solo a `com.example.kpkn.dbg` la base `kpkn-vt-qa-v29.db`.

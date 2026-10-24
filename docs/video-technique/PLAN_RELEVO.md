@@ -1,5 +1,9 @@
 # Plan de relevo · técnica por vídeo y contador de repeticiones al 100 %
 
+## Estado vigente · 24-oct-2026
+
+Recorrido funcional original cerrado con evidencia combinada nueva e histórica identificada en QA_FASE5_RESULTADOS_20261023.md; F6 documenta privacidad acotada y límites reales. Permanecen≈m/s/1RMbeta y metas de calidad/rendimiento no alcanzadas; no equivale a paridad competitiva. Última orden humana: no generar/copiar otro APK aG: hasta petición explícita. F7/firma/FFmaster diferidos; ninguna mutación del principal ni push. Los estados de las secciones siguientes son cronología y se leen bajo este estado vigente.
+
 Escrito el 22-oct-2026. Es la continuación de la ola VT en la app Android KPKN Fit (Kotlin + Compose). Responde siempre en
 español neutro, sin voseo.
 
@@ -182,7 +186,14 @@ Ese cierre no demuestra paridad competitiva: sus afirmaciones se reservan al ane
 **Hecho cuando:** todo está verde o los fallos están explicados uno por uno.
 
 ## Fase 5 · QA de punta a punta en el Z Flip (APK `.dbg`)
-**Estado vigente · 23-oct15:48UTC:** el APK corregido20916 se instaló conservando datos, pero su arranque falló con una
+**Estado vigente · 23-oct noche (24-oct 02:42 UTC):** el bloqueo Room 30→29 queda como **histórico resuelto**: el build
+conjunto KPKNDev R8 code 52 (`com.example.kpkn.dbg`, Room 30, motor 10) instaló y arrancó `MainActivity` COLD sin crash,
+**sin borrar la base ni datos**. El QA final conjunto del 23-oct noche quedó registrado en QA_FASE5_RESULTADOS (perfil
+ficticio `QA_VT_Final`, 3 clips públicos autorizados) y el **QA actual sigue en curso**: las Fases 5 y 6 no se declaran
+completas, la selección manual del Photo Picker queda pendiente y no hay firma final nueva acreditada por build. No firmar
+ni hacer FF antes de cerrarlo; no repetir arranques, selección manual ni pruebas PC aprobadas por rutina.
+
+**Histórico · 23-oct15:48UTC (superado por el estado vigente):** el APK corregido20916 se instaló conservando datos, pero su arranque falló con una
 incompatibilidad Room30→29 en el estado persistido de la app de pruebas. Los dos APK VT conservados declaran29 también
 en el código compilado; la identidad instalada inmediatamente antes del delta no se midió. No se han borrado datos ni
 añadido migraciones. El retorno del Photo Picker fue observado, pero no acredita por sí solo el análisis del medio.

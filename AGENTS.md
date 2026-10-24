@@ -1,14 +1,12 @@
 # KPKN Fit Agent Guide
 
-## Regla ZFlip
+## Z Flip: una sola app de pruebas (orden del usuario, 23-oct-2026)
 
-- La app personal usa `com.example.kpkn`; existe UNA sola KPKN Dev con applicationId `com.example.kpkn.dbg` (sufijo `.dbg` en debug).
-- Todos los agentes/worktrees deben conservar los mismos datos, paquete y firma: nada de divergencias locales de identidad.
-- Para pruebas ordinarias en ZFlip usar `baseDebug`; R8/QA debe conservar la identidad `com.example.kpkn.dbg`, la firma compatible y el nombre visible exacto `KPKN Dev`.
-- Todo acceso, incluida la instalación `-r`, pasa por `phone_run` y `phone.lock`, con guardas intactas y un único agente responsable; no llamar ADB directamente.
-- Actualizar sólo si el certificado y Room son compatibles con lo instalado; de lo contrario preservar los datos y registrar el bloqueo, sin crear otro paquete.
-- Prohibido `pm clear`, desinstalar la app personal, ni instalar variantes desconocidas.
-- No contactar otros chats sin permiso específico actual.
+- Mantener únicamente la app personal `com.example.kpkn` y UNA app de pruebas llamada exactamente **KPKN Dev**, con identidad estable `com.example.kpkn.dbg`.
+- Todos los agentes y worktrees deben reutilizar esa misma app; no instalar nuevos paquetes, sufijos o sabores en el Z Flip. Usar `baseDebug` para las pruebas ordinarias; una prueba R8 debe conservar la misma identidad y firma de KPKN Dev.
+- Actualizar con `-r` sólo tras verificar certificado y compatibilidad de Room/datos. No borrar datos, desinstalar variantes desconocidas ni modificar la app personal para resolver un fallo de QA.
+- Todo acceso mediante `phone_run` y `phone.lock`, con un único agente dueño y las guardas intactas. Identificar primero variantes antiguas y preservar cualquier dato del usuario antes de una limpieza.
+- No contactar otros chats sin autorización humana específica para la tarea actual. La autorización de coordinación de una entrega anterior no se extiende a trabajos posteriores.
 
 KPKN Fit is a local-first native Android application with an iOS parity port and an optional FastAPI analysis backend. The primary product is `android-native/`.
 

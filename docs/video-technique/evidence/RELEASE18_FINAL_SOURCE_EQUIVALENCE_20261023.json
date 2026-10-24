@@ -1,0 +1,9 @@
+{
+  "utc": "2026-10-24T02:58:10.347350+00:00",
+  "officialReleaseSource": "5ffdff2559f60ae32b56aadffdc4f6939e578d21",
+  "validationHead": "4f0ff4df15c875497127d55385a198a4876c1d58",
+  "mainSourcesAndResourcesIdentical": true,
+  "buildGradleOnlyDebugIdentityAndSigningChanged": true,
+  "officialApkSha256": "1e058061be132316f850f032b66a9507f3c8ff77612e3e550fe783ecd055ea12",
+  "decision": "Conservar APK oficial52; ningún cambio de producto release exige reconstrucción."
+}

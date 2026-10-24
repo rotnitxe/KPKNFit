@@ -1,12 +1,12 @@
 # Preparación de entrega Pre Release 18 — 2026-10-23
 
-**Bloqueo vigente · 15:48UTC:** el APK QA corregido20916 se instaló con-r conservando datos, pero el arranque falló al
-encontrar una base persistida30 y esperar29. REA contrastó los APK conservados0afd y20916: ambos compilan29 con los mismos
-hashes de identidad; no se midió qué APK estaba instalado inmediatamente antes del delta. No se leen ni borran bases
-privadas ni se añade una migración para eludir el fallo. F5/privacidad del nuevo APK no están aprobadas, por lo que no se
-ejecutan todavía FF, nombre18, parche opcional del firmador, firma ni copia a Drive. El resto de este documento es
-preparación revisable, no una entrega. Evidencia acotada: `evidence/ROOM_APK_CONTRAST_20261023.json` y el informe QA.
+## Orden vigente · 24-oct-2026
 
+El usuario pospone expresamente otro APK final enG: hasta pedirlo. No firmar, recompilar por entrega, copiar artefactos ni hacer FF de master ahora. El APK52 existente no se modificó. La comparación de fuentes públicas (evidence/RELEASE18_FINAL_SOURCE_EQUIVALENCE_20261023.json) acredita main/release idénticos al oficial firmado5ffdff2559; los cambios nuevos son exclusivos de debug/KPKNDev. QA funcional original y privacidad acotada: véase el estado vigente del informeQA. La preparación histórica siguiente queda conservada para una futura petición, no autoriza su ejecución automática.
+
+**Estado vigente · 23-oct noche Santiago:** el APK conjunto oficial Pre Release18/code52/Room30/motor10 ya está en G:/Mi unidad, SHA1e058061be132316f850f032b66a9507f3c8ff77612e3e550fe783ecd055ea12, firma oficial verificada. El usuario ordenó continuar los pendientes originales antes de anexos y mantener una única KPKN Dev aparte de la personal. Nuevo QA R8 code52/packagecom.example.kpkn.dbg/etiquetaKPKNDev fue construido, atestado, instalado y arrancado sincrash; SHA d68ce1f36133ddd7df6859249e183742db73964475096c2e38c39af33b4650ea. El incidente histórico30→29 no describe el entorno actual: la unión usaRoom30, sin borrar DB personal. El cierre físico conjunto está en curso (véase QA_FASE5_RESULTADOS_20261023.md). No declarar F5/F6 cerradas por build. La comparación de fuentes demuestra que desde el APK oficial52 sólo cambió la identidad/firma debug y sus recursos exclusivos; main/release permanecen idénticos. Conservar ese APK oficial firmado evita otra compilación sin cambios de producto (recibo RELEASE18_FINAL_SOURCE_EQUIVALENCE_20261023.json). Una revisión con futuros cambios de producto sí superará el código52; nombrePreRelease18/packagecom.example.kpkn/Room30/motor10 y certificado oficial9e8bb57415e409a1f107e70c62b85aa65ce73576e6196470808231f256464bc1. Sólo firmar por C:/kw/tools/signed_release.py con opción pública deheap8g ya revisada, cola compartida/worker1. Copiar APK+LEEME+SHA directamente aG:/Mi unidad del Explorador; no complementoDrive. Preservar el APK52 anterior ya respaldado y todo WIP de master. No más mensajes a otros chats sin nueva autorización específica. ≈m/s y1RMbeta continúan sin referencia física.
+
+Las comprobaciones siguientes conservan la preparación histórica del checkpoint51/Room29; sus cifras no sustituyen el estado vigente anterior.
 ## Resultado de compatibilidad
 
 La búsqueda acotada a nombres de APK KPKN/base en la raíz documentada `G:\Mi unidad\` encontró el APK firmado del 20-oct y Pre Release 16. No se abrieron LEEME ni otros archivos y no se recorrieron subcarpetas. Las comprobaciones públicas con `aapt2 dump badging` y `apksigner verify --print-certs` dieron:

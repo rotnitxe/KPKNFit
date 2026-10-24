@@ -1,0 +1,45 @@
+{
+  "utc": "2026-10-24T03:03:56.305012+00:00",
+  "qaApkSha256": "d68ce1f36133ddd7df6859249e183742db73964475096c2e38c39af33b4650ea",
+  "manualGalleryConfirmedByUser": true,
+  "manualGalleryObservedResult": {
+    "exercise": "Sentadilla Sin Carga",
+    "reps": 10,
+    "confidence": "ALTA",
+    "fullFrames": 648,
+    "stride": 1,
+    "gpu": "Adreno740",
+    "decode": "GL",
+    "wallMs": 23605
+  },
+  "hubVideos": 3,
+  "hubExercises": 2,
+  "comparison": "dos importaciones deliberadas del mismo TUNE; A/B capas; avance0 a1.2s; no validación longitudinal física",
+  "carriedEvidence": "Corregir/cámara/calibración previamente observados; rutas revisadas sin cambios; no nuevo PASS físico atribuido",
+  "remainingLimits": [
+    "aproximacion m/s sin referencia externa",
+    "1RM beta",
+    "objetivos98/90 y velocidad no alcanzados",
+    "privacidad cero registrado inferido condicionado; no contador explicito ni garantiaOEM"
+  ],
+  "delivery": "deferred_by_user",
+  "masterMutated": false,
+  "newApkGeneratedForDelivery": false,
+  "driveMutated": false,
+  "screenshots": [
+    "final-manual-analysis_top.png",
+    "final-manual-analysis_hub.png",
+    "final-compare-ready_comparison.png",
+    "final-compare-play_advanced.png"
+  ],
+  "existingOfficialApkVerification": {
+    "path": "G:/Mi unidad/KPKN Pre Release 18.apk",
+    "sha256": "1e058061be132316f850f032b66a9507f3c8ff77612e3e550fe783ecd055ea12",
+    "certificateSha256": "9e8bb57415e409a1f107e70c62b85aa65ce73576e6196470808231f256464bc1",
+    "package": "com.example.kpkn",
+    "versionCode": 52,
+    "apksignerExit": 0,
+    "aapt2Exit": 0,
+    "mutated": false
+  }
+}

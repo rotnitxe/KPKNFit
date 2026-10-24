@@ -1,5 +1,7 @@
 # Repository Structure
 
+**Estado VT vigente · 24-oct-2026:** unión actual motor10/Room30. Android release permanece equivalente al APK oficial52; pruebas físicas únicamente en una KPKN Dev estable (`com.example.kpkn.dbg`, firma debug compatible), aparte de la personal. Rutas/worker/sidecars siguen vigentes. Recorrido funcional original y privacidad acotada documentados en `video-technique/QA_FASE5_RESULTADOS_20261023.md`; ≈m/s y1RMbeta sin referencia externa. No nueva entrega ni FFmaster hasta petición humana.
+
 This repository contains the KPKN Fit product: a native Kotlin Android application (`android-native/`), an iOS port in progress (`ios-native/`), a Python backend (`backend/`), and the datasets, design assets, and scripts that support them. All legacy PWA, React, and Capacitor code has been removed.
 
 ## Top-Level Directories

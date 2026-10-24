@@ -1,5 +1,7 @@
 # UI Screens Mapping: KPKN Fit Android App (For iOS SwiftUI Porting)
 
+**Estado VT vigente · 24-oct-2026:** unión actual motor10/Room30. Android release permanece equivalente al APK oficial52; pruebas físicas únicamente en una KPKN Dev estable (`com.example.kpkn.dbg`, firma debug compatible), aparte de la personal. Rutas/worker/sidecars siguen vigentes. Recorrido funcional original y privacidad acotada documentados en `video-technique/QA_FASE5_RESULTADOS_20261023.md`; ≈m/s y1RMbeta sin referencia externa. No nueva entrega ni FFmaster hasta petición humana.
+
 This document provides a detailed breakdown of the user interface (UI) screens, Jetpack Compose layouts, ViewModels, and state interactions of the native Android app. Use this as a direct reference to construct matching SwiftUI Views and ViewModels in Xcode.
 
 > All paths below are relative to `android-native/app/src/main/java/com/example/kpkn/`.

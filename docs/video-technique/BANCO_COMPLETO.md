@@ -1,5 +1,7 @@
 # Banco completo: los 1.000 vídeos en todas las pruebas (VT11, D41)
 
+**Estado vigente · 24-oct-2026:** las cifras finales OpenPose/MediaPipe/M5 y sus límites se conservan abajo sin repetir bancos, CV, controles ni examen. QA funcional original cerrado mediante evidencia identificada; no cambia las metas98/90 incumplidas ni el timing616 del motor9. El nuevo SQUAT10ALTA/CURL≈5BAJA son comprobaciones de UI con clips públicosTUNE, no muestras nuevas de aceptación física ni resultados ciegos. Ver QA_FASE5_RESULTADOS_20261023.md. Entrega/FFmaster diferidos por orden humana; no ejecutar anexos sin pedido.
+
 Orden del usuario (20-oct): «Tenemos un banco de 1000 vídeos. Te ordeno a que los uses todos para las pruebas». Exige además que la
 función sea USABLE y con la fiabilidad de las apps del mercado. El listón por métrica sale de `MERCADO_FIABILIDAD.md`, la
 investigación del 20-oct.

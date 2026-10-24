@@ -1,5 +1,7 @@
 # Technical Mapping: KPKN Fit Android Architecture (For iOS Porting)
 
+**Estado VT vigente · 24-oct-2026:** unión actual motor10/Room30. Android release permanece equivalente al APK oficial52; pruebas físicas únicamente en una KPKN Dev estable (`com.example.kpkn.dbg`, firma debug compatible), aparte de la personal. Rutas/worker/sidecars siguen vigentes. Recorrido funcional original y privacidad acotada documentados en `video-technique/QA_FASE5_RESULTADOS_20261023.md`; ≈m/s y1RMbeta sin referencia externa. No nueva entrega ni FFmaster hasta petición humana.
+
 This document provides a comprehensive technical mapping of the native Android Kotlin codebase of KPKN Fit. It outlines every system, database table, domain logic engine, screen, and background service to ensure a 100% parity port to iOS (using SwiftUI, Swift Concurrency, SwiftData/CoreData, etc.).
 
 > Source root for everything below: `android-native/app/src/main/java/com/example/kpkn/`
@@ -11,7 +13,7 @@ This document provides a comprehensive technical mapping of the native Android K
 
 *   **Language:** Kotlin 2.2.10 (native Android)
 *   **UI Framework:** Jetpack Compose (BOM 2025.07.00, Material 3) + Haze (glassmorphism)
-*   **Database:** Room 2.7.1 (SQLite) with FTS4 full-text search — database **version 29**
+*   **Database:** Room 2.7.1 (SQLite) with FTS4 full-text search — database **version 30**
 *   **Concurrency:** Kotlin Coroutines & Flows (reactive UI updates)
 *   **Dependency Injection:** Manual constructor injection orchestrated in `MainActivity.kt` (no Hilt/Dagger overhead)
 *   **Build:** Single module `:app`; product flavors `base` (minSdk 24) and `health` (minSdk 26, adds Health Connect); `compileSdk 36`, `targetSdk 35`
