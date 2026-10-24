@@ -36,7 +36,6 @@ internal enum class WorkoutStoryTemplate(val label: String) { GENERAL("General")
 internal data class WorkoutStoryOptions(
     val template: WorkoutStoryTemplate = WorkoutStoryTemplate.GENERAL,
     val exerciseId: String? = null,
-    val rings: Boolean = true,
     val improvements: Boolean = true,
     val duration: Boolean = true,
     val intensity: Boolean = true,
@@ -49,7 +48,6 @@ internal data class WorkoutStoryData(
     val sets: Int,
     val averageRir: Double?,
     val intensity: String,
-    val rings: TowerRingValues,
     val lifts: List<FinishLiftProgress>,
 ) {
     val defaultExerciseId: String? get() = (lifts.filter { it.isImproved }.maxByOrNull { it.deltaKg ?: 0.0 } ?: lifts.firstOrNull())?.exerciseId
@@ -116,16 +114,6 @@ private class StoryDrawing(val canvas:Canvas,val blurred:Bitmap,context:Context)
         canvas.drawColor(Color.argb(97,18,16,14));canvas.restore();glassBorder(rect,radius)
     }
     private fun glassBorder(rect:RectF,radius:Float){paint.reset();paint.isAntiAlias=true;paint.style=Paint.Style.STROKE;paint.strokeWidth=1f;paint.color=0x24FFFFFF;canvas.drawRoundRect(rect,radius,radius,paint)}
-    private fun rings(data:WorkoutStoryData){
-        canvas.save();canvas.translate(36f,182f);canvas.scale(96f/170f,104f/190f)
-        val channels=listOf(arrayOf(150f,78f,26f,data.rings.columna,0xFF8FB2FF.toInt()),arrayOf(98f,58f,20f,data.rings.musculos,PEACH),arrayOf(52f,38f,14f,data.rings.energia,GOLD))
-        channels.forEach{v->
-            val cy=v[0] as Float;val rx=v[1] as Float;val ry=v[2] as Float;val value=v[3] as Int?;val color=v[4] as Int
-            val rect=RectF(85-rx,cy-ry,85+rx,cy+ry)
-            paint.reset();paint.isAntiAlias=true;paint.style=Paint.Style.STROKE;paint.strokeWidth=12f;paint.strokeCap=Paint.Cap.ROUND;paint.color=0x24FFFFFF;canvas.drawOval(rect,paint)
-            if(value!=null){paint.color=color;paint.setShadowLayer(4f,0f,0f,color);canvas.drawArc(rect,-90f,360f*value.coerceIn(0,100)/100f,false,paint);paint.clearShadowLayer()}
-        };canvas.restore()
-    }
     fun general(data:WorkoutStoryData,options:WorkoutStoryOptions){
         val visible=data.lifts.take(7)
         val rowHeight=if(visible.size>5)26f else 28f
@@ -133,14 +121,13 @@ private class StoryDrawing(val canvas:Canvas,val blurred:Bitmap,context:Context)
         glass(RectF(18f,96f,342f,bottom))
         text("SESIÓN TERMINADA",36f,126f,11f,color=MUTED)
         text(data.sessionName,36f,158f,30f,bold=true)
-        if(options.rings)rings(data)
         val metrics=buildList{
             if(options.duration)add("Duración" to "${data.durationMinutes} min")
             if(options.intensity)add("RIR medio" to (data.averageRir?.let{finishNumber(it)}?:"Sin registro"))
             add("Tonelaje" to "${finishNumber(data.volume,0)} kg");add("Series" to "${data.sets}")
         }
-        val start=if(options.rings)142f else 36f
-        val step=if(options.rings)89f else 148f
+        val start=36f
+        val step=148f
         metrics.forEachIndexed{i,(label,value)->val x=start+(i%2)*step;val y=199f+(i/2)*46f;text(label,x,y,11f,color=MUTED,maxWidth=step-5);text(value,x,y+21,16f,bold=true,maxWidth=step-5)}
         line(36f,302f,324f,302f)
         if(visible.isEmpty())text("Sin ejercicios registrados",36f,332f,13f,color=MUTED)

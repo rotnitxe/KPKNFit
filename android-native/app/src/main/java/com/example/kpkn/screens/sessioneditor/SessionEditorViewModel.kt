@@ -18,7 +18,6 @@ import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.domain.sessionassistant.SessionAssistantEngine
 import com.example.kpkn.domain.sessionassistant.SessionAssistantInput
 import com.example.kpkn.domain.sessionassistant.TimeCoachEngine
-import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateSessionTimeBreakdown
 import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
@@ -120,7 +119,7 @@ class SessionEditorViewModel(
     val corruptTemplateIds: StateFlow<List<String>> = templateRepository.corruptTemplateIds
     internal val exerciseIndex: Map<String, ExerciseMuscleInfo>
         get() = catalogExerciseIndex()
-    private var augeJob: Job? = null
+    private var analysisJob: Job? = null
     private var autoSaveJob: Job? = null
 
     /** Guardado automático en el programa (ER1a §5): la pantalla lo programa tras cada cambio; las pasadas van en serie. */
@@ -301,22 +300,9 @@ class SessionEditorViewModel(
         viewModelScope.launch(Dispatchers.IO) { draftStore.setAutoSaveEnabled(enabled) }
     }
 
-    private data class CachedWeeklyMetrics(
-        val programId: String,
-        val mesoIndex: Int,
-        val settingsHash: Int,
-        val catalogVersion: Int,
-        /** Huella del historial del programa: el ajuste por historial depende de él (MOT · I3). */
-        val logsFingerprint: Int,
-        val perSession: Map<String, Pair<Int, SessionAugeComputation>>,
-    )
-
-    @Volatile
-    private var weeklyMetricsCache: CachedWeeklyMetrics? = null
-
     private var assistantJob: Job? = null
 
-    internal fun Session.contentHashForAuge(): Int {
+    internal fun Session.contentHashForEditor(): Int {
         // Hash solo de lo que afecta AUGE: ejercicios/parts/supersets/warmup/targetDuration
         // Excluye name/description/lastModifiedAtMs/dayOfWeek
         var r = exercises.hashCode()
@@ -932,127 +918,50 @@ class SessionEditorViewModel(
                 )
             }
         }
-        scheduleAugeRecalc()
+        scheduleEditorAnalysis()
         scheduleAutoSave()
     }
 
     fun updateCurrentSession(transform: (Session) -> Session) = updateSession(transform = transform)
 
     /** Petición vigente de cálculo: un resultado de una petición anterior se descarta (AUD2-P03). */
-    private val augeGate = AugeRequestGate()
+    private val analysisGate = EditorAnalysisRequestGate()
 
-    internal fun scheduleAugeRecalc() {
-        augeJob?.cancel()
-        val ticket = augeGate.next()
-        augeJob = viewModelScope.launch {
+    internal fun scheduleEditorAnalysis() {
+        analysisJob?.cancel()
+        val ticket = analysisGate.next()
+        analysisJob = viewModelScope.launch {
             delay(300)
             withContext(Dispatchers.Default) {
                 val state = _uiState.value
                 val session = state.activeVariantSession ?: state.session ?: return@withContext
-                recalcAndPushAuge(state, session, ticket)
+                recalcAndPushEditorAnalysis(state, session, ticket)
             }
         }
     }
 
     internal fun refreshDerivedStateImmediate() {
-        augeJob?.cancel()
-        augeJob = null
+        analysisJob?.cancel()
+        analysisJob = null
         val state = _uiState.value
         val session = state.activeVariantSession ?: state.session ?: return
-        val ticket = augeGate.next()
+        val ticket = analysisGate.next()
         viewModelScope.launch(Dispatchers.Default) {
-            recalcAndPushAuge(state, session, ticket)
+            recalcAndPushEditorAnalysis(state, session, ticket)
         }
     }
 
-    private fun recalcAndPushAuge(state: SessionEditorUiState, session: Session, ticket: Long) {
-        val exercises = session.allExercises()
-        val totalSets = exercises.sumOf { it.sets.size.coerceAtLeast(1) }
-        // SE12: la duración es la del estimador común (la de Inicio y la del programa), medida sobre el borrador.
-        val durationEstimate = runCatching { SessionDurationEstimator.estimate(session) }.getOrNull()
-        val durationMinutes = durationEstimate?.totalMinutes ?: 0
-        val draftAwareWeekSessions = if (state.weekSessions.any { it.id == session.id }) {
-            state.weekSessions.map { if (it.id == session.id) session else it }
-        } else {
-            state.weekSessions + session
-        }
-        val sessionEnergy = runCatching {
-            TrainingEnergyEngine.estimatePlannedSession(session, repository.settings.value)
-        }.getOrElse { SessionEnergySummary() }
-        val programLogs = repository.getLogsForProgram(state.programId)
+    private fun recalcAndPushEditorAnalysis(state: SessionEditorUiState, session: Session, ticket: Long) {
+        val durationEstimate = SessionDurationEstimator.estimate(session)
+        val durationMinutes = durationEstimate.totalMinutes
+        val timeBreakdown = durationEstimate.toSessionTimeBreakdown(session)
+        val draftAwareWeekSessions = if (state.weekSessions.any { it.id == session.id }) state.weekSessions.map { if (it.id == session.id) session else it } else state.weekSessions + session
         val program = repository.getProgramById(state.programId)
+        val programLogs = repository.getLogsForProgram(state.programId)
         val settingsVal = repository.settings.value
         val index = exerciseIndex
-        // I3: el tamaño del índice no basta como versión (cambiar metadatos conserva el número de entradas): se usa la identidad del
-        // índice y una huella del historial, que alimenta el ajuste por historial del coste.
-        val catalogVersion = AugeCacheKeys.catalogVersion(index)
-        val settingsHash = settingsVal.hashCode()
-        val logsFingerprint = AugeCacheKeys.logsFingerprint(programLogs)
-        val cache = weeklyMetricsCache
-        val canReuseCache = cache != null && cache.programId == state.programId && cache.mesoIndex == state.mesoIndex && cache.settingsHash == settingsHash && cache.catalogVersion == catalogVersion && cache.logsFingerprint == logsFingerprint
-        val perSessionMutable = mutableMapOf<String, Pair<Int, SessionAugeComputation>>()
-        if (canReuseCache) {
-            perSessionMutable.putAll(cache!!.perSession)
-        }
-        fun cachedCompute(s: Session): SessionAugeComputation {
-            val h = s.contentHashForAuge()
-            val cached = if (canReuseCache) cache?.perSession?.get(s.id) else null
-            if (cached != null && cached.first == h) return cached.second
-            val computed = computeSessionAugeComputation(s, index, settingsVal, programLogs, state.programId, state.mesoIndex)
-            perSessionMutable[s.id] = h to computed
-            return computed
-        }
-        val summary = runCatching {
-            val currentMetrics = cachedCompute(session)
-            val weeklyMetrics = draftAwareWeekSessions.map { cachedCompute(it) }
-            weeklyMetricsCache = CachedWeeklyMetrics(
-                programId = state.programId,
-                mesoIndex = state.mesoIndex,
-                settingsHash = settingsHash,
-                catalogVersion = catalogVersion,
-                logsFingerprint = logsFingerprint,
-                perSession = perSessionMutable,
-            )
-            buildAugeSummaryFromMetrics(
-                currentSession = session,
-                weekSessions = draftAwareWeekSessions,
-                currentMetrics = currentMetrics,
-                weeklyMetrics = weeklyMetrics,
-                program = program,
-                settings = settingsVal,
-            )
-        }.getOrElse {
-            // Fallback sin cache
-            try {
-                buildAugeSummary(
-                    currentSession = session,
-                    weekSessions = draftAwareWeekSessions,
-                    exerciseIndex = index,
-                    settings = settingsVal,
-                    programLogs = programLogs,
-                    program = program,
-                    programId = state.programId,
-                    mesoIndex = state.mesoIndex,
-                )
-            } catch (_: Throwable) {
-                SessionEditorAugeSummary(
-                    sessionDrain = PredictedDrain(0, 0, 0),
-                    weeklyDrain = PredictedDrain(0, 0, 0),
-                    sessionSetCount = totalSets,
-                    sessionDurationMinutes = durationMinutes,
-                    sessionEnergy = sessionEnergy,
-                )
-            }
-        }
-        // La cabecera y las reglas leen este desglose, ya del estimador común (SessionEditorDuration.kt).
-        val timeBreakdown = durationEstimate?.toSessionTimeBreakdown(session)
-        // Assistant bajo demanda: inmediato si AUGE abierto, si no debounce 2500ms
-        val shouldEvaluateAssistantNow = state.sheet == SessionEditorSheet.AUGE
-        // Una petición más reciente (otra edición o variante) ya está en marcha: este resultado no es de la sesión que se ve.
-        if (!augeGate.isCurrent(ticket)) return
-        if (shouldEvaluateAssistantNow) {
-            val assistantReport = runCatching {
-                val templates = allTemplates.value
+        val templates = allTemplates.value
+        val assistantReport = runCatching {
                 SessionAssistantEngine.evaluate(
                     input = SessionAssistantInput(
                         allExercisesInSession = session.allExercises(),
@@ -1081,79 +990,11 @@ class SessionEditorViewModel(
                     ),
                     allTemplates = templates,
                 )
-            }.getOrNull()
-            _uiState.update {
-                it.copy(
-                    estimatedDurationMinutes = durationMinutes,
-                    sessionTimeBreakdown = timeBreakdown,
-                    predictedDrain = summary.sessionDrain,
-                    augeSummary = summary.copy(
-                        sessionEnergy = sessionEnergy,
-                        sessionTimeBreakdown = timeBreakdown,
-                        sessionDurationMinutes = durationMinutes,
-                    ),
-                    assistantReport = assistantReport,
-                    ghostExerciseCards = assistantReport?.tarjetasFantasma ?: emptyList(),
-                )
-            }
-        } else {
-            // Rings/volumen sin assistant inmediato
-            _uiState.update {
-                it.copy(
-                    estimatedDurationMinutes = durationMinutes,
-                    sessionTimeBreakdown = timeBreakdown,
-                    predictedDrain = summary.sessionDrain,
-                    augeSummary = summary.copy(
-                        sessionEnergy = sessionEnergy,
-                        sessionTimeBreakdown = timeBreakdown,
-                        sessionDurationMinutes = durationMinutes,
-                    ),
-                )
-            }
-            assistantJob?.cancel()
-            assistantJob = viewModelScope.launch(Dispatchers.Default) {
-                delay(2500)
-                val s = _uiState.value
-                val sess = s.activeVariantSession ?: s.session ?: return@launch
-                // Si se abrió AUGE entretanto, el otro path ya se encargó
-                if (s.sheet == SessionEditorSheet.AUGE) return@launch
-                val prog = repository.getProgramById(s.programId)
-                val logs = repository.getLogsForProgram(s.programId)
-                val setVal = repository.settings.value
-                val idx = exerciseIndex
-                val report = runCatching {
-                    val templates = allTemplates.value
-                    SessionAssistantEngine.evaluate(
-                        input = SessionAssistantInput(
-                            allExercisesInSession = sess.allExercises(),
-                            weekSessions = if (s.weekSessions.any { it.id == sess.id }) s.weekSessions.map { if (it.id == sess.id) sess else it } else s.weekSessions + sess,
-                            currentSessionId = sess.id,
-                            program = prog,
-                            settings = setVal,
-                            workoutLogs = logs,
-                            exerciseIndex = idx,
-                            ruleLimits = com.example.kpkn.domain.sessionassistant.SessionEditorRuleLimits(
-                                maxRPE = s.ruleLimits.maxRPE ?: 10.0,
-                                maxExercisesPerMuscle = s.ruleLimits.maxExercisesPerMuscle ?: 6,
-                                maxVolumePerMuscleSession = s.ruleLimits.maxVolumePerMuscleSession ?: 12.0,
-                                maxVolumePerMuscleWeekly = s.ruleLimits.maxVolumePerMuscleWeekly ?: 24.0,
-                                maxSamePatternPerSession = s.ruleLimits.maxSamePatternPerSession ?: 4,
-                                rigidLimits = s.ruleLimits.rigidLimits,
-                            ),
-                            mesoIndex = s.mesoIndex,
-                            programId = s.programId,
-                            targetDurationMinutes = sess.targetDurationMinutes,
-                            supersetGroups = sess.allSupersetGroups(),
-                            sessionWarmup = sess.warmup,
-                            session = sess,
-                            supersetBetweenRestSeconds = s.ruleDefaults.supersetBetweenRestSeconds,
-                            supersetRoundRestSeconds = s.ruleDefaults.supersetRoundRestSeconds,
-                        ),
-                        allTemplates = templates,
-                    )
-                }.getOrNull()
-                _uiState.update { it.copy(assistantReport = report, ghostExerciseCards = report?.tarjetasFantasma ?: emptyList()) }
-            }
+        }.getOrNull()
+        if (!analysisGate.isCurrent(ticket)) return
+        _uiState.update { current ->
+            current.copy(estimatedDurationMinutes = durationMinutes, sessionTimeBreakdown = timeBreakdown,
+                assistantReport = assistantReport, ghostExerciseCards = assistantReport?.tarjetasFantasma.orEmpty())
         }
     }
 
@@ -1161,9 +1002,9 @@ class SessionEditorViewModel(
         val state = _uiState.value
         val session = state.activeVariantSession ?: state.session ?: return
         assistantJob?.cancel()
-        val ticket = augeGate.next()
+        val ticket = analysisGate.next()
         viewModelScope.launch(Dispatchers.Default) {
-            recalcAndPushAuge(state, session, ticket)
+            recalcAndPushEditorAnalysis(state, session, ticket)
         }
     }
 
@@ -1238,7 +1079,7 @@ class SessionEditorViewModel(
                 quickActionsExerciseId = if (sheet == SessionEditorSheet.QUICK_ACTIONS) state.quickActionsExerciseId else null,
             )
         }
-        if (sheet == SessionEditorSheet.AUGE) {
+        if (sheet == SessionEditorSheet.ASSISTANT) {
             refreshAssistantImmediate()
         }
     }
@@ -1386,7 +1227,7 @@ calculateSessionTimeBreakdown(
         }
         textHistoryBaseline = null
         textHistoryDebounceJob?.cancel()
-        scheduleAugeRecalc()
+        scheduleEditorAnalysis()
         scheduleAutoSave()
     }
 

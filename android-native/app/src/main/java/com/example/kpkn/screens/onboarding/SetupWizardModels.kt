@@ -89,10 +89,10 @@ import com.example.kpkn.domain.multisport.TrainingIntent
 import java.time.LocalDate
 
 @Serializable
-enum class SetupWizardMode { FULL, TRAINING_ONLY, NUTRITION_ONLY, RINGS_ONLY, RESUME }
+enum class SetupWizardMode { FULL, TRAINING_ONLY, NUTRITION_ONLY, RESUME }
 
 @Serializable
-enum class SetupWizardChapter { PROFILE, VOLUME, TRAINING, WEEK, NUTRITION, RINGS, REVIEW }
+enum class SetupWizardChapter { PROFILE, VOLUME, TRAINING, WEEK, NUTRITION, REVIEW }
 
 @Serializable
 enum class SetupModuleChoice { TRAINING, TRAINING_AND_NUTRITION }
@@ -1046,7 +1046,7 @@ data class SetupSubmitResult(
 }
 
 /** Operations that can fail and be retried explicitly from the UI. */
-enum class SetupRetryOperation { LOAD, SAVE, PREVIEW, CANDIDATES, RINGS_PREVIEW, COMMIT }
+enum class SetupRetryOperation { LOAD, SAVE, PREVIEW, CANDIDATES, COMMIT }
 
 /**
  * Records provenance for [step] and moves the cursor exactly one step forward.
@@ -1559,7 +1559,7 @@ object SetupWizardValidation {
                 }
             }
             SetupWizardChapter.NUTRITION -> Unit
-            SetupWizardChapter.RINGS, SetupWizardChapter.REVIEW -> Unit
+            SetupWizardChapter.REVIEW -> Unit
         }
     }
 
@@ -1662,8 +1662,7 @@ object SetupWizardValidation {
                 }
             }
             SetupStepId.EXPERIENCE -> choice("experience", draft.experience?.label, "Elige tu experiencia")
-            SetupStepId.MILESTONE_BASICS, SetupStepId.MILESTONE_TRAINING,
-            SetupStepId.MILESTONE_NUTRITION, SetupStepId.MILESTONE_RINGS -> emptyList()
+            SetupStepId.MILESTONE_BASICS, SetupStepId.MILESTONE_TRAINING, SetupStepId.MILESTONE_NUTRITION -> emptyList()
             // Pasos retirados de la ruta (solo se leen en borradores antiguos): fuera de la ruta no validan nada.
             SetupStepId.ROUTE, SetupStepId.STYLE, SetupStepId.DAYS, SetupStepId.SPLIT, SetupStepId.TRAINING_MARKS,
             SetupStepId.AUTOREGULATION, SetupStepId.AUTOREGULATION_CONFIRM, SetupStepId.WARMUPS,
@@ -1800,7 +1799,7 @@ object SetupWizardValidation {
             }
             // La semana armada es una decisión sobre el programa ya elegido: nunca bloquea por sí sola.
             SetupStepId.WEEK_LAYOUT -> ok("weekLayout")
-            SetupStepId.NUTRITION_RESULT, SetupStepId.RINGS_RESULT, SetupStepId.REVIEW_ACTIVATE -> emptyList()
+            SetupStepId.NUTRITION_RESULT, SetupStepId.REVIEW_ACTIVATE -> emptyList()
             SetupStepId.NUTRITION_START -> if (draft.isAnswered(step)) ok("nutritionStart") else absent("nutritionStart", "Elige una opción de nutrición")
             SetupStepId.NUTRITION_SEX -> if (draft.nutritionDraft?.equationSex != null) ok("equationSex")
                 else absent("equationSex", "Elige el sexo que usamos solo para calcular tu energía")
@@ -1879,57 +1878,22 @@ object SetupWizardValidation {
             }
             // RINGS v2: la intro no declara nada; los días y los ejercicios piden su respuesta («No entrené», «No lo recuerdo»,
             // «Ninguno de estos» y «No lo sé» la valen); las series y las sensaciones son omitibles.
-            SetupStepId.RINGS_INTRO -> ok("intro")
-            SetupStepId.RINGS_SESSION_DAYS -> when (draft.ringsAnswers?.sessionDaysState) {
-                RingsSessionDaysState.DECLARED -> if (draft.ringsAnswers?.trainedDayOffsets.orEmpty().isNotEmpty()) ok("sessionDays")
-                    else absent("sessionDays", "Marca los días que entrenaste, «No entrené» o «No lo recuerdo»")
-                RingsSessionDaysState.NONE, RingsSessionDaysState.UNKNOWN -> ok("sessionDays")
-                RingsSessionDaysState.NOT_ANSWERED, null ->
-                    absent("sessionDays", "Marca los días que entrenaste, «No entrené» o «No lo recuerdo»")
-            }
-            SetupStepId.RINGS_MAIN_LIFTS -> when (draft.ringsAnswers?.mainLiftsState) {
-                RingsMainLiftsState.DECLARED -> if (draft.ringsAnswers?.mainLifts.orEmpty().isNotEmpty()) ok("mainLifts")
-                    else absent("mainLifts", "Elige un ejercicio, «Ninguno de estos» o «No lo sé»")
-                RingsMainLiftsState.NONE, RingsMainLiftsState.UNKNOWN -> ok("mainLifts")
-                RingsMainLiftsState.NOT_ANSWERED, null -> absent("mainLifts", "Elige un ejercicio, «Ninguno de estos» o «No lo sé»")
-            }
-            SetupStepId.RINGS_GROUP_SETS -> ok("groupSets")
-            SetupStepId.RINGS_FEELINGS -> ok("feelings")
-            SetupStepId.RINGS_START -> if (draft.isAnswered(step)) ok("startAction") else absent("startAction", "Elige cómo situar tus RINGS")
-            SetupStepId.RINGS_RECENT -> when (draft.ringsAnswers?.recentTrainingState) {
-                null, SetupRecentTrainingState.NOT_ANSWERED ->
-                    if (draft.isAnswered(step)) ok("recentTraining")
-                    else absent("recentTraining", "Indica si entrenaste en los últimos siete días")
-                // «No lo sé» explícito (UNKNOWN) permite resultado parcial:
-                // desconocer el historial no es no haber entrenado.
-                else -> ok("recentTraining")
-            }
-            SetupStepId.RINGS_SESSIONS -> if (draft.ringsAnswers?.sessionsLastSevenDays != null) ok("sessions")
-                else absent("sessions", "Indica cuántas sesiones hiciste")
-            SetupStepId.RINGS_RECENCY -> if (draft.ringsAnswers?.lastSessionRecencyDays != null) ok("recency")
-                else absent("recency", "Indica cuándo fue tu última sesión")
-            SetupStepId.RINGS_ACTIVITY -> if (draft.ringsAnswers?.activityType != null) ok("activityType")
-                else absent("activityType", "Indica qué predominó en tus sesiones")
-            SetupStepId.RINGS_INTENSITY -> if (draft.ringsAnswers?.intensityLevel != null) ok("intensity")
-                else absent("intensity", "Indica cómo sentiste la intensidad")
-            SetupStepId.RINGS_AXIAL -> if (draft.isAnswered(step)) ok("axial") else absent("axial", "Indica si hubo cargas pesadas para la espalda")
-            // Sensaciones con `allowSkip`: «No lo sé» o una omisión explícita
-            // habilita Continuar sin fabricar un nivel 0. Un check-in parcial
-            // (historial incompleto) nunca se bloquea aquí: el mapper decide
-            // INCOMPLETE/PARTIAL y este validador solo exige el dato del control.
-            SetupStepId.RINGS_MUSCLE_FEELING -> if (draft.ringsAnswers?.muscleFeeling != null || draft.isAnswered(step)) ok("muscleFeeling")
-                else absent("muscleFeeling", "Indica cómo se sienten tus músculos")
-            SetupStepId.RINGS_ENERGY_FEELING -> if (draft.ringsAnswers?.energy != null || draft.isAnswered(step)) ok("energy")
-                else absent("energy", "Indica cómo está tu energía")
-            SetupStepId.RINGS_STRUCTURE_FEELING -> if (draft.ringsAnswers?.structureFeeling != null || draft.isAnswered(step)) ok("structureFeeling")
-                else absent("structureFeeling", "Indica cómo está tu columna")
-            SetupStepId.RINGS_DISCOMFORT -> when (draft.ringsAnswers?.discomfortState) {
-                null, SetupDiscomfortState.NOT_ANSWERED ->
-                    if (draft.isAnswered(step)) ok("discomfort")
-                    else absent("discomfort", "Indica si hay alguna molestia o si prefieres omitirlo")
-                // NONE/DECLARED/OMITTED son respuestas explícitas conservadas.
-                else -> ok("discomfort")
-            }
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
         }
     }
 

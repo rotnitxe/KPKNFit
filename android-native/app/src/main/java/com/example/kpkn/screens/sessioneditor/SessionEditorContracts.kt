@@ -12,7 +12,7 @@ enum class SessionEditorSheet {
     RULES,
     TRANSFER,
     SAVE,
-    AUGE,
+    ASSISTANT,
     WARMUP,
     MOBILITY_PICKER,
     CARDIO_PICKER,

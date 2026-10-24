@@ -364,13 +364,9 @@ data class LivePlanContext(
 )
 
 data class WorkoutSessionSummary(
-    val intensityDescriptor: String,
+    val durationMinutes: Int,
+    val recordedSets: Int,
     val discomforts: List<String>,
-    val muscularRing: Int,
-    val lowestMuscle: String?,
-    val energyRing: Int,
-    val spinalRing: Int,
-    val nextSessionText: String,
     val isPlaceholder: Boolean = false,
 )
 

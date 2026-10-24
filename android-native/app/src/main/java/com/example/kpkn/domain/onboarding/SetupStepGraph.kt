@@ -25,7 +25,7 @@ import kotlinx.serialization.Serializable
  */
 
 @Serializable
-enum class SetupWizardBlock { BASICS, TRAINING, NUTRITION, RINGS, REVIEW }
+enum class SetupWizardBlock { BASICS, TRAINING, NUTRITION, REVIEW }
 
 @Serializable
 enum class SetupStepKind { QUESTION, MILESTONE, REVIEW }
@@ -70,13 +70,6 @@ enum class SetupStepId {
     NUTRITION_TARGET, NUTRITION_HISTORY_CONTEXT, NUTRITION_ACTIVITY,
     NUTRITION_MANUAL_CALORIES, NUTRITION_MANUAL_CARBS_FAT,
     NUTRITION_DISTRIBUTION, NUTRITION_WEIGH_INS, NUTRITION_RESULT, MILESTONE_NUTRITION,
-    // Rings (v2): intro, días, ejercicios principales, series por grupo, intensidad, sensaciones en una pantalla y molestias.
-    // RINGS_RECENT, RINGS_SESSIONS, RINGS_RECENCY, RINGS_ACTIVITY, RINGS_AXIAL y las tres sensaciones sueltas salieron de la
-    // ruta: solo siguen para leer borradores antiguos.
-    RINGS_INTRO, RINGS_SESSION_DAYS, RINGS_MAIN_LIFTS, RINGS_GROUP_SETS, RINGS_FEELINGS,
-    RINGS_RECENT, RINGS_SESSIONS, RINGS_RECENCY, RINGS_ACTIVITY, RINGS_INTENSITY,
-    RINGS_AXIAL, RINGS_MUSCLE_FEELING, RINGS_ENERGY_FEELING, RINGS_STRUCTURE_FEELING,
-    RINGS_DISCOMFORT, RINGS_RESULT, MILESTONE_RINGS,
     // Revisión y activación
     REVIEW_ACTIVATE,
 
@@ -89,8 +82,6 @@ enum class SetupStepId {
     HOME_EQUIPMENT,
     @Deprecated("Sexo de nutrición legacy: los valores explícitos migran a EQUATION_SEX")
     NUTRITION_SEX,
-    @Deprecated("Acción de inicio de Rings legacy: el bloque RINGS es obligatorio")
-    RINGS_START,
     /** Material disponible (símbolos de implementos), sin inventario de kilos ni cantidades. */
     AVAILABILITY,
 }
@@ -244,36 +235,17 @@ object SetupStepGraph {
         SetupStepId.NUTRITION_WEIGH_INS to SetupWizardBlock.NUTRITION,
         SetupStepId.NUTRITION_RESULT to SetupWizardBlock.NUTRITION,
         SetupStepId.MILESTONE_NUTRITION to SetupWizardBlock.NUTRITION,
-        SetupStepId.RINGS_INTRO to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_SESSION_DAYS to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_MAIN_LIFTS to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_GROUP_SETS to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_FEELINGS to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_RECENT to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_SESSIONS to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_RECENCY to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_ACTIVITY to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_INTENSITY to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_AXIAL to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_MUSCLE_FEELING to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_ENERGY_FEELING to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_STRUCTURE_FEELING to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_DISCOMFORT to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_RESULT to SetupWizardBlock.RINGS,
-        SetupStepId.MILESTONE_RINGS to SetupWizardBlock.RINGS,
         SetupStepId.REVIEW_ACTIVATE to SetupWizardBlock.REVIEW,
         // Legacy read-only steps keep their block so deserialized progress stays coherent.
         SetupStepId.GENDER to SetupWizardBlock.BASICS,
         SetupStepId.HOME_EQUIPMENT to SetupWizardBlock.TRAINING,
         SetupStepId.NUTRITION_SEX to SetupWizardBlock.NUTRITION,
-        SetupStepId.RINGS_START to SetupWizardBlock.RINGS,
     )
 
     private val milestones: Map<SetupWizardBlock, SetupStepId> = mapOf(
         SetupWizardBlock.BASICS to SetupStepId.MILESTONE_BASICS,
         SetupWizardBlock.TRAINING to SetupStepId.MILESTONE_TRAINING,
         SetupWizardBlock.NUTRITION to SetupStepId.MILESTONE_NUTRITION,
-        SetupWizardBlock.RINGS to SetupStepId.MILESTONE_RINGS,
     )
 
     /** Legacy question rendered as a 1:1 copy of a step (read/migration only). */
@@ -752,7 +724,7 @@ data class SetupFieldCheck(
 @Serializable
 enum class SetupPreviewKind {
     EER, MACROS, EXPENDITURE, NUTRITION_REFERENCES, NUTRITION_DISTRIBUTION,
-    EXERCISES, LOADS, WARMUPS, PLAN_CANDIDATES, SPLIT, RECIPE, MARKS, RINGS_BATTERIES,
+    EXERCISES, LOADS, WARMUPS, PLAN_CANDIDATES, SPLIT, RECIPE, MARKS,
 }
 
 /**
@@ -872,7 +844,7 @@ object SetupDependencyRules {
         )
         // Sensaciones → solo Rings.
         SetupChangeSource.SENSATIONS -> SetupDependencyImpact(
-            stalePreviews = setOf(SetupPreviewKind.RINGS_BATTERIES),
+            stalePreviews = emptySet(),
         )
     }
 }

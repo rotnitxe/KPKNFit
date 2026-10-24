@@ -1376,6 +1376,10 @@ fun WorkoutScreen(
             durationMinutes = ((completionMs - uiState.startTimeMs) / 60_000).toInt().coerceAtLeast(0),
             initialNotes = uiState.sessionNotes,
             saving = uiState.isFinishingWorkout,
+            calibrationDecisions = uiState.calibrationDecisions,
+            discomforts = uiState.postExerciseFeedbackByExerciseId.values.flatMap { it.discomfortIds }.filter { it != "none" }.distinct(),
+            presentation = viewModel.finishPresentationContext(),
+            onSummaryReady = viewModel::announceWorkoutSessionSummary,
             onNotes = viewModel::setSessionNotes,
             onAlbum = { viewModel.mediaCapture.openAlbumSheet() },
             onConfirm = { notes, effort ->

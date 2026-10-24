@@ -184,6 +184,6 @@ internal fun SessionEditorViewModel.updateActiveVariantSession(transform: (Sessi
     }
     updateUi { it.copy(session = updatedBase, hasUnsavedChanges = true) }
     scheduleAutoSave()
-    scheduleAugeRecalc()
+    scheduleEditorAnalysis()
 }
 

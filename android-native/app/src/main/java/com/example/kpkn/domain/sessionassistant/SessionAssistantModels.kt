@@ -167,8 +167,8 @@ data class VolumeThreshold(
 )
 
 data class SessionAssistantReport(
-    val veredicto: Verdict,
-    val scoreEstimado: Int,
+    val veredicto: Verdict?,
+    val scoreEstimado: Int?,
     val riesgos: List<SessionRisk>,
     val ajustes: List<AssistantSuggestion>,
     val oportunidades: List<AssistantSuggestion>,
@@ -176,7 +176,7 @@ data class SessionAssistantReport(
     val plantillasCompatibles: List<TemplatePreview>,
     val volumenPorMusculo: Map<String, Double>,
     val umbralesPorMusculo: Map<String, VolumeThreshold>,
-    val drenajeEstimado: PredictedDrain,
+    val drenajeEstimado: PredictedDrain?,
     val duracionEstimada: Int,
     val resumenTexto: String,
     val totalRestSeconds: Int = 0,

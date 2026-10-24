@@ -2,6 +2,7 @@ package com.example.kpkn.domain.training.insights
 
 import com.example.kpkn.domain.multisport.SportId
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 
 @Serializable
 enum class FactOrigin { OBSERVED, SELF_REPORTED, DESCRIPTIVE_CALCULATION, ESTIMATED, HISTORICAL_AMBIGUOUS }
@@ -19,7 +20,7 @@ data class TrainingFact(
     val origin: FactOrigin,
     val exerciseVariant: String?,
     val method: String?,
-    val protocol: String?,
+    @SerialName("protocolId") val protocol: String?,
     val context: Map<String, String> = emptyMap(),
 )
 
@@ -42,7 +43,7 @@ object TrainingInsightsEngine {
     fun visible(facts: List<TrainingFact>, nowMs: Long, weeks: Int = 4): List<TrainingFact> {
         require(weeks in setOf(1, 4, 12))
         val from = nowMs - weeks * 7L * 86_400_000L
-        return facts.filter { it.occurredAtMs in from..nowMs && it.value.isFinite() }
+        return facts.filter { it.sourceId.isNotBlank() && it.activityId.isNotBlank() && it.occurredAtMs in from..nowMs && it.value.isFinite() }
             .groupBy { it.sourceId }.values.filter { it.distinct().size == 1 }.map { it.first() }.sortedBy { it.occurredAtMs }
     }
 
@@ -69,8 +70,12 @@ object TrainingInsightsEngine {
             else "Comparación descriptiva de ${previous.size} registros anteriores; no mide recuperación ni seguridad.")
     }
 
+    private fun known(value: String?): Boolean = !value.isNullOrBlank() && value.trim().lowercase() !in
+        setOf("unknown", "desconocido", "desconocida", "sin datos", "null", "unspecified")
+
     fun comparable(a: TrainingFact, b: TrainingFact): Boolean =
-        !a.exerciseVariant.isNullOrBlank() && !a.method.isNullOrBlank() && !a.protocol.isNullOrBlank() &&
+        known(a.exerciseVariant) && known(a.method) && known(a.protocol) && known(a.metric) && known(a.unit) &&
+            a.context.isNotEmpty() && a.context.all { (key,value) -> known(key) && known(value) } &&
             a.sport == b.sport && a.metric == b.metric && a.unit == b.unit && a.origin == b.origin &&
             a.origin != FactOrigin.HISTORICAL_AMBIGUOUS &&
             a.exerciseVariant == b.exerciseVariant && a.method == b.method && a.protocol == b.protocol && a.context == b.context

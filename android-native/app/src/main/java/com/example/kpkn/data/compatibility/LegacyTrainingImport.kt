@@ -67,14 +67,42 @@ object LegacyTrainingImport {
     }).toString()
 
     private val draftRetired = setOf("ringsAnswers", "manualMuscleOverrides", "manualEnergyOverride", "manualStructureOverride", "ringsBatteriesPreview", "ringsCoveragePreview", "ringsMuscleEstimates")
-    fun draftOriginals(raw: String): JsonObject = JsonObject(parseObject(raw).filterKeys { it in draftRetired && !it.endsWith("Preview") && it != "ringsMuscleEstimates" })
+    private fun retiredStep(id: String): Boolean = id.startsWith("RINGS_") || id == "MILESTONE_RINGS"
+    fun draftOriginals(raw: String): JsonObject {
+        val obj=parseObject(raw)
+        val kept=obj.filterKeys { it in draftRetired && !it.endsWith("Preview") && it != "ringsMuscleEstimates" }.toMutableMap()
+        for (key in listOf("stepSelections", "stepValues", "stepNumbers", "stepTexts")) {
+            (obj[key] as? JsonObject)?.filterKeys(::retiredStep)?.takeIf { it.isNotEmpty() }?.let { kept[key]=JsonObject(it) }
+        }
+        (obj["wizChat"] as? JsonObject)?.get("acceptedAnswers")?.jsonArray?.filter {
+            it.jsonObject["questionId"]?.jsonPrimitive?.content?.startsWith("R_") == true
+        }?.takeIf { it.isNotEmpty() }?.let { kept["legacyConversationAnswers"]=JsonArray(it) }
+        return JsonObject(kept)
+    }
     fun draft(raw: String): String {
         val obj = parseObject(raw)
         return JsonObject(obj.filterKeys { it !in draftRetired }.mapValues { (key,value) ->
             when {
                 key == "draftScope" && value.jsonPrimitive.content.lowercase().contains("rings") -> JsonPrimitive("resume")
+                key in setOf("stepSelections","stepValues","stepNumbers","stepTexts") && value is JsonObject -> JsonObject(value.filterKeys { !retiredStep(it) })
                 key == "stepProgress" -> JsonObject(value.jsonObject.mapValues { (k,v) ->
-                    if (k == "stalePreviews") JsonArray(v.jsonArray.filterNot { it.jsonPrimitive.content == "RINGS_BATTERIES" }) else v
+                    when {
+                        k == "currentStepId" && retiredStep(v.jsonPrimitive.content) -> JsonPrimitive("REVIEW_ACTIVATE")
+                        k == "block" && v.jsonPrimitive.content == "RINGS" -> JsonPrimitive("REVIEW")
+                        k == "completedBlocks" -> JsonArray(v.jsonArray.filterNot { it.jsonPrimitive.content == "RINGS" })
+                        k in setOf("visited","pendingReview") -> JsonArray(v.jsonArray.filterNot { retiredStep(it.jsonPrimitive.content) })
+                        k == "answers" -> JsonObject(v.jsonObject.filterKeys { !retiredStep(it) })
+                        k == "stalePreviews" -> JsonArray(v.jsonArray.filterNot { it.jsonPrimitive.content == "RINGS_BATTERIES" })
+                        else -> v
+                    }
+                })
+                key == "wizChat" -> JsonObject(value.jsonObject.mapValues { (k,v) ->
+                    when {
+                        k == "currentQuestionId" && v.jsonPrimitive.content.startsWith("R_") -> JsonPrimitive("REVIEW")
+                        k == "stage" && v.jsonPrimitive.content == "RINGS" -> JsonPrimitive("REVIEW")
+                        k == "acceptedAnswers" -> JsonArray(v.jsonArray.filterNot { it.jsonObject["questionId"]?.jsonPrimitive?.content?.startsWith("R_") == true })
+                        else -> v
+                    }
                 })
                 else -> value
             }
@@ -87,10 +115,13 @@ object LegacyTrainingImport {
 
     fun log(raw: String): String {
         val obj = parseObject(raw)
-        return JsonObject(obj.filterKeys { it !in derivedLog }.mapValues { (key,value) ->
+        val legacyEnergy = (obj["energySummary"] as? JsonObject)?.let {
+            it["methodVersion"]?.jsonPrimitive?.content?.startsWith("auge-energy") ?: true
+        } == true
+        return JsonObject(obj.filterKeys { it !in derivedLog && !(it == "energySummary" && legacyEnergy) }.mapValues { (key,value) ->
             when(key) {
                 "completedExercises" -> JsonArray(value.jsonArray.map { ex ->
-                    JsonObject(ex.jsonObject.mapValues { (k,v) -> if (k == "sets") JsonArray(v.jsonArray.map { set ->
+                    JsonObject(ex.jsonObject.filterKeys { it != "totalSpinalScore" }.mapValues { (k,v) -> if (k == "sets") JsonArray(v.jsonArray.map { set ->
                         JsonObject(set.jsonObject.filterKeys { it !in setOf("batteryDrain", "cnsDrain", "spinalDrain", "muscularDrain", "readinessScore", "spinalScore") })
                     }) else v })
                 })

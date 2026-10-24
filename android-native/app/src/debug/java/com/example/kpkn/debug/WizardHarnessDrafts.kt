@@ -337,13 +337,7 @@ internal fun SetupWizardDraft.answeredAs(step: SetupStepId, persona: HarnessPers
     SetupStepId.NUTRITION_WEIGH_INS -> copy(historicalWeighIns = harnessWeighIns())
     // RINGS: ayer y hace tres días (uno cae en las 72 h, así que sale la pregunta de series), dos ejercicios principales, series
     // por grupo (piernas 12, pecho 9), intensidad «Dura», sensaciones medias (3 de 5) y sin molestias: ruta de RINGS hasta la revisión.
-    SetupStepId.RINGS_SESSION_DAYS -> withTrainedDayToggled(1).withTrainedDayToggled(3)
-    SetupStepId.RINGS_MAIN_LIFTS -> withMainLiftToggled(RingsLiftPattern.SQUAT).withMainLiftToggled(RingsLiftPattern.BENCH)
-    SetupStepId.RINGS_GROUP_SETS -> withGroupSets(RingsMuscleGroup.LEGS, 12).withGroupSets(RingsMuscleGroup.CHEST, 9)
-    SetupStepId.RINGS_INTENSITY -> withStepChoice(step, InitialRecoveryIntensity.HARD.name)
-    SetupStepId.RINGS_FEELINGS -> withFeelings(muscular = 3, energy = 3, structure = 3)
     // La molestia se escribe con la selección múltiple: es la que proyecta «Sin molestias» (con `withStepChoice` no llega).
-    SetupStepId.RINGS_DISCOMFORT -> withStepChoices(step, setOf("none"))
     else -> this
 }
 

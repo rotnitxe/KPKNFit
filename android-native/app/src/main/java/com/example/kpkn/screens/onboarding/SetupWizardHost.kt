@@ -92,7 +92,6 @@ import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTopScrim
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
-import com.example.kpkn.screens.onboarding.rings.RingsIntroOverlay
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.flow.first
@@ -271,7 +270,7 @@ private fun WizardLongPage(
     // panel ya dice por qué y el check se apaga hasta que el plan sea razonable (el ViewModel lo vuelve a exigir).
     val nutritionPlanBlocked = nutritionResultGate(state, step).isNotEmpty()
     val checkEnabled = state.canConfirmStep && aliasReady && measuresReady && !state.isSubmittingAnswer && !nutritionPlanBlocked
-    val ctaLabel = if (step == SetupStepId.REVIEW_ACTIVATE) "Activar y entrar a KPKN" else if (step == SetupStepId.RINGS_INTRO) "Empezar" else "Continuar"
+    val ctaLabel = if (step == SetupStepId.REVIEW_ACTIVATE) "Activar y entrar a KPKN" else "Continuar"
     // Editando antes de la intención de regreso: confirmar guarda el cambio y devuelve a donde estaba. El botón lo dice y una línea lo explica.
     val keepsLaterAnswers = state.draft.keepsLaterAnswers()
 
@@ -561,14 +560,7 @@ private fun WizardLongPage(
 
         // La intro de RINGS: un overlay animado sobre el paso RINGS_INTRO (la ruta no cambia). «Empezar» confirma el paso;
         // atrás vuelve al hito de Nutrición.
-        if (step == SetupStepId.RINGS_INTRO) {
-            key(step) {
-                RingsIntroOverlay(
-                    onContinue = { viewModel.submitCurrentStep(step) },
-                    onBack = { viewModel.goBack() },
-                )
-            }
-        }
+
 
         // La revisión y activación (K9): el overlay con el resumen de cada bloque y el botón «Activar y entrar a KPKN», que llama
         // al mismo `onActivate` del dock. Con el cursor en REVIEW_ACTIVATE; la página de debajo queda vacía.

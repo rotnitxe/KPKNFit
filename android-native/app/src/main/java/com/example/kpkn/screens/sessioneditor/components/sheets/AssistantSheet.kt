@@ -41,7 +41,7 @@ import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
 
 /** Pestañas del asistente, en el orden del control segmentado: Impacto · Sugerencias · Plantillas. */
-private val AssistantTabLabels = listOf("Impacto", "Sugerencias", "Plantillas")
+private val AssistantTabLabels = listOf("Contenido", "Sugerencias", "Plantillas")
 
 @Composable
 internal fun AssistantGlassOverlay(
@@ -177,7 +177,7 @@ internal fun AssistantSheet(
                 onEditUserTemplate = onEditUserTemplate,
                 onSaveCurrentTemplate = onSaveCurrentTemplate,
             )
-            else -> AssistantImpactTab(uiState = uiState)
+            else -> AssistantContentsTab(uiState = uiState)
         }
     }
 }

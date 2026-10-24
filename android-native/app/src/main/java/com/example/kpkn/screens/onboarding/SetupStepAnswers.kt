@@ -220,7 +220,6 @@ private val DERIVED_SELECTION_STEPS: Set<SetupStepId> = setOf(
     // ¿Compites?: sale de `competition`, `meetDateIso` y `meetName`.
     SetupStepId.COMPETITION,
     // RINGS v2: días y ejercicios principales se leen de sus campos (los reductores de días y ejercicios los escriben).
-    SetupStepId.RINGS_SESSION_DAYS, SetupStepId.RINGS_MAIN_LIFTS,
 )
 
 /** El borrador con la selección de [step] guardada, salvo en los pasos cuya selección sale de sus datos. */
@@ -279,14 +278,7 @@ private fun SetupWizardDraft.projectChoices(
         )
     }
 
-    SetupStepId.RINGS_DISCOMFORT -> withRings(nowEpochMs) { answers ->
-        when {
-            "omit" in values -> answers.copy(discomfortIds = emptyList(), discomfortState = SetupDiscomfortState.OMITTED)
-            "none" in values -> answers.copy(discomfortIds = emptyList(), discomfortState = SetupDiscomfortState.NONE)
-            values.isEmpty() -> answers.copy(discomfortIds = emptyList(), discomfortState = SetupDiscomfortState.NOT_ANSWERED)
-            else -> answers.copy(discomfortIds = values.sorted(), discomfortState = SetupDiscomfortState.DECLARED)
-        }
-    }
+    
 
     SetupStepId.HOME_EQUIPMENT -> copy(equipment = values.mapNotNull { legacyEquipmentValue(it) }.toSet())
 
@@ -466,53 +458,24 @@ private fun SetupWizardDraft.projectChoice(
         else -> this
     }
 
-    SetupStepId.RINGS_RECENT -> withRings(nowEpochMs) { answers ->
-        when (value) {
-            "yes" -> answers.copy(recentTraining = true, recentTrainingState = SetupRecentTrainingState.YES)
-            "no" -> answers.copy(recentTraining = false, recentTrainingState = SetupRecentTrainingState.NO)
-            "unknown" -> answers.copy(recentTraining = null, recentTrainingState = SetupRecentTrainingState.UNKNOWN)
-            else -> answers
-        }
-    }
+    
 
-    SetupStepId.RINGS_SESSIONS -> withRings(nowEpochMs) { it.copy(sessionsLastSevenDays = value?.toIntOrNull()) }
+    
 
-    SetupStepId.RINGS_RECENCY -> withRings(nowEpochMs) { it.copy(lastSessionRecencyDays = value?.toIntOrNull()) }
+    
 
-    SetupStepId.RINGS_ACTIVITY -> withRings(nowEpochMs) { answers ->
-        answers.copy(
-            activityType = InitialRecoveryActivityType.entries.firstOrNull { item -> item.name == value },
-            activityTypeState = if (value != null) InitialRecoveryResponseState.DECLARED
-            else InitialRecoveryResponseState.UNKNOWN,
-        )
-    }
+    
 
-    SetupStepId.RINGS_INTENSITY -> withRings(nowEpochMs) { answers ->
-        answers.copy(intensityLevel = InitialRecoveryIntensity.entries.firstOrNull { item -> item.name == value })
-    }
+    
+    
 
-    // «Sí»/«No» son una declaración explícita; «No lo sé» deja el estado en
-    // UNKNOWN sin inventar sesiones ni exposición.
-    SetupStepId.RINGS_AXIAL -> withRings(nowEpochMs) { answers ->
-        val state = when (value) {
-            "yes", "no" -> InitialRecoveryResponseState.DECLARED
-            "unknown" -> InitialRecoveryResponseState.UNKNOWN
-            else -> null
-        }
-        if (state == null) answers else answers.copy(axialExposure = answers.axialExposure.copy(state = state))
-    }
+    
 
-    SetupStepId.RINGS_MUSCLE_FEELING -> withRings(nowEpochMs) { it.copy(muscleFeeling = feelingValue(value)) }
+    
 
-    SetupStepId.RINGS_ENERGY_FEELING -> withRings(nowEpochMs) { it.copy(energy = feelingValue(value)) }
+    
 
-    SetupStepId.RINGS_STRUCTURE_FEELING -> withRings(nowEpochMs) { it.copy(structureFeeling = feelingValue(value)) }
-
-    SetupStepId.RINGS_START -> withRings(nowEpochMs) { it.copy(startAction = value) }
-
-    // Pasos cuyo tipado escribe la propia UI con `updateStep` (prioridades,
-    // split, plan, autorregulación, calentamientos, macros manuales, filas de
-    // pesajes, inventario): aquí solo vive la selección canónica ya guardada.
+    
     else -> this
 }
 
@@ -567,13 +530,9 @@ private fun SetupWizardDraft.projectNumber(
 
     SetupStepId.NUTRITION_HISTORY_CONTEXT -> copy(previousMaximumWeightKg = value?.takeIf { it.isFinite() })
 
-    SetupStepId.RINGS_SESSIONS -> withRings(nowEpochMs) { it.copy(sessionsLastSevenDays = value?.toInt()) }
+    
 
-    SetupStepId.RINGS_RECENCY -> withRings(nowEpochMs) { it.copy(lastSessionRecencyDays = value?.toInt()) }
-
-    // NUTRITION_TARGET / macros manuales / marcas / bolsa de prioridades:
-    // su tipado crudo lo escribe la UI con `updateStep`; aquí solo se conserva
-    // el texto en `inputTexts` (hecho por el llamante).
+    
     else -> this
 }
 
@@ -1399,61 +1358,27 @@ private fun SetupWizardDraft.typedSelections(step: SetupStepId): Set<String> = w
 
     SetupStepId.PRIORITIES -> trainingOptions.orderPriorities.filterValues { it > 0 }.keys
 
-    SetupStepId.RINGS_SESSION_DAYS -> when (ringsAnswers?.sessionDaysState) {
-        RingsSessionDaysState.DECLARED -> ringsAnswers?.trainedDayOffsets.orEmpty().mapTo(linkedSetOf()) { it.toString() }
-        RingsSessionDaysState.NONE -> setOf("none")
-        RingsSessionDaysState.UNKNOWN -> setOf("unknown")
-        else -> emptySet()
-    }
+    
 
-    SetupStepId.RINGS_MAIN_LIFTS -> when (ringsAnswers?.mainLiftsState) {
-        RingsMainLiftsState.DECLARED -> ringsAnswers?.mainLifts.orEmpty().mapTo(linkedSetOf()) { it.name }
-        RingsMainLiftsState.NONE -> setOf("none")
-        RingsMainLiftsState.UNKNOWN -> setOf("unknown")
-        else -> emptySet()
-    }
+    
 
-    SetupStepId.RINGS_RECENT -> when (ringsAnswers?.recentTrainingState) {
-        SetupRecentTrainingState.YES -> setOf("yes")
-        SetupRecentTrainingState.NO -> setOf("no")
-        SetupRecentTrainingState.UNKNOWN -> setOf("unknown")
-        else -> emptySet()
-    }
+    
 
-    SetupStepId.RINGS_SESSIONS -> ringsAnswers?.sessionsLastSevenDays?.toString().let { setOfNotNull(it) }
+    
 
-    SetupStepId.RINGS_RECENCY -> ringsAnswers?.lastSessionRecencyDays?.toString().let { setOfNotNull(it) }
+    
 
-    SetupStepId.RINGS_ACTIVITY -> ringsAnswers?.activityType?.name.let { setOfNotNull(it) }
+    
 
-    SetupStepId.RINGS_INTENSITY -> ringsAnswers?.intensityLevel?.name.let { setOfNotNull(it) }
+    
 
-    SetupStepId.RINGS_MUSCLE_FEELING -> {
-        val typed = ringsAnswers?.muscleFeeling
-        if (typed != null) setOf(typed.toString())
-        else if (isAnsweredForSelection(step)) setOf("unknown") else emptySet()
-    }
+    
 
-    SetupStepId.RINGS_ENERGY_FEELING -> {
-        val typed = ringsAnswers?.energy
-        if (typed != null) setOf(typed.toString())
-        else if (isAnsweredForSelection(step)) setOf("unknown") else emptySet()
-    }
+    
 
-    SetupStepId.RINGS_STRUCTURE_FEELING -> {
-        val typed = ringsAnswers?.structureFeeling
-        if (typed != null) setOf(typed.toString())
-        else if (isAnsweredForSelection(step)) setOf("unknown") else emptySet()
-    }
+    
 
-    SetupStepId.RINGS_DISCOMFORT -> when (ringsAnswers?.discomfortState) {
-        SetupDiscomfortState.NONE -> setOf("none")
-        SetupDiscomfortState.OMITTED -> setOf("omit")
-        SetupDiscomfortState.DECLARED -> ringsAnswers?.discomfortIds.orEmpty().toSet()
-        else -> emptySet()
-    }
-
-    // Pasos de texto/número, resultado e hito: no hay «selección» que proyectar.
+    
     else -> emptySet()
 }
 

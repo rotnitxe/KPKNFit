@@ -178,37 +178,33 @@ private fun summaryLabel(page: SetupStepId): String = when (page) {
     SetupStepId.NUTRITION_WEIGH_INS -> "Pesajes"
     SetupStepId.NUTRITION_RESULT -> "Plan de alimentación"
 
-    SetupStepId.RINGS_INTRO -> "Qué son los RINGS"
-    SetupStepId.RINGS_SESSION_DAYS -> "Días entrenados"
-    SetupStepId.RINGS_MAIN_LIFTS -> "Ejercicios principales"
-    SetupStepId.RINGS_GROUP_SETS -> "Series por grupo"
-    SetupStepId.RINGS_FEELINGS -> "Cómo te sientes"
-    SetupStepId.RINGS_RECENT -> "Entreno reciente"
-    SetupStepId.RINGS_SESSIONS -> "Sesiones en 7 días"
-    SetupStepId.RINGS_RECENCY -> "Última sesión"
-    SetupStepId.RINGS_ACTIVITY -> "Tipo de sesiones"
-    SetupStepId.RINGS_INTENSITY -> "Intensidad"
-    SetupStepId.RINGS_AXIAL -> "Cargas en la espalda"
-    SetupStepId.RINGS_MUSCLE_FEELING -> "Sensación muscular"
-    SetupStepId.RINGS_ENERGY_FEELING -> "Energía"
-    SetupStepId.RINGS_STRUCTURE_FEELING -> "Columna"
-    SetupStepId.RINGS_DISCOMFORT -> "Molestias"
-    SetupStepId.RINGS_RESULT -> "Tus RINGS"
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     SetupStepId.REVIEW_ACTIVATE -> "Revisión y activación"
 
     // Los hitos llevan el título del bloque que cierran.
-    SetupStepId.MILESTONE_BASICS,
-    SetupStepId.MILESTONE_TRAINING,
-    SetupStepId.MILESTONE_NUTRITION,
-    SetupStepId.MILESTONE_RINGS,
-    -> SetupStepDefinitions.blockTitle(SetupStepGraph.blockOf(page))
+    SetupStepId.MILESTONE_BASICS, SetupStepId.MILESTONE_TRAINING, SetupStepId.MILESTONE_NUTRITION,  -> SetupStepDefinitions.blockTitle(SetupStepGraph.blockOf(page))
 
     // Legacy: solo lectura de borradores antiguos, fuera de la ruta productiva.
     SetupStepId.GENDER -> "Identidad de género"
     SetupStepId.HOME_EQUIPMENT -> "Material en casa"
     SetupStepId.NUTRITION_SEX -> "Sexo de cálculo"
-    SetupStepId.RINGS_START -> "Inicio de Rings"
+    
 }
 
 // ─── Valores ─────────────────────────────────────────────────────────────────
@@ -305,40 +301,23 @@ private fun summaryValue(page: SetupStepId, state: SetupWizardState): String {
         SetupStepId.NUTRITION_RESULT -> summaryNutritionResult(state)
 
         // ── RINGS ────────────────────────────────────────────────────────────
-        SetupStepId.RINGS_INTRO -> SUMMARY_READY
-        SetupStepId.RINGS_SESSION_DAYS -> summaryTrainingDays(draft, page)
-        SetupStepId.RINGS_MAIN_LIFTS -> draft.summaryChoice(page)
-        SetupStepId.RINGS_GROUP_SETS -> summaryGroupSets(draft, page)
-        SetupStepId.RINGS_FEELINGS -> summaryFeelings(draft, page)
-        SetupStepId.RINGS_RECENT,
-        SetupStepId.RINGS_SESSIONS,
-        SetupStepId.RINGS_RECENCY,
-        SetupStepId.RINGS_ACTIVITY,
-        SetupStepId.RINGS_INTENSITY,
-        SetupStepId.RINGS_DISCOMFORT,
-        -> draft.summaryChoice(page)
-        SetupStepId.RINGS_AXIAL -> draft.summaryChoice(
-            page,
-            draft.selectedValues(page).ifEmpty { setOfNotNull(draft.summaryAxialAnswer()) },
-        )
-        SetupStepId.RINGS_MUSCLE_FEELING -> draft.summaryFeeling(page, draft.ringsAnswers?.muscleFeeling)
-        SetupStepId.RINGS_ENERGY_FEELING -> draft.summaryFeeling(page, draft.ringsAnswers?.energy)
-        SetupStepId.RINGS_STRUCTURE_FEELING -> draft.summaryFeeling(page, draft.ringsAnswers?.structureFeeling)
-        SetupStepId.RINGS_RESULT -> summaryRingsResult(state)
-
-        // ── Revisión y activación ────────────────────────────────────────────
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         SetupStepId.REVIEW_ACTIVATE -> if (state.receiptId != null) SUMMARY_ACTIVATED else SUMMARY_READY
 
-        SetupStepId.MILESTONE_BASICS,
-        SetupStepId.MILESTONE_TRAINING,
-        SetupStepId.MILESTONE_NUTRITION,
-        SetupStepId.MILESTONE_RINGS,
-        -> SUMMARY_COMPLETED
+        SetupStepId.MILESTONE_BASICS, SetupStepId.MILESTONE_TRAINING, SetupStepId.MILESTONE_NUTRITION,  -> SUMMARY_COMPLETED
 
         // ── Legacy ───────────────────────────────────────────────────────────
         SetupStepId.GENDER, SetupStepId.HOME_EQUIPMENT, SetupStepId.NUTRITION_SEX -> draft.summaryChoice(page)
-        SetupStepId.RINGS_START -> draft.ringsAnswers?.startAction?.takeIf { it.isNotBlank() }
-            ?: draft.summaryMissing(page)
+        
         SetupStepId.INVENTORY_BARBELL -> summaryInventory(draft, page) { it.barbellWeightKg != null }
         SetupStepId.INVENTORY_PLATES -> summaryInventory(draft, page) { it.plates.isNotEmpty() }
         SetupStepId.INVENTORY_DUMBBELLS -> summaryInventory(draft, page) { it.dumbbells.isNotEmpty() }
@@ -468,19 +447,17 @@ internal fun equationSexHormonalSummary(value: String): String? = when (value) {
 }
 
 private fun summaryOptionLabel(step: SetupStepId, value: String): String {
-    if (step == SetupStepId.RINGS_DISCOMFORT && value == "omit") return SUMMARY_SKIPPED
     if (step == SetupStepId.EQUATION_SEX) equationSexHormonalSummary(value)?.let { return it }
     val number = value.toIntOrNull()
     if (number != null) {
         when (step) {
-            SetupStepId.RINGS_SESSIONS -> return SpanishPlurals.sessions(number)
+            
             SetupStepId.DAYS -> return SpanishPlurals.days(number)
             SetupStepId.CARDIO_TIME -> return "$number min"
             else -> Unit
         }
     }
     SetupStepDefinitions.of(step)?.option(value)?.let { option -> return option.label }
-    if (number != null && step == SetupStepId.RINGS_RECENCY) return "Hace $number días"
     return summaryHumanize(value)
 }
 

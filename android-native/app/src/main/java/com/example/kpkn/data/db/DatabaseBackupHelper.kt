@@ -41,17 +41,34 @@ object DatabaseBackupHelper {
             throw Exception("Archivo de snapshot no encontrado")
         }
 
-        // 1. Cerrar de forma segura la instancia activa de Room
-        KpknDatabase.closeInstance()
+        val stagingName = "restore-${java.util.UUID.randomUUID()}.db"
+        val staging = context.getDatabasePath(stagingName)
+        try {
+            // Room imports into a separate file, migrates and checks the full schema before any replacement.
+            val candidate = KpknDatabase.buildPersistent(context, stagingName, snapshotFile)
+            try {
+                val sqlite = candidate.openHelper.writableDatabase
+                sqlite.query("PRAGMA quick_check").use { result ->
+                    require(result.moveToFirst() && result.getString(0) == "ok") { "Respaldo no íntegro; se conserva la base activa" }
+                }
+                sqlite.query("PRAGMA wal_checkpoint(TRUNCATE)").close()
+            } finally { candidate.close() }
+            createSnapshot(context) // Recovery point of the active DB; external backup remains untouched.
+            KpknDatabase.closeInstance()
+            val destDbFile = context.getDatabasePath("kpkn.db")
+            val atomic = android.util.AtomicFile(destDbFile)
+            val stream = atomic.startWrite()
+            try {
+                staging.inputStream().use { it.copyTo(stream) }
+                atomic.finishWrite(stream)
+                context.getDatabasePath("kpkn.db-wal").delete()
+                context.getDatabasePath("kpkn.db-shm").delete()
+            } catch (failure: Throwable) {
+                atomic.failWrite(stream)
+                throw failure
+            }
+        } finally { context.deleteDatabase(stagingName) }
 
-        val destDbFile = context.getDatabasePath("kpkn.db")
-
-        // 2. Eliminar archivos temporales de log WAL/SHM para evitar corrupción por colisión de logs antiguos
-        context.getDatabasePath("kpkn.db-wal").delete()
-        context.getDatabasePath("kpkn.db-shm").delete()
-
-        // 3. Reemplazar el archivo de base de datos principal
-        copyFile(snapshotFile, destDbFile)
     }
 
     fun deleteSnapshot(snapshotFile: File): Boolean {

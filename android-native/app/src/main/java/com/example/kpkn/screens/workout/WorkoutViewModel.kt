@@ -2669,11 +2669,8 @@ class WorkoutViewModel(
         } else {
             "Molestias: ${summary.discomforts.joinToString("; ")} ."
         }
-        val muscleText = summary.lowestMuscle?.let { "El músculo con menor batería es $it." }.orEmpty()
         voiceController.announceSessionSummary(
-            "Tu sesión fue ${summary.intensityDescriptor.lowercase()}. $discomfortText " +
-                "Tu RING muscular quedó en ${summary.muscularRing} por ciento. $muscleText " +
-                "Tu RING de energía quedó en ${summary.energyRing} por ciento y tu columna en ${summary.spinalRing} por ciento. " +
+            "Registraste ${summary.recordedSets} series en ${summary.durationMinutes} minutos. $discomfortText " +
                 "$nextSessionText Para finalizar, di sesión terminada.",
         )
     }

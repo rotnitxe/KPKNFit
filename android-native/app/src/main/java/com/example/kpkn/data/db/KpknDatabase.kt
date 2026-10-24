@@ -741,10 +741,16 @@ abstract class KpknDatabase : RoomDatabase() {
 
         fun getInstance(context: Context): KpknDatabase =
             INSTANCE ?: synchronized(this) {
-                INSTANCE ?: Room.databaseBuilder(
+                INSTANCE ?: buildPersistent(context)
+                .also { INSTANCE = it }
+            }
+
+        /** Shared migration/validation path for the active DB and an isolated snapshot copy. */
+        internal fun buildPersistent(context: Context, name: String = "kpkn.db", source: java.io.File? = null): KpknDatabase =
+            Room.databaseBuilder(
                     context.applicationContext,
                     KpknDatabase::class.java,
-                    "kpkn.db",
+                    name,
                 )
                 .addMigrations(
                     MIGRATION_1_2,
@@ -780,9 +786,9 @@ abstract class KpknDatabase : RoomDatabase() {
                     RETIRE_DERIVED_TRAINING_31_32,
                 )
                 .addCallback(GlobalFoodsFtsHygiene)
+                .apply { source?.let { createFromFile(it) } }
                 .build()
-                .also { INSTANCE = it }
-            }
+
 
         fun closeInstance() {
             synchronized(this) {
