@@ -68,5 +68,8 @@
             android:exported="true"
             android:theme="@style/Theme.KPKN" />
     <activity android:name="com.example.kpkn.debug.ExerciseProgressHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
+        <activity android:name="com.example.kpkn.debug.ExerciseSwapHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
+        <activity android:name="com.example.kpkn.debug.MyoRepsPlatesHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
+        <activity android:name="com.example.kpkn.debug.TrainingSettingsHarnessActivity" android:exported="true" android:theme="@style/Theme.KPKN" />
     </application>
 </manifest>
