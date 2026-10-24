@@ -173,7 +173,7 @@ object ProgramAutoregulationEngine {
 
     /**
      * Propuestas de la semana completada. La progresión POR RENDIMIENTO (AMRAP, top set, serie al
-     * máximo) sale aquí como `ADJUST_TM` y respeta OFF (nada), PROPOSE (pendiente) y AUTO (aplicada con
+     * máximo) sale aquí como `ADJUST_TM` y respeta OFF (nada), PROPOSE (pendiente) y AUTO heredado (pendiente con
      * auditoría). Las señales de [signals] mandan; si faltan, se leen de [logs] filtrando por el ciclo
      * y el run del programa y tomando el registro más reciente de cada sesión.
      */
