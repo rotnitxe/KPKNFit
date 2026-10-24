@@ -7,6 +7,18 @@ class NutritionLabelParserTest {
     private fun rows(vararg lines: String) = lines.map { it.split('|').map(String::trim) }
     private fun parse(vararg lines: String) = NutritionLabelParser.parse(rows(*lines))
     private fun value(result: LabelParse, field: LabelField, expected: Double, tolerance: Double = 1e-8) = assertEquals(field.name, expected, requireNotNull(result.fields[field]).value, tolerance)
+    @Test fun elOcrQueLee109EnVezDe10GramosSeDescartaSinAdivinarLaCantidad() {
+        // Filas observadas en ML Kit nativo: la «g» pegada al 10 se reconoció como otro 9.
+        val label = parse("Por 100g", "Energia | 200 kcal", "Proteinas | 109", "Carbohidratos | 20 g", "Grasas | 8g")
+        assertFalse(label.fields.containsKey(LabelField.PROTEIN_G))
+        assertTrue(label.warnings.any { it.contains("100 g") })
+        value(label, LabelField.ENERGY_KCAL, 200.0)
+    }
+    @Test fun unNumeroSinUnidadNoSeCorrigeQuitandoElUltimoDigito() {
+        val label = parse("Nutrition Facts", "Serving size 40 g", "Calories | 200", "Protein | 39", "Total Carbohydrate | 1 g", "Total Fat | 1 g")
+        value(label, LabelField.PROTEIN_G, 39.0)
+        assertEquals(LabelConfidence.UNSURE, label.fields.getValue(LabelField.PROTEIN_G).confidence)
+    }
     @Test fun etiquetaUEConEnergiaDobleYSal() {
         val label = parse("Información nutricional", "Por 100 g", "Valor energético | 840 kJ / 200 kcal", "Proteínas | 10 g", "Hidratos de carbono | 20 g", "Grasas | 8 g", "De los cuales azúcares | 5 g", "Fibra alimentaria | 2 g", "Sal | 0,5 g")
         assertEquals(LabelBasis.PER_100G, label.basis); value(label, LabelField.ENERGY_KCAL, 200.0); value(label, LabelField.SODIUM_MG, 200.0)

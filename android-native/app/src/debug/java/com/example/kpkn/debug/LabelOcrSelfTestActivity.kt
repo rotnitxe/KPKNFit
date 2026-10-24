@@ -45,7 +45,7 @@ class LabelOcrSelfTestActivity : ComponentActivity() {
             cases.forEachIndexed { index, case ->
                 val bitmap = Bitmap.createBitmap(1080, 760, Bitmap.Config.ARGB_8888)
                 val canvas = Canvas(bitmap); canvas.drawColor(Color.WHITE)
-                val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK; textSize = (30 + index * 2).toFloat() }
+                val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK; textSize = (48 + index * 2).toFloat() }
                 case.lines.forEachIndexed { row, cells -> cells.forEachIndexed { col, text ->
                     canvas.drawText(text, floatArrayOf(24f, 465f, 780f)[col], 65f + row * 84f, paint)
                 } }
