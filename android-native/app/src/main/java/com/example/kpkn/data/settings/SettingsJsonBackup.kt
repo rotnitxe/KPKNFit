@@ -13,7 +13,6 @@ import com.example.kpkn.data.db.toCompetitionRecord
 import com.example.kpkn.data.db.toContextPerformanceStateV2
 import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.db.toExerciseReplacementDecisionV2
-import com.example.kpkn.data.db.toExtendedEntity
 import com.example.kpkn.data.db.toGlobalPerformanceStateV3
 import com.example.kpkn.data.db.toMealTemplate
 import com.example.kpkn.data.db.toPantryItem
@@ -234,7 +233,13 @@ object SettingsJsonBackup {
                 payload.setupCommitReceipts.orEmpty().forEach { db.setupCommitReceiptDao().insert(it.toEntity()) }
             }
 
-            payload.trainingObservations.forEach { db.trainingObservationDao().preserve(it) }
+            val existingObservations = db.trainingObservationDao().all().associateBy { it.sourceIdentity }
+            payload.trainingObservations.forEach { original ->
+                existingObservations[original.sourceIdentity]?.let { existing ->
+                    require(existing == original) { "Conflicto entre observaciones originales; se conserva el respaldo para recuperación" }
+                }
+                db.trainingObservationDao().preserve(original)
+            }
 
             if (v5 && payload.includesCalibrationSection) {
                 if (payload.calibrationProfile != null) {

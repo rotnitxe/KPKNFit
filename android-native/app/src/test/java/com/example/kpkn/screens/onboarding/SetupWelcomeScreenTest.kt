@@ -13,8 +13,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.welcome.WelcomePages
-import com.example.kpkn.screens.onboarding.welcome.WelcomeRingsPeriod
-import com.example.kpkn.screens.onboarding.welcome.WelcomeRingsScene
 import com.example.kpkn.screens.onboarding.welcome.WelcomeScaledScene
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -113,9 +111,9 @@ class SetupWelcomeScreenTest {
     @Test
     fun `la escena de Recuperacion compone en todos los instantes de su bucle`() {
         var t by mutableFloatStateOf(0f)
-        rule.setContent { WelcomeScaledScene(Modifier.size(300.dp, 620.dp)) { WelcomeRingsScene(t) } }
+        rule.setContent { WelcomeScaledScene(Modifier.size(300.dp, 620.dp)) { com.example.kpkn.screens.onboarding.welcome.WelcomeResultsScene() } }
         var seconds = 0f
-        while (seconds < WelcomeRingsPeriod) {
+        while (seconds < 12f) {
             rule.runOnIdle { t = seconds }
             rule.waitForIdle()
             seconds += 0.5f

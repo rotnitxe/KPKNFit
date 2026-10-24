@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.*
-import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
@@ -106,7 +106,7 @@ class SessionEditorViewModel(
     }
 
     internal val repository = ProgramRepository.getInstance()
-    internal val augeRepository = AugeRepository.getInstance(application)
+    internal val observationRepository = TrainingObservationRepository.getInstance(application)
     internal val nutritionRepository = runCatching { NutritionRepository.getInstance() }.getOrNull()
     internal val templateRepository = SessionTemplateRepository.getInstance(application)
     private val ruleTemplateStore = RuleTemplateStore.getInstance(application)
@@ -892,7 +892,7 @@ class SessionEditorViewModel(
                 com.example.kpkn.domain.cardio.CardioHistoryStats.forType(programLogs, type)
             }
             val feedbackByLogId = logs.mapNotNull { log ->
-                augeRepository.getFeedbackForLog(log.id)?.let { log.id to it }
+                observationRepository.getFeedbackForLog(log.id)?.let { log.id to it }
             }.toMap()
             _uiState.update { it.copy(workoutLogs = logs, cardioHistoryByType = cardioHistory, feedbackByLogId = feedbackByLogId) }
         }

@@ -29,7 +29,6 @@ import com.example.kpkn.data.models.Gender
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
-import com.example.kpkn.screens.auge.AugeViewModel
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
 import com.example.kpkn.ui.components.KpknGlass
 import com.example.kpkn.ui.components.KpknGlassDialog
@@ -44,7 +43,6 @@ import java.util.UUID
 @Composable
 internal fun WorkoutSessionOverlaysHost(
     viewModel: WorkoutViewModel,
-    augeViewModel: AugeViewModel,
     uiState: WorkoutUiState,
     session: Session,
     visibleExercises: List<Exercise>,
@@ -52,13 +50,7 @@ internal fun WorkoutSessionOverlaysHost(
     readinessHaze: HazeState,
     bottomHazeState: HazeState,
     gender: Gender?,
-    sessionMuscleStartingBatteries: Map<String, Int>,
-    readinessNeuralStart: Int,
-    readinessMuscularStart: Int,
-    readinessSpinalStart: Int,
-    todayWellbeing: DailyWellbeingLog?,
     onReadinessDismissed: () -> Unit,
-    perMuscle: Map<String, com.example.kpkn.data.models.MuscleRecoveryStatus> = emptyMap(),
     voiceSessionEnabled: Boolean = false,
     voiceCaptureMode: com.example.kpkn.data.models.VoiceCaptureMode = com.example.kpkn.data.models.VoiceCaptureMode.HANDS_FREE,
     onVoiceToggle: () -> Unit = {},
@@ -73,52 +65,14 @@ internal fun WorkoutSessionOverlaysHost(
     }
     TrainingMaxPreparation(viewModel.missingTrainingMaxes(session), enabled = !showReadinessSheet,
         onConfirm = viewModel::confirmTrainingMax)
-    WorkoutReadinessSheet(
-        showReadinessSheet = showReadinessSheet,
-        gender = gender,
-        sessionMuscleStartingBatteries = sessionMuscleStartingBatteries,
-        readinessNeuralStart = readinessNeuralStart,
-        readinessMuscularStart = readinessMuscularStart,
-        readinessSpinalStart = readinessSpinalStart,
-        hazeState = readinessHaze,
-        onSave = { neural, muscular, spinal, perMuscle, discomforts,
-            manualNeural, manualSpinal, manualMuscular, manualMuscleBatteries ->
-            val log = buildReadinessWellbeingLog(
-                today = todayWellbeing,
-                newId = UUID.randomUUID().toString(),
-                date = LocalDate.now().toString(),
-                discomforts = discomforts,
-                manualNeural = manualNeural,
-                manualSpinal = manualSpinal,
-                manualMuscular = manualMuscular,
-                manualMuscleBatteries = manualMuscleBatteries,
-                invertDisplayedStructure = { augeViewModel.invertDisplayedStructure(it) },
-            )
-            augeViewModel.saveWellbeing(log)
-            viewModel.saveReadinessAdjustments(
-                neural = neural,
-                muscular = muscular,
-                spinal = spinal,
-                perMuscle = remapMuscleIntMapToPillars(perMuscle),
-                sleepQuality = todayWellbeing?.sleepQuality,
-            )
-            onReadinessDismissed()
-        },
-        patternReadiness = uiState.patternReadiness,
-        exerciseReadinessMap = uiState.exerciseReadinessMap,
-        sessionExercises = session.exercises,
-        perMuscle = perMuscle,
-        augeSnapshot = augeViewModel.snapshot.collectAsState().value,
-        initialDiscomforts = todayWellbeing?.preWorkoutDiscomforts ?: emptyList(),
-        reportedDiscomforts = reportedBefore,
-        voiceSessionEnabled = voiceSessionEnabled,
-        voiceCaptureMode = voiceCaptureMode,
-        onVoiceToggle = onVoiceToggle,
-        onOpenVoice = onVoiceToggle,
-        onVoiceCaptureModeChange = onVoiceCaptureModeChange,
-        // Atrás o tocar fuera cierran el estado previo sin responder: la sesión se ve y el estado previo queda pendiente (LV4, 15).
-        onDismiss = onReadinessDismissed,
-    )
+    if (showReadinessSheet) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = onReadinessDismissed,
+            title = { Text("Antes de entrenar") },
+            text = { Text("Consulta tus registros y las molestias anotadas. Puedes registrar sensaciones durante o después de la sesión; es opcional.") },
+            confirmButton = { androidx.compose.material3.TextButton(onClick = onReadinessDismissed) { Text("Continuar") } },
+        )
+    }
 
     if (uiState.showVolumeAdvanceModal && uiState.pendingVolumeAdvances.isNotEmpty()) {
         BackHandler(enabled = true) { /* El adelanto de volumen requiere acción explícita. */ }

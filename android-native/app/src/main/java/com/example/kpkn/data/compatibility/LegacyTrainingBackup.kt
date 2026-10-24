@@ -33,11 +33,23 @@ object LegacyTrainingBackup {
                     "historical_original; scales_not_comparable; not_measured_marks")
             }
         }
+        val drafts = root["setupDrafts"]?.takeIf { it != JsonNull }?.jsonArray?.map { row ->
+            val draft = row.jsonObject
+            val rawDraft = draft["payloadJson"]?.jsonPrimitive?.content ?: error("Borrador sin contenido recuperable")
+            val original = LegacyTrainingImport.draftOriginals(rawDraft)
+            if (original.isNotEmpty()) observations += TrainingObservationEntity(
+                "setup_drafts:${draft.getValue("draftId").jsonPrimitive.content}:retired_answers", "historical_onboarding_answers", "",
+                JsonObject(original + ("sourceUpdatedAtEpochMs" to (draft["updatedAtEpochMs"] ?: JsonNull))).toString(),
+                "historical_original; original_scale; not_comparable")
+            JsonObject(draft + ("payloadJson" to JsonPrimitive(LegacyTrainingImport.draft(rawDraft))))
+        }
         require(observations.groupBy { it.sourceIdentity }.values.all { versions -> versions.distinct().size == 1 }) {
             "Observaciones con identidad repetida y contenido distinto: se conserva el respaldo para recuperación"
         }
         return JsonObject(root.filterKeys { it !in sections && it != "adaptiveCache" }.toMutableMap().apply {
             put("trainingObservations", json.encodeToJsonElement(ListSerializer(TrainingObservationEntity.serializer()), observations.distinctBy { it.sourceIdentity }))
+            drafts?.let { put("setupDrafts", JsonArray(it)) }
+            root["ongoingWorkout"]?.takeIf { it != JsonNull }?.let { put("ongoingWorkout",json.parseToJsonElement(LegacyTrainingImport.ongoing(it.toString()))) }
             root["settings"]?.let { put("settings",json.parseToJsonElement(LegacyTrainingImport.settings(it.toString()))) }
             root["workoutLogs"]?.let { put("workoutLogs",JsonArray(it.jsonArray.map { log -> json.parseToJsonElement(LegacyTrainingImport.log(log.toString())) })) }
         }).toString()

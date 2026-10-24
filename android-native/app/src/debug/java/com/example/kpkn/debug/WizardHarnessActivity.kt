@@ -45,7 +45,7 @@ import com.example.kpkn.data.account.AccountGraph
 import com.example.kpkn.data.account.BuildEntitlementOverride
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
-import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.data.repository.NutritionRepository
@@ -195,7 +195,7 @@ class WizardHarnessActivity : ComponentActivity() {
         runCatching {
             ProgramRepository.init(this)
             CompetitionRepository.init(this)
-            AugeRepository.getInstance(this)
+            TrainingObservationRepository.getInstance(this)
             NutritionRepository.init(this)
             CustomExerciseRepository.initialize(this)
             WorkoutMediaRepository.init(this)

@@ -22,7 +22,7 @@ import com.example.kpkn.data.models.MeasurementSchedule
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.profile.ProfilePhotoStore
 import com.example.kpkn.data.secure.LegacyAiCredentialCleanup
-import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.repository.BodyProgressRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.NutritionCalibrationRepository

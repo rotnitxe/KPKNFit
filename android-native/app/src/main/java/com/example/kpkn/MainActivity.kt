@@ -187,7 +187,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             ProgramRepository.init(this@MainActivity)
             com.example.kpkn.data.repository.CompetitionRepository.init(this@MainActivity)
-            com.example.kpkn.data.repository.AugeRepository.getInstance(this@MainActivity)
+            com.example.kpkn.data.repository.TrainingObservationRepository.getInstance(this@MainActivity)
             com.example.kpkn.data.repository.NutritionRepository.init(this@MainActivity)
             com.example.kpkn.data.repository.CustomExerciseRepository.initialize(this@MainActivity)
             com.example.kpkn.data.repository.WorkoutMediaRepository.init(this@MainActivity)

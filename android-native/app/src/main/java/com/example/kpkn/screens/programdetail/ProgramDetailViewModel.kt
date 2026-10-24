@@ -65,7 +65,7 @@ import com.example.kpkn.domain.training.WeekWithMeta
 import android.content.Context
 import android.util.Log
 import kotlin.math.roundToInt
-import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.MuscleRole
 import kotlinx.coroutines.CancellationException
@@ -285,7 +285,7 @@ class ProgramDetailViewModel(
     fun loadFeedbacks(context: Context) {
         viewModelScope.launch {
             try {
-                val list = AugeRepository.getInstance(context).getPostSessionFeedbacks()
+                val list = TrainingObservationRepository.getInstance(context).getPostSessionFeedbacks()
                 _feedbacks.value = list
             } catch (cancelled: CancellationException) {
                 throw cancelled

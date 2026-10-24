@@ -7,7 +7,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutContextProfile
-import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
@@ -119,7 +119,7 @@ internal class StructuralControllerFixture private constructor(
 
         fun close() {
             try {
-                AugeRepository::class.java.getDeclaredField("INSTANCE").apply { isAccessible = true }.set(null, null)
+                TrainingObservationRepository::class.java.getDeclaredField("INSTANCE").apply { isAccessible = true }.set(null, null)
                 ProgramRepository.closeInstance()
                 KpknDatabase.closeInstance()
             } finally {

@@ -26,7 +26,7 @@ import java.time.temporal.ChronoUnit
 class Cal7ManagedProgramRoomJourneyTest {
     @get:Rule val room = RoomTestRule()
     private var fixture: Cal7ManagedRoomFixture? = null
-    @Before fun setup() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetAugeRepository() }
+    @Before fun setup() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetTrainingObservationRepository() }
     @After fun cleanup() {
         try {
             runBlocking {
@@ -34,7 +34,7 @@ class Cal7ManagedProgramRoomJourneyTest {
                 finally {
                     try { fixture?.preparedRepository?.let { awaitRepositoryScope(it) } }
                     finally {
-                        try { LiveSessionVmFixture.resetAugeRepository() }
+                        try { LiveSessionVmFixture.resetTrainingObservationRepository() }
                         finally {
                             try { ProgramRepository.closeInstance() }
                             finally { KpknDatabase.closeInstance() }

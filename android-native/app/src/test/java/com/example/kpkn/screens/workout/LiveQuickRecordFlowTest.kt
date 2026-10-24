@@ -41,9 +41,9 @@ class LiveQuickRecordFlowTest {
     private lateinit var vm: WorkoutViewModel
     private lateinit var view: android.view.View
 
-    @Before fun before() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetAugeRepository() }
+    @Before fun before() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetTrainingObservationRepository() }
     @After fun after() {
-        try { fixture?.close(); LiveSessionVmFixture.resetAugeRepository(); ProgramRepository.closeInstance(); KpknDatabase.closeInstance() }
+        try { fixture?.close(); LiveSessionVmFixture.resetTrainingObservationRepository(); ProgramRepository.closeInstance(); KpknDatabase.closeInstance() }
         finally { Dispatchers.resetMain() }
     }
 

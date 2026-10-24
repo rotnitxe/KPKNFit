@@ -16,7 +16,6 @@ import com.example.kpkn.data.db.toBodyObservation
 import com.example.kpkn.data.db.toNutritionPlan
 import com.example.kpkn.data.db.toProgram
 import com.example.kpkn.data.db.toSettings
-import com.example.kpkn.data.db.toWellbeingLog
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.BodyGoal
 import com.example.kpkn.data.models.BodyObservation
@@ -272,8 +271,11 @@ class SetupCommitCoordinator(
                     request.derivedBodyGoals.forEach { db.bodyProgressDao().upsertGoal(it.toEntity()) }
                     persistBodyObservations(request.bodyObservations)
                     request.initialWellbeing?.let { incoming ->
-                        val existing = db.augeDao().getWellbeingForDate(incoming.date)?.toWellbeingLog()
-                        db.augeDao().upsertWellbeing(mergeSetupWellbeing(existing, incoming).toEntity())
+                        val raw = persistenceJson.encodeToString(incoming)
+                        com.example.kpkn.data.compatibility.LegacyTrainingImport.originals("auge_wellbeing", incoming.id, incoming.date, raw).forEach { original ->
+                            db.trainingObservationDao().preserve(com.example.kpkn.data.db.TrainingObservationEntity(
+                                original.identity, original.kind, original.date, original.payload, original.provenance))
+                        }
                     }
                     // Meta de HOY del plan que se activa: si hoy ya la fijó OTRO plan,
                     // pasa a ser la del plan nuevo; los días pasados no se tocan.

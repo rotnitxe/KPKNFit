@@ -254,7 +254,9 @@ class WorkoutFinishController(
                     actualDurationSeconds = durationMs / 1000,
                     actualDurationSource = "elapsed_session_clock",
                     completedExercises = completedExercises,
-                    fatigueLevel = fatigueLevel,
+                    fatigueLevel = null,
+                    sessionEffortRpe = closingFeedback.sessionEffortRpe?.takeIf { it.isFinite() && it in 0.0..10.0 },
+                    sessionEffortProtocol = closingFeedback.sessionEffortRpe?.let { "session_rpe_0_10_v1" },
                     discomforts = (
                         closingFeedback.discomforts +
                             state.postExerciseFeedbackByExerciseId.values

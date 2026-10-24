@@ -38,7 +38,32 @@ object LegacyTrainingImport {
         }
     }
 
-    fun settings(raw: String): String = JsonObject(parseObject(raw).filterKeys { it !in derivedSettings }).toString()
+    fun settings(raw: String): String = JsonObject(parseObject(raw).filterKeys { it !in derivedSettings }.mapValues { (key, value) ->
+        if (key == "algorithmSettings" && value is JsonObject) JsonObject(value.filterKeys { it !in derivedSettings && it != "failureFatigueFactor" }) else value
+    }).toString()
+
+    private val ongoingDerived = setOf("readinessNeuralOverride", "readinessMuscularOverride", "readinessSpinalOverride", "readinessMuscleOverrides", "lastDrainOverlay", "sessionStressScore", "postSessionPreview", "exerciseReadinessMap", "patternReadiness", "currentAutoRegulation")
+    fun ongoing(raw: String): String = JsonObject(parseObject(raw).filterKeys { it !in ongoingDerived }.mapValues { (key,value) ->
+        if (key == "completedSets") JsonObject(value.jsonObject.mapValues { (_,set) ->
+            JsonObject(set.jsonObject.filterKeys { it != "spinalScore" })
+        }) else value
+    }).toString()
+
+    private val draftRetired = setOf("ringsAnswers", "manualMuscleOverrides", "manualEnergyOverride", "manualStructureOverride", "ringsBatteriesPreview", "ringsCoveragePreview", "ringsMuscleEstimates")
+    fun draftOriginals(raw: String): JsonObject = JsonObject(parseObject(raw).filterKeys { it in draftRetired && !it.endsWith("Preview") && it != "ringsMuscleEstimates" })
+    fun draft(raw: String): String {
+        val obj = parseObject(raw)
+        return JsonObject(obj.filterKeys { it !in draftRetired }.mapValues { (key,value) ->
+            when {
+                key == "draftScope" && value.jsonPrimitive.content.lowercase().contains("rings") -> JsonPrimitive("resume")
+                key == "stepProgress" -> JsonObject(value.jsonObject.mapValues { (k,v) ->
+                    if (k == "stalePreviews") JsonArray(v.jsonArray.filterNot { it.jsonPrimitive.content == "RINGS_BATTERIES" }) else v
+                })
+                else -> value
+            }
+        }).toString()
+    }
+
 
     fun initialDeclarations(raw: String): JsonObject? = parseObject(raw)["initialRecoveryEvidence"]
         ?.takeIf { it != JsonNull }?.jsonObject?.let { JsonObject(it.filterKeys { k -> k in evidenceFields }) }
@@ -49,7 +74,7 @@ object LegacyTrainingImport {
             when(key) {
                 "completedExercises" -> JsonArray(value.jsonArray.map { ex ->
                     JsonObject(ex.jsonObject.mapValues { (k,v) -> if (k == "sets") JsonArray(v.jsonArray.map { set ->
-                        JsonObject(set.jsonObject.filterKeys { it !in setOf("batteryDrain", "cnsDrain", "spinalDrain", "muscularDrain", "readinessScore") })
+                        JsonObject(set.jsonObject.filterKeys { it !in setOf("batteryDrain", "cnsDrain", "spinalDrain", "muscularDrain", "readinessScore", "spinalScore") })
                     }) else v })
                 })
                 else -> value

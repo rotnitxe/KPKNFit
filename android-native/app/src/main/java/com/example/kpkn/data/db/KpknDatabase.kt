@@ -22,11 +22,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         WorkoutContextProfileEntity::class,
         WorkoutTagEntity::class,
         WorkoutReplacementDecisionEntity::class,
-        WellbeingEntity::class,
-        SleepLogEntity::class,
-        PostSessionFeedbackEntity::class,
         // Tabla legacy (encuesta 24h eliminada); se conserva para el schema.
-        PendingQuestionnaireEntity::class,
         // Nutrition entities (v2)
         NutritionLogEntity::class,
         NutritionPlanEntity::class,
@@ -47,7 +43,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         GlobalFoodFtsEntity::class,
         CustomExerciseEntity::class,
         // Mis RINGS: sueño extendido (v12)
-        SleepLogExtendedEntity::class,
         // Session Templates: user-created blueprints (v13)
         SessionTemplateEntity::class,
         // Learned Resolutions: auto-improvement for food matching (v14)
@@ -59,7 +54,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         // Performance Range: RMS tracking (v15)
         PerformanceRangeEntity::class,
         PerformanceSnapshotEntity::class,
-        AugeAdaptiveCacheEntity::class,
         WorkoutMediaEntity::class,
         WorkoutMediaSessionAssociationEntity::class,
         SetupDraftEntity::class,
@@ -68,7 +62,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         VideoAnalysisEntity::class,
         CalibrationDecisionEntity::class,
     ],
-    version = 31,
+    version = 32,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -80,7 +74,6 @@ abstract class KpknDatabase : RoomDatabase() {
     abstract fun settingsDao(): SettingsDao
     abstract fun stateDao(): StateDao
     abstract fun workoutV2Dao(): WorkoutV2Dao
-    abstract fun augeDao(): AugeDao
     abstract fun nutritionDao(): NutritionDao
     abstract fun bodyProgressDao(): BodyProgressDao
     abstract fun customExerciseDao(): CustomExerciseDao
@@ -784,6 +777,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     videoAnalysisMigration(28),
                     CALIBRATION_MIGRATION_29_30,
                     TRAINING_OBSERVATIONS_30_31,
+                    RETIRE_DERIVED_TRAINING_31_32,
                 )
                 .addCallback(GlobalFoodsFtsHygiene)
                 .build()

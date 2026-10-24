@@ -24,7 +24,7 @@ import java.time.Instant
 class Cal7FreeSessionRoomTest {
     @get:Rule val room = RoomTestRule()
     private val fixtures = mutableListOf<LiveSessionVmFixture>()
-    @Before fun setup() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetAugeRepository() }
+    @Before fun setup() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetTrainingObservationRepository() }
     @After fun cleanup() {
         try {
             runBlocking {
@@ -37,7 +37,7 @@ class Cal7FreeSessionRoomTest {
                             finally { awaitRepositoryScope(repository) }
                         }
                     } finally {
-                        try { LiveSessionVmFixture.resetAugeRepository() }
+                        try { LiveSessionVmFixture.resetTrainingObservationRepository() }
                         finally {
                             try { ProgramRepository.closeInstance() }
                             finally { KpknDatabase.closeInstance() }
@@ -208,7 +208,7 @@ class Cal7FreeSessionRoomTest {
     @Test fun ringsCountTheRecordedWorkEquallyForNormalAndCalibratorPurposes() = runBlocking {
         suspend fun completed(purpose: SetPurpose): WorkoutLog {
             // Cada prepare cierra Room; el DAO del singleton AUGE anterior ya no es válido.
-            LiveSessionVmFixture.resetAugeRepository()
+            LiveSessionVmFixture.resetTrainingObservationRepository()
             val original = cal3Fixture().state.session!!
             val session = original.copy(exercises = listOf(original.exercises.first().copy(sets = listOf(
                 original.exercises.first().sets.first().copy(purpose = purpose, targetReps = 10)))))

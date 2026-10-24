@@ -955,7 +955,6 @@ class WorkoutViewModel(
     init {
         initExtractedControllers()
         startRelatorPipeline()
-        loadTodayWellbeingForRelator()
         watchRestOverrun()
         voiceController.initialize(viewModelScope)
         voiceController.structuralPersistenceOptionsProvider = { replacementScopeOptions().toSet() }
@@ -2216,28 +2215,8 @@ class WorkoutViewModel(
     }
 
     /** Drenaje acumulado de la sesión en vivo (SNC, muscular, espinal en %). */
-    fun liveDrainSummary(): Triple<Int, Int, Int>? {
-        val s = _uiState.value
-        val session = s.session ?: return null
-        val active = sessionForActiveMode(session, s.activeMode)
-        val completedExercises = toCompletedExercises(
-            session = active,
-            completedSets = s.completedSets,
-            skippedExerciseIds = s.skippedExerciseIds,
-            catalogIndex = exerciseIndex,
-        )
-        if (completedExercises.isEmpty()) return null
-        val drain = com.example.kpkn.domain.auge.AugeFatigueEngine.calculateCompletedSessionDrain(
-            completedExercises = completedExercises,
-            exerciseDb = exerciseIndex,
-            settings = repository.settings.value,
-        )
-        return Triple(
-            drain.cns.toInt(),
-            drain.muscular.toInt(),
-            drain.spinal.toInt(),
-        )
-    }
+    fun liveDrainSummary(): Triple<Int, Int, Int>? = null
+
 
     private fun buildLiveCompletedExercises(
         completedSets: Map<String, CompletedSet>,
@@ -4150,38 +4129,6 @@ class WorkoutViewModel(
 
     fun consumeRelatorUiHook() {
         _relatorUiHook.value = null
-    }
-
-    fun bindDailyRelatorSignals(
-        snapshot: AugeSnapshot,
-        wellbeing: DailyWellbeingLog?,
-    ) {
-        val verdict = snapshot.readiness ?: if (!snapshot.isLoading) {
-            AugeRecoveryEngine.calculateDailyReadiness(snapshot.dashboard, wellbeing)
-        } else {
-            null
-        }
-        updateUiState { state ->
-            state.copy(
-                dailyReadiness = verdict ?: state.dailyReadiness,
-                todayWellbeing = wellbeing ?: state.todayWellbeing,
-                sleepQuality = wellbeing?.sleepQuality ?: state.sleepQuality,
-            )
-        }
-    }
-
-    private fun loadTodayWellbeingForRelator() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val wellbeing = runCatching {
-                com.example.kpkn.data.repository.AugeRepository.getInstance(appContext).getTodayWellbeing()
-            }.getOrNull() ?: return@launch
-            updateUiState { state ->
-                state.copy(
-                    todayWellbeing = wellbeing,
-                    sleepQuality = wellbeing.sleepQuality,
-                )
-            }
-        }
     }
 
     @OptIn(FlowPreview::class)

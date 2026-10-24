@@ -62,6 +62,8 @@ data class WorkoutLog(
     val calendarBreakId: String? = null,
     /** Rings just before this session (or at finish without this log). */
     val ringStartSnapshot: RingStartSnapshot? = null,
+    val sessionEffortRpe: Double? = null,
+    val sessionEffortProtocol: String? = null,
 )
 
 @Serializable

@@ -24,7 +24,7 @@ object AppBootstrap {
         try {
             val programs = ProgramRepository.init(context)
             CompetitionRepository.init(context)
-            AugeRepository.getInstance(context)
+            TrainingObservationRepository.getInstance(context)
             WorkoutMediaRepository.init(context)
             // Técnica en vídeo: rehace desde sus sidecars las filas que falten y limpia huérfanos, sin retrasar el arranque.
             TechniqueAnalysisScheduler.reconcileInBackground(context)

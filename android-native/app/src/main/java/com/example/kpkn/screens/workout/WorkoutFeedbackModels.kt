@@ -182,6 +182,7 @@ data class SessionClosingFeedback(
     val additionalDiscomfortNote: String? = null,
     val stillPresentDiscomfortIds: List<String> = emptyList(),
     val ringStartSnapshot: RingStartSnapshot? = null,
+    val sessionEffortRpe: Double? = null,
 )
 
 data class ExerciseHistoryEntry(

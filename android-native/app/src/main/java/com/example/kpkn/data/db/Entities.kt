@@ -67,7 +67,7 @@ fun ProgramEntity.toProgram(): Program = dbJson.decodeFromString(data)
     ],
 )
 data class WorkoutLogEntity(@PrimaryKey val id: String, val programId: String, val sessionId: String, val date: String, val data: String)
-fun WorkoutLog.toEntity() = WorkoutLogEntity(id = id, programId = programId, sessionId = sessionId, date = date, data = dbJson.encodeToString(this))
+fun WorkoutLog.toEntity() = WorkoutLogEntity(id = id, programId = programId, sessionId = sessionId, date = date, data = com.example.kpkn.data.compatibility.LegacyTrainingImport.log(dbJson.encodeToString(this)))
 fun WorkoutLogEntity.toWorkoutLog(): WorkoutLog? = runCatching {
     dbJson.decodeFromString<WorkoutLog>(data)
 }.getOrNull()
@@ -107,7 +107,7 @@ fun CompetitionRecordEntity.toCompetitionRecord(): CompetitionRecord = dbJson.de
 
 @Entity(tableName = "settings")
 data class SettingsEntity(@PrimaryKey val rowId: Int = 1, val data: String)
-fun Settings.toEntity() = SettingsEntity(data = dbJson.encodeToString(this))
+fun Settings.toEntity() = SettingsEntity(data = com.example.kpkn.data.compatibility.LegacyTrainingImport.settings(dbJson.encodeToString(this)))
 fun SettingsEntity.toSettings(): Settings = dbJson.decodeFromString(data)
 
 @Entity(tableName = "active_program")
@@ -117,7 +117,7 @@ fun ActiveProgramEntity.toActiveProgramState(): ActiveProgramState = dbJson.deco
 
 @Entity(tableName = "ongoing_workout")
 data class OngoingWorkoutEntity(@PrimaryKey val rowId: Int = 1, val data: String?)
-fun OngoingWorkoutState.toEntity() = OngoingWorkoutEntity(data = dbJson.encodeToString(this))
+fun OngoingWorkoutState.toEntity() = OngoingWorkoutEntity(data = com.example.kpkn.data.compatibility.LegacyTrainingImport.ongoing(dbJson.encodeToString(this)))
 fun OngoingWorkoutEntity.toOngoingDecode(): OngoingDecode = decodeOngoingWorkout(data)
 fun OngoingWorkoutEntity.toOngoingWorkoutState(): OngoingWorkoutState? =
     (toOngoingDecode() as? OngoingDecode.Ok)?.state
@@ -184,58 +184,6 @@ fun WorkoutTagEntity.toWorkoutTag(): WorkoutTag = runCatching {
 data class WorkoutReplacementDecisionEntity(@PrimaryKey val id: String, val programId: String, val sessionId: String, val createdAt: String, val data: String)
 fun ExerciseReplacementDecisionV2.toEntity() = WorkoutReplacementDecisionEntity(id = id, programId = programId, sessionId = sessionId, createdAt = createdAtIso, data = dbJson.encodeToString(this))
 fun WorkoutReplacementDecisionEntity.toExerciseReplacementDecisionV2(): ExerciseReplacementDecisionV2 = dbJson.decodeFromString(data)
-
-@Entity(tableName = "auge_wellbeing", indices = [Index(value = ["date"], unique = true)])
-data class WellbeingEntity(@PrimaryKey val id: String, val date: String, val data: String)
-fun DailyWellbeingLog.toEntity() = WellbeingEntity(id = id, date = date, data = dbJson.encodeToString(this))
-fun WellbeingEntity.toWellbeingLog(): DailyWellbeingLog? = runCatching {
-    dbJson.decodeFromString<DailyWellbeingLog>(data)
-}.getOrNull()
-
-@Entity(tableName = "auge_sleep", indices = [Index("date")])
-data class SleepLogEntity(@PrimaryKey val id: String, val date: String, val data: String)
-fun SleepLog.toEntity() = SleepLogEntity(id = id, date = date, data = dbJson.encodeToString(this))
-fun SleepLogEntity.toSleepLog(): SleepLog? = runCatching {
-    dbJson.decodeFromString<SleepLog>(data)
-}.getOrNull()
-
-@Entity(tableName = "auge_sleep_extended", indices = [Index("date")])
-data class SleepLogExtendedEntity(@PrimaryKey val id: String, val date: String, val data: String)
-fun com.example.kpkn.data.models.SleepLogExtended.toExtendedEntity() = SleepLogExtendedEntity(id = id, date = date, data = dbJson.encodeToString(this))
-fun SleepLogExtendedEntity.toSleepLogExtended(): com.example.kpkn.data.models.SleepLogExtended? = runCatching {
-    dbJson.decodeFromString<com.example.kpkn.data.models.SleepLogExtended>(data)
-}.getOrNull()
-
-@Entity(tableName = "auge_feedback", indices = [Index("date")])
-data class PostSessionFeedbackEntity(@PrimaryKey val logId: String, val date: String, val data: String)
-fun PostSessionFeedback.toEntity() = PostSessionFeedbackEntity(logId = logId, date = date, data = dbJson.encodeToString(this))
-fun PostSessionFeedbackEntity.toFeedback(): PostSessionFeedback? = runCatching {
-    dbJson.decodeFromString<PostSessionFeedback>(data)
-}.getOrNull()
-
-// Tabla legacy `auge_pending` (encuesta 24h eliminada). Se conserva la entidad
-// para no alterar el identity hash del schema Room; el flujo ya no la usa.
-@Entity(tableName = "auge_pending")
-data class PendingQuestionnaireEntity(@PrimaryKey val rowId: Int = 1, val data: String)
-
-@Entity(tableName = "auge_adaptive_cache")
-data class AugeAdaptiveCacheEntity(@PrimaryKey val rowId: Int = 1, val data: String)
-fun com.example.kpkn.data.models.AugeAdaptiveCache.toEntity() = AugeAdaptiveCacheEntity(data = dbJson.encodeToString(this))
-fun AugeAdaptiveCacheEntity.toAdaptiveCache(): com.example.kpkn.data.models.AugeAdaptiveCache =
-    runCatching {
-        val decoded = dbJson.decodeFromString<com.example.kpkn.data.models.AugeAdaptiveCache>(data.ifBlank { "{}" })
-        val storedVersion = runCatching {
-            dbJson.parseToJsonElement(data.ifBlank { "{}" })
-                .jsonObject["schemaVersion"]?.jsonPrimitive?.intOrNull ?: 1
-        }.getOrDefault(1)
-        if (storedVersion < 2) {
-            // v1 muscular τ/deltas/multipliers were learned from finish-sheet
-            // inversions (hoursSince≈0.5). Drop all three; keep CNS/spinal until v3.
-            decoded
-        } else {
-            decoded
-        }.let { com.example.kpkn.domain.auge.AugeAdaptiveCacheMigration.migrate(it, storedVersion) }
-    }.getOrDefault(com.example.kpkn.data.models.AugeAdaptiveCache())
 
 @Entity(tableName = "nutrition_logs", indices = [Index("date")])
 data class NutritionLogEntity(@PrimaryKey val id: String, val date: String, val mealType: String, val data: String)

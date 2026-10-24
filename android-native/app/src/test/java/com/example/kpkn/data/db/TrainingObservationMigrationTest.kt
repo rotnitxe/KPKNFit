@@ -48,8 +48,10 @@ class TrainingObservationMigrationTest {
                 if (version <= 29) CALIBRATION_MIGRATION_29_30.migrate(db)
                 TRAINING_OBSERVATIONS_30_31.migrate(db)
                 TRAINING_OBSERVATIONS_30_31.migrate(db) // source-identity idempotence
+                RETIRE_DERIVED_TRAINING_31_32.migrate(db)
                 db.setTransactionSuccessful()
             } finally { db.endTransaction() }
+            db.query("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'auge_%'").use { assertEquals(0,it.count) }
             db.query("SELECT sourceIdentity,payload FROM training_observations ORDER BY sourceIdentity").use { c ->
                 assertEquals(3,c.count)
                 while(c.moveToNext()) {

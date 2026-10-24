@@ -5,7 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.*
-import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.ApreVariant
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
@@ -53,7 +53,7 @@ class Cal7ManualApreRoomJourneyTest {
 
     @Before fun setup() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        LiveSessionVmFixture.resetAugeRepository()
+        LiveSessionVmFixture.resetTrainingObservationRepository()
     }
 
     @After fun cleanup() {
@@ -63,7 +63,7 @@ class Cal7ManualApreRoomJourneyTest {
                 finally {
                     try { fixtures.firstOrNull()?.preparedRepository?.let { awaitRepositoryScope(it) } }
                     finally {
-                        try { LiveSessionVmFixture.resetAugeRepository() }
+                        try { LiveSessionVmFixture.resetTrainingObservationRepository() }
                         finally {
                             try { ProgramRepository.closeInstance() }
                             finally { KpknDatabase.closeInstance() }
@@ -557,13 +557,7 @@ class Cal7ManualApreRoomJourneyTest {
             val completedS4 = vm.uiState.value.completedSets.getValue(workoutSetKey(apreExerciseId, 3))
             assertEquals("El S4 ejecutado usa la carga recalculada", 122.5, completedS4.weight, 0.0)
             assertEquals(125.0, completedS4.apreXrm!!.reference.capturedLoadKg!!, 0.0)
-            val readinessDate = completionInstant.atZone(ZoneId.systemDefault()).toLocalDate()
-            AugeRepository.getInstance(context).saveWellbeingLog(DailyWellbeingLog(
-                "cal7-manual-apre-ready-" + completionInstant.toEpochMilli(), readinessDate.toString(),
-                sleepQuality = 5, sleepHours = 8.0, stressLevel = 1, doms = 1, motivation = 5,
-                manualNeuralBattery = 100, manualSpinalBattery = 100, manualMuscularBattery = 100,
-                manualBatteryAnchorMs = completionInstant.toEpochMilli()))
-
+            // APRE completion requires no physiology check-in.
             val baseSession = vm.uiState.value.session!!
             vm.finishWorkout("Recorrido CAL7 APRE manual", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList(),
                 completionInstantIso = completionInstant.toString()))

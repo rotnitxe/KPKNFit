@@ -39,7 +39,7 @@ import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.programModeFor
 import com.example.kpkn.data.programs.TrainingReference
 import com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes
-import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
@@ -421,7 +421,7 @@ class SetupExecutableAvailabilityMatrixTest {
         trace("LIFECYCLE before-enter test=${currentTestName()}")
         // Shadow SQLite de Robolectric se recrea por método: los singletons de conexión se
         // limpian AQUÍ para que cada método use punteros de SU propia base de sandbox.
-        resetAugeRepositorySingleton()
+        resetTrainingObservationRepositorySingleton()
         closeRealRepositoriesBounded("before")
         KpknDatabase.closeInstance()
         ProgramRepository.init(app)
@@ -442,7 +442,7 @@ class SetupExecutableAvailabilityMatrixTest {
         // repos -> Auge -> base de datos -> resetMain. `resetMain` va al final porque el hilo
         // principal es el scheduler de pruebas y no puede quedar trabajo pendiente sin drenar.
         closeRealRepositoriesBounded("after")
-        resetAugeRepositorySingleton()
+        resetTrainingObservationRepositorySingleton()
         KpknDatabase.closeInstance()
         Dispatchers.resetMain()
         trace("LIFECYCLE after-ok test=${currentTestName()}")
@@ -482,23 +482,23 @@ class SetupExecutableAvailabilityMatrixTest {
 
 
     /**
-     * `AugeRepository` no expone reset y su `dao` apunta a la BD de fichero que Robolectric
+     * `TrainingObservationRepository` no expone reset y su `dao` apunta a la BD de fichero que Robolectric
      * recrea entre métodos. Acceso por reflejo SOLO desde esta clase y con fallo explícito si la
      * forma del producto cambia: ningún `runCatching` que lo oculte.
      */
-    private fun resetAugeRepositorySingleton() {
+    private fun resetTrainingObservationRepositorySingleton() {
         val field = try {
-            AugeRepository::class.java.getDeclaredField("INSTANCE")
+            TrainingObservationRepository::class.java.getDeclaredField("INSTANCE")
         } catch (error: NoSuchFieldException) {
             throw AssertionError(
-                "AugeRepository.INSTANCE ya no es un campo privado estático: revisa este helper de test",
+                "TrainingObservationRepository.INSTANCE ya no es un campo privado estático: revisa este helper de test",
                 error,
             )
         }
         field.isAccessible = true
         field.set(null, null)
         check(field.get(null) == null) {
-            "No se pudo limpiar AugeRepository.INSTANCE: su dao apuntaría a la conexión de otro test"
+            "No se pudo limpiar TrainingObservationRepository.INSTANCE: su dao apuntaría a la conexión de otro test"
         }
     }
 

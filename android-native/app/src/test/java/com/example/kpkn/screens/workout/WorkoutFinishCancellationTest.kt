@@ -9,7 +9,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.OngoingWorkoutState
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
-import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.testsupport.RoomTestRule
@@ -54,13 +54,13 @@ class WorkoutFinishCancellationTest {
     @Before
     fun installMainDispatcher() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        resetAugeRepository()
+        resetTrainingObservationRepository()
     }
 
     @After
     fun tearDown() {
         try {
-            resetAugeRepository()
+            resetTrainingObservationRepository()
             ProgramRepository.closeInstance()
             KpknDatabase.closeInstance()
         } finally {
@@ -68,8 +68,8 @@ class WorkoutFinishCancellationTest {
         }
     }
 
-    private fun resetAugeRepository() {
-        AugeRepository::class.java.getDeclaredField("INSTANCE").apply { isAccessible = true }
+    private fun resetTrainingObservationRepository() {
+        TrainingObservationRepository::class.java.getDeclaredField("INSTANCE").apply { isAccessible = true }
             .set(null, null)
     }
 

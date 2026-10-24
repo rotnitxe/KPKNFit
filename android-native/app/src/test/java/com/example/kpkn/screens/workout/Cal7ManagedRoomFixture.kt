@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.protocols.*
 import com.example.kpkn.domain.training.ExerciseLoadReferenceStore
 import com.example.kpkn.screens.programdetail.ProgramDetailViewModel
@@ -115,14 +115,7 @@ internal class Cal7ManagedRoomFixture(private val protocolId: String, private va
             }
         }
         val recorded = vm.uiState.value.completedSets.values.map { it.id }.toSet()
-        // Match the explicit, healthy athlete check-in to this real completion date so recovery does not
-        // accidentally inherit missing or out-of-order readiness data from a different day.
-        val readinessDate = completionInstant.atZone(java.time.ZoneId.systemDefault()).toLocalDate()
-        AugeRepository.getInstance(context).saveWellbeingLog(DailyWellbeingLog(
-            "cal7-ready-$programId-${completionInstant.toEpochMilli()}", readinessDate.toString(),
-            sleepQuality = 5, sleepHours = 8.0, stressLevel = 1, doms = 1, motivation = 5,
-            manualNeuralBattery = 100, manualSpinalBattery = 100, manualMuscularBattery = 100,
-            manualBatteryAnchorMs = completionInstant.toEpochMilli()))
+        // Protocol progression is validated without any physiology check-in.
         vm.finishWorkout("Recorrido CAL7 $protocolId/$mode", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList(),
             completionInstantIso = completionInstant.toString()))
         val completionDate = completionInstant.toString()

@@ -7,7 +7,6 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toActiveProgramState
 import com.example.kpkn.data.db.toSettings
-import com.example.kpkn.data.db.toWellbeingLog
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Program
@@ -165,7 +164,9 @@ class SetupPersistenceTest {
 
         assertEquals(profile, db.settingsDao().get()?.toSettings()?.volumeCalibrationProfile)
         assertEquals(NutritionTrackingChoice.SKIPPED, db.settingsDao().get()?.toSettings()?.nutritionTrackingChoice)
-        assertEquals(wellbeing, db.augeDao().getWellbeingForDate("2026-09-20")?.toWellbeingLog())
+        val original = db.trainingObservationDao().all().single { it.kind == "wellbeing" }
+        assertEquals(wellbeing.id, org.json.JSONObject(original.payload).getString("id"))
+        assertEquals(wellbeing.sleepHours, org.json.JSONObject(original.payload).optDouble("sleepHours"))
     }
 
     @Test
@@ -252,25 +253,15 @@ class SetupPersistenceTest {
     }
 
     @Test
-    fun sameDayCheckInKeepsSleepAndReceivesTheManualV2Anchor() = runBlocking {
-        val existing = DailyWellbeingLog("daily-check-in", "2026-09-23", sleepHours = 8.0,
-            stressLevel = 2)
-        db.augeDao().upsertWellbeing(existing.toEntity())
-        val override = ManualMuscleBatteryOverride(75, 1_800_000L, null, 88)
-        val incoming = DailyWellbeingLog("onboarding-override", "2026-09-23",
-            manualMuscleBatteries = mapOf("chest" to 75),
-            manualMuscleOverridesV2 = mapOf("chest" to override),
-            manualBatteryAnchorMs = 1_800_000L,
-            source = com.example.kpkn.data.models.WellbeingSource.ONBOARDING_INITIAL,
-            capturedFields = setOf("muscle_batteries"))
-        SetupCommitCoordinator(db).commit(SetupCommitRequest("wellbeing-merge", null,
-            Settings(), null, null, false, false, initialWellbeing = incoming))
-        val saved = db.augeDao().getWellbeingForDate("2026-09-23")?.toWellbeingLog()
-        assertEquals("daily-check-in", saved?.id)
-        assertEquals(8.0, saved?.sleepHours)
-        assertEquals(2, saved?.stressLevel)
-        assertEquals(1_800_000L, saved?.manualBatteryAnchorMs)
-        assertEquals(override, saved?.manualMuscleOverridesV2?.get("chest"))
+    fun originalObservationsWithSameDateKeepBothSourceIdentities() = runBlocking {
+        val existing = DailyWellbeingLog("daily-check-in", "2026-09-23", sleepHours = 8.0, stressLevel = 2)
+        val incoming = existing.copy(id="other-source", sleepHours=7.25)
+        for ((id,original) in listOf("first" to existing,"second" to incoming))
+            SetupCommitCoordinator(db).commit(SetupCommitRequest(id, null,Settings(),null,null,false,false, initialWellbeing=original))
+        val saved = db.trainingObservationDao().all().filter { it.kind == "wellbeing" }
+        assertEquals(2,saved.size)
+        assertEquals(setOf("auge_wellbeing:daily-check-in","auge_wellbeing:other-source"),saved.map { it.sourceIdentity }.toSet())
+        assertEquals(setOf(8.0,7.25),saved.map { org.json.JSONObject(it.payload).getDouble("sleepHours") }.toSet())
     }
 
     @Test
