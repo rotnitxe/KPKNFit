@@ -33,7 +33,11 @@ object LegacyTrainingImport {
             if (table == "auge_wellbeing") {
                 val manual = obj.filterKeys { it in manualFields }.filterValues { it != JsonNull && it != JsonObject(emptyMap()) }
                 if (manual.isNotEmpty()) add(Original("$table:$identity:manual", "historical_self_report", date,
-                    JsonObject(manual).toString(), "legacy_0_100_self_report; not_neurological_measurement; not_comparable"))
+                    JsonObject(manual.mapValues { (key, value) ->
+                        if (key == "manualMuscleOverridesV2") JsonObject(value.jsonObject.mapValues { (_, override) ->
+                            JsonObject(override.jsonObject.filterKeys { it != "automaticBatteryAtAnchor" })
+                        }) else value
+                    }).toString(), "legacy_0_100_self_report; not_neurological_measurement; not_comparable"))
             }
         }
     }
@@ -43,10 +47,23 @@ object LegacyTrainingImport {
     }).toString()
 
     private val ongoingDerived = setOf("readinessNeuralOverride", "readinessMuscularOverride", "readinessSpinalOverride", "readinessMuscleOverrides", "lastDrainOverlay", "sessionStressScore", "postSessionPreview", "exerciseReadinessMap", "patternReadiness", "currentAutoRegulation")
+    fun ongoingOriginals(raw: String): JsonObject {
+        val obj = parseObject(raw)
+        val declarations = obj.filterKeys { it in setOf("readinessNeuralOverride", "readinessMuscularOverride", "readinessSpinalOverride", "readinessMuscleOverrides") }
+            .filterValues { it != JsonNull && it != JsonObject(emptyMap()) }
+        return if (declarations.isEmpty()) JsonObject(emptyMap()) else JsonObject(declarations + obj.filterKeys { it in setOf("programId", "startTime") })
+    }
+    private fun completedSets(value: JsonElement): JsonObject = JsonObject(value.jsonObject.mapValues { (_,set) ->
+        JsonObject(set.jsonObject.filterKeys { it !in setOf("spinalScore", "batteryDrain", "cnsDrain", "spinalDrain", "muscularDrain", "readinessScore") })
+    })
     fun ongoing(raw: String): String = JsonObject(parseObject(raw).filterKeys { it !in ongoingDerived }.mapValues { (key,value) ->
-        if (key == "completedSets") JsonObject(value.jsonObject.mapValues { (_,set) ->
-            JsonObject(set.jsonObject.filterKeys { it != "spinalScore" })
-        }) else value
+        when {
+            key == "completedSets" -> completedSets(value)
+            key == "godModeUndoStack" && value != JsonNull -> JsonArray(value.jsonArray.map { snapshot ->
+                JsonObject(snapshot.jsonObject.mapValues { (k,v) -> if (k == "completedSets") completedSets(v) else v })
+            })
+            else -> value
+        }
     }).toString()
 
     private val draftRetired = setOf("ringsAnswers", "manualMuscleOverrides", "manualEnergyOverride", "manualStructureOverride", "ringsBatteriesPreview", "ringsCoveragePreview", "ringsMuscleEstimates")

@@ -123,7 +123,8 @@ object SessionTemplateEngine {
                 (part.mobilityConfig?.totalMinutes ?: 0) > 0
         }
         val hasWarmup = session.warmup.any(::isExecutableWarmup)
-        return hasStrength || hasCardio || hasMobility || hasWarmup
+        return hasStrength || hasCardio || hasMobility || hasWarmup ||
+            com.example.kpkn.domain.multisport.tracking.ExternalSportSessionPolicy.isRecordable(session)
     }
 
     /**

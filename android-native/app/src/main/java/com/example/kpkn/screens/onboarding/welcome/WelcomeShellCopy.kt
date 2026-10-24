@@ -68,7 +68,7 @@ internal val WelcomePages: List<WelcomePageCopy> = listOf(
         accent = WelcomeScenePalette.columna,
         title = "Tu progreso, con contexto",
         message = "Compara sesiones y resultados registrados con sus unidades. Tú decides si quieres ajustar tu entrenamiento.",
-        demoDescription = "Ejemplo ilustrativo: dos sesiones de cinco kilómetros, con su tiempo registrado. No son tus datos.",
+        demoDescription = "Ejemplo ilustrativo: dos sesiones de cinco kilómetros con sus tiempos registrados, sin usar tus datos.",
         period = 12f,
     ),
 )

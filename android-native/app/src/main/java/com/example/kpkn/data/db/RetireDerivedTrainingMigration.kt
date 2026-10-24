@@ -30,7 +30,7 @@ val RETIRE_DERIVED_TRAINING_31_32 = object : Migration(31, 32) {
             while(cursor.moveToNext()) {
                 val raw = cursor.getString(1)
                 val obj = LegacyTrainingImport.parseObject(raw)
-                val original = JsonObject(obj.filterKeys { it in setOf("programId","startTime","readinessNeuralOverride","readinessMuscularOverride","readinessSpinalOverride","readinessMuscleOverrides") })
+                val original = LegacyTrainingImport.ongoingOriginals(raw)
                 preserve("ongoing:${cursor.getLong(0)}:${obj["startTime"]}","historical_session_context",original)
                 db.execSQL("UPDATE ongoing_workout SET data=? WHERE rowId=?",arrayOf(LegacyTrainingImport.ongoing(raw),cursor.getLong(0)))
             }

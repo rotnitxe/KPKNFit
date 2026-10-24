@@ -43,6 +43,12 @@ object LegacyTrainingBackup {
                 "historical_original; original_scale; not_comparable")
             JsonObject(draft + ("payloadJson" to JsonPrimitive(LegacyTrainingImport.draft(rawDraft))))
         }
+        root["ongoingWorkout"]?.takeIf { it != JsonNull }?.let { ongoing ->
+            val original = LegacyTrainingImport.ongoingOriginals(ongoing.toString())
+            if (original.isNotEmpty()) observations += TrainingObservationEntity(
+                "ongoing:1:${ongoing.jsonObject["startTime"]}", "historical_session_context", "", original.toString(),
+                "historical_original; original_scale; not_comparable")
+        }
         require(observations.groupBy { it.sourceIdentity }.values.all { versions -> versions.distinct().size == 1 }) {
             "Observaciones con identidad repetida y contenido distinto: se conserva el respaldo para recuperación"
         }
