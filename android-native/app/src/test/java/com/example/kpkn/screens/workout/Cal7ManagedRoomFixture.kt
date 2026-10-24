@@ -116,7 +116,7 @@ internal class Cal7ManagedRoomFixture(private val protocolId: String, private va
         }
         val recorded = vm.uiState.value.completedSets.values.map { it.id }.toSet()
         // Protocol progression is validated without any physiology check-in.
-        vm.finishWorkout("Recorrido CAL7 $protocolId/$mode", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList(),
+        vm.finishWorkout("Recorrido CAL7 $protocolId/$mode", 5, SessionClosingFeedback(discomforts = emptyList(),
             completionInstantIso = completionInstant.toString()))
         val completionDate = completionInstant.toString()
         val log = withTimeout(60_000) {

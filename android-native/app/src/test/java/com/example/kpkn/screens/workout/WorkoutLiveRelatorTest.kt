@@ -548,117 +548,6 @@ class WorkoutLiveRelatorTest {
     }
 
     @Test
-    fun intraSessionTricepsHintBeatsGenericIdle() {
-        val line = WorkoutLiveRelator.resolve(
-            baseSnapshot(
-                exerciseDisplayName = "Extensiones de tríceps",
-                tissueHint = RelatorTissueHint(
-                    muscleLabel = "tríceps",
-                    sourceExerciseName = "Press banca",
-                    jointCare = "codos",
-                    window = RelatorTissueWindow.INTRA,
-                    drainScore = 2.0,
-                ),
-                idleCycle = 1,
-            ),
-        ).text
-        assertNotNull(line)
-        val lower = line!!.lowercase()
-        assertTrue(lower.contains("tríceps") || lower.contains("triceps"))
-        assertTrue(lower.contains("press") || lower.contains("vinieron") || lower.contains("codos"))
-    }
-
-    @Test
-    fun dayLumbarHintUsesYesterdayCopy() {
-        val line = WorkoutLiveRelator.resolve(
-            baseSnapshot(
-                exerciseDisplayName = "Sentadilla trasera alta",
-                compound = RelatorCompound.BACK_SQUAT_HIGH,
-                tissueHint = RelatorTissueHint(
-                    muscleLabel = "lumbar",
-                    sourceExerciseName = "Peso muerto",
-                    jointCare = null,
-                    window = RelatorTissueWindow.DAY,
-                    drainScore = 32.0,
-                ),
-                idleCycle = 1,
-            ),
-        ).text
-        assertNotNull(line)
-        val lower = line!!.lowercase()
-        assertTrue(lower.contains("lumbar") || lower.contains("ayer"))
-        assertTrue(lower.contains("ayer") || lower.contains("muerto") || lower.contains("pesado"))
-    }
-
-    @Test
-    fun pickIntraHintPrefersTricepsFromPresses() {
-        val hint = pickRelatorTissueHint(
-            todayPrimaryMuscles = listOf("Tríceps"),
-            todayStabilizers = listOf("Erectores"),
-            intraSession = listOf(
-                RelatorPriorExercise(
-                    name = "Press banca",
-                    primaryMuscles = listOf("Pectoral"),
-                    secondaryMuscles = listOf("Tríceps"),
-                ),
-            ),
-            yesterday = emptyList(),
-        )
-        assertNotNull(hint)
-        assertEquals(RelatorTissueWindow.INTRA, hint!!.window)
-        assertEquals("tríceps", hint.muscleLabel)
-        assertEquals("codos", hint.jointCare)
-        assertTrue(hint.sourceExerciseName.lowercase().contains("press"))
-    }
-
-    @Test
-    fun pickDayHintUsesLumbarDrain() {
-        val hint = pickRelatorTissueHint(
-            todayPrimaryMuscles = listOf("Cuádriceps"),
-            todayStabilizers = listOf("Erector spinae"),
-            intraSession = emptyList(),
-            yesterday = listOf(
-                RelatorPriorExercise(
-                    name = "Peso muerto",
-                    primaryMuscles = listOf("Erectores"),
-                    highIntensity = true,
-                    drainByMuscle = mapOf("Erector spinae" to 32.0),
-                ),
-            ),
-        )
-        assertNotNull(hint)
-        assertEquals(RelatorTissueWindow.DAY, hint!!.window)
-        assertEquals("lumbar", hint.muscleLabel)
-        assertTrue(hint.sourceExerciseName.lowercase().contains("muerto"))
-    }
-
-    @Test
-    fun intraHintBeatsDayHint() {
-        val hint = pickRelatorTissueHint(
-            todayPrimaryMuscles = listOf("tríceps"),
-            todayStabilizers = listOf("erectores"),
-            intraSession = listOf(
-                RelatorPriorExercise(
-                    name = "Press banca",
-                    primaryMuscles = listOf("pectoral"),
-                    secondaryMuscles = listOf("tríceps"),
-                ),
-            ),
-            yesterday = listOf(
-                RelatorPriorExercise(
-                    name = "Peso muerto",
-                    primaryMuscles = listOf("erectores"),
-                    highIntensity = true,
-                    drainByMuscle = mapOf("erectores" to 40.0),
-                ),
-            ),
-        )
-        assertNotNull(hint)
-        assertEquals(RelatorTissueWindow.INTRA, hint!!.window)
-        assertEquals("tríceps", hint.muscleLabel)
-    }
-
-    @Test
     fun bodyweightDoesNotUseLoadTemplates() {
         val line = WorkoutLiveRelator.resolve(
             baseSnapshot(
@@ -1274,18 +1163,6 @@ class WorkoutLiveRelatorTest {
     }
 
     @Test
-    fun unusedDayHintWhenNoMatch() {
-        assertNull(
-            pickRelatorTissueHint(
-                todayPrimaryMuscles = listOf("cuádriceps"),
-                todayStabilizers = listOf("abdominales"),
-                intraSession = emptyList(),
-                yesterday = emptyList(),
-            ),
-        )
-    }
-
-    @Test
     fun firstSetUsesPreviousSessionMarkAndMidSetUsesTodayOnly() {
         val history = RelatorSessionSetMemory(setNumber = 1, weightKg = 100.0, reps = 5)
         val today = RelatorSessionSetMemory(setNumber = 1, weightKg = 80.0, reps = 8)
@@ -1630,7 +1507,6 @@ class WorkoutLiveRelatorTest {
         dropSetCount: Int = 0,
         plannedDropCount: Int = 0,
         compound: RelatorCompound = RelatorCompound.NONE,
-        tissueHint: RelatorTissueHint? = null,
         loadKind: RelatorLoadKind = RelatorLoadKind.LOAD,
         unit: RelatorUnit = RelatorUnit.REPS,
         mobilityCompleted: Int = 0,
@@ -1644,7 +1520,6 @@ class WorkoutLiveRelatorTest {
         historyLastSet: RelatorSessionSetMemory? = null,
         discomfortHint: RelatorDiscomfortHint? = null,
         prHint: RelatorPrHint? = null,
-        axialLoadFactor: Double? = null,
         equipmentId: String? = null,
         movementPatternId: String? = null,
         shownConceptIds: Set<String> = emptySet(),
@@ -1677,7 +1552,6 @@ class WorkoutLiveRelatorTest {
         dropSetCount = dropSetCount,
         plannedDropCount = plannedDropCount,
         compound = compound,
-        tissueHint = tissueHint,
         loadKind = loadKind,
         unit = unit,
         setKey = setKey,
@@ -1690,7 +1564,6 @@ class WorkoutLiveRelatorTest {
         historyLastSet = historyLastSet,
         discomfortHint = discomfortHint,
         prHint = prHint,
-        axialLoadFactor = axialLoadFactor,
         equipmentId = equipmentId,
         movementPatternId = movementPatternId,
         shownConceptIds = shownConceptIds,

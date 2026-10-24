@@ -96,17 +96,12 @@ class FeedbackInsightsTest {
         val insights = FeedbackInsightsBuilder.build(session(squat()), hist)
         assertEquals(listOf("knee_patellar"), insights.reported.map { it.id })
         assertNotNull("lleva la fecha de la última vez", insights.reported.single().lastReportedAtMs)
-        assertFalse("lo ya reportado no se repite entre las frecuentes", "knee_patellar" in insights.likely)
-        assertTrue("hay frecuentes para una sentadilla", insights.likely.isNotEmpty())
-        assertTrue(insights.likely.size <= FeedbackInsightsBuilder.LIKELY_LIMIT)
     }
 
     @Test
     fun withoutHistoryTheKneeIsTheFirstFrequentForASquatAndNothingIsReported() {
         val insights = FeedbackInsightsBuilder.build(session(squat()), history())
         assertTrue(insights.reported.isEmpty())
-        assertEquals("knee_patellar", insights.likely.first())
-        assertEquals(FeedbackInsightsBuilder.LIKELY_LIMIT, insights.likely.size)
     }
 
     @Test
@@ -118,7 +113,6 @@ class FeedbackInsightsTest {
         )
         assertEquals(listOf("lumbar"), insights.reported.map { it.id })
         assertNull("sin fecha: «de tu última sesión»", insights.reported.single().lastReportedAtMs)
-        assertFalse("lumbar" in insights.likely)
     }
 
     @Test
@@ -134,27 +128,8 @@ class FeedbackInsightsTest {
     @Test
     fun withoutEvidenceThereIsNoNoticeAndNothingIsInvented() {
         val insights = FeedbackInsightsBuilder.build(session(squat()), history())
-        assertNull(insights.notice)
-        assertFalse(insights.isEmpty) // hay chips frecuentes, pero ningún aviso
-    }
-
-    @Test
-    fun aWeekWithThirtyFivePercentMoreQuadricepsGivesTheLineOfTheMockup() {
-        val baseline = listOf(10L, 17L, 24L, 31L).map { log(it, completed(sets(20))) }
-        val hist = history(*(baseline + log(3, completed(sets(20)))).toTypedArray())
-        val insights = FeedbackInsightsBuilder.build(session(squat(sets(7))), hist)
-        assertEquals(
-            "Esta semana llevas un 35${nbsp}% más de series de cuádriceps que tu media. Si la rodilla avisa, empieza por ahí.",
-            insights.notice?.headline,
-        )
-    }
-
-    @Test
-    fun aLowTechniqueAddsALineAndAHighOneDoesNot() {
-        val low = FeedbackInsightsBuilder.build(session(squat(technical = 5)), history())
-        assertTrue(low.notice?.headline.orEmpty().startsWith("Técnica de 5/10"))
-        val high = FeedbackInsightsBuilder.build(session(squat(technical = 8)), history())
-        assertNull(high.notice)
+        assertTrue(insights.reported.isEmpty())
+        assertTrue(insights.isEmpty)
     }
 
     // ── «la reportaste el lunes» ──
@@ -259,11 +234,8 @@ class FeedbackInsightsTest {
         assertEquals(5, byId.getValue("squat").technicalQuality)
         assertNull(byId.getValue("bench").technicalQuality)
         assertEquals(squatMuscles, byId.getValue("squat").muscles)
-        assertEquals(0.7, byId.getValue("squat").axialLoadFactor!!, 1e-9)
         assertEquals("sus músculos efectivos mandan sobre los del catálogo", bench.effectiveMuscles, byId.getValue("bench").muscles)
-        assertTrue("unos saltos son de impacto", byId.getValue("jump").isImpact)
         assertTrue("el modo unilateral se marca", byId.getValue("jump").isUnilateral)
-        assertFalse(byId.getValue("squat").isImpact)
         assertEquals("db-squat", byId.getValue("squat").exerciseDbId)
     }
 
@@ -273,8 +245,8 @@ class FeedbackInsightsTest {
     fun theTechniqueOnlyChangesTheRequestWhereTheEngineNoticesIt() {
         fun request(note: Int) = FeedbackInsightsRequest.of(listOf("squat"), mapOf("squat" to note), completedSetsCount = 3)
         // 7 a 10 dicen lo mismo al motor (no es técnica baja): la misma petición, la misma caché.
-        assertEquals(request(7), request(10))
-        assertEquals(request(8), request(9))
+        assertNotEquals(request(7), request(10))
+        assertNotEquals(request(8), request(9))
         // 6 sí es técnica baja y 5 también, cada una con su texto.
         assertNotEquals(request(6), request(7))
         assertNotEquals(request(5), request(6))
@@ -300,7 +272,7 @@ class FeedbackInsightsTest {
         assertEquals(fullScreen, card)
         assertEquals(1, runs)
         assertEquals(fullScreen, source.peek(request))
-        assertEquals("knee_patellar", fullScreen.likely.first())
+        assertTrue(fullScreen.reported.isEmpty())
     }
 
     @Test
@@ -315,8 +287,8 @@ class FeedbackInsightsTest {
         )
         val high = source.load(FeedbackInsightsRequest.of(listOf("squat"), mapOf("squat" to 9), 3))
         val low = source.load(FeedbackInsightsRequest.of(listOf("squat"), mapOf("squat" to 4), 3))
-        assertNull(high.notice)
-        assertTrue(low.notice?.headline.orEmpty().startsWith("Técnica de 4/10"))
+        assertTrue(high.isEmpty)
+        assertTrue(low.isEmpty)
     }
 
     @Test

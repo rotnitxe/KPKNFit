@@ -37,7 +37,6 @@ import com.example.kpkn.domain.nutrition.WizardPacePreset
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.MuscleSymbol
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
-import com.example.kpkn.domain.onboarding.SetupRingsResponseMapping
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId

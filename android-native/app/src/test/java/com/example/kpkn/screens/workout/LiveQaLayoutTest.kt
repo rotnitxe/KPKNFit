@@ -295,19 +295,6 @@ class LiveQaLayoutTest {
     @Test fun workingRelatorAt100() = workingRelator(1f)
     @Test fun workingRelatorAt130() = workingRelator(1.3f)
 
-    @Test fun muscleMapExplainsTheApprovedRecoveryColors() {
-        content {
-            Column(Modifier.size(360.dp, 840.dp).background(Color.Black).verticalScroll(rememberScrollState()).testTag("qa-muscles")) {
-                MuscleBodyAdjust(values = mapOf("Pectorales" to 92, "Cuádriceps" to 54, "Core" to 70), before = emptyMap(),
-                    onValueChange = { _, _ -> }, initialSelected = "Pectorales")
-            }
-        }
-        listOf("Recuperado · 80–100 %", "Algo cargado · 60–79 %", "Cargado · 0–59 %", "Borde grueso: músculo elegido").forEach {
-            rule.onNodeWithText(it, useUnmergedTree = true).assertIsDisplayed()
-        }
-        save("qa-muscles", "muscle-recovery-legend")
-    }
-
     @Test fun restTowerCardUsesTheSharedClock() = restCard(RestClockShape.TOWER)
     @Test fun restTrackCardUsesTheSharedClock() = restCard(RestClockShape.TRACK)
     @Test fun restSpiralCardUsesTheSharedClock() = restCard(RestClockShape.SPIRAL)

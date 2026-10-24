@@ -67,25 +67,15 @@ internal fun WorkoutSessionOverlaysHost(
                 .filter { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) < uiState.startTimeMs }
                 .take(6)
         }
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = onReadinessDismissed,
-            title = { Text("Antes de entrenar") },
-            text = { Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Consulta los objetivos del plan. El registro breve es opcional y no cambia tus cargas.")
-                if (previous.isEmpty()) Text("Sin sesiones anteriores con este identificador. Consulta el historial para otras disciplinas.")
-                else {
-                    Text("Registros anteriores de esta sesión")
-                    previous.forEach { log -> Text("${log.date.take(10)} · ${log.durationMinutes} min (precisión original) · ${log.completedExercises.size} ejercicios") }
-                    Text("El contexto puede haber cambiado; estas referencias no miden preparación corporal.")
-                }
-                androidx.compose.material3.OutlinedTextField(value = uiState.sessionNotes, onValueChange = viewModel::setSessionNotes,
-                    label = { Text("Cansancio, molestias o contexto de hoy (opcional)") }, modifier = Modifier.fillMaxWidth())
-                if (uiState.previousSessionDiscomforts.isEmpty()) Text("Sin molestias anteriores registradas.")
-                else uiState.previousSessionDiscomforts.forEach { id ->
-                    Text(com.example.kpkn.data.models.discomfortLabel(id))
-                }
-            } },
-            confirmButton = { androidx.compose.material3.TextButton(onClick = onReadinessDismissed) { Text("Continuar") } },
+        PreSessionPreparationDialog(
+            notes = uiState.sessionNotes,
+            previous = previous.map { log ->
+                val duration = log.actualDurationSeconds?.let { "$it s" } ?: "${log.durationMinutes} min (precisión original)"
+                "${log.date.take(10)} · $duration · ${log.completedExercises.size} ejercicios"
+            },
+            discomforts = uiState.previousSessionDiscomforts.map { com.example.kpkn.data.models.discomfortLabel(it) },
+            onNotes = viewModel::setSessionNotes,
+            onDismiss = onReadinessDismissed,
         )
     }
 

@@ -100,32 +100,4 @@ class SessionTemplateSuggestionEngineTest {
         }
     }
 
-    @Test
-    fun weeklyDrainWithinSoftBudgetOrWarns() {
-        val split = SPLIT_TEMPLATES.first { it.id == "ul_x4" }
-        val plan = SessionTemplateSuggestionEngine.suggestWeek(
-            split = split,
-            templates = SESSION_TEMPLATES_SYSTEM,
-            exerciseIndex = exerciseIndexWithAliases,
-            prefs = SuggestionPrefs(preferredDifficulty = split.difficulty),
-        )
-        val caps = RingBudgetPolicy.weeklyWarningCaps()
-        val within = plan.weeklyDrain.cns <= caps.cns &&
-            plan.weeklyDrain.muscular <= caps.muscular &&
-            plan.weeklyDrain.spinal <= caps.spinal
-        if (plan.exceedsWeeklyBudget || !within) {
-            assertTrue(
-                "Si excede presupuesto semanal debe haber warnings o preferir low/SHORT",
-                plan.warnings.isNotEmpty() ||
-                    plan.days.any { day ->
-                        val t = day.template ?: return@any false
-                        t.durationClass == SessionTemplateDurationClass.SHORT ||
-                            t.id.endsWith("-low") ||
-                            t.weeklyVolumePolicyId == "high_freq_low"
-                    },
-            )
-        } else {
-            assertFalse(plan.exceedsWeeklyBudget)
-        }
-    }
 }

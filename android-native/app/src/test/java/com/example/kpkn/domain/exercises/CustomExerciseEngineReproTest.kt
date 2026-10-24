@@ -84,9 +84,8 @@ class CustomExerciseEngineReproTest {
         val created = SmartExerciseCreator.createAutomatic("press raro de una variante inventada", catalog)
         assertNotNull(created.id)
         assertTrue(created.id.startsWith("custom:"))
-        assertTrue(
-            "Sin referencia confirmada, la carga axial debe quedar desconocida: ${created.axialLoadFactor}",
-            created.axialLoadFactor == null,
-        )
+        val serialized=kotlinx.serialization.json.Json.encodeToJsonElement(
+            com.example.kpkn.data.models.ExerciseMuscleInfo.serializer(),created) as kotlinx.serialization.json.JsonObject
+        assertFalse(serialized.containsKey("axialLoadFactor"))
     }
 }

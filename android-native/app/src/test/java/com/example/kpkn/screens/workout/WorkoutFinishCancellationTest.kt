@@ -261,10 +261,10 @@ class WorkoutFinishCancellationTest {
     }
 
     private fun feedback() = SessionClosingFeedback(
-        overallFatigue = 5,
-        systemAdjustment = 0,
-        muscularAdjustment = 0,
-        structureAdjustment = 0,
+
+
+
+
         discomforts = emptyList(),
     )
 }

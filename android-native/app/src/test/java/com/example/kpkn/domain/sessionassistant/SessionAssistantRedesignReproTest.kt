@@ -95,11 +95,6 @@ class SessionAssistantRedesignReproTest {
     fun plannedSessionsAreNeverPresentedAsDone() {
         val s1 = MotSessions.session("s1", "SBD Sentadilla", MotSessions.S1, dayOfWeek = 1)
         val s2 = MotSessions.session("s2", "SBD Peso muerto", MotSessions.S2, dayOfWeek = 2)
-        // Precondición (motor de interferencia sin tocar): dos sesiones PREVISTAS, ≈ 13 %, no vienen del historial.
-        val hits = InterferenceEngine.analyzeUpcomingSession(s2, listOf(s1, s2), emptyList(), index, Settings())
-        assertTrue("S1 → S2 debe producir un cruce previsto: $hits", hits.isNotEmpty() && hits.all { !it.isFromHistory })
-        assertTrue("≈ 13 % según AUD1: ${hits.map { it.interferencePercent }}", hits.first().interferencePercent in 10..24)
-
         val report = SessionAssistantEngine.evaluate(input(s2, week = listOf(s1), customDrain = PredictedDrain(30, 30, 20)))
         val text = allText(report.ajustes)
         assertFalse("Una sesión prevista no se «entrenó»: $text", text.contains("entrenaste"))

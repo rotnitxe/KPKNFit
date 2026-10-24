@@ -102,7 +102,7 @@ class DiscomfortSheetUiTest {
         val insight = DiscomfortInsight(
             discomfortId = "knee_patellar",
             headline = "Hoy llevas 4 series pesadas de sentadilla.",
-            today = listOf(evidence(DiscomfortEvidenceKind.HEAVY_SETS, "4 series pesadas de sentadilla", "Deja 2 repeticiones en reserva.")),
+            today = listOf(evidence(DiscomfortEvidenceKind.REPORTED_HISTORY, "4 series pesadas de sentadilla", "Deja 2 repeticiones en reserva.")),
             week = emptyList(),
             advice = listOf("Deja 2 repeticiones en reserva.", PROFESSIONAL_ADVICE),
             persistent = false,

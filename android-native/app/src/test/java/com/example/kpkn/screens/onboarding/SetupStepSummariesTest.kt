@@ -24,9 +24,6 @@ import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.MuscleSymbol
 import com.example.kpkn.domain.onboarding.ProgramSource
-import com.example.kpkn.domain.onboarding.RingsChannelCoverage
-import com.example.kpkn.domain.onboarding.RingsCoverage
-import com.example.kpkn.domain.onboarding.RingsCoverageSource
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupControlKind
 import com.example.kpkn.domain.onboarding.SetupInventoryGroup
@@ -107,8 +104,6 @@ class SetupStepSummariesTest {
             nutritionStartChoice = "automatic",
             nutritionDirection = "deficit",
             // Días entrenados en las últimas 72 h: la ruta de RINGS pregunta ejercicios, series e intensidad.
-            ringsTrainedDays = true,
-            ringsTrainedLast72h = true,
         ),
         // Punto de partida: ejercicios a evitar, estilo de mesa y variantes de los básicos.
         SetupStepContext(asksAvoid = true, asksArmStyle = true, asksVariants = true),
@@ -876,7 +871,6 @@ class SetupStepSummariesTest {
             weightTrend = "falling",
             previousMaximumWeightKg = 500.0,
             historicalWeighIns = (1..12).map { SetupWeighIn("w$it", "2026-09-%02d".format(it), 70.0 + it) },
-            ringsAnswers = SetupRingsAnswers(muscleFeeling = 5, energy = 5, structureFeeling = 5),
             nutritionDraft = (draft.nutritionDraft ?: NutritionWizardDraft()).copy(
                 targetWeightText = "499,9",
                 manualCalorieTargetText = "99999",
@@ -886,17 +880,10 @@ class SetupStepSummariesTest {
             ),
         )
 
-        fun channel(id: RecoveryChannelId) =
-            RingsChannelCoverage(id, RingsCoverageSource.REAL_HISTORY, uncertainty = 10, score = 100)
         return SetupWizardState(
             draft = draft,
             programPreview = Program(id = "p", name = "N".repeat(80)),
             nutritionPlanPreview = NutritionPlan(calorieTarget = 99999),
-            ringsCoveragePreview = RingsCoverage(
-                muscular = channel(RecoveryChannelId.MUSCULAR),
-                system = channel(RecoveryChannelId.SYSTEM),
-                structure = channel(RecoveryChannelId.STRUCTURE),
-            ),
             receiptId = "commit-1",
         )
     }

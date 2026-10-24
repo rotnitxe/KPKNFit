@@ -434,9 +434,6 @@ class SetupWizardStateTest {
         val original = baseDraft()
         val base = original.copy(
             weightUnit = "lb",
-            manualMuscleOverrides = mapOf("Pecho" to 3),
-            manualEnergyOverride = 2,
-            manualStructureOverride = 1,
             selectedCatalogId = "plan-x",
             equipment = setOf(SetupEquipment.DUMBBELLS),
             nutritionDraft = NutritionWizardDraft(mode = "create", targetWeightText = "70"),
@@ -457,8 +454,6 @@ class SetupWizardStateTest {
         assertEquals(base.stepProgress, restored.stepProgress)
         // Unidades, ediciones de inventario y selecciones sobreviven.
         assertEquals("lb", restored.weightUnit)
-        assertEquals(mapOf("Pecho" to 3), restored.manualMuscleOverrides)
-        assertEquals(2, restored.manualEnergyOverride)
         assertEquals("plan-x", restored.selectedCatalogId)
         assertEquals(setOf(SetupEquipment.DUMBBELLS), restored.equipment)
         assertEquals(base.nutritionDraft, restored.nutritionDraft)

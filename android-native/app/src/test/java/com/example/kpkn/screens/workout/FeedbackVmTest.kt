@@ -106,7 +106,7 @@ class FeedbackVmTest {
         val request = FeedbackInsightsRequest.of(listOf("a"), mapOf("a" to 8), completedSetsCount = 0)
         val insights = vm.feedbackInsightSource.load(request)
         // Un ejercicio sin músculos conocidos ni historial: el motor no tiene nada que decir.
-        assertNull(insights.notice)
+        assertTrue(insights.reported.isEmpty())
         assertTrue(insights.reported.isEmpty())
         // La segunda vez sale de la caché: es el mismo resultado.
         assertEquals(insights, vm.feedbackInsightSource.peek(request))

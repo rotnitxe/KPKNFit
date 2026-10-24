@@ -69,3 +69,15 @@ contratos de protocolos, voz, cierre e historial mantienen su regresión.
 - ProgramAnalyticsEngineTest: retira el caso de fatiga lumbar calculada; conserva cobertura, adherencia y analítica independiente.
 - DiscomfortCauseEngineTest: conserva reportes anteriores/orden/recuento como RecordedDiscomfortHistoryTest; retira las pruebas del predictor causal y sus umbrales eliminados.
 - ProgramVolumeStatesTest: compara rangos del programa con etiquetas descriptivas y color neutro; se retiran dos tests exclusivos de alertas inferidas.
+
+## Portado tras retirada completa (24 oct, segunda pasada)
+
+Las suites mixtas conservan pruebas de sesión, cancelación, voz, protocolos nativos,
+plantillas, navegación y datos originales. Se retiran exclusivamente casos de mapas
+porcentuales, destellos de preparación, overlay de gasto, ajuste automático de cargas,
+presupuesto RINGS y coeficientes de catálogo que ya no son funciones del producto.
+Las expectativas de TM/calibración ahora comprueban que un resultado no aceptado no
+modifica la carga del plan. El diálogo de preparación se extrae como componente real
+opcional y sus renders sustituyen los del calibrador. Las pruebas de voz verifican
+que frases de baterías retiradas no creen registros; guardar y notas se conservan.
+Esta pasada aún requiere compilación y ejecución; no constituye evidencia de éxito.

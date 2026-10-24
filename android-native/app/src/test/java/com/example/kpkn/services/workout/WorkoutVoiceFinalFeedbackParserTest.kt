@@ -100,11 +100,11 @@ class WorkoutVoiceFinalFeedbackParserTest {
     }
 
     @Test
-    fun bateria_espinal_se_sigue_parseando() {
+    fun bateria_retirada_no_inventa_registros() {
         val cmd = WorkoutVoiceCommandParser.parseFinalFeedbackCommand("batería espinal ochenta")
 
         assertFalse(cmd.isSaveAction)
-        assertEquals(80, cmd.spinalBattery)
+        assertTrue(cmd.isEmpty)
     }
 
     @Test
@@ -113,8 +113,8 @@ class WorkoutVoiceFinalFeedbackParserTest {
 
         assertFalse(cmd.isSaveAction)
         assertNull(cmd.notes)
-        assertNull(cmd.neuralBattery)
-        assertNull(cmd.spinalBattery)
+
+
         assertNull(cmd.discomfortId)
         assertTrue(cmd.isEmpty)
     }
@@ -124,7 +124,7 @@ class WorkoutVoiceFinalFeedbackParserTest {
         val cmd = WorkoutVoiceCommandParser.parseFinalFeedbackCommand("batería nerviosa sesenta sesión terminada")
 
         assertTrue(cmd.isSaveAction)
-        assertEquals(60, cmd.neuralBattery)
+        assertNull(cmd.notes)
         assertFalse(cmd.isEmpty)
     }
 

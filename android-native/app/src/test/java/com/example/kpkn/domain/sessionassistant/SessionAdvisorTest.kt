@@ -249,24 +249,6 @@ class SessionAdvisorTest {
     // ─── Cruces entre sesiones: previsto no es hecho ─────────────────────────
 
     @Test
-    fun plannedOverlap_isDescribedAsPlanned_andBelow25IsOnlyANote() {
-        val s1 = MotSessions.session("s1", "SBD Sentadilla", MotSessions.S1, dayOfWeek = 1)
-        val s2 = MotSessions.session("s2", "SBD Peso muerto", MotSessions.S2, dayOfWeek = 2)
-        val hits = InterferenceEngine.analyzeUpcomingSession(s2, listOf(s1, s2), emptyList(), index, Settings(), nowMs = now)
-        val percent = hits.first().interferencePercent
-        val report = SessionAssistantEngine.evaluate(input(s2, week = listOf(s1), customDrain = PredictedDrain(30, 30, 20)))
-        val text = everything(report)
-        assertFalse(text, text.contains("entrenaste") || text.contains("hiciste"))
-        assertTrue("debe hablar de la sesión prevista: $text", text.contains("prevista"))
-        if (percent < 25) {
-            assertTrue("un cruce de $percent % no es una tarjeta: ${report.ajustes.map { it.id }}", report.ajustes.none { it.id.startsWith("overlap-") })
-            assertTrue(report.notas.any { it.contains("Puedes mantener el plan") })
-        } else {
-            assertTrue(report.ajustes.any { it.id.startsWith("overlap-") })
-        }
-    }
-
-    @Test
     fun realizedOverlap_isTheOnlyOneToSayItWasDone() {
         val s2 = MotSessions.session("s2", "SBD Peso muerto", MotSessions.S2, dayOfWeek = 2)
         val doneLog = WorkoutLog(

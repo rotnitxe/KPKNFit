@@ -232,7 +232,6 @@ class KpknBottomBarRenderSheetTest {
         val estados = listOf(
             HomeBarContext.GREETING to "Alex",
             HomeBarContext.SESSION to "Alex",
-            HomeBarContext.RINGS to "Alex",
             HomeBarContext.NUTRITION to "Alex",
             HomeBarContext.GREETING to "",
         )

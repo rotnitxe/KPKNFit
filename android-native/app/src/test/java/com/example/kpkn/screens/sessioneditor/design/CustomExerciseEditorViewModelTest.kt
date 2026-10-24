@@ -35,7 +35,6 @@ class CustomExerciseEditorViewModelTest {
         assertTrue(editor.state.value.candidates.isEmpty())
         assertEquals(ReferenceOutcome.NONE, editor.state.value.preview!!.referenceResult!!.outcome)
         assertNull(editor.state.value.preview!!.exercise.description)
-        assertNull(editor.state.value.preview!!.exercise.axialLoadFactor)
         assertEquals(id, editor.state.value.preview!!.exercise.id)
     }
 

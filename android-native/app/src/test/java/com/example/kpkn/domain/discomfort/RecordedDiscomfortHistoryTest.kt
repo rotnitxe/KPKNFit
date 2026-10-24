@@ -113,12 +113,6 @@ class RecordedDiscomfortHistoryTest {
 
     private fun historyOf(logs: List<WorkoutLog>) = DiscomfortHistory(logs, now)
 
-    private fun explain(id: String, s: DiscomfortSession, h: DiscomfortHistory) =
-        DiscomfortCauseEngine.explain(id, s, h)
-
-    private fun DiscomfortInsight.todayOf(kind: DiscomfortEvidenceKind) = today.firstOrNull { it.kind == kind }
-    private fun DiscomfortInsight.weekOf(kind: DiscomfortEvidenceKind) = week.firstOrNull { it.kind == kind }
-
     // ── Sin evidencia ──
 
     @Test

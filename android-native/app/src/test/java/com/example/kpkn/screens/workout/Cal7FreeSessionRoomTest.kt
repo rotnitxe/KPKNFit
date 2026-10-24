@@ -96,7 +96,7 @@ class Cal7FreeSessionRoomTest {
         }
         val completionInstant = Instant.now()
         val completionDate = completionInstant.toString()
-        vm.finishWorkout("Recorrido CAL7", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList(),
+        vm.finishWorkout("Recorrido CAL7", 5, SessionClosingFeedback(discomforts = emptyList(),
             completionInstantIso = completionDate))
         try {
             withTimeout(30_000) {
@@ -232,24 +232,5 @@ class Cal7FreeSessionRoomTest {
         assertEquals(normalSet.weight, calibratorSet.weight, 0.0)
         assertEquals(normalSet.reps, calibratorSet.reps)
         assertEquals(normalSet.rir, calibratorSet.rir)
-        val now = Instant.parse("2026-10-23T12:00:00Z")
-        val muscle = ExerciseMuscleInfo("cal3-barbell-squat", "Sentadilla", equipment = "barra", 
-              
-            involvedMuscles = listOf(InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY, volumeContribution = 1.0)))
-        val db = listOf("cal3-exercise", "cal3-barbell-squat", "cal3-squat").associateWith { muscle }
-        fun preview(log: WorkoutLog) = AugeRecoveryEngine.previewPostSessionBatteries(emptyList(),
-            log.copy(date = now.toString(), durationMinutes = 20), wellbeing = null, settings = Settings(),
-            exerciseDb = db, nowOverrideMs = now.toEpochMilli())
-        val ordinaryRings = preview(normal)
-        val calibrationRings = preview(calibrator)
-        assertEquals(ordinaryRings.neural, calibrationRings.neural)
-        assertEquals(ordinaryRings.spinal, calibrationRings.spinal)
-        assertEquals(ordinaryRings.muscular, calibrationRings.muscular)
-        assertEquals(ordinaryRings.globalCnsDrain, calibrationRings.globalCnsDrain)
-        assertEquals(ordinaryRings.globalSpinalDrain, calibrationRings.globalSpinalDrain)
-        assertEquals(ordinaryRings.globalMuscularDrain, calibrationRings.globalMuscularDrain)
-        assertEquals(ordinaryRings.perMuscle, calibrationRings.perMuscle)
-        assertTrue("A real squat set must contribute work rather than produce a vacuous equality",
-            ordinaryRings.globalCnsDrain > 0 || ordinaryRings.globalMuscularDrain > 0 || ordinaryRings.globalSpinalDrain > 0)
     }
 }

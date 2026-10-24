@@ -25,7 +25,7 @@ class RulesClockStatusTest {
         assertEquals(RulesClockStatus.ENERGY, rulesClockStatusOf(estimatedMinutes = 51, limitMinutes = 60))
         assertEquals(RulesClockStatus.ENERGY, rulesClockStatusOf(estimatedMinutes = 60, limitMinutes = 60))
         assertEquals(RulesClockStatus.ENERGY, rulesClockStatusOf(estimatedMinutes = 64, limitMinutes = 60))
-        assertEquals(KpknRingColors.energia, rulesClockColor(RulesClockStatus.ENERGY))
+        assertEquals(com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette.energia, rulesClockColor(RulesClockStatus.ENERGY))
     }
 
     @Test

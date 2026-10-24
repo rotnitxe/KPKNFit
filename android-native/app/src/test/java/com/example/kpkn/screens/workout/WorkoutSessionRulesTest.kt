@@ -30,15 +30,6 @@ import org.junit.Test
 class WorkoutSessionRulesTest {
 
     @Test
-    fun fatigue_factor_ignores_skipped_sets_progression() {
-        assertEquals(1.0, LoadSuggestionEngine.fatigueFactorForPriorCompletedSets(0), 0.0)
-        assertEquals(0.8, LoadSuggestionEngine.fatigueFactorForPriorCompletedSets(1), 0.0)
-        assertEquals(0.6, LoadSuggestionEngine.fatigueFactorForPriorCompletedSets(2), 0.0)
-        assertEquals(0.5, LoadSuggestionEngine.fatigueFactorForPriorCompletedSets(3), 0.0)
-        assertEquals(0.5, LoadSuggestionEngine.fatigueFactorForPriorCompletedSets(8), 0.0)
-    }
-
-    @Test
     fun editing_state_requires_completed_set_and_keeps_requested_side() {
         val exercise = Exercise(
             id = "press-lateral",

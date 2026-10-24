@@ -172,7 +172,6 @@ class WizardHarnessDraftsTest {
             assertEquals("full: el cursor se queda en $start", start, draft.stepProgress.currentStepId)
             assertEquals("full: es el alta completa", "full", draft.draftScope)
             assertTrue("full: incluye Nutrición", draft.includeNutrition)
-            assertTrue("full: incluye RINGS", draft.stepContext().includeRings)
         }
     }
 

@@ -538,8 +538,8 @@ class WorkoutVoiceSetMutationRoomTest {
 
         assertTrue(controller.undo(undo).isCommitted)
 
-        assertEquals(1, energyCalls)
-        assertEquals(101, state.liveEnergySummary.projectedTotalKcal)
+        assertNull(state.liveEnergySummary)
+        assertNull(room().liveEnergySummary)
     }
 
     // ─── edit ────────────────────────────────────────────────────────────────────────────────────
@@ -1159,7 +1159,7 @@ class WorkoutVoiceSetMutationRoomTest {
 
         assertEquals(WorkoutVoiceMutationResult.SessionChanged, pending.await())
         assertEquals(1, persistCalls)
-        assertEquals(1, energyCalls)
+        assertNull(state.liveEnergySummary)
         assertEquals(replacement, state)
         assertEquals(roomBefore.completedSets, room().completedSets)
         assertEquals(0, aborts)

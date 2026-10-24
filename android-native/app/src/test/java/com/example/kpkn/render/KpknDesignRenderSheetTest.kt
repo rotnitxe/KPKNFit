@@ -122,8 +122,8 @@ class KpknDesignRenderSheetTest {
                     color = WizardColors.textMuted,
                 )
             }
-            KpknModule(modifier = Modifier.testTag("pulsado"), onClick = {}, onClickLabel = "Abrir RINGS") {
-                KpknModuleHeader(label = "Tus RINGS")
+            KpknModule(modifier = Modifier.testTag("pulsado"), onClick = {}, onClickLabel = "Abrir historial") {
+                KpknModuleHeader(label = "Tu historial")
                 Spacer(Modifier.height(12.dp))
                 KpknMetric(value = "92", unit = "%")
             }
@@ -317,7 +317,7 @@ class KpknDesignRenderSheetTest {
         rule.waitForIdle()
         val times = listOf(0L, 60L, 120L, 240L, 400L)
         val frames = mutableListOf<Bitmap>()
-        for (context in listOf(HomeBarContext.GREETING, HomeBarContext.SESSION, HomeBarContext.RINGS, HomeBarContext.NUTRITION)) {
+        for (context in listOf(HomeBarContext.GREETING, HomeBarContext.SESSION, HomeBarContext.NUTRITION)) {
             rule.runOnIdle {
                 islandShown = false
                 islandContext = context

@@ -21,7 +21,7 @@ class HomeMuscleChipsTest {
     @get:Rule
     val rule = createComposeRule()
 
-    private val muscles = listOf(HomeMuscleGauge("Pantorrilla", null), HomeMuscleGauge("Isquios", 78))
+    private val muscles = listOf(HomeSessionMuscle("Pantorrilla"), HomeSessionMuscle("Isquios"))
 
     private fun setChips(onOpen: () -> Unit = {}) {
         rule.setContent {
@@ -35,17 +35,17 @@ class HomeMuscleChipsTest {
     fun sin_dato_sale_con_guion_y_nunca_con_100() {
         setChips()
 
-        rule.onNodeWithText("—", useUnmergedTree = true).assertExists()
-        rule.onNodeWithText("78 %", useUnmergedTree = true).assertExists()
+        rule.onNodeWithText("—", useUnmergedTree = true).assertDoesNotExist()
+        rule.onNodeWithText("78 %", useUnmergedTree = true).assertDoesNotExist()
         rule.onNodeWithText("100 %", useUnmergedTree = true).assertDoesNotExist()
-        rule.onNodeWithContentDescription("Pantorrilla, sin dato").assertExists()
+        rule.onNodeWithContentDescription("Pantorrilla").assertExists()
     }
 
     @Test
     fun cada_chip_describe_su_musculo_y_su_porcentaje() {
         setChips()
 
-        rule.onNodeWithContentDescription("Isquios, 78 %").assertExists()
+        rule.onNodeWithContentDescription("Isquios").assertExists()
     }
 
     @Test
@@ -53,7 +53,7 @@ class HomeMuscleChipsTest {
         var opened = 0
         setChips(onOpen = { opened++ })
 
-        rule.onNodeWithContentDescription("Isquios, 78 %").performClick()
+        rule.onNodeWithContentDescription("Isquios").performClick()
         assertEquals(1, opened)
     }
 }

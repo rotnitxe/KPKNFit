@@ -127,11 +127,11 @@ class FeedbackSurfacesUiTest {
         discomfortId = "knee_patellar",
         headline = "Esta semana llevas un 35${nbsp}% más de series de cuádriceps que tu media. Si la rodilla avisa, empieza por ahí.",
         today = listOf(
-            evidence(DiscomfortEvidenceKind.HEAVY_SETS, "4 series pesadas de sentadilla", "Deja 2 repeticiones en reserva en las series pesadas."),
+            evidence(DiscomfortEvidenceKind.REPORTED_HISTORY, "4 series pesadas de sentadilla", "Deja 2 repeticiones en reserva en las series pesadas."),
         ),
         week = listOf(
             evidence(
-                DiscomfortEvidenceKind.WEEKLY_VOLUME_RISE,
+                DiscomfortEvidenceKind.REPORTED_HISTORY,
                 "+35${nbsp}% de series de cuádriceps sobre tu media",
                 "Baja el volumen de cuádriceps a tu media unos días.",
             ),

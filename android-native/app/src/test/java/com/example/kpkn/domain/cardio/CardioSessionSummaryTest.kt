@@ -35,6 +35,5 @@ class CardioSessionSummaryTest {
         assertTrue(lines[0].prescribedSentence.contains("20 min"))
         assertTrue(lines[0].actualSummary.contains("18 min"))
         assertEquals(3, lines[0].splitLabels.size)
-        assertTrue(lines[0].augeLine!!.startsWith("AUGE cardio"))
     }
 }

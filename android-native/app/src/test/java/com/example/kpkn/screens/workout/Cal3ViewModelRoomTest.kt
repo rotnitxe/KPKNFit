@@ -70,7 +70,7 @@ class Cal3ViewModelRoomTest {
         val exToday = today.uiState.value.session!!.exercises.first()
         assertNull(acceptedCalibrationLoad(today.uiState.value, exToday, 1, null, System.currentTimeMillis()))
         // La referencia solo vale para la sesión siguiente cuando esta se termina (una sesión descartada no la deja).
-        today.finishWorkout("", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList()))
+        today.finishWorkout("", 5, SessionClosingFeedback(discomforts = emptyList()))
         withTimeout(60_000) { f.repository.history.first { logs -> logs.any { it.sessionId == f.sessionId } } }
         withTimeout(60_000) { f.repository.ongoingWorkout.first { it == null } }
         today.viewModelScope.cancel()
@@ -128,7 +128,7 @@ class Cal3ViewModelRoomTest {
         val (f, vm) = open()
         assertTrue(record(vm) is RecordSetResult.Created)
         resolve(vm, CalibrationStatus.APPLIED)
-        vm.finishWorkout("", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList()))
+        vm.finishWorkout("", 5, SessionClosingFeedback(discomforts = emptyList()))
         val log = withTimeout(60_000) { f.repository.history.first { logs -> logs.any { it.sessionId == f.sessionId } } }
             .single { it.sessionId == f.sessionId }
         val row = log.calibrationDecisions.single()

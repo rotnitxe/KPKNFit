@@ -299,7 +299,6 @@ class ExerciseCatalogV2ResolverTest {
                 description = "$name con configuración explícita $equipmentId.",
                 articulationType = ExerciseArticulationTypeV2.MULTIARTICULAR,
                 setupTimeSeconds = if (equipmentId == "smith_machine") 50 else 35,
-                fatigueTier = ExerciseFatigueTierV2.MEDIA,
             )
             val definition = ExerciseDefinitionV2(
                 id = definitionId,

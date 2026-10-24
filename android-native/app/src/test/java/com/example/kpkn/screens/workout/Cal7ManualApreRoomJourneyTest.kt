@@ -559,7 +559,7 @@ class Cal7ManualApreRoomJourneyTest {
             assertEquals(125.0, completedS4.apreXrm!!.reference.capturedLoadKg!!, 0.0)
             // APRE completion requires no physiology check-in.
             val baseSession = vm.uiState.value.session!!
-            vm.finishWorkout("Recorrido CAL7 APRE manual", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList(),
+            vm.finishWorkout("Recorrido CAL7 APRE manual", 5, SessionClosingFeedback(discomforts = emptyList(),
                 completionInstantIso = completionInstant.toString()))
             val log = withTimeout(60_000) {
                 repository.history.first { logs -> logs.any {

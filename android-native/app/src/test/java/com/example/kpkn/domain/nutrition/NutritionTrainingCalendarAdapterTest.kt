@@ -30,8 +30,8 @@ import com.example.kpkn.data.models.UserVitals
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.calculations.CardioCalorieEngine
 import com.example.kpkn.domain.calculations.CardioCalorieInput
-import com.example.kpkn.domain.energy.TrainingEnergyEngine
-import com.example.kpkn.domain.energy.TrainingEnergyEngine.ResolvedLoadSource
+import com.example.kpkn.domain.calculations.TrainingLoadEvidence
+import com.example.kpkn.domain.calculations.TrainingLoadEvidence.ResolvedLoadSource
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import org.junit.After
 import org.junit.Before
@@ -276,11 +276,6 @@ class NutritionTrainingCalendarAdapterTest {
         val session = mixedLoadSession("mix", day = 1)
         // Premisa: el motor devuelve un total POSITIVO (el ejercicio con carga
         // aporta trabajo Y descanso) aunque falte carga en el otro ejercicio.
-        val summary = TrainingEnergyEngine.estimatePlannedSession(session, settings)
-        assertTrue(
-            "El total debe ser positivo para que el test tenga sentido",
-            summary.totalKcal.mid > 0,
-        )
         assertNull(
             "`mid > 0` NO garantiza estimable: falta carga externa en una serie de trabajo",
             NutritionTrainingCalendarAdapter.estimateVariantKcal(session, settings),
@@ -539,7 +534,7 @@ class NutritionTrainingCalendarAdapterTest {
         val session = Session(id = "bw", name = "Pecho BW", dayOfWeek = 1, exercises = listOf(exercise))
 
         // Fuente REAL del motor: 0 kg externos declarados (un 0 con valor).
-        val resolved = TrainingEnergyEngine.resolvePlannedExternalLoadKg(
+        val resolved = TrainingLoadEvidence.resolvePlannedExternalLoadKg(
             exercise,
             set,
             settingsWithWeight.weightUnit,
@@ -548,7 +543,6 @@ class NutritionTrainingCalendarAdapterTest {
         assertEquals(0.0, resolved.externalLoadKg!!, 0.0)
         val dbInfo = resolveCatalogExerciseInfo(null, "flexion_bw", null, exercise.name)
         assertNotNull(dbInfo)
-        assertTrue(TrainingEnergyEngine.bodyweightParticipation(dbInfo!!) > 0.0)
 
         // Con peso corporal conocido el cuerpo ES la carga ⇒ estimable.
         val estimate = NutritionTrainingCalendarAdapter.estimateVariantKcal(session, settingsWithWeight)
@@ -600,8 +594,7 @@ class NutritionTrainingCalendarAdapterTest {
         // (externalLoad null) y, a la vez, participación corporal del catálogo > 0.
         val dbInfo = resolveCatalogExerciseInfo(null, "sentadilla_barra", null, exercise.name)
         assertNotNull(dbInfo)
-        assertTrue("Participación corporal real del catálogo", TrainingEnergyEngine.bodyweightParticipation(dbInfo!!) > 0.0)
-        val resolved = TrainingEnergyEngine.resolvePlannedExternalLoadKg(
+        val resolved = TrainingLoadEvidence.resolvePlannedExternalLoadKg(
             exercise,
             set,
             settingsWithWeight.weightUnit,
@@ -610,9 +603,6 @@ class NutritionTrainingCalendarAdapterTest {
         assertNull(resolved.externalLoadKg)
 
         // El motor devuelve un total POSITIVO (cuerpo parcial + descanso)…
-        val summary = TrainingEnergyEngine.estimatePlannedSession(session, settingsWithWeight)
-        assertTrue("Premisa: el total del motor es positivo", summary.totalKcal.mid > 0)
-
         // …pero el gasto es DESCONOCIDO: no se estima «sólo por el cuerpo».
         assertNull(NutritionTrainingCalendarAdapter.estimateVariantKcal(session, settingsWithWeight))
         val result = adaptResult(listOf(session), settings = settingsWithWeight)

@@ -469,28 +469,6 @@ class SessionTemplateCatalogTest {
     }
 
     @Test
-    fun templatesRespectRingsDrainCaps() {
-        SESSION_TEMPLATES_SYSTEM.forEach { template ->
-            val drain = SessionTemplateCatalogPolicy.evaluateTemplateRings(template, exerciseDatabaseById)
-            val isPl = SessionTemplateCatalogPolicy.isPowerliftingTemplate(template)
-            val caps = RingBudgetPolicy.sessionHardCaps(isPl)
-
-            assertTrue(
-                "La plantilla '${template.name}' excede el límite de fatiga SNC: ${drain.cns}% > ${caps.cns}%",
-                drain.cns <= caps.cns
-            )
-            assertTrue(
-                "La plantilla '${template.name}' excede el límite de fatiga Muscular: ${drain.muscular}% > ${caps.muscular}%",
-                drain.muscular <= caps.muscular
-            )
-            assertTrue(
-                "La plantilla '${template.name}' excede el límite de fatiga Espinal: ${drain.spinal}% > ${caps.spinal}%",
-                drain.spinal <= caps.spinal
-            )
-        }
-    }
-
-    @Test
     fun independentTemplatesAreNotLinkedToSplits() {
         val groups = SessionTemplateCatalogPolicy.independentTemplateGroups(SESSION_TEMPLATES_SYSTEM)
         val categories = groups.map { it.category }.toSet()

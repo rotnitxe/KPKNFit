@@ -46,10 +46,8 @@ import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.screens.workout.components.RoadmapPendingAction
 import com.example.kpkn.screens.workout.components.SeriesOptionsSheet
-import com.example.kpkn.screens.workout.components.SetAdjustmentOverlay
 import com.example.kpkn.screens.workout.components.UltraFastPreviewSheet
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
-import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
 import com.example.kpkn.ui.components.KpknGlassDialog
 import com.example.kpkn.ui.components.KpknOverlayHostContent
@@ -327,47 +325,6 @@ class LiveLayerDismissTest {
         pressBack()
 
         assertEquals("sin nada escrito no hay nada que guardar", null, kept)
-    }
-
-    @Test
-    fun theReadinessSheetClosesWithoutAnsweringAndLeavesTheSessionUntouched() {
-        open = true
-        var saved = false
-        assertClosesWithBackAndWithATapOutside("Estado previo", "¿Cómo llegas a entrenar hoy?") {
-            WorkoutReadinessSheet(
-                showReadinessSheet = true,
-                gender = null,
-                sessionMuscleStartingBatteries = emptyMap(),
-                readinessNeuralStart = 80,
-                readinessMuscularStart = 80,
-                readinessSpinalStart = 80,
-                hazeState = HazeState(),
-                onSave = { _, _, _, _, _, _, _, _, _ -> saved = true },
-                onDismiss = { open = false },
-            )
-        }
-        assertFalse("cerrarlo no responde nada: el estado previo queda pendiente", saved)
-    }
-
-    @Test
-    fun theSetAdjustmentSheetClosesLikeCancelAndAppliesNothing() {
-        open = true
-        var applied = false
-        assertClosesWithBackAndWithATapOutside("Ajuste por estado actual", "Ajuste por estado actual") {
-            SetAdjustmentOverlay(
-                exercise = sampleExercise,
-                currentSet = sampleExercise.sets.first(),
-                setIndex = 0,
-                exerciseReadiness = sampleReadiness,
-                weightSuggestion = null,
-                averageErm = 118.0,
-                bodyWeight = 80.0,
-                loadMode = LoadModeV2.LOAD,
-                onDismiss = { open = false },
-                onApply = { applied = true },
-            )
-        }
-        assertFalse("cerrar el ajuste no aplica ninguna carga", applied)
     }
 
     // ── Hojas protegidas: Atrás y tocar fuera no las cierran, pero nada se rompe y sus botones sí ─────────────────────────────

@@ -87,7 +87,7 @@ class SplitRadicalConversionTest {
         val t = traitsOf(exercise)
         val barbell = t.equipmentId in setOf("barbell", "smith_machine", "safety_bar", "hex_bar", "t_bar", "ez_bar")
         val lowReps = minReps(exercise)?.let { it <= 6 } == true
-        return t.isCompound && t.pattern in HEAVY_PATTERNS && (barbell || t.axialLoad >= 0.5 || lowReps)
+        return t.isCompound && t.pattern in HEAVY_PATTERNS && (barbell || lowReps)
     }
 
     /** Clave del patrón pesado: los dos tirones cuentan como uno. */

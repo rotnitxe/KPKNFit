@@ -46,7 +46,6 @@ import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.workout.WeightSuggestion
 import com.example.kpkn.screens.workout.components.GuidedTechniquePanel
 import com.example.kpkn.screens.workout.components.GuidedTechniquePhase
-import com.example.kpkn.screens.workout.components.SetAdjustmentOverlay
 import com.example.kpkn.screens.workout.components.SetCardTechniqueBack
 import com.example.kpkn.screens.workout.components.UltraFastPreviewSheet
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
@@ -274,18 +273,6 @@ class LiveSessionTechniqueRenderSheetTest {
 
     // ── Ajuste por estado (C4) ──
 
-    @Test
-    fun ajusteDeEstado100() {
-        onlyWhenAsked()
-        dibujar("ajuste_estado_100", 1f, 760) { AjusteDeEstado() }
-    }
-
-    @Test
-    fun ajusteDeEstado130() {
-        onlyWhenAsked()
-        dibujar("ajuste_estado_130", 1.3f, 900) { AjusteDeEstado() }
-    }
-
     // ── Acciones de serie y alcance (C5, B9) ──
 
 
@@ -357,21 +344,7 @@ class LiveSessionTechniqueRenderSheetTest {
         }
     }
 
-    @Composable
-    private fun AjusteDeEstado() {
-        SetAdjustmentOverlay(
-            exercise = EJERCICIO_PM,
-            currentSet = SERIE_PM,
-            setIndex = 0,
-            exerciseReadiness = PREPARACION,
-            weightSuggestion = WeightSuggestion(suggestedWeight = 98.0, reason = "Ajuste por RIR"),
-            averageErm = 118.0,
-            bodyWeight = 80.0,
-            loadMode = LoadModeV2.LOAD,
-            onDismiss = {},
-            onApply = {},
-        )
-    }
+
 
     @Composable
     private fun Ultrarapido() {

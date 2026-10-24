@@ -1404,7 +1404,6 @@ class SetupWizardRepairTest {
             assertEquals(SetupPatchField.Unchanged, patch.dailyProteinGoal)
             assertEquals(SetupPatchField.Unchanged, patch.dailyCarbGoal)
             assertEquals(SetupPatchField.Unchanged, patch.dailyFatGoal)
-            assertEquals(SetupPatchField.Unchanged, patch.initialRecoveryEvidence)
             assertNull(request.nutritionPlan)
             assertFalse(request.activateNutrition)
             assertFalse(request.nutritionTrackingOnly)
