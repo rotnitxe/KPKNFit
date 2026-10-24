@@ -232,6 +232,14 @@ class NutritionViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    /** Nutrientes del día calculados fuera del hilo principal; no altera los totales de macros. */
+    val nutrients: StateFlow<com.example.kpkn.screens.nutrition.nutrients.NutrientsSheetState> = combine(
+        todayLogs, programRepo.settings, activePlan, _selectedDate,
+    ) { logs, settings, plan, date ->
+        com.example.kpkn.screens.nutrition.nutrients.buildNutrientsSheetState(date, logs, DriTargets.profileFor(settings, plan))
+    }.flowOn(computeDispatcher).stateIn(viewModelScope, SharingStarted.Lazily,
+        com.example.kpkn.screens.nutrition.nutrients.NutrientsSheetState())
+
     // ─── Derived: Daily Totals ──────────────────────────────────────────────
 
     val dailyTotals: StateFlow<DailyMacroTotals> = todayLogs

@@ -98,6 +98,7 @@ fun NutritionScreen(
 ) {
     val dailyTotals by viewModel.dailyTotals.collectAsState()
     val dayState by viewModel.dayState.collectAsState()
+    val nutrients by viewModel.nutrients.collectAsState()
     val checkinAvailability by viewModel.checkinAvailability.collectAsState()
     val goals by viewModel.goals.collectAsState()
     // Recorrido de Nutrición: se lanza al montar la pantalla (su ViewModel no expone señal de carga). Visto = no arranca.
@@ -106,6 +107,7 @@ fun NutritionScreen(
     val mealGroups by viewModel.mealGroups.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
     var showDayState by rememberSaveable(selectedDate) { mutableStateOf(false) }
+    var showNutrients by rememberSaveable(selectedDate) { mutableStateOf(false) }
     val today by viewModel.today.collectAsState()
     val activePlan by viewModel.activePlan.collectAsState()
     val foodDatabase by viewModel.foodDatabase.collectAsState()
@@ -314,6 +316,10 @@ fun NutritionScreen(
 
                 if (userStateLoaded) {
                     item {
+                        KpknTextAction("Nutrientes del día", { showNutrients = true },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp))
+                    }
+                    item {
                         NutritionDayStateLine(
                             state = dayState,
                             onOpen = { showDayState = true },
@@ -456,6 +462,10 @@ fun NutritionScreen(
                 .navigationBarsPadding()
                 .padding(bottom = 160.dp),
         ) { data -> KpknSnackbar(data) }
+    }
+
+    if (showNutrients) {
+        com.example.kpkn.screens.nutrition.nutrients.NutrientsSheet(nutrients, { showNutrients = false }, nutritionHazeState)
     }
 
     if (showDayState) {
