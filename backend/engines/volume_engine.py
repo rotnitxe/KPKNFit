@@ -120,32 +120,6 @@ def calculate_fractional_volume(exercises: list[dict]) -> float:
     return total
 
 
-def calculate_volume_adjustment(
-    muscle: str,
-    feedback_history: list[PostSessionFeedback],
-) -> dict:
-    if not feedback_history:
-        return {"factor": 1.0, "suggestion": "", "status": "optimal"}
-
-    muscle_logs = [f for f in feedback_history if f.feedback and muscle in f.feedback]
-    if not muscle_logs:
-        return {"factor": 1.0, "suggestion": "", "status": "optimal"}
-
-    recent = sorted(muscle_logs, key=lambda f: f.date, reverse=True)[:3]
-    avg_doms = sum(r.feedback[muscle].doms for r in recent) / len(recent)
-    avg_str = sum(r.feedback[muscle].strengthCapacity for r in recent) / len(recent)
-
-    if avg_doms >= 3.5 or avg_str <= 5:
-        return {
-            "factor": 0.85, "status": "recovery_debt",
-            "suggestion": f"Recuperación lenta en {muscle} (DOMS altos). Sugerimos reducir volumen un 15% esta semana.",
-        }
-    if avg_doms <= 1.5 and avg_str >= 8:
-        return {
-            "factor": 1.1, "status": "undertraining",
-            "suggestion": f"{muscle} recupera sobrado. Podrías tolerar un +10% de volumen o intensidad.",
-        }
-    return {"factor": 1.0, "status": "optimal", "suggestion": f"Carga óptima para {muscle}. Mantén el plan."}
 
 
 # ── Muscle normalizer ────────────────────────────────────
@@ -270,105 +244,6 @@ def _simple_linear_trend(values: list[float]) -> float:
     return num / den
 
 
-def calculate_adaptive_recalibration(
-    volume_recommendations: list[dict],
-    feedback_history: list[PostSessionFeedback],
-    settings: dict | None = None,
-) -> dict:
-    """
-    Advanced recalibration using EMA, trend analysis, and KPKN rules.
-    Returns { suggestions: [...], confidence: number }.
-    """
-    MAX_FACTOR = 1.15
-    MIN_FACTOR = 0.85
-    EMA_ALPHA = 0.3
-    WEEKS_WINDOW = 6  # ~4-8 weeks
-
-    suggestions: list[dict] = []
-    total_muscles = len(volume_recommendations) if volume_recommendations else 1
-    muscles_with_feedback = 0
-
-    for rec in volume_recommendations or []:
-        muscle = rec.get("muscleGroup", "")
-        if not muscle:
-            continue
-
-        mev = rec.get("minEffectiveVolume", 10)
-        mav = rec.get("maxAdaptiveVolume", 15)
-        mrv = rec.get("maxRecoverableVolume", 20)
-        freq_cap = rec.get("frequencyCap", 4)
-
-        normalized_logs = _get_normalized_feedback_for_muscle(muscle, feedback_history or [])
-        if not normalized_logs:
-            continue
-
-        muscles_with_feedback += 1
-        sorted_logs = sorted(normalized_logs, key=lambda f: f.date, reverse=True)
-        window = sorted_logs[: min(len(sorted_logs), WEEKS_WINDOW * 4)]  # ~4 sessions/week max
-        if not window:
-            continue
-
-        doms_list = [w.feedback[muscle].doms for w in window]
-        str_list = [w.feedback[muscle].strengthCapacity for w in window]
-
-        ema_doms = _ema(doms_list, EMA_ALPHA)
-        ema_str = _ema(str_list, EMA_ALPHA)
-
-        doms_trend = _simple_linear_trend(doms_list)
-        str_trend = _simple_linear_trend(str_list)
-
-        factor = 1.0
-        status = "optimal"
-        reason = f"Carga óptima para {muscle}. Mantén el plan."
-
-        if ema_doms >= 3.5 or ema_str <= 5:
-            factor = MIN_FACTOR
-            status = "recovery_debt"
-            reason = f"Recuperación lenta en {muscle} (DOMS altos). Reducir volumen 15%."
-        elif ema_doms <= 1.5 and ema_str >= 8:
-            factor = MAX_FACTOR
-            status = "undertraining"
-            reason = f"{muscle} recupera sobrado. Aumentar volumen 10%."
-        else:
-            if doms_trend > 0.05 and len(doms_list) >= 3:
-                factor = max(MIN_FACTOR, factor - 0.05)
-                status = "recovery_debt"
-                reason = f"Tendencia DOMS al alza en {muscle}. Ligera reducción."
-            elif doms_trend < -0.05 and ema_str >= 7:
-                factor = min(MAX_FACTOR, factor + 0.05)
-                status = "undertraining"
-                reason = f"DOMS descendente y fuerza estable en {muscle}. Ligero aumento."
-
-        factor = max(MIN_FACTOR, min(MAX_FACTOR, factor))
-
-        def _apply(v: float) -> int:
-            return max(1, round(v * factor))
-
-        new_mev = _apply(mev)
-        new_mav = _apply(mav)
-        new_mrv = _apply(mrv)
-
-        suggestions.append({
-            "muscle": muscle,
-            "currentRec": {
-                "minEffectiveVolume": mev,
-                "maxAdaptiveVolume": mav,
-                "maxRecoverableVolume": mrv,
-                "frequencyCap": freq_cap,
-            },
-            "suggestedRec": {
-                "minEffectiveVolume": new_mev,
-                "maxAdaptiveVolume": new_mav,
-                "maxRecoverableVolume": new_mrv,
-                "frequencyCap": freq_cap,
-            },
-            "factor": factor,
-            "reason": reason,
-            "status": status,
-        })
-
-    confidence = muscles_with_feedback / total_muscles if total_muscles else 0
-    return {"suggestions": suggestions, "confidence": round(confidence, 2)}
 
 
 def calculate_unified_muscle_volume(

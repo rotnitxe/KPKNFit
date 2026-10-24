@@ -1,18 +1,14 @@
 """KPKN Fit – Backend API (FastAPI)
-Motores de volumen, fatiga, recuperación, análisis y motor adaptativo AUGE.
+Registros y cálculos descriptivos de entrenamiento.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import volume, fatigue, recovery, analysis, ai, adaptive
+from routers import volume, analysis, ai, retired
 
 app = FastAPI(
     title="KPKN Engine API",
     version="0.2.0",
-    description=(
-        "Motores de volumen, fatiga, recuperación y análisis para KPKN Fit. "
-        "Incluye motor adaptativo AUGE con inferencia bayesiana, "
-        "procesos gaussianos y modelo ODE Banister."
-    ),
+    description="Registros y cálculos descriptivos de entrenamiento; servicio opcional.",
 )
 
 app.add_middleware(
@@ -24,11 +20,9 @@ app.add_middleware(
 )
 
 app.include_router(volume.router, prefix="/api")
-app.include_router(fatigue.router, prefix="/api")
-app.include_router(recovery.router, prefix="/api")
 app.include_router(analysis.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
-app.include_router(adaptive.router, prefix="/api")
+app.include_router(retired.router)
 
 
 @app.get("/health")
@@ -36,5 +30,4 @@ def health():
     return {
         "status": "ok",
         "engine": "KPKN v0.2.0",
-        "adaptive": "AUGE Adaptive v1.0.0",
     }
