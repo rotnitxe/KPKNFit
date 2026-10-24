@@ -17,7 +17,28 @@ private let dbJsonDecoder: JSONDecoder = {
 }()
 
 private func encodeModel<T: Encodable>(_ value: T) -> String {
-    (try? dbJson.encode(value)) ?? "{}"
+    do {
+        let bytes = try dbJson.encode(value)
+        var decoded = try JSONSerialization.jsonObject(with:bytes,options:[.fragmentsAllowed])
+        if value is WorkoutLog, var log = decoded as? [String:Any] {
+            for key in ["sessionStressScore","muscularImpactV2","ringStartSnapshot","postSessionPreview"] { log.removeValue(forKey:key) }
+            if let energy=log["energySummary"] as? [String:Any], (energy["methodVersion"] as? String ?? "auge-energy-v1").hasPrefix("auge-energy") { log.removeValue(forKey:"energySummary") }
+            if let exercises=log["completedExercises"] as? [[String:Any]] {
+                log["completedExercises"] = exercises.map { exercise -> [String:Any] in
+                    var item=exercise
+                    item.removeValue(forKey:"totalSpinalScore")
+                    if let sets=item["sets"] as? [[String:Any]] { item["sets"]=sets.map { $0.filter { !["spinalScore","batteryDrain","cnsDrain","muscularDrain","spinalDrain","readinessScore"].contains($0.key) } } }
+                    return item
+                }
+            }
+            decoded=log
+        } else if value is OngoingWorkoutState, let ongoing=decoded as? [String:Any] {
+            decoded=ongoing.filter { !["readinessNeuralOverride","readinessMuscularOverride","readinessSpinalOverride","readinessMuscleOverrides","lastDrainOverlay","sessionStressScore","postSessionPreview","exerciseReadinessMap","patternReadiness","currentAutoRegulation"].contains($0.key) }
+        }
+        let sanitized=try JSONSerialization.data(withJSONObject:decoded,options:[.sortedKeys,.fragmentsAllowed])
+        guard let text=String(data:sanitized,encoding:.utf8) else { preconditionFailure("No se puede codificar el registro; los datos guardados se conservan") }
+        return text
+    } catch { preconditionFailure("No se puede codificar el registro; los datos guardados se conservan: \(error)") }
 }
 
 private func decodeModel<T: Decodable>(_ type: T.Type, from data: String) -> T? {

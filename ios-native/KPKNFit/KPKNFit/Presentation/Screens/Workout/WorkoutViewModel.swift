@@ -2872,20 +2872,7 @@ import SwiftUI
 
     // MARK: - Prediction bias
 
-    private func updatePredictionBiasFromClosingFeedback(_ closingFeedback: SessionClosingFeedback) {
-        repository.updateSettings { settings in
-            let prev = settings.augePredictionBias
-            let alpha = 0.30
-            let newSamples = min(prev.sampleCount + 1, 500)
-            var updated = prev
-            updated.cnsBias = (prev.cnsBias * (1.0 - alpha) + Double(closingFeedback.systemAdjustment) * alpha).clamped(-20.0, 20.0)
-            updated.muscularBias = (prev.muscularBias * (1.0 - alpha) + Double(closingFeedback.muscularAdjustment) * alpha).clamped(-20.0, 20.0)
-            updated.spinalBias = (prev.spinalBias * (1.0 - alpha) + Double(closingFeedback.structureAdjustment) * alpha).clamped(-20.0, 20.0)
-            updated.sampleCount = newSamples
-            updated.lastUpdatedMs = self.nowMs()
-            settings.augePredictionBias = updated
-        }
-    }
+
 
     // MARK: - Header widget visibility
 

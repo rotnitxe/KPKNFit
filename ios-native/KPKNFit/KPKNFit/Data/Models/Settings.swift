@@ -45,8 +45,6 @@ public struct AppSettings: Codable {
     public var sleepTargetHours: Double = 8.0
     public var smartSleepEnabled: Bool = false
     public var algorithmSettings: AlgorithmSettings = AlgorithmSettings()
-    public var initialRecoveryEvidence: InitialRecoveryEvidence? = nil
-    public var augePredictionBias: PredictionBiasProfile = PredictionBiasProfile()
     public var reducedMotionMode: Bool = false
     public var hapticIntensity: HapticIntensity = .MEDIUM
     public var sessionAutoAdvanceFields: Bool = true
@@ -135,15 +133,7 @@ public struct PredictionBiasProfile: Codable {
 
 public struct AlgorithmSettings: Codable {
     public var oneRMDecayRate: Double = 0.03
-    public var failureFatigueFactor: Double = 1.5
     public var legVolumeMultiplier: Double = 1.0
     public var torsoVolumeMultiplier: Double = 1.0
     public var synergistFactor: Double = 0.25
-    public var augeEnableNutritionTracking: Bool = false
-    public var augeEnableSleepTracking: Bool = false
-    public var augeRecoverySensitivity: Double = 1.0
-    public var augeFatigueSensitivity: Double = 1.0
-    public var augeReadinessThreshold: Int = 60
-    public var augeAutoDeload: Bool = false
-    public var augeShowAlertsInSession: Bool = true
 }
