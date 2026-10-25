@@ -12,7 +12,7 @@ import com.example.kpkn.domain.training.MuscleVolumePanelBuilder
 import com.example.kpkn.domain.training.MuscleVolumePanelRequest
 import com.example.kpkn.domain.training.MuscleVolumeWindow
 import com.example.kpkn.domain.training.VolumeShade
-import com.example.kpkn.ui.components.rings.RingAdjustBodyPillars
+import com.example.kpkn.screens.progress.design.MuscleVolumeBodyRegions
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
@@ -52,7 +52,7 @@ class MuscleVolumeBodyModelTest {
     @Test
     fun `una ventana sin registros pinta todas las regiones sin datos`() {
         val paints = MuscleVolumeBodyModel.volumePaints(panel(emptyList()))
-        assertEquals(RingAdjustBodyPillars.toSet(), paints.keys)
+        assertEquals(MuscleVolumeBodyRegions.toSet(), paints.keys)
         assertTrue(paints.values.all { it.kind == RegionKind.NO_DATA })
         // Sin panel (cargando) tampoco se afirma nada.
         assertTrue(MuscleVolumeBodyModel.volumePaints(null).values.all { it.kind == RegionKind.NO_DATA })
@@ -75,7 +75,7 @@ class MuscleVolumeBodyModelTest {
     fun `cada region pinta el color de la intensidad de su fila`() {
         val data = panel(listOf(log("a", 0, "press", 10), log("b", 1, "curl", 2)))
         val paints = MuscleVolumeBodyModel.volumePaints(data)
-        RingAdjustBodyPillars.forEach { name ->
+        MuscleVolumeBodyRegions.forEach { name ->
             assertEquals(name, MuscleVolumeBodyModel.volumePaint(data.row(name)!!.shade), paints.getValue(name))
         }
         assertEquals(RegionKind.FILLED, paints.getValue("Pectorales").kind)

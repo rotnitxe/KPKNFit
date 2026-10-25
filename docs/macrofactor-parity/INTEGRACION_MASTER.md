@@ -1,3 +1,5 @@
+> Integración vigente: [MFP + POST-RINGS en el master principal](../post-rings/INTEGRACION_MFP_MASTER.md), Room35. El informe siguiente documenta el checkpoint MFP anterior.
+
 # Integración de MFP en master · 24-oct-2026
 
 El usuario autorizó expresamente commit, integración y push de esta entrega. Sustituye su restricción anterior de no master/push. Base master edc237f66; entrega feat/macrofactor-parity61fc0701f; fusión real que conserva ambos historiales. Checkout de master: C:/kw/mfp-master.

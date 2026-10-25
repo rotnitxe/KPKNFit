@@ -11,6 +11,8 @@ import com.example.kpkn.data.repository.FoodCatalogImporter
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.TrainingVolumeFixtures
+import com.example.kpkn.domain.training.TrainingWindow
+import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.screens.programdetail.ProgramDetailViewModel
 import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +33,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.time.LocalDate
 
-/** Los consumidores reales deben cruzar juntos el umbral semanal con el mismo historial. */
+/** Las fuentes reales de Home y detalle comparten el historial y sus conteos de series. */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
@@ -68,7 +70,7 @@ class VolumeConsumersTest {
     }
 
     @Test
-    fun `Home y detalle dividen por cuatro y se actualizan juntos al cambiar el historial`() = runBlocking {
+    fun `las fuentes de Home y detalle conservan el conteo semanal al cambiar el historial`() = runBlocking {
         val f = TrainingVolumeFixtures
         val today = LocalDate.now()
         val weeks = listOf(f.week("w", today, sessions = 1))
@@ -84,14 +86,17 @@ class VolumeConsumersTest {
         repository.addWorkoutLog(completed(12))
         val home = HomeViewModel().also { store.put("home", it) }
         val detail = ProgramDetailViewModel(program.id).also { store.put("detail", it) }
-        withTimeout(10_000) {
-            assertEquals(listOf("Pectorales"), home.overtrainedMuscles.first { it.isNotEmpty() })
-            assertEquals(3, detail.muscleCdbsStatus.first { it["Pectorales"]?.isOvertrained == true }.getValue("Pectorales").activeFactorsCount)
+        // HomeScreen observes repository.history directly; detail exposes that same live source.
+        assertEquals(program.id, withTimeout(10_000) { home.activeProgram.first { it != null } }!!.id)
+        suspend fun assertCounts(expectedSets: Int, expectedWeekly: Double) = withTimeout(10_000) {
+            for (flow in listOf(repository.history, detail.history)) {
+                val logs = flow.first { history -> history.singleOrNull()?.completedExercises?.singleOrNull()?.sets?.size == expectedSets }
+                val volume = VolumeCalculator.calculateCompletedVolume(logs, f.catalog, TrainingWindow.last28Days(f.zone, today))
+                assertEquals(expectedWeekly, volume.muscles.getValue("Pectorales").sets, 0.0)
+            }
         }
+        assertCounts(12, 3.0)
         repository.addWorkoutLog(completed(8))
-        withTimeout(10_000) {
-            home.overtrainedMuscles.first { it.isEmpty() }
-            assertEquals(2, detail.muscleCdbsStatus.first { it["Pectorales"]?.isOvertrained == false }.getValue("Pectorales").activeFactorsCount)
-        }
+        assertCounts(8, 2.0)
     }
 }

@@ -180,3 +180,7 @@ Cierre cloud: changed-regression-v3, 200 clases/2033 pruebas, cero fallos, error
 - `VolumeAccountingContractTest` conserva todos los casos de roles, divisor, duplicados, calentamientos y contribuyentes. El ajuste legado de intensidad no cambia los conteos factuales.
 - Los tests de mapa corporal, estado y ajustes conservan volumen, accesibilidad y descanso. Se retiran los casos de porcentajes AUGE y se comprueba que no aparezcan sus controles.
 - Las cadenas históricas 27→31 se validan con una base fixture exclusiva de tests que representa el esquema público MFP31. La base real se prueba hasta v35 desde 28/29/30/31 público/31 privado/32/33/34, con originales y abortos transaccionales.
+
+- `StrengthLoadComparisonTest` conserva carga externa/capacidad total, unidades comparables y caché vigente. Se retira sólo el factor de fatiga por cantidad de series; el tiempo no se estima como 1RM.
+- `VolumeConsumersTest` comprueba las fuentes vivas del historial y sus conteos semanales; se retiran los diagnósticos automáticos de sobreentrenamiento.
+- Los fixtures de backup dejan de recibir el argumento derivado retirado `adaptiveCache`.

@@ -69,6 +69,15 @@ class TrainingMigrationRoomValidationTest {
                     old.execSQL("UPDATE custom_exercises SET data=? WHERE id='custom'", arrayOf(
                         com.example.kpkn.data.compatibility.LegacyExerciseCoefficientImport.customExercise(custom)))
                 }
+                // A v34 fixture must already contain the result of v33→34.
+                // Earlier fixture versions still exercise that migration independently.
+                if (version >= 34) {
+                    val originalProgram = old.rawQuery("SELECT data FROM programs WHERE id='program'", null).use {
+                        check(it.moveToFirst()); it.getString(0)
+                    }
+                    old.execSQL("UPDATE programs SET data=? WHERE id='program'", arrayOf(
+                        com.example.kpkn.data.compatibility.LegacyProgramProposalImport.program(originalProgram)))
+                }
                 old.version=version
             }
             val db=Room.databaseBuilder(context,KpknDatabase::class.java,"test.db").allowMainThreadQueries()

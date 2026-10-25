@@ -38,7 +38,7 @@ class ProgramEquipmentInventoryBackupTest {
                 mealTemplates = emptyList(), customFoods = emptyList(), learnedResolutions = emptyList(), foodCatalogMeta = null,
                 bodyObservations = emptyList(), bodyGoals = emptyList(), measurementSchedule = null, calibrationProfile = null,
                 dailyGoalSnapshots = emptyList(), wellbeingLogs = emptyList(), sleepLogs = emptyList(), sleepLogsExtended = emptyList(),
-                postSessionFeedback = emptyList(), adaptiveCache = null, sessionTemplates = emptyList(), customExercises = emptyList(), db = db)
+                postSessionFeedback = emptyList(), sessionTemplates = emptyList(), customExercises = emptyList(), db = db)
             val restored = dbJson.decodeFromString<SettingsExportPayload>(dbJson.encodeToString(payload))
             assertEquals(settings, restored.settings)
             assertEquals(inventory, restored.settings.resolvedEquipmentInventory())

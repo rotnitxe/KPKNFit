@@ -1,3 +1,5 @@
+> Estado vigente: MFP y POST-RINGS están integrados en `master` del checkout principal `C:/Users/valen/Documents/KPKNFit`, con Room35. [Informe conjunto y validación](../post-rings/INTEGRACION_MFP_MASTER.md). La autorización expresa de integración y publicación sustituye las restricciones de no push y Room31 de los checkpoints anteriores.
+
 > **Integración posterior autorizada:** master+MFP y push por orden del usuario. Ver [INTEGRACION_MASTER.md](INTEGRACION_MASTER.md) para validación y preservación del WIP. Las restricciones anteriores de no master/push son históricas.
 
 # Ola MFP · paridad con lo mejor de MacroFactor

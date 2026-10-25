@@ -39,7 +39,7 @@ class NutritionDayStateBackupTest {
         customFoods = emptyList(), learnedResolutions = emptyList(), foodCatalogMeta = null, bodyObservations = emptyList(),
         bodyGoals = emptyList(), measurementSchedule = null, calibrationProfile = null, dailyGoalSnapshots = emptyList(),
         wellbeingLogs = emptyList(), sleepLogs = emptyList(), sleepLogsExtended = emptyList(), postSessionFeedback = emptyList(),
-        adaptiveCache = null, sessionTemplates = emptyList(), customExercises = emptyList(), db = db,
+        sessionTemplates = emptyList(), customExercises = emptyList(), db = db,
     )
 
     @Test fun `copia JSON viaja y restaura marcas checkins y sus instantaneas sin duplicar`() = runBlocking {

@@ -35,7 +35,7 @@ class SettingsJsonBackupRowsTest {
                 pantryItems = emptyList(), mealTemplates = emptyList(), customFoods = emptyList(), learnedResolutions = emptyList(),
                 foodCatalogMeta = null, bodyObservations = emptyList(), bodyGoals = emptyList(), measurementSchedule = null,
                 calibrationProfile = null, dailyGoalSnapshots = emptyList(), wellbeingLogs = emptyList(), sleepLogs = emptyList(),
-                sleepLogsExtended = emptyList(), postSessionFeedback = emptyList(), adaptiveCache = null,
+                sleepLogsExtended = emptyList(), postSessionFeedback = emptyList(), 
                 sessionTemplates = emptyList(), customExercises = emptyList(), db = db,
             )
             assertEquals(listOf(competition), payload.competitionRecords)

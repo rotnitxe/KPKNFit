@@ -38,14 +38,12 @@ class StrengthRecordingIntegrationTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        LiveSessionVmFixture.resetAugeRepository()
     }
 
     @After
     fun tearDown() {
         try {
             fixture?.close()
-            LiveSessionVmFixture.resetAugeRepository()
             ProgramRepository.closeInstance()
             KpknDatabase.closeInstance()
         } finally {

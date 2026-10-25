@@ -56,7 +56,8 @@ class ProgramVolumeT2RenderSheetTest {
 
     @Test
     fun renderVolumeContract() {
-        val muscle = ProgramVolumeMuscle("Deltoides", 6.0, ProgramVolumeZones(4, 12, 18), 4.0, false, false, 18.0)
+        assumeTrue("Se dibuja solo cuando se pide", !System.getenv("KPKN_RENDER_DIR").isNullOrBlank())
+        val muscle = ProgramVolumeMuscle("Deltoides", 6.0, ProgramVolumeZones(4, 12, 18), 4.0, 18.0)
         val scope = ProgramVolumeScope(
             "Programa completo", "Promedio semanal de 3 semanas. 2026-10-05 – 2026-10-25.",
             listOf("Programa", "Semana"), 0, false, false,
@@ -82,7 +83,7 @@ class ProgramVolumeT2RenderSheetTest {
                         muscles = listOf(muscle), scope = scope,
                         onSelectKind = {}, onPreviousScope = {}, onNextScope = {},
                         expandedMuscle = muscle.name, onToggleMuscle = {}, breakdown = breakdown, onCalibrate = {},
-                        controls = { ProgramVolumeCountControls(2, {}, true, {}) },
+                        controls = { ProgramVolumeCountControls(2, {}) },
                         unassignedCount = 2,
                     )
                 }
