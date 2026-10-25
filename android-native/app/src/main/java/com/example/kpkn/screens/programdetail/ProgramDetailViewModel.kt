@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.exercises.catalogConfigurationDisplayName
 import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.AutoregulationProposal
@@ -53,6 +54,8 @@ import com.example.kpkn.domain.training.HomeSessionResolver
 import com.example.kpkn.domain.training.HomeWeekResolver
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
+import com.example.kpkn.domain.training.ProgramProgressReport
+import com.example.kpkn.domain.training.ProgramProgressReportEngine
 import com.example.kpkn.domain.training.RoadmapBlock
 import com.example.kpkn.domain.exercises.normalizedSessionStructures
 import com.example.kpkn.domain.training.SplitApplicationEngine
@@ -175,6 +178,12 @@ class ProgramDetailViewModel(
     val activeProgramState: StateFlow<ActiveProgramState?> = repository.activeProgramState
 
     val history: StateFlow<List<WorkoutLog>> = repository.history
+
+    /** Cumplimiento y decisiones de la ejecución actual, calculados fuera del hilo de UI. */
+    val progressReport: StateFlow<ProgramProgressReport?> = combine(program, history) { p, logs ->
+        p?.let { ProgramProgressReportEngine.build(it, logs.filter { log -> log.programId == it.id }, exerciseCatalogSnapshot()) }
+    }.flowOn(kotlinx.coroutines.Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     // ─── Derived State ────────────────────────────────────────────────────
 

@@ -91,6 +91,19 @@ class ProgramDetailViewModelTest {
     private fun vmFor(id: String): ProgramDetailViewModel =
         ProgramDetailViewModel(id).also { viewModel -> viewModelStore.put("detail-${nextViewModelKey++}", viewModel) }
 
+    @Test
+    fun progress_report_reads_program_and_history() = runBlocking {
+        val id = nextId()
+        val p = makeProgram(id).copy(runState = ProgramRunState("run-$id", weekId = "${id}_w1", blockId = "${id}_b1"))
+        repository.addProgram(p)
+        repository.addWorkoutLog(WorkoutLog("log-$id", id, "${id}_s1", "S1", "2026-10-22T12:00:00Z", 60, weekId = "${id}_w1"))
+        repository.flushPendingWrites()
+        val report = withTimeout(10_000) { vmFor(id).progressReport.first { it != null } }!!
+        assertEquals(50, report.adherencePercent)
+        assertEquals(1, report.position.weekIndex)
+        assertEquals(1, report.weeks.first().completedSessions)
+    }
+
     private fun makeProgram(id: String) = Program(
         id = id,
         name = "Test $id",
