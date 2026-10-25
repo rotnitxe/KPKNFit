@@ -9,6 +9,8 @@ import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.AutoregulationProposal
+import com.example.kpkn.data.models.AutoregulationMode
+import com.example.kpkn.data.models.ProgramRunStatus
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.BlockProgressionScheme
@@ -187,6 +189,75 @@ class ProgramDetailViewModel(
     }.flowOn(kotlinx.coroutines.Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    val plannedLoadProjection: StateFlow<com.example.kpkn.domain.training.planning.PlannedLoadProjection?> = program.map { p ->
+        p?.let { com.example.kpkn.domain.training.planning.PlannedLoadProjector.next(it,exerciseCatalogSnapshot()) }
+    }.flowOn(kotlinx.coroutines.Dispatchers.Default)
+        .stateIn(viewModelScope,SharingStarted.WhileSubscribed(5_000),null)
+
+    private val _exerciseSwapRequest = MutableStateFlow<ProgramRepository.ExerciseSwapRequest?>(null)
+    val exerciseSwapRequest = _exerciseSwapRequest.asStateFlow()
+    private val _exerciseSwapPreview = MutableStateFlow<ProgramRepository.ExerciseSwapPreview?>(null)
+    val exerciseSwapPreview = _exerciseSwapPreview.asStateFlow()
+    private val _exerciseSwapBusy = MutableStateFlow(false)
+    val exerciseSwapBusy = _exerciseSwapBusy.asStateFlow()
+
+    fun openExerciseSwap(sessionId: String,exerciseId: String,
+                         catalogLoader: suspend () -> com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2) {
+        if (_exerciseSwapBusy.value) return
+        viewModelScope.launch {
+            _exerciseSwapBusy.value = true
+            try {
+                val request = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    repository.exerciseSwapRequest(programId,sessionId,exerciseId,catalogLoader())
+                }
+                _exerciseSwapRequest.value = request
+                _exerciseSwapPreview.value = null
+                if (request == null) _uiState.update { it.copy(snackbarMessage = "No se encontraron alternativas para ese ejercicio.") }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(snackbarMessage = "No se pudo cargar el catálogo de ejercicios.") }
+            } finally { _exerciseSwapBusy.value = false }
+        }
+    }
+
+    fun swapOptionsFor(sessionId: String,exerciseId: String): List<com.example.kpkn.domain.training.SwapOption> =
+        _exerciseSwapRequest.value?.takeIf { it.sessionId == sessionId && it.exerciseId == exerciseId }?.options.orEmpty()
+    fun clearExerciseSwapPreview() { _exerciseSwapPreview.value = null }
+    fun closeExerciseSwap() { _exerciseSwapPreview.value = null; _exerciseSwapRequest.value = null }
+
+    fun previewExerciseSwap(targetConfigurationId: String,scope: com.example.kpkn.domain.training.SwapScope,equipmentConfirmed: Boolean) {
+        val request = _exerciseSwapRequest.value ?: return
+        if (_exerciseSwapBusy.value) return
+        viewModelScope.launch {
+            _exerciseSwapBusy.value = true
+            try {
+                _exerciseSwapPreview.value = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    repository.previewExerciseSwap(request,targetConfigurationId,scope,equipmentConfirmed)
+                }
+                if (_exerciseSwapPreview.value == null) _uiState.update { it.copy(snackbarMessage = "No hay cambios pendientes para ese alcance o la sesión cambió. Vuelve a abrir las alternativas.") }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(snackbarMessage = "No se pudo preparar el cambio de ejercicio.") }
+            } finally { _exerciseSwapBusy.value = false }
+        }
+    }
+
+    fun confirmExerciseSwap() {
+        val preview = _exerciseSwapPreview.value ?: return
+        if (_exerciseSwapBusy.value) return
+        viewModelScope.launch {
+            _exerciseSwapBusy.value = true
+            try {
+                val saved = withContext(kotlinx.coroutines.Dispatchers.IO) { repository.submitExerciseSwap(programId,preview) }
+                closeExerciseSwap()
+                _uiState.update { it.copy(snackbarMessage = if (saved) "Ejercicio cambiado" else "La sesión cambió. Revisa las alternativas de nuevo.") }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(snackbarMessage = "No se pudo guardar el cambio de ejercicio.") }
+            } finally { _exerciseSwapBusy.value = false }
+        }
+    }
+
     val pendingWeeklyCheckin: StateFlow<com.example.kpkn.domain.training.cycle.WeeklyCheckinRequest?> =
         combine(program, repository.settings) { p, settings ->
             val current = p ?: return@combine null
@@ -203,6 +274,120 @@ class ProgramDetailViewModel(
     val weeklyCheckinBusy = _weeklyCheckinBusy.asStateFlow()
 
     fun clearWeeklyCheckinPreview() { _weeklyCheckinPreview.value = null }
+
+    val pendingBlockReview: StateFlow<com.example.kpkn.domain.training.block.BlockReviewProposal?> = program.map { current ->
+        current?.pendingBlockReview?.takeIf { pending ->
+            current.acceptsKpknAdjustments() && current.autoregulationMode != AutoregulationMode.OFF &&
+                current.runState?.status == ProgramRunStatus.ACTIVE && current.runState?.runId == pending.review.programRunId &&
+                current.runState?.cycleNumber == pending.targetCycleNumber
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    private val _blockReviewPreview = MutableStateFlow<ProgramRepository.BlockReviewPreview?>(null)
+    val blockReviewPreview = _blockReviewPreview.asStateFlow()
+    private val _blockReviewBusy = MutableStateFlow(false)
+    val blockReviewBusy = _blockReviewBusy.asStateFlow()
+
+    val pendingContinuation: StateFlow<com.example.kpkn.domain.training.block.ContinuationProposal?> = program.map { current ->
+        current?.pendingContinuation?.takeIf { current.runState?.status == ProgramRunStatus.COMPLETED && current.runState?.runId == it.programRunId }
+    }.stateIn(viewModelScope,SharingStarted.WhileSubscribed(5_000),null)
+    private val _continuationPreview = MutableStateFlow<ProgramRepository.ContinuationPreview?>(null)
+    val continuationPreview = _continuationPreview.asStateFlow()
+    private val _continuationBusy = MutableStateFlow(false)
+    val continuationBusy = _continuationBusy.asStateFlow()
+    private val _openCatalogRequested = MutableStateFlow(false)
+    val openCatalogRequested = _openCatalogRequested.asStateFlow()
+    fun consumeOpenCatalogRequest() { _openCatalogRequested.value = false }
+    fun clearContinuationPreview() { _continuationPreview.value = null }
+
+    fun reviewContinuation(expected: com.example.kpkn.domain.training.block.ContinuationProposal,
+                           choice: com.example.kpkn.domain.training.block.ContinuationChoice) {
+        if (_continuationBusy.value) return
+        viewModelScope.launch {
+            _continuationBusy.value = true
+            try {
+                val preview = withContext(kotlinx.coroutines.Dispatchers.IO) { repository.previewContinuation(programId,expected,choice) }
+                _continuationPreview.value = preview
+                if (preview == null) _uiState.update { it.copy(snackbarMessage = "No se pudo preparar esa continuación. Revisa las semanas del programa.") }
+                else if (choice == com.example.kpkn.domain.training.block.ContinuationChoice.PICK_FROM_CATALOG) saveContinuation(preview)
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(snackbarMessage = "No se pudo preparar la continuación.") }
+            } finally { _continuationBusy.value = false }
+        }
+    }
+
+    fun confirmContinuation() {
+        val preview = _continuationPreview.value ?: return
+        if (_continuationBusy.value) return
+        viewModelScope.launch {
+            _continuationBusy.value = true
+            try { saveContinuation(preview) }
+            catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(snackbarMessage = "No se pudo guardar la continuación.") }
+            } finally { _continuationBusy.value = false }
+        }
+    }
+
+    private suspend fun saveContinuation(preview: ProgramRepository.ContinuationPreview) {
+        val saved = withContext(kotlinx.coroutines.Dispatchers.IO) { repository.submitContinuation(programId,preview) }
+        _continuationPreview.value = null
+        if (!saved) {
+            _uiState.update { it.copy(snackbarMessage = if (repository.ongoingWorkout.value != null)
+                "Termina la sesión en curso antes de cambiar de programa." else "El programa cambió. Revisa de nuevo la continuación.") }
+        } else if (preview.nextProgram != null) {
+            if (preview.nextProgram.runState?.status == ProgramRunStatus.ACTIVE) repository.startProgram(preview.nextProgram.id)
+            _uiState.update { it.copy(pendingOpenProgramId = preview.nextProgram.id,snackbarMessage = "Continuación preparada") }
+        } else _openCatalogRequested.value = true
+    }
+
+    fun clearBlockReviewPreview() { _blockReviewPreview.value = null }
+
+    fun reviewBlockAdjustment(expected: com.example.kpkn.domain.training.block.BlockReviewProposal, alternativeIndex: Int? = null) {
+        prepareBlockReview(expected, accept = true, alternativeIndex = alternativeIndex)
+    }
+
+    fun keepBlockPlan(expected: com.example.kpkn.domain.training.block.BlockReviewProposal) {
+        prepareBlockReview(expected, accept = false, alternativeIndex = null)
+    }
+
+    private fun prepareBlockReview(expected: com.example.kpkn.domain.training.block.BlockReviewProposal, accept: Boolean, alternativeIndex: Int?) {
+        if (_blockReviewBusy.value) return
+        viewModelScope.launch {
+            _blockReviewBusy.value = true
+            try {
+                val preview = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    repository.previewBlockReview(programId, expected, accept, alternativeIndex)
+                }
+                _blockReviewPreview.value = preview
+                if (preview == null) _uiState.update { it.copy(snackbarMessage = "La revisión cambió. Vuelve a abrirla.") }
+                else if (!accept) saveBlockReview(preview)
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(snackbarMessage = "No se pudo preparar la revisión del bloque.") }
+            } finally { _blockReviewBusy.value = false }
+        }
+    }
+
+    fun confirmBlockReview() {
+        val preview = _blockReviewPreview.value ?: return
+        if (_blockReviewBusy.value) return
+        viewModelScope.launch {
+            _blockReviewBusy.value = true
+            try { saveBlockReview(preview) }
+            catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(snackbarMessage = "No se pudo guardar la revisión del bloque.") }
+            } finally { _blockReviewBusy.value = false }
+        }
+    }
+
+    private suspend fun saveBlockReview(preview: ProgramRepository.BlockReviewPreview) {
+        val saved = withContext(kotlinx.coroutines.Dispatchers.IO) { repository.submitBlockReview(programId, preview) }
+        _blockReviewPreview.value = null
+        _uiState.update { it.copy(snackbarMessage = if (saved) preview.result.programDecisions.last().title
+            else "El programa cambió. Revisa de nuevo antes de confirmar.") }
+    }
 
     val volumeEvidence: StateFlow<com.example.kpkn.domain.training.calibration.CalibrationEvidenceSummary?> =
         combine(program, history) { p, logs ->
@@ -1702,6 +1887,7 @@ class ProgramDetailViewModel(
                         activeState = activeProgramState.value?.takeIf { it.programId == current.id },
                         resolution = com.example.kpkn.domain.training.OneRmTestPlan.recorded(values),
                         logs = currentProgramLogs(), inventory = currentEquipmentInventory(),
+                        nowMs = System.currentTimeMillis(),
                     )
                     if (result.program == current) return@mutateProgramNow null
                     val confirmed = result.program
@@ -1742,6 +1928,7 @@ class ProgramDetailViewModel(
             ),
             logs = currentProgramLogs(),
             inventory = currentEquipmentInventory(),
+            nowMs = System.currentTimeMillis(),
         )
         if (result.program == current) return
         updateProgram(result.program)

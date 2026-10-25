@@ -135,13 +135,29 @@ fun ProgramDetailScreen(
     onEditSession: (String) -> Unit,
     onCreateSession: (String, String, Int, Int, Int) -> Unit,
     onOpenProgram: (String) -> Unit = {},
+    onOpenCatalog: () -> Unit = {},
     viewModel: ProgramDetailViewModel = viewModel(factory = ProgramDetailViewModel.factory(programId)),
 ) {
     val program by viewModel.program.collectAsState()
     val progressReport by viewModel.progressReport.collectAsStateWithLifecycle()
+    val plannedLoadProjection by viewModel.plannedLoadProjection.collectAsStateWithLifecycle()
+    var showPlannedLoad by remember(plannedLoadProjection?.weekId,plannedLoadProjection?.cycleNumber) { mutableStateOf(false) }
     val pendingWeeklyCheckin by viewModel.pendingWeeklyCheckin.collectAsStateWithLifecycle()
     val weeklyCheckinPreview by viewModel.weeklyCheckinPreview.collectAsStateWithLifecycle()
     val weeklyCheckinBusy by viewModel.weeklyCheckinBusy.collectAsStateWithLifecycle()
+    val pendingBlockReview by viewModel.pendingBlockReview.collectAsStateWithLifecycle()
+    val blockReviewPreview by viewModel.blockReviewPreview.collectAsStateWithLifecycle()
+    val blockReviewBusy by viewModel.blockReviewBusy.collectAsStateWithLifecycle()
+    val pendingContinuation by viewModel.pendingContinuation.collectAsStateWithLifecycle()
+    val continuationPreview by viewModel.continuationPreview.collectAsStateWithLifecycle()
+    val continuationBusy by viewModel.continuationBusy.collectAsStateWithLifecycle()
+    val openCatalogRequested by viewModel.openCatalogRequested.collectAsStateWithLifecycle()
+    val exerciseSwapRequest by viewModel.exerciseSwapRequest.collectAsStateWithLifecycle()
+    val exerciseSwapPreview by viewModel.exerciseSwapPreview.collectAsStateWithLifecycle()
+    val exerciseSwapBusy by viewModel.exerciseSwapBusy.collectAsStateWithLifecycle()
+    LaunchedEffect(openCatalogRequested) {
+        if (openCatalogRequested) { viewModel.consumeOpenCatalogRequest(); onOpenCatalog() }
+    }
     var showWeeklyCheckin by remember(pendingWeeklyCheckin) { mutableStateOf(false) }
     var showDecisions by rememberSaveable { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
@@ -356,6 +372,26 @@ fun ProgramDetailScreen(
                     Spacer(Modifier.height(20.dp))
                     ProgramProgressModule(report = progressReport, onDecisions = { showDecisions = true })
                     if (progressReport != null) Spacer(Modifier.height(20.dp))
+                    plannedLoadProjection?.takeIf { it.loads.isNotEmpty() }?.let { projection ->
+                        com.example.kpkn.screens.programdetail.design.ProgramPlannedLoadModule(projection) { showPlannedLoad = true }
+                        Spacer(Modifier.height(20.dp))
+                    }
+                    pendingContinuation?.let { pending ->
+                        ProgramTransitionModule(message = "Programa terminado. Elige cómo seguir.",
+                            primaryLabel = "Repetir programa",onPrimary = { viewModel.reviewContinuation(pending,com.example.kpkn.domain.training.block.ContinuationChoice.REPEAT_WITH_NEW_MAXES) },
+                            secondaryLabel = "Elegir catálogo",onSecondary = { viewModel.reviewContinuation(pending,com.example.kpkn.domain.training.block.ContinuationChoice.PICK_FROM_CATALOG) },
+                            dismissLabel = "Semana de mantenimiento",onDismiss = { viewModel.reviewContinuation(pending,com.example.kpkn.domain.training.block.ContinuationChoice.MAINTENANCE_WEEK) })
+                        Spacer(Modifier.height(20.dp))
+                    }
+                    pendingBlockReview?.let { pending ->
+                        val alternative = pending.adjustment == null && pending.alternatives.isNotEmpty()
+                        ProgramTransitionModule(message = pending.review.summary,
+                            primaryLabel = if (alternative) "Revisar inicio suave" else "Revisar bloque",
+                            onPrimary = { viewModel.reviewBlockAdjustment(pending, if (alternative) 0 else null) },
+                            secondaryLabel = "Conservar plan", onSecondary = { viewModel.keepBlockPlan(pending) },
+                            dismissLabel = "Ver decisiones", onDismiss = { showDecisions = true })
+                        Spacer(Modifier.height(20.dp))
+                    }
                     pendingWeeklyCheckin?.let { request ->
                         ProgramTransitionModule(
                             message = "¿Cómo fue la semana pasada? Puedes revisar una propuesta para los accesorios de la nueva semana.",
@@ -478,6 +514,23 @@ fun ProgramDetailScreen(
     }
     if (showPlanSheet) {
         ProgramPlanSheet(summary = planSummary, onDismiss = { showPlanSheet = false })
+    }
+    exerciseSwapRequest?.let { request ->
+        com.example.kpkn.screens.programdetail.design.ProgramSwapSheet(request.sourceName,request.options,
+            request.requiresEquipmentConfirmation,exerciseSwapPreview?.result?.programDecisions?.lastOrNull()?.detail,
+            exerciseSwapBusy,viewModel::previewExerciseSwap,viewModel::confirmExerciseSwap,
+            viewModel::clearExerciseSwapPreview,viewModel::closeExerciseSwap)
+    }
+    if (showPlannedLoad) plannedLoadProjection?.let { projection ->
+        com.example.kpkn.screens.programdetail.design.ProgramPlannedLoadSheet(projection) { showPlannedLoad = false }
+    }
+    continuationPreview?.let { preview ->
+        com.example.kpkn.screens.programdetail.design.ProgramContinuationSheet(preview,continuationBusy,
+            viewModel::confirmContinuation,viewModel::clearContinuationPreview)
+    }
+    blockReviewPreview?.let { preview ->
+        com.example.kpkn.screens.programdetail.design.ProgramBlockReviewSheet(preview, blockReviewBusy,
+            viewModel::confirmBlockReview, viewModel::clearBlockReviewPreview)
     }
     if (showDecisions) {
         ProgramDecisionsSheet(decisions = progressReport?.decisions.orEmpty(), onDismiss = { showDecisions = false })
@@ -895,6 +948,7 @@ private fun TrainingPanel(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
+                val swapContext = LocalContext.current.applicationContext
                 DayView(
                     program = program,
                     modifier = Modifier.tourAnchor(TourAnchors.TRAINING_SEMANA),
@@ -903,6 +957,11 @@ private fun TrainingPanel(
                     selectedWeek = selectedWeekMeta,
                     sessions = displayedSessions,
                     onEditSession = onEditSession,
+                    onSwapExercise = { sessionId,exerciseId ->
+                        viewModel.openExerciseSwap(sessionId,exerciseId) {
+                            com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache.getOrLoad(swapContext).catalog
+                        }
+                    },
                     onAddSession = { dayId ->
                         val block = roadmapBlocks.find { it.id == selectedBlockId }
                         val weekMeta = currentWeeks.find { it.id == selectedWeekId }

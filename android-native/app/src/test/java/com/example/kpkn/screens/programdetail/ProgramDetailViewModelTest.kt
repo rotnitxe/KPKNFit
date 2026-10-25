@@ -69,6 +69,212 @@ import java.time.LocalDate
 @Config(manifest = Config.NONE, sdk = [34])
 class ProgramDetailViewModelTest {
 
+    @Test fun exercise_swap_requires_a_review_and_unknown_equipment_confirmation_before_persisting() = runBlocking {
+        val p = com.example.kpkn.domain.training.block.BlockReviewTestFixture.program().copy(id = nextId())
+        repository.addProgram(p)
+        repository.updateSettings { it.copy(equipmentAvailability = null) }
+        repository.flushPendingWrites()
+        val session = weeksOf(p).first().sessions.first()
+        val exercise = session.allExercises().first()
+        val vm = vmFor(p.id)
+        vm.openExerciseSwap(session.id,exercise.id) { CatalogCompositionTestSupport.catalog }
+        val request = withTimeout(10_000) { vm.exerciseSwapRequest.first { it != null } }!!
+        assertTrue(request.requiresEquipmentConfirmation)
+        val target = request.options.first()
+        assertNull(repository.previewExerciseSwap(request,target.configId,com.example.kpkn.domain.training.SwapScope.THIS_SESSION,false))
+        vm.previewExerciseSwap(target.configId,com.example.kpkn.domain.training.SwapScope.THIS_SESSION,true)
+        withTimeout(10_000) { vm.exerciseSwapPreview.first { it != null } }
+        assertEquals(exercise.catalogConfigurationId,weeksOf(repository.getProgramById(p.id)!!).first().sessions.first().allExercises().first().catalogConfigurationId)
+        vm.confirmExerciseSwap()
+        val saved = withTimeout(10_000) { repository.programs.first { plans ->
+            plans.any { it.id == p.id && it.programDecisions.any { decision -> decision.title == "Ejercicio cambiado" } }
+        } }.first { it.id == p.id }
+        assertEquals(target.configId,weeksOf(saved).first().sessions.first().allExercises().first().catalogConfigurationId)
+        assertEquals(p.sourceRecipe,saved.sourceRecipe)
+        assertEquals(1,saved.manualSessionOverrides.size)
+        assertTrue(saved.programDecisions.last().detail.contains("Material confirmado"))
+        assertTrue(repository.getLogsForProgram(p.id).isEmpty())
+    }
+
+    @Test fun exercise_swap_cannot_overwrite_an_edit_or_a_session_started_after_preview() = runBlocking {
+        val p = com.example.kpkn.domain.training.block.BlockReviewTestFixture.program().copy(id = nextId())
+        repository.addProgram(p)
+        repository.updateSettings { it.copy(equipmentAvailability = null) }
+        repository.flushPendingWrites()
+        val session = weeksOf(p).first().sessions.first()
+        val exercise = session.allExercises().first()
+        val request = repository.exerciseSwapRequest(p.id,session.id,exercise.id,CatalogCompositionTestSupport.catalog)!!
+        val preview = repository.previewExerciseSwap(request,request.options.first().configId,com.example.kpkn.domain.training.SwapScope.WHOLE_PROGRAM,true)!!
+        assertTrue(repository.mutateProgramNow(p.id) { it.copy(name = "Edición posterior") })
+        assertFalse(repository.submitExerciseSwap(p.id,preview))
+        val current = repository.exerciseSwapRequest(p.id,session.id,exercise.id,CatalogCompositionTestSupport.catalog)!!
+        val nextPreview = repository.previewExerciseSwap(current,current.options.first().configId,com.example.kpkn.domain.training.SwapScope.WHOLE_PROGRAM,true)!!
+        repository.startWorkout(OngoingWorkoutState(programId = p.id,session = session,startTime = 11L))
+        val ongoing = repository.ongoingWorkout.value
+        assertFalse(repository.submitExerciseSwap(p.id,nextPreview))
+        assertEquals("Edición posterior",repository.getProgramById(p.id)!!.name)
+        assertEquals(ongoing,repository.ongoingWorkout.value)
+        assertTrue(repository.getProgramById(p.id)!!.manualSessionOverrides.isEmpty())
+    }
+
+    @Test fun planned_load_uses_the_next_prescribed_week_and_disappears_after_completion(): Unit = runBlocking {
+        val id = nextId()
+        val p = makeProgram(id).copy(runState = ProgramRunState("run-$id",weekId = "${id}_w1"))
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val vm = vmFor(id)
+        val projection = withTimeout(10_000) { vm.plannedLoadProjection.first { it != null } }!!
+        assertEquals("${id}_w2",projection.weekId)
+        assertFalse(projection.nextCycleTemplate)
+        assertTrue(repository.mutateProgramNow(id) { it.copy(runState = it.runState!!.copy(status = ProgramRunStatus.COMPLETED)) })
+        withTimeout(10_000) { vm.plannedLoadProjection.first { it == null } }
+    }
+
+    private fun completedContinuationProgram(): Program {
+        val p = com.example.kpkn.domain.training.block.BlockReviewTestFixture.program().copy(id = nextId())
+        return com.example.kpkn.domain.training.block.BlockReviewLifecycle.ensureContinuation(
+            p.copy(runState = p.runState!!.copy(status = ProgramRunStatus.COMPLETED)),10)
+    }
+
+    @Test fun continuation_creates_and_activates_the_reviewed_copy_only_after_confirmation() = runBlocking {
+        val p = completedContinuationProgram()
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val vm = vmFor(p.id)
+        vm.reviewContinuation(p.pendingContinuation!!,com.example.kpkn.domain.training.block.ContinuationChoice.REPEAT_WITH_NEW_MAXES)
+        val preview = withTimeout(10_000) { vm.continuationPreview.first { it != null } }!!
+        val id = preview.nextProgram!!.id
+        assertNull(repository.getProgramById(id))
+        assertNotNull(repository.getProgramById(p.id)!!.pendingContinuation)
+        vm.confirmContinuation()
+        withTimeout(10_000) { vm.uiState.first { it.pendingOpenProgramId == id } }
+        repository.flushPendingWrites()
+        assertEquals(id,repository.activeProgramState.value!!.programId)
+        assertNull(repository.readPersistedProgramForEditorRecovery(p.id)!!.pendingContinuation)
+        assertNotNull(repository.readPersistedProgramForEditorRecovery(id))
+        assertEquals(ProgramRunStatus.COMPLETED,repository.getProgramById(p.id)!!.runState!!.status)
+        assertEquals(p.macrocycles,repository.getProgramById(p.id)!!.macrocycles)
+        assertTrue(repository.getLogsForProgram(id).isEmpty())
+        assertFalse(repository.submitContinuation(p.id,preview))
+    }
+
+    @Test fun a_stale_continuation_cannot_create_a_copy_or_overwrite_an_edit() = runBlocking {
+        val p = completedContinuationProgram()
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val preview = repository.previewContinuation(p.id,p.pendingContinuation!!,
+            com.example.kpkn.domain.training.block.ContinuationChoice.MAINTENANCE_WEEK)!!
+        assertTrue(repository.mutateProgramNow(p.id) { it.copy(name = "Nombre actualizado") })
+        assertFalse(repository.submitContinuation(p.id,preview))
+        assertNull(repository.getProgramById(preview.nextProgram!!.id))
+        assertEquals("Nombre actualizado",repository.getProgramById(p.id)!!.name)
+        assertNotNull(repository.getProgramById(p.id)!!.pendingContinuation)
+    }
+
+    @Test fun continuation_storage_failure_keeps_the_original_choice_and_creates_neither_partial_record() = runBlocking {
+        val p = completedContinuationProgram()
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val preview = repository.previewContinuation(p.id,p.pendingContinuation!!,
+            com.example.kpkn.domain.training.block.ContinuationChoice.MAINTENANCE_WEEK)!!
+        repository.continuationAfterCopyWriteForTests = { throw IllegalStateException("storage unavailable after the first row") }
+        try {
+            assertTrue(runCatching { repository.submitContinuation(p.id,preview) }.isFailure)
+        } finally { repository.continuationAfterCopyWriteForTests = null }
+        assertNull(repository.readPersistedProgramForEditorRecovery(preview.nextProgram!!.id))
+        assertNotNull(repository.readPersistedProgramForEditorRecovery(p.id)!!.pendingContinuation)
+        assertNull(repository.getProgramById(preview.nextProgram.id))
+    }
+
+    @Test fun choosing_the_catalog_persists_the_choice_and_emits_navigation_without_a_new_program() = runBlocking {
+        val p = completedContinuationProgram()
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val vm = vmFor(p.id)
+        vm.reviewContinuation(p.pendingContinuation!!,com.example.kpkn.domain.training.block.ContinuationChoice.PICK_FROM_CATALOG)
+        withTimeout(10_000) { vm.openCatalogRequested.first { it } }
+        assertNull(repository.getProgramById(p.id)!!.pendingContinuation)
+        assertEquals("Elegir del catálogo",repository.getProgramById(p.id)!!.programDecisions.last().title)
+        assertEquals(1,repository.programs.value.size)
+        vm.consumeOpenCatalogRequest()
+        assertFalse(vm.openCatalogRequested.value)
+    }
+
+    @Test fun continuation_cannot_switch_programs_while_a_session_is_in_progress() = runBlocking {
+        val p = completedContinuationProgram()
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val preview = repository.previewContinuation(p.id,p.pendingContinuation!!,
+            com.example.kpkn.domain.training.block.ContinuationChoice.MAINTENANCE_WEEK)!!
+        val session = weeksOf(p).first().sessions.first()
+        repository.startWorkout(OngoingWorkoutState(programId = p.id,session = session,startTime = 11L))
+        val ongoing = repository.ongoingWorkout.value
+        assertFalse(repository.submitContinuation(p.id,preview))
+        assertNull(repository.getProgramById(preview.nextProgram!!.id))
+        assertEquals(ongoing,repository.ongoingWorkout.value)
+        assertNotNull(repository.getProgramById(p.id)!!.pendingContinuation)
+    }
+
+    private fun pendingBlockProgram(): Program {
+        val p = com.example.kpkn.domain.training.block.BlockReviewTestFixture.program().copy(id = nextId())
+        val target = com.example.kpkn.domain.training.ProgramHierarchyIndex(p).orderedWeeks()[2]
+        val review = com.example.kpkn.domain.training.block.BlockReviewTestFixture.review(p,
+            com.example.kpkn.domain.training.block.BlockReviewStatus.DECLARED_DIFFICULTY)
+        return p.copy(pendingBlockReview = com.example.kpkn.domain.training.block.BlockReviewProposal(review,
+            com.example.kpkn.domain.training.block.NextBlockAdjuster.adjustmentFor(review,target.blockId)))
+    }
+
+    @Test fun block_review_preview_requires_confirmation_before_mutating_the_recipe() = runBlocking {
+        val p = pendingBlockProgram()
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val vm = vmFor(p.id)
+        val pending = withTimeout(10_000) { vm.pendingBlockReview.first { it != null } }!!
+        vm.reviewBlockAdjustment(pending)
+        val preview = withTimeout(10_000) { vm.blockReviewPreview.first { it != null } }!!
+        assertTrue(repository.getProgramById(p.id)!!.effectiveWeekRecipes.isEmpty())
+        assertNotNull(repository.getProgramById(p.id)!!.pendingBlockReview)
+        assertTrue(preview.result.effectiveWeekRecipes.isNotEmpty())
+        vm.confirmBlockReview()
+        val saved = withTimeout(10_000) { repository.programs.first { plans ->
+            plans.any { it.id == p.id && it.pendingBlockReview == null }
+        } }.first { it.id == p.id }
+        assertEquals(p.sourceRecipe,saved.sourceRecipe)
+        assertEquals("Ajuste del bloque aplicado",saved.programDecisions.last().title)
+        assertTrue(repository.getLogsForProgram(p.id).isEmpty())
+    }
+
+    @Test fun block_review_snapshot_edits_invalidate_a_pending_confirmation() = runBlocking {
+        val p = pendingBlockProgram()
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val preview = repository.previewBlockReview(p.id,p.pendingBlockReview!!,true)!!
+        assertTrue(repository.mutateProgramNow(p.id) { it.copy(name = "Edición posterior") })
+        assertFalse(repository.submitBlockReview(p.id,preview))
+        assertEquals("Edición posterior",repository.getProgramById(p.id)!!.name)
+        assertNotNull(repository.getProgramById(p.id)!!.pendingBlockReview)
+        val current = repository.previewBlockReview(p.id,p.pendingBlockReview,true)!!
+        assertTrue(repository.submitBlockReview(p.id,current))
+        assertFalse(repository.submitBlockReview(p.id,current))
+    }
+
+    @Test fun starting_a_session_invalidates_the_old_preview_and_a_new_one_preserves_that_session() = runBlocking {
+        val p = pendingBlockProgram()
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val preview = repository.previewBlockReview(p.id,p.pendingBlockReview!!,true)!!
+        val target = com.example.kpkn.domain.training.ProgramHierarchyIndex(preview.original).orderedWeeks()[2].week.sessions.first()
+        repository.startWorkout(OngoingWorkoutState(programId = p.id,session = target,startTime = 11L))
+        val ongoing = repository.ongoingWorkout.value
+        val startedTarget = com.example.kpkn.domain.training.ProgramHierarchyIndex(repository.getProgramById(p.id)!!).orderedWeeks()[2].week.sessions.first()
+        assertFalse(repository.submitBlockReview(p.id,preview))
+        val current = repository.previewBlockReview(p.id,p.pendingBlockReview,true)!!
+        val changedTarget = com.example.kpkn.domain.training.ProgramHierarchyIndex(current.result).orderedWeeks()[2].week.sessions.first()
+        assertEquals(startedTarget,changedTarget)
+        assertTrue(repository.submitBlockReview(p.id,current))
+        assertEquals(ongoing,repository.ongoingWorkout.value)
+    }
+
     @Test fun cycle_range_proposals_require_confirmation_and_never_rewrite_sessions() = runBlocking {
         val p = com.example.kpkn.domain.training.calibration.PlanningRangeTestSupport.program().copy(id = nextId())
         repository.addProgram(p)

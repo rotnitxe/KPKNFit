@@ -1333,6 +1333,169 @@ class ProgramRepository private constructor(
         val evidence: ExecutedTrainingEvidence,
     )
 
+    data class BlockReviewPreview(
+        val original: Program,
+        val result: Program,
+        val evidence: ExecutedTrainingEvidence,
+    )
+
+    data class ExerciseSwapRequest(
+        val program: Program,
+        val settings: Settings,
+        val sessionId: String,
+        val exerciseId: String,
+        val sourceName: String,
+        val options: List<com.example.kpkn.domain.training.SwapOption>,
+        val requiresEquipmentConfirmation: Boolean,
+        val catalog: com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2,
+    )
+    data class ExerciseSwapPreview(val original: Program,val result: Program,val settings: Settings,val evidence: ExecutedTrainingEvidence)
+
+    fun exerciseSwapRequest(programId: String,sessionId: String,exerciseId: String,
+                            catalog: com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2): ExerciseSwapRequest? {
+        val program = getProgramById(programId) ?: return null
+        fun nested(s: Session): List<Session> = listOf(s) + listOfNotNull(s.sessionB,s.sessionC,s.sessionD).flatMap(::nested)
+        val sessions = com.example.kpkn.domain.training.ProgramHierarchyIndex(program).orderedWeeks().flatMap { it.week.sessions }.flatMap(::nested)
+        val session = sessions.filter { it.id == sessionId }.singleOrNull() ?: return null
+        val exercise = session.allExercises().filter { it.id == exerciseId }.singleOrNull() ?: return null
+        val settings = _settings.value
+        // La declaración global no acredita el equipo de otro lugar nombrado sin una vinculación guardada.
+        val availability = settings.equipmentAvailability?.takeIf { session.placeId.isNullOrBlank() }
+        val avoided = program.avoidedExerciseGroups.mapNotNull { name ->
+            com.example.kpkn.domain.onboarding.AvoidGroup.entries.firstOrNull { it.name == name }
+        }.toSet()
+        val options = if (availability == null) com.example.kpkn.domain.training.ExerciseSwapOptions.optionsForUnknownEquipment(exercise,catalog,avoided)
+            else com.example.kpkn.domain.training.ExerciseSwapOptions.optionsFor(exercise,availability,catalog,avoided)
+        return ExerciseSwapRequest(program,settings,sessionId,exerciseId,exercise.name,options,availability == null,catalog)
+    }
+
+    fun previewExerciseSwap(request: ExerciseSwapRequest,targetConfigurationId: String,scope: com.example.kpkn.domain.training.SwapScope,
+                            equipmentConfirmed: Boolean): ExerciseSwapPreview? {
+        val current = getProgramById(request.program.id) ?: return null
+        if (current != request.program || _settings.value != request.settings || request.requiresEquipmentConfirmation && !equipmentConfirmed) return null
+        val refreshed = exerciseSwapRequest(current.id,request.sessionId,request.exerciseId,request.catalog) ?: return null
+        val target = refreshed.options.firstOrNull { it.configId == targetConfigurationId } ?: return null
+        val evidence = executedTrainingEvidence(current)
+        var result = com.example.kpkn.domain.training.applyExerciseSwap(current,request.sessionId,request.exerciseId,target,scope,
+            request.catalog,evidence.sessionIds,System.currentTimeMillis())
+        if (result == current) return null
+        if (request.requiresEquipmentConfirmation) result = result.copy(programDecisions = result.programDecisions.dropLast(1) +
+            result.programDecisions.last().let { it.copy(detail = it.detail + " Material confirmado para esta sustitución.") })
+        return ExerciseSwapPreview(current,result,request.settings,evidence)
+    }
+
+    suspend fun submitExerciseSwap(programId: String,preview: ExerciseSwapPreview): Boolean = withContext(Dispatchers.IO) {
+        ongoingWorkoutMutex.withLock {
+            mutateProgramNow(programId) { current ->
+                if (current.id != programId || current != preview.original || _settings.value != preview.settings ||
+                    executedTrainingEvidence(current) != preview.evidence) null else preview.result
+            }
+        }
+    }
+
+    /** Test-only failure inside the transaction, after the copy row and before resolving its source. */
+    internal var continuationAfterCopyWriteForTests: (() -> Unit)? = null
+
+    data class ContinuationPreview(
+        val original: Program,
+        val result: Program,
+        val choice: com.example.kpkn.domain.training.block.ContinuationChoice,
+        val nextProgram: Program?,
+    )
+
+    fun previewContinuation(programId: String, expected: com.example.kpkn.domain.training.block.ContinuationProposal,
+                            choice: com.example.kpkn.domain.training.block.ContinuationChoice): ContinuationPreview? {
+        val current = getProgramById(programId) ?: return null
+        if (current.pendingContinuation != expected) return null
+        val result = ProgramProgressEngine.resolveContinuation(current,choice,System.currentTimeMillis(),expected)
+        if (result == current) return null
+        val factory = com.example.kpkn.domain.training.block.ContinuationProgramFactory
+        val next = if (choice == com.example.kpkn.domain.training.block.ContinuationChoice.PICK_FROM_CATALOG) null else {
+            val id = factory.candidateId(current,choice) ?: return null
+            val existing = getProgramById(id)
+            if (existing != null) {
+                if (existing.programDecisions.none { it.id == factory.sourceDecisionId(current) }) return null
+                existing
+            } else normalizeProgramWithCompetitions(factory.build(current,choice,CompositionMetadataHolder.resolve(),
+                java.time.LocalDate.now(),System.currentTimeMillis()) ?: return null)
+        }
+        return ContinuationPreview(current,normalizeProgramWithCompetitions(result),choice,next)
+    }
+
+    /** La elección y su copia se escriben juntas; el programa terminado conserva su historial. */
+    suspend fun submitContinuation(programId: String, preview: ContinuationPreview): Boolean = withContext(Dispatchers.IO) {
+        ongoingWorkoutMutex.withLock {
+            programRmwMutex.withLock rmw@{
+                val next = preview.nextProgram
+                val reserved = synchronized(programMutationLock) {
+                    if (getProgramById(programId) != preview.original || preview.original.id != programId ||
+                        preview.result.id != programId || _ongoingWorkout.value != null ||
+                        (next != null && getProgramById(next.id)?.let { it != next } == true)) null
+                    else reserveProgramWrite(programId) to next?.let { reserveProgramWrite(it.id) }
+                } ?: return@rmw false
+                if (next == null) return@rmw commitProgramDurableForCaller(preview.result,reserved.first,repairActiveState = true)
+                val nextVersion = reserved.second ?: return@rmw false
+                val callerJob = currentCoroutineContext()[Job]
+                withContext(NonCancellable + Dispatchers.IO) {
+                    try {
+                        PersistenceWriteCoordinator.mutex.withLock {
+                            programWriteMutex.withLock storage@{
+                                durableCommitBeforeWriteForTests?.invoke()
+                                val valid = synchronized(programMutationLock) {
+                                    newestProgramWrite[programId] == reserved.first && newestProgramWrite[next.id] == nextVersion
+                                }
+                                if (!valid) return@storage false
+                                db.withTransaction {
+                                    db.programDao().upsert(next.toEntity())
+                                    continuationAfterCopyWriteForTests?.invoke()
+                                    db.programDao().upsert(preview.result.toEntity())
+                                }
+                                durableCommitInterleaverForTests?.invoke()
+                                synchronized(programMutationLock) {
+                                    val newest = newestProgramWrite[programId] == reserved.first && newestProgramWrite[next.id] == nextVersion
+                                    if (newest) {
+                                        _programs.update { plans ->
+                                            val updated = plans.map { when (it.id) { programId -> preview.result; next.id -> next; else -> it } }
+                                            if (plans.any { it.id == next.id }) updated else updated + next
+                                        }
+                                        repairActiveStateIfNeeded(preview.result)
+                                    }
+                                    newest
+                                }
+                            }
+                        }
+                    } catch (cancelled: CancellationException) {
+                        if (callerJob?.isActive == false) throw cancelled
+                        throw IllegalStateException("No se pudo guardar la continuación en Room.",cancelled)
+                    }
+                }
+            }
+        }
+    }
+
+    fun previewBlockReview(
+        programId: String,
+        expected: com.example.kpkn.domain.training.block.BlockReviewProposal,
+        accept: Boolean,
+        alternativeIndex: Int? = null,
+    ): BlockReviewPreview? {
+        val current = getProgramById(programId) ?: return null
+        if (current.pendingBlockReview != expected) return null
+        val evidence = executedTrainingEvidence(current)
+        val result = ProgramProgressEngine.resolvePendingBlockReview(current, accept, CompositionMetadataHolder.resolve(),
+            evidence.weekIds, evidence.sessionIds, System.currentTimeMillis(), expected, alternativeIndex)
+        return if (result == current) null else BlockReviewPreview(current, result, evidence)
+    }
+
+    suspend fun submitBlockReview(programId: String, preview: BlockReviewPreview): Boolean = withContext(Dispatchers.IO) {
+        ongoingWorkoutMutex.withLock {
+            mutateProgramNow(programId) { current ->
+                if (current.id != programId || current != preview.original ||
+                    executedTrainingEvidence(current) != preview.evidence) null else preview.result
+            }
+        }
+    }
+
     data class PlanningRangePreview(
         val original: Program,
         val proposals: List<com.example.kpkn.domain.training.calibration.PlanningRangeProposal>,

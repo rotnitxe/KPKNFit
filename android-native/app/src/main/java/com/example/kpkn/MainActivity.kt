@@ -1598,6 +1598,10 @@ private fun KPKNNavGraph(
                         launchSingleTop = true
                     }
                 },
+                onOpenCatalog = {
+                    com.example.kpkn.screens.programs.ProgramCreationRequests.openSheet = true
+                    navController.navigate(KpknRoute.Training.route) { launchSingleTop = true }
+                },
             )
             }
         }
