@@ -215,6 +215,8 @@ object ProgramAutoregulationEngine {
             completedWeek,
             recipe,
             signals.copy(amrapHits = hits, topSetHits = topSetHits, repMaxHits = repMaxHits),
+            logs = logs,
+            sourceCycleNumber = cycle,
         )
     }
 
@@ -1383,15 +1385,71 @@ object ProgramAutoregulationEngine {
         return working
     }
 
+    /** Evidencia RPE del T1 de competición, conservando identidad de programa, ciclo y ejecución. */
+    fun collectRpeTopSetHits(
+        week: ProgramWeek,
+        logs: List<WorkoutLog>,
+        recipe: TrainingPlanRecipe,
+        cycleNumber: Int? = null,
+        programId: String? = null,
+        runId: String? = null,
+    ): List<RpeTopSetHit> {
+        val ownLogs = logs.filter { programId == null || it.programId == programId }
+        val weekLogs = weekLogsOf(week, ownLogs, cycleNumber, programId, runId)
+        val lifts = RecipeLiftResolver(recipe)
+        val sessionIds = week.sessions.map { it.id }.toSet()
+        return week.sessions.flatMap { session ->
+            val sessionLogs = logsOfSession(weekLogs, session, sessionIds)
+            session.allExercises().flatMap exercises@ { exercise ->
+                if (exercise.slotRole != null && exercise.slotRole != SlotRole.T1_MAIN) return@exercises emptyList()
+                val lift = lifts.liftSlotFor(exercise) ?: return@exercises emptyList()
+                val configuration = exercise.catalogConfigurationId ?: exercise.exerciseDbId
+                if (configuration == null || recipe.liftSlots[lift] != configuration) return@exercises emptyList()
+                val first = exercise.sets.firstOrNull { !it.isEmptySlot } ?: return@exercises emptyList()
+                if (!first.isTopSet || first.loadBasis != LoadBasis.RPE) return@exercises emptyList()
+                pairedSets(exercise, sessionLogs, isTarget = { it.id == first.id }, isFlagged = null).mapNotNull { pair ->
+                    val performed = pair.performed
+                    val rpe = performed.rpe ?: performed.rir?.let { 10.0 - it } ?: return@mapNotNull null
+                    val targetRpe = pair.prescribed.targetRPE ?: return@mapNotNull null
+                    val targetReps = pair.prescribed.targetReps ?: pair.prescribed.targetRepsRange?.min ?: return@mapNotNull null
+                    if (!performed.weight.isFinite() || performed.weight <= 0.0 || performed.reps <= 0 ||
+                        !rpe.isFinite() || rpe !in 1.0..10.0) return@mapNotNull null
+                    RpeTopSetHit(lift, targetReps, targetRpe, performed.weight, performed.reps, rpe)
+                }
+            }
+        }
+    }
+
+    private fun rpeTopSetProposals(
+        program: Program,
+        week: ProgramWeek,
+        recipe: TrainingPlanRecipe,
+        logs: List<WorkoutLog>,
+        sourceCycleNumber: Int?,
+    ): List<AutoregulationProposal> {
+        val profile = program.powerliftingProfile ?: return emptyList()
+        return collectRpeTopSetHits(week, logs, recipe, sourceCycleNumber, program.id, program.runState?.runId).mapNotNull { hit ->
+            val tm = TrainingMaxResolver.trainingMax(profile, hit.liftSlot, recipe.trainingMaxPercent)
+            val outcome = RpeTopSetEngine.evaluate(hit, tm, recipe.trainingMaxPercent) ?: return@mapNotNull null
+            if (outcome.tmDeltaKg == 0.0) null
+            else tmProposal(hit.liftSlot, TmChange(kgDelta = outcome.tmDeltaKg), outcome.explanation)
+        }
+    }
+
     private fun buildProposals(
         program: Program,
         week: ProgramWeek,
         recipe: TrainingPlanRecipe,
         signals: WeeklyAutoregulationSignals,
+        logs: List<WorkoutLog> = emptyList(),
+        sourceCycleNumber: Int? = program.runState?.cycleNumber,
     ): List<AutoregulationProposal> {
         val out = mutableListOf<AutoregulationProposal>()
         // Only proposals grounded in the active authored protocol and recorded performance.
         out += performanceProposals(program.id, recipe, signals, program.powerliftingProfile, null)
+        if (recipe.autoregulationHooks.any { it.kind == AutoregulationHookKind.RPE_CAP }) {
+            out += rpeTopSetProposals(program, week, recipe, logs, sourceCycleNumber)
+        }
 
         val distinct = mutableListOf<AutoregulationProposal>()
         out.forEach { proposal ->

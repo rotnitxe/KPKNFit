@@ -75,6 +75,44 @@ class ProgramAutoregulationEngineTest {
         progression = ProgressionRule.AmrapDrivenTm(),
     )
 
+    @Test
+    fun rpe_cap_uses_exact_recorded_identity_and_requires_confirmation() {
+        val rpeRecipe = recipe().copy(progression = ProgressionRule.None,
+            autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.RPE_CAP)))
+        val exercise = Exercise("sq", "Sentadilla", catalogConfigurationId = CatalogIds.SQ_LOW,
+            slotRole = SlotRole.T1_MAIN,
+            sets = listOf(ExerciseSet("set", targetReps = 3, targetRPE = 8.0, isTopSet = true, loadBasis = LoadBasis.RPE)))
+        val week = ProgramWeek("w", "Semana", sessions = listOf(Session("s", "Sentadilla", exercises = listOf(exercise))))
+        val program = Program("p", "RPE", powerliftingProfile = PowerliftingProfile(squatTM = 90.0),
+            autoregulationMode = AutoregulationMode.PROPOSE,
+            runState = ProgramRunState("rpe-run", weekId = "w", cycleNumber = 2))
+        val log = WorkoutLog("log", "p", "s", "Sentadilla", "2026-10-25T12:00:00Z", 60,
+            weekId = "w", weekInstanceId = ProgramProgressEngine.instanceIdFor(2, "w"), cycleNumber = 2,
+            programRunId = "rpe-run",
+            completedExercises = listOf(CompletedExercise("sq", "Sentadilla",
+                sets = listOf(CompletedSet("set", weight = 100.0, reps = 3, rpe = 8.0)))))
+        val proposals = ProgramAutoregulationEngine.evaluate(program, week, listOf(log), rpeRecipe, WeeklyAutoregulationSignals())
+        assertTrue(proposals.any { it.kind == AutoregulationProposalKind.ADJUST_TM && (it.kgDelta ?: 0.0) > 0.0 })
+        assertTrue(ProgramAutoregulationEngine.evaluate(program.copy(autoregulationMode = AutoregulationMode.OFF),
+            week, listOf(log), rpeRecipe, WeeklyAutoregulationSignals()).isEmpty())
+        val pending = ProgramAutoregulationEngine.apply(program.copy(autoregulationMode = AutoregulationMode.AUTO),
+            "next", proposals, rpeRecipe, emptySet(), nowMs = 1_000).program
+        assertEquals(program.powerliftingProfile, pending.powerliftingProfile)
+        assertEquals(PendingProgramActionType.CONFIRM_AUTOREGULATION, pending.runState?.pendingAction?.type)
+        assertTrue(ProgramAutoregulationEngine.collectRpeTopSetHits(week, listOf(log.copy(programId = "other")),
+            rpeRecipe, 2, "p", "rpe-run").isEmpty())
+        val withoutEffort = log.copy(completedExercises = listOf(log.completedExercises.single().copy(
+            sets = listOf(log.completedExercises.single().sets.single().copy(rpe = null, rir = null)))))
+        assertTrue(ProgramAutoregulationEngine.collectRpeTopSetHits(week, listOf(withoutEffort), rpeRecipe, 2, "p", "rpe-run").isEmpty())
+        val variantWeek = week.copy(sessions = listOf(week.sessions.single().copy(
+            exercises = listOf(exercise.copy(catalogConfigurationId = CatalogIds.SQ_HIGH)))))
+        assertTrue(ProgramAutoregulationEngine.collectRpeTopSetHits(variantWeek, listOf(log), rpeRecipe, 2, "p", "rpe-run").isEmpty())
+        val oldCycle = log.copy(cycleNumber = 1, weekInstanceId = ProgramProgressEngine.instanceIdFor(1, "w"))
+        assertTrue(ProgramAutoregulationEngine.collectRpeTopSetHits(week, listOf(oldCycle), rpeRecipe, 2, "p", "rpe-run").isEmpty())
+        assertTrue(ProgramAutoregulationEngine.evaluate(program, week, listOf(oldCycle), rpeRecipe,
+            WeeklyAutoregulationSignals(), sourceCycleNumber = 1).any { it.kind == AutoregulationProposalKind.ADJUST_TM })
+    }
+
     private fun materialized(mode: AutoregulationMode = AutoregulationMode.PROPOSE): Program {
         val base = Program(
             id = "p",
