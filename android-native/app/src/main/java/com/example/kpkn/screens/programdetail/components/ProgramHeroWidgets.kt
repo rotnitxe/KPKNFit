@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -42,7 +43,11 @@ data class VolumeCalibrationResult(
     val mode: ProgramMode,
     val score: AthleteProfileScore,
     val recommendations: List<VolumeRecommendation>,
+    val notes: String = "",
 )
+
+/** Transporte de los originales tras el callback legacy de tres valores, sin modificar su consumidor congelado. */
+internal val LocalVolumeCalibrationSaved = staticCompositionLocalOf<(VolumeCalibrationResult) -> Unit> { {} }
 
 /**
  * Hoja «Calibrar volumen» (P4): las opciones como píldoras `KpknChip` y filas `KpknRadioRow`, el campo de notas como `KpknTextField`, el
@@ -55,6 +60,7 @@ fun VolumeCalibrationSheet(
     onDismiss: () -> Unit,
     onSave: (VolumeCalibrationResult) -> Unit,
 ) {
+    val onOriginalsSaved = LocalVolumeCalibrationSaved.current
     var selectedStyle by rememberSaveable { mutableStateOf(currentMode.toTrainingStyle()) }
     var technique by rememberSaveable { mutableIntStateOf(2) }
     var consistency by rememberSaveable { mutableIntStateOf(2) }
@@ -82,7 +88,7 @@ fun VolumeCalibrationSheet(
         ) {
             Text("Calibrar volumen", style = KpknType.title, color = WizardColors.text)
             Text(
-                "Usamos tus datos y tu historial para proponerte series semanales por músculo. Este resultado también sincroniza el enfoque del programa.",
+                "Tus respuestas son autovaloraciones guardadas. Los rangos de series son referencias de planificación y este resultado también elige el enfoque del programa.",
                 style = KpknType.body,
                 color = WizardColors.textMuted,
             )
@@ -166,7 +172,11 @@ fun VolumeCalibrationSheet(
 
             KpknPrimaryPill(
                 text = "Guardar calibración",
-                onClick = { onSave(preview) },
+                onClick = {
+                    val result = preview.copy(notes = notes.trim())
+                    onSave(result)
+                    onOriginalsSaved(result)
+                },
                 modifier = Modifier.fillMaxWidth(),
             )
             Row(

@@ -200,9 +200,8 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * Crea el programa pero exige calibración antes de materializar cuando la
-     * plantilla trae rutina pre-seleccionada. Sin calibrar no se escala ni se
-     * persiste nada a menos que [skipCalibration] sea true (omisión del usuario).
+     * Crea con la dosis editorial y aplica sólo las respuestas aportadas expresamente.
+     * [skipCalibration] se conserva por compatibilidad; el cuestionario ya no bloquea crear.
      */
     suspend fun createProgramFromTemplateGated(
         templateId: String,
@@ -229,10 +228,9 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
                 volumeRecommendations = pending?.recommendations.orEmpty(),
                 athleteProfileScore = pending?.score,
                 volumeSystem = if (pending != null) com.example.kpkn.data.models.VolumeSystem.KPNK else null,
+                volumeCalibrationNotes = pending?.notes.orEmpty(),
             )
-            if (!skipCalibration && !com.example.kpkn.domain.training.VolumeCalibrationGate.isVolumeCalibrated(base)) {
-                return@withContext TemplateApplyOutcome.RequiresCalibration
-            }
+            // Crear conserva la dosis editorial sin exigir autovaloraciones ni fabricar una puntuación.
             pendingCalibrationForCreate = null
             val result = ProgramTemplateEngine.applyTemplate(
                 current = base,
@@ -251,9 +249,8 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         }
 
     /**
-     * Misma puerta para protocolos: exige calibración antes de materializar la
-     * rutina pre-seleccionada. Devuelve null si falta calibrar a menos que
-     * [skipCalibration] sea true (omisión del usuario).
+     * Materializa el protocolo con sus referencias declaradas. [skipCalibration] se conserva
+     * por compatibilidad; la ausencia de autovaloraciones no bloquea la creación.
      */
     fun createProgramFromProtocolGated(
         protocolId: String,
@@ -278,10 +275,9 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
             volumeRecommendations = calibration?.recommendations.orEmpty(),
             athleteProfileScore = calibration?.score,
             volumeSystem = if (calibration != null) com.example.kpkn.data.models.VolumeSystem.KPNK else null,
+            volumeCalibrationNotes = calibration?.notes.orEmpty(),
         )
-        if (!skipCalibration && !com.example.kpkn.domain.training.VolumeCalibrationGate.isVolumeCalibrated(base)) {
-            return null
-        }
+        // La falta de cuestionario no bloquea una receta de autor ni modifica su dosis.
         val applied = ProgramProtocolEngine.applyProtocol(
             base,
             protocol,

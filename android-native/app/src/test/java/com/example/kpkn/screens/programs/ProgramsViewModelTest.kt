@@ -148,7 +148,7 @@ class ProgramsViewModelTest {
     }
 
     @Test
-    fun createProgramFromProtocol_requires_calibration_before_materializing() {
+    fun createProgramFromProtocol_keeps_editorial_dose_without_requiring_trait_answers() {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
         val vm = createViewModel()
         val profile = com.example.kpkn.data.models.PowerliftingProfile(
@@ -156,7 +156,12 @@ class ProgramsViewModelTest {
             bench1RM = 140.0,
             deadlift1RM = 240.0,
         )
-        assertNull(vm.createProgramFromProtocol("kpkn-native-sbd-4", profile))
+        val id = vm.createProgramFromProtocol("kpkn-native-sbd-4", profile)
+        assertNotNull(id)
+        val created = ProgramRepository.getInstance().getProgramById(id!!)!!
+        assertNotNull(created.sourceRecipe)
+        assertNull(created.athleteProfileScore)
+        assertTrue(created.volumeRecommendations.isEmpty())
     }
 
     @Test
@@ -239,11 +244,16 @@ class ProgramsViewModelTest {
     }
 
     @Test
-    fun createProgramFromTemplate_requires_calibration_before_materializing() = runBlocking {
+    fun createProgramFromTemplate_keeps_editorial_dose_without_requiring_trait_answers() = runBlocking {
         com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
         val vm = createViewModel()
         val outcome = vm.createProgramFromTemplateGated("simple-1")
-        assertEquals(ProgramsViewModel.TemplateApplyOutcome.RequiresCalibration, outcome)
+        assertTrue(outcome is ProgramsViewModel.TemplateApplyOutcome.Created)
+        val created = ProgramRepository.getInstance().getProgramById((outcome as ProgramsViewModel.TemplateApplyOutcome.Created).programId)!!
+        // simple-1 es la estructura en blanco de una semana; crear no inventa una rutina.
+        assertEquals(1, created.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.size)
+        assertNull(created.athleteProfileScore)
+        assertTrue(created.volumeRecommendations.isEmpty())
     }
 
     @Test

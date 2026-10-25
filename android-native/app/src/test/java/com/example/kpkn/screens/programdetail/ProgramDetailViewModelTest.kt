@@ -69,6 +69,97 @@ import java.time.LocalDate
 @Config(manifest = Config.NONE, sdk = [34])
 class ProgramDetailViewModelTest {
 
+    @Test fun cycle_range_proposals_require_confirmation_and_never_rewrite_sessions() = runBlocking {
+        val p = com.example.kpkn.domain.training.calibration.PlanningRangeTestSupport.program().copy(id = nextId())
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val vm = vmFor(p.id)
+        vm.reviewPlanningRanges()
+        val preview = withTimeout(10_000) { vm.planningRangePreview.first { it != null } }!!
+        assertTrue(repository.getProgramById(p.id)!!.planningVolumeTargets.isEmpty())
+        assertEquals(24, preview.proposals.single().proposed.maxSets)
+        withTimeout(10_000) { vm.planningVolumeTargetBusy.first { !it } }
+        vm.resolvePlanningRanges(accept = true)
+        val saved = withTimeout(10_000) { repository.programs.first { list -> list.any { it.id == p.id && it.planningVolumeTargets.isNotEmpty() } } }.first { it.id == p.id }
+        assertEquals(p.macrocycles, saved.macrocycles)
+        assertEquals(p.sourceRecipe, saved.sourceRecipe)
+        assertEquals("WEEKLY_FEEDBACK_CONFIRMED", saved.planningVolumeTargets.single().source)
+        assertEquals(5, saved.planningVolumeTargets.single().evidenceWeeks)
+        assertNull(repository.previewPlanningRanges(p.id))
+        assertFalse(repository.resolvePlanningRanges(p.id, preview, accept = true))
+    }
+
+    @Test fun cycle_range_rejection_or_a_stale_preview_cannot_change_targets() = runBlocking {
+        val p = com.example.kpkn.domain.training.calibration.PlanningRangeTestSupport.program().copy(id = nextId())
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val stale = repository.previewPlanningRanges(p.id)!!
+        assertTrue(repository.mutateProgramNow(p.id) { it.copy(name = "Edición posterior") })
+        assertFalse(repository.resolvePlanningRanges(p.id, stale, accept = true))
+        val current = repository.previewPlanningRanges(p.id)!!
+        assertTrue(repository.resolvePlanningRanges(p.id, current, accept = false))
+        assertTrue(repository.getProgramById(p.id)!!.planningVolumeTargets.isEmpty())
+        assertEquals("Edición posterior", repository.getProgramById(p.id)!!.name)
+        assertNull(repository.previewPlanningRanges(p.id))
+    }
+
+    @Test fun choosing_a_volume_range_keeps_prescription_and_global_profile_unchanged() = runBlocking {
+        val id = nextId()
+        val p = materializedRestoreProgram(id)
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val profile = repository.settings.value.volumeCalibrationProfile
+        val vm = vmFor(id)
+        vm.savePlanningVolumeTarget(com.example.kpkn.domain.training.calibration.PlanningVolumeTarget(
+            com.example.kpkn.data.programs.KpknMuscleGroup.CHEST, 6, 20, notes = "Mi objetivo"))
+        val saved = withTimeout(10_000) { repository.programs.first { list -> list.any { it.id == id && it.planningVolumeTargets.isNotEmpty() } } }.first { it.id == id }
+        assertEquals(p.macrocycles, saved.macrocycles)
+        assertEquals(p.sourceRecipe, saved.sourceRecipe)
+        assertEquals(p.athleteProfileScore, saved.athleteProfileScore)
+        assertEquals(profile, repository.settings.value.volumeCalibrationProfile)
+        assertEquals("Mi objetivo", saved.planningVolumeTargets.single().notes)
+        assertEquals("MANUAL", saved.programDecisions.last().source)
+        withTimeout(10_000) { vm.planningVolumeTargetBusy.first { !it } }
+        vm.resetPlanningVolumeTarget(com.example.kpkn.data.programs.KpknMuscleGroup.CHEST)
+        withTimeout(10_000) { repository.programs.first { list -> list.any { it.id == id && it.planningVolumeTargets.isEmpty() && it.programDecisions.size == 2 } } }
+        assertEquals(p.macrocycles, repository.getProgramById(id)!!.macrocycles)
+    }
+
+    @Test fun volume_evidence_counts_the_current_run_without_inventing_trait_responses() = runBlocking {
+        val id = nextId()
+        val p = makeProgram(id).copy(runState = ProgramRunState("run-$id", weekId = "${id}_w1"))
+        repository.addProgram(p)
+        val date = LocalDate.now().toString()
+        repository.addWorkoutLog(WorkoutLog("a-$id", id, "${id}_s1", "S1", date, 40, programRunId = "run-$id"))
+        repository.addWorkoutLog(WorkoutLog("b-$id", id, "${id}_s2", "S2", date, 40, programRunId = "previous"))
+        repository.flushPendingWrites()
+        val summary = withTimeout(10_000) { vmFor(id).volumeEvidence.first { it != null } }!!
+        assertEquals(1, summary.recordedSessions)
+        assertNull(summary.coveredPlannedSessions)
+        assertNull(repository.getProgramById(id)!!.athleteProfileScore)
+    }
+
+    @Test fun original_calibration_notes_are_saved_to_the_latest_program_and_profile() = runBlocking {
+        val id = nextId()
+        repository.addProgram(makeProgram(id))
+        repository.flushPendingWrites()
+        val result = com.example.kpkn.screens.programdetail.components.buildVolumeCalibration(
+            TrainingStyle.POWERLIFTER, 1, 2, 3, 2).copy(notes = "Nota personal")
+        assertTrue(repository.mutateProgramNow(id) { it.copy(name = "Edición reciente") })
+        repository.updateProgram(repository.getProgramById(id)!!.copy(mode = result.mode, athleteProfileScore = result.score,
+            volumeRecommendations = result.recommendations))
+        vmFor(id).saveVolumeCalibrationOriginals(result)
+        withTimeout(10_000) { repository.settings.first { it.volumeCalibrationProfile?.notes == "Nota personal" } }
+        assertEquals("Nota personal", repository.getProgramById(id)!!.volumeCalibrationNotes)
+        assertEquals("Edición reciente", repository.getProgramById(id)!!.name)
+        assertEquals(result.score, repository.getProgramById(id)!!.athleteProfileScore)
+        assertEquals(result.recommendations, repository.getProgramById(id)!!.volumeRecommendations)
+        val profile = repository.settings.value.volumeCalibrationProfile!!
+        assertEquals(CalibrationResponseState.DECLARED, profile.responses.state)
+        val json = com.example.kpkn.data.db.dbJson
+        assertEquals(profile, json.decodeFromString<VolumeCalibrationProfile>(json.encodeToString(profile)))
+    }
+
     @Test fun weekly_checkin_uses_the_real_database_json_and_old_defaults() {
         val json = com.example.kpkn.data.db.dbJson
         val p = Program("json-checkin", "Plan", pendingWeeklyCheckin =
@@ -115,7 +206,6 @@ class ProgramDetailViewModelTest {
         assertEquals("Editado después", repository.getProgramById(id)!!.name)
         assertTrue(repository.getProgramById(id)!!.weeklyCheckins.isEmpty())
     }
-
 
     @get:Rule
     val roomRule = RoomTestRule()

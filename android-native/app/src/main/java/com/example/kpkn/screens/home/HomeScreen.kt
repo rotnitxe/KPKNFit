@@ -416,7 +416,7 @@ fun HomeScreen(
                                 onNavigateToProgram(outcome.programId)
                             }
                             ProgramsViewModel.TemplateApplyOutcome.RequiresCalibration ->
-                                viewModel.requestVolumeCalibrationForTemplate(template.id)
+                                templateError = "No se pudo crear el programa. Revisa la plantilla elegida."
                         }
                     }
                 },
@@ -460,7 +460,7 @@ fun HomeScreen(
                         viewModel.onProgramCreated(id, activate = true)
                         onNavigateToProgram(id)
                     } else {
-                        viewModel.requestVolumeCalibrationForProtocol(protocol, null, pendingProgramName)
+                        templateError = "No se pudo crear el programa. Revisa la receta elegida."
                     }
                 },
                 onConfirm = { profile ->
@@ -470,7 +470,7 @@ fun HomeScreen(
                         viewModel.onProgramCreated(id, activate = true)
                         onNavigateToProgram(id)
                     } else {
-                        viewModel.requestVolumeCalibrationForProtocol(protocol, profile, pendingProgramName)
+                        templateError = "No se pudo crear el programa. Revisa la receta elegida."
                     }
                 },
             )

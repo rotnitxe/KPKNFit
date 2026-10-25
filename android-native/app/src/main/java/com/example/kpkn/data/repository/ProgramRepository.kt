@@ -1330,6 +1330,59 @@ class ProgramRepository private constructor(
         val evidence: ExecutedTrainingEvidence,
     )
 
+    data class PlanningRangePreview(
+        val original: Program,
+        val proposals: List<com.example.kpkn.domain.training.calibration.PlanningRangeProposal>,
+    )
+
+    fun previewPlanningRanges(programId: String): PlanningRangePreview? {
+        val current = getProgramById(programId) ?: return null
+        val proposals = com.example.kpkn.domain.training.calibration.PlanningRangeProposals.build(current, CompositionMetadataHolder.resolve())
+        return if (proposals.isEmpty()) null else PlanningRangePreview(current, proposals)
+    }
+
+    suspend fun resolvePlanningRanges(programId: String, preview: PlanningRangePreview, accept: Boolean): Boolean =
+        mutateProgramNow(programId) { current ->
+            if (current != preview.original || current.id != programId || preview.proposals.isEmpty() ||
+                com.example.kpkn.domain.training.calibration.PlanningRangeProposals.build(current, CompositionMetadataHolder.resolve()) != preview.proposals)
+                return@mutateProgramNow null
+            val ids = preview.proposals.map { it.id }
+            val groups = preview.proposals.map { it.proposed.muscleGroup }.toSet()
+            val now = System.currentTimeMillis()
+            val targets = if (!accept) current.planningVolumeTargets else
+                current.planningVolumeTargets.filterNot { it.muscleGroup in groups } + preview.proposals.map {
+                    it.proposed.copy(chosenAtMs = now, source = "WEEKLY_FEEDBACK_CONFIRMED")
+                }
+            if (!com.example.kpkn.domain.training.calibration.PlanningVolumeTargets.valid(targets)) return@mutateProgramNow null
+            current.copy(planningVolumeTargets = targets,
+                resolvedPlanningRangeProposalIds = (current.resolvedPlanningRangeProposalIds + ids).distinct(),
+                programDecisions = current.programDecisions + ProgramDecision(
+                    id = "volume-range:${UUID.randomUUID()}", atMs = now, source = "WEEKLY_CHECKIN",
+                    title = if (accept) "Rangos de planificación confirmados" else "Propuestas de rango descartadas",
+                    detail = preview.proposals.joinToString("\n") { it.reason }))
+        }
+
+    /** Cambia sólo el rango elegido de un músculo, sobre el último programa; nunca reconstruye sesiones. */
+    suspend fun savePlanningVolumeTarget(
+        programId: String,
+        group: com.example.kpkn.data.programs.KpknMuscleGroup,
+        target: com.example.kpkn.domain.training.calibration.PlanningVolumeTarget?,
+    ): Boolean {
+        if (target != null && (target.muscleGroup != group ||
+                !com.example.kpkn.domain.training.calibration.PlanningVolumeTargets.valid(listOf(target)))) return false
+        return mutateProgramNow(programId) { current ->
+            val next = current.planningVolumeTargets.filterNot { it.muscleGroup == group } + listOfNotNull(target)
+            if (!com.example.kpkn.domain.training.calibration.PlanningVolumeTargets.valid(next)) return@mutateProgramNow null
+            if (next == current.planningVolumeTargets) return@mutateProgramNow current
+            val label = com.example.kpkn.domain.training.cycle.kpknMuscleGroupLabel(group.name)
+            val detail = if (target == null) "$label: se vuelve a la referencia editorial de planificación."
+                else "$label: ${target.minSets}–${target.maxSets} series equivalentes por semana, elegidas por la persona."
+            current.copy(planningVolumeTargets = next, programDecisions = current.programDecisions + ProgramDecision(
+                id = "volume-target:${UUID.randomUUID()}", atMs = System.currentTimeMillis(), source = "MANUAL",
+                title = "Objetivo de series actualizado", detail = detail))
+        }
+    }
+
     /** Vista previa sin persistencia, con las sesiones ya iniciadas o registradas protegidas. */
     fun previewWeeklyCheckin(programId: String, answer: com.example.kpkn.domain.training.cycle.WeeklyCheckin): WeeklyCheckinPreview? {
         if (!_settings.value.algorithmSettings.weeklyCheckinEnabled) return null

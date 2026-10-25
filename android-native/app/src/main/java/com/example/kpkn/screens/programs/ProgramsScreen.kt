@@ -287,8 +287,7 @@ fun ProgramsScreen(
                 if (id != null) {
                     onNavigateToProgram(id)
                 } else {
-                    pendingCalibrationProtocol = protocol
-                    pendingCalibrationProfile = null
+                    templateError = "No se pudo crear el programa. Revisa la receta elegida."
                 }
             },
             onConfirm = { profile ->
@@ -297,8 +296,7 @@ fun ProgramsScreen(
                 if (id != null) {
                     onNavigateToProgram(id)
                 } else {
-                    pendingCalibrationProtocol = protocol
-                    pendingCalibrationProfile = profile
+                    templateError = "No se pudo crear el programa. Revisa la receta elegida."
                 }
             },
         )

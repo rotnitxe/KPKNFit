@@ -69,8 +69,11 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdenti
 import com.example.kpkn.screens.programdetail.design.ProgramAboutModule
 import com.example.kpkn.screens.programdetail.design.ProgramProgressModule
 import com.example.kpkn.screens.programdetail.design.ProgramDecisionsSheet
-import com.example.kpkn.screens.programdetail.design.repeatingCycleDeloadNotice
 import com.example.kpkn.screens.programdetail.design.WeeklyCheckinSheet
+import com.example.kpkn.screens.programdetail.design.ProgramVolumeCalibrationModule
+import com.example.kpkn.screens.programdetail.design.ProgramPlanningVolumeTargetSheet
+import com.example.kpkn.screens.programdetail.design.PlanningRangeProposalsSheet
+import com.example.kpkn.screens.programdetail.design.repeatingCycleDeloadNotice
 import com.example.kpkn.screens.programdetail.design.ProgramDetailPlaceholder
 import com.example.kpkn.screens.programdetail.design.ProgramEditDraft
 import com.example.kpkn.screens.programdetail.design.ProgramEditSheet
@@ -136,7 +139,6 @@ fun ProgramDetailScreen(
 ) {
     val program by viewModel.program.collectAsState()
     val progressReport by viewModel.progressReport.collectAsStateWithLifecycle()
-    var showDecisions by rememberSaveable { mutableStateOf(false) }
     val pendingWeeklyCheckin by viewModel.pendingWeeklyCheckin.collectAsStateWithLifecycle()
     val weeklyCheckinPreview by viewModel.weeklyCheckinPreview.collectAsStateWithLifecycle()
     val weeklyCheckinBusy by viewModel.weeklyCheckinBusy.collectAsStateWithLifecycle()
@@ -469,6 +471,7 @@ fun ProgramDetailScreen(
                         volumeRecommendations = result.recommendations,
                     ),
                 )
+                viewModel.saveVolumeCalibrationOriginals(result)
                 showVolumeSheet = false
             },
         )
@@ -669,6 +672,13 @@ private fun TrainingPanel(
     onOpenOneRmDialog: () -> Unit = {},
     onOpenTmEditor: () -> Unit = {},
 ) {
+    val volumeEvidence by viewModel.volumeEvidence.collectAsStateWithLifecycle()
+    val closedCycleEvidence by viewModel.closedCycleEvidence.collectAsStateWithLifecycle()
+    val volumeProfileResponses by viewModel.volumeProfileResponses.collectAsStateWithLifecycle()
+    val planningVolumeTargetBusy by viewModel.planningVolumeTargetBusy.collectAsStateWithLifecycle()
+    val planningRangeProposals by viewModel.planningRangeProposals.collectAsStateWithLifecycle()
+    val planningRangePreview by viewModel.planningRangePreview.collectAsStateWithLifecycle()
+    var showPlanningVolumeTargets by remember(program.id, structureSubTab) { mutableStateOf(false) }
     val currentWeekId by viewModel.activeProgramState.collectAsState()
     val editorUiState by viewModel.uiState.collectAsState()
     val blockTransitionBanner by viewModel.blockTransitionBanner.collectAsState()
@@ -1030,6 +1040,14 @@ private fun TrainingPanel(
                         .flatMap { it.weeks }
                         .any { it.sessions.isNotEmpty() }
                 }
+                Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    ProgramVolumeCalibrationModule(volumeEvidence, program.planningVolumeTargets, closedCycleEvidence,
+                        volumeProfileResponses, program.volumeCalibrationNotes, onEdit = { showPlanningVolumeTargets = true },
+                        proposals = planningRangeProposals, onReviewProposals = viewModel::reviewPlanningRanges)
+                }
+                CompositionLocalProvider(
+                    com.example.kpkn.screens.programdetail.components.LocalVolumeCalibrationSaved provides viewModel::saveVolumeCalibrationOriginals,
+                ) {
                 VolumeView(
                     program = program,
                     isProgramActive = isActiveProg,
@@ -1061,12 +1079,28 @@ private fun TrainingPanel(
                     analyticsReport = analyticsReport,
                     programLogs = progLogs,
                 )
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(120.dp))
     }
 
+    planningRangePreview?.let { preview ->
+        PlanningRangeProposalsSheet(preview.proposals, planningVolumeTargetBusy,
+            onAccept = { viewModel.resolvePlanningRanges(accept = true) },
+            onReject = { viewModel.resolvePlanningRanges(accept = false) },
+            onDismiss = viewModel::clearPlanningRangePreview)
+    }
+    if (showPlanningVolumeTargets) {
+        ProgramPlanningVolumeTargetSheet(
+            targets = program.planningVolumeTargets, evidence = volumeEvidence,
+            cycles = closedCycleEvidence, responses = volumeProfileResponses, busy = planningVolumeTargetBusy,
+            onSave = { target -> viewModel.savePlanningVolumeTarget(target) { showPlanningVolumeTargets = false } },
+            onReset = { group -> viewModel.resetPlanningVolumeTarget(group) { showPlanningVolumeTargets = false } },
+            onDismiss = { showPlanningVolumeTargets = false },
+        )
+    }
     if (showCopyWeekDialog) {
         ProgramCopyWeekSheet(
             weeks = allProgramWeeks,

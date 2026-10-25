@@ -27,6 +27,7 @@ import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.data.models.VolumeCalibrationResponses
 import com.example.kpkn.data.models.isSimpleTemporalProgram
 import com.example.kpkn.data.models.nextSimpleCalendarStart
 import com.example.kpkn.data.models.normalizedTemporalStructure
@@ -202,6 +203,98 @@ class ProgramDetailViewModel(
     val weeklyCheckinBusy = _weeklyCheckinBusy.asStateFlow()
 
     fun clearWeeklyCheckinPreview() { _weeklyCheckinPreview.value = null }
+
+    val volumeEvidence: StateFlow<com.example.kpkn.domain.training.calibration.CalibrationEvidenceSummary?> =
+        combine(program, history) { p, logs ->
+            p?.let {
+                val zone = java.time.ZoneId.systemDefault()
+                com.example.kpkn.domain.training.calibration.CalibrationEvidence.summarize(
+                    com.example.kpkn.domain.training.calibration.CalibrationEvidenceInput(logs, it.id,
+                        it.runState?.runId, LocalDate.now(zone), zone))
+            }
+        }.flowOn(kotlinx.coroutines.Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val closedCycleEvidence: StateFlow<List<com.example.kpkn.domain.training.calibration.WeeklyCycleEvidence>> =
+        program.map { p -> p?.let(com.example.kpkn.domain.training.calibration.WeeklyCycleEvidenceEngine::closedCycles).orEmpty() }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val volumeProfileResponses: StateFlow<VolumeCalibrationResponses?> = repository.settings
+        .map { it.volumeCalibrationProfile?.responses }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    private val _planningVolumeTargetBusy = MutableStateFlow(false)
+    val planningVolumeTargetBusy = _planningVolumeTargetBusy.asStateFlow()
+
+    val planningRangeProposals: StateFlow<List<com.example.kpkn.domain.training.calibration.PlanningRangeProposal>> =
+        program.map { p -> p?.let {
+            com.example.kpkn.domain.training.calibration.PlanningRangeProposals.build(it, com.example.kpkn.domain.training.CompositionMetadataHolder.resolve())
+        }.orEmpty() }.flowOn(kotlinx.coroutines.Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    private val _planningRangePreview = MutableStateFlow<ProgramRepository.PlanningRangePreview?>(null)
+    val planningRangePreview = _planningRangePreview.asStateFlow()
+
+    fun clearPlanningRangePreview() { if (!_planningVolumeTargetBusy.value) _planningRangePreview.value = null }
+
+    fun reviewPlanningRanges() {
+        if (_planningVolumeTargetBusy.value) return
+        viewModelScope.launch {
+            _planningVolumeTargetBusy.value = true
+            try {
+                _planningRangePreview.value = withContext(kotlinx.coroutines.Dispatchers.IO) { repository.previewPlanningRanges(programId) }
+                if (_planningRangePreview.value == null) _uiState.update { it.copy(snackbarMessage = "Ya no hay propuestas de rango pendientes.") }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(snackbarMessage = "No se pudo preparar la propuesta de rangos.") }
+            } finally { _planningVolumeTargetBusy.value = false }
+        }
+    }
+
+    fun resolvePlanningRanges(accept: Boolean) {
+        val preview = _planningRangePreview.value ?: return
+        if (_planningVolumeTargetBusy.value) return
+        viewModelScope.launch {
+            _planningVolumeTargetBusy.value = true
+            try {
+                val saved = withContext(kotlinx.coroutines.Dispatchers.IO) { repository.resolvePlanningRanges(programId, preview, accept) }
+                _planningRangePreview.value = null
+                _uiState.update { it.copy(snackbarMessage = if (!saved) "El programa cambió. Revisa otra vez los rangos propuestos."
+                    else if (accept) "Rangos de planificación guardados" else "Propuestas de rango descartadas") }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(snackbarMessage = "No se pudo guardar la decisión de rangos.") }
+            } finally { _planningVolumeTargetBusy.value = false }
+        }
+    }
+
+    fun savePlanningVolumeTarget(target: com.example.kpkn.domain.training.calibration.PlanningVolumeTarget, onSaved: () -> Unit = {}) {
+        changePlanningVolumeTarget(target.muscleGroup, target.copy(chosenAtMs = System.currentTimeMillis(), notes = target.notes.trim(),
+            source = "MANUAL", evidenceWeeks = 0), onSaved)
+    }
+
+    fun resetPlanningVolumeTarget(group: com.example.kpkn.data.programs.KpknMuscleGroup, onSaved: () -> Unit = {}) {
+        changePlanningVolumeTarget(group, null, onSaved)
+    }
+
+    private fun changePlanningVolumeTarget(
+        group: com.example.kpkn.data.programs.KpknMuscleGroup,
+        target: com.example.kpkn.domain.training.calibration.PlanningVolumeTarget?,
+        onSaved: () -> Unit,
+    ) {
+        if (_planningVolumeTargetBusy.value) return
+        viewModelScope.launch {
+            _planningVolumeTargetBusy.value = true
+            try {
+                val saved = withContext(kotlinx.coroutines.Dispatchers.IO) { repository.savePlanningVolumeTarget(programId, group, target) }
+                _uiState.update { it.copy(snackbarMessage = if (saved) "Objetivo de series guardado" else "No se pudo guardar ese rango. Revisa sus valores.") }
+                if (saved) onSaved()
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(snackbarMessage = "No se pudo guardar el objetivo de series.") }
+            } finally { _planningVolumeTargetBusy.value = false }
+        }
+    }
 
     fun previewWeeklyCheckin(answer: com.example.kpkn.domain.training.cycle.WeeklyCheckin) {
         prepareWeeklyCheckin(answer, saveOmission = false)
@@ -555,6 +648,27 @@ class ProgramDetailViewModel(
 
     fun updateProgram(updated: Program) {
         repository.updateProgram(updated)
+    }
+
+    /** Guarda la nota original de la hoja histórica tras su callback legacy, sobre el último estado. */
+    fun saveVolumeCalibrationOriginals(result: com.example.kpkn.screens.programdetail.components.VolumeCalibrationResult) {
+        viewModelScope.launch {
+            try {
+                val saved = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    repository.mutateProgramNow(programId) { it.copy(volumeCalibrationNotes = result.notes) }
+                }
+                if (saved) {
+                    val score = result.score
+                    repository.updateSettings { it.copy(volumeCalibrationProfile = com.example.kpkn.data.models.VolumeCalibrationProfile(
+                        score.trainingStyle, score,
+                        VolumeCalibrationResponses(score.technicalScore, score.consistencyScore, score.strengthScore, score.mobilityScore),
+                        result.recommendations, System.currentTimeMillis(), notes = result.notes)) }
+                } else _uiState.update { it.copy(snackbarMessage = "No se pudo guardar la nota del perfil.") }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(snackbarMessage = "No se pudo guardar la nota del perfil.") }
+            }
+        }
     }
 
     /**
