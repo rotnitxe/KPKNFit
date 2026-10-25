@@ -67,6 +67,8 @@ import com.example.kpkn.screens.onboarding.design.WizardDarkSystemBars
 import com.example.kpkn.screens.onboarding.design.entreno.MarksMath
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram
 import com.example.kpkn.screens.programdetail.design.ProgramAboutModule
+import com.example.kpkn.screens.programdetail.design.ProgramProgressModule
+import com.example.kpkn.screens.programdetail.design.ProgramDecisionsSheet
 import com.example.kpkn.screens.programdetail.design.ProgramDetailPlaceholder
 import com.example.kpkn.screens.programdetail.design.ProgramEditDraft
 import com.example.kpkn.screens.programdetail.design.ProgramEditSheet
@@ -131,6 +133,8 @@ fun ProgramDetailScreen(
     viewModel: ProgramDetailViewModel = viewModel(factory = ProgramDetailViewModel.factory(programId)),
 ) {
     val program by viewModel.program.collectAsState()
+    val progressReport by viewModel.progressReport.collectAsStateWithLifecycle()
+    var showDecisions by rememberSaveable { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
     val isActive by viewModel.isActiveProgram.collectAsState()
     val isPaused by viewModel.isPausedProgram.collectAsState()
@@ -340,6 +344,8 @@ fun ProgramDetailScreen(
                         modifier = Modifier.fillMaxWidth().kpknEntrance("programdetail", 1),
                     )
                     Spacer(Modifier.height(20.dp))
+                    ProgramProgressModule(report = progressReport, onDecisions = { showDecisions = true })
+                    if (progressReport != null) Spacer(Modifier.height(20.dp))
                 }
                 Box(
                     modifier = Modifier
@@ -450,11 +456,15 @@ fun ProgramDetailScreen(
     if (showPlanSheet) {
         ProgramPlanSheet(summary = planSummary, onDismiss = { showPlanSheet = false })
     }
+    if (showDecisions) {
+        ProgramDecisionsSheet(decisions = progressReport?.decisions.orEmpty(), onDismiss = { showDecisions = false })
+    }
     if (showMoreMenu) {
         ProgramMoreMenu(
             items = listOf(
                 ProgramMenuItem(label = "Editar programa", onClick = openEdit),
                 ProgramMenuItem(label = "Historial", onClick = { viewModel.setStructureSubTab(StructureSubTab.MACROCICLO) }),
+                ProgramMenuItem(label = "Decisiones del sistema", onClick = { showDecisions = true }),
             ),
             onDismiss = { showMoreMenu = false },
         )

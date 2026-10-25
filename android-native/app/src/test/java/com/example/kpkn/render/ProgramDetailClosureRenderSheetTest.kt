@@ -37,6 +37,12 @@ import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.programdetail.ProgramDetailSamples
 import com.example.kpkn.screens.programdetail.ProgramStructureSamples
 import com.example.kpkn.screens.programdetail.design.ProgramAboutModule
+import com.example.kpkn.screens.programdetail.design.ProgramProgressModule
+import com.example.kpkn.domain.training.ProgramProgressReport
+import com.example.kpkn.domain.training.ProgressPosition
+import com.example.kpkn.domain.training.ProgramWeekAdherence
+import com.example.kpkn.domain.training.LiftTrend
+import com.example.kpkn.domain.training.DecisionLine
 import com.example.kpkn.screens.programdetail.design.ProgramDayModule
 import com.example.kpkn.screens.programdetail.design.ProgramDayUi
 import com.example.kpkn.screens.programdetail.design.ProgramHeader
@@ -104,7 +110,7 @@ class ProgramDetailClosureRenderSheetTest {
     /** Las escenas de la hoja, en orden. */
     private val cases = listOf(
         "semana", "isla", "estructuraBloques", "estructuraSimple",
-        "volumen", "sinActivar", "pausado", "cambiarReparto",
+        "volumen", "sinActivar", "pausado", "cambiarReparto", "progreso",
     )
 
     private val active = ProgramDetailSamples.active
@@ -242,6 +248,18 @@ class ProgramDetailClosureRenderSheetTest {
             }
         }
         when (name) {
+            "progreso" -> column {
+                ProgramProgressModule(
+                    report = ProgramProgressReport(
+                        ProgressPosition("Por bloques · 3 bloques · 12 semanas", "Bloque de acumulación", "Acumulación", 3, 12, null, "Descarga en 2 semanas"),
+                        92,
+                        listOf(ProgramWeekAdherence("w1", "Semana 1", 4, 4), ProgramWeekAdherence("w2", "Semana 2", 4, 4), ProgramWeekAdherence("w3", "Semana 3", 4, 3)),
+                        listOf(LiftTrend("Sentadilla", 140.0, 145.0), LiftTrend("Press de banca", 92.5, 95.0), LiftTrend("Peso muerto", 175.0, 180.0)),
+                        listOf(DecisionLine(0, "WEEKLY_CHECKIN", "Semana ajustada", "Una serie más de dorsales")),
+                    ),
+                    onDecisions = {},
+                )
+            }
             "semana" -> column {
                 header(activeState)
                 about()
