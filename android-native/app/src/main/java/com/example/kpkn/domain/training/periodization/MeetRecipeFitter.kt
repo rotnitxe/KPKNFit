@@ -29,7 +29,7 @@ import kotlinx.serialization.json.JsonPrimitive
 
 /** Resultado de ajustar un plan de autor a la fecha de su competición. */
 sealed interface MeetFit {
-    /** El programa termina en la semana de la competición; [notes] son las líneas que la persona lee en PLAN. */
+    /** Programa ajustado o conservado expresamente; [notes] explican la opción elegida en PLAN. */
     data class Fitted(val program: Program, val notes: List<String>) : MeetFit
 
     /** El plan no se puede ajustar: [reason] es el texto honesto para la persona. El plan se ofrece igual, con esa nota. */
@@ -74,6 +74,7 @@ object MeetRecipeFitter {
 
     private const val CYCLE_TEXT = "Este programa se repite en ciclos y no tiene pico: no se ajusta a tu fecha."
     private const val GENERIC_TEXT = "Este programa no se ajusta a tu fecha: lo ofrecemos tal como está."
+    private const val EXACT_TEXT = "Se mantiene el protocolo tal cual, sin ajustarlo a la fecha de competición."
     private const val NO_ACCUMULATION_TEXT = "Este programa no tiene semanas de acumulación que repetir para llegar a tu fecha."
     private const val INVALID_TEXT = "No podemos ajustar este programa a tu fecha sin romper su estructura."
 
@@ -91,13 +92,14 @@ object MeetRecipeFitter {
      * Ajusta [program] para que su última semana sea la de [meet]. [anchor] es «hoy» y [weekStartDay] el día que empieza cada
      * semana (1 = lunes … 7 = domingo). Si ya termina allí, devuelve el mismo programa con su nota.
      */
-    fun fit(program: Program, meet: LocalDate, anchor: LocalDate, weekStartDay: Int): MeetFit {
+    fun fit(program: Program, meet: LocalDate, anchor: LocalDate, weekStartDay: Int, keepExact: Boolean = false): MeetFit {
         val ids = listOfNotNull(
             program.sourceRecipe?.id,
             program.sourceProtocolId,
             program.structureTemplateId?.removePrefix(PROTOCOL_PREFIX),
             program.planProvenance?.planId,
         )
+        if (keepExact) return MeetFit.Fitted(program, listOf(EXACT_TEXT))
         if (ids.none { it in APT_RECIPES }) {
             return MeetFit.NotFittable(if (ids.any { it in CYCLE_RECIPES }) CYCLE_TEXT else GENERIC_TEXT)
         }

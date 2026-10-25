@@ -72,6 +72,17 @@ class MeetRecipeFitterTest {
     }
 
     @Test
+    fun exact_option_preserves_identity_even_when_the_plan_cannot_fit_the_date() {
+        listOf("tsa-9", "gzclp").forEach { id ->
+            val original = protocolProgram(id)
+            val result = MeetRecipeFitter.fit(original, meetInWeek(1), anchor, weekStartDay, keepExact = true)
+                as MeetFit.Fitted
+            assertTrue(original === result.program)
+            assertEquals(listOf("Se mantiene el protocolo tal cual, sin ajustarlo a la fecha de competición."), result.notes)
+        }
+    }
+
+    @Test
     fun a_nine_week_plan_fits_12_9_6_and_3_weeks_and_keeps_its_tail_fixed() {
         val original = protocolProgram("tsa-9")
         val originalTail = weeksOf(original).takeLast(1)
