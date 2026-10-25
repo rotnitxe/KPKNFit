@@ -52,12 +52,18 @@ object BlockReviewLifecycle {
                     if (alternativeOnly) listOf(adjustment) else emptyList(),targetCycleNumber = run.cycleNumber))
             }
         }
-        if (completed && program.pendingContinuation == null && program.programDecisions.none { it.id == "completed:${run.runId}" }) {
-            program = program.copy(pendingContinuation = ContinuationProposal(nowMs,programRunId = run.runId,cycleNumber = cycle),
-                programDecisions = program.programDecisions + ProgramDecision("completed:${run.runId}",nowMs,"CONTINUATION",
-                    "Programa terminado","Elige cómo seguir: repetir con tus referencias confirmadas, otro programa o una semana de mantenimiento."))
-        }
+        if (completed) program = ensureContinuation(program, nowMs, cycle)
         return result.copy(program = program)
+    }
+
+    fun ensureContinuation(program: Program, nowMs: Long, completedCycle: Int? = null): Program {
+        val run = program.runState ?: return program
+        if (run.status != ProgramRunStatus.COMPLETED || program.pendingContinuation != null ||
+            program.programDecisions.any { it.id == "completed:${run.runId}" }) return program
+        return program.copy(pendingContinuation = ContinuationProposal(nowMs,programRunId = run.runId,
+            cycleNumber = completedCycle ?: run.cycleNumber),
+            programDecisions = program.programDecisions + ProgramDecision("completed:${run.runId}",nowMs,"CONTINUATION",
+                "Programa terminado","Elige cómo seguir: repetir con tus referencias confirmadas, otro programa o una semana de mantenimiento."))
     }
 
     fun resolveReview(

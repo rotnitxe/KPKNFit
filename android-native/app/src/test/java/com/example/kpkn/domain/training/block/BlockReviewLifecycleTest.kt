@@ -108,4 +108,16 @@ class BlockReviewLifecycleTest {
         assertNull(ProgramProgressEngine.resolvePendingBlockReview(result,false,metadata).pendingBlockReview)
         assertNull(result.pendingContinuation)
     }
+
+    @Test fun resolving_the_final_1rm_gate_also_offers_continuation_without_inventing_a_record() {
+        val p = closedBlockProgram()
+        val pending = p.copy(runState = p.runState!!.copy(pendingAction = PendingProgramAction(
+            PendingProgramActionType.CONFIRM_1RM_TEST,"Registrar marcas",nextBlockId = null)))
+        val result = ProgramProgressEngine.resolvePendingOneRmTest(pending,null,
+            OneRmResolution(OneRmResolutionStatus.SKIPPED),nowMs = 75).program
+        assertEquals(ProgramRunStatus.COMPLETED,result.runState!!.status)
+        assertEquals(75L,result.pendingContinuation!!.completedAtMs)
+        assertEquals(1,result.programDecisions.count { it.source == "CONTINUATION" })
+        assertEquals(result,BlockReviewLifecycle.ensureContinuation(result,90))
+    }
 }

@@ -436,6 +436,7 @@ object ProgramProgressEngine {
         logs: List<WorkoutLog> = emptyList(),
         compositionMetadata: ExerciseCompositionMetadataProvider? = null,
         inventory: EquipmentInventory? = null,
+        nowMs: Long = 0L,
     ): ProgressAdvanceResult {
         val run = program.runState ?: return ProgressAdvanceResult(program, activeState)
         require(run.pendingAction?.type == PendingProgramActionType.CONFIRM_1RM_TEST) {
@@ -469,7 +470,8 @@ object ProgramProgressEngine {
                 oneRmAuditTrail = run.oneRmAuditTrail + resolution,
             ))
         }
-        return advanceAfterPendingAction(withResolution, activeState, logs, compositionMetadata, inventory)
+        val result = advanceAfterPendingAction(withResolution, activeState, logs, compositionMetadata, inventory)
+        return result.copy(program = com.example.kpkn.domain.training.block.BlockReviewLifecycle.ensureContinuation(result.program, nowMs))
     }
 
     /**
