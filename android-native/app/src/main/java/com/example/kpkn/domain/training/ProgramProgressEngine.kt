@@ -204,6 +204,34 @@ object ProgramProgressEngine {
         transitionContext: BlockTransitionEngine.TransitionContext? = null,
         weeklySignals: WeeklyAutoregulationSignals? = null,
         compositionMetadata: ExerciseCompositionMetadataProvider? = null,
+        inventory: EquipmentInventory? = null,
+    ): ProgressAdvanceResult {
+        val result = advanceWithoutWeeklyCheckin(program, activeState, completedSession, weekInstanceId,
+            logs, transitionContext, weeklySignals, compositionMetadata, inventory)
+        return com.example.kpkn.domain.training.cycle.WeeklyCheckinEngine.requestAfterAdvance(
+            program, result, weekInstanceId, compositionMetadata,
+            weeklySignals?.settings?.algorithmSettings?.weeklyCheckinEnabled != false)
+    }
+
+    fun applyWeeklyCheckin(
+        program: Program,
+        checkin: com.example.kpkn.domain.training.cycle.WeeklyCheckin,
+        metadata: ExerciseCompositionMetadataProvider,
+        executedSessionIds: Set<String> = emptySet(),
+        nowMs: Long = 0L,
+        allowRirChange: Boolean = true,
+    ): Program = com.example.kpkn.domain.training.cycle.WeeklyCheckinEngine.apply(
+        program, checkin, metadata, executedSessionIds, nowMs, allowRirChange)
+
+    private fun advanceWithoutWeeklyCheckin(
+        program: Program,
+        activeState: ActiveProgramState?,
+        completedSession: Session,
+        weekInstanceId: String,
+        logs: List<WorkoutLog>,
+        transitionContext: BlockTransitionEngine.TransitionContext? = null,
+        weeklySignals: WeeklyAutoregulationSignals? = null,
+        compositionMetadata: ExerciseCompositionMetadataProvider? = null,
         /** Inventario del atleta: redondea el TM que sube la progresión de autor (B.S3). */
         inventory: EquipmentInventory? = null,
     ): ProgressAdvanceResult {
