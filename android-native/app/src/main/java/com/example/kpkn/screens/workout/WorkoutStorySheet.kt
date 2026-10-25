@@ -92,19 +92,6 @@ internal fun WorkoutStorySheet(
         }catch(error:CancellationException){throw error}
         catch(_:Exception){currentCoroutineContext().ensureActive();failedRequest=request;message="No se pudo crear la historia. Inténtalo de nuevo."}
     }
-    val neighbours by produceState<List<StoryPreviewResult>>(emptyList(),request,renderStory){
-        value=emptyList()
-        val others=templates.filter{it!=safeOptions.template}
-        val rendered=mutableListOf<StoryPreviewResult>()
-        for(template in others){
-            val key=StoryPreviewRequest(data,safeOptions.copy(template=template))
-            try {
-                val bitmap=renderStory(context.applicationContext,data,key.options)
-                try{currentCoroutineContext().ensureActive()}catch(error:CancellationException){bitmap.recycle();throw error}
-                rendered.add(StoryPreviewResult(key,bitmap));value=rendered.toList()
-            }catch(error:CancellationException){throw error}catch(_:Exception){currentCoroutineContext().ensureActive()}
-        }
-    }
     val save:()->Unit={image?.takeIf{!busy&&!rendering}?.let{bitmap->busy=true;scope.launch{
         try{WorkoutShareService.saveImage(context,bitmap);message="Imagen guardada en Imágenes/KPKN"}
         catch(error:CancellationException){throw error}catch(_:Exception){message="No se pudo guardar la imagen."}finally{busy=false}
@@ -129,24 +116,25 @@ internal fun WorkoutStorySheet(
                     Text(template.label,style=KpknType.caption.copy(fontSize=12.sp,fontWeight=FontWeight.SemiBold),color=if(template==safeOptions.template)Color(0xFF0B0B0B)else FinishCream.copy(alpha=.62f))
                 }}
             }
-            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(1.dp)),contentAlignment=Alignment.Center){
-                val centerWidth=minOf(220.dp,maxHeight*9/16)
-                val centerHeight=centerWidth*16/9
-                val index=templates.indexOf(safeOptions.template)
-                val previous=templates[(index+templates.size-1)%templates.size]
-                val next=templates[(index+1)%templates.size]
-                Row(Modifier.requiredWidth(centerWidth+172.dp),horizontalArrangement=Arrangement.spacedBy(12.dp),verticalAlignment=Alignment.CenterVertically){
-                    listOf(previous,safeOptions.template,next).forEachIndexed{position,template->
-                        val main=position==1
-                        val expected=StoryPreviewRequest(data,safeOptions.copy(template=template))
-                        val bitmap=if(main)image else neighbours.firstOrNull{it.request==expected}?.bitmap
-                        Box(Modifier.requiredSize(if(main)centerWidth else 74.dp,if(main)centerHeight else 132.dp)
-                            .alpha(if(main)1f else .45f).clip(RoundedCornerShape(if(main)22.dp else 14.dp)).background(Color(0xFF120E0B))
-                            .clickable(enabled=!busy){if(main&&image!=null)expanded=true else if(!main)onOptionsChange(safeOptions.copy(template=template))},contentAlignment=Alignment.Center){
-                            bitmap?.let{Image(it.asImageBitmap(),if(main)"Vista previa de historia ${template.label}" else "Historia ${template.label}",Modifier.fillMaxSize().then(if(main)Modifier.testTag("story-preview")else Modifier),contentScale=ContentScale.Fit)}
-                            if(main&&rendering)CircularProgressIndicator(Modifier.size(24.dp),color=FinishCream,strokeWidth=2.dp)
-                        }
+            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Box(
+                    Modifier
+                        .requiredWidth(232.dp)
+                        .requiredHeight(232.dp * 16f / 9f)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(Color(0xFF120E0B))
+                        .clickable(enabled = !busy) { if (image != null) expanded = true },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    image?.let {
+                        Image(
+                            it.asImageBitmap(),
+                            "Vista previa de historia ${safeOptions.template.label}",
+                            Modifier.fillMaxSize().testTag("story-preview"),
+                            contentScale = ContentScale.Fit,
+                        )
                     }
+                    if (rendering) CircularProgressIndicator(Modifier.size(24.dp), color = FinishCream, strokeWidth = 2.dp)
                 }
             }
             if(safeOptions.template==WorkoutStoryTemplate.EXERCISE)LazyRow(horizontalArrangement=Arrangement.spacedBy(8.dp),modifier=Modifier.fillMaxWidth()){
@@ -159,10 +147,6 @@ internal fun WorkoutStorySheet(
                     if(safeOptions.template!=WorkoutStoryTemplate.EXERCISE)StoryPill("Duración",safeOptions.duration,!busy){onOptionsChange(safeOptions.copy(duration=!safeOptions.duration))}
                     if(safeOptions.template==WorkoutStoryTemplate.GENERAL)StoryPill("Intensidad media",safeOptions.intensity,!busy){onOptionsChange(safeOptions.copy(intensity=!safeOptions.intensity))}
                 }
-            }
-            Row(Modifier.fillMaxWidth().height(28.dp),verticalAlignment=Alignment.CenterVertically){
-                Checkbox(shareAfterSave,onShareAfterSaveChange,enabled=!busy,modifier=Modifier.size(28.dp).testTag("story-share-after-save"),colors=CheckboxDefaults.colors(checkedColor=FinishCream,checkmarkColor=Color.Black,uncheckedColor=FinishMuted))
-                Text("Compartir también al guardar la sesión",style=KpknType.caption.copy(fontSize=11.sp),color=FinishMuted)
             }
             message?.let{Text(it,style=KpknType.caption,color=FinishMuted,modifier=Modifier.testTag("story-message"))}
             Row(Modifier.fillMaxWidth().padding(bottom=8.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){

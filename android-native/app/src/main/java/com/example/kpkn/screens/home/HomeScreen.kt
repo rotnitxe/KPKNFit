@@ -207,6 +207,7 @@ fun HomeScreen(
     val context = LocalContext.current
     LaunchedEffect(uiState.activeProgramId) {
         viewModel.loadFeedbacks(context)
+        viewModel.loadWellbeing(context)
     }
 
     val todayMeals = remember(nutritionLogs) {
@@ -625,6 +626,7 @@ private fun HomeWithProgram(
 ) {
     val homeAdapt = LocalViewportAdapt.current
     val isCatalogReady by exerciseCatalogReady.collectAsState()
+    val trainingMetrics by viewModel.trainingMetrics.collectAsState()
     // «Añadir la fecha de tu competición» (C4c): id del programa activo que aún no tiene fecha clave, o null.
     val competitionDatePromptProgramId by viewModel.competitionDatePromptProgramId.collectAsState()
     // «Nutrición de hoy» y «Cuerpo» (I4): totales y metas del día, y el estado del cuerpo, desde el ViewModel.
@@ -705,12 +707,19 @@ private fun HomeWithProgram(
                     competitionDatePromptProgramId = competitionDatePromptProgramId,
                     onOpenProgramForCompetitionDate = onNavigateToProgram,
                 )
+                HomeSessionCue(
+                    cues = trainingMetrics.cues,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
             }
         }
 
         item(key = "training-history") {
-            val history by ProgramRepository.getInstance().history.collectAsState()
-            com.example.kpkn.screens.training.TrainingHistorySection(history, System.currentTimeMillis())
+            HomeMetricsSection(
+                metrics = trainingMetrics,
+                onOpenHistory = { onNavigateToCard("training-metrics") },
+                onOpenProgress = { onNavigateToCard("training-metrics") },
+            )
         }
         item(key = "cards") {
             // «Nutrición de hoy» y «Cuerpo» van en un solo ítem: comparten la entrada (índice 6) y el aire entre secciones.

@@ -62,22 +62,16 @@ internal fun WorkoutSessionOverlaysHost(
     TrainingMaxPreparation(viewModel.missingTrainingMaxes(session), enabled = !showReadinessSheet,
         onConfirm = viewModel::confirmTrainingMax)
     if (showReadinessSheet) {
-        val previous = remember(session.id, uiState.startTimeMs) {
-            viewModel.recentWorkoutLogs(90 * 24, uiState.startTimeMs).filter { it.sessionId == session.id }
-                .filter { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) < uiState.startTimeMs }
-                .take(6)
-        }
-        PreSessionPreparationDialog(
-            notes = uiState.sessionNotes,
-            previous = previous.map { log ->
-                val duration = log.actualDurationSeconds?.let { "$it s" } ?: "${log.durationMinutes} min (precisión original)"
-                "${log.date.take(10)} · $duration · ${log.completedExercises.size} ejercicios"
-            },
-            discomforts = uiState.previousSessionDiscomforts.map { com.example.kpkn.data.models.discomfortLabel(it) },
-            onNotes = viewModel::setSessionNotes,
-            recordedSportId = uiState.recordedSportId,
-            onSport = viewModel::setRecordedSport,
+        WorkoutReadinessSheet(
+            session = session,
+            weekLabel = null,
+            initial = uiState.todayWellbeing,
+            previousDiscomforts = uiState.previousSessionDiscomforts,
             onDismiss = onReadinessDismissed,
+            onConfirm = { wellbeing ->
+                viewModel.recordReadiness(wellbeing)
+                onReadinessDismissed()
+            },
         )
     }
 

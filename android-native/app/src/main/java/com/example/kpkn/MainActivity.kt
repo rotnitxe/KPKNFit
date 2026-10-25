@@ -1084,6 +1084,9 @@ private fun KPKNNavGraph(
                 },
                 onNavigateToCard = { cardId ->
                     when (cardId) {
+                        "training-metrics" -> {
+                            navController.navigate(KpknRoute.MuscleVolumePanel.create(null)) { launchSingleTop = true }
+                        }
                         "body-progress", "ffmi", "imc", "fat", "muscle" -> {
                             navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true }
                         }

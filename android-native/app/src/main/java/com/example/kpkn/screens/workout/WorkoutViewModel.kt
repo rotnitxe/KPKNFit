@@ -6077,6 +6077,15 @@ class WorkoutViewModel(
         persistOngoingState()
     }
 
+    /** Estado de llegada del día: observación de bienestar, nunca un cambio de cargas. */
+    fun recordReadiness(log: com.example.kpkn.data.models.DailyWellbeingLog) {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            com.example.kpkn.data.repository.TrainingObservationRepository
+                .getInstance(appContext)
+                .recordWellbeing(log)
+        }
+    }
+
     fun setSessionNotes(note: String, flush: Boolean = false) {
         updateUiState { it.copy(sessionNotes = note) }
         sessionNotePersistJob?.cancel()
