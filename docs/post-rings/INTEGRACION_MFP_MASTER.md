@@ -19,10 +19,12 @@ El usuario autorizó expresamente integrar y publicar ambas entregas. El checkou
 - 39 fuentes Swift modificadas analizadas sintácticamente, sin errores. No equivale a una compilación Xcode ni a XCTest.
 - Android: compilación y regresión conjunta en curso. Esta línea se sustituye al cerrar los resultados.
 
-Los intentos de compilación y sus fallos se conservan en `C:/kw/logs/postrings-mfp-*`. Se corrigieron referencias MFP a funciones retiradas y la selección completa de fuentes de la variante base. Las cancelaciones por presión de memoria no se contabilizan como pruebas aprobadas.
+Los intentos de compilación y sus fallos se conservan en `C:/kw/logs/postrings-mfp-*`. La primera pasada conjunta ejecutó 458 pruebas: 445 aprobadas y 13 fallidas en cuatro clases. Se corrigieron los datos obligatorios de una fixture, rutas temporales largas de Windows y el modo SQLite de la prueba de reconexión; se portaron las expectativas de reducción automática de carga al contrato de POST-RINGS. No se omiten esas pruebas. Las cancelaciones por presión de memoria no se contabilizan como pruebas aprobadas.
 
 ## Aislamiento y conservación
 
-La integración Git está en el checkout principal. Para validar su contenido se congela una copia de sus fuentes seleccionadas y se usa una salida de build independiente: otros trabajos están compilando y editando nutrición en el mismo directorio. Esto evita incluir accidentalmente ese WIP en el APK o en la publicación. No se borran, restauran ni publican esos cambios ajenos. Los recibos y hashes están en `C:/kw/logs/postrings-mfp-primary-master-receipt.json` y `postrings-mfp-source-snapshot-*.json`.
+La integración Git está en el checkout principal. Para validar su contenido se congela una copia de sus fuentes seleccionadas y se usa una salida de build independiente: otros trabajos están compilando y editando nutrición en el mismo directorio. La copia contiene también los AIDL, manifiestos, recursos, assets y fixtures comprometidos en Git; el plugin Android registra sus fuentes de forma normal. Esto evita incluir accidentalmente ese WIP en el APK o en la publicación. No se borran, restauran ni publican esos cambios ajenos. Los recibos y hashes están en `C:/kw/logs/postrings-mfp-primary-master-receipt.json`, `postrings-mfp-complete-inputs.json` y `postrings-mfp-source-snapshot-*.json`.
+
+La evolución de Nutrición a Room36 permanece como trabajo concurrente sin publicar. En los tests compartidos, el índice de esta entrega se construye con un parche cerrado desde HEAD hasta las fuentes validadas de Room35; las versiones de trabajo del otro agente se conservan.
 
 El dispositivo físico y la app personal no se modifican durante esta integración. No se entrega un APK nuevo en G:. El QA físico de cámara/latencia, p95 y Xcode conserva sus gates separados; esta validación focal no representa toda la suite histórica.

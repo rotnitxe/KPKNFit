@@ -15,7 +15,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.SQLiteMode
 
+@SQLiteMode(SQLiteMode.Mode.NATIVE)
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 class TrainingObservationRepositoryReconnectTest {

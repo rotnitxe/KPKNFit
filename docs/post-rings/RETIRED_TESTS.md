@@ -184,3 +184,5 @@ Cierre cloud: changed-regression-v3, 200 clases/2033 pruebas, cero fallos, error
 - `StrengthLoadComparisonTest` conserva carga externa/capacidad total, unidades comparables y caché vigente. Se retira sólo el factor de fatiga por cantidad de series; el tiempo no se estima como 1RM.
 - `VolumeConsumersTest` comprueba las fuentes vivas del historial y sus conteos semanales; se retiran los diagnósticos automáticos de sobreentrenamiento.
 - Los fixtures de backup dejan de recibir el argumento derivado retirado `adaptiveCache`.
+- `WorkoutStrengthLoadSuggestionTest` conserva las cargas autoradas de 100 kg ante caída de repeticiones, RPE elevado o etiquetas back-off/drop. Se retiran las expectativas de recortes automáticos de 3 %/20 % y se añade un control positivo: un drop prescrito a 80 kg conserva exactamente 80 kg.
+- Las fixtures de migración incluyen todas las columnas obligatorias del alimento original. El backup físico utiliza rutas temporales cortas en Windows, y la reconexión de Room se comprueba con SQLite nativo de Robolectric. Se mantienen las aserciones de conservación y restauración.

@@ -1,5 +1,9 @@
 package com.example.kpkn.data.db
 
+import android.content.ContextWrapper
+import android.database.DatabaseErrorHandler
+import android.database.sqlite.SQLiteDatabase
+import java.nio.file.Files
 import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
@@ -83,6 +87,21 @@ class NutritionDayStateBackupTest {
     }
 
     @Test fun `copia fisica incluye ambas tablas sin un tratamiento especial`() = runBlocking {
+        // Keep sqlite4java paths below Windows MAX_PATH, independent of the test method's display name.
+        val directory = Files.createTempDirectory("mfp-backup-").toFile()
+        val platformContext = context
+        val context = object : ContextWrapper(platformContext) {
+            override fun getApplicationContext(): Context = this
+            override fun getFilesDir() = File(directory, "files").apply { mkdirs() }
+            override fun getCacheDir() = File(directory, "cache").apply { mkdirs() }
+            override fun getNoBackupFilesDir() = File(directory, "no-backup").apply { mkdirs() }
+            override fun getDatabasePath(name: String) = (if (File(name).isAbsolute) File(name) else File(directory, "db/$name")).apply { parentFile!!.mkdirs() }
+            override fun deleteDatabase(name: String) = SQLiteDatabase.deleteDatabase(getDatabasePath(name))
+            override fun openOrCreateDatabase(name: String, mode: Int, factory: SQLiteDatabase.CursorFactory?) =
+                SQLiteDatabase.openDatabase(getDatabasePath(name).absolutePath, factory, mode or SQLiteDatabase.CREATE_IF_NECESSARY)
+            override fun openOrCreateDatabase(name: String, mode: Int, factory: SQLiteDatabase.CursorFactory?, handler: DatabaseErrorHandler?) =
+                SQLiteDatabase.openDatabase(getDatabasePath(name).absolutePath, factory, mode or SQLiteDatabase.CREATE_IF_NECESSARY, handler)
+        }
         KpknDatabase.closeInstance()
         context.deleteDatabase("kpkn.db")
         var snapshot: File? = null

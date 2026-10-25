@@ -36,7 +36,7 @@ class CombinedNutritionTrainingMigrationTest {
         val dir = Files.createTempDirectory("combined-mfp-originals-").toFile()
         val context = object: ContextWrapper(ApplicationProvider.getApplicationContext<Context>()) {
             override fun getApplicationContext(): Context = this
-            override fun getDatabasePath(name: String) = File(dir,name)
+            override fun getDatabasePath(name: String) = (if (File(name).isAbsolute) File(name) else File(dir,name)).apply { parentFile!!.mkdirs() }
             override fun openOrCreateDatabase(name:String,mode:Int,factory:SQLiteDatabase.CursorFactory?):SQLiteDatabase =
                 SQLiteDatabase.openDatabase(getDatabasePath(name).absolutePath,factory,mode or SQLiteDatabase.CREATE_IF_NECESSARY)
             override fun openOrCreateDatabase(name:String,mode:Int,factory:SQLiteDatabase.CursorFactory?,handler:DatabaseErrorHandler?):SQLiteDatabase =
@@ -62,7 +62,7 @@ class CombinedNutritionTrainingMigrationTest {
             db.execSQL("INSERT INTO programs(id,name,data) VALUES('qa-program','Programa original',?)", arrayOf("""{"id":"qa-program","name":"Programa original"}"""))
             db.execSQL("INSERT INTO settings(rowId,data) VALUES(1,?)", arrayOf("""{"username":"Ana"}"""))
             db.execSQL("INSERT INTO workout_logs(id,programId,sessionId,date,data) VALUES('qa-log','qa-program','session','2026-10-01',?)",arrayOf(log))
-            db.execSQL("INSERT INTO nutrition_custom_foods(id,data) VALUES('qa-food',?)",arrayOf(food))
+            db.execSQL("INSERT INTO nutrition_custom_foods(id,name,normalizedName,normalizedBrand,aliasesJson,sourcePriority,verifiedScore,usageCount,lastUsedAt,data) VALUES('qa-food','Alimento original','alimento original',NULL,'[]',0,0.0,0,NULL,?)",arrayOf(food))
             if("training_observations" in names) db.execSQL("INSERT INTO training_observations VALUES('qa-original','historical_original','2026-10-01',?,'original')",arrayOf(observation))
             if("auge_wellbeing" in names) db.execSQL("INSERT INTO auge_wellbeing(id,date,data) VALUES('qa-wellbeing','2026-10-01',?)", arrayOf(wellbeing))
             if (conflictingOriginal) db.execSQL("INSERT INTO training_observations VALUES('auge_wellbeing:qa-wellbeing','wellbeing','2026-10-01',?,'original')",
