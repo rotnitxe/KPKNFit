@@ -1,0 +1,395 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-25",
+  "status": "PASSED",
+  "runtimeIntegrationCommit": "0441aa64c2804777124edb4902759b62a6b4420c",
+  "validationBaseCommit": "e4c12044dc84e904d46a89860dd54927dd0cb0f6",
+  "validatedAppTree": "302872f91d98654986eda5360314ce902952cf68",
+  "roomVersion": 35,
+  "inputFilesVerified": 4727,
+  "retirementGate": {
+    "activeViolations": 0,
+    "controls": "PASSED",
+    "scope": "Android main/debug"
+  },
+  "roomSchemaGeneration": {
+    "version": 35,
+    "matchesPublishedSchema": true,
+    "identityHash": "7656051b2803f99fdde1e93d68ea13a1",
+    "generatedImplementationSha256": "02054ba6d93b1a34e906c665d389a97a6cdcd7b8eb81a95803757ac32f27addd",
+    "room36WipExcluded": true
+  },
+  "targeted": {
+    "status": "PASSED",
+    "classes": 13,
+    "tests": 79,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0
+  },
+  "completeRegression": {
+    "status": "PASSED",
+    "classes": 47,
+    "tests": 512,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0
+  },
+  "countsAreSeparateRunsNotToBeAdded": true,
+  "completeRegressionIncludesTargetedClasses": true,
+  "runner": {
+    "path": "tools/training-evidence/android-post-rings-regression.init.gradle",
+    "sha256": "230115a03b895ef26d5f5aa9f321a3ff0fb5be75d4fabc2b70497264f3dcb1fd",
+    "programDetailMethodOnly": [
+      "feedback_never_rescales_authored_volume_references"
+    ]
+  },
+  "suites": [
+    {
+      "class": "com.example.kpkn.data.db.CombinedNutritionTrainingMigrationTest",
+      "tests": 5,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.data.db.LegacyTrainingBackupTest",
+      "tests": 2,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.data.db.TrainingMigrationRoomValidationTest",
+      "tests": 1,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.data.db.TrainingObservationMigrationTest",
+      "tests": 3,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.data.db.TrainingSnapshotRestoreTest",
+      "tests": 5,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.data.ExerciseCatalogContractTest",
+      "tests": 7,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.data.onboarding.SetupDraftResolverTest",
+      "tests": 2,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.data.onboarding.SetupPersistenceTest",
+      "tests": 16,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.data.programs.ProgramTemplateCompositionContractTest",
+      "tests": 2,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.data.protocols.ProtocolCompositionContractTest",
+      "tests": 3,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.data.protocols.ProtocolRecipeFidelityTest",
+      "tests": 65,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.data.repository.TrainingObservationRepositoryReconnectTest",
+      "tests": 1,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.data.splits.SplitTemplatesTest",
+      "tests": 4,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.domain.exercises.catalogv2.AprendeCatalogAuditTest",
+      "tests": 7,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.domain.onboarding.SetupStepDefinitionsTest",
+      "tests": 27,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.domain.onboarding.SetupStepGraphTest",
+      "tests": 38,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.domain.templates.SessionTemplateCatalogTest",
+      "tests": 27,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.domain.training.EffectiveEquipmentResolverContractTest",
+      "tests": 22,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.domain.training.generator.GeneratorPoolsCatalogTest",
+      "tests": 6,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.domain.training.insights.SharedTrainingInsightsContractTest",
+      "tests": 1,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.domain.training.insights.TrainingHistoryProjectionTest",
+      "tests": 9,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.domain.training.insights.TrainingInsightsEngineTest",
+      "tests": 3,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest",
+      "tests": 43,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.domain.training.PlanAdaptationResolverTest",
+      "tests": 33,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.domain.training.RetiredPendingDeloadTest",
+      "tests": 1,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.onboarding.PostRingsWizardMigrationTest",
+      "tests": 2,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.onboarding.SetupDraftCompatibilityTest",
+      "tests": 26,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.onboarding.SetupDraftRepairTableTest",
+      "tests": 15,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.onboarding.SetupWelcomeScreenTest",
+      "tests": 7,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.onboarding.SetupWizardActivationGateTest",
+      "tests": 3,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.onboarding.SetupWizardFullJourneyTest",
+      "tests": 2,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.programdetail.ProgramDetailViewModelTest",
+      "tests": 1,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.training.TrainingFactChartTest",
+      "tests": 4,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.workout.ApreLateralCalibrationTest",
+      "tests": 3,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.workout.ApreLiveCalibrationTest",
+      "tests": 9,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.workout.components.SetExecutionCardCalibrationTest",
+      "tests": 4,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.workout.PostExerciseFeedbackDraftTest",
+      "tests": 13,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.workout.PreSessionPreparationDialogTest",
+      "tests": 2,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.workout.WorkoutCalibrationRecorderRoomTest",
+      "tests": 17,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.workout.WorkoutCalibrationVariantTest",
+      "tests": 5,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.workout.WorkoutLoadSuggestionIncrementalTest",
+      "tests": 2,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.workout.WorkoutPreparationCommitterRoomTest",
+      "tests": 2,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.screens.workout.WorkoutSetRecorderDurableRoomTest",
+      "tests": 22,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.services.workout.WorkoutVoiceHandsFreeTest",
+      "tests": 31,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.services.workout.WorkoutVoicePreparationParserTest",
+      "tests": 3,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.ui.components.permissions.InitialPermissionRequestEffectTest",
+      "tests": 2,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.example.kpkn.ui.components.permissions.RecommendedPermissionsDialogTest",
+      "tests": 4,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    }
+  ],
+  "logs": {
+    "targeted": {
+      "sha256": "37ab65b3f04771d3aae57de014a0d0b323f66719741a9caa7986f21e98c2050e",
+      "duration": "26m 2s"
+    },
+    "complete": {
+      "sha256": "014c29e8dea2aa4b03062b7a25586b2ad2842976a5b6d6a4f796ec0b26e28383",
+      "duration": "8m 35s"
+    }
+  },
+  "historicalPhysicalQa": {
+    "roomVersion": 34,
+    "report": "ANDROID_CLOSURE_20261024.md",
+    "repeatedForRoom35": false
+  },
+  "iOS": "DEFERRED_BY_USER",
+  "concurrentWip": "PRESERVED_AND_EXCLUDED"
+}
