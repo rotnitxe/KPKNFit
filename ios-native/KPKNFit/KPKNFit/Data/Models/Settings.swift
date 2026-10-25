@@ -64,6 +64,9 @@ public struct AppSettings: Codable {
     public var sleepReminderEnabled: Bool = false
     public var sleepReminderTime: String = "22:00"
     public var appLanguage: String = "system"
+    /// Android's declared volume calibration snapshot, including original notes.
+    /// Kept opaque so newer fields survive an iOS settings round trip.
+    public var volumeCalibrationProfile: JSONValue? = nil
 }
 
 // ─── Enums ────────────────────────────────────────────────────────────────────

@@ -457,6 +457,16 @@ final class RecordedSportContextTests: XCTestCase {
     }
 }
 
+final class DeclaredVolumeCalibrationTransportTests: XCTestCase {
+    func testSettingsKeepsCalibrationNotesAndUnknownSnapshotFields() throws {
+        var settings = AppSettings()
+        let raw = #"{"notes":"Contexto original del atleta","futureCalibrationField":{"value":2}}"#
+        settings.volumeCalibrationProfile = try JSONDecoder().decode(JSONValue.self, from: Data(raw.utf8))
+        let restored = try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(settings))
+        XCTAssertEqual(restored.volumeCalibrationProfile, settings.volumeCalibrationProfile)
+    }
+}
+
 final class RegisteredTrainingDocumentTests: XCTestCase {
     func testUnknownEnginePreservesRawDataWithoutInventingMeasurements() throws {
         let raw = #"{"id":"doc","engineId":"future.unknown","version":1,"sportId":"RUNNING","purpose":"RESULT","payload":{"distanceMeters":5000}}"#
