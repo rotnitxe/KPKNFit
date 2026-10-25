@@ -13,9 +13,9 @@ class WeeklyCheckinEngineTest {
     }
     private val metadata get() = CatalogCompositionTestSupport.metadata
     private fun weeks(program: Program) = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
-    private fun program(days: Int = 1): Program {
+    private fun program(days: Int = 1, deloadLast: Boolean = false): Program {
         val recipe = TrainingPlanRecipe("checkin-test", (1..2).map { number ->
-            WeekRecipe(number, 0, days = (1..days).map { d ->
+            WeekRecipe(number, 0, kind = if (deloadLast && number == 2) WeekExecutionKind.DELOAD else WeekExecutionKind.TRAINING, days = (1..days).map { d ->
                 DayRecipe("Día $d", id = "day-$d", weekday = d * 2 - 1, slots = listOf(
                     SlotRecipe("sq", SlotRole.T1_MAIN, LiftRef(CatalogIds.SQ_LOW, LiftSlot.SQUAT), List(2) { SetRecipe(reps = 5, rir = 2) }, 180),
                     SlotRecipe("bp", SlotRole.T3_ACCESSORY, LiftRef(CatalogIds.BP), List(3) { SetRecipe(reps = 10, rir = 2) }, 90),
@@ -36,6 +36,8 @@ class WeeklyCheckinEngineTest {
     }
     private fun answer(program: Program, skipped: Boolean = false): WeeklyCheckin =
         WeeklyCheckin(program.runState!!.weekId!!, programRunId = program.runState.runId,
+            feedbackWeekId = program.pendingWeeklyCheckin?.feedbackWeekId,
+            feedbackCycleNumber = program.pendingWeeklyCheckin?.feedbackCycleNumber,
             muscles = if (skipped) emptyList() else listOf(MuscleCheckin("CHEST", 1, 1)), skipped = skipped)
     private fun workCount(session: Session) = session.allExercises().filter { it.slotRole == SlotRole.T3_ACCESSORY }
         .sumOf { exercise -> exercise.sets.size }
@@ -54,8 +56,16 @@ class WeeklyCheckinEngineTest {
         val result = advance(p)
         assertEquals(weeks(p)[1].id, result.pendingWeeklyCheckin?.weekId)
         assertEquals("run", result.pendingWeeklyCheckin?.programRunId)
+        assertEquals(weeks(p).first().id, result.pendingWeeklyCheckin?.feedbackWeekId)
+        assertEquals(1, result.pendingWeeklyCheckin?.feedbackCycleNumber)
         assertNull(advance(p.copy(sourceProtocolId = "author")).pendingWeeklyCheckin)
         assertNull(advance(p, enabled = false).pendingWeeklyCheckin)
+        val deload = advance(program(deloadLast = true))
+        assertNotNull("La descarga puede recoger la respuesta de la última semana de entrenamiento", deload.pendingWeeklyCheckin)
+        val answered = ProgramProgressEngine.applyWeeklyCheckin(deload, answer(deload), metadata)
+        assertEquals(deload.macrocycles, answered.macrocycles)
+        assertTrue(answered.effectiveWeekRecipes.isEmpty())
+        assertEquals(1, answered.weeklyCheckins.size)
     }
     @Test fun confirmed_answer_changes_one_occurrence_and_preserves_the_source_recipe() {
         val p = pending(program())
@@ -115,5 +125,18 @@ class WeeklyCheckinEngineTest {
         assertEquals(p.macrocycles, result.macrocycles)
         assertEquals(p.manualSessionOverrides, result.manualSessionOverrides)
         assertTrue(result.effectiveWeekRecipes.isEmpty())
+    }
+    @Test fun only_explicit_planning_targets_bound_the_confirmed_proposal() {
+        val original = pending(program())
+        val p = original.copy(planningVolumeTargets = listOf(
+            com.example.kpkn.domain.training.calibration.PlanningVolumeTarget(com.example.kpkn.data.programs.KpknMuscleGroup.CHEST, 2, 3)),
+            volumeRecommendations = listOf(VolumeRecommendation("Pectorales", 0, 80, 100)))
+        val result = ProgramProgressEngine.applyWeeklyCheckin(p, answer(p), metadata)
+        assertEquals(workCount(weeks(p).first().sessions.single()), workCount(weeks(result).first().sessions.single()))
+        assertTrue(result.programDecisions.last().detail.contains("tope"))
+        assertEquals(p.planningVolumeTargets, result.planningVolumeTargets)
+        assertEquals(p.volumeRecommendations, result.volumeRecommendations)
+        val invalid = p.copy(planningVolumeTargets = p.planningVolumeTargets + p.planningVolumeTargets)
+        assertSame(invalid, ProgramProgressEngine.applyWeeklyCheckin(invalid, answer(invalid), metadata))
     }
 }

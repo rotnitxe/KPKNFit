@@ -26,11 +26,12 @@ object WeeklyCheckinEngine {
         val weekId = run.weekId ?: return result
         if (run.status != ProgramRunStatus.ACTIVE) return result
         val source = PlanMaterializer.weekRecipeSourceFor(program, program.sourceRecipe!!, weekId) ?: return result
-        if (source.weekRecipe.kind != WeekExecutionKind.TRAINING) return result
-        val request = WeeklyCheckinRequest(weekId, run.cycleNumber, programRunId = run.runId)
+        if (source.weekRecipe.kind == WeekExecutionKind.REST) return result
+        val previousId = ProgramProgressEngine.templateWeekIdFromInstance(completedWeekId) ?: completedWeekId
+        val request = WeeklyCheckinRequest(weekId, run.cycleNumber, programRunId = run.runId,
+            feedbackWeekId = previousId, feedbackCycleNumber = before.runState?.cycleNumber)
         if (program.pendingWeeklyCheckin?.let { it.weekId == weekId && it.cycleNumber == run.cycleNumber && it.programRunId == run.runId } == true ||
             program.weeklyCheckins.any { it.matches(request) }) return result
-        val previousId = ProgramProgressEngine.templateWeekIdFromInstance(completedWeekId) ?: completedWeekId
         val previous = before.sourceRecipe?.let { PlanMaterializer.weekRecipeSourceFor(before, it, previousId) }
         val groups = if (metadata == null || previous == null) emptyList() else
             WeeklyAdjustmentEngine.accessoryGroups(previous.weekRecipe, metadata).sortedBy { it.ordinal }.map { it.name }
@@ -46,6 +47,7 @@ object WeeklyCheckinEngine {
         allowRirChange: Boolean = true,
     ): Program {
         if (!program.acceptsKpknAdjustments()) return program
+        if (!com.example.kpkn.domain.training.calibration.PlanningVolumeTargets.valid(program.planningVolumeTargets)) return program
         val request = program.pendingWeeklyCheckin ?: return program
         val run = program.runState ?: return program
         if (run.status != ProgramRunStatus.ACTIVE || run.runId != checkin.programRunId || run.cycleNumber != checkin.cycleNumber ||
@@ -63,6 +65,7 @@ object WeeklyCheckinEngine {
         val protectedIndexes = if (protected.isNotEmpty() && source.week.sessions.size != source.weekRecipe.days.size)
             source.weekRecipe.days.indices.toSet() else protected
         val adjustment = WeeklyAdjustmentEngine.adjust(source.weekRecipe, checkin, metadata,
+            recommendations = com.example.kpkn.domain.training.VolumeCalibrationEngine.planningBounds(program.planningVolumeTargets),
             allowRirChange = allowRirChange, protectedDayIndexes = protectedIndexes)
         var working = program.copy(pendingWeeklyCheckin = null, weeklyCheckins = program.weeklyCheckins + checkin)
         val detail = when {
@@ -85,7 +88,8 @@ object WeeklyCheckinEngine {
     }
 
     private fun WeeklyCheckin.matches(request: WeeklyCheckinRequest): Boolean =
-        weekId == request.weekId && cycleNumber == request.cycleNumber && programRunId == request.programRunId
+        weekId == request.weekId && cycleNumber == request.cycleNumber && programRunId == request.programRunId &&
+            feedbackWeekId == request.feedbackWeekId && feedbackCycleNumber == request.feedbackCycleNumber
 
     private fun validAnswers(answer: WeeklyCheckin, request: WeeklyCheckinRequest): Boolean =
         if (request.muscleGroups.isEmpty()) answer.muscles.isEmpty() && answer.globalPerformance?.let { it in 1..4 } == true && answer.globalSoreness?.let { it in 1..4 } == true

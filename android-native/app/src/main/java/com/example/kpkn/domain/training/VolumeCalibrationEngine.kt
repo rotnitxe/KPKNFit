@@ -20,6 +20,10 @@ data class VolumeCalibrationOutput(
 object VolumeCalibrationEngine {
     const val REVISION = "volume-calibration-v1"
 
+    /** Límites explícitos para revisar propuestas; no deriva puntuaciones ni capacidad de recuperación. */
+    fun planningBounds(targets: List<com.example.kpkn.domain.training.calibration.PlanningVolumeTarget>): List<VolumeRecommendation> =
+        com.example.kpkn.domain.training.calibration.PlanningVolumeTargets.asPlanningBounds(targets)
+
     fun calculate(
         style: TrainingStyle,
         technique: Int,
