@@ -255,21 +255,22 @@ class NativeProfileRecipeAndFitterTest {
     }
 
     @Test
-    fun weeks_deload_and_rir_follow_section_12_1() {
+    fun weeks_deload_and_rir_follow_section_12_1_with_the_dev_r2_07_wave() {
         val program = requireProgram(
             generate(NativeProfileKind.STRENGTH.entryId, 3, CatalogLevel.BEGINNER, BARBELL, 60),
             "fuerza3 principiante",
         )
         val recipe = requireNotNull(program.sourceRecipe)
+        assertEquals("La onda nueva tiene identidad de contenido propia", 2, recipe.contentVersion)
         assertEquals(6, recipe.weeks.size)
         recipe.weeks.dropLast(1).forEach { week ->
             assertEquals(0, week.blockIndex)
             assertEquals(BlockGoal.ACCUMULATION, week.blockGoal)
             assertEquals(WeekExecutionKind.TRAINING, week.kind)
-            // Principiante: RIR 3 en semanas 1-5 (12.1), SPEED siempre RIR 5.
+            // DEV-r2-07: principiante 3/3/3/2/2; SPEED conserva RIR 5.
             week.days.flatMap { it.slots }.forEach { slot ->
                 slot.workingSetsForTest().forEach { set ->
-                    val expected = if (slot.role == SlotRole.SPEED) 5 else 3
+                    val expected = if (slot.role == SlotRole.SPEED) 5 else listOf(3, 3, 3, 2, 2)[week.weekNumber - 1]
                     assertEquals("RIR ${slot.id} w${week.weekNumber}", expected, set.rir)
                 }
             }
@@ -293,7 +294,7 @@ class NativeProfileRecipeAndFitterTest {
                 deloadSets.forEach { assertEquals("RIR descarga ${deloadSlot.id}", expectedRir, it.rir) }
             }
         }
-        // Intermedio: RIR 3 en semana 1 y RIR 2 en semanas 2-5.
+        // DEV-r2-07: intermedio 3/2/2/1/1, conservando la descarga comprobada arriba.
         val inter = requireProgram(
             generate(NativeProfileKind.STRENGTH.entryId, 3, CatalogLevel.INTERMEDIATE, BARBELL, 60),
             "fuerza3 intermedio",
@@ -304,9 +305,7 @@ class NativeProfileRecipeAndFitterTest {
             .flatMap { it.workingSetsForTest() }
             .mapNotNull { it.rir }
             .distinct()
-        assertEquals(listOf(3), rirs(0))
-        assertEquals(listOf(2), rirs(1))
-        assertEquals(listOf(2), rirs(4))
+        assertEquals(listOf(listOf(3), listOf(2), listOf(2), listOf(1), listOf(1)), (0..4).map(::rirs))
     }
 
     @Test

@@ -748,11 +748,9 @@ object NativeWeekBuilder {
     const val BASE_BLOCK_NAME = "Acumulación"
     const val DELOAD_BLOCK_NAME = "Descarga KPKN"
 
-    /** RIR de las semanas 1–5 por nivel (§12.1): principiante RIR 3 siempre. */
-    fun trainingRir(level: NativeDoseLevel, weekNumber: Int): Int = when (level) {
-        NativeDoseLevel.BEGINNER -> 3
-        else -> if (weekNumber <= 1) 3 else 2
-    }
+    /** Onda editorial de RIR por nivel, sin modificar la progresión por exposiciones. */
+    fun trainingRir(level: NativeDoseLevel, weekNumber: Int): Int =
+        com.example.kpkn.domain.training.cycle.RirWave.targetRir(level, weekNumber, WEEKS)
 }
 
 /**

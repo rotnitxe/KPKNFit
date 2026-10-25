@@ -1735,7 +1735,8 @@ class SimpleCyclePersonalizer(
             },
             // §12.1: continuar inicia una ocurrencia nueva; no se clona la semana eternamente.
             repeats = false,
-            contentVersion = 1,
+            // DEV-r2-07 cambia la prescripción de RIR. Los snapshots v1 guardados se conservan.
+            contentVersion = 2,
             nativeProgression = NativeProgressionSpec(
                 strategy = if (allBodyweight) {
                     NativeProgressionStrategy.BODYWEIGHT_VARIANT_ESCALATION
