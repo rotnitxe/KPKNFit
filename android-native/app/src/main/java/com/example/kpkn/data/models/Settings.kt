@@ -288,6 +288,7 @@ data class AlgorithmSettings(
     val legVolumeMultiplier: Double = 1.0,
     val torsoVolumeMultiplier: Double = 1.0,
     val synergistFactor: Double = 0.25,
+    val weeklyCheckinEnabled: Boolean = true,
 )
 
 /**

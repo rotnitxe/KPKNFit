@@ -139,6 +139,10 @@ data class Program(
     val avoidedExerciseGroups: Set<String> = emptySet(),
     /** Historial de decisiones del programa, compatible con el JSON anterior. */
     val programDecisions: List<ProgramDecision> = emptyList(),
+    /** Respuestas semanales originales, incluidas las omisiones explícitas. */
+    val weeklyCheckins: List<com.example.kpkn.domain.training.cycle.WeeklyCheckin> = emptyList(),
+    /** Petición pendiente de una ocurrencia de la ejecución actual. */
+    val pendingWeeklyCheckin: com.example.kpkn.domain.training.cycle.WeeklyCheckinRequest? = null,
 )
 
 /** Decisión del sistema o de la persona sobre el programa, con origen y motivo. */
