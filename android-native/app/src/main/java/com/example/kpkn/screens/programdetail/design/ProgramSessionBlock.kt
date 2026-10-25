@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.kpkn.data.models.isCardio
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -60,6 +61,7 @@ internal fun ProgramSessionBlock(
     onToggleOptional: (() -> Unit)?,
     modifier: Modifier = Modifier,
     startAnchor: Boolean = false,
+    onSwapExercise: ((String) -> Unit)? = null,
 ) {
     val session = ui.session
     val exerciseLookup = remember { catalogExerciseIndex() }
@@ -81,13 +83,16 @@ internal fun ProgramSessionBlock(
         }
         exercises.forEach { exercise ->
             Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-                Text(
-                    text = exerciseDisplayName(exercise, exerciseLookup),
-                    style = KpknType.bodyStrong,
-                    color = WizardColors.text,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = exerciseDisplayName(exercise,exerciseLookup),modifier = Modifier.weight(1f),
+                        style = KpknType.bodyStrong,color = WizardColors.text,maxLines = 2,overflow = TextOverflow.Ellipsis)
+                    if (onSwapExercise != null && !exercise.isCardio && !exercise.catalogConfigurationId.isNullOrBlank() && exercise.sets.isNotEmpty()) {
+                        Box(modifier = Modifier.defaultMinSize(minWidth = 48.dp,minHeight = 48.dp)
+                            .semantics { contentDescription = "Cambiar ejercicio: ${exerciseDisplayName(exercise,exerciseLookup)}" }
+                            .clickable(role = Role.Button) { onSwapExercise(exercise.id) },
+                            contentAlignment = Alignment.Center) { Text("⇄",style = KpknType.bodyStrong,color = WizardColors.text) }
+                    }
+                }
                 formatExercisePrescription(exercise)?.let { dose ->
                     Text(
                         text = dose,

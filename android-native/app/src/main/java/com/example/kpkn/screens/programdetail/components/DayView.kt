@@ -127,6 +127,7 @@ fun DayView(
     onToggleOptionalConfirmation: (dayIso: String, sessionId: String) -> Unit = { _, _ -> },
     /** Restaura únicamente la sesión marcada, usando su receta fuente. */
     onRestoreManualSessionFromPlan: (String) -> Unit = {},
+    onSwapExercise: ((String,String) -> Unit)? = null,
     /**
      * Sesiones ya registradas o en curso: su prescripción histórica no se
      * restaura, así que el botón «Restaurar esta sesión desde el plan» no se
@@ -376,6 +377,7 @@ fun DayView(
                     onSessionDrag = { sessionId, delta -> dragMove(sessionId, delta) },
                     onSessionDragEnd = { sessionId -> dragEnd(sessionId) },
                     onSessionDragCancel = { dragCancel() },
+                    onSwapExercise = onSwapExercise,
                 )
             }
         }

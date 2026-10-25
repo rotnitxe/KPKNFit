@@ -123,6 +123,7 @@ internal fun ProgramDayModule(
     onSessionDragEnd: (String) -> Unit,
     onSessionDragCancel: () -> Unit,
     modifier: Modifier = Modifier,
+    onSwapExercise: ((String,String) -> Unit)? = null,
 ) {
     val reduced = wizardReducedMotion()
     var headerBounds by remember { mutableStateOf(Rect.Zero) }
@@ -178,6 +179,7 @@ internal fun ProgramDayModule(
                         onRestore = if (ui.customized && ui.restorable) ({ onRestoreSession(ui.session.id) }) else null,
                         onToggleOptional = ui.optionalDateIso?.let { date -> ({ onToggleOptional(date, ui.session.id) }) },
                         startAnchor = anchorFirstSession && index == 0,
+                        onSwapExercise = onSwapExercise?.let { action -> { exerciseId: String -> action(ui.session.id,exerciseId) } },
                         modifier = Modifier
                             .onGloballyPositioned { onSessionBounds(ui.session.id, it.boundsInWindow()) }
                             .graphicsLayer { alpha = if (isDragging) 0.22f else 1f }
