@@ -97,7 +97,7 @@ class RecipeContractInventoryTest {
         val entry: Published,
         /** Hallazgos del contrato sin filtrar por exenciones. */
         val contract: List<CompositionFinding>,
-        /** Hallazgos del contrato que siguen vivos tras las exenciones declaradas. */
+        /** Baseline C1–C10 tras exenciones; C11 se informa aparte sin cambiar sus techos. */
         val remaining: List<CompositionFinding>,
         /** Exenciones declaradas que no silencian nada hoy (ni HARD ni SOFT). */
         val deadExemptions: List<RecipeCompositionExemption>,
@@ -120,7 +120,7 @@ class RecipeContractInventoryTest {
             entry = entry,
             contract = RecipeContractPolicy.evaluate(entry.recipe, metadata),
             remaining = SessionCompositionPolicy.evaluateRecipe(entry.recipe, metadata, entry.protocolExemptions)
-                .filter { it.rule in RecipeContractPolicy.RULES },
+                .filter { it.rule in RecipeContractPolicy.RULES && it.rule != RecipeContractPolicy.C11_VOLUME_OVER_MRV },
             deadExemptions = entry.declared.filter { exemption ->
                 exemption.rule in NON_EXEMPTABLE_RULES ||
                     raw.none { it.rule == exemption.rule && SessionCompositionPolicy.scopeMatches(exemption.scope, it.scope) }
@@ -263,13 +263,16 @@ class RecipeContractInventoryTest {
                     }
             }
         }
+        val c11 = RecipeContractPolicy.C11_VOLUME_OVER_MRV
+        val baseline = nonExempt.filterNot { it.rule == c11 }
+        println("C11 (aviso): ${rows.sumOf { row -> row.contract.count { it.rule == c11 } }}")
         println("[B.S6 2b] crudo: $raw (${breakdown(rows.flatMap { it.contract })})")
-        println("[B.S6 2b] crudo menos exentos: ${nonExempt.size} (${breakdown(nonExempt)})")
-        if (nonExempt.size < CEILING) println("[B.S2] techo bajable a ${nonExempt.size} (techo actual=$CEILING)")
+        println("[B.S6 2b] C1–C10 menos exentos: ${baseline.size} (${breakdown(baseline)})")
+        if (baseline.size < CEILING) println("[B.S2] techo bajable a ${baseline.size} (techo actual=$CEILING)")
         assertTrue(
-            "El inventario del contrato creció: ${nonExempt.size} hallazgos sin exención superan el techo $CEILING. " +
+            "El inventario del contrato creció: ${baseline.size} hallazgos C1–C10 sin exención superan el techo $CEILING. " +
                 "Corrige el dato o, si es deliberado, declara una exención justificada (B.S6).",
-            nonExempt.size <= CEILING,
+            baseline.size <= CEILING,
         )
     }
 

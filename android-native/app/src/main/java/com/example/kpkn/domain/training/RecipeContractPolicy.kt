@@ -2,6 +2,9 @@ package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.WeekExecutionKind
+import com.example.kpkn.data.programs.KpknMuscleGroup
+import com.example.kpkn.data.programs.VolumeLandmarks
+import com.example.kpkn.domain.training.split.CatalogTraits
 import com.example.kpkn.data.protocols.AutoregulationHookKind
 import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.data.protocols.CompositionSeverity
@@ -56,6 +59,7 @@ object RecipeContractPolicy {
     const val C8_SUPPLEMENTAL_LINK = "C8_SUPPLEMENTAL_LINK"
     const val C9_REDUNDANT_TECHNIQUE = "C9_REDUNDANT_TECHNIQUE"
     const val C10_IDENTICAL_WEEKS = "C10_IDENTICAL_WEEKS"
+    const val C11_VOLUME_OVER_MRV = "C11_VOLUME_OVER_MRV"
 
     /** Ámbito de los hallazgos que cuelgan de la receta entera. */
     const val RECIPE_SCOPE = "recipe"
@@ -72,10 +76,11 @@ object RecipeContractPolicy {
         C8_SUPPLEMENTAL_LINK,
         C9_REDUNDANT_TECHNIQUE,
         C10_IDENTICAL_WEEKS,
+        C11_VOLUME_OVER_MRV,
     )
 
     /** Reglas que el plan deja siempre como aviso (SOFT) aunque el resto pase a HARD. */
-    private val ADVISORY_RULES: Set<String> = setOf(C10_IDENTICAL_WEEKS)
+    private val ADVISORY_RULES: Set<String> = setOf(C10_IDENTICAL_WEEKS, C11_VOLUME_OVER_MRV)
 
     private const val MIN_SETS = 2
     private const val MAX_SETS = 8
@@ -85,7 +90,7 @@ object RecipeContractPolicy {
 
     /**
      * Hallazgos del contrato de [recipe], sin filtrar por exenciones. Con [severity] distinto de
-     * SOFT, todas las reglas salen con esa severidad salvo C10, que es siempre aviso.
+     * SOFT, todas las reglas salen con esa severidad salvo C10 y C11, que son siempre avisos.
      */
     fun evaluate(
         recipe: TrainingPlanRecipe,
@@ -102,6 +107,7 @@ object RecipeContractPolicy {
         findings += checkSupplementalLinks(recipe, metadata)
         findings += checkRedundantTechnique(recipe)
         findings += checkIdenticalWeeks(recipe)
+        findings += checkWeeklyVolume(recipe, metadata)
         return findings.map { it.copy(severity = severityOf(it.rule, severity)) }
     }
 
@@ -111,6 +117,59 @@ object RecipeContractPolicy {
 
     private fun severityOf(rule: String, requested: CompositionSeverity): CompositionSeverity =
         if (rule in ADVISORY_RULES) CompositionSeverity.SOFT else requested
+
+    /** Series equivalentes planificadas: primario 1, secundario 0,5, sin duplicar un grupo en el mismo slot. */
+    internal fun weeklyEquivalentSets(week: WeekRecipe, metadata: ExerciseCompositionMetadataProvider): Map<KpknMuscleGroup, Double> {
+        val totals = mutableMapOf<KpknMuscleGroup, Double>()
+        week.days.forEach { day -> day.slots.forEach slots@ { slot ->
+            val work = slot.sets.count { !it.isWarmup }.toDouble()
+            if (work == 0.0) return@slots
+            val meta = metadata.metadata(slot.lift.configurationId) ?: return@slots
+            val pattern = meta.movementPatternId.orEmpty()
+            val weights = mutableMapOf<KpknMuscleGroup, Double>()
+            meta.primaryMuscles.forEach { id ->
+                CatalogTraits.atomOf(id, pattern, meta.configurationId)?.let { weights[it] = 1.0 }
+            }
+            meta.secondaryMuscles.forEach { id ->
+                CatalogTraits.atomOf(id, pattern, meta.configurationId)?.let {
+                    weights[it] = maxOf(weights[it] ?: 0.0, 0.5)
+                }
+            }
+            weights.forEach { (group, weight) -> totals[group] = (totals[group] ?: 0.0) + work * weight }
+        } }
+        return totals
+    }
+
+    private fun checkWeeklyVolume(recipe: TrainingPlanRecipe, metadata: ExerciseCompositionMetadataProvider): List<CompositionFinding> =
+        recipe.weeks.filter { it.kind == WeekExecutionKind.TRAINING }.flatMap { week ->
+            weeklyEquivalentSets(week, metadata).mapNotNull { (group, total) ->
+                val reference = VolumeLandmarks.byGroup[group]?.mrv ?: return@mapNotNull null
+                if (total <= reference) return@mapNotNull null
+                val count = total.toString().replace('.', ',').removeSuffix(",0")
+                finding(C11_VOLUME_OVER_MRV, "${weekScope(week)}/${group.name.lowercase()}",
+                    "Semana ${week.weekNumber}: ${volumeGroupLabel(group)} suma $count series equivalentes planificadas, por encima de la referencia editorial de $reference. La receta se mantiene.")
+            }
+        }
+
+    internal fun volumeGroupLabel(group: KpknMuscleGroup): String = when (group) {
+        KpknMuscleGroup.CHEST -> "pectorales"
+        KpknMuscleGroup.BACK_LATS -> "dorsales"
+        KpknMuscleGroup.BACK_UPPER -> "espalda alta"
+        KpknMuscleGroup.QUADS -> "cuádriceps"
+        KpknMuscleGroup.HAMS -> "isquios"
+        KpknMuscleGroup.GLUTES -> "glúteos"
+        KpknMuscleGroup.ERECTORS -> "erectores"
+        KpknMuscleGroup.DELT_FRONT -> "deltoides anterior"
+        KpknMuscleGroup.DELT_LATERAL -> "deltoides lateral"
+        KpknMuscleGroup.DELT_REAR -> "deltoides posterior"
+        KpknMuscleGroup.BICEPS -> "bíceps"
+        KpknMuscleGroup.TRICEPS -> "tríceps"
+        KpknMuscleGroup.CALVES -> "pantorrillas"
+        KpknMuscleGroup.CORE -> "core"
+        KpknMuscleGroup.FOREARMS -> "antebrazos"
+        KpknMuscleGroup.NECK -> "cuello"
+        KpknMuscleGroup.ADDUCTORS -> "aductores"
+    }
 
     private fun finding(rule: String, scope: String, message: String): CompositionFinding =
         CompositionFinding(CompositionSeverity.SOFT, rule, scope, message)

@@ -49,6 +49,39 @@ class RecipeContractPolicyTest {
 
     private val metadata get() = CatalogCompositionTestSupport.metadata
 
+    private fun chestMetadata(secondary: List<String> = emptyList()) = ExerciseCompositionMetadataProvider { id ->
+        ExerciseCompositionMetadata(id, "Press", "horizontal_push", listOf("pectoralis"), secondary,
+            replacementGroup = null, laterality = "BILATERAL", performanceProfileId = null, articulationType = "MULTIARTICULAR")
+    }
+
+    @Test
+    fun c11_warns_above_the_reference_even_when_the_contract_is_hard() {
+        val recipe = singleDay(listOf(slotOf("press", SlotRole.T1_MAIN, CatalogIds.BP, sets(30))))
+        val finding = RecipeContractPolicy.evaluate(recipe, chestMetadata(), CompositionSeverity.HARD)
+            .single { it.rule == RecipeContractPolicy.C11_VOLUME_OVER_MRV }
+        assertEquals(CompositionSeverity.SOFT, finding.severity)
+        assertEquals("w1/chest", finding.scope)
+        assertTrue(finding.message.contains("referencia editorial"))
+        assertEquals(30, recipe.weeks.single().days.single().slots.single().sets.size)
+    }
+
+    @Test
+    fun c11_does_not_warn_for_ten_sets_or_for_a_deload_week() {
+        val low = singleDay(listOf(slotOf("press", SlotRole.T1_MAIN, CatalogIds.BP, sets(10))))
+        assertTrue(RecipeContractPolicy.evaluate(low, chestMetadata()).none { it.rule == RecipeContractPolicy.C11_VOLUME_OVER_MRV })
+        val deload = recipeOf(listOf(weekOf(listOf(dayOf(listOf(slotOf("press", SlotRole.T1_MAIN, CatalogIds.BP, sets(30))))), kind = WeekExecutionKind.DELOAD)))
+        assertTrue(RecipeContractPolicy.evaluate(deload, chestMetadata()).none { it.rule == RecipeContractPolicy.C11_VOLUME_OVER_MRV })
+    }
+
+    @Test
+    fun c11_ignores_warmups_and_keeps_the_largest_contribution_per_group() {
+        val week = weekOf(listOf(dayOf(listOf(slotOf("press", SlotRole.T1_MAIN, CatalogIds.BP,
+            sets(10) + List(30) { SetRecipe(reps = 5, isWarmup = true) })))))
+        val totals = RecipeContractPolicy.weeklyEquivalentSets(week, chestMetadata(listOf("pectoralis", "triceps")))
+        assertEquals(10.0, totals[com.example.kpkn.data.programs.KpknMuscleGroup.CHEST]!!, 0.0)
+        assertEquals(5.0, totals[com.example.kpkn.data.programs.KpknMuscleGroup.TRICEPS]!!, 0.0)
+    }
+
     // ─── Constructores mínimos ────────────────────────────────────────────────────
 
     private fun slotOf(
@@ -564,7 +597,7 @@ class RecipeContractPolicyTest {
     }
 
     @Test
-    fun c7_h5a_h9_w3_and_w4_use_effective_one_rm_at_the_heavy_boundary() {
+    fun c7_h9_and_w4_use_effective_one_rm_and_retired_checks_stay_absent() {
         val h5a = recipeOf(listOf(weekOf(listOf(dayOf(listOf(
             slotOf("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, sets(3, 3, 88.0), LiftSlot.SQUAT, rest = 240),
             slotOf("dl", SlotRole.T2_SUPPLEMENTAL, CatalogIds.DL, sets(3, 3, 88.0), LiftSlot.DEADLIFT, rest = 240),
@@ -581,7 +614,8 @@ class RecipeContractPolicyTest {
         listOf(h5a, h9, consecutive).forEach { below ->
             val heavy = below.copy(weeks = below.weeks.map { week -> week.copy(days = week.days.map { day -> day.copy(slots = day.slots.map { slot -> slot.copy(sets = slot.sets.map { it.copy(percent = 95.0) }) }) }) })
             assertIntensityEquivalent(heavy)
-            val expected = when (below) { h5a -> setOf("H5a"); h9 -> setOf("H9"); else -> setOf("W3", "W4") }
+            assertFalse("H5a y W3 fueron retiradas", SessionCompositionPolicy.evaluateRecipeRaw(heavy, metadata).any { it.rule in setOf("H5a", "W3") })
+            val expected = when (below) { h5a -> emptySet(); h9 -> setOf("H9"); else -> setOf("W4") }
             expected.forEach { rule -> assertTrue("$rule a 95 %TM (85,5 %1RM)", intensityFindings(heavy).any { it.rule == rule }) }
         }
     }
