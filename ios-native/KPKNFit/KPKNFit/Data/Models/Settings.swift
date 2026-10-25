@@ -130,4 +130,6 @@ public struct AlgorithmSettings: Codable {
     public var legVolumeMultiplier: Double = 1.0
     public var torsoVolumeMultiplier: Double = 1.0
     public var synergistFactor: Double = 0.25
+    /// nil preserves legacy absence (Android defaults to enabled); explicit false survives JSON transport.
+    public var weeklyCheckinEnabled: Bool? = nil
 }
