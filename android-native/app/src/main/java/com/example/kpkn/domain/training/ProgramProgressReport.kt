@@ -16,7 +16,7 @@ data class ProgramProgressReport(
     val decisions: List<DecisionLine>,
 )
 
-/** Progreso de la ejecución actual. Las semanas futuras no penalizan el cumplimiento. */
+/** Progreso de la ejecución actual e historial de decisiones del programa. Las semanas futuras no penalizan. */
 object ProgramProgressReportEngine {
     fun build(program: Program, logs: List<WorkoutLog>, catalog: List<ExerciseMuscleInfo>): ProgramProgressReport {
         val ordered = ProgramHierarchyIndex(program).orderedWeeks()
@@ -27,14 +27,21 @@ object ProgramProgressReportEngine {
         val current = currentIndex?.let { ordered.getOrNull(it) }
         val block = ordered.firstOrNull { it.blockId == run?.blockId }?.block ?: current?.block
         val programLogs = logs.filter { it.programId == program.id }
-        val currentLogs = programLogs.filter {
-            (run == null || it.programRunId == null || it.programRunId == run.runId) &&
-                (scope !is ProgramScope.RepeatingWeeks || it.cycleNumber == null || it.cycleNumber == run?.cycleNumber)
+        val cycle = run?.cycleNumber ?: 1
+        val currentLogs = programLogs.filter { log ->
+            if (!log.calendarBreakId.isNullOrBlank()) return@filter false
+            val fromInstance = (log.weekInstanceId ?: log.weekId)?.let(ProgramProgressEngine::cycleFromInstanceId)
+            if (log.cycleNumber != null && fromInstance != null && log.cycleNumber != fromInstance) return@filter false
+            val logCycle = log.cycleNumber ?: fromInstance
+            (run == null || log.programRunId == run.runId || (log.programRunId == null && cycle == 1)) &&
+                (logCycle == cycle || (logCycle == null && cycle == 1))
         }
         val weeks = ordered.map { location ->
             val required = location.week.sessions.filter { it.requirement == SessionRequirement.REQUIRED }.map { it.id }.toSet()
             ProgramWeekAdherence(location.week.id, location.week.name, required.size,
-                currentLogs.filter { it.weekId == location.week.id && it.sessionId in required }.map { it.sessionId }.distinct().size)
+                ProgramProgressEngine.logsForInstance(currentLogs, program.id,
+                    ProgramProgressEngine.instanceIdFor(cycle, location.week.id), cycle, run?.runId)
+                    .filter { it.sessionId in required }.map { it.sessionId }.distinct().size)
         }
         val due = currentIndex?.let { weeks.take(it + 1) }.orEmpty()
         val planned = due.sumOf { it.plannedSessions }
@@ -45,7 +52,7 @@ object ProgramProgressReportEngine {
             block?.goal in setOf(BlockGoal.PEAK, BlockGoal.REALIZATION, BlockGoal.TAPER) -> "Test o competición al cerrar el bloque"
             else -> null
         }
-        val trends = ProgramAnalyticsEngine.analyze(program, programLogs, catalog).progression
+        val trends = ProgramAnalyticsEngine.analyze(program, currentLogs, catalog).progression
             .filter { it.firstE1rm != null && it.lastE1rm != null }
             .sortedByDescending { abs(it.deltaE1rm ?: 0.0) }.take(3)
             .map { LiftTrend(it.exerciseName, it.firstE1rm!!, it.lastE1rm!!) }

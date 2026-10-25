@@ -46,6 +46,31 @@ class ProgramProgressReportTest {
         val logs = listOf(log(1, 1), log(1, 1), log(1, 2).copy(programId = "other"), log(2, 1).copy(sessionId = "optional"))
         assertEquals(25, ProgramProgressReportEngine.build(program(), logs, emptyList()).adherencePercent)
     }
+    @Test fun complex_programs_reusing_weeks_count_only_the_current_run_and_cycle() {
+        val p = program().copy(runState = program().runState!!.copy(cycleNumber = 2))
+        val current = log(1, 2).copy(programRunId = "run", weekId = null, weekInstanceId = "inst_c2_w1")
+        val logs = listOf(current, log(1, 1).copy(programRunId = "run", cycleNumber = 1),
+            log(2, 1), log(2, 2).copy(programRunId = "previous", cycleNumber = 2),
+            log(2, 1).copy(programRunId = "run", cycleNumber = 2, weekInstanceId = "inst_c1_w2"))
+        val report = ProgramProgressReportEngine.build(p, logs, emptyList())
+        assertEquals(25, report.adherencePercent)
+        assertEquals(1, report.weeks.first().completedSessions)
+        assertEquals(0, report.weeks[1].completedSessions)
+    }
+
+    @Test fun strength_trends_use_the_same_current_run_cycle_window_as_the_report() {
+        val p = program()
+        fun strength(id: String, day: Int, weight: Double, run: String = "run", cycle: Int = 1) =
+            log(1, 1).copy(id = id, date = "2026-10-${day.toString().padStart(2, '0')}T12:00:00Z", programRunId = run, cycleNumber = cycle,
+                completedExercises = listOf(CompletedExercise("e", "Press", sets = listOf(CompletedSet("$id-set", weight, 5, rir = 2)))))
+        val current = listOf(strength("a", 2, 100.0), strength("b", 3, 105.0))
+        val oracle = ProgramAnalyticsEngine.analyze(p, current, emptyList()).progression.single()
+        val report = ProgramProgressReportEngine.build(p, listOf(strength("old-run", 1, 200.0, run = "previous")) + current +
+            strength("other-cycle", 4, 300.0, cycle = 2), emptyList())
+        assertEquals(oracle.firstE1rm!!, report.lifts.single().firstE1rmKg, 0.0)
+        assertEquals(oracle.lastE1rm!!, report.lifts.single().lastE1rmKg, 0.0)
+        assertTrue(report.lifts.single().lastE1rmKg > report.lifts.single().firstE1rmKg)
+    }
     @Test fun only_current_reference_audits_are_presented_as_protocol_decisions() {
         val p = program()
         val audits = listOf(
