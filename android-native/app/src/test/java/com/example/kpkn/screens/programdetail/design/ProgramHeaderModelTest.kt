@@ -14,6 +14,16 @@ import org.junit.Test
 /** Lo que dice la cabecera de Program Detail: la meta, la acción principal, el progreso y el estado (P1). */
 class ProgramHeaderModelTest {
 
+    @Test fun repeating_sixth_cycle_offers_an_optional_calendar_deload() {
+        val p = Program("p", "Plan", runState = com.example.kpkn.data.models.ProgramRunState("r", cycleNumber = 6))
+        assertEquals("Ciclo 6: puedes planificar una semana de descarga con la mitad de las series y 4 repeticiones en reserva.", repeatingCycleDeloadNotice(p))
+        assertNull(repeatingCycleDeloadNotice(p.copy(runState = p.runState!!.copy(cycleNumber = 5))))
+        assertNull(repeatingCycleDeloadNotice(p.copy(runState = p.runState!!.copy(cycleNumber = 0))))
+        assertNull(repeatingCycleDeloadNotice(p.copy(sourceRecipe = com.example.kpkn.data.protocols.TrainingPlanRecipe("recipe", emptyList()))))
+        assertNull(repeatingCycleDeloadNotice(p.copy(sourceProtocolId = "author")))
+        assertNull(repeatingCycleDeloadNotice(p.copy(simpleProgramKind = com.example.kpkn.data.models.SimpleProgramKind.CALENDARIZED)))
+    }
+
     @Test
     fun metaSaysWeeksDaysAndModeInSpanish() {
         // La cifra va pegada a su unidad con un espacio sin corte: nunca queda sola al final de línea.

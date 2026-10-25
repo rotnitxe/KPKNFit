@@ -69,6 +69,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdenti
 import com.example.kpkn.screens.programdetail.design.ProgramAboutModule
 import com.example.kpkn.screens.programdetail.design.ProgramProgressModule
 import com.example.kpkn.screens.programdetail.design.ProgramDecisionsSheet
+import com.example.kpkn.screens.programdetail.design.repeatingCycleDeloadNotice
 import com.example.kpkn.screens.programdetail.design.WeeklyCheckinSheet
 import com.example.kpkn.screens.programdetail.design.ProgramDetailPlaceholder
 import com.example.kpkn.screens.programdetail.design.ProgramEditDraft
@@ -273,6 +274,7 @@ fun ProgramDetailScreen(
         primary = primaryAction,
         nextSession = nextSession,
         scopeLine = programScopeLine(p),
+        deloadNotice = repeatingCycleDeloadNotice(p),
     )
     val openEdit: () -> Unit = {
         editDraft = programEditDraftOf(p)

@@ -63,6 +63,7 @@ internal data class ProgramHeaderState(
     val nextSession: ProgramNextSession? = null,
     /** Línea de alcance del programa (ver [programScopeLine]); null si no se pinta. */
     val scopeLine: String? = null,
+    val deloadNotice: String? = null,
 )
 
 /** Las acciones de la cabecera. Cada una la ejecuta la pantalla. */
@@ -116,6 +117,10 @@ internal fun ProgramHeader(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+                }
+                state.deloadNotice?.let { notice ->
+                    Spacer(Modifier.height(4.dp))
+                    Text(notice, style = KpknType.caption, color = WizardColors.textMuted)
                 }
             }
         }

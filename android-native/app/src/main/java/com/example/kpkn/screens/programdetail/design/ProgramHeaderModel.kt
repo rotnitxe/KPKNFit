@@ -2,6 +2,8 @@ package com.example.kpkn.screens.programdetail.design
 
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
+import com.example.kpkn.data.models.SimpleProgramKind
+import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.ProgramScopes
 import com.example.kpkn.screens.programdetail.components.focusModeLabel
@@ -74,6 +76,16 @@ internal fun programModeLabel(mode: ProgramMode?): String? = mode?.let(::focusMo
 
 /** Línea de alcance del programa con el vocabulario único: «Una semana que se repite», «8 semanas» o «Por bloques · 3 bloques · 12 semanas». */
 internal fun programScopeLine(program: Program): String = ProgramScopes.label(ProgramScopes.of(program))
+
+/** Recordatorio por calendario para rutinas propias repetidas, sin inferir fatiga ni modificar su contenido. */
+internal fun repeatingCycleDeloadNotice(program: Program): String? {
+    if (program.sourceRecipe != null || program.sourceProtocolId != null || !program.isSimpleProgram ||
+        program.simpleProgramKind != SimpleProgramKind.CYCLIC) return null
+    val cycle = program.runState?.cycleNumber ?: return null
+    return if (cycle > 0 && cycle % 6 == 0)
+        "Ciclo $cycle: puedes planificar una semana de descarga con la mitad de las series y 4 repeticiones en reserva."
+    else null
+}
 
 /**
  * «12 semanas · 4 días por semana · Fuerza». Lo que no se sabe se omite (nada de «—» en la meta). Un programa de una sola semana que
