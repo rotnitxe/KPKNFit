@@ -1,8 +1,0 @@
-30096:
-java.io.IOException: no such process
-	at jdk.attach/sun.tools.attach.VirtualMachineImpl.openProcess(Native Method)
-	at jdk.attach/sun.tools.attach.VirtualMachineImpl.<init>(VirtualMachineImpl.java:51)
-	at jdk.attach/sun.tools.attach.AttachProviderImpl.attachVirtualMachine(AttachProviderImpl.java:59)
-	at jdk.attach/com.sun.tools.attach.VirtualMachine.attach(VirtualMachine.java:207)
-	at jdk.jcmd/sun.tools.jcmd.JCmd.executeCommandForPid(JCmd.java:113)
-	at jdk.jcmd/sun.tools.jcmd.JCmd.main(JCmd.java:97)
