@@ -13,6 +13,7 @@ import java.util.Locale
 
 enum class CompetitionHomePhase {
     UPCOMING,
+    MEET_DAY,
     REGISTER,
 }
 
@@ -64,7 +65,7 @@ object HomeCompetitionResolver {
             } else {
                 null
             },
-            phase = if (daysUntil > 0) CompetitionHomePhase.UPCOMING else CompetitionHomePhase.REGISTER,
+            phase = when { daysUntil > 0 -> CompetitionHomePhase.UPCOMING; daysUntil == 0L -> CompetitionHomePhase.MEET_DAY; else -> CompetitionHomePhase.REGISTER },
         )
     }
 

@@ -58,14 +58,14 @@ class HomeCompetitionResolverTest {
     }
 
     @Test
-    fun register_on_event_day() {
+    fun meet_day_on_event_day() {
         val state = HomeCompetitionResolver.resolve(
             program = program("2026-09-05"),
             records = listOf(planned("2026-09-05")),
             today = today,
         )
         requireNotNull(state)
-        assertEquals(CompetitionHomePhase.REGISTER, state.phase)
+        assertEquals(CompetitionHomePhase.MEET_DAY, state.phase)
         assertEquals(0L, state.daysUntil)
         assertEquals("Hoy", state.countdownLabel)
     }
