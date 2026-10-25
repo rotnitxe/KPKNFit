@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.displayName
+import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.data.splits.Difficulty
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTag
@@ -54,7 +55,6 @@ private val TEMPLATE_PERFORMANCE_PROFILE_BY_CONFIGURATION = mapOf(
     "concentration_curl__dumbbells" to "concentration_curl__dumbbells",
     "conventional_deadlift__bilateral__barbell" to "conventional_deadlift__barbell__peso_muerto",
     "conventional_deadlift__bilateral__hex_bar" to "conventional_deadlift__hex_bar__peso_muerto",
-    "conventional_row__cable" to "conventional_row__cable__remo_convencional",
     "conventional_row__machine" to "conventional_row__machine__remo_convencional",
     "copenhagen_plank__default" to "copenhagen_plank__bodyweight__plancha_copenhagen",
     "core_crunch_maquina__default" to "core_crunch_maquina__machine__crunch_abdominal_en_maquina",
@@ -875,7 +875,7 @@ private val SESSION_TEMPLATES_BASE: List<SessionTemplate> = listOf(
                         nSets("cba1e1", 3, 8, 8.0), restTime = 120),
                     ex("cba1-ex2", "pendlay_row__barbell",
                         nSets("cba1e2", 3, 8, 8.0), restTime = 120),
-                    ex("cba1-ex4", "conventional_row__cable",
+                    ex("cba1-ex4", CatalogIds.ROW_CABLE,
                         nSets("cba1e4", 4, 12, 7.5), restTime = 90),
                     ex("cba1-ex5", "lying_pullover__dumbbells",
                         nSets("cba1e5", 2, 12, 8.0), restTime = 90),
@@ -2133,7 +2133,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                         nSets("plae2", 2, 6, 8.5), restTime = 150),
                     ex("pla1-ex3", "biceps_curl_bayesian__dumbbells__supinated",
                         nSets("plae3", 2, 10, 8.5), restTime = 75),
-                    ex("pla1-ex4", "conventional_row__cable",
+                    ex("pla1-ex4", CatalogIds.ROW_CABLE,
                         nSets("plae4", 2, 10, 8.0), restTime = 90),
                     ex("pla1-ex5", "deltoides_face_pull__default",
                         nSets("plae5", 2, 15, 8.0), restTime = 75),
@@ -2675,7 +2675,7 @@ private val SESSION_TEMPLATES_EXPANDED: List<SessionTemplate> = listOf(
                         nSets("ubae2", 2, 8, 8.5), restTime = 120),
                     ex("uba1-ex3", "standing_biceps_curl__barbell",
                         nSets("ubae3", 2, 12, 8.5), restTime = 75),
-                    ex("uba1-ex4", "conventional_row__cable",
+                    ex("uba1-ex4", CatalogIds.ROW_CABLE,
                         nSets("ubae4", 2, 10, 8.0), restTime = 90),
                     ex("uba1-ex5", "lying_pullover__dumbbells",
                         nSets("ubae5", 2, 12, 8.5), restTime = 75),

@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.training.insights.*
@@ -40,7 +42,7 @@ internal fun TrainingFactChart(allFacts: List<TrainingFact>, nowMs: Long, weeks:
     val activeKey = metricKey?.takeIf { it in groups } ?: groups.keys.firstOrNull()
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         groups.forEach { (key, points) -> FilterChip(key == activeKey, { metricKey = key; selectedSource = null },
-            label = { Text("${factMetricLabel(points.first().metric)} (${factUnit(points.first().unit)})") }) }
+            label = { Text("${recordedSportLabel(points.first().sport)} · ${factMetricLabel(points.first().metric)} (${factUnit(points.first().unit)})") }) }
     }
     val points = groups[activeKey].orEmpty()
     if (points.isEmpty()) {
@@ -59,7 +61,7 @@ internal fun TrainingFactChart(allFacts: List<TrainingFact>, nowMs: Long, weeks:
             height-12f-((point.value-minValue) / (maxValue-minValue).takeIf { it > 0.0 }.let { it ?: 1.0 }).toFloat()*(height-24f))
     }
     Canvas(Modifier.fillMaxWidth().height(150.dp).semantics {
-        contentDescription = "Gráfico de ${factMetricLabel(points.first().metric)}, ${points.size} puntos. Todos disponibles como botones debajo."
+        contentDescription = "Gráfico de ${recordedSportLabel(points.first().sport)} · ${factMetricLabel(points.first().metric)}, ${points.size} puntos. Todos disponibles como botones debajo."
     }.pointerInput(points) {
         detectTapGestures { tap ->
             val offsets = coordinates(size.width.toFloat(), size.height.toFloat())
@@ -83,8 +85,13 @@ internal fun TrainingFactChart(allFacts: List<TrainingFact>, nowMs: Long, weeks:
     if (selected != null) {
         val comparison = TrainingInsightsEngine.compare(selected, allFacts, nowMs)
         AlertDialog(onDismissRequest = { selectedSource = null }, title = { Text(factMetricLabel(selected.metric)) }, text = {
-            Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())
+                    .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 Text("${factNumber(selected.value)} ${factUnit(selected.unit)} · ${factDate(selected.occurredAtMs)}")
+                Text("Disciplina: ${recordedSportLabel(selected.sport)}")
                 Text("Origen: ${factOrigin(selected.origin)}")
                 Text("Actividad: ${selected.activityId}\nFuente: ${selected.sourceId}")
                 Text("Método: ${selected.method ?: "no registrado"}\nProtocolo: ${selected.protocol ?: "no registrado"}")

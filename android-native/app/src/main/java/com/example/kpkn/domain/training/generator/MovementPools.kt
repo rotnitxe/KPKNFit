@@ -310,8 +310,7 @@ internal object MovementPools {
             e("chest_supported_row__dumbbells__medium", "bench", "bench_incline", fitsRole = ItemRole.SECONDARY),
         ),
         g(
-            e("conventional_row__cable", basic = true),
-            e("gironda_row__medium"),
+            e("gironda_row__medium", basic = true),
         ),
         g(
             e("conventional_row__smith_machine", basic = true),

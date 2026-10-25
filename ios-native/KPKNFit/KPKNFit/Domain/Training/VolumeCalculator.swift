@@ -104,38 +104,7 @@ public struct VolumeCalculator {
         return specificMuscle.prefix(1).uppercased() + specificMuscle.dropFirst()
     }
 
-    public static func calculateVolumeAdjustment(_ muscle: String, _ feedbackHistory: [PostSessionFeedback]) -> Double {
-        if feedbackHistory.isEmpty { return 1.0 }
-        let normalizedTarget = normalizeCanonicalMuscleGroup(muscle).lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        let muscleLogs = feedbackHistory.filter { log in
-            log.muscleFeedback.keys.contains { key in
-                normalizeCanonicalMuscleGroup(key).lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == normalizedTarget
-            }
-        }
-        if muscleLogs.isEmpty { return 1.0 }
-        let recent = Array(muscleLogs.sorted { $0.date > $1.date }.prefix(3))
-        var totalDoms = 0.0
-        var totalStr = 0.0
-        var count = 0
-        for log in recent {
-            if let entryKey = log.muscleFeedback.keys.first(where: { normalizeCanonicalMuscleGroup($0).lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == normalizedTarget }),
-               let entry = log.muscleFeedback[entryKey] {
-                totalDoms += Double(entry.doms)
-                totalStr += Double(entry.strengthCapacity)
-                count += 1
-            }
-        }
-        if count == 0 { return 1.0 }
-        let avgDoms = totalDoms / Double(count)
-        let avgStr = totalStr / Double(count)
-        if avgDoms >= 3.5 || avgStr <= 5.0 {
-            return 0.85
-        } else if avgDoms <= 1.5 && avgStr >= 8.0 {
-            return 1.10
-        } else {
-            return 1.0
-        }
-    }
+
 
     static func buildPerExerciseMuscleContributions(
         _ involvedMuscles: [InvolvedMuscle]

@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.example.kpkn.data.models.ArticularBattery
+import com.example.kpkn.data.models.JointRegion
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.PostExerciseFeedback
@@ -115,7 +115,7 @@ internal data class LinkedDiscomfort(val id: String, val label: String, val repo
 internal fun linkedDiscomfortsFor(
     feedbackExercises: List<Exercise>,
     feedbackByExerciseId: Map<String, PostExerciseFeedback>,
-    articulationsOf: (Exercise) -> List<ArticularBattery>,
+    articulationsOf: (Exercise) -> List<JointRegion>,
 ): List<LinkedDiscomfort> {
     val current = feedbackExercises.flatMap(articulationsOf).distinct()
     val currentIds = feedbackExercises.map { it.id }.toSet()

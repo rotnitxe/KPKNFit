@@ -91,7 +91,7 @@ object AuthoredExerciseBindings {
         )
         add(b(phul, "phul-upper-hypertrophy", "bp-inc", "Banca inclinada barra 3–4×8–12", CatalogIds.BP_INC, "Banca inclinada con barra."))
         add(b(phul, "phul-upper-hypertrophy", "fly", "Aperturas planas mancuernas 3–4×8–12", CatalogIds.FLY, "Aperturas en banco plano con mancuernas."))
-        add(b(phul, "phul-upper-hypertrophy", "row-cable", "Remo sentado polea 3–4×8–12", CatalogIds.ROW_CABLE, "Remo sentado en polea baja: la estación de polea es el aparato de la tabla."))
+        add(b(phul, "phul-upper-hypertrophy", "row-cable", "Remo sentado polea 3–4×8–12", CatalogIds.ROW_CABLE, "Remo sentado en polea: la estación de polea es el aparato de la tabla; la configuración canónica actual es el remo Gironda con apoyo de pecho y tirón horizontal (retiro de conventional_row__cable, 2026-10-12)."))
         add(
             b(phul, "phul-upper-hypertrophy", "row-db", "Remo unilateral mancuerna 3–4×8–12 por lado", CatalogIds.ROW_DB,
                 "La definición de remo con mancuernas no publica eje de lateralidad; el «por lado» de la fuente viaja en `isUnilateral` del slot.",
@@ -158,7 +158,7 @@ object AuthoredExerciseBindings {
             ),
         )
         add(b(phat, "phat-back-shoulder-hypertrophy", "rack-chin", "Rack chin 3×8–12", CatalogIds.RACK_CHIN, "Misma configuración exacta del día de fuerza; no se sustituye por dominada libre."))
-        add(b(phat, "phat-back-shoulder-hypertrophy", "row-cable", "Remo polea sentado 3×8–12", CatalogIds.ROW_CABLE, "Remo sentado en polea."))
+        add(b(phat, "phat-back-shoulder-hypertrophy", "row-cable", "Remo polea sentado 3×8–12", CatalogIds.ROW_CABLE, "Remo sentado en polea; la configuración canónica actual es el remo Gironda con apoyo de pecho y tirón horizontal (retiro de conventional_row__cable, 2026-10-12)."))
         add(
             b(phat, "phat-back-shoulder-hypertrophy", "row-cs", "Remo mancuernas pecho apoyado banco inclinado 2×12–15", CatalogIds.CSR,
                 "§10.3 elige la primera alternativa «remo mancuernas con pecho apoyado»; agarre medio de la definición.", variant = "pecho apoyado, agarre medio",

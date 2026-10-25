@@ -79,6 +79,18 @@ class SessionTemplateCatalogTest {
     }
 
     @Test
+    fun retiredCableRowIsAbsentFromTheRealCatalogAndPublishedTemplates() {
+        val retired = "conventional_row__cable"
+        assertFalse(catalogConfigurationIds.contains(retired))
+        assertEquals("gironda_row__medium", CatalogIds.ROW_CABLE)
+        val published = SESSION_TEMPLATES_SYSTEM.flatMap { template ->
+            template.session.exercises + template.session.parts.flatMap { it.exercises }
+        }
+        assertFalse(published.any { it.exerciseDbId == retired })
+        assertTrue(published.any { it.exerciseDbId == CatalogIds.ROW_CABLE })
+    }
+
+    @Test
     fun systemTemplatesUseOnlyExerciseDatabaseIds() {
         SESSION_TEMPLATES_SYSTEM.forEach { template ->
             val exercises = template.session.exercises + template.session.parts.flatMap { it.exercises }

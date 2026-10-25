@@ -15,7 +15,7 @@ public struct DiscomfortCatalogEntry: Codable, Identifiable {
     public let description: String
     public let section: DiscomfortSection
     public let relatedMuscles: [String]
-    public let relatedArticular: [ArticularBattery]
+    public let relatedArticular: [JointRegion]
 
     public init(
         id: String,
@@ -23,7 +23,7 @@ public struct DiscomfortCatalogEntry: Codable, Identifiable {
         description: String,
         section: DiscomfortSection,
         relatedMuscles: [String] = [],
-        relatedArticular: [ArticularBattery] = []
+        relatedArticular: [JointRegion] = []
     ) {
         self.id = id
         self.label = label

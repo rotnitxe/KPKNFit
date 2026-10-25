@@ -399,6 +399,22 @@ class EffectiveEquipmentResolverContractTest {
     }
 
     @Test
+    fun cable_station_presence_controls_the_current_seated_row_configuration() {
+        val row = "gironda_row__medium"
+        assertTrue(row in curatedConfigurationsOf(EquipmentKeys.CABLE_HIGH_LOW))
+        assertFalse("conventional_row__cable" in curatedConfigurationsOf(EquipmentKeys.CABLE_HIGH_LOW))
+        for (presence in listOf(ApparatusPresence.PRESENT, ApparatusPresence.ABSENT)) {
+            val availability = EquipmentAvailability(
+                categories = setOf(EquipmentCategory.CABLE),
+                apparatus = mapOf(EquipmentKeys.CABLE_HIGH_LOW to presence),
+            )
+            val result = TrainingOptions(availability = availability).resolveEffectiveEquipment(emptySet())
+            assertEquals(presence == ApparatusPresence.PRESENT, machineConfigToken(row) in result.tokens)
+            assertEquals(presence == ApparatusPresence.ABSENT, configurationDeniedByAbsentKey(row, availability))
+        }
+    }
+
+    @Test
     fun the_close_grip_pulldown_belongs_to_the_curated_high_low_cable_station() {
         val closeGrip = "close_grip_lat_pulldown__cable"
         assertTrue(

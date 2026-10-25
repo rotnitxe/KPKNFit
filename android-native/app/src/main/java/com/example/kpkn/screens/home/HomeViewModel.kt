@@ -172,7 +172,6 @@ import java.util.Calendar
         }
     }
 
-    val overtrainedMuscles: StateFlow<List<String>> = MutableStateFlow<List<String>>(emptyList()).asStateFlow()
 
 
     val userName: StateFlow<String> = repository.settings
@@ -362,7 +361,6 @@ import java.util.Calendar
         val homeCompetition: HomeCompetitionState?,
         val dailyCalorieGoal: Int?,
         val todayNutritionTotals: HomeNutritionSnapshot,
-        val overtrainedMuscles: List<String>,
         val programs: List<Program>,
     )
 
@@ -382,17 +380,14 @@ import java.util.Calendar
             homeCompetition,
             dailyCalorieGoal,
             todayNutritionTotals,
-            combine(overtrainedMuscles, programs) { overtrained, programList ->
-                overtrained to programList
-            },
-        ) { rest, countdown, calGoal, nutrition, overtrainedAndPrograms ->
+            programs,
+        ) { rest, countdown, calGoal, nutrition, programList ->
             HomeUiExtras(
                 rest,
                 countdown,
                 calGoal,
                 nutrition,
-                overtrainedAndPrograms.first,
-                overtrainedAndPrograms.second,
+                programList,
             )
         },
     ) { core, extras ->
@@ -407,7 +402,6 @@ import java.util.Calendar
             homeCompetition = extras.homeCompetition,
             dailyCalorieGoal = extras.dailyCalorieGoal,
             todayNutritionTotals = extras.todayNutritionTotals,
-            overtrainedMuscles = extras.overtrainedMuscles,
             programs = extras.programs,
         )
     }
@@ -532,7 +526,6 @@ data class HomeUiState(
     /** null = sin objetivos (ausencia explícita); nunca un default de 2500. */
     val dailyCalorieGoal: Int? = null,
     val todayNutritionTotals: HomeNutritionSnapshot = HomeNutritionSnapshot(),
-    val overtrainedMuscles: List<String> = emptyList(),
     val programs: List<Program> = emptyList(),
 )
 

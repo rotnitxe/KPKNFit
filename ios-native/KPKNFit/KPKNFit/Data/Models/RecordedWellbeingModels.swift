@@ -22,7 +22,7 @@ public enum IntensityLevel: String, Codable {
 
 
 
-public enum ArticularBattery: String, Codable {
+public enum JointRegion: String, Codable {
     case SHOULDER, ELBOW, KNEE, HIP, ANKLE, CERVICAL, LUMBAR
 }
 

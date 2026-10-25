@@ -166,29 +166,11 @@ class ProgramDetailViewModel(
 
     // ─── Raw Data from Repository ─────────────────────────────────────────
 
-    val program: StateFlow<Program?> = combine(
-        repository.programs.map { programs -> programs.find { it.id == programId } },
-        feedbacks
-    ) { p, fbs ->
-        if (p == null) return@combine null
-        // D3: los programas históricos pueden traer espejo suelto+grupo; se
-        // normaliza por-id en lectura para portada/estructura/editor previo.
-        val normalized = p.normalizedSessionStructures()
-        if (fbs.isEmpty()) return@combine normalized
-
-        val scaledRecommendations = normalized.volumeRecommendations.map { rec ->
-            val adj = VolumeCalculator.calculateVolumeAdjustment(rec.muscleGroup, fbs)
-            if (adj == 1.0) rec
-            else rec.copy(
-                minEffectiveVolume = (rec.minEffectiveVolume * adj).roundToInt(),
-                maxAdaptiveVolume = (rec.maxAdaptiveVolume * adj).roundToInt(),
-                maxRecoverableVolume = (rec.maxRecoverableVolume * adj).roundToInt()
-            )
-        }
-        normalized.copy(volumeRecommendations = scaledRecommendations)
-    }
+    // Original feedback remains available as history; it never rescales authored targets.
+    val program: StateFlow<Program?> = repository.programs
+        .map { programs -> programs.find { it.id == programId }?.normalizedSessionStructures() }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, repository.getProgramById(programId))
+        .stateIn(viewModelScope, SharingStarted.Lazily, repository.getProgramById(programId)?.normalizedSessionStructures())
 
     val activeProgramState: StateFlow<ActiveProgramState?> = repository.activeProgramState
 
@@ -283,8 +265,8 @@ class ProgramDetailViewModel(
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                // Sin estos comentarios el volumen no se ajusta por recuperación local; no es
-                // motivo para interrumpir la pantalla, pero el fallo queda registrado.
+                // Los comentarios son registros originales opcionales; un fallo al leerlos
+                // no altera los objetivos del programa ni impide abrirlo.
                 Log.w(LOG_TAG, "No se pudieron cargar los comentarios posteriores a la sesión.", error)
             }
         }

@@ -1,3 +1,5 @@
+> Estado vigente: [Android cerrado en el checkout aislado Room 34](ANDROID_CLOSURE_20261024.md), 481 pruebas / 44 clases y QA físico corregido. iOS pendiente. El contenido siguiente es el checkpoint cloud histórico, con sus propios hashes y recuentos; no se suma a la tanda final.
+
 # Validación privada: entrenamiento y respuesta
 
 Base pública verificada: `edc237f66d8474c3a9922296b61940e7030b7f8a`.

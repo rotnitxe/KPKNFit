@@ -21,6 +21,9 @@ internal val RETIRED_CONFIGURATION_REPLACEMENTS: Map<String, String> = mapOf(
     "romanian_sumo_deadlift__unilateral__smith_machine" to "romanian_deadlift__unilateral__smith_machine",
     "romanian_sumo_deadlift__unilateral__dumbbells" to "romanian_deadlift__unilateral__dumbbells",
     "romanian_sumo_deadlift__unilateral__hex_bar" to "romanian_deadlift__unilateral__hex_bar",
+    // 2026-10-12: el remo de pie inclinado en polea se retira; las selecciones
+    // guardadas pasan al remo sentado con agarre medio, manteniendo la polea.
+    "conventional_row__cable" to "gironda_row__medium",
 )
 
 /** Same-implement ordinary lunges for the two retired walking setups. */

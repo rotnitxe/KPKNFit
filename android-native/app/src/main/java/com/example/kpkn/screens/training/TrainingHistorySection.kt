@@ -32,7 +32,7 @@ fun TrainingHistorySection(logs: List<WorkoutLog>, nowMs: Long, modifier: Modifi
         Text("Entrenamiento y respuesta", style = MaterialTheme.typography.titleLarge)
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf(1, 4, 12).forEach { period ->
-                FilterChip(selected = period == weeks, onClick = { weeks = period }, label = { Text("$period semanas") })
+                FilterChip(selected = period == weeks, onClick = { weeks = period }, label = { Text(if (period == 1) "1 semana" else "$period semanas") })
             }
         }
         TrainingFactChart(facts, nowMs, weeks)

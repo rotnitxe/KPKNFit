@@ -1,6 +1,6 @@
 package com.example.kpkn.screens.workout
 
-import com.example.kpkn.data.models.ArticularBattery
+import com.example.kpkn.data.models.JointRegion
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.PostExerciseFeedback
 import org.junit.Assert.assertEquals
@@ -228,7 +228,7 @@ class PostExerciseFeedbackDraftTest {
         val linked = linkedDiscomfortsFor(
             feedbackExercises = listOf(bench),
             feedbackByExerciseId = before,
-            articulationsOf = { listOf(ArticularBattery.ELBOW, ArticularBattery.SHOULDER) },
+            articulationsOf = { listOf(JointRegion.ELBOW, JointRegion.SHOULDER) },
         )
         assertEquals(listOf("elbow_medial"), linked.map { it.id })
         assertEquals("Curl", linked.single().reportedIn)
@@ -236,7 +236,7 @@ class PostExerciseFeedbackDraftTest {
         val ownOnly = linkedDiscomfortsFor(
             feedbackExercises = listOf(squat),
             feedbackByExerciseId = before,
-            articulationsOf = { listOf(ArticularBattery.LUMBAR) },
+            articulationsOf = { listOf(JointRegion.LUMBAR) },
         )
         assertTrue("la molestia del propio ejercicio no se pregunta", ownOnly.isEmpty())
     }

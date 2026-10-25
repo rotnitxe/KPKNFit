@@ -1,0 +1,92 @@
+{
+  "status": "ANDROID_CLOSED_IOS_PENDING",
+  "branch": "codex/post-rings-android-close",
+  "scope": "Private isolated POST RINGS Room34; concurrent main-tree MFP Room35 remains outside this validation",
+  "android": {
+    "classes": 44,
+    "expectedClasses": 44,
+    "tests": 481,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "missing": [],
+    "stale": [],
+    "buildAndTestsExitCode": 0,
+    "buildDuration": "32m 29s",
+    "buildLog": "final-build.log"
+  },
+  "apk": {
+    "bytes": 484377056,
+    "sha256": "ba2bfbc95b66cd084c68c191e51861b182ff7a74fccb1e213e5ee5ed095eda85",
+    "package": "com.example.kpkn.dbg",
+    "versionCode": 52,
+    "label": "KPKN Dev",
+    "certificateSha256": "f14259a4a5dd75ffca3732b5930cd7e30fa7f57d740e624e07cda6db87fe6fe4",
+    "roomVersion": 34,
+    "roomIdentityHash": "5af27d74f402ec169ea8037559264738",
+    "dexFiles": 23,
+    "retiredIdentifierHits": {
+      "Lcom/example/kpkn/domain/auge/": [],
+      "Lcom/example/kpkn/screens/auge/": [],
+      "Lcom/example/kpkn/data/repository/AugeRepository;": [],
+      "calculateVolumeAdjustment": [],
+      "ArticularBattery": []
+    },
+    "trainingInsightsEnginePresent": true,
+    "typedCalibrationAssignmentPresent": true,
+    "limit": "Bounded static identifiers and source schema; device execution is verified separately."
+  },
+  "aprePhysical": {
+    "accepted": true,
+    "fontScale": 1.3,
+    "s3Load": 150.0,
+    "s3Reps": 12,
+    "confirmedS4": 155.0,
+    "storedWeight": 155.0,
+    "originalLoad": 155.0,
+    "payloadLoad": 155.0,
+    "storedReps": 10,
+    "allThreeEarlierSetsUnchanged": true,
+    "onlyAppliedSetId": "qa-apre-s4",
+    "closedLogCountAfterColdRestart": 1,
+    "ongoingCountAfterClose": 0,
+    "closedLogRetainsAllFourLoads": true,
+    "notesAndDisciplinePreserved": true
+  },
+  "preservation": {
+    "all47TablesMatchLatestPreservedSnapshot": true,
+    "all12MediaFilesMatchEarlierHashes": true,
+    "systemSettingsRestoredExactly": true,
+    "voicePermissionsRestoredExactly": true,
+    "talkBackOff": true,
+    "originalIntentionalCancellationKept": true,
+    "earlierSnapshotRetainedSeparately": true,
+    "twoLatestNutritionPreferencesRetained": true
+  },
+  "wizardLegacyStages": 18,
+  "physicalSportFamilies": 7,
+  "previousAccessibilityEvidence": "Same five source hashes as physically confirmed permission/TalkBack checkpoint; not a new TalkBack run on every later APK",
+  "otherResults": {
+    "backend": {
+      "tests": 19,
+      "subtests": 32,
+      "failures": 0,
+      "exitCode": 0,
+      "warning": "Starlette TestClient httpx deprecation"
+    },
+    "catalogScripts": {
+      "tests": 218,
+      "failures": 0,
+      "errors": 0,
+      "exitCode": 0,
+      "seconds": 98.783
+    },
+    "retirementGate": {
+      "activeViolations": 0,
+      "controlsPassed": true,
+      "exitCode": 0
+    }
+  },
+  "ios": "Explicitly deferred; no macOS build/XCTest/runtime approval",
+  "push": false
+}

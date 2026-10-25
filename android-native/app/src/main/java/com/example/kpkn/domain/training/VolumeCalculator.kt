@@ -440,50 +440,7 @@ object VolumeCalculator {
         return volumeMap
     }
 
-    fun calculateVolumeAdjustment(
-        muscle: String,
-        feedbackHistory: List<PostSessionFeedback>,
-    ): Double {
-        if (feedbackHistory.isEmpty()) return 1.0
 
-        val normalizedTarget = normalizeCanonicalMuscleGroup(muscle).lowercase().trim()
-
-        val muscleLogs = feedbackHistory.filter { log ->
-            log.muscleFeedback.keys.any { key ->
-                normalizeCanonicalMuscleGroup(key).lowercase().trim() == normalizedTarget
-            }
-        }
-        if (muscleLogs.isEmpty()) return 1.0
-
-        val recent = muscleLogs
-            .sortedByDescending { it.date }
-            .take(3)
-
-        var totalDoms = 0.0
-        var totalStr = 0.0
-        var count = 0
-
-        for (log in recent) {
-            val entryKey = log.muscleFeedback.keys.find { key ->
-                normalizeCanonicalMuscleGroup(key).lowercase().trim() == normalizedTarget
-            } ?: continue
-            val entry = log.muscleFeedback[entryKey] ?: continue
-            totalDoms += entry.doms
-            totalStr += entry.strengthCapacity
-            count++
-        }
-
-        if (count == 0) return 1.0
-
-        val avgDoms = totalDoms / count
-        val avgStr = totalStr / count
-
-        return when {
-            avgDoms >= 3.5 || avgStr <= 5.0 -> 0.85 // Deuda de recuperación
-            avgDoms <= 1.5 && avgStr >= 8.0 -> 1.10 // Subentrenamiento
-            else -> 1.0 // Óptimo
-        }
-    }
 
     fun calculateCompletedWeeklyMuscleVolume(
         logs: List<WorkoutLog>,

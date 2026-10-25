@@ -2,8 +2,8 @@
 
 El mandato del 24-oct-2026 sustituye el desarrollo anterior Rings v4. El plan
 íntegro aprobado está en [PLAN_COMPLETO.md](cloud-transfer/PLAN_COMPLETO.md).
-La base pública es `edc237f66d8474c3a9922296b61940e7030b7f8a`; todo el trabajo
-posterior se conserva en la rama privada `codex/post-rings-training-evidence`.
+La base pública es `edc237f66d8474c3a9922296b61940e7030b7f8a`; el checkpoint
+cloud se conserva en la rama privada `codex/post-rings-training-evidence`; el cierre local está en `codex/post-rings-android-close`.
 
 El producto usa historial existente y observaciones originales neutrales.
 No interpreta ausencias como descanso, ni calcula recuperación o riesgo. Home,
@@ -11,6 +11,7 @@ sesión e historial muestran hechos y contexto; las reglas de programas nativos
 necesitan confirmación antes de aplicar propuestas. Una disciplina sin métricas
 especializadas conserva un registro descriptivo, sin fabricar sensores.
 
+- [Cierre Android final](ANDROID_CLOSURE_20261024.md): QA, corrección APRE y preservación; iOS pendiente.
 - [Validación y gates](VALIDATION_STATUS.md): resultados efectivos y límites.
 - [Retiro del catálogo](CATALOG_RETIREMENT.md): transformación reproducible.
 - [Auditoría de pruebas retiradas/portadas](RETIRED_TESTS.md).

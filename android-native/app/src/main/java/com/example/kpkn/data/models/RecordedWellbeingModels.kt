@@ -52,7 +52,7 @@ data class MuscleFeedbackEntry(
     val notes: String = "",
 )
 
-enum class ArticularBattery { SHOULDER, ELBOW, KNEE, HIP, ANKLE, CERVICAL, LUMBAR }
+enum class JointRegion { SHOULDER, ELBOW, KNEE, HIP, ANKLE, CERVICAL, LUMBAR }
 enum class MoodState { HAPPY, NEUTRAL, SAD, ANXIOUS, ENERGETIC }
 enum class IntensityLevel { LOW, MEDIUM, HIGH }
 

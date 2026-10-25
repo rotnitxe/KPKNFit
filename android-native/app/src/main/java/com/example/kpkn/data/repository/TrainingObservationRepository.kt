@@ -8,7 +8,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.*
 
 class TrainingObservationRepository(context: Context) {
-    private val dao = KpknDatabase.getInstance(context.applicationContext).trainingObservationDao()
+    private val appContext = context.applicationContext
+    // Snapshot restore/reconnect can replace Room while this repository remains alive.
+    private val dao get() = KpknDatabase.getInstance(appContext).trainingObservationDao()
     suspend fun recordContext(sourceId: String, sessionId: String, capturedAtMs: Long,
         discomfortIds: List<String>, note: String?) = withContext(Dispatchers.IO) {
         if (discomfortIds.isEmpty() && note.isNullOrBlank()) return@withContext

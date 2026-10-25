@@ -90,7 +90,12 @@ object CatalogIds {
     const val GLUTE_BRIDGE_BODYWEIGHT = "glutes_puente_gluteos__bilateral__bodyweight"
     /** Configuraciones exactas de las tablas §10.2/§10.3 sin constante previa. */
     const val LUNGE_W_BARBELL = "walking_lunge__barbell"
-    const val ROW_CABLE = "conventional_row__cable"
+    /**
+     * Remo sentado en polea. `conventional_row__cable` se retiró a petición del usuario
+     * (2026-10-12); el remap canónico documentado del catálogo resuelve esa configuración
+     * a `gironda_row__medium` (remo sentado en polea, agarre medio, tirón horizontal).
+     */
+    const val ROW_CABLE = "gironda_row__medium"
     const val FLY_INC_CABLE = "incline_chest_fly__cable"
     const val CURL_EZ = "standing_biceps_curl__ez_bar"
     const val CURL_SEATED_DB = "biceps_curl_sentado_banco_plano__dumbbells"

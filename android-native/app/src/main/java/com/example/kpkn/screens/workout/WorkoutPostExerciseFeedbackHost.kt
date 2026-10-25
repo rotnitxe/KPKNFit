@@ -34,7 +34,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
-import com.example.kpkn.data.models.ArticularBattery
+import com.example.kpkn.data.models.JointRegion
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.discomfortKnowledge
@@ -132,8 +132,8 @@ internal fun feedbackSave(
 }
 
 /** Las articulaciones que carga un ejercicio (las de sus músculos efectivos): sirven para relacionar molestias de otros ejercicios. */
-internal fun feedbackArticulationsOf(exercise: Exercise): List<ArticularBattery> {
-    return ArticularBattery.entries.toList()
+internal fun feedbackArticulationsOf(exercise: Exercise): List<JointRegion> {
+    return JointRegion.entries.toList()
 }
 
 /** El motor de molestias para un feedback: los chips y el aviso, y la explicación de una ficha. */

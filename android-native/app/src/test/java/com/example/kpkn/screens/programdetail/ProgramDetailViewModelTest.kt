@@ -39,6 +39,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -353,6 +355,49 @@ class ProgramDetailViewModelTest {
     }
 
     // ─── Tab Management ───────────────────────────────────────────────────
+
+    @Test
+    fun feedback_never_rescales_authored_volume_references() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val id = nextId()
+        val references = listOf(VolumeRecommendation("Pectorales", 8, 12, 18, 3))
+        repository.addProgram(makeProgram(id).copy(volumeRecommendations = references))
+        val vm = vmFor(id)
+        val collector = launch(testDispatcher) { vm.program.collect {} }
+        try {
+            for ((caseIndex, values) in listOf(1 to 9, 5 to 3).withIndex()) {
+                val feedbacks = (1..3).map { day ->
+                    PostSessionFeedback(
+                        logId = "$id-feedback-$caseIndex-$day",
+                        date = "2026-10-${(caseIndex * 3 + day).toString().padStart(2, '0')}",
+                        muscleFeedback = mapOf("Pectorales" to MuscleFeedbackEntry(
+                            doms = values.first,
+                            strengthCapacity = values.second,
+                            notes = "Declaración original: no es una prescripción",
+                        )),
+                    )
+                }
+                feedbacks.forEach { feedback ->
+                    KpknDatabase.getInstance(context).trainingObservationDao().preserve(
+                        com.example.kpkn.data.db.TrainingObservationEntity(
+                            "feedback:${feedback.logId}", "feedback", feedback.date,
+                            Json.encodeToString(feedback), "explicit_self_report;original_scale",
+                        ),
+                    )
+                }
+                vm.loadFeedbacks(context)
+                withTimeout(10_000) {
+                    vm.feedbacks.first { rows -> feedbacks.all { original -> rows.any { it.logId == original.logId } } }
+                }
+                testDispatcher.scheduler.advanceUntilIdle()
+                assertEquals(references, vm.program.value?.volumeRecommendations)
+                assertEquals(references, repository.getProgramById(id)?.volumeRecommendations)
+                assertTrue(vm.feedbacks.value.containsAll(feedbacks))
+            }
+        } finally {
+            collector.cancel()
+        }
+    }
 
     @Test
     fun initial_state_is_semana_subtab() {

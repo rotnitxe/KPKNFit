@@ -376,7 +376,7 @@ private val CABLE_HIGH_LOW_CONFIGURATIONS = setOf(
     "lat_pulldown__bilateral__cable",
     "lat_pulldown__unilateral__cable",
     "close_grip_lat_pulldown__cable",
-    "conventional_row__cable",
+    "gironda_row__medium",
     "triceps_pushdown__bilateral__cable",
     "triceps_pushdown__unilateral__cable",
     "overhead_triceps__cable",
