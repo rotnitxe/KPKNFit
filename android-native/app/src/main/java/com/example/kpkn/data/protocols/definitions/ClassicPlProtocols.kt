@@ -36,10 +36,8 @@ import com.example.kpkn.data.protocols.weekRecipe
 
 object ClassicPlProtocols {
     val korte = run {
-        // B.S6: la exención W3 (justificación de 18 caracteres) estaba muerta —los días con el T1 pesado de la fase II son lunes,
-        // miércoles y viernes, nunca seguidos— y se retira; la H5b sigue viva: SQ 8×5 + DL 8×5 en la fase I.
+        // Las exenciones de predictores retirados no pertenecen al contrato actual. La receta SBD permanece intacta.
         val exemptions = listOf(
-            RecipeCompositionExemption("H5b", "*", "Korte SQ 8×5 + DL 8×5 por diseño"),
             // B.S6 parte 2b (C5): son 8 semanas que no se repiten y no traen descarga ni taper.
             RecipeCompositionExemption(
                 "C5_DELOAD_REQUIRED", "recipe",
@@ -89,7 +87,7 @@ object ClassicPlProtocols {
             blocks = listOf(ProtocolBlock("Fase I", 4, "Acumulación", 58, 64, 1.4), ProtocolBlock("Fase II", 4, "Intensificación", 60, 95, 0.7)),
             defaultSplit = "korte_3x3", publicationStatus = ProtocolPublicationStatus.VERIFIED,
             source = attributed("Korte 3x3", "https://www.powerliftingtowin.com/korte-3x3/", "Stephan Korte"),
-            recipe = TrainingPlanRecipe("korte-3x3", weeks, 1.0, sbdSlots(), ProgressionRule.None, exemptions, claimedDaysPerWeek = 3, claimedLevel = "avanzado"),
+            recipe = TrainingPlanRecipe("korte-3x3", weeks, 1.0, sbdSlots(), ProgressionRule.None, exemptions, claimedDaysPerWeek = 3, claimedLevel = "avanzado", contentVersion = 2),
             fidelitySpec = ProtocolFidelitySpec(8, 3, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("fase1" to listOf(58.0))),
             exemptions = exemptions,
         )

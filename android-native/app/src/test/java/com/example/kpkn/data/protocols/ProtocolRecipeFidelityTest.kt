@@ -1387,7 +1387,7 @@ class ProtocolRecipeFidelityTest {
         val bumped = listOf(
             "madcow-5x5", "texas-method-3d", "texas-method-4d", "kpkn-native-sbd-4", "smolov", "smolov-jr",
             "kpkn-ppl-6", "kpkn-sbs-rtf", "candito-6", "gzcl-uhf-9",
-            "tsa-9", "gzcl-jt-2", "westside-conjugate", "sheiko-29-32",
+            "tsa-9", "gzcl-jt-2", "westside-conjugate", "sheiko-29-32", "korte-3x3",
         )
         bumped.forEach { id -> assertEquals("$id: contentVersion", 2, recipeOf(id).contentVersion) }
         listOf(
@@ -1395,7 +1395,7 @@ class ProtocolRecipeFidelityTest {
         ).forEach { id -> assertEquals("$id: contentVersion", 3, recipeOf(id).contentVersion) }
         assertEquals("cube-method: rotación y AMRAP de registro", 4, recipeOf("cube-method").contentVersion)
         assertEquals("gzcl-rippler: AMRAP de registro", 2, recipeOf("gzcl-rippler").contentVersion)
-        listOf("coan-phillipi-dl", "korte-3x3", "phul-verified", "phat-verified", "apre-mann").forEach { id ->
+        listOf("coan-phillipi-dl", "phul-verified", "phat-verified", "apre-mann").forEach { id ->
             assertEquals("$id: sin cambios de contenido", 1, recipeOf(id).contentVersion)
         }
         PROGRAM_TEMPLATES.mapNotNull { it.recipe }.forEach {

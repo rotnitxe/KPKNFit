@@ -36,7 +36,7 @@ class ProtocolExemptionMatrixTest {
         "apre-mann" to setOf("C5_DELOAD_REQUIRED", "C10_IDENTICAL_WEEKS"),
         "cube-method" to setOf("C5_DELOAD_REQUIRED", "W2"),
         "coan-phillipi-dl" to setOf("H2", "C5_DELOAD_REQUIRED"),
-        "korte-3x3" to setOf("H5b", "C5_DELOAD_REQUIRED"),
+        "korte-3x3" to setOf("C5_DELOAD_REQUIRED"),
         "phat-verified" to setOf("H3", "C1_SET_RANGE"),
     )
 

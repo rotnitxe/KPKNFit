@@ -115,7 +115,7 @@ class ExemptionScopeMigrationTest {
         "smolov" to smolovLegacy,
         "smolov-jr" to listOf("C1_SET_RANGE" to "S4/sq"),
         "coan-phillipi-dl" to listOf("H2" to "Peso muerto", "C5_DELOAD_REQUIRED" to "recipe"),
-        "korte-3x3" to listOf("H5b" to "*", "C5_DELOAD_REQUIRED" to "recipe"),
+        "korte-3x3" to listOf("C5_DELOAD_REQUIRED" to "recipe"),
         "phat-verified" to listOf("H3" to "*", "C1_SET_RANGE" to "Power Lower/ext"),
         // B.S6 parte 2b: Texas de 3 días (peso muerto de una serie que cuelga de la sentadilla), Texas de 4 días (los dos volúmenes que cuelgan
         // del top de otro patrón), Westside (los tirones rápidos), Juggernaut (la ola de 3s, `==` sobre el ámbito de bloque), Sheiko (series de
