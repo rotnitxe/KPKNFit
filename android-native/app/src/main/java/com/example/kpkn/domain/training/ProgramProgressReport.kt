@@ -53,9 +53,13 @@ object ProgramProgressReportEngine {
             addAll(program.programDecisions.map { DecisionLine(it.atMs, it.source, it.title, it.detail) })
             addAll(program.effectiveWeekRecipes.flatMap { it.appliedProposals }.distinctBy { it.proposalId }
                 .filterNot { it.kind in setOf("WEEKLY_CHECKIN", "BLOCK_REVIEW") }
+                .filter { it.kind in setOf("ADJUST_TM", "ADJUST_XRM") }
                 .map { DecisionLine(it.acceptedAtMs, "AUTOREGULATION:${it.kind}", "Propuesta aplicada", it.summary) })
-            addAll(run?.autoregulationAudit.orEmpty().map {
-                DecisionLine(it.atMs, "PROTOCOL", "Decisión del protocolo: ${it.kinds.joinToString(", ")}", it.resolutionReason)
+            val referenceKinds = setOf(AutoregulationProposalKind.ADJUST_TM, AutoregulationProposalKind.ADJUST_XRM)
+            addAll(run?.autoregulationAudit.orEmpty().filter { entry ->
+                entry.kinds.isNotEmpty() && entry.kinds.all { it in referenceKinds }
+            }.map {
+                DecisionLine(it.atMs, "PROTOCOL", "Decisión de referencias de carga", it.resolutionReason)
             })
             addAll(program.nativeProgressionAudit.filter { it.status == NativeProgressionResolutionStatus.APPLIED }
                 .map { DecisionLine(it.resolvedAtMs, "NATIVE_PROGRESSION", "Progresión aplicada", it.reason) })

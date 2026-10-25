@@ -46,6 +46,25 @@ class ProgramProgressReportTest {
         val logs = listOf(log(1, 1), log(1, 1), log(1, 2).copy(programId = "other"), log(2, 1).copy(sessionId = "optional"))
         assertEquals(25, ProgramProgressReportEngine.build(program(), logs, emptyList()).adherencePercent)
     }
+    @Test fun only_current_reference_audits_are_presented_as_protocol_decisions() {
+        val p = program()
+        val audits = listOf(
+            AutoregulationAuditEntry(atMs = 10, mode = AutoregulationMode.PROPOSE,
+                kinds = listOf(AutoregulationProposalKind.ADJUST_TM), resolutionReason = "Referencia confirmada"),
+            AutoregulationAuditEntry(atMs = 20, mode = AutoregulationMode.AUTO,
+                kinds = listOf(AutoregulationProposalKind.SCALE_WEEK_VOLUME), resolutionReason = "Dato derivado antiguo"),
+        )
+        val withHistory = p.copy(
+            runState = p.runState!!.copy(autoregulationAudit = audits),
+            effectiveWeekRecipes = listOf(EffectiveWeekRecipe(1, appliedProposals = listOf(
+                AppliedRecipeProposal("legacy", AutoregulationProposalKind.SCALE_WEEK_VOLUME.name, "Dato derivado antiguo", 30),
+            ))),
+        )
+        val report = ProgramProgressReportEngine.build(withHistory, emptyList(), emptyList())
+        assertEquals(listOf("Referencia confirmada"), report.decisions.map { it.detail })
+        assertEquals("PROTOCOL", report.decisions.single().source)
+    }
+
     @Test fun decision_json_is_additive_and_keeps_history() {
         assertTrue(Json.decodeFromString<Program>("""{"id":"p","name":"P"}""").programDecisions.isEmpty())
         val p = program().copy(programDecisions = listOf(ProgramDecision("d", 20, "MANUAL", "Cambio")))
