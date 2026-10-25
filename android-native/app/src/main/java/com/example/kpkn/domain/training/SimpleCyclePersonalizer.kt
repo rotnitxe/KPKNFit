@@ -1971,19 +1971,6 @@ class SimpleCyclePersonalizer(
         )
     }
 
-    /** La misma correspondencia sirve al presupuesto y al techo PRIMARY compartido con W2. */
-    private fun budgetMuscleGroups(): Map<String, KpknMuscleGroup> = linkedMapOf(
-            "Pectorales" to KpknMuscleGroup.CHEST, "Dorsales" to KpknMuscleGroup.BACK_LATS,
-            "Trapecio" to KpknMuscleGroup.BACK_UPPER, "Romboides" to KpknMuscleGroup.BACK_UPPER,
-            "Cuádriceps" to KpknMuscleGroup.QUADS, "Isquiosurales" to KpknMuscleGroup.HAMS,
-            "Glúteos" to KpknMuscleGroup.GLUTES, "Glúteo Medio" to KpknMuscleGroup.GLUTES,
-            "Deltoides" to KpknMuscleGroup.DELT_LATERAL, "Bíceps" to KpknMuscleGroup.BICEPS,
-            "Tríceps" to KpknMuscleGroup.TRICEPS, "Pantorrillas" to KpknMuscleGroup.CALVES,
-            "Core" to KpknMuscleGroup.CORE, "Abdomen" to KpknMuscleGroup.CORE,
-            "Erectores Espinales" to KpknMuscleGroup.ERECTORS, "Antebrazo" to KpknMuscleGroup.FOREARMS,
-            "Aductores" to KpknMuscleGroup.ADDUCTORS, "Cuello" to KpknMuscleGroup.NECK,
-        )
-
     /** El presupuesto depende del enfoque del plan; las prioridades de orden no lo alteran. */
     private fun budgets(input: PersonalizerInput, focused: Set<String>): Map<String, Budget> {
         return budgetMuscleGroups().mapValues { (muscle, group) ->
