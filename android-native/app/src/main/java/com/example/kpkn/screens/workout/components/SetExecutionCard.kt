@@ -922,9 +922,8 @@ internal fun SetInputCardV2(
         ?.let { it.originalLoad ?: it.weight }
         ?.takeIf { it > 0.0 }
         ?.toLiveNumberString()
-    val calibrationWeight = resolvedWeightSuggestion?.takeIf {
-        it.reason == "calibrada" || it.reason == "Carga del plan conservada" || it.reason == "Referencia de calibración aceptada"
-    }?.suggestedWeight
+    // Confirmed assignments reach the recorder independently of their display label.
+    val calibrationWeight = resolvedWeightSuggestion?.takeIf { it.isCalibrationAssignment }?.suggestedWeight
     val defaultWeight: String = when {
         completedWeightText != null -> completedWeightText
         calibrationWeight != null -> calibrationWeight.toLiveNumberString()

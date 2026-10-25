@@ -146,7 +146,8 @@ class WorkoutLoadSuggestionController(
         activeTag: String? = null,
         side: String? = null,
     ): WeightSuggestion? = buildLoadSuggestionForSet(exercise, setIdx, activeTag, side)?.let {
-        WeightSuggestion(it.suggestedWeight, it.reason, suggestedLoadMode = it.suggestedLoadMode)
+        WeightSuggestion(it.suggestedWeight, it.reason, suggestedLoadMode = it.suggestedLoadMode,
+            isCalibrationAssignment = it.isCalibrationAssignment)
     }
 
     fun getWarmupWorkingWeightAnchor(exercise: Exercise, activeTag: String? = null): Double? =
@@ -169,7 +170,8 @@ class WorkoutLoadSuggestionController(
             reason = if (live?.calibrated == true) "Calibración del protocolo activo"
                 else if (accepted != null) "Referencia de calibración aceptada" else "Carga del plan conservada",
             isRecalculated = live?.calibrated == true || accepted != null,
-            suggestedLoadMode = mode)
+            suggestedLoadMode = mode,
+            isCalibrationAssignment = true)
         // APRE/progression owns its native proposal and confirmation workflow.
         if (LoadSuggestionEngine.shouldDeferToNativeProgression(exercise, setIdx, side)) return null
         val set = exercise.sets.getOrNull(setIdx) ?: return null

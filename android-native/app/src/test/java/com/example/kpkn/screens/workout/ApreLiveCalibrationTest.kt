@@ -60,6 +60,30 @@ class ApreLiveCalibrationTest {
         }
     }
 
+    @Test fun confirmedApreAssignmentReachesTheCardAdapterBeforeS4Recording() = kotlinx.coroutines.test.runTest {
+        val f = fixture()
+        var state = f.state
+        val ports = java.lang.reflect.Proxy.newProxyInstance(
+            WorkoutLoadSuggestionController.Ports::class.java.classLoader,
+            arrayOf(WorkoutLoadSuggestionController.Ports::class.java)) { _, method, _ ->
+            when (method.name) {
+                "effectiveLoadModeForExercise" -> LoadModeV2.LOAD
+                else -> error("Unexpected port: ${method.name}")
+            }
+        } as WorkoutLoadSuggestionController.Ports
+        val controller = WorkoutLoadSuggestionController(scope=this, getState={ state },
+            updateState={ state=it(state) }, ports=ports)
+        state=resolveCalibration(state,f.record.id,CalibrationStatus.APPLIED,1_001L)
+        val assignment=controller.getWeightSuggestionWithAutoRegulation(f.exercise,3)!!
+        assertTrue(assignment.isCalibrationAssignment)
+        assertEquals(155.0,assignment.suggestedWeight,0.0)
+        assertEquals(f.state.completedSets,state.completedSets)
+        state=resolveCalibration(state,f.record.id,CalibrationStatus.REVERTED,1_002L)
+        val reverted=controller.getWeightSuggestionWithAutoRegulation(f.exercise,3)!!
+        assertTrue(reverted.isCalibrationAssignment)
+        assertEquals(150.0,reverted.suggestedWeight,0.0)
+    }
+
     @Test fun parcialesYaSeparadasNoSeDescuentanDosVeces() {
         for ((total, bad) in listOf(13 to 2, 14 to 2)) {
             val full = Apre.validReps(total, bad)
