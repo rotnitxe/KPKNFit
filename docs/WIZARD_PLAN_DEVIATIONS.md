@@ -999,3 +999,21 @@ Los mínimos y máximos de volumen son referencias de planificación, sin diagn�
 La elegibilidad compartida exige receta y ausencia de sourceProtocolId, además de excluir AUTHORED_EXACT aunque no tenga ese identificador. No se añaden valores a enums serializados antiguos. Las respuestas y solicitudes nuevas tienen defaults y claves run/ciclo/semana; una respuesta caducada o repetida no se aplica.
 
 Responder genera una vista previa. Confirmar es una acción posterior explícita, también para AUTO heredado. El repositorio exige que el programa y la evidencia de sesiones sigan iguales al confirmar; una edición o inicio de sesión exige una nueva revisión. Omitir conserva la respuesta sin cambiar la receta. weeklyCheckinEnabled permite dejar de preguntar. La funcionalidad no usa ni reactiva AUGE/RINGS ni mezcla nutrición con decisiones de entrenamiento.
+
+### DEC-prog-2026-10-25-02 — Cierre de bloque y continuación (T-35)
+
+La revisión cuenta registros de la ejecución y ciclo cerrados, sesiones requeridas y series por grupo, con tendencias sólo entre configuraciones comparables. Cobertura baja significa pocos registros, no prueba de que la persona no entrenó. No se genera un veredicto de recuperación. La mejora observada propone +2 % en porcentajes explícitos o −1 RIR si la receta sólo prescribe RIR; no inventa kilos. Dificultad declarada propone +1 RIR y menor volumen; sin registros se conserva el plan por defecto y se ofrece inicio suave. Descargas, semanas ejecutadas, sesiones iniciadas y ediciones manuales se protegen. OFF impide aplicar; AUTO heredado exige confirmación.
+
+El fin ofrece repetir la receta fuente, preparar una semana de mantenimiento o abrir el catálogo. Repetir/mantenimiento crean otra copia y conservan íntegra la ejecución terminada. Una receta repetida se reconstruye con referencias confirmadas; sus ediciones manuales y fechas anteriores quedan en el original. Mantenimiento reduce aproximadamente a la mitad las series de fuerza y deja la carga por elegir; el cardio conserva su prescripción. Decisión y copia se guardan en una transacción antes de activar o navegar. Evidencia pura aprobada; ola C verde por clase: VM 100/100 y hojas 4/4. El selector de catálogo corregido después de esa corrida espera el siguiente build/QA.
+
+### DEC-prog-2026-10-25-03 — Variantes y sustitución explícita (T-74)
+
+La tabla de fases usa configuraciones reales: acumulación SQ_HIGH/BP_SPOTO/DL_DEF; intensificación SQ_PAUSED/BP_PAUSE/DL. Las demás fases conservan su variante original. El generador comprueba el material del lugar concreto y los ejercicios evitados. Las tres plantillas largas nuevas publican receta v3; los snapshots v1/v2 guardados no se reescriben.
+
+Sustituir un ejercicio permite esta sesión, resto del bloque o programa entero; conserva sesiones ejecutadas y receta fuente. Cambia identidad, músculos y unidad conjuntamente. Una variante distinta no hereda el 1RM/TM, récord o carga de otra configuración. Si no hay inventario para ese lugar, la pantalla exige declarar que se dispone del material antes de preparar la sustitución. Revisar y confirmar son acciones distintas; editar el programa o iniciar sesión invalida la vista previa. Evidencia pura aprobada; ola C verde por clase: VM 100/100, hoja 2/2 y entrada de ejercicio 1/1.
+
+### DEC-prog-2026-10-25-04 — Carga planificada descriptiva (T-84)
+
+T-80/81 no añaden campos ni consumidores AUGE/RINGS: esos motores están retirados. T-82 vive en domain/training/planning/PlannedLoadProjector.kt. Resume series musculares previstas y series con esfuerzo alto explícitamente prescrito (RIR 0–1, RPE 9–10 o al menos 85 % de una referencia 1RM). Un porcentaje de TM no se presenta como porcentaje de 1RM. Las cuentas musculares se solapan y no constituyen un total de series únicas.
+
+T-83 muestra ese resumen de la siguiente semana real. En un ciclo repetible identifica expresamente la plantilla del siguiente ciclo; las propuestas de cierre podrían cambiarla. No añade readiness, batería, lesión, sobreentrenamiento ni alertas de recuperación al entrenamiento vivo. El antiguo enlace a AugeSnapshotComputer no está pendiente: no aplica al producto actual. Pruebas puras 5/5 y módulo Compose 1/1 aprobados; caso de flujo en VM dentro de 100/100. Instalación/QA de la ola siguen pendientes.
