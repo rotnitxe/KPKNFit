@@ -478,7 +478,7 @@ class PlanInfoModelTest {
         )
         assertEquals(
             listOf(
-                "Remo Convencional (polea alta y baja) · 3 × 10",
+                "Remo Convencional (polea) · 3 × 10",
                 "Remo Convencional (mancuerna) · 3 × 10",
                 "Elevación de Talones (gemelo de pie) · 3 × 10",
                 "Elevación de Talones (gemelo sentado) · 3 × 10",
@@ -504,8 +504,8 @@ class PlanInfoModelTest {
             }
         }
         val phulLines = lines(build(entry("original:phul-ms-2021-r1")))
-        assertTrue(phulLines.any { it.startsWith("Remo Convencional (polea alta y baja) · ") })
-        assertTrue(phulLines.any { it.startsWith("Remo Convencional (mancuerna) · ") })
+        assertTrue("El catálogo vigente usa Remo Gironda: $phulLines", phulLines.any { it.startsWith("Remo Gironda · ") })
+        assertTrue("El remo con mancuerna conserva su nombre canónico: $phulLines", phulLines.any { it.startsWith("Remo Convencional · ") })
         assertTrue(phulLines.any { it.startsWith("Elevación de Talones (gemelo sentado) · ") })
         assertTrue(phulLines.any { it.startsWith("Elevación de Talones (prensa de piernas) · ") })
     }
@@ -745,7 +745,7 @@ class PlanInfoModelTest {
             .sessions.single().exercises.map { "${it.name} · ${it.series}" }
         assertEquals(
             listOf(
-                "Remo Convencional (polea alta y baja) · 3 × 10",
+                "Remo Convencional (polea) · 3 × 10",
                 "Remo Convencional (mancuerna) · 3 × 10",
                 "Sentadilla · 3 × 10",
                 "Sentadilla · 2 × 5",
