@@ -18,6 +18,40 @@ import org.junit.BeforeClass
 import org.junit.Test
 
 class ProtocolRecipeFidelityTest {
+    @Test fun powerbuilding_16_rotates_main_lifts_with_configuration_specific_pending_references() {
+        val recipe = com.example.kpkn.data.programs.KpknAdvancedProgramRecipes.powerbuilding16()
+        fun main(week: Int, day: Int) = recipe.weeks[week - 1].days[day].slots.first { it.role == SlotRole.T1_MAIN }
+        assertEquals(CatalogIds.SQ_HIGH,main(1,0).lift.configurationId)
+        assertEquals(CatalogIds.SQ_PAUSED,main(6,0).lift.configurationId)
+        assertEquals(CatalogIds.SQ_LOW,main(13,0).lift.configurationId)
+        assertEquals(CatalogIds.BP_SPOTO,main(1,3).lift.configurationId)
+        assertEquals(CatalogIds.BP_PAUSE,main(6,3).lift.configurationId)
+        assertTrue(main(1,0).sets.all { it.reference?.configurationId == CatalogIds.SQ_HIGH && it.reference?.state == PlanLoadReferenceState.PENDING })
+        assertEquals(3,recipe.contentVersion)
+        val program = com.example.kpkn.domain.training.PlanMaterializer.materialize(
+            com.example.kpkn.data.models.Program("rotation-reference","Plan",powerliftingProfile = com.example.kpkn.data.models.PowerliftingProfile(squat1RM = 200.0)),
+            recipe,CatalogCompositionTestSupport.metadata,strict = false)
+        val first = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first().sessions.first().allExercises()
+            .first { it.catalogConfigurationId == CatalogIds.SQ_HIGH }
+        assertNull(first.reference1RM)
+        assertNull(first.referenceTrainingMax)
+        assertTrue(first.sets.all { it.weight == null })
+    }
+
+    @Test fun later_bodybuilding_blocks_add_accessories_and_use_the_declared_leg_emphasis() {
+        val ppl = com.example.kpkn.data.programs.KpknAdvancedProgramRecipes.ppl16()
+        fun firstAccessory(recipe: TrainingPlanRecipe, week: Int, day: Int) = recipe.weeks[week - 1].days[day].slots.first { it.role == SlotRole.T3_ACCESSORY }.sets.size
+        assertEquals(firstAccessory(ppl,1,0) + 1,firstAccessory(ppl,9,0))
+        assertEquals(CatalogIds.RDL,ppl.weeks[8].days[5].slots.first { it.role == SlotRole.T1_MAIN }.lift.configurationId)
+        assertEquals(WeekExecutionKind.DELOAD,ppl.weeks[11].kind)
+        assertEquals(3,ppl.contentVersion)
+        val offSeason = com.example.kpkn.data.programs.KpknAdvancedProgramRecipes.offSeason20()
+        assertEquals(firstAccessory(offSeason,1,0) + 1,firstAccessory(offSeason,9,0))
+        assertEquals(firstAccessory(offSeason,1,2) + 1,firstAccessory(offSeason,13,2))
+        assertEquals(3,offSeason.contentVersion)
+        assertEquals(2,com.example.kpkn.data.programs.KpknAdvancedProgramRecipes.hypertrophyUl12().contentVersion)
+    }
+
     companion object {
         @BeforeClass
         @JvmStatic
@@ -1379,7 +1413,7 @@ class ProtocolRecipeFidelityTest {
     }
 
     @Test
-    fun the_recipes_changed_in_b_s6_carry_content_version_2_and_the_untouched_ones_stay_at_1() {
+    fun recipe_content_versions_match_their_published_content_revisions() {
         // `contentVersion` es parte de la identidad (recipeId, contentVersion, ocurrencia, día, slot) de los programas NUEVOS; los activados
         // conservan su snapshot de la versión 1 en `Program.sourceRecipe`. Ninguna otra prueba fija el número de una receta publicada.
         // CAL5: 5/3/1 (reinicio), nSuns (press militar con su 1+), Juggernaut (reps sobre el estándar), GZCLP (etapas), Cube y Lilliebridge (AMRAP de
@@ -1399,7 +1433,12 @@ class ProtocolRecipeFidelityTest {
             assertEquals("$id: sin cambios de contenido", 1, recipeOf(id).contentVersion)
         }
         PROGRAM_TEMPLATES.mapNotNull { it.recipe }.forEach {
-            assertEquals("${it.id}: contentVersion", if (it.id == "power-12-3") 4 else if (it.id.startsWith("power-")) 3 else 2, it.contentVersion)
+            val expected = when {
+                it.id == "power-12-3" -> 4
+                it.id.startsWith("power-") || it.id in setOf("powerbuild-16-4","body-16-4","body-20-5") -> 3
+                else -> 2
+            }
+            assertEquals("${it.id}: contentVersion",expected,it.contentVersion)
         }
         AuthoredPhulPhatRecipes.all.forEach { assertEquals("${it.id}: contentVersion", 2, it.contentVersion) }
     }

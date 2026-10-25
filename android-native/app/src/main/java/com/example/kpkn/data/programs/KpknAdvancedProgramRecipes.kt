@@ -16,6 +16,9 @@ import com.example.kpkn.data.protocols.amrapAsCalibrator
 import com.example.kpkn.data.protocols.asDeload
 import com.example.kpkn.data.protocols.mainWorkPercentOfOneRm
 import com.example.kpkn.data.protocols.dropT3
+import com.example.kpkn.data.protocols.addT3Sets
+import com.example.kpkn.data.protocols.PlanLoadReference
+import com.example.kpkn.data.protocols.PlanLoadReferenceKind
 import com.example.kpkn.data.protocols.replaceT1Work
 import com.example.kpkn.data.protocols.topSetAndBackoff
 import com.example.kpkn.data.protocols.weekRecipe
@@ -247,18 +250,20 @@ object KpknAdvancedProgramRecipes {
             // C5 (B.S6 parte 2b): las semanas 4, 8 y 12 cierran los tres primeros bloques con una descarga real; el bloque de
             // realización es el pico y termina el plan.
             val deload = w == 4 || w == 8 || w == 12
+            val squatVariant = when (spec.block) { 0 -> CatalogIds.SQ_HIGH; 1 -> CatalogIds.SQ_PAUSED; else -> CatalogIds.SQ_LOW }
+            val benchVariant = when (spec.block) { 0 -> CatalogIds.BP_SPOTO; 1 -> CatalogIds.BP_PAUSE; else -> CatalogIds.BP }
             deloadOrTraining(
                 w, spec.block, spec.name, spec.goal,
                 listOf(
-                    DayArchetypes.plSquat(spec.squat, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 1).dropT3(drop),
+                    DayArchetypes.plSquat(spec.squat, t1Sets = t1Sets, t1Reps = t1Reps, weekday = 1,t1ConfigurationId = squatVariant).withVariantReference().dropT3(drop),
                     DayArchetypes.bbTorso(if (w <= 8) 2 else 1).copy(weekday = 2, label = "Hipertrofia torso").dropT3(drop),
                     DayArchetypes.plDeadlift(spec.dl, weekday = 4).dropT3(drop),
-                    DayArchetypes.plBenchHeavy(spec.bench, weekday = 5).dropT3(drop),
+                    DayArchetypes.plBenchHeavy(spec.bench, weekday = 5,t1ConfigurationId = benchVariant).withVariantReference().dropT3(drop),
                 ),
                 deload,
             )
         }
-        return TrainingPlanRecipe("powerbuild-16-4", weeks, 0.90, sbd, claimedDaysPerWeek = 4, claimedLevel = "avanzado", contentVersion = CONTENT_VERSION)
+        return TrainingPlanRecipe("powerbuild-16-4", weeks, 0.90, sbd, claimedDaysPerWeek = 4, claimedLevel = "avanzado", contentVersion = CONTENT_VERSION + 1)
     }
 
     fun hypertrophyUl12(): TrainingPlanRecipe {
@@ -311,17 +316,17 @@ object KpknAdvancedProgramRecipes {
             deloadOrTraining(
                 w, mapped.first, mapped.second, mapped.third,
                 listOf(
-                    DayArchetypes.bbPush(rir).copy(weekday = 1),
-                    DayArchetypes.bbPull(rir).copy(weekday = 2),
-                    DayArchetypes.bbLegs(rir).copy(weekday = 3),
+                    DayArchetypes.bbPush(rir).copy(weekday = 1).addT3Sets(if (mapped.first >= 2) 1 else 0),
+                    DayArchetypes.bbPull(rir).copy(weekday = 2).addT3Sets(if (mapped.first >= 2) 1 else 0),
+                    DayArchetypes.bbLegs(rir).copy(weekday = 3).addT3Sets(if (mapped.first >= 2) 1 else 0),
                     DayArchetypes.bbPush(secondRir).copy(weekday = 4, label = "Empuje 2"),
                     DayArchetypes.bbPull(secondRir).copy(weekday = 5, label = "Tirón 2"),
-                    DayArchetypes.bbLegs(secondRir).copy(weekday = 6, label = "Pierna 2"),
+                    DayArchetypes.bbLegs(secondRir,hipDominant = mapped.first >= 2).copy(weekday = 6, label = "Pierna 2"),
                 ),
                 deload,
             )
         }
-        return TrainingPlanRecipe("body-16-4", weeks, claimedDaysPerWeek = 6, claimedLevel = "avanzado", contentVersion = CONTENT_VERSION)
+        return TrainingPlanRecipe("body-16-4", weeks, claimedDaysPerWeek = 6, claimedLevel = "avanzado", contentVersion = CONTENT_VERSION + 1)
     }
 
     fun offSeason20(): TrainingPlanRecipe {
@@ -352,18 +357,18 @@ object KpknAdvancedProgramRecipes {
                     DayArchetypes.bbPull((rir - 1).coerceAtLeast(1)).copy(weekday = 6, label = "Tirón volumen"),
                 )
                 2 -> listOf(
-                    DayArchetypes.bbPush(rir).copy(weekday = 1, label = "Empuje especialización"),
+                    DayArchetypes.bbPush(rir).copy(weekday = 1, label = "Empuje especialización").addT3Sets(1),
                     DayArchetypes.bbPull(rir).copy(weekday = 2),
                     DayArchetypes.bbLegs(rir).copy(weekday = 3),
-                    DayArchetypes.bbTorso(rir).copy(weekday = 5, label = "Torso especialización"),
+                    DayArchetypes.bbTorso(rir).copy(weekday = 5, label = "Torso especialización").addT3Sets(1),
                     DayArchetypes.bbPush((rir - 1).coerceAtLeast(1)).copy(weekday = 6, label = "Hombro/pecho extra"),
                 )
                 3 -> listOf(
                     DayArchetypes.bbPush(rir).copy(weekday = 1),
                     DayArchetypes.bbPull(rir).copy(weekday = 2),
-                    DayArchetypes.bbLegs(rir, hipDominant = true).copy(weekday = 3, label = "Pierna cadera"),
+                    DayArchetypes.bbLegs(rir, hipDominant = true).copy(weekday = 3, label = "Pierna cadera").addT3Sets(1),
                     DayArchetypes.bbTorso(rir).copy(weekday = 5),
-                    DayArchetypes.bbLegs((rir - 1).coerceAtLeast(1)).copy(weekday = 6, label = "Pierna rodilla"),
+                    DayArchetypes.bbLegs((rir - 1).coerceAtLeast(1)).copy(weekday = 6, label = "Pierna rodilla").addT3Sets(1),
                 )
                 else -> listOf(
                     DayArchetypes.bbPush(rir.coerceAtMost(1)).copy(weekday = 1),
@@ -377,8 +382,16 @@ object KpknAdvancedProgramRecipes {
             // son descargas reales (`kind = DELOAD`, series recortadas y RIR ≥ 4). Ninguna es la primera de su bloque.
             deloadOrTraining(w, mapped.first, mapped.second, mapped.third, days, deload = w % 6 == 0)
         }
-        return TrainingPlanRecipe("body-20-5", weeks, claimedDaysPerWeek = 5, claimedLevel = "avanzado", contentVersion = CONTENT_VERSION)
+        return TrainingPlanRecipe("body-20-5", weeks, claimedDaysPerWeek = 5, claimedLevel = "avanzado", contentVersion = CONTENT_VERSION + 1)
     }
+
+    /** Las variantes nuevas piden su propia referencia; no usan por LiftSlot la marca del básico de competición. */
+    private fun DayRecipe.withVariantReference(): DayRecipe = copy(slots = slots.map { slot ->
+        if (slot.role != SlotRole.T1_MAIN || slot.lift.liftSlot?.let { sbd[it] } == slot.lift.configurationId) slot
+        else slot.copy(sets = slot.sets.map { set -> set.copy(reference = PlanLoadReference(
+            kind = if (set.loadBasis == LoadBasis.PERCENT_1RM) PlanLoadReferenceKind.EXERCISE_1RM else PlanLoadReferenceKind.EXERCISE_TM,
+            configurationId = slot.lift.configurationId)) })
+    })
 
     /** L-05: los picos, realizaciones y openers de las plantillas propias son %1RM, no % del TM. */
     private fun List<DayRecipe>.inPeakOneRm(goal: BlockGoal): List<DayRecipe> =
