@@ -45,6 +45,7 @@ object WeeklyCheckinEngine {
         executedSessionIds: Set<String> = emptySet(),
         nowMs: Long = 0L,
         allowRirChange: Boolean = true,
+        deficitMode: Boolean = false,
     ): Program {
         if (!program.acceptsKpknAdjustments()) return program
         if (!com.example.kpkn.domain.training.calibration.PlanningVolumeTargets.valid(program.planningVolumeTargets)) return program
@@ -66,7 +67,7 @@ object WeeklyCheckinEngine {
             source.weekRecipe.days.indices.toSet() else protected
         val adjustment = WeeklyAdjustmentEngine.adjust(source.weekRecipe, checkin, metadata,
             recommendations = com.example.kpkn.domain.training.VolumeCalibrationEngine.planningBounds(program.planningVolumeTargets),
-            allowRirChange = allowRirChange, protectedDayIndexes = protectedIndexes)
+            allowRirChange = allowRirChange, protectedDayIndexes = protectedIndexes,deficitMode = deficitMode)
         var working = program.copy(pendingWeeklyCheckin = null, weeklyCheckins = program.weeklyCheckins + checkin)
         val detail = when {
             checkin.skipped -> "Respuesta omitida por la persona. Semana sin cambios."

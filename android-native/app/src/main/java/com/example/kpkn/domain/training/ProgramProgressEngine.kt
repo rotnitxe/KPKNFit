@@ -242,8 +242,9 @@ object ProgramProgressEngine {
         executedSessionIds: Set<String> = emptySet(),
         nowMs: Long = 0L,
         allowRirChange: Boolean = true,
+        deficitMode: Boolean = false,
     ): Program = com.example.kpkn.domain.training.cycle.WeeklyCheckinEngine.apply(
-        program, checkin, metadata, executedSessionIds, nowMs, allowRirChange)
+        program, checkin, metadata, executedSessionIds, nowMs, allowRirChange,deficitMode)
 
     fun resolvePendingBlockReview(
         program: Program,

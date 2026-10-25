@@ -8,6 +8,15 @@ import org.junit.BeforeClass
 import org.junit.Test
 
 class WeeklyCheckinEngineTest {
+    @Test fun explicit_deficit_context_reaches_the_weekly_proposal_without_changing_the_source_recipe() {
+        val p = pending(program())
+        val result = ProgramProgressEngine.applyWeeklyCheckin(p,answer(p),metadata,deficitMode = true)
+        val accessory = weeks(result).first().sessions.single().allExercises().first { it.slotRole == SlotRole.T3_ACCESSORY }
+        assertTrue(accessory.sets.all { it.targetRIR == 2 })
+        assertEquals(p.sourceRecipe,result.sourceRecipe)
+        assertEquals(1,result.weeklyCheckins.size)
+        assertEquals(weeks(p)[1],weeks(result)[1])
+    }
     companion object {
         @JvmStatic @BeforeClass fun install() = CatalogCompositionTestSupport.install()
     }

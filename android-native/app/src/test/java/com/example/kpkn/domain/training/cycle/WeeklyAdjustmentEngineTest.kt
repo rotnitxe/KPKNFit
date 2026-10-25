@@ -10,6 +10,44 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class WeeklyAdjustmentEngineTest {
+    @Test fun declared_deficit_caps_proposals_at_the_intermediate_planning_bound_and_rir_two() {
+        val bounds = listOf(VolumeRecommendation("Dorsales",2,3,12))
+        val result = WeeklyAdjustmentEngine.adjust(week(rir = 2),answer(1,1),metadata,bounds,deficitMode = true)
+        assertEquals(3,row(result.weekRecipe).sets.size)
+        assertTrue(row(result.weekRecipe).sets.all { it.rir == 2 })
+        assertTrue(result.changes.isEmpty())
+        val ordinary = WeeklyAdjustmentEngine.adjust(week(rir = 2),answer(1,1),metadata,bounds)
+        assertEquals(4,row(ordinary.weekRecipe).sets.size)
+        assertTrue(row(ordinary.weekRecipe).sets.all { it.rir == 1 })
+    }
+
+    @Test fun deficit_rir_floor_is_reviewable_even_when_the_response_would_keep_rir_unchanged() {
+        val input = week(rir = 1)
+        val result = WeeklyAdjustmentEngine.adjust(input,answer(3,2),metadata,
+            listOf(VolumeRecommendation("Dorsales",2,3,12)),deficitMode = true)
+        assertTrue(row(result.weekRecipe).sets.all { it.rir == 2 })
+        assertEquals(1,result.changes.single().rirDelta)
+        assertTrue(result.changes.single().reason.contains("mínimo 2"))
+        assertEquals(input.days.single().slots.first(),result.weekRecipe.days.single().slots.first())
+        assertEquals(input,WeeklyAdjustmentEngine.adjust(input,answer(3,2),metadata,allowRirChange = false,deficitMode = true).weekRecipe)
+        assertEquals(input,WeeklyAdjustmentEngine.adjust(input,answer(3,2),metadata,protectedDayIndexes = setOf(0),deficitMode = true).weekRecipe)
+    }
+
+    @Test fun deficit_mode_preserves_warmups_and_explicit_amrap_targets() {
+        val input = week(rir = 1)
+        val day = input.days.single()
+        val slot = day.slots.last()
+        val special = slot.copy(sets = listOf(SetRecipe(reps = 5,rir = 1,isWarmup = true),
+            SetRecipe(reps = 8,rir = 1,purpose = com.example.kpkn.data.models.SetPurpose.AMRAP),SetRecipe(reps = 8,rir = 1)))
+        val withSpecial = input.copy(days = listOf(day.copy(slots = listOf(day.slots.first(),special))))
+        val result = WeeklyAdjustmentEngine.adjust(withSpecial,answer(3,2),metadata,deficitMode = true)
+        assertEquals(special.sets.take(2),row(result.weekRecipe).sets.take(2))
+        assertEquals(2,row(result.weekRecipe).sets.last().rir)
+        val increased = WeeklyAdjustmentEngine.adjust(withSpecial,answer(1,1),metadata).weekRecipe
+        assertEquals(1,row(increased).sets.count { it.resolvedPurpose == com.example.kpkn.data.models.SetPurpose.AMRAP })
+        assertEquals(1,row(increased).sets.count { it.isWarmup })
+        assertEquals(4,row(increased).sets.size)
+    }
     private val metadata = ExerciseCompositionMetadataProvider { id ->
         ExerciseCompositionMetadata(id, id, if (id == "row") "horizontal_pull" else "horizontal_push",
             listOf(if (id == "row") "latissimus_dorsi" else "pectoralis"), emptyList(), null, "BILATERAL", null, "MULTIARTICULAR")

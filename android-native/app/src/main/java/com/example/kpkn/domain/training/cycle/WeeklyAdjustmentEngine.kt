@@ -51,6 +51,7 @@ object WeeklyAdjustmentEngine {
         recommendations: List<VolumeRecommendation> = emptyList(),
         allowRirChange: Boolean = true,
         protectedDayIndexes: Set<Int> = emptySet(),
+        deficitMode: Boolean = false,
     ): WeeklyAdjustment {
         if (checkin.skipped || week.kind != WeekExecutionKind.TRAINING) return WeeklyAdjustment(week, emptyList())
         val eligible = accessoryGroups(week, metadata)
@@ -76,7 +77,7 @@ object WeeklyAdjustmentEngine {
         answers.toSortedMap(compareBy { it.ordinal }).forEach { (group, answer) ->
             val (desiredSets, desiredRir) = decide(answer.first, answer.second)
             val totals = RecipeContractPolicy.weeklyEquivalentSets(working, metadata)
-            val (min, max) = bounds(group, recommendations)
+            val (min, max) = bounds(group, recommendations,deficitMode)
             val current = totals[group] ?: 0.0
             val allowedSets = when {
                 desiredSets > 0 && current < (initialTotals[group] ?: 0.0) + 1 && current + 1 <= max -> 1
@@ -90,13 +91,13 @@ object WeeklyAdjustmentEngine {
                 val slot = working.days[d].slots[s]
                 val n = slot.sets.count { !it.isWarmup }
                 val compatible = primaryGroups(slot, metadata).all { g -> answers[g]?.let { decide(it.first, it.second).first == desiredSets } != false }
-                compatible && if (allowedSets > 0) n in 1 until MAX_SETS_PER_SLOT else allowedSets < 0 && n > MIN_SETS_PER_SLOT
+                compatible && slot.sets.any(::ordinary) && if (allowedSets > 0) n in 1 until MAX_SETS_PER_SLOT else allowedSets < 0 && n > MIN_SETS_PER_SLOT
             }
             var actualSets = 0
             if (setTarget != null) {
                 val (d, s) = setTarget
                 val slot = working.days[d].slots[s]
-                val last = slot.sets.indexOfLast { !it.isWarmup }
+                val last = slot.sets.indexOfLast(::ordinary)
                 val sets = slot.sets.toMutableList().apply {
                     if (allowedSets > 0) add(last + 1, slot.sets[last]) else removeAt(last)
                 }
@@ -104,7 +105,7 @@ object WeeklyAdjustmentEngine {
                 val after = RecipeContractPolicy.weeklyEquivalentSets(candidate, metadata)
                 // Una serie compartida no puede rebasar el límite de otro grupo al añadirla.
                 if (after.all { (g, value) ->
-                    val (lower, upper) = bounds(g, recommendations)
+                    val (lower, upper) = bounds(g, recommendations,deficitMode)
                     value <= maxOf(totals[g] ?: 0.0, upper.toDouble()) &&
                         value >= minOf(totals[g] ?: 0.0, lower.toDouble())
                 }) {
@@ -113,21 +114,31 @@ object WeeklyAdjustmentEngine {
                 }
             }
             var actualRir = 0
-            if (allowRirChange && desiredRir != 0) candidates.filterNot { it in rirTouched }.forEach { (d, s) ->
+            var rirChanged = false
+            if (allowRirChange && (desiredRir != 0 || deficitMode)) candidates.filterNot { it in rirTouched }.forEach { (d, s) ->
                 val slot = working.days[d].slots[s]
-                if (primaryGroups(slot, metadata).any { g -> answers[g]?.let { decide(it.first, it.second).second != desiredRir } == true }) return@forEach
+                val incompatible = primaryGroups(slot, metadata).any { g -> answers[g]?.let { decide(it.first, it.second).second != desiredRir } == true }
+                if (incompatible && !deficitMode) return@forEach
+                val delta = if (incompatible) 0 else desiredRir
                 val sets = slot.sets.map { set ->
-                    if (set.isWarmup || set.rir == null || set.rir !in MIN_RIR..MAX_RIR) set else set.copy(rir = (set.rir + desiredRir).coerceIn(MIN_RIR, MAX_RIR))
+                    if (!ordinary(set) ||
+                        set.rir == null || set.rir !in MIN_RIR..MAX_RIR) set
+                    else set.copy(rir = (set.rir + delta).coerceIn(if (deficitMode) 2 else MIN_RIR, MAX_RIR))
                 }
                 if (sets != slot.sets) {
+                    val deltas = sets.zip(slot.sets).mapNotNull { (after,before) ->
+                        after.rir?.let { value -> before.rir?.let { value - it } }
+                    }.filter { it != 0 }
                     working = replace(working, d, s, slot.copy(sets = sets))
                     rirTouched += d to s
-                    actualRir = desiredRir
+                    rirChanged = true
+                    actualRir = when { deltas.all { it > 0 } -> 1; deltas.all { it < 0 } -> -1; else -> 0 }
                 }
             }
-            if (actualSets != 0 || actualRir != 0) {
+            if (actualSets != 0 || rirChanged) {
                 val series = when (actualSets) { 1 -> "+1 serie"; -1 -> "−1 serie"; else -> "sin cambio de series (límite o tope de planificación)" }
-                val rir = when (actualRir) { 1 -> ", +1 RIR"; -1 -> ", −1 RIR"; else -> "" }
+                val rir = if (deficitMode && rirChanged) ", objetivos RIR revisados con mínimo 2 por el contexto del plan nutricional" else
+                    when (actualRir) { 1 -> ", +1 RIR"; -1 -> ", −1 RIR"; else -> "" }
                 changes += WeeklyAdjustmentChange(group, actualSets, actualRir,
                     "${RecipeContractPolicy.volumeGroupLabel(group)}: respuesta de rendimiento ${answer.first}/4 y agujetas ${answer.second}/4 → $series$rir.")
             }
@@ -138,14 +149,20 @@ object WeeklyAdjustmentEngine {
     private fun replace(week: WeekRecipe, day: Int, slot: Int, value: SlotRecipe): WeekRecipe =
         week.copy(days = week.days.mapIndexed { d, old -> if (d != day) old else old.copy(slots = old.slots.mapIndexed { s, current -> if (s == slot) value else current }) })
 
+    private fun ordinary(set: com.example.kpkn.data.protocols.SetRecipe): Boolean =
+        !set.isWarmup && !set.amrap && set.resolvedPurpose != com.example.kpkn.data.models.SetPurpose.AMRAP
+
     private fun normalized(value: String): String = Normalizer.normalize(value, Normalizer.Form.NFD)
         .replace(Regex("\\p{M}"), "").lowercase().trim()
 
-    private fun bounds(group: KpknMuscleGroup, recommendations: List<VolumeRecommendation>): Pair<Int, Int> {
+    private fun bounds(group: KpknMuscleGroup, recommendations: List<VolumeRecommendation>,deficitMode: Boolean): Pair<Int, Int> {
         val names = budgetMuscleGroups().filterValues { it == group }.keys
             .plus(RecipeContractPolicy.volumeGroupLabel(group)).plus(group.name).map(::normalized)
         val reference = VolumeLandmarks.byGroup.getValue(group)
         val custom = recommendations.firstOrNull { normalized(it.muscleGroup) in names && it.minEffectiveVolume >= 0 && it.maxRecoverableVolume >= it.minEffectiveVolume }
-        return (custom?.minEffectiveVolume ?: reference.mev) to (custom?.maxRecoverableVolume ?: reference.mrv)
+        val min = custom?.minEffectiveVolume ?: reference.mev
+        val max = if (deficitMode) { if (custom != null) custom.maxAdaptiveVolume.coerceIn(min,custom.maxRecoverableVolume) else reference.mav }
+            else custom?.maxRecoverableVolume ?: reference.mrv
+        return min to max
     }
 }
