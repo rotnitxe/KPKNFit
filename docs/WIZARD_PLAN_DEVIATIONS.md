@@ -978,3 +978,24 @@ Los mensajes de B.S3 y B.S4 traen conteos desfasados. B.S3 dice «`ProgramProgre
 **Contraejemplo y reparación limitada.** Intento 3: 143 tests, dos fallos de igualdad literal `102,5` frente al porcentaje original `102,49999999999999`; el caso publicado de kg 174/178,35 pasó. B corrigió solo dos asserts para comparar exactamente original con posterior, sin cambiar tolerancias, expectativas de kg ni los tres archivos productivos. Test SHA `021c941764da1470487aa0f86e2223dd29d99cce09bd7329410e760200c45b90`.
 
 **Límite:** no autoriza más intentos automáticos, otra suite Base completa ni JBR21. Assemble-only Root51687 exit 0/44 s y la recuperación/QA adicional autorizada son acciones separadas; no prueban por sí solas los asserts reparados ni la aceptación visual.
+
+### DEV-r2-07 — Onda de RIR en los planes propios (T-20, 25-oct-2026)
+
+La receta propia prescribe esta onda editorial; no estima recuperación del atleta. Los programas ya materializados conservan su receta snapshot.
+
+| Nivel | Semana 1 | 2 | 3 | 4 | 5 | Descarga |
+|---|---:|---:|---:|---:|---:|---:|
+| Principiante | 3 | 3 | 3 | 2 | 2 | 4 |
+| Intermedio/avanzado | 3 | 2 | 2 | 1 | 1 | 4 |
+
+NativeWeekBuilder consume RirWave. El runtime por exposiciones permanece intacto. Evidencia y estado de validación: docs/audits/2026-10-programs-v2/EJECUCION_ACTUAL.md.
+
+### DEC-prog-2026-10-22-01 — Revisión semanal adaptada al producto actual
+
+Rendimiento y agujetas son respuestas originales de 1 a 4. La matriz propone cambios en accesorios T3: rendimiento 4 → −1 serie/+1 RIR; agujetas 4 → −1 serie; valor 3 en cualquiera → sin cambio; rendimiento 1 y agujetas 1–2 → +1 serie/−1 RIR; rendimiento 2 y agujetas 1–2 → +1 serie. Los límites por slot son 2–8 series y RIR 1–4; aproximaciones, T1/T2/SPEED/TECHNIQUE, sesiones ejecutadas y ediciones manuales se conservan. No se declara cambio cuando todo está protegido o saturado. Una descarga no recibe rampa semanal.
+
+Los mínimos y máximos de volumen son referencias de planificación, sin diagnóstico de recuperación. Un programa con 3 series de dorsales no recibe automáticamente permiso de reducir a 2 si su límite mínimo es 10. Los datos históricos volumeRecommendations no se interpretan como capacidad fisiológica medida. Los límites explícitos que se pasen al motor sólo acotan una propuesta.
+
+La elegibilidad compartida exige receta y ausencia de sourceProtocolId, además de excluir AUTHORED_EXACT aunque no tenga ese identificador. No se añaden valores a enums serializados antiguos. Las respuestas y solicitudes nuevas tienen defaults y claves run/ciclo/semana; una respuesta caducada o repetida no se aplica.
+
+Responder genera una vista previa. Confirmar es una acción posterior explícita, también para AUTO heredado. El repositorio exige que el programa y la evidencia de sesiones sigan iguales al confirmar; una edición o inicio de sesión exige una nueva revisión. Omitir conserva la respuesta sin cambiar la receta. weeklyCheckinEnabled permite dejar de preguntar. La funcionalidad no usa ni reactiva AUGE/RINGS ni mezcla nutrición con decisiones de entrenamiento.
