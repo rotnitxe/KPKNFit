@@ -86,7 +86,7 @@ class NutritionDayStateBackupTest {
         }
     }
 
-    @Test fun `copia fisica incluye ambas tablas sin un tratamiento especial`() = runBlocking {
+    @Test fun `copia fisica incluye ambas tablas sin un tratamiento especial`() = runBlocking(Dispatchers.IO) {
         // Keep sqlite4java paths below Windows MAX_PATH, independent of the test method's display name.
         val directory = Files.createTempDirectory("mfp-backup-").toFile()
         val platformContext = context

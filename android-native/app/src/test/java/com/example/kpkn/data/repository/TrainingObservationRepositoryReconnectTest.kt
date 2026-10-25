@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.testsupport.RoomTestRule
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -15,15 +16,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import org.robolectric.annotation.SQLiteMode
 
-@SQLiteMode(SQLiteMode.Mode.NATIVE)
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 class TrainingObservationRepositoryReconnectTest {
     @get:Rule val roomRule = RoomTestRule()
 
-    @Test fun originalContextSurvivesRoomReconnectWithTheSameRepository() = runBlocking {
+    @Test fun originalContextSurvivesRoomReconnectWithTheSameRepository() = runBlocking(Dispatchers.IO) {
+        KpknDatabase.closeInstance()
         val context = ApplicationProvider.getApplicationContext<Application>()
         val repository = TrainingObservationRepository(context)
         try {
