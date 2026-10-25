@@ -82,7 +82,6 @@ import com.example.kpkn.domain.nutrition.nutritionTargetKgOf
 import com.example.kpkn.domain.onboarding.CompetitionAnswer
 import com.example.kpkn.domain.onboarding.CompetitionRules
 import com.example.kpkn.domain.onboarding.ProgramSource
-import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
@@ -113,8 +112,6 @@ import com.example.kpkn.screens.onboarding.reviewCompetitionLine
 import com.example.kpkn.screens.onboarding.reviewGenderMarkOf
 import com.example.kpkn.screens.onboarding.reviewPlanCard
 import com.example.kpkn.screens.onboarding.reviewSexLabelOf
-import com.example.kpkn.screens.onboarding.ringLineText
-import com.example.kpkn.screens.onboarding.rings.ringsTowerValues
 import com.example.kpkn.screens.onboarding.stepContext
 import com.example.kpkn.screens.onboarding.timeReviewNote
 import com.example.kpkn.screens.onboarding.wizardMassUnitOf
@@ -130,10 +127,6 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCardModel
 import com.example.kpkn.screens.onboarding.design.entreno.plan.PlanCover
 import com.example.kpkn.screens.onboarding.design.entreno.plan.goalAccent
 import com.example.kpkn.ui.components.PagerDots
-import com.example.kpkn.ui.components.rings.KpknRingColors
-import com.example.kpkn.ui.components.rings.KpknTowerRings
-import com.example.kpkn.ui.components.rings.RingChannel
-import com.example.kpkn.ui.components.rings.TowerRingValues
 import com.example.kpkn.ui.theme.MacroColors
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -175,7 +168,6 @@ private val SheetSymbolSize = 72.dp
 
 /** Anillos de macros y torre de RINGS. */
 private val MacroRingsSize = 200.dp
-private val RingsTowerHeight = 170.dp
 
 /** Lo que puede ocupar el bloque de avisos y confirmaciones antes de desplazarse por dentro. */
 private val FooterNoticesMaxHeight = 200.dp
@@ -186,7 +178,6 @@ private val DAY_LETTERS = listOf("L", "M", "X", "J", "V", "S", "D")
 private const val PHRASE_YOU = "Con esto calculamos tu gasto y tus cargas."
 private const val PHRASE_NUTRITION_PLAN = "Tu plan de comidas empieza hoy."
 private const val PHRASE_NUTRITION_TRACKING = "Registra lo que comes y KPKN aprende contigo."
-private const val PHRASE_RINGS = "Así llegas hoy. Tus RINGS se ajustan con cada entreno."
 
 // ─── Overlay ─────────────────────────────────────────────────────────────────
 
@@ -274,12 +265,7 @@ fun ActivationOverlay(
             )
         }
     }
-    if (SetupWizardBlock.RINGS in targets) {
-        val values = ringsTowerValues(state.ringsCoveragePreview)
-        moments += ActivationMoment(SetupWizardBlock.RINGS, "RINGS", editOf(SetupWizardBlock.RINGS)) { settled ->
-            ActivationRingsMoment(values = values, settled = settled)
-        }
-    }
+
 
     val reduced = wizardReducedMotion()
     val scope = rememberCoroutineScope()
@@ -310,7 +296,6 @@ fun ActivationOverlay(
     val notices = activationNoticesOf(
         state = state,
         nutritionPage = SetupWizardBlock.NUTRITION in targets,
-        ringsPage = SetupWizardBlock.RINGS in targets,
     )
     val title = activationTitleOf(alias = draft.name.ifBlank { null }, ready = notices.none { it.blocking })
     BlurOverlayDialog(
@@ -993,45 +978,6 @@ private fun ActivationMacroLegendItem(label: String, grams: Int?, color: Color) 
 /** Gramos de un macro para la leyenda y la descripción: «150 g», o «sin datos» si no hay cifra. */
 private fun gramsText(grams: Int?): String = grams?.let { "$it g" } ?: "sin datos"
 
-// ─── RINGS ───────────────────────────────────────────────────────────────────
-
-/**
- * RINGS: la torre se llena hasta sus valores (escalonada 120 ms por anillo) y una línea por canal. Sin valor, «sin calibrar»,
- * nunca un 100 %; la frase solo si hay algún valor.
- */
-@Composable
-internal fun ActivationRingsMoment(values: TowerRingValues, settled: Boolean) {
-    val reduced = wizardReducedMotion()
-    var appeared by remember { mutableStateOf(reduced) }
-    LaunchedEffect(settled) { if (settled) appeared = true }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Box(modifier = Modifier.fillMaxWidth().height(RingsTowerHeight)) {
-            // La torre nace al asentarse: su animación de entrada arranca entonces.
-            if (appeared) {
-                KpknTowerRings(values = values, modifier = Modifier.fillMaxWidth().height(RingsTowerHeight))
-            }
-        }
-        ActivationRingLine(channel = RingChannel.ENERGIA, name = "Energía", percent = values[RingChannel.ENERGIA])
-        ActivationRingLine(channel = RingChannel.MUSCULOS, name = "Músculos", percent = values[RingChannel.MUSCULOS])
-        ActivationRingLine(channel = RingChannel.COLUMNA, name = "Columna", percent = values[RingChannel.COLUMNA])
-        if (RingChannel.entries.any { values[it] != null }) ActivationPhrase(PHRASE_RINGS)
-    }
-}
-
-/** Una línea de la torre: el punto del anillo, su nombre y su valor. */
-@Composable
-private fun ActivationRingLine(channel: RingChannel, name: String, percent: Int?) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Canvas(Modifier.size(10.dp)) { drawCircle(KpknRingColors.of(channel)) }
-        Spacer(Modifier.width(8.dp))
-        Text(
-            text = ringLineText(name, percent),
-            style = WizardTypography.controlLabel,
-            color = if (percent == null) WizardColors.textMuted else WizardColors.text,
-        )
-    }
-}
-
 // ─── Pie: avisos, confirmaciones y activación ────────────────────────────────
 
 /**
@@ -1169,7 +1115,6 @@ internal data class ActivationNotice(val text: String, val blocking: Boolean = f
 internal fun activationNoticesOf(
     state: SetupWizardState,
     nutritionPage: Boolean,
-    ringsPage: Boolean,
 ): List<ActivationNotice> {
     val draft = state.draft
     val context = draft.stepContext()
@@ -1209,15 +1154,7 @@ internal fun activationNoticesOf(
         }
     }
 
-    if (ringsPage) {
-        val coverage = state.ringsCoveragePreview ?: RingsCoverage.NO_DATA
-        val hasData = listOf(coverage.muscular, coverage.system, coverage.structure).any { it.hasData }
-        if (state.ringsPreviewLoading) {
-            notices += ActivationNotice("Calculando tus RINGS…")
-        } else if (!hasData) {
-            notices += ActivationNotice("Tus RINGS se ajustarán con tus primeros entrenos.")
-        }
-    }
+
     return notices
 }
 

@@ -20,18 +20,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con peso corporal, la punta del pie se eleva hacia la espinilla contra la resistencia. Sin más carga que el propio cuerpo, la exigencia de la cara anterior de la espinilla es la justa.",
-              "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Eleva las puntas de ambos pies hacia las espinillas conservando los talones apoyados.",
                 "Devuelve las puntas hacia el suelo despacio, utilizando únicamente el peso del cuerpo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -124,14 +120,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Tibial Anterior",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -146,7 +134,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -172,10 +159,8 @@
                 "Colócate de pie con ambos talones apoyados y las rodillas ligeramente desbloqueadas."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {}
           }

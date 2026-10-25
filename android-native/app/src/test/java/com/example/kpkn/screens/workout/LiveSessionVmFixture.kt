@@ -17,7 +17,7 @@ import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import kotlinx.coroutines.Job
@@ -152,8 +152,8 @@ internal class LiveSessionVmFixture(
 
     companion object {
         /** El repositorio de Auge es un singleton: cada prueba lo suelta para no heredar el de la anterior. */
-        fun resetAugeRepository() {
-            AugeRepository::class.java.getDeclaredField("INSTANCE").apply { isAccessible = true }.set(null, null)
+        fun resetTrainingObservationRepository() {
+            TrainingObservationRepository::class.java.getDeclaredField("INSTANCE").apply { isAccessible = true }.set(null, null)
         }
     }
 }

@@ -45,7 +45,6 @@ class LiveSessionLineRenderSheetTest {
     private val set = ExerciseSet("s1", weight = 95.0, targetReps = 6, targetRIR = 2, intensityMode = IntensityMode.RIR)
     private val exercise = Exercise("squat", "Sentadilla", sets = List(4) { set.copy(id = "s$it") })
     private val row = Exercise("row", "Peso muerto rumano", sets = List(4) { set.copy(id = "r$it") })
-    private val rings = PostSessionPreview(84, 87, 79, emptyMap(), 13, 21, 16)
     private fun content(fontScale: Float = 1f, compact: Boolean = false, body: @Composable () -> Unit) {
         assumeTrue(!System.getenv("KPKN_RENDER_DIR").isNullOrBlank())
         rule.setContent {
@@ -128,7 +127,7 @@ class LiveSessionLineRenderSheetTest {
                 completedExercises = listOf(CompletedExercise(exercise.id, exercise.name,
                     sets = listOf(CompletedSet("s0", weight = 95.0, reps = 6, rir = 2)))),
                 startTimeMs = System.currentTimeMillis() - 150_000L, targetMinutes = 55,
-                ringPreview = rings, milestones = listOf(SessionMilestone("pr", "squat", "Sentadilla", "pr_e1rm", "Nuevo récord", 114.0)),
+                 milestones = listOf(SessionMilestone("pr", "squat", "Sentadilla", "pr_e1rm", "Nuevo récord", 114.0)),
                 sessionNotes = "Mantener el abdomen firme.", sessionSavedNotes = listOf(SessionSavedNote("note", "Primera serie estable.")),
                 sessionChecklist = listOf(SessionChecklistItem("water", "Beber agua")), bodyWeight = 80.0)
         }

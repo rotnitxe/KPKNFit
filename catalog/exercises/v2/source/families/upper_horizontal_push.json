@@ -20,18 +20,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 3.0,
               "description": "Pies y manos quedan a la misma altura, y al inicio las manos sostienen cerca de dos tercios del peso corporal. El pecho desciende hacia el suelo en un solo bloque, con los codos bastante cerca del costado.",
-              "efc": 3.5,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Desciende hasta que el esternón roce el piso, con los codos hacia las costillas.",
                 "Empuja el suelo hasta estirar los codos sin hundir la cadera."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -150,14 +146,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 3.0,
-                  "efc": 3.5,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 6.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Flexiones de Brazos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -174,7 +162,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -204,12 +191,10 @@
                 "Mira al suelo y deja los pies juntos."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 6.0,
-              "ttc": 1.8
+              "technicalDifficulty": 6.0
             },
             "selectedOptions": {
               "support_angle": "flat"
@@ -229,18 +214,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.8,
               "description": "Los pies suben a un cajón y los hombros quedan más bajos que los talones, así que las manos reciben más peso que en cualquier otra flexión. El pecho baja hacia el suelo igual que en la flexión plana, pero la cuesta aumenta la carga.",
-              "efc": 3.2,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Baja el pecho hacia el suelo sin dejar caer la cadera.",
                 "Empuja hasta estirar los codos y conserva la línea del cuerpo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -359,14 +340,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.8,
-                  "efc": 3.2,
-                  "ssc": 0.8,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Flexiones de Brazos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -383,7 +356,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -413,12 +385,10 @@
                 "Alinea cabeza, cadera y rodillas antes de bajar."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.8,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.8
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "support_angle": "feet_elevated"
@@ -438,18 +408,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 3.0,
               "description": "Las manos se apoyan en un banco y los hombros quedan por encima de los talones, con menos peso sobre los brazos que si todo el cuerpo está en el suelo. El pecho baja hacia el borde del banco, no hacia el piso.",
-              "efc": 3.5,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Acerca el pecho al borde del banco con los codos hacia atrás.",
                 "Empuja el banco hasta estirar los codos sin plegar la cadera."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -568,14 +534,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 3.0,
-                  "efc": 3.5,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Flexiones de Brazos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -592,7 +550,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -622,12 +579,10 @@
                 "Separa el banco de la pared para que el pecho pueda bajar."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {
               "support_angle": "hands_elevated"
@@ -673,18 +628,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 3.0,
               "description": "Las rodillas y las palmas cargan el cuerpo, y la cadera queda en el aire entre esos dos apoyos. Al empezar, las manos reciben cerca de la mitad del peso, y pectoral y tríceps trabajan por debajo de la flexión con los pies atrás.",
-              "efc": 3.5,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Acerca el esternón al piso y lleva los codos hacia las costillas.",
                 "Empuja hasta estirar los codos sin dejar caer la cadera."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -833,14 +784,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 3.0,
-                  "efc": 3.5,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Flexiones con Rodillas Apoyadas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -858,7 +801,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -888,12 +830,10 @@
                 "Forma una línea recta desde las rodillas hasta la cabeza."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }
@@ -937,18 +877,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Los cables nacen por encima de los hombros y las manos descienden hasta encontrarse delante de la zona baja del pecho. La diagonal baja hacia las fibras que salen del esternón.",
-              "efc": 2.4,
               "equipmentId": "cable",
               "executionCues": [
                 "Lleva las manos hacia abajo y adentro hasta que se encuentren delante del abdomen alto.",
                 "Vuelve abriendo los brazos sin estirar del todo los codos."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1064,14 +1000,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.4,
-                  "ssc": 0.6,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Cruce de Poleas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1089,7 +1017,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1118,12 +1045,10 @@
                 "Da un paso al centro, con un pie delante y el codo levemente flexionado."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.6,
               "stabilizerMuscles": [
                 "triceps"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1144,18 +1069,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con las poleas a la altura del hombro, las manos se encuentran delante del esternón en una línea casi horizontal. El cable no sube ni baja: cruza de lado a lado.",
-              "efc": 2.4,
               "equipmentId": "cable",
               "executionCues": [
                 "Cierra los brazos hasta juntar las asas delante del esternón.",
                 "Regresa hasta notar el pectoral alargado, sin convertir el codo en un press."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1271,14 +1192,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.4,
-                  "ssc": 0.6,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Cruce de Poleas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1296,7 +1209,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1325,12 +1237,10 @@
                 "Sitúate en el centro, con los codos blandos y el pecho abierto."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.6,
               "stabilizerMuscles": [
                 "triceps"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1351,18 +1261,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Los cables parten junto a la cadera y las manos ascienden hasta juntarse delante de la clavícula. La diagonal sube, hacia las fibras que nacen en la clavícula.",
-              "efc": 2.4,
               "equipmentId": "cable",
               "executionCues": [
                 "Sube las manos en diagonal hasta encontrarlas delante de la parte alta del pecho.",
                 "Baja abriendo el pectoral, sin bloquear los codos abajo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1478,14 +1384,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.4,
-                  "ssc": 0.6,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Cruce de Poleas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1503,7 +1401,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1532,12 +1429,10 @@
                 "Sujeta un asa por mano, da un paso al frente y adopta una base estable entre las dos columnas."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.6,
               "stabilizerMuscles": [
                 "triceps"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1586,18 +1481,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 3.0,
               "description": "El cuerpo cuelga de las dos barras y los pies no empujan el suelo. La inclinación del torso reparte el ascenso entre la aducción del hombro y la extensión del codo, con el pectoral como motor en los dos casos.",
-              "efc": 3.5,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Baja hasta que los hombros queden cerca de los codos, sin rebotar.",
                 "Empuja las barras hasta estirar los codos, con el pecho todavía inclinado."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1712,14 +1603,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 3.0,
-                  "efc": 3.5,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 6.0,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Fondos en Paralelas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1736,7 +1619,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -1766,10 +1648,8 @@
                 "Inclina un poco el torso hacia delante y cruza los pies detrás."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.35,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 6.0,
-              "ttc": 2.0
+              "technicalDifficulty": 6.0
             },
             "selectedOptions": {}
           }
@@ -1811,18 +1691,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 3.8,
               "description": "Los eslabones cuelgan de la barra y una parte descansa en el suelo cuando la barra está cerca del pecho. Arriba, las cadenas quedan en el aire y la resistencia suma la barra y los eslabones despegados.",
-              "efc": 4.0,
               "equipmentId": "barbell",
               "executionCues": [
                 "Baja la barra hasta casi rozar el pecho y deja que los eslabones se apoyen.",
                 "Empuja hasta estirar los codos, con las cadenas ya fuera del suelo."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1939,14 +1815,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 3.8,
-                  "efc": 4.0,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 6.8,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press de Banca con Cadenas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1960,7 +1828,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1990,12 +1857,10 @@
                 "Comprueba que varios eslabones tocan el suelo con los codos flexionados."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 6.8,
-              "ttc": 2.2
+              "technicalDifficulty": 6.8
             },
             "selectedOptions": {}
           }
@@ -2034,18 +1899,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 3.0,
               "description": "La goma rodea la espalda alta y cada mano sujeta un extremo. Al estirar los codos la goma se alarga y el final del empuje cuesta más que el inicio, tanto tumbado como de pie.",
-              "efc": 3.2,
               "equipmentId": "band",
               "executionCues": [
                 "Empuja las manos hacia delante hasta extender los codos.",
                 "Vuelve despacio hasta que las manos queden otra vez junto al pecho."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2162,14 +2023,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 3.0,
-                  "efc": 3.2,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Press con Banda de Resistencia",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2183,7 +2036,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2213,12 +2065,10 @@
                 "Si estás de pie, un pie va delante; si estás tumbado, los pies pisan el suelo."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 5.0,
-              "ttc": 2.0
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {}
           }
@@ -2257,18 +2107,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.8,
               "description": "Las empuñaduras describen un arco que las acerca al final, por delante del esternón. El respaldo está poco inclinado y cada bajada termina en el mismo sitio.",
-              "efc": 3.2,
               "equipmentId": "machine",
               "executionCues": [
                 "Empuja hasta acercar las empuñaduras delante del pecho.",
                 "Regresa hasta flexionar los codos, sin golpear el tope de atrás."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2383,14 +2229,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.8,
-                  "efc": 3.2,
-                  "ssc": 0.8,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Press Plano en Máquina Convergente",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2407,7 +2245,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2437,10 +2274,8 @@
                 "Agarra las empuñaduras a la altura del esternón."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.8,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 2.0
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {}
           }
@@ -2482,18 +2317,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 3.8,
               "description": "La pausa ocurre con la barra todavía separada del pecho, más o menos un palmo, y el cuerpo no recibe un golpe que devuelva el peso. La subida nace de esa quietud, no de un rebote.",
-              "efc": 4.0,
               "equipmentId": "barbell",
               "executionCues": [
                 "Baja la barra y detenla un instante antes de tocar el pecho.",
                 "Empuja desde esa pausa hasta estirar los codos, sin hundir la barra en el torso."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2610,14 +2441,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 3.8,
-                  "efc": 4.0,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 6.8,
-                  "ttc": 2.2
-                },
                 "identity": {
                   "canonicalName": "Press Spoto con Barra",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2631,7 +2454,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "high",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2661,12 +2483,10 @@
                 "Marca con la mirada el punto, un palmo por encima del pecho, donde vas a parar."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 6.8,
-              "ttc": 2.2
+              "technicalDifficulty": 6.8
             },
             "selectedOptions": {}
           }
@@ -2705,18 +2525,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.5,
               "description": "Una sola asa sale de una polea colocada a la altura del hombro, no desde el suelo. El brazo empuja hacia delante y el tronco se queda de frente, sin rotar hacia la columna de la polea.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Empuja el asa hacia delante hasta extender el codo, sin girar el torso.",
                 "Vuelve hasta que la mano quede otra vez junto al pecho."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2849,14 +2665,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.5,
-                  "efc": 2.8,
-                  "ssc": 0.7,
-                  "technicalDifficulty": 4.5,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Press Unilateral en Polea",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2870,7 +2678,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2900,12 +2707,10 @@
                 "Da un paso en zancada, de lado a la columna, con el pecho de frente."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.7,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.5,
-              "ttc": 2.0
+              "technicalDifficulty": 4.5
             },
             "selectedOptions": {}
           }
@@ -2944,18 +2749,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.5,
               "description": "Las dos mancuernas permanecen en contacto desde el pecho hasta los codos estirados, así que el recorrido es estrecho y cada lado no puede desviarse por su cuenta. El apretón es constante, no un choque solo arriba.",
-              "efc": 3.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Empuja las mancuernas hacia arriba sin separarlas.",
                 "Baja sin que dejen de tocarse, hasta quedar otra vez sobre el pecho."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3070,14 +2871,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.5,
-                  "efc": 3.0,
-                  "ssc": 0.7,
-                  "technicalDifficulty": 4.5,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Squeeze Press con Mancuernas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3091,7 +2884,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3121,10 +2913,8 @@
                 "Deja los codos cerca del tronco y los pies en el suelo."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.7,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.5,
-              "ttc": 2.0
+              "technicalDifficulty": 4.5
             },
             "selectedOptions": {}
           }
@@ -3163,18 +2953,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.8,
               "description": "El respaldo va levantado, así que las empuñaduras viajan hacia arriba además de acercarse entre sí. La espalda queda sujeta por el asiento y cada repetición recorre el mismo arco.",
-              "efc": 3.2,
               "equipmentId": "machine",
               "executionCues": [
                 "Empuja hacia arriba y hacia el centro hasta acercar las empuñaduras.",
                 "Vuelve hasta que los codos queden a la altura del respaldo, sin golpear el tope."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3289,14 +3075,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.8,
-                  "efc": 3.2,
-                  "ssc": 0.8,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Press Inclinado en Máquina Convergente",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3312,7 +3090,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3342,10 +3119,8 @@
                 "Agarra las empuñaduras frente a las clavículas, no a la altura del ombligo."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.8,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 2.0
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {}
           }
@@ -3386,18 +3161,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 3.0,
               "description": "Las manos se juntan bajo el esternón con los pulgares y los índices tocándose, y los codos viajan pegados a las costillas. La base estrecha pide más al tríceps y al pectoral que la flexión con las manos a la anchura de los hombros.",
-              "efc": 3.5,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Baja el pecho hacia las manos con los codos cerca de las costillas.",
                 "Presiona el suelo hasta extender los codos, con la cadera alineada."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3515,14 +3286,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 3.0,
-                  "efc": 3.5,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 6.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Flexiones Diamante",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3541,7 +3304,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -3571,12 +3333,10 @@
                 "Estira el cuerpo en línea recta desde los talones hasta la cabeza."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 6.0,
-              "ttc": 1.8
+              "technicalDifficulty": 6.0
             },
             "selectedOptions": {}
           }
@@ -3621,19 +3381,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 3.0,
               "description": "Las manos quedan mucho más separadas que los hombros y el peso se desplaza hacia el brazo que se flexiona, mientras el otro se estira hacia el costado con la mano apoyada. Cada repetición carga un lado, así que se hace el mismo número por cada brazo.",
-              "efc": 3.5,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Dobla un codo y lleva el pecho hacia esa mano mientras el otro brazo se queda estirado.",
                 "Empuja el suelo con el brazo que trabaja hasta volver al centro.",
                 "Alterna los lados en cada repetición o cambia al terminar la serie."
               ],
-              "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3750,14 +3506,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 3.0,
-                  "efc": 3.5,
-                  "ssc": 0.35,
-                  "technicalDifficulty": 6.5,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Flexiones Arquero",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3775,7 +3523,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -3805,12 +3552,10 @@
                 "Gira un poco las manos hacia fuera para que los codos apunten hacia atrás."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.35,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 6.5,
-              "ttc": 1.8
+              "technicalDifficulty": 6.5
             },
             "selectedOptions": {}
           }

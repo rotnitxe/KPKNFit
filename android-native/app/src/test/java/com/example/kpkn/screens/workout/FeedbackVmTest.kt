@@ -43,14 +43,14 @@ class FeedbackVmTest {
     fun setUp() {
         dispatcher = UnconfinedTestDispatcher()
         Dispatchers.setMain(dispatcher)
-        LiveSessionVmFixture.resetAugeRepository()
+        LiveSessionVmFixture.resetTrainingObservationRepository()
     }
 
     @After
     fun tearDown() {
         try {
             fixture?.close()
-            LiveSessionVmFixture.resetAugeRepository()
+            LiveSessionVmFixture.resetTrainingObservationRepository()
             ProgramRepository.closeInstance()
             KpknDatabase.closeInstance()
         } finally {
@@ -106,7 +106,7 @@ class FeedbackVmTest {
         val request = FeedbackInsightsRequest.of(listOf("a"), mapOf("a" to 8), completedSetsCount = 0)
         val insights = vm.feedbackInsightSource.load(request)
         // Un ejercicio sin músculos conocidos ni historial: el motor no tiene nada que decir.
-        assertNull(insights.notice)
+        assertTrue(insights.reported.isEmpty())
         assertTrue(insights.reported.isEmpty())
         // La segunda vez sale de la caché: es el mismo resultado.
         assertEquals(insights, vm.feedbackInsightSource.peek(request))

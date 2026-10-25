@@ -79,6 +79,18 @@ class SessionTemplateCatalogTest {
     }
 
     @Test
+    fun retiredCableRowIsAbsentFromTheRealCatalogAndPublishedTemplates() {
+        val retired = "conventional_row__cable"
+        assertFalse(catalogConfigurationIds.contains(retired))
+        assertEquals("gironda_row__medium", CatalogIds.ROW_CABLE)
+        val published = SESSION_TEMPLATES_SYSTEM.flatMap { template ->
+            template.session.exercises + template.session.parts.flatMap { it.exercises }
+        }
+        assertFalse(published.any { it.exerciseDbId == retired })
+        assertTrue(published.any { it.exerciseDbId == CatalogIds.ROW_CABLE })
+    }
+
+    @Test
     fun systemTemplatesUseOnlyExerciseDatabaseIds() {
         SESSION_TEMPLATES_SYSTEM.forEach { template ->
             val exercises = template.session.exercises + template.session.parts.flatMap { it.exercises }
@@ -465,28 +477,6 @@ class SessionTemplateCatalogTest {
                     sets <= 12.0
                 )
             }
-        }
-    }
-
-    @Test
-    fun templatesRespectRingsDrainCaps() {
-        SESSION_TEMPLATES_SYSTEM.forEach { template ->
-            val drain = SessionTemplateCatalogPolicy.evaluateTemplateRings(template, exerciseDatabaseById)
-            val isPl = SessionTemplateCatalogPolicy.isPowerliftingTemplate(template)
-            val caps = RingBudgetPolicy.sessionHardCaps(isPl)
-
-            assertTrue(
-                "La plantilla '${template.name}' excede el límite de fatiga SNC: ${drain.cns}% > ${caps.cns}%",
-                drain.cns <= caps.cns
-            )
-            assertTrue(
-                "La plantilla '${template.name}' excede el límite de fatiga Muscular: ${drain.muscular}% > ${caps.muscular}%",
-                drain.muscular <= caps.muscular
-            )
-            assertTrue(
-                "La plantilla '${template.name}' excede el límite de fatiga Espinal: ${drain.spinal}% > ${caps.spinal}%",
-                drain.spinal <= caps.spinal
-            )
         }
     }
 

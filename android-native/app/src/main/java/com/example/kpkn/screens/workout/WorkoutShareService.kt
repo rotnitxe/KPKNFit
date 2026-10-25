@@ -13,7 +13,6 @@ import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.example.kpkn.data.models.CompletedExercise
-import com.example.kpkn.ui.components.rings.TowerRingValues
 import java.io.File
 import java.io.FileOutputStream
 import kotlinx.coroutines.CoroutineScope
@@ -51,7 +50,7 @@ object WorkoutShareService {
         currentBestEstimated1RM: Double? = null,
     ) {
         val data = WorkoutStoryData(sessionName, FinishPresentationContext(), durationMinutes, totalVolume, totalSets,
-            finishAverageRir(completedExercises), "Sin registro", TowerRingValues(null,null,null), buildFinishLiftProgress(completedExercises, emptyList()))
+            finishAverageRir(completedExercises), "Sin registro", buildFinishLiftProgress(completedExercises, emptyList()))
         val bitmap = renderWorkoutStory(context.applicationContext, data, WorkoutStoryOptions())
         try { shareBitmap(context, bitmap) } finally { bitmap.recycle() }
     }

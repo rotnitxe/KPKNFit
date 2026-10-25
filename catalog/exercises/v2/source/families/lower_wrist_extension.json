@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con polea, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -125,14 +121,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -148,7 +136,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -177,10 +164,8 @@
                 "Preparación: Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "cable"
@@ -200,17 +185,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con mancuernas, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -305,14 +286,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -328,7 +301,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -357,10 +329,8 @@
                 "Preparación: Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -380,17 +350,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con barra, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con la barra, la carga sube al máximo y la progresión del antebrazo se mide sin trampa.",
-              "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -485,14 +451,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -508,7 +466,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -537,10 +494,8 @@
                 "Preparación: Barra con las palmas abajo: las dos muñecas suben juntas contra la barra."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -560,17 +515,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con barra EZ, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del antebrazo.",
-              "efc": 2.0,
               "equipmentId": "ez_bar",
               "executionCues": [
                 "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -665,14 +616,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -688,7 +631,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -717,10 +659,8 @@
                 "Preparación: Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "ez_bar"

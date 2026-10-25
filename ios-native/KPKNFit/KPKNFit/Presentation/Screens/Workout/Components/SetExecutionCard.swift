@@ -11,27 +11,27 @@ class RecordActionBox {
 private struct QuickLoadOption {
     let label: String
     let weight: Double
-    let isAuge: Bool
+    let isSuggested: Bool
 }
 
 private func quickLoadOptionsFor(currentWeightText: String, suggestedWeight: Double?, loadIncrementKg: Double) -> [QuickLoadOption] {
     let currentWeight = Double(currentWeightText) ?? suggestedWeight ?? 0.0
     let increment = loadIncrementKg > 0.0 ? loadIncrementKg : 2.5
     var baseOptions = [
-        QuickLoadOption(label: "-\(increment.toTrimmedNumberString())", weight: max(currentWeight - increment, 0.0), isAuge: false),
-        QuickLoadOption(label: "Actual", weight: max(currentWeight, 0.0), isAuge: false),
-        QuickLoadOption(label: "+\(increment.toTrimmedNumberString())", weight: max(currentWeight + increment, 0.0), isAuge: false),
+        QuickLoadOption(label: "-\(increment.toTrimmedNumberString())", weight: max(currentWeight - increment, 0.0), isSuggested: false),
+        QuickLoadOption(label: "Actual", weight: max(currentWeight, 0.0), isSuggested: false),
+        QuickLoadOption(label: "+\(increment.toTrimmedNumberString())", weight: max(currentWeight + increment, 0.0), isSuggested: false),
     ]
     guard let suggested = suggestedWeight else { return baseOptions }
     if baseOptions.contains(where: { abs($0.weight - suggested) < 0.01 }) {
         return baseOptions.map { opt in
             if abs(opt.weight - suggested) < 0.01 {
-                return QuickLoadOption(label: "Sug.", weight: opt.weight, isAuge: true)
+                return QuickLoadOption(label: "Sug.", weight: opt.weight, isSuggested: true)
             }
             return opt
         }
     }
-    baseOptions.append(QuickLoadOption(label: "Sug.", weight: max(suggested, 0.0), isAuge: true))
+    baseOptions.append(QuickLoadOption(label: "Sug.", weight: max(suggested, 0.0), isSuggested: true))
     return baseOptions
 }
 
@@ -258,7 +258,7 @@ private struct IntegratedLoadInput: View {
                             VStack(spacing: 1) {
                                 Text(option.label)
                                     .font(.system(size: 9, weight: .bold))
-                                    .foregroundColor(option.isAuge ? accentColor : Color(.systemGray))
+                                    .foregroundColor(option.isSuggested ? accentColor : Color(.systemGray))
                                 let chipUnit: String = {
                                     switch loadMode {
                                     case .LASTRE: return " lastre"
@@ -272,10 +272,10 @@ private struct IntegratedLoadInput: View {
                             }
                             .padding(.horizontal, 7)
                             .padding(.vertical, 5)
-                            .background(option.isAuge ? accentColor.opacity(0.16) : Color(.systemGray5).opacity(0.72))
+                            .background(option.isSuggested ? accentColor.opacity(0.16) : Color(.systemGray5).opacity(0.72))
                             .clipShape(RoundedRectangle(cornerRadius: 11))
                             .overlay(RoundedRectangle(cornerRadius: 11).stroke(
-                                option.isAuge ? accentColor.opacity(0.48) : Color(.systemGray3).opacity(0.22),
+                                option.isSuggested ? accentColor.opacity(0.48) : Color(.systemGray3).opacity(0.22),
                                 lineWidth: 1
                             ))
                         }
@@ -373,9 +373,6 @@ struct SetExecutionCard: View {
         _ bodyWeight: Double?,
         _ side: String?
     ) -> Void
-    let exerciseReadiness: ExerciseReadiness?
-    let readinessAdjustment: SetAdjustmentSuggestion?
-    let onApplyReadinessAdjustment: ((SetAdjustmentSuggestion) -> Void)?
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -385,7 +382,6 @@ struct SetExecutionCard: View {
     @State private var lastAutoFilledWeight: String = ""
     @State private var hasManualWeightOverride: Bool = false
     @State private var valueText: String = ""
-    @State private var showReadinessAdjustmentSheet: Bool = false
     @State private var leftWeightText: String = ""
     @State private var rightWeightText: String = ""
     @State private var leftValueText: String = ""
@@ -730,9 +726,7 @@ struct SetExecutionCard: View {
                     historyRow(ghostSet: ghostSet, supportsIndependentSides: supportsIndependentSides, onShowHistory: onShowHistory)
 
                     // Readiness chip
-                    if let readiness = exerciseReadiness {
-                        readinessChipView(readiness: readiness)
-                    }
+
 
                     // Planned info section
                     plannedInfoSection(
@@ -755,9 +749,6 @@ struct SetExecutionCard: View {
                         currentSet: currentSet,
                         lastHomologatedResultV3: lastHomologatedResultV3,
                         ghostSet: ghostSet,
-                        exerciseReadiness: exerciseReadiness,
-                        readinessAdjustment: readinessAdjustment,
-                        onApplyReadinessAdjustment: onApplyReadinessAdjustment
                     )
 
                     Divider()
@@ -785,8 +776,6 @@ struct SetExecutionCard: View {
                         isNarrowScreen: isNarrowScreen,
                         intensityFieldLabel: intensityFieldLabel,
                         intensityText: intensityText,
-                        exerciseReadiness: exerciseReadiness,
-                        readinessAdjustment: readinessAdjustment,
                         showBodyWeightPrompt: showBodyWeightPrompt,
                         bodyWeightText: bodyWeightText,
                         timerRunning: timerRunning,
@@ -1015,31 +1004,7 @@ struct SetExecutionCard: View {
                 onDismiss: { showAmrapSheet = false }
             )
         }
-        .sheet(isPresented: $showReadinessAdjustmentSheet) {
-            if let readiness = exerciseReadiness {
-                let rm1: Double? = lastHomologatedResultV3?.estimatedRm ?? ghostSet.flatMap { ghost in
-                    if ghost.weight > 0 && ghost.REPS > 0 && ghost.REPS < 37 {
-                        return ghost.weight / (1.0278 - 0.0278 * Double(ghost.REPS))
-                    }
-                    return nil
-                }
-                SetAdjustmentOverlay(
-                    exercise: exercise,
-                    currentSet: currentSet,
-                    setIndex: setIndex,
-                    exerciseReadiness: readiness,
-                    weightSuggestion: weightSuggestion,
-                    averageErm: rm1,
-                    bodyWeight: initialBodyWeight ?? Double(bodyWeightText),
-                    loadMode: loadMode,
-                    onDismiss: { showReadinessAdjustmentSheet = false },
-                    onApply: { suggestion in
-                        onApplyReadinessAdjustment?(suggestion)
-                        showReadinessAdjustmentSheet = false
-                    }
-                )
-            }
-        }
+
     }
 
     // MARK: - Timer
@@ -1252,26 +1217,7 @@ struct SetExecutionCard: View {
     }
 
     @ViewBuilder
-    private func readinessChipView(readiness: ExerciseReadiness) -> some View {
-        let score = readiness.overallScore
-        let chipColor: Color = {
-            if score >= 75 { return Color(red: 0.30, green: 0.78, blue: 0.31) }
-            if score >= 50 { return Color(red: 1.0, green: 0.76, blue: 0.03) }
-            return Color(red: 1.0, green: 0.32, blue: 0.32)
-        }()
-        HStack(spacing: 5) {
-            Circle()
-                .fill(chipColor)
-                .frame(width: 6, height: 6)
-            Text("Mi estado: \(score)%")
-                .font(.system(size: 11, weight: .black))
-                .foregroundColor(.white.opacity(0.9))
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 4)
-        .background(chipColor.opacity(0.15))
-        .clipShape(Capsule())
-    }
+
 
     @ViewBuilder
     private func plannedInfoSection(
@@ -1294,9 +1240,6 @@ struct SetExecutionCard: View {
         currentSet: ExerciseSet,
         lastHomologatedResultV3: HomologatedPerformanceResult?,
         ghostSet: CompletedSet?,
-        exerciseReadiness: ExerciseReadiness?,
-        readinessAdjustment: SetAdjustmentSuggestion?,
-        onApplyReadinessAdjustment: ((SetAdjustmentSuggestion) -> Void)?
     ) -> some View {
         VStack(spacing: 8) {
             // "Planificado" header and navigation
@@ -1392,103 +1335,7 @@ struct SetExecutionCard: View {
                 }
             }
 
-            // Readiness adjustment
-            if let readiness = exerciseReadiness, onApplyReadinessAdjustment != nil {
-                if readinessAdjustment == nil {
-                    let isRecommended = readiness.overallScore < ExerciseReadinessEngine.adjustmentThreshold
-                    Button(action: { showReadinessAdjustmentSheet = true }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "slider.horizontal.3")
-                                .font(.system(size: 10))
-                            Text(isRecommended ? "Adaptar según cómo me siento (Recomendado)" : "Adaptar según cómo me siento")
-                                .font(.caption.weight(.bold))
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(isRecommended ? Color(red: 1.0, green: 0.32, blue: 0.32) : sessionAccentColor)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(
-                                isRecommended ? Color(red: 1.0, green: 0.32, blue: 0.32).opacity(0.5) : Color(.systemGray3).opacity(0.5),
-                                lineWidth: 1
-                            )
-                    )
-                } else {
-                    HStack(spacing: 8) {
-                        Button(action: { showReadinessAdjustmentSheet = true }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "pencil")
-                                    .font(.system(size: 9))
-                                Text("Ajustar de nuevo")
-                                    .font(.caption.weight(.bold))
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundColor(sessionAccentColor)
 
-                        Button(action: {
-                            let emptySuggestion = SetAdjustmentSuggestion(
-                                exerciseId: exercise.id,
-                                setIndex: setIndex,
-                                currentPlannedWeight: currentSet.weight ?? 0.0,
-                                readinessScore: readiness.overallScore,
-                                severityFactor: 0.0,
-                                reductionPercent: 0.0,
-                                suggestedWeight: currentSet.weight ?? 0.0,
-                                averageErm: nil,
-                                reason: "Reset manual",
-                                suggestedLoadMode: currentSet.LOADModeV2 ?? .LOAD
-                            )
-                            onApplyReadinessAdjustment?(emptySuggestion)
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "trash")
-                                    .font(.system(size: 9))
-                                Text("Restablecer original")
-                                    .font(.caption.weight(.bold))
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundColor(.red)
-                    }
-                }
-            }
-
-            // Adjustment indicator
-            if let adj = readinessAdjustment, (adj.reductionPercent > 0.0 || adj.suggestedLoadMode != (currentSet.LOADModeV2 ?? .LOAD)) {
-                let plannedMode = currentSet.LOADModeV2 ?? .LOAD
-                let adjustmentText: String = {
-                    if adj.suggestedLoadMode == .ASSISTED && plannedMode != .ASSISTED {
-                        return "Adaptado: +\(Int(adj.suggestedWeight))kg Asistencia"
-                    }
-                    if adj.suggestedLoadMode == .BODYWEIGHT && plannedMode != .BODYWEIGHT {
-                        return "Adaptado: Usar Peso Corporal"
-                    }
-                    if plannedMode == .ASSISTED {
-                        return "Adaptado: +\(Int(adj.suggestedWeight))kg Asistencia"
-                    }
-                    return "Adaptado −\(Int(adj.reductionPercent * 100))%"
-                }()
-                HStack(spacing: 6) {
-                    Image(systemName: "info.circle.fill")
-                        .font(.system(size: 10))
-                        .foregroundColor(Color(red: 0.30, green: 0.78, blue: 0.31))
-                    Text(adjustmentText)
-                        .font(.caption.weight(.semibold))
-                        .foregroundColor(Color(red: 0.30, green: 0.78, blue: 0.31))
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(red: 0.106, green: 0.227, blue: 0.106))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 12)
@@ -1517,8 +1364,6 @@ struct SetExecutionCard: View {
         isNarrowScreen: Bool,
         intensityFieldLabel: String,
         intensityText: String,
-        exerciseReadiness: ExerciseReadiness?,
-        readinessAdjustment: SetAdjustmentSuggestion?,
         showBodyWeightPrompt: Bool,
         bodyWeightText: String,
         timerRunning: Bool,

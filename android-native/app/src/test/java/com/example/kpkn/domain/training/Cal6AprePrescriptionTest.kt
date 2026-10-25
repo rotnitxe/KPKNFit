@@ -219,7 +219,7 @@ class Cal6AprePrescriptionTest {
             repsOf = { index, planned -> when (index) { 2 -> 12; 3 -> 17; else -> planned.targetReps ?: 10 } },
         )
         val proposal = ProgramAutoregulationEngine.evaluate(
-            program, week1, listOf(log), recipe, WeeklyAutoregulationSignals(readinessScore = 80),
+            program, week1, listOf(log), recipe, WeeklyAutoregulationSignals(),
         ).single { it.kind == AutoregulationProposalKind.ADJUST_XRM }
 
         assertNull(proposal.liftSlot)
@@ -229,7 +229,7 @@ class Cal6AprePrescriptionTest {
         assertNull("el fixture no conoce hora de captura", proposal.apreXrm.reference.capturedAtMs)
         assertTrue(proposal.explanation, proposal.explanation.contains("10RM 162,5 kg para la próxima semana"))
 
-        val applied = ProgramAutoregulationEngine.apply(
+        val applied = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program, weeks[1].id, listOf(proposal), recipe, setOf(week1.id), CatalogCompositionTestSupport.metadata,
         )
         assertTrue(applied.applied)
@@ -266,7 +266,7 @@ class Cal6AprePrescriptionTest {
             repsOf = { index, planned -> when (index) { 2 -> 12; 3 -> 17; else -> planned.targetReps ?: 10 } },
         )
         val observed = ProgramAutoregulationEngine.evaluate(
-            propose, week, listOf(log), recipe, WeeklyAutoregulationSignals(readinessScore = 80),
+            propose, week, listOf(log), recipe, WeeklyAutoregulationSignals(),
         )
         assertEquals(listOf(AutoregulationProposalKind.ADJUST_XRM), observed.map { it.kind })
 

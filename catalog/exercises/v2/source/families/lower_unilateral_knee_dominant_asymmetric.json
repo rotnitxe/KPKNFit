@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Colgada entre los muslos, la barra se sostiene con una mano adelantada y otra retrasada. Los discos suben a ambos lados de la pierna de trabajo, con espacio libre junto al apoyo posterior.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Dobla la rodilla delantera y baja la de atrás hacia el suelo con los brazos estirados.",
                 "Conserva el pecho orientado al frente sin girar hacia la mano retrasada.",
                 "Empuja con la planta delantera y extiende rodilla y cadera para subir la barra entre los muslos."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -197,14 +193,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 5.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara Jefferson",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -219,7 +207,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -252,7 +239,6 @@
                 "Deja el pie delantero plano y comprueba que los discos no alcanzan el banco."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -260,8 +246,7 @@
                 "forearm",
                 "deltoid"
               ],
-              "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "technicalDifficulty": 5.2
             },
             "selectedOptions": {}
           }

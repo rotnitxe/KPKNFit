@@ -63,8 +63,7 @@ def validate_profile(value: Any, path: str, allow_draft: bool) -> None:
     require(isinstance(value, dict), f"{path}.profile must be an object")
     required = {
         "movementPatternId", "bodyRegion", "kineticChain", "laterality", "equipmentId",
-        "loadMode", "primaryMuscles", "secondaryMuscles", "stabilizerMuscles", "efc",
-        "cnc", "ssc", "ttc", "axialLoadFactor", "technicalDifficulty", "resistanceProfile",
+        "loadMode", "primaryMuscles", "secondaryMuscles", "stabilizerMuscles", "technicalDifficulty", "resistanceProfile",
         "description", "jointInvolvement", "setupCues", "executionCues",
         "performanceProfileId",
     }
@@ -87,20 +86,17 @@ def validate_profile(value: Any, path: str, allow_draft: bool) -> None:
         joint_ids.append(joint["jointId"])
         require(joint.get("role") in {"PRIMARY", "SECONDARY", "STABILIZER"}, f"{path}.profile.jointInvolvement role invalid")
         require(isinstance(joint.get("actions"), list) and joint["actions"] and all(isinstance(action, str) and action.strip() for action in joint["actions"]), f"{path}.profile.jointInvolvement actions invalid")
-    for key in ("efc", "cnc", "ssc", "ttc", "axialLoadFactor"):
-        require(isinstance(value[key], (int, float)) and value[key] >= 0, f"{path}.profile.{key} must be a non-negative number")
     require(1 <= value["technicalDifficulty"] <= 10, f"{path}.profile.technicalDifficulty must be 1..10")
     require(all(isinstance(item, str) and item.strip() for item in value["setupCues"]), f"{path}.profile.setupCues contains empty text")
     require(all(isinstance(item, str) and item.strip() for item in value["executionCues"]), f"{path}.profile.executionCues contains empty text")
     require(isinstance(value["performanceProfileId"], str) and value["performanceProfileId"], f"{path}.profile.performanceProfileId required")
     require(value.get("articulationType") in {"MULTIARTICULAR", "AISLADO"}, f"{path}.profile.articulationType must be MULTIARTICULAR or AISLADO")
     require(isinstance(value.get("setupTimeSeconds"), int) and value["setupTimeSeconds"] > 0, f"{path}.profile.setupTimeSeconds must be a positive integer")
-    require(value.get("fatigueTier") in {"BAJA", "MEDIA", "ALTA"}, f"{path}.profile.fatigueTier must be BAJA, MEDIA or ALTA")
     if not allow_draft:
         require(value.get("automationEligible") is True, f"{path}.profile.automationEligible must be true for runtime")
         rich = value.get("richMetadata")
         require(isinstance(rich, dict), f"{path}.profile.richMetadata is required for runtime")
-        required_sections = {"identity", "anatomy", "biomechanics", "programming", "fatigue", "replacement", "display", "evidenceConfidence"}
+        required_sections = {"identity", "anatomy", "biomechanics", "programming", "replacement", "display", "evidenceConfidence"}
         require(required_sections.issubset(rich), f"{path}.profile.richMetadata missing required sections")
         require(rich.get("evidenceConfidence") in {"MEDIUM", "HIGH"}, f"{path}.profile.richMetadata confidence must be MEDIUM or HIGH for runtime")
 
@@ -161,17 +157,12 @@ def validate_rich_metadata(
     require_text(biomechanics.get("stability"), "biomechanics.stability")
     require_text_list(biomechanics.get("relevantJoints"), "biomechanics.relevantJoints")
     require(set(biomechanics["relevantJoints"]) == {joint["jointId"] for joint in profile["jointInvolvement"]}, f"{path}.richMetadata.biomechanics.relevantJoints mismatch")
-    fatigue = rich.get("fatigue")
-    require(isinstance(fatigue, dict), f"{path}.profile.richMetadata.fatigue must be an object")
-    for key in ("efc", "cnc", "ssc", "ttc", "axialLoadFactor", "technicalDifficulty"):
-        require(fatigue.get(key) == profile[key], f"{path}.richMetadata.fatigue.{key} mismatch")
     require(identity.get("searchTerms") == definition.get("searchTerms", []), f"{path}.richMetadata.identity.searchTerms mismatch")
     require(identity.get("kind") == definition.get("kind"), f"{path}.richMetadata.identity.kind mismatch")
     programming = rich.get("programming")
     require(isinstance(programming, dict), f"{path}.profile.richMetadata.programming must be an object")
     require_text(programming.get("role"), "programming.role")
     require_range(programming.get("indicativeRestSeconds"), "programming.indicativeRestSeconds")
-    require_text(programming.get("fatigueCost"), "programming.fatigueCost")
     require_text_list(programming.get("requiredEquipment"), "programming.requiredEquipment")
     replacement = rich.get("replacement")
     require(isinstance(replacement, dict), f"{path}.profile.richMetadata.replacement must be an object")

@@ -21,19 +21,6 @@ import org.junit.Test
 class ProgramAnalyticsEngineTest {
 
     @Test
-    fun deadlift_rdl_pendlay_fixture_detects_high_lumbar_fatigue() {
-        val program = programWithExercises(
-            Exercise("deadlift-plan", "Peso muerto", exerciseDbId = "deadlift", sets = workSets(3)),
-            Exercise("rdl-plan", "RDL", exerciseDbId = "rdl", sets = workSets(3)),
-            Exercise("pendlay-plan", "Remo Pendlay", exerciseDbId = "pendlay", sets = workSets(3)),
-        )
-        val report = ProgramAnalyticsEngine.analyze(program, logs = emptyList(), exerciseCatalog = lumbarCatalog())
-
-        assertTrue(report.fatigue.lumbarFatigue >= 18.0)
-        assertTrue(report.diagnostics.any { it.id == "high-lumbar-fatigue" })
-    }
-
-    @Test
     fun low_adherence_diagnosis_blames_execution_before_program() {
         val program = programWithExercises(
             Exercise("bench-plan", "Press banca", exerciseDbId = "bench", sets = workSets(4)),
@@ -129,11 +116,11 @@ class ProgramAnalyticsEngineTest {
             force = "Bisagra",
             chain = "posterior",
             bodyPart = "lower",
-            efc = 4.0,
-            cnc = 4.5,
-            ssc = 1.8,
-            ttc = 2.5,
-            axialLoadFactor = 1.0,
+            
+            
+            
+            
+            
             involvedMuscles = listOf(
                 InvolvedMuscle("Erectores Espinales", MuscleRole.PRIMARY, 1.0),
                 InvolvedMuscle("Glúteos", MuscleRole.PRIMARY, 0.8),
@@ -145,11 +132,11 @@ class ProgramAnalyticsEngineTest {
             force = "Bisagra",
             chain = "posterior",
             bodyPart = "lower",
-            efc = 3.5,
-            cnc = 3.5,
-            ssc = 1.4,
-            ttc = 2.0,
-            axialLoadFactor = 0.8,
+            
+            
+            
+            
+            
             involvedMuscles = listOf(InvolvedMuscle("Erectores Espinales", MuscleRole.PRIMARY, 0.8)),
         ),
         ExerciseMuscleInfo(
@@ -158,11 +145,11 @@ class ProgramAnalyticsEngineTest {
             force = "Tirón",
             chain = "posterior",
             bodyPart = "upper",
-            efc = 3.0,
-            cnc = 3.0,
-            ssc = 1.2,
-            ttc = 1.6,
-            axialLoadFactor = 0.6,
+            
+            
+            
+            
+            
             involvedMuscles = listOf(
                 InvolvedMuscle("Dorsales", MuscleRole.PRIMARY, 1.0),
                 InvolvedMuscle("Erectores Espinales", MuscleRole.STABILIZER, 0.5),

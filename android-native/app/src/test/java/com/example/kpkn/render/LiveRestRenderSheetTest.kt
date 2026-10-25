@@ -460,7 +460,7 @@ class LiveRestRenderSheetTest {
     private val dayMs = 24L * 60L * 60L * 1000L
 
     private val weekEvidence = DiscomfortEvidence(
-        kind = DiscomfortEvidenceKind.WEEKLY_VOLUME_RISE,
+        kind = DiscomfortEvidenceKind.REPORTED_HISTORY,
         number = 35.0,
         text = "+35${nbsp}% de series de cuádriceps sobre tu media",
         headline = "Esta semana llevas un 35${nbsp}% más de series de cuádriceps que tu media. Si la rodilla avisa, empieza por ahí.",
@@ -468,7 +468,7 @@ class LiveRestRenderSheetTest {
         strength = 0.9,
     )
     private val todayEvidence = DiscomfortEvidence(
-        kind = DiscomfortEvidenceKind.HEAVY_SETS,
+        kind = DiscomfortEvidenceKind.REPORTED_HISTORY,
         number = 4.0,
         text = "4 series pesadas de sentadilla",
         headline = "Hoy llevas 4 series pesadas de sentadilla. Si la rodilla avisa, deja más repeticiones en reserva.",
@@ -485,9 +485,9 @@ class LiveRestRenderSheetTest {
         strength = 0.9,
     )
     private val lastSetInsights = FeedbackInsights(
-        likely = listOf("knee_patellar", "lumbar", "hip_front"),
+
         reported = listOf(ReportedDiscomfort("knee_medial", feedbackNow - 3 * dayMs)),
-        notice = kneeInsight,
+
     )
 
     private fun lastSetDraft(technical: Int, selected: List<String>) =

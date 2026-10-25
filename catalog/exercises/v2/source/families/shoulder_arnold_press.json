@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, las mancuernas arrancan con las palmas al cuerpo y terminan el empuje con las palmas al frente tras la rotación. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -143,14 +139,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Arnold",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -167,7 +155,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -195,10 +182,8 @@
                 "Preparación: Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -218,17 +203,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con kettlebell, las mancuernas arrancan con las palmas al cuerpo y terminan el empuje con las palmas al frente tras la rotación. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -341,14 +322,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Arnold",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -365,7 +338,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -393,10 +365,8 @@
                 "Preparación: Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -416,17 +386,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea, las mancuernas arrancan con las palmas al cuerpo y terminan el empuje con las palmas al frente tras la rotación. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -539,14 +505,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Arnold",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -563,7 +521,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -591,10 +548,8 @@
                 "Preparación: Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "cable"

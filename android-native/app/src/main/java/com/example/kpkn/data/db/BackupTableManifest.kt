@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  */
 object BackupTableManifest {
 
-    const val JSON_BACKUP_SCHEMA_VERSION = 6
+    const val JSON_BACKUP_SCHEMA_VERSION = 7
 
     enum class Category { USER_DATA, REGENERABLE, CACHE }
 
@@ -27,11 +27,7 @@ object BackupTableManifest {
         "workout_context_profiles" to Category.USER_DATA,
         "workout_tags" to Category.USER_DATA,
         "workout_replacement_decisions" to Category.USER_DATA,
-        "auge_wellbeing" to Category.USER_DATA,
-        "auge_sleep" to Category.USER_DATA,
-        "auge_sleep_extended" to Category.USER_DATA,
-        "auge_feedback" to Category.USER_DATA,
-        "auge_adaptive_cache" to Category.USER_DATA,
+        "training_observations" to Category.USER_DATA,
         "nutrition_logs" to Category.USER_DATA,
         "nutrition_plans" to Category.USER_DATA,
         "nutrition_active_state" to Category.USER_DATA,
@@ -59,7 +55,6 @@ object BackupTableManifest {
         "kinetic_chains" to Category.REGENERABLE,
         "global_foods" to Category.REGENERABLE,
         "global_foods_fts" to Category.REGENERABLE,
-        "auge_pending" to Category.CACHE,
         // Caché del análisis de técnica en vídeo (v29): la fuente de verdad es `<id>.analysis.json`. Restaurar hace
         // `DELETE FROM workout_media` y la cascada vacía esta tabla; `TechniqueAnalysisScheduler.reconcile()` la rehace.
         "video_analysis" to Category.CACHE,
@@ -84,11 +79,6 @@ object BackupTableManifest {
         "daily_goal_snapshots",
         "session_templates",
         "custom_exercises",
-        "auge_wellbeing",
-        "auge_sleep",
-        "auge_sleep_extended",
-        "auge_feedback",
-        "auge_adaptive_cache",
         "setup_drafts",
         "setup_commit_receipts",
     )

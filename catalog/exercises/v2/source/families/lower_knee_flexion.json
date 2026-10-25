@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El balón solo toca los pies y puede rodar hacia cualquier lado: si una pierna tira más que la otra, se desvía y la pelvis tiene que corregirlo. Al cerrar la flexión, el apoyo pasa del talón a la planta, que queda encima del balón junto a los glúteos.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Dobla las rodillas y haz rodar el balón hacia los glúteos sin dejar caer la pelvis.",
                 "Termina con las plantas sobre el balón y la cadera alineada con hombros y rodillas.",
                 "Estira las piernas despacio y vuelve a la línea recta sin apoyar la pelvis en el suelo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -147,14 +143,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales con Balón",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -170,7 +158,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -197,13 +184,11 @@
                 "Aprieta los glúteos y sube la pelvis hasta que hombros, cadera y talones queden en línea."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_maximus",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -244,19 +229,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los discos resbalan en línea recta bajo los talones sobre un suelo liso, con muy poco roce, de modo que el freno lo ponen las piernas y no el suelo. Cuanto más se alejan los pies de la cadera, más larga es la palanca y más cuesta que la pelvis no toque el suelo.",
-              "efc": 2.8,
               "equipmentId": "sliders",
               "executionCues": [
                 "Desliza los talones hacia delante despacio, sin que la cadera se doble ni la pelvis toque el suelo.",
                 "Llega hasta casi estirar las rodillas con el peso sobre los talones.",
                 "Arrastra los talones de vuelta bajo las rodillas con la cadera arriba."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -371,14 +352,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales con Sliders",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -394,7 +367,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -421,13 +393,11 @@
                 "Dobla las rodillas, levanta las puntas de los pies y sube la pelvis hasta alinear hombros, cadera y rodillas."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_maximus",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -468,19 +438,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El rodillo acolchado descansa sobre las dos piernas, encima de los talones, y gira con un eje alineado con las rodillas, así que la carga empuja en todo el arco. El banco suele formar ángulo y deja la cadera algo flexionada, mientras los asideros anclan el tronco.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Dobla las rodillas hasta acercar los talones a las nalgas, sin levantar la cadera.",
                 "Lleva las puntas de los pies hacia las espinillas durante toda la serie.",
                 "Baja despacio hasta casi estirar las piernas, sin que las placas choquen."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -581,14 +547,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -605,7 +563,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -635,10 +592,8 @@
                 "Agarra los asideros y apoya bien la pelvis en el banco."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "machine",
@@ -659,18 +614,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Solo una pierna empuja el rodillo y la otra queda estirada sobre el banco, así que ningún lado puede apoyarse en la fuerza del contrario. Al subir una sola pierna, la cadera de ese lado tiende a despegarse del banco, y las manos en los asideros la sujetan.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Lleva un talón hacia las nalgas sin que esa cadera se despegue del banco.",
                 "Detén la bajada con la rodilla casi recta y comprueba que la pierna libre sigue quieta sobre el banco."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -771,14 +722,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -795,7 +738,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -825,10 +767,8 @@
                 "Agarra los asideros con las rodillas en el borde del banco."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "machine",
@@ -849,18 +789,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una tobillera en cada tobillo se engancha a la misma polea baja, colocada más allá de los pies y alineada con el banco. El cable tira poco con las piernas estiradas y cada vez más conforme las espinillas se acercan a la vertical.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Dobla las dos rodillas a la vez hasta pasar la vertical con las espinillas.",
                 "Vuelve despacio sin dejar que las placas descansen entre repeticiones."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -961,14 +897,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -985,7 +913,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1015,10 +942,8 @@
                 "Túmbate boca abajo con las rodillas en el extremo del banco y agárralo por delante."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1039,18 +964,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Solo el tobillo que trabaja lleva la tobillera, y la otra pierna descansa estirada sobre el banco. Si la polea queda alineada con esa pierna, el cable tira en línea recta y la cadera no se ve arrastrada hacia un lado.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Lleva el talón hacia las nalgas hasta pasar la vertical, con la pelvis quieta.",
                 "Baja hasta casi estirar la pierna y pasa la tobillera al otro tobillo cuando acabes la serie."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1151,14 +1072,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1175,7 +1088,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1204,10 +1116,8 @@
                 "Abrocha la tobillera en ese tobillo y túmbate con las rodillas en el extremo del banco."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1228,18 +1138,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una mancuerna en vertical queda apretada entre los pies, con el asa entre los arcos y el disco de arriba sobre las plantas. Pesa más con las rodillas casi rectas y apenas nada con las espinillas verticales, y pasado ese punto cae hacia las nalgas.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Sube la mancuerna hasta que las espinillas queden verticales, y no más.",
                 "Baja despacio sin estirar del todo las rodillas, apretando los pies para que no resbale."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1340,14 +1246,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1364,7 +1262,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1393,10 +1290,8 @@
                 "Aprieta el asa entre los arcos de los pies y apoya el disco de arriba en las plantas."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -1417,18 +1312,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Un solo pie no puede apretar el asa como lo hacen los dos, así que la mancuerna queda apoyada sobre una planta, sin nada que la sujete por los lados. Solo se sostiene cerca de la vertical, justo donde casi no frena la rodilla, de modo que el estímulo para los isquiosurales es mínimo.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Baja la espinilla solo un poco desde la vertical, sin que la mancuerna se incline.",
                 "Vuelve a la vertical despacio y no la pases."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1529,14 +1420,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1553,7 +1436,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1582,10 +1464,8 @@
                 "Deja la otra pierna estirada sobre el banco."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -1633,19 +1513,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La almohadilla superior baja sobre los muslos justo encima de las rodillas y los fija al asiento, mientras el rodillo inferior empuja contra la parte baja de las pantorrillas. Con los muslos trabados, la cadera no puede abrirse para ayudar y las dos piernas recorren el arco juntas.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Empuja el rodillo hacia abajo y atrás hasta llevar los talones bajo el asiento.",
                 "Deja la espalda pegada al respaldo durante toda la serie.",
                 "Regresa despacio hacia delante y frena antes de que las placas toquen abajo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1746,14 +1622,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1770,7 +1638,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1800,10 +1667,8 @@
                 "Apoya la parte baja de las pantorrillas en el rodillo, por encima de los talones."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "machine",
@@ -1824,18 +1689,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una sola pierna empuja el rodillo mientras la otra se recoge fuera de él, de modo que cada lado mueve su carga sin que el más fuerte compense. La almohadilla queda cerrada sobre los dos muslos y la pelvis no se ladea.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Lleva el talón bajo el asiento con una pierna, sin girar la pelvis.",
                 "Al volver, frena antes de estirar la rodilla del todo y revisa que la pelvis siga centrada en el asiento."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1936,14 +1797,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1960,7 +1813,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1989,10 +1841,8 @@
                 "Pon solo la pierna que trabaja sobre el rodillo y recoge la otra por fuera."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "machine",
@@ -2013,18 +1863,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Frente a la polea baja, con una tobillera en cada tobillo enganchada al mismo cable, los dos talones viajan hacia atrás por debajo del asiento. Nada sujeta los muslos salvo su peso y las manos; al principio el cable incluso ayuda a doblar la rodilla, y pesa más con las espinillas verticales.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Lleva los dos talones hacia atrás, por debajo del banco, sin levantar los muslos.",
                 "Sujeta el borde del banco y vuelve despacio hasta que las espinillas apunten en diagonal hacia la polea, sin estirar las piernas."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2125,14 +1971,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2149,7 +1987,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2178,10 +2015,8 @@
                 "Abrocha una tobillera en cada tobillo, engánchalas al mismo mosquetón y siéntate con las rodillas en el borde."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable",
@@ -2202,18 +2037,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La tobillera va en una sola pierna y el otro pie queda apoyado delante, en el suelo, como punto fijo. El muslo que trabaja reposa en el banco sin nada encima, y el talón pasa bajo el asiento con el cable tirando hacia la polea.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Lleva el talón hacia atrás por debajo del banco sin despegar el muslo.",
                 "Detén la vuelta cuando la espinilla apunte en diagonal hacia la polea, antes de que el cable deje de resistir."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2314,14 +2145,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2338,7 +2161,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2367,10 +2189,8 @@
                 "Apoya el otro pie en el suelo, por delante, y agarra el borde del banco."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable",
@@ -2418,18 +2238,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "De pie no hay curl a dos piernas: una siempre sostiene el cuerpo sobre la plataforma. Esta opción equivale a pasar las dos piernas por el rodillo dentro de la misma serie, primero una y después la otra, con el pecho apoyado en el soporte.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Dobla la rodilla hasta pasar el ángulo recto con el muslo quieto contra la almohadilla.",
                 "Al terminar las repeticiones de esa pierna, cambia de pie y repite con la otra."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2555,14 +2371,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2579,7 +2387,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2608,13 +2415,11 @@
                 "Coloca el rodillo detrás de la otra pierna, justo encima del talón, con el muslo contra su almohadilla."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "machine",
@@ -2635,18 +2440,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El rodillo se apoya detrás del tobillo y el pecho se recuesta en el soporte. La almohadilla hace de tope delante del muslo, y el talón sube solo por la rodilla mientras el muslo no se separe de ella.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Sube el talón hasta que la rodilla pase el ángulo recto, sin separar el muslo de la almohadilla.",
                 "Baja despacio con la rodilla de apoyo un poco flexionada."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2772,14 +2573,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2796,7 +2589,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2825,13 +2617,11 @@
                 "Apoya el muslo contra su almohadilla y el pecho en el soporte, con las manos en los asideros."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "machine",
@@ -2852,18 +2642,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Estando de pie, una pierna siempre sostiene el cuerpo, así que la tobillera pasa de un tobillo al otro dentro de la misma serie. Cada lado hace su tanda de cara a la columna, con una mano apoyada en ella.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Dobla la rodilla con el muslo vertical hasta que la espinilla quede horizontal.",
                 "Al acabar las repeticiones, pasa la tobillera al otro tobillo y repite."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2989,14 +2775,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3013,7 +2791,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3042,13 +2819,11 @@
                 "Ponte de cara a la columna, a un paso, con una mano apoyada en ella."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable",
@@ -3069,18 +2844,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una tobillera une el tobillo a la polea baja, delante del cuerpo, y ninguna almohadilla sujeta el muslo: la propia cadera lo deja vertical. El cable pesa más al arrancar, con la pierna estirada, y menos cuando la espinilla llega a horizontal.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Sube el talón por detrás hasta que la espinilla quede horizontal, con el muslo quieto.",
                 "Baja despacio sin que el pie toque el suelo entre repeticiones."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3206,14 +2977,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3230,7 +2993,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -3259,13 +3021,11 @@
                 "Ponte de cara a la columna, a un paso de ella, y apoya una mano en ella."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable",

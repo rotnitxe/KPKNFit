@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con mancuernas, la palma gira hacia arriba contra la resistencia con el codo pegado al costado. El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -127,14 +123,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Supinaciones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -151,7 +139,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -180,10 +167,8 @@
                 "Preparación: Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -203,17 +188,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con polea, la palma gira hacia arriba contra la resistencia con el codo pegado al costado. El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -310,14 +291,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Supinaciones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -334,7 +307,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -363,10 +335,8 @@
                 "Preparación: Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "cable"
@@ -412,17 +382,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con mancuernas, la palma gira hacia abajo venciendo la resistencia con el codo fijo al costado. Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -517,14 +483,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Pronaciones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -541,7 +499,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -568,10 +525,8 @@
                 "Preparación: Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -591,17 +546,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con polea, la palma gira hacia abajo venciendo la resistencia con el codo fijo al costado. El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -696,14 +647,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Pronaciones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -720,7 +663,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -747,10 +689,8 @@
                 "Preparación: Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "cable"

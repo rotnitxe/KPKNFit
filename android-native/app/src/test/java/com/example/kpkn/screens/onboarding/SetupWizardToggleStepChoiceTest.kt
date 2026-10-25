@@ -90,35 +90,7 @@ class SetupWizardToggleStepChoiceTest {
         assertTrue(after.nutritionDraft?.lactating != true)
     }
 
-    @Test
-    fun ringsDiscomfortKeepsNonCatalogOccurrencesAndExclusiveDisplaces() = runTest {
-        val vm = vm()
-        vm.initialize(SetupWizardMode.FULL)
-        advanceUntilIdle()
 
-        // Ocurrencias declaradas a mano (no del catálogo): se conservan.
-        vm.toggleStepChoice(SetupStepId.RINGS_DISCOMFORT, "manual_neck_pain")
-        vm.toggleStepChoice(SetupStepId.RINGS_DISCOMFORT, "manual_low_back")
-        advanceUntilIdle()
-
-        val draft = vm.state.value.draft
-        assertEquals(
-            setOf("manual_neck_pain", "manual_low_back"),
-            draft.selectedValues(SetupStepId.RINGS_DISCOMFORT),
-        )
-        assertEquals(
-            listOf("manual_low_back", "manual_neck_pain"),
-            draft.ringsAnswers?.discomfortIds,
-        )
-
-        vm.toggleStepChoice(SetupStepId.RINGS_DISCOMFORT, "none")
-        advanceUntilIdle()
-
-        val after = vm.state.value.draft
-        assertEquals(setOf("none"), after.selectedValues(SetupStepId.RINGS_DISCOMFORT))
-        assertEquals(SetupDiscomfortState.NONE, after.ringsAnswers?.discomfortState)
-        assertEquals(emptyList<String>(), after.ringsAnswers?.discomfortIds)
-    }
 
     // --- Fakes mínimos: mismos contratos que SetupWizardPorts ---------------
 
@@ -154,7 +126,6 @@ class SetupWizardToggleStepChoiceTest {
         override fun activeNutritionPlanId(): String? = null
         override fun activeNutritionPlan(): NutritionPlan? = null
         override fun nutritionPlan(id: String): NutritionPlan? = null
-        override fun hasInitialRecoveryEvidence(): Boolean = false
         override suspend fun refreshBodyProgress() = Unit
     }
 }

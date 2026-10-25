@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con peso corporal, de lado con la pierna superior apoyada en el banco, los aductores sostienen la cadera en el aire. Los aductores trabajan con el peso corporal como única carga.",
-              "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -125,14 +121,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Plancha Copenhague",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -148,7 +136,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -176,10 +163,8 @@
                 "Preparación: Versión estática: pierna superior en el banco y cadera arriba todo el tiempo."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "technicalDifficulty": 4.5
             },
             "selectedOptions": {}
           }
@@ -220,17 +205,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con máquina, a dos lados y sentado, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Los aductores trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los aductores se reparte. Sentado, el tronco queda fijo y el aislamiento de los aductores mejora.",
-              "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -327,14 +308,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -350,7 +323,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -378,10 +350,8 @@
                 "Preparación: Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "machine",
@@ -403,17 +373,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con máquina, a un lado y sentado, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Los aductores trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los aductores se aísla y las asimetrías quedan al descubierto. Sentado, el tronco queda fijo y el aislamiento de los aductores mejora.",
-              "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -510,14 +476,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -533,7 +491,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -561,10 +518,8 @@
                 "Preparación: Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "machine",
@@ -586,17 +541,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con máquina, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. La máquina guía la trayectoria del muslo y el apoyo de pie exige que la cadera de apoyo estabilice la pelvis mientras la otra pierna cierra. Los aductores concentran el esfuerzo y la carga se dosifica sin distracciones.",
-              "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -693,14 +644,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -716,7 +659,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -744,10 +686,8 @@
                 "Preparación: Máquina de pie con ambas piernas: coloca las almohadillas a la altura de la rodilla y afirma el apoyo antes de cerrar."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.5
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "machine",
@@ -769,17 +709,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con máquina, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. La máquina guía la trayectoria y el trabajo a una pierna deja al descubierto las diferencias entre muslos. El apoyo de pie exige estabilizar la pelvis mientras el aductor de la pierna que cierra concentra el esfuerzo.",
-              "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -876,14 +812,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -899,7 +827,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -927,10 +854,8 @@
                 "Preparación: Máquina de pie de un lado a la vez: ajusta la almohadilla a la altura de la rodilla y afirma el apoyo antes de cerrar."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.5
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "machine",
@@ -952,17 +877,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con polea, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la polea, la tensión sobre los aductores se mantiene viva de principio a fin. A dos lados, el trabajo de los aductores admite más carga total. De pie, el equilibrio y la zona media participan más en el trabajo de los aductores.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1059,14 +980,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1082,7 +995,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1110,10 +1022,8 @@
                 "Preparación: Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1135,17 +1045,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con polea, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la polea, la tensión sobre los aductores se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo de los aductores se aísla y las asimetrías quedan al descubierto. De pie, el equilibrio y la zona media participan más en el trabajo de los aductores.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1242,14 +1148,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1265,7 +1163,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1293,10 +1190,8 @@
                 "Preparación: Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1318,17 +1213,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con banda elástica, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la banda, la resistencia crece a medida que avanza el trabajo de los aductores. Con ambos lados a la vez, el trabajo de los aductores se reparte. En la posición de pie, el equilibrio y la zona media se suman al trabajo de los aductores.",
-              "efc": 2.0,
               "equipmentId": "band",
               "executionCues": [
                 "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1425,14 +1316,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1448,7 +1331,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1476,10 +1358,8 @@
                 "Preparación: Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "band",
@@ -1501,17 +1381,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con banda elástica, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la banda, la resistencia crece a medida que avanza el trabajo de los aductores. A un lado, el trabajo de los aductores se hace en solitario y las diferencias salen a la vista. En la posición de pie, el equilibrio y la zona media se suman al trabajo de los aductores.",
-              "efc": 2.0,
               "equipmentId": "band",
               "executionCues": [
                 "Banda en una pierna: aducciones contra la banda lado a lado. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1608,14 +1484,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Aducciones de Pierna",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1631,7 +1499,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1659,10 +1526,8 @@
                 "Preparación: Banda en una pierna: aducciones contra la banda lado a lado."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "band",
@@ -1711,17 +1576,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con peso corporal, en la posición lateral del banco, la cadera baja y sube con ritmo desafiando el equilibrio. Sin más carga que el propio cuerpo, la exigencia de los aductores es la justa.",
-              "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1816,14 +1677,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Plancha Copenhague Dinámica",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1839,7 +1692,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1867,10 +1719,8 @@
                 "Preparación: Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "technicalDifficulty": 4.5
             },
             "selectedOptions": {}
           }

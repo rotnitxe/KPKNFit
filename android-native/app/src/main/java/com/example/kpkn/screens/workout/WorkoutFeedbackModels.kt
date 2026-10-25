@@ -9,7 +9,6 @@ import com.example.kpkn.data.models.PlanDeviation
 import com.example.kpkn.data.models.PlanDeviationType
 import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.PostSessionFeedback
-import com.example.kpkn.data.models.RingStartSnapshot
 import com.example.kpkn.data.models.MuscleFeedbackEntry
 import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.ExerciseSet
@@ -20,8 +19,6 @@ import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.models.performedPurpose
-import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.getAugeMusclePillarId
 import com.example.kpkn.domain.training.VolumeCalculator
 import java.time.LocalDate
 
@@ -156,32 +153,15 @@ internal fun backfillCompletedSetIntensityFromPostExerciseFeedbacks(
 }
 
 data class SessionClosingFeedback(
-    val overallFatigue: Int,
-    val systemAdjustment: Int,
-    val muscularAdjustment: Int,
-    val structureAdjustment: Int,
     val discomforts: List<String>,
-    val clarityRating: Int = 5,           // 1–10: mental clarity / freshness at end
-    val environmentTags: List<String> = emptyList(), // e.g. "buen sueño", "estresado"
-    val finalNeuralBattery: Int? = null,
-    val finalSpinalBattery: Int? = null,
-    val finalMuscularBattery: Int? = null,
-    val finalMuscleBatteries: Map<String, Int> = emptyMap(),
-    /** True when the user dragged/edited the neural ring vs engine seed. */
-    val neuralEdited: Boolean = false,
-    /** True when the user dragged/edited the spinal ring vs engine seed. */
-    val spinalEdited: Boolean = false,
-    /** True when the user edited any per-muscle slider vs engine seed. */
-    val musclesEdited: Boolean = false,
-    /** Exact per-muscle keys whose final value differs from the automatic seed. */
-    val editedMuscleKeys: Set<String> = emptySet(),
-    /** Frozen finish metadata shared by preview and persisted log. */
+    val clarityRating: Int? = null,
+    val environmentTags: List<String> = emptyList(),
     val finishOperationId: String? = null,
     val completionInstantIso: String? = null,
     val completedSetInputHash: String? = null,
     val additionalDiscomfortNote: String? = null,
     val stillPresentDiscomfortIds: List<String> = emptyList(),
-    val ringStartSnapshot: RingStartSnapshot? = null,
+    val sessionEffortRpe: Double? = null,
 )
 
 data class ExerciseHistoryEntry(
@@ -301,73 +281,7 @@ fun applyAdvancedFeedback(
     )
 }
 
-fun calculateUnifiedSessionEffortSignal(
-    sets: List<CompletedSet>,
-): Double {
-    val effectiveSets = sets.filter { set ->
-        !set.isWarmup && AugeFatigueEngine.isSetEffective(set)
-    }
-    if (effectiveSets.isEmpty()) return 7.0
 
-    // getEffectiveRPE already includes technique bonuses — do not double-count
-    return effectiveSets
-        .map { set -> AugeFatigueEngine.getEffectiveRPE(set).coerceIn(1.0, 12.0) }
-        .average()
-        .coerceIn(1.0, 12.0)
-}
-
-/** Maps a 1–10 technical quality score to the 1–5 scale expected by calculateTechniquePenalty. */
-fun technicalQuality10ToPenaltyScale(technicalQuality: Int): Int {
-    val q = technicalQuality.coerceIn(1, 10)
-    return (1 + ((q - 1) * 4) / 9).coerceIn(1, 5)
-}
-
-@Suppress("unused")
-fun mapWorkoutToPostSessionFeedback(
-    log: WorkoutLog,
-    postExerciseFeedback: List<PostExerciseFeedback>,
-    exerciseDbById: Map<String, ExerciseMuscleInfo>,
-): PostSessionFeedback {
-    val grouped = postExerciseFeedback.groupBy { feedback ->
-        val exercise = log.completedExercises.find { it.exerciseId == feedback.exerciseId }
-        val dbInfo = exercise?.let {
-            resolveCatalogExerciseInfoInIndex(
-                index = exerciseDbById,
-                catalogConfigurationId = it.catalogConfigurationId,
-                exerciseDbId = it.exerciseDbId,
-                exerciseId = it.exerciseId,
-                exerciseName = it.exerciseName,
-            )
-        }
-        val primary = (exercise?.effectiveMuscles?.takeIf { it.isNotEmpty() } ?: dbInfo?.involvedMuscles.orEmpty())
-            .firstOrNull { it.role == MuscleRole.PRIMARY }
-        if (primary != null) {
-            val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(primary.muscle, primary.emphasis)
-            getAugeMusclePillarId(canonical, primary.emphasis)
-        } else feedback.exerciseName
-    }
-
-    val feedbackByMuscle = grouped.mapValues { (_, list) ->
-        val avgDemand = 7
-        val avgTech = if (list.isEmpty()) 8 else list.map { it.technicalQuality }.average().toInt().coerceIn(1, 10)
-        val hasJointPain = list.any { it.discomfortIds.any { d -> d != "none" } }
-        MuscleFeedbackEntry(
-            doms = (11 - avgTech).coerceIn(1, 5),
-            jointPain = hasJointPain,
-            strengthCapacity = avgDemand,
-            notes = list.flatMap { it.discomfortIds }.filter { it != "none" }.distinct().joinToString().takeIf { it.isNotBlank() } ?: "",
-        )
-    }
-
-    val cnsRecovery = 7
-
-    return PostSessionFeedback(
-        logId = log.id,
-        date = LocalDate.now().toString(),
-        cnsRecovery = cnsRecovery,
-        muscleFeedback = feedbackByMuscle,
-    )
-}
 
 data class SetAutoRegulation(
     val exerciseId: String,
@@ -377,128 +291,3 @@ data class SetAutoRegulation(
     val reason: String,
 )
 
-object WorkoutAutoRegulation {
-    private const val MIN_FACTOR = 0.60
-    private const val MAX_FACTOR = 1.10
-
-    fun computeAdjustmentFactor(
-        weightedDrainPct: Double,
-        effectiveRpe: Double,
-        reachedFailure: Boolean,
-        isFailedSet: Boolean,
-        isPartial: Boolean,
-        sessionProgress: Double,
-    ): Double {
-        var factor = 1.0
-
-        val drainFactor = when {
-            weightedDrainPct >= 10.0 -> -0.10
-            weightedDrainPct >= 7.0 -> -0.07
-            weightedDrainPct >= 4.5 -> -0.04
-            weightedDrainPct >= 2.5 -> -0.02
-            weightedDrainPct >= 1.0 -> -0.01
-            else -> 0.0
-        }
-        factor += drainFactor
-
-        val rpeFactor = when {
-            effectiveRpe >= 11.0 -> -0.08
-            effectiveRpe >= 10.5 -> -0.06
-            effectiveRpe >= 10.0 -> -0.04
-            effectiveRpe >= 9.5 -> -0.02
-            effectiveRpe >= 8.5 -> -0.01
-            effectiveRpe <= 7.0 -> +0.02
-            else -> 0.0
-        }
-        factor += rpeFactor
-
-        if (reachedFailure) factor -= 0.05
-        if (isFailedSet) factor -= 0.03
-        if (isPartial) factor -= 0.02
-
-        val sessionFactor = when {
-            sessionProgress >= 0.80 -> -0.03
-            sessionProgress >= 0.60 -> -0.02
-            sessionProgress >= 0.40 -> -0.01
-            else -> 0.0
-        }
-        factor += sessionFactor
-
-        return factor.coerceIn(MIN_FACTOR, MAX_FACTOR)
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    fun buildReason(
-        factor: Double,
-        weightedDrainPct: Double,
-        effectiveRpe: Double,
-        reachedFailure: Boolean,
-    ): String {
-        val parts = mutableListOf<String>()
-        if (reachedFailure) parts.add("Fallo")
-        if (weightedDrainPct >= 5.0) parts.add("Fatiga acumulada")
-        val detail = parts.joinToString(" · ")
-        return when {
-            factor < 0.95 -> buildString {
-                append("Ajuste de carga")
-                if (detail.isNotBlank()) append(" · $detail")
-                append(" · −${((1 - factor) * 100).toInt()}%")
-            }
-            factor > 1.02 -> "Ajuste de carga · Recuperación buena · +${((factor - 1) * 100).toInt()}%"
-            else -> "Sin ajuste de carga"
-        }
-    }
-
-    private const val READINESS_REDUCTION_THRESHOLD = 70
-    private const val READINESS_SEVERE_THRESHOLD = 50
-    private const val READINESS_MIN_FACTOR = 0.70
-    private const val READINESS_SEVERE_FACTOR = 0.85
-    private const val READINESS_RECOVERY_FACTOR = 1.05
-
-    fun computeReadinessAdjustmentFactor(
-        readinessNeural: Int?,
-        readinessSpinal: Int?,
-        readinessMuscular: Int?,
-        readinessPerMuscle: Map<String, Int>?,
-        involvedMuscleIds: List<String>,
-    ): Double {
-        val perMuscleValues = readinessPerMuscle?.let { overrides ->
-            val relevant = involvedMuscleIds.mapNotNull { overrides[it] }
-            if (relevant.isNotEmpty()) relevant.min() else null
-        }
-        val relevantReadiness = listOfNotNull(
-            readinessNeural?.toDouble(),
-            readinessSpinal?.toDouble(),
-            readinessMuscular?.toDouble(),
-            perMuscleValues?.toDouble(),
-        ).minOrNull()
-
-        val readiness = (relevantReadiness ?: return 1.0).coerceIn(0.0, 100.0)
-
-        return when {
-            readiness < READINESS_SEVERE_THRESHOLD -> {
-                val t = (readiness / READINESS_SEVERE_THRESHOLD).coerceIn(0.0, 1.0)
-                (READINESS_MIN_FACTOR + (READINESS_SEVERE_FACTOR - READINESS_MIN_FACTOR) * t)
-                    .coerceIn(READINESS_MIN_FACTOR, READINESS_SEVERE_FACTOR)
-            }
-            readiness < READINESS_REDUCTION_THRESHOLD -> {
-                val t = ((readiness - READINESS_SEVERE_THRESHOLD) /
-                    (READINESS_REDUCTION_THRESHOLD - READINESS_SEVERE_THRESHOLD)).coerceIn(0.0, 1.0)
-                (READINESS_SEVERE_FACTOR + (1.0 - READINESS_SEVERE_FACTOR) * t)
-                    .coerceIn(READINESS_SEVERE_FACTOR, 1.0)
-            }
-            readiness >= 90 -> READINESS_RECOVERY_FACTOR
-            else -> 1.0
-        }
-    }
-
-    fun buildReadinessReason(factor: Double, readinessValue: Int?): String {
-        if (factor == 1.0) return ""
-        return when {
-            factor < 0.85 && readinessValue != null -> "Readiness ${readinessValue} · −${((1 - factor) * 100).toInt()}%"
-            factor < 1.0 -> "Readiness ${readinessValue ?: "baja"}"
-            factor > 1.0 -> "Readiness ${readinessValue ?: "alta"} · +${((factor - 1) * 100).toInt()}%"
-            else -> ""
-        }
-    }
-}

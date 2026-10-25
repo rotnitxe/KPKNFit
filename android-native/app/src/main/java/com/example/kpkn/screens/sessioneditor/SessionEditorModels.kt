@@ -146,109 +146,6 @@ data class SessionEditorRuleLimits(
 )
 
 
-enum class SessionEditorAugeStatus {
-    OPTIMAL,
-    WARNING,
-    FATIGUING,
-}
-
-enum class SessionEditorAugeAlertSeverity {
-    INFO,
-    WARNING,
-    CRITICAL,
-}
-
-enum class SessionEditorAugeAlertSource {
-    SESSION,
-    WEEK,
-    SYSTEM,
-    EXERCISE,
-}
-
-enum class SessionEditorAugeCorrectionType {
-    REDUCE_SERIES,
-    REDUCE_RPE,
-    REDUCE_VOLUME_RPE,
-    ADD_SERIES,
-}
-
-data class SessionEditorAugeAlert(
-    val id: String,
-    val title: String,
-    val message: String,
-    val severity: SessionEditorAugeAlertSeverity,
-    val source: SessionEditorAugeAlertSource = SessionEditorAugeAlertSource.SESSION,
-    val muscle: String? = null,
-    val exerciseId: String? = null,
-    val exerciseName: String? = null,
-    val correctionType: SessionEditorAugeCorrectionType? = null,
-)
-
-data class SessionEditorAugeExerciseInsight(
-    val exerciseId: String,
-    val name: String,
-    val muscular: Int,
-    val cns: Int,
-    val spinal: Int,
-    val total: Int,
-    val suggestion: String? = null,
-)
-
-data class SessionEditorVolumeThreshold(
-    val sessionMev: Double,
-    val sessionMav: Double,
-    val sessionMrv: Double,
-    val weeklyMev: Double,
-    val weeklyMav: Double,
-    val weeklyMrv: Double,
-)
-
-data class SessionEditorAugeSummary(
-    val sessionDrain: PredictedDrain = PredictedDrain(0, 0, 0),
-    val weeklyDrain: PredictedDrain = PredictedDrain(0, 0, 0),
-    val sessionSetCount: Int = 0,
-    val weeklySetCount: Int = 0,
-    val sessionDurationMinutes: Int = 0,
-    val weeklyDurationMinutes: Int = 0,
-    val sessionDifficulty: Int = 0,
-    val weeklyDifficulty: Int = 0,
-    val status: SessionEditorAugeStatus = SessionEditorAugeStatus.OPTIMAL,
-    val alerts: List<SessionEditorAugeAlert> = emptyList(),
-    val suggestions: List<SessionEditorAugeAlert> = emptyList(),
-    val topExercises: List<SessionEditorAugeExerciseInsight> = emptyList(),
-    val muscleDrainProjection: Map<String, Int> = emptyMap(),
-    /** Estimated CNS/energy drain contribution per canonical muscle (sums ≈ sessionDrain.cns). */
-    val muscleEnergyDrain: Map<String, Int> = emptyMap(),
-    /** Estimated spinal drain contribution per canonical muscle (sums ≈ sessionDrain.spinal; axial only). */
-    val muscleSpinalDrain: Map<String, Int> = emptyMap(),
-    val sessionVolumeByMuscle: Map<String, Double> = emptyMap(),
-    val weeklyVolumeByMuscle: Map<String, Double> = emptyMap(),
-    val volumeThresholdsByMuscle: Map<String, SessionEditorVolumeThreshold> = emptyMap(),
-    val usesCalibratedVolumeThresholds: Boolean = false,
-    val sessionEnergy: SessionEnergySummary = SessionEnergySummary(),
-    /** Desglose detallado de tiempos (Feature 1) */
-    val sessionTimeBreakdown: SessionTimeBreakdown? = null,
-    /**
-     * Proyección de coste compartida con el motor general (MOT · I1/I2): decimales, cardio y evidencia de Columna. null en un
-     * resumen vacío o de respaldo: Impacto cae entonces a los enteros de [sessionDrain].
-     */
-    val drainProjection: com.example.kpkn.domain.auge.SessionDrainProjection? = null,
-    /** Coste por músculo canónico con decimales (suma el total final de la proyección). */
-    val muscleDrainPrecise: Map<String, com.example.kpkn.domain.auge.PreciseDrain> = emptyMap(),
-) {
-    val alertCount: Int
-        get() = alerts.size
-
-    val criticalAlertCount: Int
-        get() = alerts.count { it.severity == SessionEditorAugeAlertSeverity.CRITICAL }
-
-    val warningAlertCount: Int
-        get() = alerts.count { it.severity == SessionEditorAugeAlertSeverity.WARNING }
-
-    val hasCriticalAlerts: Boolean
-        get() = criticalAlertCount > 0
-}
-
 data class SessionEditorUiState(
     val session: Session? = null,
     val originalSession: Session? = null,
@@ -288,8 +185,6 @@ data class SessionEditorUiState(
     val sessionTimeBreakdown: SessionTimeBreakdown? = null,
     /** Feature 2: duración objetivo configurable (min) */
     val targetDurationMinutes: Int? = null,
-    val predictedDrain: PredictedDrain? = null,
-    val augeSummary: SessionEditorAugeSummary = SessionEditorAugeSummary(),
     val ruleDefaults: SessionEditorRuleDefaults = SessionEditorRuleDefaults(),
     val partRuleDefaults: Map<String, SessionEditorRuleDefaults> = emptyMap(),
     val ruleLimits: SessionEditorRuleLimits = SessionEditorRuleLimits(),

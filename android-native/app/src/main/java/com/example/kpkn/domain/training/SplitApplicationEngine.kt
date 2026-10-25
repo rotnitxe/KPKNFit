@@ -5,7 +5,6 @@ import com.example.kpkn.data.exercises.isExerciseCatalogV2RuntimeReady
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
@@ -18,7 +17,7 @@ import com.example.kpkn.data.sessions.SessionTemplateApplyMode
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTemplate
 import com.example.kpkn.data.splits.isVisibleForApplication
-import com.example.kpkn.domain.auge.SessionMuscleFilter
+import com.example.kpkn.domain.exercises.SessionMuscleFilter
 import com.example.kpkn.domain.templates.SessionTemplateCatalogPolicy
 import com.example.kpkn.domain.templates.SessionTemplateEngine
 import com.example.kpkn.domain.templates.SessionClonePurpose
@@ -76,9 +75,7 @@ data class SplitTemplateSessionPreview(
 
 data class PrebuiltWeekPreview(
     val days: List<SplitTemplateSessionPreview>,
-    val weeklyDrain: PredictedDrain = PredictedDrain(0, 0, 0),
     val warnings: List<String> = emptyList(),
-    val exceedsWeeklyBudget: Boolean = false,
 )
 
 data class SplitImpactSummary(
@@ -381,9 +378,7 @@ object SplitApplicationEngine {
                     },
                 )
             },
-            weeklyDrain = plan.weeklyDrain,
             warnings = plan.warnings,
-            exceedsWeeklyBudget = plan.exceedsWeeklyBudget,
         )
     }
 

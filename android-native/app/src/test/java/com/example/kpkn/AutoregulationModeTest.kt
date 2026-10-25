@@ -4,7 +4,6 @@ import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.AutoregulationProposal
 import com.example.kpkn.data.models.AutoregulationProposalKind
 import com.example.kpkn.data.models.BlockGoal
-import com.example.kpkn.data.models.LoadAdvisoryLevel
 import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
@@ -31,7 +30,7 @@ import org.junit.Test
 /**
  * Ajustes inteligentes Off / Proponer / Automático: el modo elegido por el
  * usuario sobrevive a la materialización, OFF no propone ni muta, PROPOSE deja
- * propuesta pendiente sin mutar y AUTO aplica y audita. Sin descargas
+ * propuesta pendiente sin mutar; AUTO heredado también requiere confirmación. Sin descargas
  * periódicas fijas.
  */
 class AutoregulationModeTest {
@@ -119,9 +118,9 @@ class AutoregulationModeTest {
             logs = emptyList(),
             recipe = recipe(),
             signals = WeeklyAutoregulationSignals(
-                readinessScore = 10,
-                cumulativeFatigue = 90.0,
-                loadAdvisoryLevel = LoadAdvisoryLevel.UNLOAD,
+
+
+
                 amrapHits = listOf(AmrapHit(LiftSlot.SQUAT, 95.0, prescribedReps = 5, actualReps = 1)),
             ),
         )
@@ -168,7 +167,7 @@ class AutoregulationModeTest {
     }
 
     @Test
-    fun auto_mode_mutates_the_plan_and_records_the_audit() {
+    fun legacy_auto_mode_preserves_the_plan_until_explicit_confirmation() {
         val program = materialized(AutoregulationMode.AUTO)
         val weeks = program.macrocycles.first().blocks.first().mesocycles.first().weeks
         val result = ProgramAutoregulationEngine.apply(
@@ -179,12 +178,17 @@ class AutoregulationModeTest {
             executedWeekIds = setOf(weeks.first().id),
             metadata = CatalogCompositionTestSupport.metadata,
         )
-        assertTrue("AUTO aplica sin confirmación", result.applied)
-        val audit = result.program.runState?.autoregulationAudit.orEmpty()
+        assertFalse("AUTO heredado requiere confirmación", result.applied)
+        assertEquals(program.macrocycles, result.program.macrocycles)
+        assertEquals(program.powerliftingProfile, result.program.powerliftingProfile)
+        assertEquals(PendingProgramActionType.CONFIRM_AUTOREGULATION, result.program.runState?.pendingAction?.type)
+        val confirmed = ProgramAutoregulationEngine.resolvePending(result.program, true, CatalogCompositionTestSupport.metadata)
+        assertNull(confirmed.runState?.pendingAction)
+        val audit = confirmed.runState?.autoregulationAudit.orEmpty()
         assertTrue("AUTO deja rastro de auditoría", audit.isNotEmpty())
         assertEquals(AutoregulationMode.AUTO, audit.last().mode)
         assertTrue(audit.last().kinds.contains(AutoregulationProposalKind.ADJUST_TM))
-        assertTrue("El TM muta en AUTO", (result.program.powerliftingProfile?.squatTM ?: 180.0) < 180.0)
+        assertTrue("Solo la confirmación explícita cambia TM", (confirmed.powerliftingProfile?.squatTM ?: 180.0) < 180.0)
     }
 
     @Test
@@ -219,7 +223,7 @@ class AutoregulationModeTest {
                 completedWeek = week,
                 logs = emptyList(),
                 recipe = periodic,
-                signals = WeeklyAutoregulationSignals(readinessScore = 80, cumulativeFatigue = 40.0),
+                signals = WeeklyAutoregulationSignals( ),
             )
             assertTrue(
                 "Semana ${week.progressionIndex}: sin descarga periódica fija",

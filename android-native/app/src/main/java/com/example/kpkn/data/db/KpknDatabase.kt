@@ -14,6 +14,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         WorkoutLogEntity::class,
         CompetitionRecordEntity::class,
         SettingsEntity::class,
+        TrainingObservationEntity::class,
         ActiveProgramEntity::class,
         OngoingWorkoutEntity::class,
         WorkoutContextPerformanceEntity::class,
@@ -21,11 +22,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         WorkoutContextProfileEntity::class,
         WorkoutTagEntity::class,
         WorkoutReplacementDecisionEntity::class,
-        WellbeingEntity::class,
-        SleepLogEntity::class,
-        PostSessionFeedbackEntity::class,
         // Tabla legacy (encuesta 24h eliminada); se conserva para el schema.
-        PendingQuestionnaireEntity::class,
         // Nutrition entities (v2)
         NutritionLogEntity::class,
         NutritionPlanEntity::class,
@@ -46,7 +43,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         GlobalFoodFtsEntity::class,
         CustomExerciseEntity::class,
         // Mis RINGS: sueño extendido (v12)
-        SleepLogExtendedEntity::class,
         // Session Templates: user-created blueprints (v13)
         SessionTemplateEntity::class,
         // Learned Resolutions: auto-improvement for food matching (v14)
@@ -58,7 +54,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         // Performance Range: RMS tracking (v15)
         PerformanceRangeEntity::class,
         PerformanceSnapshotEntity::class,
-        AugeAdaptiveCacheEntity::class,
         WorkoutMediaEntity::class,
         WorkoutMediaSessionAssociationEntity::class,
         SetupDraftEntity::class,
@@ -67,18 +62,18 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         VideoAnalysisEntity::class,
         CalibrationDecisionEntity::class,
     ],
-    version = 30,
+    version = 34,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
 
+    abstract fun trainingObservationDao(): TrainingObservationDao
     abstract fun programDao(): ProgramDao
     abstract fun workoutLogDao(): WorkoutLogDao
     abstract fun competitionRecordDao(): CompetitionRecordDao
     abstract fun settingsDao(): SettingsDao
     abstract fun stateDao(): StateDao
     abstract fun workoutV2Dao(): WorkoutV2Dao
-    abstract fun augeDao(): AugeDao
     abstract fun nutritionDao(): NutritionDao
     abstract fun bodyProgressDao(): BodyProgressDao
     abstract fun customExerciseDao(): CustomExerciseDao
@@ -746,10 +741,16 @@ abstract class KpknDatabase : RoomDatabase() {
 
         fun getInstance(context: Context): KpknDatabase =
             INSTANCE ?: synchronized(this) {
-                INSTANCE ?: Room.databaseBuilder(
+                INSTANCE ?: buildPersistent(context)
+                .also { INSTANCE = it }
+            }
+
+        /** Shared migration/validation path for the active DB and an isolated snapshot copy. */
+        internal fun buildPersistent(context: Context, name: String = "kpkn.db", source: java.io.File? = null): KpknDatabase =
+            Room.databaseBuilder(
                     context.applicationContext,
                     KpknDatabase::class.java,
-                    "kpkn.db",
+                    name,
                 )
                 .addMigrations(
                     MIGRATION_1_2,
@@ -781,11 +782,15 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_27_28,
                     videoAnalysisMigration(28),
                     CALIBRATION_MIGRATION_29_30,
+                    TRAINING_OBSERVATIONS_30_31,
+                    RETIRE_DERIVED_TRAINING_31_32,
+                    RETIRE_CATALOG_COEFFICIENTS_32_33,
+                    RETIRE_PENDING_TRAINING_PROPOSALS_33_34,
                 )
                 .addCallback(GlobalFoodsFtsHygiene)
+                .apply { source?.let { createFromFile(it) } }
                 .build()
-                .also { INSTANCE = it }
-            }
+
 
         fun closeInstance() {
             synchronized(this) {

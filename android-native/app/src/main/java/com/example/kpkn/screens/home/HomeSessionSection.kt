@@ -22,19 +22,13 @@ import com.example.kpkn.data.exercises.exerciseCatalogReady
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.LoadAdvisory
-import com.example.kpkn.data.models.LoadAdvisoryLevel
-import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.repository.CustomExerciseRepository
-import com.example.kpkn.domain.auge.AxialSessionExercise
-import com.example.kpkn.domain.auge.LoadAdvisoryEngine
-import com.example.kpkn.domain.auge.SessionMuscleFilter
-import com.example.kpkn.domain.auge.getAugeMuscleDisplayId
-import com.example.kpkn.domain.auge.lookupMuscleValue
+import com.example.kpkn.domain.exercises.SessionMuscleFilter
+import com.example.kpkn.domain.exercises.muscleDisplayLabel
 import com.example.kpkn.domain.training.CompetitionHomePhase
 import com.example.kpkn.domain.training.HomeCompetitionState
 import com.example.kpkn.domain.training.HomeWeekDay
@@ -45,7 +39,7 @@ import com.example.kpkn.screens.home.design.HomeHeroCountdown
 import com.example.kpkn.screens.home.design.HomeHeroLine
 import com.example.kpkn.screens.home.design.HomeHeroMode
 import com.example.kpkn.screens.home.design.HomeHeroState
-import com.example.kpkn.screens.home.design.HomeMuscleGauge
+import com.example.kpkn.screens.home.design.HomeSessionMuscle
 import com.example.kpkn.screens.home.design.HomeSessionHero
 import com.example.kpkn.screens.home.design.heroDose
 import com.example.kpkn.screens.home.design.homeHeroKicker
@@ -66,8 +60,6 @@ fun HomeSessionSection(
     sessions: List<TodaySessionItem>,
     homeCompetition: HomeCompetitionState? = null,
     hasActiveProgram: Boolean = true,
-    perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
-    loadAdvisory: LoadAdvisory? = null,
     onStartWorkout: (Session, Program) -> Unit,
     onRegisterCompetition: (String) -> Unit = {},
     /** Programa activo al que pedir la fecha de competición («Sí, sin fecha»); null si no toca (C4c). */
@@ -98,10 +90,10 @@ fun HomeSessionSection(
     val day = selectedDate?.takeIf { it != today && weekDays.any { d -> d.date == it } } ?: today
 
     val pages = remember(
-        day, today, sessions, weekDays, hasActiveProgram, homeCompetition, loadAdvisory, activeProgram,
+        day, today, sessions, weekDays, hasActiveProgram, homeCompetition, activeProgram,
         customExercises, isCatalogReady,
     ) {
-        homeHeroPages(day, today, sessions, weekDays, hasActiveProgram, homeCompetition, loadAdvisory, activeProgram)
+        homeHeroPages(day, today, sessions, weekDays, hasActiveProgram, homeCompetition, activeProgram)
     }
     val pagerState = rememberPagerState(initialPage = preferredHeroPage(pages)) { pages.size }
     // Al cambiar de día, el pager vuelve a la sesión preferida de ese día.
@@ -140,7 +132,7 @@ fun HomeSessionSection(
                 HomeSessionHero(
                     state = page.state,
                     actions = actionsFor(page),
-                    muscles = gaugesFor(page, perMuscle),
+                    muscles = gaugesFor(page),
                     onOpenMuscles = onOpenMuscleDetail,
                 )
             }
@@ -171,7 +163,7 @@ fun HomeSessionSection(
                 HomeSessionHero(
                     state = page.state,
                     actions = actionsFor(page),
-                    muscles = gaugesFor(page, perMuscle),
+                    muscles = gaugesFor(page),
                     onOpenMuscles = onOpenMuscleDetail,
                 )
             }
@@ -212,13 +204,9 @@ private data class HomeHeroPage(
         )
 }
 
-/** Los músculos de una página como chips: su % de recuperación, o sin dato («—»). Vacío si la página no los muestra. */
-private fun gaugesFor(page: HomeHeroPage, perMuscle: Map<String, MuscleRecoveryStatus>): List<HomeMuscleGauge> =
-    if (page.showsMuscles) {
-        page.muscles.map { HomeMuscleGauge(it, lookupMuscleValue(perMuscle, it)?.recoveryScore) }
-    } else {
-        emptyList()
-    }
+/** Authored muscles of the scheduled session, without recovery percentages or implied readiness. */
+private fun gaugesFor(page: HomeHeroPage): List<HomeSessionMuscle> =
+    if (page.showsMuscles) page.muscles.map { HomeSessionMuscle(it) } else emptyList()
 
 /** La página preferida: la sesión en curso, si no la que toca hoy, si no la primera. */
 private fun preferredHeroPage(pages: List<HomeHeroPage>): Int =
@@ -237,7 +225,6 @@ private fun homeHeroPages(
     weekDays: List<HomeWeekDay>,
     hasActiveProgram: Boolean,
     homeCompetition: HomeCompetitionState?,
-    loadAdvisory: LoadAdvisory?,
     activeProgram: Program?,
 ): List<HomeHeroPage> {
     val onToday = day == today
@@ -315,7 +302,7 @@ private fun homeHeroPages(
         listOf(dayItems.firstOrNull { it.session.isMainSession } ?: dayItems.first())
     }
     return picked.map { item ->
-        sessionHeroPage(item, day, onToday, position, count, countdown, loadAdvisory)
+        sessionHeroPage(item, day, onToday, position, count, countdown)
     }
 }
 
@@ -327,7 +314,6 @@ private fun sessionHeroPage(
     position: Int?,
     count: Int?,
     countdown: HomeHeroCountdown?,
-    loadAdvisory: LoadAdvisory?,
 ): HomeHeroPage {
     val session = item.session
     val mode = when {
@@ -337,11 +323,6 @@ private fun sessionHeroPage(
         else -> HomeHeroMode.TODAY
     }
     val exercises = session.allExercises()
-    // El aviso de carga habla de la sesión que toca ahora, así que solo sale en las sesiones de hoy que no están hechas.
-    val advisory = loadAdvisory?.takeIf {
-        (mode == HomeHeroMode.TODAY || mode == HomeHeroMode.ONGOING) &&
-            LoadAdvisoryEngine.rank(it.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST)
-    }
     val log = item.log
     val meta = if (mode == HomeHeroMode.DONE && log != null) doneMeta(log) else estimateMeta(session, exercises.size)
     return HomeHeroPage(
@@ -356,7 +337,7 @@ private fun sessionHeroPage(
             },
             moreCount = (exercises.size - 3).coerceAtLeast(0),
             meta = meta,
-            advisoryBadge = advisory?.let { LoadAdvisoryEngine.badgeLabel(it, axialHintsForSession(session)) },
+            advisoryBadge = null,
             countdown = countdown,
         ),
         item = item,
@@ -414,13 +395,13 @@ private fun getSessionInvolvedMuscles(session: Session): List<String> {
         if (info != null) {
             SessionMuscleFilter.relevantMusclesFor(info)
                 .asSequence()
-                .map { involvement -> getAugeMuscleDisplayId(involvement.muscle, involvement.emphasis) }
+                .map { involvement -> muscleDisplayLabel(involvement.muscle, involvement.emphasis) }
                 .filter { it.isNotBlank() }
                 .forEach(muscles::add)
         } else if (!exercise.effectiveMuscles.isNullOrEmpty()) {
             exercise.effectiveMuscles
                 .asSequence()
-                .map { involvement -> getAugeMuscleDisplayId(involvement.muscle, involvement.emphasis) }
+                .map { involvement -> muscleDisplayLabel(involvement.muscle, involvement.emphasis) }
                 .filter { it.isNotBlank() }
                 .forEach(muscles::add)
         }
@@ -432,33 +413,3 @@ private fun getSessionInvolvedMuscles(session: Session): List<String> {
     return muscles.toList()
 }
 
-internal fun axialHintsForSession(session: Session): List<AxialSessionExercise> =
-    session.allExercises().mapNotNull { exercise ->
-        val info = resolveCatalogExerciseInfo(
-            catalogConfigurationId = exercise.catalogConfigurationId,
-            exerciseDbId = exercise.exerciseDbId,
-            exerciseId = exercise.exerciseId ?: exercise.id,
-            exerciseName = exercise.name,
-        ) ?: return@mapNotNull null
-        AxialSessionExercise(
-            name = exercise.name.ifBlank { info.name },
-            axial = info.axialLoadFactor ?: 0.0,
-            replacementGroup = info.replacementGroup,
-        )
-    }
-
-internal fun axialCatalogAlternatives(
-    hints: List<AxialSessionExercise>,
-): List<AxialSessionExercise> {
-    val groups = hints.mapNotNull { it.replacementGroup }.toSet()
-    if (groups.isEmpty()) return emptyList()
-    return exerciseCatalogSnapshot().mapNotNull { info ->
-        val group = info.replacementGroup ?: return@mapNotNull null
-        if (group !in groups) return@mapNotNull null
-        AxialSessionExercise(
-            name = info.name,
-            axial = info.axialLoadFactor ?: 0.0,
-            replacementGroup = group,
-        )
-    }
-}

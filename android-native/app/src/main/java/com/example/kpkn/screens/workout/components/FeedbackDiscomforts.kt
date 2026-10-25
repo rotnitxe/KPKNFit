@@ -123,7 +123,7 @@ internal fun DiscomfortPicker(
             }
         } else if (compact) {
             // La tarjeta no tiene sitio para el rótulo: una sola fila que se desliza, con lo reportado antes primero (F4).
-            if (insights.reported.isEmpty() && insights.likely.isEmpty()) {
+            if (insights.reported.isEmpty()) {
                 Text(
                     text = "Escribe para buscar la zona que molesta.",
                     style = KpknType.caption,
@@ -142,16 +142,7 @@ internal fun DiscomfortPicker(
                             reported = true,
                         )
                     }
-                    insights.likely.forEach { id ->
-                        val label = DISCOMFORT_CATALOG_BY_ID[id]?.label ?: return@forEach
-                        DiscomfortChip(
-                            label = label,
-                            zoneColor = zoneColorOf(id),
-                            selected = draft.isSelected(id),
-                            onClick = { onOpenDiscomfort(id) },
-                            compact = true,
-                        )
-                    }
+
                 }
             }
         } else {
@@ -170,22 +161,7 @@ internal fun DiscomfortPicker(
                     }
                 }
             }
-            if (insights.likely.isNotEmpty()) {
-                Text(text = "Frecuentes en $focusName", style = KpknType.caption, color = WizardColors.textMuted, maxLines = 2)
-                ChipFlow(compact) {
-                    insights.likely.forEach { id ->
-                        val label = DISCOMFORT_CATALOG_BY_ID[id]?.label ?: return@forEach
-                        DiscomfortChip(
-                            label = label,
-                            zoneColor = zoneColorOf(id),
-                            selected = draft.isSelected(id),
-                            onClick = { onOpenDiscomfort(id) },
-                            compact = compact,
-                        )
-                    }
-                }
-            }
-            if (insights.reported.isEmpty() && insights.likely.isEmpty()) {
+            if (insights.reported.isEmpty()) {
                 Text(
                     text = "Escribe para buscar la zona que molesta.",
                     style = KpknType.caption,

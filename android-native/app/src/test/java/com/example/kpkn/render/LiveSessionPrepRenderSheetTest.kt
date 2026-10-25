@@ -21,20 +21,15 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.data.models.AugeSnapshot
 import com.example.kpkn.data.models.MobilitySeries
-import com.example.kpkn.data.models.RecoveryBand
-import com.example.kpkn.data.models.RecoveryChannelId
-import com.example.kpkn.data.models.RecoveryChannelSnapshot
-import com.example.kpkn.data.models.RecoveryDashboard
 import com.example.kpkn.data.models.VoiceCaptureMode
 import com.example.kpkn.data.models.WarmupSetDefinition
+import com.example.kpkn.screens.workout.PreSessionPreparationDialog
 import com.example.kpkn.screens.workout.components.MobilityPhaseLiveCard
 import com.example.kpkn.screens.workout.components.VoiceCaptureModeDialog
 import com.example.kpkn.screens.workout.components.WarmupPhaseLiveCard
 import com.example.kpkn.screens.workout.components.WarmupPhaseRow
 import com.example.kpkn.screens.workout.components.WorkoutMobilityChecklistItem
-import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
 import com.example.kpkn.ui.theme.KPKNTheme
 import dev.chrisbanes.haze.HazeState
 import org.junit.Assume.assumeTrue
@@ -58,44 +53,8 @@ private const val VOZ_TAG = "lr1b-voz"
 private val SESSION_ACCENT = Color(0xFFF49A6E)
 
 // Datos de ejemplo tomados de la captura original de la hoja de estado: músculos 90 %, energía 89 %, columna 83 %.
-private val SAMPLE_AUGE = AugeSnapshot(
-    dashboard = RecoveryDashboard(
-        overallScore = 89,
-        headline = "Listo para entrenar",
-        summary = "Recuperación buena en todos los canales.",
-        recommendation = "Entrena con normalidad.",
-        confidenceLabel = "Alta",
-        channels = listOf(
-            RecoveryChannelSnapshot(
-                id = RecoveryChannelId.MUSCULAR,
-                title = "Músculos",
-                shortTitle = "Músculos",
-                score = 90,
-                band = RecoveryBand.NORMAL,
-                description = "Recuperación muscular.",
-                action = "Volumen normal y buena ejecución.",
-            ),
-            RecoveryChannelSnapshot(
-                id = RecoveryChannelId.SYSTEM,
-                title = "Energía",
-                shortTitle = "Energía",
-                score = 89,
-                band = RecoveryBand.HIGH,
-                description = "Sistema nervioso.",
-                action = "Buen día para intensidad y coordinación.",
-            ),
-            RecoveryChannelSnapshot(
-                id = RecoveryChannelId.STRUCTURE,
-                title = "Columna",
-                shortTitle = "Columna",
-                score = 83,
-                band = RecoveryBand.NORMAL,
-                description = "Carga estructural.",
-                action = "Carga estructural normal con buena técnica.",
-            ),
-        ),
-    ),
-)
+
+
 
 /** Aproximación de ejemplo: dos series hechas (una con peso distinto del sugerido) y una pendiente. */
 private fun aproxRows(): List<WarmupPhaseRow> = listOf(
@@ -244,30 +203,6 @@ class LiveSessionPrepRenderSheetTest {
         drawVoz(fontScale = 1.3f, name = "voz_130")
     }
 
-    @Test
-    fun estadoDestelloFotograma1_100() {
-        onlyWhenAsked()
-        drawEstado(fontScale = 1f, name = "estado_destello_fotograma1_100", gleamProgress = 0.35f)
-    }
-
-    @Test
-    fun estadoDestelloFotograma2_100() {
-        onlyWhenAsked()
-        drawEstado(fontScale = 1f, name = "estado_destello_fotograma2_100", gleamProgress = 0.75f)
-    }
-
-    @Test
-    fun estadoDestelloFotograma1_130() {
-        onlyWhenAsked()
-        drawEstado(fontScale = 1.3f, name = "estado_destello_fotograma1_130", gleamProgress = 0.35f)
-    }
-
-    @Test
-    fun estadoDestelloFotograma2_130() {
-        onlyWhenAsked()
-        drawEstado(fontScale = 1.3f, name = "estado_destello_fotograma2_130", gleamProgress = 0.75f)
-    }
-
     private fun drawEstado(fontScale: Float, name: String, heightDp: Int = 880, gleamProgress: Float? = null) {
         rule.setContent {
             hostView = LocalView.current
@@ -282,19 +217,11 @@ class LiveSessionPrepRenderSheetTest {
                                 .background(Color.Black)
                                 .testTag(ESTADO_TAG),
                         ) {
-                            WorkoutReadinessSheet(
-                                showReadinessSheet = true,
-                                gender = null,
-                                sessionMuscleStartingBatteries = mapOf("Pecho" to 92, "Cuádriceps" to 88),
-                                readinessNeuralStart = 89,
-                                readinessMuscularStart = 90,
-                                readinessSpinalStart = 83,
-                                hazeState = HazeState(),
-                                onSave = { _, _, _, _, _, _, _, _, _ -> },
-                                augeSnapshot = SAMPLE_AUGE,
-                                voiceSessionEnabled = true,
-                                voiceCaptureMode = VoiceCaptureMode.HANDS_FREE,
-                                forcedGleamProgress = gleamProgress,
+                            PreSessionPreparationDialog(
+                                notes = "Contexto opcional de hoy",
+                                previous = listOf("22 oct · 5 km · 28 min · Registro manual"),
+                                discomforts = listOf("Molestia registrada: rodilla"),
+                                onNotes = {}, onDismiss = {},
                             )
                         }
                     }

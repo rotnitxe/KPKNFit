@@ -36,7 +36,7 @@ class RelatorPhraseRulesTest {
             protocolId = "smolov",
             protocolName = "Smolov",
             autoregulationMode = com.example.kpkn.data.models.AutoregulationMode.PROPOSE,
-            dailyScore = 40,
+
         ),
         relatorContext(
             isTopSet = true,

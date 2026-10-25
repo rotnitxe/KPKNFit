@@ -15,7 +15,6 @@ public struct HomeScreen: View {
     let viewModel: HomeViewModel
     let nutritionViewModel: NutritionViewModel?
 
-    @StateObject private var augeViewModel = AugeViewModel.shared
 
     @State private var showFoodLogger = false
     @State private var selectedMealForLogger: MealType = .LUNCH
@@ -52,13 +51,6 @@ public struct HomeScreen: View {
     }
 
     public var body: some View {
-        let snapshot = augeViewModel.snapshot
-        let muscularProgress = CGFloat(snapshot.ringScore(id: .MUSCULAR)) / 100.0
-        let sncProgress = CGFloat(snapshot.ringScore(id: .SYSTEM)) / 100.0
-        let columnaProgress = CGFloat(snapshot.ringScore(id: .STRUCTURE)) / 100.0
-        let perMuscle = snapshot.perMuscle
-        let autoDeloadMessage = snapshot.autoDeloadMessage
-        let overtrainedMuscles = viewModel.overtrainedMuscles
         let greeting = viewModel.getGreeting()
 
         let topMarginItem0: CGFloat = 16
@@ -83,21 +75,8 @@ public struct HomeScreen: View {
                         HomeHeaderSection(greeting: greeting, userName: viewModel.userName)
                             .id("item-0")
 
-                        HomeRingsSection(
-                            muscularProgress: muscularProgress,
-                            sncProgress: sncProgress,
-                            columnaProgress: columnaProgress,
-                            hasActiveProgram: viewModel.hasActiveProgram
-                        )
-                        .id("item-1")
-
-                        if let msg = autoDeloadMessage, !msg.isEmpty {
-                            AutoDeloadBanner(message: msg)
-                        }
-
-                        if !overtrainedMuscles.isEmpty {
-                            OvertrainedBanner(muscles: overtrainedMuscles)
-                        }
+                        RecordedTrainingHistoryView(logs: ProgramRepository.shared.history)
+                            .id("item-1")
 
                         if let countdown = viewModel.competitionCountdown {
                             CompetitionCountdownCard(
@@ -110,7 +89,6 @@ public struct HomeScreen: View {
                             sessions: viewModel.todaySessions,
                             hasActiveProgram: viewModel.hasActiveProgram,
                             currentDayOfWeek: currentDayOfWeek(),
-                            perMuscle: perMuscle,
                             onStartWorkout: onStartWorkout,
                             onResumeWorkout: onResumeWorkout,
                             onEditSession: onEditSession
@@ -165,9 +143,6 @@ public struct HomeScreen: View {
                 sessionProgress: sessionProgress,
                 nutritionProgress: nutritionProgress,
                 hasPrograms: viewModel.hasActiveProgram,
-                muscularProgress: muscularProgress,
-                sncProgress: sncProgress,
-                columnaProgress: columnaProgress,
                 todaySessions: viewModel.todaySessions,
                 dailyCalorieGoal: viewModel.dailyCalorieGoal,
                 consumedCalories: Int(viewModel.todayNutritionTotals.calories),
@@ -222,52 +197,6 @@ private struct ScrollOffsetKey: PreferenceKey {
     }
 }
 
-// MARK: - Auto-Deload Banner
-
-private struct AutoDeloadBanner: View {
-    let message: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Auto-deload sugerido")
-                .font(.system(size: 14, weight: .bold))
-                .foregroundColor(.white)
-            Text(message)
-                .font(.system(size: 12))
-                .foregroundColor(.white.opacity(0.85))
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(Color.red.opacity(0.45))
-        .cornerRadius(12)
-        .padding(.horizontal, 16)
-    }
-}
-
-// MARK: - Overtrained Banner
-
-private struct OvertrainedBanner: View {
-    let muscles: [String]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("\u{26A0}\u{FE0F} Sobreentrenamiento Crónico Detectado")
-                .font(.system(size: 14, weight: .bold))
-                .foregroundColor(.white)
-            Text("El coach detecta fatiga crítica acumulada en: \(muscles.joined(separator: ", ")). Considera reducir las series semanales o tomar un descanso activo.")
-                .font(.system(size: 12))
-                .foregroundColor(.white.opacity(0.85))
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color.red.opacity(0.65))
-        .cornerRadius(12)
-        .padding(.horizontal, 16)
-    }
-}
-
 // MARK: - HomeTopBar
 
 private struct HomeTopBar: View {
@@ -280,9 +209,6 @@ private struct HomeTopBar: View {
     let sessionProgress: CGFloat
     let nutritionProgress: CGFloat
     let hasPrograms: Bool
-    let muscularProgress: CGFloat
-    let sncProgress: CGFloat
-    let columnaProgress: CGFloat
     let todaySessions: [TodaySessionItem]
     let dailyCalorieGoal: Int?
     let consumedCalories: Int
@@ -310,15 +236,6 @@ private struct HomeTopBar: View {
                         .lineLimit(1)
                         .opacity(greetingAlpha)
                         .offset(y: greetingSlide)
-
-                    MiniRingsWidget(
-                        muscularProgress: muscularProgress,
-                        sncProgress: sncProgress,
-                        columnaProgress: columnaProgress,
-                        hasActiveProgram: hasPrograms
-                    )
-                    .opacity(ringsAlpha)
-                    .offset(y: ringsSlide)
 
                     MiniSessionCard(
                         hasPrograms: hasPrograms,
@@ -417,66 +334,6 @@ private struct HomeTopBar: View {
     private var nutritionSlide: CGFloat {
         if nutritionProgress > 0 { return (1 - nutritionProgress) * boxHeight }
         return 0
-    }
-}
-
-// MARK: - MiniRingsWidget
-
-private struct MiniRingsWidget: View {
-    let muscularProgress: CGFloat
-    let sncProgress: CGFloat
-    let columnaProgress: CGFloat
-    let hasActiveProgram: Bool
-
-    private let ringColors: [Color] = [
-        Color(hex: 0xFF5252),
-        Color(hex: 0x448AFF),
-        Color(hex: 0xFFD740)
-    ]
-
-    private let ringColorsDimmed: [Color] = [
-        Color(hex: 0x666666),
-        Color(hex: 0x888888),
-        Color(hex: 0xAAAAAA)
-    ]
-
-    var body: some View {
-        let colors = hasActiveProgram ? ringColors : ringColorsDimmed
-        let values = [muscularProgress, sncProgress, columnaProgress]
-
-        GeometryReader { geo in
-            let r = geo.size.height * 0.38
-            let strokeW = r * 0.28
-            let gap = r * 0.35
-            let diameter = r * 2
-            let spacing = diameter - gap
-            let totalWidth = diameter + spacing * 2
-            let startX = (geo.size.width - totalWidth) / 2 + r
-            let cy = geo.size.height / 2
-
-            ZStack(alignment: .topLeading) {
-                ForEach(0..<3, id: \.self) { i in
-                    let cx = startX + spacing * CGFloat(i)
-                    let color = colors[i]
-                    let progress = values[i]
-
-                    ZStack {
-                        Circle()
-                            .stroke(color.opacity(0.15), lineWidth: strokeW)
-                            .frame(width: diameter, height: diameter)
-
-                        Circle()
-                            .trim(from: 0, to: progress)
-                            .stroke(color, style: StrokeStyle(lineWidth: strokeW, lineCap: .round))
-                            .frame(width: diameter, height: diameter)
-                            .rotationEffect(.degrees(-90))
-                    }
-                    .position(x: cx, y: cy)
-                }
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 38)
     }
 }
 

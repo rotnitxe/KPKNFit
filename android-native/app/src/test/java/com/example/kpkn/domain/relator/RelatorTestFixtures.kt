@@ -112,9 +112,9 @@ internal fun relatorContext(
         overlayMinimized = true,
     ),
     readiness = RelatorReadinessSlice(
-        dailyScore = dailyScore,
-        dailyLabel = "Moderada",
-        exerciseScore = dailyScore,
+
+
+
         sleepQuality = 3,
         stressLevel = 3,
         doms = 2,

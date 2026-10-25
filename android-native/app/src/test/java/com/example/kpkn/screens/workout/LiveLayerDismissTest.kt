@@ -4,6 +4,9 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.view.View
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedDispatcherOwner
+import org.robolectric.shadows.ShadowDialog
+import androidx.compose.ui.test.isDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,19 +41,14 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.MuscleAdvance
-import com.example.kpkn.data.models.PostSessionPreview
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
-import com.example.kpkn.domain.auge.SessionIntensityResult
 import com.example.kpkn.screens.workout.components.RoadmapPendingAction
 import com.example.kpkn.screens.workout.components.SeriesOptionsSheet
-import com.example.kpkn.screens.workout.components.SetAdjustmentOverlay
 import com.example.kpkn.screens.workout.components.UltraFastPreviewSheet
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
-import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
 import com.example.kpkn.screens.workout.components.WorkoutRoadmapBar
 import com.example.kpkn.ui.components.KpknGlassDialog
 import com.example.kpkn.ui.components.KpknOverlayHostContent
@@ -116,12 +114,18 @@ class LiveLayerDismissTest {
     }
 
     private fun pressBack() {
-        rule.runOnIdle { rule.activity.onBackPressedDispatcher.onBackPressed() }
+        rule.runOnIdle {
+            val dialog=ShadowDialog.getLatestDialog()
+            val owner=if(dialog?.isShowing==true) dialog as? OnBackPressedDispatcherOwner else null
+            (owner?.onBackPressedDispatcher ?: rule.activity.onBackPressedDispatcher).onBackPressed()
+        }
         rule.waitForIdle()
     }
 
     private fun tapOutside() {
-        rule.onRoot().performTouchInput { click(Offset(8f, 8f)) }
+        if (ShadowDialog.getLatestDialog()?.isShowing == true)
+            rule.onNode(isDialog()).performTouchInput { click(Offset(8f,8f)) }
+        else rule.onRoot().performTouchInput { click(Offset(8f, 8f)) }
         rule.waitForIdle()
     }
 
@@ -167,26 +171,7 @@ class LiveLayerDismissTest {
 
     private val sampleExercise: Exercise = liveExercise("a", sets = 3)
 
-    private val sampleReadiness = ExerciseReadiness(
-        exerciseId = "a",
-        exerciseName = "Ejercicio A",
-        overallScore = 62,
-        muscularComponent = 70,
-        cnsComponent = 55,
-        spinalComponent = 48,
-        articularComponent = 80,
-        structuralComponent = 75,
-        relatedArticular = emptyList(),
-        muscularWeight = 0.5,
-        cnsWeight = 0.3,
-        spinalWeight = 0.2,
-        articularWeight = 0.0,
-        setsPenaltyFactor = 1.0,
-        intensityPenaltyFactor = 1.0,
-        ermProximityFactor = 1.0,
-        patternId = null,
-        involvedMuscleIds = emptyList(),
-    )
+
 
     // ── Hojas que se cierran con Atrás o tocando fuera ─────────────────────────────────────────────────────────────────────────
 
@@ -300,36 +285,8 @@ class LiveLayerDismissTest {
 
     @Composable
     private fun SummarySheet(onNotesDraft: (String) -> Unit = {}) {
-        FinishWorkoutSheet(
-            session = Session(id = "s", name = "Sesión", exercises = listOf(sampleExercise)),
-            completedSets = emptyMap(),
-            completedExercises = emptyList(),
-            durationMinutes = 45,
-            sessionIntensityResult = SessionIntensityResult(
-                numericValue = 7.0,
-                adjustedNumericValue = 7.0,
-                displayLabel = "Moderada",
-                hasFailure = false,
-                hasTechniques = false,
-                completitudRatio = 1.0,
-                normalizationFactor = 1.0,
-            ),
-            postSessionPreview = PostSessionPreview(
-                neural = 80,
-                spinal = 80,
-                muscular = 80,
-                perMuscle = emptyMap(),
-                globalCnsDrain = 5,
-                globalMuscularDrain = 5,
-                globalSpinalDrain = 5,
-            ),
-            hazeState = HazeState(),
-            onConfirm = { _, _, _, _ -> },
-            onDismiss = { open = false },
-            onShare = {},
-            onSummaryReady = {},
-            onNotesDraft = onNotesDraft,
-        )
+        RecordedSessionFinishSheet(name="SESIÓN TERMINADA",completedExercises=emptyList(),durationMinutes=45,
+            initialNotes="",saving=false,onNotes=onNotesDraft,onAlbum={},onConfirm={_,_->},onDismiss={open=false})
     }
 
     @Test
@@ -338,7 +295,6 @@ class LiveLayerDismissTest {
         var kept: String? = null
         show { if (open) SummarySheet(onNotesDraft = { kept = it }) }
 
-        rule.onNodeWithText("Notas").performClick()
         rule.waitForIdle()
         // La nota rápida pertenece a la sección Notas y conserva el borrador.
         rule.onNodeWithTag("finish-notes", useUnmergedTree = true).performTextReplacement("Me sentí fuerte")
@@ -357,47 +313,6 @@ class LiveLayerDismissTest {
         pressBack()
 
         assertEquals("sin nada escrito no hay nada que guardar", null, kept)
-    }
-
-    @Test
-    fun theReadinessSheetClosesWithoutAnsweringAndLeavesTheSessionUntouched() {
-        open = true
-        var saved = false
-        assertClosesWithBackAndWithATapOutside("Estado previo", "¿Cómo llegas a entrenar hoy?") {
-            WorkoutReadinessSheet(
-                showReadinessSheet = true,
-                gender = null,
-                sessionMuscleStartingBatteries = emptyMap(),
-                readinessNeuralStart = 80,
-                readinessMuscularStart = 80,
-                readinessSpinalStart = 80,
-                hazeState = HazeState(),
-                onSave = { _, _, _, _, _, _, _, _, _ -> saved = true },
-                onDismiss = { open = false },
-            )
-        }
-        assertFalse("cerrarlo no responde nada: el estado previo queda pendiente", saved)
-    }
-
-    @Test
-    fun theSetAdjustmentSheetClosesLikeCancelAndAppliesNothing() {
-        open = true
-        var applied = false
-        assertClosesWithBackAndWithATapOutside("Ajuste por estado actual", "Ajuste por estado actual") {
-            SetAdjustmentOverlay(
-                exercise = sampleExercise,
-                currentSet = sampleExercise.sets.first(),
-                setIndex = 0,
-                exerciseReadiness = sampleReadiness,
-                weightSuggestion = null,
-                averageErm = 118.0,
-                bodyWeight = 80.0,
-                loadMode = LoadModeV2.LOAD,
-                onDismiss = { open = false },
-                onApply = { applied = true },
-            )
-        }
-        assertFalse("cerrar el ajuste no aplica ninguna carga", applied)
     }
 
     // ── Hojas protegidas: Atrás y tocar fuera no las cierran, pero nada se rompe y sus botones sí ─────────────────────────────

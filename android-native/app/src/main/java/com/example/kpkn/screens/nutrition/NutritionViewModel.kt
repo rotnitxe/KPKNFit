@@ -5,9 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.domain.energy.TrainingEnergyEngine
+import com.example.kpkn.domain.nutrition.RecordedEnergyBalance
 import com.example.kpkn.domain.nutrition.*
-import com.example.kpkn.domain.time.ActivityLocalDate
 import com.example.kpkn.domain.training.AppClock
 import com.example.kpkn.domain.training.SystemAppClock
 import kotlinx.coroutines.CancellationException
@@ -478,6 +477,17 @@ class NutritionViewModel(
         activePlan.value?.let { applyPlanToSettings(it) }
     }
 
+    /** Shared identity/FINAL accounting, including missing data for the deferred UI. */
+    val completedTrainingDay: StateFlow<CompletedTrainingDayAccounting> = combine(
+        programRepo.history, _selectedDate, _today,
+    ) { history, date, today ->
+        val day = runCatching { LocalDate.parse(date) }.getOrDefault(today)
+        CompletedTrainingDayAccountant.summarize(history, day, zoneProvider())
+    }.flowOn(computeDispatcher).stateIn(
+        viewModelScope, SharingStarted.Lazily,
+        CompletedTrainingDayAccountant.summarize(emptyList(), _today.value, zoneProvider()),
+    )
+
     val dailyEnergyBalance: StateFlow<DailyEnergyBalance> = combine(
         combine(dailyTotals, programRepo.history, _selectedDate) { totals, history, date ->
             Triple(totals, history, date)
@@ -502,19 +512,17 @@ class NutritionViewModel(
             snapshot = snapshots.find { it.date.trim().take(10) == date.trim().take(10) },
         )
         val targetKcal = (dayGoals as? DayGoalsResult.Present)?.goals?.calorieGoal ?: 0
-        val workoutsToday = history.filter { log ->
-            // Fechas importadas o legacy no ISO se ignoran: ningún parse puede lanzar.
-            val logDay = log.actualDate?.take(10)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
-                ?: ActivityLocalDate.fromInstantIsoOrDatePrefixOrNull(log.date)
-            logDay == activityDay
-        }
-        val trainingBurn = workoutsToday.sumOf { it.energySummary?.totalKcal?.mid ?: 0 }
-        TrainingEnergyEngine.calculateDailyEnergyBalance(
+        val activity = CompletedTrainingDayAccountant.summarize(history, activityDay, zoneProvider())
+        // This existing balance presents the known subtotal. The companion state above
+        // retains missing/estimated/conflicting data; a missing value is not measured zero.
+        val trainingBurn = activity.balanceMidpointKcal ?: 0
+        RecordedEnergyBalance.calculateDailyEnergyBalance(
             consumedKcal = consumedKcal,
             trainingBurnKcal = trainingBurn,
             targetKcal = targetKcal,
         )
     }
+        .flowOn(computeDispatcher)
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, DailyEnergyBalance())
 

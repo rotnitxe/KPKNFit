@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El peso cruza la espalda alta y ambos pies sostienen la bisagra; la carga acompaña al tronco en un arco libre. Las manos fijan su posición sobre los hombros mientras la cadera retrocede.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Dobla un poco las rodillas y lleva la cadera hacia atrás.",
                 "Inclina el torso sin cambiar la curva de la espalda.",
                 "Vuelve a erguirte extendiendo la cadera sin echarte hacia atrás."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -152,14 +148,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Buenos Días",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -176,7 +164,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -207,13 +194,11 @@
                 "Agarra la barra a ambos lados y coloca los pies al ancho de tus caderas."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -234,19 +219,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Un pie queda en el suelo y la pierna libre se desplaza hacia atrás mientras la barra cruza los hombros. La bisagra exige sostener la pelvis nivelada además de levantar el torso.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Lleva la pierna libre hacia atrás a medida que inclinas el pecho.",
                 "Conserva la rodilla de apoyo ligeramente doblada y la pelvis mirando al suelo.",
                 "Recupera la vertical desde la cadera de apoyo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -367,14 +348,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Buenos Días",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -391,7 +364,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -422,14 +394,12 @@
                 "Carga el peso sobre un pie y despega la otra pierna sin girar la pelvis."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "gluteus_medius"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -450,19 +420,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El acolchado descansa sobre los hombros y los agarres quedan delante del pecho, sin alcanzar una barra detrás de la espalda. Los extremos curvos dejan los discos más bajos que el apoyo superior.",
-              "efc": 2.8,
               "equipmentId": "safety_bar",
               "executionCues": [
                 "Desplaza la cadera hacia atrás con una flexión pequeña de rodillas.",
                 "Baja el torso hasta el límite que puedas alcanzar sin redondear la espalda.",
                 "Levanta el pecho mediante la extensión de cadera, sin tirar de los agarres."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -582,14 +548,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Buenos Días",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -606,7 +564,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -637,13 +594,11 @@
                 "Apoya ambos pies firmes y comprueba que la barra no ruede al inclinarte."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "safety_bar",
@@ -664,19 +619,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los agarres frontales sujetan el yugo mientras una pierna queda libre detrás del cuerpo. El acolchado fija el contacto superior, pero no sustituye el trabajo de la cadera de apoyo para impedir un giro.",
-              "efc": 2.8,
               "equipmentId": "safety_bar",
               "executionCues": [
                 "Abre la bisagra enviando la pierna libre hacia atrás.",
                 "Detén la bajada antes de que una cadera se eleve respecto de la otra.",
                 "Regresa sobre la pierna de apoyo sin empujar las asas hacia arriba."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -797,14 +748,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Buenos Días",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -821,7 +764,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -852,14 +794,12 @@
                 "Afirma un pie en el suelo antes de separar la otra pierna."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "gluteus_medius"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "safety_bar",
@@ -880,19 +820,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra recorre los rieles aunque el torso cambie de inclinación, por lo que la distancia de los pies al bastidor determina el espacio para la cadera. Ambos apoyos permanecen en el suelo durante el descenso.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Inclina el pecho dejando que la barra baje por sus rieles.",
                 "Cierra el descenso antes de que la guía te obligue a redondear el tronco.",
                 "Extiende la cadera y vuelve a la altura inicial."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1012,14 +948,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Buenos Días",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1036,7 +964,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1067,13 +994,11 @@
                 "Sitúa ambos pies donde puedas retroceder la cadera sin perder el contacto con la barra."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -1094,19 +1019,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El recorrido fijo limita el desplazamiento de la carga al hacer la bisagra sobre un solo pie. La pierna libre queda fuera del suelo y los rieles ayudan con el balanceo de la barra, sin fijar la pelvis.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Desplaza la pierna libre atrás sin abrir la cadera hacia el costado.",
                 "Baja siguiendo el riel hasta donde puedas conservar la espalda y el pie de apoyo firmes.",
                 "Eleva el torso con la cadera de apoyo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1227,14 +1148,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Buenos Días",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1251,7 +1164,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1282,14 +1194,12 @@
                 "Sostén la carga en la espalda alta y retira un pie del suelo."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "gluteus_medius"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -1310,18 +1220,14 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La resistencia llega a la espalda alta mediante el rodillo móvil de la estación Wenning. Los apoyos delanteros retienen muslos y espinillas mientras ambos pies permanecen sobre la plataforma y los brazos cruzan el pecho.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Inicia la bisagra llevando la pelvis hacia el apoyo posterior; el tronco se inclina como una unidad y las rodillas conservan su pequeña flexión.",
                 "Extiende la cadera para volver a erguirte sin hiperextender la zona lumbar."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1441,14 +1347,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Buenos Días",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1465,7 +1363,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1496,13 +1393,11 @@
                 "Ajusta el rodillo inferior contra las espinillas y el rodillo móvil contra la espalda alta; cruza los brazos sobre el pecho."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "machine",
@@ -1523,19 +1418,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La palanca recibe la carga del torso mientras un solo pie soporta el movimiento en la plataforma. Esta opción depende de que los apoyos permitan liberar la otra pierna sin torcer la pelvis contra el acolchado.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Inclina el tronco sobre el apoyo único y deja la pierna libre fuera de la plataforma.",
                 "Interrumpe el recorrido si la pelvis gira contra el soporte.",
                 "Retorna a la postura erguida con la cadera de apoyo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1656,14 +1547,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Buenos Días",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1680,7 +1563,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1711,14 +1593,12 @@
                 "Ajusta los acolchados y apoya un pie centrado en la plataforma."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "gluteus_medius"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "machine",
@@ -1739,19 +1619,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con las manos detrás de la cabeza o cruzadas sobre el pecho, la única resistencia es el peso del tronco al inclinarse. Al no haber nada que apoyar en la espalda ni que agarrar, el ejercicio enseña la bisagra o sirve de calentamiento.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Empuja la cadera hacia atrás y baja el pecho con la espalda recta.",
                 "Detente cuando notes que tira la parte posterior de los muslos.",
                 "Vuelve a la vertical extendiendo la cadera, sin doblar más las rodillas."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1871,14 +1747,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Buenos Días",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1895,7 +1763,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1923,13 +1790,11 @@
                 "Lleva las manos detrás de la cabeza, con los codos abiertos y sin tirar del cuello, o cruza los brazos sobre el pecho."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "bodyweight",
@@ -1977,17 +1842,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con barra, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2103,14 +1964,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Buenos Días Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2125,7 +1978,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2155,13 +2007,11 @@
                 "Preparación: Barra sentado en el banco: la cadera fija y la tensión directa en los isquios."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -2181,17 +2031,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con máquina Smith, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. En la Smith, la guía fija permite concentrar todo el esfuerzo de los isquiosurales.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Smith sentado: la barra guiada y la postura fija del banco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2307,14 +2153,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Buenos Días Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2329,7 +2167,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2359,13 +2196,11 @@
                 "Preparación: Smith sentado: la barra guiada y la postura fija del banco."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -2385,17 +2220,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.6,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con barra de seguridad, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. Con la barra de seguridad, los hombros descansan mientras el estímulo de los isquiosurales permanece intacto.",
-              "efc": 2.8,
               "equipmentId": "safety_bar",
               "executionCues": [
                 "Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2511,14 +2342,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.6,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Buenos Días Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2533,7 +2356,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2563,13 +2385,11 @@
                 "Preparación: Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "safety_bar"
@@ -2613,19 +2433,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra descansa dentro de ambos codos, cerca del torso, y las manos se juntan delante del pecho sin agarrar su eje. Esta colocación exige sostener la flexión de los brazos durante toda la bisagra.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Envía la cadera hacia atrás sin separar la barra del torso.",
                 "Inclina el pecho conservando el ángulo de los codos y la forma de la espalda.",
                 "Extiende la cadera para volver a estar erguido sin elevar la barra con los brazos."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2759,14 +2575,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Buenos Días/RDL Zercher",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2786,7 +2594,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -2815,14 +2622,12 @@
                 "Retrocede con los pies al ancho de caderas y las rodillas algo flexionadas."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "biceps"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

@@ -1,8 +1,6 @@
 package com.example.kpkn.screens.onboarding
 
-import com.example.kpkn.data.models.InitialRecoveryResponseState
 import com.example.kpkn.data.models.NutritionPlan
-import com.example.kpkn.data.models.RingsMuscleGroup
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
@@ -13,7 +11,6 @@ import com.example.kpkn.domain.onboarding.CompetitionRules
 import com.example.kpkn.domain.onboarding.LiftVariants
 import com.example.kpkn.domain.onboarding.MuscleSymbols
 import com.example.kpkn.domain.onboarding.ProgramSource
-import com.example.kpkn.domain.onboarding.RingsSessionDaysState
 import com.example.kpkn.domain.onboarding.SetupEquationSexValues
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
@@ -178,37 +175,33 @@ private fun summaryLabel(page: SetupStepId): String = when (page) {
     SetupStepId.NUTRITION_WEIGH_INS -> "Pesajes"
     SetupStepId.NUTRITION_RESULT -> "Plan de alimentación"
 
-    SetupStepId.RINGS_INTRO -> "Qué son los RINGS"
-    SetupStepId.RINGS_SESSION_DAYS -> "Días entrenados"
-    SetupStepId.RINGS_MAIN_LIFTS -> "Ejercicios principales"
-    SetupStepId.RINGS_GROUP_SETS -> "Series por grupo"
-    SetupStepId.RINGS_FEELINGS -> "Cómo te sientes"
-    SetupStepId.RINGS_RECENT -> "Entreno reciente"
-    SetupStepId.RINGS_SESSIONS -> "Sesiones en 7 días"
-    SetupStepId.RINGS_RECENCY -> "Última sesión"
-    SetupStepId.RINGS_ACTIVITY -> "Tipo de sesiones"
-    SetupStepId.RINGS_INTENSITY -> "Intensidad"
-    SetupStepId.RINGS_AXIAL -> "Cargas en la espalda"
-    SetupStepId.RINGS_MUSCLE_FEELING -> "Sensación muscular"
-    SetupStepId.RINGS_ENERGY_FEELING -> "Energía"
-    SetupStepId.RINGS_STRUCTURE_FEELING -> "Columna"
-    SetupStepId.RINGS_DISCOMFORT -> "Molestias"
-    SetupStepId.RINGS_RESULT -> "Tus RINGS"
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     SetupStepId.REVIEW_ACTIVATE -> "Revisión y activación"
 
     // Los hitos llevan el título del bloque que cierran.
-    SetupStepId.MILESTONE_BASICS,
-    SetupStepId.MILESTONE_TRAINING,
-    SetupStepId.MILESTONE_NUTRITION,
-    SetupStepId.MILESTONE_RINGS,
-    -> SetupStepDefinitions.blockTitle(SetupStepGraph.blockOf(page))
+    SetupStepId.MILESTONE_BASICS, SetupStepId.MILESTONE_TRAINING, SetupStepId.MILESTONE_NUTRITION,  -> SetupStepDefinitions.blockTitle(SetupStepGraph.blockOf(page))
 
     // Legacy: solo lectura de borradores antiguos, fuera de la ruta productiva.
     SetupStepId.GENDER -> "Identidad de género"
     SetupStepId.HOME_EQUIPMENT -> "Material en casa"
     SetupStepId.NUTRITION_SEX -> "Sexo de cálculo"
-    SetupStepId.RINGS_START -> "Inicio de Rings"
+    
 }
 
 // ─── Valores ─────────────────────────────────────────────────────────────────
@@ -305,40 +298,23 @@ private fun summaryValue(page: SetupStepId, state: SetupWizardState): String {
         SetupStepId.NUTRITION_RESULT -> summaryNutritionResult(state)
 
         // ── RINGS ────────────────────────────────────────────────────────────
-        SetupStepId.RINGS_INTRO -> SUMMARY_READY
-        SetupStepId.RINGS_SESSION_DAYS -> summaryTrainingDays(draft, page)
-        SetupStepId.RINGS_MAIN_LIFTS -> draft.summaryChoice(page)
-        SetupStepId.RINGS_GROUP_SETS -> summaryGroupSets(draft, page)
-        SetupStepId.RINGS_FEELINGS -> summaryFeelings(draft, page)
-        SetupStepId.RINGS_RECENT,
-        SetupStepId.RINGS_SESSIONS,
-        SetupStepId.RINGS_RECENCY,
-        SetupStepId.RINGS_ACTIVITY,
-        SetupStepId.RINGS_INTENSITY,
-        SetupStepId.RINGS_DISCOMFORT,
-        -> draft.summaryChoice(page)
-        SetupStepId.RINGS_AXIAL -> draft.summaryChoice(
-            page,
-            draft.selectedValues(page).ifEmpty { setOfNotNull(draft.summaryAxialAnswer()) },
-        )
-        SetupStepId.RINGS_MUSCLE_FEELING -> draft.summaryFeeling(page, draft.ringsAnswers?.muscleFeeling)
-        SetupStepId.RINGS_ENERGY_FEELING -> draft.summaryFeeling(page, draft.ringsAnswers?.energy)
-        SetupStepId.RINGS_STRUCTURE_FEELING -> draft.summaryFeeling(page, draft.ringsAnswers?.structureFeeling)
-        SetupStepId.RINGS_RESULT -> summaryRingsResult(state)
-
-        // ── Revisión y activación ────────────────────────────────────────────
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         SetupStepId.REVIEW_ACTIVATE -> if (state.receiptId != null) SUMMARY_ACTIVATED else SUMMARY_READY
 
-        SetupStepId.MILESTONE_BASICS,
-        SetupStepId.MILESTONE_TRAINING,
-        SetupStepId.MILESTONE_NUTRITION,
-        SetupStepId.MILESTONE_RINGS,
-        -> SUMMARY_COMPLETED
+        SetupStepId.MILESTONE_BASICS, SetupStepId.MILESTONE_TRAINING, SetupStepId.MILESTONE_NUTRITION,  -> SUMMARY_COMPLETED
 
         // ── Legacy ───────────────────────────────────────────────────────────
         SetupStepId.GENDER, SetupStepId.HOME_EQUIPMENT, SetupStepId.NUTRITION_SEX -> draft.summaryChoice(page)
-        SetupStepId.RINGS_START -> draft.ringsAnswers?.startAction?.takeIf { it.isNotBlank() }
-            ?: draft.summaryMissing(page)
+        
         SetupStepId.INVENTORY_BARBELL -> summaryInventory(draft, page) { it.barbellWeightKg != null }
         SetupStepId.INVENTORY_PLATES -> summaryInventory(draft, page) { it.plates.isNotEmpty() }
         SetupStepId.INVENTORY_DUMBBELLS -> summaryInventory(draft, page) { it.dumbbells.isNotEmpty() }
@@ -438,13 +414,6 @@ private fun SetupWizardDraft.summaryFeeling(step: SetupStepId, level: Int?): Str
         summaryChoice(step)
     }
 
-/** Respuesta de «¿cargas pesadas para la espalda?» desde el tipado, para borradores sin selección guardada. */
-private fun SetupWizardDraft.summaryAxialAnswer(): String? {
-    val axial = ringsAnswers?.axialExposure ?: return null
-    if (axial.state != InitialRecoveryResponseState.DECLARED) return null
-    return if (axial.sessions == 1) "yes" else "no"
-}
-
 /** Etiquetas del catálogo en el orden del catálogo; un valor que ya no existe se muestra legible, nunca crudo. */
 private fun summaryLabels(step: SetupStepId, values: Set<String>): List<String> {
     val options = SetupStepDefinitions.options(step)
@@ -468,19 +437,17 @@ internal fun equationSexHormonalSummary(value: String): String? = when (value) {
 }
 
 private fun summaryOptionLabel(step: SetupStepId, value: String): String {
-    if (step == SetupStepId.RINGS_DISCOMFORT && value == "omit") return SUMMARY_SKIPPED
     if (step == SetupStepId.EQUATION_SEX) equationSexHormonalSummary(value)?.let { return it }
     val number = value.toIntOrNull()
     if (number != null) {
         when (step) {
-            SetupStepId.RINGS_SESSIONS -> return SpanishPlurals.sessions(number)
+            
             SetupStepId.DAYS -> return SpanishPlurals.days(number)
             SetupStepId.CARDIO_TIME -> return "$number min"
             else -> Unit
         }
     }
     SetupStepDefinitions.of(step)?.option(value)?.let { option -> return option.label }
-    if (number != null && step == SetupStepId.RINGS_RECENCY) return "Hace $number días"
     return summaryHumanize(value)
 }
 
@@ -732,74 +699,6 @@ private fun summaryPlanLine(plan: NutritionPlan): String {
     return "$kcal · P ${plan.proteinGoal} · H ${plan.carbGoal} · G ${plan.fatGoal}"
 }
 
-// ─── RINGS ───────────────────────────────────────────────────────────────────
-
-/**
- * Cobertura por canal que publicó la vista previa: solo los canales con dato («Músculos 82 · Energía 75»).
- * Con la vista previa sin dato en ningún canal, «Sin calibrar» (no afirma un porcentaje); sin vista previa, «Listo».
- */
-private fun summaryRingsResult(state: SetupWizardState): String {
-    val coverage = state.ringsCoveragePreview ?: return SUMMARY_READY
-    if (!coverage.hasAnyData) return SUMMARY_UNCALIBRATED
-    return listOfNotNull(
-        coverage.muscular.score?.let { score -> "Músculos $score" },
-        coverage.system.score?.let { score -> "Energía $score" },
-        coverage.structure.score?.let { score -> "Columna $score" },
-    ).joinToString(" · ")
-}
-
-/** Días de RINGS: «3 días · último ayer»; «No entrené» y «No lo recuerdo» sin más. Sin responder, el marcador del paso. */
-private fun summaryTrainingDays(draft: SetupWizardDraft, page: SetupStepId): String {
-    val answers = draft.ringsAnswers
-    val days = answers?.trainedDayOffsets.orEmpty().sorted()
-    return when (answers?.sessionDaysState) {
-        RingsSessionDaysState.DECLARED -> if (days.isEmpty()) draft.summaryMissing(page)
-            else "${SpanishPlurals.days(days.size)} · ${summaryLastTrained(days.first())}"
-        RingsSessionDaysState.NONE -> "No entrené"
-        RingsSessionDaysState.UNKNOWN -> "No lo recuerdo"
-        RingsSessionDaysState.NOT_ANSWERED, null -> draft.summaryMissing(page)
-    }
-}
-
-/** Cuándo fue el último día entrenado (el desplazamiento más pequeño): «último hoy», «último ayer» o «último hace N días». */
-private fun summaryLastTrained(offset: Int): String = when (offset) {
-    0 -> "último hoy"
-    1 -> "último ayer"
-    else -> "último hace $offset días"
-}
-
-/** Series por grupo, los más cargados primero: «Piernas 14 · Espalda 10». Sin cifras pero con grupos en «No lo sé», eso. */
-private fun summaryGroupSets(draft: SetupWizardDraft, page: SetupStepId): String {
-    val answers = draft.ringsAnswers
-    val sets = answers?.groupSets.orEmpty().entries
-        .sortedWith(compareByDescending<Map.Entry<RingsMuscleGroup, Int>> { it.value }.thenBy { it.key.ordinal })
-        .map { (group, count) -> "${group.label} $count" }
-    return when {
-        sets.isNotEmpty() -> sets.joinToString(SUMMARY_SEPARATOR)
-        answers?.groupSetsUnknown.orEmpty().isNotEmpty() -> "No lo sé"
-        else -> draft.summaryMissing(page)
-    }
-}
-
-/** Las tres sensaciones: «Músculos 3 · Energía 4 · Columna —»; sin ninguna, el marcador del paso. */
-private fun summaryFeelings(draft: SetupWizardDraft, page: SetupStepId): String {
-    val answers = draft.ringsAnswers
-    val levels = listOf(
-        "Músculos" to answers?.muscleFeeling,
-        "Energía" to answers?.energy,
-        "Columna" to answers?.structureFeeling,
-    )
-    if (levels.all { (_, level) -> level == null }) return draft.summaryMissing(page)
-    return levels.joinToString(SUMMARY_SEPARATOR) { (label, level) -> "$label ${level ?: "—"}" }
-}
-
-// ─── Una línea ───────────────────────────────────────────────────────────────
-
-/**
- * Una sola línea de como máximo [max] caracteres: colapsa espacios y saltos y, si no cabe, recorta y termina en «…». El corte
- * cae en la última palabra entera que cabe: nunca a media palabra (solo una palabra suelta más larga que el tope se parte). No
- * parte un par suplente (emoji) por la mitad.
- */
 private fun summaryFit(text: String, max: Int): String {
     val line = text.replace(SUMMARY_WHITESPACE, " ").trim()
     if (line.length <= max) return line

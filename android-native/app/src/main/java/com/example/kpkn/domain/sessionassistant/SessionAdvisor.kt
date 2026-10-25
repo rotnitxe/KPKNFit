@@ -4,11 +4,6 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.SessionInterference
-import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.DrainReading
-import com.example.kpkn.domain.auge.InterferenceEngine
-import com.example.kpkn.domain.auge.SessionDrainProjection
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlin.math.ceil
@@ -33,23 +28,12 @@ internal object SessionAdvisor {
     private const val MAX_CARDS = 3
     private const val MAX_DETAILS_PER_CARD = 3
 
-    /** Pico de coste (puntos) a partir del cual el coste estimado se comunica. Señal interna, no un juicio de recuperación. */
-    const val COST_SIGNAL = 60.0
-
     /** Presupuesto de tiempo (AUD1 §2.7): se propone ajuste si el exceso supera max(120 s, 10 % del tiempo disponible). */
     private const val MIN_TIME_EXCESS_SECONDS = 120
     private const val TIME_EXCESS_FRACTION = 0.10
 
     private const val REST_CUT_SECONDS = 15
     private const val MIN_USEFUL_SAVING_SECONDS = 15
-
-    /** Desde este porcentaje un cruce entre sesiones se valora como ajuste; por debajo es solo un dato (AUD1 §2.7). */
-    private const val OVERLAP_CARD_PERCENT = 25
-    private const val OVERLAP_NOTE_PERCENT = 10
-
-    /** Un plan supera a su historial comparable cuando su estrés proyectado excede este múltiplo de la media realizada. */
-    private const val DEVIATION_FACTOR = 1.3
-    private const val MIN_COST_DROP = 0.5
 
     data class Advice(
         val cards: List<AssistantSuggestion>,
@@ -68,7 +52,6 @@ internal object SessionAdvisor {
         input: SessionAssistantInput,
         session: Session,
         context: SessionAnalysisContext,
-        projection: SessionDrainProjection,
         volume: SessionAssistantEngine.VolumeCalculationResult,
     ): Advice {
         val params = AssistantActionParameters(
@@ -81,8 +64,6 @@ internal object SessionAdvisor {
         val outputs = buildList<RuleOutput> {
             add(limitsRule(input, session, context, params, volume))
             add(timeRule(input, session, context, params))
-            addAll(doseRule(input, session, context, projection, params))
-            addAll(overlapRules(input, session, context, params))
         }
         return assemble(outputs)
     }
@@ -349,216 +330,6 @@ internal object SessionAdvisor {
 
     // ─── Coste estimado y desviación respecto del historial ─────────────────
 
-    private fun doseRule(
-        input: SessionAssistantInput,
-        session: Session,
-        context: SessionAnalysisContext,
-        projection: SessionDrainProjection,
-        params: AssistantActionParameters,
-    ): List<RuleOutput> {
-        if (!projection.hasWork || projection.peak < COST_SIGNAL) return emptyList()
-        val summary = costSummary(projection)
-        val history = context.history
-        val stress = AugeFatigueEngine.STRESS_WEIGHT_CNS * projection.precise.cns +
-            AugeFatigueEngine.STRESS_WEIGHT_MUSCULAR * projection.precise.muscular +
-            AugeFatigueEngine.STRESS_WEIGHT_SPINAL * projection.precise.spinal
-        val average = history.averageStress
-        val deviates = history.isSufficient && average != null && stress > DEVIATION_FACTOR * average
-        if (!deviates || context.phase == AssistantPhase.REALIZATION) {
-            val why = when {
-                !history.isSufficient ->
-                    "Aún no hay sesiones comparables suficientes (${history.comparableSessions} de ${SessionAnalysisContextBuilder.MIN_COMPARABLE_SESSIONS}) para saber cómo la toleras, así que no se propone recortar nada."
-                context.phase == AssistantPhase.REALIZATION -> "En una fase de realización un coste alto puede ser deliberado: no se propone recortar nada."
-                else -> "Encaja con tus sesiones recientes: puedes mantenerla."
-            }
-            return listOf(RuleOutput(notes = listOf("Coste estimado: $summary. $why")))
-        }
-
-        val peakBefore = projection.peak
-        val candidates = mutableListOf<AssistantSuggestionDetail>()
-        accessoriesBySetCount(session, context).forEach { ex ->
-            if (candidates.size >= MAX_DETAILS_PER_CARD) return@forEach
-            val action = AssistantDetailAction.ReduceSet(exerciseId = ex.id)
-            costDetail(
-                id = "dose_detail_reduce_${ex.id}",
-                label = "Quitar 1 serie de ${ex.name}",
-                action = action,
-                session = session,
-                params = params,
-                input = input,
-                peakBefore = peakBefore,
-            )?.let { candidates += it }
-        }
-        accessoriesByRpe(session, context).take(2).forEach { ex ->
-            if (candidates.size >= MAX_DETAILS_PER_CARD) return@forEach
-            val action = AssistantDetailAction.LowerRpe(exerciseId = ex.id, amount = 0.5)
-            costDetail(
-                id = "dose_detail_rpe_${ex.id}",
-                label = "Bajar 0,5 de esfuerzo en ${ex.name}",
-                action = action,
-                session = session,
-                params = params,
-                input = input,
-                peakBefore = peakBefore,
-            )?.let { candidates += it }
-        }
-        val note = "Coste estimado: $summary, por encima de tu media en ${history.comparableSessions} sesiones comparables. Es una estimación."
-        if (candidates.isEmpty()) return listOf(RuleOutput(notes = listOf(note)))
-        return listOf(
-            RuleOutput(
-                card = AssistantSuggestion(
-                    id = "dose_deviation",
-                    type = AssistantActionType.COMPOSITE,
-                    title = "Más exigente que tus sesiones recientes",
-                    message = "$note Si hoy prefieres bajarlo, estas opciones cambian el coste estimado; los movimientos principales se mantienen.",
-                    priority = 3,
-                    details = candidates.map { it.copy(defaultAccepted = false) },
-                    kind = AssistantNoticeKind.OPTIONAL_ADJUSTMENT,
-                ),
-                fallbackNote = note,
-            ),
-        )
-    }
-
-    /** Detalle de una acción de coste, solo si el borrador simulado baja de verdad el pico estimado. */
-    private fun costDetail(
-        id: String,
-        label: String,
-        action: AssistantDetailAction,
-        session: Session,
-        params: AssistantActionParameters,
-        input: SessionAssistantInput,
-        peakBefore: Double,
-    ): AssistantSuggestionDetail? {
-        val after = SessionAssistantActions.apply(session, action, params)
-        if (after == session) return null
-        val peakAfter = runCatching {
-            AugeFatigueEngine.projectPlannedSession(after, input.exerciseIndex, input.settings).peak
-        }.getOrNull() ?: return null
-        if (peakBefore - peakAfter < MIN_COST_DROP) return null
-        val effect = SessionAssistantActions.measure(session, after).copy(deltaPeakCost = peakAfter - peakBefore)
-        return AssistantSuggestionDetail(
-            id = id,
-            label = "$label · el pico estimado baja de ${peakBefore.roundToInt()} a ${peakAfter.roundToInt()}",
-            action = action,
-            defaultAccepted = false,
-            effect = effect,
-        )
-    }
-
-    private fun accessoriesBySetCount(session: Session, context: SessionAnalysisContext): List<Exercise> =
-        session.allExercises().distinctBy { it.id }
-            .filter { context.roleOf(it.id) == ExerciseRole.ACCESSORY }
-            .filter { ex -> ex.sets.count { !it.isIneffective && !it.isEmptySlot } >= 2 }
-            .sortedByDescending { ex -> ex.sets.count { !it.isIneffective && !it.isEmptySlot } }
-
-    private fun accessoriesByRpe(session: Session, context: SessionAnalysisContext): List<Exercise> =
-        session.allExercises().distinctBy { it.id }
-            .filter { context.roleOf(it.id) == ExerciseRole.ACCESSORY }
-            .filter { ex -> ex.sets.any { !it.isIneffective && !it.isEmptySlot && it.intensityMode != IntensityMode.AMRAP } }
-            .sortedByDescending { ex -> ex.sets.maxOfOrNull { it.plannedRpe() } ?: 0.0 }
-
-    private fun costSummary(projection: SessionDrainProjection): String {
-        fun part(name: String, reading: DrainReading): String =
-            if (reading is DrainReading.Unknown) "$name sin estimación" else "$name ${reading.label} %"
-        return listOf(
-            part("Músculos", projection.muscularReading),
-            part("Energía", projection.cnsReading),
-            part("Columna", projection.spinalReading),
-        ).joinToString(" · ")
-    }
-
-    // ─── Cruces entre sesiones ──────────────────────────────────────────────
-
-    private fun overlapRules(
-        input: SessionAssistantInput,
-        session: Session,
-        context: SessionAnalysisContext,
-        params: AssistantActionParameters,
-    ): List<RuleOutput> {
-        if (session.allExercises().isEmpty()) return emptyList()
-        val hits = runCatching {
-            InterferenceEngine.analyzeUpcomingSession(
-                current = session,
-                weekSessions = input.weekSessions,
-                history = input.workoutLogs,
-                exerciseDb = input.exerciseIndex,
-                settings = input.settings,
-                nowMs = input.nowMs,
-            )
-        }.getOrDefault(emptyList())
-            .filter { it.interferencePercent >= OVERLAP_NOTE_PERCENT }
-        if (hits.isEmpty()) return emptyList()
-        // Lo realizado y lo previsto no se cuentan dos veces: si una misma sesión aparece en ambos, vale lo realizado.
-        val realizedIds = hits.filter { it.isFromHistory }.map { it.sessionAId }.toSet()
-        val distinct = hits.filter { it.isFromHistory || it.sessionAId !in realizedIds }
-            .sortedByDescending { it.interferencePercent }
-            .take(2)
-        return distinct.map { hit -> overlapRule(hit, session, context, params) }
-    }
-
-    private fun overlapRule(
-        hit: SessionInterference,
-        session: Session,
-        context: SessionAnalysisContext,
-        params: AssistantActionParameters,
-    ): RuleOutput {
-        val percent = hit.interferencePercent
-        val muscles = hit.sharedMuscles.take(2).joinToString(" y ") { it.muscleName }.ifBlank { "algunos músculos" }
-        val hours = hit.hoursApart.roundToInt()
-        val level = when {
-            percent >= 70 -> "alto"
-            percent >= 45 -> "considerable"
-            percent >= OVERLAP_CARD_PERCENT -> "moderado"
-            else -> "bajo"
-        }
-        val name = hit.sessionAName.ifBlank { "otra sesión" }
-        val text = if (hit.isFromHistory) {
-            val ago = if (hours < 20) "hace unas horas" else "hace $hours h"
-            "$ago hiciste «$name», que también cargó $muscles. El solapamiento estimado con esta sesión es $level ($percent %)."
-        } else {
-            "La sesión prevista «$name» comparte $muscles con esta, con unas $hours h entre ellas. El solapamiento estimado es $level ($percent %)."
-        }
-        if (percent < OVERLAP_CARD_PERCENT) {
-            return RuleOutput(notes = listOf("$text Puedes mantener el plan."))
-        }
-        val topMuscle = hit.sharedMuscles.maxByOrNull { it.recoveryDeficit }?.muscleName
-        val target = topMuscle?.let { accessoryFor(session, context, params, it) }
-        val details = if (target != null) {
-            val action = AssistantDetailAction.ReduceSet(exerciseId = target.id)
-            val after = SessionAssistantActions.apply(session, action, params)
-            if (after != session) {
-                listOf(
-                    AssistantSuggestionDetail(
-                        id = "overlap_detail_reduce_${target.id}",
-                        label = "Quitar 1 serie de ${target.name}",
-                        action = action,
-                        defaultAccepted = false,
-                        effect = SessionAssistantActions.measure(session, after),
-                    ),
-                )
-            } else {
-                emptyList()
-            }
-        } else {
-            emptyList()
-        }
-        return RuleOutput(
-            card = AssistantSuggestion(
-                id = "overlap-${hit.sessionAId}",
-                type = AssistantActionType.COMPOSITE,
-                title = "Cruce con «$name»",
-                message = "$text Si prefieres bajar la carga compartida, esta opción quita una serie de un accesorio; los movimientos principales se mantienen.",
-                muscle = topMuscle,
-                priority = 4,
-                details = details,
-                kind = AssistantNoticeKind.OPTIONAL_ADJUSTMENT,
-            ),
-            fallbackNote = "$text Puedes mantener el plan.",
-        )
-    }
-
-    /** Accesorio con más de una serie que carga el músculo (el de más series), o null: los principales no se tocan. */
     private fun accessoryFor(
         session: Session,
         context: SessionAnalysisContext,

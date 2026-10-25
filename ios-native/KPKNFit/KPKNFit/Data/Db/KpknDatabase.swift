@@ -57,27 +57,7 @@ internal protocol WorkoutV2Dao {
     func upsertReplacementDecision(entity: WorkoutReplacementDecisionEntity) async
 }
 
-internal protocol AugeDao {
-    func getAllWellbeing() async -> [WellbeingEntity]
-    func getWellbeingForDate(date: String) async -> WellbeingEntity?
-    func getWellbeingInRange(from: String, to: String) async -> [WellbeingEntity]
-    func upsertWellbeing(entity: WellbeingEntity) async
-    func getLastNSleepLogs(n: Int) async -> [SleepLogEntity]
-    func upsertSleepLog(entity: SleepLogEntity) async
-    func getLastNSleepLogsExtended(n: Int) async -> [SleepLogExtendedEntity]
-    func getAllSleepLogsExtended() async -> [SleepLogExtendedEntity]
-    func upsertSleepLogExtended(entity: SleepLogExtendedEntity) async
-    func deleteSleepLogExtended(id: String) async
-    func getAllFeedback() async -> [PostSessionFeedbackEntity]
-    func getFeedbackSince(from: String) async -> [PostSessionFeedbackEntity]
-    func getFeedbackForLog(logId: String) async -> PostSessionFeedbackEntity?
-    func upsertFeedback(entity: PostSessionFeedbackEntity) async
-    func getPendingQuestionnaire() async -> PendingQuestionnaireEntity?
-    func upsertPendingQuestionnaire(entity: PendingQuestionnaireEntity) async
-    func clearPendingQuestionnaire() async
-    func getAdaptiveCache() async -> AugeAdaptiveCacheEntity?
-    func upsertAdaptiveCache(entity: AugeAdaptiveCacheEntity) async
-}
+
 
 internal protocol NutritionDao {
     func getAllLogs() async -> [NutritionLogEntity]
@@ -215,19 +195,23 @@ internal final class KpknDatabaseInternal {
 
     func runMigrations(currentVersion: Int32) throws -> Int32 {
         var version = currentVersion
-        for step in KpknDatabase.migrationSteps {
-            if version < step.fromVersion {
+        try execute("BEGIN IMMEDIATE")
+        do {
+            for step in KpknDatabase.migrationSteps where version == step.fromVersion {
                 try step.migrate(db: self)
                 version = step.toVersion
             }
+            if version != currentVersion { try execute("PRAGMA user_version=\(version)") }
+            try execute("COMMIT")
+        } catch {
+            try? execute("ROLLBACK")
+            throw error
         }
-        if version != currentVersion {
-            try execute("PRAGMA user_version=\(version)")
-        }
+
         return version
     }
 
-    private func getUserVersion() throws -> Int32 {
+    func getUserVersion() throws -> Int32 {
         var stmt: OpaquePointer?
         var version: Int32 = 0
         if sqlite3_prepare_v2(db, "PRAGMA user_version", -1, &stmt, nil) == SQLITE_OK,
@@ -251,7 +235,6 @@ public final class KpknDatabase {
     let settingsDao: SettingsDao
     let stateDao: StateDao
     let workoutV2Dao: WorkoutV2Dao
-    let augeDao: AugeDao
     let nutritionDao: NutritionDao
     let customExerciseDao: CustomExerciseDao
     let wikiLabDao: WikiLabDao
@@ -291,16 +274,15 @@ public final class KpknDatabase {
     private init() throws {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let dbURL = docs.appendingPathComponent("kpkn.db")
+        let isNew = !FileManager.default.fileExists(atPath: dbURL.path)
         let internalDb = try KpknDatabaseInternal(filePath: dbURL.path)
         self.internalDb = internalDb
 
-        let fm = FileManager.default
-        let dbFile = dbURL.path
-        let isNew = !fm.fileExists(atPath: dbFile)
 
         if isNew {
             try createAllTables(db: internalDb)
             try internalDb.execute("PRAGMA user_version=19")
+            _ = try internalDb.runMigrations(currentVersion: 19)
         } else {
             let currentVersion = try internalDb.getUserVersion()
 
@@ -323,7 +305,6 @@ public final class KpknDatabase {
         let sd = SettingsDaoImpl(db: internalDb)
         let st = StateDaoImpl(db: internalDb)
         let wv = WorkoutV2DaoImpl(db: internalDb)
-        let ad = AugeDaoImpl(db: internalDb)
         let nd = NutritionDaoImpl(db: internalDb)
         let ce = CustomExerciseDaoImpl(db: internalDb)
         let wd = WikiLabDaoImpl(db: internalDb)
@@ -338,7 +319,6 @@ public final class KpknDatabase {
         settingsDao = sd
         stateDao = st
         workoutV2Dao = wv
-        augeDao = ad
         nutritionDao = nd
         customExerciseDao = ce
         wikiLabDao = wd
@@ -349,7 +329,7 @@ public final class KpknDatabase {
     }
 
     private func createAllTables(db: KpknDatabaseInternal) throws {
-        for sql in initialCreateStatements {
+        for sql in Self.initialCreateStatements {
             try db.execute(sql)
         }
     }
@@ -434,13 +414,13 @@ public final class KpknDatabase {
 
     // MARK: Migrations
 
-    private struct MigrationStep {
+    fileprivate struct MigrationStep {
         let fromVersion: Int32
         let toVersion: Int32
         let migrate: (KpknDatabaseInternal) throws -> Void
     }
 
-    private static let migrationSteps: [MigrationStep] = [
+    fileprivate static let migrationSteps: [MigrationStep] = [
         MigrationStep(fromVersion: 1, toVersion: 2) { db in
             try db.execute("CREATE TABLE IF NOT EXISTS `nutrition_logs` (`id` TEXT NOT NULL, `date` TEXT NOT NULL, `mealType` TEXT NOT NULL, `data` TEXT NOT NULL, PRIMARY KEY(`id`))")
             try db.execute("CREATE INDEX IF NOT EXISTS `index_nutrition_logs_date` ON `nutrition_logs` (`date`)")
@@ -589,5 +569,174 @@ public final class KpknDatabase {
         MigrationStep(fromVersion: 18, toVersion: 19) { db in
             try db.execute("CREATE TABLE IF NOT EXISTS `auge_adaptive_cache` (`rowId` INTEGER NOT NULL DEFAULT 1, `data` TEXT, PRIMARY KEY(`rowId`))")
         },
+        MigrationStep(fromVersion: 19, toVersion: 20) { db in
+            try db.preserveTrainingOriginals()
+        },
+        MigrationStep(fromVersion: 20, toVersion: 21) { db in
+            try db.retireDerivedTraining()
+        },
+        MigrationStep(fromVersion: 21, toVersion: 22) { db in
+            try db.retireCatalogCoefficients()
+        },
+        MigrationStep(fromVersion: 22, toVersion: 23) { db in
+            try db.retirePendingTrainingProposals()
+        },
     ]
+}
+
+
+// Isolated legacy preservation boundary. No model result is interpreted as a measurement.
+private extension KpknDatabaseInternal {
+    func preserveTrainingOriginals() throws {
+        try execute("CREATE TABLE IF NOT EXISTS training_observations (sourceIdentity TEXT NOT NULL PRIMARY KEY, kind TEXT NOT NULL, date TEXT NOT NULL, payload TEXT NOT NULL, provenance TEXT NOT NULL)")
+        let wellbeingFields: Set<String> = ["id","date","sleepQuality","stressLevel","doms","motivation","sleepHours","moodState","workIntensity","studyIntensity","notes","preWorkoutDiscomforts","source","capturedFields"]
+        for (table, canonical) in [("wellbeing", "auge_wellbeing"), ("sleep_logs", "auge_sleep"), ("auge_sleep_extended", "auge_sleep_extended"), ("post_session_feedback", "auge_feedback")] {
+            let id = canonical == "auge_feedback" ? "logId" : "id"
+            var statement: OpaquePointer?
+            guard sqlite3_prepare_v2(handle, "SELECT `\(id)`, date, data FROM `\(table)`", -1, &statement, nil) == SQLITE_OK else {
+                throw NSError(domain: "TrainingOriginals", code: 1, userInfo: [NSLocalizedDescriptionKey: "No se puede leer la fuente original; se conserva la base sin purgar."])
+            }
+            defer { sqlite3_finalize(statement) }
+            var status = sqlite3_step(statement)
+            while status == SQLITE_ROW {
+                guard let keyText = sqlite3_column_text(statement, 0), let dateText = sqlite3_column_text(statement, 1), let rawText = sqlite3_column_text(statement, 2) else {
+                    throw NSError(domain: "TrainingOriginals", code: 2)
+                }
+                let key = String(cString: keyText), date = String(cString: dateText), raw = String(cString: rawText)
+                guard let data = raw.data(using: .utf8), let object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                    throw NSError(domain: "TrainingOriginals", code: 3)
+                }
+                let original = canonical == "auge_wellbeing" ? object.filter { wellbeingFields.contains($0.key) } : object
+                let encoded = try JSONSerialization.data(withJSONObject: original, options: [.sortedKeys])
+                guard let payload = String(data: encoded, encoding: .utf8) else { throw NSError(domain: "TrainingOriginals", code: 4) }
+                func quote(_ value: String) -> String { "'" + value.replacingOccurrences(of: "'", with: "''") + "'" }
+                try execute("INSERT OR IGNORE INTO training_observations VALUES (\(quote(canonical + ":" + key)),\(quote(canonical.replacingOccurrences(of: "auge_", with: ""))),\(quote(date)),\(quote(payload)),'historical_original;original_scale;defaults_not_confirmed')")
+                if canonical == "auge_wellbeing" {
+                    let manualKeys: Set<String> = ["manualNeuralBattery","manualMuscularBattery","manualSpinalBattery","manualMuscleBatteries","manualMuscleOverridesV2","manualBatteryAnchorMs"]
+                    var manual = object.filter { manualKeys.contains($0.key) && !($0.value is NSNull) }
+                    if let overrides = manual["manualMuscleOverridesV2"] as? [String: [String: Any]] {
+                        manual["manualMuscleOverridesV2"] = overrides.mapValues { $0.filter { $0.key != "automaticBatteryAtAnchor" } }
+                    }
+                    if !manual.isEmpty {
+                        let bytes = try JSONSerialization.data(withJSONObject: manual, options: [.sortedKeys])
+                        guard let declaration = String(data: bytes, encoding: .utf8) else { throw NSError(domain: "TrainingOriginals", code: 6) }
+                        try execute("INSERT OR IGNORE INTO training_observations VALUES (\(quote(canonical + ":" + key + ":manual")),'historical_self_report',\(quote(date)),\(quote(declaration)),'legacy_0_100_self_report;not_neurological_measurement;not_comparable')")
+                    }
+                }
+                status = sqlite3_step(statement)
+            }
+            guard status == SQLITE_DONE else { throw NSError(domain: "TrainingOriginals", code: 5) }
+        }
+    }
+}
+
+// Final purge follows original preservation in the same SQLite transaction.
+private extension KpknDatabaseInternal {
+    func retireDerivedTraining() throws {
+        func quote(_ value: String) -> String { "'" + value.replacingOccurrences(of: "'", with: "''") + "'" }
+        func preserve(_ identity: String, _ kind: String, _ original: [String: Any]) throws {
+            guard !original.isEmpty else { return }
+            let bytes = try JSONSerialization.data(withJSONObject: original, options: [.sortedKeys])
+            guard let payload = String(data: bytes, encoding: .utf8) else { throw NSError(domain: "TrainingOriginals", code: 10) }
+            try execute("INSERT INTO training_observations VALUES (\(quote(identity)),\(quote(kind)),'',\(quote(payload)),'historical_original;original_scale;not_comparable')")
+        }
+        let settingsDerived: Set<String> = ["augePredictionBias","initialRecoveryEvidence","augeEnableNutritionTracking","augeEnableSleepTracking","augeRecoverySensitivity","augeFatigueSensitivity","augeReadinessThreshold","augeAutoDeload","augeShowAlertsInSession"]
+        let logDerived: Set<String> = ["sessionStressScore","muscularImpactV2","ringStartSnapshot","postSessionPreview"]
+        let setDerived: Set<String> = ["batteryDrain","cnsDrain","spinalDrain","muscularDrain","readinessScore","spinalScore"]
+        let overrides: Set<String> = ["readinessNeuralOverride","readinessMuscularOverride","readinessSpinalOverride","readinessMuscleOverrides"]
+        let ongoingDerived = overrides.union(["lastDrainOverlay","sessionStressScore","postSessionPreview","exerciseReadinessMap","patternReadiness","currentAutoRegulation"])
+        func sets(_ map: [String: [String: Any]]) -> [String: [String: Any]] { map.mapValues { $0.filter { !setDerived.contains($0.key) } } }
+        for (table, key) in [("settings","rowId"),("workout_logs","id"),("ongoing_workout","rowId")] {
+            var statement: OpaquePointer?
+            guard sqlite3_prepare_v2(handle,"SELECT \(key),data FROM \(table) WHERE data IS NOT NULL",-1,&statement,nil) == SQLITE_OK else { throw NSError(domain:"TrainingOriginals",code:11) }
+            defer { sqlite3_finalize(statement) }
+            var status = sqlite3_step(statement)
+            while status == SQLITE_ROW {
+                guard let idText = sqlite3_column_text(statement,0), let raw = sqlite3_column_text(statement,1),
+                    let bytes = String(cString:raw).data(using:.utf8),
+                    var object = try JSONSerialization.jsonObject(with:bytes) as? [String:Any] else { throw NSError(domain:"TrainingOriginals",code:12) }
+                let identity = String(cString:idText)
+                if table == "settings" {
+                    if let evidence = object["initialRecoveryEvidence"] as? [String:Any] {
+                        let keys: Set<String> = ["capturedAtMs","coveredFromMs","coveredToMs","sessions","activityType","intensity","zones","sensations","sourceId","muscleScope","axialExposure","activityTypeState"]
+                        try preserve("settings:\(identity):initial_declarations","historical_onboarding",evidence.filter { keys.contains($0.key) })
+                    }
+                    object = object.filter { !settingsDerived.contains($0.key) }
+                    if let algorithm = object["algorithmSettings"] as? [String:Any] { object["algorithmSettings"] = algorithm.filter { !settingsDerived.contains($0.key) && $0.key != "failureFatigueFactor" } }
+                } else if table == "workout_logs" {
+                    object = object.filter { !logDerived.contains($0.key) }
+                    if let energy=object["energySummary"] as? [String:Any], isRetiredTrainingEnergyMethod(energy["methodVersion"] as? String) { object.removeValue(forKey:"energySummary") }
+                    if let exercises = object["completedExercises"] as? [[String:Any]] {
+                        object["completedExercises"] = exercises.map { exercise -> [String:Any] in
+                            var e = exercise
+                            e.removeValue(forKey:"totalSpinalScore")
+                            if let values = e["sets"] as? [[String:Any]] { e["sets"] = values.map { $0.filter { !setDerived.contains($0.key) } } }
+                            return e
+                        }
+                    }
+                } else {
+                    let declarations = object.filter { overrides.contains($0.key) && !($0.value is NSNull) }
+                    if !declarations.isEmpty { try preserve("ongoing:\(identity):\(object["startTime"] ?? "unknown")","historical_session_context",declarations.merging(object.filter { ["programId","startTime"].contains($0.key) }) { a,_ in a }) }
+                    object = object.filter { !ongoingDerived.contains($0.key) }
+                    if let completed = object["completedSets"] as? [String:[String:Any]] { object["completedSets"] = sets(completed) }
+                    if let undo = object["godModeUndoStack"] as? [[String:Any]] { object["godModeUndoStack"] = undo.map { snapshot -> [String:Any] in
+                        var value=snapshot
+                        if let completed=value["completedSets"] as? [String:[String:Any]] { value["completedSets"]=sets(completed) }
+                        return value
+                    } }
+                }
+                let encoded = try JSONSerialization.data(withJSONObject:object,options:[.sortedKeys])
+                guard let text=String(data:encoded,encoding:.utf8) else { throw NSError(domain:"TrainingOriginals",code:13) }
+                try execute("UPDATE \(table) SET data=\(quote(text)) WHERE \(key)=\(quote(identity))")
+                status=sqlite3_step(statement)
+            }
+            guard status == SQLITE_DONE else { throw NSError(domain:"TrainingOriginals",code:14) }
+        }
+        for table in ["wellbeing","sleep_logs","post_session_feedback","auge_sleep_extended","auge_adaptive_cache","pending_questionnaire"] { try execute("DROP TABLE IF EXISTS \(table)") }
+    }
+}
+
+
+private extension KpknDatabaseInternal {
+    func retireCatalogCoefficients() throws {
+        func quote(_ value: String) -> String { "'" + value.replacingOccurrences(of:"'",with:"''") + "'" }
+        for table in ["custom_exercises","workout_logs"] {
+            var statement: OpaquePointer?
+            guard sqlite3_prepare_v2(handle,"SELECT id,data FROM \(table) WHERE data IS NOT NULL",-1,&statement,nil)==SQLITE_OK else { throw NSError(domain:"TrainingCatalogPreservation",code:3) }
+            defer { sqlite3_finalize(statement) }
+            var status=sqlite3_step(statement)
+            while status==SQLITE_ROW {
+                guard let id=sqlite3_column_text(statement,0), let raw=sqlite3_column_text(statement,1) else { throw NSError(domain:"TrainingCatalogPreservation",code:4) }
+                let cleaned=try LegacyExerciseCoefficientImport.record(String(cString:raw),custom:table=="custom_exercises")
+                try execute("UPDATE \(table) SET data=\(quote(cleaned)) WHERE id=\(quote(String(cString:id)))")
+                status=sqlite3_step(statement)
+            }
+            guard status==SQLITE_DONE else { throw NSError(domain:"TrainingCatalogPreservation",code:5) }
+        }
+    }
+}
+
+
+private extension KpknDatabaseInternal {
+    func retirePendingTrainingProposals() throws {
+        var statement: OpaquePointer?
+        guard sqlite3_prepare_v2(handle, "SELECT id,data FROM programs", -1, &statement, nil) == SQLITE_OK else {
+            throw NSError(domain: "TrainingProposalPreservation", code: 1)
+        }
+        defer { sqlite3_finalize(statement) }
+        var status = sqlite3_step(statement)
+        while status == SQLITE_ROW {
+            guard let id = sqlite3_column_text(statement,0), let raw = sqlite3_column_text(statement,1),
+                  let bytes = String(cString:raw).data(using:.utf8),
+                  let object = try JSONSerialization.jsonObject(with:bytes) as? [String:Any] else {
+                throw NSError(domain: "TrainingProposalPreservation", code: 2)
+            }
+            let encoded = try JSONSerialization.data(withJSONObject: LegacyProgramProposalImport.program(object), options:[.sortedKeys])
+            guard let text = String(data:encoded,encoding:.utf8) else { throw NSError(domain: "TrainingProposalPreservation", code: 3) }
+            func quote(_ value: String) -> String { "'" + value.replacingOccurrences(of:"'",with:"''") + "'" }
+            try execute("UPDATE programs SET data=\(quote(text)) WHERE id=\(quote(String(cString:id)))")
+            status = sqlite3_step(statement)
+        }
+        guard status == SQLITE_DONE else { throw NSError(domain: "TrainingProposalPreservation", code: 4) }
+    }
 }

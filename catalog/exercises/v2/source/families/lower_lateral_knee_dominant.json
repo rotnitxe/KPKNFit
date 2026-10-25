@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La posición amplia permite trasladar el cuerpo de un pie al otro sin dar pasos. En el lado estirado, el talón queda en contacto con el suelo y la punta gira hacia arriba, mientras el pie que recibe el peso conserva toda la planta apoyada.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Dobla una rodilla y desplaza la cadera hacia ese pie.",
                 "Estira la otra pierna hacia el costado con el talón apoyado y la punta hacia arriba.",
                 "Empuja desde el pie de trabajo para volver al centro sin mover los talones de sitio."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -181,14 +177,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Cosaca",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -203,7 +191,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -234,14 +221,12 @@
                 "Junta las manos delante del pecho sin apoyar los brazos sobre los muslos."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

@@ -25,7 +25,7 @@ import kotlinx.serialization.Serializable
  */
 
 @Serializable
-enum class SetupWizardBlock { BASICS, TRAINING, NUTRITION, RINGS, REVIEW }
+enum class SetupWizardBlock { BASICS, TRAINING, NUTRITION, REVIEW }
 
 @Serializable
 enum class SetupStepKind { QUESTION, MILESTONE, REVIEW }
@@ -70,13 +70,6 @@ enum class SetupStepId {
     NUTRITION_TARGET, NUTRITION_HISTORY_CONTEXT, NUTRITION_ACTIVITY,
     NUTRITION_MANUAL_CALORIES, NUTRITION_MANUAL_CARBS_FAT,
     NUTRITION_DISTRIBUTION, NUTRITION_WEIGH_INS, NUTRITION_RESULT, MILESTONE_NUTRITION,
-    // Rings (v2): intro, días, ejercicios principales, series por grupo, intensidad, sensaciones en una pantalla y molestias.
-    // RINGS_RECENT, RINGS_SESSIONS, RINGS_RECENCY, RINGS_ACTIVITY, RINGS_AXIAL y las tres sensaciones sueltas salieron de la
-    // ruta: solo siguen para leer borradores antiguos.
-    RINGS_INTRO, RINGS_SESSION_DAYS, RINGS_MAIN_LIFTS, RINGS_GROUP_SETS, RINGS_FEELINGS,
-    RINGS_RECENT, RINGS_SESSIONS, RINGS_RECENCY, RINGS_ACTIVITY, RINGS_INTENSITY,
-    RINGS_AXIAL, RINGS_MUSCLE_FEELING, RINGS_ENERGY_FEELING, RINGS_STRUCTURE_FEELING,
-    RINGS_DISCOMFORT, RINGS_RESULT, MILESTONE_RINGS,
     // Revisión y activación
     REVIEW_ACTIVATE,
 
@@ -89,8 +82,6 @@ enum class SetupStepId {
     HOME_EQUIPMENT,
     @Deprecated("Sexo de nutrición legacy: los valores explícitos migran a EQUATION_SEX")
     NUTRITION_SEX,
-    @Deprecated("Acción de inicio de Rings legacy: el bloque RINGS es obligatorio")
-    RINGS_START,
     /** Material disponible (símbolos de implementos), sin inventario de kilos ni cantidades. */
     AVAILABILITY,
 }
@@ -114,22 +105,12 @@ data class SetupStepNode(
 data class SetupStepContext(
     val includeTraining: Boolean = true,
     val includeNutrition: Boolean = true,
-    val includeRings: Boolean = true,
     val nutritionProfessional: Boolean = false,
     /**
      * false only hides the nutrition CHAIN until an explicit choice exists;
      * it never removes the block (NUTRITION_START stays in the route).
      */
     val nutritionStarted: Boolean = true,
-    val ringsAction: String? = null,
-    val recentTraining: Boolean? = null,
-    /**
-     * RINGS: hubo días entrenados declarados. Solo entonces la ruta pregunta los ejercicios principales y la intensidad
-     * («No entrené» y «No lo recuerdo» no preguntan detalle).
-     */
-    val ringsTrainedDays: Boolean = false,
-    /** RINGS: hubo un día entrenado en las últimas 72 h (hoy, ayer o anteayer); solo entonces se preguntan las series por grupo. */
-    val ringsTrainedLast72h: Boolean = false,
     // New minimal route data (defaults keep the normal FULL route intact).
     /** Inventory groups whose steps are included (legacy: the wizard no longer asks stock). */
     val inventoryGroups: Set<SetupInventoryGroup> = emptySet(),
@@ -164,16 +145,7 @@ data class SetupStepContext(
     val programImportEnabled: Boolean = ProgramSourceOptions.IMPORT_ENABLED,
     /** COMPETITION: disciplina de competición con experiencia intermedia o avanzada (`CompetitionRules.disciplines`). */
     val asksCompetition: Boolean = false,
-) {
-    /** Same skip rules the WizChat graph applied to the RINGS start action. */
-    val ringsSkipsCalibration: Boolean
-        get() {
-            val action = ringsAction?.trim()?.lowercase().orEmpty()
-            return action == "omit" || action == "keep" || action == "preserve" || action == "remove" ||
-                action.contains("dejar") || action.contains("conservar") ||
-                action.contains("quitar") || action.contains("uncalibrated")
-        }
-}
+)
 
 object SetupStepGraph {
 
@@ -244,36 +216,17 @@ object SetupStepGraph {
         SetupStepId.NUTRITION_WEIGH_INS to SetupWizardBlock.NUTRITION,
         SetupStepId.NUTRITION_RESULT to SetupWizardBlock.NUTRITION,
         SetupStepId.MILESTONE_NUTRITION to SetupWizardBlock.NUTRITION,
-        SetupStepId.RINGS_INTRO to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_SESSION_DAYS to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_MAIN_LIFTS to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_GROUP_SETS to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_FEELINGS to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_RECENT to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_SESSIONS to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_RECENCY to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_ACTIVITY to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_INTENSITY to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_AXIAL to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_MUSCLE_FEELING to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_ENERGY_FEELING to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_STRUCTURE_FEELING to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_DISCOMFORT to SetupWizardBlock.RINGS,
-        SetupStepId.RINGS_RESULT to SetupWizardBlock.RINGS,
-        SetupStepId.MILESTONE_RINGS to SetupWizardBlock.RINGS,
         SetupStepId.REVIEW_ACTIVATE to SetupWizardBlock.REVIEW,
         // Legacy read-only steps keep their block so deserialized progress stays coherent.
         SetupStepId.GENDER to SetupWizardBlock.BASICS,
         SetupStepId.HOME_EQUIPMENT to SetupWizardBlock.TRAINING,
         SetupStepId.NUTRITION_SEX to SetupWizardBlock.NUTRITION,
-        SetupStepId.RINGS_START to SetupWizardBlock.RINGS,
     )
 
     private val milestones: Map<SetupWizardBlock, SetupStepId> = mapOf(
         SetupWizardBlock.BASICS to SetupStepId.MILESTONE_BASICS,
         SetupWizardBlock.TRAINING to SetupStepId.MILESTONE_TRAINING,
         SetupWizardBlock.NUTRITION to SetupStepId.MILESTONE_NUTRITION,
-        SetupWizardBlock.RINGS to SetupStepId.MILESTONE_RINGS,
     )
 
     /** Legacy question rendered as a 1:1 copy of a step (read/migration only). */
@@ -502,21 +455,6 @@ object SetupStepGraph {
                 add(SetupStepId.MILESTONE_NUTRITION)
             }
         }
-        // Bloque 4: Rings (obligatorio; se pregunta siempre). Primero la intro y los días; con días entrenados, los ejercicios
-        // principales y la intensidad, y las series por grupo solo si hubo un día en las últimas 72 h. Las sensaciones y las
-        // molestias SIEMPRE: desconocer el historial no es no entrenar.
-        if (context.includeRings) {
-            add(SetupStepId.RINGS_INTRO)
-            add(SetupStepId.RINGS_SESSION_DAYS)
-            if (context.ringsTrainedDays) {
-                add(SetupStepId.RINGS_MAIN_LIFTS)
-                if (context.ringsTrainedLast72h) add(SetupStepId.RINGS_GROUP_SETS)
-                add(SetupStepId.RINGS_INTENSITY)
-            }
-            addAll(listOf(SetupStepId.RINGS_FEELINGS, SetupStepId.RINGS_DISCOMFORT))
-            add(SetupStepId.RINGS_RESULT)
-            add(SetupStepId.MILESTONE_RINGS)
-        }
         add(SetupStepId.REVIEW_ACTIVATE)
     }.map { node -> SetupStepNode(node, blockOf(node), kindOf(node)) }
 
@@ -637,7 +575,6 @@ object SetupStepGraph {
             WizChatStage.PROFILE -> context.includeTraining || context.includeNutrition
             WizChatStage.TRAINING -> context.includeTraining
             WizChatStage.NUTRITION -> context.includeNutrition
-            WizChatStage.RINGS -> context.includeRings
             WizChatStage.REVIEW -> true
         }
 
@@ -715,7 +652,7 @@ object SetupStepGraph {
 
 /** How a persisted progress was produced; legacy drafts are migrated in repair(). */
 @Serializable
-enum class SetupProgressOrigin { NOT_CONVERTIBLE, MIGRATED_FROM_WIZCHAT, NATIVE }
+enum class SetupProgressOrigin { NOT_CONVERTIBLE, MIGRATED_FROM_WIZCHAT, MIGRATED_FROM_RETIRED_STAGE, NATIVE }
 
 /**
  * Provenance of a value. Engine/preview results can never be stored as declared
@@ -767,7 +704,7 @@ data class SetupFieldCheck(
 @Serializable
 enum class SetupPreviewKind {
     EER, MACROS, EXPENDITURE, NUTRITION_REFERENCES, NUTRITION_DISTRIBUTION,
-    EXERCISES, LOADS, WARMUPS, PLAN_CANDIDATES, SPLIT, RECIPE, MARKS, RINGS_BATTERIES,
+    EXERCISES, LOADS, WARMUPS, PLAN_CANDIDATES, SPLIT, RECIPE, MARKS,
 }
 
 /**
@@ -887,7 +824,7 @@ object SetupDependencyRules {
         )
         // Sensaciones → solo Rings.
         SetupChangeSource.SENSATIONS -> SetupDependencyImpact(
-            stalePreviews = setOf(SetupPreviewKind.RINGS_BATTERIES),
+            stalePreviews = emptySet(),
         )
     }
 }
@@ -951,7 +888,6 @@ data class SetupInputFootprint(
     val autoregulationMode: String? = null,
     val warmupsPreference: String? = null,
     val sessionsSignature: List<String> = emptyList(),
-    val ringsSignature: List<String> = emptyList(),
     val nutritionSignature: List<String> = emptyList(),
     val nutritionStartChoice: String? = null,
     val nutritionDirection: String? = null,
@@ -1035,7 +971,6 @@ object SetupChangeDetector {
         if (old.competition != new.competition || old.meetDateIso != new.meetDateIso) {
             add(SetupChangeSource.CALENDAR)
         }
-        if (old.ringsSignature != new.ringsSignature) add(SetupChangeSource.SENSATIONS)
     }
 }
 

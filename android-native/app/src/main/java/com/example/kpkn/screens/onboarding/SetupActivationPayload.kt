@@ -156,12 +156,21 @@ object SetupActivationPayload {
      * PLANNED y sus recordatorios salen del guardado del programa. Sin fecha válida, devuelve el mismo programa.
      */
     fun programForActivation(program: Program, draft: SetupWizardDraft, today: LocalDate): Program {
-        val meet = CompetitionRules.parseMeetDate(draft.activeMeetDate()) ?: return program
+        return SetupHybridPlanningBridge.prepare(legacyProgramForActivation(program, draft, today), draft)
+    }
+
+    private fun legacyProgramForActivation(program: Program, draft: SetupWizardDraft, today: LocalDate): Program {
+        // Validate before either return path. Never erase an existing explicit snapshot
+        // merely because this draft only edited legacy fields.
+        val intent = draft.trainingIntent ?: program.trainingIntent
+        SetupMultisportIntent.requireValid(intent)
+        val withIntent = if (intent == program.trainingIntent) program else program.copy(trainingIntent = intent)
+        val meet = CompetitionRules.parseMeetDate(draft.activeMeetDate()) ?: return withIntent
         val weekStartDay = draft.effectiveWeekStart()
         val start = ProgramCalendarEngine.alignToWeekStart(today, weekStartDay)
         val end = ProgramCalendarEngine.alignToWeekStart(meet, weekStartDay).plusDays(6)
         val saved = ProgramKeyDateEngine.applyAdvancedCalendarSave(
-            program = program,
+            program = withIntent,
             timelineStartDate = start.toString(),
             competitionDate = meet.toString(),
             manualEndDate = end.toString(),

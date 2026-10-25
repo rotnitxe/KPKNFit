@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra acompaña el avance desde la espalda alta mientras el apoyo posterior pasa delante. El peso permanece sobre la espalda durante la transición, por lo que cada paso incluye la subida y el transporte de la carga.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Aterriza delante con un pie y baja entre las piernas.",
                 "Levántate sobre esa pierna y deja pasar la otra hacia el frente.",
                 "Encadena el siguiente apoyo sin echar la barra hacia un costado."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -178,14 +174,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Caminando",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -201,7 +189,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -233,14 +220,12 @@
                 "Comprueba que el pasillo permite avanzar varios pasos sin obstáculos."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -260,19 +245,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una mancuerna a cada costado acompaña la marcha sin ocupar el espacio delante del tronco. El agarre continúa entre pasos y las pesas pasan junto al muslo cuando la pierna posterior adelanta.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Apoya una pierna delante y flexiona las rodillas.",
                 "Sube sobre el pie anterior y adelanta el que estaba detrás.",
                 "Da el paso siguiente sin balancear las mancuernas para impulsarte."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -452,14 +433,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Caminando",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -475,7 +448,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -507,7 +479,6 @@
                 "Busca una franja de suelo donde las cargas no choquen con objetos."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -515,8 +486,7 @@
                 "forearm",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -536,19 +506,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La pesa permanece frente al pecho, sujeta por los lados del asa, y avanza junto al cuerpo. Su altura debe conservarse mientras cambia el pie de apoyo, sin añadir un balanceo de brazos entre zancadas.",
-              "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Abre el paso y desciende con la carga cerca del esternón.",
                 "Extiéndete sobre la pierna adelantada antes de pasar la otra por delante.",
                 "Continúa avanzando sin separar la pesa del cuerpo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -745,14 +711,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Caminando",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -768,7 +726,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -800,7 +757,6 @@
                 "Deja margen delante para caminar con los codos apuntando al piso."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -809,8 +765,7 @@
                 "biceps",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -830,19 +785,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Sin carga y con las manos en la cintura, el avance depende solo de las piernas y del equilibrio. Cada subida sirve de impulso para pasar la pierna de atrás, de modo que el ejercicio gana terreno sin volver nunca al punto de salida.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Da un paso largo y desciende hasta dejar la rodilla trasera a pocos centímetros del suelo.",
                 "Empuja con la pierna adelantada y pasa la de atrás hacia el frente en un solo movimiento.",
                 "Encadena el paso siguiente sin juntar los pies."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -988,14 +939,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Caminando",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1011,7 +954,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1043,14 +985,12 @@
                 "Deja espacio para varios pasos largos."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "bodyweight"

@@ -20,12 +20,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La sujeción compartida centra una campana delante del cuerpo y permite recibirla entre los muslos antes del siguiente impulso. El asa queda dentro de ambas manos durante todo el arco, incluso en el instante alto en que la carga deja de subir.",
-              "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Lleva la pesa atrás entre los muslos, con la cadera retrasada y las rodillas ligeramente dobladas.",
@@ -33,7 +30,6 @@
                 "Deja que regrese y vuelve a doblar la cadera cuando la carga se acerque a los muslos.",
                 "Termina guiando la campana al suelo delante de ti sin soltar el asa."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -212,14 +208,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Swing con Kettlebell a Dos Manos",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -233,7 +221,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -265,15 +252,13 @@
                 "Tensa el tronco y deja los codos estirados antes de llevar la pesa hacia atrás."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "gluteus_medius",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -312,12 +297,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una mano conserva el asa y la otra queda libre durante toda la serie. La campana recorre el espacio central mientras pecho y pelvis resisten desviarse hacia el brazo cargado, con ambas piernas participando en el impulso.",
-              "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Recibe la pesa entre los muslos y conserva el pecho orientado al frente.",
@@ -325,7 +307,6 @@
                 "Acompaña el movimiento con el brazo libre sin tocar el asa ni girar deliberadamente el torso.",
                 "Apoya la campana en el suelo antes de cambiar la mano de agarre."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -504,14 +485,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Swing con Kettlebell a Una Mano",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -525,7 +498,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -557,15 +529,13 @@
                 "Dobla la cadera para iniciar el paso posterior sin despegar ningún pie."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "gluteus_medius",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -604,12 +574,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con la barra en el suelo se hace el tirón entero: la subida hasta la rodilla, la transición bajo la barra y la extensión final. La recepción sobre los hombros es en sentadilla corta, así que la barra debe subir más alto que en la versión completa.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Empuja el suelo con las piernas y sube la barra pegada al cuerpo hasta pasar las rodillas.",
@@ -617,7 +584,6 @@
                 "Gira los codos arriba y adelante alrededor de la barra y recíbela sobre los hombros, en una sentadilla corta.",
                 "Ponte de pie con la barra apoyada y bájala con control hasta los muslos y de ahí al suelo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -814,14 +780,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 6.5,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Cargada de Potencia",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -842,7 +800,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -875,7 +832,6 @@
                 "Lleva los hombros por delante de la barra, saca el pecho y mira al frente."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "deltoid",
                 "biceps",
@@ -883,8 +839,7 @@
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 6.5,
-              "ttc": 2.0
+              "technicalDifficulty": 6.5
             },
             "selectedOptions": {}
           }
@@ -931,12 +886,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra parte de la mitad del muslo, con el tronco inclinado y las rodillas algo flexionadas, así que todo el trabajo se concentra en la segunda tracción. Sin el despegue del suelo, cada repetición pide menos preparación y se puede encadenar a más velocidad.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Empuja con las piernas y lleva la cadera adelante para subir la barra rozando el muslo.",
@@ -944,7 +896,6 @@
                 "Gira los codos bajo la barra y recíbela sobre los hombros con una sentadilla corta.",
                 "Levántate y baja la barra con control hasta el muslo, lista para la siguiente repetición."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1141,14 +1092,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 6.0,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Cargada de Potencia desde Colgado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1169,7 +1112,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -1202,7 +1144,6 @@
                 "Deja colgar los brazos sin doblarlos, con los codos hacia los lados y la vista al frente."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "deltoid",
                 "biceps",
@@ -1210,8 +1151,7 @@
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 6.0,
-              "ttc": 2.0
+              "technicalDifficulty": 6.0
             },
             "selectedOptions": {}
           }
@@ -1258,12 +1198,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra se recibe en el fondo de la sentadilla frontal, con la cadera bajo las rodillas y los codos altos, y de ahí hay que levantarse con la carga. Esa recepción profunda trabaja las rodillas más que la de potencia y obliga a tener movilidad suficiente para no perder la posición.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Empuja el suelo y mantén los hombros sobre la barra mientras sube hasta las rodillas.",
@@ -1271,7 +1208,6 @@
                 "Pasa los codos bajo la barra y desciende a la sentadilla mientras la recibes sobre los hombros.",
                 "Sal del fondo con las piernas, con los codos altos, hasta quedar de pie, y baja la barra con control hasta los muslos y de ahí al suelo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1475,14 +1411,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Cargada Completa",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1503,7 +1431,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -1537,7 +1464,6 @@
                 "Respira hondo y deja el tronco rígido antes de despegar la barra."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "deltoid",
                 "biceps",
@@ -1545,8 +1471,7 @@
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.0
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {}
           }
@@ -1593,12 +1518,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con un agarre ancho, la barra recorre todo el camino del suelo a la cabeza sin pasar por los hombros y se recibe sobre el centro del pie, en una sentadilla corta. El agarre y el recorrido largo hacen que dependa de la velocidad más que de la carga.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Despega la barra con las piernas y llévala pegada al cuerpo hasta lo alto del muslo.",
@@ -1606,7 +1528,6 @@
                 "Pasa bajo la barra, bloquea los codos y recíbela sobre la cabeza, encima del centro del pie, en una sentadilla corta.",
                 "Con la barra arriba y las piernas estiradas, suéltala por delante sobre discos bumper y con espacio libre, o bájala con control si pesa poco."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1819,14 +1740,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 6.8,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Arranque de Potencia",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1847,7 +1760,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -1882,14 +1794,12 @@
                 "Fija la mirada al frente antes de despegar."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 6.8,
-              "ttc": 2.0
+              "technicalDifficulty": 6.8
             },
             "selectedOptions": {}
           }
@@ -1936,12 +1846,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra cuelga a la altura del muslo con el agarre ancho de arranque, así que el trabajo empieza directamente en la extensión de cadera. Recorre menos camino que desde el suelo, de modo que las repeticiones se encadenan con más rapidez.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Lanza la cadera hacia delante y estira las piernas para acelerar la barra pegada al muslo.",
@@ -1949,7 +1856,6 @@
                 "Mete el cuerpo bajo la barra y bloquea los codos, con ella encima del centro del pie.",
                 "Termina de pie con la barra arriba y bájala con cuidado hasta el muslo, o déjala caer por delante sobre discos bumper si pesa mucho."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2162,14 +2068,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 6.5,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Arranque de Potencia desde Colgado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2190,7 +2088,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -2225,14 +2122,12 @@
                 "Pon los hombros por encima de la barra y los codos hacia fuera."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 6.5,
-              "ttc": 2.0
+              "technicalDifficulty": 6.5
             },
             "selectedOptions": {}
           }
@@ -2279,12 +2174,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra se recibe sobre la cabeza en el fondo de una sentadilla profunda, con la cadera bajo las rodillas y los codos bloqueados. Esa posición pide recorrido de hombro, columna torácica, cadera y tobillo, y hay que levantarse desde ahí con la carga a pulso arriba.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Empuja el suelo con los pies y acelera la barra, siempre rozando el cuerpo, hasta superar las rodillas.",
@@ -2292,7 +2184,6 @@
                 "Mete el cuerpo bajo la barra, bloquea los codos y baja a una sentadilla profunda, con la barra sobre el centro del pie.",
                 "Levántate con la barra arriba, empujándola hacia el techo, y déjala caer hacia delante sobre discos bumper, con sitio libre alrededor."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2513,14 +2404,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 7.0,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Arranque Completo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2543,7 +2426,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -2579,15 +2461,13 @@
                 "Respira hondo y tensa el tronco antes de despegar."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 7.0,
-              "ttc": 2.0
+              "technicalDifficulty": 7.0
             },
             "selectedOptions": {}
           }
@@ -2636,12 +2516,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra sale del suelo con el agarre de cargada y termina en la extensión, con los codos sin doblar y sin recepción. Como no hay que girar bajo ella ni levantarse con la carga, admite un peso superior al de las cargadas.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Empuja el suelo con las piernas y deja la barra rozando el cuerpo hasta la altura de las rodillas.",
@@ -2649,7 +2526,6 @@
                 "Encoge los hombros y termina con los codos sin doblar y la barra a la altura del pecho bajo.",
                 "Deja bajar la barra por el mismo camino hasta el suelo, sin soltarla."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2816,14 +2692,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 6.0,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Tirón de Cargada",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2843,7 +2711,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -2876,14 +2743,12 @@
                 "Mira al frente y tensa el tronco antes de despegar la barra."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 6.0,
-              "ttc": 2.0
+              "technicalDifficulty": 6.0
             },
             "selectedOptions": {}
           }
@@ -2929,12 +2794,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con el agarre ancho de arranque la barra sale del suelo y se acelera hasta la extensión total, a la altura del abdomen o del pecho bajo, sin giro bajo ella y sin recepción. El agarre abierto obliga a partir con la cadera más baja que en el tirón de cargada.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Presiona el suelo con los pies y deja la barra rozando las espinillas y los muslos.",
@@ -2942,7 +2804,6 @@
                 "Termina de puntillas con la barra a la altura del abdomen o del pecho bajo y los brazos todavía largos.",
                 "Baja la barra con calma por el mismo camino y apóyala en el suelo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3125,14 +2986,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 6.0,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Tirón de Arranque",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3152,7 +3005,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 150,
                     "min": 90
@@ -3185,14 +3037,12 @@
                 "Respira, tensa el tronco y mira al frente."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 6.0,
-              "ttc": 2.0
+              "technicalDifficulty": 6.0
             },
             "selectedOptions": {}
           }

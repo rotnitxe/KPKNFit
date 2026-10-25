@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con ambos pies en la rampa, separados como la cadera, las dos piernas mueven juntas el brazo del péndulo. Es la versión que admite más discos, con espalda y cadera apoyadas en el respaldo a lo largo de todo el arco.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Baja dejando que las rodillas pasen por delante de las puntas mientras el respaldo se balancea hacia la plataforma.",
                 "Llega abajo con la cadera cerca de los talones, sin separar la espalda del respaldo.",
                 "Empuja la rampa con todo el pie hasta casi enderezar las rodillas."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -154,14 +150,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla en Máquina Pendular",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -177,7 +165,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -208,12 +195,10 @@
                 "Sujeta las asas de las hombreras y libera el tope de seguridad con las piernas estiradas."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "laterality": "bilateral"
@@ -233,19 +218,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una pierna hace todo el empuje desde el centro de la rampa mientras la otra queda doblada en el aire. El respaldo y las hombreras sujetan el tronco, así que esa pierna trabaja sola sin pelear por sostenerse en pie, con bastante menos peso en el brazo.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Baja con la rodilla de trabajo avanzando sobre la punta, sin que la pelvis se separe del respaldo.",
                 "Llega al fondo sin apoyar el pie libre en la rampa.",
                 "Sube empujando con el pie entero y termina el lado antes de cambiar."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -367,14 +348,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla en Máquina Pendular",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -390,7 +363,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -421,12 +393,10 @@
                 "Sujeta las asas y libera el tope con la pierna de trabajo estirada."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "laterality": "unilateral"

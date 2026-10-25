@@ -317,21 +317,13 @@ public final class ProgramRepository {
     }
 
     public func addWorkoutLog(_ log: WorkoutLog) {
-        let normalized = log.normalizedIdentityFields()
+        let entity = log.normalizedIdentityFields().toEntity()
+        let normalized = entity.toWorkoutLog()
         historyLock.lock()
+        _history.removeAll { $0.id == normalized.id }
         _history.insert(normalized, at: 0)
         historyLock.unlock()
-        Task {
-            let data = try? JSONEncoder().encode(normalized)
-            let entity = WorkoutLogEntity(
-                id: normalized.id,
-                programId: normalized.programId,
-                sessionId: normalized.sessionId,
-                date: normalized.date,
-                data: data.map { String(decoding: $0, as: UTF8.self) } ?? "{}"
-            )
-            try? await db.workoutLogDao.insert(entity: entity)
-        }
+        Task { await db.workoutLogDao.insert(entity: entity) }
     }
 
     public func startWorkout(_ state: OngoingWorkoutState) {

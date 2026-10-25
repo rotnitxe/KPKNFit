@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "La barra cuelga bajo el banco y sube hasta tocar su parte inferior, un tope fijo que hace comparables todas las repeticiones. El agarre prono, algo más ancho que los hombros, deja los codos algo separados del tronco y suma trabajo de la espalda alta.",
-              "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
                 "Junta las escápulas y sube los codos hacia atrás y arriba, sin despegar el pecho del banco.",
                 "Toca con la barra la parte inferior del banco y aguanta un segundo.",
                 "Baja despacio hasta estirar los brazos y deja que las escápulas se separen abajo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -153,14 +149,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Seal",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -176,7 +164,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -209,12 +196,10 @@
                 "Agarra la barra en prono, algo más ancho que los hombros."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -234,19 +219,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Cada mancuerna sube por su lado del banco sin un tope bajo el pecho, así que el codo puede llegar algo más atrás de la línea del tronco. Las manos admiten agarre neutro, más cómodo para muchos hombros, y cada brazo mueve su propia carga.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Sube ambos codos a la vez hacia el techo, pasando la línea del tronco, sin levantar el pecho.",
                 "Aprieta las escápulas arriba un instante.",
                 "Baja las mancuernas despacio hasta extender los brazos del todo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -367,14 +348,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 5.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Seal",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -390,7 +363,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -422,12 +394,10 @@
                 "Túmbate boca abajo con el pecho apoyado y agarra cada mancuerna en neutro, o en prono si tu hombro lo tolera mejor."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 5.0,
-              "ttc": 1.8
+              "technicalDifficulty": 5.0
             },
             "selectedOptions": {
               "implement": "dumbbells"

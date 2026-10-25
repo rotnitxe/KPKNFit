@@ -5,79 +5,25 @@ import com.example.kpkn.domain.training.split.SplitGroup
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 
-/**
- * Estado de volumen de un músculo (P4). Es la única decisión de color de la pestaña: las zonas del objetivo y la marca salen de aquí.
- * Sin calibrar no hay zonas, así que no hay estado de volumen y el color es neutro.
- */
-enum class ProgramVolumeState {
-    /** Sin calibrar: no hay objetivo personalizado con el que comparar. */
-    SIN_CALIBRAR,
+/** Descriptive comparison with authored program references, never recovery or safety. */
+enum class ProgramVolumeState { SIN_REFERENCIA, BAJO_REFERENCIA, EN_REFERENCIA, TRAMO_SUPERIOR, SOBRE_REFERENCIA }
 
-    /** Por debajo del mínimo efectivo (o sin series). */
-    SUBENTRENADO,
-
-    /** Entre el mínimo efectivo y el máximo adaptativo. */
-    OPTIMO,
-
-    /** Por encima del máximo adaptativo y hasta el máximo recuperable. */
-    ALTO_TOLERABLE,
-
-    /** Sobrecarga funcional marcada por la analítica de fatiga. */
-    SOBRECARGA_FUNCIONAL,
-
-    /** Por encima del máximo recuperable, o exceso marcado por la analítica de fatiga. */
-    POSIBLE_EXCESO,
+fun programVolumeStateOf(sets: Double, zones: ProgramVolumeZones?): ProgramVolumeState = when {
+    zones == null -> ProgramVolumeState.SIN_REFERENCIA
+    sets < zones.minEffective -> ProgramVolumeState.BAJO_REFERENCIA
+    sets <= zones.maxAdaptive -> ProgramVolumeState.EN_REFERENCIA
+    sets <= zones.maxRecoverable -> ProgramVolumeState.TRAMO_SUPERIOR
+    else -> ProgramVolumeState.SOBRE_REFERENCIA
 }
 
-/**
- * Estado de una fila. El exceso y la sobrecarga marcados por la analítica mandan sobre las zonas: son una alerta real aunque el
- * programa no esté calibrado. Después, sin calibrar; y luego, las zonas del objetivo.
- */
-fun programVolumeStateOf(
-    sets: Double,
-    zones: ProgramVolumeZones?,
-    overtrained: Boolean,
-    overreaching: Boolean,
-): ProgramVolumeState = when {
-    overtrained -> ProgramVolumeState.POSIBLE_EXCESO
-    overreaching -> ProgramVolumeState.SOBRECARGA_FUNCIONAL
-    zones == null -> ProgramVolumeState.SIN_CALIBRAR
-    sets <= 0.0 || sets < zones.minEffective -> ProgramVolumeState.SUBENTRENADO
-    sets <= zones.maxAdaptive -> ProgramVolumeState.OPTIMO
-    sets <= zones.maxRecoverable -> ProgramVolumeState.ALTO_TOLERABLE
-    else -> ProgramVolumeState.POSIBLE_EXCESO
-}
+fun programVolumeStateColor(state: ProgramVolumeState): Color = WizardColors.textMuted
 
-/**
- * Tabla estado → color de P4: subentrenado = energia; óptimo = hecho; alto tolerable y sobrecarga funcional = músculo; posible exceso =
- * peligro; sin calibrar = gris de texto. Los acentos vienen de la paleta de símbolos y de WizardColors, nunca de colores sueltos.
- */
-fun programVolumeStateColor(state: ProgramVolumeState): Color = when (state) {
-    ProgramVolumeState.SIN_CALIBRAR -> WizardColors.textMuted
-    ProgramVolumeState.SUBENTRENADO -> SymbolPalette.energia
-    ProgramVolumeState.OPTIMO -> WizardColors.done
-    ProgramVolumeState.ALTO_TOLERABLE -> SymbolPalette.musculo
-    ProgramVolumeState.SOBRECARGA_FUNCIONAL -> SymbolPalette.musculo
-    ProgramVolumeState.POSIBLE_EXCESO -> WizardColors.danger
-}
-
-/**
- * Etiqueta corta de la fila, en tipo frase. En «Rango ideal» solo se distingue la base mínima: estar justo en el mínimo efectivo se dice
- * como tal. «Sobreentreno» es el exceso por zonas; «Posible exceso de volumen», el que marca la analítica.
- */
-fun programVolumeStateLabel(
-    state: ProgramVolumeState,
-    sets: Double,
-    zones: ProgramVolumeZones?,
-    overtrained: Boolean,
-): String = when (state) {
-    ProgramVolumeState.SIN_CALIBRAR -> "Sin calibrar"
-    ProgramVolumeState.SUBENTRENADO -> "Subentrenado"
-    ProgramVolumeState.OPTIMO ->
-        if (zones != null && sets == zones.minEffective.toDouble()) "Base mínima" else "Rango ideal"
-    ProgramVolumeState.ALTO_TOLERABLE -> "Alto tolerable"
-    ProgramVolumeState.SOBRECARGA_FUNCIONAL -> "Sobrecarga funcional"
-    ProgramVolumeState.POSIBLE_EXCESO -> if (overtrained) "Posible exceso de volumen" else "Sobreentreno"
+fun programVolumeStateLabel(state: ProgramVolumeState, sets: Double, zones: ProgramVolumeZones?): String = when (state) {
+    ProgramVolumeState.SIN_REFERENCIA -> "Sin referencia del programa"
+    ProgramVolumeState.BAJO_REFERENCIA -> "Por debajo de la referencia"
+    ProgramVolumeState.EN_REFERENCIA -> "Dentro de la referencia del programa"
+    ProgramVolumeState.TRAMO_SUPERIOR -> "Tramo superior de la referencia"
+    ProgramVolumeState.SOBRE_REFERENCIA -> "Por encima de la referencia"
 }
 
 /**

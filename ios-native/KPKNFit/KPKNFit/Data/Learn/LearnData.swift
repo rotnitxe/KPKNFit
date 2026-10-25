@@ -16,7 +16,7 @@ public struct LearnCategory: Codable, Equatable {
     public static let BEGINNER = LearnCategory(rawValue: "BEGINNER", label: "Novato", color: "0xFF00BCD4", icon: "rocket")
     public static let TRAINING = LearnCategory(rawValue: "TRAINING", label: "Entrenamiento", color: "0xFF1E88E5", icon: "dumbbell")
     public static let NUTRITION = LearnCategory(rawValue: "NUTRITION", label: "Nutrición", color: "0xFF43A047", icon: "apple")
-    public static let RINGS = LearnCategory(rawValue: "RINGS", label: "RINGS", color: "0xFF448AFF", icon: "ring")
+    public static let RINGS = LearnCategory(rawValue: "RINGS", label: "Anillas", color: "0xFF448AFF", icon: "ring")
     public static let MENTAL_HEALTH = LearnCategory(rawValue: "MENTAL_HEALTH", label: "Salud Mental", color: "0xFF7E57C2", icon: "mind")
     public static let TOOLS = LearnCategory(rawValue: "TOOLS", label: "Herramientas", color: "0xFFFF8F00", icon: "wrench")
 }

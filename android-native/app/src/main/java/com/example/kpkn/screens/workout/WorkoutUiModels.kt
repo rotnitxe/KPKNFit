@@ -103,11 +103,7 @@ data class FinishResumeSnapshot(
     val completedSetInputHash: String? = null,
 )
 
-sealed interface FinishAugePreviewState {
-    data object Loading : FinishAugePreviewState
-    data class Ready(val preview: PostSessionPreview) : FinishAugePreviewState
-    data class Error(val reason: String) : FinishAugePreviewState
-}
+
 
 data class PendingRestSuggestion(
     val plannedSeconds: Int,
@@ -177,7 +173,6 @@ data class WorkoutUiState(
     val pendingPostExerciseIdx: Int = -1,
     val setAdvancedFeedback: Map<String, SetAdvancedFeedback> = emptyMap(),
     val postExerciseFeedbackByExerciseId: Map<String, PostExerciseFeedback> = emptyMap(),
-    val sessionStressScore: Double = 0.0,
     val readinessMuscularOverride: Int? = null,
     val readinessNeuralOverride: Int? = null,
     val readinessSpinalOverride: Int? = null,
@@ -203,6 +198,7 @@ data class WorkoutUiState(
     val exercisePhotos: Map<String, List<String>> = emptyMap(),
     val sessionMilestones: List<SessionMilestone> = emptyList(),
     val sessionNotes: String = "",
+    val recordedSportId: String? = null,
     val sessionSavedNotes: List<SessionSavedNote> = emptyList(),
     val sessionPhotos: List<String> = emptyList(),
     val sessionChecklist: List<SessionChecklistItem> = emptyList(),
@@ -224,11 +220,9 @@ data class WorkoutUiState(
     // V2 outcome del último set registrado — visible mientras el timer de descanso corre
     val lastSetOutcomeV2: SetOutcomeV2? = null,
     val lastHomologatedResultV3: HomologatedPerformanceResult? = null,
-    val lastDrainOverlay: ExerciseDrainOverlayState? = null,
     // Auto-regulación: ajuste dinámico del peso objetivo del siguiente set.
     val currentAutoRegulation: SetAutoRegulation? = null,
     // Mensaje contextual basado en fatiga y recuperación.
-    val currentCoachMessage: CoachMessage? = null,
     val imbalanceNotice: String? = null,
     val setDrafts: Map<String, WorkoutSetDraft> = emptyMap(),
     val manualLoadOverrides: Map<String, Double> = emptyMap(),
@@ -246,8 +240,6 @@ data class WorkoutUiState(
     val voiceFinalNotes: String? = null,
     val voiceFinalDiscomforts: List<String> = emptyList(),
     val voiceFinalAdditionalDiscomfortNote: String? = null,
-    val voiceFinalNeural: Int? = null,
-    val voiceFinalSpinal: Int? = null,
     val voiceFinalConfirmTriggered: Boolean = false,
     // Aviso one-shot del guard P0 de sesión vacía (finish abortado sin series); la UI lo consume y limpia
     val emptyFinishGuardNotice: String? = null,
@@ -257,16 +249,12 @@ data class WorkoutUiState(
     val continuityTransitionTarget: WorkoutContinuityTransitionTarget? = null,
     val continuityFeedbackExerciseId: String? = null,
     // EMA de estrés acumulado en el mesociclo actual
-    val mesocycleStressEMA: MesocycleStressEMA? = null,
     // sleepQuality (1-5) del último DailyWellbeingLog — para el sleep modifier de carga
     val sleepQuality: Int? = null,
     // Readiness por ejercicio calculado desde AUGE real
-    val exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
     // Readiness agregado por patrón de movimiento
-    val patternReadiness: List<MovementPatternReadiness> = emptyList(),
     // Ajustes de carga aplicados por el usuario (solo sesión actual, en memoria)
-    val readinessAdjustments: Map<String, SetAdjustmentSuggestion> = emptyMap(),
-    val liveEnergySummary: SessionEnergySummary = SessionEnergySummary(),
+    val liveEnergySummary: SessionEnergySummary? = null,
     val persistedLoadModeBySet: Map<String, LoadModeV2> = emptyMap(),
     val persistedLoadModeByExercise: Map<String, LoadModeV2> = emptyMap(),
     val previousSessionDiscomforts: List<String> = emptyList(),
@@ -308,7 +296,6 @@ data class WorkoutUiState(
     /** Protocol / block / recipe context for Relator 2.0. Null = sesión suelta. */
     val livePlanContext: LivePlanContext? = null,
     /** Veredicto diario AUGE (`calculateDailyReadiness` vía snapshot). */
-    val dailyReadiness: AugeReadinessVerdict? = null,
     /** Wellbeing de hoy (`getTodayWellbeing`), no solo sleepQuality del sheet. */
     val todayWellbeing: DailyWellbeingLog? = null,
 )
@@ -364,13 +351,9 @@ data class LivePlanContext(
 )
 
 data class WorkoutSessionSummary(
-    val intensityDescriptor: String,
+    val durationMinutes: Int,
+    val recordedSets: Int,
     val discomforts: List<String>,
-    val muscularRing: Int,
-    val lowestMuscle: String?,
-    val energyRing: Int,
-    val spinalRing: Int,
-    val nextSessionText: String,
     val isPlaceholder: Boolean = false,
 )
 

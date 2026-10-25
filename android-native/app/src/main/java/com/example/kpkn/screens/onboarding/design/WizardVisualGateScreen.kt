@@ -189,12 +189,6 @@ fun WizardVisualGateScreen(onBack: () -> Unit) {
                         state = WizardMilestoneState.PENDING,
                     ),
                     WizardMilestoneItem(
-                        block = WizardBlock.RINGS,
-                        title = "Rings",
-                        body = "Entrenamiento reciente, sensaciones y molestias para calibrar la recuperación.",
-                        state = WizardMilestoneState.PENDING,
-                    ),
-                    WizardMilestoneItem(
                         block = WizardBlock.REVIEW,
                         title = "Revisión y activación",
                         body = "Se activa el programa y el plan nutricional juntos, al final del alta.",

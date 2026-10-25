@@ -40,14 +40,14 @@ class LiveOptionsVmTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        LiveSessionVmFixture.resetAugeRepository()
+        LiveSessionVmFixture.resetTrainingObservationRepository()
     }
 
     @After
     fun tearDown() {
         try {
             fixture?.close()
-            LiveSessionVmFixture.resetAugeRepository()
+            LiveSessionVmFixture.resetTrainingObservationRepository()
             ProgramRepository.closeInstance()
             KpknDatabase.closeInstance()
         } finally {

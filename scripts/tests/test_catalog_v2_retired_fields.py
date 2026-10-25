@@ -42,6 +42,14 @@ def fully_loaded_catalog() -> dict:
                                 "evidence": {"rationale": "retired"},
                                 "profile": {
                                     "description": "kept",
+                                    "technicalDifficulty": 4,
+                                    "efc": 2,
+                                    "cnc": 2,
+                                    "ssc": 2,
+                                    "ttc": 2,
+                                    "axialLoadFactor": 2,
+                                    "fatigueTier": 2,
+
                                     "benefits": ["retired"],
                                     "techniqueSummary": "retired",
                                     "variantRationale": "retired",
@@ -49,6 +57,7 @@ def fully_loaded_catalog() -> dict:
                                     "muscleNotes": [{"muscleId": "biceps", "note": "retired"}],
                                     "jointInvolvement": [dict(joint)],
                                     "richMetadata": {
+                                        "fatigue": {},
                                         "editorial": {},
                                         "coaching": {},
                                         "safety": {},
@@ -68,6 +77,7 @@ def fully_loaded_catalog() -> dict:
                                         "programming": {
                                             "objectives": ["retired"],
                                             "suitableRepRanges": ["retired"],
+                                            "fatigueCost": "retired",
                                             "recoveryCost": "retired",
                                             "setupTransitionCost": "retired",
                                             "splitSuitability": ["retired"],
@@ -104,6 +114,7 @@ class RetiredFieldsTest(unittest.TestCase):
         self.assertEqual(backend.find_retired_fields(cleaned), [])
         profile = cleaned["families"][0]["definitions"][0]["configurations"][0]["profile"]
         self.assertEqual(profile["description"], "kept")
+        self.assertEqual(profile["technicalDifficulty"], 4)
         self.assertEqual(profile["jointInvolvement"], [{"jointId": "codo", "role": "PRIMARY", "actions": ["Flexión"]}])
         rich = profile["richMetadata"]
         self.assertEqual(rich["anatomy"]["jointActions"], ["kept"])
@@ -152,6 +163,10 @@ class RetiredFieldsTest(unittest.TestCase):
             "richMetadata.programming.setupTransitionCost": lambda p: rich(p)["programming"].__setitem__("setupTransitionCost", "x"),
             "richMetadata.programming.splitSuitability": lambda p: rich(p)["programming"].__setitem__("splitSuitability", []),
         }
+        for key in ("efc", "cnc", "ssc", "ttc", "axialLoadFactor", "fatigueTier"):
+            injections[f"profile.{key}"] = lambda p, key=key: profile(p).__setitem__(key, 1)
+        injections["richMetadata.fatigue"] = lambda p: rich(p).__setitem__("fatigue", {})
+        injections["richMetadata.programming.fatigueCost"] = lambda p: rich(p)["programming"].__setitem__("fatigueCost", "high")
         self.assertEqual(set(injections), set(retired.RETIRED_FIELD_PATHS))
         for path, inject in injections.items():
             with self.subTest(path=path):

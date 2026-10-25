@@ -39,6 +39,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -353,6 +355,49 @@ class ProgramDetailViewModelTest {
     }
 
     // ─── Tab Management ───────────────────────────────────────────────────
+
+    @Test
+    fun feedback_never_rescales_authored_volume_references() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val id = nextId()
+        val references = listOf(VolumeRecommendation("Pectorales", 8, 12, 18, 3))
+        repository.addProgram(makeProgram(id).copy(volumeRecommendations = references))
+        val vm = vmFor(id)
+        val collector = launch(testDispatcher) { vm.program.collect {} }
+        try {
+            for ((caseIndex, values) in listOf(1 to 9, 5 to 3).withIndex()) {
+                val feedbacks = (1..3).map { day ->
+                    PostSessionFeedback(
+                        logId = "$id-feedback-$caseIndex-$day",
+                        date = "2026-10-${(caseIndex * 3 + day).toString().padStart(2, '0')}",
+                        muscleFeedback = mapOf("Pectorales" to MuscleFeedbackEntry(
+                            doms = values.first,
+                            strengthCapacity = values.second,
+                            notes = "Declaración original: no es una prescripción",
+                        )),
+                    )
+                }
+                feedbacks.forEach { feedback ->
+                    KpknDatabase.getInstance(context).trainingObservationDao().preserve(
+                        com.example.kpkn.data.db.TrainingObservationEntity(
+                            "feedback:${feedback.logId}", "feedback", feedback.date,
+                            Json.encodeToString(feedback), "explicit_self_report;original_scale",
+                        ),
+                    )
+                }
+                vm.loadFeedbacks(context)
+                withTimeout(10_000) {
+                    vm.feedbacks.first { rows -> feedbacks.all { original -> rows.any { it.logId == original.logId } } }
+                }
+                testDispatcher.scheduler.advanceUntilIdle()
+                assertEquals(references, vm.program.value?.volumeRecommendations)
+                assertEquals(references, repository.getProgramById(id)?.volumeRecommendations)
+                assertTrue(vm.feedbacks.value.containsAll(feedbacks))
+            }
+        } finally {
+            collector.cancel()
+        }
+    }
 
     @Test
     fun initial_state_is_semana_subtab() {
@@ -2118,7 +2163,7 @@ class ProgramDetailViewModelTest {
         )
         // La «Descarga (auto)» que inserta AUGE entre el pico y la ola no viene de la receta.
         val (withDeload, deloadBlockId) =
-            BlockTransitionEngine.insertDeloadBlockAfter(materialized, materialized.macrocycles.first().blocks[0].id)!!
+            com.example.kpkn.domain.training.appendExternalBlockFixture(materialized, materialized.macrocycles.first().blocks[0].id)!!
         repository.addProgram(withDeload)
         repository.flushPendingWrites()
         val before = repository.getProgramById(id)!!
@@ -2579,7 +2624,7 @@ class ProgramDetailViewModelTest {
             completedSession = weeks[1].sessions.last(),
             weekInstanceId = weeks[1].id,
             logs = logs,
-            transitionContext = if (stress) BlockTransitionEngine.TransitionContext(mesocycleStressEma = 80.0) else null,
+            transitionContext = if (stress) BlockTransitionEngine.TransitionContext() else null,
         )
         return gate.program to logs
     }
@@ -2591,96 +2636,6 @@ class ProgramDetailViewModelTest {
 
     private fun userNoticeOf(program: Program): String =
         program.nativeProgressionAudit.single { it.userFacingNotice }.reason
-
-    @Test
-    fun rejectPendingDeload_holds_the_lift_with_a_short_amrap_read_from_the_history() = runBlocking {
-        val id = nextId()
-        val (gate, logs) = waveGate(id, stress = true, shortBenchReps = 3)
-        assertEquals(PendingProgramActionType.CONFIRM_DELOAD, gate.runState?.pendingAction?.type)
-        repository.addProgram(gate)
-        val vm = vmFor(id)
-        // Los registros llegan DESPUÉS de crear el ViewModel: el AMRAP corto se lee de la historia viva y no
-        // de un flujo perezoso que nadie observa.
-        logs.forEach { repository.addWorkoutLog(it) }
-        repository.flushPendingWrites()
-
-        vm.rejectPendingDeload()
-
-        val saved = repository.getProgramById(id)!!
-        assertNull(saved.runState?.pendingAction)
-        assertTrue(
-            "la descarga rechazada se quita del plan",
-            saved.macrocycles.flatMap { it.blocks }.none { it.goal == BlockGoal.DELOAD },
-        )
-        val tm = saved.powerliftingProfile!!
-        assertEquals("la sentadilla sube 5", 185.0, tm.squatTM!!, 1e-9)
-        assertEquals("la banca se mantiene por el AMRAP corto de la ola que se cierra", 108.0, tm.benchTM!!, 1e-9)
-        assertEquals(
-            "Nuevo bloque: TM sentadilla 180 → 185 kg; banca se mantiene en 108 kg (AMRAP corto).",
-            userNoticeOf(saved),
-        )
-        // La ola 2 (semanas 3 y 4 sin la descarga) toma el TM de cada levantamiento.
-        val weeks = weeksOf(saved)
-        assertEquals(0.70 * 185.0, t1Weight(weeks[2], CatalogIds.SQ_LOW), 1e-6)
-        assertEquals(0.70 * 108.0, t1Weight(weeks[2], CatalogIds.BP), 1e-6)
-    }
-
-    @Test
-    fun rejectPendingDeload_raises_the_lift_when_the_history_has_no_short_amrap() = runBlocking {
-        val id = nextId()
-        // La ola 1 tiene AMRAP de banca y se entrenó, pero ninguna AMRAP quedó corta.
-        val (gate, logs) = waveGate(id, stress = true, shortBenchReps = 8)
-        repository.addProgram(gate)
-        logs.forEach { repository.addWorkoutLog(it) }
-        repository.flushPendingWrites()
-        val vm = vmFor(id)
-
-        vm.rejectPendingDeload()
-
-        val tm = repository.getProgramById(id)!!.powerliftingProfile!!
-        assertEquals(185.0, tm.squatTM!!, 1e-9)
-        // Con los discos por defecto (1,25 kg) el paso es 2,5 kg: 108 + 2,5 = 110,5 cae en 110.
-        assertEquals(110.0, tm.benchTM!!, 1e-9)
-    }
-
-    @Test
-    fun rejectPendingDeload_rounds_the_raised_tm_with_the_plates_of_the_settings() = runBlocking {
-        val id = nextId()
-        repository.updateSettings { it.copy(equipmentInventory = plates125()) }
-        val (gate, logs) = waveGate(id, stress = true)
-        repository.addProgram(gate)
-        logs.forEach { repository.addWorkoutLog(it) }
-        repository.flushPendingWrites()
-        val vm = vmFor(id)
-
-        vm.rejectPendingDeload()
-
-        // Discos de 1,25 kg: el paso es 2,5 kg y la banca (108 + 2,5 = 110,5) cae en 110. Sin pasar el
-        // inventario el paso sería medio kilo y quedaría en 110,5.
-        val saved = repository.getProgramById(id)!!
-        val tm = saved.powerliftingProfile!!
-        assertEquals(185.0, tm.squatTM!!, 1e-9)
-        assertEquals(110.0, tm.benchTM!!, 1e-9)
-        assertEquals("Nuevo bloque: TM sentadilla 180 → 185 kg, banca 108 → 110 kg.", userNoticeOf(saved))
-    }
-
-    @Test
-    fun rejectPendingDeload_follows_the_athlete_when_the_settings_declare_no_plates() = runBlocking {
-        val id = nextId()
-        // Un inventario sin discos declarados no tiene paso de rejilla: el TM se redondea a medio kilo.
-        repository.updateSettings { it.copy(equipmentInventory = EquipmentInventory(barbellWeightKg = 20.0)) }
-        val (gate, logs) = waveGate(id, stress = true)
-        repository.addProgram(gate)
-        logs.forEach { repository.addWorkoutLog(it) }
-        repository.flushPendingWrites()
-        val vm = vmFor(id)
-
-        vm.rejectPendingDeload()
-
-        val saved = repository.getProgramById(id)!!
-        assertEquals(110.5, saved.powerliftingProfile!!.benchTM!!, 1e-9)
-        assertEquals("Nuevo bloque: TM sentadilla 180 → 185 kg, banca 108 → 110,5 kg.", userNoticeOf(saved))
-    }
 
     @Test
     fun recordPendingOneRmTest_reads_the_history_and_the_plates_for_the_block_increment() = runBlocking {

@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con barra, con la barra a la altura de los glúteos tras la espalda, las muñecas la enrollan hacia arriba. La barra es la referencia para cargar el antebrazo con peso de verdad.",
-              "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -125,14 +121,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl de Muñeca de Pie Tras Espalda con Barra",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -146,7 +134,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -174,10 +161,8 @@
                 "Preparación: Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {}
           }
@@ -216,17 +201,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con mancuernas, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -321,14 +302,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -344,7 +317,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -373,10 +345,8 @@
                 "Preparación: Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -396,17 +366,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con barra, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. La barra es la referencia para cargar el antebrazo con peso de verdad.",
-              "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -501,14 +467,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -524,7 +482,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -553,10 +510,8 @@
                 "Preparación: Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -576,17 +531,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con barra EZ, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. El antebrazo trabaja con la barra EZ, que cuida las muñecas en todo el arco.",
-              "efc": 2.0,
               "equipmentId": "ez_bar",
               "executionCues": [
                 "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -681,14 +632,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -704,7 +647,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -733,10 +675,8 @@
                 "Preparación: Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "ez_bar"
@@ -756,17 +696,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con polea, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. Con la polea, la tensión sobre el antebrazo se mantiene viva de principio a fin.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -861,14 +797,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl de Muñeca",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -884,7 +812,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -913,10 +840,8 @@
                 "Preparación: Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "cable"

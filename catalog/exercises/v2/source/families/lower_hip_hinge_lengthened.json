@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los discos descansan en el piso entre repeticiones y los dos pies quedan detrás de la barra. La cadera alta y las rodillas casi rectas distinguen este despegue de un peso muerto que comienza empujando con las piernas dobladas.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
                 "Levanta el torso como una unidad y termina sin arquear la espalda hacia atrás.",
                 "Deposita de nuevo el peso en su nivel de partida flexionando la cadera."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -171,14 +167,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.5,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -194,7 +182,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -227,14 +214,12 @@
                 "Alcanza la barra cerca de las tibias con cadera alta y rodillas apenas dobladas."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -255,12 +240,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El despegue con una sola pierna deja la barra atravesada delante del pie que carga y ambas manos tiran de ella por igual. Alcanzar el piso con la rodilla casi recta depende de la movilidad de esa cadera.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
@@ -268,7 +250,6 @@
                 "Deposita de nuevo el peso en su nivel de partida flexionando la cadera.",
                 "Devuelve el peso al apoyo sin girar la pelvis ni doblar más la rodilla para alcanzarlo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -412,14 +393,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.5,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -435,7 +408,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -468,7 +440,6 @@
                 "Alcanza la barra cerca de las tibias con cadera alta y rodillas apenas dobladas."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -476,8 +447,7 @@
                 "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -498,19 +468,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los topes inferiores de la estación fijan la altura del arranque con los pies paralelos y las rodillas apenas flexionadas. Si el carril termina demasiado alto, el despegue queda elevado y ya no coincide con la salida desde el piso.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
                 "Levanta el torso como una unidad y termina sin arquear la espalda hacia atrás.",
                 "Deposita de nuevo el peso en su nivel de partida flexionando la cadera."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -649,14 +615,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.5,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -672,7 +630,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -705,14 +662,12 @@
                 "Fija el arranque inferior del carro a una altura que alcances sin curvar la columna."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -733,12 +688,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Un pie carga al cuerpo mientras el carro empieza en su posición baja y la pierna libre se extiende detrás. El riel impide que el peso gire, pero no compensa un arranque que exija doblar mucho la rodilla de apoyo.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
@@ -746,7 +698,6 @@
                 "Deposita de nuevo el peso en su nivel de partida flexionando la cadera.",
                 "Devuelve el peso al apoyo sin girar la pelvis ni doblar más la rodilla para alcanzarlo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -890,14 +841,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.5,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -913,7 +856,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -946,7 +888,6 @@
                 "Fija el arranque inferior del carro a una altura que alcances sin curvar la columna."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -954,8 +895,7 @@
                 "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -976,19 +916,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Cada mancuerna parte junto a un pie, con su altura de apoyo determinada por el tamaño de las cabezas. Las manos pueden acercarse a las piernas en neutro; alcanzar ambos pesos no requiere que el torso rote.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
                 "Levanta el torso como una unidad y termina sin arquear la espalda hacia atrás.",
                 "Deposita de nuevo el peso en su nivel de partida flexionando la cadera."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1127,14 +1063,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.5,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1150,7 +1078,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1183,14 +1110,12 @@
                 "Coloca los pesos a los lados de los pies y toma cada uno con la mano correspondiente."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -1211,12 +1136,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Las dos cargas parten a los lados del pie que trabaja y la pierna sin apoyo se alarga hacia atrás. La libertad de las manos facilita colocarlas cerca de la tibia, aunque la salida baja exige conservar el ángulo casi recto de rodilla.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
@@ -1224,7 +1146,6 @@
                 "Deposita de nuevo el peso en su nivel de partida flexionando la cadera.",
                 "Devuelve el peso al apoyo sin girar la pelvis ni doblar más la rodilla para alcanzarlo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1368,14 +1289,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.5,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1391,7 +1304,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1424,7 +1336,6 @@
                 "Coloca los pesos a los lados de los pies y toma cada uno con la mano correspondiente."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -1432,8 +1343,7 @@
                 "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -1454,19 +1364,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El marco se apoya en los discos y los pies quedan dentro, entre las asas bajas. Usar las asas altas acorta el alcance del arranque; para esta variante la altura de las manos debe corresponder al despegue bajo disponible.",
-              "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
                 "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
                 "Levanta el torso como una unidad y termina sin arquear la espalda hacia atrás.",
                 "Deposita de nuevo el peso en su nivel de partida flexionando la cadera."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1605,14 +1511,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.5,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1628,7 +1526,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1661,14 +1558,12 @@
                 "Pisa dentro del marco apoyado y toma las asas bajas sin hundir las rodillas."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "hex_bar",
@@ -1689,12 +1584,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.5,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La carga rodea al pie de apoyo al despegar desde las asas bajas, en vez de quedar atravesada delante de él. El marco necesita holgura posterior para la extremidad sin apoyo; un travesaño estrecho puede impedir esa postura.",
-              "efc": 2.8,
               "equipmentId": "hex_bar",
               "executionCues": [
                 "Despega desde el apoyo con la cadera alta y poco cambio de rodilla.",
@@ -1702,7 +1594,6 @@
                 "Deposita de nuevo el peso en su nivel de partida flexionando la cadera.",
                 "Devuelve el peso al apoyo sin girar la pelvis ni doblar más la rodilla para alcanzarlo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1846,14 +1737,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.5,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1869,7 +1752,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1902,7 +1784,6 @@
                 "Pisa dentro del marco apoyado y toma las asas bajas sin hundir las rodillas."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -1910,8 +1791,7 @@
                 "gluteus_medius",
                 "tensor_fasciae_latae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "hex_bar",

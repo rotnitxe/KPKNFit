@@ -13,8 +13,6 @@ import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.WorkoutLog
-import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.OvertrainingDetector
 import com.example.kpkn.domain.templates.SessionClonePurpose
 import com.example.kpkn.domain.templates.SessionTemplateEngine
 import kotlin.math.ceil
@@ -30,18 +28,13 @@ object BlockTransitionEngine {
 
     enum class DecisionKind {
         ADVANCE_NEXT_BLOCK,
-        INSERT_DELOAD,
         PROPOSE_1RM_TEST,
         HOLD_INCOMPLETE,
     }
 
     data class TransitionContext(
         /** Null means no real AUGE snapshot was supplied; never invent 0/70. */
-        val cumulativeFatigue: Double? = null,
-        val readinessScore: Int? = null,
         val settings: Settings = Settings(),
-        val mesocycleStressEma: Double = 0.0,
-        val overtrainedMuscles: List<String> = emptyList(),
         /** Día de referencia: una competición futura o de esta semana quita el test de 1RM tras el pico y tras el taper. */
         val today: LocalDate = LocalDate.now(),
     )
@@ -135,13 +128,6 @@ object BlockTransitionEngine {
             )
         }
 
-        val hasAugeSnapshot = context.cumulativeFatigue != null && context.readinessScore != null
-        val suggestDeload = (hasAugeSnapshot && AugeFatigueEngine.shouldSuggestAutoDeload(
-            cumulativeFatigue = context.cumulativeFatigue!!,
-            readinessScore = context.readinessScore!!,
-            settings = context.settings,
-        )) || context.mesocycleStressEma >= 75.0 || context.overtrainedMuscles.isNotEmpty()
-
         val blocks = orderedBlocks(program)
         val blockPos = blocks.indexOfFirst { it.id == completedBlockId }
         val next = blocks.getOrNull(blockPos + 1)
@@ -179,22 +165,6 @@ object BlockTransitionEngine {
             )
         }
 
-        if (suggestDeload && next?.goal != BlockGoal.DELOAD && next?.goal != BlockGoal.TAPER) {
-            val withDeload = insertDeloadBlockAfter(program, completedBlockId)
-            if (withDeload == null) {
-                return TransitionDecision(
-                    kind = DecisionKind.HOLD_INCOMPLETE,
-                    message = "El gate de descarga se activó, pero el bloque previo no tiene sesiones ejecutables para construir una descarga segura.",
-                )
-            }
-            return TransitionDecision(
-                kind = DecisionKind.INSERT_DELOAD,
-                message = "Gate AUGE / estrés alto: se inserta un bloque de descarga antes de continuar.",
-                nextBlockId = withDeload.second,
-                updatedProgram = withDeload.first,
-            )
-        }
-
         if (next == null) {
             return TransitionDecision(
                 kind = DecisionKind.ADVANCE_NEXT_BLOCK,
@@ -227,47 +197,7 @@ object BlockTransitionEngine {
      * not fabricate a blank generic week: an automatic transition must remain
      * trainable or it remains blocked for the editor to resolve.
      */
-    fun insertDeloadBlockAfter(program: Program, afterBlockId: String): Pair<Program, String>? {
-        val sourceBlock = locateBlock(program, afterBlockId)?.block ?: return null
-        val sourceSessions = sourceBlock.mesocycles.flatMap { it.weeks }
-                .lastOrNull { week -> week.sessions.any(SessionTemplateEngine::sessionHasExecutableContent) }
-                ?.sessions
-                ?.filter(SessionTemplateEngine::sessionHasExecutableContent)
-            .orEmpty()
-        if (sourceSessions.isEmpty()) return null
 
-        val deloadId = UUID.randomUUID().toString()
-        val deloadWeekId = UUID.randomUUID().toString()
-        val deload = Block(
-            id = deloadId,
-            name = "Descarga (auto)",
-            description = "Insertado por gate AUGE / sobreentrenamiento al cerrar el bloque anterior.",
-            goal = BlockGoal.DELOAD,
-            progressionScheme = BlockProgressionScheme.PERCENT_RM,
-            mesocycles = listOf(
-                Mesocycle(
-                    id = UUID.randomUUID().toString(),
-                    name = "Descarga",
-                    goal = MesocycleGoal.DELOAD,
-                    weeks = listOf(
-                        ProgramWeek(
-                            id = deloadWeekId,
-                            name = "Semana 1",
-                            progressionIndex = 1,
-                            executionKind = com.example.kpkn.data.models.WeekExecutionKind.DELOAD,
-                            sessions = sourceSessions.map(::scaleSessionForDeload),
-                        ),
-                    ),
-                ),
-            ),
-        )
-        val macros = program.macrocycles.map { macro ->
-            val idx = macro.blocks.indexOfFirst { it.id == afterBlockId }
-            if (idx < 0) macro
-            else macro.copy(blocks = macro.blocks.take(idx + 1) + deload + macro.blocks.drop(idx + 1))
-        }
-        return program.copy(macrocycles = macros) to deloadId
-    }
 
     /**
      * Hay una fecha clave COMPETITION futura o de esta semana (desde el lunes de [today]). Una competición pasada
@@ -287,41 +217,7 @@ object BlockTransitionEngine {
         .flatMap { it.weeks }
         .any { week -> week.sessions.any(SessionTemplateEngine::sessionHasExecutableContent) }
 
-    private fun scaleSessionForDeload(source: com.example.kpkn.data.models.Session): com.example.kpkn.data.models.Session {
-        val cloned = SessionTemplateEngine.cloneSessionContent(source, SessionClonePurpose.PROGRESSION_SEED)
-        fun scale(exercise: com.example.kpkn.data.models.Exercise): com.example.kpkn.data.models.Exercise {
-            if (exercise.sets.isEmpty()) return exercise
-            val keepSets = ceil(exercise.sets.size * 0.6).toInt().coerceAtLeast(1)
-            return exercise.copy(
-                sets = exercise.sets.take(keepSets).map { set ->
-                    val percentage = set.targetPercentageRM?.times(0.85)?.coerceAtMost(65.0)
-                    set.copy(
-                        targetPercentageRM = percentage,
-                        targetRPE = (set.targetRPE ?: 6.0).coerceAtMost(6.0),
-                        intensityMode = if (percentage != null) {
-                            com.example.kpkn.data.models.IntensityMode.SOLO_RM
-                        } else {
-                            com.example.kpkn.data.models.IntensityMode.RPE
-                        },
-                        purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
-                    )
-                },
-            )
-        }
-        fun scaleVariant(session: com.example.kpkn.data.models.Session): com.example.kpkn.data.models.Session {
-            return session.copy(
-                exercises = session.exercises.map(::scale),
-                parts = session.parts.map { part -> part.copy(exercises = part.exercises.map(::scale)) },
-                // Variants are executable alternatives of the same weekly
-                // prescription.  Leaving B/C/D at the original intensity
-                // would let a deload silently turn back into the prior block.
-                sessionB = session.sessionB?.let(::scaleVariant),
-                sessionC = session.sessionC?.let(::scaleVariant),
-                sessionD = session.sessionD?.let(::scaleVariant),
-            )
-        }
-        return scaleVariant(cloned)
-    }
+
 
     fun replaceBlock(program: Program, block: Block): Program {
         val macros = program.macrocycles.map { macro ->
@@ -338,14 +234,4 @@ object BlockTransitionEngine {
         MesocycleGoal.CUSTOM -> BlockGoal.CUSTOM
     }
 
-    /** Helper para callers que ya tienen logs/feedbacks y quieren rellenar overtraining. */
-    fun detectOvertrained(
-        program: Program,
-        logs: List<WorkoutLog>,
-        feedbacks: List<com.example.kpkn.data.models.PostSessionFeedback> = emptyList(),
-    ): List<String> = OvertrainingDetector.detectOvertrainedMuscles(
-        program = program,
-        historyLogs = logs,
-        feedbacks = feedbacks,
-    )
 }

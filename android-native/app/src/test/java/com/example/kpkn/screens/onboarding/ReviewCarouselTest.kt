@@ -28,8 +28,6 @@ import com.example.kpkn.screens.onboarding.design.WizardDock
 import com.example.kpkn.screens.onboarding.design.WizardGenderMark
 import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.WizardWeightScale
-import com.example.kpkn.screens.onboarding.rings.ringsTowerValues
-import com.example.kpkn.ui.components.rings.TowerRingValues
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -62,21 +60,18 @@ class ReviewCarouselTest {
             SetupStepId.EQUIPMENT,
             SetupStepId.WEEKDAYS,
             SetupStepId.NUTRITION_START,
-            SetupStepId.RINGS_INTRO,
             SetupStepId.REVIEW_ACTIVATE,
         )
         val targets = reviewBlockTargets(route)
         assertEquals(SetupStepId.NAME, targets[SetupWizardBlock.BASICS])
         assertEquals(SetupStepId.GOAL, targets[SetupWizardBlock.TRAINING])
         assertEquals(SetupStepId.NUTRITION_START, targets[SetupWizardBlock.NUTRITION])
-        assertEquals(SetupStepId.RINGS_INTRO, targets[SetupWizardBlock.RINGS])
     }
 
     @Test
     fun blockWithoutStepsInTheRouteHasNoEditTarget() {
         val targets = reviewBlockTargets(listOf(SetupStepId.NAME, SetupStepId.GOAL))
         assertNull(targets[SetupWizardBlock.NUTRITION])
-        assertNull(targets[SetupWizardBlock.RINGS])
     }
 
     // ── Textos que salen de los datos ──────────────────────────────────────
@@ -136,17 +131,6 @@ class ReviewCarouselTest {
         assertEquals("No lo sé", reviewSexLabelOf(unknown))
     }
 
-    @Test
-    fun ringLinesNameTheValueOrSayUncalibrated() {
-        assertEquals("Músculos 64 %", ringLineText("Músculos", 64))
-        assertEquals("Columna sin calibrar", ringLineText("Columna", null))
-    }
-
-    @Test
-    fun towerValuesAreEmptyWithoutCoverage() {
-        assertEquals(TowerRingValues(columna = null, musculos = null, energia = null), ringsTowerValues(null))
-    }
-
     // ── Overlay (Compose) ──────────────────────────────────────────────────
 
     /** Un momento de prueba: su bloque, su rótulo, su «Editar» y un texto para reconocerlo. */
@@ -163,10 +147,9 @@ class ReviewCarouselTest {
                     moments = listOf(
                         moment(SetupWizardBlock.BASICS, "Tú"),
                         moment(SetupWizardBlock.TRAINING, "Tu programa"),
-                        moment(SetupWizardBlock.RINGS, "RINGS"),
                     ),
                     state = SetupWizardState(draft = SetupWizardDraft()),
-                    notices = listOf(ActivationNotice("Tus RINGS se ajustarán con tus primeros entrenos.")),
+                    notices = listOf(ActivationNotice("El programa se activa al confirmar.")),
                     activateEnabled = false,
                     onConfirmActivation = { },
                     onConfirmFixedRecipe = { },
@@ -176,7 +159,7 @@ class ReviewCarouselTest {
             }
         }
         rule.onNodeWithTag("setup-activation-overlay").assertExists()
-        rule.onNodeWithContentDescription("Página 1 de 3").assertExists()
+        rule.onNodeWithContentDescription("Página 1 de 2").assertExists()
         rule.onNodeWithContentDescription("Página 4 de 4").assertDoesNotExist()
         rule.onNodeWithTag("setup-continue").assertIsNotEnabled()
     }
@@ -190,13 +173,12 @@ class ReviewCarouselTest {
                         moment(SetupWizardBlock.BASICS, "Tú"),
                         moment(SetupWizardBlock.TRAINING, "Tu programa"),
                         moment(SetupWizardBlock.NUTRITION, "Nutrición"),
-                        moment(SetupWizardBlock.RINGS, "RINGS"),
                     ),
                     modifier = Modifier.fillMaxSize(),
                 )
             }
         }
-        rule.onNodeWithContentDescription("Página 1 de 4").assertExists()
+        rule.onNodeWithContentDescription("Página 1 de 3").assertExists()
         rule.onNodeWithTag("setup-activation-page-0").assertExists()
     }
 
@@ -260,12 +242,11 @@ class ReviewCarouselTest {
         val texts = activationNoticesOf(
             state = SetupWizardState(draft = SetupWizardDraft()),
             nutritionPage = true,
-            ringsPage = true,
         ).map { it.text }
         // Sin líneas de estado internas ni el enlace «Ver cómo funciona».
         assertTrue(texts.none { it.contains("Ver cómo funciona") || it.startsWith("Estado") || it.contains("Sin datos") })
         assertTrue("Aún falta tu plan de comidas." in texts)
-        assertTrue("Tus RINGS se ajustarán con tus primeros entrenos." in texts)
+        assertTrue(texts.none { it.contains("RINGS", ignoreCase = true) })
     }
 
     @Test

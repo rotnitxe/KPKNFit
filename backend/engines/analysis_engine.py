@@ -7,7 +7,7 @@ from models.common import (
     WorkoutLog, ProgramWeek, NutritionLog,
 )
 from engines.exercise_index import ExerciseIndex
-from engines.fatigue_engine import is_set_effective, calculate_completed_session_stress
+from engines.set_accounting import is_set_effective
 from engines.volume_engine import MUSCLE_ROLE_MULTIPLIERS
 
 
@@ -143,46 +143,6 @@ def calculate_session_volume(
     return calculate_average_volume_for_weeks([temp], exercise_list, muscle_hierarchy, mode)
 
 
-# ── ACWR ──────────────────────────────────────────────────
-
-def calculate_acwr(
-    history: list[WorkoutLog],
-    settings: Settings,
-    exercise_list: list[ExerciseMuscleInfo],
-) -> dict:
-    if len(history) < 7:
-        return {"acwr": 0, "interpretation": "Datos insuficientes", "color": "text-slate-400"}
-
-    today = datetime.now(timezone.utc)
-    stress_by_day: dict[str, float] = {}
-    for log in history:
-        ds = log.date[:10]
-        stress = log.sessionStressScore if log.sessionStressScore is not None else calculate_completed_session_stress(log.completedExercises, exercise_list)
-        stress_by_day[ds] = stress_by_day.get(ds, 0) + stress
-
-    def daily(d: datetime) -> float:
-        return stress_by_day.get(d.strftime("%Y-%m-%d"), 0)
-
-    acute = sum(daily(today - timedelta(days=i)) for i in range(7))
-    weekly = [sum(daily(today - timedelta(days=w * 7 + d)) for d in range(7)) for w in range(4)]
-    chronic = sum(weekly) / 4
-
-    if chronic < 10:
-        return {"acwr": 0, "interpretation": "Carga baja", "color": "text-sky-400"}
-
-    acwr = acute / chronic
-    if acwr < 0.8:
-        interp, color = "Sub-entrenando", "text-sky-400"
-    elif acwr <= 1.3:
-        interp, color = "Zona Segura", "text-green-400"
-    elif acwr <= 1.5:
-        interp, color = "Zona de Riesgo", "text-yellow-400"
-    else:
-        interp, color = "Alto Riesgo", "text-red-400"
-
-    return {"acwr": round(acwr, 2), "interpretation": interp, "color": color}
-
-
 # ── Weekly tonnage comparison ────────────────────────────
 
 def _get_week_id(d: datetime, start_on: int | None = None) -> str:
@@ -196,30 +156,43 @@ def _get_week_id(d: datetime, start_on: int | None = None) -> str:
 def calculate_weekly_tonnage_comparison(
     history: list[WorkoutLog],
     settings: Settings,
+    today: datetime,
 ) -> dict:
-    today = datetime.now(timezone.utc)
+    if today.tzinfo is None:
+        raise ValueError("An explicit timezone is required")
     cw_id = _get_week_id(today, settings.startWeekOn)
     pw_start = datetime.fromisoformat(cw_id) - timedelta(days=7)
     pw_id = pw_start.strftime("%Y-%m-%d")
 
     current = previous = 0.0
+    grouped: dict[str, list[WorkoutLog]] = {}
+    for item in history:
+        grouped.setdefault(item.id, []).append(item)
+    seen: set[str] = set()
     for log in history:
+        if any(item != log for item in grouped[log.id]):
+            continue  # A conflicting source identity cannot authoritatively contribute either value.
+        if log.id in seen:
+            continue
+        seen.add(log.id)
         try:
             ld = datetime.fromisoformat(log.date.replace("Z", "+00:00"))
         except Exception:
+            continue
+        if ld.tzinfo is None:
+            ld = ld.replace(tzinfo=timezone.utc)
+        if ld > today:
             continue
         lid = _get_week_id(ld, settings.startWeekOn)
         vol = 0.0
         for ex in log.completedExercises:
             for s in ex.sets:
-                w = s.weight or 0
-                r = s.completedReps or 0
-                dur = s.completedDuration or 0
-                if dur > 0:
-                    vol += dur * (w if w > 0 else 1)
-                else:
-                    bw = settings.userVitals.weight or 0 if ex.useBodyweight else 0
-                    vol += (w + bw) * r
+                # kg × repetitions only: timed work and current body mass are not historical tonnage.
+                if s.completedDuration is not None and s.completedDuration > 0:
+                    continue
+                if s.weight is None or s.completedReps is None or s.weight < 0 or s.completedReps < 0:
+                    continue
+                vol += s.weight * s.completedReps
         if lid == cw_id:
             current += vol
         elif lid == pw_id:

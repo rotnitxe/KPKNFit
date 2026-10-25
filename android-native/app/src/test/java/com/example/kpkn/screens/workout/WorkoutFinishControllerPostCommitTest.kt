@@ -10,7 +10,7 @@ import com.example.kpkn.data.models.OngoingWorkoutState
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -45,13 +45,13 @@ class WorkoutFinishControllerPostCommitTest {
     @Before
     fun installMainDispatcher() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        resetAugeRepository()
+        resetTrainingObservationRepository()
     }
 
     @After
     fun tearDown() {
         try {
-            resetAugeRepository()
+            resetTrainingObservationRepository()
             ProgramRepository.closeInstance()
             KpknDatabase.closeInstance()
         } finally {
@@ -59,8 +59,8 @@ class WorkoutFinishControllerPostCommitTest {
         }
     }
 
-    private fun resetAugeRepository() {
-        AugeRepository::class.java.getDeclaredField("INSTANCE").apply { isAccessible = true }
+    private fun resetTrainingObservationRepository() {
+        TrainingObservationRepository::class.java.getDeclaredField("INSTANCE").apply { isAccessible = true }
             .set(null, null)
     }
 
@@ -224,10 +224,10 @@ class WorkoutFinishControllerPostCommitTest {
     }
 
     private fun feedback() = SessionClosingFeedback(
-        overallFatigue = 5,
-        systemAdjustment = 0,
-        muscularAdjustment = 0,
-        structureAdjustment = 0,
+        
+        
+        
+        
         discomforts = emptyList(),
     )
 }

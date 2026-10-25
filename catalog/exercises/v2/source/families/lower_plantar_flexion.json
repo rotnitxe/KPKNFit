@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con máquina y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los gemelos. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
-              "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -126,14 +122,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -150,7 +138,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -179,10 +166,8 @@
                 "Preparación: Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "machine",
@@ -203,17 +188,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con máquina y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los gemelos se aísla y las asimetrías quedan al descubierto.",
-              "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -309,14 +290,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -333,7 +306,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -362,10 +334,8 @@
                 "Preparación: Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "machine",
@@ -386,17 +356,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con barra y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. La barra es la referencia para cargar los gemelos con peso de verdad. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
-              "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -492,14 +458,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -516,7 +474,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -545,10 +502,8 @@
                 "Preparación: Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -569,17 +524,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con barra y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. La barra es la referencia para cargar los gemelos con peso de verdad. Un lado cada vez: el esfuerzo de los gemelos se aísla y las asimetrías quedan al descubierto.",
-              "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -675,14 +626,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -699,7 +642,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -728,10 +670,8 @@
                 "Preparación: Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -752,17 +692,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con máquina Smith y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo de los gemelos admite más carga total.",
-              "efc": 2.0,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -858,14 +794,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -882,7 +810,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -911,10 +838,8 @@
                 "Preparación: Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies."
               ],
               "setupTimeSeconds": 40,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -935,17 +860,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con máquina Smith y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los gemelos se hace en solitario y las diferencias salen a la vista.",
-              "efc": 2.0,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1041,14 +962,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1065,7 +978,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1094,10 +1006,8 @@
                 "Preparación: Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable."
               ],
               "setupTimeSeconds": 40,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -1118,17 +1028,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con polea y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1224,14 +1130,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1248,7 +1146,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1277,10 +1174,8 @@
                 "Preparación: Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1301,17 +1196,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con polea y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan con la polea, que mantiene la tensión constante en todo el arco. A un lado, el trabajo de los gemelos se hace en solitario y las diferencias salen a la vista.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea con una pierna: tensión continua en una pantorrilla a la vez. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1407,14 +1298,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1431,7 +1314,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1460,10 +1342,8 @@
                 "Preparación: Polea con una pierna: tensión continua en una pantorrilla a la vez."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1484,17 +1364,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Sin aparato y de pie sobre el suelo, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. El peso corporal es la única carga y la altura del talón decide el recorrido de la pantorrilla.",
-              "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "De pie con las puntas apoyadas y el equilibrio cerca de una pared: el talón desciende por debajo de la horizontal y la planta vuelve a la punta con las rodillas extendidas."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1590,14 +1466,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1614,7 +1482,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1640,10 +1507,8 @@
                 "Preparación: De pie con las puntas apoyadas y el equilibrio cerca de una pared: el talón desciende por debajo de la horizontal y la planta vuelve a la punta con las rodillas extendidas."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "bodyweight",
@@ -1664,17 +1529,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con la máquina de gemelos sentado, la carga reposa sobre los muslos y la flexión de rodilla desplaza el trabajo al sóleo. El talón sube y baja sobre la plataforma con el torso vertical y la espalda apoyada.",
-              "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
                 "Sentado en la máquina de gemelos con la almohadilla sobre los muslos y las rodillas a unos noventa grados: el talón baja hasta el tope y sube a la punta sin despegar la carga."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1770,14 +1631,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1794,7 +1647,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1820,10 +1672,8 @@
                 "Preparación: Sentado en la máquina de gemelos con la almohadilla sobre los muslos y las rodillas a unos noventa grados: el talón baja hasta el tope y sube a la punta sin despegar la carga."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "seated_machine",
@@ -1844,18 +1694,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Elevación bilateral de talones con el torso inclinado, antebrazos apoyados y almohadilla de carga sobre la parte posterior de la pelvis.",
-              "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
                 "Eleva ambos talones manteniendo las rodillas y el tronco estables.",
                 "Desciende controladamente permitiendo que los talones bajen sin perder el apoyo de los antepiés."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1951,14 +1797,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1975,7 +1813,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -2002,10 +1839,8 @@
                 "Ajusta el acolchado de carga sobre la región posterior de la pelvis, sin colocarlo sobre los hombros."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "donkey_machine",
@@ -2026,17 +1861,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.4,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "En la prensa de piernas la planta empuja la plataforma con las rodillas casi extendidas y el tobillo se abre y cierra sobre el mismo recorrido. El borde inferior de la plataforma deja bajar el talón más allá de la horizontal.",
-              "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
                 "Prensa de piernas con las puntas en el borde inferior de la plataforma: el talón desciende por debajo de la barra y la planta empuja hasta cerrar el tobillo sin bloquear las rodillas."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2132,14 +1963,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.4,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Elevación de Talones",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2156,7 +1979,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -2182,10 +2004,8 @@
                 "Preparación: Prensa de piernas con las puntas en el borde inferior de la plataforma: el talón desciende por debajo de la barra y la planta empuja hasta cerrar el tobillo sin bloquear las rodillas."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "leg_press_machine",

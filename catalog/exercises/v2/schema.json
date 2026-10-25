@@ -74,11 +74,6 @@
         "stabilizerMuscles",
         "jointInvolvement",
         "description",
-        "efc",
-        "cnc",
-        "ssc",
-        "ttc",
-        "axialLoadFactor",
         "technicalDifficulty",
         "resistanceProfile",
         "setupCues",
@@ -178,26 +173,6 @@
             "additionalProperties": false
           }
         },
-        "efc": {
-          "type": "number",
-          "minimum": 0
-        },
-        "cnc": {
-          "type": "number",
-          "minimum": 0
-        },
-        "ssc": {
-          "type": "number",
-          "minimum": 0
-        },
-        "ttc": {
-          "type": "number",
-          "minimum": 0
-        },
-        "axialLoadFactor": {
-          "type": "number",
-          "minimum": 0
-        },
         "technicalDifficulty": {
           "type": "number",
           "minimum": 1,
@@ -256,14 +231,6 @@
         "setupTimeSeconds": {
           "type": "integer",
           "minimum": 0
-        },
-        "fatigueTier": {
-          "type": "string",
-          "enum": [
-            "BAJA",
-            "MEDIA",
-            "ALTA"
-          ]
         }
       },
       "additionalProperties": false
@@ -275,7 +242,6 @@
         "anatomy",
         "biomechanics",
         "programming",
-        "fatigue",
         "replacement",
         "display",
         "evidenceConfidence"
@@ -323,19 +289,7 @@
           "required": [
             "role",
             "indicativeRestSeconds",
-            "fatigueCost",
             "requiredEquipment"
-          ]
-        },
-        "fatigue": {
-          "type": "object",
-          "required": [
-            "efc",
-            "cnc",
-            "ssc",
-            "ttc",
-            "axialLoadFactor",
-            "technicalDifficulty"
           ]
         },
         "replacement": {

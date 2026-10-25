@@ -85,7 +85,6 @@ class SetupPendingNutritionTest {
         assertTrue(pending.includeNutrition)
         assertFalse(pending.includeTraining)
         assertFalse(pending.activateProgram)
-        assertNull(pending.ringsAnswers)
         assertNull(pending.volumeCalibrationProfile)
         assertEquals(source.commitId.let { "setup-wizard:pending_nutrition:$it" }, pending.draftId)
         assertFalse(pending.commitId.isBlank())

@@ -58,7 +58,6 @@ internal data class WelcomeVideoAssets(@RawRes val video: Int, @DrawableRes val 
 internal fun welcomeVideoNamesOf(pageId: String): Pair<String, String>? = when (pageId) {
     WelcomePageIds.Entreno -> "welcome_entreno" to "welcome_entreno_poster"
     WelcomePageIds.Nutricion -> "welcome_nutricion" to "welcome_nutricion_poster"
-    WelcomePageIds.Recuperacion -> "welcome_rings" to "welcome_rings_poster"
     else -> null
 }
 

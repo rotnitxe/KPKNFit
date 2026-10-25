@@ -175,7 +175,7 @@ class ProgramAutoregulationResolutionTest {
      * FALLABA con la colisión R-202 (`executed = setOf(runState.weekId)`).
      */
     @Test
-    fun r202_accepted_intensity_changes_the_next_week_and_keeps_the_trained_week_byte_identical() {
+    fun legacy_intensity_expires_after_advancement_and_keeps_both_weeks_intact() {
         val program = materialized()
         val week1 = weeksOf(program)[0]
         val week2 = weeksOf(program)[1]
@@ -194,13 +194,12 @@ class ProgramAutoregulationResolutionTest {
             completedSession = week1.sessions.first(),
             weekInstanceId = week1.id,
             logs = listOf(log(program, week1.id, week1.sessions.first(), "log-w1")),
-            weeklySignals = WeeklyAutoregulationSignals(readinessScore = 38),
+            weeklySignals = WeeklyAutoregulationSignals(),
             compositionMetadata = CatalogCompositionTestSupport.metadata,
         )
         assertTrue("La semana 2 debe ser el nuevo cursor", advanced.advancedWeek)
-        val pendingAction = advanced.program.runState?.pendingAction
-        assertEquals(PendingProgramActionType.CONFIRM_AUTOREGULATION, pendingAction?.type)
-        assertEquals(week2.id, pendingAction?.targetWeekId)
+        assertNull("No retired readiness proposal is generated", advanced.program.runState?.pendingAction)
+        val seeded = pendingWith(advanced.program, week2.id, intensityProposal())
         assertEquals(
             "La semana vacía NO puede leerse como ejecutada (R-202)",
             emptySet<String>(),
@@ -212,7 +211,7 @@ class ProgramAutoregulationResolutionTest {
         assertTrue("La receta usa porcentajes", percentsBefore.any { it != null })
 
         val accepted = ProgramAutoregulationEngine.resolvePending(
-            advanced.program,
+            seeded,
             accept = true,
             metadata = CatalogCompositionTestSupport.metadata,
         )
@@ -221,14 +220,14 @@ class ProgramAutoregulationResolutionTest {
         val percentsAfter = percentsOf(week2.id, accepted)
         assertTrue(
             "La propuesta aceptada debe observarse en la semana objetivo",
-            percentsBefore != percentsAfter,
+            percentsBefore == percentsAfter,
         )
         assertTrue(
             "Semana 1 entrenada byte a byte intacta",
             weeksOf(accepted)[0].sessions == trainedBefore,
         )
         val applied = resolutions(accepted).filter {
-            it.resolution == PendingActionResolutionStatus.APPLIED &&
+            it.resolution == PendingActionResolutionStatus.EXPIRED &&
                 AutoregulationProposalKind.SCALE_WEEK_INTENSITY in it.kinds
         }
         assertTrue("Estado terminal APPLIED con motivo", applied.isNotEmpty())
@@ -301,7 +300,7 @@ class ProgramAutoregulationResolutionTest {
         assertEquals(trainedSessions, weeksOf(resolved)[1].sessions)
         val resolution = resolutions(resolved).single()
         assertEquals(PendingActionResolutionStatus.EXPIRED, resolution.resolution)
-        assertTrue(resolution.resolutionReason.contains("entrenadas"))
+        assertTrue(resolution.resolutionReason.contains("retirado"))
     }
 
     /** §14.4/§12.4: RIR sin porcentaje nunca se declara «aplicada». */
@@ -336,7 +335,7 @@ class ProgramAutoregulationResolutionTest {
         assertEquals(PendingActionResolutionStatus.EXPIRED, resolution.resolution)
         assertTrue(
             "Debe explicar que no aplica (§12.4)",
-            resolution.resolutionReason.contains("No aplicable"),
+            resolution.resolutionReason.contains("retirado"),
         )
         assertFalse(
             resolutions(resolved).any { it.resolution == PendingActionResolutionStatus.APPLIED },
@@ -344,7 +343,7 @@ class ProgramAutoregulationResolutionTest {
     }
 
     @Test
-    fun rir_week_applies_volume_without_approving_unavailable_intensity() {
+    fun legacy_volume_and_intensity_both_expire_without_changing_rir_sets() {
         val program = materialized(recipe(week2UsesRir = true))
         val week2 = weeksOf(program)[1]
         val seeded = pendingWith(
@@ -371,17 +370,17 @@ class ProgramAutoregulationResolutionTest {
         val afterSetCount = afterWeek.sessions.sumOf { session ->
             session.allExercises().sumOf { exercise -> exercise.sets.size }
         }
-        assertTrue("El volumen sí reduce las series RIR", afterSetCount < beforeSetCount)
+        assertTrue("El volumen sí reduce las series RIR", afterSetCount == beforeSetCount)
         val byKind = resolutions(accepted).associateBy { it.kinds.single() }
         val intensity = byKind.getValue(AutoregulationProposalKind.SCALE_WEEK_INTENSITY)
         assertEquals(PendingActionResolutionStatus.EXPIRED, intensity.resolution)
-        assertTrue(intensity.resolutionReason, intensity.resolutionReason.contains("No aplicable"))
-        assertEquals(PendingActionResolutionStatus.APPLIED,
+        assertTrue(intensity.resolutionReason, intensity.resolutionReason.contains("retirado"))
+        assertEquals(PendingActionResolutionStatus.EXPIRED,
             byKind.getValue(AutoregulationProposalKind.SCALE_WEEK_VOLUME).resolution)
         assertEquals(
             "La receta efectiva solo registra la reducción que cambió la semana",
-            listOf(AutoregulationProposalKind.SCALE_WEEK_VOLUME.name),
-            accepted.effectiveWeekRecipes.single().appliedProposals.map { it.kind },
+            emptyList<String>(),
+            accepted.effectiveWeekRecipes.flatMap { it.appliedProposals }.map { it.kind },
         )
     }
 
@@ -581,7 +580,7 @@ class ProgramAutoregulationResolutionTest {
             completedSession = week1.sessions.first(),
             weekInstanceId = week1.id,
             logs = listOf(log(seeded, week1.id, week1.sessions.first(), "log-expire")),
-            weeklySignals = WeeklyAutoregulationSignals(readinessScore = 80),
+            weeklySignals = WeeklyAutoregulationSignals(),
             compositionMetadata = CatalogCompositionTestSupport.metadata,
         )
 

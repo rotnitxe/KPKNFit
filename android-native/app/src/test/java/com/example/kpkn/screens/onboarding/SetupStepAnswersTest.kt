@@ -398,16 +398,6 @@ class SetupStepAnswersTest {
 
     // ─── Rings parcial: «No lo sé» explícito nunca bloquea ───────────────────
 
-    @Test
-    fun ringsUnknownHistoryAndUnknownFeelingsKeepPartialCheckInUsable() {
-        val draft = SetupWizardDraft()
-            .withStepChoice(SetupStepId.RINGS_RECENT, "unknown", nowEpochMs = 1L)
-            .withStepChoice(SetupStepId.RINGS_MUSCLE_FEELING, "unknown", nowEpochMs = 1L)
-
-        assertTrue(SetupWizardValidation.validateStep(draft, SetupStepId.RINGS_RECENT).none { it.isBlocking })
-        assertTrue(SetupWizardValidation.validateStep(draft, SetupStepId.RINGS_MUSCLE_FEELING).none { it.isBlocking })
-    }
-
     // ─── Género: base de la ecuación y contexto hormonal ─────────────────────
 
     private fun SetupWizardDraft.chooseSex(value: String): SetupWizardDraft =

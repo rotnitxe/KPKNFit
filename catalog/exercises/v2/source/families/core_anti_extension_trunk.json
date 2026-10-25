@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con rueda, la rueda se aleja de las rodillas estirando el cuerpo entero y regresa con el abdomen bajo tensión. Con la rueda, el tronco no perdona ni un centímetro de descontrol.",
-              "efc": 2.0,
               "equipmentId": "ab_wheel",
               "executionCues": [
                 "Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado. El cuerpo se alarga sin dejar que la zona lumbar se hunda; la resistencia se combate con costillas y pelvis organizadas."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -126,14 +122,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Rueda Abdominal",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -148,7 +136,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -177,10 +164,8 @@
                 "Preparación: Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {}
           }

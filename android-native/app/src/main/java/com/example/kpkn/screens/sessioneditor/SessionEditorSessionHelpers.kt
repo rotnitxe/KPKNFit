@@ -501,35 +501,17 @@ internal data class SharedExercisePerformance(
     val suggestedNextLoad: Double?,
 )
 
+/** Reading history never rewrites a draft prescription or its reference marks. */
 internal fun Exercise.withSharedPerformanceFromHistory(history: List<WorkoutLog>): Exercise {
     val normalized = normalizedIdentityFields()
-    val shared = normalized.resolveSharedPerformance(history) ?: return normalized
-    val withReferences = normalized.copy(
-        reference1RM = normalized.reference1RM ?: shared.reference1RM,
-        prFor1RM = normalized.prFor1RM ?: shared.prReference,
-        consolidatedWeight = normalized.consolidatedWeight ?: shared.consolidatedWeight,
-    )
-    val hydratedSets = withReferences.sets.mapIndexed { index, set ->
-        val explicitTm = withReferences.trainingMode == TrainingMode.RM && set.usesExternalTrainingMax()
-        val normalizedSet = when {
-            withReferences.trainingMode == TrainingMode.RM && !explicitTm && set.targetPercentageRM == null -> {
-                set.copy(
-                    targetPercentageRM = 75.0,
-                    intensityMode = null,
-                )
-            }
-            else -> set
-        }
-        val suggested = calculateSuggestedLoad(withReferences, normalizedSet, history)
-            ?: shared.suggestedNextLoad?.takeIf { index == 0 && !explicitTm }
-        if (normalizedSet.weight == null && suggested != null && suggested > 0.0) {
-            normalizedSet.copy(weight = suggested)
-        } else {
-            normalizedSet
-        }
-    }
-    return withReferences.copy(sets = hydratedSets)
+    // Resolving an explicit authored TM percentage displays the existing prescription.
+    // Historical PRs, estimator outputs and generic defaults cannot change references or targets.
+    return normalized.copy(sets = normalized.sets.map { set ->
+        if (set.weight != null || !set.usesExternalTrainingMax() || set.targetPercentageRM == null) set
+        else calculateSuggestedLoad(normalized, set, emptyList())?.takeIf { it > 0.0 }?.let { set.copy(weight = it) } ?: set
+    })
 }
+
 
 internal fun Exercise.resolveSharedPerformance(history: List<WorkoutLog>): SharedExercisePerformance? {
     val canonicalId = resolvedCanonicalExerciseId()

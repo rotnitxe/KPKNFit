@@ -19,7 +19,7 @@ data class DiscomfortCatalogEntry(
     val description: String,
     val section: DiscomfortSection,
     val relatedMuscles: List<String> = emptyList(),
-    val relatedArticular: List<ArticularBattery> = emptyList(),
+    val relatedArticular: List<JointRegion> = emptyList(),
 )
 
 val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
@@ -35,7 +35,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia en la parte frontal del hombro, frecuente en empujes y elevaciones.",
         section = DiscomfortSection.SHOULDERS_ARMS,
         relatedMuscles = listOf("Deltoides", "Pectorales"),
-        relatedArticular = listOf(ArticularBattery.SHOULDER),
+        relatedArticular = listOf(JointRegion.SHOULDER),
     ),
     DiscomfortCatalogEntry(
         id = "shoulder_posterior",
@@ -43,7 +43,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia en la cara posterior del hombro, común en tirones o rotaciones.",
         section = DiscomfortSection.SHOULDERS_ARMS,
         relatedMuscles = listOf("Deltoides", "Trapecio", "Dorsales"),
-        relatedArticular = listOf(ArticularBattery.SHOULDER),
+        relatedArticular = listOf(JointRegion.SHOULDER),
     ),
     DiscomfortCatalogEntry(
         id = "elbow_medial",
@@ -51,7 +51,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia en flexores/pronadores del antebrazo cerca del codo.",
         section = DiscomfortSection.SHOULDERS_ARMS,
         relatedMuscles = listOf("Antebrazo", "Bíceps"),
-        relatedArticular = listOf(ArticularBattery.ELBOW),
+        relatedArticular = listOf(JointRegion.ELBOW),
     ),
     DiscomfortCatalogEntry(
         id = "elbow_lateral",
@@ -59,7 +59,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia en extensores del antebrazo cerca del epicóndilo.",
         section = DiscomfortSection.SHOULDERS_ARMS,
         relatedMuscles = listOf("Antebrazo", "Tríceps"),
-        relatedArticular = listOf(ArticularBattery.ELBOW),
+        relatedArticular = listOf(JointRegion.ELBOW),
     ),
     DiscomfortCatalogEntry(
         id = "wrist_hand",
@@ -67,7 +67,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia durante agarre, apoyo o extensión/flexión de muñeca.",
         section = DiscomfortSection.SHOULDERS_ARMS,
         relatedMuscles = listOf("Antebrazo"),
-        relatedArticular = listOf(ArticularBattery.ELBOW),
+        relatedArticular = listOf(JointRegion.ELBOW),
     ),
     DiscomfortCatalogEntry(
         id = "neck_cervical",
@@ -75,7 +75,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Rigidez o dolor cervical relacionado con carga axial o tensión de trapecio.",
         section = DiscomfortSection.SPINE_NECK,
         relatedMuscles = listOf("Cuello", "Trapecio"),
-        relatedArticular = listOf(ArticularBattery.CERVICAL),
+        relatedArticular = listOf(JointRegion.CERVICAL),
     ),
     DiscomfortCatalogEntry(
         id = "upper_back",
@@ -83,7 +83,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia en zona torácica alta o entre escápulas.",
         section = DiscomfortSection.SPINE_NECK,
         relatedMuscles = listOf("Trapecio", "Dorsales"),
-        relatedArticular = listOf(ArticularBattery.CERVICAL, ArticularBattery.SHOULDER),
+        relatedArticular = listOf(JointRegion.CERVICAL, JointRegion.SHOULDER),
     ),
     DiscomfortCatalogEntry(
         id = "lumbar",
@@ -91,7 +91,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia en zona baja de la espalda asociada a bisagra o compresión.",
         section = DiscomfortSection.SPINE_NECK,
         relatedMuscles = listOf("Erectores Espinales", "Core"),
-        relatedArticular = listOf(ArticularBattery.HIP, ArticularBattery.LUMBAR),
+        relatedArticular = listOf(JointRegion.HIP, JointRegion.LUMBAR),
     ),
     DiscomfortCatalogEntry(
         id = "hip_front",
@@ -99,7 +99,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia en flexión de cadera o al final del rango en sentadillas/zancadas.",
         section = DiscomfortSection.HIP_PELVIS,
         relatedMuscles = listOf("Cuádriceps", "Aductores", "Core"),
-        relatedArticular = listOf(ArticularBattery.HIP),
+        relatedArticular = listOf(JointRegion.HIP),
     ),
     DiscomfortCatalogEntry(
         id = "hip_lateral",
@@ -107,7 +107,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia lateral de cadera o glúteo medio durante apoyo unilateral.",
         section = DiscomfortSection.HIP_PELVIS,
         relatedMuscles = listOf("Glúteos", "Aductores"),
-        relatedArticular = listOf(ArticularBattery.HIP),
+        relatedArticular = listOf(JointRegion.HIP),
     ),
     DiscomfortCatalogEntry(
         id = "adductor_groin",
@@ -115,7 +115,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia en la cara interna del muslo o región inguinal.",
         section = DiscomfortSection.HIP_PELVIS,
         relatedMuscles = listOf("Aductores"),
-        relatedArticular = listOf(ArticularBattery.HIP),
+        relatedArticular = listOf(JointRegion.HIP),
     ),
     DiscomfortCatalogEntry(
         id = "hamstring_proximal",
@@ -123,7 +123,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia en inserción alta de isquiosurales cerca de cadera.",
         section = DiscomfortSection.HIP_PELVIS,
         relatedMuscles = listOf("Isquiosurales", "Glúteos"),
-        relatedArticular = listOf(ArticularBattery.HIP),
+        relatedArticular = listOf(JointRegion.HIP),
     ),
     DiscomfortCatalogEntry(
         id = "knee_patellar",
@@ -131,7 +131,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia bajo/entorno de la rótula, común en flexión repetida de rodilla.",
         section = DiscomfortSection.KNEE,
         relatedMuscles = listOf("Cuádriceps"),
-        relatedArticular = listOf(ArticularBattery.KNEE),
+        relatedArticular = listOf(JointRegion.KNEE),
     ),
     DiscomfortCatalogEntry(
         id = "knee_medial",
@@ -139,7 +139,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia en compartimentos medial o lateral de rodilla.",
         section = DiscomfortSection.KNEE,
         relatedMuscles = listOf("Cuádriceps", "Isquiosurales", "Aductores"),
-        relatedArticular = listOf(ArticularBattery.KNEE),
+        relatedArticular = listOf(JointRegion.KNEE),
     ),
     DiscomfortCatalogEntry(
         id = "achilles",
@@ -147,7 +147,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia en tendón de Aquiles durante saltos, carrera o elevaciones de talón.",
         section = DiscomfortSection.ANKLE_FOOT,
         relatedMuscles = listOf("Pantorrillas"),
-        relatedArticular = listOf(ArticularBattery.ANKLE),
+        relatedArticular = listOf(JointRegion.ANKLE),
     ),
     DiscomfortCatalogEntry(
         id = "ankle",
@@ -155,7 +155,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia en estabilidad o movilidad de tobillo bajo carga.",
         section = DiscomfortSection.ANKLE_FOOT,
         relatedMuscles = listOf("Pantorrillas"),
-        relatedArticular = listOf(ArticularBattery.ANKLE),
+        relatedArticular = listOf(JointRegion.ANKLE),
     ),
     DiscomfortCatalogEntry(
         id = "plantar_foot",
@@ -163,7 +163,7 @@ val DISCOMFORT_CATALOG: List<DiscomfortCatalogEntry> = listOf(
         description = "Molestia en arco plantar o apoyo del pie.",
         section = DiscomfortSection.ANKLE_FOOT,
         relatedMuscles = listOf("Pantorrillas"),
-        relatedArticular = listOf(ArticularBattery.ANKLE),
+        relatedArticular = listOf(JointRegion.ANKLE),
     ),
 )
 

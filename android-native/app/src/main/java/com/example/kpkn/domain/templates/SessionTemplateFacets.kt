@@ -1,7 +1,6 @@
 package com.example.kpkn.domain.templates
 
 import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.exercises.buildCatalogExerciseNameLookup
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.data.splits.Difficulty
@@ -47,7 +46,6 @@ data class SessionTemplateFacets(
     val realDurationMinutes: Int,
     val averageTargetRpe: Double?,
     val difficulty: Difficulty,
-    val drain: PredictedDrain,
     val movementPatterns: Set<String>,
     val equipment: Set<String> = emptySet(),
 ) {
@@ -97,7 +95,6 @@ object SessionTemplateFacetsBuilder {
         }
 
         val primaryMuscles = resolvePrimaryMuscles(audit.primaryMuscleSets)
-        val drain = safeDrain(template, exerciseIndex)
 
         return SessionTemplateFacets(
             templateId = template.id,
@@ -108,7 +105,6 @@ object SessionTemplateFacetsBuilder {
             realDurationMinutes = audit.estimatedDurationMinutes,
             averageTargetRpe = audit.averageTargetRpe,
             difficulty = template.difficulty,
-            drain = drain,
             movementPatterns = patterns,
             equipment = equipment,
         )
@@ -210,19 +206,5 @@ object SessionTemplateFacetsBuilder {
             .toCollection(linkedSetOf())
     }
 
-    private fun safeDrain(
-        template: SessionTemplate,
-        exerciseIndex: Map<String, ExerciseMuscleInfo>,
-    ): PredictedDrain {
-        return try {
-            val raw = SessionTemplateCatalogPolicy.evaluateTemplateRings(template, exerciseIndex)
-            PredictedDrain(
-                cns = raw.cns.coerceIn(0, 100),
-                muscular = raw.muscular.coerceIn(0, 100),
-                spinal = raw.spinal.coerceIn(0, 100),
-            )
-        } catch (_: Throwable) {
-            PredictedDrain(cns = 0, muscular = 0, spinal = 0)
-        }
-    }
+
 }

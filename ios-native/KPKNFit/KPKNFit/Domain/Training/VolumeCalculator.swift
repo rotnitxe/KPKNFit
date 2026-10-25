@@ -104,39 +104,6 @@ public struct VolumeCalculator {
         return specificMuscle.prefix(1).uppercased() + specificMuscle.dropFirst()
     }
 
-    public static func calculateVolumeAdjustment(_ muscle: String, _ feedbackHistory: [PostSessionFeedback]) -> Double {
-        if feedbackHistory.isEmpty { return 1.0 }
-        let normalizedTarget = normalizeCanonicalMuscleGroup(muscle).lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        let muscleLogs = feedbackHistory.filter { log in
-            log.muscleFeedback.keys.contains { key in
-                normalizeCanonicalMuscleGroup(key).lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == normalizedTarget
-            }
-        }
-        if muscleLogs.isEmpty { return 1.0 }
-        let recent = Array(muscleLogs.sorted { $0.date > $1.date }.prefix(3))
-        var totalDoms = 0.0
-        var totalStr = 0.0
-        var count = 0
-        for log in recent {
-            if let entryKey = log.muscleFeedback.keys.first(where: { normalizeCanonicalMuscleGroup($0).lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == normalizedTarget }),
-               let entry = log.muscleFeedback[entryKey] {
-                totalDoms += Double(entry.doms)
-                totalStr += Double(entry.strengthCapacity)
-                count += 1
-            }
-        }
-        if count == 0 { return 1.0 }
-        let avgDoms = totalDoms / Double(count)
-        let avgStr = totalStr / Double(count)
-        if avgDoms >= 3.5 || avgStr <= 5.0 {
-            return 0.85
-        } else if avgDoms <= 1.5 && avgStr >= 8.0 {
-            return 1.10
-        } else {
-            return 1.0
-        }
-    }
-
     static func buildPerExerciseMuscleContributions(
         _ involvedMuscles: [InvolvedMuscle]
     ) -> [String: Double] {
@@ -342,7 +309,7 @@ public struct VolumeCalculator {
                                 targetReps: set.reps,
                                 weight: set.weight,
                                 completedReps: set.skipped ? 0 : set.reps,
-                                isIneffective: set.isWarmup || !AugeFatigueEngine.isSetEffective(set: set)
+                                isIneffective: set.isWarmup || set.skipped || (set.reps <= 0 && (set.timeSeconds ?? 0) <= 0)
                             )
                         }
                     )
@@ -364,4 +331,228 @@ public struct VolumeCalculator {
             )
         }
     }
+}
+
+// MARK: Recorded training evidence (parity contract; no physiological predictor)
+internal struct TrainingEvidenceFact: Codable, Equatable, Identifiable {
+    var id: String { sourceId }
+    let sourceId: String
+    let activityId: String
+    let occurredAtMs: Int64
+    let sport: String
+    let metric: String
+    let value: Double
+    let unit: String
+    let origin: String
+    let exerciseVariant: String?
+    let method: String?
+    let protocolId: String?
+    let context: [String: String]
+}
+
+internal enum TrainingInsightsEngine {
+    private static func known(_ value: String?) -> Bool {
+        guard let text = value?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !text.isEmpty else { return false }
+        return text.components(separatedBy:CharacterSet(charactersIn:":@")).allSatisfy { !["", "unknown", "desconocido", "desconocida", "sin datos", "null", "unspecified", "not_recorded"].contains($0.trimmingCharacters(in:.whitespacesAndNewlines)) }
+    }
+    static func comparable(_ a: TrainingEvidenceFact, _ b: TrainingEvidenceFact) -> Bool {
+        guard known(a.exerciseVariant), known(a.method), known(a.protocolId), known(a.metric), known(a.unit),
+              !a.context.isEmpty, a.context.allSatisfy({ known($0.key) && known($0.value) }) else { return false }
+        return a.sport == b.sport && a.metric == b.metric && a.unit == b.unit &&
+            a.origin == b.origin && a.origin != "HISTORICAL_AMBIGUOUS" &&
+            a.exerciseVariant == b.exerciseVariant && a.method == b.method && a.protocolId == b.protocolId && a.context == b.context
+    }
+    private static func unique(_ history: [TrainingEvidenceFact]) -> [TrainingEvidenceFact] {
+        Dictionary(grouping: history, by: \.sourceId).values.compactMap { values in
+            guard let first=values.first, !first.sourceId.isEmpty, !first.activityId.isEmpty, values.allSatisfy({ $0 == first }) else { return nil }
+            return first
+        }
+    }
+    static func visible(_ facts: [TrainingEvidenceFact], nowMs: Int64, weeks: Int = 4) -> [TrainingEvidenceFact] {
+        guard [1,4,12].contains(weeks) else { return [] }
+        let from=nowMs-Int64(weeks)*7*86_400_000
+        return unique(facts).filter { $0.value.isFinite && $0.occurredAtMs >= from && $0.occurredAtMs <= nowMs }
+            .sorted { $0.occurredAtMs == $1.occurredAtMs ? $0.sourceId < $1.sourceId : $0.occurredAtMs < $1.occurredAtMs }
+    }
+    static func previous(_ current: TrainingEvidenceFact, history: [TrainingEvidenceFact], nowMs: Int64) -> [TrainingEvidenceFact] {
+        guard current.value.isFinite, current.occurredAtMs <= nowMs else { return [] }
+        let from = current.occurredAtMs - 90 * 86_400_000
+        return Array(unique(history).filter {
+            $0.value.isFinite && $0.occurredAtMs >= from && $0.occurredAtMs < current.occurredAtMs &&
+                $0.sourceId != current.sourceId && $0.activityId != current.activityId && comparable(current, $0)
+        }.sorted {
+            $0.occurredAtMs == $1.occurredAtMs ? $0.sourceId < $1.sourceId : $0.occurredAtMs > $1.occurredAtMs
+        }.prefix(6))
+    }
+    static func median(_ facts: [TrainingEvidenceFact]) -> Double? {
+        guard facts.count >= 3 else { return nil }
+        let values = facts.map(\.value).sorted()
+        let middle = values.count / 2
+        return values.count % 2 == 1 ? values[middle] : values[middle - 1] / 2 + values[middle] / 2
+    }
+}
+
+/// Read projection of existing session records. Unknown document semantics stay descriptive.
+internal enum TrainingHistoryProjection {
+    private static let units: [String:String] = [
+        "actualWorkSeconds":"s", "actualWorkingSeconds":"s", "actualHangSeconds":"s",
+        "actualRestSecondsAfter":"s", "actualRestSecondsBefore":"s", "actualExternalDurationSeconds":"s",
+        "elapsedMillis":"ms", "movingMillis":"ms", "elapsedDurationMillis":"ms", "finishTimeMillis":"ms",
+        "distanceMeters":"m", "elevationGainMeters":"m", "elevationLossMeters":"m",
+        "attemptedCount":"intentos", "successfulCount":"aciertos", "repetitions":"rep", "holdSeconds":"s",
+        "completedRounds":"rondas", "completedRepetitions":"rep", "splitMillis":"ms"
+    ]
+    private static let quantityUnits: Set<String> = ["KILOGRAMS","POUNDS","KILOGRAM","POUND","METERS","FEET","SECONDS","MINUTES","METER","CENTIMETER","SECOND","MILLISECOND","METER_PER_SECOND","REPETITIONS","CALORIES","BEATS_PER_MINUTE","WATTS","RUNNING_STEPS_PER_MINUTE","REVOLUTIONS_PER_MINUTE","STROKES_PER_MINUTE","METERS_PER_SECOND","SECONDS_PER_KILOMETER"]
+    private static let excluded: Set<String> = ["plan","references","complexes","definition","format","prescription","manualFtpReference","events","skills","drills","progressionProposals","ruleset","scaling","division","target","targets","penalties"]
+    /// Mirrors registered Android v1 envelopes. Unknown engines remain recoverable raw documents.
+    private static func supports(_ document: SportTrackingDocument) -> Bool {
+        guard document.version == 1 else { return false }
+        let sport = document.sportId
+        if document.engineId == "performance_lab.manual" {
+            return ["STRENGTH","HYPERTROPHY","POWERLIFTING","POWERBUILDING","WEIGHTLIFTING","CALISTHENICS","STRONGMAN","ARMWRESTLING","SPRINT","JUMP"].contains(sport)
+        }
+        let exact: [String:String] = [
+            "strength.weightlifting":"WEIGHTLIFTING", "strength.calisthenics":"CALISTHENICS",
+            "strength.strongman":"STRONGMAN", "strength.armwrestling":"ARMWRESTLING"
+        ]
+        if let expected = exact[document.engineId] { return expected == sport }
+        let groups: [(String,[String])] = [
+            ("combat.",["BOXING","KICKBOXING","MUAY_THAI","BJJ","WRESTLING","JUDO","MMA"]),
+            ("field.",["CLIMBING","SPRINT","JUMP"]),
+            ("functional.manual.",["CROSSFIT","HYROX"]),
+            ("endurance.manual.",["RUNNING","CYCLING","TRAIL","ROWING","SWIMMING","TRIATHLON"]),
+            ("game.manual.",["TENNIS","PADEL","TEAM_SPORT"])
+        ]
+        return groups.contains { prefix, sports in
+            sports.contains(sport) && document.engineId == prefix + sport.lowercased()
+        }
+    }
+    static func instant(_ text: String) -> Int64? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let date = formatter.date(from:text) ?? ISO8601DateFormatter().date(from:text)
+        return date.map { Int64($0.timeIntervalSince1970 * 1000) }
+    }
+    static func facts(_ logs: [WorkoutLog], nowMs: Int64) -> [TrainingEvidenceFact] {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        var result: [TrainingEvidenceFact] = []
+        for versions in Dictionary(grouping:logs,by: \.id).values {
+            guard let log=versions.first, !log.id.isEmpty,
+                  let first=try? encoder.encode(log), versions.allSatisfy({ (try? encoder.encode($0)) == first }),
+                  let time=instant(log.date), time > 0, time <= nowMs else { continue }
+            let documents=log.sportDocuments ?? []
+            let sports=Set(documents.map(\.sportId).filter { RecordedSportNames.labels[$0] != nil })
+            let sport: String?
+            if !sports.isEmpty { sport = sports.count == 1 && (log.recordedSportId == nil || sports.first == log.recordedSportId) ? sports.first : nil }
+            else if let declared = log.recordedSportId { sport = RecordedSportNames.labels[declared] == nil ? nil : declared }
+            else { sport = !log.completedExercises.isEmpty ? "STRENGTH" : nil }
+            func add(_ id:String,_ metric:String,_ value:Double,_ unit:String,_ origin:String="HISTORICAL_AMBIGUOUS",_ at:Int64?=nil,_ documentSport:String?=nil) {
+                guard let family=documentSport ?? sport, value.isFinite, value >= 0 else { return }
+                result.append(TrainingEvidenceFact(sourceId:id,activityId:log.id,occurredAtMs:at ?? time,sport:family,metric:metric,value:value,unit:unit,origin:origin,exerciseVariant:nil,method:nil,protocolId:nil,context:[:]))
+            }
+            if let seconds=log.actualDurationSeconds { add("log:\(log.id):duration","Duración de sesión",Double(seconds),"s","OBSERVED") }
+            else { add("log:\(log.id):duration","Duración de sesión (precisión original)",Double(log.durationMinutes),"min") }
+            if let rpe=log.sessionEffortRpe {
+                add("log:\(log.id):effort","Esfuerzo global declarado",rpe,"puntos 0–10","SELF_REPORTED")
+                if let seconds=log.actualDurationSeconds, log.actualDurationSource != nil, log.sessionEffortProtocol != nil {
+                    add("log:\(log.id):effort-duration","Esfuerzo × duración",rpe * Double(seconds) / 60,"u.a. (puntos·min)","DESCRIPTIVE_CALCULATION")
+                }
+            }
+            for exercise in log.completedExercises {
+                for set in exercise.sets where !set.isWarmup && !set.skipped && set.recordedPayloadV3?.skipped != true {
+                    let prefix = "log:\(log.id):\(exercise.exerciseId):\(set.id)"
+                    if let payload = set.recordedPayloadV3 {
+                        let load = payload.loadInputMode == .ASSISTED ? payload.assistedLoad : payload.externalLoad
+                        if let load {
+                            add(prefix + ":load", "\(exercise.exerciseName) · " + (payload.loadInputMode == .ASSISTED ? "Asistencia registrada" : "Carga externa registrada"),load,"kg")
+                        }
+                        if payload.unitMode == .REPS, let repetitions = payload.completedReps {
+                            add(prefix + ":reps","\(exercise.exerciseName) · Repeticiones registradas",Double(repetitions),"rep")
+                        }
+                        if let mode = payload.actualIntensityMode, let value = payload.actualIntensityValue {
+                            if mode == .RPE { add(prefix + ":effort","RPE de serie declarado",value,"puntos 0–10","SELF_REPORTED") }
+                            if mode == .RIR { add(prefix + ":reserve","RIR de serie declarado",value,"rep en reserva","SELF_REPORTED") }
+                        }
+                    } else {
+                        if set.weight > 0 { add(prefix + ":load","\(exercise.exerciseName) · Carga histórica registrada",set.weight,"kg") }
+                        if set.reps > 0 && set.timeSeconds == nil { add(prefix + ":reps","\(exercise.exerciseName) · Repeticiones históricas",Double(set.reps),"rep") }
+                    }
+                    if let seconds=set.timeSeconds { add(prefix + ":time","Tiempo registrado",Double(seconds),"s") }
+                }
+            }
+
+            for versions in Dictionary(grouping:documents,by: \.id).values {
+                guard let document=versions.first, let first=try? encoder.encode(document),
+                      versions.allSatisfy({ (try? encoder.encode($0)) == first }),
+                      ["RESULT","OBSERVATION"].contains(document.purpose), supports(document),
+                      let bytes=try? encoder.encode(document.payload), let raw=(try? JSONSerialization.jsonObject(with:bytes)) as? [String:Any] else { continue }
+                if document.engineId == "performance_lab.manual", let marks = raw["marks"] as? [[String:Any]] {
+                    // Read explicit mark provenance and protocol; do not reproduce a capacity predictor.
+                    for versions in Dictionary(grouping:marks,by: { $0["id"] as? String ?? "" }).values {
+                        guard let mark=versions.first, let id=mark["id"] as? String, !id.isEmpty,
+                              let bytes=try? JSONSerialization.data(withJSONObject:mark,options:[.sortedKeys]),
+                              versions.allSatisfy({ (try? JSONSerialization.data(withJSONObject:$0,options:[.sortedKeys])) == bytes }),
+                              mark["status"] as? String == "VALID", let value=mark["value"] as? NSNumber,
+                              String(cString:value.objCType) != "c", value.doubleValue.isFinite, value.doubleValue >= 0,
+                              let metric=mark["metric"] as? String, let unit=mark["unit"] as? String,
+                              quantityUnits.contains(unit) else { continue }
+                        let at=(mark["capturedAtEpochMillis"] as? NSNumber)?.int64Value ?? time
+                        guard at > 0, at <= nowMs else { continue }
+                        let context=mark["context"] as? [String:Any] ?? [:]
+                        let protocolInfo=mark["protocol"] as? [String:Any] ?? [:]
+                        let protocolId=protocolInfo["id"] as? String
+                        let revision=(protocolInfo["version"] as? NSNumber)?.intValue
+                        let provenance=mark["provenance"] as? String ?? "unknown"
+                        let method=context["method"] as? String
+                        let origin: String
+                        switch provenance {
+                        case "INSTRUMENT_MEASURED","MANUAL_MEASURED","IMPORTED_MEASURED": origin="OBSERVED"
+                        case "DERIVED": origin="DESCRIPTIVE_CALCULATION"
+                        case "MANUAL_ESTIMATE","VIDEO_ESTIMATE": origin="ESTIMATED"
+                        default: origin="HISTORICAL_AMBIGUOUS"
+                        }
+                        var conditions=context["conditions"] as? [String:String] ?? [:]
+                        for key in ["method","instrument","surface"] { if let text=context[key] as? String { conditions[key]=text } }
+                        if let formula=mark["formulaId"] as? String { conditions["formula"]=formula }
+                        result.append(TrainingEvidenceFact(sourceId:"document:\(document.id):mark:\(id)",activityId:log.id,
+                            occurredAtMs:at,sport:document.sportId,metric:metric,value:value.doubleValue,unit:unit,origin:origin,
+                            exerciseVariant:mark["dimension"] as? String,method:method.map { "\(provenance):\($0)" },
+                            protocolId:protocolId.flatMap { name in revision.flatMap { $0 > 0 ? "\(name)@\($0)" : nil } },context:conditions))
+                    }
+                    continue
+                }
+                // Original values only: iOS has no native sport validator yet; no derived summaries or comparisons are invented.
+                func visit(_ item:Any,_ path:String,_ inheritedUnit:String?=nil,_ inheritedTime:Int64?=nil) {
+                    if let array=item as? [Any] { for (i,child) in array.enumerated() { visit(child,"\(path)[\(i)]",inheritedUnit,inheritedTime) }; return }
+                    guard let object=item as? [String:Any] else { return }
+                    for key in ["status","quality"] { if let status=object[key] as? String, ["FAILED","INVALIDATED","UNRECORDED","MISSED"].contains(status) { return } }
+                    let at=(object["capturedAtEpochMillis"] as? NSNumber)?.int64Value ?? inheritedTime ?? time
+                    guard at > 0, at <= nowMs else { return }
+                    let unit=object["unit"] as? String ?? inheritedUnit
+                    if let unit, quantityUnits.contains(unit), let number=object["value"] as? NSNumber, String(cString:number.objCType) != "c" {
+                        add("document:\(document.id):\(path).value",path,number.doubleValue,unit,"HISTORICAL_AMBIGUOUS",at,document.sportId)
+                    }
+                    for (key,child) in object {
+                        if excluded.contains(key) || key.hasPrefix("target") || key.hasPrefix("planned") || key.hasPrefix("declared") { continue }
+                        if let fieldUnit=units[key], let number=child as? NSNumber, String(cString:number.objCType) != "c" {
+                            add("document:\(document.id):\(path).\(key)","\(path).\(key)",number.doubleValue,fieldUnit,"HISTORICAL_AMBIGUOUS",at,document.sportId)
+                        } else if child is [Any] || child is [String:Any] { visit(child,"\(path).\(key)",unit,at) }
+                    }
+                }
+                visit(raw,document.engineId)
+            }
+        }
+        return result
+    }
+}
+
+internal enum RecordedSportNames {
+    static let labels: [String:String] = [
+        "STRENGTH":"Fuerza","HYPERTROPHY":"Hipertrofia","POWERLIFTING":"Powerlifting","POWERBUILDING":"Powerbuilding",
+        "WEIGHTLIFTING":"Halterofilia","CALISTHENICS":"Calistenia","STRONGMAN":"Strongman","ARMWRESTLING":"Lucha de brazos",
+        "RUNNING":"Carrera","CYCLING":"Ciclismo","TRAIL":"Trail","ROWING":"Remo","SWIMMING":"Natación","TRIATHLON":"Triatlón",
+        "CROSSFIT":"CrossFit","HYROX":"HYROX","BOXING":"Boxeo","KICKBOXING":"Kickboxing","MUAY_THAI":"Muay thai",
+        "BJJ":"Jiu-jitsu brasileño","WRESTLING":"Lucha","JUDO":"Judo","MMA":"Artes marciales mixtas","CLIMBING":"Escalada",
+        "SPRINT":"Sprint","JUMP":"Salto","TENNIS":"Tenis","PADEL":"Pádel","TEAM_SPORT":"Deporte de equipo"
+    ]
 }

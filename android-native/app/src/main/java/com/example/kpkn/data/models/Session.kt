@@ -66,6 +66,10 @@ data class Session(
      * planes de autor y sesiones creadas a mano). Viaja en el JSON del programa: no necesita migración.
      */
     val placeId: String? = null,
+    /** Specialized authored blocks in this same native session; legacy sessions have none. */
+    val sportDocuments: List<com.example.kpkn.domain.multisport.tracking.SportTrackingDocument> = emptyList(),
+    /** External classes/field sessions are recorded into the same history, without a fake in-app live timer. */
+    val captureMode: SessionCaptureMode = SessionCaptureMode.IN_APP,
 ) {
     fun allSupersetGroups(): List<SupersetGroup> {
         val local = supersetGroups.ifEmpty { legacySupersetGroups() }
@@ -101,6 +105,9 @@ enum class SessionOrigin {
     USER_DRAFT,
     GENERATED_PLACEHOLDER,
 }
+
+@Serializable
+enum class SessionCaptureMode { IN_APP, EXTERNAL }
 
 @Serializable
 data class SupersetGroup(

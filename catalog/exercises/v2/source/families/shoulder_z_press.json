@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con barra, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
-              "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra sentado en el suelo: sin respaldo, el abdomen debe sostener el torso mientras los hombros empujan por encima de la cabeza. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -144,14 +140,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Z",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -169,7 +157,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -198,10 +185,8 @@
                 "Preparación: Barra sentado en el suelo: sin respaldo, el abdomen debe sostener el torso mientras los hombros empujan por encima de la cabeza."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -221,17 +206,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con barra EZ, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del deltoide.",
-              "efc": 2.5,
               "equipmentId": "ez_bar",
               "executionCues": [
                 "Barra EZ sentado en el suelo: el agarre girado ofrece una posición más tolerante para las manos sin quitar la exigencia del torso libre. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -345,14 +326,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Z",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -370,7 +343,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -399,10 +371,8 @@
                 "Preparación: Barra EZ sentado en el suelo: el agarre girado ofrece una posición más tolerante para las manos sin quitar la exigencia del torso libre."
               ],
               "setupTimeSeconds": 40,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "ez_bar"
@@ -422,17 +392,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas sentado en el suelo: cada brazo empuja sin que el torso pueda apoyarse y el recorrido se adapta a cada hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -546,14 +512,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Z",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -571,7 +529,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -600,10 +557,8 @@
                 "Preparación: Mancuernas sentado en el suelo: cada brazo empuja sin que el torso pueda apoyarse y el recorrido se adapta a cada hombro."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -623,17 +578,13 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con kettlebell, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Kettlebell sentado en el suelo: la carga desplazada sobre la mano aumenta el trabajo de estabilización mientras el abdomen mantiene la postura. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -747,14 +698,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.5,
-                  "ssc": 0.3,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press Z",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -772,7 +715,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 105,
                     "min": 45
@@ -801,10 +743,8 @@
                 "Preparación: Kettlebell sentado en el suelo: la carga desplazada sobre la mano aumenta el trabajo de estabilización mientras el abdomen mantiene la postura."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.3,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "implement": "kettlebell"

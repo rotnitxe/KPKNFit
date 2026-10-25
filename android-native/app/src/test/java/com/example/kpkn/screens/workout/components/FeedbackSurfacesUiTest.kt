@@ -114,36 +114,22 @@ class FeedbackSurfacesUiTest {
         }
     }
 
-    private fun evidence(kind: DiscomfortEvidenceKind, text: String, advice: String) = DiscomfortEvidence(
-        kind = kind,
-        number = 35.0,
-        text = text,
-        headline = text,
-        advice = advice,
-        strength = 0.8,
+    private val kneeInsight = com.example.kpkn.domain.discomfort.RecordedDiscomfortHistory.explain(
+        "knee_patellar",
+        com.example.kpkn.domain.discomfort.DiscomfortSession(listOf(
+            com.example.kpkn.domain.discomfort.DiscomfortSessionExercise("sq","Sentadilla trasera",emptyList())),"sq"),
+        com.example.kpkn.domain.discomfort.DiscomfortHistory(listOf(
+            com.example.kpkn.data.models.WorkoutLog("reported","p","s","Original",java.time.Instant.ofEpochMilli(nowMs-3*day).toString(),17,
+                postExerciseReports=listOf(com.example.kpkn.data.models.ExerciseDiscomfortReport(
+                    exerciseId="sq",exerciseName="Sentadilla trasera",technicalQuality=5,discomfortIds=listOf("knee_patellar"))))),
+            java.time.Instant.ofEpochMilli(nowMs)),
     )
 
-    private val kneeInsight = DiscomfortInsight(
-        discomfortId = "knee_patellar",
-        headline = "Esta semana llevas un 35${nbsp}% más de series de cuádriceps que tu media. Si la rodilla avisa, empieza por ahí.",
-        today = listOf(
-            evidence(DiscomfortEvidenceKind.HEAVY_SETS, "4 series pesadas de sentadilla", "Deja 2 repeticiones en reserva en las series pesadas."),
-        ),
-        week = listOf(
-            evidence(
-                DiscomfortEvidenceKind.WEEKLY_VOLUME_RISE,
-                "+35${nbsp}% de series de cuádriceps sobre tu media",
-                "Baja el volumen de cuádriceps a tu media unos días.",
-            ),
-        ),
-        advice = listOf(
-            "Baja el volumen de cuádriceps a tu media unos días.",
-            "Deja 2 repeticiones en reserva en las series pesadas.",
-            PROFESSIONAL_ADVICE,
-        ),
-        persistent = false,
-        strength = 0.8,
-    )
+    private fun openFromSearch(query: String, label: String) {
+        rule.onNode(hasSetTextAction()).performTextInput(query)
+        rule.onNode(hasText(label) and hasClickAction()).performClick()
+        rule.waitForIdle()
+    }
 
     // ── B1: el panel de la pantalla completa ──
 
@@ -179,20 +165,12 @@ class FeedbackSurfacesUiTest {
     }
 
     @Test
-    fun theHighlightedChipsListWhatWasReportedBeforeAndThenWhatIsFrequentInTheExercise() {
-        panel(
-            insights = FeedbackInsights(
-                likely = listOf("knee_patellar", "lumbar"),
-                reported = listOf(ReportedDiscomfort("hip_front", lastReportedAtMs = nowMs - 3 * day)),
-            ),
-        )
-        rule.onNode(hasText("Cadera anterior · la reportaste el", substring = true)).assertExists()
-        rule.onNodeWithText("Frecuentes en Sentadilla trasera").assertExists()
-        rule.onNodeWithText("Rodilla anterior").assertExists()
-        rule.onNodeWithText("Lumbar").assertExists()
-        val reportedTop = rule.onNode(hasText("Cadera anterior", substring = true)).getBoundsInRoot().top
-        val frequentTop = rule.onNodeWithText("Frecuentes en Sentadilla trasera").getBoundsInRoot().top
-        assertTrue("lo reportado antes va primero", reportedTop < frequentTop)
+    fun highlightedChipsContainOnlyPreviouslyReportedZones() {
+        panel(insights=FeedbackInsights(reported=listOf(ReportedDiscomfort("hip_front",lastReportedAtMs=nowMs-3*day))))
+        rule.onNode(hasText("Cadera anterior · la reportaste el",substring=true)).assertExists()
+        rule.onAllNodesWithText("Frecuentes en",substring=true).assertCountEquals(0)
+        rule.onAllNodesWithText("Rodilla anterior").assertCountEquals(0)
+        rule.onAllNodesWithText("Lumbar").assertCountEquals(0)
     }
 
     @Test
@@ -204,9 +182,11 @@ class FeedbackSurfacesUiTest {
     }
 
     @Test
-    fun theNoticeOfTheEngineShowsOnlyWhenThereIsEvidence() {
-        panel(insights = FeedbackInsights(notice = kneeInsight))
-        rule.onNodeWithText(kneeInsight.headline!!).assertExists()
+    fun reportedHistoryDoesNotCreateAPercentageOrLoadNotice() {
+        panel(insights=FeedbackInsights(reported=listOf(ReportedDiscomfort("knee_patellar",lastReportedAtMs=nowMs-3*day))))
+        rule.onNode(hasText("Rodilla anterior · la reportaste el",substring=true)).assertExists()
+        rule.onAllNodesWithText("35",substring=true).assertCountEquals(0)
+        rule.onAllNodesWithText("Baja el volumen",substring=true).assertCountEquals(0)
     }
 
     @Test
@@ -246,65 +226,52 @@ class FeedbackSurfacesUiTest {
 
     @Test
     fun tappingAChipOpensTheSheetAndReportingAddsTheDiscomfortToTheFeedback() {
-        val saved = mutableListOf<List<PostExerciseFeedback>>()
-        panel(onSave = { saved += it }, insights = FeedbackInsights(likely = listOf("knee_patellar")))
-        rule.onNodeWithText("Rodilla anterior").performClick()
-        rule.waitForIdle()
+        val saved=mutableListOf<List<PostExerciseFeedback>>()
+        panel(onSave={saved+=it})
+        openFromSearch("rodilla","Rodilla anterior")
         rule.onNodeWithText("Molestia delante de la rodilla").assertExists()
         rule.onNodeWithText("CAUSAS COMUNES").assertExists()
         rule.onNodeWithText("QUÉ PUEDES HACER").assertExists()
+        rule.onAllNodesWithText("REGISTROS ANTERIORES").assertCountEquals(0)
         rule.onNodeWithText(PROFESSIONAL_ADVICE).assertExists()
-        rule.onNodeWithText("Reportar molestia").assertExists()
-        // La app no mide la gravedad: no hay selector.
         rule.onAllNodesWithText("¿CUÁNTO MOLESTA?").assertCountEquals(0)
-        rule.onAllNodesWithText("Leve").assertCountEquals(0)
         rule.onNodeWithText("Reportar molestia").performClick()
         rule.waitForIdle()
-        rule.onAllNodesWithText("Molestia delante de la rodilla").assertCountEquals(0)
         rule.onNodeWithContentDescription("Quitar").assertExists()
         rule.onNodeWithText("Guardar").performClick()
-        val feedback = saved.single().single()
-        assertEquals(listOf("knee_patellar"), feedback.discomfortIds)
-        assertEquals(listOf("knee_patellar"), feedback.stillPresentDiscomfortIds)
+        val feedback=saved.single().single()
+        assertEquals(listOf("knee_patellar"),feedback.discomfortIds)
+        assertEquals(listOf("knee_patellar"),feedback.stillPresentDiscomfortIds)
     }
 
     @Test
     fun theSheetOfAChosenDiscomfortOffersToTakeItOff() {
-        val draft = PostExerciseFeedbackDraft.from(listOf(squat), emptyMap())
+        val draft=PostExerciseFeedbackDraft.from(listOf(squat),emptyMap())
         draft.select("knee_patellar")
-        panel(draft = draft, insights = FeedbackInsights(likely = listOf("knee_patellar")))
-        rule.onNode(hasText("Rodilla anterior") and hasClickAction()).performClick()
-        rule.waitForIdle()
-        rule.onNodeWithText("Quitar molestia").assertExists()
+        panel(draft=draft)
+        openFromSearch("rodilla","Rodilla anterior")
         rule.onNodeWithText("Quitar molestia").performClick()
         rule.waitForIdle()
         assertTrue(draft.discomfortIds.isEmpty())
     }
 
     @Test
-    fun theSheetShowsInYourCaseOnlyWhatTheEngineProves() {
-        panel(
-            insights = FeedbackInsights(likely = listOf("knee_patellar")),
-            explain = { id -> kneeInsight.takeIf { id == "knee_patellar" } },
-        )
-        rule.onNodeWithText("Rodilla anterior").performClick()
-        rule.waitForIdle()
-        rule.onNodeWithText("EN TU CASO").assertExists()
-        rule.onNodeWithText("Hoy").assertExists()
-        rule.onNodeWithText("Esta semana").assertExists()
-        rule.onNodeWithText("4 series pesadas de sentadilla").assertExists()
-        rule.onNodeWithText("+35${nbsp}% de series de cuádriceps sobre tu media").assertExists()
-        rule.onNodeWithText("Deja 2 repeticiones en reserva en las series pesadas.").assertExists()
-        // El cierre común sale una sola vez aunque el motor también lo traiga.
+    fun theSheetShowsOnlyActualPreviousReportsWithoutCausalOrLoadAdvice() {
+        panel(explain={ id -> kneeInsight.takeIf { id=="knee_patellar" } })
+        openFromSearch("rodilla","Rodilla anterior")
+        rule.onNodeWithText("REGISTROS ANTERIORES").assertExists()
+        rule.onNodeWithText("1 sesión anterior con esta molestia registrada para el mismo ejercicio.").assertExists()
+        rule.onAllNodesWithText("EN TU CASO").assertCountEquals(0)
+        rule.onAllNodesWithText("Esta semana").assertCountEquals(0)
+        rule.onAllNodesWithText("Deja 2 repeticiones",substring=true).assertCountEquals(0)
         rule.onAllNodesWithText(PROFESSIONAL_ADVICE).assertCountEquals(1)
     }
 
     @Test
     fun withoutEvidenceTheSheetHasNoInYourCaseBlock() {
-        panel(insights = FeedbackInsights(likely = listOf("lumbar")))
-        rule.onNodeWithText("Lumbar").performClick()
-        rule.waitForIdle()
-        rule.onAllNodesWithText("EN TU CASO").assertCountEquals(0)
+        panel()
+        openFromSearch("lumbar","Lumbar")
+        rule.onAllNodesWithText("REGISTROS ANTERIORES").assertCountEquals(0)
         rule.onNodeWithText(PROFESSIONAL_ADVICE).assertExists()
     }
 
@@ -346,9 +313,9 @@ class FeedbackSurfacesUiTest {
                 draft = draft,
                 save = {},
                 insights = FeedbackInsights(
-                    likely = listOf("knee_patellar"),
+                    
                     reported = listOf(ReportedDiscomfort("hip_front", lastReportedAtMs = nowMs - 3 * day)),
-                    notice = kneeInsight,
+                    
                 ),
                 onSkip = { skips++ },
                 onExpand = { expands++ },
@@ -360,9 +327,9 @@ class FeedbackSurfacesUiTest {
         rule.onNodeWithText("¿ALGUNA MOLESTIA?").assertExists()
         // Lo reportado antes y lo frecuente van en una sola fila, sin el rótulo «Frecuentes en…» (la tarjeta no tiene sitio).
         rule.onNode(hasText("Cadera anterior · ", substring = true)).assertExists()
-        rule.onNodeWithText("Rodilla anterior").assertExists()
+        rule.onAllNodesWithText("Rodilla anterior").assertCountEquals(0)
         rule.onAllNodesWithText("Frecuentes en", substring = true).assertCountEquals(0)
-        rule.onNodeWithText(kneeInsight.headline!!).assertExists()
+        rule.onAllNodesWithText("35",substring=true).assertCountEquals(0)
         rule.onNodeWithText("Guardar").assertExists()
         rule.onNodeWithText("Saltar").performClick()
         assertEquals(1, skips)

@@ -15,7 +15,7 @@ internal data class LiveAmrapProgramPreview(
         !hasRule -> "Sin regla de progresión: queda registrado"
         mode == AutoregulationMode.OFF -> "Autorregulación OFF: queda registrado"
         proposals.isEmpty() -> "La regla del programa no propone cambios de TM"
-        mode == AutoregulationMode.AUTO -> "AUTO · TM previsto ${afterTm?.let(::finishNumber) ?: "—"} kg al cerrar la semana"
+        mode == AutoregulationMode.AUTO -> "Confirmación requerida · TM propuesto ${afterTm?.let(::finishNumber) ?: "—"} kg al cerrar la semana"
         else -> "PROPONER · TM ${beforeTm?.let(::finishNumber) ?: "—"} → ${afterTm?.let(::finishNumber) ?: "—"} kg al cerrar la semana"
     }
 }

@@ -152,7 +152,6 @@ class WizardPluralCopyTest {
                 SetupWizardBlock.BASICS,
                 SetupWizardBlock.TRAINING,
                 SetupWizardBlock.NUTRITION,
-                SetupWizardBlock.RINGS,
                 SetupWizardBlock.REVIEW,
             ),
             milestoneBlocks(routeOf(SetupWizardDraft())),
@@ -175,7 +174,7 @@ class WizardPluralCopyTest {
     @Test
     fun aFullRouteWithoutNutritionSkipsItInTheStages() {
         val route = routeOf(SetupWizardDraft(includeNutrition = false))
-        assertEquals(listOf("Básicos", "Entreno", "Rings", "Revisión"), milestoneBlocks(route).map(::milestoneStageLabel))
+        assertEquals(listOf("Básicos", "Entreno", "Revisión"), milestoneBlocks(route).map(::milestoneStageLabel))
     }
 
     // ─── Revisión final de Entreno: lugares y días con su tiempo ────────────────────────────

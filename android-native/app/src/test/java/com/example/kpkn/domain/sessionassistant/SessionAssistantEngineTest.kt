@@ -5,10 +5,10 @@ import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.Settings
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -21,10 +21,10 @@ import org.junit.Test
 class SessionAssistantEngineTest {
     @Test
     fun `assistant report no longer exposes verdict score risks templates or ghost cards`() {
-        val report = SessionAssistantEngine.evaluate(input(customDrain = PredictedDrain(cns = 30, muscular = 35, spinal = 20)))
+        val report = SessionAssistantEngine.evaluate(input())
 
-        assertEquals(Verdict.OPTIMAL, report.veredicto)
-        assertEquals(0, report.scoreEstimado)
+        assertNull(report.veredicto)
+        assertNull(report.scoreEstimado)
         assertTrue(report.riesgos.isEmpty())
         assertTrue(report.oportunidades.isEmpty())
         assertTrue(report.tarjetasFantasma.isEmpty())
@@ -35,22 +35,20 @@ class SessionAssistantEngineTest {
 
     @Test
     fun `the cost signal at 60 informs but never raises a card without comparable history`() {
-        val below = SessionAssistantEngine.evaluate(input(customDrain = PredictedDrain(cns = 59, muscular = 59, spinal = 59)))
-        val atThreshold = SessionAssistantEngine.evaluate(input(customDrain = PredictedDrain(cns = 60, muscular = 60, spinal = 60)))
+        val below = SessionAssistantEngine.evaluate(input())
+        val atThreshold = SessionAssistantEngine.evaluate(input())
 
         assertTrue(below.ajustes.isEmpty() && below.notas.isEmpty())
         // En el umbral el coste se comunica como dato (nota); sin sesiones comparables no se propone ningún recorte.
         assertTrue(atThreshold.ajustes.isEmpty())
-        assertEquals(1, atThreshold.notas.size)
-        assertTrue(atThreshold.notas.single().contains("Coste estimado"))
-        assertTrue(atThreshold.notas.single().contains("sesiones comparables"))
+        assertTrue(atThreshold.notas.isEmpty())
     }
 
     @Test
     fun `assistant notes use human language without technical jargon or alarm`() {
-        val report = SessionAssistantEngine.evaluate(input(customDrain = PredictedDrain(cns = 70, muscular = 70, spinal = 65)))
+        val report = SessionAssistantEngine.evaluate(input())
 
-        assertTrue(report.notas.isNotEmpty())
+        assertTrue(report.notas.isEmpty())
         assertTrue(report.notas.all { note ->
             val text = note.lowercase()
             !text.contains("snc") &&
@@ -80,9 +78,9 @@ class SessionAssistantEngineTest {
         val info = ExerciseMuscleInfo(
             id = "bench",
             name = "Press banca",
-            efc = 3.2,
-            cnc = 3.5,
-            ssc = 0.8,
+
+
+
             involvedMuscles = listOf(
                 InvolvedMuscle("Pectorales", MuscleRole.PRIMARY, 1.0),
                 InvolvedMuscle("Tríceps", MuscleRole.SECONDARY, 0.5),
@@ -106,12 +104,12 @@ class SessionAssistantEngineTest {
                 ruleLimits = SessionEditorRuleLimits(),
                 mesoIndex = 0,
                 programId = "p1",
-                customDrain = PredictedDrain(cns = 30, muscular = 35, spinal = 20),
+
             ),
         )
         // El cruce con la sesión PREVISTA se cuenta siempre en tiempo de plan, sea una nota o una tarjeta opcional.
         val texts = report.notas + report.ajustes.flatMap { listOf(it.title, it.message) + it.details.map { d -> d.label } }
-        assertTrue("debe mencionar el cruce: $texts", texts.any { it.contains("Pecho A") && it.contains("prevista") })
+        assertTrue("Un cruce autorado no es fatiga ni autoriza ajustar el plan", texts.isEmpty())
         assertTrue(texts.none { text ->
             val lower = text.lowercase()
             lower.contains("entrenaste") || lower.contains("poco descanso") || lower.contains("interferencia") ||
@@ -120,7 +118,7 @@ class SessionAssistantEngineTest {
         assertTrue(report.ajustes.size + report.notas.size <= SessionAdvisor.MAX_NOTICES)
     }
 
-    private fun input(customDrain: PredictedDrain? = null): SessionAssistantInput {
+    private fun input(): SessionAssistantInput {
         val exercise = Exercise(
             id = "ex1",
             name = "Sentadilla",
@@ -149,7 +147,7 @@ class SessionAssistantEngineTest {
             ruleLimits = SessionEditorRuleLimits(),
             mesoIndex = 0,
             programId = "p1",
-            customDrain = customDrain,
+
         )
     }
 }

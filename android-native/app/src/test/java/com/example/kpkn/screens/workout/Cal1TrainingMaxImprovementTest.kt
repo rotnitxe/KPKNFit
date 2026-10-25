@@ -6,7 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class Cal1TrainingMaxImprovementTest {
-    @Test fun sessionImprovementUsesAOneRmAndNeverATrainingMax() = runTest {
+    @Test fun sessionObservationsCannotChangeAuthoredTmLoadsWithoutAnAcceptedProposal() = runTest {
         val exercise = Exercise("e", "Press", trainingMode = TrainingMode.RM, reference1RM = 100.0, referenceTrainingMax = 90.0,
             sets = listOf(ExerciseSet("s", targetPercentageRM = 80.0,
                 loadBasis = com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM)))
@@ -24,10 +24,10 @@ class Cal1TrainingMaxImprovementTest {
             })
         for (tm in listOf(60.0, 90.0, 120.0)) {
             val current = exercise.copy(referenceTrainingMax = tm)
-            assertEquals(1.0, controller.computeSessionImprovementAdjustment(current, null, null), 0.0)
-            assertEquals(1.0, controller.computeSessionImprovementAdjustment(current.copy(reference1RM = null), null, null), 0.0)
+            assertEquals(tm * 0.8, controller.getWeightSuggestionWithAutoRegulation(current, 0)!!.suggestedWeight, 0.0001)
+            assertEquals(tm * 0.8, controller.getWeightSuggestionWithAutoRegulation(current.copy(reference1RM = null), 0)!!.suggestedWeight, 0.0001)
         }
         state = state.copy(completedSets = mapOf("e_0" to CompletedSet("better", weight = 105.0, reps = 1)))
-        assertEquals(1.05, controller.computeSessionImprovementAdjustment(exercise, null, null), 0.0)
+        assertEquals(72.0, controller.getWeightSuggestionWithAutoRegulation(exercise, 0)!!.suggestedWeight, 0.0001)
     }
 }

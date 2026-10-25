@@ -10,7 +10,6 @@ internal data class RelatorExerciseContext(
     val movementPatternId: String?,
     val family: RelatorFamily,
     val compound: RelatorCompound = RelatorCompound.NONE,
-    val axialLoadFactor: Double? = null,
     val equipmentId: String? = null,
 )
 
@@ -26,18 +25,15 @@ internal fun resolveRelatorExerciseContext(
         jointIds = joints.map { it.jointId },
         movementPatternId = patternId,
     )
-    val axial = profile?.axialLoadFactor
     val compound = detectRelatorCompound(
         exerciseName = exercise?.name.orEmpty(),
         movementPatternId = patternId,
-        axialLoadFactor = axial,
     )
     return RelatorExerciseContext(
         joints = joints,
         movementPatternId = patternId,
         family = family,
         compound = compound,
-        axialLoadFactor = axial,
         equipmentId = profile?.equipmentId,
     )
 }

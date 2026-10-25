@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La banda rodea ambos muslos justo por encima de las rodillas y parte con poca carga: cuanto más se abre la rodilla de arriba, más se estira y más resistencia opone. Esa resistencia creciente se suma al peso del muslo y obliga a frenar la bajada.",
-              "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
                 "Abre la rodilla de arriba girando el muslo hacia fuera, sin separar los talones.",
                 "Detén la apertura justo antes de que la pelvis ruede hacia atrás y sostén un segundo con la banda estirada.",
                 "Baja la rodilla despacio, frenando la banda, hasta rozar la otra rodilla sin que se junten de golpe."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -115,14 +111,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Clamshells (Almejas) con Banda Elástica",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -136,7 +124,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -167,10 +154,8 @@
                 "Apoya la mano de arriba en la cadera de arriba para notar si la pelvis rueda hacia atrás."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

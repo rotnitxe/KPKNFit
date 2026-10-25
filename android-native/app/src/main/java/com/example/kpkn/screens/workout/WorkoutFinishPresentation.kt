@@ -5,7 +5,6 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.WorkoutLog
-import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import java.text.NumberFormat
@@ -42,7 +41,7 @@ internal data class FinishLiftProgress(
     val totalHistorySessions: Int = history.size,
     val first: FinishProgressPoint? = history.firstOrNull(),
 ) {
-    val deltaKg: Double? get() = if (best != null && previous != null) best.weight - previous.weight else null
+    val deltaKg: Double? get() = if (best != null && previous != null && best.reps == previous.reps) best.weight - previous.weight else null
     val isImproved: Boolean get() = deltaKg?.let { it > 0.01 } == true
 }
 
@@ -60,9 +59,14 @@ private fun bestFinishSet(exercise: CompletedExercise): CompletedSet? = exercise
 
 internal fun buildFinishLiftProgress(completed: List<CompletedExercise>, history: List<WorkoutLog>): List<FinishLiftProgress> =
     completed.map { exercise ->
-        val points = history.sortedBy { AugeUtils.logDateMs(it) }.mapNotNull { log ->
+        val points = history.sortedBy { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) }.mapNotNull { log ->
+            val current=bestFinishSet(exercise) ?: return@mapNotNull null
+            val context=current.contextKey?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
             val best = log.completedExercises.filter { sameFinishExercise(exercise, it) }
-                .mapNotNull(::bestFinishSet)
+                .map { old -> old.copy(sets=old.sets.filter {
+                    it.contextKey == context && it.loadMode == current.loadMode && it.reps == current.reps &&
+                        it.recordedPayloadV3 != null && current.recordedPayloadV3 != null
+                }) }.mapNotNull(::bestFinishSet)
                 .maxByOrNull { calculateHybrid1RM(it.weight, it.reps) } ?: return@mapNotNull null
             FinishProgressPoint(log.date, best.weight, best.reps, calculateHybrid1RM(best.weight, best.reps))
         }

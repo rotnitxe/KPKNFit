@@ -32,9 +32,9 @@ import org.robolectric.annotation.Config
 class LiveSetModesPersistenceTest {
     @get:Rule val room = RoomTestRule()
     private var fixture: LiveSessionVmFixture? = null
-    @Before fun before() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetAugeRepository() }
+    @Before fun before() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetTrainingObservationRepository() }
     @After fun after() {
-        try { fixture?.close(); LiveSessionVmFixture.resetAugeRepository(); ProgramRepository.closeInstance(); KpknDatabase.closeInstance() }
+        try { fixture?.close(); LiveSessionVmFixture.resetTrainingObservationRepository(); ProgramRepository.closeInstance(); KpknDatabase.closeInstance() }
         finally { Dispatchers.resetMain() }
     }
     @Test fun repsPersistAndUpdateOneStableRecord() = persist(TrainingMode.REPS, 9.0, 100.0)

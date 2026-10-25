@@ -16,11 +16,6 @@ public struct ExerciseMuscleInfo: Codable {
     public let bodyPart: String?
     public let tier: String?
     public let isCustom: Bool
-    public let efc: Double?
-    public let cnc: Double?
-    public let ssc: Double?
-    public let ttc: Double?
-    public let axialLoadFactor: Double?
     public let technicalDifficulty: Double?
     public let coreInvolvement: String?
     public let bracingRecommended: Bool?
@@ -64,11 +59,6 @@ public struct ExerciseMuscleInfo: Codable {
         bodyPart: String? = nil,
         tier: String? = nil,
         isCustom: Bool = false,
-        efc: Double? = nil,
-        cnc: Double? = nil,
-        ssc: Double? = nil,
-        ttc: Double? = nil,
-        axialLoadFactor: Double? = nil,
         technicalDifficulty: Double? = nil,
         coreInvolvement: String? = nil,
         bracingRecommended: Bool? = nil,
@@ -111,11 +101,6 @@ public struct ExerciseMuscleInfo: Codable {
         self.bodyPart = bodyPart
         self.tier = tier
         self.isCustom = isCustom
-        self.efc = efc
-        self.cnc = cnc
-        self.ssc = ssc
-        self.ttc = ttc
-        self.axialLoadFactor = axialLoadFactor
         self.technicalDifficulty = technicalDifficulty
         self.coreInvolvement = coreInvolvement
         self.bracingRecommended = bracingRecommended

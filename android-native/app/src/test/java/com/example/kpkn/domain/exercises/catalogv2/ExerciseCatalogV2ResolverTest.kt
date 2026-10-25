@@ -170,11 +170,11 @@ class ExerciseCatalogV2ResolverTest {
             primaryMuscles = listOf("biceps_brachii"),
             secondaryMuscles = listOf("brachialis"),
             stabilizerMuscles = emptyList(),
-            efc = 2.0,
-            cnc = 1.5,
-            ssc = 0.0,
-            ttc = 1.0,
-            axialLoadFactor = 0.0,
+            
+            
+            
+            
+            
             technicalDifficulty = 3.0,
             resistanceProfile = "gravity_arc",
             setupCues = listOf("Torso estable."),
@@ -199,11 +199,11 @@ class ExerciseCatalogV2ResolverTest {
         primaryMuscles = primary,
         secondaryMuscles = secondary,
         stabilizerMuscles = emptyList(),
-        efc = 2.0,
-        cnc = 1.5,
-        ssc = 0.0,
-        ttc = 1.0,
-        axialLoadFactor = 0.0,
+        
+        
+        
+        
+        
         technicalDifficulty = 3.0,
         resistanceProfile = "gravity_arc",
         setupCues = listOf("Posición estable."),
@@ -217,6 +217,78 @@ class ExerciseCatalogV2ResolverTest {
         evidenceRefs = listOf("test"),
     )
 
+    private fun conventionalRowRetirementCatalog(): ExerciseCatalogV2 {
+        fun rowConfig(
+            id: String,
+            selectedOptions: Map<String, String>,
+            equipmentId: String,
+        ) = ExerciseConfigurationV2(
+            id = id,
+            selectedOptions = selectedOptions,
+            displaySummary = selectedOptions.values.joinToString(" "),
+            profile = profile(
+                movementPatternId = "horizontal_pull",
+                equipmentId = equipmentId,
+                primary = listOf("latissimus_dorsi"),
+                secondary = listOf("trapezius"),
+            ),
+            evidence = evidence(),
+        )
+
+        fun rowDefinition(
+            id: String,
+            familyId: String,
+            axes: List<String>,
+            rows: List<ExerciseConfigurationV2>,
+            defaultId: String,
+        ) = ExerciseDefinitionV2(
+            id = id,
+            familyId = familyId,
+            kind = ExerciseDefinitionKindV2.PARENT,
+            canonicalName = id,
+            description = "Remo horizontal con implemento explícito.",
+            searchTerms = listOf(id),
+            optionAxes = axes,
+            configurations = rows,
+            defaultConfigurationId = defaultId,
+            evidence = evidence(),
+        )
+
+        fun rowFamily(id: String, definition: ExerciseDefinitionV2) = ExerciseFamilyV2(
+            id = id,
+            canonicalName = id,
+            definitions = listOf(definition),
+            evidence = evidence(),
+        )
+
+        val conventionalFamilyId = "back_conventional_row"
+        val conventional = rowDefinition(
+            id = "conventional_row",
+            familyId = conventionalFamilyId,
+            axes = listOf("implement"),
+            rows = listOf("barbell", "dumbbells", "machine", "smith_machine", "kettlebell").map { implement ->
+                rowConfig("conventional_row__$implement", mapOf("implement" to implement), implement)
+            },
+            defaultId = "conventional_row__barbell",
+        )
+        val girondaFamilyId = "back_gironda_row"
+        val gironda = rowDefinition(
+            id = "gironda_row",
+            familyId = girondaFamilyId,
+            axes = listOf("grip_width"),
+            rows = listOf(
+                rowConfig("gironda_row__medium", mapOf("grip_width" to "medium"), "cable"),
+            ),
+            defaultId = "gironda_row__medium",
+        )
+        return catalog.copy(
+            families = listOf(
+                rowFamily(conventionalFamilyId, conventional),
+                rowFamily(girondaFamilyId, gironda),
+            ),
+        )
+    }
+
     @Test
     fun invalid_configuration_does_not_fall_back_to_default() {
         val resolver = ExerciseCatalogV2Resolver(catalog)
@@ -224,6 +296,33 @@ class ExerciseCatalogV2ResolverTest {
 
         assertTrue(resolver.validate(selection) is ExerciseSelectionValidationV2.Invalid)
         assertNull(resolver.resolve(selection))
+    }
+
+    @Test
+    fun retired_conventional_row_cable_selection_resolves_to_gironda_and_keeps_cable() {
+        val testCatalog = conventionalRowRetirementCatalog()
+        val resolver = ExerciseCatalogV2Resolver(testCatalog)
+        val saved = ExerciseSelectionV2(
+            definitionId = "conventional_row",
+            configurationId = "conventional_row__cable",
+            catalogRevision = testCatalog.catalogRevision,
+        )
+
+        val valid = resolver.validate(saved) as ExerciseSelectionValidationV2.Valid
+        assertEquals("gironda_row", valid.selection.definitionId)
+        assertEquals("gironda_row__medium", valid.selection.configurationId)
+        val resolved = resolver.resolve(saved) ?: error("Retired cable row did not resolve")
+        assertEquals("cable", resolved.equipmentId)
+        assertEquals("horizontal_pull", resolved.movementPatternId)
+        assertTrue(testCatalog.families.single { it.id == "back_conventional_row" }
+            .definitions.single().configurations.none { it.id == "conventional_row__cable" })
+        assertTrue(resolver.validate(saved.copy(definitionId = "gironda_row")) is ExerciseSelectionValidationV2.Invalid)
+
+        val missingReplacement = ExerciseCatalogV2Resolver(
+            testCatalog.copy(families = testCatalog.families.filterNot { it.id == "back_gironda_row" }),
+        )
+        assertTrue(missingReplacement.validate(saved) is ExerciseSelectionValidationV2.Invalid)
+        assertNull(missingReplacement.resolve(saved))
     }
 
     @Test
@@ -282,11 +381,11 @@ class ExerciseCatalogV2ResolverTest {
                     JointInvolvementV2("tobillo", JointRoleV2.SECONDARY, listOf("Equilibrio Y Dorsiflexión")),
                     JointInvolvementV2("sacroiliaca", JointRoleV2.STABILIZER, listOf("Transferencia Unilateral")),
                 ),
-                efc = 2.8,
-                cnc = 2.2,
-                ssc = 0.5,
-                ttc = 2.0,
-                axialLoadFactor = 0.0,
+                
+                
+                
+                
+                
                 technicalDifficulty = 4.2,
                 resistanceProfile = when (equipmentId) {
                     "smith_machine" -> "guided_constant"
@@ -299,7 +398,6 @@ class ExerciseCatalogV2ResolverTest {
                 description = "$name con configuración explícita $equipmentId.",
                 articulationType = ExerciseArticulationTypeV2.MULTIARTICULAR,
                 setupTimeSeconds = if (equipmentId == "smith_machine") 50 else 35,
-                fatigueTier = ExerciseFatigueTierV2.MEDIA,
             )
             val definition = ExerciseDefinitionV2(
                 id = definitionId,

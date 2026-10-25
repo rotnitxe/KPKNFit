@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con banda elástica, con la banda tensa en las piernas, cada paso lateral obliga al glúteo a empujar sin pausa. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
-              "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
                 "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -123,14 +119,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Caminata del Monstruo (Monster Walk) con Banda",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -144,7 +132,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -170,10 +157,8 @@
                 "Preparación: Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

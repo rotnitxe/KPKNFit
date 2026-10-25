@@ -5,7 +5,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-enum class SetupDraftScope { FULL, TRAINING_ONLY, NUTRITION_ONLY, RINGS_ONLY, LEGACY_RESUME, UNKNOWN }
+enum class SetupDraftScope { FULL, TRAINING_ONLY, NUTRITION_ONLY, LEGACY_RESUME, UNKNOWN }
 
 data class SetupDraftCandidate(
     val draftId: String,
@@ -50,7 +50,7 @@ class SetupDraftResolver(private val db: KpknDatabase) {
             "full", "setup-wizard:full" -> SetupDraftScope.FULL
             "training_only", "training-only", "setup-wizard:training_only" -> SetupDraftScope.TRAINING_ONLY
             "nutrition_only", "nutrition-only", "setup-wizard:nutrition_only" -> SetupDraftScope.NUTRITION_ONLY
-            "rings_only", "rings-only", "setup-wizard:rings_only" -> SetupDraftScope.RINGS_ONLY
+            "rings_only", "rings-only", "setup-wizard:rings_only" -> SetupDraftScope.LEGACY_RESUME
             "resume", "setup-wizard:resume" -> SetupDraftScope.LEGACY_RESUME
             else -> SetupDraftScope.UNKNOWN
         }
@@ -59,7 +59,6 @@ class SetupDraftResolver(private val db: KpknDatabase) {
             SetupDraftScope.FULL, SetupDraftScope.LEGACY_RESUME, SetupDraftScope.UNKNOWN -> "setup-wizard:full"
             SetupDraftScope.TRAINING_ONLY -> "setup-wizard:training_only"
             SetupDraftScope.NUTRITION_ONLY -> "setup-wizard:nutrition_only"
-            SetupDraftScope.RINGS_ONLY -> "setup-wizard:rings_only"
         }
     }
 }

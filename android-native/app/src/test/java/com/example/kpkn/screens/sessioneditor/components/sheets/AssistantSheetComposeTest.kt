@@ -5,13 +5,11 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import com.example.kpkn.domain.sessionassistant.AssistantActionType
-import com.example.kpkn.domain.auge.DrainReading
 import com.example.kpkn.domain.sessionassistant.AssistantDetailAction
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestion
 import com.example.kpkn.domain.sessionassistant.AssistantSuggestionDetail
 import com.example.kpkn.domain.sessionassistant.SessionAssistantReport
 import com.example.kpkn.domain.sessionassistant.Verdict
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.screens.sessioneditor.SessionEditorUiState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -54,7 +52,7 @@ class AssistantSheetComposeTest {
         plantillasCompatibles = emptyList(),
         volumenPorMusculo = emptyMap(),
         umbralesPorMusculo = emptyMap(),
-        drenajeEstimado = PredictedDrain(cns = 0, muscular = 0, spinal = 0),
+
         duracionEstimada = 0,
         resumenTexto = "",
     )
@@ -73,11 +71,11 @@ class AssistantSheetComposeTest {
                 onCancelTemplateApply = {},
             )
         }
-        // Pestaña inicial: Impacto (la torre de RINGS).
-        rule.onNodeWithText("RINGS DE LA SESIÓN").assertExists()
+        // Pestaña inicial: contenido registrado del programa.
+        rule.onNodeWithText("Contenido del programa").assertExists()
         rule.onNodeWithText("Sugerencias").performClick()
         rule.onNodeWithText("Bajar la intensidad").assertExists()
-        rule.onNodeWithText("RINGS DE LA SESIÓN").assertDoesNotExist()
+        rule.onNodeWithText("Contenido del programa").assertDoesNotExist()
     }
 
     @Test
@@ -137,16 +135,12 @@ class AssistantSheetComposeTest {
     }
 
     @Test
-    fun impactoDistingueMenosDeUnoCeroYSinEstimacion() {
-        rule.setContent {
-            AssistantRingFigures(
-                musculos = DrainReading.UnderOne(0.4),
-                energia = DrainReading.Zero,
-                columna = DrainReading.Unknown,
-            )
-        }
-        rule.onNodeWithContentDescription("<1 %").assertExists()
-        rule.onNodeWithContentDescription("0 %").assertExists()
-        rule.onNodeWithText("Sin estimación").assertExists()
+    fun contentsShowAuthoredCountsWithoutInventingPhysiology() {
+        rule.setContent { AssistantContentsTab(uiState=com.example.kpkn.screens.sessioneditor.SessionEditorUiState(
+            session=com.example.kpkn.data.models.Session("empty","Mi sesión"))) }
+        rule.onNodeWithText("Contenido del programa").assertExists()
+        rule.onNodeWithText("0 ejercicios · 0 series planificadas").assertExists()
+        rule.onNodeWithText("Los recuentos describen tu plan; no indican recuperación ni seguridad.").assertExists()
+        rule.onNodeWithText("Sin estimación").assertDoesNotExist()
     }
 }

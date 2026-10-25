@@ -1,0 +1,11 @@
+PRIVATE HANDOFF — POST RINGS — 2026-10-24
+
+Read PLAN_COMPLETO.md first. It supersedes the earlier Rings-v4 objective.
+Fetch/check public master at the baseCommit in SOURCE_MANIFEST.json before applying.
+Do not reset, clean, overwrite or merge any pre-existing cloud work. Use a new private branch/clone if necessary.
+local_wip/ contains only allowlisted local source copies and tests for multideporte/PerformanceLab.
+Verify all hashes. Tracked files are full copies against the stated base, not patches against the old Rings branch.
+Review the diff and integrate only the required, validated WIP. These sources have NOT been built or tested in this handoff.
+No generated catalog/dataset assets, credentials, keystores, APKs, personal workout data, or unrelated MFP/VT work are included.
+Do not publish the ZIP, its WIP, commits, or private results to public GitHub.
+Keep the local PC idle. Do all implementation/build work remotely and preserve private recoverable commits/artifacts.

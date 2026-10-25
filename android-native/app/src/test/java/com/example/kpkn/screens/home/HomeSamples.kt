@@ -1,18 +1,5 @@
 package com.example.kpkn.screens.home
 
-import com.example.kpkn.data.models.AugeSnapshot
-import com.example.kpkn.data.models.GlobalBatteries
-import com.example.kpkn.data.models.LoadAdvisory
-import com.example.kpkn.data.models.LoadAdvisoryLevel
-import com.example.kpkn.data.models.MuscleRecoveryStatus
-import com.example.kpkn.data.models.RecoveryChannelId
-import com.example.kpkn.data.models.RecoveryChannelSnapshot
-import com.example.kpkn.data.models.RecoveryDashboard
-import com.example.kpkn.data.models.RecoveryStatus
-import com.example.kpkn.domain.auge.RecoveryBands
-import com.example.kpkn.domain.onboarding.RingsChannelCoverage
-import com.example.kpkn.domain.onboarding.RingsCoverage
-import com.example.kpkn.domain.onboarding.RingsCoverageSource
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.Macrocycle
@@ -35,7 +22,7 @@ import com.example.kpkn.screens.home.design.HomeHeroLine
 import com.example.kpkn.screens.home.design.HomeHeroMode
 import com.example.kpkn.screens.home.design.HomeHeroState
 import com.example.kpkn.screens.home.design.HomeMastheadState
-import com.example.kpkn.screens.home.design.HomeMuscleGauge
+import com.example.kpkn.screens.home.design.HomeSessionMuscle
 import com.example.kpkn.screens.home.design.homeDateLine
 import com.example.kpkn.screens.home.design.homeHeroKicker
 import com.example.kpkn.screens.home.design.homeHeroNextLine
@@ -273,111 +260,6 @@ internal object HomeSamples {
     /** Cuerpo sin altura real: hay peso y tendencia, pero no IMC ni FFMI. */
     fun bodyWithoutHeight(): HomeBodyState = bodyWithTrendAndGoal().copy(bmi = null, ffmi = null)
 
-    /**
-     * Un snapshot de RINGS de ejemplo: la puntuación de cada canal (null = sin datos) y su procedencia (por defecto, historial
-     * real). Con las bandas, las horas, el rango habitual (si [baselines]) y las sesiones de cada canal. Entre los músculos hay
-     * uno sin sesiones: su 100 % es el valor por defecto del motor y no debe salir.
-     */
-    fun ringsSample(
-        muscular: Int? = 64,
-        energy: Int? = 72,
-        structure: Int? = 80,
-        sources: Map<RecoveryChannelId, RingsCoverageSource> = emptyMap(),
-        baselines: Boolean = true,
-        advisory: Boolean = false,
-    ): AugeSnapshot {
-        fun coverage(channel: RecoveryChannelId, score: Int?) = RingsChannelCoverage(
-            channel = channel,
-            source = if (score == null) RingsCoverageSource.NO_DATA else sources[channel] ?: RingsCoverageSource.REAL_HISTORY,
-            uncertainty = 20,
-            score = score,
-        )
-        fun channel(id: RecoveryChannelId, title: String, score: Int?, action: String, causes: List<String>) = RecoveryChannelSnapshot(
-            id = id,
-            title = title,
-            shortTitle = title,
-            score = score ?: 100,
-            band = RecoveryBands.band(score ?: 100),
-            description = "",
-            action = action,
-            causes = causes,
-        )
-        return AugeSnapshot(
-            batteries = GlobalBatteries(muscular = muscular ?: 100, cnc = energy ?: 100, spinal = structure ?: 100),
-            perMuscle = mapOf(
-                "Pectorales" to MuscleRecoveryStatus("Pectorales", 58, 12, 20, 9, RecoveryStatus.RECOVERING),
-                "Dorsales" to MuscleRecoveryStatus("Dorsales", 66, 6, 30, 12, RecoveryStatus.RECOVERING),
-                "Cuádriceps" to MuscleRecoveryStatus("Cuádriceps", 81, 0, 40, 8, RecoveryStatus.OPTIMAL),
-                "Isquiotibiales" to MuscleRecoveryStatus("Isquiotibiales", 74, 4, 26, 6, RecoveryStatus.OPTIMAL),
-                "Trapecio" to MuscleRecoveryStatus("Trapecio", 90, 0, 60, 4, RecoveryStatus.FRESH),
-                "Hombros" to MuscleRecoveryStatus("Hombros", 100, 0, -1, 0, RecoveryStatus.FRESH),
-            ),
-            dashboard = RecoveryDashboard(
-                overallScore = 72,
-                headline = "Buen estado para entrenar",
-                summary = "",
-                recommendation = "",
-                confidenceLabel = "Media",
-                channels = listOf(
-                    channel(
-                        RecoveryChannelId.MUSCULAR,
-                        "Músculos",
-                        muscular,
-                        "Volumen normal y buena ejecución.",
-                        listOf("Sentadilla pesada ayer", "Volumen alto en piernas"),
-                    ),
-                    channel(
-                        RecoveryChannelId.SYSTEM,
-                        "Energía",
-                        energy,
-                        "Empuja normal, sin ir al límite.",
-                        listOf("Dos sesiones intensas esta semana"),
-                    ),
-                    channel(
-                        RecoveryChannelId.STRUCTURE,
-                        "Columna",
-                        structure,
-                        "Carga estructural normal con buena técnica.",
-                        listOf("Peso muerto el jueves"),
-                    ),
-                ),
-                dataLabel = "Historial real",
-            ),
-            isLoading = false,
-            advisories = if (advisory) {
-                listOf(
-                    LoadAdvisory(
-                        id = "adv-piernas",
-                        channel = RecoveryChannelId.MUSCULAR,
-                        level = LoadAdvisoryLevel.WATCH,
-                        title = "Carga alta en piernas",
-                        body = "Dos sesiones pesadas seguidas. Reparte el volumen esta semana.",
-                        weekKey = "2026-W42",
-                        dismissible = true,
-                    ),
-                )
-            } else {
-                emptyList()
-            },
-            hoursToNormal = mapOf(RecoveryChannelId.MUSCULAR to 14, RecoveryChannelId.SYSTEM to 0),
-            personalBaseline = if (baselines) {
-                mapOf(RecoveryChannelId.MUSCULAR to 78..92, RecoveryChannelId.STRUCTURE to 70..86)
-            } else {
-                emptyMap()
-            },
-            sparkline = mapOf(
-                RecoveryChannelId.MUSCULAR to listOf(62, 70, 66, 74, 64),
-                RecoveryChannelId.SYSTEM to listOf(58, 64, 70, 72),
-                RecoveryChannelId.STRUCTURE to listOf(80, 76, 79, 82, 80),
-            ),
-            coverage = RingsCoverage(
-                muscular = coverage(RecoveryChannelId.MUSCULAR, muscular),
-                system = coverage(RecoveryChannelId.SYSTEM, energy),
-                structure = coverage(RecoveryChannelId.STRUCTURE, structure),
-            ),
-        )
-    }
-
     // ---- Héroe de la sesión del día (I2): la hoja de render y las pruebas. Martes 13 de octubre: día 2 de 4. ----
 
     /** Programa de fuerza con su plantilla: el arte de su portada sale de K3a. */
@@ -460,11 +342,11 @@ internal object HomeSamples {
     )
 
     /** Recuperación de la sesión: tres músculos con dato y uno sin dato (sale «—»). */
-    fun heroMuscles(): List<HomeMuscleGauge> = listOf(
-        HomeMuscleGauge("Isquios", 78),
-        HomeMuscleGauge("Glúteos", 64),
-        HomeMuscleGauge("Cuádriceps", 91),
-        HomeMuscleGauge("Pantorrilla", null),
+    fun heroMuscles(): List<HomeSessionMuscle> = listOf(
+        HomeSessionMuscle("Isquios"),
+        HomeSessionMuscle("Glúteos"),
+        HomeSessionMuscle("Cuádriceps"),
+        HomeSessionMuscle("Pantorrilla"),
     )
 
     /** Los casos de la hoja del héroe, con el nombre de su PNG y sus músculos (vacíos si el modo no los muestra). */
@@ -559,11 +441,8 @@ internal object HomeSamples {
                 hasActiveProgram = true,
                 activeProgram = program,
                 programs = shelfPrograms(program),
-                rings = ringsSample(),
-                perMuscle = ringsSample().perMuscle,
                 nutrition = nutritionTwoMeals(),
                 body = bodyWithTrendAndGoal(),
-                overtrained = listOf("pecho y espalda"),
             ),
             "descanso" to HomePageSample(
                 masthead = restSample.masthead,
@@ -572,11 +451,8 @@ internal object HomeSamples {
                 hasActiveProgram = true,
                 activeProgram = program,
                 programs = shelfPrograms(program),
-                rings = ringsSample(),
-                perMuscle = ringsSample().perMuscle,
                 nutrition = nutritionTwoMeals(),
                 body = bodyWithTrendAndGoal(),
-                overtrained = emptyList(),
             ),
             "sin_programa" to HomePageSample(
                 masthead = noProgramSample.masthead,
@@ -585,11 +461,8 @@ internal object HomeSamples {
                 hasActiveProgram = false,
                 activeProgram = null,
                 programs = emptyList(),
-                rings = ringsSample(),
-                perMuscle = emptyMap(),
                 nutrition = nutritionNoGoal(),
                 body = bodyWithTrendAndGoal(),
-                overtrained = emptyList(),
             ),
             "recien_activado" to HomePageSample(
                 masthead = freshSample.masthead,
@@ -598,14 +471,8 @@ internal object HomeSamples {
                 hasActiveProgram = true,
                 activeProgram = program,
                 programs = listOf(program),
-                rings = ringsSample(muscular = null, energy = null, structure = null).let { snapshot ->
-                    // Sin datos no hay titular ni se afirma una confianza media: el panel queda sin titular y con confianza baja.
-                    snapshot.copy(dashboard = snapshot.dashboard.copy(headline = "", confidenceLabel = "Baja"))
-                },
-                perMuscle = emptyMap(),
                 nutrition = homeNutritionState(emptyList(), HomeNutritionSnapshot(), null, null, null, null),
                 body = bodyNoWeights(),
-                overtrained = emptyList(),
             ),
         )
     }
@@ -633,11 +500,11 @@ internal object HomeSamples {
     )
 
     /** Ocho músculos, con uno sin dato: la fila de chips tiene que desplazarse en horizontal. */
-    fun heroManyMuscles(): List<HomeMuscleGauge> = heroMuscles() + listOf(
-        HomeMuscleGauge("Lumbares", 69),
-        HomeMuscleGauge("Aductores", 85),
-        HomeMuscleGauge("Gemelos", 73),
-        HomeMuscleGauge("Core", 88),
+    fun heroManyMuscles(): List<HomeSessionMuscle> = heroMuscles() + listOf(
+        HomeSessionMuscle("Lumbares"),
+        HomeSessionMuscle("Aductores"),
+        HomeSessionMuscle("Gemelos"),
+        HomeSessionMuscle("Core"),
     )
 
     /** Cifra de cinco dígitos: «12.345 kcal» tiene que caber junto a los anillos al 130 % de letra, o pasar a la disposición apilada (I12). */
@@ -659,15 +526,12 @@ internal data class HomePageSample(
     val hasActiveProgram: Boolean,
     val activeProgram: Program?,
     val programs: List<Program>,
-    val rings: AugeSnapshot,
-    val perMuscle: Map<String, MuscleRecoveryStatus>,
     val nutrition: HomeNutritionState,
     val body: HomeBodyState,
-    val overtrained: List<String>,
 )
 
 /** Un caso de la hoja del héroe: el estado de la sesión del día y los músculos de sus cifras. */
 internal data class HomeHeroSheetCase(
     val state: HomeHeroState,
-    val muscles: List<HomeMuscleGauge>,
+    val muscles: List<HomeSessionMuscle>,
 )

@@ -4,7 +4,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfoInIndex
-import com.example.kpkn.domain.auge.SessionMuscleFilter
+import com.example.kpkn.domain.exercises.SessionMuscleFilter
 
 object ExerciseMuscleResolver {
 

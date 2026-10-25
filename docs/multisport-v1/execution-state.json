@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-10-18",
+  "statusVocabulary": [
+    "pending",
+    "in_progress",
+    "rejected",
+    "complete"
+  ],
+  "baseline": {
+    "commit": "f174a5020",
+    "implementationWorktree": {
+      "path": "C:/Users/valen/.codex/worktrees/multisport-foundation/KPKNFit",
+      "status": "created",
+      "created": true,
+      "branch": "codex/multisport-foundation"
+    }
+  },
+  "currentState": {
+    "summary": "Corte sin UI implementado: propuestas sobre sesiones existentes, guardado durable y consulta única de actividad completada. 117 pruebas dirigidas, assembleBaseDebug, instalación y arranque observado correctos. V1/v2 rechazadas; UI, aplicador y motores especializados siguen pendientes.",
+    "basis": "Logs, hashes y resultados del candidato; no atribuir avances adicionales a otros agentes ni confundir HTML con implementación nativa.",
+    "prototypeGallery": {
+      "path": "docs/design/multisport-v2/gallery.html",
+      "status": "rejected",
+      "approvedForProductUi": false,
+      "connectsProductionSensorsServicesOrStorage": false,
+      "candidateState": "rejected_by_user_not_a_product_reference",
+      "newScenes": 46,
+      "localContractsPassed": 36,
+      "browserInteractionsPassed": 67,
+      "programmaticAttemptsInconclusiveAndSuperseded": 2,
+      "layoutChecks": 230,
+      "layoutWidths": [
+        320,
+        360,
+        430,
+        448
+      ],
+      "unintentionalLayoutOverflows": 0,
+      "zip": "artifacts/KPKN-Multideporte-Nuevo-v2.zip",
+      "evidence": "artifacts/multisport-implementation-20261018/",
+      "supplementaryChecksPassed": 36,
+      "inconclusiveOrIntermediateAttempts": 3,
+      "consoleErrorsAfterCorrections": 0,
+      "historicalFindings": "Dos fallos observados y tratados con regresiones: carga de previews y selectores numéricos; ver artefactos.",
+      "packageSha256": "08FE4DA39EFC4841A675AFCBB516CDE1CFFA992C872B1D58F88913676C12BCEC",
+      "rejectionReason": "Wizard tabbar and invented live-session designs do not preserve the app's identity. UI will be defined later."
+    },
+    "evidence": {
+      "code": "reviewed_nonvisual_integration_implemented",
+      "tests": "passed_117_targeted_tests",
+      "build": "assembleBaseDebug_passed",
+      "install": "passed_owned_emulator_5580",
+      "emulatorUi": "startup_only_visible_existing_screen_and_top_resumed",
+      "physicalDevice": "not_run",
+      "htmlAndScreenshotAcceptance": "rejected_by_user; UI deferred"
+    },
+    "supportClaims": {
+      "sports": [],
+      "huaweiWatch": "unverified_no_model_or_compatibility_evidence",
+      "cloudCoachingComplex": "deferred"
+    },
+    "rejectedGallery": {
+      "path": "docs/design/multisport-v1/index.html",
+      "status": "rejected_by_user",
+      "approvedForProductUi": false
+    },
+    "visualRule": "Visual, animado y amigable sin perder potencia; fidelidad nativa y aprobación humana obligatorias.",
+    "prototypeScope": "Only new functionality to integrate; existing Home comparison is internal fidelity QA, excluded from deliverable gallery.",
+    "nativeBuild": {
+      "variant": "baseDebug",
+      "path": "C:\\Users\\valen\\.codex\\worktrees\\multisport-foundation\\KPKNFit\\android-native\\app\\build\\outputs\\apk\\base\\debug\\app-base-debug.apk",
+      "bytes": 413305173,
+      "sha256": "fb48a2849bd36b26cbc3d9ce502d64f488609d779a988ca1c251107ccaf5f562",
+      "newNativeUiApplied": false
+    },
+    "nativeRuntime": {
+      "installReceipt": "C:\\Users\\valen\\Documents\\KPKNFit\\artifacts\\multisport-integration-20261018\\native-device\\verify_native_receipt_20261018T155416_011316Z_49884.json",
+      "captureReceipt": "C:\\Users\\valen\\Documents\\KPKNFit\\artifacts\\multisport-integration-20261018\\native-device\\capture-20261018T155633.json",
+      "serial": "emulator-5580",
+      "avdName": "kpkn-native36-20261018-031804-6171e60d",
+      "topResumedComponent": "com.example.kpkn/.MainActivity",
+      "visibleScreen": "Bienvenida existente: Entrenar, sin complicarte; botón Comenzar",
+      "startupOnly": "passed",
+      "newNativeUiApplied": false,
+      "startupLatency": "not_measured_or_accepted",
+      "physicalDevice": "not_run",
+      "stopReceipt": "C:\\Users\\valen\\Documents\\KPKNFit\\artifacts\\multisport-integration-20261018\\native-device\\stop-20261018T155737.json",
+      "initialObservation": "Launch wait timed out and first screenshot was blank. Read-only follow-up confirmed visible content without reinstall or restart."
+    },
+    "uiWork": "deferred_by_user; no HTML transfer to Kotlin; preserve existing session and wizard navigation",
+    "implementationBatch": {
+      "path": "artifacts/multisport-integration-20261018/",
+      "status": "complete",
+      "scope": "nonvisual proposal integration and completed-activity query",
+      "newNativeUiApplied": false,
+      "finalResult": "artifacts/multisport-integration-20261018/FINAL-RESULT.json"
+    },
+    "previousCandidateEvidence": {
+      "batch": "multisport-implementation-20261018",
+      "evidence": {
+        "code": "candidate_compiled_and_reviewed",
+        "tests": "passed_87_targeted_tests",
+        "build": "assembleBaseDebug_passed",
+        "install": "passed_owned_emulator_5580",
+        "emulatorUi": "startup_only_visible_welcome_and_top_resumed; initial_launch_timeout_preserved",
+        "physicalDevice": "not_run",
+        "htmlAndScreenshotAcceptance": "rejected_by_user"
+      },
+      "nativeBuild": {
+        "variant": "baseDebug",
+        "apk": "C:/kw/msport/android-native/app/build/outputs/apk/base/debug/app-base-debug.apk",
+        "sha256": "48140ac1e90ff0adc138c9bcecd232e4f479d8db77bf574540c770e1ff22b15a",
+        "newNativeUiApplied": false
+      },
+      "nativeRuntime": {
+        "checkedAtUtc": "2026-10-18T06:27:22.831232+00:00",
+        "candidate": {
+          "apkPath": "C:\\Users\\valen\\.codex\\worktrees\\multisport-foundation\\KPKNFit\\android-native\\app\\build\\outputs\\apk\\base\\debug\\app-base-debug.apk",
+          "sha256": "48140ac1e90ff0adc138c9bcecd232e4f479d8db77bf574540c770e1ff22b15a"
+        },
+        "variant": "baseDebug",
+        "serial": "emulator-5580",
+        "avdName": "kpkn-native36-20261018-031804-6171e60d",
+        "install": "passed",
+        "mainActivityTopResumed": true,
+        "visibleWelcomeScreen": true,
+        "uiTreeNodes": 38,
+        "candidateCrashesInObservedBuffer": false,
+        "startupOnly": "passed",
+        "installReceipt": "C:\\Users\\valen\\Documents\\KPKNFit\\artifacts\\multisport-implementation-20261018\\native-device\\verify_native_receipt_20261018T062039_172295Z_51096.json",
+        "followupReceipt": "C:\\Users\\valen\\Documents\\KPKNFit\\artifacts\\multisport-implementation-20261018\\native-device\\warm_20261018T062328_receipt.json",
+        "screenshot": "C:\\Users\\valen\\Documents\\KPKNFit\\artifacts\\multisport-implementation-20261018\\native-device\\warm_20261018T062328_screen.png",
+        "launchCaveat": "Initial launch wait timed out and initial screenshot was blank. Read-only warm follow-up confirmed content without restart. Startup latency not measured or accepted.",
+        "preservedFailureHistory": [
+          "5554 unavailable",
+          "5564 incompatible installed signature",
+          "5580 initial launch capture incomplete"
+        ],
+        "existingEmulatorData": "preserved; no uninstall, clear or downgrade",
+        "physicalDevice": "not_run",
+        "newNativeUiApplied": false,
+        "specialisedSportFlows": "not_run; UI and adapters not integrated",
+        "humanUiAcceptance": "pending",
+        "huaweiWatch": "unverified",
+        "ownedAvdAfterEvidence": "stopped after exact identity check; files preserved",
+        "stopReceipt": "C:\\Users\\valen\\Documents\\KPKNFit\\artifacts\\multisport-implementation-20261018\\native-device\\owned-avd-stop.json"
+      }
+    }
+  },
+  "tasks": [
+    {
+      "id": "MS00",
+      "name": "Baseline, inventario y dependencias",
+      "status": "in_progress",
+      "statusNote": "Inventario documental parcial; falta cerrarlo contra el candidato aislado."
+    },
+    {
+      "id": "MS01",
+      "name": "Núcleo, fuerza avanzada y PerformanceLab manual/reglas",
+      "status": "in_progress",
+      "statusNote": "Modelos y persistencia compilados y probados. PerformanceLab nativo, editor e integración UI todavía pendientes.",
+      "packages": [
+        {
+          "id": "MS01A",
+          "name": "Perfiles y modelos",
+          "status": "in_progress"
+        },
+        {
+          "id": "MS01B",
+          "name": "Persistencia y compatibilidad",
+          "status": "in_progress"
+        }
+      ]
+    },
+    {
+      "id": "MS02",
+      "name": "Planificador fuerza + running integrado con Cardio v2 y nutrición sin doble conteo",
+      "status": "in_progress",
+      "packages": [
+        {
+          "id": "MS02A",
+          "name": "Planner",
+          "status": "in_progress",
+          "statusNote": "Planner de colocación de candidatos prescritos probado y compilado. No prescribe dosis ni compatibilidad fisiológica; falta integración de producto."
+        },
+        {
+          "id": "MS02B",
+          "name": "Adapter fuerza/running/cardio/nutrición",
+          "status": "in_progress",
+          "statusNote": "Propuestas persistidas y consulta de actividad verificadas; aplicador, prescripción y consumidores de producto pendientes."
+        },
+        {
+          "id": "MS02B1",
+          "name": "Propuesta sobre sesiones existentes y consulta de actividad completada",
+          "status": "complete",
+          "evidence": "artifacts/multisport-integration-20261018/FINAL-RESULT.json"
+        }
+      ]
+    },
+    {
+      "id": "MS03",
+      "name": "Weightlifting complejo, skills de calistenia, strongman y armwrestling",
+      "status": "pending"
+    },
+    {
+      "id": "MS04",
+      "name": "Formatos CrossFit y HYROX",
+      "status": "pending"
+    },
+    {
+      "id": "MS05",
+      "name": "Striking, grappling, wrestling, judo y campamento MMA",
+      "status": "pending"
+    },
+    {
+      "id": "MS06",
+      "name": "Cycling, trail, rowing, swim y triathlon",
+      "status": "pending"
+    },
+    {
+      "id": "MS07",
+      "name": "Climbing, sprint y jump",
+      "status": "pending"
+    },
+    {
+      "id": "MS08",
+      "name": "Tennis, padel y deportes de equipo con seguimiento individual",
+      "status": "pending"
+    }
+  ],
+  "promotionRequirements": [
+    "domain_contract",
+    "persistence_and_backward_compatibility",
+    "editor_live_or_external_capture",
+    "history_and_progress",
+    "sport_specific_load_and_data_quality",
+    "approved_html_before_ui_implementation",
+    "tests_and_approved_state_screenshots",
+    "separate_code_test_build_install_emulator_physical_device_and_ui_evidence"
+  ]
+}

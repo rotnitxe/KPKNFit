@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con peso corporal, el cuerpo entero sube rígido como una tabla y desciende frenado por el abdomen. El abdomen trabaja con el peso corporal como única carga.",
-              "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -125,14 +121,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Dragon Flag",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -147,7 +135,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -175,10 +162,8 @@
                 "Preparación: Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "technicalDifficulty": 4.5
             },
             "selectedOptions": {}
           }
@@ -218,19 +203,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "El único peso son los brazos y las piernas al alejarse del tronco. Cada repetición cambia el brazo y la pierna que bajan, y la dificultad sube al estirar más la pierna o al hacerlo más despacio.",
-              "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Baja despacio un brazo por encima de la cabeza y estira la pierna contraria sin separar la zona lumbar del suelo.",
                 "Vuelve a la posición inicial con el mismo ritmo lento.",
                 "Cambia de lado en cada repetición y sigue respirando."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -345,14 +326,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Dead Bug",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -370,7 +343,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -400,10 +372,8 @@
                 "Pega suavemente la zona lumbar al suelo antes de mover nada."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.5
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }

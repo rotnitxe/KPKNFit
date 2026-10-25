@@ -1140,15 +1140,6 @@ object WorkoutVoiceCommandParser {
             lower.contains("todavia no") || lower.contains("aun no")
         val isSaveAction = !negatedFinish && saveKeywords.any { lower.contains(it) }
 
-        var neural: Int? = null
-        var spinal: Int? = null
-        if (lower.contains("nerviosa") || lower.contains("neural") || lower.contains("cns") || lower.contains("sistema")) {
-            neural = extractNumberFromText(lower)?.toInt()?.coerceIn(0, 100)
-        }
-        if (lower.contains("espinal") || lower.contains("columna") || lower.contains("espalda")) {
-            spinal = extractNumberFromText(lower)?.toInt()?.coerceIn(0, 100)
-        }
-
         var discomfortId: String? = null
         if (lower.contains("molestia") || lower.contains("dolor") || lower.contains("tiron")) {
             discomfortId = matchDiscomfortJointId(lower)
@@ -1184,8 +1175,6 @@ object WorkoutVoiceCommandParser {
             notes = sessionNote,
             discomfortId = discomfortId,
             additionalDiscomfortNote = discomfortNote,
-            neuralBattery = neural,
-            spinalBattery = spinal,
             isSaveAction = isSaveAction
         )
     }

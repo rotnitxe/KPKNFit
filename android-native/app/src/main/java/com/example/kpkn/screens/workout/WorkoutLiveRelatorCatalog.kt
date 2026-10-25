@@ -25,7 +25,6 @@ internal object WorkoutLiveRelatorCatalog {
         RelatorSpeechBucket.IDLE_LAST,
         RelatorSpeechBucket.IDLE_COMPOUND,
         -> situateWorkingVariants(snapshot)
-        RelatorSpeechBucket.TISSUE_INTRA, RelatorSpeechBucket.TISSUE_DAY -> idleTissueVariants(snapshot)
         RelatorSpeechBucket.WARMUP_WEIGHT_BELOW -> warmupWeightVariants(snapshot, RelatorWeightBand.CONSERVATIVE)
         RelatorSpeechBucket.WARMUP_WEIGHT_ABOVE -> warmupWeightVariants(snapshot, RelatorWeightBand.AGGRESSIVE)
         RelatorSpeechBucket.WEIGHT_BELOW -> weightBelowVariants(snapshot)
@@ -312,36 +311,6 @@ internal object WorkoutLiveRelatorCatalog {
         return lines.map { it.replace("{target}", target) }
     }
 
-    fun idleTissue(snapshot: LiveRelatorSnapshot): String = idleTissueVariants(snapshot).first()
-
-    fun idleTissueVariants(snapshot: LiveRelatorSnapshot): List<String> {
-        val hint = snapshot.tissueHint ?: return listOf(fallback(snapshot))
-        val source = shortSourceName(hint.sourceExerciseName)
-        val muscle = hint.muscleLabel
-        val joint = hint.jointCare
-        return if (hint.window == RelatorTissueWindow.INTRA) {
-            if (joint != null) {
-                val care = withArticle(joint)
-                listOf(
-                    "Ya trabajaste $muscle en $source. Cuida $care.",
-                    "$source ya cargó $muscle. En {ex} cuida $care.",
-                    "Vienes de $source, donde trabajaste $muscle. Cuida $care.",
-                )
-            } else {
-                listOf(
-                    "En esta sesión ya trabajaste $muscle en $source.",
-                    "$source ya cargó $muscle. No hace falta ir al límite.",
-                    "Vienes de trabajar $muscle en $source.",
-                )
-            }
-        } else {
-            listOf(
-                "Ayer trabajaste $muscle en $source. Hoy no hace falta ir tan pesado.",
-                "Ayer cargaste $muscle con $source. Hoy baja un punto la intensidad.",
-                "Ayer ya hubo $muscle con $source. Hoy prioriza la calidad.",
-            )
-        }
-    }
 
     fun idleWarmupEarly(snapshot: LiveRelatorSnapshot): String = idleWarmupEarlyVariants(snapshot).first()
 
@@ -531,15 +500,6 @@ internal object WorkoutLiveRelatorCatalog {
                     samples += base.copy(dropSetCount = 1, plannedDropCount = 0)
                     samples += base.copy(dropSetCount = 3, plannedDropCount = 0)
                     samples += base.copy(isDropsetFollowUp = true, setIndex = 1)
-                    samples += base.copy(
-                        tissueHint = RelatorTissueHint(
-                            muscleLabel = "tríceps",
-                            sourceExerciseName = "Press banca",
-                            jointCare = "codos",
-                            window = RelatorTissueWindow.INTRA,
-                            drainScore = 2.0,
-                        ),
-                    )
                     samples += base.copy(
                         lastChangedField = RelatorChangedField.WEIGHT,
                         enteredWeight = 110.0,

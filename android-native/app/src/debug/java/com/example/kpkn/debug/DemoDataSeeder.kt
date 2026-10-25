@@ -5,7 +5,6 @@ import com.example.kpkn.data.backup.AppBootstrap
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
-import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.entitlements.CapabilityRequiredException
@@ -65,7 +64,6 @@ object DemoDataSeeder {
             }
         }
 
-        AugeRepository.getInstance(app).saveWellbeingLog(DemoDataPlan.ringsCheckIn(today))
         programs.updateSettings {
             it.copy(username = DemoDataPlan.DISPLAY_NAME, onboardingNameDone = true, onboardingCompleted = true)
         }

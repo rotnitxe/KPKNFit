@@ -205,7 +205,7 @@ internal fun WizardPrologueContent(time: () -> Float, onStart: () -> Unit) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 PrologueReason(PrologueSymbol.MUSCULO, "Un programa de entreno a tu nivel y a lo que buscas.", PROLOGUE_REASON_AT[0], time)
                 PrologueReason(PrologueSymbol.ENERGIA, "Tus calorías del día, para registrar lo que comes.", PROLOGUE_REASON_AT[1], time)
-                PrologueReason(PrologueSymbol.COLUMNA, "Tus RINGS, para ver cómo te recuperas cada día.", PROLOGUE_REASON_AT[2], time)
+                PrologueReason(PrologueSymbol.COLUMNA, "Tu historial, con resultados y sensaciones registrados.", PROLOGUE_REASON_AT[2], time)
             }
             Spacer(Modifier.height(20.dp))
             Text(

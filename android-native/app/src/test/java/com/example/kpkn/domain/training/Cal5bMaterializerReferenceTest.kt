@@ -50,8 +50,7 @@ class Cal5bMaterializerReferenceTest {
             WeeklyAutoregulationSignals(e1rmByLift = mapOf(LiftSlot.SQUAT to e1rm), consecutiveHighE1rmWeeks = 2))
             .filter { it.kind == AutoregulationProposalKind.PROMOTE_TM }
         assertTrue(promoted(195.0).isEmpty()) // TM180×1.05=189, but the real 1RM is200.
-        assertEquals(1, promoted(205.0).size)
-        assertTrue(promoted(205.0).single().explanation.contains("1RM 200"))
+        assertTrue("No inferred TM promotion", promoted(205.0).isEmpty())
         val noOneRm = program.copy(powerliftingProfile = PowerliftingProfile(squatTM = 180.0))
         val withoutReference = ProgramAutoregulationEngine.evaluate(noOneRm, week, emptyList(), recipe,
             WeeklyAutoregulationSignals(e1rmByLift = mapOf(LiftSlot.SQUAT to 205.0), consecutiveHighE1rmWeeks = 2))

@@ -5,14 +5,12 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.isCardio
-import com.example.kpkn.domain.auge.CardioRingDrainEngine
 
 data class CardioFinishLine(
     val exerciseName: String,
     val prescribedSentence: String,
     val actualSummary: String,
     val splitLabels: List<String>,
-    val augeLine: String?,
 )
 
 object CardioSessionSummary {
@@ -38,19 +36,11 @@ object CardioSessionSummary {
             val splits = completed?.kmSplitPaces.orEmpty().mapIndexed { index, pace ->
                 "km ${index + 1} · ${CardioPrescriptionFormatter.formatPace(pace)}"
             }
-            val drain = CardioRingDrainEngine.drain(
-                details = details,
-                durationSeconds = actualDuration.takeIf { it > 0 } ?: details.effectiveDurationSeconds(),
-                rpeEffective = completed?.rpe ?: details.resolvedRpe(),
-                settings = settings,
-            )
-            val auge = "AUGE cardio · CNS ${drain.cns.toInt()} · muscular ${drain.muscular.toInt()} · spinal ${drain.spinal.toInt()}"
             CardioFinishLine(
                 exerciseName = exercise.name.ifBlank { CardioPrescriptionFormatter.typeLabel(details.type) },
                 prescribedSentence = CardioPrescriptionFormatter.sentence(details),
                 actualSummary = actual,
                 splitLabels = splits,
-                augeLine = auge,
             )
         }
     }

@@ -29,7 +29,7 @@ for (const required of requiredNames) {
 if (!animation) throw new Error("Missing high_bar_squat_loop animation");
 if (animation.channels.length < 30) throw new Error(`Animation has too few channels: ${animation.channels.length}`);
 const sourceImage = json.asset?.extras?.sourceImage;
-if (sourceImage !== "android-native/app/src/main/res/drawable-nodpi/exercise_sentadilla_trasera_barra_alta.png") {
+if (sourceImage !== "android-native/app/src/main/res/drawable-nodpi/exercise_sentadilla_trasera_barra_alta.webp") {
   throw new Error(`Unexpected source image: ${sourceImage}`);
 }
 const serialized = JSON.stringify(json).toLowerCase();

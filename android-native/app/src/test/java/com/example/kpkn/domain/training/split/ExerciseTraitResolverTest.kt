@@ -65,8 +65,11 @@ class ExerciseTraitResolverTest {
         assertTrue(bench.canBeHeavy)
         assertTrue("glenohumeral" in bench.joints)
         assertEquals("bench_press", bench.definitionId)
-        // Las configuraciones de una misma definición comparten identidad (el remo con barra y en polea).
-        assertEquals(traits(CatalogIds.ROW).definitionId, traits(CatalogIds.ROW_CABLE).definitionId)
+        // Las configuraciones de una misma definición comparten identidad (el remo con barra y con mancuernas).
+        assertEquals(traits(CatalogIds.ROW).definitionId, traits(CatalogIds.ROW_DB).definitionId)
+        // El remo en polea remapeado tras el retiro de `conventional_row__cable` resuelve a su
+        // sucesor canónico del catálogo (gironda, apoyo de pecho), no a una definición fantasma.
+        assertEquals("gironda_row", traits(CatalogIds.ROW_CABLE).definitionId)
         assertTrue(traits(CatalogIds.BP).definitionId != traits(CatalogIds.BP_INC_DB).definitionId)
     }
 

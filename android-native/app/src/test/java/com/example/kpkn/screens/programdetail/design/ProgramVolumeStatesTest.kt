@@ -14,62 +14,49 @@ class ProgramVolumeStatesTest {
 
     @Test
     fun sinCalibrarNoTieneEstadoDeZonas() {
-        assertEquals(ProgramVolumeState.SIN_CALIBRAR, programVolumeStateOf(12.0, null, overtrained = false, overreaching = false))
+        assertEquals(ProgramVolumeState.SIN_REFERENCIA, programVolumeStateOf(12.0, null, ))
     }
 
     @Test
     fun porDebajoDelMinimoOSinSeriesEsSubentrenado() {
-        assertEquals(ProgramVolumeState.SUBENTRENADO, programVolumeStateOf(6.0, zones, overtrained = false, overreaching = false))
-        assertEquals(ProgramVolumeState.SUBENTRENADO, programVolumeStateOf(0.0, zones, overtrained = false, overreaching = false))
+        assertEquals(ProgramVolumeState.BAJO_REFERENCIA, programVolumeStateOf(6.0, zones, ))
+        assertEquals(ProgramVolumeState.BAJO_REFERENCIA, programVolumeStateOf(0.0, zones, ))
     }
 
     @Test
     fun entreElMinimoYElMaximoAdaptativoEsOptimo() {
-        assertEquals(ProgramVolumeState.OPTIMO, programVolumeStateOf(8.0, zones, overtrained = false, overreaching = false))
-        assertEquals(ProgramVolumeState.OPTIMO, programVolumeStateOf(14.0, zones, overtrained = false, overreaching = false))
+        assertEquals(ProgramVolumeState.EN_REFERENCIA, programVolumeStateOf(8.0, zones, ))
+        assertEquals(ProgramVolumeState.EN_REFERENCIA, programVolumeStateOf(14.0, zones, ))
     }
 
     @Test
     fun porEncimaDelAdaptativoYHastaElRecuperableEsAltoTolerable() {
-        assertEquals(ProgramVolumeState.ALTO_TOLERABLE, programVolumeStateOf(15.0, zones, overtrained = false, overreaching = false))
-        assertEquals(ProgramVolumeState.ALTO_TOLERABLE, programVolumeStateOf(20.0, zones, overtrained = false, overreaching = false))
+        assertEquals(ProgramVolumeState.TRAMO_SUPERIOR, programVolumeStateOf(15.0, zones, ))
+        assertEquals(ProgramVolumeState.TRAMO_SUPERIOR, programVolumeStateOf(20.0, zones, ))
     }
 
     @Test
     fun porEncimaDelRecuperableEsPosibleExceso() {
-        assertEquals(ProgramVolumeState.POSIBLE_EXCESO, programVolumeStateOf(21.0, zones, overtrained = false, overreaching = false))
-    }
-
-    @Test
-    fun sobrecargaFuncionalLaMarcaLaAnalitica() {
-        assertEquals(ProgramVolumeState.SOBRECARGA_FUNCIONAL, programVolumeStateOf(12.0, zones, overtrained = false, overreaching = true))
-    }
-
-    @Test
-    fun excesoMarcadoPorLaAnaliticaMandaAunSinCalibrar() {
-        assertEquals(ProgramVolumeState.POSIBLE_EXCESO, programVolumeStateOf(12.0, null, overtrained = true, overreaching = false))
+        assertEquals(ProgramVolumeState.SOBRE_REFERENCIA, programVolumeStateOf(21.0, zones, ))
     }
 
     @Test
     fun colorDeCadaEstado() {
-        assertEquals(WizardColors.textMuted, programVolumeStateColor(ProgramVolumeState.SIN_CALIBRAR))
-        assertEquals(SymbolPalette.energia, programVolumeStateColor(ProgramVolumeState.SUBENTRENADO))
-        assertEquals(WizardColors.done, programVolumeStateColor(ProgramVolumeState.OPTIMO))
-        assertEquals(SymbolPalette.musculo, programVolumeStateColor(ProgramVolumeState.ALTO_TOLERABLE))
-        assertEquals(SymbolPalette.musculo, programVolumeStateColor(ProgramVolumeState.SOBRECARGA_FUNCIONAL))
-        assertEquals(WizardColors.danger, programVolumeStateColor(ProgramVolumeState.POSIBLE_EXCESO))
+        assertEquals(WizardColors.textMuted, programVolumeStateColor(ProgramVolumeState.SIN_REFERENCIA))
+        assertEquals(WizardColors.textMuted, programVolumeStateColor(ProgramVolumeState.BAJO_REFERENCIA))
+        assertEquals(WizardColors.textMuted, programVolumeStateColor(ProgramVolumeState.EN_REFERENCIA))
+        assertEquals(WizardColors.textMuted, programVolumeStateColor(ProgramVolumeState.TRAMO_SUPERIOR))
+        assertEquals(WizardColors.textMuted, programVolumeStateColor(ProgramVolumeState.SOBRE_REFERENCIA))
     }
 
     @Test
     fun etiquetaDeCadaEstado() {
-        assertEquals("Sin calibrar", programVolumeStateLabel(ProgramVolumeState.SIN_CALIBRAR, 12.0, null, overtrained = false))
-        assertEquals("Subentrenado", programVolumeStateLabel(ProgramVolumeState.SUBENTRENADO, 6.0, zones, overtrained = false))
-        assertEquals("Base mínima", programVolumeStateLabel(ProgramVolumeState.OPTIMO, 8.0, zones, overtrained = false))
-        assertEquals("Rango ideal", programVolumeStateLabel(ProgramVolumeState.OPTIMO, 12.0, zones, overtrained = false))
-        assertEquals("Alto tolerable", programVolumeStateLabel(ProgramVolumeState.ALTO_TOLERABLE, 18.0, zones, overtrained = false))
-        assertEquals("Sobrecarga funcional", programVolumeStateLabel(ProgramVolumeState.SOBRECARGA_FUNCIONAL, 12.0, zones, overtrained = false))
-        assertEquals("Sobreentreno", programVolumeStateLabel(ProgramVolumeState.POSIBLE_EXCESO, 24.0, zones, overtrained = false))
-        assertEquals("Posible exceso de volumen", programVolumeStateLabel(ProgramVolumeState.POSIBLE_EXCESO, 12.0, zones, overtrained = true))
+        assertEquals("Sin referencia del programa", programVolumeStateLabel(ProgramVolumeState.SIN_REFERENCIA, 12.0, null))
+        assertEquals("Por debajo de la referencia", programVolumeStateLabel(ProgramVolumeState.BAJO_REFERENCIA, 6.0, zones))
+        assertEquals("Dentro de la referencia del programa", programVolumeStateLabel(ProgramVolumeState.EN_REFERENCIA, 8.0, zones))
+        assertEquals("Dentro de la referencia del programa", programVolumeStateLabel(ProgramVolumeState.EN_REFERENCIA, 12.0, zones))
+        assertEquals("Tramo superior de la referencia", programVolumeStateLabel(ProgramVolumeState.TRAMO_SUPERIOR, 18.0, zones))
+        assertEquals("Por encima de la referencia", programVolumeStateLabel(ProgramVolumeState.SOBRE_REFERENCIA, 24.0, zones))
     }
 
     @Test

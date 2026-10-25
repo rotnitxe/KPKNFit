@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
@@ -109,26 +108,8 @@ private val SAMPLE_SUGGESTION = PendingRestSuggestion(
 )
 
 // Readiness de ejemplo (82 %): el chip verde de la cabecera del teléfono.
-private val SAMPLE_READINESS = ExerciseReadiness(
-    exerciseId = "sentadilla",
-    exerciseName = "Sentadilla Trasera con Barra Alta",
-    overallScore = 82,
-    muscularComponent = 82,
-    cnsComponent = 82,
-    spinalComponent = 82,
-    articularComponent = 82,
-    structuralComponent = 82,
-    relatedArticular = emptyList(),
-    muscularWeight = 1.0,
-    cnsWeight = 1.0,
-    spinalWeight = 1.0,
-    articularWeight = 1.0,
-    setsPenaltyFactor = 1.0,
-    intensityPenaltyFactor = 1.0,
-    ermProximityFactor = 1.0,
-    patternId = null,
-    involvedMuscleIds = emptyList(),
-)
+
+
 
 /**
  * HOJA DE RENDER del refinado de la serie y del descanso (LR1a). Escribe PNG; las dos pruebas de geometría a 360 dp (LR1a2) además
@@ -350,7 +331,7 @@ class LiveSessionRefineRenderSheetTest {
                                 background = null,
                                 sessionTimeRemainingSeconds = null,
                                 onAdjustTimeLimit = {},
-                                exerciseReadiness = SAMPLE_READINESS,
+
                                 hasCreatedTags = false,
                                 onOpenTagList = {},
                             )
@@ -420,7 +401,7 @@ class LiveSessionRefineRenderSheetTest {
                                 programCover = "kpkn-studio://PLATES/NOCHE",
                                 sessionTimeRemainingSeconds = 45 * 60,
                                 onAdjustTimeLimit = {},
-                                exerciseReadiness = SAMPLE_READINESS,
+
                                 hasCreatedTags = false,
                                 onOpenTagList = {},
                                 forcedMarqueeMoving = moving,

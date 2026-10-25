@@ -70,7 +70,6 @@ internal object DayAssigner {
     private const val W_RULE = 60.0
 
     /** Fatiga del día: varianza relativa, como los minutos. */
-    private const val W_FATIGUE = 15.0
 
     /** Un mismo músculo primario en días seguidos, por solape. */
     private const val W_NEXT = 2.0
@@ -202,7 +201,6 @@ internal object DayAssigner {
         private val pullCompound: BooleanArray = BooleanArray(unitCount) { i ->
             units[i].compoundPatterns.any { it in PULL_PATTERNS }
         }
-        private val fatigue: DoubleArray = DoubleArray(unitCount) { i -> units[i].fatigue }
 
         /** Días de cuerpo completo: deben llevar un compuesto de cada tipo si hay unidades para todos ellos. */
         private val fullBodyDay: BooleanArray = BooleanArray(dayCount) { j -> acceptsEveryGroup(days[j]) }
@@ -216,8 +214,6 @@ internal object DayAssigner {
 
         private val totalSeconds: Double = units.sumOf { it.seconds.toDouble() }
         private val meanSeconds: Double = if (dayCount > 0) totalSeconds / dayCount else 0.0
-        private val totalFatigue: Double = fatigue.sum()
-        private val meanFatigue: Double = if (dayCount > 0) totalFatigue / dayCount else 0.0
         private val strengthTotal: Int = units.sumOf { it.strengthExerciseCount }
         private val minExercises: Int = if (dayCount == 0) 0 else minOf(MIN_EXERCISES, strengthTotal / dayCount)
 
@@ -375,7 +371,6 @@ internal object DayAssigner {
             val seconds = DoubleArray(dayCount)
             val counts = IntArray(dayCount)
             val groupCounts = Array(dayCount) { IntArray(SplitGroup.entries.size) }
-            val fatiguePerDay = DoubleArray(dayCount)
             val familyCounts = Array(dayCount) { IntArray(PatternFamily.entries.size) }
             val muscleCounts = Array(dayCount) { IntArray(KpknMuscleGroup.entries.size) }
             val legs = IntArray(dayCount)
@@ -389,7 +384,6 @@ internal object DayAssigner {
                 fit += 1.0 - affinity[i][day]
                 seconds[day] += units[i].seconds.toDouble()
                 counts[day] += units[i].strengthExerciseCount
-                fatiguePerDay[day] += fatigue[i]
                 if (units[i].kind == UnitKind.STRENGTH) groupCounts[day][units[i].group.ordinal] += 1
                 compoundFamilies[i].forEach { familyCounts[day][it]++ }
                 dominantMuscles[i].forEach { muscleCounts[day][it]++ }
@@ -405,13 +399,6 @@ internal object DayAssigner {
                 for (j in 0 until dayCount) {
                     val relative = (seconds[j] - meanSeconds) / meanSeconds
                     balance += relative * relative
-                }
-            }
-            var fatigueBalance = 0.0
-            if (meanFatigue > 0.0) {
-                for (j in 0 until dayCount) {
-                    val relative = (fatiguePerDay[j] - meanFatigue) / meanFatigue
-                    fatigueBalance += relative * relative
                 }
             }
             var crowd = 0.0
@@ -435,7 +422,7 @@ internal object DayAssigner {
                     }
                 }
             }
-            var total = W_FIT * fit + W_BAL * balance + W_FATIGUE * fatigueBalance + W_CROWD * crowd +
+            var total = W_FIT * fit + W_BAL * balance + W_CROWD * crowd +
                 W_SAME * repeated + W_ADJ * adjacent + W_NEXT * nextDayOverlap + W_RULE * heavyClash
             // H2 y H3 por día: cada compuesto de más de una familia y cada ejercicio de más de un músculo cuesta una violación.
             for (j in 0 until dayCount) {

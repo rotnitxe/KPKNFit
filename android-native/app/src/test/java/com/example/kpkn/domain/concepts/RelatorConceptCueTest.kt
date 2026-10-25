@@ -26,18 +26,18 @@ class RelatorConceptCueTest {
     )
 
     @Test
-    fun axialOneSpeaksCargaAxial() {
+    fun aSquatNameDoesNotInventAnAxialCoefficient() {
         val cue = pickRelatorConceptCue(
-            RelatorConceptSignals(axialLoadFactor = 1.0, exerciseName = "Sentadilla trasera"),
+            RelatorConceptSignals( exerciseName = "Sentadilla trasera"),
         )
-        assertEquals("carga-axial", cue?.id)
+        assertNull(cue)
     }
 
     @Test
     fun axialPointThreeDoesNotSpeakCargaAxial() {
         val cue = pickRelatorConceptCue(
             RelatorConceptSignals(
-                axialLoadFactor = 0.3,
+                
                 exerciseName = "Press banca",
                 intensityMode = IntensityMode.RPE,
                 plannedIntensity = 8.0,
@@ -56,23 +56,23 @@ class RelatorConceptCueTest {
     }
 
     @Test
-    fun axialBeatsRpeOnSameExercise() {
+    fun authoredRpeDoesNotBecomeAnAxialWarning() {
         val cue = pickRelatorConceptCue(
             RelatorConceptSignals(
-                axialLoadFactor = 0.8,
+                
                 exerciseName = "Press militar",
                 intensityMode = IntensityMode.RPE,
                 plannedIntensity = 8.0,
             ),
         )
-        assertEquals("carga-axial", cue?.id)
+        assertEquals("rpe", cue?.id)
     }
 
     @Test
     fun afterAxialShownFallsThroughToRpe() {
         val cue = pickRelatorConceptCue(
             RelatorConceptSignals(
-                axialLoadFactor = 1.0,
+                
                 exerciseName = "Sentadilla",
                 intensityMode = IntensityMode.RPE,
                 plannedIntensity = 8.0,
@@ -204,7 +204,7 @@ class RelatorConceptCueTest {
     @Test
     fun pickAlwaysReturnsKnownCue() {
         val cue = pickRelatorConceptCue(
-            RelatorConceptSignals(axialLoadFactor = 1.0, exerciseName = "Sentadilla"),
+            RelatorConceptSignals(equipmentId = "barbell", exerciseName = "Sentadilla"),
         )
         assertNotNull(cue)
         assertTrue(cue!!.lines.isNotEmpty())

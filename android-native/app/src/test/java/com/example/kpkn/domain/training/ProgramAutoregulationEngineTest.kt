@@ -8,7 +8,6 @@ import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
-import com.example.kpkn.data.models.LoadAdvisoryLevel
 import com.example.kpkn.data.models.PendingActionResolutionStatus
 import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.PowerliftingProfile
@@ -100,7 +99,7 @@ class ProgramAutoregulationEngineTest {
             recipe = recipe().copy(progression = ProgressionRule.RepTargetDrivenTm()),
             signals = WeeklyAutoregulationSignals(
                 amrapHits = listOf(AmrapHit(LiftSlot.SQUAT, 95.0, prescribedReps = 5, actualReps = 1, meanRpe = 9.4)),
-                readinessScore = 38,
+
             ),
         )
         assertTrue(proposals.any { it.kind == AutoregulationProposalKind.ADJUST_TM && (it.percentDelta ?: 0.0) < 0 })
@@ -113,9 +112,9 @@ class ProgramAutoregulationEngineTest {
         val week = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
         val proposals = ProgramAutoregulationEngine.evaluate(
             program, week, emptyList(), recipe(),
-            WeeklyAutoregulationSignals(readinessScore = 32, cumulativeFatigue = 90.0, loadAdvisoryLevel = LoadAdvisoryLevel.UNLOAD),
+            WeeklyAutoregulationSignals(  ),
         )
-        assertTrue(proposals.any { it.kind == AutoregulationProposalKind.INSERT_DELOAD })
+        assertTrue("No recovery-based deload is generated", proposals.isEmpty())
     }
 
     @Test
@@ -127,10 +126,10 @@ class ProgramAutoregulationEngineTest {
             WeeklyAutoregulationSignals(
                 e1rmByLift = mapOf(LiftSlot.SQUAT to 220.0),
                 consecutiveHighE1rmWeeks = 2,
-                readinessScore = 80,
+
             ),
         )
-        assertTrue(proposals.any { it.kind == AutoregulationProposalKind.PROMOTE_TM && it.liftSlot == "SQUAT" })
+        assertTrue("An e1RM trend cannot silently promote TM", proposals.isEmpty())
     }
 
     @Test
@@ -139,7 +138,7 @@ class ProgramAutoregulationEngineTest {
         val weeks = program.macrocycles.first().blocks.first().mesocycles.first().weeks
         val firstId = weeks.first().id
         val secondId = weeks[1].id
-        val applied = ProgramAutoregulationEngine.apply(
+        val applied = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program = program,
             nextWeekId = firstId,
             proposals = listOf(
@@ -154,7 +153,7 @@ class ProgramAutoregulationEngineTest {
             metadata = CatalogCompositionTestSupport.metadata,
         )
         assertEquals(program.macrocycles.first().blocks.first().mesocycles.first().weeks.first(), applied.program.macrocycles.first().blocks.first().mesocycles.first().weeks.first())
-        val nextApplied = ProgramAutoregulationEngine.apply(
+        val nextApplied = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program = program,
             nextWeekId = secondId,
             proposals = listOf(
@@ -168,7 +167,7 @@ class ProgramAutoregulationEngineTest {
             executedWeekIds = setOf(firstId),
             metadata = CatalogCompositionTestSupport.metadata,
         )
-        assertNotEquals(
+        assertEquals(
             program.macrocycles.first().blocks.first().mesocycles.first().weeks[1].sessions.first().allExercises().first().sets.first().targetPercentageRM,
             nextApplied.program.macrocycles.first().blocks.first().mesocycles.first().weeks[1].sessions.first().allExercises().first().sets.first().targetPercentageRM,
         )
@@ -180,7 +179,7 @@ class ProgramAutoregulationEngineTest {
             runState = ProgramRunState(runId = "run1", weekId = "w2"),
         )
         val weeks = program.macrocycles.first().blocks.first().mesocycles.first().weeks
-        val result = ProgramAutoregulationEngine.apply(
+        val result = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program = program,
             nextWeekId = weeks[1].id,
             proposals = listOf(
@@ -209,7 +208,7 @@ class ProgramAutoregulationEngineTest {
         val week = program.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
         val proposals = ProgramAutoregulationEngine.evaluate(
             program, week, emptyList(), recipe(),
-            WeeklyAutoregulationSignals(readinessScore = 10, loadAdvisoryLevel = LoadAdvisoryLevel.UNLOAD),
+            WeeklyAutoregulationSignals( ),
         )
         assertTrue(proposals.isEmpty())
     }
@@ -227,7 +226,7 @@ class ProgramAutoregulationEngineTest {
             completedWeek = firstWeek(program),
             logs = emptyList(),
             recipe = recipe().copy(progression = rule),
-            signals = WeeklyAutoregulationSignals(amrapHits = hits.toList(), readinessScore = 80),
+            signals = WeeklyAutoregulationSignals(amrapHits = hits.toList(), ),
         ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
     }
 
@@ -378,7 +377,7 @@ class ProgramAutoregulationEngineTest {
     @Test
     fun a_kilo_proposal_respects_off_propose_and_auto() {
         val hit = AmrapHit(LiftSlot.SQUAT, 95.0, prescribedReps = 1, actualReps = 5)
-        val signals = WeeklyAutoregulationSignals(amrapHits = listOf(hit), readinessScore = 80)
+        val signals = WeeklyAutoregulationSignals(amrapHits = listOf(hit), )
         val rule = recipe()
 
         // OFF: ni propuesta ni cambio.
@@ -389,7 +388,7 @@ class ProgramAutoregulationEngineTest {
         val propose = materialized(AutoregulationMode.PROPOSE)
         val proposeWeeks = propose.macrocycles.first().blocks.first().mesocycles.first().weeks
         val proposals = ProgramAutoregulationEngine.evaluate(propose, firstWeek(propose), emptyList(), rule, signals)
-        val pending = ProgramAutoregulationEngine.apply(
+        val pending = proposeAndExplicitlyConfirmLegacyAutoForTest(
             propose, proposeWeeks[1].id, proposals, rule, setOf(proposeWeeks.first().id), CatalogCompositionTestSupport.metadata,
         )
         assertFalse(pending.applied)
@@ -400,10 +399,10 @@ class ProgramAutoregulationEngineTest {
         assertEquals(185.0, accepted.powerliftingProfile!!.squatTM!!, 1e-9)
         assertEquals("los 1RM no se tocan", 200.0, accepted.powerliftingProfile!!.squat1RM!!, 1e-9)
 
-        // AUTO: aplica los kilos, audita y la semana siguiente toma el TM nuevo.
+        // AUTO heredado: solo tras confirmación explícita aplica los kilos, audita y la semana siguiente toma el TM nuevo.
         val auto = materialized(AutoregulationMode.AUTO)
         val autoWeeks = auto.macrocycles.first().blocks.first().mesocycles.first().weeks
-        val applied = ProgramAutoregulationEngine.apply(
+        val applied = proposeAndExplicitlyConfirmLegacyAutoForTest(
             auto, autoWeeks[1].id, proposals, rule, setOf(autoWeeks.first().id), CatalogCompositionTestSupport.metadata,
         )
         assertTrue(applied.applied)
@@ -514,7 +513,7 @@ class ProgramAutoregulationEngineTest {
             completedWeek = week,
             logs = logs,
             recipe = recipe().copy(progression = ProgressionRule.RepTargetDrivenTm()),
-            signals = WeeklyAutoregulationSignals(readinessScore = 80),
+            signals = WeeklyAutoregulationSignals(),
         ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
 
         // El ciclo 1 (1 rep, corto) ya pasó: el 4+ del ciclo 2 cumple su objetivo y no propone nada.
@@ -730,7 +729,7 @@ class ProgramAutoregulationEngineTest {
             completedWeek = week,
             logs = listOf(log),
             recipe = recipe,
-            signals = WeeklyAutoregulationSignals(readinessScore = 80),
+            signals = WeeklyAutoregulationSignals(),
         )
         assertTrue("antes escalaba los cuatro TM", proposals.none { it.kind == AutoregulationProposalKind.ADJUST_TM })
     }
@@ -744,7 +743,7 @@ class ProgramAutoregulationEngineTest {
             explanation = "AMRAP 7 reps (objetivo 8)",
         )
 
-        val result = ProgramAutoregulationEngine.apply(
+        val result = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program = auto,
             nextWeekId = null,
             proposals = listOf(legacy),
@@ -802,7 +801,7 @@ class ProgramAutoregulationEngineTest {
                     completedWeek = week,
                     logs = emptyList(),
                     recipe = candidate,
-                    signals = WeeklyAutoregulationSignals(amrapHits = listOf(hit), readinessScore = 80),
+                    signals = WeeklyAutoregulationSignals(amrapHits = listOf(hit), ),
                 ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
 
             val short = AmrapHit(lift, 70.0, prescribedReps = 8, actualReps = 5)
@@ -849,7 +848,7 @@ class ProgramAutoregulationEngineTest {
             completedWeek = apreWeek,
             logs = listOf(apreLog),
             recipe = apreRecipe,
-            signals = WeeklyAutoregulationSignals(readinessScore = 80),
+            signals = WeeklyAutoregulationSignals(),
         ).single { it.kind == AutoregulationProposalKind.ADJUST_XRM }
         assertNull(apreProposal.liftSlot)
         assertNull(apreProposal.percentDelta)
@@ -872,7 +871,7 @@ class ProgramAutoregulationEngineTest {
             completedWeek = firstWeek(program),
             logs = emptyList(),
             recipe = recipe(),
-            signals = WeeklyAutoregulationSignals(repeatedJointPain = true, readinessScore = 80),
+            signals = WeeklyAutoregulationSignals(repeatedJointPain = true, ),
         )
 
         assertTrue(
@@ -887,9 +886,9 @@ class ProgramAutoregulationEngineTest {
         val program = materialized()
         // AMRAP corto de sentadilla + readiness bajo con ACWR UNLOAD + e1RM alto dos semanas: tres propuestas distintas.
         val signals = WeeklyAutoregulationSignals(
-            readinessScore = 38,
-            cumulativeFatigue = 90.0,
-            loadAdvisoryLevel = LoadAdvisoryLevel.UNLOAD,
+
+
+
             e1rmByLift = mapOf(LiftSlot.SQUAT to 220.0),
             consecutiveHighE1rmWeeks = 2,
             amrapHits = listOf(AmrapHit(LiftSlot.SQUAT, 95.0, prescribedReps = 5, actualReps = 1, meanRpe = 9.4)),
@@ -909,8 +908,6 @@ class ProgramAutoregulationEngineTest {
         assertEquals(
             listOf(
                 AutoregulationProposalKind.ADJUST_TM,
-                AutoregulationProposalKind.INSERT_DELOAD,
-                AutoregulationProposalKind.PROMOTE_TM,
             ),
             withPain.map { it.kind },
         )
@@ -930,7 +927,7 @@ class ProgramAutoregulationEngineTest {
             explanation = "Molestias articulares repetidas — pasar el T1 a variante técnica (pausa)",
         )
 
-        val result = ProgramAutoregulationEngine.apply(
+        val result = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program = auto,
             nextWeekId = weeks[1].id,
             proposals = listOf(swap),
@@ -943,13 +940,8 @@ class ProgramAutoregulationEngineTest {
         assertEquals("la receta efectiva no se reescribe", auto.macrocycles, result.program.macrocycles)
         assertTrue(result.program.effectiveWeekRecipes.isEmpty())
         assertEquals(auto.powerliftingProfile, result.program.powerliftingProfile)
-        val entry = result.program.runState?.autoregulationAudit.orEmpty().single { it.resolution != null }
-        assertEquals(PendingActionResolutionStatus.EXPIRED, entry.resolution)
-        assertEquals(listOf(AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT), entry.kinds)
-        assertEquals(
-            "La propuesta de variante técnica ya no se aplica: las variantes son configuraciones del catálogo (DEC-w3-07)",
-            entry.resolutionReason,
-        )
+        assertTrue("Retired variant proposals are discarded", result.program.runState?.autoregulationAudit.orEmpty().isEmpty())
+
     }
 }
 
@@ -1036,7 +1028,7 @@ class ProgramProgressEngineAutoregulationTest {
                     meanRpe = 8.0,
                     weightRatio = 1.0,
                 )),
-                readinessScore = 70,
+
             ),
             compositionMetadata = CatalogCompositionTestSupport.metadata,
         )

@@ -1,5 +1,7 @@
 # Technical Mapping: KPKN Fit Android Architecture (For iOS Porting)
 
+**Rama privada POST-RINGS · 24-oct-2026:** esquema efectivo Room 34, JSON backup 7, iOS SQLite 23. El estado VT de publicación del párrafo siguiente se conserva; no se fusiona ni publica esta rama. Plan y límites de validación: [post-rings/VALIDATION_STATUS.md](post-rings/VALIDATION_STATUS.md).
+
 **Estado VT vigente · 24-oct-2026:** unión actual motor10/Room30. Android release permanece equivalente al APK oficial52; pruebas físicas únicamente en una KPKN Dev estable (`com.example.kpkn.dbg`, firma debug compatible), aparte de la personal. Rutas/worker/sidecars siguen vigentes. Recorrido funcional original y privacidad acotada documentados en `video-technique/QA_FASE5_RESULTADOS_20261023.md`; ≈m/s y1RMbeta sin referencia externa. No nueva entrega ni FFmaster hasta petición humana.
 
 This document provides a comprehensive technical mapping of the native Android Kotlin codebase of KPKN Fit. It outlines every system, database table, domain logic engine, screen, and background service to ensure a 100% parity port to iOS (using SwiftUI, Swift Concurrency, SwiftData/CoreData, etc.).
@@ -13,7 +15,7 @@ This document provides a comprehensive technical mapping of the native Android K
 
 *   **Language:** Kotlin 2.2.10 (native Android)
 *   **UI Framework:** Jetpack Compose (BOM 2025.07.00, Material 3) + Haze (glassmorphism)
-*   **Database:** Room 2.7.1 (SQLite) with FTS4 full-text search — database **version 30**
+*   **Database:** Room 2.7.1 (SQLite) with FTS4 full-text search — database **version 34**
 *   **Concurrency:** Kotlin Coroutines & Flows (reactive UI updates)
 *   **Dependency Injection:** Manual constructor injection orchestrated in `MainActivity.kt` (no Hilt/Dagger overhead)
 *   **Build:** Single module `:app`; product flavors `base` (minSdk 24) and `health` (minSdk 26, adds Health Connect); `compileSdk 36`, `targetSdk 35`
@@ -45,12 +47,7 @@ KPKN Fit uses a **local-first (offline-first)** data architecture. The Room data
 | `workout_media` | `WorkoutMediaEntity` | `id` (String) | `workoutLogId`, `canonicalExerciseId`, `createdAtMs`, `isPr` | Unified session photos/videos (Room v26). File bytes stay in `filesDir/workout_media`; `WorkoutLog.exercisePhotos`/`sessionPhotos` remain read-only JSON. |
 | `workout_media_session_associations` | `WorkoutMediaSessionAssociationEntity` | `sessionKey` (String) | None | Durable session-to-workout-log association added in Room v28. |
 | `video_analysis` | `VideoAnalysisEntity` | `mediaId` (String) | `status`, `exerciseKey` + `recordedAtMs` | Reconstructible technique CACHE (v29); authoritative report and traces are private sidecars. |
-| `auge_wellbeing` | `WellbeingEntity` | `id` (String UUID) | `date` | Serialized `DailyWellbeingLog` JSON string (stores manual overrides, sleep hours, DOMS, stress). |
-| `auge_sleep` | `SleepLogEntity` | `id` (String UUID) | `date` | Serialized `SleepLog` JSON string. |
-| `auge_sleep_extended` | `SleepLogExtendedEntity` | `id` (String UUID) | `date` | Serialized `SleepLogExtended` JSON string. |
-| `auge_feedback` | `PostSessionFeedbackEntity` | `logId` (String) | `date` | Serialized `PostSessionFeedback` JSON string (CNS recovery, DOMS levels per muscle). |
-| `auge_pending` | `PendingQuestionnaireEntity` | `rowId` (Int, default 1) | None | Serialized `PendingQuestionnaire` JSON string. |
-| `auge_adaptive_cache` | `AugeAdaptiveCacheEntity` | `rowId` (Int, default 1) | None | Serialized `AugeAdaptiveCache` JSON string. |
+| `training_observations` | `TrainingObservationEntity` | `sourceIdentity` | None | Original historical declarations, date, scale and provenance; no inferred results. |
 | `nutrition_logs` | `NutritionLogEntity` | `id` (String UUID) | `date` | Serialized `NutritionLog` JSON string. |
 | `nutrition_plans` | `NutritionPlanEntity` | `id` (String UUID) | None | Serialized `NutritionPlan` JSON. |
 | `nutrition_active_state` | `NutritionActiveStateEntity` | `rowId` (Int, default 1) | None | Tracks active plan UUID. |
@@ -84,19 +81,19 @@ KPKN Fit uses a **local-first (offline-first)** data architecture. The Room data
 
 Single source of truth per feature, all backed by Room:
 
-`ProgramRepository`, `AugeRepository`, `AugeMetricsRepository`, `NutritionRepository`, `WikiLabRepository`, `CompetitionRepository`, `SessionTemplateRepository`, `CustomExerciseRepository`, `LearnRepository`.
+`ProgramRepository`, `NeutralTrainingObservationRepository`, `NutritionRepository`, `WikiLabRepository`, `CompetitionRepository`, `SessionTemplateRepository`, `CustomExerciseRepository`, `LearnRepository`.
 
 ### 2.3 Advanced Catalogs & JSON Mobility (`data/models/` & `data/db/`)
 
-*   **`DiscomfortCatalog.kt` & `MobilityExerciseCatalog.kt`:** Hardcoded maps used by the Auge Engine to link specific articular pains (e.g., "Knee Pain") to prescriptive mobility routines.
-*   **Models:** `Program.kt`, `Session.kt`, `WorkoutLog.kt`, `Settings.kt`, `AugeModels.kt`, `AugeAdaptiveModels.kt`, `NutritionModels.kt`, `CompetitionModels.kt`, `WorkoutV2Models.kt`, `EnergyModels.kt`, `ExerciseMuscleInfo.kt`.
-*   **`DatabaseBackupHelper.kt`:** A crucial utility that exports the entire Room database (Workouts, Programs, Settings, Meals) into a portable JSON structure. **For iOS Parity**, the Swift app must be able to ingest this exact JSON format to allow cross-platform user data migration.
+*   **`DiscomfortCatalog.kt` & `MobilityExerciseCatalog.kt`:** Catálogos de molestias y movilidad; el feedback muestra declaraciones previas, sin inferir causas, lesión o protección.
+*   **Models:** `Program.kt`, `Session.kt`, `WorkoutLog.kt`, `Settings.kt`, `RecordedWellbeingModels.kt`, `NutritionModels.kt`, `CompetitionModels.kt`, `WorkoutV2Models.kt`, `EnergyModels.kt`, `ExerciseMuscleInfo.kt`.
+*   **Respaldos:** `DatabaseBackupHelper.kt` valida y restaura snapshots SQLite transaccionalmente; `SettingsJsonBackup.kt` importa JSON heredado v1–v6 hacia v7 mediante extracción raw de originales. El respaldo externo no se modifica.
 
 ### 2.4 Static Database Assets (Pre-populated on App Launch)
 
 Located in `android-native/app/src/main/assets/`:
 
-1.  **`exercise_catalog_v2.json`:** The sole approved exercise runtime asset. It contains 180 parent/specialty definitions, 280 explicit configurations, exact catalog identities, rich muscle/AUGE/biomechanics/programming metadata, and hierarchical chip axes. It is loaded by `data/exercises/ExerciseDatabase.kt` and validated against the approved catalog revision/hash. The former `exercise_database.json` and `exercise_id_aliases.json` are not runtime fallbacks; legacy copies exist only as curation evidence under `catalog/exercises/v2/curation/evidence/legacy/`.
+1.  **`exercise_catalog_v2.json`:** The sole approved exercise runtime asset. It contains 228 parent/specialty definitions, 553 explicit configurations, exact catalog identities, rich muscle/biomechanics/programming metadata sin coeficientes de fatiga, and hierarchical chip axes. It is loaded by `data/exercises/ExerciseDatabase.kt` and validated against the approved catalog revision/hash. The former `exercise_database.json` and `exercise_id_aliases.json` are not runtime fallbacks; legacy copies exist only as curation evidence under `catalog/exercises/v2/curation/evidence/legacy/`.
 2.  **`wikilab/` (`joints.json`, `kinetic_chains.json`, `movement_patterns.json`, `muscles.json`, `tendons.json` — ~104 KB):** Full relational catalog representing the anatomical connectivity of the human body (imported by `data/WikiLabPrepopulate.kt`).
 3.  **`food_data/` (`food.csv`, `food_nutrient.csv`, `food_portion.csv`, `food_category.csv`, `measure_unit.csv`, `usda_es_aliases.csv`):** USDA FoodData Central tables read by `FoodImporter`. WP-S11 trimmed the folder to the files the app reads; the 20 unused FDC CSV/XLSX tables now live in `android-native/datasets/usda_fdc_raw/` and are not bundled.
 4.  **`food_data/off_chile.csv`:** OpenFoodFacts Chile TSV dataset (~54 MB; the whole `food_data/` folder, with `dataset_knowledge.bin` and a few small JSON files, is ~72 MB).
@@ -122,67 +119,24 @@ Located in `android-native/app/src/main/assets/`:
 
 > All engines below are pure Kotlin (no `android.*` imports) and unit-tested in `app/src/test/domain/`.
 
-### 3.1 AUGE Recovery Engine (`domain/auge/AugeRecoveryEngine.kt`)
+### 3.1 Entrenamiento y respuesta (`domain/training/insights/`)
 
-This is the central engine that processes user logs to determine readiness. It maintains three main recovery channels (**RINGS**):
+`TrainingHistoryProjection` lee `WorkoutLog` y sus documentos deportivos existentes.
+`TrainingInsightsEngine` aplica reloj explícito, identidad de fuente, unidades y contexto
+conocido; no calcula recuperación ni riesgo. La vista filtra 1/4/12 semanas (4 por defecto)
+y compara hasta seis observaciones anteriores en 90 días, con mediana desde tres.
+Son opciones descriptivas de presentación, no umbrales clínicos.
 
-```mermaid
-graph TD
-    A[Workout Logs & Wellbeing Logs] --> B[AugeRecoveryEngine]
-    B --> C[Muscular Ring]
-    B --> D[Systemic/CNS Ring]
-    B --> E[Structural/Spinal Ring]
-```
+`training_observations` conserva originales antes ligados a tablas retiradas: identidad,
+fecha, escala, procedencia, notas y precisión. Los importadores raw aíslan compatibilidad;
+no se crea otro historial de actividades. La falta de datos permanece desconocida.
 
-#### 1. Muscular Ring (Muscle Battery)
-*   **Recovery Profiles:** Each muscle is assigned a recovery speed profile (`fast` = 24.0h, `medium` = 48.0h, `slow` = 72.0h, `heavy` = 96.0h).
-*   **Mathematical Model (Exponential Decay):**
-    *   $k = \frac{2.9957}{\text{realRecoveryTime}}$
-    *   $\text{Fatigue} = \sum (\text{setStress} \times \text{roleMultiplier} \times \text{volumeActivation}) \times e^{-k \times \text{sigmoidalHoursSinceWorkout}}$
-    *   $\text{MuscleBattery} = 100.0 - \text{FatiguePenalty}$
-*   **Modifier Adjustments:**
-    *   Age: If age $> 35$, recovery time increases by $1\%$ per year.
-    *   Gender: Females have recovery time scaled by $0.85$ due to faster local muscular recovery characteristics.
-    *   Discomforts: Spinal/Joint issues add a scaling penalty factor up to $+30.0$ fatigue.
-    *   DOMS Cap: Hard caps on score based on user self-report (Level $5 \rightarrow$ max $20\%$ battery, Level $4 \rightarrow$ max $50\%$, Level $3 \rightarrow$ max $85\%$).
+Las propuestas ADJUST_TM/ADJUST_XRM pertenecen a protocolos activos y requieren
+confirmación. AUTO heredado no autoriza nuevas mutaciones silenciosas. No hay motor,
+cache, worker, cuestionario ni semáforo de baterías o de lesión en el producto activo.
 
-#### 2. Systemic Ring (Central Nervous System Battery)
-*   **Recovery Duration:** Base recovery constant $\tau = 36.0$ hours.
-*   **Gym Stress:** Calculates fatigue accumulation using set weights, reps, and RPE:
-    *   If RPE $\geq 9.5$ and reps $\leq 3$, CNS drain increases by $+15\%$.
-    *   Session duration $> 90$ minutes scales systemic drain by $1.15\times$.
-*   **Exponential Decay:** CNS fatigue decays over time with $\tau$ (tau hours). CNS Battery $= 100.0 - \text{normalizedSystemicFatigue}$.
-
-#### 3. Structural Ring (Spinal Battery)
-*   **Spine Protection Factor (SPF):** Calculates spinal bracing capacity based on surrounding muscle batteries:
-    *   $\text{SPF} = (\text{Erectores} \times 0.50) + (\text{Core} \times 0.25) + (\text{Gluteos} \times 0.15) + (\text{Dorsales} \times 0.10)$
-*   **Spinal Bracing Failure Penalty:** If $\text{SPF} < 80.0$, spinal recovery time is amplified:
-    *   $\text{SpinalRecoveryMult} = 1.0 + (\text{Deficit}^2 \times 0.75)$
-*   **Displayed Columna (2026-09):** a single blended score on Home, finish, readiness and overrides: `min(spinal, 0.5·spinal + 0.25·articular + 0.25·guardia)`. Drain uses `ssc × spinalAxialGate(axialLoadFactor)` (`null` keeps heuristic `ssc`; `0` contributes 0). Forward recovery uses `recoveryDecay` with `k = TAU_K_95 / τ` (same 95 % semantics as inversion). Adaptive cache `schemaVersion` 3 resets learned system τ and legacy drain multipliers.
-*   **TTC (Time to Recovery):** Converts decay time back to remaining hours before the battery reaches $90\%$ (implemented in `AugeTtcEngine.kt`).
-
-#### 4. Articular Battery & Tendon Imbalances
-*   Articular points tracked: `SHOULDER`, `ELBOW`, `KNEE`, `HIP`, `ANKLE`, `CERVICAL`, `LUMBAR` (via `ExerciseReadinessEngine.kt`).
-*   Alerts user if there is a severe gap between muscle strength capacities and tendon recovery statuses (`TendonImbalanceAlert`), suggesting biomechanical or nutritional compensations.
-
-#### 5. Supporting AUGE Engines (`domain/auge/`)
-*   `AugeAdaptiveEngine.kt` — learns from user feedback to adapt recovery curves (`auge_adaptive_cache` table).
-*   `AugeFatigueEngine.kt` — per-set stress and fatigue math.
-*   `AugeClock.kt` — injectable clock for Energy/Columna tests and recovery.
-*   `RecoveryBands.kt` — unique % band contract (Alta/Normal/Moderada/Baja/Crítica) for colors, labels, coaching and causes.
-*   `AxialLoadMonitor.kt` / `SystemicLoadMonitor.kt` / `LoadAdvisoryEngine.kt` — ACWR and session-start trend advisories (WATCH only in ring sheet; ADJUST+ badge + Home card).
-*   `InterferenceEngine.kt` — structural muscle interference between exercises.
-*   `DiscomfortAggregationEngine.kt` — aggregates logged discomforts into penalties.
-*   `NutritionRecoveryEngine.kt` — nutrition's contribution to recovery.
-*   `SessionIntensityEngine.kt` / `SessionMuscleFilter.kt` / `AugeClassifiers.kt` / `AugeMuscleNormalization.kt` / `ExerciseFatigueIndex.kt` / `AugeUtils.kt`.
-
-#### Live session volume contract (Android 2026-09-12; iOS/backend follow-up)
-
-Do **not** port this in the current Android-only wave. The next iOS/backend AUGE port must use the same units:
-
-*   **Logical set:** one planned `setIdx`. Left and right are halves of that set. Surplus, finish “Series: N”, and AUGE set-count use logical sets. Roadmap/pager still show two physical slots.
-*   **Canonical load (kg):** `LOAD` = logged kg; `BODYWEIGHT` = `userVitals.weight` (already kg); `LASTRE` = BW + extra; `ASSISTED` = `max(BW − assistance, 0)`. Never divide by 2.204 because settings say pounds — that unit is UI/voice only.
-*   **Builder:** `screens/workout/WorkoutCompletedExercises.kt` (`toCompletedExercises`, `sessionTonnage`, `logicalSetCount`) is the single source for live drain, finish log, and share.
+El conteo de series lógicas y los modos de carga originales se conservan para registro,
+volumen y protocolos; nunca se transforman en drenaje o tiempo hasta recuperación.
 
 ### 3.2 Nutrition Engine (`domain/nutrition/`)
 
@@ -206,7 +160,7 @@ for regression evidence and validation status.
 
 *   **`PlanMaterializer.kt`:** Compiles a `TrainingPlanRecipe` (week → day → slot recipes with %TM/RPE/AMRAP) into an executable `Program`. Strict: visible content must pass `SessionCompositionPolicy` (H1–H10 / S / W / block contracts). Deterministic given the same `IdProvider`. Rotates `startDay` from the recipe weekday. Relative percentages are resolved by `PercentResolver` (`PercentResolver.kt`, pure and shared with the composition policy: a `PERCENT_OF_TOP_SET` set hangs from the top set of its own slot or, failing that, the week's top set of the same lift) and `PercentBasis` expresses any load basis as an effective %1RM, so rule H11 measures the load a set really resolves to instead of the raw recipe value, and H11b (Epley: more reps than fit at that %1RM) is a hard rule that no exemption can lift.
 *   **`SessionCompositionPolicy.kt` + `CompositionTaxonomy.kt` + `ProgramRecipeValidator.kt`:** Hard rules for session order (T1/T2 compound before isolation/core), pattern/muscle crowding, replacement groups, axial budget, rest floors, and weekly landmarks. Catalog `AISLADO` does **not** turn a compound pattern (hip thrust, squat, hinge, press, row) into an isolation. Third-party protocols may declare matrix 2.2 exemptions; KPKN_NATIVE has none.
-*   **`ProgramAutoregulationEngine.kt`:** Weekly AUGE proposals (`CONFIRM_AUTOREGULATION`) from real `readinessScore`, fatigue, AMRAP vs target and load advisory. Default mode is propose-and-confirm; per-program toggle can auto-apply. Hooked from `ProgramProgressEngine` on COMPLEX block boundaries and SIMPLE week completion. `ProgramRepository.buildTransitionContext` must feed a real readiness score — never `null` in production.
+*   **`ProgramAutoregulationEngine.kt`:** Propuestas ADJUST_TM/ADJUST_XRM desde reglas activas y resultados registrados; siempre pendientes de confirmación. No consume readiness, estrés calculado ni alertas de carga.
 *   **`ProgramProtocolEngine.kt`:** Applies a visible protocol **only** if it has a day-by-day recipe; delegates to `PlanMaterializer`. Hidden/unverified definitions are rejected. Generic synthesis by day label is gone and must not be reintroduced under a third-party name.
 *   **`ProgramTemplateEngine.kt` / `ProgramProgressEngine.kt` / `BlockProgressionEngine.kt` / `BlockTransitionEngine.kt`:** Advanced templates, week/block advance, and deload/peak gates. `PeriodizationEngine.prescriptionFor` remains for in-block progression diffs of existing sessions, not as the source of published protocol sessions. `AuthoredProgressionEngine.kt` (pure) holds the method's own progression, which is recipe content and always applies: `CycleIncrement` (scope cycle or block) raises the training max when `ProgramProgressEngine` closes a cycle (`completeCycle`) or a block, and `WeeklyKg` adds kilograms per week when `PlanMaterializer.materializeSet` resolves a set; performance-driven progression (AMRAP, top set, rep max) is never applied directly but travels as an `ADJUST_TM` proposal from `ProgramAutoregulationEngine` that respects the OFF / PROPOSE / AUTO mode, and `ProgressionConsumers` registers which progression rules have a real consumer.
 *   **`LoopEngine.kt`:** Routine progression engine (Normal, Warmup, Drop-set, Myo-reps, Failure) and target volume metrics.
@@ -239,11 +193,11 @@ This documentary commit completes the F0.3 evidence index. Phase 1 remains open 
 *   **`ExerciseIdentity.kt` / `ExerciseMatchEngine.kt`:** Canonical identity and fuzzy matching of exercises.
 *   **`ExerciseMuscleResolver.kt` / `ExerciseAnatomy.kt`:** Resolves involved muscles and anatomy per exercise.
 *   **`VariantGroupIndex.kt` / `VariantPreferenceStore.kt`:** Exercise variant grouping and user preferences.
-*   **`ExerciseCatalogInsights.kt` / `ExerciseFilters.kt` / `TechnicalAspectEngine.kt` / `ExerciseAugeInference.kt`.**
+*   **`ExerciseCatalogInsights.kt` / `ExerciseFilters.kt` / `TechnicalAspectEngine.kt` / creación con metadatos originales, sin inferencia de fatiga.**
 
 ### 3.6 Session Assistant Engine (`domain/sessionassistant/SessionAssistantEngine.kt`)
 
-*   **Smart Session Parsing:** Analyzes an active session's parameters (volume, predicted muscular drain, rest times).
+*   **Smart Session Parsing:** Describes authored session contents, volume and planned time without a physiological verdict.
 *   **Time Optimization Suggestions:** If a session exceeds the user's target duration, the engine generates actionable suggestions such as:
     *   Reducing rest times between sets.
     *   Converting linear sets into Supersets (pairing antagonistic muscles) or Drop-sets.
@@ -277,9 +231,8 @@ The app UI is written in Jetpack Compose, organized by feature under `screens/` 
 
 ```
 screens/
-├── home/                 # Main Dashboard (RINGS UI) + sections (Header, Rings, Session,
+├── home/                 # Home + historial observado + sections (Header, History, Session,
 │                         #   Cards, Corners, Programs, WikiLab, CreateProgramCard)
-├── auge/                 # AUGE details: ReadinessSheet, PostExerciseSheet, PostSessionSheet
 ├── workout/              # Live Session tracker, rest timer, plate visualizer, voice UI
 │                         #   (+ components/: SetExecutionCard, rest overlays, roadmap bar...)
 ├── nutrition/            # Macro dashboard + MealHistoryScreen + BodyProgressScreen
@@ -288,7 +241,7 @@ screens/
 ├── programs/             # Program list, editorial library and PlanInfoSheet
 ├── programdetail/        # Microcycle calendar & volume charts
 ├── sessioneditor/        # Supersets/Target editor + rules engine
-├── settings/             # Hub + General/Profile/Nutrition/Training/Auge/Notifications/Data
+├── settings/             # Hub + General/Profile/Nutrition/Training/Notifications/Data
 ├── wikilab/              # Anatomy explorer: muscles, joints, tendons, patterns,
 │                         #   biomechanics, exercise detail, custom exercise creator
 ├── learn/                # Courses: LearnHome, Course, Reader, Quiz, Badge screens
@@ -298,29 +251,24 @@ screens/
 
 ### 4.1 The "My Rings" System (Home Screen)
 
-The home dashboard centers around **three concentric recovery rings** representing the three AUGE batteries:
-
-1.  **Outer Ring (Green/Red):** Muscular Battery (overall muscle system readiness).
-2.  **Middle Ring (Blue):** CNS Battery (neurological/energy readiness).
-3.  **Inner Ring (Orange/Purple):** Spinal Battery (structural readiness).
-
-*   **Readiness Sliders:** Located on the home page or settings, allowing users to manually drag and override their current neural/muscular/spinal battery if they feel better or worse than the calculated metric. Manual overrides anchor the engine decay formulas at that specific timestamp.
+El historial presenta observaciones y autoinformes con sus unidades y contexto.
+No existe torre, semáforo o porcentaje de preparación. Las visualizaciones separan
+puntos cuyo método/protocolo/contexto no es comparable.
 
 ### 4.2 Screens Description
 
-1.  **`home` (Dashboard):** Shows the RINGS, daily workout targets, active program quick launcher, and a daily wellbeing questionnaire.
-2.  **`auge` (Recovery Detail):** Readiness verdicts (GREEN/YELLOW/RED), articular breakdown, and post-exercise/post-session questionnaire sheets with 1-5 DOMS sliders.
-3.  **`workout` (Live Session):** Live tracker displaying sets in progress. It incorporates rest timer alarms, Text-To-Speech audio guides (announcing sets, weight, and RPE), and **automatic weight adjustment suggestions** (if fatigue is too high, it prompts the user to reduce weight for the next set). Pre-workout `ReadinessGateScreen` verifies recovery before starting.
+1.  **`home`:** Próxima sesión, actividad reciente, historial con unidades y fuentes, nutrición y programas.
+3.  **`workout`:** Registro de objetivos y ejecución, descanso prescrito/manual, voz, contexto breve opcional y cierre con esfuerzo global opcional. Las propuestas de protocolos requieren confirmación.
 4.  **`sessioneditor`:** Interface for creating splits, sequencing exercises, and bundling exercises into supersets or drop-sets.
 5.  **`nutrition`:** Displays macro bars (Protein, Carbs, Fats) and a log of meals. Includes a quick-add drawer (`FoodLoggerDrawer`), search with FTS4, a **Voice Dictation Bar**, meal history, body progress tracking, and a plan wizard.
 6.  **`wikilab`:** Interactive anatomical explorer divided into muscles, joints, tendons, and movement patterns, plus biomechanics visuals and a custom exercise creator.
-7.  **`settings`:** Hub screen with subscreens: General, Profile, Nutrition, Training, AUGE, Notifications, and Data (backup). Includes manual battery override sliders, theme controls, and haptic switches.
+7.  **`settings`:** Perfil, entrenamiento, nutrición, notificaciones y datos; sin ajustes de baterías ni calibración corporal.
 8.  **`learn`:** Guided education: course list, reader, quizzes, and badge rewards.
 9.  **`competitions` / `profile`:** Leaderboards and user stats.
 
 ### 4.3 Navigation & Routing (`navigation/`)
 
-*   **`Navigation.kt`:** Declares all `KpknRoute` objects and the `NavHost`. Main tabs: `home`, `training`, `nutrition`, `wikilab`. Parameterized routes include `program/{programId}`, `session-editor/{programId}/{sessionId}`, `workout/{programId}/{sessionId}`, `readiness-gate/...`, `competition/{competitionId}`, `settings/<sub>`, `wikilab/<...>` (muscles/joints/tendons/patterns/chains/exercises/concepts/biomechanics), `nutrition/<wizard|body-progress|meal-history|action/{action}>`, `learn/<...>`, and `settings/health-connect` (health flavor only).
+*   **`Navigation.kt`:** Declares all `KpknRoute` objects and the `NavHost`. Main tabs: `home`, `training`, `nutrition`, `wikilab`. Parameterized routes include `program/{programId}`, `session-editor/{programId}/{sessionId}`, `workout/{programId}/{sessionId}`, `competition/{competitionId}`, `settings/<sub>`, `wikilab/<...>` (muscles/joints/tendons/patterns/chains/exercises/concepts/biomechanics), `nutrition/<wizard|body-progress|meal-history|action/{action}>`, `learn/<...>`, and `settings/health-connect` (health flavor only).
 *   **`DeepLinkRouter.kt` / `KpknDeepLinks.kt`:** URL scheme handler for `kpkn://` and `https://kpkn.fit` (declared in the manifest), pushing routes into the `NavHost` (used by notifications and widgets).
 *   **`NavigationBus.kt`:** Decoupled in-app navigation events.
 *   **Library plan intent:** 54668bcb8 preserves planId/preselectedPlanId and review, using TRAINING_ONLY after completed onboarding/FULL before it. Only blank structures create directly; real recipes use the evaluator and legacy strength-cardio stays read-only. Routing/reachability and Library/PlanInfo guards passed; UI/persistence QA remains NOT_RUN.
@@ -395,7 +343,7 @@ The home dashboard centers around **three concentric recovery rings** representi
 
 ## 🧪 7. Testing Layout
 
-*   **Unit tests (`app/src/test/`, JUnit 4 + Robolectric + kotlinx-coroutines-test):** Mirrors the main package tree. Heaviest coverage in `domain/` (AUGE engines, nutrition parsers, training/workout engines), plus `data/` (database load, serialization), `screens/` (ViewModel and rules tests for workout/session editor/program detail/nutrition), `services/workout/`, `navigation/DeepLinkRouterTest.kt`, and `telemetry/`.
+*   **Unit tests (`app/src/test/`, JUnit 4 + Robolectric + kotlinx-coroutines-test):** Mirrors the main package tree. Heaviest coverage in `domain/` (training evidence/migrations, nutrition parsers, authored training/workout engines), plus `data/` (database load, serialization), `screens/` (ViewModel and rules tests for workout/session editor/program detail/nutrition), `services/workout/`, `navigation/DeepLinkRouterTest.kt`, and `telemetry/`.
 *   **Instrumented (`app/src/androidTest/`):** Compose UI test scaffolding (espresso + compose-ui-test).
 
 ---

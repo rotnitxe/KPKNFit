@@ -94,7 +94,7 @@ class Cal5NSunsTest {
         val log = exerciseLog(program, week1, ohpDay, ohp, repsOf = { _, planned -> if (planned.purpose.isAmrap) 5 else planned.targetReps ?: 5 })
 
         val proposals = ProgramAutoregulationEngine.evaluate(
-            program, week1, listOf(log), nsuns, WeeklyAutoregulationSignals(readinessScore = 80),
+            program, week1, listOf(log), nsuns, WeeklyAutoregulationSignals(),
         ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
 
         val proposal = proposals.single()
@@ -105,7 +105,7 @@ class Cal5NSunsTest {
 
     @Test
     fun the_modes_off_propose_and_auto_are_respected() {
-        val hits = WeeklyAutoregulationSignals(amrapHits = listOf(hit(LiftSlot.OVERHEAD, 5)), readinessScore = 80)
+        val hits = WeeklyAutoregulationSignals(amrapHits = listOf(hit(LiftSlot.OVERHEAD, 5)), )
 
         // OFF: ni propuesta ni cambio.
         val off = Cal5TestSupport.materialize(nsuns, AutoregulationMode.OFF)
@@ -115,7 +115,7 @@ class Cal5NSunsTest {
         val propose = Cal5TestSupport.materialize(nsuns, AutoregulationMode.PROPOSE)
         val proposeWeeks = weeksOf(propose)
         val proposals = ProgramAutoregulationEngine.evaluate(propose, proposeWeeks.first(), emptyList(), nsuns, hits)
-        val pending = ProgramAutoregulationEngine.apply(
+        val pending = proposeAndExplicitlyConfirmLegacyAutoForTest(
             propose, proposeWeeks[1].id, proposals, nsuns, setOf(proposeWeeks.first().id), CatalogCompositionTestSupport.metadata,
         )
         assertFalse(pending.applied)
@@ -124,10 +124,10 @@ class Cal5NSunsTest {
         val accepted = ProgramAutoregulationEngine.resolvePending(pending.program, accept = true, CatalogCompositionTestSupport.metadata)
         assertEquals(77.0, accepted.powerliftingProfile!!.overheadTM!!, 1e-9)
 
-        // AUTO: aplica los kilos y la semana siguiente toma el TM nuevo (75 % del press: 57,75 kg con el TM de 77).
+        // AUTO heredado: solo tras confirmación explícita aplica los kilos y la semana siguiente toma el TM nuevo (75 % del press: 57,75 kg con el TM de 77).
         val auto = Cal5TestSupport.materialize(nsuns, AutoregulationMode.AUTO)
         val autoWeeks = weeksOf(auto)
-        val applied = ProgramAutoregulationEngine.apply(
+        val applied = proposeAndExplicitlyConfirmLegacyAutoForTest(
             auto, autoWeeks[1].id, proposals, nsuns, setOf(autoWeeks.first().id), CatalogCompositionTestSupport.metadata,
         )
         assertTrue(applied.applied)

@@ -75,7 +75,6 @@ class CustomExerciseEngineReproTest {
         listOf("dragón lunar mancuernas", "mi ejercicio inventado", "XQZ 123").forEach { name ->
             val created = SmartExerciseCreator.createAutomatic(name, catalog)
             assertTrue("«$name» no debe heredar músculos de un parecido débil: ${created.involvedMuscles}", created.involvedMuscles.isEmpty())
-            assertNull("«$name» no debe certificar carga axial (null = desconocida, no cero)", created.axialLoadFactor)
             assertNull("«$name» no genera texto sin una configuración confirmada: ${created.description}", created.description)
         }
     }
@@ -85,9 +84,8 @@ class CustomExerciseEngineReproTest {
         val created = SmartExerciseCreator.createAutomatic("press raro de una variante inventada", catalog)
         assertNotNull(created.id)
         assertTrue(created.id.startsWith("custom:"))
-        assertTrue(
-            "Sin referencia confirmada, la carga axial debe quedar desconocida: ${created.axialLoadFactor}",
-            created.axialLoadFactor == null,
-        )
+        val serialized=kotlinx.serialization.json.Json.encodeToJsonElement(
+            com.example.kpkn.data.models.ExerciseMuscleInfo.serializer(),created) as kotlinx.serialization.json.JsonObject
+        assertFalse(serialized.containsKey("axialLoadFactor"))
     }
 }

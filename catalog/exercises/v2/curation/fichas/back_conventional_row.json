@@ -168,35 +168,6 @@
           }
         ],
         "overrides": {
-          "conventional_row__cable": {
-            "joints": [
-              {
-                "actions": [
-                  "Extensión del hombro",
-                  "Abducción horizontal"
-                ],
-                "id": "glenohumeral",
-                "role": "PRIMARY",
-                "sources": [
-                  "statpearls_extrinsic_back",
-                  "statpearls_deltoid"
-                ],
-                "why": "El cable tira de las manos hacia delante y abajo, hacia la polea, así que el hombro trabaja contra carga desde los brazos estirados hasta el final del tirón."
-              },
-              {
-                "actions": [
-                  "Extensión isométrica de la cadera"
-                ],
-                "id": "cadera",
-                "role": "STABILIZER",
-                "sources": [
-                  "statpearls_gluteus_maximus",
-                  "statpearls_hamstring"
-                ],
-                "why": "Además del peso del torso, el cable arrastra el cuerpo hacia la máquina; los extensores de la cadera frenan ese tirón hacia delante sin que la bisagra se abra."
-              }
-            ]
-          },
           "conventional_row__dumbbells": {
             "joints": [
               {
@@ -298,17 +269,6 @@
               "Agarra la barra en el suelo en prono, algo más ancho que los hombros, y levántala como en un peso muerto hasta quedar de pie.",
               "Con la barra frente a los muslos, lleva la cadera atrás hasta inclinar el torso unos cuarenta y cinco grados.",
               "Flexiona un poco las rodillas y deja la barra colgando bajo los hombros con los brazos estirados."
-            ]
-          },
-          "conventional_row__cable": {
-            "description": "El cable sale de la polea baja y tira de las manos en diagonal hacia la máquina, no solo hacia el suelo, así que con los brazos estirados la carga todavía tira del cuerpo hacia delante. Entre repeticiones la pila no llega a apoyarse.",
-            "executionCues": [
-              "Lleva la barra hacia la parte baja de las costillas sin dejar que el cable te arrastre hacia delante.",
-              "Vuelve hasta estirar los codos sin que la pila toque abajo."
-            ],
-            "setupCues": [
-              "Engancha una barra recta a la polea baja y agárrala en prono.",
-              "Retrocede hasta que la pila se despegue y lleva la cadera atrás hasta inclinar el torso con los brazos estirados."
             ]
           },
           "conventional_row__dumbbells": {
@@ -483,9 +443,6 @@
           "barbell": {
             "geometry": "Barra olímpica horizontal con discos a ambos lados, agarrada en prono algo más ancha que los hombros; en el punto alto toca la parte baja de las costillas y los codos salen algo abiertos."
           },
-          "cable": {
-            "geometry": "Polea baja delante del atleta; una barra recta unida al cable, agarrada en prono, toca la parte baja de las costillas y el cable baja en diagonal hasta la polea, con la pila de placas levantada."
-          },
           "dumbbells": {
             "geometry": "Una mancuerna en cada mano con las palmas enfrentadas, a los lados de la cintura; los codos pasan la línea de la espalda pegados al costado."
           },
@@ -510,7 +467,6 @@
         ],
         "promptCore": {
           "barbell": "Side view of an athlete standing and bent forward at the hips, torso about 45 degrees to the floor, frozen at the TOP of a barbell bent-over row. Both hands grip the barbell with an overhand grip slightly wider than the shoulders and hold it against the lower ribs. Elbows are bent and pulled behind the line of the back, shoulder blades squeezed. Knees slightly bent, back flat, neck neutral, eyes on the floor ahead of the feet. Both feet flat on the floor. Nothing supports the chest. The plates hang in the air, far above the floor.",
-          "cable": "Side view of an athlete facing a low cable pulley, standing and bent forward at the hips with the torso about 45 degrees to the floor, frozen at the TOP of a cable bent-over row. Both hands grip a straight bar attached to the cable with an overhand grip and hold it against the lower ribs. The cable runs diagonally down and forward to the pulley near the floor. Elbows are pulled behind the line of the back. Knees slightly bent, back flat, both feet flat on the floor. The weight stack is lifted.",
           "dumbbells": "Side view of an athlete standing and bent forward at the hips, torso about 45 degrees to the floor, frozen at the TOP of a dumbbell bent-over row. Each hand grips one dumbbell with palms facing each other and holds it beside the waist. Elbows are bent, close to the ribs and pulled behind the line of the back. Knees slightly bent, back flat, neck neutral, eyes down. Both feet flat on the floor. Nothing supports the chest. Both dumbbells are in the air, high above the floor.",
           "kettlebell": "Side view of an athlete standing and bent forward at the hips, torso about 45 degrees to the floor, frozen at the TOP of a double kettlebell bent-over row. Each hand grips the handle of one kettlebell with a neutral grip and holds it beside the hip, the round bell hanging just below the fist. Elbows are bent and pulled behind the line of the back. Knees slightly bent, back flat, neck neutral. Both feet flat on the floor. Both kettlebells are in the air, high above the floor.",
           "machine": "Side view of an athlete standing on the foot platform of a plate-loaded lever row machine that has no chest pad, bent forward at the hips with the torso about 45 degrees to the floor, frozen at the TOP of the row. Both hands grip the machine handles and hold them beside the lower ribs. Elbows are bent and pulled behind the line of the back. Knees slightly bent, back flat, neck neutral. Nothing touches the chest. The lever arm with its plates is raised off its rest stop.",

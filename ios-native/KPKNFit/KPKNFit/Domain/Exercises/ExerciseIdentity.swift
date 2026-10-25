@@ -459,7 +459,8 @@ extension ProgramWeek {
 extension WorkoutLog {
     public func copy(
         completedExercises: [CompletedExercise]? = nil,
-        postExerciseReports: [ExerciseDiscomfortReport]? = nil
+        postExerciseReports: [ExerciseDiscomfortReport]? = nil,
+        discardRetiredEnergy: Bool = false
     ) -> WorkoutLog {
         WorkoutLog(
             id: id,
@@ -473,8 +474,7 @@ extension WorkoutLog {
             discomforts: discomforts,
             notes: notes,
             totalVolume: totalVolume,
-            sessionStressScore: sessionStressScore,
-            energySummary: energySummary,
+            energySummary: discardRetiredEnergy && isRetiredTrainingEnergyMethod(energySummary?.methodVersion) ? nil : energySummary,
             weekId: weekId,
             macroIndex: macroIndex,
             mesoIndex: mesoIndex,
@@ -491,7 +491,10 @@ extension WorkoutLog {
             omittedExercises: omittedExercises,
             scheduledDate: scheduledDate,
             actualDate: actualDate,
-            scheduleDeltaDays: scheduleDeltaDays
+            scheduleDeltaDays: scheduleDeltaDays,
+            actualDurationSeconds: actualDurationSeconds, actualDurationSource: actualDurationSource,
+            sessionEffortRpe: sessionEffortRpe, sessionEffortProtocol: sessionEffortProtocol,
+            sportDocuments: sportDocuments, recordedSportId: recordedSportId, preSessionNotes: preSessionNotes
         )
     }
 }
@@ -528,14 +531,11 @@ extension OngoingWorkoutState {
             skippedExerciseIds: skippedExerciseIds,
             warmupCompletedExerciseIds: warmupCompletedExerciseIds,
             mobilityCompletedExerciseIds: mobilityCompletedExerciseIds,
-            readinessNeuralOverride: readinessNeuralOverride,
-            readinessMuscularOverride: readinessMuscularOverride,
-            readinessSpinalOverride: readinessSpinalOverride,
-            readinessMuscleOverrides: readinessMuscleOverrides,
             restModalState: restModalState,
             persistedLoadModeBySet: persistedLoadModeBySet,
             persistedLoadModeByExercise: persistedLoadModeByExercise,
-            customTargetDurationMinutes: customTargetDurationMinutes
+            customTargetDurationMinutes: customTargetDurationMinutes,
+            recordedSportId: recordedSportId, preSessionNotes: preSessionNotes
         )
     }
 }

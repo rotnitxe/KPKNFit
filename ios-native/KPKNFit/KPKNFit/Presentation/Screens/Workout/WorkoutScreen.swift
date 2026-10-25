@@ -26,7 +26,7 @@ struct WorkoutScreen: View {
     @StateObject private var viewModel: WorkoutViewModel
     @State private var showExitDialog = false
     @State private var roadmapMode: RoadmapMode = .compact
-    @State private var readinessSheetDismissed = false
+    @State private var preparationDismissed = false
     @State private var lastAnnouncedSetKey: String? = nil
     @State private var exerciseContextExerciseId: String? = nil
     @State private var showReplaceExercisePicker = false
@@ -64,7 +64,7 @@ struct WorkoutScreen: View {
 
     var body: some View {
         let isMeetOrComp = viewModel.uiState.session?.isMeetDay == true || viewModel.uiState.session?.isCompetitionSession == true
-        let showReadinessSheet = !readinessSheetDismissed && !isMeetOrComp && viewModel.uiState.readinessNeuralOverride == nil
+        let showPreparation = !preparationDismissed && !isMeetOrComp
 
         ZStack {
             if viewModel.uiState.session == nil {
@@ -198,7 +198,6 @@ struct WorkoutScreen: View {
                     }
                 },
                 onExpandEdit: { editSheetExerciseId = currentExercise?.id },
-                exerciseReadinessMap: viewModel.uiState.exerciseReadinessMap,
                 isUnilateral: isUnilateralDock,
                 selectedUnilateralSideOverride: selectedUnilateralSideOverride,
                 onSelectedUnilateralSideOverride: { selectedUnilateralSideOverride = $0 },
@@ -253,25 +252,26 @@ struct WorkoutScreen: View {
                 }
             }
 
-            // Readiness sheet
-            if showReadinessSheet {
-                WorkoutReadinessSheet(
-                    showReadinessSheet: showReadinessSheet,
-                    gender: viewModel.uiState.session?.gender,
-                    sessionMuscleStartingBatteries: [:],
-                    readinessNeuralStart: 0,
-                    readinessMuscularStart: 0,
-                    readinessSpinalStart: 0,
-                    onSave: { _, _, _, _, _ in readinessSheetDismissed = true },
-                    patternReadiness: viewModel.uiState.patternReadiness,
-                    exerciseReadinessMap: viewModel.uiState.exerciseReadinessMap,
-                    sessionExercises: session.exercises,
-                    onDismissWithoutVerify: { readinessSheetDismissed = true },
-                    initialDiscomforts: []
-                )
+            if showPreparation {
+                VStack {
+                    Text("Antes de entrenar").font(.headline)
+                    Text("Consulta los objetivos de tu programa. El registro breve es opcional y no cambia tus cargas.")
+                    Picker("Disciplina (opcional)", selection:Binding(get:{viewModel.uiState.recordedSportId ?? ""},set:{viewModel.setRecordedSport($0.isEmpty ? nil : $0)})) {
+                        Text("Sin especificar").tag("")
+                        ForEach(RecordedSportNames.labels.keys.sorted(),id: \.self) { id in Text(RecordedSportNames.labels[id] ?? id).tag(id) }
+                    }
+                    TextField("Cansancio, molestias o contexto (opcional)",text:Binding(get:{viewModel.uiState.preSessionNotes ?? ""},set:{viewModel.setPreSessionNotes($0)}))
+                    Text("El historial conserva las sesiones anteriores; un dato ausente no equivale a esfuerzo cero.").font(.caption)
+                    Button("Continuar a la sesión") { preparationDismissed = true }
+                }.padding()
             }
 
             // Other sheets, dialogs, etc handled via .sheet and .alert
+        }
+        .sheet(isPresented:Binding(get:{viewModel.uiState.showFinishSheet},set:{if !$0 { viewModel.hideFinish() }})) {
+            RecordedSessionFinishView(completedSets:viewModel.uiState.completedSets.count, onCancel:{viewModel.hideFinish()}) { notes, effort in
+                viewModel.finishWorkout(notes:notes,closingFeedback:SessionClosingFeedback(sessionEffortRpe:effort),onComplete:{onComplete?()})
+            }
         }
     }
 
@@ -434,7 +434,6 @@ private struct WorkoutHeaderBar: View {
     let onAdjustTimeLimit: (Int) -> Void
     let exerciseTag: String?
     let isSuperset: Bool
-    let exerciseReadiness: ExerciseReadiness?
     let activeMainTags: [WorkoutTag]
     let activeSubTags: [WorkoutSubTag]
     let onTagClick: (String) -> Void
@@ -483,22 +482,7 @@ private struct WorkoutHeaderBar: View {
                             .background(Color.white.opacity(0.12))
                             .clipShape(Capsule())
 
-                            if let readiness = exerciseReadiness {
-                                let score = readiness.overallScore
-                                let chipColor: Color = score >= 75 ? Color(hex: "#4CAF50")! : score >= 50 ? Color(hex: "#FFC107")! : Color(hex: "#FF5252")!
-                                HStack(spacing: 5) {
-                                    Circle()
-                                        .fill(chipColor)
-                                        .frame(width: 6, height: 6)
-                                    Text("\(score)%")
-                                        .font(.system(size: 11, weight: .black))
-                                        .foregroundColor(.white.opacity(0.85))
-                                }
-                                .padding(.horizontal, 9)
-                                .padding(.vertical, 3)
-                                .background(chipColor.opacity(0.18))
-                                .clipShape(Capsule())
-                            }
+
 
                             if isSuperset {
                                 HStack(spacing: 3) {
@@ -607,7 +591,6 @@ private struct WorkoutV2Body: View {
     var onExpandSetup: () -> Void = {}
     var onExpandReplace: () -> Void = {}
     var onExpandEdit: () -> Void = {}
-    var exerciseReadinessMap: [String: ExerciseReadiness] = [:]
     var isUnilateral: Bool = false
     var selectedUnilateralSideOverride: String? = nil
     var onSelectedUnilateralSideOverride: (String?) -> Void = { _ in }
@@ -617,7 +600,6 @@ private struct WorkoutV2Body: View {
     @State private var tagManagerTagId: String? = nil
     @State private var showCreateTagDialog = false
     @State private var newTagName = ""
-    @State private var drainOverlayState: ExerciseDrainOverlayStateV2? = nil
     @State private var expandedSupersetWarmups: Set<String> = []
     @State private var pendingUpdateAction: (() -> Void)? = nil
 
@@ -634,7 +616,6 @@ private struct WorkoutV2Body: View {
             let subTagIds = Set(uiState.activeSubTagsByExercise[exId] ?? [])
             return currentExerciseTags.flatMap { $0.subTags }.filter { subTagIds.contains($0.id) }
         }()
-        let currentExerciseReadiness = currentExercise.flatMap { exerciseReadinessMap[$0.id] }
 
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 0) {
@@ -649,7 +630,6 @@ private struct WorkoutV2Body: View {
                     onAdjustTimeLimit: { viewModel.adjustSessionTimeLimit($0) },
                     exerciseTag: headerExerciseTag,
                     isSuperset: currentExercise?.isInSuperset() == true,
-                    exerciseReadiness: currentExerciseReadiness,
                     activeMainTags: currentExerciseActiveMainTags,
                     activeSubTags: currentExerciseActiveSubTags,
                     onTagClick: { tagId in tagManagerTagId = tagId },
@@ -674,18 +654,10 @@ private struct WorkoutV2Body: View {
                                 ].compactMap { $0 }
                             }
                         )
-                        let currentExerciseDrain = currentExerciseCompleted.sets.isEmpty
-                            ? PredictedDrain(cns: 0, muscular: 0, spinal: 0)
-                            : AugeFatigueEngine.calculateCompletedSessionDrain(
-                                completedExercises: [currentExerciseCompleted],
-                                exerciseDb: catalogExerciseIndex()
-                            )
-
                         WorkoutExerciseTabs(
                             currentExercise: ex,
                             currentSet: set,
                             currentExerciseInfo: currentExerciseInfo,
-                            drain: currentExerciseDrain,
                             exerciseTag: uiState.exerciseTags[ex.id],
                             profiles: viewModel.profilesForExercise(ex),
                             activeProfileId: uiState.activeContextProfileByExerciseId[ex.id],
@@ -712,7 +684,6 @@ private struct WorkoutV2Body: View {
                             sessionEnergy: uiState.liveEnergySummary,
                             allowExerciseManagementActions: !ex.isInSuperset(),
                             userTags: viewModel.allUserTags,
-                            exerciseReadiness: uiState.exerciseReadinessMap[ex.id],
                             userWorkoutTags: currentExerciseTags,
                             activeMainTagIds: Set(uiState.activeTagsByExercise[ex.id] ?? []),
                             activeSubTagIds: Set(currentExerciseActiveSubTags.map { $0.id }),
@@ -769,10 +740,10 @@ private struct WorkoutV2Body: View {
                                         let key: String = {
                                             switch tp.type {
                                             case .mobility:
-                                                return ex.mobilitySeries.first { "\(ex.id)_\($0.id)" !in uiState.mobilityCompletedExerciseIds }
+                                                return ex.mobilitySeries.first { !uiState.mobilityCompletedExerciseIds.contains("\(ex.id)_\($0.id)") }
                                                     .map { "\(ex.id)_\($0.id)" } ?? ""
                                             case .warmup:
-                                                return ex.warmupSets.first { "\(ex.id)_warmup_\($0.id)" !in uiState.warmupCompletedExerciseIds }
+                                                return ex.warmupSets.first { !uiState.warmupCompletedExerciseIds.contains("\(ex.id)_warmup_\($0.id)") }
                                                     .map { "\(ex.id)_warmup_\($0.id)" } ?? ""
                                             case .normal:
                                                 return WorkoutStepRules.workingStepKey(ex.id, tp.setIndex, tp.side)
@@ -874,10 +845,7 @@ private struct WorkoutV2Body: View {
                                         } else {
                                             action()
                                         }
-                                    },
-                                    exerciseReadiness: exerciseReadinessMap[ex.id],
-                                    readinessAdjustment: uiState.readinessAdjustments["\(ex.id)_\(activeSetIndex)"],
-                                    onApplyReadinessAdjustment: { viewModel.applyReadinessAdjustment(ex.id, activeSetIndex, $0) }
+                                    }
                                 )
                             }
                         }
@@ -994,12 +962,7 @@ private struct WorkoutV2Body: View {
         }
 
         // Drain overlay
-        if let overlay = drainOverlayState {
-            ExerciseDrainOverlayCard(state: overlay)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-                .transition(.opacity)
-        }
+
     }
 
     private func buildSetPagerPages(exercise: Exercise, isUnilateral: Bool) -> [WorkoutSetSwipePage] {
@@ -1052,11 +1015,11 @@ private struct WorkoutV2Body: View {
             let isDone: Bool = {
                 switch page.type {
                 case .mobility:
-                    return currentExercise.mobilitySeries.allSatisfy { "\(currentExercise.id)_\($0.id)" in uiState.mobilityCompletedExerciseIds }
+                    return currentExercise.mobilitySeries.allSatisfy { uiState.mobilityCompletedExerciseIds.contains("\(currentExercise.id)_\($0.id)") }
                 case .warmup:
                     return currentExercise.warmupSets.allSatisfy {
-                        "\(currentExercise.id)_warmup_\($0.id)" in uiState.warmupCompletedExerciseIds ||
-                        currentExercise.id in uiState.warmupCompletedExerciseIds
+                        uiState.warmupCompletedExerciseIds.contains("\(currentExercise.id)_warmup_\($0.id)") ||
+                        uiState.warmupCompletedExerciseIds.contains(currentExercise.id)
                     }
                 case .normal:
                     let bilateralDone = uiState.completedSets.keys.contains("\(currentExercise.id)_\(page.setIndex)")
@@ -1105,7 +1068,7 @@ private struct MobilitySetCard: View {
                 .foregroundColor(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             ForEach(Array(exercise.mobilitySeries.enumerated()), id: \.offset) { mobIdx, mob in
-                let mobDone = "\(exercise.id)_\(mob.id)" in uiState.mobilityCompletedExerciseIds
+                let mobDone = uiState.mobilityCompletedExerciseIds.contains("\(exercise.id)_\(mob.id)")
                 HStack(spacing: 8) {
                     Button(action: {
                         viewModel.markMobilityComplete(exerciseId: exercise.id, mobilityId: mob.id, completed: !mobDone)
@@ -1170,8 +1133,8 @@ private struct WarmupSetCard: View {
                 .foregroundColor(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             ForEach(Array(exercise.warmupSets.enumerated()), id: \.offset) { warmIdx, ws in
-                let wsDone = "\(exercise.id)_warmup_\(ws.id)" in uiState.warmupCompletedExerciseIds ||
-                    exercise.id in uiState.warmupCompletedExerciseIds
+                let wsDone = uiState.warmupCompletedExerciseIds.contains("\(exercise.id)_warmup_\(ws.id)") ||
+                    uiState.warmupCompletedExerciseIds.contains(exercise.id)
                 let warmupKg = (warmupWorkingWeight != nil && warmupWorkingWeight! > 0)
                     ? warmupWorkingWeight! * (ws.percentageOfWorkingWeight / 100.0) : nil
 
@@ -1217,27 +1180,7 @@ private struct WarmupSetCard: View {
 
 // MARK: - ExerciseDrainOverlayCard
 
-private struct ExerciseDrainOverlayCard: View {
-    let state: ExerciseDrainOverlayStateV2
 
-    var body: some View {
-        VStack(spacing: 8) {
-            Text("Drenaje de \(state.exerciseName)")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(.secondary)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            ForEach(Array(state.items.enumerated()), id: \.offset) { index, item in
-                ExerciseDrainAnimatedRow(item: item, index: index)
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(Color(.systemBackground).opacity(0.97))
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-        .shadow(color: .black.opacity(0.15), radius: 18, y: 10)
-    }
-}
 
 // MARK: - ExerciseDrainAnimatedRow
 
@@ -1291,48 +1234,7 @@ private struct ExerciseDrainAnimatedRow: View {
 
 // MARK: - WorkoutFatigueRings
 
-private struct WorkoutFatigueRings: View {
-    let cns: Int
-    let muscular: Int
-    let spinal: Int
 
-    var body: some View {
-        let values = [muscular, cns, spinal].map { CGFloat($0) / 100.0 }
-        let colors: [Color] = [Color(hex: "#FF5252")!, Color(hex: "#448AFF")!, Color(hex: "#FFD740")!]
-        let labels = ["Músc.", "Sist.", "Estr."]
-
-        VStack(spacing: 6) {
-            Text("Fatiga en tiempo real")
-                .font(.system(size: 12, weight: .bold))
-            HStack(spacing: 0) {
-                ForEach(0..<3, id: \.self) { i in
-                    VStack(spacing: 4) {
-                        ZStack {
-                            Circle()
-                                .stroke(colors[i].opacity(0.15), lineWidth: 5)
-                                .frame(width: 48, height: 48)
-                            Circle()
-                                .trim(from: 0, to: values[i])
-                                .stroke(colors[i], style: StrokeStyle(lineWidth: 5, lineCap: .round))
-                                .rotationEffect(.degrees(-90))
-                                .frame(width: 48, height: 48)
-                            Text("\(Int(values[i] * 100))")
-                                .font(.system(size: 10, weight: .black))
-                                .foregroundColor(colors[i])
-                        }
-                        Text(labels[i])
-                            .font(.system(size: 9))
-                            .foregroundColor(colors[i].opacity(0.7))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            }
-        }
-        .padding(12)
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-    }
-}
 
 // MARK: - WorkoutRmCalcContent
 
@@ -1387,7 +1289,6 @@ private struct WorkoutExerciseTabs: View {
     let currentExercise: Exercise
     let currentSet: ExerciseSet
     let currentExerciseInfo: ExerciseMuscleInfo?
-    let drain: PredictedDrain
     let exerciseTag: String?
     let profiles: [WorkoutContextProfile]
     let activeProfileId: String?
@@ -1407,7 +1308,6 @@ private struct WorkoutExerciseTabs: View {
     let sessionEnergy: SessionEnergySummary?
     let allowExerciseManagementActions: Bool
     let userTags: [String]
-    let exerciseReadiness: ExerciseReadiness?
     let userWorkoutTags: [WorkoutTag]
     let activeMainTagIds: Set<String>
     let activeSubTagIds: Set<String>
@@ -1453,10 +1353,7 @@ private struct WorkoutExerciseTabs: View {
             }
 
             // Drain / energy summary
-            if drain.cns > 0 || drain.muscular > 0 || drain.spinal > 0 {
-                WorkoutFatigueRings(cns: drain.cns, muscular: drain.muscular, spinal: drain.spinal)
-                    .padding(.horizontal, 10)
-            }
+
 
             if let energy = sessionEnergy {
                 HStack(spacing: 6) {
@@ -1496,20 +1393,7 @@ private struct WorkoutExerciseTabs: View {
             }
 
             // Readiness
-            if let readiness = exerciseReadiness {
-                HStack(spacing: 4) {
-                    Text("Readiness: \(readiness.overallScore)%")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.secondary)
-                    ForEach(readiness.muscleReadiness.prefix(3), id: \.muscleId) { mr in
-                        Text("\(mr.muscleId) \(mr.percentage)%")
-                            .font(.system(size: 8))
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 10)
-            }
+
 
             // Tags section
             if userWorkoutTags.isNotEmpty {
@@ -2992,5 +2876,28 @@ private extension Array {
     subscript(safe index: Int) -> Element? {
         guard indices.contains(index) else { return nil }
         return self[index]
+    }
+}
+
+
+private struct RecordedSessionFinishView: View {
+    let completedSets: Int
+    let onCancel: () -> Void
+    let onSave: (String, Double?) -> Void
+    @State private var notes = ""
+    @State private var effort = ""
+    private var parsedEffort: Double? { Double(effort.replacingOccurrences(of:",",with:".")) }
+    private var valid: Bool { effort.isEmpty || (parsedEffort.map { $0.isFinite && (0...10).contains($0) } ?? false) }
+    var body: some View {
+        ScrollView { VStack(alignment:.leading,spacing:16) {
+            Text("Resultados de sesión").font(.title2)
+            Text("\(completedSets) series registradas. Consulta las marcas y sus unidades en el historial.")
+            TextField("Esfuerzo global 0–10 (opcional)",text:$effort).keyboardType(.decimalPad)
+            Text("Escala declarada de esta sesión; no se infiere desde las series ni mide recuperación.").font(.caption)
+            if !valid { Text("Introduce un valor entre 0 y 10, o deja el campo vacío.") }
+            TextField("Notas o molestias (opcional)",text:$notes)
+            Button("Guardar sesión") { onSave(notes,parsedEffort) }.disabled(!valid)
+            Button("Volver a la sesión",action:onCancel)
+        }.padding() }
     }
 }

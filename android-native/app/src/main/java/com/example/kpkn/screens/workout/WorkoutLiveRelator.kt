@@ -86,8 +86,6 @@ internal enum class RelatorSpeechBucket {
     IDLE_MID,
     IDLE_LAST,
     IDLE_COMPOUND,
-    TISSUE_INTRA,
-    TISSUE_DAY,
     WARMUP_WEIGHT_BELOW,
     WARMUP_WEIGHT_ABOVE,
     WEIGHT_BELOW,
@@ -149,7 +147,6 @@ internal data class LiveRelatorSnapshot(
     val dropSetCount: Int = 0,
     val plannedDropCount: Int = 0,
     val compound: RelatorCompound = RelatorCompound.NONE,
-    val tissueHint: RelatorTissueHint? = null,
     val loadKind: RelatorLoadKind = RelatorLoadKind.LOAD,
     val unit: RelatorUnit = RelatorUnit.REPS,
     val setKey: String = "",
@@ -168,7 +165,6 @@ internal data class LiveRelatorSnapshot(
     val assistAck: RelatorAssistAck? = null,
     val ultraFastApplied: Boolean = false,
     val loadFromPreviousSession: Boolean = false,
-    val axialLoadFactor: Double? = null,
     val equipmentId: String? = null,
     val movementPatternId: String? = null,
     val plannedIsoHold: Boolean = false,
@@ -368,13 +364,6 @@ internal fun LiveRelatorSnapshot.speechBucket(): RelatorSpeechBucket {
 
     if (idleCycle > 0 && discomfortHint != null) return RelatorSpeechBucket.IDLE_DISCOMFORT
 
-    if (idleCycle > 0 && tissueHint != null) {
-        return if (tissueHint.window == RelatorTissueWindow.INTRA) {
-            RelatorSpeechBucket.TISSUE_INTRA
-        } else {
-            RelatorSpeechBucket.TISSUE_DAY
-        }
-    }
     if (idleCycle > 0 && tagProgressHint != null) return RelatorSpeechBucket.TAG_BEST_PROGRESS
     if (shouldSpeakConcept()) return RelatorSpeechBucket.CONCEPT_CUE
     return situateWorkingBucket()
@@ -391,7 +380,6 @@ internal fun LiveRelatorSnapshot.conceptCueOrNull(): RelatorConceptCue? =
     pickRelatorConceptCue(toConceptSignals())
 
 internal fun LiveRelatorSnapshot.toConceptSignals(): RelatorConceptSignals = RelatorConceptSignals(
-    axialLoadFactor = axialLoadFactor,
     equipmentId = equipmentId,
     movementPatternId = movementPatternId,
     exerciseName = exerciseDisplayName,
@@ -585,7 +573,6 @@ internal fun LiveRelatorSnapshot.weightBandOrNull(): RelatorWeightBand? {
 internal fun detectRelatorCompound(
     exerciseName: String,
     movementPatternId: String? = null,
-    axialLoadFactor: Double? = null,
 ): RelatorCompound {
     val name = exerciseName.lowercase()
     val pattern = movementPatternId.orEmpty().lowercase()
@@ -598,7 +585,7 @@ internal fun detectRelatorCompound(
     }
     val benchLike = has("banca", "bench") &&
         !has("mancuerna", "dumbbell", "máquina", "maquina", "machine", "smith")
-    if (benchLike && (has("barra", "barbell", "bar ") || axialLoadFactor != null && axialLoadFactor >= 0.6 || has("press"))) {
+    if (benchLike && (has("barra", "barbell", "bar ") || has("press"))) {
         if (has("barra", "barbell") || (!has("mancuerna") && has("banca", "bench"))) {
             return RelatorCompound.BENCH_BAR
         }
@@ -611,9 +598,6 @@ internal fun detectRelatorCompound(
         } else {
             RelatorCompound.BACK_SQUAT_HIGH
         }
-    }
-    if (squatLike && (axialLoadFactor != null && axialLoadFactor >= 0.7)) {
-        return RelatorCompound.BACK_SQUAT_HIGH
     }
     return RelatorCompound.NONE
 }

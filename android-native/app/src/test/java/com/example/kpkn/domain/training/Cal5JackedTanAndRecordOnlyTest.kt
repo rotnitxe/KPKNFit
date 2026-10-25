@@ -73,20 +73,20 @@ class Cal5JackedTanAndRecordOnlyTest {
         val propose = Cal5TestSupport.materialize(jt, AutoregulationMode.PROPOSE, lowTmProfile)
         val week1 = weeksOf(propose).first()
         val up = ProgramAutoregulationEngine.evaluate(
-            propose, week1, listOf(squatRmLog(propose, 10, 140.0)), jt, WeeklyAutoregulationSignals(readinessScore = 80),
+            propose, week1, listOf(squatRmLog(propose, 10, 140.0)), jt, WeeklyAutoregulationSignals(),
         ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
         assertEquals("SQUAT", up.single().liftSlot)
         assertEquals("e1RM ≥ 1,025 × el 1RM implícito: +2,5 %", 2.5, up.single().percentDelta!!, 1e-9)
 
         // 100 kg × 10: e1RM 133,3 kg ≤ 0,95 × 166,7 kg → baja el 2,5 %.
         val down = ProgramAutoregulationEngine.evaluate(
-            propose, week1, listOf(squatRmLog(propose, 10, 100.0)), jt, WeeklyAutoregulationSignals(readinessScore = 80),
+            propose, week1, listOf(squatRmLog(propose, 10, 100.0)), jt, WeeklyAutoregulationSignals(),
         ).filter { it.kind == AutoregulationProposalKind.ADJUST_TM }
         assertEquals(-2.5, down.single().percentDelta!!, 1e-9)
 
         // PROPONER: pendiente, sin tocar el TM; AUTO: aplicado; OFF: nada.
         val weeks = weeksOf(propose)
-        val pending = ProgramAutoregulationEngine.apply(
+        val pending = proposeAndExplicitlyConfirmLegacyAutoForTest(
             propose, weeks[1].id, up, jt, setOf(week1.id), CatalogCompositionTestSupport.metadata,
         )
         assertFalse(pending.applied)
@@ -95,13 +95,13 @@ class Cal5JackedTanAndRecordOnlyTest {
 
         val auto = Cal5TestSupport.materialize(jt, AutoregulationMode.AUTO, lowTmProfile)
         val autoWeeks = weeksOf(auto)
-        val applied = ProgramAutoregulationEngine.apply(auto, autoWeeks[1].id, up, jt, setOf(autoWeeks.first().id), CatalogCompositionTestSupport.metadata)
+        val applied = proposeAndExplicitlyConfirmLegacyAutoForTest(auto, autoWeeks[1].id, up, jt, setOf(autoWeeks.first().id), CatalogCompositionTestSupport.metadata)
         assertTrue(applied.applied)
         assertEquals(150.0 * 1.025, applied.program.powerliftingProfile!!.squatTM!!, 1e-9)
 
         val off = Cal5TestSupport.materialize(jt, AutoregulationMode.OFF, lowTmProfile)
         assertTrue(
-            ProgramAutoregulationEngine.evaluate(off, weeksOf(off).first(), listOf(squatRmLog(off, 10, 140.0)), jt, WeeklyAutoregulationSignals(readinessScore = 80)).isEmpty(),
+            ProgramAutoregulationEngine.evaluate(off, weeksOf(off).first(), listOf(squatRmLog(off, 10, 140.0)), jt, WeeklyAutoregulationSignals()).isEmpty(),
         )
     }
 

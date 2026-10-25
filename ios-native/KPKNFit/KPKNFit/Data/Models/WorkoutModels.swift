@@ -348,7 +348,7 @@ internal func backfillCompletedSetIntensityFromPostExerciseFeedback(
             skipped: set.skipped, superSetWithExerciseId: set.superSetWithExerciseId,
             supersetId: set.supersetId, supersetRoundIndex: set.supersetRoundIndex,
             restAfterKind: set.restAfterKind, isWarmup: set.isWarmup, side: set.side,
-            spinalScore: set.spinalScore, performanceMode: set.performanceMode,
+            performanceMode: set.performanceMode,
             actualIntensityMode: mode, actualIntensityValue: value, debt: set.debt,
             contextProfileId: set.contextProfileId, tagId: set.tagId, subTagIds: set.subTagIds,
             setupProfileId: set.setupProfileId, machineBrand: set.machineBrand,
@@ -367,37 +367,7 @@ internal func backfillCompletedSetIntensityFromPostExerciseFeedbacks(
     }
 }
 
-internal struct SessionClosingFeedback {
-    var overallFatigue: Int
-    var systemAdjustment: Int
-    var muscularAdjustment: Int
-    var structureAdjustment: Int
-    var discomforts: [String]
-    var clarityRating: Int
-    var environmentTags: [String]
-    var finalNeuralBattery: Int?
-    var finalSpinalBattery: Int?
-    var finalMuscularBattery: Int?
-    var finalMuscleBatteries: [String: Int]
-    var additionalDiscomfortNote: String?
-    var stillPresentDiscomfortIds: [String]
 
-    init(overallFatigue: Int = 5, systemAdjustment: Int = 0, muscularAdjustment: Int = 0, structureAdjustment: Int = 0, discomforts: [String] = [], clarityRating: Int = 5, environmentTags: [String] = [], finalNeuralBattery: Int? = nil, finalSpinalBattery: Int? = nil, finalMuscularBattery: Int? = nil, finalMuscleBatteries: [String: Int] = [:], additionalDiscomfortNote: String? = nil, stillPresentDiscomfortIds: [String] = []) {
-        self.overallFatigue = overallFatigue
-        self.systemAdjustment = systemAdjustment
-        self.muscularAdjustment = muscularAdjustment
-        self.structureAdjustment = structureAdjustment
-        self.discomforts = discomforts
-        self.clarityRating = clarityRating
-        self.environmentTags = environmentTags
-        self.finalNeuralBattery = finalNeuralBattery
-        self.finalSpinalBattery = finalSpinalBattery
-        self.finalMuscularBattery = finalMuscularBattery
-        self.finalMuscleBatteries = finalMuscleBatteries
-        self.additionalDiscomfortNote = additionalDiscomfortNote
-        self.stillPresentDiscomfortIds = stillPresentDiscomfortIds
-    }
-}
 
 internal struct ExerciseHistoryEntry {
     let date: String
@@ -549,130 +519,11 @@ internal struct CoachMessage {
 internal enum CoachSeverity { case INFO, WARNING, DANGER, SUCCESS }
 internal enum CoachAction { case REDUCE_INTENSITY, SKIP_EXERCISE, EXTEND_REST, STAY_THE_COURSE }
 
-internal enum WorkoutCoachMessages {
-    private enum DrainLevel { case XS, LOW, AVERAGE, HIGH }
-    private enum ReadinessLevel { case XS, LOW, AVERAGE, HIGH }
-    private enum SessionPhase { case EARLY, MID, LATE }
 
-    private struct CoachKey: Hashable {
-        let drain: DrainLevel
-        let readiness: ReadinessLevel
-        let phase: SessionPhase
-    }
-
-    private struct CoachMessageComponents {
-        let severity: CoachSeverity
-        let title: String
-        let body: String
-        let action: CoachAction?
-    }
-
-    private static let COACH_MESSAGES: [CoachKey: CoachMessage] = {
-        var map: [CoachKey: CoachMessage] = [:]
-        let drainLevels: [DrainLevel] = [.XS, .LOW, .AVERAGE, .HIGH]
-        let readinessLevels: [ReadinessLevel] = [.XS, .LOW, .AVERAGE, .HIGH]
-        let phases: [SessionPhase] = [.EARLY, .MID, .LATE]
-        for drain in drainLevels {
-            for readiness in readinessLevels {
-                for phase in phases {
-                    let c = resolve(drain: drain, readiness: readiness, phase: phase)
-                    let key = CoachKey(drain: drain, readiness: readiness, phase: phase)
-                    let name = "\(drain)_\(readiness)_\(phase)"
-                    map[key] = CoachMessage(key: name, title: c.title, body: c.body, severity: c.severity, action: c.action)
-                }
-            }
-        }
-        return map
-    }()
-
-    private static func resolve(drain: DrainLevel, readiness: ReadinessLevel, phase: SessionPhase) -> CoachMessageComponents {
-        let isHighDrain = drain == .HIGH || drain == .AVERAGE
-        let isLowReadiness = readiness == .XS || readiness == .LOW
-        let isLateSession = phase == .LATE
-
-        if isHighDrain && isLowReadiness && isLateSession {
-            return CoachMessageComponents(severity: .DANGER, title: "Cuidado: fatiga acumulada + baja disponibilidad", body: "Has acumulado fatiga significativa y tu readiness está baja. Considera terminar ejercicios principales aquí y guardar energía.", action: .REDUCE_INTENSITY)
-        }
-        if isHighDrain && isLowReadiness && !isLateSession {
-            return CoachMessageComponents(severity: .WARNING, title: "Fatiga en aumento, readiness limitada", body: "El sistema nervioso está trabajando fuerte y la recuperación de hoy no es óptima. Prioriza las series más importantes.", action: .REDUCE_INTENSITY)
-        }
-        if drain == .HIGH && readiness == .AVERAGE && isLateSession {
-            return CoachMessageComponents(severity: .WARNING, title: "Cerca del límite — serie final de esta fase", body: "Estás drenado pero tu cuerpo responde. Si la próxima serie se siente pesada, no insistas. Termina fuerte pero seguro.", action: .REDUCE_INTENSITY)
-        }
-        if drain == .HIGH && readiness == .HIGH && isLateSession {
-            return CoachMessageComponents(severity: .INFO, title: "Drenado pero listo", body: "Tu batería está baja pero tu readiness es alta. Recuperas bien. La última serie cuenta.", action: .STAY_THE_COURSE)
-        }
-        if drain == .HIGH && readiness == .HIGH && !isLateSession {
-            return CoachMessageComponents(severity: .INFO, title: "Buen ritmo de trabajo", body: "Estás drenando pero tu recuperación es excelente. Sigue con el plan, tu cuerpo responde bien.", action: .STAY_THE_COURSE)
-        }
-        if drain == .AVERAGE && readiness == .HIGH && isLateSession {
-            return CoachMessageComponents(severity: .SUCCESS, title: "Excelente sesión", body: "Drenado moderado con readiness alta. Estás navegando la sesión con eficiencia. ¡A la carga!", action: .STAY_THE_COURSE)
-        }
-        if drain == .AVERAGE && readiness == .LOW {
-            return CoachMessageComponents(severity: .WARNING, title: "Recuperación limitada detectada", body: "Tu cuerpo no está al 100% hoy. Ajusta la intensidad si algo no se siente bien.", action: .REDUCE_INTENSITY)
-        }
-        if drain == .LOW && readiness == .LOW {
-            return CoachMessageComponents(severity: .INFO, title: "Sesión ligera — oportunidad", body: "Baja fatiga y readiness moderada. Ideal para trabajar técnica o accesibilidad. ¡Aprovecha!", action: .STAY_THE_COURSE)
-        }
-        if drain == .LOW && readiness == .HIGH {
-            return CoachMessageComponents(severity: .SUCCESS, title: "Día óptimo para max effort", body: "Baja fatiga y máxima disponibilidad. Ideal para series pesadas o probar RMs.", action: .STAY_THE_COURSE)
-        }
-        if drain == .XS && readiness == .HIGH {
-            return CoachMessageComponents(severity: .SUCCESS, title: "¡Energía al máximo!", body: "Sesión nueva, cuerpo fresco. Perfecto para series pesadas o explorar nuevos límites.", action: .STAY_THE_COURSE)
-        }
-        if drain == .XS && readiness == .XS {
-            return CoachMessageComponents(severity: .WARNING, title: "Disponibilidad reducida", body: "Readiness muy baja. Si es posible, considera reprogramar sesiones pesadas para otro día.", action: .SKIP_EXERCISE)
-        }
-        if drain == .HIGH && readiness == .AVERAGE && !isLateSession {
-            return CoachMessageComponents(severity: .INFO, title: "Mitad de sesión — evalúa cómo vas", body: "Has drenado bastante. Si aún te quedan series pesadas, considera reducir un 5-10% en las últimas.", action: .EXTEND_REST)
-        }
-        return CoachMessageComponents(severity: .INFO, title: "Seguimiento en tiempo real", body: "La sesión ajusta el descanso según tu fatiga registrada.", action: nil)
-    }
-
-    static func getMessage(weightedDrainPct: Double, readinessScore: Int?, sessionProgress: Double) -> CoachMessage {
-        let drainLevel: DrainLevel = {
-            if weightedDrainPct >= 8.0 { return .HIGH }
-            if weightedDrainPct >= 4.0 { return .AVERAGE }
-            if weightedDrainPct >= 1.5 { return .LOW }
-            return .XS
-        }()
-        let readinessLevel: ReadinessLevel = {
-            guard let score = readinessScore else { return .HIGH }
-            switch score {
-            case 80...100: return .HIGH
-            case 60..<80: return .AVERAGE
-            case 40..<60: return .LOW
-            default: return .XS
-            }
-        }()
-        let phase: SessionPhase = {
-            if sessionProgress < 0.33 { return .EARLY }
-            if sessionProgress < 0.66 { return .MID }
-            return .LATE
-        }()
-        let key = CoachKey(drain: drainLevel, readiness: readinessLevel, phase: phase)
-        return COACH_MESSAGES[key] ?? CoachMessage(key: "default", title: "Seguimiento en tiempo real", body: "La sesión ajusta el descanso según tu fatiga registrada.", severity: .INFO, action: nil)
-    }
-
-    static func getReadinessScore(neural: Int?, spinal: Int?, muscular: Int?) -> Int? {
-        let values = [neural, spinal, muscular].compactMap { $0 }
-        guard !values.isEmpty else { return nil }
-        return values.reduce(0, +) / values.count
-    }
-}
 
 // ─── WorkoutLoadSuggestionRules ──────────────────────────────────────────────
 
-internal enum WorkoutLoadSuggestionRules {
-    static func fatigueFactorForPriorCompletedSets(priorCompletedCount: Int) -> Double {
-        switch max(0, priorCompletedCount) {
-        case 0: return 1.0
-        case 1: return 0.8
-        case 2: return 0.6
-        default: return 0.5
-        }
-    }
-}
+
 
 // ─── WorkoutUiCommon ─────────────────────────────────────────────────────────
 
@@ -729,133 +580,7 @@ internal func buildWorkoutAchievementMessage(
 
 // ─── WorkoutAdaptiveRest ─────────────────────────────────────────────────────
 
-internal enum WorkoutAdaptiveRest {
-    private static let MIN_REST = 45
-    private static let MAX_REST = 360
-    private static let MIN_FACTOR = 0.75
-    private static let MAX_FACTOR = 2.10
 
-    enum ExerciseType: String, Codable {
-        case COMPOUND, ISOLATION, UNKNOWN
-    }
-
-    struct AdaptiveRestContext {
-        let advanced: SetAdvancedFeedback
-        let setDrain: SetDrain?
-        let effectiveRpe: Double?
-        let sessionProgress: Double?
-        let exerciseType: ExerciseType
-        let isSuperset: Bool
-        let rom: Int?
-        let sessionPaceFactor: Double?
-
-        init(advanced: SetAdvancedFeedback, setDrain: SetDrain? = nil, effectiveRpe: Double? = nil, sessionProgress: Double? = nil, exerciseType: ExerciseType = .UNKNOWN, isSuperset: Bool = false, rom: Int? = nil, sessionPaceFactor: Double? = nil) {
-            self.advanced = advanced
-            self.setDrain = setDrain
-            self.effectiveRpe = effectiveRpe
-            self.sessionProgress = sessionProgress
-            self.exerciseType = exerciseType
-            self.isSuperset = isSuperset
-            self.rom = rom
-            self.sessionPaceFactor = sessionPaceFactor
-        }
-    }
-
-    static func compute(baseRestSeconds: Int, advanced: SetAdvancedFeedback) -> Int {
-        return compute(baseRestSeconds: baseRestSeconds, context: AdaptiveRestContext(advanced: advanced))
-    }
-
-    static func compute(baseRestSeconds: Int, context: AdaptiveRestContext) -> Int {
-        var factor = techniqueFactor(context.advanced)
-        factor *= augeDrainFactor(context.setDrain)
-        factor *= rpeFactor(context.effectiveRpe)
-        factor *= sessionProgressFactor(context.sessionProgress)
-        factor *= exerciseTypeFactor(context.exerciseType, context.isSuperset)
-        factor *= romFactor(context.rom)
-        if let pace = context.sessionPaceFactor { factor *= pace }
-        let boundedFactor = max(MIN_FACTOR, min(MAX_FACTOR, factor))
-        return max(MIN_REST, min(MAX_REST, Int(Double(baseRestSeconds) * boundedFactor)))
-    }
-
-    private static func techniqueFactor(_ advanced: SetAdvancedFeedback) -> Double {
-        var factor = 1.0
-        if advanced.reachedFailure { factor *= 1.30 }
-        if advanced.isFailedSet { factor *= 1.20 }
-        if advanced.isPartial { factor *= 1.15 }
-        if !advanced.restPauses.isEmpty { factor *= 1.20 }
-        if !advanced.dropSets.isEmpty { factor *= 1.10 }
-        return factor
-    }
-
-    private static func augeDrainFactor(_ setDrain: SetDrain?) -> Double {
-        guard let drain = setDrain else { return 1.0 }
-        let weighted = (drain.cnsDrainPct * 0.45) + (drain.muscularDrainPct * 0.25) + (drain.spinalDrainPct * 0.30)
-        switch weighted {
-        case 8.0...: return 1.35
-        case 6.0..<8.0: return 1.27
-        case 4.0..<6.0: return 1.20
-        case 2.5..<4.0: return 1.12
-        case 1.5..<2.5: return 1.06
-        default: return 1.0
-        }
-    }
-
-    private static func rpeFactor(_ effectiveRpe: Double?) -> Double {
-        guard let rpe = effectiveRpe else { return 1.0 }
-        switch rpe {
-        case 10.0...: return 1.16
-        case 9.5..<10.0: return 1.12
-        case 8.8..<9.5: return 1.08
-        case 7.5..<8.8: return 1.03
-        case ..<6.0: return 0.95
-        default: return 1.0
-        }
-    }
-
-    private static func sessionProgressFactor(_ sessionProgress: Double?) -> Double {
-        guard let progress = sessionProgress else { return 1.0 }
-        switch progress {
-        case 0.85...: return 1.12
-        case 0.66..<0.85: return 1.08
-        case 0.40..<0.66: return 1.04
-        case ..<0.20: return 0.96
-        default: return 1.0
-        }
-    }
-
-    private static func exerciseTypeFactor(_ type: ExerciseType, _ isSuperset: Bool) -> Double {
-        let base: Double
-        switch type {
-        case .COMPOUND: base = 1.08
-        case .ISOLATION: base = 0.96
-        case .UNKNOWN: base = 1.0
-        }
-        return isSuperset ? base * 1.06 : base
-    }
-
-    private static func romFactor(_ rom: Int?) -> Double {
-        guard let r = rom else { return 1.0 }
-        if r < 50 { return 0.92 }
-        if r < 60 { return 0.95 }
-        if r < 80 { return 1.0 }
-        return 1.02
-    }
-
-    static func computeSessionPaceFactor(elapsedMs: UInt64, targetMinutes: Int?, completedSets: Int, totalSets: Int) -> Double? {
-        guard let target = targetMinutes, totalSets > 0, completedSets > 0 else { return nil }
-        let elapsedMin = Double(elapsedMs) / 60000.0
-        let expectedMin = Double(target) * (Double(completedSets) / Double(totalSets))
-        guard expectedMin > 0 else { return nil }
-        let ratio = elapsedMin / expectedMin
-        switch ratio {
-        case ..<0.70: return 0.88
-        case 0.70..<0.85: return 0.93
-        case 0.85..<1.15: return 1.0
-        case 1.15..<1.30: return 1.07
-        default: return 1.14
-        }
-    }
-}
 
 // ─── WorkoutEditingRules ─────────────────────────────────────────────────────
 
@@ -1012,115 +737,7 @@ internal enum WorkoutPlanDeviationSupport {
 
 // ─── WorkoutAutoRegulation ───────────────────────────────────────────────────
 
-internal enum WorkoutAutoRegulation {
-    private static let MIN_FACTOR = 0.60
-    private static let MAX_FACTOR = 1.10
 
-    static func computeAdjustmentFactor(
-        weightedDrainPct: Double,
-        effectiveRpe: Double,
-        reachedFailure: Bool,
-        isFailedSet: Bool,
-        isPartial: Bool,
-        sessionProgress: Double
-    ) -> Double {
-        var factor = 1.0
-
-        let drainFactor: Double
-        switch weightedDrainPct {
-        case 10.0...: drainFactor = -0.10
-        case 7.0..<10.0: drainFactor = -0.07
-        case 4.5..<7.0: drainFactor = -0.04
-        case 2.5..<4.5: drainFactor = -0.02
-        case 1.0..<2.5: drainFactor = -0.01
-        default: drainFactor = 0.0
-        }
-        factor += drainFactor
-
-        let rpeFactor: Double
-        switch effectiveRpe {
-        case 11.0...: rpeFactor = -0.08
-        case 10.5..<11.0: rpeFactor = -0.06
-        case 10.0..<10.5: rpeFactor = -0.04
-        case 9.5..<10.0: rpeFactor = -0.02
-        case 8.5..<9.5: rpeFactor = -0.01
-        case ..<7.0: rpeFactor = 0.02
-        default: rpeFactor = 0.0
-        }
-        factor += rpeFactor
-
-        if reachedFailure { factor -= 0.05 }
-        if isFailedSet { factor -= 0.03 }
-        if isPartial { factor -= 0.02 }
-
-        let sessionFactor: Double
-        switch sessionProgress {
-        case 0.80...: sessionFactor = -0.03
-        case 0.60..<0.80: sessionFactor = -0.02
-        case 0.40..<0.60: sessionFactor = -0.01
-        default: sessionFactor = 0.0
-        }
-        factor += sessionFactor
-
-        return max(MIN_FACTOR, min(MAX_FACTOR, factor))
-    }
-
-    static func buildReason(factor: Double, weightedDrainPct: Double, effectiveRpe: Double, reachedFailure: Bool) -> String {
-        var parts: [String] = []
-        if reachedFailure { parts.append("Fallo") }
-        if weightedDrainPct >= 5.0 { parts.append("Fatiga acumulada") }
-        let detail = parts.joined(separator: " · ")
-        if factor < 0.95 {
-            var msg = "Ajuste de carga"
-            if !detail.isEmpty { msg += " · \(detail)" }
-            msg += " · −\(((1 - factor) * 100).rounded())%"
-            return msg
-        }
-        if factor > 1.02 { return "Ajuste de carga · Recuperación buena · +\(((factor - 1) * 100).rounded())%" }
-        return "Sin ajuste de carga"
-    }
-
-    private static let READINESS_REDUCTION_THRESHOLD = 70
-    private static let READINESS_SEVERE_THRESHOLD = 50
-    private static let READINESS_MIN_FACTOR = 0.70
-    private static let READINESS_SEVERE_FACTOR = 0.85
-    private static let READINESS_RECOVERY_FACTOR = 1.05
-
-    static func computeReadinessAdjustmentFactor(
-        readinessNeural: Int?,
-        readinessSpinal: Int?,
-        readinessMuscular: Int?,
-        readinessPerMuscle: [String: Int]?,
-        involvedMuscleIds: [String]
-    ) -> Double {
-        let perMuscleValues: Int? = readinessPerMuscle.flatMap { overrides in
-            let relevant = involvedMuscleIds.compactMap { overrides[$0] }
-            return relevant.isEmpty ? nil : relevant.min()
-        }
-        let allValues = [readinessNeural, readinessSpinal, readinessMuscular, perMuscleValues].compactMap { $0 }
-        guard let readiness = allValues.map(Double.init).min() else { return 1.0 }
-        let clamped = max(0.0, min(100.0, readiness))
-
-        if clamped < Double(READINESS_SEVERE_THRESHOLD) {
-            let t = max(0.0, min(1.0, clamped / Double(READINESS_SEVERE_THRESHOLD)))
-            return max(READINESS_MIN_FACTOR, min(READINESS_SEVERE_FACTOR, READINESS_MIN_FACTOR + (READINESS_SEVERE_FACTOR - READINESS_MIN_FACTOR) * t))
-        }
-        if clamped < Double(READINESS_REDUCTION_THRESHOLD) {
-            let t = max(0.0, min(1.0, (clamped - Double(READINESS_SEVERE_THRESHOLD)) / Double(READINESS_REDUCTION_THRESHOLD - READINESS_SEVERE_THRESHOLD)))
-            return max(READINESS_SEVERE_FACTOR, min(1.0, READINESS_SEVERE_FACTOR + (1.0 - READINESS_SEVERE_FACTOR) * t))
-        }
-        if clamped >= 90 { return Double(READINESS_RECOVERY_FACTOR) }
-        return 1.0
-    }
-
-    static func buildReadinessReason(factor: Double, readinessValue: Int?) -> String {
-        if factor == 1.0 { return "" }
-        if factor < 0.85, let v = readinessValue { return "Readiness \(v) · −\(((1 - factor) * 100).rounded())%" }
-        if factor < 1.0 { return "Readiness \(readinessValue.map { "\($0)" } ?? "baja")" }
-        if factor > 1.0 { return "Readiness \(readinessValue.map { "\($0)" } ?? "alta") · +\(((factor - 1) * 100).rounded())%" }
-        return ""
-    }
-}
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
 
@@ -1142,7 +759,7 @@ internal func applyAdvancedFeedback(base: CompletedSet, advanced: SetAdvancedFee
         skipped: advanced.skipped, superSetWithExerciseId: advanced.superSetWithExerciseId ?? base.superSetWithExerciseId,
         supersetId: base.supersetId, supersetRoundIndex: base.supersetRoundIndex,
         restAfterKind: base.restAfterKind, isWarmup: advanced.isWarmup, side: base.side,
-        spinalScore: base.spinalScore, performanceMode: base.performanceMode,
+        performanceMode: base.performanceMode,
         actualIntensityMode: advanced.actualIntensityMode ?? base.actualIntensityMode,
         actualIntensityValue: advanced.actualIntensityValue ?? base.actualIntensityValue,
         debt: base.debt, contextProfileId: base.contextProfileId, tagId: base.tagId,
@@ -1152,29 +769,11 @@ internal func applyAdvancedFeedback(base: CompletedSet, advanced: SetAdvancedFee
     )
 }
 
-internal func calculateUnifiedSessionEffortSignal(sets: [CompletedSet]) -> Double {
-    let effectiveSets = sets.filter { !$0.isWarmup && isSetEffective($0) }
-    guard !effectiveSets.isEmpty else { return 7.0 }
-    let signals = effectiveSets.map { set -> Double in
-        var signal = getEffectiveRPE(set)
-        if set.isFailure { signal += 0.6 }
-        if !set.dropSets.isEmpty { signal += 0.4 }
-        if !set.restPauses.isEmpty { signal += 0.5 }
-        return max(1.0, min(12.0, signal))
-    }
-    let avg = signals.reduce(0, +) / Double(signals.count)
-    return max(1.0, min(12.0, avg))
-}
 
-internal func isSetEffective(_ set: CompletedSet) -> Bool {
-    return set.reps > 0 || (set.timeSeconds ?? 0) > 0
-}
 
-internal func getEffectiveRPE(_ set: CompletedSet) -> Double {
-    if let rpe = set.rpe { return rpe }
-    if let ir = set.actualIntensityValue { return ir }
-    return 7.0
-}
+
+
+
 
 // Redundant ExerciseMuscleInfo and related structures removed (defined in ExerciseMuscleInfo.swift)
 

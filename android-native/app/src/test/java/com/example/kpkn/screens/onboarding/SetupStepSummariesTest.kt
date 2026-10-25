@@ -8,7 +8,6 @@ import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
-import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.nutrition.EerSex
@@ -24,9 +23,6 @@ import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.domain.onboarding.MuscleSymbol
 import com.example.kpkn.domain.onboarding.ProgramSource
-import com.example.kpkn.domain.onboarding.RingsChannelCoverage
-import com.example.kpkn.domain.onboarding.RingsCoverage
-import com.example.kpkn.domain.onboarding.RingsCoverageSource
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupControlKind
 import com.example.kpkn.domain.onboarding.SetupInventoryGroup
@@ -107,8 +103,6 @@ class SetupStepSummariesTest {
             nutritionStartChoice = "automatic",
             nutritionDirection = "deficit",
             // Días entrenados en las últimas 72 h: la ruta de RINGS pregunta ejercicios, series e intensidad.
-            ringsTrainedDays = true,
-            ringsTrainedLast72h = true,
         ),
         // Punto de partida: ejercicios a evitar, estilo de mesa y variantes de los básicos.
         SetupStepContext(asksAvoid = true, asksArmStyle = true, asksVariants = true),
@@ -324,7 +318,6 @@ class SetupStepSummariesTest {
         assertEquals("Fuerza y masa muscular", value(SetupStepId.GOAL, SetupWizardDraft().choose(SetupStepId.GOAL, "strength_muscle")))
         assertEquals("Powerlifting", value(SetupStepId.GOAL, SetupWizardDraft().choose(SetupStepId.GOAL, "powerlifting")))
         assertEquals("Gimnasio", value(SetupStepId.EQUIPMENT, SetupWizardDraft().choose(SetupStepId.EQUIPMENT, "gym")))
-        assertEquals("No lo sé", value(SetupStepId.RINGS_RECENT, SetupWizardDraft().choose(SetupStepId.RINGS_RECENT, "unknown")))
         assertEquals("Sin responder", value(SetupStepId.EXPERIENCE))
         assertEquals("Sin responder", value(SetupStepId.GOAL))
     }
@@ -433,31 +426,7 @@ class SetupStepSummariesTest {
         )
     }
 
-    @Test
-    fun aListThatDoesNotFitIsCutAtTheLastWholeWordWithAnEllipsis() {
-        val catalog = SetupStepDefinitions.options(SetupStepId.RINGS_DISCOMFORT)
-        val longest = catalog.filter { it.value != "none" && it.value != "omit" }.sortedByDescending { it.label.length }.take(3)
-        val draft = SetupWizardDraft().withStepChoices(SetupStepId.RINGS_DISCOMFORT, longest.map { it.value }.toSet(), NOW)
 
-        // Las dos primeras etiquetas en el orden del catálogo, más « +1», no caben en 44.
-        val inCatalogOrder = catalog.filter { option -> option in longest }.map { it.label }
-        val complete = inCatalogOrder.take(2).joinToString(", ") + " +1"
-        assertTrue("el caso no estresa el tope: «$complete»", complete.length > SETUP_SUMMARY_VALUE_MAX)
-
-        // El corte cae en la última palabra entera que cabe (nunca a media palabra) y termina en «…».
-        val shown = value(SetupStepId.RINGS_DISCOMFORT, draft)
-        assertTrue(shown, shown.endsWith("…"))
-        assertTrue(shown, shown.length <= SETUP_SUMMARY_VALUE_MAX)
-        val prefix = shown.removeSuffix("…")
-        assertTrue("«$shown» no es un prefijo de «$complete»", complete.startsWith(prefix))
-        assertTrue("«$shown» corta «$complete» a media palabra", complete.getOrNull(prefix.length)?.let { it.isWhitespace() || it in ",;:.-–—(" } ?: true)
-        // Y es el corte más largo que cabe: la palabra siguiente ya no entraba (acababa más allá del carácter que deja el «…»).
-        val nextWord = complete.drop(prefix.length).trimStart(' ', ',', ';', ':', '.', '-', '–', '—', '(').takeWhile { it != ' ' }
-        if (nextWord.isNotEmpty()) {
-            val endOfNext = complete.indexOf(nextWord, prefix.length) + nextWord.length
-            assertTrue("«$shown» pudo llevar «$nextWord»", endOfNext > SETUP_SUMMARY_VALUE_MAX - 1)
-        }
-    }
 
     @Test
     fun aValueTheCatalogDoesNotKnowReadsHumanlyInsteadOfAsARawId() {
@@ -486,12 +455,6 @@ class SetupStepSummariesTest {
         assertEquals("1 día", value(SetupStepId.DAYS, SetupWizardDraft().choose(SetupStepId.DAYS, "1")))
         assertEquals("3 días", value(SetupStepId.DAYS, SetupWizardDraft().choose(SetupStepId.DAYS, "3")))
         // Un número fuera del catálogo también concuerda.
-        assertEquals("1 sesión", value(SetupStepId.RINGS_SESSIONS, SetupWizardDraft().choose(SetupStepId.RINGS_SESSIONS, "1")))
-        assertEquals("3 sesiones", value(SetupStepId.RINGS_SESSIONS, SetupWizardDraft().choose(SetupStepId.RINGS_SESSIONS, "3")))
-        assertEquals("Hoy", value(SetupStepId.RINGS_RECENCY, SetupWizardDraft().choose(SetupStepId.RINGS_RECENCY, "0")))
-        assertEquals("Ayer", value(SetupStepId.RINGS_RECENCY, SetupWizardDraft().choose(SetupStepId.RINGS_RECENCY, "1")))
-        assertEquals("Hace 4 días", value(SetupStepId.RINGS_RECENCY, SetupWizardDraft().choose(SetupStepId.RINGS_RECENCY, "4")))
-        assertEquals("Hace 9 días", value(SetupStepId.RINGS_RECENCY, SetupWizardDraft(ringsAnswers = SetupRingsAnswers(lastSessionRecencyDays = 9))))
         assertEquals("20 min", value(SetupStepId.CARDIO_TIME, SetupWizardDraft().choose(SetupStepId.CARDIO_TIME, "20")))
         assertEquals("45 min", value(SetupStepId.CARDIO_TIME, SetupWizardDraft(cardioMinutes = 45)))
     }
@@ -504,7 +467,6 @@ class SetupStepSummariesTest {
             SetupStepId.MILESTONE_BASICS to SetupWizardBlock.BASICS,
             SetupStepId.MILESTONE_TRAINING to SetupWizardBlock.TRAINING,
             SetupStepId.MILESTONE_NUTRITION to SetupWizardBlock.NUTRITION,
-            SetupStepId.MILESTONE_RINGS to SetupWizardBlock.RINGS,
         )
         milestones.forEach { (step, block) ->
             assertTrue(SetupStepGraph.isMilestone(step))
@@ -519,47 +481,20 @@ class SetupStepSummariesTest {
     @Test
     fun skippedStepsReadOmitidoAndUnansweredOnesReadSinResponder() {
         val skippable = SetupStepId.entries.filter { SetupStepDefinitions.of(it)?.allowSkip == true && !isLegacy(it) }
-        assertTrue(skippable.containsAll(listOf(SetupStepId.NUTRITION_TARGET, SetupStepId.NUTRITION_DIRECTION, SetupStepId.NUTRITION_WEIGH_INS, SetupStepId.RINGS_DISCOMFORT)))
 
         assertEquals("Sin responder", value(SetupStepId.NUTRITION_TARGET))
         assertEquals("Omitido", value(SetupStepId.NUTRITION_TARGET, SetupWizardDraft().skipped(SetupStepId.NUTRITION_TARGET)))
         assertEquals("Omitido", value(SetupStepId.NUTRITION_DIRECTION, SetupWizardDraft().skipped(SetupStepId.NUTRITION_DIRECTION)))
         assertEquals("Omitido", value(SetupStepId.NUTRITION_WEIGH_INS, SetupWizardDraft().skipped(SetupStepId.NUTRITION_WEIGH_INS)))
         assertEquals("Omitido", value(SetupStepId.NUTRITION_HISTORY_CONTEXT, SetupWizardDraft().skipped(SetupStepId.NUTRITION_HISTORY_CONTEXT)))
-        assertEquals("Omitido", value(SetupStepId.RINGS_DISCOMFORT, SetupWizardDraft().skipped(SetupStepId.RINGS_DISCOMFORT)))
         // Un paso con dato nunca se lee como omitido aunque tenga registro.
         val withData = SetupWizardDraft().choose(SetupStepId.NUTRITION_DIRECTION, "deficit").answered(SetupStepId.NUTRITION_DIRECTION)
         assertEquals("Definir", value(SetupStepId.NUTRITION_DIRECTION, withData))
     }
 
-    @Test
-    fun ringsFeelingsTellNoLoSeApartFromOmitido() {
-        val levelLabels = mapOf(
-            SetupStepId.RINGS_MUSCLE_FEELING to ("3" to "Moderadamente cargados"),
-            SetupStepId.RINGS_ENERGY_FEELING to ("5" to "Agotado"),
-            SetupStepId.RINGS_STRUCTURE_FEELING to ("1" to "Descansada"),
-        )
-        levelLabels.forEach { (step, pair) ->
-            val (stable, label) = pair
-            assertEquals(label, value(step, SetupWizardDraft().choose(step, stable)))
-            // «No lo sé» es una respuesta; omitir la sensación es otra.
-            assertEquals("No lo sé", value(step, SetupWizardDraft().choose(step, "unknown")))
-            assertEquals("Omitido", value(step, SetupWizardDraft().skipped(step)))
-            assertEquals("Sin responder", value(step))
-        }
-        assertEquals("Sensación muscular", summary(SetupStepId.RINGS_MUSCLE_FEELING).label)
-        assertEquals("Energía", summary(SetupStepId.RINGS_ENERGY_FEELING).label)
-        assertEquals("Columna", summary(SetupStepId.RINGS_STRUCTURE_FEELING).label)
-    }
 
-    @Test
-    fun discomfortsReadOmitidoWhenThePersonPrefersToSkipThem() {
-        assertEquals("Omitido", value(SetupStepId.RINGS_DISCOMFORT, SetupWizardDraft().chooseAll(SetupStepId.RINGS_DISCOMFORT, "omit")))
-        assertEquals("Sin molestias", value(SetupStepId.RINGS_DISCOMFORT, SetupWizardDraft().chooseAll(SetupStepId.RINGS_DISCOMFORT, "none")))
-        val ids = SetupStepDefinitions.options(SetupStepId.RINGS_DISCOMFORT).map { it.value }.filter { it != "none" && it != "omit" }.take(3)
-        val labels = SetupStepDefinitions.options(SetupStepId.RINGS_DISCOMFORT).filter { it.value in ids }.map { it.label }
-        assertEquals("${labels[0]}, ${labels[1]} +1", value(SetupStepId.RINGS_DISCOMFORT, SetupWizardDraft().withStepChoices(SetupStepId.RINGS_DISCOMFORT, ids.toSet(), NOW)))
-    }
+
+
 
     @Test
     fun nutritionDefaultsAreNotAnAnswerUntilThePersonTouchedOrConfirmedTheStep() {
@@ -861,35 +796,7 @@ class SetupStepSummariesTest {
 
     // ─── RINGS y revisión ────────────────────────────────────────────────────
 
-    @Test
-    fun theRingsResultNamesOnlyTheChannelsThatHaveData() {
-        fun channel(id: RecoveryChannelId, score: Int?) = RingsChannelCoverage(
-            channel = id,
-            source = if (score == null) RingsCoverageSource.NO_DATA else RingsCoverageSource.SUBJECTIVE_SENSATION,
-            uncertainty = if (score == null) 100 else 40,
-            score = score,
-        )
-        val draft = SetupWizardDraft()
 
-        // Sin vista previa todavía: nada que afirmar.
-        assertEquals(SetupStepSummary("Tus RINGS", "Listo"), summary(SetupStepId.RINGS_RESULT))
-        // Vista previa sin ningún canal con dato: «Sin calibrar», nunca un porcentaje.
-        assertEquals("Sin calibrar", summary(SetupStepId.RINGS_RESULT, SetupWizardState(draft = draft, ringsCoveragePreview = RingsCoverage.NO_DATA)).value)
-
-        val partial = RingsCoverage(
-            muscular = channel(RecoveryChannelId.MUSCULAR, 82),
-            system = channel(RecoveryChannelId.SYSTEM, 75),
-            structure = channel(RecoveryChannelId.STRUCTURE, null),
-        )
-        assertEquals("Músculos 82 · Energía 75", summary(SetupStepId.RINGS_RESULT, SetupWizardState(draft = draft, ringsCoveragePreview = partial)).value)
-
-        val full = RingsCoverage(
-            muscular = channel(RecoveryChannelId.MUSCULAR, 100),
-            system = channel(RecoveryChannelId.SYSTEM, 100),
-            structure = channel(RecoveryChannelId.STRUCTURE, 100),
-        )
-        assertEquals("Músculos 100 · Energía 100 · Columna 100", summary(SetupStepId.RINGS_RESULT, SetupWizardState(draft = draft, ringsCoveragePreview = full)).value)
-    }
 
     @Test
     fun theReviewIsListoUntilTheProgramIsActivated() {
@@ -904,8 +811,6 @@ class SetupStepSummariesTest {
         assertEquals(SetupStepSummary("Identidad de género", "Otro"), summary(SetupStepId.GENDER, SetupWizardDraft().choose(SetupStepId.GENDER, "other")))
         assertEquals("Femenino", value(SetupStepId.NUTRITION_SEX, SetupWizardDraft().choose(SetupStepId.NUTRITION_SEX, "female")))
         assertEquals("Bandas, Mancuernas", value(SetupStepId.HOME_EQUIPMENT, SetupWizardDraft().chooseAll(SetupStepId.HOME_EQUIPMENT, "dumbbells", "bands")))
-        assertEquals("Sin responder", value(SetupStepId.RINGS_START))
-        assertEquals("conservar", value(SetupStepId.RINGS_START, SetupWizardDraft(ringsAnswers = SetupRingsAnswers(startAction = "conservar"))))
         assertEquals("Sin responder", value(SetupStepId.INVENTORY_BARBELL))
     }
 
@@ -965,7 +870,6 @@ class SetupStepSummariesTest {
             weightTrend = "falling",
             previousMaximumWeightKg = 500.0,
             historicalWeighIns = (1..12).map { SetupWeighIn("w$it", "2026-09-%02d".format(it), 70.0 + it) },
-            ringsAnswers = SetupRingsAnswers(muscleFeeling = 5, energy = 5, structureFeeling = 5),
             nutritionDraft = (draft.nutritionDraft ?: NutritionWizardDraft()).copy(
                 targetWeightText = "499,9",
                 manualCalorieTargetText = "99999",
@@ -975,17 +879,10 @@ class SetupStepSummariesTest {
             ),
         )
 
-        fun channel(id: RecoveryChannelId) =
-            RingsChannelCoverage(id, RingsCoverageSource.REAL_HISTORY, uncertainty = 10, score = 100)
         return SetupWizardState(
             draft = draft,
             programPreview = Program(id = "p", name = "N".repeat(80)),
             nutritionPlanPreview = NutritionPlan(calorieTarget = 99999),
-            ringsCoveragePreview = RingsCoverage(
-                muscular = channel(RecoveryChannelId.MUSCULAR),
-                system = channel(RecoveryChannelId.SYSTEM),
-                structure = channel(RecoveryChannelId.STRUCTURE),
-            ),
             receiptId = "commit-1",
         )
     }

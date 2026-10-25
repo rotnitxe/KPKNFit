@@ -27,11 +27,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.data.models.RecoveryChannelId
-import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.screens.home.HomePageSample
 import com.example.kpkn.screens.home.HomeProgramsSection
-import com.example.kpkn.screens.home.HomeRingsSection
+import com.example.kpkn.screens.training.TrainingHistorySection
 import com.example.kpkn.screens.home.HomeSamples
 import com.example.kpkn.screens.home.HomeSessionSection
 import com.example.kpkn.screens.home.HomeWikiLabSection
@@ -160,7 +158,7 @@ class HomeFullRenderSheetTest {
                 HomeSessionSection(
                     sessions = sample.sessions,
                     hasActiveProgram = sample.hasActiveProgram,
-                    perMuscle = sample.perMuscle,
+
                     onStartWorkout = { _, _ -> },
                     onResumeWorkout = {},
                     onEditSession = { _, _ -> },
@@ -170,27 +168,8 @@ class HomeFullRenderSheetTest {
                     activeProgram = sample.activeProgram,
                 )
             }
-            HomeRingsSection(
-                muscularProgress = sample.rings.ringScore(RecoveryChannelId.MUSCULAR) / 100f,
-                sncProgress = sample.rings.ringScore(RecoveryChannelId.SYSTEM) / 100f,
-                columnaProgress = sample.rings.ringScore(RecoveryChannelId.STRUCTURE) / 100f,
-                hasActiveProgram = sample.hasActiveProgram,
-                dashboard = sample.rings.dashboard,
-                snapshot = sample.rings,
-                perMuscle = sample.perMuscle,
-                modifier = Modifier.homeGapAbove(HomeModuleGap),
-            )
-            if (sample.overtrained.isNotEmpty()) {
-                HomeNotice(
-                    title = "Posible exceso de volumen",
-                    body = "Hay señales de carga alta en: ${sample.overtrained.joinToString(", ")}. " +
-                        "Considera reducir series semanales o un descanso activo.",
-                    actionLabel = "Ver recomendaciones",
-                    onAction = {},
-                    tone = HomeNoticeTone.DANGER,
-                    modifier = Modifier.homeGapAbove(HomeModuleGap),
-                )
-            }
+            TrainingHistorySection(logs=emptyList(),nowMs=1_790_000_000_000L,
+                modifier=Modifier.homeGapAbove(HomeModuleGap))
             Column(
                 modifier = Modifier.homeGapAbove(HomeModuleGap),
                 verticalArrangement = Arrangement.spacedBy(HomeModuleGap),

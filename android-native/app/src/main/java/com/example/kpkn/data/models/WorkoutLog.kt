@@ -13,14 +13,17 @@ data class WorkoutLog(
     val date: String, // ISO-8601: "2025-03-23T10:00:00.000Z"
     val durationMinutes: Int,
     val completedExercises: List<CompletedExercise> = emptyList(),
-    val fatigueLevel: Int? = null,         // 1–10
+    val fatigueLevel: Int? = null,         // Historical original declaration only; never session RPE or readiness.
     val discomforts: List<String> = emptyList(),
     val notes: String? = null,
     val totalVolume: Double = 0.0,         // kg × reps total
-    val sessionStressScore: Double? = null, // AUGE: computed CNC drain for this session
-    /** Canonical muscular impact captured at finish; nullable for legacy logs. */
-    val muscularImpactV2: com.example.kpkn.domain.auge.MuscularSessionImpactV2? = null,
+    /** Optional independent historical energy estimate; retired methods are purged at import/export. */
     val energySummary: SessionEnergySummary? = null,
+    /** Specialized observations/results of this activity; never extra kcal or extra workouts. */
+    val sportDocuments: List<com.example.kpkn.domain.multisport.tracking.SportTrackingDocument> = emptyList(),
+    /** Optional original time precision; legacy rounded minutes are never expanded into fake seconds. */
+    val actualDurationSeconds: Long? = null,
+    val actualDurationSource: String? = null,
     val weekId: String? = null,
     val macroIndex: Int? = null,
     val mesoIndex: Int? = null,
@@ -34,6 +37,8 @@ data class WorkoutLog(
     val exercisePhotos: Map<String, List<String>> = emptyMap(), // exerciseId → local paths (max 2)
     val sessionMilestones: List<SessionMilestone> = emptyList(),
     val sessionNotes: String = "",
+    /** Optional original discipline declaration; never inferred from a recovery model. */
+    val recordedSportId: String? = null,
     val calibrationDecisions: List<CalibrationDecisionRecord> = emptyList(),
     val sessionSavedNotes: List<SessionSavedNote> = emptyList(),
     val sessionPhotos: List<String> = emptyList(),
@@ -55,17 +60,9 @@ data class WorkoutLog(
      * para completar semanas/ciclos del run cíclico restaurado.
      */
     val calendarBreakId: String? = null,
-    /** Rings just before this session (or at finish without this log). */
-    val ringStartSnapshot: RingStartSnapshot? = null,
-)
-
-@Serializable
-data class RingStartSnapshot(
-    val capturedAtIso: String,
-    val muscular: Int,
-    val energy: Int,
-    val structure: Int,
-    val isInitialEstimate: Boolean = false,
+    /** Optional explicit global effort report, with its original protocol; never inferred from sets. */
+    val sessionEffortRpe: Double? = null,
+    val sessionEffortProtocol: String? = null,
 )
 
 @Serializable
@@ -160,7 +157,6 @@ data class CompletedSet(
     val restAfterKind: String? = null,
     val isWarmup: Boolean = false,
     val side: String? = null,      // "left" / "right" for unilateral
-    val spinalScore: Double? = null,
     val performanceMode: PerformanceMode? = null,
     val actualIntensityMode: IntensityMode? = null,
     val actualIntensityValue: Double? = null,
@@ -307,6 +303,8 @@ data class OngoingWorkoutState(
     val exercisePhotos: Map<String, List<String>> = emptyMap(),
     val sessionMilestones: List<SessionMilestone> = emptyList(),
     val sessionNotes: String = "",
+    /** Optional original discipline declaration; never inferred from a recovery model. */
+    val recordedSportId: String? = null,
     val sessionSavedNotes: List<SessionSavedNote> = emptyList(),
     val plannedSessionBaseline: Session? = null,
     val sessionPhotos: List<String> = emptyList(),

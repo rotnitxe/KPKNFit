@@ -29,10 +29,6 @@ import com.example.kpkn.data.onboarding.SetupDraft
 import com.example.kpkn.data.onboarding.SetupDraftCandidate
 import com.example.kpkn.data.onboarding.SetupDraftRepository
 import com.example.kpkn.data.onboarding.SetupDraftResolver
-import com.example.kpkn.data.onboarding.SetupRingsEvidenceInput
-import com.example.kpkn.data.onboarding.SetupRingsPreviewCalculator
-import com.example.kpkn.data.onboarding.previewCheckIn
-import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.nutrition.EerSex
@@ -41,7 +37,6 @@ import com.example.kpkn.domain.nutrition.WizardPacePreset
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.MuscleSymbol
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
-import com.example.kpkn.domain.onboarding.SetupRingsResponseMapping
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
@@ -93,7 +88,7 @@ import java.time.LocalDate
  * Cableado pendiente de puerto: el preview de RINGS sale de
  * `SetupRingsPreviewCalculator`, que todavía NO pasa por
  * [SetupWizardEnvironment] y llama a `ProgramRepository.getInstance()` /
- * `NutritionRepository.getInstance()` / `AugeRepository.getInstance(context)`.
+ * `NutritionRepository.getInstance()` / `TrainingObservationRepository.getInstance(context)`.
  * Por eso este test inicializa los repos reales con sus seams de producción
  * (mismo patrón que la prueba instrumentada `SetupRingsPreviewIntegrationTest`);
  * el entorno del wizard sigue siendo solo Settings.
@@ -121,9 +116,8 @@ class SetupWizardFullJourneyTest {
         Dispatchers.setMain(dispatcher)
         app = ApplicationProvider.getApplicationContext()
         // Robolectric recrea su shadow SQLite en cada método; los singletons de
-        // conexión (AugeRepository -> BD de fichero, repos de Program/Nutrition)
+        // conexión (TrainingObservationRepository -> BD de fichero, repos de Program/Nutrition)
         // se limpian AQUÍ para que cada test use punteros de SU propio método.
-        resetAugeRepositorySingleton()
         ProgramRepository.closeInstance()
         NutritionRepository.closeInstance()
         KpknDatabase.closeInstance()
@@ -153,7 +147,6 @@ class SetupWizardFullJourneyTest {
         viewModelStore.clear()
         ProgramRepository.closeInstance()
         NutritionRepository.closeInstance()
-        resetAugeRepositorySingleton()
         KpknDatabase.closeInstance()
         db.close()
         Dispatchers.resetMain()
@@ -161,29 +154,14 @@ class SetupWizardFullJourneyTest {
     }
 
     /**
-     * `AugeRepository` no expone ningún reset y su `dao` apunta a la BD de
+     * `TrainingObservationRepository` no expone ningún reset y su `dao` apunta a la BD de
      * fichero que Robolectric (ShadowLegacySQLiteConnection) recrea entre
      * métodos: sin limpiarlo, el singleton conserva un puntero SQLite ajeno y
      * TODAS sus consultas revientan con «Illegal connection pointer». Acceso por
      * reflejo SOLO desde este test y con fallo explícito si la estructura del
      * producto cambia: ningún `runCatching` que lo oculte.
      */
-    private fun resetAugeRepositorySingleton() {
-        val field = try {
-            AugeRepository::class.java.getDeclaredField("INSTANCE")
-        } catch (error: NoSuchFieldException) {
-            throw AssertionError(
-                "AugeRepository.INSTANCE ya no es un campo privado estático: " +
-                    "revisa este helper de test, no se pudo limpiar la conexión SQLite entre métodos",
-                error,
-            )
-        }
-        field.isAccessible = true
-        field.set(null, null)
-        check(field.get(null) == null) {
-            "No se pudo limpiar AugeRepository.INSTANCE: su dao quedaría apuntando a la conexión de otro test"
-        }
-    }
+
 
     // ─── Caso 1: FULL con objetivos propios y Rings parcial ──────────────────
 
@@ -296,7 +274,7 @@ class SetupWizardFullJourneyTest {
         assertNull("el coordinador real rechaza el duplicado", failed)
         assertNotNull(
             "el fallo viene del coordinador, no de la puerta de revisión: " +
-                "errors=${vm.state.value.errors} ringsPreviewError=${vm.state.value.ringsPreviewError} " +
+                "errors=${vm.state.value.errors} ringsPreviewError=retirado " +
                 "lastFailure=${vm.state.value.lastFailure}",
             vm.state.value.errors["commit"],
         )
@@ -368,7 +346,7 @@ class SetupWizardFullJourneyTest {
             vm.state.value.draft.nutritionDraft?.configurationMode,
         )
         confirmStep(vm, SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION)
-        confirmStep(vm, SetupStepId.MILESTONE_NUTRITION, SetupStepId.RINGS_INTRO)
+        confirmStep(vm, SetupStepId.MILESTONE_NUTRITION, SetupStepId.REVIEW_ACTIVATE)
 
         walkRingsPartial(vm)
 
@@ -655,28 +633,13 @@ class SetupWizardFullJourneyTest {
             }
         }
         confirmStep(vm, SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION)
-        confirmStep(vm, SetupStepId.MILESTONE_NUTRITION, SetupStepId.RINGS_INTRO)
+        confirmStep(vm, SetupStepId.MILESTONE_NUTRITION, SetupStepId.REVIEW_ACTIVATE)
     }
 
     /** Rings parcial: historial «No lo sé» + sensaciones declaradas (muscular 2). */
     private fun TestScope.walkRingsPartial(vm: SetupWizardViewModel) {
-        confirmStep(vm, SetupStepId.RINGS_INTRO, SetupStepId.RINGS_SESSION_DAYS)
-        confirmStep(vm, SetupStepId.RINGS_SESSION_DAYS, SetupStepId.RINGS_FEELINGS) {
-            vm.setTrainingUnknown()
-        }
-        val route = SetupStepGraph.stepIds(vm.state.value.draft.stepContext())
-        assertFalse("el desconocido de los días no añade evidencia", SetupStepId.RINGS_MAIN_LIFTS in route)
-        confirmStep(vm, SetupStepId.RINGS_FEELINGS, SetupStepId.RINGS_DISCOMFORT) {
-            vm.setFeelings(muscular = 2, energy = 3, structure = 2)
-        }
-        confirmStep(vm, SetupStepId.RINGS_DISCOMFORT, SetupStepId.RINGS_RESULT) {
-            vm.setStepChoices(SetupStepId.RINGS_DISCOMFORT, setOf("none"))
-        }
-        confirmStep(vm, SetupStepId.RINGS_RESULT, SetupStepId.MILESTONE_RINGS)
-        confirmStep(vm, SetupStepId.MILESTONE_RINGS, SetupStepId.REVIEW_ACTIVATE)
-        val rings = checkNotNull(vm.state.value.draft.ringsAnswers) { "respuestas de RINGS" }
-        assertEquals(2, checkNotNull(rings.muscleFeeling) { "sensación muscular declarada" })
-        assertEquals(SetupRecentTrainingState.UNKNOWN, rings.recentTrainingState)
+        assertEquals(SetupStepId.REVIEW_ACTIVATE,vm.state.value.currentStep)
+        assertTrue(SetupStepGraph.nodes(vm.state.value.draft.stepContext()).none { it.id.name.startsWith("RINGS_") })
     }
 
     // ─── Aserciones sobre Room tras el commit real ────────────────────────────
@@ -794,10 +757,7 @@ class SetupWizardFullJourneyTest {
         )
 
         // Check-in de Rings escrito con la sensación muscular declarada.
-        assertNotNull(
-            "check-in real de Rings",
-            room { db.augeDao().getWellbeingForDate(LocalDate.now().toString()) },
-        )
+        assertTrue("El alta no fabrica observaciones", room { db.trainingObservationDao().all() }.isEmpty())
 
         // Receipt + borrador consumidos en la MISMA transacción.
         assertNotNull(room { db.setupCommitReceiptDao().get(receipt) })
@@ -837,10 +797,10 @@ class SetupWizardFullJourneyTest {
                 fail(
                     "Timeout esperando $what en ${state.currentStep}: machine=${state.machineState}, " +
                         "errores=${state.errors}, lastFailure=${state.lastFailure}, preview=${state.previewError} " +
-                        "(cargando=${state.isPreviewLoading}/${state.isCandidateLoading}/${state.ringsPreviewLoading}), " +
+                        "(cargando=${state.isPreviewLoading}/${state.isCandidateLoading}/retirado), " +
                         "candidatos=${state.planCandidates.size}/${state.availablePlanCandidates.size}, " +
-                        "nutrition=${state.nutritionErrors}, rings=${state.ringsPreviewError}, " +
-                        "bateriasAusentes=${state.ringsBatteriesPreview == null}",
+                        "nutrition=${state.nutritionErrors}, rings=retirado, " +
+                        "bateriasAusentes=retirado",
                 )
             }
         }
@@ -861,7 +821,7 @@ class SetupWizardFullJourneyTest {
                 state.machineState != WizChatMachineState.PersistingAnswer &&
                 state.machineState != WizChatMachineState.Committing &&
                 state.machineState != WizChatMachineState.PreparingPreview &&
-                !state.isPreviewLoading && !state.isCandidateLoading && !state.ringsPreviewLoading
+                !state.isPreviewLoading && !state.isCandidateLoading
         }
         awaitCondition(vm, "previews en reposo", timeoutMs = 30_000, condition = idle)
         repeat(25) { advanceUntilIdle() }
@@ -877,67 +837,8 @@ class SetupWizardFullJourneyTest {
      * valida el commit con el preview roto.
      */
     private fun TestScope.assertRingsPreviewReady(vm: SetupWizardViewModel) {
-        val state = vm.state.value
-        if (state.ringsBatteriesPreview != null && state.ringsPreviewError == null && !state.ringsPreviewLoading) return
-        fail(
-            "Preview de RINGS no utilizable: " +
-                "ringsPreviewError=${state.ringsPreviewError} lastFailure=${state.lastFailure} " +
-                "bateriasAusentes=${state.ringsBatteriesPreview == null} loading=${state.ringsPreviewLoading} " +
-                "machine=${state.machineState} errors=${state.errors} || " +
-                "dependencias=${ringsDependencyProbes()} || ${ringsCalculatorReproducer(vm)}",
-        )
-    }
 
-    /**
-     * Cada dependencia REAL que el preview consulta fuera del puerto
-     * `SetupWizardEnvironment`: así se nombra exactamente cuál está rota
-     * (repositorio, singleton de AUGE o la base de fichero).
-     */
-    private fun ringsDependencyProbes(): String = listOf(
-        probe("programRepo") { "history=${ProgramRepository.getInstance().history.value.size}" },
-        probe("nutritionRepo") { "logs=${NutritionRepository.getInstance().nutritionLogs.value.size}" },
-        probe("augeWellbeing") { "hoy=${runBlocking { AugeRepository.getInstance(app).getTodayWellbeing() }}" },
-        probe("archivoDb") { "settings=${runBlocking { KpknDatabase.getInstance(app).settingsDao().get() }}" },
-    ).joinToString(" | ")
 
-    private fun probe(name: String, block: () -> Any): String = try {
-        "$name=OK(${block()})"
-    } catch (error: Throwable) {
-        "$name=FALLA ${error::class.java.name}: ${error.message}"
-    }
-
-    /**
-     * Reproductor REAL: mismo motor, mismo mapeo y mismas entradas que el VM
-     * (`ringsPreview()` es su API pública). Si el intento del VM falló y este idéntico
-     * no, el estado quedó de un intento cancelado; si también falla, aquí se ve la
-     * excepción exacta que el VM no publica.
-     */
-    private fun ringsCalculatorReproducer(vm: SetupWizardViewModel): String = try {
-        val mapping = vm.ringsPreview()
-        val draft = vm.state.value.draft
-        val evidenceInput = mapping.evidence?.let { SetupRingsEvidenceInput.Available(it) }
-            ?: if (environment.settings.initialRecoveryEvidence != null) SetupRingsEvidenceInput.Preserved
-            else SetupRingsEvidenceInput.Absent
-        val preview = runBlocking {
-            SetupRingsPreviewCalculator(app).calculate(
-                settings = environment.settings,
-                evidenceInput = evidenceInput,
-                commitId = draft.commitId,
-                manualMuscles = draft.manualMuscleOverrides,
-                manualEnergy = draft.manualEnergyOverride,
-                manualStructure = draft.manualStructureOverride,
-                discomforts = SetupRingsResponseMapping.discomfortField(
-                    mapping.discomfortResponse,
-                    mapping.discomfortIds,
-                ),
-                nowMs = System.currentTimeMillis(),
-                checkIn = mapping.previewCheckIn(),
-            )
-        }
-        "reproductor=OK baterias=${preview.batteries.muscular}/${preview.batteries.cnc}/${preview.batteries.spinal} " +
-            "(el intento del VM falló y este idéntico no: el estado conserva un intento fallido)"
-    } catch (error: Throwable) {
-        "reproductor=FALLA ${error::class.java.name}: ${error.message} @ ${error.stackTrace.firstOrNull()}"
     }
 
     /** Escribe, confirma y exige el paso siguiente; registra la cobertura. */
@@ -954,7 +855,6 @@ class SetupWizardFullJourneyTest {
         assertEquals(
             "Continuar sobre $step debe aceptarse (errores=${vm.state.value.errors}, " +
                 "selección=${vm.state.value.draft.stepSelections[step]}, " +
-                "rings=${vm.state.value.draft.ringsAnswers}, " +
                 "cursor=${vm.state.value.draft.stepProgress.currentStepId}, " +
                 "últimaEscritura=${vm.lastMutateDiagnostic()}, " +
                 "máquina=${vm.state.value.machineState})",
@@ -986,9 +886,6 @@ class SetupWizardFullJourneyTest {
         SetupStepId.NUTRITION_MANUAL_CALORIES, SetupStepId.NUTRITION_MANUAL_CARBS_FAT,
         SetupStepId.NUTRITION_DISTRIBUTION, SetupStepId.NUTRITION_WEIGH_INS,
         SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION,
-        SetupStepId.RINGS_INTRO, SetupStepId.RINGS_SESSION_DAYS, SetupStepId.RINGS_FEELINGS,
-        SetupStepId.RINGS_DISCOMFORT,
-        SetupStepId.RINGS_RESULT, SetupStepId.MILESTONE_RINGS,
         SetupStepId.REVIEW_ACTIVATE,
     )
 
@@ -1002,9 +899,6 @@ class SetupWizardFullJourneyTest {
         SetupStepId.PRIORITIES, SetupStepId.AVOIDED_EXERCISES, SetupStepId.PLAN, SetupStepId.WEEK_LAYOUT,
         SetupStepId.MILESTONE_TRAINING,
         SetupStepId.NUTRITION_START, SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION,
-        SetupStepId.RINGS_INTRO, SetupStepId.RINGS_SESSION_DAYS, SetupStepId.RINGS_FEELINGS,
-        SetupStepId.RINGS_DISCOMFORT,
-        SetupStepId.RINGS_RESULT, SetupStepId.MILESTONE_RINGS,
         SetupStepId.REVIEW_ACTIVATE,
     )
 
@@ -1065,7 +959,6 @@ class SetupWizardFullJourneyTest {
         override fun activeNutritionPlanId(): String? = null
         override fun activeNutritionPlan(): NutritionPlan? = null
         override fun nutritionPlan(id: String): NutritionPlan? = null
-        override fun hasInitialRecoveryEvidence(): Boolean = false
         override suspend fun refreshBodyProgress() = Unit
     }
 

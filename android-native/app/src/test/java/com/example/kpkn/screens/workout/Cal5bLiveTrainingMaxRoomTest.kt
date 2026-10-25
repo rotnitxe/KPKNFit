@@ -21,9 +21,9 @@ import org.robolectric.annotation.Config
 class Cal5bLiveTrainingMaxRoomTest {
     @get:Rule val room = RoomTestRule()
     private var fixture: LiveSessionVmFixture? = null
-    @Before fun setup() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetAugeRepository() }
+    @Before fun setup() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetTrainingObservationRepository() }
     @After fun cleanup() {
-        try { fixture?.close(); LiveSessionVmFixture.resetAugeRepository(); ProgramRepository.closeInstance(); KpknDatabase.closeInstance() }
+        try { fixture?.close(); LiveSessionVmFixture.resetTrainingObservationRepository(); ProgramRepository.closeInstance(); KpknDatabase.closeInstance() }
         finally { Dispatchers.resetMain() }
     }
     private fun exercise(id: String,config: String = CatalogIds.OHP) = Exercise(id,id,

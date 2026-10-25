@@ -119,8 +119,6 @@ data class Settings(
     val smartSleepEnabled: Boolean = false,
 
     val algorithmSettings: AlgorithmSettings = AlgorithmSettings(),
-    val augePredictionBias: PredictionBiasProfile = PredictionBiasProfile(),
-    val initialRecoveryEvidence: InitialRecoveryEvidence? = null,
     /** Global volume reference captured by the setup wizard, even without a program. */
     val volumeCalibrationProfile: VolumeCalibrationProfile? = null,
 
@@ -280,30 +278,11 @@ enum class Gender { MALE, FEMALE, OTHER }
 enum class MetabolicProfile { TESTOSTERONE, ESTROGEN, MIXED }
 
 @Serializable
-data class PredictionBiasProfile(
-    val cnsBias: Double = 0.0,
-    val muscularBias: Double = 0.0,
-    val spinalBias: Double = 0.0,
-    val sampleCount: Int = 0,
-    val lastUpdatedMs: Long = 0L,
-    /** Legacy profiles are treated as muscular-bias v1 and reset selectively. */
-    val muscularBiasVersion: Int = 1,
-)
-
-@Serializable
 data class AlgorithmSettings(
     val oneRMDecayRate: Double = 0.03,
-    val failureFatigueFactor: Double = 1.5,
     val legVolumeMultiplier: Double = 1.0,
     val torsoVolumeMultiplier: Double = 1.0,
     val synergistFactor: Double = 0.25,
-    val augeEnableNutritionTracking: Boolean = false,
-    val augeEnableSleepTracking: Boolean = false,
-    val augeRecoverySensitivity: Double = 1.0,
-    val augeFatigueSensitivity: Double = 1.0,
-    val augeReadinessThreshold: Int = 60,
-    val augeAutoDeload: Boolean = false,
-    val augeShowAlertsInSession: Boolean = true,
 )
 
 /**

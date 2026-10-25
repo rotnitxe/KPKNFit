@@ -5,7 +5,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.WeightUnit
 import com.example.kpkn.data.protocols.LoadBasis
-import com.example.kpkn.domain.energy.TrainingEnergyEngine
+import com.example.kpkn.domain.calculations.TrainingLoadEvidence
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -113,13 +113,13 @@ class FixTmLoadBasisContractTest {
         val onTm = set(LoadBasis.PERCENT_TM)
         val onOneRm = set(LoadBasis.PERCENT_1RM)
         val e = exercise(oneRm = 200.0, tm = 180.0, onTm, onOneRm)
-        val tmLoad = TrainingEnergyEngine.resolvePlannedExternalLoadKg(e, onTm, WeightUnit.KG)
-        val oneRmLoad = TrainingEnergyEngine.resolvePlannedExternalLoadKg(e, onOneRm, WeightUnit.KG)
+        val tmLoad = TrainingLoadEvidence.resolvePlannedExternalLoadKg(e, onTm, WeightUnit.KG)
+        val oneRmLoad = TrainingLoadEvidence.resolvePlannedExternalLoadKg(e, onOneRm, WeightUnit.KG)
         assertEquals(144.0, tmLoad.externalLoadKg!!, 1e-9)
         assertEquals(160.0, oneRmLoad.externalLoadKg!!, 1e-9)
 
         // Con %TM y sin TM, jamás 1RM × % (160 kg): el 80 % del TM no es el 80 % del 1RM.
-        val withoutTm = TrainingEnergyEngine.resolvePlannedExternalLoadKg(e.copy(referenceTrainingMax = null), onTm, WeightUnit.KG)
+        val withoutTm = TrainingLoadEvidence.resolvePlannedExternalLoadKg(e.copy(referenceTrainingMax = null), onTm, WeightUnit.KG)
         assertFalse(withoutTm.externalLoadKg == 160.0)
     }
 }

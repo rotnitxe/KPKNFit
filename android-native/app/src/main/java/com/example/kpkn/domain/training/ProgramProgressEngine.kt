@@ -497,83 +497,11 @@ object ProgramProgressEngine {
         compositionMetadata: ExerciseCompositionMetadataProvider? = null,
         inventory: EquipmentInventory? = null,
     ): ProgressAdvanceResult {
+        // Compatibility-only entry: a retired pending action cannot change a plan or cursor.
         val run = program.runState ?: return ProgressAdvanceResult(program, activeState)
-        val action = run.pendingAction ?: return ProgressAdvanceResult(program, activeState)
-        require(action.type == PendingProgramActionType.CONFIRM_DELOAD) {
-            "No hay una propuesta de descarga pendiente de resolver."
-        }
-
-        val targetId = action.nextBlockId
-        val resolvedProgram = if (accept || targetId.isNullOrBlank()) {
-            program
-        } else {
-            program.copy(
-                macrocycles = program.macrocycles.map { macro ->
-                    macro.copy(blocks = macro.blocks.filterNot { it.id == targetId })
-                },
-            )
-        }
-        val ordered = resolvedProgram.macrocycles.flatMap { it.blocks }
-        val targetBlock = if (accept) {
-            targetId?.let { id -> ordered.firstOrNull { it.id == id } }
-        } else {
-            val currentIndex = ordered.indexOfFirst { it.id == run.blockId }
-            ordered.getOrNull(currentIndex + 1)
-        }
-        val targetWeek = targetBlock?.mesocycles?.flatMap { it.weeks }?.firstOrNull()
-        if (targetWeek == null) {
-            val completedRun = run.copy(
-                weekInstanceId = null,
-                weekId = null,
-                completedSessionIds = emptySet(),
-                status = ProgramRunStatus.COMPLETED,
-                pendingAction = null,
-            )
-            return ProgressAdvanceResult(
-                program = resolvedProgram.copy(runState = completedRun),
-                activeState = activeState?.copy(status = com.example.kpkn.data.models.ProgramStatus.COMPLETED),
-                advancedCycle = true,
-            )
-        }
-        val location = ProgramHierarchyIndex(resolvedProgram).locateWeek(targetWeek.id)
-        val updatedRun = run.copy(
-            weekInstanceId = targetWeek.id,
-            weekId = targetWeek.id,
-            macrocycleId = location?.macrocycleId,
-            blockId = location?.blockId ?: targetBlock.id,
-            mesocycleId = location?.mesocycleId,
-            completedSessionIds = emptySet(),
-            status = ProgramRunStatus.ACTIVE,
-            pendingAction = null,
-        )
-        // H7: la entrada al bloque pasa por el mismo enganche de autor que el avance normal. Al aceptar,
-        // el bloque es la descarga de AUGE y el enganche no hace nada (no es un bloque de la receta).
-        val entered = applyAuthoredBlockEntry(
-            program = resolvedProgram.copy(runState = updatedRun),
-            enteredBlockId = targetBlock.id,
-            closingWeeks = closingBlockWeeks(program, run),
-            logs = logs,
-            cycleNumber = run.cycleNumber,
-            runId = run.runId,
-            compositionMetadata = compositionMetadata,
-            inventory = inventory,
-        )
-        return ProgressAdvanceResult(
-            program = entered,
-            activeState = activeState?.copy(
-                status = com.example.kpkn.data.models.ProgramStatus.ACTIVE,
-                currentWeekId = targetWeek.id,
-                currentWeekInstanceId = targetWeek.id,
-                currentMacrocycleId = location?.macrocycleId,
-                currentBlockId = location?.blockId ?: targetBlock.id,
-                currentMesocycleId = location?.mesocycleId,
-                currentMacrocycleIndex = location?.macroIndex ?: activeState.currentMacrocycleIndex,
-                currentBlockIndex = location?.blockIndex ?: activeState.currentBlockIndex,
-                currentMesocycleIndex = location?.globalMesoIndex ?: activeState.currentMesocycleIndex,
-                programRunId = updatedRun.runId,
-            ),
-            advancedWeek = true,
-        )
+        if (run.pendingAction?.type != PendingProgramActionType.CONFIRM_DELOAD)
+            return ProgressAdvanceResult(program, activeState)
+        return ProgressAdvanceResult(program.copy(runState = run.copy(pendingAction = null)), activeState)
     }
 
     /**
@@ -1020,30 +948,7 @@ object ProgramProgressEngine {
         // workout must never silently mutate the athlete's macrocycle. Persist
         // the candidate and a durable accept/reject gate while keeping the
         // cursor on the completed block until the athlete decides.
-        if (decision.kind == BlockTransitionEngine.DecisionKind.INSERT_DELOAD) {
-            val pending = PendingProgramAction(
-                type = PendingProgramActionType.CONFIRM_DELOAD,
-                message = decision.message,
-                nextBlockId = nextBlockId,
-            )
-            val cycleNumber = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
-            val (runWeekId, runWeekInstanceId) = program.complexWeekRunFields(cycleNumber, location.week.id)
-            val pendingRun = (working.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
-                cycleNumber = cycleNumber,
-                weekInstanceId = runWeekInstanceId,
-                weekId = runWeekId,
-                macrocycleId = location.macrocycleId,
-                blockId = location.blockId,
-                mesocycleId = location.mesocycleId,
-                completedSessionIds = emptySet(),
-                status = ProgramRunStatus.ACTIVE,
-                pendingAction = pending,
-            )
-            return ProgressAdvanceResult(
-                program = working.copy(runState = pendingRun),
-                activeState = activeState?.copy(programRunId = pendingRun.runId),
-            )
-        }
+
 
         if (nextWeek == null) {
             val progressedEnd = ProgramAutoregulationEngine.expirePending(

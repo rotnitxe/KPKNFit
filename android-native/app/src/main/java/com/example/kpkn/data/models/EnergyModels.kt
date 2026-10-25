@@ -39,7 +39,7 @@ data class SessionEnergySummary(
     val projectedTotalKcal: Int? = null,
     val confidence: EnergyConfidence = EnergyConfidence.LOW,
     val source: EnergyEstimateSource = EnergyEstimateSource.PLANNED,
-    val methodVersion: String = "auge-energy-v2",
+    val methodVersion: String = "unknown",
     val exerciseContributions: List<ExerciseEnergyContribution> = emptyList(),
     val notes: List<String> = emptyList(),
 )
@@ -53,3 +53,9 @@ data class DailyEnergyBalance(
     val deltaFromTarget: Int = 0,
     val status: DailyEnergyStatus = DailyEnergyStatus.MAINTENANCE,
 )
+
+/** Read/import compatibility only; this classifies an old envelope and calculates no energy. */
+fun isRetiredTrainingEnergyMethod(method: String?): Boolean {
+    val key = method?.trim()?.lowercase().orEmpty()
+    return key.startsWith("auge-energy") || key in setOf("", "unknown", "unspecified", "not_recorded", "null")
+}

@@ -37,11 +37,11 @@ class ExercisePickerSelectedRowsRestoreTest {
             equipmentId = implement,
             loadMode = "external",
             primaryMuscles = listOf("lats"),
-            efc = 1.0,
-            cnc = 1.0,
-            ssc = 0.0,
-            ttc = 1.0,
-            axialLoadFactor = 0.0,
+            
+            
+            
+            
+            
             technicalDifficulty = 2.0,
             resistanceProfile = "test",
             setupCues = listOf("Setup."),

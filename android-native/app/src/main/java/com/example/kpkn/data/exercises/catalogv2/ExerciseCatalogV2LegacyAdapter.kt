@@ -83,11 +83,6 @@ internal fun ExerciseDefinitionV2.toLegacyInfo(
         chain = profile.kineticChain.name.lowercase(),
         bodyPart = profile.bodyRegion.name.lowercase(),
         isCommon = true,
-        efc = profile.efc,
-        cnc = profile.cnc,
-        ssc = profile.ssc,
-        ttc = profile.ttc,
-        axialLoadFactor = profile.axialLoadFactor,
         technicalDifficulty = profile.technicalDifficulty,
         setupCues = profile.setupCues,
         executionCues = profile.executionCues,
@@ -107,7 +102,6 @@ internal fun ExerciseDefinitionV2.toLegacyInfo(
         },
         setupTime = profile.setupTimeSeconds,
         articulationType = profile.articulationType?.name,
-        fatigueTier = profile.fatigueTier?.name,
     )
 }
 

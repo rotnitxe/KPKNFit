@@ -43,7 +43,6 @@ class ExerciseCatalogV2RichMetadataTest {
         assertEquals("parent", metadata.identity.definitionId)
         assertEquals("config", metadata.identity.configurationId)
         assertEquals("barbell", metadata.biomechanics.equipmentId)
-        assertEquals(2.0, metadata.fatigue.efc, 0.0)
         assertEquals(listOf("hamstrings"), metadata.anatomy.primaryMuscles)
         assertEquals("hip_hinge", metadata.biomechanics.movementPatternId)
         assertEquals("Padre", metadata.display.displayName)
@@ -62,11 +61,11 @@ class ExerciseCatalogV2RichMetadataTest {
         equipmentId = "barbell",
         loadMode = "free_external_load",
         primaryMuscles = listOf("hamstrings"),
-        efc = 2.0,
-        cnc = 1.0,
-        ssc = 0.5,
-        ttc = 1.5,
-        axialLoadFactor = 1.0,
+        
+        
+        
+        
+        
         technicalDifficulty = 5.0,
         resistanceProfile = "lengthened_hip_extensor",
         setupCues = listOf("Ajusta la barra."),

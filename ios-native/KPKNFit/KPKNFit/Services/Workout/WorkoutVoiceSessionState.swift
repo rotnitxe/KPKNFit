@@ -38,6 +38,6 @@ enum VoiceSessionCommand {
     case finishSession
     case cancelSession
     case logFeedback(technicalQuality: Int?, discomfortId: String?, perceivedIntensity: Double?, isSaveAction: Bool, exerciseSearchName: String?)
-    case logFinalFeedback(notes: String?, discomfortId: String?, additionalDiscomfortNote: String?, neuralBattery: Int?, spinalBattery: Int?, isSaveAction: Bool)
+    case logFinalFeedback(notes: String?, discomfortId: String?, additionalDiscomfortNote: String?, isSaveAction: Bool)
     case unknown(String)
 }

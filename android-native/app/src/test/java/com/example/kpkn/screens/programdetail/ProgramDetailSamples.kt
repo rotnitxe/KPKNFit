@@ -224,21 +224,21 @@ internal object ProgramDetailSamples {
      * alto tolerable, óptimo (dos rótulos) y subentrenado. Viene ordenada por series, como la pestaña.
      */
     val volumeWeek: List<ProgramVolumeMuscle> = listOf(
-        ProgramVolumeMuscle("Cuádriceps", 26.0, zonesOf(8, 16, 22), real = 22.0, overtrained = false, overreaching = false, scaleMax = 26.0),
-        ProgramVolumeMuscle("Dorsales", 18.0, zonesOf(10, 16, 22), real = 14.0, overtrained = false, overreaching = false, scaleMax = 22.0),
-        ProgramVolumeMuscle("Pectorales", 16.0, zonesOf(8, 16, 22), real = 16.0, overtrained = false, overreaching = false, scaleMax = 22.0),
-        ProgramVolumeMuscle("Trapecio", 12.0, zonesOf(6, 12, 18), real = null, overtrained = false, overreaching = true, scaleMax = 18.0),
-        ProgramVolumeMuscle("Deltoides", 12.0, zonesOf(8, 14, 20), real = null, overtrained = false, overreaching = false, scaleMax = 20.0),
-        ProgramVolumeMuscle("Pantorrillas", 10.0, zonesOf(6, 12, 18), real = null, overtrained = true, overreaching = false, scaleMax = 18.0),
-        ProgramVolumeMuscle("Bíceps", 8.0, zonesOf(8, 12, 18), real = 6.0, overtrained = false, overreaching = false, scaleMax = 18.0),
-        ProgramVolumeMuscle("Isquiosurales", 6.0, zonesOf(8, 14, 20), real = null, overtrained = false, overreaching = false, scaleMax = 20.0),
-        ProgramVolumeMuscle("Antebrazo", 4.0, zonesOf(6, 16, 20), real = null, overtrained = false, overreaching = false, scaleMax = 20.0),
-        ProgramVolumeMuscle("Abdomen", 2.0, zonesOf(4, 10, 16), real = null, overtrained = false, overreaching = false, scaleMax = 16.0),
+        ProgramVolumeMuscle("Cuádriceps", 26.0, zonesOf(8, 16, 22), real = 22.0,   scaleMax = 26.0),
+        ProgramVolumeMuscle("Dorsales", 18.0, zonesOf(10, 16, 22), real = 14.0,   scaleMax = 22.0),
+        ProgramVolumeMuscle("Pectorales", 16.0, zonesOf(8, 16, 22), real = 16.0,   scaleMax = 22.0),
+        ProgramVolumeMuscle("Trapecio", 12.0, zonesOf(6, 12, 18), real = null,   scaleMax = 18.0),
+        ProgramVolumeMuscle("Deltoides", 12.0, zonesOf(8, 14, 20), real = null,   scaleMax = 20.0),
+        ProgramVolumeMuscle("Pantorrillas", 10.0, zonesOf(6, 12, 18), real = null,   scaleMax = 18.0),
+        ProgramVolumeMuscle("Bíceps", 8.0, zonesOf(8, 12, 18), real = 6.0,   scaleMax = 18.0),
+        ProgramVolumeMuscle("Isquiosurales", 6.0, zonesOf(8, 14, 20), real = null,   scaleMax = 20.0),
+        ProgramVolumeMuscle("Antebrazo", 4.0, zonesOf(6, 16, 20), real = null,   scaleMax = 20.0),
+        ProgramVolumeMuscle("Abdomen", 2.0, zonesOf(4, 10, 16), real = null,   scaleMax = 16.0),
     )
 
     /** La misma semana sin calibrar: sin zonas, todas las barras comparten la escala de la semana. */
     val volumeUncalibrated: List<ProgramVolumeMuscle> = volumeWeek.take(6).map { muscle ->
-        muscle.copy(zones = null, scaleMax = 26.0, overtrained = false, overreaching = false)
+        muscle.copy(zones = null, scaleMax = 26.0, )
     }
 
     /** El alcance de una semana, con sus tres tipos. */

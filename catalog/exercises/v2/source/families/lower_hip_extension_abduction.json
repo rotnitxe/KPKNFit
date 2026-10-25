@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con polea, la pierna sale atrás y hacia afuera en un arco diagonal que mezcla extensión y apertura. El glúteo mayor trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea baja con el cable cruzando el cuerpo: la patada viaja en diagonal con tensión constante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -139,14 +135,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Patada de Glúteos Diagonal en Polea",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -160,7 +148,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -186,10 +173,8 @@
                 "Preparación: Polea baja con el cable cruzando el cuerpo: la patada viaja en diagonal con tensión constante."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.5,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

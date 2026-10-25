@@ -55,7 +55,8 @@ class ExerciseCatalogContractTest {
         // Retiro humano de walking_lunge en Smith y polea: 206 definiciones / 521 configuraciones. El lote BW-1
         // de peso corporal (2026-10-07) añade 9 definiciones y 18 configuraciones: 215 / 539. El lote OL-1 de
         // halterofilia y acarreos (2026-10-07) añade 13 definiciones y 14 configuraciones: 228 / 553.
-        assertEquals(553, configurations.size)
+        // El retiro de conventional_row__cable (2026-10-12) deja 228 / 552.
+        assertEquals(552, configurations.size)
     }
 
     @Test
@@ -77,6 +78,34 @@ class ExerciseCatalogContractTest {
             configurations.single { it.id == "sissy_squat__smith_machine" }.profile,
             resolver.resolve(saved),
         )
+    }
+
+    @Test
+    fun retired_conventional_row_cable_maps_to_seated_gironda_cable_row() {
+        val conventional = definitions.single { it.id == "conventional_row" }
+        assertEquals("conventional_row__barbell", conventional.defaultConfigurationId)
+        assertEquals(
+            listOf(
+                "conventional_row__barbell",
+                "conventional_row__dumbbells",
+                "conventional_row__machine",
+                "conventional_row__smith_machine",
+                "conventional_row__kettlebell",
+            ),
+            conventional.configurations.map { it.id },
+        )
+        assertTrue(configurations.none { it.id == "conventional_row__cable" })
+
+        val replacement = configurations.single { it.id == "gironda_row__medium" }
+        assertEquals("cable", replacement.profile.equipmentId)
+        assertEquals("horizontal_pull", replacement.profile.movementPatternId)
+
+        val saved = ExerciseSelectionV2("conventional_row", "conventional_row__cable", catalog.catalogRevision)
+        val resolver = ExerciseCatalogV2Resolver(catalog)
+        val valid = resolver.validate(saved) as ExerciseSelectionValidationV2.Valid
+        assertEquals("gironda_row", valid.selection.definitionId)
+        assertEquals("gironda_row__medium", valid.selection.configurationId)
+        assertEquals(replacement.profile, resolver.resolve(saved))
     }
 
     @Test
@@ -172,7 +201,6 @@ class ExerciseCatalogContractTest {
                 configuration.profile.primaryMuscles.map { "${configuration.profile.movementPatternId}:$it" },
                 metadata.replacement.preservesIntent,
             )
-            assertEquals(configuration.profile.efc, metadata.fatigue.efc, 0.0)
             assertEquals(configuration.profile.performanceProfileId, metadata.identity.performanceProfileId)
         }
     }

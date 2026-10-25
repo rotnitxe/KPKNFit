@@ -244,7 +244,7 @@ class SetupWizardStepApiTest {
         assertEquals(SetupRetryOperation.SAVE, vm.retryOperationForError("save"))
         assertEquals(SetupRetryOperation.PREVIEW, vm.retryOperationForError("preview"))
         assertEquals(SetupRetryOperation.CANDIDATES, vm.retryOperationForError("candidates"))
-        assertEquals(SetupRetryOperation.RINGS_PREVIEW, vm.retryOperationForError("rings_preview"))
+        assertNull(vm.retryOperationForError("rings_preview"))
         assertEquals(SetupRetryOperation.COMMIT, vm.retryOperationForError("commit"))
         // Un error de validación no tiene reintento automático.
         assertNull(vm.retryOperationForError("age"))
@@ -483,7 +483,6 @@ class SetupWizardStepApiTest {
         override fun activeNutritionPlanId(): String? = null
         override fun activeNutritionPlan(): NutritionPlan? = null
         override fun nutritionPlan(id: String): NutritionPlan? = null
-        override fun hasInitialRecoveryEvidence(): Boolean = false
         override suspend fun refreshBodyProgress() = Unit
     }
 }

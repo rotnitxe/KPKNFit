@@ -33,10 +33,6 @@ import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.screens.workout.CardioLiveCard
-import com.example.kpkn.screens.workout.ExerciseDrainOverlayCard
-import com.example.kpkn.screens.workout.ExerciseDrainOverlayChannel
-import com.example.kpkn.screens.workout.ExerciseDrainOverlayItem
-import com.example.kpkn.screens.workout.ExerciseDrainOverlayState
 import com.example.kpkn.screens.workout.PendingRestSuggestion
 import com.example.kpkn.screens.workout.PostExerciseFeedbackPanel
 import com.example.kpkn.screens.workout.QuickDiscomfortSheetBody
@@ -188,18 +184,6 @@ class LiveSessionRestCardioRenderSheetTest {
     fun relator130() {
         onlyWhenAsked()
         drawRelator(fontScale = 1.3f, name = "relator_130")
-    }
-
-    @Test
-    fun gasto100() {
-        onlyWhenAsked()
-        drawGasto(fontScale = 1f, name = "gasto_100")
-    }
-
-    @Test
-    fun gasto130() {
-        onlyWhenAsked()
-        drawGasto(fontScale = 1.3f, name = "gasto_130")
     }
 
     @Test
@@ -374,53 +358,7 @@ class LiveSessionRestCardioRenderSheetTest {
         save(RELATOR_TAG, name)
     }
 
-    private fun drawGasto(fontScale: Float, name: String) {
-        // Sin avance del reloj: la barra queda en su valor inicial, no en el vaciado de la animación.
-        rule.mainClock.autoAdvance = false
-        rule.setContent {
-            hostView = LocalView.current
-            CompositionLocalProvider(LocalDensity provides Density(3f, fontScale)) {
-                KPKNTheme {
-                    MaterialTheme {
-                        Box(
-                            Modifier
-                                .width(360.dp)
-                                .background(Color.Black)
-                                .testTag(GASTO_TAG)
-                                .padding(16.dp),
-                        ) {
-                            ExerciseDrainOverlayCard(
-                                state = ExerciseDrainOverlayState(
-                                    key = 1L,
-                                    exerciseName = "Sentadilla trasera",
-                                    items = listOf(
-                                        ExerciseDrainOverlayItem(
-                                            label = "Energía",
-                                            delta = 18,
-                                            channel = ExerciseDrainOverlayChannel.ENERGY,
-                                        ),
-                                        ExerciseDrainOverlayItem(
-                                            label = "Columna",
-                                            delta = 11,
-                                            channel = ExerciseDrainOverlayChannel.BACK,
-                                        ),
-                                        ExerciseDrainOverlayItem(
-                                            label = "Músculos",
-                                            delta = 24,
-                                            channel = ExerciseDrainOverlayChannel.MUSCLE,
-                                        ),
-                                    ),
-                                ),
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        }
-                    }
-                }
-            }
-        }
-        rule.waitForIdle()
-        save(GASTO_TAG, name)
-    }
+
 
     private fun drawFeedback(fontScale: Float, name: String) {
         rule.mainClock.autoAdvance = false

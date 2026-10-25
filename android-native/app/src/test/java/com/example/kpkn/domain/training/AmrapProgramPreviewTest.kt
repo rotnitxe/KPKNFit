@@ -65,9 +65,9 @@ class AmrapProgramPreviewTest {
         assertTrue(propose.detail!!, propose.detail!!.contains("180 → 185 kg"))
 
         val auto = preview("nsuns-531-lp-4d", hit, AutoregulationMode.AUTO)
-        assertEquals(AmrapEffectGate.AUTO, auto.gate)
-        assertFalse(auto.needsConfirmation)
-        assertTrue(auto.detail!!.contains("Se aplica solo"))
+        assertEquals(AmrapEffectGate.PROPOSE, auto.gate)
+        assertTrue(auto.needsConfirmation)
+        assertFalse(auto.detail!!.contains("Se aplica solo"))
 
         val off = preview("nsuns-531-lp-4d", hit, AutoregulationMode.OFF)
         assertEquals(AmrapEffectGate.OFF, off.gate)
@@ -241,12 +241,12 @@ class AmrapProgramPreviewTest {
         assertNull(toNextWeek.newTmKg)
 
         val auto = AmrapProgramPreview.preview(recipeOf("apre-mann"), AutoregulationMode.AUTO, profile, set4)
-        assertEquals(AmrapEffectGate.AUTO, auto.gate)
-        assertTrue(auto.observerNote!!.text, auto.observerNote!!.text.contains("AUTO"))
+        assertEquals(AmrapEffectGate.PROPOSE, auto.gate)
+        assertFalse(auto.observerNote!!.text, auto.observerNote!!.text.contains("AUTO"))
         assertTrue(auto.observerNote!!.text, auto.observerNote!!.text.contains("162,5 kg"))
         assertEquals(AmrapEffectKind.NEXT_WEEK_XRM, auto.kind)
         assertEquals(AmrapEffectTiming.NEXT_WEEK, auto.timing)
-        assertFalse(auto.needsConfirmation)
+        assertTrue(auto.needsConfirmation)
         assertNull(auto.tmDeltaPercent)
         assertNull(auto.newTmKg)
 

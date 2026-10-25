@@ -12,8 +12,6 @@ struct SessionAssistantInput {
     let mesoIndex: Int
     let programId: String
     let targetDurationMinutes: Int?
-    let customDrain: PredictedDrain?
-    let customTemplateDrains: [String: PredictedDrain]
 
     init(
         allExercisesInSession: [Exercise],
@@ -27,8 +25,6 @@ struct SessionAssistantInput {
         mesoIndex: Int,
         programId: String,
         targetDurationMinutes: Int? = nil,
-        customDrain: PredictedDrain? = nil,
-        customTemplateDrains: [String: PredictedDrain] = [:]
     ) {
         self.allExercisesInSession = allExercisesInSession
         self.weekSessions = weekSessions
@@ -41,8 +37,6 @@ struct SessionAssistantInput {
         self.mesoIndex = mesoIndex
         self.programId = programId
         self.targetDurationMinutes = targetDurationMinutes
-        self.customDrain = customDrain
-        self.customTemplateDrains = customTemplateDrains
     }
 }
 
@@ -140,8 +134,6 @@ struct GhostExerciseCard {
     let rpe: Double
     let restSeconds: Int
     let impactoVolumen: String
-    let impactoDrenaje: String
-    let impactoColumna: String
     let compatibleConSplit: Bool
 }
 
@@ -149,7 +141,6 @@ struct TemplatePreview {
     let template: SessionTemplate
     let modoRecomendado: SessionTemplateApplyMode
     let volumenPorMusculo: [String: Double]
-    let drenajeEstimado: PredictedDrain
     let advertencias: [String]
     let duracionEstimada: Int
 }
@@ -165,8 +156,8 @@ struct VolumeThreshold {
 }
 
 struct SessionAssistantReport {
-    let veredicto: Verdict
-    let scoreEstimado: Int
+    let veredicto: Verdict?
+    let scoreEstimado: Int?
     let riesgos: [SessionRisk]
     let ajustes: [AssistantSuggestion]
     let oportunidades: [AssistantSuggestion]
@@ -174,15 +165,14 @@ struct SessionAssistantReport {
     let plantillasCompatibles: [TemplatePreview]
     let volumenPorMusculo: [String: Double]
     let umbralesPorMusculo: [String: VolumeThreshold]
-    let drenajeEstimado: PredictedDrain
     let duracionEstimada: Int
     let resumenTexto: String
     let totalRestSeconds: Int
     let estimatedWorkSeconds: Int
 
     init(
-        veredicto: Verdict,
-        scoreEstimado: Int,
+        veredicto: Verdict?,
+        scoreEstimado: Int?,
         riesgos: [SessionRisk],
         ajustes: [AssistantSuggestion],
         oportunidades: [AssistantSuggestion],
@@ -190,7 +180,6 @@ struct SessionAssistantReport {
         plantillasCompatibles: [TemplatePreview],
         volumenPorMusculo: [String: Double],
         umbralesPorMusculo: [String: VolumeThreshold],
-        drenajeEstimado: PredictedDrain,
         duracionEstimada: Int,
         resumenTexto: String,
         totalRestSeconds: Int = 0,
@@ -205,7 +194,6 @@ struct SessionAssistantReport {
         self.plantillasCompatibles = plantillasCompatibles
         self.volumenPorMusculo = volumenPorMusculo
         self.umbralesPorMusculo = umbralesPorMusculo
-        self.drenajeEstimado = drenajeEstimado
         self.duracionEstimada = duracionEstimada
         self.resumenTexto = resumenTexto
         self.totalRestSeconds = totalRestSeconds

@@ -14,7 +14,6 @@ class SetupStepDefinitionsTest {
         assertEquals("Datos básicos", SetupStepDefinitions.blockTitle(SetupWizardBlock.BASICS))
         assertEquals("Entreno", SetupStepDefinitions.blockTitle(SetupWizardBlock.TRAINING))
         assertEquals("Nutrición", SetupStepDefinitions.blockTitle(SetupWizardBlock.NUTRITION))
-        assertEquals("Rings", SetupStepDefinitions.blockTitle(SetupWizardBlock.RINGS))
         assertEquals("Revisión", SetupStepDefinitions.blockTitle(SetupWizardBlock.REVIEW))
     }
 
@@ -111,7 +110,6 @@ class SetupStepDefinitionsTest {
         assertEquals(setOf("on", "off"), SetupStepDefinitions.optionValues(SetupStepId.AUTOREGULATION))
         assertEquals(SetupControlKind.ROUTE_CHOICE, SetupStepDefinitions.control(SetupStepId.ROUTE))
         assertEquals(SetupControlKind.MUSCLE_SYMBOLS, SetupStepDefinitions.control(SetupStepId.PRIORITIES))
-        assertEquals(SetupControlKind.MILESTONE, SetupStepDefinitions.control(SetupStepId.MILESTONE_RINGS))
         assertEquals(SetupControlKind.REVIEW, SetupStepDefinitions.control(SetupStepId.REVIEW_ACTIVATE))
     }
 
@@ -154,7 +152,6 @@ class SetupStepDefinitionsTest {
         // Excepciones: bases, resultados y el review siguen siendo etiquetas.
         assertEquals("Datos básicos", SetupStepDefinitions.title(SetupStepId.MILESTONE_BASICS))
         assertEquals("Tu plan de alimentación", SetupStepDefinitions.title(SetupStepId.NUTRITION_RESULT))
-        assertEquals("Tus RINGS", SetupStepDefinitions.title(SetupStepId.RINGS_RESULT))
         assertEquals("Revisión del plan", SetupStepDefinitions.title(SetupStepId.TRAINING_REVIEW))
         assertEquals("Revisión y activación", SetupStepDefinitions.title(SetupStepId.REVIEW_ACTIVATE))
         // Preguntas grandes de referencia para el bloque de datos básicos.
@@ -205,10 +202,6 @@ class SetupStepDefinitionsTest {
         assertEquals(
             setOf("none", "unknown"),
             SetupStepDefinitions.of(SetupStepId.NUTRITION_ELIGIBILITY)?.exclusiveValues,
-        )
-        assertEquals(
-            setOf("none", "omit"),
-            SetupStepDefinitions.of(SetupStepId.RINGS_DISCOMFORT)?.exclusiveValues,
         )
         assertEquals(
             setOf("none"),
@@ -319,9 +312,8 @@ class SetupStepDefinitionsTest {
         assertEquals(SetupStepId.GOAL, targets[WizChatQuestionId.T_GOAL])
         assertEquals(SetupStepId.PLAN, targets[WizChatQuestionId.T_PLAN])
         // Los pasos de RINGS retirados (recencia, sesiones, sensaciones sueltas) no migran: su pregunta la sustituyen los días.
-        assertNull(targets[WizChatQuestionId.R_RECENT])
-        assertNull(targets[WizChatQuestionId.R_FEELINGS_MUSCLE])
-        assertEquals(SetupStepId.RINGS_INTENSITY, targets[WizChatQuestionId.R_INTENSITY])
+
+
 
         // N_SEX goes to the basics block, never to the legacy nutrition step.
         assertEquals(SetupStepId.EQUATION_SEX, targets[WizChatQuestionId.N_SEX])
@@ -331,7 +323,7 @@ class SetupStepDefinitionsTest {
         // Legacy-only questions are never a migration target.
         assertFalse(WizChatQuestionId.P_GENDER in targets)
         assertFalse(WizChatQuestionId.T_HOME_EQUIPMENT in targets)
-        assertFalse(WizChatQuestionId.R_START in targets)
+
 
         // Every renderable step maps: legacyQuestion + renders and not legacyOnly.
         // El puente es question -> STEP: comparar question con question ocultaba
@@ -354,20 +346,14 @@ class SetupStepDefinitionsTest {
         // Migrated values must never render the old conversational copy.
         assertFalse(SetupStepId.EQUATION_SEX in renderable)
         assertFalse(SetupStepId.NUTRITION_RESULT in renderable)
-        assertFalse(SetupStepId.RINGS_RESULT in renderable)
         assertFalse(SetupStepId.REVIEW_ACTIVATE in renderable)
         // New steps without a legacy source are never renderable copies either.
         assertFalse(SetupStepId.PRIORITIES in renderable)
         assertFalse(SetupStepId.NUTRITION_RHYTHM in renderable)
         assertFalse(SetupStepId.NUTRITION_TARGET in renderable)
 
-        // RINGS_DISCOMFORT SÍ es copia 1:1: su pregunta legacy R_DISCOMFORT
-        // existe en WizChatGraph y declara exactamente las mismas opciones.
-        assertEquals(WizChatQuestionId.R_DISCOMFORT, renderable[SetupStepId.RINGS_DISCOMFORT])
-        assertEquals(WizChatQuestionId.R_DISCOMFORT, SetupStepGraph.questionForStep(SetupStepId.RINGS_DISCOMFORT))
-        val legacyQuestion = requireNotNull(WizChatGraph.question(WizChatQuestionId.R_DISCOMFORT))
-        val copy = requireNotNull(SetupStepDefinitions.of(SetupStepId.RINGS_DISCOMFORT))
-        assertEquals(legacyQuestion.options, copy.options.map { it.label })
+
+
     }
 
     @Test

@@ -105,6 +105,10 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
             "richMetadata.programming.setupTransitionCost": lambda p: first_configuration(p)["profile"]["richMetadata"]["programming"].__setitem__("setupTransitionCost", "x"),
             "richMetadata.programming.splitSuitability": lambda p: first_configuration(p)["profile"]["richMetadata"]["programming"].__setitem__("splitSuitability", []),
         }
+        for key in ("efc", "cnc", "ssc", "ttc", "axialLoadFactor", "fatigueTier"):
+            injections[f"profile.{key}"] = lambda p, key=key: first_configuration(p)["profile"].__setitem__(key, 1)
+        injections["richMetadata.fatigue"] = lambda p: first_configuration(p)["profile"]["richMetadata"].__setitem__("fatigue", {})
+        injections["richMetadata.programming.fatigueCost"] = lambda p: first_configuration(p)["profile"]["richMetadata"]["programming"].__setitem__("fatigueCost", "high")
         # Every retired path must be exercised: adding one without a test is a gap.
         self.assertEqual(set(injections), set(RETIRED_FIELD_PATHS))
         for path, inject in injections.items():
@@ -133,7 +137,7 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
     def test_editorial_android_ios_artifacts_have_one_hash_and_revision(self) -> None:
         self.assertEqual(
             verify_shared_catalog_artifacts(),
-            "81db1f950148a7769b7d1d1dd8f066746439efe726ca00d35d87d52119bcf91c",
+            "c9d234c1a384fc7da59f58308ff3f86f27b3018e6158eaa2b302e362f2ecc73d",
         )
 
     def test_retired_decline_variants_are_absent_from_the_shared_catalog(self) -> None:

@@ -4,32 +4,11 @@ import Foundation
 public enum BlockTransitionEngine {
     public enum DecisionKind: String {
         case advanceNextBlock = "ADVANCE_NEXT_BLOCK"
-        case insertDeload = "INSERT_DELOAD"
         case propose1RMTest = "PROPOSE_1RM_TEST"
         case holdIncomplete = "HOLD_INCOMPLETE"
     }
 
-    public struct TransitionContext {
-        public var cumulativeFatigue: Double
-        public var readinessScore: Int
-        public var mesocycleStressEma: Double
-        public var overtrainedMuscles: [String]
-        public var augeAutoDeloadEnabled: Bool
-
-        public init(
-            cumulativeFatigue: Double = 0,
-            readinessScore: Int = 70,
-            mesocycleStressEma: Double = 0,
-            overtrainedMuscles: [String] = [],
-            augeAutoDeloadEnabled: Bool = false
-        ) {
-            self.cumulativeFatigue = cumulativeFatigue
-            self.readinessScore = readinessScore
-            self.mesocycleStressEma = mesocycleStressEma
-            self.overtrainedMuscles = overtrainedMuscles
-            self.augeAutoDeloadEnabled = augeAutoDeloadEnabled
-        }
-    }
+    public struct TransitionContext { public init() {} }
 
     public struct TransitionDecision {
         public let kind: DecisionKind
@@ -82,18 +61,7 @@ public enum BlockTransitionEngine {
             )
         }
 
-        let suggestDeload = (context.augeAutoDeloadEnabled && context.cumulativeFatigue > 75 && context.readinessScore < 40)
-            || context.mesocycleStressEma >= 75
-            || !context.overtrainedMuscles.isEmpty
 
-        if suggestDeload && next?.goal != .DELOAD && next?.goal != .TAPER {
-            return TransitionDecision(
-                kind: .insertDeload,
-                message: "Gate AUGE / estrés alto: insertar descarga antes de continuar.",
-                nextBlockId: nil,
-                updatedProgram: nil
-            )
-        }
 
         return TransitionDecision(
             kind: .advanceNextBlock,

@@ -160,6 +160,7 @@ class MainActivity : ComponentActivity() {
         // y, al terminar, deja la Activity con Theme.KPKN (postSplashScreenTheme).
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        initialPermissionFlowStarted = savedInstanceState?.getBoolean("kpkn.initialPermissionFlowStarted") == true
         // La app es SIEMPRE oscura (KPKNTheme dark): íconos claros fijos para
         // contraste correcto de status/nav bar en wizard y rutas setup/*.
         enableEdgeToEdge(
@@ -187,7 +188,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             ProgramRepository.init(this@MainActivity)
             com.example.kpkn.data.repository.CompetitionRepository.init(this@MainActivity)
-            com.example.kpkn.data.repository.AugeRepository.getInstance(this@MainActivity)
+            com.example.kpkn.data.repository.TrainingObservationRepository.getInstance(this@MainActivity)
             com.example.kpkn.data.repository.NutritionRepository.init(this@MainActivity)
             com.example.kpkn.data.repository.CustomExerciseRepository.initialize(this@MainActivity)
             com.example.kpkn.data.repository.WorkoutMediaRepository.init(this@MainActivity)
@@ -365,9 +366,18 @@ class MainActivity : ComponentActivity() {
     }
 
     private var hasResumedOnce = false
+    private var initialPermissionFlowStarted = false
     private var locationPermissionRequestInFlight = false
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("kpkn.initialPermissionFlowStarted", initialPermissionFlowStarted)
+        super.onSaveInstanceState(outState)
+    }
+
     private fun requestRequiredPermissions() {
+        // Keep the platform request guarded even while its own permission window is recreated.
+        if (initialPermissionFlowStarted) return
+        initialPermissionFlowStarted = true
         val shouldRequestNotifications =
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -467,7 +477,6 @@ fun KPKNApp(
     val lifecycleOwner = LocalLifecycleOwner.current
     var showPermissionAlert by remember { mutableStateOf(false) }
     var missingPermissions by remember { mutableStateOf(emptyList<String>()) }
-    var permissionsRequested by remember { mutableStateOf(false) }
     var permissionsSkipped by rememberSaveable { mutableStateOf(false) }
     val settings by ProgramRepository.getInstance().settings.collectAsState()
 
@@ -518,13 +527,11 @@ fun KPKNApp(
         }
     }
 
-    LaunchedEffect(currentRoute, settings.onboardingCompleted) {
-        val onboardingRoute = currentRoute?.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE) == true
-        if (settings.onboardingCompleted && !onboardingRoute && !permissionsRequested) {
-            permissionsRequested = true
-            onRequestRequiredPermissions()
-        }
-    }
+    com.example.kpkn.ui.components.permissions.InitialPermissionRequestEffect(
+        onboardingCompleted = settings.onboardingCompleted,
+        onSetupRoute = currentRoute?.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE) == true,
+        onRequestPermissions = onRequestRequiredPermissions,
+    )
     
     val isFullscreenWizard =
         currentRoute?.startsWith("session-editor") == true ||

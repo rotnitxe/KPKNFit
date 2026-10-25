@@ -139,15 +139,6 @@ class NativeWorkoutProgressionRuntimeTest {
         assertNull(futureSet.weight)
         assertEquals(setOf("bilateral"), futureSet.manualLoadRequiredSides)
         assertEquals(PlanLoadReferenceState.PENDING, futureSetReferenceState(accepted, sessions[2].id))
-        val genericSuggestion = LoadSuggestionEngine.suggestFromLastWorkingSet(
-            lastSet = CompletedSet(id = "generic-set", weight = 20.0, reps = 8),
-            targetReps = 8,
-            loadMode = LoadModeV2.LOAD,
-            activeTag = null,
-            baseEntryTag = null,
-            techniqueSignal = 0,
-        )
-        assertEquals(20.5, genericSuggestion!!.suggestedWeight, 0.0001)
         assertTrue(LoadSuggestionEngine.shouldDeferToNativeProgression(
             ProgramHierarchyIndex(accepted).locateSession(sessions[2].id)!!.session.allExercises().single()
                 .copy(nativeProgressionManaged = false),

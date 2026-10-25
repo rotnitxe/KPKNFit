@@ -134,13 +134,13 @@ internal fun DiscomfortSheetBody(
                 }
             }
 
-            val today = insight?.today?.firstOrNull()?.text
-            val week = insight?.week?.firstOrNull()?.text
-            if (today != null || week != null) {
-                SheetSection(title = "EN TU CASO") {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (today != null) CaseCell(label = "Hoy", text = today, modifier = Modifier.weight(1f))
-                        if (week != null) CaseCell(label = "Esta semana", text = week, modifier = Modifier.weight(1f))
+            val recorded = (insight?.today.orEmpty() + insight?.week.orEmpty()).filter {
+                it.kind == com.example.kpkn.domain.discomfort.DiscomfortEvidenceKind.REPORTED_HISTORY
+            }
+            if (recorded.isNotEmpty()) {
+                SheetSection(title = "REGISTROS ANTERIORES") {
+                    recorded.forEach { report ->
+                        Text(report.text, style = KpknType.caption, color = WizardColors.text)
                     }
                 }
             }
@@ -151,16 +151,6 @@ internal fun DiscomfortSheetBody(
                     style = KpknType.caption.copy(lineHeight = 19.sp),
                     color = WizardColors.text.copy(alpha = 0.85f),
                 )
-                // Las acciones que salen de lo que el motor ve en esta sesión, sin repetir el cierre común.
-                insight?.advice.orEmpty()
-                    .filter { it != PROFESSIONAL_ADVICE }
-                    .forEach { action ->
-                        Text(
-                            text = action,
-                            style = KpknType.caption.copy(lineHeight = 19.sp),
-                            color = WizardColors.text.copy(alpha = 0.85f),
-                        )
-                    }
                 Text(
                     text = PROFESSIONAL_ADVICE,
                     style = KpknType.caption.copy(lineHeight = 19.sp),

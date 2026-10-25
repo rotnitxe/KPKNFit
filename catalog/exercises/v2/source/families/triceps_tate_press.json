@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, con las palmas al frente y los codos en abanico, la carga empuja desde el pecho mezclando press y extensión. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -123,14 +119,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Tate Press",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -145,7 +133,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -171,10 +158,8 @@
                 "Preparación: Mancuernas acostado juntando los codos: bajas y subes apretando las pesas."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {}
           }

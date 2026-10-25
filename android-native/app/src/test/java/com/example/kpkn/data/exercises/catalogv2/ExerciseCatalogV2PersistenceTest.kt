@@ -24,11 +24,11 @@ class ExerciseCatalogV2PersistenceTest {
         primaryMuscles = listOf("biceps"),
         secondaryMuscles = emptyList(),
         stabilizerMuscles = emptyList(),
-        efc = 2.0,
-        cnc = 1.0,
-        ssc = 0.0,
-        ttc = 1.0,
-        axialLoadFactor = 0.0,
+        
+        
+        
+        
+        
         technicalDifficulty = 3.0,
         resistanceProfile = "gravity_arc",
         setupCues = listOf("Setup."),

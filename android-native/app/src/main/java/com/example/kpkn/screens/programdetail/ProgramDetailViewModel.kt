@@ -65,7 +65,7 @@ import com.example.kpkn.domain.training.WeekWithMeta
 import android.content.Context
 import android.util.Log
 import kotlin.math.roundToInt
-import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.models.PostSessionFeedback
 import com.example.kpkn.data.models.MuscleRole
 import kotlinx.coroutines.CancellationException
@@ -117,13 +117,6 @@ data class WeekCopyConflict(
     val dayLabels: List<String>,
 )
 
-data class MuscleOvertrainingStatus(
-    val muscleName: String,
-    val isOvertrained: Boolean,
-    val isOverreaching: Boolean,
-    val activeFactorsCount: Int,
-    val explanation: String,
-)
 
 /**
  * Resultado de reconstruir semanas del plan con la evidencia real de entrenamiento: el programa
@@ -173,29 +166,11 @@ class ProgramDetailViewModel(
 
     // ─── Raw Data from Repository ─────────────────────────────────────────
 
-    val program: StateFlow<Program?> = combine(
-        repository.programs.map { programs -> programs.find { it.id == programId } },
-        feedbacks
-    ) { p, fbs ->
-        if (p == null) return@combine null
-        // D3: los programas históricos pueden traer espejo suelto+grupo; se
-        // normaliza por-id en lectura para portada/estructura/editor previo.
-        val normalized = p.normalizedSessionStructures()
-        if (fbs.isEmpty()) return@combine normalized
-
-        val scaledRecommendations = normalized.volumeRecommendations.map { rec ->
-            val adj = VolumeCalculator.calculateVolumeAdjustment(rec.muscleGroup, fbs)
-            if (adj == 1.0) rec
-            else rec.copy(
-                minEffectiveVolume = (rec.minEffectiveVolume * adj).roundToInt(),
-                maxAdaptiveVolume = (rec.maxAdaptiveVolume * adj).roundToInt(),
-                maxRecoverableVolume = (rec.maxRecoverableVolume * adj).roundToInt()
-            )
-        }
-        normalized.copy(volumeRecommendations = scaledRecommendations)
-    }
+    // Original feedback remains available as history; it never rescales authored targets.
+    val program: StateFlow<Program?> = repository.programs
+        .map { programs -> programs.find { it.id == programId }?.normalizedSessionStructures() }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, repository.getProgramById(programId))
+        .stateIn(viewModelScope, SharingStarted.Lazily, repository.getProgramById(programId)?.normalizedSessionStructures())
 
     val activeProgramState: StateFlow<ActiveProgramState?> = repository.activeProgramState
 
@@ -285,13 +260,13 @@ class ProgramDetailViewModel(
     fun loadFeedbacks(context: Context) {
         viewModelScope.launch {
             try {
-                val list = AugeRepository.getInstance(context).getPostSessionFeedbacks()
+                val list = TrainingObservationRepository.getInstance(context).getPostSessionFeedbacks()
                 _feedbacks.value = list
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                // Sin estos comentarios el volumen no se ajusta por recuperación local; no es
-                // motivo para interrumpir la pantalla, pero el fallo queda registrado.
+                // Los comentarios son registros originales opcionales; un fallo al leerlos
+                // no altera los objetivos del programa ni impide abrirlo.
                 Log.w(LOG_TAG, "No se pudieron cargar los comentarios posteriores a la sesión.", error)
             }
         }
@@ -324,134 +299,6 @@ class ProgramDetailViewModel(
             overheadE1RM = overhead,
         )
     }
-
-    val muscleCdbsStatus: StateFlow<Map<String, MuscleOvertrainingStatus>> = combine(
-        program,
-        programLogs,
-        feedbacks
-    ) { p, logs, fbs ->
-        if (p == null) return@combine emptyMap()
-
-        val statusMap = mutableMapOf<String, MuscleOvertrainingStatus>()
-        val exerciseList = catalogExerciseIndex().values.toList()
-
-        val completedVolumes = VolumeCalculator.calculateCompletedWeeklyMuscleVolume(
-            logs = logs,
-            exerciseList = exerciseList,
-            aliases = catalogSearchRedirects(),
-            weeksCount = p.volumeRecommendations.firstOrNull()?.let {
-                (logs.size / 3).coerceAtLeast(1)
-            } ?: 1
-        )
-
-        p.volumeRecommendations.forEach { rec ->
-            val muscle = rec.muscleGroup
-            val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle)
-            val mrv = rec.maxRecoverableVolume
-
-            // 1. Factor 1: Volumen Real > MRV
-            val completedSets = completedVolumes.find { it.muscleName == canonical }?.weeklySets ?: 0.0
-            val factorVol = completedSets > mrv
-
-            // 2. Factor 2: Rendimiento Estancado (progression stagnationRisk)
-            var factorProg = false
-
-            // 3. Factor 3: Molestias / Dolor
-            val normalizedMuscleLower = canonical.lowercase()
-            val factorPain = logs.take(5).any { log ->
-                log.discomforts.any { d ->
-                    val dl = d.lowercase()
-                    dl.contains(normalizedMuscleLower) ||
-                    (normalizedMuscleLower.contains("hombro") && dl.contains("deltoid")) ||
-                    (normalizedMuscleLower.contains("cuádriceps") && dl.contains("rodilla")) ||
-                    (normalizedMuscleLower.contains("espalda baja") && dl.contains("lumbar"))
-                }
-            }
-
-            // 4. Factor 4: Baterías AUGE sistémicas bajas (< 40%)
-            val factorSystemic = logs.firstOrNull()?.fatigueLevel?.let { it >= 8 } ?: false
-
-            // 5. Factor 5: Percepción local post-sesión baja (DOMS >= 3.5 y Fuerza <= 5)
-            val muscleLogs = fbs.filter { fb ->
-                fb.muscleFeedback.keys.any { key ->
-                    VolumeCalculator.normalizeCanonicalMuscleGroup(key).lowercase() == normalizedMuscleLower
-                }
-            }.take(3)
-
-            var totalDoms = 0.0
-            var totalStr = 0.0
-            var fbCount = 0
-            muscleLogs.forEach { fb ->
-                val entryKey = fb.muscleFeedback.keys.find { key ->
-                    VolumeCalculator.normalizeCanonicalMuscleGroup(key).lowercase() == normalizedMuscleLower
-                } ?: return@forEach
-                val entry = fb.muscleFeedback[entryKey] ?: return@forEach
-                totalDoms += entry.doms.toDouble()
-                totalStr += entry.strengthCapacity.toDouble()
-                fbCount++
-            }
-            val factorLocal = if (fbCount > 0) {
-                (totalDoms / fbCount) >= 3.5 || (totalStr / fbCount) <= 5.0
-            } else {
-                false
-            }
-
-            val primaryExercises = exerciseList.filter { db ->
-                db.involvedMuscles.any {
-                    it.role == MuscleRole.PRIMARY &&
-                    VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle).lowercase() == normalizedMuscleLower
-                }
-            }.map { it.id.lowercase() }
-
-            // Check if weight is falling for the SAME exercise
-            var hasWeightDrop = false
-            val exercisesWithLogs = logs.flatMap { it.completedExercises }
-                .filter { it.exerciseDbId?.lowercase() in primaryExercises }
-                .groupBy { it.exerciseDbId?.lowercase() }
-
-            for ((exId, exLogs) in exercisesWithLogs) {
-                if (exLogs.size >= 2) {
-                    val recentWeight = exLogs.first().sets.firstOrNull { !it.skipped }?.weight ?: 0.0
-                    val olderWeight = exLogs.last().sets.firstOrNull { !it.skipped }?.weight ?: 0.0
-                    if (recentWeight < olderWeight && recentWeight > 0.0) {
-                        hasWeightDrop = true
-                        break
-                    }
-                }
-            }
-            if (hasWeightDrop) {
-                factorProg = true
-            }
-
-            var activeCount = 0
-            val factorsList = mutableListOf<String>()
-            if (factorVol) { activeCount++; factorsList.add("Volumen real excede MRV") }
-            if (factorPain) { activeCount++; factorsList.add("Dolores o molestias") }
-            if (factorSystemic) { activeCount++; factorsList.add("Alta fatiga sistémica") }
-            if (factorLocal) { activeCount++; factorsList.add("Baja recuperación local") }
-            if (factorProg) { activeCount++; factorsList.add("Pérdida de fuerza") }
-
-            val isOvertrained = activeCount >= 3
-            val isOverreaching = factorVol && activeCount < 3
-
-            val explanation = when {
-                isOvertrained -> "Posible exceso de volumen: ${factorsList.joinToString(", ")}."
-                isOverreaching -> "Sobrecarga funcional: Volumen alto pero buena tolerancia sistémica."
-                else -> "Óptimo o acumulando volumen."
-            }
-
-            statusMap[canonical] = MuscleOvertrainingStatus(
-                muscleName = canonical,
-                isOvertrained = isOvertrained,
-                isOverreaching = isOverreaching,
-                activeFactorsCount = activeCount,
-                explanation = explanation
-            )
-        }
-
-        statusMap
-    }
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyMap())
 
     val totalWeeks: StateFlow<Int> = program
         .map { p -> p?.let { ProgramDetailHelpers.getTotalWeeks(it) } ?: 0 }
@@ -537,10 +384,10 @@ class ProgramDetailViewModel(
                 .map { it?.runState?.pendingAction }
                 .distinctUntilChanged()
                 .collect { action ->
-                    if (action != null) {
+                    if (action != null && action.type != PendingProgramActionType.CONFIRM_DELOAD) {
                         _blockTransitionBanner.value = BlockTransitionBanner(
                             kind = when (action.type) {
-                                PendingProgramActionType.CONFIRM_DELOAD -> BlockTransitionEngine.DecisionKind.INSERT_DELOAD
+                                PendingProgramActionType.CONFIRM_DELOAD -> BlockTransitionEngine.DecisionKind.HOLD_INCOMPLETE
                                 PendingProgramActionType.CONFIRM_1RM_TEST -> BlockTransitionEngine.DecisionKind.PROPOSE_1RM_TEST
                                 PendingProgramActionType.CONFIRM_AUTOREGULATION -> BlockTransitionEngine.DecisionKind.HOLD_INCOMPLETE
                             },

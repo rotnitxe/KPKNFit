@@ -19,12 +19,11 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.TodaySessionItem
-import com.example.kpkn.data.repository.AugeRepository
+import com.example.kpkn.data.repository.TrainingObservationRepository
 import com.example.kpkn.data.repository.BodyProgressRepository
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.domain.auge.OvertrainingDetector
 import com.example.kpkn.domain.nutrition.DayGoalsResult
 import com.example.kpkn.domain.nutrition.GoalsAbsence
 import com.example.kpkn.domain.nutrition.resolveDayGoals
@@ -166,24 +165,14 @@ import java.util.Calendar
         loadFeedbacksJob?.cancel()
         loadFeedbacksJob = viewModelScope.launch(Dispatchers.IO) {
             try {
-                _feedbacks.value = AugeRepository.getInstance(context).getPostSessionFeedbacks()
+                _feedbacks.value = TrainingObservationRepository.getInstance(context).getPostSessionFeedbacks()
             } catch (_: Exception) {
                 // Keep previous feedbacks; avoid silent wipe on transient IO errors
             }
         }
     }
 
-    val overtrainedMuscles: StateFlow<List<String>> = combine(
-        activeProgram,
-        repository.history,
-        feedbacks,
-    ) { p, historyLogs, fbs ->
-        if (p == null) emptyList()
-        else OvertrainingDetector.detectOvertrainedMuscles(p, historyLogs, fbs)
-    }
-        .distinctUntilChanged()
-        .flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
 
     val userName: StateFlow<String> = repository.settings
         .map { it.username.ifBlank { "Usuario" } }
@@ -372,7 +361,6 @@ import java.util.Calendar
         val homeCompetition: HomeCompetitionState?,
         val dailyCalorieGoal: Int?,
         val todayNutritionTotals: HomeNutritionSnapshot,
-        val overtrainedMuscles: List<String>,
         val programs: List<Program>,
     )
 
@@ -392,17 +380,14 @@ import java.util.Calendar
             homeCompetition,
             dailyCalorieGoal,
             todayNutritionTotals,
-            combine(overtrainedMuscles, programs) { overtrained, programList ->
-                overtrained to programList
-            },
-        ) { rest, countdown, calGoal, nutrition, overtrainedAndPrograms ->
+            programs,
+        ) { rest, countdown, calGoal, nutrition, programList ->
             HomeUiExtras(
                 rest,
                 countdown,
                 calGoal,
                 nutrition,
-                overtrainedAndPrograms.first,
-                overtrainedAndPrograms.second,
+                programList,
             )
         },
     ) { core, extras ->
@@ -417,7 +402,6 @@ import java.util.Calendar
             homeCompetition = extras.homeCompetition,
             dailyCalorieGoal = extras.dailyCalorieGoal,
             todayNutritionTotals = extras.todayNutritionTotals,
-            overtrainedMuscles = extras.overtrainedMuscles,
             programs = extras.programs,
         )
     }
@@ -542,7 +526,6 @@ data class HomeUiState(
     /** null = sin objetivos (ausencia explícita); nunca un default de 2500. */
     val dailyCalorieGoal: Int? = null,
     val todayNutritionTotals: HomeNutritionSnapshot = HomeNutritionSnapshot(),
-    val overtrainedMuscles: List<String> = emptyList(),
     val programs: List<Program> = emptyList(),
 )
 

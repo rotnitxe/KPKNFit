@@ -4,7 +4,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.testsupport.RoomTestRule
 import com.example.kpkn.testsupport.awaitRepositoryScope
 import kotlinx.coroutines.*
@@ -24,7 +23,7 @@ import java.time.Instant
 class Cal7FreeSessionRoomTest {
     @get:Rule val room = RoomTestRule()
     private val fixtures = mutableListOf<LiveSessionVmFixture>()
-    @Before fun setup() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetAugeRepository() }
+    @Before fun setup() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetTrainingObservationRepository() }
     @After fun cleanup() {
         try {
             runBlocking {
@@ -37,7 +36,7 @@ class Cal7FreeSessionRoomTest {
                             finally { awaitRepositoryScope(repository) }
                         }
                     } finally {
-                        try { LiveSessionVmFixture.resetAugeRepository() }
+                        try { LiveSessionVmFixture.resetTrainingObservationRepository() }
                         finally {
                             try { ProgramRepository.closeInstance() }
                             finally { KpknDatabase.closeInstance() }
@@ -97,7 +96,7 @@ class Cal7FreeSessionRoomTest {
         }
         val completionInstant = Instant.now()
         val completionDate = completionInstant.toString()
-        vm.finishWorkout("Recorrido CAL7", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList(),
+        vm.finishWorkout("Recorrido CAL7", 5, SessionClosingFeedback(discomforts = emptyList(),
             completionInstantIso = completionDate))
         try {
             withTimeout(30_000) {
@@ -208,7 +207,7 @@ class Cal7FreeSessionRoomTest {
     @Test fun ringsCountTheRecordedWorkEquallyForNormalAndCalibratorPurposes() = runBlocking {
         suspend fun completed(purpose: SetPurpose): WorkoutLog {
             // Cada prepare cierra Room; el DAO del singleton AUGE anterior ya no es válido.
-            LiveSessionVmFixture.resetAugeRepository()
+            LiveSessionVmFixture.resetTrainingObservationRepository()
             val original = cal3Fixture().state.session!!
             val session = original.copy(exercises = listOf(original.exercises.first().copy(sets = listOf(
                 original.exercises.first().sets.first().copy(purpose = purpose, targetReps = 10)))))
@@ -233,24 +232,5 @@ class Cal7FreeSessionRoomTest {
         assertEquals(normalSet.weight, calibratorSet.weight, 0.0)
         assertEquals(normalSet.reps, calibratorSet.reps)
         assertEquals(normalSet.rir, calibratorSet.rir)
-        val now = Instant.parse("2026-10-23T12:00:00Z")
-        val muscle = ExerciseMuscleInfo("cal3-barbell-squat", "Sentadilla", equipment = "barra", efc = 4.2,
-            cnc = 4.5, ssc = 1.0, axialLoadFactor = 1.0,
-            involvedMuscles = listOf(InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY, volumeContribution = 1.0)))
-        val db = listOf("cal3-exercise", "cal3-barbell-squat", "cal3-squat").associateWith { muscle }
-        fun preview(log: WorkoutLog) = AugeRecoveryEngine.previewPostSessionBatteries(emptyList(),
-            log.copy(date = now.toString(), durationMinutes = 20), wellbeing = null, settings = Settings(),
-            exerciseDb = db, nowOverrideMs = now.toEpochMilli())
-        val ordinaryRings = preview(normal)
-        val calibrationRings = preview(calibrator)
-        assertEquals(ordinaryRings.neural, calibrationRings.neural)
-        assertEquals(ordinaryRings.spinal, calibrationRings.spinal)
-        assertEquals(ordinaryRings.muscular, calibrationRings.muscular)
-        assertEquals(ordinaryRings.globalCnsDrain, calibrationRings.globalCnsDrain)
-        assertEquals(ordinaryRings.globalSpinalDrain, calibrationRings.globalSpinalDrain)
-        assertEquals(ordinaryRings.globalMuscularDrain, calibrationRings.globalMuscularDrain)
-        assertEquals(ordinaryRings.perMuscle, calibrationRings.perMuscle)
-        assertTrue("A real squat set must contribute work rather than produce a vacuous equality",
-            ordinaryRings.globalCnsDrain > 0 || ordinaryRings.globalMuscularDrain > 0 || ordinaryRings.globalSpinalDrain > 0)
     }
 }

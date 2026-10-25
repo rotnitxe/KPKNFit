@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Una sola mancuerna va en vertical, con las palmas apoyadas bajo el disco de arriba y los pulgares rodeando el mango. Con las manos juntas los codos se abren un poco, y en el estiramiento la mancuerna cuelga recta detrás de la cabeza.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Lleva la mancuerna en arco por detrás de la cabeza con los codos apenas doblados.",
                 "Para cuando los brazos queden junto a las orejas, sin arquear la zona lumbar.",
                 "Vuelve por el mismo arco hasta tener la mancuerna sobre el pecho."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -172,14 +168,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -196,7 +184,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -227,13 +214,11 @@
                 "Sujeta una mancuerna en vertical sobre el pecho, con las palmas bajo el disco de arriba."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -253,19 +238,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "La barra se toma en prono con las manos a la anchura de los hombros y pasa por encima de la cara en cada repetición. Al compartir la barra, los dos brazos bajan a la vez y ninguno puede adelantarse.",
-              "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
                 "Pasa la barra por encima de la cara y llévala detrás de la cabeza con los codos casi rectos.",
                 "Baja hasta que los brazos queden a la altura del banco, con las costillas abajo.",
                 "Sube la barra por el mismo arco hasta tenerla otra vez sobre el pecho."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -405,14 +386,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -429,7 +402,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -460,13 +432,11 @@
                 "Sostén la barra sobre el pecho en prono, con las manos a la anchura de los hombros."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -486,19 +456,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "La kettlebell se sujeta por los lados del asa y la bola cuelga por debajo de las manos, así que el peso queda más lejos del hombro y tiende a balancearse al pasar detrás de la cabeza.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Llévala en arco detrás de la cabeza sin dejar que la bola se balancee.",
                 "Para con los brazos junto a las orejas y la espalda pegada al banco.",
                 "Vuelve despacio hasta tener la kettlebell sobre el pecho."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -641,14 +607,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -665,7 +623,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -696,13 +653,11 @@
                 "Sujeta la kettlebell por los lados del asa sobre el pecho, con la bola colgando hacia ti."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -723,19 +678,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "El banco se coloca delante de una polea baja, con la cabeza hacia ella, y el cable tira hacia la polea desde detrás de la cabeza. Por eso la carga se nota también con los brazos verticales sobre el pecho.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Tira en arco hasta tener las manos sobre el pecho, sin doblar más los codos.",
                 "Aguanta un instante arriba, donde el cable todavía tira.",
                 "Vuelve despacio hasta que los brazos queden detrás de la cabeza."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -875,14 +826,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Pull Over en Banca",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -899,7 +842,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -930,13 +872,11 @@
                 "Túmbate y agarra la barra por detrás de la cabeza, con los brazos casi rectos y el cable tenso."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "cable"
@@ -983,19 +923,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con una barra recta o una cuerda en las dos manos, el agarre baja frente al cuerpo y los dos brazos trazan el mismo arco hasta los muslos. La polea, alta y delante, tira hacia arriba y hacia la torre durante todo el recorrido.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Baja el agarre en arco hasta los muslos sin doblar los codos.",
                 "Aprieta un segundo abajo con los hombros lejos de las orejas.",
                 "Sube despacio hasta que las manos vuelvan a la altura de la cabeza."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1133,14 +1069,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Pull Over de Pie en Polea",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1160,7 +1088,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1191,14 +1118,12 @@
                 "Agarra con los brazos casi rectos a la altura de la cabeza y flexiona un poco caderas y rodillas."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "core",
                 "erector_spinae",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "laterality": "bilateral"
@@ -1219,19 +1144,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Un único maneral deja que el brazo estirado pase junto a la cadera y termine algo por detrás del tronco. El cuerpo quiere girar hacia la torre y la pared abdominal lo frena.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Baja el brazo estirado hasta que la mano pase junto a la cadera.",
                 "No dejes que los hombros giren hacia la polea.",
                 "Vuelve despacio hasta tener el brazo a la altura de la cabeza."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1385,14 +1306,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Pull Over de Pie en Polea",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1412,7 +1325,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1443,14 +1355,12 @@
                 "Retrocede un paso, inclina un poco el tronco y apoya la otra mano en el muslo."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "core",
                 "erector_spinae",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "laterality": "unilateral"
@@ -1500,19 +1410,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Las almohadillas giran sobre un eje que coincide con el hombro y reciben el empuje de la cara de atrás del brazo, cerca del codo, mientras las manos descansan abiertas sobre la barra. El cinturón fija la cadera al asiento y, si la máquina tiene pedal, este acerca la barra para empezar.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Empuja con los codos hacia delante y abajo hasta que la barra llegue al vientre.",
                 "No despegues la espalda del respaldo ni te encorves al final.",
                 "Vuelve despacio hasta sentir el estiramiento con los brazos detrás de la cabeza."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1613,14 +1519,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Pull Over Sentado en Máquina",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1638,7 +1536,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1668,12 +1565,10 @@
                 "Apoya la parte de atrás de los brazos en las almohadillas y deja las manos abiertas sobre la barra; si hay pedal, úsalo para acercarla."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "triceps"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }

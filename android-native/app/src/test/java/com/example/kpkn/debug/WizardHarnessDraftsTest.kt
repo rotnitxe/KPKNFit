@@ -166,14 +166,12 @@ class WizardHarnessDraftsTest {
     @Test
     fun withScopeFullTheCursorStopsOnEachNutritionAndRingsStepRequested() {
         listOf(
-            SetupStepId.NUTRITION_TARGET, SetupStepId.NUTRITION_WEIGH_INS, SetupStepId.RINGS_INTRO, SetupStepId.RINGS_SESSION_DAYS,
-            SetupStepId.RINGS_GROUP_SETS, SetupStepId.RINGS_INTENSITY, SetupStepId.RINGS_RESULT, SetupStepId.REVIEW_ACTIVATE,
+            SetupStepId.NUTRITION_TARGET, SetupStepId.NUTRITION_WEIGH_INS, SetupStepId.REVIEW_ACTIVATE,
         ).forEach { start ->
             val draft = buildHarnessDraft("q2-full-${start.name}", HarnessPersona.GYM, start, "", revision = 1, scope = HarnessScope.FULL)
             assertEquals("full: el cursor se queda en $start", start, draft.stepProgress.currentStepId)
             assertEquals("full: es el alta completa", "full", draft.draftScope)
             assertTrue("full: incluye Nutrición", draft.includeNutrition)
-            assertTrue("full: incluye RINGS", draft.stepContext().includeRings)
         }
     }
 
@@ -192,7 +190,6 @@ class WizardHarnessDraftsTest {
         val draft = buildHarnessDraft("q2-full-review", persona, SetupStepId.REVIEW_ACTIVATE, "", revision = 1, scope = HarnessScope.FULL)
         assertEquals(SetupStepId.REVIEW_ACTIVATE, draft.stepProgress.currentStepId)
         val route = SetupStepGraph.stepIds(draft.stepContext())
-        assertTrue("full: la ruta incluye Nutrición y RINGS", route.containsAll(listOf(SetupStepId.NUTRITION_WEIGH_INS, SetupStepId.RINGS_GROUP_SETS)))
         val unconfirmed = route.filter { it != SetupStepId.REVIEW_ACTIVATE && it !in draft.stepProgress.answers }
         assertTrue("full: pasos sin confirmar $unconfirmed", unconfirmed.isEmpty())
         assertTrue("full: faltan datos de la persona", SetupDraftCompatibility.pendingMandatoryVitals(draft).isEmpty())

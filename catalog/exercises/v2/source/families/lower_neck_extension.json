@@ -20,18 +20,14 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "La tracción procede de una polea situada delante de la cara, a la altura de los ojos. El arnés transmite la resistencia por su anilla frontal mientras el cuerpo permanece de pie; el movimiento pertenece a la región cervical.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Extiende suavemente el cuello contra la tracción frontal, sin inclinar el tronco ni forzar el final del recorrido.",
                 "Vuelve despacio a la posición inicial manteniendo una carga ligera y el movimiento controlado."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -110,14 +106,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Extensiones de Cuello",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -134,7 +122,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -162,10 +149,8 @@
                 "Conecta el cable a la anilla frontal, toma distancia hasta tensarlo y mantén el torso estable y la cabeza neutra."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "cable"
@@ -185,17 +170,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con disco, la cabeza viaja hacia atrás contra la resistencia apoyada en la nuca. Con el disco, el lastre es simple y directo sobre el cuello.",
-              "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
                 "Disco en la nuca: subes la cabeza contra el peso del disco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -274,14 +255,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Extensiones de Cuello",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -298,7 +271,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -325,10 +297,8 @@
                 "Preparación: Disco en la nuca: subes la cabeza contra el peso del disco."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {
               "implement": "plate"

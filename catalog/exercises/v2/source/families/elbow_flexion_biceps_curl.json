@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con mancuernas y agarre supino, con el brazo cayendo por detrás del tronco, la mano sube hacia el hombro desde el punto más estirado. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Las palmas hacia ti dan más protagonismo al bíceps.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuerna con palma hacia arriba: el brazo cuelga detrás del tronco y el bíceps estirado hace la mayor parte de la carga. El brazo queda detrás del tronco y el codo permanece quieto mientras el antebrazo cierra el ángulo con tensión desde el inicio."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -144,14 +140,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Bayesian",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -167,7 +155,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -196,10 +183,8 @@
                 "Preparación: Mancuerna con palma hacia arriba: el brazo cuelga detrás del tronco y el bíceps estirado hace la mayor parte de la carga."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "supinated",
@@ -220,17 +205,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con mancuernas y agarre neutro, con el brazo cayendo por detrás del tronco, la mano sube hacia el hombro desde el punto más estirado. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Las palmas enfrentadas cuidan muñeca y codo.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuerna con agarre neutro: el braquial y el antebrazo se suman al bíceps en el estiramiento bayesian. El brazo queda detrás del tronco y el codo permanece quieto mientras el antebrazo cierra el ángulo con tensión desde el inicio."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -344,14 +325,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Bayesian",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -367,7 +340,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -396,10 +368,8 @@
                 "Preparación: Mancuerna con agarre neutro: el braquial y el antebrazo se suman al bíceps en el estiramiento bayesian."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "neutral",
@@ -420,17 +390,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con mancuernas y agarre prono, con el brazo cayendo por detrás del tronco, la mano sube hacia el hombro desde el punto más estirado. Con mancuernas, cada lado ajusta su línea y el trabajo del bíceps se equilibra solo. Las palmas al frente dejan el dorsal ancho al mando.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuerna con palma hacia abajo: el trabajo se corre al braquial y al antebrazo con el brazo colgando atrás. El brazo queda detrás del tronco y el codo permanece quieto mientras el antebrazo cierra el ángulo con tensión desde el inicio."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -544,14 +510,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Bayesian",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -567,7 +525,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -596,10 +553,8 @@
                 "Preparación: Mancuerna con palma hacia abajo: el trabajo se corre al braquial y al antebrazo con el brazo colgando atrás."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "pronated",
@@ -620,17 +575,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con polea y agarre supino, con el brazo cayendo por detrás del tronco, la mano sube hacia el hombro desde el punto más estirado. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Las palmas hacia ti dan más protagonismo al bíceps.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea con palma hacia arriba: la tensión no se suelta ni un instante y el bíceps queda cargado en todo el arco. El brazo queda detrás del tronco y el codo permanece quieto mientras el antebrazo cierra el ángulo con tensión desde el inicio."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -744,14 +695,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Bayesian",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -767,7 +710,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -796,10 +738,8 @@
                 "Preparación: Polea con palma hacia arriba: la tensión no se suelta ni un instante y el bíceps queda cargado en todo el arco."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "supinated",
@@ -820,17 +760,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con polea y agarre neutro, con el brazo cayendo por detrás del tronco, la mano sube hacia el hombro desde el punto más estirado. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con las palmas enfrentadas, muñeca y codo viajan cómodos.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea con agarre neutro: tensión constante repartida entre bíceps y antebrazo. El brazo queda detrás del tronco y el codo permanece quieto mientras el antebrazo cierra el ángulo con tensión desde el inicio."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -944,14 +880,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Bayesian",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -967,7 +895,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -996,10 +923,8 @@
                 "Preparación: Polea con agarre neutro: tensión constante repartida entre bíceps y antebrazo."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "neutral",
@@ -1020,17 +945,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con polea y agarre prono, con el brazo cayendo por detrás del tronco, la mano sube hacia el hombro desde el punto más estirado. Con la polea, la tensión sobre el bíceps se mantiene viva de principio a fin. Las palmas al frente dejan el dorsal ancho al mando.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea con palma hacia abajo: el braquial y el antebrazo aguantan la tensión en el punto más estirado. El brazo queda detrás del tronco y el codo permanece quieto mientras el antebrazo cierra el ángulo con tensión desde el inicio."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1144,14 +1065,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Bayesian",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1167,7 +1080,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1196,10 +1108,8 @@
                 "Preparación: Polea con palma hacia abajo: el braquial y el antebrazo aguantan la tensión en el punto más estirado."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "pronated",
@@ -1246,17 +1156,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con polea, con los brazos en cruz entre las poleas, las manos se llevan hacia las sienes con los codos altos. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "En polea, el brazo cruza el pecho y sube flexionando: el estiramiento del bíceps es distinto y la tensión constante aumenta la fatiga local de. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1369,14 +1275,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Crucifijo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1392,7 +1290,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1420,12 +1317,10 @@
                 "Preparación: En polea, el brazo cruza el pecho y sube flexionando: el estiramiento del bíceps es distinto y la tensión constante aumenta la fatiga local de."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.1,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {}
           }
@@ -1466,17 +1361,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con barra, la carga sube pegada al torso mientras los codos viajan hacia atrás y el hombro queda fuera del gesto. El bíceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-              "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra con palmas arriba arrastrada pegada al cuerpo: los codos van atrás y el bíceps trabaja con la contracción más localizada. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1587,14 +1478,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Drag",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1609,7 +1492,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1637,10 +1519,8 @@
                 "Preparación: Barra con palmas arriba arrastrada pegada al cuerpo: los codos van atrás y el bíceps trabaja con la contracción más localizada."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {}
           }
@@ -1680,17 +1560,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con mancuernas, sentado en el banco plano, los brazos suben sin impulso del tronco ni ayuda del otro lado. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas sentado en banco plano: tronco firme y cada brazo por su cuenta, sin impulso posible. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1803,14 +1679,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl de Bíceps Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1826,7 +1694,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -1855,10 +1722,8 @@
                 "Preparación: Mancuernas sentado en banco plano: tronco firme y cada brazo por su cuenta, sin impulso posible."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -1878,17 +1743,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con polea, sentado en el banco plano, los brazos suben sin impulso del tronco ni ayuda del otro lado. Con la polea, la tensión sobre el bíceps se mantiene viva de principio a fin.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea sentado en banco plano: la tensión constante se suma al tronco fijo. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2001,14 +1862,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl de Bíceps Sentado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2024,7 +1877,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -2053,10 +1905,8 @@
                 "Preparación: Polea sentado en banco plano: la tensión constante se suma al tronco fijo."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "cable"
@@ -2101,17 +1951,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con polea, con la espalda hacia la polea baja, los brazos parten desde atrás del cuerpo y flexionan hacia delante. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "En polea con los brazos detrás del cuerpo: el estiramiento inicial del bíceps es enorme y la tensión acompaña toda la subida. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2224,14 +2070,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Superman",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2246,7 +2084,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -2274,12 +2111,10 @@
                 "Preparación: En polea con los brazos detrás del cuerpo: el estiramiento inicial del bíceps es enorme y la tensión acompaña toda la subida."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.1,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {}
           }
@@ -2319,17 +2154,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con TRX, inclinado bajo las asas, el codo flexiona para acercar la cabeza a las manos con el cuerpo como carga. El bíceps trabaja con el TRX, que convierte tu cuerpo en la carga.",
-              "efc": 2.0,
               "equipmentId": "trx",
               "executionCues": [
                 "Colgado del TRX con palmas arriba: tu peso carga el bíceps y el core aguanta el cuerpo. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2441,14 +2272,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl de Bíceps en TRX",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2462,7 +2285,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -2491,10 +2313,8 @@
                 "Preparación: Colgado del TRX con palmas arriba: tu peso carga el bíceps y el core aguanta el cuerpo."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {}
           }
@@ -2533,17 +2353,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con disco, el disco se sostiene en copa con las palmas al techo y sube hacia el pecho con los codos quietos. El bíceps trabaja con el disco, que añade lastre directo y simple.",
-              "efc": 2.0,
               "equipmentId": "plate",
               "executionCues": [
                 "Con un disco en copa: la palma mira al techo y el bíceps sube el peso con el antebrazo firme. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2654,14 +2470,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Waiter",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2676,7 +2484,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -2704,10 +2511,8 @@
                 "Preparación: Con un disco en copa: la palma mira al techo y el bíceps sube el peso con el antebrazo firme."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {}
           }
@@ -2747,17 +2552,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con mancuernas, la subida se hace con las palmas arriba y la bajada con las palmas abajo, girando en el punto alto. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas con la doble fase: subes supinando y bajas pronando con resistencia. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -2868,14 +2669,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Zottman",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -2890,7 +2683,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -2918,10 +2710,8 @@
                 "Preparación: Mancuernas con la doble fase: subes supinando y bajas pronando con resistencia."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {}
           }
@@ -2961,17 +2751,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con mancuernas, sentado con el codo clavado en el muslo, el brazo trabaja en soledad hasta la contracción total. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuerna con el codo en el muslo: la contracción del bíceps queda claramente localizada y el impulso es imposible. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3084,14 +2870,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Concentrado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3107,7 +2885,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -3136,10 +2913,8 @@
                 "Preparación: Mancuerna con el codo en el muslo: la contracción del bíceps queda claramente localizada y el impulso es imposible."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -3159,17 +2934,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con polea, sentado con el codo clavado en el muslo, el brazo trabaja en soledad hasta la contracción total. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea con el codo apoyado: tensión constante en el porción acortada del bíceps con un aislamiento mayor. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3282,14 +3053,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Concentrado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3305,7 +3068,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -3334,10 +3096,8 @@
                 "Preparación: Polea con el codo apoyado: tensión constante en el porción acortada del bíceps con un aislamiento mayor."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "cable"
@@ -3382,17 +3142,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con barra, con los brazos apoyados en el banco inclinado, la carga sube desde la extensión casi total sin impulso. Con la barra, la carga sube al máximo y la progresión del bíceps se mide sin trampa.",
-              "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra en banco predicador: el codo fijo y la palma arriba, sin espacio para el impulso. El apoyo del banco detiene el hombro y deja que el codo flexione desde una base estable, con una bajada que no se acelera."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3507,14 +3263,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Predicador",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3530,7 +3278,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -3558,12 +3305,10 @@
                 "Preparación: Barra en banco predicador: el codo fijo y la palma arriba, sin espacio para el impulso."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.1,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -3583,17 +3328,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con barra EZ, con los brazos apoyados en el banco inclinado, la carga sube desde la extensión casi total sin impulso. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del bíceps.",
-              "efc": 2.0,
               "equipmentId": "ez_bar",
               "executionCues": [
                 "Barra EZ en el predicador: el agarre girado alivia las muñecas y la tensión permanece total. El apoyo del banco detiene el hombro y deja que el codo flexione desde una base estable, con una bajada que no se acelera."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3708,14 +3449,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Predicador",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3731,7 +3464,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -3759,12 +3491,10 @@
                 "Preparación: Barra EZ en el predicador: el agarre girado alivia las muñecas y la tensión permanece total."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.1,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "ez_bar"
@@ -3784,17 +3514,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con mancuernas, con los brazos apoyados en el banco inclinado, la carga sube desde la extensión casi total sin impulso. Con mancuernas, cada lado ajusta su línea y el trabajo del bíceps se equilibra solo.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas en el predicador: cada brazo por separado con el codo fijo en el banco. El apoyo del banco detiene el hombro y deja que el codo flexione desde una base estable, con una bajada que no se acelera."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -3909,14 +3635,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Predicador",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -3932,7 +3650,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -3960,12 +3677,10 @@
                 "Preparación: Mancuernas en el predicador: cada brazo por separado con el codo fijo en el banco."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -3985,17 +3700,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con máquina, con los brazos apoyados en el banco inclinado, la carga sube desde la extensión casi total sin impulso. El bíceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-              "efc": 2.0,
               "equipmentId": "machine",
               "executionCues": [
                 "Máquina predicador: el recorrido guiado te deja cargar el bíceps sin distraerte con el equilibrio. El apoyo del banco detiene el hombro y deja que el codo flexione desde una base estable, con una bajada que no se acelera."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -4110,14 +3821,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Predicador",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -4133,7 +3836,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -4161,12 +3863,10 @@
                 "Preparación: Máquina predicador: el recorrido guiado te deja cargar el bíceps sin distraerte con el equilibrio."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.1,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "machine"
@@ -4211,17 +3911,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con mancuernas y agarre supino, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con las palmas hacia ti, el bíceps gana protagonismo.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas boca abajo en el banco con palmas arriba: el bíceps estirado hace todo el recorrido. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -4335,14 +4031,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Araña",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -4358,7 +4046,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -4388,10 +4075,8 @@
                 "Preparación: Mancuernas boca abajo en el banco con palmas arriba: el bíceps estirado hace todo el recorrido."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "supinated",
@@ -4412,17 +4097,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con mancuernas y agarre neutro, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Las palmas enfrentadas cuidan muñeca y codo.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas boca abajo con agarre neutro: el braquial se suma y el estiramiento se perciben igual de profundo. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -4536,14 +4217,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Araña",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -4559,7 +4232,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -4589,10 +4261,8 @@
                 "Preparación: Mancuernas boca abajo con agarre neutro: el braquial se suma y el estiramiento se perciben igual de profundo."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "neutral",
@@ -4613,17 +4283,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con mancuernas y agarre prono, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. Con mancuernas, cada lado ajusta su línea y el trabajo del bíceps se equilibra solo. Las palmas al frente dejan el dorsal ancho al mando.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas boca abajo con palmas abajo: el braquial y el antebrazo protagonizan con el brazo colgando. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -4737,14 +4403,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Araña",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -4760,7 +4418,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -4790,10 +4447,8 @@
                 "Preparación: Mancuernas boca abajo con palmas abajo: el braquial y el antebrazo protagonizan con el brazo colgando."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "pronated",
@@ -4814,17 +4469,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con polea y agarre supino, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con las palmas hacia ti, el bíceps gana protagonismo.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea boca abajo en el banco: la tensión constante se suma al estiramiento máximo del bíceps. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -4938,14 +4589,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Araña",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -4961,7 +4604,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -4991,10 +4633,8 @@
                 "Preparación: Polea boca abajo en el banco: la tensión constante se suma al estiramiento máximo del bíceps."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "supinated",
@@ -5015,17 +4655,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con polea y agarre neutro, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con las palmas enfrentadas, muñeca y codo viajan cómodos.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea con agarre neutro en el banco: tensión continua repartida entre bíceps y antebrazo. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -5139,14 +4775,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Araña",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -5162,7 +4790,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -5192,10 +4819,8 @@
                 "Preparación: Polea con agarre neutro en el banco: tensión continua repartida entre bíceps y antebrazo."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "neutral",
@@ -5216,17 +4841,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con polea y agarre prono, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Las palmas al frente dejan el dorsal ancho al mando.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea con palmas abajo en el banco: el antebrazo y el braquial aguantan la tensión en el punto más estirado. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -5340,14 +4961,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Araña",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -5363,7 +4976,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -5393,10 +5005,8 @@
                 "Preparación: Polea con palmas abajo en el banco: el antebrazo y el braquial aguantan la tensión en el punto más estirado."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "pronated",
@@ -5417,17 +5027,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con barra y agarre supino, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. Con la barra, la carga sube al máximo y la progresión del bíceps se mide sin trampa. Las palmas hacia ti dan más protagonismo al bíceps.",
-              "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra con palmas arriba en el banco: el bíceps estirado carga el peso de ambos brazos a la vez. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -5541,14 +5147,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Araña",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -5564,7 +5162,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -5594,10 +5191,8 @@
                 "Preparación: Barra con palmas arriba en el banco: el bíceps estirado carga el peso de ambos brazos a la vez."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "supinated",
@@ -5618,17 +5213,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con barra y agarre neutro, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. Con la barra, la carga sube al máximo y la progresión del bíceps se mide sin trampa. Las palmas enfrentadas cuidan muñeca y codo.",
-              "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra con agarre neutro en el banco: el braquial reparte el trabajo y el estiramiento permanece profundo. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -5742,14 +5333,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Araña",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -5765,7 +5348,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -5795,10 +5377,8 @@
                 "Preparación: Barra con agarre neutro en el banco: el braquial reparte el trabajo y el estiramiento permanece profundo."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "neutral",
@@ -5819,17 +5399,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con barra y agarre prono, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. Con la barra, la carga sube al máximo y la progresión del bíceps se mide sin trampa. Las palmas al frente dejan el dorsal ancho al mando.",
-              "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra con palmas abajo en el banco: el antebrazo y el braquial hacen el trabajo pesado con el brazo estirado. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -5943,14 +5519,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Araña",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -5966,7 +5534,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -5996,10 +5563,8 @@
                 "Preparación: Barra con palmas abajo en el banco: el antebrazo y el braquial hacen el trabajo pesado con el brazo estirado."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "grip_type": "pronated",
@@ -6046,17 +5611,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con barra, de pie con los codos fijos a los costados, las palmas suben hacia los hombros en un arco firme. Con la barra, la carga sube al máximo y la progresión del bíceps se mide sin trampa.",
-              "efc": 2.0,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra recta de pie: el curl tradicional en el entrenamiento de fuerza, con la mayor cantidad de peso posible y la postura estable. El tronco permanece vertical y el brazo acompaña el codo sin adelantarse; la muñeca conserva el agarre elegido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -6171,14 +5732,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl de Bíceps de Pie",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -6195,7 +5748,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -6223,12 +5775,10 @@
                 "Preparación: Barra recta de pie: el curl tradicional en el entrenamiento de fuerza, con la mayor cantidad de peso posible y la postura estable."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.1,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -6248,17 +5798,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con barra EZ, de pie con los codos fijos a los costados, las palmas suben hacia los hombros en un arco firme. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del bíceps.",
-              "efc": 2.0,
               "equipmentId": "ez_bar",
               "executionCues": [
                 "Barra EZ de pie: el agarre girado cuida las muñecas y la tensión permanece total. El tronco permanece vertical y el brazo acompaña el codo sin adelantarse; la muñeca conserva el agarre elegido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -6373,14 +5919,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl de Bíceps de Pie",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -6397,7 +5935,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -6425,12 +5962,10 @@
                 "Preparación: Barra EZ de pie: el agarre girado cuida las muñecas y la tensión permanece total."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.1,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "ez_bar"
@@ -6450,17 +5985,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con mancuernas, de pie con los codos fijos a los costados, las palmas suben hacia los hombros en un arco firme. Con mancuernas, cada lado ajusta su línea y el trabajo del bíceps se equilibra solo.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas de pie: cada brazo trabaja por separado y puedes girar la palma al subir. El tronco permanece vertical y el brazo acompaña el codo sin adelantarse; la muñeca conserva el agarre elegido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -6575,14 +6106,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl de Bíceps de Pie",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -6599,7 +6122,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -6627,12 +6149,10 @@
                 "Preparación: Mancuernas de pie: cada brazo trabaja por separado y puedes girar la palma al subir."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -6652,17 +6172,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con polea, de pie con los codos fijos a los costados, las palmas suben hacia los hombros en un arco firme. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea de pie: la tensión constante carga el bíceps en toda la subida y la bajada. El tronco permanece vertical y el brazo acompaña el codo sin adelantarse; la muñeca conserva el agarre elegido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -6777,14 +6293,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl de Bíceps de Pie",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -6801,7 +6309,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -6829,12 +6336,10 @@
                 "Preparación: Polea de pie: la tensión constante carga el bíceps en toda la subida y la bajada."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.1,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "cable"
@@ -6880,17 +6385,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con barra H, con las palmas enfrentadas, la carga sube en vertical sin rotación de muñeca. Con la barra H, el agarre neutro deja la muñeca tranquila y el trabajo del bíceps intacto.",
-              "efc": 2.0,
               "equipmentId": "h_bar",
               "executionCues": [
                 "Barra H con las manos enfrentadas: la muñeca queda en una posición cómoda y los dos brazos comparten una referencia estable. El pulgar apunta hacia arriba y el codo se mantiene cerca del costado; la mano sube sin convertir el gesto en un balanceo de hombro."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -7003,14 +6504,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Martillo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -7027,7 +6520,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -7059,10 +6551,8 @@
                 "Preparación: Barra H con las manos enfrentadas: la muñeca queda en una posición cómoda y los dos brazos comparten una referencia estable."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "h_bar"
@@ -7082,17 +6572,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con mancuernas, con las palmas enfrentadas, la carga sube en vertical sin rotación de muñeca. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas con agarre neutro: cada brazo encuentra su propia trayectoria y el pulgar permanece arriba durante todo el recorrido. El pulgar apunta hacia arriba y el codo se mantiene cerca del costado; la mano sube sin convertir el gesto en un balanceo de hombro."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -7205,14 +6691,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Martillo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -7229,7 +6707,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -7261,10 +6738,8 @@
                 "Preparación: Mancuernas con agarre neutro: cada brazo encuentra su propia trayectoria y el pulgar permanece arriba durante todo el recorrido."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -7284,17 +6759,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con polea, con las palmas enfrentadas, la carga sube en vertical sin rotación de muñeca. Con la polea, la tensión sobre el bíceps se mantiene viva de principio a fin.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea con agarre neutro: el cable conserva tensión cuando el codo se acerca a la flexión completa. El pulgar apunta hacia arriba y el codo se mantiene cerca del costado; la mano sube sin convertir el gesto en un balanceo de hombro."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -7407,14 +6878,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Martillo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -7431,7 +6894,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -7463,10 +6925,8 @@
                 "Preparación: Polea con agarre neutro: el cable conserva tensión cuando el codo se acerca a la flexión completa."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "cable"
@@ -7486,17 +6946,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con banda elástica, con las palmas enfrentadas, la carga sube en vertical sin rotación de muñeca. Con la banda, la resistencia crece a medida que avanza el trabajo del bíceps.",
-              "efc": 2.0,
               "equipmentId": "band",
               "executionCues": [
                 "Banda con agarre neutro: la resistencia crece al final del recorrido y hace que la parte alta del curl sea la más exigente. El pulgar apunta hacia arriba y el codo se mantiene cerca del costado; la mano sube sin convertir el gesto en un balanceo de hombro."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -7609,14 +7065,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Martillo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -7633,7 +7081,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -7665,10 +7112,8 @@
                 "Preparación: Banda con agarre neutro: la resistencia crece al final del recorrido y hace que la parte alta del curl sea la más exigente."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "band"
@@ -7688,17 +7133,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con kettlebell, con las palmas enfrentadas, la carga sube en vertical sin rotación de muñeca. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del bíceps.",
-              "efc": 2.0,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Kettlebell con la mano en posición neutra: el peso cuelga por debajo del agarre y obliga a estabilizar la muñeca con cuidado. El pulgar apunta hacia arriba y el codo se mantiene cerca del costado; la mano sube sin convertir el gesto en un balanceo de hombro."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -7811,14 +7252,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Martillo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -7835,7 +7268,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -7867,10 +7299,8 @@
                 "Preparación: Kettlebell con la mano en posición neutra: el peso cuelga por debajo del agarre y obliga a estabilizar la muñeca con cuidado."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -7916,17 +7346,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con mancuernas, con las palmas hacia abajo, el dorso de la mano lidera la subida y el antebrazo manda. El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas con las palmas hacia abajo: cada lado dirige su propia carga y el antebrazo trabaja sin esconder desequilibrios. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -8039,14 +7465,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Invertido",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -8063,7 +7481,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -8094,10 +7511,8 @@
                 "Preparación: Mancuernas con las palmas hacia abajo: cada lado dirige su propia carga y el antebrazo trabaja sin esconder desequilibrios."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -8117,17 +7532,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con polea, con las palmas hacia abajo, el dorso de la mano lidera la subida y el antebrazo manda. Con la polea, la tensión sobre el antebrazo se mantiene viva de principio a fin.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea con las palmas hacia abajo: la tensión permanece presente mientras el codo se flexiona y el antebrazo sostiene la línea de la mano. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -8240,14 +7651,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Invertido",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -8264,7 +7667,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -8295,10 +7697,8 @@
                 "Preparación: Polea con las palmas hacia abajo: la tensión permanece presente mientras el codo se flexiona y el antebrazo sostiene la línea de la mano."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "cable"
@@ -8318,17 +7718,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con banda elástica, con las palmas hacia abajo, el dorso de la mano lidera la subida y el antebrazo manda. Con la banda, la resistencia crece a medida que avanza el trabajo del antebrazo.",
-              "efc": 2.0,
               "equipmentId": "band",
               "executionCues": [
                 "Banda con las palmas hacia abajo: la resistencia es moderada al iniciar y sube cuando el codo se cierra. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -8441,14 +7837,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Invertido",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -8465,7 +7853,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -8496,10 +7883,8 @@
                 "Preparación: Banda con las palmas hacia abajo: la resistencia es moderada al iniciar y sube cuando el codo se cierra."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "band"
@@ -8519,17 +7904,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Con kettlebell, con las palmas hacia abajo, el dorso de la mano lidera la subida y el antebrazo manda. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del antebrazo.",
-              "efc": 2.0,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Kettlebell con las palmas hacia abajo: el centro de la carga queda bajo la mano y aumenta la exigencia de estabilización del antebrazo. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -8642,14 +8023,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl Invertido",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -8666,7 +8039,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -8697,10 +8069,8 @@
                 "Preparación: Kettlebell con las palmas hacia abajo: el centro de la carga queda bajo la mano y aumenta la exigencia de estabilización del antebrazo."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -8746,19 +8116,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.6,
               "description": "Cada mancuerna cuelga por su lado del banco y la muñeca puede girar hasta dejar la palma hacia arriba mientras sube. Las dos manos trabajan por separado, así que el brazo más débil no recibe ayuda del otro.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Sube las dos mancuernas doblando solo los codos, sin adelantar los hombros.",
                 "Aprieta arriba un instante, con las mancuernas junto a los hombros.",
                 "Baja despacio hasta estirar los brazos del todo por detrás del tronco."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -8872,14 +8238,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.6,
-                  "efc": 2.0,
-                  "ssc": 0.1,
-                  "technicalDifficulty": 4.6,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Curl de Bíceps Inclinado",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -8898,7 +8256,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -8928,10 +8285,8 @@
                 "Gira las palmas hacia delante antes de empezar."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.1,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.6,
-              "ttc": 1.5
+              "technicalDifficulty": 4.6
             },
             "selectedOptions": {}
           }

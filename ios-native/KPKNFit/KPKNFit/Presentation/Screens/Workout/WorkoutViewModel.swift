@@ -176,11 +176,9 @@ import SwiftUI
             $0.contextProfilesV3 = hydratedProfiles.0
             $0.activeContextProfileByExerciseId = restoredActiveProfiles
             $0.headerWidgets = headerWidgets
-            $0.readinessNeuralOverride = resumedState?.readinessNeuralOverride
-            $0.readinessMuscularOverride = resumedState?.readinessMuscularOverride
-            $0.readinessSpinalOverride = resumedState?.readinessSpinalOverride
-            $0.readinessMuscleOverrides = resumedState?.readinessMuscleOverrides ?? [:]
             $0.setDrafts = resumedState?.setDrafts ?? [:]
+            $0.recordedSportId = resumedState?.recordedSportId
+            $0.preSessionNotes = resumedState?.preSessionNotes
             $0.manualLoadOverrides = resumedState?.manualLoadOverrides ?? [:]
             $0.persistedLoadModeBySet = resumedState?.persistedLoadModeBySet ?? [:]
             $0.customTargetDurationMinutes = resumedState?.customTargetDurationMinutes
@@ -208,16 +206,6 @@ import SwiftUI
                 updateState { $0.persistedLoadModeByExercise[exKey] = lm }
             }
         }
-
-        // Calculate mesocycle stress EMA
-        let ema = AugeFatigueEngine.calculateMesocycleStressEMA(
-            logs: repository.history,
-            programId: programId,
-            mesoIndex: uiState.mesoIndex
-        )
-        updateState { $0.mesocycleStressEMA = ema }
-
-        updateCoachMessage(setDrain: SetDrain(cnsDrainPct: 0, muscularDrainPct: 0, spinalDrainPct: 0), sessionProgress: 0)
 
         refreshLoadSuggestions()
         if uiState.activeStepKey == nil || uiState.activeStepKey!.isEmpty {
@@ -267,17 +255,12 @@ import SwiftUI
                 skippedExerciseIds: restoredSkippedExerciseIds,
                 warmupCompletedExerciseIds: restoredWarmupCompletedExerciseIds,
                 mobilityCompletedExerciseIds: restoredMobilityCompletedExerciseIds,
-                readinessNeuralOverride: resumedState?.readinessNeuralOverride,
-                readinessMuscularOverride: resumedState?.readinessMuscularOverride,
-                readinessSpinalOverride: resumedState?.readinessSpinalOverride,
-                readinessMuscleOverrides: resumedState?.readinessMuscleOverrides ?? [:],
                 restModalState: uiState.restModalState,
                 persistedLoadModeBySet: [:],
                 persistedLoadModeByExercise: [:]
             ))
         }
 
-        updateCoachMessage(setDrain: SetDrain(cnsDrainPct: 0, muscularDrainPct: 0, spinalDrainPct: 0), sessionProgress: 0)
 
         let lastLogEntry = repository.history.first { $0.programId == programId && $0.id != sessionId }
         let lastDiscomforts = lastLogEntry?.postExerciseReports.flatMap { $0.discomfortIds }.filter { $0 != "none" } ?? []
@@ -407,7 +390,7 @@ import SwiftUI
             let candidatesList = exercise.contextProfilesV3
                 + repository.getContextProfilesForExercise(exerciseKey)
                 + (resumedState?.contextProfilesV3.values.filter { $0.exerciseKey == exerciseKey } ?? [])
-            
+
             var uniqueCandidates: [WorkoutContextProfile] = []
             var seenIds = Set<String>()
             for candidate in candidatesList {
@@ -817,15 +800,15 @@ import SwiftUI
                 allSubTags.append(contentsOf: tag.subTags)
             }
         }
-        
+
         let filteredSubTags = allSubTags.filter { subTag in
             resolvedSubTagIds.contains(subTag.id) && (subTag.category == .TECNICA || subTag.category == .MARCA)
         }
-        
+
         let mappedNames = filteredSubTags.map { subTag in
             subTag.name.lowercased().replacingOccurrences(of: " ", with: "_")
         }
-        
+
         let sortedNames = mappedNames.sorted()
         let techSubTags = sortedNames.joined(separator: "+")
         let contextKey = buildWorkoutContextKey(exerciseId: canonicalExerciseKey(exercise), machineBrand: resolvedMachineBrand, tagId: resolvedTagId, loadMode: resolvedLoadMode, unitMode: resolvedUnitMode, techSubTags: techSubTags.isEmpty ? nil : techSubTags)
@@ -1033,7 +1016,7 @@ import SwiftUI
         let totalSetsInSession = allExercises.reduce(0) { $0 + $1.sets.count }
         let sessionProgress = totalSetsInSession > 0 ? Double(completedCount) / Double(totalSetsInSession) : 0
 
-        let adaptiveRest = WorkoutAdaptiveRest.compute(baseRestSeconds: baseRest, advanced: advanced)
+        let adaptiveRest = baseRest
 
         if !wasExistingSet {
             let plannedRest: Int
@@ -1069,8 +1052,6 @@ import SwiftUI
             }
         }
 
-        computeAndStoreAutoRegulation(completedSet: completedSet, advanced: advanced, setDrain: SetDrain(cnsDrainPct: 0, muscularDrainPct: 0, spinalDrainPct: 0), effectiveRpe: 0, sessionProgress: sessionProgress)
-        updateCoachMessage(setDrain: SetDrain(cnsDrainPct: 0, muscularDrainPct: 0, spinalDrainPct: 0), sessionProgress: sessionProgress)
         recordingGate.finish(key: recordingKey)
         finishRecording(recordingKey)
     }
@@ -1358,26 +1339,7 @@ import SwiftUI
 
     // MARK: - Live Energy
 
-    private func recomputeLiveEnergy(completedSets: [String: CompletedSet], allExercises: [Exercise]) -> SessionEnergySummary {
-        let completedExercises = allExercises.map { exercise -> CompletedExercise in
-            let sets = exercise.sets.indices.flatMap { setIdx -> [CompletedSet] in
-                [completedSets["\(exercise.id)_\(setIdx)"],
-                 completedSets["\(exercise.id)_\(setIdx)_L"],
-                 completedSets["\(exercise.id)_\(setIdx)_R"]].compactMap { $0 }
-            }
-            return CompletedExercise(
-                exerciseId: exercise.id,
-                exerciseName: exercise.name,
-                exerciseDbId: exercise.exerciseDbId ?? exercise.exerciseId,
-                canonicalExerciseId: exercise.canonicalExerciseId ?? canonicalExerciseKey(exercise),
-                sets: sets,
-                restTime: exercise.restTime ?? 90,
-                supersetId: exercise.supersetGroupRefOrLegacyId()
-            )
-        }.filter { !$0.sets.isEmpty }
 
-        return TrainingEnergyEngine.estimateLiveSession(completedExercises: completedExercises, settings: repository.settings)
-    }
 
     // MARK: - Resume Position
 
@@ -2033,43 +1995,11 @@ import SwiftUI
 
     // MARK: - Readiness Adjustments
 
-    func saveReadinessAdjustments(neural: Int?, muscular: Int?, spinal: Int?, perMuscle: [String: Int], sleepQuality: Int? = nil) {
-        updateState {
-            $0.readinessNeuralOverride = neural
-            $0.readinessMuscularOverride = muscular
-            $0.readinessSpinalOverride = spinal
-            $0.readinessMuscleOverrides = perMuscle
-            $0.sleepQuality = sleepQuality
-        }
-        persistOngoingState()
-    }
 
-    func computeExerciseReadiness(batteries: GlobalBatteries, perMuscle: [String: MuscleRecoveryStatus]) {
-        guard let exercises = uiState.session?.exercises else { return }
-        var readinessMap: [String: ExerciseReadiness] = [:]
-        for exercise in exercises {
-            let canonicalId = canonicalExerciseKey(exercise)
-            let avgErm: Double? = {
-                let entries = getExerciseHistory(canonicalId, limit: 5)
-                let valid = entries.compactMap { $0.e1rm }
-                guard !valid.isEmpty else { return nil }
-                return valid.reduce(0, +) / Double(valid.count)
-            }()
-            if let readiness = ExerciseReadinessEngine.calculatePerExerciseReadiness(exercise: exercise, augeBatteries: batteries, perMuscle: perMuscle, averageErm: avgErm) {
-                readinessMap[exercise.id] = readiness
-            }
-        }
-        let patterns = ExerciseReadinessEngine.calculatePerMovementPatternReadiness(exercises: exercises, exerciseReadinessMap: readinessMap, perMuscle: perMuscle)
-        updateState {
-            $0.exerciseReadinessMap = readinessMap
-            $0.patternReadiness = patterns
-        }
-    }
 
-    func applyReadinessAdjustment(_ exerciseId: String, setIndex: Int, suggestion: SetAdjustmentSuggestion) {
-        let key = "\(exerciseId)_\(setIndex)"
-        updateState { $0.readinessAdjustments[key] = suggestion }
-    }
+
+
+
 
     // MARK: - Tags/Setup
 
@@ -2102,6 +2032,16 @@ import SwiftUI
 
     // MARK: - Finish Sheet
 
+    func setRecordedSport(_ id: String?) {
+        guard id == nil || RecordedSportNames.labels[id!] != nil else { return }
+        updateState { $0.recordedSportId = id }
+        persistOngoingState()
+    }
+    func setPreSessionNotes(_ notes: String) {
+        updateState { $0.preSessionNotes = notes.isEmpty ? nil : notes }
+        persistOngoingState()
+    }
+
     func showFinish() {
         stopRestTimer()
         updateState { $0.showFinishSheet = true; $0.pendingRestSuggestion = nil; $0.editingState = nil }
@@ -2121,11 +2061,11 @@ import SwiftUI
 
     // MARK: - Finish Workout
 
-    func finishWorkout(notes: String, fatigueLevel: Int, closingFeedback: SessionClosingFeedback, onPendingQuestionnaire: ((PendingQuestionnaire) -> Void)? = nil, onComplete: @escaping () -> Void = {}) {
+    func finishWorkout(notes: String, fatigueLevel: Int? = nil, closingFeedback: SessionClosingFeedback, onComplete: @escaping () -> Void = {}) {
         let state = uiState
         guard let session = state.session else { return }
         let durationMs = nowMs() - state.startTimeMs
-        let durationMinutes = max(1, Int(durationMs / 60000))
+        let durationMinutes = max(0, Int(durationMs / 60000))
         let activeSession = sessionForActiveMode(session, state.activeMode)
         let allExercises = activeSession.allExercises()
 
@@ -2159,38 +2099,7 @@ import SwiftUI
             }
         }
         let logId = UUID().uuidString
-        let drain = AugeFatigueEngine.calculateCompletedSessionDrain(completedExercises: completedExercises, exerciseDb: catalogExerciseIndex(), settings: repository.settings)
-        let base = AugeFatigueEngine.calculateCompletedSessionStress(completedExercises: completedExercises, exerciseDb: catalogExerciseIndex(), settings: repository.settings)
-
-        let predictedOverall = max(1.0, drain.cns * 0.45 + drain.muscular * 0.25 + drain.spinal * 0.30)
-        let adjSystem = (drain.cns + Double(closingFeedback.systemAdjustment)).clamped(0, 100)
-        let adjMuscular = (drain.muscular + Double(closingFeedback.muscularAdjustment)).clamped(0, 100)
-        let adjStructure = (drain.spinal + Double(closingFeedback.structureAdjustment)).clamped(0, 100)
-        let adjOverall = max(1.0, adjSystem * 0.45 + adjMuscular * 0.25 + adjStructure * 0.30)
-        let impactFactor = adjOverall / predictedOverall
-
-        let avgSetEffortSignal = calculateUnifiedSessionEffortSignal(completedExercises.flatMap { $0.sets })
-        let avgTechValues = state.postExerciseFeedbackByExerciseId.values.map { Double($0.technicalQuality) }
-        let avgTech = avgTechValues.isEmpty ? 8.0 : avgTechValues.reduce(0, +) / Double(avgTechValues.count)
-        let techniqueQuality5 = max(1, min(5, Int(avgTech - 5.0)))
-        let techniquePenalty = AugeFatigueEngine.calculateTechniquePenalty(technicalQuality: techniqueQuality5, effortSignal: avgSetEffortSignal).clamped(1.0, 1.5)
-        let clarityFactor: Double = {
-            if closingFeedback.clarityRating >= 8 { return 0.96 }
-            if closingFeedback.clarityRating <= 4 { return 1.10 }
-            return 1.0
-        }()
-        let stressScore = max(1.0, base * impactFactor * techniquePenalty * clarityFactor)
-
-        let muscleGroups = completedExercises.compactMap { ex -> String? in
-            let info = catalogInfoForCompletedExercise(ex)
-            if let primary = info?.involvedMuscles.first(where: { $0.role == .PRIMARY }) {
-                let canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(primary.muscle, emphasis: primary.emphasis)
-                return getAugeMuscleDisplayId(canonical, emphasis: primary.emphasis)
-            }
-            return ex.exerciseName
-        }.distinct().prefix(6).map { $0 }
-
-        let finalEnergySummary = TrainingEnergyEngine.estimateCompletedSession(completedExercises: completedExercises, settings: repository.settings, postExerciseFeedback: state.postExerciseFeedbackByExerciseId)
+        let finalEnergySummary: SessionEnergySummary? = nil // No validated source of training energy was recorded.
 
         let actualDate = ISO8601DateFormatter().string(from: Date()).prefix(10).description
         let scheduledDate = scheduledDateForSession(state.weekId, session: session)
@@ -2202,21 +2111,19 @@ import SwiftUI
             sessionId: sessionId,
             sessionName: session.name,
             date: nowIso(),
-            scheduledDate: scheduledDate,
-            actualDate: String(actualDate),
-            scheduleDeltaDays: scheduleDeltaDays,
             durationMinutes: durationMinutes,
             completedExercises: completedExercises,
             fatigueLevel: fatigueLevel,
             discomforts: (closingFeedback.discomforts + state.postExerciseFeedbackByExerciseId.values.flatMap { $0.discomfortIds }.filter { $0 != "none" }).distinct(),
             notes: notes.isEmpty ? nil : notes,
             totalVolume: totalVolume,
-            sessionStressScore: stressScore,
+            energySummary: finalEnergySummary,
             weekId: state.weekId,
             macroIndex: state.macroIndex,
             mesoIndex: state.mesoIndex,
             clarityRating: closingFeedback.clarityRating,
             environmentTags: closingFeedback.environmentTags,
+            stillPresentDiscomfortIds: closingFeedback.stillPresentDiscomfortIds,
             planDeviations: state.planDeviations,
             exerciseTags: state.exerciseTags,
             contextualPerformanceStateV2: state.contextualPerformanceCache,
@@ -2226,15 +2133,20 @@ import SwiftUI
                 ExerciseDiscomfortReport(exerciseId: fb.exerciseId, exerciseDbId: fb.exerciseDbId, canonicalExerciseId: fb.canonicalExerciseId, exerciseName: fb.exerciseName, technicalQuality: fb.technicalQuality, discomfortIds: fb.discomfortIds.filter { $0 != "none" }, notes: fb.notes, perceivedIntensityRpe: fb.perceivedIntensityRpe, perceivedFailure: fb.perceivedFailure)
             },
             omittedExercises: [],
-            energySummary: finalEnergySummary,
-            stillPresentDiscomfortIds: closingFeedback.stillPresentDiscomfortIds
+            scheduledDate: scheduledDate,
+            actualDate: String(actualDate),
+            scheduleDeltaDays: scheduleDeltaDays,
+            actualDurationSeconds: max(0, durationMs / 1000),
+            actualDurationSource: "SESSION_TIMER",
+            sessionEffortRpe: closingFeedback.sessionEffortRpe,
+            sessionEffortProtocol: closingFeedback.sessionEffortRpe == nil ? nil : "session_rpe_0_10_v1",
+            recordedSportId: state.recordedSportId,
+            preSessionNotes: state.preSessionNotes
         )
 
         repository.addWorkoutLog(log)
-        updatePredictionBiasFromClosingFeedback(closingFeedback)
         repository.clearOngoingWorkout()
 
-        onPendingQuestionnaire?(PendingQuestionnaire(logId: logId, sessionName: session.name, muscleGroups: muscleGroups, stillPresentDiscomfortIds: closingFeedback.stillPresentDiscomfortIds, scheduledTimeMs: nowMs() + 86400000))
 
         let deltas = computeWorkoutVolumeDelta(state.session ?? session, completedSets: state.completedSets)
         if !deltas.isEmpty {
@@ -2247,7 +2159,7 @@ import SwiftUI
             return
         }
 
-        updateState { $0.isComplete = true; $0.showFinishSheet = false; $0.sessionStressScore = stressScore }
+        updateState { $0.isComplete = true; $0.showFinishSheet = false }
         onComplete()
     }
 
@@ -2535,30 +2447,9 @@ import SwiftUI
     // MARK: - Weight Suggestion
 
     func getWeightSuggestion(_ exercise: Exercise, setIdx: Int, activeTag: String? = nil) -> WeightSuggestion? {
-        let dbId = canonicalExerciseKey(exercise)
-        let loadMode = effectiveLoadModeForExercise(exercise, setIdx: setIdx)
-        guard loadMode != .BODYWEIGHT else { return WeightSuggestion(suggestedWeight: 0, reason: "Peso corporal", suggestedLoadMode: .BODYWEIGHT) }
-
-        let history = getExerciseHistory(dbId, limit: 5, preferredTag: activeTag)
-        guard !history.isEmpty else {
-            if let refWeight = exercise.consolidatedWeight?.weight ?? exercise.sets[safe: setIdx]?.weight ?? exercise.sets[safe: setIdx]?.consolidatedWeight, refWeight > 0 {
-                return WeightSuggestion(suggestedWeight: refWeight, reason: "Del programa")
-            }
-            return nil
-        }
-
-        let baseEntry = history.first(where: { $0.tag == activeTag }) ?? history[0]
-        let lastSet = baseEntry.sets.filter { !$0.isWarmup }[safe: setIdx] ?? baseEntry.sets.filter { !$0.isWarmup }.last
-
-        if let ls = lastSet, ls.weight > 0 {
-            let lastSetWeight = inputLoadForSuggestion(ls, loadMode: loadMode)
-            let suggestedWeight: Double
-            if ls.isFailedSet || ls.isFailure { suggestedWeight = lastSetWeight * 0.95 }
-            else if ls.reps > 0, let target = exercise.sets[safe: setIdx]?.targetReps, target <= ls.reps { suggestedWeight = lastSetWeight * 1.025 }
-            else { suggestedWeight = lastSetWeight }
-            return WeightSuggestion(suggestedWeight: (suggestedWeight * 2).rounded() / 2, reason: "Última sesión")
-        }
-        return nil
+        let mode=effectiveLoadModeForExercise(exercise,setIdx:setIdx)
+        guard mode != .BODYWEIGHT, let planned=plannedWorkingWeightForSet(exercise,setIdx:setIdx), planned > 0 else { return nil }
+        return WeightSuggestion(suggestedWeight:planned,reason:"Carga del programa",suggestedLoadMode:mode)
     }
 
     func getWeightSuggestionWithAutoRegulation(_ exercise: Exercise, setIdx: Int, activeTag: String? = nil, side: String? = nil) -> WeightSuggestion? {
@@ -2587,36 +2478,11 @@ import SwiftUI
 
     // MARK: - Readiness
 
-    private func computeAndStoreAutoRegulation(completedSet: CompletedSet, advanced: SetAdvancedFeedback, setDrain: SetDrain, effectiveRpe: Double, sessionProgress: Double) {
-        guard !uiState.showFinishSheet else { return }
-        let allExercises = visibleExercises(uiState)
-        guard let nextExercise = allExercises[safe: uiState.currentExerciseIdx] else { return }
-        let nextSetIdx = uiState.currentSetIdx
 
-        let weightedDrain = setDrain.cnsDrainPct * 0.45 + setDrain.muscularDrainPct * 0.25 + setDrain.spinalDrainPct * 0.30
-        let adjustmentFactor = WorkoutAutoRegulation.computeAdjustmentFactor(weightedDrainPct: weightedDrain, effectiveRpe: effectiveRpe, reachedFailure: advanced.reachedFailure, isFailedSet: advanced.isFailedSet, isPartial: advanced.isPartial, sessionProgress: sessionProgress)
 
-        let nextLoadMode = effectiveLoadModeForExercise(nextExercise, setIdx: nextSetIdx)
-        let rawWeight = nextExercise.sets[safe: nextSetIdx]?.weight ?? completedSet.weight
-        let adjustedWeight: Double
-        if nextLoadMode == .ASSISTED { adjustedWeight = rawWeight / max(0.70, adjustmentFactor) }
-        else { adjustedWeight = rawWeight * adjustmentFactor }
 
-        let regulation = SetAutoRegulation(exerciseId: nextExercise.id, nextSetIdx: nextSetIdx, adjustmentFactor: adjustmentFactor, adjustedWeight: roundWorkoutLoadSuggestion(max(0, adjustedWeight)), reason: WorkoutAutoRegulation.buildReason(factor: adjustmentFactor, weightedDrainPct: weightedDrain, effectiveRpe: effectiveRpe, reachedFailure: advanced.reachedFailure))
-        currentAutoRegulation = regulation
-        updateState { $0.currentAutoRegulation = regulation }
-    }
 
-    private func updateCoachMessage(setDrain: SetDrain, sessionProgress: Double) {
-        let state = uiState
-        let weightedDrain = setDrain.cnsDrainPct * 0.45 + setDrain.muscularDrainPct * 0.25 + setDrain.spinalDrainPct * 0.30
-        let readinessScore = WorkoutCoachMessages.getReadinessScore(neural: state.readinessNeuralOverride, spinal: state.readinessSpinalOverride, muscular: state.readinessMuscularOverride)
-        let message = WorkoutCoachMessages.getMessage(weightedDrainPct: weightedDrain, readinessScore: readinessScore, sessionProgress: sessionProgress)
-        currentCoachMessage = message
-        updateState { $0.currentCoachMessage = message }
-    }
 
-    func shouldShowRealtimeRingsWidget() -> Bool { uiState.featureFlags.workoutV2HeaderWidgets && uiState.headerWidgets.showRealtimeRings }
     func shouldShowRmCalculatorWidget() -> Bool { uiState.featureFlags.workoutV2HeaderWidgets && uiState.headerWidgets.showRmCalculator }
 
     func estimateBrzycki1RM(_ weight: Double, reps: Int) -> Double? {
@@ -2653,14 +2519,11 @@ import SwiftUI
                 skippedExerciseIds: s.skippedExerciseIds,
                 warmupCompletedExerciseIds: s.warmupCompletedExerciseIds,
                 mobilityCompletedExerciseIds: s.mobilityCompletedExerciseIds,
-                readinessNeuralOverride: s.readinessNeuralOverride,
-                readinessMuscularOverride: s.readinessMuscularOverride,
-                readinessSpinalOverride: s.readinessSpinalOverride,
-                readinessMuscleOverrides: s.readinessMuscleOverrides,
                 restModalState: s.restModalState,
                 persistedLoadModeBySet: s.persistedLoadModeBySet,
                 persistedLoadModeByExercise: s.persistedLoadModeByExercise,
-                customTargetDurationMinutes: s.customTargetDurationMinutes
+                customTargetDurationMinutes: s.customTargetDurationMinutes,
+                recordedSportId: .some(s.recordedSportId), preSessionNotes: .some(s.preSessionNotes)
             )
             ongoing = current
         }
@@ -2996,40 +2859,13 @@ import SwiftUI
         return set.weight != nil || set.consolidatedWeight != nil || calculateSuggestedLoad(exercise, set: set) != nil
     }
 
-    private func determineFatigueFactor(_ exercise: Exercise, setIdx: Int, activeTag: String?, side: String?) -> Double {
-        let priorCount = completedSessionSetsForExercise(exercise, activeTag: activeTag).filter { $0.setIndex < setIdx && !$0.completedSet.skipped && (side == nil || $0.completedSet.side == side) }.count
-        return WorkoutLoadSuggestionRules.fatigueFactorForPriorCompletedSets(priorCompletedCount: priorCount)
-    }
 
-    private func computeSessionImprovementAdjustment(_ exercise: Exercise, activeTag: String?, side: String?) -> Double {
-        let sessionSets = completedSessionSetsForExercise(exercise, activeTag: activeTag).filter { $0.completedSet.side == side || side == nil }.filter { !$0.completedSet.skipped }
-        guard !sessionSets.isEmpty else { return 1.0 }
-        let sessionBest = sessionSets.compactMap { estimatedSessionCapacity($0.completedSet) }.max() ?? 0
-        let dbId = canonicalExerciseKey(exercise)
-        let historyBaselineRm = getExerciseHistory(dbId, limit: 1, preferredTag: activeTag).first?.e1rm ?? exercise.reference1RM ?? exercise.goal1RM
-        guard let baseline = historyBaselineRm, baseline > 0, sessionBest > 0 else { return 1.0 }
-        let ratio = sessionBest / baseline
-        if ratio >= 1.025 { return min(1.05, ratio) }
-        if ratio <= 0.97 { return max(0.92, ratio) }
-        return 1.0
-    }
+
+
 
     // MARK: - Prediction bias
 
-    private func updatePredictionBiasFromClosingFeedback(_ closingFeedback: SessionClosingFeedback) {
-        repository.updateSettings { settings in
-            let prev = settings.augePredictionBias
-            let alpha = 0.30
-            let newSamples = min(prev.sampleCount + 1, 500)
-            var updated = prev
-            updated.cnsBias = (prev.cnsBias * (1.0 - alpha) + Double(closingFeedback.systemAdjustment) * alpha).clamped(-20.0, 20.0)
-            updated.muscularBias = (prev.muscularBias * (1.0 - alpha) + Double(closingFeedback.muscularAdjustment) * alpha).clamped(-20.0, 20.0)
-            updated.spinalBias = (prev.spinalBias * (1.0 - alpha) + Double(closingFeedback.structureAdjustment) * alpha).clamped(-20.0, 20.0)
-            updated.sampleCount = newSamples
-            updated.lastUpdatedMs = self.nowMs()
-            settings.augePredictionBias = updated
-        }
-    }
+
 
     // MARK: - Header widget visibility
 
@@ -3082,7 +2918,7 @@ import SwiftUI
     private func applyReplacementToProgram(program: Program, currentLocation: SessionLocationCursor?, sourceExerciseDbId: String?, sourceExerciseId: String, sourceExerciseSlot: Int?, replacement: ExerciseMuscleInfo, scope: ReplacementPersistenceScopeV2) -> Program {
         guard scope != .SESSION_ONLY else { return program }
         var changed = false
-        
+
         let newMacros = program.macrocycles.enumerated().map { macroIndex, macro -> Macrocycle in
             let newBlocks = macro.blocks.enumerated().map { blockIndex, block -> Block in
                 var mesoOffset = 0
@@ -3116,7 +2952,7 @@ import SwiftUI
             }
             return Macrocycle(id: macro.id, name: macro.name, blocks: newBlocks)
         }
-        
+
         return changed ? program.withMacrocycles(newMacros) : program
     }
 
@@ -3318,78 +3154,14 @@ import SwiftUI
     // MARK: - Build load suggestion for set
 
     private func buildLoadSuggestionForSet(_ exercise: Exercise, setIdx: Int, activeTag: String?, side: String?) -> WorkoutLoadSuggestionUi? {
-        let currentLoadMode = effectiveLoadModeForExercise(exercise, setIdx: setIdx)
-        guard currentLoadMode != .BODYWEIGHT else { return nil }
-
-        let manualOverride = manualOverrideForSet(exercise.id, setIdx: setIdx, side: side)
-        let (resolvedBase, resolvedSource) = determineSessionBaseWeight(exercise, setIdx: setIdx, activeTag: activeTag, side: side)
-        let historySuggestion = getWeightSuggestion(exercise, setIdx: setIdx, activeTag: activeTag)
-        guard let baseWeight = (manualOverride ?? resolvedBase), baseWeight > 0.0 else { return nil }
-        let originalWeight = plannedWorkingWeightForSet(exercise, setIdx: setIdx) ?? historySuggestion?.suggestedWeight ?? baseWeight
-        let shouldRespectPlan = shouldUsePlanAsDominantBase(exercise, setIdx: setIdx)
-        let improvementFactor = shouldRespectPlan ? 1.0 : computeSessionImprovementAdjustment(exercise, activeTag: activeTag, side: side)
-        let fatigueFactor = determineFatigueFactor(exercise, setIdx: setIdx, activeTag: activeTag, side: side)
-        var computedWeight = baseWeight * fatigueFactor
-        if manualOverride == nil {
-            computedWeight *= shouldRespectPlan ? improvementFactor.clamped(0.95, 1.05) : improvementFactor
-        }
-
-        let exerciseHistory = completedSessionSetsForExercise(exercise, activeTag: activeTag).filter { side == nil || $0.completedSet.side == side }.filter { !$0.completedSet.skipped }
-        let bestRatio = exerciseHistory.compactMap { performanceRatioForSet($0.completedSet) }.max()
-        let worstRatio = exerciseHistory.compactMap { performanceRatioForSet($0.completedSet) }.min()
-        let latestRatio = exerciseHistory.last.flatMap { performanceRatioForSet($0.completedSet) }
-        let severePerformanceDrop = exerciseHistory.last != nil && (
-            exerciseHistory.last?.completedSet.failureReason == "execution_error" ||
-            (exerciseHistory.last?.completedSet.isPartial ?? false && (latestRatio ?? 1.0) <= 0.85) ||
-            (latestRatio != nil && latestRatio! <= 0.70)
-        )
-
-        var reason: String
-        if let mo = manualOverride {
-            reason = "Override manual"
-        } else {
-            switch resolvedSource {
-            case .MANUAL_BASE: reason = "Base manual de la sesión"
-            case .HISTORY: reason = "Historial del usuario"
-            case .SESSION_ERM: reason = "eRM de la sesión"
-            case .PROGRAM: reason = "Plan de la sesión"
-            }
-        }
-
-        if let best = bestRatio, best >= 1.025 {
-            let capped = max(originalWeight * 1.05, originalWeight)
-            computedWeight = min(computedWeight, capped)
-            if computedWeight < baseWeight * fatigueFactor { computedWeight = min(baseWeight * fatigueFactor, capped) }
-            reason += " · eRM +\(Int((best - 1.0) * 100))%"
-        }
-        if let worst = worstRatio, worst <= 0.97 {
-            computedWeight *= 0.97
-            reason += " · Fatiga detectada"
-        }
-
-        if !severePerformanceDrop {
-            computedWeight = max(computedWeight, baseWeight * 0.80)
-        } else {
-            computedWeight = max(computedWeight, baseWeight * 0.70)
-            reason += " · Rendimiento muy bajo"
-        }
-
-        let finalWeight: Double
-        if currentLoadMode == .ASSISTED {
-            let adjustmentRatio = baseWeight > 0.0 ? (computedWeight / baseWeight).clamped(0.60, 1.50) : 1.0
-            finalWeight = coerceLoadStep(applyAssistedAdjustment(baseWeight, factor: adjustmentRatio)).clamped(min: 0.5)
-        } else {
-            finalWeight = coerceLoadStep(computedWeight)
-        }
-
-        return WorkoutLoadSuggestionUi(
-            suggestedWeight: finalWeight,
-            originalWeight: coerceLoadStep(originalWeight),
-            isRecalculated: abs(finalWeight - originalWeight) >= 0.25,
-            reason: reason,
-            source: manualOverride != nil ? .MANUAL_BASE : resolvedSource,
-            suggestedLoadMode: currentLoadMode == .ASSISTED ? .ASSISTED : historySuggestion?.suggestedLoadMode
-        )
+        let mode=effectiveLoadModeForExercise(exercise,setIdx:setIdx)
+        guard mode != .BODYWEIGHT else { return nil }
+        let manual=manualOverrideForSet(exercise.id,setIdx:setIdx,side:side)
+        let planned=plannedWorkingWeightForSet(exercise,setIdx:setIdx)
+        guard let weight=manual ?? planned, weight > 0 else { return nil }
+        return WorkoutLoadSuggestionUi(suggestedWeight:weight,originalWeight:planned ?? weight,
+            isRecalculated:false,reason:manual == nil ? "Carga del programa" : "Carga elegida por ti",
+            source:manual == nil ? .PROGRAM : .MANUAL_BASE,suggestedLoadMode:mode)
     }
 
     // MARK: - Suggest next load V2
@@ -3520,8 +3292,8 @@ import SwiftUI
         case .cancelSession: cancelWorkout()
         case .logFeedback(let tech, let discomfort, let intensity, let save, let search):
             handleVoiceLogFeedback(technicalQuality: tech, discomfortId: discomfort, perceivedIntensity: intensity, isSaveAction: save, exerciseSearchName: search)
-        case .logFinalFeedback(let notes, let discomfort, let additional, let neural, let spinal, let save):
-            handleVoiceLogFinalFeedback(notes: notes, discomfortId: discomfort, additionalDiscomfortNote: additional, neuralBattery: neural, spinalBattery: spinal, isSaveAction: save)
+        case .logFinalFeedback(let notes, let discomfort, let additional, let save):
+            handleVoiceLogFinalFeedback(notes: notes, discomfortId: discomfort, additionalDiscomfortNote: additional, isSaveAction: save)
         case .unknown: break
         }
     }
@@ -3582,7 +3354,7 @@ import SwiftUI
         }
     }
 
-    private func handleVoiceLogFinalFeedback(notes: String?, discomfortId: String?, additionalDiscomfortNote: String?, neuralBattery: Int?, spinalBattery: Int?, isSaveAction: Bool) {
+    private func handleVoiceLogFinalFeedback(notes: String?, discomfortId: String?, additionalDiscomfortNote: String?, isSaveAction: Bool) {
         if isSaveAction {
             updateState { $0.voiceFinalConfirmTriggered = true }
             return
@@ -3596,14 +3368,8 @@ import SwiftUI
             updateState { $0.voiceFinalAdditionalDiscomfortNote = additional }
             updates.append("Detalles de molestia actualizados")
         }
-        if let neural = neuralBattery {
-            updateState { $0.voiceFinalNeural = neural }
-            updates.append("Batería nerviosa en \(neural)")
-        }
-        if let spinal = spinalBattery {
-            updateState { $0.voiceFinalSpinal = spinal }
-            updates.append("Batería espinal en \(spinal)")
-        }
+
+
         if let discomfortId = discomfortId {
             let nextDiscomforts = discomfortId == "none" ? [] : (uiState.voiceFinalDiscomforts + [discomfortId]).distinct()
             updateState { $0.voiceFinalDiscomforts = nextDiscomforts }

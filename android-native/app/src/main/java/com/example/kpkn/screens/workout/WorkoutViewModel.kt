@@ -15,11 +15,8 @@ import com.example.kpkn.data.repository.rematerializeExerciseReferences
 import com.example.kpkn.domain.training.ExerciseTrainingMax
 import com.example.kpkn.data.protocols.PlanLoadReferenceKind
 import com.example.kpkn.data.repository.StartWorkoutResult
-import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
 import com.example.kpkn.domain.discomfort.DiscomfortHistory
 import com.example.kpkn.domain.discomfort.DiscomfortSession
-import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.resolveReferenceCapacity
@@ -99,7 +96,6 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
-import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.domain.relator.RelatorLongTermMemory
 import com.example.kpkn.domain.relator.RelatorMoment
 import com.example.kpkn.domain.relator.RelatorMomentClock
@@ -349,11 +345,6 @@ class WorkoutViewModel(
             override fun inferPlannedIntensity(set: ExerciseSet) = this@WorkoutViewModel.inferPlannedIntensity(set)
             override suspend fun evaluateSetEntryV3(entry: SetEntryV2) = this@WorkoutViewModel.evaluateSetEntryV3(entry)
             override fun workoutStepPositions(state: WorkoutUiState) = this@WorkoutViewModel.workoutStepPositions(state)
-            override fun recomputeLiveEnergy(
-                completedSets: Map<String, CompletedSet>,
-                allExercises: List<Exercise>,
-                settings: Settings,
-            ) = this@WorkoutViewModel.recomputeLiveEnergy(completedSets, allExercises, settings)
             override fun computeImbalanceNotice(
                 exercise: Exercise,
                 setIdx: Int,
@@ -383,17 +374,6 @@ class WorkoutViewModel(
                 advancedFeedback: SetAdvancedFeedback?,
                 kind: RestTimerKind,
             ) = this@WorkoutViewModel.startRestTimer(seconds, advanceOnFinish, lastSet, advancedFeedback, kind = kind)
-            override fun computeAndStoreAutoRegulation(
-                completedSet: CompletedSet,
-                advanced: SetAdvancedFeedback,
-                setDrain: SetDrain,
-                effectiveRpe: Double,
-                sessionProgress: Double,
-            ) = this@WorkoutViewModel.computeAndStoreAutoRegulation(
-                completedSet, advanced, setDrain, effectiveRpe, sessionProgress,
-            )
-            override fun updateCoachMessage(setDrain: SetDrain, sessionProgress: Double) =
-                this@WorkoutViewModel.updateCoachMessage(setDrain, sessionProgress)
             override fun checkPaceCoachAlert() = this@WorkoutViewModel.checkPaceCoachAlert()
             override fun onSetRecordedMilestone(exercise: Exercise, weight: Double, reps: Int) {
                 this@WorkoutViewModel.considerSessionMilestoneForSet(exercise, weight, reps)
@@ -580,9 +560,6 @@ class WorkoutViewModel(
         abortRestTimer = ::abortRestTimerHard,
         reconcileFromRoom = {
             if (!_uiState.value.isCancellingWorkout && !_uiState.value.wasCancelled) loadSession()
-        },
-        recomputeLiveEnergy = { completedSets, exercises ->
-            recomputeLiveEnergy(completedSets, exercises, repository.settings.value)
         },
         refreshLoadSuggestions = { state, exerciseId -> refreshLoadSuggestions(state, onlyExerciseId = exerciseId) },
         refreshCalibrations = { previous, next ->
@@ -881,8 +858,6 @@ class WorkoutViewModel(
                     stepNavigator.firstIncompleteStep(state)
                 override fun startRestTimer(seconds: Int, preserveElapsed: Boolean) =
                     this@WorkoutViewModel.startRestTimer(seconds, preserveElapsed = preserveElapsed)
-                override fun updateCoachMessage(setDrain: SetDrain, sessionProgress: Double) =
-                    this@WorkoutViewModel.updateCoachMessage(setDrain, sessionProgress)
                 override fun startSessionTimer(remainingSeconds: Int) = this@WorkoutViewModel.startSessionTimer(remainingSeconds)
                 override fun workoutWidgetsSessionKey() = this@WorkoutViewModel.workoutWidgetsSessionKey()
                 override fun bindActiveWorkoutHolder() { ActiveWorkoutHolder.set(this@WorkoutViewModel) }
@@ -955,7 +930,6 @@ class WorkoutViewModel(
     init {
         initExtractedControllers()
         startRelatorPipeline()
-        loadTodayWellbeingForRelator()
         watchRestOverrun()
         voiceController.initialize(viewModelScope)
         voiceController.structuralPersistenceOptionsProvider = { replacementScopeOptions().toSet() }
@@ -2202,42 +2176,11 @@ class WorkoutViewModel(
         return (set.weight.coerceAtLeast(0.0) + 1.0) * metric
     }
 
-    private fun recomputeLiveEnergy(
-        completedSets: Map<String, CompletedSet>,
-        allExercises: List<Exercise>,
-        settings: Settings,
-    ): SessionEnergySummary {
-        val completedExercises = buildLiveCompletedExercises(completedSets, allExercises)
 
-        return TrainingEnergyEngine.estimateLiveSession(
-            completedExercises = completedExercises,
-            settings = settings,
-        )
-    }
 
     /** Drenaje acumulado de la sesión en vivo (SNC, muscular, espinal en %). */
-    fun liveDrainSummary(): Triple<Int, Int, Int>? {
-        val s = _uiState.value
-        val session = s.session ?: return null
-        val active = sessionForActiveMode(session, s.activeMode)
-        val completedExercises = toCompletedExercises(
-            session = active,
-            completedSets = s.completedSets,
-            skippedExerciseIds = s.skippedExerciseIds,
-            catalogIndex = exerciseIndex,
-        )
-        if (completedExercises.isEmpty()) return null
-        val drain = com.example.kpkn.domain.auge.AugeFatigueEngine.calculateCompletedSessionDrain(
-            completedExercises = completedExercises,
-            exerciseDb = exerciseIndex,
-            settings = repository.settings.value,
-        )
-        return Triple(
-            drain.cns.toInt(),
-            drain.muscular.toInt(),
-            drain.spinal.toInt(),
-        )
-    }
+    fun liveDrainSummary(): Triple<Int, Int, Int>? = null
+
 
     private fun buildLiveCompletedExercises(
         completedSets: Map<String, CompletedSet>,
@@ -2304,9 +2247,6 @@ class WorkoutViewModel(
         return effectiveLoadModeForExercise(exercise, setIdx) == LoadModeV2.ASSISTED
     }
 
-    private fun applyAssistedAdjustment(baseAssistance: Double, factor: Double): Double =
-        LoadSuggestionEngine.applyAssistedAdjustment(baseAssistance, factor)
-
     private fun manualOverrideForSet(exerciseId: String, setIdx: Int, side: String? = null): Double? {
         val state = _uiState.value
         val exact = state.manualLoadOverrides[workoutSetKey(exerciseId, setIdx, side)]
@@ -2354,8 +2294,9 @@ class WorkoutViewModel(
             } catch (error: Exception) {
                 updateUiState { it.copy(calibrationError = CalibrationActionFailure(id, "No se pudo guardar la decisión. Reintenta; las cargas se conservan.")) }
             } finally {
-                updateUiState { it.copy(calibrationActionId = null) }
+                // Publish idle only after releasing the gate: an observer may immediately record S4.
                 recordingGate.finish(gateKey)
+                updateUiState { it.copy(calibrationActionId = null) }
             }
         }
     }
@@ -2643,7 +2584,7 @@ class WorkoutViewModel(
                 currentSetIdx = snapshotSetIdx,
                 finishOperationId = UUID.randomUUID().toString(),
                 completionInstantIso = Instant.now().toString(),
-                completedSetInputHash = MuscularSessionImpactEngine.completedSetInputHash(state.completedSets),
+                completedSetInputHash = com.example.kpkn.domain.workout.WorkoutCompletionFingerprint.completedSetInputHash(state.completedSets),
             )
             state.copy(
                 showFinishSheet = true,
@@ -2690,11 +2631,8 @@ class WorkoutViewModel(
         } else {
             "Molestias: ${summary.discomforts.joinToString("; ")} ."
         }
-        val muscleText = summary.lowestMuscle?.let { "El músculo con menor batería es $it." }.orEmpty()
         voiceController.announceSessionSummary(
-            "Tu sesión fue ${summary.intensityDescriptor.lowercase()}. $discomfortText " +
-                "Tu RING muscular quedó en ${summary.muscularRing} por ciento. $muscleText " +
-                "Tu RING de energía quedó en ${summary.energyRing} por ciento y tu columna en ${summary.spinalRing} por ciento. " +
+            "Registraste ${summary.recordedSets} series en ${summary.durationMinutes} minutos. $discomfortText " +
                 "$nextSessionText Para finalizar, di sesión terminada.",
         )
     }
@@ -4150,38 +4088,6 @@ class WorkoutViewModel(
 
     fun consumeRelatorUiHook() {
         _relatorUiHook.value = null
-    }
-
-    fun bindDailyRelatorSignals(
-        snapshot: AugeSnapshot,
-        wellbeing: DailyWellbeingLog?,
-    ) {
-        val verdict = snapshot.readiness ?: if (!snapshot.isLoading) {
-            AugeRecoveryEngine.calculateDailyReadiness(snapshot.dashboard, wellbeing)
-        } else {
-            null
-        }
-        updateUiState { state ->
-            state.copy(
-                dailyReadiness = verdict ?: state.dailyReadiness,
-                todayWellbeing = wellbeing ?: state.todayWellbeing,
-                sleepQuality = wellbeing?.sleepQuality ?: state.sleepQuality,
-            )
-        }
-    }
-
-    private fun loadTodayWellbeingForRelator() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val wellbeing = runCatching {
-                com.example.kpkn.data.repository.AugeRepository.getInstance(appContext).getTodayWellbeing()
-            }.getOrNull() ?: return@launch
-            updateUiState { state ->
-                state.copy(
-                    todayWellbeing = wellbeing,
-                    sleepQuality = wellbeing.sleepQuality,
-                )
-            }
-        }
     }
 
     @OptIn(FlowPreview::class)
@@ -6159,6 +6065,12 @@ class WorkoutViewModel(
 
     private var sessionNotePersistJob: Job? = null
 
+    fun setRecordedSport(sportId: String?) {
+        require(sportId == null || com.example.kpkn.domain.multisport.SportId.entries.any { it.name == sportId })
+        updateUiState { it.copy(recordedSportId = sportId) }
+        persistOngoingState()
+    }
+
     fun setSessionNotes(note: String, flush: Boolean = false) {
         updateUiState { it.copy(sessionNotes = note) }
         sessionNotePersistJob?.cancel()
@@ -6463,7 +6375,7 @@ class WorkoutViewModel(
         )
         val nowMs = System.currentTimeMillis()
         val cutoffMs = nowMs - FEEDBACK_HISTORY_DAYS * 24L * 60L * 60L * 1000L
-        val logs = repository.history.value.filter { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) >= cutoffMs }
+        val logs = repository.history.value.filter { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) >= cutoffMs }
         val history = DiscomfortHistory(
             logs = logs,
             now = java.time.Instant.ofEpochMilli(nowMs),
@@ -6480,38 +6392,6 @@ class WorkoutViewModel(
         feedbackDrafts.clear()
         voiceController.completeVoiceFeedbackPrompt()
     }
-
-    fun saveReadinessAdjustments(
-        neural: Int?,
-        muscular: Int?,
-        spinal: Int?,
-        perMuscle: Map<String, Int>,
-        sleepQuality: Int? = null,
-    ) = feedbackController.saveReadinessAdjustments(neural, muscular, spinal, perMuscle, sleepQuality)
-
-    // ─── Readiness por Ejercicio y Patrón ─────────────────────────────────────
-
-    /**
-     * Calcula el readiness por ejercicio y patrón para la sesión actual.
-     * Debe invocarse UNA VEZ cuando los datos AUGE están disponibles.
-     * Usa EXCLUSIVAMENTE datos reales de AUGE (batteries, perMuscle).
-     */
-    fun computeExerciseReadiness(
-        batteries: GlobalBatteries,
-        perMuscle: Map<String, MuscleRecoveryStatus>,
-        articularBatteries: Map<ArticularBattery, ArticularBatteryState> = emptyMap(),
-        unresolvedDiscomfortIds: List<String> = emptyList(),
-    ) = feedbackController.computeExerciseReadiness(batteries, perMuscle, articularBatteries, unresolvedDiscomfortIds)
-
-    /**
-     * Aplica el ajuste de carga sugerido por readiness para la serie actual.
-     * Solo afecta la sesión actual (no persiste al cerrar).
-     */
-    fun applyReadinessAdjustment(
-        exerciseId: String,
-        setIndex: Int,
-        suggestion: SetAdjustmentSuggestion,
-    ) = feedbackController.applyReadinessAdjustment(exerciseId, setIndex, suggestion)
 
     // ─── Tags / Setup ─────────────────────────────────────────────────────────
 
@@ -6776,44 +6656,20 @@ class WorkoutViewModel(
         if (state.isFinishingWorkout || state.isComplete) return
         // Sin series no hay nada que guardar; el guard de finish da el feedback.
         if (state.completedSets.isEmpty()) return
-        val unifiedEffort = calculateUnifiedSessionEffortSignal(state.completedSets.values.toList())
-        val inferredFatigue = when {
-            unifiedEffort >= 10.5 -> 5
-            unifiedEffort >= 9.2 -> 4
-            unifiedEffort >= 7.8 -> 3
-            unifiedEffort >= 6.4 -> 2
-            else -> 1
-        }
-        val averageTechnique = state.postExerciseFeedbackByExerciseId.values
-            .map { it.technicalQuality }
-            .average()
-            .takeIf { !it.isNaN() }
-            ?.coerceIn(1.0, 10.0)
-            ?: 8.0
         val additionalNote = state.voiceFinalAdditionalDiscomfortNote?.trim()?.takeIf { it.isNotBlank() }
         val closingFeedback = SessionClosingFeedback(
-            overallFatigue = inferredFatigue,
-            // Sin preview post-sesión en este camino (vive en la sheet): ajustes neutros
-            // para no doble-contar el drenaje que el engine calcula del log real.
-            systemAdjustment = 0,
-            muscularAdjustment = 0,
-            structureAdjustment = 0,
             discomforts = (
                 state.voiceFinalDiscomforts.map { discomfortLabel(it) } +
                     listOfNotNull(additionalNote)
                 ).distinct(),
-            clarityRating = averageTechnique.toInt().coerceIn(1, 10),
+            clarityRating = null,
             environmentTags = emptyList(),
-            finalNeuralBattery = state.voiceFinalNeural,
-            finalSpinalBattery = state.voiceFinalSpinal,
-            neuralEdited = state.voiceFinalNeural != null,
-            spinalEdited = state.voiceFinalSpinal != null,
             additionalDiscomfortNote = additionalNote,
             stillPresentDiscomfortIds = state.voiceFinalDiscomforts,
         )
         finishWorkout(
             notes = state.voiceFinalNotes.orEmpty().trim(),
-            fatigueLevel = inferredFatigue,
+            fatigueLevel = 0,
             closingFeedback = closingFeedback,
             onComplete = {
                 // TTS post-write: suena recién cuando finalizeWorkout ya persistió el log.
@@ -7213,11 +7069,11 @@ class WorkoutViewModel(
     ) = log.completedExercises.firstOrNull { identityKeysOverlap(identityKeysForCompleted(it), keys) }
 
     /** Logs from the last [maxAgeHours] hours, newest-first, for intra/24h relator hints. */
-    fun recentWorkoutLogs(maxAgeHours: Int = 36): List<com.example.kpkn.data.models.WorkoutLog> {
-        val cutoff = System.currentTimeMillis() - maxAgeHours * 3_600_000L
+    fun recentWorkoutLogs(maxAgeHours: Int = 36, nowMs: Long = System.currentTimeMillis()): List<com.example.kpkn.data.models.WorkoutLog> {
+        val cutoff = nowMs - maxAgeHours * 3_600_000L
         return repository.history.value
-            .filter { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) >= cutoff }
-            .sortedByDescending { com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) }
+            .filter { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) in cutoff..nowMs && com.example.kpkn.domain.time.TrainingDates.logDateMs(it) > 0L }
+            .sortedByDescending { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) }
     }
 
     /** First working-set load (kg) for [exercise] — same source as the tag overlay. */
@@ -7313,9 +7169,9 @@ class WorkoutViewModel(
         return FinishPresentationContext(
             program = repository.getProgramById(programId),
             weekNumber = state.livePlanContext?.weekIndexInBlock,
-            history = repository.history.value.filter { it.id != currentLogId && com.example.kpkn.domain.auge.AugeUtils.logDateMs(it) < state.startTimeMs },
+            history = repository.history.value.filter { it.id != currentLogId && com.example.kpkn.domain.time.TrainingDates.logDateMs(it) in 1 until state.startTimeMs },
             photos = (photos + legacyPhotos + state.sessionPhotos.map { StoryPhoto(it) }).distinctBy { it.path },
-            calories = state.liveEnergySummary.totalKcal.mid.takeIf { it > 0 },
+            calories = null,
             records = state.sessionMilestones.count { it.kind == "pr_e1rm" },
         )
     }
@@ -7345,94 +7201,14 @@ class WorkoutViewModel(
      */
     fun getWeightSuggestion(exercise: Exercise, setIdx: Int, activeTag: String? = null): WeightSuggestion? {
         if (LoadSuggestionEngine.shouldDeferToNativeProgression(exercise, setIdx)) return null
-        val dbId = canonicalExerciseKey(exercise)
-        val loadMode = effectiveLoadModeForExercise(exercise, setIdx)
-        val tags = tagsForExercise(exercise.id).ifEmpty { tagsForExerciseKey(dbId) }
-        val tag = WorkoutTagResolver.resolveTag(activeTag, tags)
-
-        val history = getExerciseHistory(exercise, limit = 5, preferredTag = activeTag)
-        if (history.isEmpty()) {
-            if (loadMode == LoadModeV2.BODYWEIGHT) {
-                return WeightSuggestion(
-                    suggestedWeight = 0.0,
-                    reason = "Peso corporal",
-                    suggestedLoadMode = LoadModeV2.BODYWEIGHT,
-                )
-            }
-            if (tag != null || !activeTag.isNullOrBlank()) {
-                return WeightSuggestion(
-                    suggestedWeight = 0.0,
-                    reason = "Sin historial en esta etiqueta",
-                    suggestedLoadMode = loadMode,
-                )
-            }
-            val refWeight = exercise.consolidatedWeight?.weightKg
-                ?: exercise.sets.getOrNull(setIdx)?.weight
-                ?: exercise.sets.getOrNull(setIdx)?.consolidatedWeight
-            return if (refWeight != null && refWeight > 0)
-                WeightSuggestion(suggestedWeight = refWeight, reason = "Del programa", suggestedLoadMode = loadMode)
-            else null
+        val set = exercise.sets.getOrNull(setIdx) ?: return null
+        val mode = effectiveLoadModeForExercise(exercise, setIdx)
+        val value = com.example.kpkn.domain.calculations.calculateSuggestedLoad(exercise, set)
+            ?: set.weight ?: set.consolidatedWeight ?: exercise.consolidatedWeight?.weightKg
+            ?: if (mode == LoadModeV2.BODYWEIGHT) 0.0 else return null
+        return value.takeIf { it.isFinite() && it >= 0.0 }?.let {
+            WeightSuggestion(it, "Carga del plan", suggestedLoadMode = mode)
         }
-
-        val tagged = tag != null || !activeTag.isNullOrBlank()
-        val baseEntry = if (tagged) {
-            history.firstOrNull { entry ->
-                entry.tag == null ||
-                    entry.tag == activeTag ||
-                    WorkoutTagResolver.namesMatch(entry.tag, tag?.name ?: activeTag)
-            }
-        } else {
-            history.first()
-        }
-        if (tagged && baseEntry == null) {
-            return WeightSuggestion(
-                suggestedWeight = 0.0,
-                reason = "Sin historial en esta etiqueta",
-                suggestedLoadMode = loadMode,
-            )
-        }
-        val resolvedEntry = baseEntry ?: return null
-        val lastSet = resolvedEntry.sets.filter { !it.isWarmup }
-            .getOrNull(setIdx) ?: resolvedEntry.sets.filter { !it.isWarmup }.lastOrNull()
-        val techniqueSignal = latestTechniqueSignal(exercise.id, dbId)
-
-        if (lastSet != null) {
-            val targetReps = exercise.sets.getOrNull(setIdx)?.plannedRepAnchor() ?: lastSet.reps
-            val suggestion = LoadSuggestionEngine.suggestFromLastWorkingSet(
-                lastSet = lastSet,
-                targetReps = targetReps,
-                loadMode = loadMode,
-                activeTag = activeTag,
-                baseEntryTag = resolvedEntry.tag,
-                techniqueSignal = techniqueSignal,
-                applySemanticTagScale = tag == null,
-            )
-            if (suggestion != null) {
-                return WeightSuggestion(
-                    suggestedWeight = suggestion.suggestedWeight,
-                    reason = suggestion.reason,
-                    suggestedLoadMode = suggestion.suggestedLoadMode ?: loadMode,
-                )
-            }
-        }
-
-        if (loadMode == LoadModeV2.BODYWEIGHT) {
-            return WeightSuggestion(
-                suggestedWeight = 0.0,
-                reason = "Peso corporal",
-                suggestedLoadMode = LoadModeV2.BODYWEIGHT,
-            )
-        }
-
-        if (tagged) {
-            return WeightSuggestion(
-                suggestedWeight = 0.0,
-                reason = "Sin historial en esta etiqueta",
-                suggestedLoadMode = loadMode,
-            )
-        }
-
-        return null
     }
 
     private fun currentSessionSetsNewestLast(exerciseId: String): List<CompletedSet> =
@@ -7556,87 +7332,6 @@ class WorkoutViewModel(
                 },
             )
         }
-    }
-
-    private fun computeAndStoreAutoRegulation(
-        completedSet: CompletedSet,
-        advanced: SetAdvancedFeedback,
-        setDrain: SetDrain,
-        effectiveRpe: Double,
-        sessionProgress: Double,
-    ) {
-        val state = _uiState.value
-        if (state.showFinishSheet) return
-        val allExercises = visibleExercises(state)
-        val nextExerciseIdx = state.currentExerciseIdx
-        val nextSetIdx = state.currentSetIdx
-        val nextExercise = allExercises.getOrNull(nextExerciseIdx) ?: return
-
-        val weightedDrain = (setDrain.cnsDrainPct * 0.45) +
-            (setDrain.muscularDrainPct * 0.25) +
-            (setDrain.spinalDrainPct * 0.30)
-
-        val adjustmentFactor = WorkoutAutoRegulation.computeAdjustmentFactor(
-            weightedDrainPct = weightedDrain,
-            effectiveRpe = effectiveRpe,
-            reachedFailure = advanced.reachedFailure,
-            isFailedSet = advanced.isFailedSet,
-            isPartial = advanced.isPartial,
-            sessionProgress = sessionProgress,
-        )
-
-        val baseSuggestion = getWeightSuggestion(nextExercise, nextSetIdx, state.exerciseTags[nextExercise.id])
-        val nextLoadMode = effectiveLoadModeForExercise(nextExercise, nextSetIdx)
-        val rawWeight = baseSuggestion?.suggestedWeight
-            ?: nextExercise.sets.getOrNull(nextSetIdx)?.weight
-            ?: completedSet.weight
-
-        val adjustedWeight = (if (nextLoadMode == LoadModeV2.ASSISTED) {
-            rawWeight / adjustmentFactor.coerceAtLeast(0.70)
-        } else {
-            rawWeight * adjustmentFactor
-        }).let { w ->
-            if (w > 0) roundWorkoutLoadSuggestion(w) else 0.0
-        }.let { if (nextLoadMode == LoadModeV2.ASSISTED && rawWeight > 0.0) it.coerceAtLeast(rawWeight) else it }
-
-        val reason = WorkoutAutoRegulation.buildReason(
-            factor = adjustmentFactor,
-            weightedDrainPct = weightedDrain,
-            effectiveRpe = effectiveRpe,
-            reachedFailure = advanced.reachedFailure,
-        ) + if (nextLoadMode == LoadModeV2.ASSISTED && adjustmentFactor != 1.0) {
-            " · Asistencia ajustada (modo asistido: más fatiga = más ayuda)"
-        } else ""
-
-        val regulation = SetAutoRegulation(
-            exerciseId = nextExercise.id,
-            nextSetIdx = nextSetIdx,
-            adjustmentFactor = adjustmentFactor,
-            adjustedWeight = adjustedWeight,
-            reason = reason,
-        )
-        updateUiState { it.copy(currentAutoRegulation = regulation) }
-    }
-
-    private fun updateCoachMessage(
-        setDrain: SetDrain,
-        sessionProgress: Double,
-    ) {
-        val state = _uiState.value
-        val weightedDrain = (setDrain.cnsDrainPct * 0.45) +
-            (setDrain.muscularDrainPct * 0.25) +
-            (setDrain.spinalDrainPct * 0.30)
-        val readinessScore = WorkoutCoachMessages.getReadinessScore(
-            neural = state.readinessNeuralOverride,
-            spinal = state.readinessSpinalOverride,
-            muscular = state.readinessMuscularOverride,
-        )
-        val message = WorkoutCoachMessages.getMessage(
-            weightedDrainPct = weightedDrain,
-            readinessScore = readinessScore,
-            sessionProgress = sessionProgress,
-        )
-        updateUiState { it.copy(currentCoachMessage = message) }
     }
 
     private fun latestTechniqueSignal(

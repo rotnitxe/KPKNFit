@@ -25,19 +25,7 @@ object PlanObserver : RelatorObserver {
             autoregLine(context)?.let(::add)
         }.distinct().ifEmpty { setLine(context) }
         val actions = buildList {
-            if (shouldOfferLoadAdjust(context)) {
-                val pct = if ((context.readiness.dailyScore ?: 100) < 50) -10.0 else -5.0
-                add(
-                    RelatorActionSpec(
-                        kind = RelatorActionKind.ADJUST_LOAD,
-                        label = "Ajusta carga",
-                        span = "Ajusta carga",
-                        exerciseId = context.exerciseId,
-                        setIndex = context.setIndex,
-                        loadDeltaPercent = pct,
-                    ),
-                )
-            }
+
             context.suggestedWeightKg?.takeIf { it > 0.0 }?.let { kg ->
                 add(
                     RelatorActionSpec(
@@ -205,17 +193,12 @@ object PlanObserver : RelatorObserver {
     private fun autoregLine(context: RelatorContext): String? {
         return when (context.plan.autoregulationMode) {
             AutoregulationMode.PROPOSE -> "Autorregulación propone: mira la carga de {ex} y confirma."
-            AutoregulationMode.AUTO -> "Autorregulación automática: {ex} ya viene ajustado a tu disponibilidad."
+            AutoregulationMode.AUTO -> "Regla del programa: revisa los datos y confirma cualquier propuesta para {ex}."
             AutoregulationMode.OFF -> null
         }
     }
 
-    private fun shouldOfferLoadAdjust(context: RelatorContext): Boolean {
-        val mode = context.plan.autoregulationMode
-        if (mode != AutoregulationMode.PROPOSE && mode != AutoregulationMode.AUTO) return false
-        val score = context.readiness.dailyScore ?: context.readiness.exerciseScore ?: return false
-        return score < 60
-    }
+
 
     /**
      * Sin estructura de receta, el plan dice la serie que toca: «Serie 2 de 4: 95 kg × 6 a RIR 2.» (LR1h). Siempre hay una

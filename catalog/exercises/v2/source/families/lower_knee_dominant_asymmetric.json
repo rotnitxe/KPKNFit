@@ -20,12 +20,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Colgada de las manos entre las piernas, con los discos a izquierda y derecha, la barra puede rozar la cara interna de los muslos y tiene que subir en vertical, pegada al cuerpo.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Empuja el suelo con los dos pies y sube con la barra pegada al interior de los muslos.",
@@ -33,7 +30,6 @@
                 "Baja con el tronco erguido hasta dejar los muslos paralelos al suelo.",
                 "En la serie siguiente cambia la pierna adelantada y la posición de las manos."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -178,14 +174,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 5.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Jefferson",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -200,7 +188,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -231,14 +218,12 @@
                 "Saca el pecho y aprieta el abdomen antes de despegar la barra del suelo."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "core",
                 "erector_spinae",
                 "forearm"
               ],
-              "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "technicalDifficulty": 5.2
             },
             "selectedOptions": {}
           }

@@ -217,8 +217,8 @@ class ProgramDetailClosureRenderSheetTest {
             ProgramVolumeCountControls(
                 indirectMode = 0,
                 onIndirectMode = {},
-                adjustByIntensity = false,
-                onAdjustByIntensity = {},
+                
+                
             )
         }
         val header: @Composable (ProgramHeaderState) -> Unit = { state ->

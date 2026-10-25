@@ -4,14 +4,6 @@ import com.example.kpkn.data.models.CalibrationResponseState
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.Gender
-import com.example.kpkn.data.models.InitialRecoveryActivityType
-import com.example.kpkn.data.models.InitialRecoveryAxialExposure
-import com.example.kpkn.data.models.InitialRecoveryIntensity
-import com.example.kpkn.data.models.InitialRecoveryResponseState
-import com.example.kpkn.data.models.RingsLiftPattern
-import com.example.kpkn.data.models.RingsMuscleGroup
-import com.example.kpkn.domain.onboarding.RingsMainLiftsState
-import com.example.kpkn.domain.onboarding.RingsSessionDaysState
 import com.example.kpkn.data.models.PlanDirection
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.TrainingStyle
@@ -220,7 +212,6 @@ private val DERIVED_SELECTION_STEPS: Set<SetupStepId> = setOf(
     // ¿Compites?: sale de `competition`, `meetDateIso` y `meetName`.
     SetupStepId.COMPETITION,
     // RINGS v2: días y ejercicios principales se leen de sus campos (los reductores de días y ejercicios los escriben).
-    SetupStepId.RINGS_SESSION_DAYS, SetupStepId.RINGS_MAIN_LIFTS,
 )
 
 /** El borrador con la selección de [step] guardada, salvo en los pasos cuya selección sale de sus datos. */
@@ -279,14 +270,7 @@ private fun SetupWizardDraft.projectChoices(
         )
     }
 
-    SetupStepId.RINGS_DISCOMFORT -> withRings(nowEpochMs) { answers ->
-        when {
-            "omit" in values -> answers.copy(discomfortIds = emptyList(), discomfortState = SetupDiscomfortState.OMITTED)
-            "none" in values -> answers.copy(discomfortIds = emptyList(), discomfortState = SetupDiscomfortState.NONE)
-            values.isEmpty() -> answers.copy(discomfortIds = emptyList(), discomfortState = SetupDiscomfortState.NOT_ANSWERED)
-            else -> answers.copy(discomfortIds = values.sorted(), discomfortState = SetupDiscomfortState.DECLARED)
-        }
-    }
+    
 
     SetupStepId.HOME_EQUIPMENT -> copy(equipment = values.mapNotNull { legacyEquipmentValue(it) }.toSet())
 
@@ -466,53 +450,24 @@ private fun SetupWizardDraft.projectChoice(
         else -> this
     }
 
-    SetupStepId.RINGS_RECENT -> withRings(nowEpochMs) { answers ->
-        when (value) {
-            "yes" -> answers.copy(recentTraining = true, recentTrainingState = SetupRecentTrainingState.YES)
-            "no" -> answers.copy(recentTraining = false, recentTrainingState = SetupRecentTrainingState.NO)
-            "unknown" -> answers.copy(recentTraining = null, recentTrainingState = SetupRecentTrainingState.UNKNOWN)
-            else -> answers
-        }
-    }
+    
 
-    SetupStepId.RINGS_SESSIONS -> withRings(nowEpochMs) { it.copy(sessionsLastSevenDays = value?.toIntOrNull()) }
+    
 
-    SetupStepId.RINGS_RECENCY -> withRings(nowEpochMs) { it.copy(lastSessionRecencyDays = value?.toIntOrNull()) }
+    
 
-    SetupStepId.RINGS_ACTIVITY -> withRings(nowEpochMs) { answers ->
-        answers.copy(
-            activityType = InitialRecoveryActivityType.entries.firstOrNull { item -> item.name == value },
-            activityTypeState = if (value != null) InitialRecoveryResponseState.DECLARED
-            else InitialRecoveryResponseState.UNKNOWN,
-        )
-    }
+    
 
-    SetupStepId.RINGS_INTENSITY -> withRings(nowEpochMs) { answers ->
-        answers.copy(intensityLevel = InitialRecoveryIntensity.entries.firstOrNull { item -> item.name == value })
-    }
+    
+    
 
-    // «Sí»/«No» son una declaración explícita; «No lo sé» deja el estado en
-    // UNKNOWN sin inventar sesiones ni exposición.
-    SetupStepId.RINGS_AXIAL -> withRings(nowEpochMs) { answers ->
-        val state = when (value) {
-            "yes", "no" -> InitialRecoveryResponseState.DECLARED
-            "unknown" -> InitialRecoveryResponseState.UNKNOWN
-            else -> null
-        }
-        if (state == null) answers else answers.copy(axialExposure = answers.axialExposure.copy(state = state))
-    }
+    
 
-    SetupStepId.RINGS_MUSCLE_FEELING -> withRings(nowEpochMs) { it.copy(muscleFeeling = feelingValue(value)) }
+    
 
-    SetupStepId.RINGS_ENERGY_FEELING -> withRings(nowEpochMs) { it.copy(energy = feelingValue(value)) }
+    
 
-    SetupStepId.RINGS_STRUCTURE_FEELING -> withRings(nowEpochMs) { it.copy(structureFeeling = feelingValue(value)) }
-
-    SetupStepId.RINGS_START -> withRings(nowEpochMs) { it.copy(startAction = value) }
-
-    // Pasos cuyo tipado escribe la propia UI con `updateStep` (prioridades,
-    // split, plan, autorregulación, calentamientos, macros manuales, filas de
-    // pesajes, inventario): aquí solo vive la selección canónica ya guardada.
+    
     else -> this
 }
 
@@ -567,13 +522,9 @@ private fun SetupWizardDraft.projectNumber(
 
     SetupStepId.NUTRITION_HISTORY_CONTEXT -> copy(previousMaximumWeightKg = value?.takeIf { it.isFinite() })
 
-    SetupStepId.RINGS_SESSIONS -> withRings(nowEpochMs) { it.copy(sessionsLastSevenDays = value?.toInt()) }
+    
 
-    SetupStepId.RINGS_RECENCY -> withRings(nowEpochMs) { it.copy(lastSessionRecencyDays = value?.toInt()) }
-
-    // NUTRITION_TARGET / macros manuales / marcas / bolsa de prioridades:
-    // su tipado crudo lo escribe la UI con `updateStep`; aquí solo se conserva
-    // el texto en `inputTexts` (hecho por el llamante).
+    
     else -> this
 }
 
@@ -586,189 +537,6 @@ private fun SetupWizardDraft.withNutrition(
     return copy(nutritionDraft = change(base))
 }
 
-/**
- * Escritura sobre Rings; crea el contenedor si hace falta y estampa
- * `capturedAtMs` solo en la primera declaración (nunca lo regenera).
- */
-private fun SetupWizardDraft.withRings(
-    nowEpochMs: Long,
-    change: (SetupRingsAnswers) -> SetupRingsAnswers,
-): SetupWizardDraft {
-    val base = ringsAnswers ?: SetupRingsAnswers()
-    val changed = change(base)
-    return copy(ringsAnswers = if (changed.capturedAtMs == null) changed.copy(capturedAtMs = nowEpochMs) else changed)
-}
-
-// ─── RINGS del alta (v2): días, ejercicios principales, series por grupo y sensaciones ───────
-
-/** Días que admite RINGS: 0 = hoy … 6 (toda la carga se disipa antes de seis días en el motor). */
-private val RINGS_DAY_OFFSETS: IntRange = 0..6
-
-/** Series por grupo que admite el selector de RINGS. */
-private val RINGS_GROUP_SETS_RANGE: IntRange = 0..20
-
-/**
- * Alterna un día de la última semana (0 = hoy … 6). Tocar un día apaga «No entrené» y «No lo recuerdo»; quitar el último
- * día deja la pregunta sin responder. Cambiar los días reinicia la fecha del check-in: los desplazamientos son relativos a hoy.
- */
-fun SetupWizardDraft.withTrainedDayToggled(offset: Int, nowEpochMs: Long = System.currentTimeMillis()): SetupWizardDraft {
-    if (offset !in RINGS_DAY_OFFSETS) return this
-    return withRings(nowEpochMs) { answers ->
-        val current = if (answers.sessionDaysState == RingsSessionDaysState.DECLARED) answers.trainedDayOffsets else emptySet()
-        val next = if (offset in current) current - offset else current + offset
-        answers.copy(
-            trainedDayOffsets = next,
-            sessionDaysState = if (next.isEmpty()) RingsSessionDaysState.NOT_ANSWERED else RingsSessionDaysState.DECLARED,
-            capturedAtMs = null,
-        ).withDerivedTraining()
-    }
-}
-
-/** «No entrené»: ningún día entrenado. Excluyente con los días y con «No lo recuerdo». */
-fun SetupWizardDraft.withNoTraining(nowEpochMs: Long = System.currentTimeMillis()): SetupWizardDraft =
-    withRings(nowEpochMs) { answers ->
-        answers.copy(
-            trainedDayOffsets = emptySet(),
-            sessionDaysState = RingsSessionDaysState.NONE,
-            capturedAtMs = null,
-        ).withDerivedTraining()
-    }
-
-/** «No lo recuerdo»: el historial queda desconocido y no se fabrica evidencia. Excluyente con los días. */
-fun SetupWizardDraft.withTrainingUnknown(nowEpochMs: Long = System.currentTimeMillis()): SetupWizardDraft =
-    withRings(nowEpochMs) { answers ->
-        answers.copy(
-            trainedDayOffsets = emptySet(),
-            sessionDaysState = RingsSessionDaysState.UNKNOWN,
-            capturedAtMs = null,
-        ).withDerivedTraining()
-    }
-
-/**
- * Alterna un ejercicio principal. Elegir uno apaga «Ninguno de estos» y «No lo sé»; quitar el último deja la pregunta sin
- * responder.
- */
-fun SetupWizardDraft.withMainLiftToggled(pattern: RingsLiftPattern, nowEpochMs: Long = System.currentTimeMillis()): SetupWizardDraft =
-    withRings(nowEpochMs) { answers ->
-        val current = if (answers.mainLiftsState == RingsMainLiftsState.DECLARED) answers.mainLifts else emptySet()
-        val next = if (pattern in current) current - pattern else current + pattern
-        answers.copy(
-            mainLifts = next,
-            mainLiftsState = if (next.isEmpty()) RingsMainLiftsState.NOT_ANSWERED else RingsMainLiftsState.DECLARED,
-        ).withDerivedTraining()
-    }
-
-/** «Ninguno de estos»: ningún ejercicio principal de la lista. Excluyente con los ejercicios y con «No lo sé». */
-fun SetupWizardDraft.withNoMainLifts(nowEpochMs: Long = System.currentTimeMillis()): SetupWizardDraft =
-    withRings(nowEpochMs) { answers ->
-        answers.copy(mainLifts = emptySet(), mainLiftsState = RingsMainLiftsState.NONE).withDerivedTraining()
-    }
-
-/** «No lo sé» en ejercicios principales: no es lo mismo que «Ninguno de estos». Excluyente con los ejercicios. */
-fun SetupWizardDraft.withMainLiftsUnknown(nowEpochMs: Long = System.currentTimeMillis()): SetupWizardDraft =
-    withRings(nowEpochMs) { answers ->
-        answers.copy(mainLifts = emptySet(), mainLiftsState = RingsMainLiftsState.UNKNOWN).withDerivedTraining()
-    }
-
-/**
- * Series de un grupo (0–20). [sets] null es «No lo sé»: el grupo queda en [SetupRingsAnswers.groupSetsUnknown] y no lleva
- * carga, sin fabricar un número.
- */
-fun SetupWizardDraft.withGroupSets(
-    group: RingsMuscleGroup,
-    sets: Int?,
-    nowEpochMs: Long = System.currentTimeMillis(),
-): SetupWizardDraft = withRings(nowEpochMs) { answers ->
-    if (sets == null) {
-        answers.copy(groupSets = answers.groupSets - group, groupSetsUnknown = answers.groupSetsUnknown + group)
-    } else {
-        val bounded = sets.coerceIn(RINGS_GROUP_SETS_RANGE.first, RINGS_GROUP_SETS_RANGE.last)
-        answers.copy(
-            groupSets = answers.groupSets + (group to bounded),
-            groupSetsUnknown = answers.groupSetsUnknown - group,
-        )
-    }
-}
-
-/** Las tres sensaciones de RINGS en una pantalla; cada una puede quedar sin responder (null), nunca como nivel 0. */
-fun SetupWizardDraft.withFeelings(
-    muscular: Int?,
-    energy: Int?,
-    structure: Int?,
-    nowEpochMs: Long = System.currentTimeMillis(),
-): SetupWizardDraft = withRings(nowEpochMs) { answers ->
-    answers.copy(
-        muscleFeeling = ringsFeelingLevel(muscular),
-        energy = ringsFeelingLevel(energy),
-        structureFeeling = ringsFeelingLevel(structure),
-    )
-}
-
-/** Nivel de sensación 1..5; cualquier otro valor (también «No lo sé») es null. */
-private fun ringsFeelingLevel(level: Int?): Int? = level?.takeIf { it in 1..5 }
-
-/**
- * Deriva de los días y los ejercicios los campos que siguen leyendo el resto de la app: el número de días, el día más
- * reciente (el menor desplazamiento), el tipo de sesión, la exposición axial y el historial. El tipo de sesión solo sale
- * con días declarados y ejercicios conocidos (sin ellos queda sin dato, nunca «fuerza» por defecto).
- */
-private fun SetupRingsAnswers.withDerivedTraining(): SetupRingsAnswers {
-    val declared = sessionDaysState == RingsSessionDaysState.DECLARED
-    val days = trainedDayOffsets.sorted()
-    val lastRecency = days.firstOrNull()
-    val liftsKnown = mainLiftsState == RingsMainLiftsState.DECLARED || mainLiftsState == RingsMainLiftsState.NONE
-    val cardio = mainLifts.any { it == RingsLiftPattern.CARDIO_LONG || it == RingsLiftPattern.INTERVALS }
-    val strength = mainLifts.any { it != RingsLiftPattern.CARDIO_LONG && it != RingsLiftPattern.INTERVALS }
-    val axial = mainLifts.any { it == RingsLiftPattern.SQUAT || it == RingsLiftPattern.DEADLIFT }
-    val activity: InitialRecoveryActivityType? = when {
-        !declared || !liftsKnown -> null
-        cardio && strength -> InitialRecoveryActivityType.MIXED
-        cardio -> InitialRecoveryActivityType.CARDIO
-        else -> InitialRecoveryActivityType.STRENGTH
-    }
-    return copy(
-        recentTraining = when (sessionDaysState) {
-            RingsSessionDaysState.DECLARED -> true
-            RingsSessionDaysState.NONE -> false
-            else -> null
-        },
-        recentTrainingState = when (sessionDaysState) {
-            RingsSessionDaysState.DECLARED -> SetupRecentTrainingState.YES
-            RingsSessionDaysState.NONE -> SetupRecentTrainingState.NO
-            RingsSessionDaysState.UNKNOWN -> SetupRecentTrainingState.UNKNOWN
-            RingsSessionDaysState.NOT_ANSWERED -> SetupRecentTrainingState.NOT_ANSWERED
-        },
-        sessionsLastSevenDays = when (sessionDaysState) {
-            RingsSessionDaysState.DECLARED -> days.size
-            RingsSessionDaysState.NONE -> 0
-            else -> null
-        },
-        lastSessionRecencyDays = if (declared) lastRecency else null,
-        activityType = activity,
-        activityTypeState = if (activity != null) InitialRecoveryResponseState.DECLARED else InitialRecoveryResponseState.UNKNOWN,
-        axialExposure = when {
-            sessionDaysState == RingsSessionDaysState.NONE -> InitialRecoveryAxialExposure(
-                state = InitialRecoveryResponseState.DECLARED, sessions = 0, recencyDays = 0,
-            )
-            declared && axial -> InitialRecoveryAxialExposure(
-                state = InitialRecoveryResponseState.DECLARED, sessions = 1, recencyDays = lastRecency,
-            )
-            declared && liftsKnown -> InitialRecoveryAxialExposure(
-                state = InitialRecoveryResponseState.DECLARED, sessions = 0, recencyDays = lastRecency,
-            )
-            else -> InitialRecoveryAxialExposure()
-        },
-    )
-}
-
-/**
- * D6 (A.E2): un reparto de powerlifting solo se ofrece al perfil Powerlifting
- * ([SplitCatalogRules.isOfferedForProfile], la regla de dominio que también filtra la lista de repartos de la semana
- * armada). Si el perfil nuevo [profile] ya no ofrece el reparto elegido, se retira como lo haría la tarjeta
- * «Recomendado» ([withRecommendedSplit]): sin él, el plan propio del perfil nuevo no lo rechazaría por `SPLIT` (el
- * rechazo que solo repara «Quitar el reparto»). El reparto propio («custom») y los repartos que el perfil sí ofrece no
- * se tocan; un id que el catálogo de repartos no conoce tampoco.
- */
 private fun SetupWizardDraft.withoutSplitNotOfferedFor(profile: TrainingGoalProfile): SetupWizardDraft {
     val splitId = selectedSplitId ?: return this
     val template = SPLIT_TEMPLATES.firstOrNull { split -> split.id == splitId } ?: return this
@@ -1399,61 +1167,27 @@ private fun SetupWizardDraft.typedSelections(step: SetupStepId): Set<String> = w
 
     SetupStepId.PRIORITIES -> trainingOptions.orderPriorities.filterValues { it > 0 }.keys
 
-    SetupStepId.RINGS_SESSION_DAYS -> when (ringsAnswers?.sessionDaysState) {
-        RingsSessionDaysState.DECLARED -> ringsAnswers?.trainedDayOffsets.orEmpty().mapTo(linkedSetOf()) { it.toString() }
-        RingsSessionDaysState.NONE -> setOf("none")
-        RingsSessionDaysState.UNKNOWN -> setOf("unknown")
-        else -> emptySet()
-    }
+    
 
-    SetupStepId.RINGS_MAIN_LIFTS -> when (ringsAnswers?.mainLiftsState) {
-        RingsMainLiftsState.DECLARED -> ringsAnswers?.mainLifts.orEmpty().mapTo(linkedSetOf()) { it.name }
-        RingsMainLiftsState.NONE -> setOf("none")
-        RingsMainLiftsState.UNKNOWN -> setOf("unknown")
-        else -> emptySet()
-    }
+    
 
-    SetupStepId.RINGS_RECENT -> when (ringsAnswers?.recentTrainingState) {
-        SetupRecentTrainingState.YES -> setOf("yes")
-        SetupRecentTrainingState.NO -> setOf("no")
-        SetupRecentTrainingState.UNKNOWN -> setOf("unknown")
-        else -> emptySet()
-    }
+    
 
-    SetupStepId.RINGS_SESSIONS -> ringsAnswers?.sessionsLastSevenDays?.toString().let { setOfNotNull(it) }
+    
 
-    SetupStepId.RINGS_RECENCY -> ringsAnswers?.lastSessionRecencyDays?.toString().let { setOfNotNull(it) }
+    
 
-    SetupStepId.RINGS_ACTIVITY -> ringsAnswers?.activityType?.name.let { setOfNotNull(it) }
+    
 
-    SetupStepId.RINGS_INTENSITY -> ringsAnswers?.intensityLevel?.name.let { setOfNotNull(it) }
+    
 
-    SetupStepId.RINGS_MUSCLE_FEELING -> {
-        val typed = ringsAnswers?.muscleFeeling
-        if (typed != null) setOf(typed.toString())
-        else if (isAnsweredForSelection(step)) setOf("unknown") else emptySet()
-    }
+    
 
-    SetupStepId.RINGS_ENERGY_FEELING -> {
-        val typed = ringsAnswers?.energy
-        if (typed != null) setOf(typed.toString())
-        else if (isAnsweredForSelection(step)) setOf("unknown") else emptySet()
-    }
+    
 
-    SetupStepId.RINGS_STRUCTURE_FEELING -> {
-        val typed = ringsAnswers?.structureFeeling
-        if (typed != null) setOf(typed.toString())
-        else if (isAnsweredForSelection(step)) setOf("unknown") else emptySet()
-    }
+    
 
-    SetupStepId.RINGS_DISCOMFORT -> when (ringsAnswers?.discomfortState) {
-        SetupDiscomfortState.NONE -> setOf("none")
-        SetupDiscomfortState.OMITTED -> setOf("omit")
-        SetupDiscomfortState.DECLARED -> ringsAnswers?.discomfortIds.orEmpty().toSet()
-        else -> emptySet()
-    }
-
-    // Pasos de texto/número, resultado e hito: no hay «selección» que proyectar.
+    
     else -> emptySet()
 }
 

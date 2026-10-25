@@ -50,20 +50,6 @@ object SmartExerciseCreator {
         "ghd" to "Máquina GHD",
     )
 
-    private val AXIAL_EQUIPMENT = setOf(
-        "Barra", "Máquina Smith", "Disco", "Barra hexagonal",
-        "Barra de Seguridad", "Barra H", "Barra T",
-    )
-
-    /** Multiplicadores (EFC, CNC) por material, solo para una instantánea plana cuyo material no coincide con el de la referencia. */
-    private fun equipmentMultipliers(equipment: String): Pair<Double, Double> = when {
-        equipment.equals("Barra", ignoreCase = true) -> 1.0 to 1.2
-        equipment.equals("Mancuerna", ignoreCase = true) -> 0.9 to 1.1
-        equipment.equals("Máquina", ignoreCase = true) || equipment.equals("Polea", ignoreCase = true) -> 0.8 to 0.6
-        equipment.equals("Peso Corporal", ignoreCase = true) -> 0.8 to 0.8
-        else -> 1.0 to 1.0
-    }
-
     private class CachedFinder(
         val v2: ExerciseCatalogV2?,
         val snapshot: List<ExerciseMuscleInfo>,
@@ -174,7 +160,6 @@ object SmartExerciseCreator {
             null
         }
         val displayName = name.ifBlank { "Ejercicio nuevo" }
-        val derived = adjustedMetrics(reference, equipment, catalogV2 != null)
         val patternId = reference?.movementPattern ?: detected?.patternId
         fun <T> derivedOrKept(kept: T?, fromReference: T?): T? = if (keepManual) kept ?: fromReference else fromReference
 
@@ -193,13 +178,6 @@ object SmartExerciseCreator {
             bodyPart = derivedOrKept(existing?.bodyPart, reference?.bodyPart),
             tier = derivedOrKept(existing?.tier, reference?.tier),
             isCustom = true,
-            // Sin referencia confirmada TODO queda desconocido (null): el motor usa su heurística por nombre y la carga axial no se
-            // certifica como cero. Con ella, lo copia tal cual de esa configuración.
-            efc = derivedOrKept(existing?.efc, derived.first),
-            cnc = derivedOrKept(existing?.cnc, derived.second),
-            ssc = derivedOrKept(existing?.ssc, derived.third),
-            ttc = derivedOrKept(existing?.ttc, reference?.ttc),
-            axialLoadFactor = derivedOrKept(existing?.axialLoadFactor, reference?.axialLoadFactor),
             averageRestSeconds = derivedOrKept(existing?.averageRestSeconds, reference?.averageRestSeconds),
             setupCues = derivedOrKept(existing?.setupCues, reference?.setupCues?.distinct()?.take(3)),
             executionCues = derivedOrKept(existing?.executionCues, reference?.executionCues?.distinct()?.take(3)),
@@ -276,27 +254,6 @@ object SmartExerciseCreator {
         }
     }
 
-    /**
-     * Métricas de la referencia. Con la configuración exacta del catálogo v2 se copian tal cual; con una instantánea plana cuyo
-     * material no coincide con el pedido se ajusta por material como antes (y solo en ese caso).
-     */
-    private fun adjustedMetrics(
-        reference: ExerciseMuscleInfo?,
-        equipment: String?,
-        exactConfiguration: Boolean,
-    ): Triple<Double?, Double?, Double?> {
-        if (reference == null) return Triple(null, null, null)
-        val sameEquipment = equipment == null || reference.equipment == null || reference.equipment.equals(equipment, ignoreCase = true)
-        if (exactConfiguration || sameEquipment) return Triple(reference.efc, reference.cnc, reference.ssc)
-        val (efcMult, cncMult) = equipmentMultipliers(equipment!!)
-        val sscMult = if (equipment in AXIAL_EQUIPMENT) 1.0 else 0.4
-        return Triple(
-            reference.efc?.let { (it * efcMult).coerceIn(0.5, 5.0) },
-            reference.cnc?.let { (it * cncMult).coerceIn(0.5, 5.0) },
-            reference.ssc?.let { (it * sscMult).coerceIn(0.0, 2.0) },
-        )
-    }
-
     private val STATION_LABELS = mapOf("seated" to "Sentado", "standing" to "De pie")
     private val LATERALITY_LABELS = mapOf(
         "bilateral" to "Bilateral",
@@ -356,5 +313,5 @@ data class SmartCreatePreview(
 
 /** true si el ejercicio ya lleva datos técnicos o músculos escritos (a mano o heredados): no deben pisarse al editar. */
 private fun ExerciseMuscleInfo.hasDataEntered(): Boolean =
-    efc != null || cnc != null || ssc != null || ttc != null || axialLoadFactor != null || involvedMuscles.isNotEmpty() ||
+    involvedMuscles.isNotEmpty() ||
         !setupCues.isNullOrEmpty() || !executionCues.isNullOrEmpty()

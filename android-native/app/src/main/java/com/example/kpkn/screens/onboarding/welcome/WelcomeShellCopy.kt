@@ -40,7 +40,7 @@ internal data class WelcomePageCopy(
 internal object WelcomePageIds {
     const val Entreno = "entreno"
     const val Nutricion = "nutricion"
-    const val Recuperacion = "recuperacion"
+    const val Resultados = "resultados"
 }
 
 internal val WelcomePages: List<WelcomePageCopy> = listOf(
@@ -63,13 +63,13 @@ internal val WelcomePages: List<WelcomePageCopy> = listOf(
         period = WelcomeNutricionPeriod,
     ),
     WelcomePageCopy(
-        id = WelcomePageIds.Recuperacion,
-        label = "RECUPERACIÓN",
+        id = WelcomePageIds.Resultados,
+        label = "RESULTADOS",
         accent = WelcomeScenePalette.columna,
-        title = "Cuándo apretar y cuándo descansar",
-        message = "Tus RINGS muestran cómo se recuperan tus músculos, tu energía y tu columna, y los ajustas a cómo te sientes.",
-        demoDescription = "Vídeo de demostración: ajustas tu energía con el deslizador y en Inicio ves el anillo actualizado con su motivo.",
-        period = WelcomeRingsPeriod,
+        title = "Tu progreso, con contexto",
+        message = "Compara sesiones y resultados registrados con sus unidades. Tú decides si quieres ajustar tu entrenamiento.",
+        demoDescription = "Ejemplo ilustrativo: dos sesiones de cinco kilómetros con sus tiempos registrados, sin usar tus datos.",
+        period = 12f,
     ),
 )
 
@@ -93,6 +93,6 @@ internal fun WelcomeSceneOf(
     when (WelcomePages[page].id) {
         WelcomePageIds.Entreno -> WelcomeEntrenoScene(t, fill)
         WelcomePageIds.Nutricion -> WelcomeNutricionScene(t, fill)
-        else -> WelcomeRingsScene(t, fill)
+        else -> WelcomeResultsScene(fill)
     }
 }

@@ -3,7 +3,6 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
-import com.example.kpkn.data.models.AugeMetrics
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.DifficultySignalV2
 import com.example.kpkn.data.models.Exercise
@@ -36,9 +35,7 @@ import com.example.kpkn.domain.workout.resolveScheduledTechniqueExecution
 import com.example.kpkn.domain.workout.ScheduledTechniqueKind
 import com.example.kpkn.domain.workout.isInlineEditorScheduledTechnique
 import com.example.kpkn.domain.workout.techniqueScope
-import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.data.models.SessionEnergySummary
-import com.example.kpkn.data.models.SetDrain
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.effectiveSupersetGroupFor
 import com.example.kpkn.data.models.effectiveRepRange
@@ -75,11 +72,6 @@ class WorkoutSetRecorder(
         fun inferPlannedIntensity(set: com.example.kpkn.data.models.ExerciseSet): Double?
         suspend fun evaluateSetEntryV3(entry: SetEntryV2): WorkoutPerformanceHomologationEngine.EvaluationResult
         fun workoutStepPositions(state: WorkoutUiState): List<WorkoutStep>
-        fun recomputeLiveEnergy(
-            completedSets: Map<String, CompletedSet>,
-            allExercises: List<Exercise>,
-            settings: Settings,
-        ): SessionEnergySummary
         fun computeImbalanceNotice(
             exercise: Exercise,
             setIdx: Int,
@@ -102,17 +94,6 @@ class WorkoutSetRecorder(
             lastSet: CompletedSet? = null,
             advancedFeedback: SetAdvancedFeedback? = null,
             kind: RestTimerKind = RestTimerKind.STANDARD,
-        )
-        fun computeAndStoreAutoRegulation(
-            completedSet: CompletedSet,
-            advanced: SetAdvancedFeedback,
-            setDrain: SetDrain,
-            effectiveRpe: Double,
-            sessionProgress: Double,
-        )
-        fun updateCoachMessage(
-            setDrain: SetDrain,
-            sessionProgress: Double,
         )
         fun checkPaceCoachAlert()
         fun onSetRecordedMilestone(exercise: Exercise, weight: Double, reps: Int)
@@ -586,11 +567,6 @@ class WorkoutSetRecorder(
             val applyRecorded: (WorkoutUiState) -> WorkoutUiState = { current ->
                 val mergedCompleted = current.completedSets + (key to completedSet)
                 val recordedExerciseIdx = allExercises.indexOfFirst { it.id == exercise.id }
-                val newEnergy = ports.recomputeLiveEnergy(
-                    completedSets = mergedCompleted,
-                    allExercises = allExercises,
-                    settings = repository.settings.value,
-                )
                 current.copy(
                     completedSets = mergedCompleted,
                     showUltraFastSheet = false,
@@ -612,7 +588,6 @@ class WorkoutSetRecorder(
                     } else {
                         null
                     },
-                    liveEnergySummary = newEnergy,
                     continuityFeedbackExerciseId = pendingWorkoutFeedbackHandoffExercise(
                         visibleExercises = allExercises,
                         completedSets = mergedCompleted,
@@ -661,7 +636,6 @@ class WorkoutSetRecorder(
                         lastSetOutcomeV2 = candidate.lastSetOutcomeV2,
                         lastHomologatedResultV3 = candidate.lastHomologatedResultV3,
                         imbalanceNotice = candidate.imbalanceNotice,
-                        liveEnergySummary = candidate.liveEnergySummary,
                         continuityFeedbackExerciseId = candidate.continuityFeedbackExerciseId,
                         setDrafts = remainingDrafts,
                         persistedLoadModeBySet = current.persistedLoadModeBySet + (fallbackKey to resolvedLoadMode),
@@ -731,7 +705,7 @@ class WorkoutSetRecorder(
                     "scheduledPauseSeconds" to scheduledPlan?.pauseSeconds,
                     "scheduledDropKg" to scheduledPlan?.dropKg,
                     "scheduledFollowUps" to scheduledPlan?.followUpCount,
-                    "effectiveRpe" to AugeFatigueEngine.getEffectiveRPE(completedSet),
+                    "reportedRpe" to completedSet.rpe,
                     "isFailedSet" to completedSet.isFailedSet,
                 ),
             )
@@ -901,54 +875,11 @@ class WorkoutSetRecorder(
                 exerciseName = exercise.name,
             )
             val settings = repository.settings.value
-            val augeMetrics = AugeFatigueEngine.getDynamicAugeMetrics(exercise.name, dbInfo?.equipment, dbInfo) ?: AugeMetrics()
-            val augeTanks = AugeFatigueEngine.calculatePersonalizedBatteryTanks(settings)
-            val densityMult = AugeFatigueEngine.getDensityMultiplierForExercise(
-                supersetId = exercise.supersetGroupRefOrLegacyId(),
-                restTime = plannedRestForKind,
-                supersetExerciseCount = supersetGroup?.exerciseOrder?.size ?: 1,
-                supersetRounds = supersetGroup?.rounds,
-                supersetRestAfter = supersetGroup?.roundRestAfterSuperset?.get(targetSetIdx) ?: supersetGroup?.restAfterSuperset,
-            )
             val completedWorkingUnits = getState().completedSets.keys.mapNotNull { k ->
                 parseCompletedSetKey(k)?.let { "${it.exerciseId}_${it.setIdx}" }
             }.distinct().size
-            val setDrain = AugeFatigueEngine.calculateSetBatteryDrain(
-                set = completedSet,
-                metrics = augeMetrics,
-                tanks = augeTanks,
-                accumulatedSets = completedWorkingUnits,
-                restTime = exercise.restTime ?: settings.restTimerDefaultSeconds,
-                densityMultiplier = densityMult,
-            )
-            val effectiveRpe = AugeFatigueEngine.getEffectiveRPE(completedSet)
-            val totalSetsInSession = allExercises.sumOf { it.sets.size }
-            val sessionProgress = if (totalSetsInSession > 0) {
-                (completedWorkingUnits.toDouble() / totalSetsInSession).coerceIn(0.0, 1.0)
-            } else {
-                0.0
-            }
-            val exerciseType = when {
-                dbInfo?.type.equals("Aislamiento", ignoreCase = true) -> WorkoutAdaptiveRest.ExerciseType.ISOLATION
-                dbInfo?.type.equals("Básico", ignoreCase = true) -> WorkoutAdaptiveRest.ExerciseType.COMPOUND
-                dbInfo?.involvedMuscles != null && dbInfo.involvedMuscles.count {
-                    resolveMuscleVolumeContribution(it) > 0.0
-                } >= 2 -> WorkoutAdaptiveRest.ExerciseType.COMPOUND
-                dbInfo?.involvedMuscles != null && dbInfo.involvedMuscles.size <= 1 -> WorkoutAdaptiveRest.ExerciseType.ISOLATION
-                else -> WorkoutAdaptiveRest.ExerciseType.UNKNOWN
-            }
-            val isSuperset = !exercise.supersetGroupRefOrLegacyId().isNullOrBlank()
-            val adaptiveRest = WorkoutAdaptiveRest.compute(
-                baseRestSeconds = baseRest,
-                context = WorkoutAdaptiveRest.AdaptiveRestContext(
-                    advanced = report,
-                    setDrain = setDrain,
-                    effectiveRpe = effectiveRpe,
-                    sessionProgress = sessionProgress,
-                    exerciseType = exerciseType,
-                    isSuperset = isSuperset,
-                ),
-            )
+            // Rest follows the authored plan; no physiological drain or silent dose adjustment.
+            val adaptiveRest = plannedRestForKind.coerceAtLeast(0)
             if (!wasExistingSet) {
                 val nextPlannedSet = exercise.sets.getOrNull(targetSetIdx + 1)
                 val plannedRest = when (restKind) {
@@ -1015,30 +946,7 @@ class WorkoutSetRecorder(
                 }
             }
 
-            ports.computeAndStoreAutoRegulation(
-                completedSet = completedSet,
-                advanced = report,
-                setDrain = setDrain,
-                effectiveRpe = effectiveRpe,
-                sessionProgress = sessionProgress,
-            )
-            val drainOverlay = buildExerciseDrainOverlayState(
-                exerciseName = displayWorkoutExerciseName(exercise),
-                drain = com.example.kpkn.data.models.PredictedDrain(
-                    cns = setDrain.cnsDrainPct.roundToInt(),
-                    muscular = setDrain.muscularDrainPct.roundToInt(),
-                    spinal = setDrain.spinalDrainPct.roundToInt(),
-                ),
-                involvedMuscles = dbInfo?.involvedMuscles.orEmpty().ifEmpty {
-                    exercise.effectiveMuscles.orEmpty()
-                },
-            )
-            updateState { it.copy(lastDrainOverlay = drainOverlay) }
             if (amrapActive) updateState { it.copy(isRestMinimized = true) }
-            ports.updateCoachMessage(
-                setDrain = setDrain,
-                sessionProgress = sessionProgress,
-            )
             ports.checkPaceCoachAlert()
             ports.onSetRecordedMilestone(exercise, weight, actualReps)
             return checkNotNull(durableResult)

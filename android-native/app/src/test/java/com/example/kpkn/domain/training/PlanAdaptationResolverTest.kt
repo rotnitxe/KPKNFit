@@ -532,17 +532,19 @@ class PlanAdaptationResolverTest {
     fun row_without_rowing_apparatus_fails_typed_and_never_becomes_superman() {
         // Sin banda, sin mancuernas, sin remo y sin barra baja: el remo no se
         // convierte en superman (extensores de columna ≠ tracción horizontal).
+        // La configuración canónica actual del remo sentado en polea es el remo
+        // Gironda (`conventional_row__cable` se retiró el 2026-10-12).
         val scenario = confirmed(
             categories = setOf(EquipmentCategory.SUPPORT),
             supports = mapOf(EquipmentKeys.LOW_BAR_SUPPORT to ApparatusPresence.ABSENT),
         )
         val result = PlanAdaptationResolver.adapt(
-            scenario.request(accessoryRecipe("conventional_row__cable", "s-row")),
+            scenario.request(accessoryRecipe("gironda_row__medium", "s-row")),
         )
         val failure = result as PlanAdaptationResult.NotViable
         assertEquals(PlanAdaptationReason.APPARATUS_ABSENT, failure.reason)
         assertEquals("s-row", failure.slotId)
-        assertEquals("conventional_row__cable", failure.configurationId)
+        assertEquals("gironda_row__medium", failure.configurationId)
         assertTrue(failure.detail.contains("Sin alternativa viable"))
         assertFalse("El superman jamás se propone como remo", failure.detail.contains("superman"))
     }

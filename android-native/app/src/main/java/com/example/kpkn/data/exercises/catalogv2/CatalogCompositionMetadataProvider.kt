@@ -22,7 +22,6 @@ object CatalogCompositionMetadataProvider {
                         movementPatternId = profile.movementPatternId,
                         primaryMuscles = profile.primaryMuscles,
                         secondaryMuscles = profile.secondaryMuscles,
-                        axialLoadFactor = profile.axialLoadFactor,
                         replacementGroup = profile.replacementGroup,
                         laterality = profile.laterality.name,
                         performanceProfileId = profile.performanceProfileId,

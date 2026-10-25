@@ -36,10 +36,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.domain.exercises.exerciseDisplayParts
-import com.example.kpkn.domain.templates.RingBudgetPolicy
 import com.example.kpkn.domain.templates.SessionTemplateCatalogPolicy
 import com.example.kpkn.domain.templates.SessionTemplateFacets
 import com.example.kpkn.domain.templates.SessionTemplateFacetsBuilder
@@ -50,7 +48,6 @@ import com.example.kpkn.screens.sessioneditor.components.sheets.SheetCaption
 import com.example.kpkn.screens.sessioneditor.components.sheets.SheetEyebrow
 import com.example.kpkn.screens.sessioneditor.components.sheets.SheetTag
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknSurface
@@ -180,71 +177,9 @@ internal fun CompactTemplateCard(
     }
 }
 
-@Composable
-internal fun CompactFatigueMeters(
-    energy: Int,
-    muscular: Int,
-    spinal: Int,
-    @Suppress("UNUSED_PARAMETER") glassDark: Boolean = false,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        CompactFatigueChip(
-            label = "Energía",
-            value = energy.coerceIn(0, 100),
-            color = KpknRingColors.energia,
-            modifier = Modifier.weight(1f),
-        )
-        CompactFatigueChip(
-            label = "Muscular",
-            value = muscular.coerceIn(0, 100),
-            color = KpknRingColors.musculos,
-            modifier = Modifier.weight(1f),
-        )
-        CompactFatigueChip(
-            label = "Columna",
-            value = spinal.coerceIn(0, 100),
-            color = KpknRingColors.columna,
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
 
-@Composable
-private fun CompactFatigueChip(
-    label: String,
-    value: Int,
-    color: Color,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier.semantics {
-            contentDescription = "$label $value por ciento"
-        },
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        SheetCaption(text = "$label $value %", color = WizardColors.textMuted)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .background(KpknSurface.inset),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(value / 100f)
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(color),
-            )
-        }
-    }
-}
 
-@OptIn(ExperimentalLayoutApi::class)
+
 @Composable
 internal fun TemplateExpandedDetails(
     template: SessionTemplate,
@@ -284,20 +219,6 @@ internal fun TemplateExpandedDetails(
     }
     val resolvedFacets = detailsState.facets ?: facets
     val estimatedVol = detailsState.estimatedVolume
-    val drain = resolvedFacets?.drain ?: PredictedDrain(cns = 0, muscular = 0, spinal = 0)
-
-    val warnings = remember(template, drain, advanced, detailsState.isLoading) {
-        if (!advanced || (detailsState.isLoading && resolvedFacets == null)) emptyList()
-        else {
-            val list = mutableListOf<String>()
-            val isPl = SessionTemplateCatalogPolicy.isPowerliftingTemplate(template)
-            val caps = RingBudgetPolicy.sessionWarningCaps(isPl)
-            if (drain.cns > caps.cns) list += "SNC elevada (${drain.cns}% > ${caps.cns}%)"
-            if (drain.muscular > caps.muscular) list += "Muscular elevada (${drain.muscular}% > ${caps.muscular}%)"
-            if (drain.spinal > caps.spinal) list += "Axial/espinal elevada (${drain.spinal}% > ${caps.spinal}%)"
-            list
-        }
-    }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -377,45 +298,14 @@ internal fun TemplateExpandedDetails(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                SheetEyebrow("Fatiga estimada (AUGE)")
-                if (detailsState.isLoading && resolvedFacets == null) {
-                    SheetCaption("Calculando detalles…")
-                } else {
-                    CompactFatigueMeters(
-                        energy = drain.cns,
-                        muscular = drain.muscular,
-                        spinal = drain.spinal,
-                    )
-                }
+                SheetEyebrow("Detalles del plan")
                 resolvedFacets?.averageTargetRpe?.let { rpe ->
                     SheetCaption("RPE medio objetivo: ${formatEditorOneDecimal(rpe)}")
                 }
                 if (resolvedFacets != null && resolvedFacets.primaryMuscles.isNotEmpty()) {
                     SheetCaption("Enfoque: ${resolvedFacets.primaryMuscles.sortedBy { it.lowercase() }.joinToString(" · ")}")
                 }
-                warnings.forEach { warning ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(KpknSurface.inset)
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Icon(
-                            imageVector = KpknLineIcons.Alert,
-                            contentDescription = "Advertencia",
-                            tint = WizardColors.danger,
-                            modifier = Modifier.size(14.dp),
-                        )
-                        Text(
-                            text = warning,
-                            style = KpknType.caption,
-                            color = WizardColors.danger,
-                        )
-                    }
-                }
+
             }
         }
     }

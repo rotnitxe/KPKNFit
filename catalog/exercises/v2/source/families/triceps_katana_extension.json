@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea y a dos lados, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del tríceps admite más carga total.",
-              "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -125,14 +121,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión Katana",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -148,7 +136,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -174,10 +161,8 @@
                 "Preparación: Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "laterality": "bilateral"
@@ -197,17 +182,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea y a un lado, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
-              "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea con una mano en diagonal: cada tríceps trabaja por separado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -302,14 +283,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión Katana",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -325,7 +298,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -351,10 +323,8 @@
                 "Preparación: Polea con una mano en diagonal: cada tríceps trabaja por separado."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "laterality": "unilateral"

@@ -52,7 +52,7 @@ private fun corpusContext(index: Int): RelatorContext = relatorContext(
     total = 30,
     isAmrap = index % 7 == 0,
     isTopSet = index % 11 == 0,
-    dailyScore = if (index % 5 == 0) 48 else 78,
+
     restActive = index % 6 == 5,
     phase = if (index % 6 == 5) RelatorSessionPhase.REST else RelatorSessionPhase.WORKING,
     prJustNow = index == 17,

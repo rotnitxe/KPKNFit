@@ -345,14 +345,7 @@ class SetupWizardStateTest {
         )
     }
 
-    @Test
-    fun changingSensationsOnlyAffectsRings() {
-        val base = baseDraft()
-        val changed = base.copy(ringsAnswers = SetupRingsAnswers(muscleFeeling = 2)).withChangeImpacts(base)
 
-        assertEquals(setOf(SetupPreviewKind.RINGS_BATTERIES), changed.stepProgress.stalePreviews)
-        assertTrue(changed.stepProgress.pendingReview.isEmpty())
-    }
 
     @Test
     fun navigationNeverLooksLikeAPhysiologicalChange() {
@@ -441,9 +434,6 @@ class SetupWizardStateTest {
         val original = baseDraft()
         val base = original.copy(
             weightUnit = "lb",
-            manualMuscleOverrides = mapOf("Pecho" to 3),
-            manualEnergyOverride = 2,
-            manualStructureOverride = 1,
             selectedCatalogId = "plan-x",
             equipment = setOf(SetupEquipment.DUMBBELLS),
             nutritionDraft = NutritionWizardDraft(mode = "create", targetWeightText = "70"),
@@ -464,8 +454,6 @@ class SetupWizardStateTest {
         assertEquals(base.stepProgress, restored.stepProgress)
         // Unidades, ediciones de inventario y selecciones sobreviven.
         assertEquals("lb", restored.weightUnit)
-        assertEquals(mapOf("Pecho" to 3), restored.manualMuscleOverrides)
-        assertEquals(2, restored.manualEnergyOverride)
         assertEquals("plan-x", restored.selectedCatalogId)
         assertEquals(setOf(SetupEquipment.DUMBBELLS), restored.equipment)
         assertEquals(base.nutritionDraft, restored.nutritionDraft)

@@ -10,7 +10,6 @@ public final class HomeViewModel: ObservableObject {
     @Published var hasActiveProgram: Bool = false
     @Published var activeProgram: Program? = nil
     @Published var competitionCountdown: CompetitionCountdown? = nil
-    @Published var overtrainedMuscles: [String] = []
     @Published var todaySessions: [TodaySessionItem] = []
     @Published var dailyCalorieGoal: Int? = nil
     @Published var dailyProteinGoal: Int? = nil
@@ -30,7 +29,7 @@ public final class HomeViewModel: ObservableObject {
 
     public func loadFeedbacks() {
         Task {
-            feedbacks = await AugeRepository.shared.getPostSessionFeedbacks()
+            feedbacks = []
             refresh()
         }
     }
@@ -45,30 +44,9 @@ public final class HomeViewModel: ObservableObject {
         
         let rawActiveProgram = activeId.flatMap { id in repository.programs.first { $0.id == id } }
         
-        if let p = rawActiveProgram {
-            if feedbacks.isEmpty {
-                activeProgram = p
-            } else {
-                let scaledRecommendations = p.volumeRecommendations.map { rec -> VolumeRecommendation in
-                    let adj = VolumeCalculator.calculateVolumeAdjustment(rec.muscleGroup, feedbacks)
-                    if adj == 1.0 {
-                        return rec
-                    } else {
-                        return rec.copy(
-                            minEffectiveVolume: Int(round(Double(rec.minEffectiveVolume) * adj)),
-                            maxAdaptiveVolume: Int(round(Double(rec.maxAdaptiveVolume) * adj)),
-                            maxRecoverableVolume: Int(round(Double(rec.maxRecoverableVolume) * adj))
-                        )
-                    }
-                }
-                activeProgram = p.copy(volumeRecommendations: scaledRecommendations)
-            }
-        } else {
-            activeProgram = nil
-        }
+        activeProgram = rawActiveProgram
 
         competitionCountdown = activeProgram.flatMap { buildCompetitionCountdown(program: $0) }
-        overtrainedMuscles = calculateOvertrainedMuscles()
         todaySessions = resolveTodaySessions()
 
         let plan = nutritionRepository.activeNutritionPlan
@@ -171,102 +149,6 @@ public final class HomeViewModel: ObservableObject {
             }
         }
         return count
-    }
-
-    private func calculateOvertrainedMuscles() -> [String] {
-        guard let p = activeProgram else { return [] }
-        let logs = repository.history.filter { $0.programId == p.id }
-        var overtrainedList: [String] = []
-        let exerciseList = catalogExerciseIndex().values.map { $0 }
-        
-        let weeksCount = max(1, logs.count / 3)
-        let completedVolumes = VolumeCalculator.calculateCompletedWeeklyMuscleVolume(
-            logs: logs,
-            exerciseList: exerciseList,
-            weeksCount: weeksCount
-        )
-
-        p.volumeRecommendations.forEach { rec in
-            let muscle = rec.muscleGroup
-            let canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle)
-            let mrv = Double(rec.maxRecoverableVolume)
-
-            let completedSets = completedVolumes.first { $0.muscleName == canonical }?.weeklySets ?? 0.0
-            let factorVol = completedSets > mrv
-
-            var factorProg = false
-            let normalizedMuscleLower = canonical.lowercased()
-            let factorPain = logs.prefix(5).contains { log in
-                log.discomforts.contains { d in
-                    let dl = d.lowercased()
-                    return dl.contains(normalizedMuscleLower) ||
-                           (normalizedMuscleLower.contains("hombro") && dl.contains("deltoid")) ||
-                           (normalizedMuscleLower.contains("cuádriceps") && dl.contains("rodilla")) ||
-                           (normalizedMuscleLower.contains("espalda baja") && dl.contains("lumbar"))
-                }
-            }
-
-            let factorSystemic = logs.first?.fatigueLevel ?? 0 >= 8
-
-            let muscleLogs = feedbacks.filter { fb in
-                fb.muscleFeedback.keys.contains { key in
-                    VolumeCalculator.normalizeCanonicalMuscleGroup(key).lowercased() == normalizedMuscleLower
-                }
-            }
-            let recentFbs = Array(muscleLogs.prefix(3))
-
-            var totalDoms = 0.0
-            var totalStr = 0.0
-            var fbCount = 0
-            recentFbs.forEach { fb in
-                if let entryKey = fb.muscleFeedback.keys.first(where: { VolumeCalculator.normalizeCanonicalMuscleGroup($0).lowercased() == normalizedMuscleLower }),
-                   let entry = fb.muscleFeedback[entryKey] {
-                    totalDoms += Double(entry.doms)
-                    totalStr += Double(entry.strengthCapacity)
-                    fbCount += 1
-                }
-            }
-            let factorLocal = fbCount > 0 && ((totalDoms / Double(fbCount)) >= 3.5 || (totalStr / Double(fbCount)) <= 5.0)
-
-            let primaryExercises = exerciseList.filter { db in
-                db.involvedMuscles.contains {
-                    $0.role == .PRIMARY &&
-                    VolumeCalculator.normalizeCanonicalMuscleGroup($0.muscle).lowercased() == normalizedMuscleLower
-                }
-            }.map { $0.id.lowercased() }
-
-            var hasWeightDrop = false
-            let exercisesWithLogs = logs.flatMap { $0.completedExercises }
-                .filter { primaryExercises.contains($0.exerciseDbId?.lowercased() ?? "") }
-            
-            let grouped = Dictionary(grouping: exercisesWithLogs, by: { $0.exerciseDbId?.lowercased() ?? "" })
-            for (_, exLogs) in grouped {
-                if exLogs.count >= 2 {
-                    let recentWeight = exLogs.first?.sets.first { !$0.skipped }?.weight ?? 0.0
-                    let olderWeight = exLogs.last?.sets.first { !$0.skipped }?.weight ?? 0.0
-                    if recentWeight < olderWeight && recentWeight > 0.0 {
-                        hasWeightDrop = true
-                        break
-                    }
-                }
-            }
-            if hasWeightDrop {
-                factorProg = true
-            }
-
-            var activeCount = 0
-            if factorVol { activeCount += 1 }
-            if factorPain { activeCount += 1 }
-            if factorSystemic { activeCount += 1 }
-            if factorLocal { activeCount += 1 }
-            if factorProg { activeCount += 1 }
-
-            if activeCount >= 3 {
-                overtrainedList.append(canonical)
-            }
-        }
-
-        return overtrainedList
     }
 
     private func resolveTodaySessions() -> [TodaySessionItem] {

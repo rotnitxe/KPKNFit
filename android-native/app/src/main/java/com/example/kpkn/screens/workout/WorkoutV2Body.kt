@@ -66,7 +66,6 @@ internal fun WorkoutV2Body(
     modifier: Modifier,
     uiState: WorkoutUiState,
     settings: com.example.kpkn.data.models.Settings,
-    adaptiveCache: com.example.kpkn.data.models.AugeAdaptiveCache = com.example.kpkn.data.models.AugeAdaptiveCache(),
     viewModel: WorkoutViewModel,
     currentExercise: Exercise?,
     visibleExercises: List<Exercise>,
@@ -96,7 +95,6 @@ internal fun WorkoutV2Body(
     /** «Editar» de las opciones de una serie: abre las series del ejercicio en el que se pulsó (no siempre el de turno). */
     onEditExercise: (exerciseId: String) -> Unit = {},
     onRequestCardioGps: (exerciseId: String, setIndex: Int) -> Unit = { _, _ -> },
-    exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
     recordActionHolder: RecordActionHolder = remember { RecordActionHolder() },
     recordFabHolder: RecordFabHolder = remember { RecordFabHolder() },
     adaptActionHolder: AdaptActionHolder = remember { AdaptActionHolder() },
@@ -239,10 +237,7 @@ internal fun WorkoutV2Body(
 
     BoxWithConstraints(modifier = modifier) {
         val compactHeaderLayout = maxHeight < 800.dp
-        val currentExerciseReadiness = currentExercise?.let { exerciseReadinessMap[it.id] }
-        val currentReadinessAdjustment = currentExercise?.let { ex ->
-            uiState.readinessAdjustments["${ex.id}_${uiState.currentSetIdx}"]
-        }
+
         val sessionTimeRemainingSeconds by viewModel.sessionTimeRemainingSeconds.collectAsStateWithLifecycle()
         val relatorResolution by viewModel.relatorResolution.collectAsStateWithLifecycle()
         val relatorLoadPopTrigger by viewModel.relatorLoadPopTrigger.collectAsStateWithLifecycle()
@@ -316,7 +311,6 @@ internal fun WorkoutV2Body(
                     ?.let { groupId ->
                         visibleExercises.count { it.supersetGroupRefOrLegacyId() == groupId } > 1
                     } == true,
-                exerciseReadiness = currentExerciseReadiness,
                 activeMainTags = currentExerciseActiveMainTags,
                 activeMainTagLabels = currentExerciseActiveTagLabels,
                 activeSubTags = currentExerciseActiveSubTags,
@@ -338,18 +332,6 @@ internal fun WorkoutV2Body(
                 ultraFastApplied = uiState.ultraFastApplied,
                 ultraFastSavedSeconds = uiState.ultraFastSavedSeconds,
                 onRevertUltraFast = { viewModel.revertUltraFast() },
-                readinessAdjustment = currentReadinessAdjustment,
-                onAdaptClick = if (
-                    currentExerciseReadiness != null && (
-                        currentReadinessAdjustment != null ||
-                            currentExerciseReadiness.overallScore <
-                            com.example.kpkn.domain.auge.ExerciseReadinessEngine.ADJUSTMENT_THRESHOLD
-                        )
-                ) {
-                    { adaptActionHolder.open?.invoke() }
-                } else {
-                    null
-                },
                 onReplaceClick = onExpandReplace,
                 nicknameKey = currentExercise?.nicknameKey(),
                 nicknameValue = currentExercise?.nicknameKey()?.let { key ->
@@ -2327,17 +2309,6 @@ internal fun WorkoutV2Body(
                                             action.invoke()
                                         }
                                     },
-                                    exerciseReadiness = exerciseReadinessMap[targetExercise.id],
-                                    readinessAdjustment = uiState.readinessAdjustments[
-                                        "${targetExercise.id}_${activeSetIndex}"
-                                    ],
-                                    onApplyReadinessAdjustment = { suggestion ->
-                                        viewModel.applyReadinessAdjustment(
-                                            targetExercise.id,
-                                            activeSetIndex,
-                                            suggestion,
-                                        )
-                                    },
                                     mediaCapture = viewModel.mediaCapture,
                                     onRetryPendingCaptures = onRetryPendingCaptures,
                                     openMediaFace = isSettledPage && openMediaFaceExerciseId == targetExercise.id,
@@ -2521,13 +2492,6 @@ internal fun WorkoutV2Body(
         )
     }
 
-        ExerciseDrainOverlay(
-            state = uiState.lastDrainOverlay,
-            bottomClearance = dockBottomClearance,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .zIndex(4f),
-        )
         if (!showingPostExerciseCard) {
         imbalanceNoticeText(uiState.imbalanceNotice)?.let { notice ->
             Surface(

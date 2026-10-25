@@ -147,67 +147,7 @@ internal final class WorkoutV2DaoImpl: WorkoutV2Dao {
 
 // ─── Auge ─────────────────────────────────────────────────────────────────────
 
-internal final class AugeDaoImpl: AugeDao {
-    func getAllWellbeing() async -> [WellbeingEntity] {
-        []
-    }
 
-    func getWellbeingForDate(date: String) async -> WellbeingEntity? {
-        nil
-    }
-
-    func getWellbeingInRange(from: String, to: String) async -> [WellbeingEntity] {
-        []
-    }
-
-    func upsertWellbeing(entity: WellbeingEntity) async {}
-
-    func getLastNSleepLogs(n: Int) async -> [SleepLogEntity] {
-        []
-    }
-
-    func upsertSleepLog(entity: SleepLogEntity) async {}
-
-    func getLastNSleepLogsExtended(n: Int) async -> [SleepLogExtendedEntity] {
-        []
-    }
-
-    func getAllSleepLogsExtended() async -> [SleepLogExtendedEntity] {
-        []
-    }
-
-    func upsertSleepLogExtended(entity: SleepLogExtendedEntity) async {}
-
-    func deleteSleepLogExtended(id: String) async {}
-
-    func getAllFeedback() async -> [PostSessionFeedbackEntity] {
-        []
-    }
-
-    func getFeedbackSince(from: String) async -> [PostSessionFeedbackEntity] {
-        []
-    }
-
-    func getFeedbackForLog(logId: String) async -> PostSessionFeedbackEntity? {
-        nil
-    }
-
-    func upsertFeedback(entity: PostSessionFeedbackEntity) async {}
-
-    func getPendingQuestionnaire() async -> PendingQuestionnaireEntity? {
-        nil
-    }
-
-    func upsertPendingQuestionnaire(entity: PendingQuestionnaireEntity) async {}
-
-    func clearPendingQuestionnaire() async {}
-
-    func getAdaptiveCache() async -> AugeAdaptiveCacheEntity? {
-        nil
-    }
-
-    func upsertAdaptiveCache(entity: AugeAdaptiveCacheEntity) async {}
-}
 
 // ─── Nutrition ────────────────────────────────────────────────────────────────
 

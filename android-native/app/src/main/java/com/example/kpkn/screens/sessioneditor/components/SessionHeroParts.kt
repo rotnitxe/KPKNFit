@@ -41,7 +41,6 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.*
 import com.example.kpkn.screens.sessioneditor.DarkEditorChip
 import com.example.kpkn.screens.sessioneditor.sessionCoverColors
-import com.example.kpkn.screens.sessioneditor.SessionEditorAugeSummary
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
 
@@ -107,7 +106,6 @@ internal fun HeroGlassIconButton(
 
 @Composable
 internal fun HeroGlassFab(
-    summary: SessionEditorAugeSummary,
     modifier: Modifier = Modifier,
     hazeState: HazeState? = null,
     onClick: (() -> Unit)? = null,

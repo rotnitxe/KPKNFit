@@ -69,13 +69,13 @@ class HomeTopBarIslandTest {
                     greeting = "Buenos días",
                     userName = "Alex",
                     greetingProgress = 1f,
-                    ringsProgress = 0f,
+                    
                     sessionProgress = sessionProgress,
                     nutritionProgress = 0f,
                     hasPrograms = true,
-                    muscularProgress = 0.62f,
-                    sncProgress = 0.48f,
-                    columnaProgress = 0.71f,
+                    
+                    
+                    
                     primarySession = null,
                     homeCompetition = null,
                     isRestDay = true,
@@ -202,23 +202,12 @@ class HomeTopBarIslandTest {
 
     @Test
     fun contextoDeLaIslaConHistéresisDeCadaSeccion() {
-        // Desde el saludo, a medio relevo no cambia; con 0,55 pasa a la sesión.
-        assertEquals(HomeBarContext.GREETING, homeBarContextAfter(HomeBarContext.GREETING, 0.5f, 0f, 0f))
-        assertEquals(HomeBarContext.SESSION, homeBarContextAfter(HomeBarContext.GREETING, 0.55f, 0f, 0f))
-        // Ya en la sesión, con 0,5 se queda; con 0,45 vuelve al saludo.
-        assertEquals(HomeBarContext.SESSION, homeBarContextAfter(HomeBarContext.SESSION, 0.5f, 0f, 0f))
-        assertEquals(HomeBarContext.GREETING, homeBarContextAfter(HomeBarContext.SESSION, 0.45f, 0f, 0f))
-        // RINGS y nutrición siguen el orden de la página.
-        assertEquals(HomeBarContext.RINGS, homeBarContextAfter(HomeBarContext.SESSION, 1f, 0.6f, 0f))
-        assertEquals(HomeBarContext.NUTRITION, homeBarContextAfter(HomeBarContext.RINGS, 1f, 1f, 0.6f))
-        assertEquals(HomeBarContext.NUTRITION, homeBarContextAfter(HomeBarContext.NUTRITION, 1f, 1f, 0.5f))
-        assertEquals(HomeBarContext.RINGS, homeBarContextAfter(HomeBarContext.NUTRITION, 1f, 1f, 0.4f))
-    }
-
-    @Test
-    fun subtituloDeRingsDaLosTresCanalesOSinCalibrar() {
-        assertEquals("Energía 86 · Músculos 74 · Columna 81", homeBarRingsSubtitle(energia = 86, musculos = 74, columna = 81))
-        assertEquals("Energía — · Músculos 74 · Columna 81", homeBarRingsSubtitle(energia = null, musculos = 74, columna = 81))
-        assertEquals("Sin calibrar", homeBarRingsSubtitle(energia = null, musculos = null, columna = null))
+        assertEquals(HomeBarContext.GREETING, homeBarContextAfter(HomeBarContext.GREETING, 0.5f, 0f))
+        assertEquals(HomeBarContext.SESSION, homeBarContextAfter(HomeBarContext.GREETING, 0.55f, 0f))
+        assertEquals(HomeBarContext.SESSION, homeBarContextAfter(HomeBarContext.SESSION, 0.5f, 0f))
+        assertEquals(HomeBarContext.GREETING, homeBarContextAfter(HomeBarContext.SESSION, 0.45f, 0f))
+        assertEquals(HomeBarContext.NUTRITION, homeBarContextAfter(HomeBarContext.SESSION, 1f, 0.6f))
+        assertEquals(HomeBarContext.NUTRITION, homeBarContextAfter(HomeBarContext.NUTRITION, 1f, 0.5f))
+        assertEquals(HomeBarContext.SESSION, homeBarContextAfter(HomeBarContext.NUTRITION, 1f, 0.4f))
     }
 }

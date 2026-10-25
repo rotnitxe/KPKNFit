@@ -30,8 +30,8 @@ import com.example.kpkn.data.models.UserVitals
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.calculations.CardioCalorieEngine
 import com.example.kpkn.domain.calculations.CardioCalorieInput
-import com.example.kpkn.domain.energy.TrainingEnergyEngine
-import com.example.kpkn.domain.energy.TrainingEnergyEngine.ResolvedLoadSource
+import com.example.kpkn.domain.calculations.TrainingLoadEvidence
+import com.example.kpkn.domain.calculations.TrainingLoadEvidence.ResolvedLoadSource
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import org.junit.After
 import org.junit.Before
@@ -53,7 +53,7 @@ class NutritionTrainingCalendarAdapterTest {
 
     private val monday: LocalDate = LocalDate.of(2026, 9, 21)
     private val week: List<LocalDate> = (0L until 7L).map { monday.plusDays(it) }
-    private val settings = Settings()
+    private val settings = Settings(userVitals = UserVitals(weight = 80.0))
     private val settingsWithWeight = Settings(userVitals = UserVitals(weight = 80.0))
 
     // ─── Índice de catálogo (metadatos REALES, mismo patrón que el resto del repo) ─
@@ -81,17 +81,13 @@ class NutritionTrainingCalendarAdapterTest {
 
     // ─── Fixtures ────────────────────────────────────────────────────────────
 
-    private fun weightedSession(id: String, day: Int, weight: Double = 100.0): Session {
-        val set = ExerciseSet(id = "${id}_s", weight = weight, targetReps = 8, targetRPE = 8.0)
-        return Session(
-            id = id,
-            name = "Fuerza $id",
-            dayOfWeek = day,
-            exercises = listOf(
-                Exercise(id = "${id}_e", name = "Press", restTime = 90, sets = listOf(set)),
-            ),
-        )
-    }
+    /** Calendar summation fixtures use independent cardio MET inputs, never force-calorie formulas. */
+    private fun calendarSession(id: String, day: Int, durationSeconds: Double = 100.0): Session =
+        cardioSession(id, day, seconds = durationSeconds.toInt())
+
+    private fun strengthSession(id: String, day: Int): Session = Session(
+        id=id, name="Fuerza $id", dayOfWeek=day,
+        exercises=listOf(Exercise(id="${id}_e", name="Press", sets=listOf(ExerciseSet(id="${id}_s", weight=100.0, targetReps=8)))))
 
     private fun rirOnlySession(id: String, day: Int): Session =
         Session(
@@ -153,7 +149,7 @@ class NutritionTrainingCalendarAdapterTest {
         )
 
     private fun optionalSession(id: String, day: Int): Session =
-        weightedSession(id, day).copy(requirement = SessionRequirement.OPTIONAL)
+        calendarSession(id, day).copy(requirement = SessionRequirement.OPTIONAL)
 
     private fun competitionSession(id: String, date: String? = null, keyDateId: String? = null): Session =
         Session(
@@ -244,12 +240,12 @@ class NutritionTrainingCalendarAdapterTest {
     // ─── Cobertura de ventana y estimación básica ────────────────────────────
 
     @Test
-    fun `explicit weight sessions estimate and uncovered days stay explicit rest`() {
-        val result = adaptResult(listOf(weightedSession("a", 1), weightedSession("b", 5)))
+    fun `strength calories remain unknown and uncovered planned days stay explicit rest`() {
+        val result = adaptResult(listOf(strengthSession("a", 1), strengthSession("b", 5)))
         assertTrue(result.enabled)
         // Gasto positivo en los días con sesión de peso conocido.
-        assertTrue(estimated(result, week[0]).kcal > 0.0)
-        assertTrue(estimated(result, week[4]).kcal > 0.0)
+        assertEquals(DayExpenditure.NotEstimable, result.expendituresByDate[week[0]])
+        assertEquals(DayExpenditure.NotEstimable, result.expendituresByDate[week[4]])
         // El resto de la ventana es descanso EXPLÍCITO (nunca estimable).
         assertEquals(DayExpenditure.Rest, result.expendituresByDate[week[1]])
         assertEquals(DayExpenditure.Rest, result.expendituresByDate[week[2]])
@@ -262,7 +258,7 @@ class NutritionTrainingCalendarAdapterTest {
 
     @Test
     fun `rir-only session without load is NotEstimable and never zero`() {
-        val result = adaptResult(listOf(weightedSession("a", 1), rirOnlySession("b", 3)))
+        val result = adaptResult(listOf(calendarSession("a", 1), rirOnlySession("b", 3)))
         assertTrue(estimated(result, week[0]).kcal > 0.0)
         // La sesión existe pero su gasto es desconocido: NO es descanso.
         assertEquals(DayExpenditure.NotEstimable, result.expendituresByDate[week[2]])
@@ -276,11 +272,6 @@ class NutritionTrainingCalendarAdapterTest {
         val session = mixedLoadSession("mix", day = 1)
         // Premisa: el motor devuelve un total POSITIVO (el ejercicio con carga
         // aporta trabajo Y descanso) aunque falte carga en el otro ejercicio.
-        val summary = TrainingEnergyEngine.estimatePlannedSession(session, settings)
-        assertTrue(
-            "El total debe ser positivo para que el test tenga sentido",
-            summary.totalKcal.mid > 0,
-        )
         assertNull(
             "`mid > 0` NO garantiza estimable: falta carga externa en una serie de trabajo",
             NutritionTrainingCalendarAdapter.estimateVariantKcal(session, settings),
@@ -294,7 +285,7 @@ class NutritionTrainingCalendarAdapterTest {
 
     @Test
     fun `program without anchor but with sessions is NotEstimable for the whole window`() {
-        val result = adaptResult(sessions = emptyList(), fixedProgram = programWithoutAnchor(listOf(weightedSession("a", 1))))
+        val result = adaptResult(sessions = emptyList(), fixedProgram = programWithoutAnchor(listOf(calendarSession("a", 1))))
         assertFalse(result.enabled)
         assertTrue(result.sessions.isEmpty())
         assertTrue(result.expendituresByDate.values.all { it === DayExpenditure.NotEstimable })
@@ -332,7 +323,7 @@ class NutritionTrainingCalendarAdapterTest {
 
     @Test
     fun `cardio estimates only with a valid body weight`() {
-        val withoutWeight = adaptResult(listOf(cardioSession("c", 1)), settings = settings)
+        val withoutWeight = adaptResult(listOf(cardioSession("c", 1)), settings = Settings())
         assertEquals(DayExpenditure.NotEstimable, withoutWeight.expendituresByDate[week[0]])
 
         val withWeight = adaptResult(listOf(cardioSession("c", 1)), settings = settingsWithWeight)
@@ -347,8 +338,8 @@ class NutritionTrainingCalendarAdapterTest {
 
     @Test
     fun `planned variant B counts once and never adds A`() {
-        val base = weightedSession("v", 1, weight = 100.0)
-        val withB = weightedSession("v-b", 1, weight = 120.0)
+        val base = calendarSession("v", 1, durationSeconds = 100.0)
+        val withB = calendarSession("v-b", 1, durationSeconds = 120.0)
         val session = base.copy(sessionB = withB)
         val result = adaptResult(
             listOf(session),
@@ -362,7 +353,7 @@ class NutritionTrainingCalendarAdapterTest {
 
     @Test
     fun `unmaterialized variant falls back to A`() {
-        val session = weightedSession("v", 1, weight = 100.0)
+        val session = calendarSession("v", 1, durationSeconds = 100.0)
         val result = adaptResult(
             listOf(session),
             plannedVariants = mapOf(instance("v", week[0]) to SessionVariant.B),
@@ -378,7 +369,7 @@ class NutritionTrainingCalendarAdapterTest {
     @Test
     fun `materialized but unestimable variant is honest NotEstimable`() {
         // La variante C EXISTE pero no tiene carga: no se cae en silencio a A.
-        val base = weightedSession("v", 1, weight = 100.0)
+        val base = calendarSession("v", 1, durationSeconds = 100.0)
         val session = base.copy(sessionC = rirOnlySession("v-c", 1))
         val result = adaptResult(
             listOf(session),
@@ -420,9 +411,9 @@ class NutritionTrainingCalendarAdapterTest {
 
     @Test
     fun `two real sessions on the same day are summed once each`() {
-        val result = adaptResult(listOf(weightedSession("a", 1), weightedSession("b", 1)))
-        val first = NutritionTrainingCalendarAdapter.estimateVariantKcal(weightedSession("a", 1), settings)!!
-        val second = NutritionTrainingCalendarAdapter.estimateVariantKcal(weightedSession("b", 1), settings)!!
+        val result = adaptResult(listOf(calendarSession("a", 1), calendarSession("b", 1)))
+        val first = NutritionTrainingCalendarAdapter.estimateVariantKcal(calendarSession("a", 1), settings)!!
+        val second = NutritionTrainingCalendarAdapter.estimateVariantKcal(calendarSession("b", 1), settings)!!
         assertEquals(2, result.sessions.count { it.date == week[0] })
         assertEquals(first + second, estimated(result, week[0]).kcal, 0.001)
     }
@@ -483,7 +474,7 @@ class NutritionTrainingCalendarAdapterTest {
 
     @Test
     fun `same session id across two weeks counts once per date`() {
-        val shared = weightedSession("shared", day = 1)
+        val shared = calendarSession("shared", day = 1)
         val result = NutritionTrainingCalendarAdapter.adapt(
             NutritionTrainingCalendarInput(
                 program = program(listOf(listOf(shared), listOf(shared))),
@@ -506,7 +497,7 @@ class NutritionTrainingCalendarAdapterTest {
     // ─── Evidencia de carga por FUENTE real (catálogo inyectado) ───────────
 
     @Test
-    fun `bodyweight only set with a declared zero external load and known weight stays estimable`() {
+    fun `bodyweight zero remains an original load but does not infer calories`() {
         injectCatalog(
             ExerciseMuscleInfo(
                 id = "flexion_bw",
@@ -517,10 +508,10 @@ class NutritionTrainingCalendarAdapterTest {
                 force = "Empuje",
                 type = "Básico",
                 category = "Fuerza",
-                efc = 2.5,
-                cnc = 2.0,
-                ssc = 1.0,
-                ttc = 1.5,
+                
+                
+                
+                
             ),
         )
         val set = ExerciseSet(
@@ -539,7 +530,7 @@ class NutritionTrainingCalendarAdapterTest {
         val session = Session(id = "bw", name = "Pecho BW", dayOfWeek = 1, exercises = listOf(exercise))
 
         // Fuente REAL del motor: 0 kg externos declarados (un 0 con valor).
-        val resolved = TrainingEnergyEngine.resolvePlannedExternalLoadKg(
+        val resolved = TrainingLoadEvidence.resolvePlannedExternalLoadKg(
             exercise,
             set,
             settingsWithWeight.weightUnit,
@@ -548,14 +539,12 @@ class NutritionTrainingCalendarAdapterTest {
         assertEquals(0.0, resolved.externalLoadKg!!, 0.0)
         val dbInfo = resolveCatalogExerciseInfo(null, "flexion_bw", null, exercise.name)
         assertNotNull(dbInfo)
-        assertTrue(TrainingEnergyEngine.bodyweightParticipation(dbInfo!!) > 0.0)
 
-        // Con peso corporal conocido el cuerpo ES la carga ⇒ estimable.
+        // A known original load is not an energy measurement.
         val estimate = NutritionTrainingCalendarAdapter.estimateVariantKcal(session, settingsWithWeight)
-        assertNotNull(estimate)
-        assertTrue(estimate!! > 0.0)
+        assertNull(estimate)
         val withWeight = adaptResult(listOf(session), settings = settingsWithWeight)
-        assertTrue(estimated(withWeight, week[0]).kcal > 0.0)
+        assertEquals(DayExpenditure.NotEstimable, withWeight.expendituresByDate[week[0]])
 
         // Sin peso corporal el motor no la puntúa ⇒ gasto desconocido.
         assertNull(NutritionTrainingCalendarAdapter.estimateVariantKcal(session, settings))
@@ -575,10 +564,10 @@ class NutritionTrainingCalendarAdapterTest {
                 force = "Empuje",
                 type = "Básico",
                 category = "Fuerza",
-                efc = 4.0,
-                cnc = 3.0,
-                ssc = 1.5,
-                ttc = 3.0,
+                
+                
+                
+                
             ),
         )
         val set = ExerciseSet(
@@ -600,8 +589,7 @@ class NutritionTrainingCalendarAdapterTest {
         // (externalLoad null) y, a la vez, participación corporal del catálogo > 0.
         val dbInfo = resolveCatalogExerciseInfo(null, "sentadilla_barra", null, exercise.name)
         assertNotNull(dbInfo)
-        assertTrue("Participación corporal real del catálogo", TrainingEnergyEngine.bodyweightParticipation(dbInfo!!) > 0.0)
-        val resolved = TrainingEnergyEngine.resolvePlannedExternalLoadKg(
+        val resolved = TrainingLoadEvidence.resolvePlannedExternalLoadKg(
             exercise,
             set,
             settingsWithWeight.weightUnit,
@@ -610,9 +598,6 @@ class NutritionTrainingCalendarAdapterTest {
         assertNull(resolved.externalLoadKg)
 
         // El motor devuelve un total POSITIVO (cuerpo parcial + descanso)…
-        val summary = TrainingEnergyEngine.estimatePlannedSession(session, settingsWithWeight)
-        assertTrue("Premisa: el total del motor es positivo", summary.totalKcal.mid > 0)
-
         // …pero el gasto es DESCONOCIDO: no se estima «sólo por el cuerpo».
         assertNull(NutritionTrainingCalendarAdapter.estimateVariantKcal(session, settingsWithWeight))
         val result = adaptResult(listOf(session), settings = settingsWithWeight)
@@ -694,9 +679,9 @@ class NutritionTrainingCalendarAdapterTest {
 
     @Test
     fun `program confirmation pins a single variant and never sums B and C`() {
-        val base = weightedSession("v", 1, weight = 100.0)
-        val variantB = weightedSession("v-b", 1, weight = 120.0)
-        val variantC = weightedSession("v-c", 1, weight = 140.0)
+        val base = calendarSession("v", 1, durationSeconds = 100.0)
+        val variantB = calendarSession("v-b", 1, durationSeconds = 120.0)
+        val variantC = calendarSession("v-c", 1, durationSeconds = 140.0)
         val session = base.copy(
             requirement = SessionRequirement.OPTIONAL,
             sessionB = variantB,
@@ -739,8 +724,8 @@ class NutritionTrainingCalendarAdapterTest {
 
     @Test
     fun `first confirmation without variant key pins A even when a later duplicate declares B`() {
-        val base = weightedSession("v", 1, weight = 100.0)
-        val variantB = weightedSession("v-b", 1, weight = 120.0)
+        val base = calendarSession("v", 1, durationSeconds = 100.0)
+        val variantB = calendarSession("v-b", 1, durationSeconds = 120.0)
         val optionalVariant = base.copy(requirement = SessionRequirement.OPTIONAL, sessionB = variantB)
 
         // Primer registro SIN variante ⇒ A fijado; el duplicado con B se ignora.
@@ -776,7 +761,7 @@ class NutritionTrainingCalendarAdapterTest {
     @Test
     fun `optional occurrence validation requires the real optional session on that exact date`() {
         val optionalMonday = optionalSession("opt", 1)
-        val requiredWednesday = weightedSession("req", 3)
+        val requiredWednesday = calendarSession("req", 3)
         val withAnchor = program(listOf(listOf(optionalMonday, requiredWednesday)))
 
         // Ocurrencia real: esa sesión OPCAIONAL en ESA fecha.
@@ -800,7 +785,7 @@ class NutritionTrainingCalendarAdapterTest {
     fun `wizard style program resolves real day dates from the calendar projection`() {
         // Formato del wizard (ancla + calendarización): el motor YA materializa
         // la fecha real de cada día.
-        val wizardStyle = program(listOf(listOf(weightedSession("a", 1), weightedSession("b", 5))))
+        val wizardStyle = program(listOf(listOf(calendarSession("a", 1), calendarSession("b", 5))))
         val projection = ProgramCalendarEngine.project(wizardStyle)
         assertTrue(projection.enabled)
         val projectedDates = projection.weeks.first { it.weekId == "w1" }.trainingDayDates
@@ -815,7 +800,7 @@ class NutritionTrainingCalendarAdapterTest {
 
         // Programa sin ancla: la proyección no tiene ocurrencias reales ⇒ no se
         // deriva ninguna fecha (la acción queda oculta, no fabricada).
-        val floating = programWithoutAnchor(listOf(weightedSession("a", 1)))
+        val floating = programWithoutAnchor(listOf(calendarSession("a", 1)))
         val floatingProjection = ProgramCalendarEngine.project(floating)
         assertFalse(floatingProjection.enabled)
         assertTrue(floatingProjection.weeks.isEmpty())

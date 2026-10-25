@@ -2,7 +2,6 @@ package com.example.kpkn.domain.templates
 
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.sessions.SessionTemplate
@@ -13,7 +12,6 @@ import com.example.kpkn.data.sessions.SessionTemplateSourceType
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTag
 import com.example.kpkn.data.splits.SplitTemplate
-import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.training.VolumeCalculator
 
 data class SplitTemplateDayGroup(
@@ -83,16 +81,7 @@ object SessionTemplateCatalogPolicy {
                 emptyMap()
             }
 
-            val warnings = mutableListOf<String>()
-            if (representativeTemplate != null && exerciseIndex.isNotEmpty()) {
-                val drain = evaluateTemplateRings(representativeTemplate, exerciseIndex)
-                val isPl = isPowerliftingTemplate(representativeTemplate)
-                val caps = RingBudgetPolicy.sessionWarningCaps(isPl)
-
-                if (drain.cns > caps.cns) warnings += "Fatiga SNC elevada (${drain.cns}% > ${caps.cns}%)"
-                if (drain.muscular > caps.muscular) warnings += "Fatiga Muscular elevada (${drain.muscular}% > ${caps.muscular}%)"
-                if (drain.spinal > caps.spinal) warnings += "Carga axial/espinal elevada (${drain.spinal}% > ${caps.spinal}%)"
-            }
+            val warnings = emptyList<String>()
 
             groups.add(
                 SplitTemplateDayGroup(
@@ -267,19 +256,7 @@ object SessionTemplateCatalogPolicy {
         return entries.associate { it.muscleName to it.displayVolume }
     }
 
-    fun evaluateTemplateRings(
-        template: SessionTemplate,
-        exerciseIndex: Map<String, ExerciseMuscleInfo>,
-        settings: Settings = Settings(),
-    ): PredictedDrain {
-        return try {
-            AugeFatigueEngine.calculateAdjustedPredictedDrain(
-                template.session, exerciseIndex, settings,
-            )
-        } catch (_: Throwable) {
-            PredictedDrain(cns = 100, muscular = 100, spinal = 100)
-        }
-    }
+
 
     fun isPowerliftingTemplate(template: SessionTemplate): Boolean {
         return template.focusCategory == SessionTemplateFocusCategory.POWERLIFTING ||

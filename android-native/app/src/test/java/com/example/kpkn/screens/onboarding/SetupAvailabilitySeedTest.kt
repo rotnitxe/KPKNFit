@@ -30,8 +30,6 @@ import com.example.kpkn.domain.onboarding.SetupPreviewKind
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.LiftMark
-import com.example.kpkn.domain.onboarding.RingsCompletion
-import com.example.kpkn.domain.onboarding.SetupRingsMapping
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupStepProgress
 import com.example.kpkn.domain.onboarding.SetupTrainingOptions
@@ -836,7 +834,6 @@ class SetupAvailabilitySeedTest {
             SetupWizardDraft::class.java,
             Program::class.java,
             NutritionPlan::class.java,
-            SetupRingsMapping::class.java,
             Boolean::class.javaPrimitiveType!!,
         ).apply { isAccessible = true }
         return builder.invoke(
@@ -845,7 +842,6 @@ class SetupAvailabilitySeedTest {
             draft,
             null,
             null,
-            SetupRingsMapping(RingsCompletion.UNKNOWN),
             false,
         ) as SetupSettingsPatch
     }
@@ -891,7 +887,6 @@ class SetupAvailabilitySeedTest {
         override fun activeNutritionPlanId(): String? = null
         override fun activeNutritionPlan(): NutritionPlan? = null
         override fun nutritionPlan(id: String): NutritionPlan? = null
-        override fun hasInitialRecoveryEvidence(): Boolean = false
         override suspend fun refreshBodyProgress() = Unit
     }
 }

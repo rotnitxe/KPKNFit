@@ -7,10 +7,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class Cal2LoadAdjustmentParityTest {
-    @Test fun controllerAndCalibratorUseTheSameFactorForTheSameCapacityAndReference() = runTest {
+    @Test fun unacceptedCalibrationCannotAdjustThePlannedLoad() = runTest {
         val context = CalibrationContext("bench-config", "barbell")
         val source = RecordedCalibrationSet("S1", "bench", context, 69.0, 10, declaredRir = 1)
-        val exercise = Exercise("bench", "Press", sets = listOf(ExerciseSet("S1")))
+        val exercise = Exercise("bench", "Press", sets = listOf(ExerciseSet("S1", weight = 60.0)))
         var state = WorkoutUiState(session = Session("session", "Sesión", exercises = listOf(exercise)))
         val controller = WorkoutLoadSuggestionController(scope = this, getState = { state },
             updateState = { state = it(state) }, ports = object : WorkoutLoadSuggestionController.Ports {
@@ -27,7 +27,7 @@ class Cal2LoadAdjustmentParityTest {
                 CalibrationReferenceCandidates(declaredOneRm = reference?.let { DeclaredCalibrationOneRm(context, it) }), 0L)
             // A one-rep snapshot supplies exactly the same C, independently of the controller's set aggregation.
             state = state.copy(completedSets = mapOf("bench_0" to CompletedSet("C", weight = decision.capacityKg!!, reps = 1)))
-            assertEquals(decision.factor, controller.computeSessionImprovementAdjustment(exercise.copy(reference1RM = reference), null, null), 0.0)
+            assertEquals(60.0, controller.getWeightSuggestionWithAutoRegulation(exercise.copy(reference1RM = reference), 0)!!.suggestedWeight, 0.0)
         }
     }
 }

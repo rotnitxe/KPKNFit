@@ -1,6 +1,5 @@
 package com.example.kpkn.domain.sessionassistant
 
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.sessions.SessionTemplate
 
 data class SessionAssistantInput(
@@ -15,8 +14,6 @@ data class SessionAssistantInput(
     val mesoIndex: Int,
     val programId: String,
     val targetDurationMinutes: Int? = null,
-    val customDrain: PredictedDrain? = null,
-    val customTemplateDrains: Map<String, PredictedDrain> = emptyMap(),
     val supersetGroups: List<com.example.kpkn.data.models.SupersetGroup> = emptyList(),
     val sessionWarmup: List<com.example.kpkn.data.models.WarmupExercise> = emptyList(),
     /**
@@ -144,8 +141,6 @@ data class GhostExerciseCard(
     val rpe: Double,
     val restSeconds: Int,
     val impactoVolumen: String,
-    val impactoDrenaje: String,
-    val impactoColumna: String,
     val compatibleConSplit: Boolean,
 )
 
@@ -153,7 +148,6 @@ data class TemplatePreview(
     val template: SessionTemplate,
     val modoRecomendado: SessionTemplateApplyMode,
     val volumenPorMusculo: Map<String, Double>,
-    val drenajeEstimado: PredictedDrain,
     val advertencias: List<String>,
     val duracionEstimada: Int,
 )
@@ -167,8 +161,8 @@ data class VolumeThreshold(
 )
 
 data class SessionAssistantReport(
-    val veredicto: Verdict,
-    val scoreEstimado: Int,
+    val veredicto: Verdict?,
+    val scoreEstimado: Int?,
     val riesgos: List<SessionRisk>,
     val ajustes: List<AssistantSuggestion>,
     val oportunidades: List<AssistantSuggestion>,
@@ -176,7 +170,6 @@ data class SessionAssistantReport(
     val plantillasCompatibles: List<TemplatePreview>,
     val volumenPorMusculo: Map<String, Double>,
     val umbralesPorMusculo: Map<String, VolumeThreshold>,
-    val drenajeEstimado: PredictedDrain,
     val duracionEstimada: Int,
     val resumenTexto: String,
     val totalRestSeconds: Int = 0,

@@ -131,8 +131,6 @@ class WizChatMessageBuilderTest {
         )
         assertTrue(omitted.contains("Sin problema") || omitted.contains("Tranquilo") || omitted.contains("no pasa nada"))
 
-        val unknownRecent = WizChatCopyCatalog.contextualAck(WizChatQuestionId.R_RECENT, "No lo sé")
-        assertTrue(unknownRecent!!.contains("no inventamos sesiones"))
     }
 
     @Test
@@ -159,67 +157,4 @@ class WizChatMessageBuilderTest {
         assertEquals(first, second)
     }
 
-    @Test
-    fun ringsIntroduceTheThreeIndicatorsBeforeAskingAnything() {
-        val messages = WizChatMessageBuilder.build(
-            acceptedAnswers = emptyList(),
-            currentQuestionId = WizChatQuestionId.R_START,
-            weightUnit = "kg",
-            profileName = null,
-        )
-        val text = messages.filter { it.id.startsWith("pre:") }.joinToString(" ") { it.text }
-        assertTrue(text.contains("músculos, energía y columna"))
-        assertTrue(text.contains("estimación"))
-        assertTrue(text.contains("no una medición"))
-    }
-
-    @Test
-    fun ringsQuestionsExplainWhyEachAnswerMatters() {
-        val recent = WizChatCopyCatalog.prefaces(WizChatQuestionId.R_RECENT).joinToString(" ")
-        assertTrue(recent.contains("carga con la que llegas"))
-        assertTrue(recent.contains("siete días"))
-        assertTrue(recent.contains("no caduca"))
-
-        val intensity = WizChatCopyCatalog.prefaces(WizChatQuestionId.R_INTENSITY).joinToString(" ")
-        assertTrue(intensity.contains("suave"))
-        assertTrue(intensity.contains("exigente"))
-
-        val axial = WizChatCopyCatalog.prefaces(WizChatQuestionId.R_AXIAL).joinToString(" ")
-        assertTrue(axial.contains("columna"))
-        assertTrue(axial.contains("sentadillas") || axial.contains("peso muerto"))
-
-        val sensations = WizChatCopyCatalog.prefaces(WizChatQuestionId.R_FEELINGS_MUSCLE).joinToString(" ")
-        assertTrue(sensations.contains("complementan"))
-
-        val recency = WizChatCopyCatalog.prefaces(WizChatQuestionId.R_RECENCY).joinToString(" ")
-        assertTrue(recency.contains("recupera"))
-    }
-
-    @Test
-    fun ringsResultExplainsRingsSourceAndLeavingItUncalibrated() {
-        val result = WizChatCopyCatalog.prefaces(WizChatQuestionId.R_RESULT).joinToString(" ")
-        assertTrue(result.contains("músculos"))
-        assertTrue(result.contains("energía"))
-        assertTrue(result.contains("columna"))
-        assertTrue(result.contains("fuente"))
-        assertTrue(result.contains("sin calibrar"))
-    }
-
-    @Test
-    fun discomfortContextIsNotADiagnosis() {
-        val text = WizChatCopyCatalog.prefaces(WizChatQuestionId.R_DISCOMFORT).joinToString(" ")
-        assertTrue(text.contains("diagnóstico"))
-    }
-
-    @Test
-    fun unknownRecentTrainingStillSaysNothingIsInvented() {
-        val messages = WizChatMessageBuilder.build(
-            acceptedAnswers = listOf(answer(WizChatQuestionId.R_RECENT, text = "No lo sé")),
-            currentQuestionId = WizChatQuestionId.R_RESULT,
-            weightUnit = "kg",
-            profileName = null,
-        )
-        val ack = messages.first { it.id.startsWith("ack:") }.text
-        assertTrue(ack.contains("no inventamos sesiones"))
-    }
 }

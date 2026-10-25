@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Cada mano sujeta un extremo de la cuerda unida al cable que llega desde abajo por detrás de los pies. Un paso de separación de la estación deja espacio para llevar las manos atrás entre los muslos sin tocar la torre ni dejar descansar las placas entre repeticiones.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Lleva la pelvis hacia atrás mientras las manos pasan entre los muslos y el cable permanece tenso.",
                 "Extiende la cadera hasta colocar la pelvis debajo del pecho, sin tirar con los codos.",
                 "Regresa a la bisagra con la columna neutra y las rodillas sin doblarse en una sentadilla."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -182,14 +178,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Pull-Through",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -204,7 +192,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -233,14 +220,12 @@
                 "Aléjate hasta tensar el cable, con ambos pies firmes y las rodillas ligeramente dobladas."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

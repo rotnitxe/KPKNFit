@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra sobre la espalda acompaña el aterrizaje y el regreso del cuerpo. Las manos fijan su posición, mientras el peso descansa en la parte alta del tronco.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Adelanta un pie y recibe el peso con la planta apoyada.",
                 "Dobla las dos rodillas hasta acercar la posterior al suelo.",
                 "Empuja con el pie adelantado y devuélvelo a la posición de salida."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -178,14 +174,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -201,7 +189,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -233,14 +220,12 @@
                 "Deja espacio delante para dar un paso y volver."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -260,19 +245,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El carro limita el desplazamiento de la barra mientras una pierna adelanta su apoyo y después recupera el lugar de partida. La longitud del paso debe permitir ese descenso sin arrastrar el hombro fuera del raíl.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Libera los ganchos y adelanta una pierna sin desplazar la barra fuera de sus guías.",
                 "Flexiona las rodillas con el talón delantero apoyado.",
                 "Extiende la pierna de delante y recoge ese pie antes de repetir."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -418,14 +399,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -441,7 +414,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -473,14 +445,12 @@
                 "Ajusta los topes por debajo del descenso previsto y sitúa los pies bajo el cuerpo."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -500,19 +470,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Las cargas cuelgan junto a los muslos y dejan libre el espacio delante del pecho. Cada mano sostiene su peso mientras la pierna adelantada recibe el paso y devuelve el cuerpo.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Da un paso al frente sin golpear el muslo con las pesas.",
                 "Desciende entre los dos pies con la rodilla posterior cerca del piso.",
                 "Presiona la planta delantera y vuelve a juntar los apoyos."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -692,14 +658,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -715,7 +673,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -747,7 +704,6 @@
                 "Sitúa los pies separados al ancho de las caderas."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -755,8 +711,7 @@
                 "forearm",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -776,19 +731,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una pesa sujeta por los lados del asa, delante del pecho, deja la carga centrada durante el paso. Los codos doblados sostienen esa altura mientras la pierna delantera frena y empuja el regreso.",
-              "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Avanza un pie sin alejar la pesa del torso.",
                 "Baja el cuerpo hasta que la rodilla de atrás quede a poca distancia del suelo.",
                 "Regresa sobre la pierna adelantada sin levantar la kettlebell con los brazos."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -985,14 +936,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1008,7 +951,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1040,7 +982,6 @@
                 "Orienta los codos hacia abajo y abre una calle libre delante."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -1049,8 +990,7 @@
                 "biceps",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1070,19 +1010,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El cable sale del punto bajo de la estación posterior y llega al asa junto a la cadera. Su tirón hacia atrás acompaña el paso frontal; la mano sostiene el asa sin convertir el gesto en un remo.",
-              "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
                 "Da el paso alejándote de la estación sin girar el pecho.",
                 "Dobla las piernas con el brazo de carga extendido junto al costado.",
                 "Empuja desde el apoyo delantero y vuelve sin permitir que el cable te arrastre."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1262,14 +1198,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1285,7 +1213,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1317,7 +1244,6 @@
                 "Sujétala con una mano junto a la cadera y adelanta después la pierna contraria."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -1325,8 +1251,7 @@
                 "forearm",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1346,19 +1271,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Las manos descansan en la cintura y el único peso es el del cuerpo, que cae sobre la pierna adelantada al aterrizar. El paso se centra en frenar la recepción con esa pierna y en el empuje que devuelve el cuerpo a la salida.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Da un paso largo hacia delante y apoya toda la planta del pie.",
                 "Flexiona ambas rodillas y baja hasta casi rozar el suelo con la de atrás.",
                 "Empuja con la pierna adelantada para volver a la posición de salida."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1504,14 +1425,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1527,7 +1440,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1559,14 +1471,12 @@
                 "Despeja el suelo por delante para poder dar el paso."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {
               "implement": "bodyweight"

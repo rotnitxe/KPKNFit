@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con peso corporal, el cuerpo se mantiene en línea recta apoyado en antebrazos y puntas de los pies, sin que nada se mueva. Sin más carga que el propio cuerpo, la exigencia de la zona media es la justa.",
-              "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -125,14 +121,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Plancha Abdominal",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -148,7 +136,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -176,10 +163,8 @@
                 "Preparación: Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {}
           }
@@ -220,19 +205,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "El peso de los brazos y de las piernas actúa como palanca sobre el abdomen, sin implemento. Con los brazos ya estirados sobre la cabeza, bajar los pies hacia el suelo es lo que alarga esa palanca y la hace más dura.",
-              "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Eleva a la vez los hombros y las piernas unos centímetros del suelo.",
                 "Aguanta con la zona lumbar pegada y respirando con calma.",
                 "Baja en cuanto la zona lumbar empiece a despegarse."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -329,14 +310,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Hollow Body Hold",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -354,7 +327,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -383,12 +355,10 @@
                 "Recoge el mentón y lleva las costillas hacia la pelvis antes de despegar nada."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [
                 "core"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.5
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }

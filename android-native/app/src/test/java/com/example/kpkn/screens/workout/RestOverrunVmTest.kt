@@ -44,14 +44,14 @@ class RestOverrunVmTest {
     fun setUp() {
         dispatcher = UnconfinedTestDispatcher()
         Dispatchers.setMain(dispatcher)
-        LiveSessionVmFixture.resetAugeRepository()
+        LiveSessionVmFixture.resetTrainingObservationRepository()
     }
 
     @After
     fun tearDown() {
         try {
             fixture?.close()
-            LiveSessionVmFixture.resetAugeRepository()
+            LiveSessionVmFixture.resetTrainingObservationRepository()
             ProgramRepository.closeInstance()
             KpknDatabase.closeInstance()
         } finally {

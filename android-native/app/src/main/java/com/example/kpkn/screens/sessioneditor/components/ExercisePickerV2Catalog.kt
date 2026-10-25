@@ -234,7 +234,6 @@ internal data class CatalogReplacementAnchor(
     val configurationId: String? = null,
     val mainMuscle: String? = null,
     val laterality: ExerciseLateralityV2? = null,
-    val axialLoadFactor: Double = 0.0,
 )
 
 /**
@@ -262,7 +261,6 @@ internal fun catalogReplacementAnchorFor(
         configurationId = configuration.id,
         mainMuscle = configuration.profile.primaryMuscles.firstOrNull(),
         laterality = configuration.profile.laterality,
-        axialLoadFactor = configuration.profile.axialLoadFactor,
     )
 }
 
@@ -350,7 +348,6 @@ internal fun catalogReplacementCandidateLine(
     }
     val difference = when {
         definition.id == anchor.definitionId -> null
-        anchor.axialLoadFactor > 0.0 && profile.axialLoadFactor == 0.0 -> "sin carga axial"
         lateralityNote != null -> lateralityNote
         mainMuscle != null && anchor.primaryMuscles.isNotEmpty() && mainMuscle !in anchor.primaryMuscles ->
             exerciseCatalogMuscleLabel(mainMuscle)

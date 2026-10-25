@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con barra, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. La barra es la referencia para cargar el tríceps con peso de verdad.",
-              "efc": 2.2,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -127,14 +123,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "JM Press",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -149,7 +137,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -181,10 +168,8 @@
                 "Preparación: Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -204,17 +189,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con barra EZ, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del tríceps.",
-              "efc": 2.2,
               "equipmentId": "ez_bar",
               "executionCues": [
                 "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -311,14 +292,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "JM Press",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -333,7 +306,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -365,10 +337,8 @@
                 "Preparación: Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "ez_bar"
@@ -388,17 +358,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -495,14 +461,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "JM Press",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -517,7 +475,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -549,10 +506,8 @@
                 "Preparación: Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -572,17 +527,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con máquina Smith, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. El tríceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
-              "efc": 2.2,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -679,14 +630,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "JM Press",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -701,7 +644,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -733,10 +675,8 @@
                 "Preparación: Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad."
               ],
               "setupTimeSeconds": 40,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -756,17 +696,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.3,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con polea, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
-              "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -863,14 +799,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.3,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "JM Press",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -885,7 +813,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -917,10 +844,8 @@
                 "Preparación: Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "cable"

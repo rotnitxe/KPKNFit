@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con mancuernas, el tronco se inclina de lado con la carga en una mano y regresa a la vertical sin girar. El abdomen trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-              "efc": 2.0,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -123,14 +119,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Inclinación Lateral",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -145,7 +133,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -171,10 +158,8 @@
                 "Preparación: De pie o sentado, te inclinas hacia el lado cargando el oblicuo."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {}
           }
@@ -214,19 +199,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Solo cuenta el peso del cuerpo, apoyado en el antebrazo de abajo y en el borde externo del pie, con el codo justo bajo el hombro. Adelantar el pie de arriba ensancha la base y lo hace más fácil; apilar los dos pies la estrecha.",
-              "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Levanta la cadera hasta alinear la cabeza, el tronco y los tobillos.",
                 "Aguanta sin hundir la cadera ni girar el pecho hacia el suelo o el techo.",
                 "Baja con calma y repite del otro lado."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -341,14 +322,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Plancha Lateral",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -366,7 +339,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -396,12 +368,10 @@
                 "Apoya todo el antebrazo en el suelo, con la mano abierta."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [
                 "deltoid"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.5
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }

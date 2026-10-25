@@ -45,7 +45,7 @@ fun SetupWizardBlock.toWizardBlock(): WizardBlock = when (this) {
     SetupWizardBlock.BASICS -> WizardBlock.BASICS
     SetupWizardBlock.TRAINING -> WizardBlock.TRAINING
     SetupWizardBlock.NUTRITION -> WizardBlock.NUTRITION
-    SetupWizardBlock.RINGS -> WizardBlock.RINGS
+    
     SetupWizardBlock.REVIEW -> WizardBlock.REVIEW
 }
 
@@ -194,7 +194,7 @@ internal fun SetupWizardBlock.toKpknModule(): KpknModule? = when (this) {
     SetupWizardBlock.BASICS -> KpknModule.BASICOS
     SetupWizardBlock.TRAINING -> KpknModule.ENTRENO
     SetupWizardBlock.NUTRITION -> KpknModule.NUTRICION
-    SetupWizardBlock.RINGS -> KpknModule.RINGS
+    
     SetupWizardBlock.REVIEW -> null
 }
 
@@ -207,7 +207,7 @@ internal fun milestoneStageLabel(block: SetupWizardBlock): String = when (block)
     SetupWizardBlock.BASICS -> "Básicos"
     SetupWizardBlock.TRAINING -> "Entreno"
     SetupWizardBlock.NUTRITION -> "Nutrición"
-    SetupWizardBlock.RINGS -> "Rings"
+    
     SetupWizardBlock.REVIEW -> "Revisión"
 }
 
@@ -259,7 +259,7 @@ private fun SetupStepBody(
         SetupWizardBlock.BASICS -> SetupBasicsStepContent(step = step, state = state, vm = vm)
         SetupWizardBlock.TRAINING -> SetupTrainingStepContent(step = step, state = state, vm = vm)
         SetupWizardBlock.NUTRITION -> SetupNutritionStepContent(step = step, state = state, vm = vm)
-        SetupWizardBlock.RINGS -> SetupRingsStepContent(step = step, state = state, vm = vm)
+        
         SetupWizardBlock.REVIEW -> SetupReviewStep(step = step, state = state, vm = vm)
     }
 }

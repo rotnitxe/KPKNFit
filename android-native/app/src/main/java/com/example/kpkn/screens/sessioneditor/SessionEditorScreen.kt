@@ -181,7 +181,7 @@ fun SessionEditorScreen(
         // otherwise Android can keep its yellow insertion handle visible above
         // the sheet even though the field is visually covered.
         clearSessionEditorAssistantFocus(focusManager, keyboardController)
-        viewModel.openSheet(SessionEditorSheet.AUGE)
+        viewModel.openSheet(SessionEditorSheet.ASSISTANT)
     }
 
     DisposableEffect(lifecycleOwner, viewModel) {
@@ -568,7 +568,7 @@ fun SessionEditorScreen(
         }
     }
     BackHandler(enabled = uiState.sheet == SessionEditorSheet.NONE && !showWeekSheet) { exitEditor() }
-    BackHandler(enabled = uiState.sheet == SessionEditorSheet.AUGE) {
+    BackHandler(enabled = uiState.sheet == SessionEditorSheet.ASSISTANT) {
         viewModel.closeSheet()
     }
 
@@ -948,7 +948,7 @@ fun SessionEditorScreen(
             )
         }
 
-        if (uiState.sheet == SessionEditorSheet.AUGE) {
+        if (uiState.sheet == SessionEditorSheet.ASSISTANT) {
             AssistantGlassOverlay(
                 uiState = uiState,
                 templates = allTemplates,

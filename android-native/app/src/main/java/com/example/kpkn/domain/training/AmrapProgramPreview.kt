@@ -40,15 +40,15 @@ enum class AmrapEffectKind {
     NO_CHANGE,
 }
 
-/** Quién decide el cambio: la regla del método (siempre se aplica) o el modo de autorregulación del programa (OFF, PROPONER, AUTO). */
-enum class AmrapEffectGate { METHOD, OFF, PROPOSE, AUTO }
+/** Quién decide el cambio: la regla del método (siempre se aplica) o la confirmación explícita del programa (OFF, PROPONER). */
+enum class AmrapEffectGate { METHOD, OFF, PROPOSE }
 
 /**
  * El efecto que provocará un AMRAP según la regla de SU programa (CAL5), para la tarjeta en vivo (CAL3). Pura: sin interfaz.
  *
  * - [headline]: la frase corta de la tarjeta, con la coma decimal («nSuns: TM +5 kg la semana próxima»).
  * - [detail] y [warning]: la explicación y el aviso (por ejemplo, «tu TM quizá esté alto»).
- * - [gate]: con `PROPOSE` el cambio es una propuesta que la persona acepta o no; con `AUTO` se aplica solo; con `OFF` el programa no
+ * - [gate]: con `PROPOSE` el cambio es una propuesta que la persona acepta o no; el valor heredado `AUTO` también exige confirmación; con `OFF` el programa no
  *   propone nada; con `METHOD` es la regla del método (se aplica al cerrar el ciclo o la ola y deja un aviso).
  */
 data class AmrapProgramEffect(
@@ -220,7 +220,7 @@ object AmrapProgramPreview {
                         true -> when (mode) {
                             AutoregulationMode.OFF -> "Al completar S4, OFF calcula el XRM; no lo aplica."
                             AutoregulationMode.PROPOSE -> "Al completar S4, se propone el XRM de la próxima semana."
-                            AutoregulationMode.AUTO -> "Al completar S4, AUTO ajusta el XRM para la próxima semana."
+                            AutoregulationMode.AUTO -> "Al completar S4, revisa y confirma la propuesta XRM para la próxima semana."
                         }
                         null -> return null
                     }
@@ -639,7 +639,6 @@ object AmrapProgramPreview {
             val note = when (gate) {
                 AmrapEffectGate.OFF -> "${variant.label}: XRM ${kg(xrm)} kg calculado; OFF no lo aplica."
                 AmrapEffectGate.PROPOSE -> "${variant.label}: propone XRM ${kg(xrm)} kg para la próxima semana."
-                AmrapEffectGate.AUTO -> "${variant.label}: AUTO ajusta el XRM a ${kg(xrm)} kg la próxima semana."
                 AmrapEffectGate.METHOD -> "${variant.label}: XRM ${kg(xrm)} kg para la próxima semana."
             }
             AmrapProgramEffect(
@@ -649,7 +648,7 @@ object AmrapProgramPreview {
                 headline = note,
                 detail = listOfNotNull(
                     "${SpanishPlurals.reps(reps)} válidas con ${kg(weight)} kg (${variant.label}: $bandText).",
-                    gateDetail(gate, null).takeIf { gate == AmrapEffectGate.PROPOSE || gate == AmrapEffectGate.AUTO },
+                    gateDetail(gate, null).takeIf { gate == AmrapEffectGate.PROPOSE },
                 ).joinToString(" "),
                 liftSlot = lift,
                 nextWeekXrmKg = xrm,
@@ -724,13 +723,12 @@ object AmrapProgramPreview {
     private fun gateOf(mode: AutoregulationMode): AmrapEffectGate = when (mode) {
         AutoregulationMode.OFF -> AmrapEffectGate.OFF
         AutoregulationMode.PROPOSE -> AmrapEffectGate.PROPOSE
-        AutoregulationMode.AUTO -> AmrapEffectGate.AUTO
+        AutoregulationMode.AUTO -> AmrapEffectGate.PROPOSE
     }
 
     private fun gateDetail(gate: AmrapEffectGate, change: String?): String? {
         val tail = when (gate) {
             AmrapEffectGate.PROPOSE -> "Te lo propondremos al cerrar la semana: tú decides."
-            AmrapEffectGate.AUTO -> "Se aplica solo al cerrar la semana."
             else -> null
         }
         return listOfNotNull(change, tail).joinToString(" ").ifBlank { null }

@@ -1,7 +1,6 @@
 package com.example.kpkn.domain.onboarding
 
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG
-import com.example.kpkn.data.models.RingsLiftPattern
 import kotlinx.serialization.Serializable
 
 /**
@@ -265,19 +264,6 @@ val ORDER_MUSCLE_OPTIONS: List<SetupOptionDefinition> = listOf(
     "Pectorales", "Dorsales", "Deltoides", "Bíceps", "Tríceps", "Antebrazo", "Cuádriceps",
     "Isquiosurales", "Glúteos", "Pantorrillas", "Abdomen", "Trapecio", "Erectores Espinales",
 ).map { SetupOptionDefinition(it, it) }
-
-/** Patrones de «¿Qué ejercicios principales hiciste?» (RINGS v2), en el orden en que se muestran. */
-private val ringsLiftOptions: List<SetupOptionDefinition> = listOf(
-    RingsLiftPattern.SQUAT to "Sentadilla",
-    RingsLiftPattern.DEADLIFT to "Peso muerto",
-    RingsLiftPattern.HINGE_ROW to "Rumano o remo",
-    RingsLiftPattern.BENCH to "Press banca",
-    RingsLiftPattern.OVERHEAD to "Press militar",
-    RingsLiftPattern.PULL_UP to "Dominadas",
-    RingsLiftPattern.LUNGE to "Zancadas",
-    RingsLiftPattern.CARDIO_LONG to "Cardio largo",
-    RingsLiftPattern.INTERVALS to "Intervalos",
-).map { (pattern, label) -> SetupOptionDefinition(pattern.name, label) }
 
 object SetupStepDefinitions {
 
@@ -915,169 +901,6 @@ object SetupStepDefinitions {
         ),
 
         // -------------------------------------------------------------------
-        // Bloque 4: RINGS
-        // -------------------------------------------------------------------
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_INTRO, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "Tus RINGS, tu recuperación de un vistazo",
-            subtitle = "Mira cómo funcionan antes de calcular los tuyos.",
-            control = SetupControlKind.RINGS_INTRO,
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_SESSION_DAYS, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Qué días entrenaste?",
-            subtitle = "Marca los días de la última semana en los que entrenaste.",
-            control = SetupControlKind.RINGS_DAYS,
-            // Hoy y ayer tienen nombre propio; el resto, cuántos días atrás. La UI del calendario pone la fecha de cada día.
-            options = listOf(
-                SetupOptionDefinition("0", "Hoy"), SetupOptionDefinition("1", "Ayer"),
-            ) + (2..6).map { SetupOptionDefinition("$it", "Hace $it días") } + listOf(
-                SetupOptionDefinition("none", "No entrené"),
-                SetupOptionDefinition("unknown", "No lo recuerdo"),
-            ),
-            exclusiveValues = setOf("none", "unknown"),
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_MAIN_LIFTS, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Qué ejercicios principales hiciste?",
-            subtitle = "Así sabemos cuánto cargaron tus músculos y tu columna.",
-            control = SetupControlKind.RINGS_LIFTS,
-            options = ringsLiftOptions + listOf(
-                SetupOptionDefinition("none", "Ninguno de estos"),
-                SetupOptionDefinition("unknown", "No lo sé"),
-            ),
-            exclusiveValues = setOf("none", "unknown"),
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_GROUP_SETS, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Cuántas series hiciste por grupo?",
-            // La ventana («Desde el martes») la pone la pantalla, que sabe qué día es hoy.
-            subtitle = "Si no lo sabes, déjalo en «No lo sé».",
-            control = SetupControlKind.RINGS_GROUP_SETS,
-            allowSkip = true,
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_FEELINGS, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Cómo te sientes hoy?",
-            subtitle = "Tu sensación también cuenta para calcular tus RINGS.",
-            control = SetupControlKind.RINGS_FEELINGS,
-            allowSkip = true,
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_RECENT, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Entrenaste en los últimos 7 días?",
-            subtitle = "«No lo sé» no es lo mismo que no haber entrenado.",
-            control = SetupControlKind.SINGLE_CHOICE,
-            options = opt("yes" to "Sí", "no" to "No", "unknown" to "No lo sé"),
-            legacyQuestion = WizChatQuestionId.R_RECENT,
-            legacyOnly = true,
-            legacyValueMap = mapOf("Sí" to "yes", "No" to "no", "No lo sé" to "unknown"),
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_SESSIONS, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Cuántas sesiones hiciste?", control = SetupControlKind.SINGLE_CHOICE,
-            options = (1..7).map { SetupOptionDefinition("$it", "$it") },
-            legacyQuestion = WizChatQuestionId.R_SESSIONS,
-            legacyOnly = true,
-            legacyValueMap = (1..7).associate { "$it" to "$it" },
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_RECENCY, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Cuándo fue tu última sesión?", control = SetupControlKind.SINGLE_CHOICE,
-            options = listOf(
-                SetupOptionDefinition("0", "Hoy"), SetupOptionDefinition("1", "Ayer"),
-            ) + (2..6).map { SetupOptionDefinition("$it", "Hace $it días") },
-            legacyQuestion = WizChatQuestionId.R_RECENCY,
-            legacyOnly = true,
-            legacyValueMap = buildMap {
-                put("Hoy", "0"); put("Ayer", "1")
-                (2..6).forEach { put("Hace $it días", "$it") }
-            },
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_ACTIVITY, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Qué predominó en tus sesiones?", control = SetupControlKind.SINGLE_CHOICE,
-            options = opt("STRENGTH" to "Fuerza", "CARDIO" to "Cardio", "MIXED" to "Mixta"),
-            legacyQuestion = WizChatQuestionId.R_ACTIVITY,
-            legacyOnly = true,
-            legacyValueMap = mapOf("Fuerza" to "STRENGTH", "Cardio" to "CARDIO", "Mixta" to "MIXED"),
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_INTENSITY, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Cómo sentiste la intensidad?", control = SetupControlKind.SINGLE_CHOICE,
-            options = opt(
-                "EASY" to "Suave", "MODERATE" to "Moderada", "HARD" to "Dura", "VERY_HARD" to "Muy dura",
-            ),
-            legacyQuestion = WizChatQuestionId.R_INTENSITY,
-            legacyValueMap = mapOf(
-                "Fácil" to "EASY", "Moderada" to "MODERATE", "Exigente" to "HARD", "Muy exigente" to "VERY_HARD",
-            ),
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_AXIAL, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Hubo cargas pesadas para la espalda?",
-            subtitle = "Cargas pesadas para la espalda (sentadilla, peso muerto…).",
-            control = SetupControlKind.SINGLE_CHOICE,
-            options = opt("yes" to "Sí", "no" to "No", "unknown" to "No lo sé"),
-            legacyQuestion = WizChatQuestionId.R_AXIAL,
-            legacyOnly = true,
-            legacyValueMap = mapOf("Sí" to "yes", "No" to "no", "No lo sé" to "unknown"),
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_MUSCLE_FEELING, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Cómo se sienten tus músculos?",
-            subtitle = "Tu percepción manda; «No lo sé» es una respuesta válida y no inventa un nivel.",
-            control = SetupControlKind.SINGLE_CHOICE,
-            options = intensityLevels + feelingsUnknown,
-            allowSkip = true,
-            legacyQuestion = WizChatQuestionId.R_FEELINGS_MUSCLE,
-            legacyOnly = true,
-            legacyValueMap = intensityLevels.associate { it.label to it.value },
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_ENERGY_FEELING, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Cómo está tu energía?",
-            subtitle = "Tu percepción manda; «No lo sé» es una respuesta válida y no inventa un nivel.",
-            control = SetupControlKind.SINGLE_CHOICE,
-            options = energyLevels + feelingsUnknown,
-            allowSkip = true,
-            legacyQuestion = WizChatQuestionId.R_FEELINGS_ENERGY,
-            legacyOnly = true,
-            legacyValueMap = energyLevels.associate { it.label to it.value },
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_STRUCTURE_FEELING, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Cómo está tu columna?",
-            subtitle = "Tu percepción manda; «No lo sé» es una respuesta válida y no inventa un nivel.",
-            control = SetupControlKind.SINGLE_CHOICE,
-            options = structureLevels + feelingsUnknown,
-            allowSkip = true,
-            legacyQuestion = WizChatQuestionId.R_FEELINGS_STRUCTURE,
-            legacyOnly = true,
-            legacyValueMap = structureLevels.associate { it.label to it.value },
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_DISCOMFORT, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "¿Tienes alguna molestia?",
-            subtitle = "Dinos qué te molesta; puedes responder «Sin molestias» u omitirlo.",
-            control = SetupControlKind.MULTI_CHOICE,
-            options = discomforts(),
-            exclusiveValues = setOf("none", "omit"),
-            allowSkip = true,
-            legacyQuestion = WizChatQuestionId.R_DISCOMFORT,
-            legacyValueMap = discomfortLegacyMap(),
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_RESULT, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "Tus RINGS", control = SetupControlKind.RESULT_PREVIEW,
-            legacyQuestion = WizChatQuestionId.R_RESULT, legacyQuestionRenders = false,
-        ),
-        SetupStepDefinition(
-            id = SetupStepId.MILESTONE_RINGS, block = SetupWizardBlock.RINGS, kind = SetupStepKind.MILESTONE,
-            title = "Rings", control = SetupControlKind.MILESTONE,
-        ),
-
-        // -------------------------------------------------------------------
         // Revisión y activación
         // -------------------------------------------------------------------
         SetupStepDefinition(
@@ -1119,11 +942,7 @@ object SetupStepDefinitions {
             options = opt("female" to "Femenino", "male" to "Masculino", "unspecified" to "Prefiero no responder"),
             legacyQuestion = WizChatQuestionId.N_SEX, legacyOnly = true,
         ),
-        SetupStepDefinition(
-            id = SetupStepId.RINGS_START, block = SetupWizardBlock.RINGS, kind = SetupStepKind.QUESTION,
-            title = "Inicio de RINGS (legacy)", control = SetupControlKind.SINGLE_CHOICE,
-            legacyQuestion = WizChatQuestionId.R_START, legacyOnly = true,
-        ),
+
     ).associateBy { it.id }
 
     // -----------------------------------------------------------------------
@@ -1180,7 +999,7 @@ object SetupStepDefinitions {
         SetupWizardBlock.BASICS -> "Datos básicos"
         SetupWizardBlock.TRAINING -> "Entreno"
         SetupWizardBlock.NUTRITION -> "Nutrición"
-        SetupWizardBlock.RINGS -> "Rings"
+        
         SetupWizardBlock.REVIEW -> "Revisión"
     }
 }

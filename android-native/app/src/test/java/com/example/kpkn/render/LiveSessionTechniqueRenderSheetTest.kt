@@ -29,7 +29,6 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Exercise
-import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
@@ -46,7 +45,6 @@ import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.workout.WeightSuggestion
 import com.example.kpkn.screens.workout.components.GuidedTechniquePanel
 import com.example.kpkn.screens.workout.components.GuidedTechniquePhase
-import com.example.kpkn.screens.workout.components.SetAdjustmentOverlay
 import com.example.kpkn.screens.workout.components.SetCardTechniqueBack
 import com.example.kpkn.screens.workout.components.UltraFastPreviewSheet
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
@@ -91,26 +89,7 @@ private val EJERCICIO_PM = Exercise(
     ),
 )
 
-private val PREPARACION = ExerciseReadiness(
-    exerciseId = "pm",
-    exerciseName = "Peso Muerto Convencional",
-    overallScore = 62,
-    muscularComponent = 70,
-    cnsComponent = 55,
-    spinalComponent = 48,
-    articularComponent = 80,
-    structuralComponent = 75,
-    relatedArticular = emptyList(),
-    muscularWeight = 0.5,
-    cnsWeight = 0.3,
-    spinalWeight = 0.2,
-    articularWeight = 0.0,
-    setsPenaltyFactor = 1.0,
-    intensityPenaltyFactor = 1.0,
-    ermProximityFactor = 1.0,
-    patternId = null,
-    involvedMuscleIds = emptyList(),
-)
+
 
 private val PREVISUALIZACION = UltraFastPreview(
     beforeSeconds = 2520,
@@ -274,18 +253,6 @@ class LiveSessionTechniqueRenderSheetTest {
 
     // ── Ajuste por estado (C4) ──
 
-    @Test
-    fun ajusteDeEstado100() {
-        onlyWhenAsked()
-        dibujar("ajuste_estado_100", 1f, 760) { AjusteDeEstado() }
-    }
-
-    @Test
-    fun ajusteDeEstado130() {
-        onlyWhenAsked()
-        dibujar("ajuste_estado_130", 1.3f, 900) { AjusteDeEstado() }
-    }
-
     // ── Acciones de serie y alcance (C5, B9) ──
 
 
@@ -357,21 +324,7 @@ class LiveSessionTechniqueRenderSheetTest {
         }
     }
 
-    @Composable
-    private fun AjusteDeEstado() {
-        SetAdjustmentOverlay(
-            exercise = EJERCICIO_PM,
-            currentSet = SERIE_PM,
-            setIndex = 0,
-            exerciseReadiness = PREPARACION,
-            weightSuggestion = WeightSuggestion(suggestedWeight = 98.0, reason = "Ajuste por RIR"),
-            averageErm = 118.0,
-            bodyWeight = 80.0,
-            loadMode = LoadModeV2.LOAD,
-            onDismiss = {},
-            onApply = {},
-        )
-    }
+
 
     @Composable
     private fun Ultrarapido() {

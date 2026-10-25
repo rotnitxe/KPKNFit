@@ -17,10 +17,6 @@ import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
-import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.AugeMuscleCapacityEngine
-import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
-import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.VolumeCalculator
@@ -123,7 +119,6 @@ class WorkoutFinishController(
         scope.launch {
             var durableLogId: String? = null
             var retainedVolumeModal = false
-            var committedStressScore = 0.0
             var committedVolumeAdvances: List<MuscleAdvance> = emptyList()
             var onCompleteAttempted = false
             try {
@@ -228,125 +223,6 @@ class WorkoutFinishController(
                 val finishOperationId = closingFeedback.finishOperationId
                     ?: finishSnapshot?.finishOperationId
                     ?: "finish-$logId"
-                val adaptiveCache = com.example.kpkn.data.repository.AugeRepository
-                    .getInstance(appContext)
-                    .getAdaptiveCache()
-                val automaticImpact = withContext(Dispatchers.Default) {
-                    val canonicalInput = MuscularSessionImpactEngine.fromCompletedExercises(
-                        completedExercises = completedExercises,
-                        completionInstantIso = completionInstantIso,
-                        exerciseDb = currentExerciseIndex,
-                        settings = repository.settings.value,
-                        adaptiveCache = adaptiveCache,
-                    )
-                    val initial = MuscularSessionImpactEngine.evaluate(
-                        input = canonicalInput,
-                        exerciseDb = currentExerciseIndex,
-                        settings = repository.settings.value,
-                        adaptiveCache = adaptiveCache,
-                    )
-                    val capacities = AugeMuscleCapacityEngine.capacitiesFor(
-                        muscles = initial.involvedVolumeMuscles,
-                        history = repository.history.value,
-                        settings = repository.settings.value,
-                        exerciseDb = currentExerciseIndex,
-                        completionInstantIso = completionInstantIso,
-                        adaptiveCache = adaptiveCache,
-                    )
-                    MuscularSessionImpactEngine.evaluate(
-                        input = canonicalInput,
-                        exerciseDb = currentExerciseIndex,
-                        settings = repository.settings.value,
-                        adaptiveCache = adaptiveCache,
-                        capacitiesAtCompletion = capacities,
-                    )
-                }.let { impact ->
-                    val frozenHash = closingFeedback.completedSetInputHash
-                        ?: finishSnapshot?.completedSetInputHash
-                    if (frozenHash.isNullOrBlank()) impact else impact.copy(setInputHash = frozenHash)
-                }
-                KpknDiagnosticLogger.event(
-                    namespace = "auge",
-                    name = "session_input",
-                    fields = mapOf(
-                        "finishOperationId" to finishOperationId,
-                        "completionInstantIso" to completionInstantIso,
-                        "inputHash" to automaticImpact.setInputHash,
-                        "exerciseCount" to completedExercises.size,
-                        "setCount" to completedExercises.sumOf { it.sets.size },
-                        "canonicalExerciseIds" to completedExercises.mapNotNull { it.canonicalExerciseId },
-                        "involvedVolumeMuscles" to automaticImpact.involvedVolumeMuscles,
-                    ),
-                    sessionId = sessionId,
-                )
-                KpknDiagnosticLogger.event(
-                    namespace = "auge",
-                    name = "session_impact",
-                    fields = mapOf(
-                        "finishOperationId" to finishOperationId,
-                        "inputHash" to automaticImpact.setInputHash,
-                        "globalMuscularDrain" to automaticImpact.globalMuscularDrain,
-                        "perMuscle" to automaticImpact.perMuscle.mapValues { (_, value) ->
-                            mapOf(
-                                "immediateDrainPct" to value.immediateDrainPct,
-                                "stressUnits" to value.stressUnits,
-                                "capacityAtCompletion" to value.capacityAtCompletion,
-                                "directStressUnits" to value.directStressUnits,
-                                "indirectStressUnits" to value.indirectStressUnits,
-                            )
-                        },
-                    ),
-                    sessionId = sessionId,
-                )
-
-                val stressScore = withContext(Dispatchers.Default) {
-                    val drainSummary = AugeFatigueEngine.calculateCompletedSessionDrain(
-                        completedExercises = completedExercises,
-                        exerciseDb = catalogExerciseIndex(),
-                        settings = repository.settings.value,
-                        adaptiveCache = adaptiveCache,
-                    )
-                    val base = (
-                        drainSummary.cns * AugeFatigueEngine.STRESS_WEIGHT_CNS +
-                            drainSummary.muscular * AugeFatigueEngine.STRESS_WEIGHT_MUSCULAR +
-                            drainSummary.spinal * AugeFatigueEngine.STRESS_WEIGHT_SPINAL
-                        ).coerceAtLeast(1.0)
-                    val predictedOverall = base
-                    val adjustedSystem = (drainSummary.cns + closingFeedback.systemAdjustment).coerceIn(0, 100)
-                    val adjustedMuscular = (drainSummary.muscular + closingFeedback.muscularAdjustment).coerceIn(0, 100)
-                    val adjustedStructure = (drainSummary.spinal + closingFeedback.structureAdjustment).coerceIn(0, 100)
-                    val adjustedOverall = (
-                        adjustedSystem * AugeFatigueEngine.STRESS_WEIGHT_CNS +
-                            adjustedMuscular * AugeFatigueEngine.STRESS_WEIGHT_MUSCULAR +
-                            adjustedStructure * AugeFatigueEngine.STRESS_WEIGHT_SPINAL
-                        ).coerceAtLeast(1.0)
-                    val impactFactor = adjustedOverall / predictedOverall
-                    val avgSetEffortSignal = calculateUnifiedSessionEffortSignal(
-                        completedExercises.flatMap { it.sets },
-                    )
-                    val avgTech = state.postExerciseFeedbackByExerciseId.values
-                        .map { it.technicalQuality }
-                        .average()
-                        .takeIf { !it.isNaN() }
-                        ?: 8.0
-                    val techniqueQuality5 = technicalQuality10ToPenaltyScale(avgTech.toInt())
-                    val techniquePenalty = AugeFatigueEngine.calculateTechniquePenalty(
-                        technicalQuality = techniqueQuality5,
-                        effortSignal = avgSetEffortSignal,
-                    ).coerceIn(1.0, 1.5)
-                    val clarityFactor = when {
-                        closingFeedback.clarityRating >= 8 -> 0.96
-                        closingFeedback.clarityRating <= 4 -> 1.10
-                        else -> 1.0
-                    }
-                    (base * impactFactor * techniquePenalty * clarityFactor).coerceAtLeast(1.0)
-                }
-
-                val finalEnergySummary = TrainingEnergyEngine.estimateCompletedSession(
-                    completedExercises = completedExercises,
-                    settings = repository.settings.value,
-                    postExerciseFeedback = state.postExerciseFeedbackByExerciseId,
-                )
                 val actualDate = runCatching {
                     com.example.kpkn.domain.time.ActivityLocalDate.formatIsoDate(
                         com.example.kpkn.domain.time.ActivityLocalDate.fromInstantIso(completionInstantIso),
@@ -368,8 +244,12 @@ class WorkoutFinishController(
                     actualDate = actualDate,
                     scheduleDeltaDays = scheduleDeltaDays,
                     durationMinutes = durationMinutes,
+                    actualDurationSeconds = durationMs / 1000,
+                    actualDurationSource = "elapsed_session_clock",
                     completedExercises = completedExercises,
-                    fatigueLevel = fatigueLevel,
+                    fatigueLevel = null,
+                    sessionEffortRpe = closingFeedback.sessionEffortRpe?.takeIf { it.isFinite() && it in 0.0..10.0 },
+                    sessionEffortProtocol = closingFeedback.sessionEffortRpe?.let { "session_rpe_0_10_v1" },
                     discomforts = (
                         closingFeedback.discomforts +
                             state.postExerciseFeedbackByExerciseId.values
@@ -379,8 +259,6 @@ class WorkoutFinishController(
                         ).distinct(),
                     notes = notes.ifBlank { state.sessionNotes }.ifBlank { null },
                     totalVolume = totalVolume,
-                    sessionStressScore = stressScore,
-                    muscularImpactV2 = automaticImpact,
                     weekId = state.weekId,
                     macroIndex = state.macroIndex,
                     mesoIndex = state.mesoIndex,
@@ -394,6 +272,7 @@ class WorkoutFinishController(
                     exercisePhotos = state.exercisePhotos,
                     sessionMilestones = state.sessionMilestones,
                     sessionNotes = state.sessionNotes,
+                    recordedSportId = state.recordedSportId,
                     calibrationDecisions = state.calibrationDecisions.map { it.copy(sessionLogId = logId) },
                     sessionSavedNotes = state.sessionSavedNotes,
                     sessionPhotos = state.sessionPhotos,
@@ -418,20 +297,7 @@ class WorkoutFinishController(
                         )
                     },
                     omittedExercises = omittedExercises,
-                    energySummary = finalEnergySummary,
-                    ringStartSnapshot = closingFeedback.ringStartSnapshot?.let { snapshot ->
-                        val capturedAt = runCatching { java.time.Instant.parse(snapshot.capturedAtIso).toEpochMilli() }.getOrNull()
-                        val estimated = capturedAt?.let { instant ->
-                            com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicy.resolve(
-                                com.example.kpkn.domain.auge.InitialRecoveryPolicyInput(
-                                    evidence = repository.settings.value.initialRecoveryEvidence,
-                                    nowMs = instant,
-                                    workoutLogs = repository.history.value,
-                                ),
-                            ).isEstimated
-                        } ?: false
-                        snapshot.copy(isInitialEstimate = snapshot.isInitialEstimate || estimated)
-                    },
+                    energySummary = null,
                     stillPresentDiscomfortIds = (
                         closingFeedback.stillPresentDiscomfortIds +
                             state.postExerciseFeedbackByExerciseId.values.flatMap { it.stillPresentDiscomfortIds }
@@ -452,7 +318,6 @@ class WorkoutFinishController(
                 )
                 val retainOngoingForVolume = keepOngoingForVolume && state.programId.isNotBlank()
                 retainedVolumeModal = retainOngoingForVolume
-                committedStressScore = stressScore
                 committedVolumeAdvances = volumeDeltas
                 val mediaKey = mediaSessionKey().takeIf { it.isNotBlank() }
                 withContext(NonCancellable) {
@@ -498,8 +363,7 @@ class WorkoutFinishController(
                         it.copy(
                             isComplete = true,
                             showFinishSheet = false,
-                            sessionStressScore = stressScore,
-                            isFinishingWorkout = false,
+                                    isFinishingWorkout = false,
                             finishResumeSnapshot = null,
                             logAlreadyWrittenId = log.id,
                         )
@@ -507,18 +371,6 @@ class WorkoutFinishController(
                 }
 
                 runPostCommitSafely(log.id, "post_persisted_diagnostics") {
-                    KpknDiagnosticLogger.event(
-                        namespace = "auge",
-                        name = "post_persisted_auto",
-                        fields = mapOf(
-                            "finishOperationId" to finishOperationId,
-                            "logId" to log.id,
-                            "inputHash" to automaticImpact.setInputHash,
-                            "completionInstantIso" to completionInstantIso,
-                            "automaticMuscularDrain" to automaticImpact.globalMuscularDrain,
-                        ),
-                        sessionId = sessionId,
-                    )
                     KpknDiagnosticLogger.event(
                         namespace = "workout",
                         name = "session_finished",
@@ -535,17 +387,12 @@ class WorkoutFinishController(
                             "totalVolume" to totalVolume,
                             "volumeKg" to totalVolume,
                             "savedLogId" to log.id,
-                            "stressScore" to stressScore,
                             "finishOperationId" to finishOperationId,
                             "completionInstantIso" to completionInstantIso,
-                            "inputHash" to automaticImpact.setInputHash,
-                            "automaticMuscularDrain" to automaticImpact.globalMuscularDrain,
-                            "involvedVolumeMuscles" to automaticImpact.involvedVolumeMuscles,
                         ),
                         sessionId = sessionId,
                     )
                 }
-                runPostCommitSafely(log.id, "prediction_bias") { updatePredictionBias(closingFeedback) }
                 runPostCommitSafely(log.id, "cancel_rest_alerts") { restAlertManager.cancelRestAlerts() }
                 runPostCommitSafely(log.id, "clear_rest_timer") { restTimer.clearActiveTimerId() }
                 schedulePostCommitPersistence(log, activeSession, state)
@@ -595,7 +442,6 @@ class WorkoutFinishController(
                                 it.copy(
                                     isComplete = true,
                                     showFinishSheet = false,
-                                    sessionStressScore = committedStressScore,
                                     isFinishingWorkout = false,
                                     finishResumeSnapshot = null,
                                     logAlreadyWrittenId = savedLogId,
@@ -736,7 +582,10 @@ class WorkoutFinishController(
     private fun scheduledDateForSession(weekId: String?, session: Session): String? {
         if (weekId.isNullOrBlank()) return null
         val program = repository.getProgramById(programId) ?: return null
-        val projected = ProgramCalendarEngine.project(program).scheduledDateFor(session, weekId)
+        val projection = ProgramCalendarEngine.project(program)
+        val projectedWeek = projection.weeks.firstOrNull { it.weekId == weekId || it.weekInstanceId == weekId }
+        if (projectedWeek?.sessionDates?.containsKey(session.id) == true && projectedWeek.sessionDates[session.id] == null) return null
+        val projected = projection.scheduledDateFor(session, weekId)
         if (projected != null) return projected.toString()
         val week = program.macrocycles
             .asSequence()

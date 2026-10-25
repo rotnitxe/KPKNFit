@@ -20,9 +20,9 @@ import org.robolectric.annotation.Config
 class Cal3ViewModelRoomTest {
     @get:Rule val room = RoomTestRule()
     private var fixture: LiveSessionVmFixture? = null
-    @Before fun setup() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetAugeRepository() }
+    @Before fun setup() { Dispatchers.setMain(UnconfinedTestDispatcher()); LiveSessionVmFixture.resetTrainingObservationRepository() }
     @After fun cleanup() {
-        try { fixture?.close(); LiveSessionVmFixture.resetAugeRepository(); ProgramRepository.closeInstance(); KpknDatabase.closeInstance() }
+        try { fixture?.close(); LiveSessionVmFixture.resetTrainingObservationRepository(); ProgramRepository.closeInstance(); KpknDatabase.closeInstance() }
         finally { Dispatchers.resetMain() }
     }
     private suspend fun open(scope: CalibrationScope = CalibrationScope.SESSION,
@@ -41,6 +41,33 @@ class Cal3ViewModelRoomTest {
         assertNull(vm.uiState.value.calibrationError)
         assertEquals(status, vm.uiState.value.calibrationDecisions.last().status)
     }
+    @Test fun optionalOriginalContextSurvivesRecreationButIsNotCopiedIntoTheNextActivity() = runBlocking {
+        val (f, vm) = open()
+        val authored = vm.uiState.value.session
+        vm.setSessionNotes("Contexto original de hoy", flush = true)
+        vm.setRecordedSport("BOXING")
+        withTimeout(20_000) { f.repository.ongoingWorkout.first {
+            it?.recordedSportId == "BOXING" && it.sessionNotes == "Contexto original de hoy"
+        } }
+        val restored = f.recreate(vm)
+        assertEquals("BOXING", restored.uiState.value.recordedSportId)
+        assertEquals("Contexto original de hoy", restored.uiState.value.sessionNotes)
+        assertEquals(authored, restored.uiState.value.session)
+        assertTrue(record(restored) is RecordSetResult.Created)
+        restored.finishWorkout("Cierre original", 0, SessionClosingFeedback(discomforts = emptyList()))
+        val log = withTimeout(60_000) { f.repository.history.first { logs -> logs.any { it.sessionId == f.sessionId } } }
+            .single { it.sessionId == f.sessionId }
+        assertNull("El cierre no fabrica una valoración de fatiga", log.fatigueLevel)
+        assertNull(log.clarityRating)
+        assertEquals("BOXING", log.recordedSportId)
+        assertEquals("Contexto original de hoy", log.sessionNotes)
+        withTimeout(60_000) { f.repository.ongoingWorkout.first { it == null } }
+        restored.viewModelScope.cancel()
+        val next = f.open()
+        assertNull("Una nueva actividad no hereda una declaración anterior", next.uiState.value.recordedSportId)
+        assertEquals("", next.uiState.value.sessionNotes)
+        assertEquals(log, f.repository.history.value.single { it.id == log.id })
+    }
     @Test fun realViewModelAppliesPersistsReopensAndRevertsWithoutEditingAnotherExercise() = runBlocking {
         val (f, vm) = open()
         assertTrue(record(vm) is RecordSetResult.Created)
@@ -55,7 +82,7 @@ class Cal3ViewModelRoomTest {
         assertTrue(restored.uiState.value.isRestMinimized)
         val restoredExercise = restored.uiState.value.session!!.exercises.first()
         assertEquals(62.5, restored.getWeightSuggestionWithAutoRegulation(restoredExercise, 1)!!.suggestedWeight, 0.0)
-        assertEquals("calibrada", restored.getWeightSuggestionWithAutoRegulation(restoredExercise, 1)!!.reason)
+        assertEquals("Calibración del protocolo activo", restored.getWeightSuggestionWithAutoRegulation(restoredExercise, 1)!!.reason)
         resolve(restored, CalibrationStatus.REVERTED)
         assertEquals(60.0, restored.getWeightSuggestionWithAutoRegulation(restoredExercise, 1)!!.suggestedWeight, 0.0)
         assertEquals(otherBefore, restored.uiState.value.session!!.exercises.last())
@@ -70,7 +97,7 @@ class Cal3ViewModelRoomTest {
         val exToday = today.uiState.value.session!!.exercises.first()
         assertNull(acceptedCalibrationLoad(today.uiState.value, exToday, 1, null, System.currentTimeMillis()))
         // La referencia solo vale para la sesión siguiente cuando esta se termina (una sesión descartada no la deja).
-        today.finishWorkout("", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList()))
+        today.finishWorkout("", 5, SessionClosingFeedback(discomforts = emptyList()))
         withTimeout(60_000) { f.repository.history.first { logs -> logs.any { it.sessionId == f.sessionId } } }
         withTimeout(60_000) { f.repository.ongoingWorkout.first { it == null } }
         today.viewModelScope.cancel()
@@ -128,7 +155,7 @@ class Cal3ViewModelRoomTest {
         val (f, vm) = open()
         assertTrue(record(vm) is RecordSetResult.Created)
         resolve(vm, CalibrationStatus.APPLIED)
-        vm.finishWorkout("", 5, SessionClosingFeedback(5, 0, 0, 0, emptyList()))
+        vm.finishWorkout("", 5, SessionClosingFeedback(discomforts = emptyList()))
         val log = withTimeout(60_000) { f.repository.history.first { logs -> logs.any { it.sessionId == f.sessionId } } }
             .single { it.sessionId == f.sessionId }
         val row = log.calibrationDecisions.single()

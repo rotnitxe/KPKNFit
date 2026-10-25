@@ -37,7 +37,6 @@ import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.ui.components.KpknGlassVariant
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.kpknGlass
-import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknType
 import dev.chrisbanes.haze.HazeState
@@ -125,7 +124,7 @@ private fun FrameTimeRing(
 ) {
     val toneColor = when (tone) {
         FrameRingTone.OK -> WizardColors.done
-        FrameRingTone.ENERGIA -> KpknRingColors.energia
+        FrameRingTone.ENERGIA -> com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette.energia
         FrameRingTone.DANGER -> WizardColors.danger
         FrameRingTone.NEUTRAL -> WizardColors.textMuted
     }

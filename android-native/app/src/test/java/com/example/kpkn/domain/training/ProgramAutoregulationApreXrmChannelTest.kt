@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.AutoregulationProposal
 import com.example.kpkn.data.models.AutoregulationProposalKind
@@ -162,7 +163,7 @@ class ProgramAutoregulationApreXrmChannelTest {
             squatProposal.apreXrm!!.reference.capturedAtMs)
 
         val targetWeek = weeks[1]
-        val applied = ProgramAutoregulationEngine.apply(
+        val applied = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program = manual, nextWeekId = targetWeek.id, proposals = proposals, recipe = null,
             executedWeekIds = setOf(sourceWeek.id), nowMs = 100L,
         )
@@ -299,7 +300,7 @@ class ProgramAutoregulationApreXrmChannelTest {
         })
         val withVariant = plan.replacingWeek(isolatedA)
 
-        val applied = ProgramAutoregulationEngine.apply(
+        val applied = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program = withVariant,
             nextWeekId = targetWeek.id,
             proposals = listOf(proposal),
@@ -314,7 +315,7 @@ class ProgramAutoregulationApreXrmChannelTest {
         assertEquals(targetBase.sets[3].weight, resultA.sets[3].weight)
         assertTrue(ExerciseLoadReferenceStore.history(applied.program, targetB.id, proposal.apreXrm!!.reference).isNotEmpty())
 
-        val protected = ProgramAutoregulationEngine.apply(
+        val protected = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program = withVariant,
             nextWeekId = targetWeek.id,
             proposals = listOf(proposal),
@@ -365,7 +366,9 @@ class ProgramAutoregulationApreXrmChannelTest {
             return result to startingLoad
         }
 
-        val (auto, _) = close(AutoregulationMode.AUTO)
+        val (pendingAuto, _) = close(AutoregulationMode.AUTO)
+        assertEquals(PendingProgramActionType.CONFIRM_AUTOREGULATION, pendingAuto.program.runState?.pendingAction?.type)
+        val auto = pendingAuto.copy(program = ProgramAutoregulationEngine.resolvePending(pendingAuto.program, true))
         assertTrue(auto.advancedCycle)
         assertEquals(2, auto.program.runState!!.cycleNumber)
         assertEquals(1, auto.autoregulationProposals.count { it.kind == AutoregulationProposalKind.ADJUST_XRM })
@@ -403,7 +406,7 @@ class ProgramAutoregulationApreXrmChannelTest {
             plan, sourceWeek, recordedLogs(plan, sourceWeek), recipe, WeeklyAutoregulationSignals(),
         )
         assertTrue(proposals.size >= 2)
-        val pendingResult = ProgramAutoregulationEngine.apply(
+        val pendingResult = proposeAndExplicitlyConfirmLegacyAutoForTest(
             program = plan, nextWeekId = weeks[1].id, proposals = proposals, recipe = recipe,
             executedWeekIds = setOf(sourceWeek.id), metadata = CatalogCompositionTestSupport.metadata, nowMs = 200L,
         )
@@ -463,20 +466,20 @@ class ProgramAutoregulationApreXrmChannelTest {
         val first = proposal(155.0, 17)
         val corrected = proposal(155.0, 10)
         val reverted = proposal(155.0, 17)
-        var working = ProgramAutoregulationEngine.apply(
+        var working = proposeAndExplicitlyConfirmLegacyAutoForTest(
             base, targetWeekId, listOf(first), recipe = null, executedWeekIds = setOf(sourceWeek.id), nowMs = 300L,
         ).program
-        working = ProgramAutoregulationEngine.apply(
+        working = proposeAndExplicitlyConfirmLegacyAutoForTest(
             working, targetWeekId, listOf(corrected), recipe = null, executedWeekIds = setOf(sourceWeek.id), nowMs = 301L,
         ).program
-        working = ProgramAutoregulationEngine.apply(
+        working = proposeAndExplicitlyConfirmLegacyAutoForTest(
             working, targetWeekId, listOf(reverted), recipe = null, executedWeekIds = setOf(sourceWeek.id), nowMs = 302L,
         ).program
         val history = xrmHistory(working, squat.id, first)
         assertEquals(listOf(0, 1, 2), history.map { it.metadata!!.revision })
         assertEquals(162.5, history.last().capturedLoadKg!!, 1e-6)
         val auditBeforeRetry = working.runState!!.autoregulationAudit
-        val retry = ProgramAutoregulationEngine.apply(
+        val retry = proposeAndExplicitlyConfirmLegacyAutoForTest(
             working, targetWeekId, listOf(reverted), recipe = null, executedWeekIds = setOf(sourceWeek.id), nowMs = 303L,
         )
         assertEquals(working, retry.program)
@@ -525,11 +528,15 @@ class ProgramAutoregulationApreXrmChannelTest {
             kind = AutoregulationProposalKind.ADJUST_TM, liftSlot = LiftSlot.SQUAT.name,
             kgDelta = 2.5, explanation = "Ajustar TM de sentadilla",
         )
-        val result = ProgramAutoregulationEngine.apply(
+        val pending = ProgramAutoregulationEngine.apply(
             program = plan, nextWeekId = weeks[1].id, proposals = listOf(xrm, tm), recipe = null,
             executedWeekIds = setOf(sourceWeek.id), nowMs = 400L,
         )
-        assertTrue(result.applied)
+        assertFalse(pending.applied)
+        assertEquals(listOf(xrm, tm), pending.program.runState!!.pendingAction!!.proposals)
+        assertEquals(plan.exerciseLoadReferences, pending.program.exerciseLoadReferences)
+        val confirmed = ProgramAutoregulationEngine.resolvePending(pending.program, true, only = xrm)
+        val result = pending.copy(program = confirmed)
         assertEquals(plan.powerliftingProfile, result.program.powerliftingProfile)
         assertEquals(listOf(tm), result.program.runState!!.pendingAction!!.proposals)
         assertEquals(tm.explanation, result.program.runState!!.pendingAction!!.message)

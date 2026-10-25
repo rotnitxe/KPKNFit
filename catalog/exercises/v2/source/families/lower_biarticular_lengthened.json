@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Sin más carga que el cuerpo, la dificultad se regula con la profundidad de la inclinación y con los brazos: estirados al frente la facilitan y por encima de la cabeza la endurecen, porque así su peso queda más lejos de las rodillas.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Échate atrás despacio doblando solo las rodillas, sin que la cadera se flexione ni la espalda se arquee.",
                 "Baja solo hasta donde puedas frenar sin romper la línea recta del cuerpo.",
                 "Vuelve a la vertical estirando las rodillas, con el cuerpo en bloque."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -131,14 +127,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 5.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl Nórdico Inverso (Reverse Nordic Curl)",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -152,7 +140,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -179,13 +166,11 @@
                 "Cruza los brazos sobre el pecho y alinea rodillas, cadera y hombros en vertical."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "hip_flexors",
                 "core"
               ],
-              "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "technicalDifficulty": 5.2
             },
             "selectedOptions": {}
           }

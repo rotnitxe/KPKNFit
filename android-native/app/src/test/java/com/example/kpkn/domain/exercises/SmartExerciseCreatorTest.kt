@@ -3,6 +3,7 @@ package com.example.kpkn.domain.exercises
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.MuscleRole
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -22,11 +23,11 @@ class SmartExerciseCreatorTest {
             bodyPart = "lower",
             chain = "posterior",
             tier = "T1",
-            efc = 3.5,
-            cnc = 3.0,
-            ssc = 2.0,
-            ttc = 3.0,
-            axialLoadFactor = 1.0,
+            
+            
+            
+            
+            
             averageRestSeconds = 180,
             involvedMuscles = listOf(
                 InvolvedMuscle("Isquiosurales", MuscleRole.PRIMARY, 1.0),
@@ -45,11 +46,11 @@ class SmartExerciseCreatorTest {
             bodyPart = "lower",
             chain = "posterior",
             tier = "T1",
-            efc = 4.0,
-            cnc = 3.5,
-            ssc = 2.0,
-            ttc = 4.0,
-            axialLoadFactor = 1.0,
+            
+            
+            
+            
+            
             averageRestSeconds = 180,
             involvedMuscles = listOf(InvolvedMuscle("Erectores Espinales", MuscleRole.PRIMARY, 0.6)),
         ),
@@ -64,11 +65,11 @@ class SmartExerciseCreatorTest {
             bodyPart = "upper",
             chain = "anterior",
             tier = "T3",
-            efc = 1.5,
-            cnc = 1.0,
-            ssc = 0.0,
-            ttc = 1.0,
-            axialLoadFactor = 0.0,
+            
+            
+            
+            
+            
             averageRestSeconds = 90,
             involvedMuscles = listOf(InvolvedMuscle("Bíceps", MuscleRole.PRIMARY, 1.0, "medio")),
         ),
@@ -85,13 +86,6 @@ class SmartExerciseCreatorTest {
         assertTrue(created.isCustom)
         assertEquals("Mancuerna", created.equipment)
         assertEquals("Peso muerto rumano con mancuernas", created.name)
-        // Los valores AUGE llegan del mejor match (RDL), ponderados por el equipo
-        // (mancuerna baja un poco el efc). Rango en vez de valor exacto: el scoring
-        // interno puede ponderar el deadlift de maneras distintas.
-        val efc = created.efc ?: 0.0
-        val cnc = created.cnc ?: 0.0
-        assertTrue("efc=$efc muscles=${created.involvedMuscles.map { it.muscle }} name=${created.name}", efc in 3.0..4.2)
-        assertTrue("cnc=$cnc", cnc in 2.8..3.9)
         assertEquals("posterior", created.chain)
         assertEquals("lower", created.bodyPart)
         assertTrue(created.involvedMuscles.map { it.muscle }.let { "Isquiosurales" in it && "Glúteos" in it })
@@ -132,10 +126,10 @@ class SmartExerciseCreatorTest {
         assertEquals("Máquina", created.equipment)
         // MOT · E2: sin referencia confirmada no hay inferencia estructural con cifras inventadas; los datos quedan desconocidos
         // (null, no 0) y el motor de fatiga usa su heurística por nombre hasta que la persona los complete.
-        assertNull(created.efc)
-        assertNull(created.cnc)
-        assertNull(created.ssc)
-        assertNull(created.axialLoadFactor)
+        assertFalse((kotlinx.serialization.json.Json.encodeToJsonElement(ExerciseMuscleInfo.serializer(), created) as kotlinx.serialization.json.JsonObject).containsKey("efc"))
+        assertFalse((kotlinx.serialization.json.Json.encodeToJsonElement(ExerciseMuscleInfo.serializer(), created) as kotlinx.serialization.json.JsonObject).containsKey("cnc"))
+        assertFalse((kotlinx.serialization.json.Json.encodeToJsonElement(ExerciseMuscleInfo.serializer(), created) as kotlinx.serialization.json.JsonObject).containsKey("ssc"))
+        assertFalse((kotlinx.serialization.json.Json.encodeToJsonElement(ExerciseMuscleInfo.serializer(), created) as kotlinx.serialization.json.JsonObject).containsKey("axialLoadFactor"))
         assertTrue(created.involvedMuscles.isEmpty())
     }
 }

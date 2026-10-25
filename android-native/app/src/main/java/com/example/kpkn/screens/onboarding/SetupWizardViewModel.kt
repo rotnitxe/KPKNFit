@@ -69,8 +69,6 @@ import java.io.File
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
-import com.example.kpkn.data.models.RingsLiftPattern
-import com.example.kpkn.data.models.RingsMuscleGroup
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -125,10 +123,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private var exerciseSearchJob: kotlinx.coroutines.Job? = null
     @Volatile private var exerciseLookup: List<ExerciseMuscleInfo>? = null
     @Volatile private var navigationInFlight = false
-    private var ringsPreviewJob: kotlinx.coroutines.Job? = null
-    private var lastRingsPreviewKey: List<Any?>? = null
     /** Clock injected into the last rings preview so preview and stored check-in share one date. */
-    @Volatile private var ringsPreviewNow: Long? = null
     private var preparingTrainingKey: List<Any?>? = null
     private var lastSuccessfulTrainingKey: List<Any?>? = null
     /**
@@ -190,10 +185,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         candidateCache.invalidate()
         repairProbeCache.invalidate()
         exerciseSearchJob?.cancel()
-        ringsPreviewJob?.cancel()
         lastSuccessfulTrainingKey = null
-        lastRingsPreviewKey = null
-        ringsPreviewNow = null
         // La intención de volver a la revisión vive en el BORRADOR
         // (`reviewReturnStep`): aquí NO se reinicia para que sobreviva a
         // guardar/salir y a la recreación del ViewModel.
@@ -203,7 +195,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             isCandidateLoading = false,
             planSweep = SetupPlanSweep.IDLE, planReveals = emptyList(), weekLayout = null,
             isPreviewLoading = false,
-            nutritionPlanPreview = null, nutritionPreparation = null, ringsBatteriesPreview = null, ringsCoveragePreview = null, ringsMuscleEstimates = emptyMap(),
+            nutritionPlanPreview = null, nutritionPreparation = null,
             errors = emptyMap(), lastFailure = null)
         initializeJob = viewModelScope.launch {
             try {
@@ -213,7 +205,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 val resumeId = if (mode == SetupWizardMode.RESUME) persistence.listRecoverable().firstOrNull()?.draftId else null
                 val id: String = draftId ?: storedId ?: resumeId ?: SetupDraftResolver.canonicalDraftId(scopeFor(mode))
                 val persisted = persistence.load(id)
-                val restored = persisted?.let { runCatching { json.decodeFromString<SetupWizardDraft>(it.payloadJson) }.getOrNull() }
+                val restored = persisted?.let { runCatching { json.decodeFromString<SetupWizardDraft>(com.example.kpkn.data.compatibility.LegacyTrainingImport.draft(it.payloadJson)) }.getOrNull() }
                 if (persisted != null && (restored == null || restored.wizChat.schemaVersion > 2 || restored.wizChat.scriptVersion > WizChatCopyCatalog.SCRIPT_VERSION)) {
                     currentDraftId = id
                     savedStateHandle[DRAFT_ID_KEY] = id
@@ -254,7 +246,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     _state.value = _state.value.copy(mode = when (SetupDraftResolver.scopeOf(draft.draftScope)) {
                         SetupDraftScope.TRAINING_ONLY -> SetupWizardMode.TRAINING_ONLY
                         SetupDraftScope.NUTRITION_ONLY -> SetupWizardMode.NUTRITION_ONLY
-                        SetupDraftScope.RINGS_ONLY -> SetupWizardMode.RINGS_ONLY
                         else -> SetupWizardMode.FULL
                     })
                 }
@@ -358,6 +349,17 @@ class SetupWizardViewModel @JvmOverloads constructor(
     /** Elige el perfil de objetivo (un perfil específico incompatible con el material se escribe pero no se puede confirmar). */
     fun setGoalProfile(profile: TrainingGoalProfile) =
         mutateDraft(SetupStepId.GOAL) { latest -> latest.withGoalProfile(profile) }
+
+    /** Backend input for discipline selection; no screen, tab bar or live-session flow is added. */
+    fun setMultisportPlanning(
+        intent: com.example.kpkn.domain.multisport.TrainingIntent?,
+        composition: HybridProgramComposition? = null,
+    ) {
+        SetupMultisportIntent.requireValid(intent)
+        require(composition == null || intent != null) { "Declara los objetivos antes de combinar sesiones." }
+        val snapshot = SetupHybridPlanningBridge.snapshot(composition)
+        mutateDraft { it.copy(trainingIntent = intent, hybridComposition = snapshot) }
+    }
 
     /** Día con más energía (1 = lunes … 7 = domingo); la semana empieza ese día mientras no se mueva el inicio. */
     fun setFreshDay(day: Int) = mutateDraft(SetupStepId.FRESH_DAY) { latest -> latest.withFreshestDay(day) }
@@ -654,35 +656,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
     }
     fun openAdvanced() = toggleBranch("training")
     fun openNutritionAdvanced() = toggleBranch("nutrition")
-    fun openRingsAdvanced() = toggleBranch("rings")
-    fun setRingsMuscleScope(scope: InitialRecoveryMuscleScope) = mutateDraft { draft ->
-        val answers = draft.ringsAnswers ?: SetupRingsAnswers()
-        val selected = if (scope == InitialRecoveryMuscleScope.FULL_BODY) emptySet() else answers.recentMuscles
-        val allowed = when (scope) {
-            InitialRecoveryMuscleScope.FULL_BODY -> InitialRecoveryEvidenceFactory.INITIAL_RECOVERY_MUSCLE_PILLARS.toSet()
-            InitialRecoveryMuscleScope.SELECTED -> selected
-            InitialRecoveryMuscleScope.UNKNOWN -> emptySet()
-        }
-        draft.copy(ringsAnswers = answers.copy(muscleScope = scope, recentMuscles = selected),
-            manualMuscleOverrides = draft.manualMuscleOverrides.filterKeys { it in allowed })
-    }
-    fun toggleRingsMuscle(muscle: String) = mutateDraft { draft ->
-        val answers = draft.ringsAnswers ?: SetupRingsAnswers(muscleScope = InitialRecoveryMuscleScope.SELECTED)
-        val selected = if (muscle in answers.recentMuscles) answers.recentMuscles - muscle else answers.recentMuscles + muscle
-        draft.copy(ringsAnswers = answers.copy(muscleScope = InitialRecoveryMuscleScope.SELECTED, recentMuscles = selected),
-            manualMuscleOverrides = draft.manualMuscleOverrides.filterKeys { it in selected })
-    }
-    fun setManualMuscleOverride(muscle: String, level: Int) = mutateDraft { draft ->
-        val a = draft.ringsAnswers
-        val allowed = when (a?.muscleScope) {
-            InitialRecoveryMuscleScope.FULL_BODY -> muscle in InitialRecoveryEvidenceFactory.INITIAL_RECOVERY_MUSCLE_PILLARS
-            InitialRecoveryMuscleScope.SELECTED -> muscle in a.recentMuscles
-            else -> false
-        }
-        if (allowed) draft.copy(manualMuscleOverrides = draft.manualMuscleOverrides + (muscle to level.coerceIn(1, 5))) else draft
-    }
-    fun setManualEnergyOverride(level: Int) = mutateDraft { it.copy(manualEnergyOverride = level.coerceIn(1, 5)) }
-    fun setManualStructureOverride(level: Int) = mutateDraft { it.copy(manualStructureOverride = level.coerceIn(1, 5)) }
     fun candidatePlans(): List<SetupPlanCandidate> = _state.value.planCandidates
     fun showMoreCandidates() {
         val current = _state.value
@@ -715,7 +688,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
     }
 
     fun activeNutritionPlan(): NutritionPlan? = environment.activeNutritionPlan()
-    fun hasInitialRecoveryEvidence(): Boolean = environment.hasInitialRecoveryEvidence()
     fun searchExercises(query: String) {
         exerciseSearchJob?.cancel()
         val term = query.trim()
@@ -744,26 +716,11 @@ class SetupWizardViewModel @JvmOverloads constructor(
             }
         }
     }
-    fun ringsPreview(): SetupRingsMapping = ringsMapping(_state.value.draft)
-    fun retryRingsPreview() {
-        if (_state.value.machineState == WizChatMachineState.Committed || _state.value.isCommitting) return
-        lastRingsPreviewKey = null
-        ringsPreviewNow = null
-        _state.value = _state.value.copy(ringsPreviewError = null, errors = _state.value.errors - "rings_preview")
-        prepareRingsPreview(_state.value.draft)
-    }
-
-    /**
-     * Specific retry for one inline error: every failure keeps the key of the
-     * operation that produced it, so the UI never offers a generic reload for
-     * a save/preview/commit problem.
-     */
     fun retryOperationForError(key: String): SetupRetryOperation? = when (key) {
         "initialize" -> SetupRetryOperation.LOAD
         "save" -> SetupRetryOperation.SAVE
         "preview" -> SetupRetryOperation.PREVIEW
         "candidates" -> SetupRetryOperation.CANDIDATES
-        "rings_preview" -> SetupRetryOperation.RINGS_PREVIEW
         "commit" -> SetupRetryOperation.COMMIT
         else -> null
     }
@@ -783,7 +740,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
             SetupRetryOperation.SAVE -> retryPersist()
             SetupRetryOperation.PREVIEW -> retryPreview()
             SetupRetryOperation.CANDIDATES -> retryCandidates()
-            SetupRetryOperation.RINGS_PREVIEW -> retryRingsPreview()
             SetupRetryOperation.COMMIT -> retryCommit(expectedRevision)
         }
     }
@@ -1077,7 +1033,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
     fun setLowerEmphasisMuscles(value: Set<String>) = mutateDraft {
         it.copy(lowerEmphasisMuscles = value.map(String::trim).filter(String::isNotBlank).toSet() - it.priorityMuscles)
     }
-    fun resetManualRecoveryAdjustments() = mutateDraft { it.copy(manualMuscleOverrides = emptyMap(), manualEnergyOverride = null, manualStructureOverride = null) }
 
     fun addExercise(weekday: Int, info: ExerciseMuscleInfo) {
         val id = "${_state.value.draft.commitId}-exercise-$weekday-${info.id}"
@@ -1198,7 +1153,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
         candidateGeneration += 1
         candidateJob?.cancel()
         exerciseSearchJob?.cancel()
-        ringsPreviewJob?.cancel()
         try {
             withContext(NonCancellable) { persistence.discard(draftId) }
         } catch (cancel: CancellationException) { throw cancel }
@@ -1240,7 +1194,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
             val draft = _state.value.draft
             // C4c: con fecha de competición, el programa que se guarda lleva la fecha clave y su calendario (hasta la semana de la competición).
             val program = (if (draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER) _state.value.programPreview ?: error("La vista previa del programa no es ejecutable") else null)
-                ?.let { SetupActivationPayload.programForActivation(it, draft, LocalDate.now()) }
+                ?.let { source -> withContext(kotlinx.coroutines.Dispatchers.Default) {
+                    SetupActivationPayload.programForActivation(source, draft, LocalDate.now())
+                } }
             val trackingOnly = isTrackingOnly(draft)
             // Se reutiliza la preparación revisada del preview (planId estable
             // derivado del commitId); nunca se fabrica un EER ni un objetivo.
@@ -1251,16 +1207,11 @@ class SetupWizardViewModel @JvmOverloads constructor(
             val nutrition = if (trackingOnly) null else preparation?.plan
             // Un solo reloj para el check-in: el previewado y el persistido en
             // esta misma operación comparten exactamente la fecha.
-            val ringsNow = ringsPreviewNow ?: System.currentTimeMillis()
-            val rings = ringsMapping(draft, ringsNow)
             val base = environment.settings
             val typed = nutrition?.typedBodyGoal
             val bodyGoals = typed?.targetValueSi?.let { target -> listOf(BodyGoal("plan:${nutrition.id}:${typed.metric.name}", typed.metric.toBodyMetric(), target, typed.unitSi, typed.origin, nutrition.id, System.currentTimeMillis(), System.currentTimeMillis())) }.orEmpty()
             // Check-in real: evidencia completa, calibración parcial o solo
             // molestias declaradas. Nunca se fabrican sesiones sintéticas.
-            val wellbeing = if (rings.savesRealCheckIn || ringsHasManual(draft)) {
-                calculateRingsPreview(draft, rings, ringsNow).stagedWellbeing
-            } else null
             val pendingNutritionDraft = if (SetupPendingNutrition.shouldPreserve(draft)) {
                 val pending = SetupPendingNutrition.build(draft)
                 SetupPendingNutrition.toCommitField(pending, json.encodeToString(pending))
@@ -1287,8 +1238,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 activateProgram = draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER && draft.activateProgram,
                 activateNutrition = draft.includeNutrition && draft.activateNutrition && !trackingOnly,
                 derivedBodyGoals = bodyGoals,
-                initialWellbeing = wellbeing,
-                settingsPatch = buildSettingsPatch(base, draft, program, nutrition, rings, trackingOnly),
+                initialWellbeing = null,
+                settingsPatch = buildSettingsPatch(base, draft, program, nutrition, trackingOnly),
                 dailyGoalSnapshot = snapshot,
                 pendingNutritionDraft = pendingNutritionDraft,
                 nutritionTrackingOnly = trackingOnly,
@@ -1422,8 +1373,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // Éxito de escritura: se limpia el último fallo, salvo el diagnóstico
         // de RINGS, que solo lo retira su propio cálculo cuando sale bien (el
         // gate de RINGS debe poder seguir mostrando la causa real).
-        val ringsDiagnosis = _state.value.lastFailure
-            ?.takeIf { it.startsWith(RINGS_FAILURE_PREFIX) }
         val current = _state.value
         // H3: si la selección pasó a un plan viable que no estaba entre las tarjetas visibles (una escritura del
         // borrador, la biblioteca…), se amplía lo visible hasta incluirlo; sin lista calculada no hay nada que ampliar.
@@ -1438,7 +1387,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         }
         _state.value = current.copy(draft = draft, dirty = dirty, isLoading = false, machineState = machine,
             planCandidates = visibleCards,
-            errors = emptyMap(), previewError = null, lastFailure = ringsDiagnosis, isSubmittingAnswer = false,
+            errors = emptyMap(), previewError = null, lastFailure = null, isSubmittingAnswer = false,
             // §15.2: la selección guardada queda obsoleta en cuanto las
             // respuestas dejan de coincidir con el preview preparado; el
             // preview nuevo la vuelve a poner vigente.
@@ -1465,7 +1414,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
         SetupPreviewKind.EER, SetupPreviewKind.MACROS, SetupPreviewKind.EXPENDITURE,
         SetupPreviewKind.NUTRITION_REFERENCES, SetupPreviewKind.NUTRITION_DISTRIBUTION,
     )
-    private val ringsPreviewKinds = setOf(SetupPreviewKind.RINGS_BATTERIES)
 
     /** Once a preview is recomputed its stale flag is dropped; results whose footprint no longer matches are discarded. */
     private fun clearStalePreviews(kinds: Set<SetupPreviewKind>) {
@@ -1504,6 +1452,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         draft.liftMarkReps, draft.liftVariants, draft.avoidedExercises, draft.cardioBase, draft.armStyle, draft.maxReps,
         // «Otra versión»: la semilla cambia el programa «a medida» (vuelve a barrer), nunca la lista de autores.
         draft.planVariantSeed,
+        draft.trainingIntent, draft.hybridComposition,
         // ¿Compites?: respuesta y fecha que cuentan para el programa (fuera de la ruta no cuentan). El nombre no cambia el programa.
         draft.activeCompetition(), draft.activeMeetDate(),
         PersonalizedPlanCatalog.REVISION,
@@ -1687,7 +1636,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
     )
 
     private fun preparePreview(draft: SetupWizardDraft) {
-        prepareRingsPreview(draft)
         // «Lo haré más adelante» y el alta sin entreno no tienen programa. Se retira
         // cualquier vista previa anterior aunque la lista de planes siga calculándose.
         if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) {
@@ -1797,9 +1745,15 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private suspend fun materialize(draft: SetupWizardDraft): PreparedPreview {
         val base = materializeBase(draft)
         val program = base.program ?: return PreparedPreview(base, null, null)
+        suspend fun finish(outcome: LayoutOutcome): PreparedPreview {
+            val composed = withContext(kotlinx.coroutines.Dispatchers.Default) {
+                SetupHybridPlanningBridge.prepare(outcome.program, draft)
+            }
+            return PreparedPreview(SetupPreview(composed, base.report), program, outcome.copy(program = composed))
+        }
         val placeFit = placeFitFor(draft)
         val swaps = draft.exerciseOverrides.isNotEmpty()
-        if (!draft.hasWeekLayout && placeFit == null && !swaps) return PreparedPreview(base, program, LayoutOutcome(program))
+        if (!draft.hasWeekLayout && placeFit == null && !swaps) return finish(LayoutOutcome(program))
         val resolver = if (draft.adaptedSplitId != null) traitResolver() else null
         // Las sustituciones necesitan el catálogo (la identidad de cada configuración). Son solo una aplicación sobre el
         // programa ya generado: no regeneran nada (la evaluación del plan sigue en caché).
@@ -1811,7 +1765,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         }
         val outcome = applyLayout(draft, program, resolver, placeFit, catalog)
         ProgramExecutionContract.requireExecutable(outcome.program)
-        return PreparedPreview(SetupPreview(outcome.program, base.report), program, outcome)
+        return finish(outcome)
     }
 
     /**
@@ -2147,110 +2101,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private fun fixedTrainingDays(program: Program): Set<Int> = program.resolvedSchedulePlan().trainingDays
         .ifEmpty { firstWeekSessions(program).mapNotNull { it.dayOfWeek }.toSet() }
 
-    private fun ringsKey(draft: SetupWizardDraft): List<Any?> = listOf(draft.ringsAnswers,
-        draft.manualMuscleOverrides, draft.manualEnergyOverride, draft.manualStructureOverride)
-
-    private fun prepareRingsPreview(draft: SetupWizardDraft) {
-        // Un solo reloj para el mapeo y el cálculo: el check-in previewado y
-        // el que se guardaría en el commit comparten fecha.
-        val now = System.currentTimeMillis()
-        val mapping = ringsMapping(draft, now)
-        val key = ringsKey(draft)
-        if (!mapping.savesRealCheckIn && !ringsHasManual(draft)) {
-            ringsPreviewJob?.cancel()
-            // Sin check-in real no hay baterías NI cobertura: nunca se muestra
-            // una cobertura calculada sobre datos que no existen.
-            lastRingsPreviewKey = null
-            ringsPreviewNow = null
-            _state.value = _state.value.copy(ringsBatteriesPreview = null, ringsCoveragePreview = null, ringsMuscleEstimates = emptyMap(),
-                ringsPreviewLoading = false, ringsPreviewError = null,
-                errors = _state.value.errors - "rings_preview",
-                // Tampoco queda un diagnóstico de RINGS que ya no aplica.
-                lastFailure = _state.value.lastFailure
-                    ?.takeUnless { it.startsWith(RINGS_FAILURE_PREFIX) })
-            // Baterías, cobertura y marcas obsoletas se limpian juntas.
-            clearStalePreviews(ringsPreviewKinds)
-            return
-        }
-        if (lastRingsPreviewKey == key && _state.value.ringsBatteriesPreview != null) return
-        ringsPreviewJob?.cancel()
-        _state.value = _state.value.copy(ringsPreviewLoading = true, ringsPreviewError = null,
-            errors = _state.value.errors - "rings_preview")
-        ringsPreviewJob = viewModelScope.launch {
-            try {
-                val result = calculateRingsPreview(draft, mapping, now)
-                if (ringsKey(_state.value.draft) == key) {
-                    lastRingsPreviewKey = key
-                    // El reloj inyectado se conserva: el commit reutiliza esta
-                    // MISMA fecha para el check-in que se guardará.
-                    ringsPreviewNow = now
-                    // Éxito: se retira SOLO el diagnóstico de RINGS; los fallos
-                    // de guardado/carga que sigan abiertos no se enmascaran.
-                    val stillFailed = _state.value.lastFailure
-                        ?.takeUnless { it.startsWith(RINGS_FAILURE_PREFIX) }
-                    // Baterías y cobertura se publican JUNTAS: la cobertura sale
-                    // del mismo cálculo, nunca de una etiqueta global derivada
-                    // de las baterías (un canal desconocido no es cobertura).
-                    _state.value = _state.value.copy(
-                        ringsBatteriesPreview = result.batteries,
-                        ringsCoveragePreview = result.coverage,
-                        ringsMuscleEstimates = result.muscleEstimates,
-                        ringsPreviewLoading = false,
-                        lastFailure = stillFailed,
-                    )
-                    clearStalePreviews(ringsPreviewKinds)
-                }
-            } catch (cancel: CancellationException) { throw cancel }
-            catch (error: Throwable) {
-                // Diagnóstico honesto: la CAUSA REAL (clase + mensaje) queda en
-                // `lastFailure` —nunca un genérico— y se registra en logcat con
-                // la traza. Solo se manda la excepción: ni borrador, ni
-                // respuestas, ni ajustes (sin datos personales). Sin cancelación
-                // encima, y sin inventar ningún preview en su lugar.
-                val cause = "${error::class.java.simpleName}: ${error.message ?: "sin detalle"}"
-                Log.e(DIAG_TAG, "Rings preview falló → $cause", error)
-                if (ringsKey(_state.value.draft) == key) _state.value = _state.value.copy(
-                    ringsPreviewLoading = false,
-                    ringsPreviewError = "No pude preparar tus RINGS. Reintenta desde esta pregunta.",
-                    errors = _state.value.errors + ("rings_preview" to "No pude preparar tus RINGS. Reintenta desde esta pregunta."),
-                    lastFailure = "$RINGS_FAILURE_PREFIX · $cause",
-                )
-            }
-        }
-    }
-
-    private suspend fun calculateRingsPreview(
-        draft: SetupWizardDraft,
-        mapping: SetupRingsMapping,
-        nowEpochMs: Long = System.currentTimeMillis(),
-    ): SetupRingsPreview {
-        val a = requireNotNull(draft.ringsAnswers)
-        // Mismo alcance que usaba la evidencia (perMuscleScores), sin depender de ella.
-        val allowed = when (a.muscleScope) {
-            InitialRecoveryMuscleScope.FULL_BODY -> InitialRecoveryEvidenceFactory.INITIAL_RECOVERY_MUSCLE_PILLARS.toSet()
-            InitialRecoveryMuscleScope.SELECTED -> a.recentMuscles
-            InitialRecoveryMuscleScope.UNKNOWN -> mapping.evidence?.perMuscleScores?.keys ?: emptySet()
-        }
-        val selected = draft.manualMuscleOverrides.filterKeys { it in allowed }
-        val discomforts = SetupRingsResponseMapping.discomfortField(mapping.discomfortResponse, mapping.discomfortIds)
-        val settings = environment.settings
-        val evidenceInput = mapping.evidence?.let { SetupRingsEvidenceInput.Available(it) }
-            ?: if (settings.initialRecoveryEvidence != null) SetupRingsEvidenceInput.Preserved
-            else SetupRingsEvidenceInput.Absent
-        // El preview y el registro guardado comparten el MISMO `now` inyectado
-        // (mapping.previewCheckIn() lleva la fecha del mapeo): nunca se mezclan
-        // dos relojes para el mismo check-in.
-        return SetupRingsPreviewCalculator(getApplication()).calculate(
-            settings, evidenceInput, draft.commitId,
-            selected, draft.manualEnergyOverride, draft.manualStructureOverride, discomforts,
-            nowEpochMs, checkIn = mapping.previewCheckIn(),
-            manual = SetupRingsManualValues(
-                energia = a.manualRings["energia"],
-                columna = a.manualRings["columna"],
-                musculos = a.manualMusclesV2,
-            ),
-        )
-    }
     private fun updateNutritionPreview(draft: SetupWizardDraft) {
         val result = if (draft.includeNutrition) prepareNutrition(draft) else null
         _state.value = _state.value.copy(nutritionPreparation = result,
@@ -3568,13 +3418,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (d.includeNutrition && !isTrackingOnly(d) && (s.nutritionPlanPreview == null || s.nutritionErrors.isNotEmpty())) {
             put("nutrition", s.nutritionErrors.values.firstOrNull() ?: "Completa la nutrición")
         }
-        if ((ringsMapping(d).savesRealCheckIn || ringsHasManual(d)) && (s.ringsBatteriesPreview == null || s.ringsPreviewLoading || s.ringsPreviewError != null || lastRingsPreviewKey != ringsKey(d))) {
-            // Causa real de RINGS primero (clase+mensaje del último fallo de
-            // este cálculo): nunca un genérico cuando existe diagnóstico, ni el
-            // fallo de otra operación colado bajo esta clave.
-            val ringsCause = s.lastFailure?.takeIf { it.startsWith(RINGS_FAILURE_PREFIX) }
-            put("rings", ringsCause ?: s.ringsPreviewError ?: "Espera a que la vista previa de RINGS esté lista")
-        }
         if (activationConfirmation(d, s.programPreview) && !d.confirmActivation) put("activation", "Confirma la activación del plan")
     }
     private fun activationConfirmation(draft: SetupWizardDraft, preview: Program?): Boolean = (draft.activateProgram && preview != null && environment.activeProgramId()?.let { it != preview.id } == true) || (draft.includeNutrition && draft.activateNutrition && environment.activeNutritionPlanId()?.let { it != (draft.nutritionPlanId ?: draft.commitId) } == true)
@@ -3584,7 +3427,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
         draft: SetupWizardDraft,
         program: Program?,
         nutrition: NutritionPlan?,
-        rings: SetupRingsMapping,
         trackingOnly: Boolean,
     ): SetupSettingsPatch {
         // Evidencia REAL de que el usuario escribió el dato: el paso declarado.
@@ -3649,7 +3491,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         }
         // SET/CLEAR/UNCHANGED decididos por el mapper: una calibración parcial deja
         // initialRecoveryEvidence sin tocar (Unchanged) y PRESERVE no rejuvenece nada.
-        val evidence = rings.toEvidencePatchField()
+
         val trackingChoice: NutritionTrackingChoice? = when {
             goals != null -> NutritionTrackingChoice.ENABLED
             trackingOnly -> null
@@ -3695,7 +3537,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     (!draft.includeNutrition || nutrition != null || trackingOnly),
             ),
             nutritionTrackingChoice = setOrKeep(trackingChoice),
-            initialRecoveryEvidence = evidence,
+
             volumeCalibrationProfile = setIf(draft.volumeCalibrationProfile, draft.volumeCalibrationProfile != null),
             // Inventario declarado en el wizard (`trainingOptions.inventory`);
             // sin datos se conserva el actual, nunca se limpia por accidente.
@@ -3732,14 +3574,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (present) SetupPatchField.Set(value) else SetupPatchField.Unchanged
 
     /** Hay ajustes 0–100 de «Tus RINGS» que guardar aunque el mapeo no declare check-in (p. ej. sensaciones omitidas). */
-    private fun ringsHasManual(draft: SetupWizardDraft): Boolean =
-        draft.ringsAnswers?.let { it.manualRings.isNotEmpty() || it.manualMusclesV2.isNotEmpty() } == true
-
-    /** Mapeo de RINGS para la vista previa y el guardado: la zona del sistema fecha los días declarados (v2). */
-    private fun ringsMapping(draft: SetupWizardDraft, nowEpochMs: Long = System.currentTimeMillis()): SetupRingsMapping {
-        val a = draft.ringsAnswers ?: return SetupRingsMapping(RingsCompletion.UNKNOWN)
-        return SetupRingsMapper.map(a.toMapperInput(), nowEpochMs, ZoneId.systemDefault())
-    }
     private fun buildVolumeProfile(draft: SetupWizardDraft): VolumeCalibrationProfile? {
         val a = draft.volumeAnswers; val style = a.style ?: return null; val t = a.technique ?: return null; val c = a.consistency ?: return null; val s = a.strength ?: return null; val m = a.mobility ?: return null; val output = VolumeCalibrationEngine.calculate(style, t, c, s, m)
         return VolumeCalibrationProfile(style, output.score, VolumeCalibrationResponses(t, c, s, m, a.responseState), output.recommendations, System.currentTimeMillis(), VolumeCalibrationEngine.REVISION)
@@ -3747,8 +3581,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
 
     private fun newDraft(mode: SetupWizardMode, nutritionMode: String, nutritionPlanId: String?, id: String): SetupWizardDraft {
         val settings = environment.settings
-        val training = mode != SetupWizardMode.NUTRITION_ONLY && mode != SetupWizardMode.RINGS_ONLY
-        val nutrition = mode != SetupWizardMode.TRAINING_ONLY && mode != SetupWizardMode.RINGS_ONLY
+        val training = mode != SetupWizardMode.NUTRITION_ONLY
+        val nutrition = mode != SetupWizardMode.TRAINING_ONLY
         val first = WizChatGraph.firstFor(WizChatGraphContext(training, nutrition))
         val progress = WizChatProgress(scriptVersion = WizChatCopyCatalog.SCRIPT_VERSION,
             draftScope = scopeFor(mode).name.lowercase(), currentQuestionId = first, stage = WizChatGraph.stageFor(first))
@@ -3766,7 +3600,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         return progress.copy(schemaVersion = 2, scriptVersion = WizChatCopyCatalog.SCRIPT_VERSION,
             draftScope = scope, currentQuestionId = safeQuestion, stage = WizChatGraph.stageFor(safeQuestion))
     }
-    private fun scopeFor(mode: SetupWizardMode): SetupDraftScope = when (mode) { SetupWizardMode.TRAINING_ONLY -> SetupDraftScope.TRAINING_ONLY; SetupWizardMode.NUTRITION_ONLY -> SetupDraftScope.NUTRITION_ONLY; SetupWizardMode.RINGS_ONLY -> SetupDraftScope.RINGS_ONLY; else -> SetupDraftScope.FULL }
+    private fun scopeFor(mode: SetupWizardMode): SetupDraftScope = when (mode) { SetupWizardMode.TRAINING_ONLY -> SetupDraftScope.TRAINING_ONLY; SetupWizardMode.NUTRITION_ONLY -> SetupDraftScope.NUTRITION_ONLY; else -> SetupDraftScope.FULL }
     private fun SetupFocus.toTrainingFocus() = TrainingFocus.valueOf(name)
     private fun SetupExperience?.toCatalogLevel() = when (this) { SetupExperience.ADVANCED -> CatalogLevel.ADVANCED; SetupExperience.INTERMEDIATE -> CatalogLevel.INTERMEDIATE; else -> CatalogLevel.BEGINNER }
     private val SetupEquipment.catalogId: String get() = when (this) { SetupEquipment.NONE, SetupEquipment.BODYWEIGHT -> "bodyweight"; SetupEquipment.BANDS -> "band"; SetupEquipment.DUMBBELLS -> "dumbbells"; SetupEquipment.MACHINE -> "machine"; SetupEquipment.CABLE -> "cable"; SetupEquipment.BARBELL -> "barbell"; SetupEquipment.PULL_UP -> "pull_up_bar"; SetupEquipment.GYM -> "general_gym"; SetupEquipment.SUPPORT -> "support"; SetupEquipment.BALL -> "ball"; SetupEquipment.SMITH -> "smith_machine" }
@@ -3808,48 +3642,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
      */
     fun setProgramSource(source: ProgramSource) =
         mutateDraft(SetupStepId.PROGRAM_SOURCE) { latest -> latest.withProgramSource(source) }
-
-    // ── RINGS del alta (v2): días, ejercicios principales, series por grupo y sensaciones. Sin UI: la pinta E3c. ──
-
-    /** Alterna un día de la última semana (0 = hoy … 6); tocar un día apaga «No entrené» y «No lo recuerdo». */
-    fun toggleTrainedDay(offset: Int) = mutateDraft(SetupStepId.RINGS_SESSION_DAYS) { latest ->
-        latest.withTrainedDayToggled(offset, System.currentTimeMillis())
-    }
-
-    /** «No entrené»: ningún día entrenado (exclusivo). */
-    fun setNoTraining() = mutateDraft(SetupStepId.RINGS_SESSION_DAYS) { latest ->
-        latest.withNoTraining(System.currentTimeMillis())
-    }
-
-    /** «No lo recuerdo»: el historial queda desconocido (exclusivo). */
-    fun setTrainingUnknown() = mutateDraft(SetupStepId.RINGS_SESSION_DAYS) { latest ->
-        latest.withTrainingUnknown(System.currentTimeMillis())
-    }
-
-    /** Alterna un ejercicio principal; «Ninguno de estos» y «No lo sé» son exclusivos. */
-    fun toggleMainLift(pattern: RingsLiftPattern) = mutateDraft(SetupStepId.RINGS_MAIN_LIFTS) { latest ->
-        latest.withMainLiftToggled(pattern, System.currentTimeMillis())
-    }
-
-    /** «Ninguno de estos» en ejercicios principales (exclusivo). */
-    fun setNoMainLifts() = mutateDraft(SetupStepId.RINGS_MAIN_LIFTS) { latest ->
-        latest.withNoMainLifts(System.currentTimeMillis())
-    }
-
-    /** «No lo sé» en ejercicios principales (exclusivo). */
-    fun setMainLiftsUnknown() = mutateDraft(SetupStepId.RINGS_MAIN_LIFTS) { latest ->
-        latest.withMainLiftsUnknown(System.currentTimeMillis())
-    }
-
-    /** Series de un grupo (0–20); `sets` null es «No lo sé» para ese grupo. */
-    fun setGroupSets(group: RingsMuscleGroup, sets: Int?) = mutateDraft(SetupStepId.RINGS_GROUP_SETS) { latest ->
-        latest.withGroupSets(group, sets, System.currentTimeMillis())
-    }
-
-    /** Las tres sensaciones de RINGS; cada una puede quedar sin responder (null). */
-    fun setFeelings(muscular: Int?, energy: Int?, structure: Int?) = mutateDraft(SetupStepId.RINGS_FEELINGS) { latest ->
-        latest.withFeelings(muscular, energy, structure, System.currentTimeMillis())
-    }
 
     // ── Importación de programa (C3c): lectura, emparejado y decisiones del paso PROGRAM_IMPORT ──
 
@@ -4076,33 +3868,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * RINGS: ajuste 0–100 de «Energía» (`energia`) o «Columna» (`columna`) con el valor que la persona ve; `null` lo quita.
      * El deslizador lo llama al SOLTAR: mientras se arrastra solo cambia lo que se ve.
      */
-    fun setRingsManual(channel: String, value: Int?) = mutateDraft { draft ->
-        val answers = draft.ringsAnswers ?: SetupRingsAnswers()
-        val next = if (value == null) answers.manualRings - channel
-        else answers.manualRings + (channel to value.coerceIn(0, 100))
-        draft.copy(ringsAnswers = answers.copy(manualRings = next))
-    }
-
-    /** RINGS: ajuste 0–100 de un pilar muscular (nombre de `INITIAL_RECOVERY_MUSCLE_PILLARS`); `null` lo quita. */
-    fun setMuscleManual(pillar: String, value: Int?) = mutateDraft { draft ->
-        val answers = draft.ringsAnswers ?: SetupRingsAnswers()
-        val next = if (value == null) answers.manualMusclesV2 - pillar
-        else answers.manualMusclesV2 + (pillar to value.coerceIn(0, 100))
-        draft.copy(ringsAnswers = answers.copy(manualMusclesV2 = next))
-    }
-
-    /** RINGS: «Restablecer» quita todos los ajustes de músculos; vuelven las estimaciones. */
-    fun resetMuscleManual() = mutateDraft { draft ->
-        val answers = draft.ringsAnswers
-        if (answers == null || answers.manualMusclesV2.isEmpty()) draft
-        else draft.copy(ringsAnswers = answers.copy(manualMusclesV2 = emptyMap()))
-    }
-
-    /**
-     * «Cambiar» el ejercicio [instanceId] del programa elegido por la configuración [configId], que tiene que ser una de las
-     * alternativas de [swapOptionsOf]. Sustituye al instante: la vista previa, la revisión y la activación ven lo mismo, y el
-     * programa generado y la huella no cambian.
-     */
     fun swapExercise(instanceId: String, configId: String) {
         val draft = _state.value.draft
         if (draft.selectedCatalogId == null || draft.exerciseOverrides[instanceId] == configId) return
@@ -4117,12 +3882,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
     }
 
     /** RINGS: «Restablecer» de un solo músculo: quita su ajuste y deja los demás; vuelve su estimación. */
-    fun resetMuscleManual(pillar: String) = mutateDraft { draft ->
-        val answers = draft.ringsAnswers
-        if (answers == null || pillar !in answers.manualMusclesV2) draft
-        else draft.copy(ringsAnswers = answers.copy(manualMusclesV2 = answers.manualMusclesV2 - pillar))
-    }
-
     companion object {
         private const val DRAFT_ID_KEY = "setup_wizard_draft_id"
         /** Plan de la biblioteca ya aplicado como intención (SavedStateHandle: sobrevive a recrear el ViewModel). */
@@ -4146,7 +3905,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
         /** Etiqueta de logcat de la medición del barrido de candidatos (C4): `adb logcat -s SetupPlanSweep`. */
         private const val PERF_TAG = "SetupPlanSweep"
         /** Marca en `lastFailure` del fallo de RINGS; permite limpiarlo sin pisar otros fallos. */
-        private const val RINGS_FAILURE_PREFIX = "Rings preview"
     }
 }
 

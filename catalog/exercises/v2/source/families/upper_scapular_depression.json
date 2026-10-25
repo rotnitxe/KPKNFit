@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Sin lastre ni banda, la carga es el cuerpo entero colgando de la barra fija y el recorrido se reduce a unos centímetros con los codos bloqueados. Las manos soportan todo ese peso en cada repetición y también en las pausas abajo.",
-              "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Baja los hombros lejos de las orejas y junta las escápulas, con los codos rectos.",
                 "Aguanta un segundo arriba con el pecho un poco adelantado.",
                 "Vuelve despacio a la suspensión hasta que los hombros suban otra vez."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -154,14 +150,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Dominadas Escapulares",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -175,7 +163,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -206,13 +193,11 @@
                 "Junta las piernas y despega los pies del suelo sin balancearte."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm",
                 "pectoralis"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {}
           }

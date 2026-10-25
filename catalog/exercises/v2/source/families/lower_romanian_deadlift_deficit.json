@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.7,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La plataforma debe alojar una base amplia con los dos pies orientados hacia afuera. Las manos quedan por dentro de los muslos y la barra desciende libre de los bordes; el piso inferior deja más alcance relativo al apoyo de los pies.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Inclina el torso desde las caderas abiertas, con las manos viajando entre las piernas.",
                 "Frena al terminar tu alcance de cadera aunque el piso inferior deje más espacio para bajar.",
                 "Extiende las caderas para recuperar la vertical sobre el apoyo ancho."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -168,14 +164,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.7,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano Sumo en Déficit",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -190,7 +178,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -220,14 +207,12 @@
                 "Orienta los pies hacia afuera y sujeta la barra entre los muslos, con discos fuera del soporte."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

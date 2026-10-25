@@ -88,6 +88,7 @@ object SessionTemplateEngine {
 
     /** Content includes executable strength work and all standalone modalities. */
     fun sessionHasContent(session: Session): Boolean =
+        session.sportDocuments.isNotEmpty() ||
         session.exercises.isNotEmpty() ||
             session.warmup.isNotEmpty() ||
             session.targetDurationMinutes?.let { it > 0 } == true ||
@@ -105,6 +106,9 @@ object SessionTemplateEngine {
      * editor; cursor transitions require an actual executable prescription.
      */
     fun sessionHasExecutableContent(session: Session): Boolean {
+        if (session.captureMode == com.example.kpkn.data.models.SessionCaptureMode.EXTERNAL) {
+            return com.example.kpkn.domain.multisport.tracking.ExternalSportSessionPolicy.isRecordable(session)
+        }
         val exercises = session.allExercises()
         val hasStrength = exercises.any { exercise ->
             exercise.cardioDetails == null &&
@@ -123,7 +127,8 @@ object SessionTemplateEngine {
                 (part.mobilityConfig?.totalMinutes ?: 0) > 0
         }
         val hasWarmup = session.warmup.any(::isExecutableWarmup)
-        return hasStrength || hasCardio || hasMobility || hasWarmup
+        return hasStrength || hasCardio || hasMobility || hasWarmup ||
+            com.example.kpkn.domain.multisport.tracking.ExternalSportSessionPolicy.isRecordable(session)
     }
 
     /**

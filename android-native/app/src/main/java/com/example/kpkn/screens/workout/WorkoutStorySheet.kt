@@ -48,8 +48,12 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 
 internal val storyOptionsSaver = listSaver<WorkoutStoryOptions, Any>(
-    save = { listOf(it.template.name,it.exerciseId.orEmpty(),it.rings,it.improvements,it.duration,it.intensity) },
-    restore = { WorkoutStoryOptions(WorkoutStoryTemplate.valueOf(it[0] as String),(it[1] as String).ifBlank { null },it[2] as Boolean,it[3] as Boolean,it[4] as Boolean,it[5] as Boolean) },
+    save = { listOf(it.template.name,it.exerciseId.orEmpty(),it.improvements,it.duration,it.intensity) },
+    restore = {
+        val offset=if(it.size==6) 1 else 0 // Old saved UI option for retired rings is discarded.
+        WorkoutStoryOptions(WorkoutStoryTemplate.valueOf(it[0] as String),(it[1] as String).ifBlank { null },
+            it[2+offset] as Boolean,it[3+offset] as Boolean,it[4+offset] as Boolean)
+    },
 )
 private data class StoryPreviewRequest(val data: WorkoutStoryData, val options: WorkoutStoryOptions)
 private data class StoryPreviewResult(val request: StoryPreviewRequest, val bitmap: Bitmap)
@@ -151,7 +155,6 @@ internal fun WorkoutStorySheet(
             Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
                 Text("INCLUIR",style=KpknType.eyebrow.copy(fontSize=12.sp),color=FinishMuted)
                 FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
-                    if(safeOptions.template==WorkoutStoryTemplate.GENERAL)StoryPill("RINGS",safeOptions.rings,!busy){onOptionsChange(safeOptions.copy(rings=!safeOptions.rings))}
                     if(safeOptions.template!=WorkoutStoryTemplate.PHOTOS)StoryPill("Mejoras en kg",safeOptions.improvements,!busy){onOptionsChange(safeOptions.copy(improvements=!safeOptions.improvements))}
                     if(safeOptions.template!=WorkoutStoryTemplate.EXERCISE)StoryPill("Duración",safeOptions.duration,!busy){onOptionsChange(safeOptions.copy(duration=!safeOptions.duration))}
                     if(safeOptions.template==WorkoutStoryTemplate.GENERAL)StoryPill("Intensidad media",safeOptions.intensity,!busy){onOptionsChange(safeOptions.copy(intensity=!safeOptions.intensity))}

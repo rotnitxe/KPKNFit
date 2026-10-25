@@ -110,6 +110,5 @@ internal fun isRuntimeKeyOfExercise(key: String, exerciseId: String): Boolean =
 internal fun WorkoutUiState.withoutLoadStateOfExercise(exerciseId: String): WorkoutUiState = copy(
     persistedLoadModeBySet = persistedLoadModeBySet.filterKeys { !isRuntimeKeyOfExercise(it, exerciseId) },
     persistedLoadModeByExercise = persistedLoadModeByExercise.filterKeys { !isRuntimeKeyOfExercise(it, exerciseId) },
-    readinessAdjustments = readinessAdjustments.filterKeys { !isRuntimeKeyOfExercise(it, exerciseId) },
     loadSuggestionPulseTokens = loadSuggestionPulseTokens.filterKeys { !isRuntimeKeyOfExercise(it, exerciseId) },
 )

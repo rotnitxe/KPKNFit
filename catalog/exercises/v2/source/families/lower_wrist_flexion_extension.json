@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con rodillo de muñecas, la cuerda se enrolla en el rodillo giro a giro hasta subir la carga colgante. Con el rodillo, cada giro exprime el agarre un poco más.",
-              "efc": 2.0,
               "equipmentId": "wrist_roller",
               "executionCues": [
                 "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -123,14 +119,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Enrollamiento de Muñeca con Rodillo y Cuerda",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -144,7 +132,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -170,10 +157,8 @@
                 "Preparación: Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {}
           }

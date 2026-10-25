@@ -1,7 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.ui.components.rings.KpknRingColors
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -26,7 +25,7 @@ class RulesClockStatusTest {
         assertEquals(RulesClockStatus.ENERGY, rulesClockStatusOf(estimatedMinutes = 51, limitMinutes = 60))
         assertEquals(RulesClockStatus.ENERGY, rulesClockStatusOf(estimatedMinutes = 60, limitMinutes = 60))
         assertEquals(RulesClockStatus.ENERGY, rulesClockStatusOf(estimatedMinutes = 64, limitMinutes = 60))
-        assertEquals(KpknRingColors.energia, rulesClockColor(RulesClockStatus.ENERGY))
+        assertEquals(com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette.energia, rulesClockColor(RulesClockStatus.ENERGY))
     }
 
     @Test

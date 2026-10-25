@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Una sola barra une las manos en prono, un poco por fuera de los hombros, y los codos salen algo abiertos al subir. El tirón termina con la barra contra la parte baja de las costillas, un tope que deja todas las repeticiones a la misma altura.",
-              "efc": 2.5,
               "equipmentId": "barbell",
               "executionCues": [
                 "Tira de los codos hacia atrás hasta tocar con la barra la parte baja de las costillas.",
                 "Junta las escápulas arriba sin enderezar el torso.",
                 "Baja hasta estirar los codos del todo, con la barra lejos del suelo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -190,14 +186,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Convencional",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -217,7 +205,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -250,7 +237,6 @@
                 "Flexiona un poco las rodillas y deja la barra colgando bajo los hombros con los brazos estirados."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -258,8 +244,7 @@
                 "gluteus_maximus",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -279,19 +264,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Cada mano sostiene su mancuerna, por lo general con las palmas enfrentadas, y los codos suben cerca de los costados. Nada choca con el cuerpo en la subida, así que el codo pasa la línea de la espalda, y cada brazo mueve su carga por separado.",
-              "efc": 2.5,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Sube las dos mancuernas a la vez hacia la cintura, con los codos rozando los costados.",
                 "Lleva los codos algo más allá de la espalda y aprieta las escápulas un instante.",
                 "Estira los brazos del todo al bajar, sin que el torso se levante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -446,14 +427,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Convencional",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -473,7 +446,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -505,7 +477,6 @@
                 "Lleva la cadera atrás, flexiona un poco las rodillas y deja las mancuernas colgando bajo los hombros."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -513,8 +484,7 @@
                 "gluteus_maximus",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -534,19 +504,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "De pie sobre la plataforma de una estación de palanca y sin cojín para el pecho, los mangos recorren el arco fijo que marca el eje de la máquina. La carga no se desvía hacia ningún lado, pero nada apoya el pecho y la espalda baja carga con el tronco inclinado.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Tira de los mangos hacia la parte baja de las costillas siguiendo el arco de la máquina.",
                 "Aprieta las escápulas arriba sin levantar el pecho.",
                 "Vuelve hasta estirar los brazos sin que la palanca golpee el tope."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -701,14 +667,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Convencional",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -728,7 +686,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -760,7 +717,6 @@
                 "Inclina el torso desde la cadera, agarra los mangos con los brazos estirados y despega la palanca de su tope."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -768,8 +724,7 @@
                 "gluteus_maximus",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "machine"
@@ -789,19 +744,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "La barra corre por dos guías verticales: sube en línea recta y no puede acercarse a la cadera ni alejarse de ella. El cuerpo se coloca para que esa línea pase justo delante de las rodillas, y los ganchos permiten soltar la barra a muchas alturas.",
-              "efc": 2.5,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Tira en vertical hasta que la barra toque la parte baja de las costillas.",
                 "Baja por las guías hasta estirar los codos sin que el torso suba.",
                 "Al acabar la serie, gira la barra para dejarla enganchada."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -959,14 +910,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Convencional",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -986,7 +929,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1019,7 +961,6 @@
                 "Desengancha la barra con un giro de muñecas y déjala colgando con los brazos estirados."
               ],
               "setupTimeSeconds": 50,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -1027,8 +968,7 @@
                 "gluteus_maximus",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -1048,19 +988,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Cada asa se agarra en neutro y la bola cuelga bajo el puño, así que el centro de la carga queda más bajo que la mano, a la altura de las rodillas. Las kettlebells suben de peso a saltos fijos, a menudo de cuatro en cuatro kilos, lo que limita el ajuste fino.",
-              "efc": 2.5,
               "equipmentId": "kettlebell",
               "executionCues": [
                 "Sube las dos kettlebells hacia la cintura con los codos pegados al cuerpo.",
                 "Arriba, aprieta las escápulas sin doblar las muñecas.",
                 "Baja hasta estirar los brazos, con las bolas en el aire."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1215,14 +1151,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Convencional",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1242,7 +1170,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1274,7 +1201,6 @@
                 "Lleva la cadera atrás, agárralas en neutro y levántalas hasta que cuelguen bajo los hombros con el torso inclinado."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
@@ -1282,268 +1208,10 @@
                 "gluteus_maximus",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "implement": "kettlebell"
-            }
-          },
-          {
-            "displaySummary": "cable",
-            "evidence": {
-              "confidence": "MEDIUM",
-              "evidenceRefs": [
-                "legacy:exercise_database.json#back_remo_polea",
-                "editorial:catalog-v7.2-human-editorial-2026-08-10"
-              ],
-              "reviewStatus": "APPROVED"
-            },
-            "id": "conventional_row__cable",
-            "profile": {
-              "articulationType": "MULTIARTICULAR",
-              "automationEligible": true,
-              "axialLoadFactor": 0.0,
-              "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
-              "description": "El cable sale de la polea baja y tira de las manos en diagonal hacia la máquina, no solo hacia el suelo, así que con los brazos estirados la carga todavía tira del cuerpo hacia delante. Entre repeticiones la pila no llega a apoyarse.",
-              "efc": 2.5,
-              "equipmentId": "cable",
-              "executionCues": [
-                "Lleva la barra hacia la parte baja de las costillas sin dejar que el cable te arrastre hacia delante.",
-                "Vuelve hasta estirar los codos sin que la pila toque abajo."
-              ],
-              "fatigueTier": "BAJA",
-              "jointInvolvement": [
-                {
-                  "actions": [
-                    "Extensión del hombro",
-                    "Abducción horizontal"
-                  ],
-                  "jointId": "glenohumeral",
-                  "role": "PRIMARY"
-                },
-                {
-                  "actions": [
-                    "Retracción escapular"
-                  ],
-                  "jointId": "escapulotoracica",
-                  "role": "PRIMARY"
-                },
-                {
-                  "actions": [
-                    "Flexión del codo"
-                  ],
-                  "jointId": "codo",
-                  "role": "SECONDARY"
-                },
-                {
-                  "actions": [
-                    "Sostén del agarre"
-                  ],
-                  "jointId": "muñeca",
-                  "role": "STABILIZER"
-                },
-                {
-                  "actions": [
-                    "Extensión isométrica de la cadera"
-                  ],
-                  "jointId": "cadera",
-                  "role": "STABILIZER"
-                },
-                {
-                  "actions": [
-                    "Estabilidad del tronco inclinado"
-                  ],
-                  "jointId": "columna-lumbar",
-                  "role": "STABILIZER"
-                }
-              ],
-              "kineticChain": "POSTERIOR",
-              "laterality": "BILATERAL",
-              "loadMode": "continuous_cable",
-              "movementPatternId": "horizontal_pull",
-              "performanceProfileId": "conventional_row__cable__remo_convencional",
-              "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
-              ],
-              "replacementGroup": "back_row_cable_low",
-              "replacementPriority": 2,
-              "resistanceProfile": "continuous_cable",
-              "richMetadata": {
-                "anatomy": {
-                  "jointActions": [
-                    "Extensión del hombro",
-                    "Abducción horizontal",
-                    "Retracción escapular",
-                    "Flexión del codo",
-                    "Sostén del agarre",
-                    "Extensión isométrica de la cadera",
-                    "Estabilidad del tronco inclinado"
-                  ],
-                  "jointInvolvement": [
-                    {
-                      "actions": [
-                        "Extensión del hombro",
-                        "Abducción horizontal"
-                      ],
-                      "jointId": "glenohumeral",
-                      "role": "PRIMARY"
-                    },
-                    {
-                      "actions": [
-                        "Retracción escapular"
-                      ],
-                      "jointId": "escapulotoracica",
-                      "role": "PRIMARY"
-                    },
-                    {
-                      "actions": [
-                        "Flexión del codo"
-                      ],
-                      "jointId": "codo",
-                      "role": "SECONDARY"
-                    },
-                    {
-                      "actions": [
-                        "Sostén del agarre"
-                      ],
-                      "jointId": "muñeca",
-                      "role": "STABILIZER"
-                    },
-                    {
-                      "actions": [
-                        "Extensión isométrica de la cadera"
-                      ],
-                      "jointId": "cadera",
-                      "role": "STABILIZER"
-                    },
-                    {
-                      "actions": [
-                        "Estabilidad del tronco inclinado"
-                      ],
-                      "jointId": "columna-lumbar",
-                      "role": "STABILIZER"
-                    }
-                  ],
-                  "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
-                  ],
-                  "secondaryMuscles": [
-                    "rhomboids",
-                    "deltoid",
-                    "biceps"
-                  ],
-                  "stabilizerMuscles": [
-                    "erector_spinae",
-                    "core",
-                    "hamstrings",
-                    "gluteus_maximus",
-                    "forearm"
-                  ],
-                  "volumeContribution": "indirect"
-                },
-                "biomechanics": {
-                  "bodyRegion": "UPPER",
-                  "equipmentId": "cable",
-                  "kineticChain": "POSTERIOR",
-                  "laterality": "BILATERAL",
-                  "loadMode": "continuous_cable",
-                  "movementPatternId": "horizontal_pull",
-                  "relevantJoints": [
-                    "glenohumeral",
-                    "escapulotoracica",
-                    "codo",
-                    "muñeca",
-                    "cadera",
-                    "columna-lumbar"
-                  ],
-                  "resistanceProfile": "continuous_cable",
-                  "stability": "self_stabilized"
-                },
-                "display": {
-                  "displayName": "Remo Convencional",
-                  "displaySummary": "cable",
-                  "selectedOptions": {
-                    "implement": "cable"
-                  }
-                },
-                "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
-                "identity": {
-                  "canonicalName": "Remo Convencional",
-                  "catalogRevision": "v2-approved-2026-09-29-a",
-                  "configurationId": "conventional_row__cable",
-                  "definitionId": "conventional_row",
-                  "familyId": "back_conventional_row",
-                  "kind": "PARENT",
-                  "performanceProfileId": "conventional_row__cable__remo_convencional",
-                  "searchTerms": [
-                    "remo convencional",
-                    "remo con barra",
-                    "remo",
-                    "back_remo_barra",
-                    "back_remo_polea",
-                    "back_remo_maquina",
-                    "back_remo_smith"
-                  ]
-                },
-                "programming": {
-                  "fatigueCost": "moderate",
-                  "indicativeRestSeconds": {
-                    "max": 120,
-                    "min": 60
-                  },
-                  "requiredEquipment": [
-                    "cable"
-                  ],
-                  "role": "accessory_compound"
-                },
-                "replacement": {
-                  "compatibleEquipmentIds": [
-                    "cable"
-                  ],
-                  "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi",
-                    "horizontal_pull:trapezius"
-                  ],
-                  "replacementGroup": "back_row_cable_low",
-                  "replacementPriority": 2
-                }
-              },
-              "secondaryMuscles": [
-                "rhomboids",
-                "deltoid",
-                "biceps"
-              ],
-              "setupCues": [
-                "Engancha una barra recta a la polea baja y agárrala en prono.",
-                "Retrocede hasta que la pila se despegue y lleva la cadera atrás hasta inclinar el torso con los brazos estirados."
-              ],
-              "setupTimeSeconds": 35,
-              "ssc": 0.4,
-              "stabilizerMuscles": [
-                "erector_spinae",
-                "core",
-                "hamstrings",
-                "gluteus_maximus",
-                "forearm"
-              ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
-            },
-            "selectedOptions": {
-              "implement": "cable"
             }
           }
         ],

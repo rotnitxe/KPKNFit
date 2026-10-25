@@ -161,13 +161,13 @@ class HomeProgramsRenderSheetTest {
                 greeting = "Buenos días",
                 userName = "Alex",
                 greetingProgress = if (name == "barGreeting") 1f else 0f,
-                ringsProgress = if (name == "barRings") 1f else 0f,
+                
                 sessionProgress = if (name == "barSession") 1f else 0f,
                 nutritionProgress = if (name == "barNutrition") 1f else 0f,
                 hasPrograms = true,
-                muscularProgress = 0.62f,
-                sncProgress = 0.48f,
-                columnaProgress = 0.71f,
+                
+                
+                
                 primarySession = primarySession,
                 homeCompetition = null,
                 isRestDay = false,

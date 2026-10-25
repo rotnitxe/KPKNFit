@@ -2,23 +2,15 @@ package com.example.kpkn.screens.onboarding
 
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
-import com.example.kpkn.data.models.InitialRecoveryActivityType
-import com.example.kpkn.data.models.InitialRecoveryIntensity
-import com.example.kpkn.data.models.InitialRecoverySensations
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.Gender
-import com.example.kpkn.data.models.GlobalBatteries
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.AthleteProfileScore
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.data.models.CalibrationResponseState
-import com.example.kpkn.data.models.InitialRecoveryAxialExposure
-import com.example.kpkn.data.models.RingsLiftPattern
-import com.example.kpkn.data.models.RingsMuscleGroup
-import com.example.kpkn.data.models.InitialRecoveryMuscleScope
 import com.example.kpkn.data.models.VolumeCalibrationProfile
 import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.data.programs.toTrainingReference
@@ -50,12 +42,6 @@ import com.example.kpkn.domain.onboarding.MarksContext
 import com.example.kpkn.domain.onboarding.TrainingGoalProfile
 import com.example.kpkn.domain.onboarding.TrainingGoalRequirements
 import com.example.kpkn.domain.onboarding.TrainingPlace
-import com.example.kpkn.domain.onboarding.RingsCoverage
-import com.example.kpkn.domain.onboarding.RingsDiscomfortResponse
-import com.example.kpkn.domain.onboarding.RingsMainLiftsState
-import com.example.kpkn.domain.onboarding.RingsSessionDaysState
-import com.example.kpkn.domain.onboarding.SetupRingsInput
-import com.example.kpkn.domain.onboarding.SetupRingsMapper
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
 import com.example.kpkn.domain.onboarding.PlanRepair
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
@@ -85,13 +71,14 @@ import com.example.kpkn.domain.onboarding.WizChatValidation
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
 import kotlinx.serialization.Serializable
+import com.example.kpkn.domain.multisport.TrainingIntent
 import java.time.LocalDate
 
 @Serializable
-enum class SetupWizardMode { FULL, TRAINING_ONLY, NUTRITION_ONLY, RINGS_ONLY, RESUME }
+enum class SetupWizardMode { FULL, TRAINING_ONLY, NUTRITION_ONLY, RESUME }
 
 @Serializable
-enum class SetupWizardChapter { PROFILE, VOLUME, TRAINING, WEEK, NUTRITION, RINGS, REVIEW }
+enum class SetupWizardChapter { PROFILE, VOLUME, TRAINING, WEEK, NUTRITION, REVIEW }
 
 @Serializable
 enum class SetupModuleChoice { TRAINING, TRAINING_AND_NUTRITION }
@@ -336,85 +323,6 @@ data class SetupSessionDraft(
 }
 
 @Serializable
-data class SetupRingsAnswers(
-    val startAction: String? = null,
-    val recentTraining: Boolean? = null,
-    val recencyDays: Int? = null,
-    val sessionsLastSevenDays: Int? = null,
-    val activityType: InitialRecoveryActivityType? = null,
-    val intensity: Int? = null,
-    val zones: List<String> = emptyList(),
-    val muscleFeeling: Int? = null,
-    val energy: Int? = null,
-    val structureFeeling: Int? = null,
-    val capturedAtMs: Long? = null,
-    val recentTrainingState: SetupRecentTrainingState = SetupRecentTrainingState.NOT_ANSWERED,
-    val lastSessionRecencyDays: Int? = null,
-    val intensityLevel: InitialRecoveryIntensity? = null,
-    val muscleScope: InitialRecoveryMuscleScope = InitialRecoveryMuscleScope.UNKNOWN,
-    val recentMuscles: Set<String> = emptySet(),
-    val axialExposure: InitialRecoveryAxialExposure = InitialRecoveryAxialExposure(),
-    val discomfortIds: List<String> = emptyList(),
-    val discomfortState: SetupDiscomfortState = SetupDiscomfortState.NOT_ANSWERED,
-    val activityTypeState: com.example.kpkn.data.models.InitialRecoveryResponseState = com.example.kpkn.data.models.InitialRecoveryResponseState.UNKNOWN,
-    // ── RINGS v2 («¿Qué días?», «¿Qué ejercicios?», series por grupo). Todo con valor por defecto: los borradores viejos
-    // no traen estos campos y se mapean con la ley v1 (ver `toMapperInput`).
-    /** Días entrenados de la última semana, 0 = hoy … 6. Solo tiene sentido con [sessionDaysState] DECLARED. */
-    val trainedDayOffsets: Set<Int> = emptySet(),
-    val sessionDaysState: RingsSessionDaysState = RingsSessionDaysState.NOT_ANSWERED,
-    val mainLifts: Set<RingsLiftPattern> = emptySet(),
-    val mainLiftsState: RingsMainLiftsState = RingsMainLiftsState.NOT_ANSWERED,
-    /** Series por grupo (0–20); los grupos con «No lo sé» no figuran aquí y van en [groupSetsUnknown]. */
-    val groupSets: Map<RingsMuscleGroup, Int> = emptyMap(),
-    val groupSetsUnknown: Set<RingsMuscleGroup> = emptySet(),
-    /**
-     * Ajustes 0–100 de «Energía» y «Columna» (claves `energia` y `columna`), con el valor que la persona VE. Solo se guarda lo
-     * que mueve. Viven aquí y NO en la huella (`ringsSignature`): un ajuste del resultado no marca nada por revisar.
-     */
-    val manualRings: Map<String, Int> = emptyMap(),
-    /** Ajustes 0–100 por pilar muscular (pilar → valor), de «Quiero ajustar mis músculos a mano». Fuera de la huella. */
-    val manualMusclesV2: Map<String, Int> = emptyMap(),
-)
-
-typealias InitialRingsAnswers = SetupRingsAnswers
-
-/**
- * Entrada del mapeo de RINGS (dominio) desde las respuestas del borrador. Un borrador sin la pregunta de días
- * ([RingsSessionDaysState.NOT_ANSWERED]) llega con los mismos campos de siempre y se mapea con la ley v1.
- */
-internal fun SetupRingsAnswers.toMapperInput(): SetupRingsInput = SetupRingsInput(
-    startAction = startAction,
-    recentTraining = recentTraining,
-    recentTrainingUnknown = recentTrainingState == SetupRecentTrainingState.UNKNOWN,
-    sessions = sessionsLastSevenDays,
-    // Dato de la última sesión; el campo antiguo de recencia solo queda para borradores anteriores.
-    recencyDays = lastSessionRecencyDays ?: recencyDays,
-    activityType = activityType,
-    intensity = intensityLevel,
-    muscleFeeling = muscleFeeling,
-    energy = energy,
-    structureFeeling = structureFeeling,
-    axialState = axialExposure.state,
-    axialSessions = axialExposure.sessions,
-    axialIntensity = intensityLevel,
-    muscleScope = muscleScope,
-    selectedMuscles = recentMuscles.toList(),
-    discomfortIds = discomfortIds,
-    capturedAtMs = capturedAtMs,
-    // NONE (lista vacía explícita) es distinto de no informado/omitido.
-    discomfortResponse = when (discomfortState) {
-        SetupDiscomfortState.NONE -> RingsDiscomfortResponse.NONE
-        SetupDiscomfortState.DECLARED -> RingsDiscomfortResponse.DECLARED
-        SetupDiscomfortState.OMITTED -> RingsDiscomfortResponse.OMITTED
-        SetupDiscomfortState.NOT_ANSWERED -> RingsDiscomfortResponse.NOT_ANSWERED
-    },
-    daysState = sessionDaysState,
-    trainedDays = trainedDayOffsets,
-    mainLifts = mainLifts,
-    groupSets = groupSets,
-)
-
-@Serializable
 data class SetupWizardDraft(
     val draftId: String = "",
     val commitId: String = "",
@@ -472,7 +380,6 @@ data class SetupWizardDraft(
     val activateNutrition: Boolean = true,
     val confirmActivation: Boolean = false,
     val acceptFixedRecipeDifference: Boolean = false,
-    val ringsAnswers: SetupRingsAnswers? = null,
     val nutritionMode: String = "create",
     val nutritionPlanId: String? = null,
     val nutritionDraft: NutritionWizardDraft? = null,
@@ -485,9 +392,6 @@ data class SetupWizardDraft(
     val knowsTrainingMarks: Boolean = false,
     val volumeAnswers: SetupVolumeAnswers = SetupVolumeAnswers(),
     val volumeCalibrationProfile: VolumeCalibrationProfile? = null,
-    val manualMuscleOverrides: Map<String, Int> = emptyMap(),
-    val manualEnergyOverride: Int? = null,
-    val manualStructureOverride: Int? = null,
     /**
      * Canonical wizard progress for the traditional step flow: stable step id,
      * block, step index and completed blocks. Legacy WizChat drafts are migrated
@@ -609,6 +513,10 @@ data class SetupWizardDraft(
     val meetDateIso: String? = null,
     /** Nombre opcional del evento (hasta 40 caracteres); solo con [CompetitionAnswer.WITH_DATE]. */
     val meetName: String = "",
+    /** Explicit ordered goals; legacy answers never synthesize this snapshot. */
+    val trainingIntent: TrainingIntent? = null,
+    /** Nonvisual input for the future discipline-selection UI; legacy drafts keep null. */
+    val hybridComposition: com.example.kpkn.data.models.HybridProgramComposition? = null,
 )
 
 /** Whether a step value was declared by the user: touched here or recorded as DECLARED in the legacy mirror. */
@@ -639,15 +547,8 @@ fun SetupWizardDraft.withNextDraftRevision(previous: SetupWizardDraft): SetupWiz
 fun SetupWizardDraft.stepContext(): SetupStepContext = SetupStepContext(
     includeTraining = includeTraining,
     includeNutrition = includeNutrition,
-    includeRings = draftScope in setOf("full", "resume", "rings_only"),
     nutritionProfessional = nutritionDraft?.mode == "professional",
     nutritionStarted = includeNutrition && nutritionMode == "create",
-    ringsAction = ringsAnswers?.startAction,
-    recentTraining = ringsAnswers?.recentTraining,
-    ringsTrainedDays = ringsAnswers?.sessionDaysState == RingsSessionDaysState.DECLARED &&
-        ringsAnswers?.trainedDayOffsets.orEmpty().isNotEmpty(),
-    ringsTrainedLast72h = ringsAnswers?.sessionDaysState == RingsSessionDaysState.DECLARED &&
-        ringsAnswers?.trainedDayOffsets.orEmpty().any { it <= SetupRingsMapper.GROUP_SETS_MAX_DAYS_BACK },
     inventoryGroups = inventoryGroups(),
     nutritionStartChoice = stepSelections[SetupStepId.NUTRITION_START]?.firstOrNull()
         ?: nutritionDraft?.configurationMode?.name?.lowercase(),
@@ -825,13 +726,6 @@ fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint
             "${item.id}/${item.sets ?: 0}/${item.reps}"
         }
     },
-    ringsSignature = listOf(
-        // Sin los ajustes 0–100 de RINGS: moverlos no cambia la huella (ver `SetupRingsAnswers.manualRings`).
-        ringsAnswers?.copy(manualRings = emptyMap(), manualMusclesV2 = emptyMap())?.toString().orEmpty(),
-        manualMuscleOverrides.toString(),
-        manualEnergyOverride?.toString().orEmpty(),
-        manualStructureOverride?.toString().orEmpty(),
-    ),
     nutritionSignature = listOf(
         nutritionDraft?.toString().orEmpty(),
         nutritionMode,
@@ -1041,7 +935,7 @@ data class SetupSubmitResult(
 }
 
 /** Operations that can fail and be retried explicitly from the UI. */
-enum class SetupRetryOperation { LOAD, SAVE, PREVIEW, CANDIDATES, RINGS_PREVIEW, COMMIT }
+enum class SetupRetryOperation { LOAD, SAVE, PREVIEW, CANDIDATES, COMMIT }
 
 /**
  * Records provenance for [step] and moves the cursor exactly one step forward.
@@ -1249,23 +1143,11 @@ data class SetupWizardState(
     val nutritionPlanPreview: NutritionPlan? = null,
     val nutritionErrors: Map<String, String> = emptyMap(),
     val nutritionPacePercentPerWeek: Double? = null,
-    val ringsBatteriesPreview: GlobalBatteries? = null,
-    val ringsPreviewLoading: Boolean = false,
-    val ringsPreviewError: String? = null,
     val dialog: SetupWizardDialog = SetupWizardDialog.NONE,
     val isSavingAndExiting: Boolean = false,
     val exitCompleted: Boolean = false,
     /** Message of the last failed operation; cleared on the next successful publish. */
     val lastFailure: String? = null,
-    /**
-     * Cobertura publicada por el preview de RINGS (`SetupRingsPreview.coverage`).
-     * Es la única fuente que consumen Home y Revisión: nunca se deriva una
-     * etiqueta global mezclando canales parciales (un `INCOMPLETE` histórico
-     * convive con un `PARTIAL_CHECK_IN` válido y con «Sin calibrar» explícito).
-     */
-    val ringsCoveragePreview: RingsCoverage? = null,
-    /** Estimación automática de cada pilar muscular (sin ajustes de la persona): el valor de referencia de sus deslizadores. */
-    val ringsMuscleEstimates: Map<String, Int> = emptyMap(),
     /** Preparación nutricional REAL del alta (días, gastos y errores), cuando existe. */
     val nutritionPreparation: SetupNutritionPreparationResult? = null,
     /**
@@ -1554,7 +1436,7 @@ object SetupWizardValidation {
                 }
             }
             SetupWizardChapter.NUTRITION -> Unit
-            SetupWizardChapter.RINGS, SetupWizardChapter.REVIEW -> Unit
+            SetupWizardChapter.REVIEW -> Unit
         }
     }
 
@@ -1657,8 +1539,7 @@ object SetupWizardValidation {
                 }
             }
             SetupStepId.EXPERIENCE -> choice("experience", draft.experience?.label, "Elige tu experiencia")
-            SetupStepId.MILESTONE_BASICS, SetupStepId.MILESTONE_TRAINING,
-            SetupStepId.MILESTONE_NUTRITION, SetupStepId.MILESTONE_RINGS -> emptyList()
+            SetupStepId.MILESTONE_BASICS, SetupStepId.MILESTONE_TRAINING, SetupStepId.MILESTONE_NUTRITION -> emptyList()
             // Pasos retirados de la ruta (solo se leen en borradores antiguos): fuera de la ruta no validan nada.
             SetupStepId.ROUTE, SetupStepId.STYLE, SetupStepId.DAYS, SetupStepId.SPLIT, SetupStepId.TRAINING_MARKS,
             SetupStepId.AUTOREGULATION, SetupStepId.AUTOREGULATION_CONFIRM, SetupStepId.WARMUPS,
@@ -1795,7 +1676,7 @@ object SetupWizardValidation {
             }
             // La semana armada es una decisión sobre el programa ya elegido: nunca bloquea por sí sola.
             SetupStepId.WEEK_LAYOUT -> ok("weekLayout")
-            SetupStepId.NUTRITION_RESULT, SetupStepId.RINGS_RESULT, SetupStepId.REVIEW_ACTIVATE -> emptyList()
+            SetupStepId.NUTRITION_RESULT, SetupStepId.REVIEW_ACTIVATE -> emptyList()
             SetupStepId.NUTRITION_START -> if (draft.isAnswered(step)) ok("nutritionStart") else absent("nutritionStart", "Elige una opción de nutrición")
             SetupStepId.NUTRITION_SEX -> if (draft.nutritionDraft?.equationSex != null) ok("equationSex")
                 else absent("equationSex", "Elige el sexo que usamos solo para calcular tu energía")
@@ -1874,57 +1755,22 @@ object SetupWizardValidation {
             }
             // RINGS v2: la intro no declara nada; los días y los ejercicios piden su respuesta («No entrené», «No lo recuerdo»,
             // «Ninguno de estos» y «No lo sé» la valen); las series y las sensaciones son omitibles.
-            SetupStepId.RINGS_INTRO -> ok("intro")
-            SetupStepId.RINGS_SESSION_DAYS -> when (draft.ringsAnswers?.sessionDaysState) {
-                RingsSessionDaysState.DECLARED -> if (draft.ringsAnswers?.trainedDayOffsets.orEmpty().isNotEmpty()) ok("sessionDays")
-                    else absent("sessionDays", "Marca los días que entrenaste, «No entrené» o «No lo recuerdo»")
-                RingsSessionDaysState.NONE, RingsSessionDaysState.UNKNOWN -> ok("sessionDays")
-                RingsSessionDaysState.NOT_ANSWERED, null ->
-                    absent("sessionDays", "Marca los días que entrenaste, «No entrené» o «No lo recuerdo»")
-            }
-            SetupStepId.RINGS_MAIN_LIFTS -> when (draft.ringsAnswers?.mainLiftsState) {
-                RingsMainLiftsState.DECLARED -> if (draft.ringsAnswers?.mainLifts.orEmpty().isNotEmpty()) ok("mainLifts")
-                    else absent("mainLifts", "Elige un ejercicio, «Ninguno de estos» o «No lo sé»")
-                RingsMainLiftsState.NONE, RingsMainLiftsState.UNKNOWN -> ok("mainLifts")
-                RingsMainLiftsState.NOT_ANSWERED, null -> absent("mainLifts", "Elige un ejercicio, «Ninguno de estos» o «No lo sé»")
-            }
-            SetupStepId.RINGS_GROUP_SETS -> ok("groupSets")
-            SetupStepId.RINGS_FEELINGS -> ok("feelings")
-            SetupStepId.RINGS_START -> if (draft.isAnswered(step)) ok("startAction") else absent("startAction", "Elige cómo situar tus RINGS")
-            SetupStepId.RINGS_RECENT -> when (draft.ringsAnswers?.recentTrainingState) {
-                null, SetupRecentTrainingState.NOT_ANSWERED ->
-                    if (draft.isAnswered(step)) ok("recentTraining")
-                    else absent("recentTraining", "Indica si entrenaste en los últimos siete días")
-                // «No lo sé» explícito (UNKNOWN) permite resultado parcial:
-                // desconocer el historial no es no haber entrenado.
-                else -> ok("recentTraining")
-            }
-            SetupStepId.RINGS_SESSIONS -> if (draft.ringsAnswers?.sessionsLastSevenDays != null) ok("sessions")
-                else absent("sessions", "Indica cuántas sesiones hiciste")
-            SetupStepId.RINGS_RECENCY -> if (draft.ringsAnswers?.lastSessionRecencyDays != null) ok("recency")
-                else absent("recency", "Indica cuándo fue tu última sesión")
-            SetupStepId.RINGS_ACTIVITY -> if (draft.ringsAnswers?.activityType != null) ok("activityType")
-                else absent("activityType", "Indica qué predominó en tus sesiones")
-            SetupStepId.RINGS_INTENSITY -> if (draft.ringsAnswers?.intensityLevel != null) ok("intensity")
-                else absent("intensity", "Indica cómo sentiste la intensidad")
-            SetupStepId.RINGS_AXIAL -> if (draft.isAnswered(step)) ok("axial") else absent("axial", "Indica si hubo cargas pesadas para la espalda")
-            // Sensaciones con `allowSkip`: «No lo sé» o una omisión explícita
-            // habilita Continuar sin fabricar un nivel 0. Un check-in parcial
-            // (historial incompleto) nunca se bloquea aquí: el mapper decide
-            // INCOMPLETE/PARTIAL y este validador solo exige el dato del control.
-            SetupStepId.RINGS_MUSCLE_FEELING -> if (draft.ringsAnswers?.muscleFeeling != null || draft.isAnswered(step)) ok("muscleFeeling")
-                else absent("muscleFeeling", "Indica cómo se sienten tus músculos")
-            SetupStepId.RINGS_ENERGY_FEELING -> if (draft.ringsAnswers?.energy != null || draft.isAnswered(step)) ok("energy")
-                else absent("energy", "Indica cómo está tu energía")
-            SetupStepId.RINGS_STRUCTURE_FEELING -> if (draft.ringsAnswers?.structureFeeling != null || draft.isAnswered(step)) ok("structureFeeling")
-                else absent("structureFeeling", "Indica cómo está tu columna")
-            SetupStepId.RINGS_DISCOMFORT -> when (draft.ringsAnswers?.discomfortState) {
-                null, SetupDiscomfortState.NOT_ANSWERED ->
-                    if (draft.isAnswered(step)) ok("discomfort")
-                    else absent("discomfort", "Indica si hay alguna molestia o si prefieres omitirlo")
-                // NONE/DECLARED/OMITTED son respuestas explícitas conservadas.
-                else -> ok("discomfort")
-            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         }
     }
 

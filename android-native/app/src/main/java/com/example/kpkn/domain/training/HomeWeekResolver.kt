@@ -96,12 +96,12 @@ object HomeWeekResolver {
         val weeks = program.allWeekLocations()
         val current = weeks.indexOfFirst { it.week.id == weekId }
         if (current < 0) return null
-        val calendar = if (ProgramCalendarEngine.isCalendarized(program)) ProgramCalendarEngine.project(program) else null
+        val calendar = ProgramCalendarEngine.project(program).takeIf { it.enabled }
         val startIso = windowStart.dayOfWeek.value
         return weeks.drop(current + 1).withIndex().flatMap { (ahead, location) ->
             // La principal va primero: si dos sesiones caen el mismo día, gana la principal.
             location.week.sessions.sortedBy { if (it.isMainSession) 0 else 1 }.mapNotNull { session ->
-                val date = if (calendar != null) {
+                val date = if (calendar?.weeks?.any { it.weekId == location.week.id || it.weekInstanceId == location.week.id } == true) {
                     calendar.scheduledDateFor(session, location.week.id)
                 } else {
                     // La semana que sigue a «Tu semana» (ahead = 0) cae en los 7 días siguientes a ella.

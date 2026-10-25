@@ -63,11 +63,7 @@ object SetupPendingNutrition {
             selectedCatalogId = null,
             sessions = emptyList(),
             activateProgram = false,
-            ringsAnswers = null,
             volumeCalibrationProfile = null,
-            manualMuscleOverrides = emptyMap(),
-            manualEnergyOverride = null,
-            manualStructureOverride = null,
             // El borrador diferido arranca en el paso de resultado de nutrición,
             // nunca hereda el paso del borrador principal.
             stepProgress = SetupStepGraph.migrateFromLegacy(
@@ -75,7 +71,6 @@ object SetupPendingNutrition {
                 SetupStepContext(
                     includeTraining = false,
                     includeNutrition = true,
-                    includeRings = false,
                     nutritionProfessional = true,
                 ),
             ),

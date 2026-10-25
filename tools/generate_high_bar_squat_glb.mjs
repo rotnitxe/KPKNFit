@@ -18,7 +18,7 @@ const nodes = [];
 const materials = [];
 const animationEntries = [];
 
-const SOURCE_IMAGE = "android-native/app/src/main/res/drawable-nodpi/exercise_sentadilla_trasera_barra_alta.png";
+const SOURCE_IMAGE = "android-native/app/src/main/res/drawable-nodpi/exercise_sentadilla_trasera_barra_alta.webp";
 const ANIMATION_NAME = "high_bar_squat_loop";
 
 function align4(value) {

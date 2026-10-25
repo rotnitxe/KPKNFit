@@ -145,7 +145,6 @@ class SetupWizardPageHelpersTest {
         assertEquals(KpknModule.BASICOS, SetupWizardBlock.BASICS.toKpknModule())
         assertEquals(KpknModule.ENTRENO, SetupWizardBlock.TRAINING.toKpknModule())
         assertEquals(KpknModule.NUTRICION, SetupWizardBlock.NUTRITION.toKpknModule())
-        assertEquals(KpknModule.RINGS, SetupWizardBlock.RINGS.toKpknModule())
         assertNull(SetupWizardBlock.REVIEW.toKpknModule())
         // Todo hito de la ruta completa tiene animación.
         route.filter(SetupStepGraph::isMilestone).forEach { milestone ->
@@ -156,12 +155,11 @@ class SetupWizardPageHelpersTest {
     @Test
     fun `las etapas del primer hito dejan basicos celebrado y entreno como siguiente`() {
         val stages = milestoneStages(SetupStepId.MILESTONE_BASICS, route, completed = emptySet())
-        assertEquals(listOf("Básicos", "Entreno", "Nutrición", "Rings", "Revisión"), stages.map { it.label })
+        assertEquals(listOf("Básicos", "Entreno", "Nutrición", "Revisión"), stages.map { it.label })
         assertEquals(
             listOf(
                 OverlayStageState.JUST_DONE,
                 OverlayStageState.NEXT,
-                OverlayStageState.PENDING,
                 OverlayStageState.PENDING,
                 OverlayStageState.PENDING,
             ),
@@ -182,7 +180,6 @@ class SetupWizardPageHelpersTest {
                 OverlayStageState.DONE,
                 OverlayStageState.JUST_DONE,
                 OverlayStageState.NEXT,
-                OverlayStageState.PENDING,
             ),
             stages.map { it.state },
         )
@@ -191,11 +188,11 @@ class SetupWizardPageHelpersTest {
     @Test
     fun `tras el ultimo hito el siguiente es la revision`() {
         val stages = milestoneStages(
-            SetupStepId.MILESTONE_RINGS,
+            SetupStepId.MILESTONE_NUTRITION,
             route,
             completed = setOf(SetupWizardBlock.BASICS, SetupWizardBlock.TRAINING, SetupWizardBlock.NUTRITION),
         )
-        assertEquals(OverlayStageState.JUST_DONE, stages[3].state)
+        assertEquals(OverlayStageState.JUST_DONE, stages[2].state)
         assertEquals(OverlayStageState.NEXT, stages.last().state)
         assertEquals("Revisión", stages.last().label)
     }

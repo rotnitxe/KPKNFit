@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con a dos lados, con la polea alta al lado contrario, la mano viaja en diagonal hasta la extensión completa. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
-              "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -125,14 +121,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Cruzada en Polea Alta",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -149,7 +137,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -175,10 +162,8 @@
                 "Preparación: Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "laterality": "bilateral"
@@ -198,17 +183,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con a un lado, con la polea alta al lado contrario, la mano viaja en diagonal hasta la extensión completa. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
-              "efc": 2.2,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -303,14 +284,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Cruzada en Polea Alta",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -327,7 +300,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -353,10 +325,8 @@
                 "Preparación: Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 3.8,
-              "ttc": 1.6
+              "technicalDifficulty": 3.8
             },
             "selectedOptions": {
               "laterality": "unilateral"

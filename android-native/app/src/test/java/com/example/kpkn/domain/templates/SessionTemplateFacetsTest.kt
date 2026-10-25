@@ -124,10 +124,6 @@ class SessionTemplateFacetsTest {
             if (facets.primaryMuscles.isEmpty()) {
                 failures += "'${template.id}': primaryMuscles vacío"
             }
-            val drain = facets.drain
-            if (drain.cns !in 0..100 || drain.muscular !in 0..100 || drain.spinal !in 0..100) {
-                failures += "'${template.id}': drain inválido cns=${drain.cns} mus=${drain.muscular} spi=${drain.spinal}"
-            }
             if (facets.regions.any { it == ExerciseCatalogRegion.ALL }) {
                 failures += "'${template.id}': regions incluye ALL"
             }

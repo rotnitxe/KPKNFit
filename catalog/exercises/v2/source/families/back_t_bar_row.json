@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "En la máquina de barra T con apoyo, los mangos exteriores dejan las palmas hacia abajo y los codos se abren hacia los lados. El pecho descansa en la almohadilla, de modo que trapecio y dorsal ancho tiran sin que la espalda baja sostenga nada.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Abre los codos hacia los lados hasta la altura de los hombros.",
                 "Deja el pecho pegado a la almohadilla mientras subes.",
                 "Baja los mangos hasta estirar los brazos, sin soltarlos."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -155,14 +151,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -179,7 +167,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -211,12 +198,10 @@
                 "Toma los mangos de los extremos con el dorso de las manos hacia arriba."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "wide",
@@ -237,19 +222,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Un accesorio de mangos anchos en el extremo de la barra deja las palmas hacia abajo y los codos abiertos casi a la altura de los hombros. Juntar las escápulas gana peso frente a extender el hombro, y el trapecio comparte el trabajo con el dorsal ancho.",
-              "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
                 "Separa los codos del cuerpo mientras tiras, hasta la altura de los hombros.",
                 "Junta las escápulas arriba sin levantar el tronco.",
                 "Baja hasta estirar los brazos sin que los discos golpeen el suelo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -408,14 +389,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -432,7 +405,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -465,7 +437,6 @@
                 "Agarra los extremos del accesorio con las palmas hacia abajo, más abiertos que los hombros."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "gluteus_maximus",
@@ -473,8 +444,7 @@
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "wide",
@@ -495,19 +465,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "De pie sobre la plataforma y con el pecho en la almohadilla inclinada, los mangos medios quedan bajo los hombros y el brazo cargado gira sobre su eje. La inclinación la sostiene la almohadilla, no la cadera.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Tira hasta que tus codos queden por detrás del tronco.",
                 "Deja el pecho pegado a la almohadilla mientras subes.",
                 "Baja los mangos hasta estirar los brazos, sin soltarlos."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -629,14 +595,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -653,7 +611,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -685,12 +642,10 @@
                 "Agarra los mangos medios y deja los brazos colgando."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "medium",
@@ -711,19 +666,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con las manos al ancho de los hombros en el accesorio, los codos se abren en diagonal y las placas suben hasta rozar la parte baja del pecho. La cadera y la espalda baja sostienen el tronco inclinado durante toda la serie, sin nada delante que lo apoye.",
-              "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
                 "Tira de los codos hacia atrás hasta que las placas se acerquen a la parte baja del pecho.",
                 "Junta las escápulas arriba sin levantar el tronco.",
                 "Baja hasta estirar los brazos sin que los discos golpeen el suelo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -881,14 +832,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -905,7 +848,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -938,7 +880,6 @@
                 "Sujeta los mangos del accesorio con las manos separadas como tus hombros."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "gluteus_maximus",
@@ -946,8 +887,7 @@
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "medium",
@@ -968,19 +908,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Los asideros neutros del centro juntan las manos y llevan los codos pegados al cuerpo. Con el tronco apoyado, el dorsal ancho trabaja en su recorrido largo sin que la zona lumbar intervenga.",
-              "efc": 2.5,
               "equipmentId": "machine",
               "executionCues": [
                 "Tira con los codos junto al tronco hasta que pasen la espalda.",
                 "Deja el pecho pegado a la almohadilla mientras subes.",
                 "Baja los asideros hasta estirar los brazos, sin soltarlos."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1102,14 +1038,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1126,7 +1054,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1158,12 +1085,10 @@
                 "Toma los asideros neutros del centro con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 55,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "close",
@@ -1184,19 +1109,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "El agarre en V se engancha debajo de la barra, junto a los discos, con las palmas enfrentadas y las manos casi juntas. Los codos pasan rozando las costillas y el arco de la barra acerca las placas al esternón.",
-              "efc": 2.5,
               "equipmentId": "t_bar",
               "executionCues": [
                 "Sube los codos pegados a las costillas hasta que los discos rocen el pecho.",
                 "Junta las escápulas arriba sin levantar el tronco.",
                 "Baja hasta estirar los brazos sin que los discos golpeen el suelo."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -1354,14 +1275,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo en Barra T",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1378,7 +1291,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1411,7 +1323,6 @@
                 "Engancha el agarre en V bajo la barra, pegado a los discos, y sujétalo con las palmas enfrentadas."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "gluteus_maximus",
@@ -1419,8 +1330,7 @@
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "close",

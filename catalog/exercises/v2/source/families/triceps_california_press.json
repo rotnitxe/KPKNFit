@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con barra, la carga baja hacia la cara con los codos abiertos y el empuje final la devuelve sobre el pecho. El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-              "efc": 2.2,
               "equipmentId": "barbell",
               "executionCues": [
                 "Barra hacia el pecho con los codos cerca del cuerpo: el tríceps comparte el empuje con el pectoral sin abrir los brazos. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -127,14 +123,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press California",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -151,7 +139,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -179,10 +166,8 @@
                 "Preparación: Barra hacia el pecho con los codos cerca del cuerpo: el tríceps comparte el empuje con el pectoral sin abrir los brazos."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -202,17 +187,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con barra EZ, la carga baja hacia la cara con los codos abiertos y el empuje final la devuelve sobre el pecho. El tríceps trabaja con la barra EZ, que cuida las muñecas en todo el arco.",
-              "efc": 2.2,
               "equipmentId": "ez_bar",
               "executionCues": [
                 "Barra EZ con codos hacia dentro: agarre cómodo y mismo trabajo de pecho y tríceps. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -309,14 +290,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press California",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -333,7 +306,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -361,10 +333,8 @@
                 "Preparación: Barra EZ con codos hacia dentro: agarre cómodo y mismo trabajo de pecho y tríceps."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "ez_bar"
@@ -384,17 +354,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.8,
               "description": "Con mancuernas, la carga baja hacia la cara con los codos abiertos y el empuje final la devuelve sobre el pecho. Con mancuernas, cada lado ajusta su línea y el trabajo del tríceps se equilibra solo.",
-              "efc": 2.2,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Mancuernas hacia el pecho con los codos recogidos: cada brazo dirige su propio descenso y impide que el lado fuerte domine. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -491,14 +457,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.8,
-                  "efc": 2.2,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.8,
-                  "ttc": 1.6
-                },
                 "identity": {
                   "canonicalName": "Press California",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -515,7 +473,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -543,10 +500,8 @@
                 "Preparación: Mancuernas hacia el pecho con los codos recogidos: cada brazo dirige su propio descenso y impide que el lado fuerte domine."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.8,
-              "ttc": 1.6
+              "technicalDifficulty": 4.8
             },
             "selectedOptions": {
               "implement": "dumbbells"

@@ -99,7 +99,6 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.InvolvedMuscle
-import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.data.models.HistoryColorV2
 import com.example.kpkn.data.models.DiscomfortCatalogEntry
 import com.example.kpkn.data.models.DiscomfortSection
@@ -112,7 +111,6 @@ import com.example.kpkn.data.models.MobilityExerciseCatalog
 import com.example.kpkn.data.models.SetOutcomeV2
 import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.MuscleRole
-import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.ReplacementPersistenceScopeV2
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SupersetGroup
@@ -134,19 +132,8 @@ import com.example.kpkn.data.models.WorkoutHeaderWidgets
 import com.example.kpkn.screens.workout.ExerciseHistoryEntry
 import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.unresolvedDiscomfortIdsFrom
-import com.example.kpkn.data.models.PostSessionPreview
-import com.example.kpkn.domain.auge.AugeTtcEngine
-import com.example.kpkn.domain.auge.DiscomfortAggregationEngine
-import com.example.kpkn.domain.auge.SessionDiscomfortSummary
-import com.example.kpkn.domain.auge.SessionIntensityEngine
-import com.example.kpkn.domain.auge.SessionIntensityResult
-import com.example.kpkn.domain.auge.getAugeMusclePillarId
-import com.example.kpkn.domain.auge.lookupMuscleScore
-import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
 import com.example.kpkn.domain.exercises.exerciseDisplayParts
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
-import com.example.kpkn.screens.auge.AugeViewModel
-import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.screens.sessioneditor.CompactModeSelector
@@ -177,7 +164,6 @@ import com.example.kpkn.screens.workout.components.RoadmapPendingAction
 import com.example.kpkn.screens.workout.components.RestTimerOverlay
 import com.example.kpkn.screens.workout.components.RestTimerPill
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
-import com.example.kpkn.screens.workout.components.WorkoutReadinessSheet
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.TourIds
@@ -188,15 +174,10 @@ import com.example.kpkn.screens.workout.components.MinimalMuscleSlider
 import com.example.kpkn.data.models.discomfortLabel
 import com.example.kpkn.data.models.DropSetData
 import com.example.kpkn.data.models.RestPauseData
-import com.example.kpkn.data.models.ringScore
 import kotlinx.coroutines.launch
 import java.util.Locale
 import com.example.kpkn.data.models.DailyWellbeingLog
-import com.example.kpkn.data.models.ExerciseReadiness
 import com.example.kpkn.data.models.Gender
-import com.example.kpkn.data.models.MovementPatternReadiness
-import com.example.kpkn.data.models.SetAdjustmentSuggestion
-import com.example.kpkn.data.repository.AugeRepository
 import java.time.LocalDate
 import java.util.UUID
 import dev.chrisbanes.haze.HazeState
@@ -223,7 +204,6 @@ fun WorkoutScreen(
     onOpenExistingWorkout: (programId: String, sessionId: String) -> Unit = { _, _ -> },
     onOpenTechniqueAnalysis: (String) -> Unit = {},
 ) {
-    val augeViewModel = rememberAugeViewModel()
     val context = LocalContext.current
     DisposableEffect(programId, sessionId) {
         val repairBenchmarkIoWindow = RepairBenchmarkTrace.beginUiIoWindow("workout")
@@ -319,10 +299,10 @@ fun WorkoutScreen(
     // ─── Readiness sheet state ─────────────────────────────────────────────────
     val overlayHazeState = remember { HazeState() }
     var readinessSheetDismissed by rememberSaveable(programId, sessionId) { mutableStateOf(false) }
-    val showReadinessSheet = !readinessSheetDismissed && uiState.readinessNeuralOverride == null
+    val showReadinessSheet = !readinessSheetDismissed
     // Lo que quedó pendiente al cerrar una capa por accidente (LV4, 15): el estado previo sin responder y el resumen final sin guardar.
     // Mientras estén pendientes, la fila del asa del cockpit enseña la píldora que los vuelve a abrir.
-    val readinessPending = readinessSheetDismissed && uiState.readinessNeuralOverride == null
+    val readinessPending = false // Optional preparation has no unanswered calibration gate.
     val finishPending = uiState.finishClosedPending && !uiState.showFinishSheet
     val structureSheets = rememberWorkoutStructureSheetsState()
     var pendingCatalogRequest by remember { mutableStateOf<CatalogLaunchRequest?>(null) }
@@ -340,44 +320,6 @@ fun WorkoutScreen(
     val activeProgram = remember(allPrograms, programId) { allPrograms.firstOrNull { it.id == programId } }
     LaunchedEffect(settings.exerciseNicknames) {
         com.example.kpkn.domain.exercises.ExerciseNicknameResolver.nicknames = settings.exerciseNicknames
-    }
-
-    // Recovery data
-    val augeSnapshot by augeViewModel.snapshot.collectAsStateWithLifecycle()
-    val perMuscle by augeViewModel.perMuscle.collectAsStateWithLifecycle()
-
-    val augeRepository = remember(context) { AugeRepository.getInstance(context) }
-    val todayWellbeing by produceState<DailyWellbeingLog?>(initialValue = null) {
-        value = augeRepository.getTodayWellbeing()
-    }
-
-    // Calcular readiness por ejercicio cuando los datos AUGE están listos
-    val unresolvedDiscomfortIds by remember(uiState.postExerciseFeedbackByExerciseId) {
-        derivedStateOf {
-            unresolvedDiscomfortIdsFrom(uiState.postExerciseFeedbackByExerciseId.values)
-        }
-    }
-    LaunchedEffect(
-        augeSnapshot.batteries,
-        perMuscle,
-        augeSnapshot.articular,
-        unresolvedDiscomfortIds,
-        uiState.session?.id,
-        todayWellbeing,
-        augeSnapshot.readiness,
-        augeSnapshot.isLoading,
-    ) {
-        viewModel.bindDailyRelatorSignals(augeSnapshot, todayWellbeing)
-        if (augeSnapshot.isLoading) return@LaunchedEffect
-        val state = uiState
-        if (state.session != null && (state.exerciseReadinessMap.isEmpty() || augeSnapshot.batteries.muscular > 0)) {
-            viewModel.computeExerciseReadiness(
-                batteries = augeSnapshot.batteries,
-                perMuscle = perMuscle,
-                articularBatteries = augeSnapshot.articular,
-                unresolvedDiscomfortIds = unresolvedDiscomfortIds,
-            )
-        }
     }
 
     LaunchedEffect(uiState.pendingVoiceDiagnosticExportName) {
@@ -467,53 +409,6 @@ fun WorkoutScreen(
     }
 
 
-    val sessionRelevantMuscles = remember(modeSession, modeExercises) {
-        val upperOnlySession = isUpperOnlyWorkoutSession(modeSession, modeExercises)
-            modeExercises
-            .mapNotNull { ex ->
-                ExerciseMuscleResolver.effectiveMusclesForVolume(ex, catalogExerciseIndex())
-                    .filter { it.role == MuscleRole.PRIMARY || it.role == MuscleRole.SECONDARY }
-                    .map { involved -> getAugeMusclePillarId(involved.muscle, involved.emphasis) }
-                    .filterNot { muscleId ->
-                        upperOnlySession && normalizeWorkoutMuscleKey(muscleId) in LOWER_SESSION_MUSCLE_KEYS
-                    }
-                    .orEmpty()
-            }
-            .flatten()
-            .distinct()
-    }
-    val sessionMuscleBatteries = remember(perMuscle, sessionRelevantMuscles) {
-        sessionRelevantMuscles.associateWith { muscleId ->
-            perMuscle[muscleId]?.recoveryScore
-                ?: lookupMuscleScore(perMuscle.mapValues { it.value.recoveryScore }, muscleId)
-                ?: 100
-        }
-    }
-    val sessionMuscleStartingBatteries = remember(
-        sessionRelevantMuscles,
-        sessionMuscleBatteries,
-        uiState.readinessMuscleOverrides,
-    ) {
-        val overrides = remapMuscleIntMapToPillars(uiState.readinessMuscleOverrides)
-        sessionRelevantMuscles.associateWith { muscleId ->
-            overrides[muscleId]
-                ?: sessionMuscleBatteries[muscleId]
-                ?: 100
-        }
-    }
-    val readinessNeuralStart = remember(uiState.readinessNeuralOverride, augeSnapshot) {
-        (uiState.readinessNeuralOverride
-            ?: augeSnapshot.ringScore(RecoveryChannelId.SYSTEM)).coerceIn(0, 100)
-    }
-    val readinessSpinalStart = remember(uiState.readinessSpinalOverride, augeSnapshot) {
-        (uiState.readinessSpinalOverride
-            ?: augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE)).coerceIn(0, 100)
-    }
-    val readinessMuscularStart = remember(uiState.readinessMuscularOverride, augeSnapshot) {
-        (uiState.readinessMuscularOverride
-            ?: augeSnapshot.ringScore(RecoveryChannelId.MUSCULAR)).coerceIn(0, 100)
-    }
-
     val completedExercisesForSummary = remember(
         modeSession,
         uiState.completedSets,
@@ -526,39 +421,6 @@ fun WorkoutScreen(
             skippedExerciseIds = uiState.skippedExerciseIds,
             catalogIndex = catalogExerciseIndex(),
         )
-    }
-    val adaptiveCache by produceState(
-        initialValue = com.example.kpkn.data.models.AugeAdaptiveCache(),
-        augeRepository,
-    ) {
-        value = augeRepository.getAdaptiveCache()
-    }
-    val realtimeRingsEnabled = viewModel.shouldShowRealtimeRingsWidget()
-    val cockpitRingPreview by produceState<PostSessionPreview?>(
-        initialValue = null,
-        completedExercisesForSummary,
-        realtimeRingsEnabled,
-        uiState.readinessNeuralOverride,
-        uiState.readinessSpinalOverride,
-        uiState.readinessMuscularOverride,
-    ) {
-        value = null
-        if (realtimeRingsEnabled && completedExercisesForSummary.isNotEmpty()) {
-            value = try {
-                augeViewModel.computePostSessionPreview(
-                    completedExercises = completedExercisesForSummary,
-                    durationMinutes = ((System.currentTimeMillis() - uiState.startTimeMs) / 60_000L).toInt().coerceAtLeast(1),
-                    settings = settings,
-                )
-            } catch (cancelled: kotlinx.coroutines.CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                null
-            }
-        }
-    }
-    val sessionMuscleVolumeByRoleSets = remember(completedExercisesForSummary) {
-        computeSessionMuscleRoleWeightedSets(completedExercisesForSummary)
     }
     val currentExercise = visibleExercises.getOrNull(uiState.currentExerciseIdx)
     val currentSet = currentExercise?.sets?.getOrNull(uiState.currentSetIdx)
@@ -1042,7 +904,6 @@ fun WorkoutScreen(
             modifier = Modifier.fillMaxSize(),
             uiState = uiState,
             settings = settings,
-            adaptiveCache = adaptiveCache,
             viewModel = viewModel,
             onRetryPendingCaptures = viewModel::retryPendingMediaCaptures,
             currentExercise = currentExercise,
@@ -1065,7 +926,6 @@ fun WorkoutScreen(
             onToggleVoice = onToggleVoice,
             onStoryClick = { storyFromHeader = true; viewModel.showFinish() },
             onMoreSessionOptionsClick = { liveSessionDestination = LiveSessionDestination.MENU },
-            exerciseReadinessMap = uiState.exerciseReadinessMap,
             recordActionHolder = recordActionHolder,
             recordFabHolder = recordFabHolder,
             liveSetStepperHolder = liveSetStepperHolder,
@@ -1197,7 +1057,6 @@ fun WorkoutScreen(
         bodyWeight = viewModel.currentBodyWeight(),
         startTimeMs = uiState.startTimeMs,
         targetMinutes = resolveEffectiveSessionTargetMinutes(uiState.customTargetDurationMinutes, uiState.targetDurationMinutes, session?.targetDurationMinutes),
-        ringPreview = cockpitRingPreview,
         onSelectExercise = { id -> visibleExercises.indexOfFirst { it.id == id }.takeIf { it >= 0 }?.let(viewModel::selectExercise) },
         onSelectSuperset = viewModel::selectSupersetGroup,
         onOpenExerciseOptions = { id ->
@@ -1404,7 +1263,6 @@ fun WorkoutScreen(
 
     WorkoutSessionOverlaysHost(
         viewModel = viewModel,
-        augeViewModel = augeViewModel,
         uiState = uiState,
         session = session,
         visibleExercises = visibleExercises,
@@ -1412,16 +1270,10 @@ fun WorkoutScreen(
         readinessHaze = overlayHazeState,
         bottomHazeState = overlayHazeState,
         gender = settings.userVitals.gender,
-        sessionMuscleStartingBatteries = sessionMuscleStartingBatteries,
-        readinessNeuralStart = readinessNeuralStart,
-        readinessMuscularStart = readinessMuscularStart,
-        readinessSpinalStart = readinessSpinalStart,
-        todayWellbeing = todayWellbeing,
         onReadinessDismissed = {
             readinessSheetDismissed = true
             viewModel.announceCurrentStepOnReadinessDismissed()
         },
-        perMuscle = perMuscle,
         voiceSessionEnabled = uiState.voiceSessionEnabled,
         voiceCaptureMode = settings.voiceCaptureMode,
         onVoiceToggle = onToggleVoice,
@@ -1474,6 +1326,8 @@ fun WorkoutScreen(
         )
     }
 
+    var recordedFinishStory by remember { mutableStateOf<Pair<WorkoutStoryData,WorkoutStoryOptions>?>(null) }
+
     // ─── Finish sheet ─────────────────────────────────────────────────────────
     // Aviso one-shot del guard P0 de sesión vacía (finish abortado sin series).
     LaunchedEffect(uiState.emptyFinishGuardNotice) {
@@ -1498,232 +1352,35 @@ fun WorkoutScreen(
         }
     }
     if (uiState.showFinishSheet) {
-        val finishSnapshot = uiState.finishResumeSnapshot
-        val completionIso = finishSnapshot?.completionInstantIso
-        val frozenCompletionMs = completionIso?.let(AugeUtils::parseIsoMs)
-        val duration = if (frozenCompletionMs != null && frozenCompletionMs > 0L) {
-            ((frozenCompletionMs - uiState.startTimeMs) / 60000).toInt().coerceAtLeast(1)
-        } else {
-            ((System.currentTimeMillis() - uiState.startTimeMs) / 60000).toInt().coerceAtLeast(1)
-        }
-        val sessionIntensityResult = remember(completedExercisesForSummary, visibleExercises) {
-            val totalPlanned = visibleExercises.size
-            SessionIntensityEngine.calculateAverageSessionIntensity(
-                completedExercises = completedExercisesForSummary,
-                totalExercisesPlanned = totalPlanned,
-            )
-        }
-        val sessionDiscomfortSummary = remember(uiState.postExerciseFeedbackByExerciseId, completedExercisesForSummary) {
-            DiscomfortAggregationEngine.computeSessionDiscomfortSummary(
-                postExerciseFeedbackByExerciseId = uiState.postExerciseFeedbackByExerciseId,
-                completedExercises = completedExercisesForSummary,
-                exerciseDb = catalogExerciseIndex(),
-            )
-        }
-        // El resumen se calcula UNA vez por operación de cierre (snapshot congelado: misma hora,
-        // mismo hash de series). Antes las claves incluían `settings`, `duration` y la lista de
-        // ejercicios: en dispositivo el productor se reiniciaba cada ~1 s (121 cálculos seguidos,
-        // `finish_auto_preview` en el log), la hoja parpadeaba entre «Calculando…» y el resumen y un
-        // productor cancelado a medias escribía su mensaje técnico. Los datos "vivos" se leen con
-        // rememberUpdatedState al empezar el cálculo, sin reiniciarlo.
-        val latestCompletedForPreview by rememberUpdatedState(completedExercisesForSummary)
-        val latestDurationForPreview by rememberUpdatedState(duration)
-        val latestSettingsForPreview by rememberUpdatedState(settings)
-        val latestCompletionIsoForPreview by rememberUpdatedState(completionIso)
-        val previewState by produceState<FinishAugePreviewState>(
-            initialValue = FinishAugePreviewState.Loading,
-            finishSnapshot?.finishOperationId,
-            finishSnapshot?.completedSetInputHash,
-            // Sin snapshot (no debería ocurrir) no hay identidad estable: se usa la lista.
-            if (finishSnapshot == null) completedExercisesForSummary else null,
-        ) {
-            // Un cálculo anterior (otras claves) ya no vale: no dejar su resultado a la vista.
-            value = FinishAugePreviewState.Loading
-            // CancellationException NO es un fallo del cálculo: si el productor se cancela porque
-            // cambiaron las claves o la hoja salió de la composición, debe relanzarse y NO escribir
-            // «Error». Antes `runCatching` la tragaba y un productor cancelado podía escribir su
-            // mensaje técnico («The coroutine scope left the composition») por encima del resultado
-            // válido del productor nuevo.
-            value = try {
-                val preview = augeViewModel.computePostSessionPreview(
-                    completedExercises = latestCompletedForPreview,
-                    durationMinutes = latestDurationForPreview,
-                    settings = latestSettingsForPreview,
-                    completionInstantIso = latestCompletionIsoForPreview,
-                    finishOperationId = finishSnapshot?.finishOperationId,
-                    inputHash = finishSnapshot?.completedSetInputHash,
-                )
-                val expectedHash = finishSnapshot?.completedSetInputHash
-                if (expectedHash != null && preview.inputHash != expectedHash) {
-                    FinishAugePreviewState.Error("Las series cambiaron mientras se calculaba el resumen. Cierra e inténtalo de nuevo.")
-                } else {
-                    FinishAugePreviewState.Ready(preview)
-                }
-            } catch (cancelled: kotlinx.coroutines.CancellationException) {
-                // Rastro para saber cuándo se cancela un cálculo (cambio de claves o salida de la hoja).
-                com.example.kpkn.data.diagnostics.KpknDiagnosticLogger.event(
-                    namespace = "workout",
-                    name = "finish_preview_cancelled",
-                    fields = mapOf("exceptionType" to cancelled.javaClass.name),
-                    sessionId = sessionId,
-                )
-                throw cancelled
-            } catch (error: Exception) {
-                com.example.kpkn.data.diagnostics.KpknDiagnosticLogger.event(
-                    namespace = "workout",
-                    name = "finish_preview_failed",
-                    fields = mapOf(
-                        "exceptionType" to error.javaClass.name,
-                        "exceptionMessage" to error.message,
-                    ),
-                    sessionId = sessionId,
-                )
-                FinishAugePreviewState.Error(FINISH_PREVIEW_FAILED_MESSAGE)
-            }
-        }
-
-        if (previewState is FinishAugePreviewState.Ready) {
-            val postSessionPreview = (previewState as FinishAugePreviewState.Ready).preview
-            // D2.1: series de fuerza/cardio que quedan sin hacer (no cuenta ejercicios saltados
-            // a propósito ni series omitidas). Solo aviso: el resumen y el guardado no cambian.
-            val pendingSeriesNotice = remember(
-                uiState.session,
-                uiState.completedSets,
-                uiState.skippedExerciseIds,
-                uiState.omittedSetKeys,
-                uiState.warmupCompletedExerciseIds,
-                uiState.mobilityCompletedExerciseIds,
-                uiState.mobilityTotalCompletedStepKeys,
-                uiState.activeMode,
-                visibleExercises,
-            ) {
-                buildPendingSeriesNotice(viewModel.pendingSeriesSteps(uiState)) { step ->
-                    visibleExercises.firstOrNull { it.id == step.exerciseId }
-                        ?.let(::displayWorkoutExerciseName)
-                        ?: step.exerciseName
-                }
-            }
-            // Snapshot anterior al guardado: nunca comparamos la sesión consigo misma tras persistir.
-            val finishSnapshot = remember(session.id, postSessionPreview.finishOperationId) { viewModel.finishPresentationContext() }
-            val finishPhotos = remember(sessionMedia, uiState.sessionPhotos, uiState.exercisePhotos) {
-                viewModel.finishPresentationContext().photos
-            }
-            val finishPresentation = remember(finishSnapshot, finishPhotos) { finishSnapshot.copy(photos = finishPhotos) }
-            var preparedStory by remember(session.id) { mutableStateOf<Pair<WorkoutStoryData, WorkoutStoryOptions>?>(null) }
-            FinishWorkoutSheet(
-            initialShowStory = storyFromHeader,
-            onStoryPrepared = { data, options -> preparedStory = data to options },
-            presentation = finishPresentation,
-            session = session,
-            completedSets = uiState.completedSets,
+        val completionMs = uiState.finishResumeSnapshot?.completionInstantIso?.let {
+            runCatching { java.time.Instant.parse(it).toEpochMilli() }.getOrNull()
+        } ?: System.currentTimeMillis()
+        RecordedSessionFinishSheet(
+            name = session.name,
             completedExercises = completedExercisesForSummary,
-            durationMinutes = duration,
-            sessionIntensityResult = sessionIntensityResult,
-            postSessionPreview = postSessionPreview,
-            sessionMuscleVolumeByRoleSets = sessionMuscleVolumeByRoleSets,
-            postExerciseFeedbackByExerciseId = uiState.postExerciseFeedbackByExerciseId,
-            sessionDiscomfortSummary = sessionDiscomfortSummary,
-            initialSessionNotes = uiState.sessionNotes,
-            sessionMilestones = uiState.sessionMilestones,
-            sessionSavedNotes = uiState.sessionSavedNotes,
-            sessionChecklist = uiState.sessionChecklist,
-            onSaveSessionNote = viewModel::saveSessionNote,
-            onAddChecklistItem = viewModel::addSessionChecklistItem,
-            onToggleChecklistItem = viewModel::toggleSessionChecklistItem,
-            onRemoveChecklistItem = viewModel::removeSessionChecklistItem,
-            onOpenSessionAlbum = { viewModel.mediaCapture.openAlbumSheet() },
-            voiceFinalNotes = uiState.voiceFinalNotes,
-            voiceFinalDiscomforts = uiState.voiceFinalDiscomforts,
-            voiceFinalAdditionalDiscomfortNote = uiState.voiceFinalAdditionalDiscomfortNote,
-            voiceFinalNeural = uiState.voiceFinalNeural,
-            voiceFinalSpinal = uiState.voiceFinalSpinal,
-            voiceFinalConfirmTriggered = uiState.voiceFinalConfirmTriggered,
-            isFinishingWorkout = uiState.isFinishingWorkout,
-            pendingSeriesNotice = pendingSeriesNotice,
-            onContinuePendingSeries = viewModel::continuePendingSeriesFromFinish,
-            hazeState = overlayHazeState,
-            onSummaryReady = viewModel::announceWorkoutSessionSummary,
+            durationMinutes = ((completionMs - uiState.startTimeMs) / 60_000).toInt().coerceAtLeast(0),
+            initialNotes = uiState.sessionNotes,
+            saving = uiState.isFinishingWorkout,
             calibrationDecisions = uiState.calibrationDecisions,
-            onConfirm = { notes, fatigue, closingFeedback, shareToStory ->
-                RepairBenchmarkTrace.workoutExitRequested("finish")
-                val share = shareToStory
-                viewModel.finishWorkout(
-                    notes = notes,
-                    fatigueLevel = fatigue,
-                    closingFeedback = closingFeedback,
-                    onComplete = {
-                        val neuralChanged = closingFeedback.finalNeuralBattery != postSessionPreview.neural
-                        val spinalChanged = closingFeedback.finalSpinalBattery != postSessionPreview.spinal
-                        val anyRingEdit = neuralChanged ||
-                            spinalChanged ||
-                            closingFeedback.editedMuscleKeys.isNotEmpty()
-                        if (anyRingEdit) {
-                            val predictedMuscles = postSessionPreview.perMuscle.mapValues { it.value.recoveryScore }
-                            augeViewModel.applyManualBatteries(
-                                neural = if (neuralChanged) {
-                                    closingFeedback.finalNeuralBattery
-                                } else {
-                                    null
-                                },
-                                muscular = null,
-                                spinal = if (spinalChanged) {
-                                    closingFeedback.finalSpinalBattery
-                                } else {
-                                    null
-                                },
-                                perMuscleDelta = if (closingFeedback.editedMuscleKeys.isNotEmpty()) {
-                                    closingFeedback.finalMuscleBatteries.filterKeys {
-                                        it in closingFeedback.editedMuscleKeys
-                                    }
-                                } else {
-                                    null
-                                },
-                                sessionCnsDrain = postSessionPreview.globalCnsDrain.toDouble(),
-                                sessionSpinalDrain = postSessionPreview.globalSpinalDrain.toDouble(),
-                                sessionMuscleDrain = postSessionPreview.globalMuscularDrain.toDouble(),
-                                predictedNeuralBattery = postSessionPreview.neural,
-                                predictedSpinalBattery = postSessionPreview.spinalRaw,
-                                predictedMuscleBatteries = predictedMuscles,
-                            )
-                        } else {
-                            augeViewModel.refresh()
-                        }
-                        if (share) preparedStory?.let { (data, options) ->
-                            WorkoutShareService.shareAfterFinish(context, data, options)
-                        }
-                    },
-                )
+            discomforts = uiState.postExerciseFeedbackByExerciseId.values.flatMap { it.discomfortIds }.filter { it != "none" }.distinct(),
+            presentation = viewModel.finishPresentationContext(),
+            onSummaryReady = viewModel::announceWorkoutSessionSummary,
+            onShareAfterSave = { story,options -> recordedFinishStory=story to options },
+            onNotes = viewModel::setSessionNotes,
+            onAlbum = { viewModel.mediaCapture.openAlbumSheet() },
+            onConfirm = { notes, effort ->
+                viewModel.finishWorkout(notes = notes, fatigueLevel = 0,
+                    closingFeedback = SessionClosingFeedback(
+                        discomforts = emptyList(), sessionEffortRpe = effort,
+                        finishOperationId = uiState.finishResumeSnapshot?.finishOperationId,
+                        completionInstantIso = uiState.finishResumeSnapshot?.completionInstantIso,
+                    ), onComplete = {
+                        recordedFinishStory?.let { (story,options) -> WorkoutShareService.shareAfterFinish(context,story,options) }
+                        recordedFinishStory=null
+                    })
             },
-            onDismiss = { viewModel.hideFinish() },
-            // Cerrar el resumen sin guardar no tira la nota escrita: pasa a la sesión y vuelve al reabrirlo (LV4, 15).
-            onNotesDraft = { viewModel.setSessionNotes(it) },
-            onShare = {},
-            )
-        } else {
-            BackHandler { viewModel.hideFinish() }
-            Box(
-                modifier = Modifier.fillMaxSize().padding(32.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                when (previewState) {
-                    FinishAugePreviewState.Loading -> {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator()
-                            Spacer(Modifier.height(12.dp))
-                            Text("Calculando recuperación muscular…")
-                        }
-                    }
-                    is FinishAugePreviewState.Error -> {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text((previewState as FinishAugePreviewState.Error).reason)
-                            Spacer(Modifier.height(12.dp))
-                            OutlinedButton(onClick = { viewModel.hideFinish() }) { Text("Cerrar") }
-                        }
-                    }
-                    is FinishAugePreviewState.Ready -> Unit
-                }
-            }
-        }
+            onDismiss = viewModel::hideFinish,
+        )
     }
 
     if (uiState.showVoiceCaptureModeDialog) {

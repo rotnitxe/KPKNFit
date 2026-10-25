@@ -6,7 +6,6 @@ import com.example.kpkn.data.models.OngoingWorkoutState
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.SetDrain
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutContextProfile
@@ -17,7 +16,6 @@ import com.example.kpkn.data.models.performedPurpose
 import com.example.kpkn.data.models.normalizeMobilityCompatibility
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.StartWorkoutResult
-import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.catalogv2.SessionCatalogNameReconciler
 import com.example.kpkn.domain.training.ProgramProgressEngine
@@ -72,7 +70,6 @@ class WorkoutSessionHydrator(
         fun nextIncompleteStepAfter(state: WorkoutUiState, includeCurrent: Boolean = false): WorkoutStep?
         fun firstIncompleteStep(state: WorkoutUiState): WorkoutStep?
         fun startRestTimer(seconds: Int, preserveElapsed: Boolean = false)
-        fun updateCoachMessage(setDrain: SetDrain, sessionProgress: Double)
         fun startSessionTimer(remainingSeconds: Int)
         fun workoutWidgetsSessionKey(): String
         fun bindActiveWorkoutHolder()
@@ -400,7 +397,8 @@ class WorkoutSessionHydrator(
                 exerciseNotes = resumedState?.exerciseNotes.orEmpty(),
                 exercisePhotos = resumedState?.exercisePhotos.orEmpty(),
                 sessionMilestones = resumedState?.sessionMilestones.orEmpty(),
-                sessionNotes = resumedState?.sessionNotes ?: priorSessionLog?.sessionNotes.orEmpty(),
+                sessionNotes = resumedState?.sessionNotes.orEmpty(),
+                recordedSportId = resumedState?.recordedSportId,
                 sessionSavedNotes = resumedState?.sessionSavedNotes ?: priorSessionLog?.sessionSavedNotes.orEmpty(),
                 plannedSessionBaseline = resumedState?.plannedSessionBaseline
                     ?: ports.sessionForActiveMode(
@@ -516,6 +514,7 @@ class WorkoutSessionHydrator(
                     editingSetKey = getState().editingState?.setKey,
                     restModalState = getState().restModalState,
                     sessionNotes = getState().sessionNotes,
+                    recordedSportId = getState().recordedSportId,
                     sessionSavedNotes = getState().sessionSavedNotes,
                     sessionChecklist = getState().sessionChecklist,
                 )
@@ -539,16 +538,6 @@ class WorkoutSessionHydrator(
         if (!persistBlocked) {
             ports.bindActiveWorkoutHolder()
         }
-        val ema = AugeFatigueEngine.calculateMesocycleStressEMA(
-            logs = repository.history.value,
-            programId = programId,
-            mesoIndex = getState().mesoIndex ?: 0,
-        )
-        updateState { it.copy(mesocycleStressEMA = ema) }
-        ports.updateCoachMessage(
-            setDrain = SetDrain(cnsDrainPct = 0.0, muscularDrainPct = 0.0, spinalDrainPct = 0.0),
-            sessionProgress = 0.0,
-        )
         val lastLog = repository.history.value.firstOrNull { it.programId == programId && it.id != sessionId }
         // Solo molestias marcadas como aún presentes (no resueltas) en la sesión pasada.
         val lastDiscomforts = lastLog?.stillPresentDiscomfortIds

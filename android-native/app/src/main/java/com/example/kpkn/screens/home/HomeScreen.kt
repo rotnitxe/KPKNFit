@@ -51,13 +51,8 @@ import com.example.kpkn.screens.onboarding.design.entreno.MarksMath
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.data.exercises.exerciseCatalogReady
-import com.example.kpkn.data.models.AugeSnapshot
-import com.example.kpkn.data.models.LoadAdvisoryLevel
-import com.example.kpkn.data.models.MuscleRecoveryStatus
 import com.example.kpkn.data.models.Program
-import com.example.kpkn.data.models.RecoveryChannelId
 import com.example.kpkn.data.models.Session
-import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.data.models.TodaySessionItem
 import com.example.kpkn.domain.training.HomeWeekDay
 import com.example.kpkn.domain.training.HomeWeekResolver
@@ -66,8 +61,6 @@ import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.data.models.NutritionStatus
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
-import com.example.kpkn.domain.auge.LoadAdvisoryEngine
-import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
 import com.example.kpkn.screens.nutrition.components.MealTypeSaver
@@ -173,19 +166,6 @@ fun HomeScreen(
     var templateError by remember { mutableStateOf<String?>(null) }
     val createScope = rememberCoroutineScope()
     val openCreate = onCreateProgram
-    val augeViewModel = rememberAugeViewModel()
-    // Los músculos sueltos que se ajustan en el detalle de Músculos se guardan como anclas V2 por músculo (claves de pilar), la misma
-    // ruta que el final del entreno. Una sola lambda por ViewModel: el valor del local no cambia en cada recomposición.
-    val saveRingMuscles = remember(augeViewModel) {
-        { edits: Map<String, Int> -> augeViewModel.applyManualBatteries(perMuscleDelta = edits) }
-    }
-    val augePerMuscle by augeViewModel.perMuscle.collectAsState()
-    val augeSnapshot by augeViewModel.snapshot.collectAsState()
-
-    val muscularProgress = augeSnapshot.ringScore(RecoveryChannelId.MUSCULAR) / 100f
-    val sncProgress = augeSnapshot.ringScore(RecoveryChannelId.SYSTEM) / 100f
-    val columnaProgress = augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE) / 100f
-    val augeLoading = augeSnapshot.isLoading
     val uiState by viewModel.uiState.collectAsState()
     val nutritionRepo = remember { NutritionRepository.getInstance() }
     // WP-U7 (C5): si la hoja del logger estaba abierta, tras la muerte del proceso se reabre con su borrador.
@@ -193,12 +173,8 @@ fun HomeScreen(
     // Comida elegida con el «+» o con una comida de «Nutrición de hoy»; null = la de la hora (defaultMealTypeNow).
     var loggerMealChoice by rememberSaveable { mutableStateOf<MealType?>(null) }
     var showNutritionOverlay by remember { mutableStateOf(false) }
-    var showAugeRecommendations by remember { mutableStateOf(false) }
     // «Tu semana»: el día elegido sobrevive a girar la pantalla; por defecto, hoy.
     var selectedDate by rememberSaveable(stateSaver = HomeDateSaver) { mutableStateOf(LocalDate.now()) }
-    // RINGS: canal cuyo detalle está abierto. Se guarda por nombre para sobrevivir a girar la pantalla.
-    var selectedChannelName by rememberSaveable { mutableStateOf<String?>(null) }
-    val selectedChannel = selectedChannelName?.let { RecoveryChannelId.valueOf(it) }
     // Cabecera y «Tu semana», calculadas del programa activo y de sus sesiones de la semana.
     val todayDate = LocalDate.now()
     val activeProgram = remember(uiState.programs, uiState.activeProgramId) {
@@ -226,9 +202,7 @@ fun HomeScreen(
     }
     // Recorrido de Inicio: solo cuando los RINGS ya cargaron (si no, esperaría a sus anclas). Lo decide el controlador: visto = no arranca.
     val tourHost = LocalKpknOverlayHost.current
-    LaunchedEffect(augeLoading) {
-        if (!augeLoading) tourHost?.startTour(TourIds.HOME, TourScripts.home(conTorre = true))
-    }
+    LaunchedEffect(Unit) { tourHost?.startTour(TourIds.HOME, TourScripts.home(conTorre = false)) }
     val nutritionLogs by nutritionRepo.nutritionLogs.collectAsState()
     val context = LocalContext.current
     LaunchedEffect(uiState.activeProgramId) {
@@ -298,7 +272,6 @@ fun HomeScreen(
     val handoffDistancePx = with(density) { 48.dp.toPx() }
     var headerBottomY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
     var sessionAnchorY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
-    var ringsAnchorY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
     var nutritionAnchorY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
     // Borde inferior de la cabecera de la página (coordenadas de la raíz): decide el fundido de la barra superior.
     var mastheadBottomY by remember { mutableFloatStateOf(Float.POSITIVE_INFINITY) }
@@ -310,7 +283,6 @@ fun HomeScreen(
 
     val greetingProgress = 1f
     val sessionProgress by remember { derivedStateOf { anchorProgress(sessionAnchorY) } }
-    val ringsProgress by remember { derivedStateOf { anchorProgress(ringsAnchorY) } }
     val nutritionProgress by remember { derivedStateOf { anchorProgress(nutritionAnchorY) } }
     // La barra aparece cuando la cabecera de la página sale por arriba (los últimos 48 dp antes de cruzarse).
     val mastheadBarAlpha by remember {
@@ -322,13 +294,9 @@ fun HomeScreen(
             greeting = uiState.greeting,
             userName = uiState.userName,
             greetingProgress = greetingProgress,
-            ringsProgress = ringsProgress,
             sessionProgress = sessionProgress,
              nutritionProgress = if (showNutrition) nutritionProgress else 0f,
             hasPrograms = uiState.hasActiveProgram,
-            muscularProgress = muscularProgress,
-            sncProgress = sncProgress,
-            columnaProgress = columnaProgress,
             primarySession = uiState.primarySession,
             homeCompetition = uiState.homeCompetition,
             isRestDay = uiState.primarySession == null && (uiState.isRestDay || uiState.todaySessions.isEmpty()),
@@ -341,7 +309,6 @@ fun HomeScreen(
             onNavigateToProfile = onNavigateToProfile,
             hazeState = rootHazeState,
             onBottomPositionChanged = { headerBottomY = it },
-            ringsCoverage = augeSnapshot.coverage ?: com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
             barAlpha = mastheadBarAlpha,
         )
     }
@@ -376,14 +343,8 @@ fun HomeScreen(
         }
     }
     Box(Modifier.fillMaxSize().background(WizardColors.background)) {
-        CompositionLocalProvider(LocalRingMuscleAdjustSave provides saveRingMuscles) {
             HomeWithProgram(
                 viewModel = viewModel,
-                muscularProgress = muscularProgress,
-                sncProgress = sncProgress,
-                columnaProgress = columnaProgress,
-                augeLoading = augeLoading,
-                perMuscle = augePerMuscle,
                 todaySessions = uiState.todaySessions,
                 homeCompetition = uiState.homeCompetition,
                 hasActiveProgram = uiState.hasActiveProgram,
@@ -391,7 +352,6 @@ fun HomeScreen(
                 programs = uiState.programs,
                 listState = listState,
                 onSessionAnchorPositionChanged = { sessionAnchorY = it },
-                onRingsAnchorPositionChanged = { ringsAnchorY = it },
                 onNutritionAnchorPositionChanged = { nutritionAnchorY = it },
                 onStartWorkout = onStartWorkout,
                 onRegisterCompetition = onRegisterCompetition,
@@ -400,13 +360,7 @@ fun HomeScreen(
                 onNavigateToProgram = onNavigateToProgram,
                 onCreateProgram = openCreate,
                 onNavigateToCard = onNavigateToCard,
-                onNavigate = { destination ->
-                    if (destination == "settings/auge") showAugeRecommendations = true else onNavigate(destination)
-                },
-                augeSnapshot = augeSnapshot,
-                onDismissAdvisory = augeViewModel::dismissAdvisory,
-                onModelNoticeShown = augeViewModel::markModelUpdateNoticeShown,
-                overtrainedMuscles = uiState.overtrainedMuscles,
+                onNavigate = onNavigate,
                  onAddMeal = { meal ->
                      if (showNutrition) {
                          loggerMealChoice = meal
@@ -422,21 +376,11 @@ fun HomeScreen(
                  onMastheadPositionChanged = { mastheadBottomY = it },
                  onOpenProfile = onNavigateToProfile,
                  todayMeals = todayMeals,
-                 selectedChannel = selectedChannel,
-                 onSelectedChannelChange = { selectedChannelName = it?.name },
-                 onSaveRingAdjustment = { channel, value ->
-                     when (channel) {
-                         RecoveryChannelId.MUSCULAR -> augeViewModel.applyManualBatteries(muscular = value)
-                         RecoveryChannelId.SYSTEM -> augeViewModel.applyManualBatteries(neural = value)
-                         RecoveryChannelId.STRUCTURE -> augeViewModel.applyManualBatteries(spinal = value)
-                     }
-                 },
                  onNavigateToNutritionEditor = onNavigateToNutritionEditor,
                  modifier = Modifier
                      .fillMaxSize()
                      .navigationBarsPadding(),
              )
-        }
 
         // Velo fijo bajo la barra de estado (I8): va por encima de la lista y por debajo de la barra superior, que es hermana del NavHost.
         KpknStatusVeil(modifier = Modifier.align(Alignment.TopCenter))
@@ -454,23 +398,6 @@ fun HomeScreen(
                     showFoodLogger = false
                     loggerMealChoice = null
                 },
-            )
-        }
-        if (showAugeRecommendations) {
-            KpknAlertDialog(
-                onDismissRequest = { showAugeRecommendations = false },
-                title = { Text("Recomendación de recuperación", fontWeight = FontWeight.Black) },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("KPKN detectó señales de fatiga y te muestra una recomendación calculada para tu sesión.")
-                        augeSnapshot.autoDeloadMessage?.takeIf { it.isNotBlank() }?.let { Text(it) }
-                        if (uiState.overtrainedMuscles.isNotEmpty()) {
-                            Text("Zonas con fatiga acumulada: ${uiState.overtrainedMuscles.joinToString(", ")}.")
-                        }
-                        Text("Es una sugerencia a partir de tu historial, no un diagnóstico. Puedes seguir entrenando o bajar volumen según cómo te sientas.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                },
-                confirmButton = { TextButton(onClick = { showAugeRecommendations = false }) { Text("Cerrar") } },
             )
         }
         if (showCreateProgramSheet) {
@@ -663,11 +590,6 @@ private fun HomeFoodLoggerHost(
 @Composable
 private fun HomeWithProgram(
     viewModel: HomeViewModel,
-    muscularProgress: Float,
-    sncProgress: Float,
-    columnaProgress: Float,
-    augeLoading: Boolean = false,
-    perMuscle: Map<String, MuscleRecoveryStatus> = emptyMap(),
     todaySessions: List<TodaySessionItem>,
     homeCompetition: com.example.kpkn.domain.training.HomeCompetitionState?,
     hasActiveProgram: Boolean,
@@ -675,7 +597,6 @@ private fun HomeWithProgram(
     programs: List<Program>,
     listState: androidx.compose.foundation.lazy.LazyListState,
     onSessionAnchorPositionChanged: (Float) -> Unit,
-    onRingsAnchorPositionChanged: (Float) -> Unit,
     onNutritionAnchorPositionChanged: (Float) -> Unit,
     onStartWorkout: (Session, Program) -> Unit,
     onRegisterCompetition: (String) -> Unit,
@@ -686,10 +607,6 @@ private fun HomeWithProgram(
     onNavigateToCard: (String) -> Unit,
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier,
-    augeSnapshot: AugeSnapshot? = null,
-    onDismissAdvisory: (String) -> Unit = {},
-    onModelNoticeShown: () -> Unit = {},
-    overtrainedMuscles: List<String> = emptyList(),
     onAddMeal: (MealType?) -> Unit = {},
     onOpenNutritionOverlay: () -> Unit = {},
     showNutrition: Boolean = true,
@@ -703,9 +620,6 @@ private fun HomeWithProgram(
     /** Comidas de hoy (sin planeadas): los símbolos de «Nutrición de hoy». */
     todayMeals: List<NutritionLog> = emptyList(),
     /** Canal con el detalle de RINGS abierto, su cambio y el guardado del ajuste manual (lo cablea HomeScreen). */
-    selectedChannel: RecoveryChannelId? = null,
-    onSelectedChannelChange: (RecoveryChannelId?) -> Unit = {},
-    onSaveRingAdjustment: (RecoveryChannelId, Int) -> Unit = { _, _ -> },
     /** Abre el editor del plan de nutrición: la acción «Definir objetivos» de «Nutrición de hoy» (sin meta de kcal). */
     onNavigateToNutritionEditor: () -> Unit = {},
 ) {
@@ -722,17 +636,6 @@ private fun HomeWithProgram(
     val bodyToday by viewModel.bodyToday.collectAsState()
     val nutritionToday = remember(todayMeals, nutritionTotals, calorieGoal, proteinGoal, carbGoal, fatGoal) {
         homeNutritionState(todayMeals, nutritionTotals, calorieGoal, proteinGoal, carbGoal, fatGoal)
-    }
-    val homeAdvisory = remember(augeSnapshot, todaySessions, isCatalogReady) {
-        val raw = augeSnapshot?.advisories
-            ?.filter { LoadAdvisoryEngine.rank(it.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST) }
-            ?.firstOrNull()
-            ?: return@remember null
-        val session = todaySessions.firstOrNull { it.isToday && !it.isCompleted }
-            ?: todaySessions.firstOrNull { !it.isCompleted }
-            ?: todaySessions.firstOrNull()
-        val hints = session?.session?.let { axialHintsForSession(it) }.orEmpty()
-        LoadAdvisoryEngine.contextualize(raw, hints, axialCatalogAlternatives(hints))
     }
     LazyColumn(
         state = listState,
@@ -790,12 +693,9 @@ private fun HomeWithProgram(
                     weekDays = weekDays,
                     activeProgram = programs.firstOrNull { it.id == activeProgramId },
                     onNavigateToProgram = onNavigateToProgram,
-                    onOpenMuscleDetail = { onSelectedChannelChange(RecoveryChannelId.MUSCULAR) },
                     sessions = todaySessions,
                     homeCompetition = homeCompetition,
                     hasActiveProgram = hasActiveProgram,
-                    perMuscle = perMuscle,
-                    loadAdvisory = homeAdvisory,
                     onStartWorkout = onStartWorkout,
                     onRegisterCompetition = onRegisterCompetition,
                     onResumeWorkout = onResumeWorkout,
@@ -808,51 +708,9 @@ private fun HomeWithProgram(
             }
         }
 
-        item(key = "rings") {
-            HomeRingsSection(
-                muscularProgress = muscularProgress,
-                sncProgress = sncProgress,
-                columnaProgress = columnaProgress,
-                hasActiveProgram = hasActiveProgram,
-                isLoading = augeLoading,
-                dashboard = augeSnapshot?.dashboard,
-                snapshot = augeSnapshot,
-                showModelUpdateNotice = augeSnapshot?.showModelUpdateNotice == true,
-                selectedChannel = selectedChannel,
-                onSelectedChannelChange = onSelectedChannelChange,
-                perMuscle = perMuscle,
-                onSaveAdjustment = onSaveRingAdjustment,
-                onDismissAdvisory = onDismissAdvisory,
-                onModelNoticeShown = onModelNoticeShown,
-                modifier = Modifier
-                    .homeGapAbove(HomeModuleGap)
-                    .onGloballyPositioned { onRingsAnchorPositionChanged(it.positionInRoot().y) }
-                    .homeEntrance(3),
-            )
-        }
-        if (homeAdvisory != null) {
-            item(key = "auto-deload") {
-                HomeNotice(
-                    title = homeAdvisory.title,
-                    body = homeAdvisory.body,
-                    actionLabel = "Entendido",
-                    onAction = { onDismissAdvisory(homeAdvisory.id) },
-                    tone = if (homeAdvisory.level == LoadAdvisoryLevel.UNLOAD) HomeNoticeTone.DANGER else HomeNoticeTone.WARN,
-                    modifier = Modifier.homeGapAbove(HomeModuleGap).homeEntrance(4),
-                )
-            }
-        }
-        if (overtrainedMuscles.isNotEmpty()) {
-            item(key = "overtraining") {
-                HomeNotice(
-                    title = "Posible exceso de volumen",
-                    body = "Hay señales de carga alta en: ${overtrainedMuscles.joinToString(", ")}. Considera reducir series semanales o un descanso activo.",
-                    actionLabel = "Ver recomendaciones",
-                    onAction = { onNavigate("settings/auge") },
-                    tone = HomeNoticeTone.DANGER,
-                    modifier = Modifier.homeGapAbove(HomeModuleGap).homeEntrance(5),
-                )
-            }
+        item(key = "training-history") {
+            val history by ProgramRepository.getInstance().history.collectAsState()
+            com.example.kpkn.screens.training.TrainingHistorySection(history, System.currentTimeMillis())
         }
         item(key = "cards") {
             // «Nutrición de hoy» y «Cuerpo» van en un solo ítem: comparten la entrada (índice 6) y el aire entre secciones.
@@ -903,13 +761,9 @@ internal fun HomeTopBar(
     greeting: String,
     userName: String,
     @Suppress("UNUSED_PARAMETER") greetingProgress: Float,
-    ringsProgress: Float,
     sessionProgress: Float,
     nutritionProgress: Float,
     hasPrograms: Boolean,
-    muscularProgress: Float,
-    sncProgress: Float,
-    columnaProgress: Float,
     primarySession: TodaySessionItem?,
     homeCompetition: com.example.kpkn.domain.training.HomeCompetitionState?,
     isRestDay: Boolean,
@@ -922,7 +776,6 @@ internal fun HomeTopBar(
     onNavigateToProfile: () -> Unit,
     hazeState: HazeState,
     onBottomPositionChanged: (Float) -> Unit,
-    ringsCoverage: com.example.kpkn.domain.onboarding.RingsCoverage = com.example.kpkn.domain.onboarding.RingsCoverage.NO_DATA,
     /** Opacidad de la cabecera de la página respecto a la barra: con histéresis (≥ 0,55 la muestra, ≤ 0,45 la oculta). */
     barAlpha: Float = 1f,
 ) {
@@ -937,7 +790,6 @@ internal fun HomeTopBar(
     val context = homeBarContextAfter(
         previous = contextState.value,
         sessionProgress = sessionProgress,
-        ringsProgress = ringsProgress,
         nutritionProgress = nutritionProgress,
     )
     SideEffect { contextState.value = context }
@@ -1062,11 +914,6 @@ internal fun HomeTopBar(
                                         onRegisterCompetition = onRegisterCompetition,
                                         onCreateProgram = onCreateProgram,
                                     )
-                                    HomeBarContext.RINGS -> HomeBarRingsLine(
-                                        energia = ringPercent(sncProgress, ringsCoverage.channel(RecoveryChannelId.SYSTEM).hasData),
-                                        musculos = ringPercent(muscularProgress, ringsCoverage.channel(RecoveryChannelId.MUSCULAR).hasData),
-                                        columna = ringPercent(columnaProgress, ringsCoverage.channel(RecoveryChannelId.STRUCTURE).hasData),
-                                    )
                                     HomeBarContext.NUTRITION -> MiniNutritionCard(
                                         dailyCalorieGoal = dailyCalorieGoal,
                                         consumedCalories = consumedCalories,
@@ -1091,7 +938,7 @@ internal fun HomeTopBar(
 }
 
 /** Contexto que muestra la isla, en el orden de la página: saludo, sesión, RINGS y nutrición. */
-internal enum class HomeBarContext { GREETING, SESSION, RINGS, NUTRITION }
+internal enum class HomeBarContext { GREETING, SESSION, NUTRITION }
 
 /**
  * Contexto de la isla (I12): el de la última sección cuyo ancla ya pasó bajo la isla. Cada sección «pasa» al llegar a 0,55 y «vuelve»
@@ -1101,11 +948,9 @@ internal enum class HomeBarContext { GREETING, SESSION, RINGS, NUTRITION }
 internal fun homeBarContextAfter(
     previous: HomeBarContext,
     sessionProgress: Float,
-    ringsProgress: Float,
     nutritionProgress: Float,
 ): HomeBarContext = when {
     homeBarPassed(nutritionProgress, wasPassed = previous == HomeBarContext.NUTRITION) -> HomeBarContext.NUTRITION
-    homeBarPassed(ringsProgress, wasPassed = previous >= HomeBarContext.RINGS) -> HomeBarContext.RINGS
     homeBarPassed(sessionProgress, wasPassed = previous >= HomeBarContext.SESSION) -> HomeBarContext.SESSION
     else -> HomeBarContext.GREETING
 }
@@ -1128,7 +973,6 @@ internal fun homeBarShownAfter(previous: Boolean, barAlpha: Float): Boolean = wh
 internal fun homeBarIcon(context: HomeBarContext): ImageVector = when (context) {
     HomeBarContext.GREETING -> KpknLineIcons.Tower
     HomeBarContext.SESSION -> KpknLineIcons.Training
-    HomeBarContext.RINGS -> KpknLineIcons.Tower
     HomeBarContext.NUTRITION -> KpknLineIcons.Nutrition
 }
 
@@ -1136,7 +980,6 @@ internal fun homeBarIcon(context: HomeBarContext): ImageVector = when (context) 
 internal fun homeBarAccent(context: HomeBarContext): Color = when (context) {
     HomeBarContext.GREETING -> WizardColors.text
     HomeBarContext.SESSION -> SymbolPalette.musculo
-    HomeBarContext.RINGS -> SymbolPalette.columna
     HomeBarContext.NUTRITION -> SymbolPalette.energia
 }
 
@@ -1273,50 +1116,6 @@ internal fun fitHomeGreeting(
     sizeFor(short)?.let { return HomeGreetingFit(short, it, truncated = false) }
     return HomeGreetingFit(short, homeGreetingSizesSp.last(), truncated = true)
 }
-
-/**
- * Contexto de RINGS en la isla (I12): «Tus RINGS» y el valor de cada canal; el icono Tower en columna lo pone la isla. Sin acción, con la
- * misma plantilla que los demás contextos: título y línea de apoyo (dos si el ancho no basta).
- */
-@Composable
-private fun HomeBarRingsLine(energia: Int?, musculos: Int?, columna: Int?) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = "Tus RINGS",
-            style = HomeTypography.barLabel,
-            color = WizardColors.text,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.semantics { heading() },
-        )
-        Text(
-            text = homeBarRingsSubtitle(energia = energia, musculos = musculos, columna = columna),
-            style = KpknType.islandSubtitle,
-            color = WizardColors.textMuted,
-            // A 360 dp los tres canales no caben en una línea a 13 sp: el subtítulo baja a dos antes que cortar una cifra (I12).
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-/**
- * Subtítulo de RINGS en la isla (I12): «Energía 86 · Músculos 74 · Columna 81». Un canal sin dato sale como «—» en su sitio; si ninguno
- * tiene dato, «Sin calibrar».
- */
-internal fun homeBarRingsSubtitle(energia: Int?, musculos: Int?, columna: Int?): String {
-    if (energia == null && musculos == null && columna == null) return "Sin calibrar"
-    return "Energía ${energia ?: "—"} · Músculos ${musculos ?: "—"} · Columna ${columna ?: "—"}"
-}
-
-/** Cifra de un canal para la isla: el progreso redondeado (así 0,86 da 86); sin dato, null, nunca un 100 % por defecto. */
-private fun ringPercent(progress: Float, hasData: Boolean): Int? =
-    if (hasData) (progress * 100f).roundToInt().coerceIn(0, 100) else null
 
 @Composable
 private fun MiniSessionCard(

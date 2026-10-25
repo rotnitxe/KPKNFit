@@ -1339,7 +1339,7 @@ class SetupWizardRepairTest {
             )
             assertEquals(listOf("Básicos", "Entreno", "Revisión"), milestoneBlocks(route).map(::milestoneStageLabel))
             assertTrue(route.none { SetupStepGraph.blockOf(it) == SetupWizardBlock.NUTRITION })
-            assertTrue(route.none { SetupStepGraph.blockOf(it) == SetupWizardBlock.RINGS })
+            assertTrue(route.none { it.name.startsWith("RINGS_") })
 
             confirmStep(vm, SetupStepId.NAME, SetupStepId.AGE) { vm.setStepText(SetupStepId.NAME, "Ana") }
             confirmStep(vm, SetupStepId.AGE, SetupStepId.HEIGHT) { vm.setStepNumber(SetupStepId.AGE, 30.0) }
@@ -1404,7 +1404,6 @@ class SetupWizardRepairTest {
             assertEquals(SetupPatchField.Unchanged, patch.dailyProteinGoal)
             assertEquals(SetupPatchField.Unchanged, patch.dailyCarbGoal)
             assertEquals(SetupPatchField.Unchanged, patch.dailyFatGoal)
-            assertEquals(SetupPatchField.Unchanged, patch.initialRecoveryEvidence)
             assertNull(request.nutritionPlan)
             assertFalse(request.activateNutrition)
             assertFalse(request.nutritionTrackingOnly)
@@ -1558,7 +1557,7 @@ class SetupWizardRepairTest {
             state.machineState != WizChatMachineState.PersistingAnswer &&
             state.machineState != WizChatMachineState.Committing &&
             state.machineState != WizChatMachineState.PreparingPreview &&
-            !state.isPreviewLoading && !state.isCandidateLoading && !state.ringsPreviewLoading
+            !state.isPreviewLoading && !state.isCandidateLoading
 
     private fun TestScope.awaitUntil(
         vm: SetupWizardViewModel,
@@ -1623,7 +1622,6 @@ class SetupWizardRepairTest {
         override fun activeNutritionPlanId(): String? = null
         override fun activeNutritionPlan(): NutritionPlan? = null
         override fun nutritionPlan(id: String): NutritionPlan? = null
-        override fun hasInitialRecoveryEvidence(): Boolean = false
         override suspend fun refreshBodyProgress() = Unit
     }
 

@@ -116,10 +116,10 @@ class WorkoutFinishEmptySessionTest {
             notes = "",
             fatigueLevel = 5,
             closingFeedback = SessionClosingFeedback(
-                overallFatigue = 5,
-                systemAdjustment = 0,
-                muscularAdjustment = 0,
-                structureAdjustment = 0,
+                
+                
+                
+                
                 discomforts = emptyList(),
             ),
             onComplete = { completed = true },

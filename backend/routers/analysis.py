@@ -1,4 +1,5 @@
 """Analysis service endpoints."""
+from datetime import datetime, timezone
 from fastapi import APIRouter
 from pydantic import BaseModel
 from models.common import (
@@ -8,7 +9,6 @@ from models.common import (
 from engines.analysis_engine import (
     calculate_average_volume_for_weeks,
     calculate_session_volume,
-    calculate_acwr,
     calculate_weekly_tonnage_comparison,
 )
 
@@ -29,10 +29,6 @@ class SessionVolumeRequest(BaseModel):
     mode: str = "complex"
 
 
-class ACWRRequest(BaseModel):
-    history: list[WorkoutLog]
-    settings: Settings
-    exerciseList: list[ExerciseMuscleInfo]
 
 
 class TonnageRequest(BaseModel):
@@ -50,11 +46,8 @@ def session_volume(req: SessionVolumeRequest):
     return calculate_session_volume(req.session, req.exerciseList, req.muscleHierarchy, req.mode)
 
 
-@router.post("/acwr")
-def acwr(req: ACWRRequest):
-    return calculate_acwr(req.history, req.settings, req.exerciseList)
 
 
 @router.post("/tonnage-comparison")
 def tonnage_comparison(req: TonnageRequest):
-    return calculate_weekly_tonnage_comparison(req.history, req.settings)
+    return calculate_weekly_tonnage_comparison(req.history, req.settings, datetime.now(timezone.utc))

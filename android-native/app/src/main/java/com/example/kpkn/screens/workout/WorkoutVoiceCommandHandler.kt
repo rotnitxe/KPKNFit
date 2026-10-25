@@ -1354,8 +1354,6 @@ class WorkoutVoiceCommandHandler(
         val updates = mutableListOf<String>()
         var nextNotes = state.voiceFinalNotes
         var nextAdditionalNote = state.voiceFinalAdditionalDiscomfortNote
-        var nextNeural = state.voiceFinalNeural
-        var nextSpinal = state.voiceFinalSpinal
         var nextDiscomforts = state.voiceFinalDiscomforts
 
         if (command.notes != null) {
@@ -1366,16 +1364,6 @@ class WorkoutVoiceCommandHandler(
         if (command.additionalDiscomfortNote != null) {
             nextAdditionalNote = command.additionalDiscomfortNote
             updates.add("Detalles de molestia actualizados")
-        }
-
-        if (command.neuralBattery != null) {
-            nextNeural = command.neuralBattery
-            updates.add("Batería nerviosa en ${command.neuralBattery}")
-        }
-
-        if (command.spinalBattery != null) {
-            nextSpinal = command.spinalBattery
-            updates.add("Batería espinal en ${command.spinalBattery}")
         }
 
         if (command.discomfortId != null) {
@@ -1393,8 +1381,6 @@ class WorkoutVoiceCommandHandler(
                 it.copy(
                     voiceFinalNotes = nextNotes,
                     voiceFinalAdditionalDiscomfortNote = nextAdditionalNote,
-                    voiceFinalNeural = nextNeural,
-                    voiceFinalSpinal = nextSpinal,
                     voiceFinalDiscomforts = nextDiscomforts
                 )
             }
@@ -1404,7 +1390,7 @@ class WorkoutVoiceCommandHandler(
             // silencio total se instruye la keyword de cierre esperada.
             voiceController.speakFeedbackUpdated(
                 "No entendí. Para guardar y cerrar, di «sesión terminada». " +
-                    "También puedes dictar notas, molestias o baterías."
+                    "También puedes dictar notas o molestias."
             )
         }
     }
@@ -1891,13 +1877,8 @@ class WorkoutVoiceCommandHandler(
     }
 
     private fun handleVoiceFatigueAdvice() {
-        val alert = ports.coachPaceAlert()
-        val message = when (alert) {
-            "retrasado", "apurar", "excedido" ->
-                "Vas justo de tiempo. Acorta el descanso o baja un poco la carga en accesorios."
-            else ->
-                "Si te sientes muy fatigado, baja 5 a 10 por ciento la carga o usa el descanso sugerido."
-        }
+        val message = "No calculo tu recuperación ni ajustes de carga a partir del cansancio. " +
+            "Puedes registrar cómo te sientes, consultar el plan o decidir una pausa."
         voiceController.speakFeedbackUpdated(message)
         updateState { it.copy(voiceSessionState = voiceController.state.value) }
     }

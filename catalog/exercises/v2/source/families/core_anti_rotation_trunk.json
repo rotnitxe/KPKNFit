@@ -20,17 +20,13 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Con polea, la cuerda se aleja del pecho mientras el core resiste la rotación que la polea intenta imponer. Con la polea, la tensión sobre la zona media se mantiene viva de principio a fin.",
-              "efc": 2.0,
               "equipmentId": "cable",
               "executionCues": [
                 "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. La carga intenta girar el torso y el abdomen responde manteniendo el pecho orientado; la distancia al anclaje define la dificultad."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -125,14 +121,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 4.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Press Pallof",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -147,7 +135,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -175,10 +162,8 @@
                 "Preparación: Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro."
               ],
               "setupTimeSeconds": 25,
-              "ssc": 0.2,
               "stabilizerMuscles": [],
-              "technicalDifficulty": 4.5,
-              "ttc": 1.5
+              "technicalDifficulty": 4.5
             },
             "selectedOptions": {}
           }
@@ -218,19 +203,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "CORE",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 1.5,
               "description": "Se levanta el peso de un brazo y de una pierna mientras una sola mano y la rodilla contraria sostienen el cuerpo. Con solo esos dos apoyos, el tronco tiene que resistir el giro que provoca el desequilibrio.",
-              "efc": 2.0,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Estira un brazo hacia delante y la pierna contraria hacia atrás hasta alinearlos con el tronco.",
                 "Detente un instante arriba sin girar la pelvis ni los hombros.",
                 "Vuelve despacio y repite con el otro lado."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -349,14 +330,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 1.5,
-                  "efc": 2.0,
-                  "ssc": 0.2,
-                  "technicalDifficulty": 3.5,
-                  "ttc": 1.5
-                },
                 "identity": {
                   "canonicalName": "Bird Dog",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -374,7 +347,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 90,
                     "min": 30
@@ -405,12 +377,10 @@
                 "Mira al suelo, unos centímetros por delante de las manos."
               ],
               "setupTimeSeconds": 10,
-              "ssc": 0.2,
               "stabilizerMuscles": [
                 "deltoid"
               ],
-              "technicalDifficulty": 3.5,
-              "ttc": 1.5
+              "technicalDifficulty": 3.5
             },
             "selectedOptions": {}
           }

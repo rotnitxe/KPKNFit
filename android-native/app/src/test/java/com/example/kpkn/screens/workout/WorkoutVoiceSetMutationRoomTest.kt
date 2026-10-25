@@ -191,10 +191,7 @@ class WorkoutVoiceSetMutationRoomTest {
             val ongoing = repository.databaseForTests().stateDao().getOngoingWorkout()!!.toOngoingWorkoutState()!!
             state = state.copy(completedSets = ongoing.completedSets)
         },
-        recomputeLiveEnergy = { completedSets, _ ->
-            energyCalls += 1
-            SessionEnergySummary(projectedTotalKcal = 100 + completedSets.size)
-        },
+
         refreshLoadSuggestions = { _, exerciseId -> refreshedExercises += exerciseId },
         gateWaitMs = gateWaitMs,
     )
@@ -541,8 +538,8 @@ class WorkoutVoiceSetMutationRoomTest {
 
         assertTrue(controller.undo(undo).isCommitted)
 
-        assertEquals(1, energyCalls)
-        assertEquals(101, state.liveEnergySummary.projectedTotalKcal)
+        assertNull(state.liveEnergySummary)
+        assertEquals(state.completedSets, room().completedSets)
     }
 
     // ─── edit ────────────────────────────────────────────────────────────────────────────────────
@@ -1162,7 +1159,7 @@ class WorkoutVoiceSetMutationRoomTest {
 
         assertEquals(WorkoutVoiceMutationResult.SessionChanged, pending.await())
         assertEquals(1, persistCalls)
-        assertEquals(1, energyCalls)
+        assertNull(state.liveEnergySummary)
         assertEquals(replacement, state)
         assertEquals(roomBefore.completedSets, room().completedSets)
         assertEquals(0, aborts)

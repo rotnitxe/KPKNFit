@@ -12,7 +12,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
-import com.example.kpkn.domain.auge.SessionIntensityResult
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.theme.KPKNTheme
@@ -46,11 +45,10 @@ class Cal3SummaryUiTest {
             CompositionLocalProvider(LocalDensity provides Density(density, font), LocalWizardReducedMotion provides true,
                 LocalKpknOverlayHost provides null) {
                 KPKNTheme { Box(Modifier.requiredSize(360.dp, height.dp).padding(top = 45.dp, bottom = 24.dp).testTag("cal3-summary-scene")) {
-                    FinishWorkoutSheet(session = f.state.session!!, completedSets = f.state.completedSets,
-                        completedExercises = listOf(CompletedExercise(f.exercise.id, f.exercise.name, sets = listOf(f.completed))),
-                        durationMinutes = 10, sessionIntensityResult = SessionIntensityResult(7.0,7.0,"Moderada",false,false,.25,1.0),
-                        postSessionPreview = PostSessionPreview(80,80,80,emptyMap(),5,5,5), hazeState = remember { HazeState() },
-                        calibrationDecisions = records, onConfirm = { _,_,_,_ -> confirmations++ }, onDismiss = {}, onShare = {}, onSummaryReady = {})
+                    RecordedSessionFinishSheet(name=f.state.session!!.name,
+                        completedExercises=listOf(CompletedExercise(f.exercise.id,f.exercise.name,sets=listOf(f.completed))),
+                        durationMinutes=10,initialNotes="",saving=false,calibrationDecisions=records,
+                        onNotes={},onAlbum={},onConfirm={_,_->confirmations++},onDismiss={})
                 } }
             }
         }

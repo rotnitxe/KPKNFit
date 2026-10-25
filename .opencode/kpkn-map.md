@@ -6,7 +6,7 @@
 
 - `android-native/`: primary Android product, Kotlin and Jetpack Compose.
 - `ios-native/`: Swift/SwiftUI parity port in progress.
-- `backend/`: optional FastAPI adaptive-analysis services; Android remains local-first.
+- `backend/`: optional FastAPI history/volume services; Android remains local-first.
 - `data/`: source datasets and catalogs. Large assets must be regenerated through documented scripts.
 - `docs/`: architecture, parity, QA, and migration documentation.
 
@@ -18,15 +18,15 @@
 - Pure business logic: `domain/`, without `android.*` imports.
 - Background or hardware behavior: `services/`; voice changes need focused tests.
 - Navigation: `navigation/Navigation.kt` and deep-link/router files when needed.
-- Shared AUGE behavior: update Android, iOS, backend, and parity documentation together.
+- Shared recorded-training contracts: update Android, iOS, backend, and parity documentation together.
 
 ## Critical Systems
 
-- Room database: `android-native/app/src/main/java/com/example/kpkn/data/db/KpknDatabase.kt`, current version **v26**. Recipes/TM/autoregulation live in `ProgramEntity` JSON (no extra tables). Workout media: `workout_media` + `filesDir/workout_media`.
-- AUGE engines: `android-native/app/src/main/java/com/example/kpkn/domain/auge/`.
+- Room database: `android-native/app/src/main/java/com/example/kpkn/data/db/KpknDatabase.kt`, current version **v34**. Recipes/TM/autoregulation live in `ProgramEntity` JSON (no extra tables). Workout media: `workout_media` + `filesDir/workout_media`.
+- Recorded training: `domain/training/insights/`; originals: `data/repository/TrainingObservationRepository.kt`. Retired engines are absent; compatibility importers only preserve original records.
 - Nutrition parsing: `domain/nutrition/`, `data/food/`, and `data/remote/ExternalAiService.kt`.
 - Voice: `services/workout/`, Vosk assets, foreground service, TTS, and AIDL service boundary.
-- Navigation routes: `navigation/Navigation.kt`; screens include home, workout, nutrition, programs, session editor, settings, AUGE, WikiLab, learn, profile, and competitions.
+- Navigation routes: `navigation/Navigation.kt`; screens include home, workout, nutrition, programs, session editor, settings, WikiLab, learn, profile, and competitions.
 - Architecture source: `CLAUDE.md`, `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/ANDROID_ARCHITECTURE_MAP.md`, and `docs/ANDROID_UI_SCREENS_MAP.md`.
 
 ## Safety Constraints
@@ -36,120 +36,138 @@
 - Verify the real code and Room schema when older docs disagree.
 
 <!-- KAUPOLIKAN_DYNAMIC_MAP_START -->
-Generated at: 2026-08-29T19:01:43.243Z
-Kotlin files: 519
-Room version detected in KpknDatabase.kt: 25
-Training recipes: `data/protocols/TrainingPlanRecipe.kt` → `domain/training/PlanMaterializer.kt` + `SessionCompositionPolicy.kt` (H1–H11). Weekly AUGE: `ProgramAutoregulationEngine.kt` (confirm-by-default). Visible protocols require a day-by-day recipe; do not publish generic synthesis under a third-party name. Day archetypes: `data/protocols/DayArchetypes.kt` (T2/T3 `SlotSource.KPKN_DEFAULT` inside third-party protocols). F5 session recipes: `data/sessions/PlRecipeSessionTemplates.kt` matched to authored `SplitTemplate.dayDefinitions` via `SessionTemplateCatalogPolicy.templatesForSplitDay`.
+Generated from the applied local working tree: 2026-10-24T16:38:35.048295+00:00
+Kotlin main files: 1617
+Room version: 34; preservation migrations and historical schemas are authoritative.
+Training recipes: data/protocols/TrainingPlanRecipe.kt → domain/training/PlanMaterializer.kt. Protocol proposals require explicit confirmation. No physiological readiness, drain or injury predictor.
 
 ### Entities
-- ActiveProgramEntity
-- AugeAdaptiveCacheEntity
-- BodyGoalEntity
-- BodyObservationEntity
+- ProgramEntity
+- WorkoutLogEntity
 - CompetitionRecordEntity
-- CustomExerciseEntity
-- CustomFoodEntity
-- DailyGoalSnapshotEntity
-- GlobalFoodEntity
-- GlobalFoodFtsEntity
-- JointEntity
-- KineticChainEntity
-- LearnedResolutionEntity
-- MealTemplateEntity
-- MovementPatternEntity
-- MuscleGroupEntity
-- NutritionActiveStateEntity
-- NutritionCalibrationProfileEntity
+- SettingsEntity
+- TrainingObservationEntity
+- ActiveProgramEntity
+- OngoingWorkoutEntity
+- WorkoutContextPerformanceEntity
+- WorkoutGlobalPerformanceEntity
+- WorkoutContextProfileEntity
+- WorkoutTagEntity
+- WorkoutReplacementDecisionEntity
 - NutritionLogEntity
 - NutritionPlanEntity
-- OngoingWorkoutEntity
+- NutritionActiveStateEntity
+- BodyObservationEntity
+- BodyGoalEntity
 - PantryItemEntity
-- PendingQuestionnaireEntity
+- MealTemplateEntity
+- CustomFoodEntity
+- MuscleGroupEntity
+- JointEntity
+- TendonEntity
+- MovementPatternEntity
+- KineticChainEntity
+- GlobalFoodEntity
+- GlobalFoodFtsEntity
+- CustomExerciseEntity
+- SessionTemplateEntity
+- LearnedResolutionEntity
+- NutritionCalibrationProfileEntity
+- DailyGoalSnapshotEntity
 - PerformanceRangeEntity
 - PerformanceSnapshotEntity
-- PostSessionFeedbackEntity
-- ProgramEntity
-- SessionTemplateEntity
-- SettingsEntity
-- SleepLogEntity
-- SleepLogExtendedEntity
-- TendonEntity
-- WellbeingEntity
-- WorkoutContextPerformanceEntity
-- WorkoutContextProfileEntity
-- WorkoutGlobalPerformanceEntity
-- WorkoutLogEntity
-- WorkoutReplacementDecisionEntity
+- WorkoutMediaEntity
+- WorkoutMediaSessionAssociationEntity
+- SetupDraftEntity
+- SetupCommitReceiptEntity
+- VideoAnalysisEntity
+- CalibrationDecisionEntity
 
 ### Routes
-- BodyProgress: nutrition/body-progress
-- CompetitionDetail: competition/{competitionId}
-- Competitions: competitions
-- Concepts: concepts?expand={expandConceptId}
-- HealthConnect: settings/health-connect
-- Home: home
-- MealHistory: nutrition/meal-history
-- Nutrition: nutrition
-- NutritionAction: nutrition/action/{action}
-- NutritionCalibration: nutrition/calibration
-- NutritionWizard: nutrition/wizard?mode={mode}&planId={planId}
-- Profile: profile
-- ProgramDetail: program/{programId}?tab={tab}
-- SessionEditor: session-editor/{programId}/{sessionId}?weekId={weekId}&macroIndex={macroIndex}&mesoIndex={mesoIndex}&dayOfWeek={dayOfWeek}&configureCompetition={configureCompetition}
-- Settings: settings
-- SettingsAuge: settings/auge
-- SettingsData: settings/data
-- SettingsDiagnostics: settings/diagnostics
-- SettingsGeneral: settings/general
-- SettingsNotifications: settings/notifications
-- SettingsNutrition: settings/nutrition
-- SettingsProfile: settings/profile
-- SettingsTraining: settings/training
-- Training: training
-- Workout: workout/{programId}/{sessionId}
+- Home: `home`
+- Training: `training`
+- Nutrition: `nutrition`
+- BodyProgress: `nutrition/body-progress`
+- Concepts: `concepts?expand={expandConceptId}`
+- ProgramDetail: `program/{programId}`
+- ProgramEditor: `program-editor?programId={programId}`
+- ImportProgram: `program-import`
+- SessionEditor: `session-editor/{programId}/{sessionId}?weekId={weekId}&macroIndex={macroIndex}&mesoIndex={mesoIndex}&dayOfWeek={dayOfWeek}`
+- Workout: `workout/{programId}/{sessionId}`
+- Competitions: `competitions`
+- CompetitionDetail: `competition/{competitionId}`
+- Settings: `settings`
+- SettingsGeneral: `settings/general`
+- SettingsProfile: `settings/profile`
+- SettingsNutrition: `settings/nutrition`
+- SettingsTraining: `settings/training`
+- SettingsAuge: `settings/auge`
+- SettingsNotifications: `settings/notifications`
+- SettingsData: `settings/data`
+- SettingsDiagnostics: `settings/diagnostics`
+- Profile: `profile`
+- WorkoutAlbums: `profile/albums`
+- WorkoutAlbumDetail: `profile/albums/{albumKey}`
+- WorkoutMediaViewer: `media/{mediaId}`
+- NutritionPlanEditor: `nutrition/plan-editor?planId={planId}&draftId={draftId}`
+- NutritionWizard: `nutrition/wizard?mode={mode}&planId={planId}`
+- SetupEntry: `setup/entry`
+- SetupVisualGate: `setup/visual-gate`
+- SetupWizard: `setup/wizard?mode={mode}&draftId={draftId}&planId={planId}`
+- NutritionCalibration: `nutrition/calibration`
+- MealHistory: `nutrition/meal-history`
+- NutritionAction: `nutrition/action/{action}`
+- TechniqueHub: `technique`
+- TechniqueAnalysis: `technique/analysis/{mediaId}`
+- TechniqueTrends: `technique/trends/{exerciseKey}`
+- TechniqueCompare: `technique/compare/{mediaA}/{mediaB}`
+- HealthConnect: `settings/health-connect`
 
 ### ViewModels
-- android-native/app/src/main/java/com/example/kpkn/screens/auge/AugeViewModel.kt
-- android-native/app/src/main/java/com/example/kpkn/screens/home/HomeViewModel.kt
-- android-native/app/src/main/java/com/example/kpkn/screens/nutrition/BodyProgressViewModel.kt
-- android-native/app/src/main/java/com/example/kpkn/screens/nutrition/NutritionCalibrationViewModel.kt
-- android-native/app/src/main/java/com/example/kpkn/screens/nutrition/NutritionViewModel.kt
-- android-native/app/src/main/java/com/example/kpkn/screens/nutrition/NutritionWizardViewModel.kt
-- android-native/app/src/main/java/com/example/kpkn/screens/programdetail/ProgramDetailViewModel.kt
-- android-native/app/src/main/java/com/example/kpkn/screens/programs/ProgramsViewModel.kt
-- android-native/app/src/main/java/com/example/kpkn/screens/sessioneditor/SessionEditorViewModel.kt
-- android-native/app/src/main/java/com/example/kpkn/screens/settings/SettingsViewModel.kt
-- android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutViewModel.kt
+- `screens/albums/WorkoutAlbumsViewModel.kt`
+- `screens/competitions/wizard/CompetitionWizardViewModel.kt`
+- `screens/home/HomeViewModel.kt`
+- `screens/nutrition/BodyProgressViewModel.kt`
+- `screens/nutrition/components/FoodLoggerViewModel.kt`
+- `screens/nutrition/MealHistoryViewModel.kt`
+- `screens/nutrition/NutritionCalibrationViewModel.kt`
+- `screens/nutrition/NutritionPlanEditorViewModel.kt`
+- `screens/nutrition/NutritionViewModel.kt`
+- `screens/onboarding/SetupWizardViewModel.kt`
+- `screens/programdetail/ProgramDetailViewModel.kt`
+- `screens/programs/import/ImportProgramViewModel.kt`
+- `screens/programs/ProgramEditorViewModel.kt`
+- `screens/programs/ProgramsViewModel.kt`
+- `screens/sessioneditor/design/CustomExerciseEditorViewModel.kt`
+- `screens/sessioneditor/SessionEditorViewModel.kt`
+- `screens/settings/SettingsViewModel.kt`
+- `screens/technique/analysis/TechniqueAnalysisViewModel.kt`
+- `screens/technique/compare/TechniqueCompareViewModel.kt`
+- `screens/technique/hub/TechniqueHubViewModel.kt`
+- `screens/technique/importer/VideoImportViewModel.kt`
+- `screens/technique/trends/TechniqueTrendsViewModel.kt`
+- `screens/workout/WorkoutViewModel.kt`
 
 ### Repositories
-- android-native/app/src/main/java/com/example/kpkn/data/repository/AugeRepository.kt
-- android-native/app/src/main/java/com/example/kpkn/data/repository/BodyProgressRepository.kt
-- android-native/app/src/main/java/com/example/kpkn/data/repository/CompetitionRepository.kt
-- android-native/app/src/main/java/com/example/kpkn/data/repository/CustomExerciseRepository.kt
-- android-native/app/src/main/java/com/example/kpkn/data/repository/NutritionCalibrationRepository.kt
-- android-native/app/src/main/java/com/example/kpkn/data/repository/NutritionRepository.kt
-- android-native/app/src/main/java/com/example/kpkn/data/repository/ProgramRepository.kt
-- android-native/app/src/main/java/com/example/kpkn/data/repository/SessionTemplateRepository.kt
-- android-native/app/src/main/java/com/example/kpkn/data/repository/WikiLabRepository.kt
+- `data/repository/BodyProgressRepository.kt`
+- `data/repository/CalibrationDecisionRepository.kt`
+- `data/repository/CompetitionRepository.kt`
+- `data/repository/CustomExerciseRepository.kt`
+- `data/repository/NutritionCalibrationRepository.kt`
+- `data/repository/NutritionRepository.kt`
+- `data/repository/ProgramRepository.kt`
+- `data/repository/SessionTemplateRepository.kt`
+- `data/repository/TrainingObservationRepository.kt`
+- `data/repository/VideoAnalysisRepository.kt`
+- `data/repository/WikiLabRepository.kt`
+- `data/repository/WorkoutMediaRepository.kt`
 
-### AUGE files
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeAdaptiveEngine.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeClassifiers.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeFatigueEngine.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeMuscleCapacityEngine.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeMuscleNormalization.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeRecoveryEngine.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeTtcEngine.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/AugeUtils.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/CardioRingDrainEngine.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/DiscomfortAggregationEngine.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/DiscomfortSuggestionEngine.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/ExerciseFatigueIndex.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/ExerciseReadinessEngine.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/InterferenceEngine.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/MuscularSessionImpactEngine.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/NutritionRecoveryEngine.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/OvertrainingDetector.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/SessionIntensityEngine.kt
-- android-native/app/src/main/java/com/example/kpkn/domain/auge/SessionMuscleFilter.kt
+### Recorded training engines
+- `domain/training/insights/TrainingHistoryProjection.kt`
+- `domain/training/insights/TrainingInsightsEngine.kt`
+
+### Compatibility and verification
+- `data/compatibility/LegacyTrainingImport.kt` and `LegacyTrainingBackup.kt`: isolated original-data recovery; never reactivate retired engines.
+- `scripts/verify_post_rings_retirement.py`: active-product boundary with exact compatibility exceptions.
+- `docs/post-rings/README.md` and `docs/research/training-evidence/VERIFICACION_LOCAL_20261024.md`: current implementation and evidence limits.
 <!-- KAUPOLIKAN_DYNAMIC_MAP_END -->

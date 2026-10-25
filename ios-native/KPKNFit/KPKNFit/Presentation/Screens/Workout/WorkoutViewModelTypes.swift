@@ -25,6 +25,8 @@ struct PendingRestSuggestion {
 }
 
 struct WorkoutUiState {
+    var recordedSportId: String? = nil
+    var preSessionNotes: String? = nil
     var session: Session? = nil
     var activeMode: WeekVariant = .A
     var programId: String = ""
@@ -44,11 +46,6 @@ struct WorkoutUiState {
     var pendingPostExerciseIdx: Int = -1
     var setAdvancedFeedback: [String: SetAdvancedFeedback] = [:]
     var postExerciseFeedbackByExerciseId: [String: PostExerciseFeedback] = [:]
-    var sessionStressScore: Double = 0.0
-    var readinessMuscularOverride: Int? = nil
-    var readinessNeuralOverride: Int? = nil
-    var readinessSpinalOverride: Int? = nil
-    var readinessMuscleOverrides: [String: Int] = [:]
     var skippedExerciseIds: Set<String> = []
     var warmupCompletedExerciseIds: Set<String> = []
     var mobilityCompletedExerciseIds: Set<String> = []
@@ -88,16 +85,10 @@ struct WorkoutUiState {
     var voiceFinalNotes: String? = nil
     var voiceFinalDiscomforts: [String] = []
     var voiceFinalAdditionalDiscomfortNote: String? = nil
-    var voiceFinalNeural: Int? = nil
-    var voiceFinalSpinal: Int? = nil
     var voiceFinalConfirmTriggered: Bool = false
     var continuityTransitionTarget: WorkoutContinuityTransitionTarget? = nil
     var continuityFeedbackExerciseId: String? = nil
-    var mesocycleStressEMA: MesocycleStressEMA? = nil
     var sleepQuality: Int? = nil
-    var exerciseReadinessMap: [String: ExerciseReadiness] = [:]
-    var patternReadiness: [MovementPatternReadiness] = []
-    var readinessAdjustments: [String: SetAdjustmentSuggestion] = [:]
     var liveEnergySummary: SessionEnergySummary = SessionEnergySummary()
     var persistedLoadModeBySet: [String: LoadModeV2] = [:]
     var persistedLoadModeByExercise: [String: LoadModeV2] = [:]

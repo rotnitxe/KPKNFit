@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 1.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los pies elevados alejan el piso donde podrían descansar los discos y dejan más espacio para descender respecto del apoyo de los pies. La altura elegida tiene sentido solo si la cadera dispone de ese tramo adicional con la espalda neutra.",
-              "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
                 "Desliza la barra cerca de las piernas al enviar la pelvis atrás.",
                 "Aprovecha el espacio adicional solo si puedes continuar el giro de cadera sin redondear la columna.",
                 "Regresa arriba desde la cadera, conservando los discos en el aire."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -168,14 +164,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 1.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 1.0,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Peso Muerto Rumano en Déficit",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -190,7 +178,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -220,14 +207,12 @@
                 "Empieza erguido con agarre prono y una ligera flexión de rodillas."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 1.0,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
                 "forearm"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

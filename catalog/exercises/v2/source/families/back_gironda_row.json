@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Una barra larga, agarrada con las palmas hacia abajo y bastante más abierta que los hombros, termina a la altura del esternón, con los codos separados del tronco. Ese ancho hace trabajar más las tres porciones del trapecio y el deltoides que un agarre estrecho.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Acerca la barra al esternón con los codos lejos de los costados.",
                 "Junta las escápulas al final con el tronco quieto.",
                 "Estira los brazos de vuelta sin que el tronco se vaya hacia delante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -171,14 +167,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Gironda",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -194,7 +182,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -226,13 +213,11 @@
                 "Agarra la barra larga con las palmas hacia abajo, bastante más abierta que los hombros."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "wide"
@@ -252,19 +237,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "Con una barra corta o dos asas al ancho de los hombros, los codos retroceden en diagonal y el agarre toca el tronco a la altura de las costillas bajas. El dorsal ancho lleva el tirón, con el trapecio y los romboides cerrando las escápulas al final.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Tira de la barra hacia las costillas bajas llevando los codos atrás.",
                 "Junta las escápulas al final con el tronco quieto.",
                 "Estira los brazos de vuelta sin que el tronco se vaya hacia delante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -402,14 +383,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Gironda",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -425,7 +398,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -457,13 +429,11 @@
                 "Toma la barra corta con las manos alineadas con tus hombros y endereza el tronco."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "medium"
@@ -483,19 +453,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.0,
               "description": "El triángulo une las manos, palmas frente a frente, y los codos se deslizan junto a los costados hasta que el agarre toca el ombligo. Con las manos juntas el dorsal ancho trabaja más que con un agarre abierto, y se mueve más carga.",
-              "efc": 2.5,
               "equipmentId": "cable",
               "executionCues": [
                 "Tira hasta que el triángulo toque el ombligo, con los codos pegados a los costados.",
                 "Junta las escápulas al final con el tronco quieto.",
                 "Estira los brazos de vuelta sin que el tronco se vaya hacia delante."
               ],
-              "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -633,14 +599,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.0,
-                  "efc": 2.5,
-                  "ssc": 0.4,
-                  "technicalDifficulty": 4.0,
-                  "ttc": 1.8
-                },
                 "identity": {
                   "canonicalName": "Remo Gironda",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -656,7 +614,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -688,13 +645,11 @@
                 "Agarra el triángulo con las palmas enfrentadas y siéntate erguido."
               ],
               "setupTimeSeconds": 35,
-              "ssc": 0.4,
               "stabilizerMuscles": [
                 "erector_spinae",
                 "forearm"
               ],
-              "technicalDifficulty": 4.0,
-              "ttc": 1.8
+              "technicalDifficulty": 4.0
             },
             "selectedOptions": {
               "grip_width": "close"

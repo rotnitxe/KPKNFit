@@ -28,11 +28,11 @@ class SmartExerciseCreatorRegressionTest {
             bodyPart = "upper",
             chain = "anterior",
             tier = "T3",
-            efc = 2.5,
-            cnc = 2.2,
-            ssc = 0.6,
-            ttc = 1.8,
-            axialLoadFactor = 0.0,
+            
+            
+            
+            
+            
             averageRestSeconds = 90,
             involvedMuscles = listOf(
                 InvolvedMuscle("Pectorales", MuscleRole.PRIMARY, null, "medio"),
@@ -156,11 +156,11 @@ class SmartExerciseCreatorRegressionTest {
             type = "Aislamiento",
             bodyPart = "upper",
             chain = "anterior",
-            efc = 1.5,
-            cnc = 1.0,
-            ssc = 0.2,
-            ttc = 1.0,
-            axialLoadFactor = 0.0,
+            
+            
+            
+            
+            
             averageRestSeconds = 60,
             catalogVariantChips = listOf("Mancuerna", "Sentado", "Unilateral"),
             involvedMuscles = listOf(InvolvedMuscle("Deltoides", MuscleRole.PRIMARY, 1.0, "lateral")),
@@ -189,9 +189,9 @@ class SmartExerciseCreatorRegressionTest {
                 equipment = "Barra",
                 force = "Empuje Horizontal",
                 movementPattern = "horizontal_push",
-                efc = 3.2,
-                cnc = 3.5,
-                ssc = 0.8,
+                
+                
+                
                 involvedMuscles = listOf(
                     InvolvedMuscle("Pectorales", MuscleRole.PRIMARY, 1.0),
                     InvolvedMuscle("Tríceps", MuscleRole.SECONDARY, 0.5),

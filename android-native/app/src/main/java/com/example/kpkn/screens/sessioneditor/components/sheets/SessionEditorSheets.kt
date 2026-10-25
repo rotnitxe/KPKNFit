@@ -208,7 +208,6 @@ import com.example.kpkn.domain.templates.SessionTemplateCatalogPolicy
 import com.example.kpkn.domain.templates.SplitTemplateDayGroup
 import com.example.kpkn.domain.templates.FocusTemplateGroup
 import androidx.compose.animation.animateContentSize
-import com.example.kpkn.domain.auge.AugeFatigueEngine
 import com.example.kpkn.domain.calculations.calculateEstimatedMetric
 import com.example.kpkn.domain.calculations.calculateGeneralizedCapacity
 import com.example.kpkn.domain.exercises.*
@@ -228,7 +227,6 @@ import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.components.SwipeToDeleteCard
-import com.example.kpkn.screens.wikilab.components.ExerciseFatigueScenarios
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -314,10 +312,6 @@ import com.example.kpkn.screens.sessioneditor.SessionCloneSourceOption
 import com.example.kpkn.screens.sessioneditor.SessionRoadmapOption
 import com.example.kpkn.screens.sessioneditor.ProgramExerciseCandidate
 import com.example.kpkn.screens.sessioneditor.SessionExerciseEditorBlock
-import com.example.kpkn.screens.sessioneditor.SessionEditorAugeAlert
-import com.example.kpkn.screens.sessioneditor.SessionEditorAugeStatus
-import com.example.kpkn.screens.sessioneditor.SessionEditorAugeCorrectionType
-import com.example.kpkn.screens.sessioneditor.SessionEditorAugeSummary
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionWizard
 import com.example.kpkn.screens.sessioneditor.CatalogSelectionDraftBridge
 import com.example.kpkn.screens.sessioneditor.components.TemplateCatalogBrowser
@@ -441,7 +435,7 @@ internal fun SessionEditorSheets(
 
     // AUGE is rendered as an in-composition DarkMica overlay in SessionEditorScreen
     // (sibling of hazeSource). Do NOT put it in KpknSheet — blur would die.
-    if (uiState.sheet == SessionEditorSheet.AUGE) return
+    if (uiState.sheet == SessionEditorSheet.ASSISTANT) return
     // Placement dialog is rendered in SessionEditorScreen (KpknAlertDialog).
     if (uiState.sheet == SessionEditorSheet.CARDIO_PLACEMENT) return
 
@@ -623,7 +617,7 @@ internal fun SessionEditorSheets(
                 onDiscardSwitch = onDiscardSwitch,
                 isSimpleProgram = uiState.isSimpleProgram,
             )
-            SessionEditorSheet.AUGE -> Unit // handled as glass overlay in SessionEditorScreen
+            SessionEditorSheet.ASSISTANT -> Unit // handled as glass overlay in SessionEditorScreen
             SessionEditorSheet.WARMUP -> WarmupSheet(exercise = warmupExercise, onSave = onWarmupSave)
             SessionEditorSheet.MOBILITY_PICKER -> MobilityPickerSheet(
                 selectedMobilityIds = mobilityTargetSeries.map { it.catalogIdentityKey() }.toSet(),

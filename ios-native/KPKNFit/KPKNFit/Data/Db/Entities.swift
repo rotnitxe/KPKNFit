@@ -17,7 +17,32 @@ private let dbJsonDecoder: JSONDecoder = {
 }()
 
 private func encodeModel<T: Encodable>(_ value: T) -> String {
-    (try? dbJson.encode(value)) ?? "{}"
+    do {
+        let bytes = try dbJson.encode(value)
+        var decoded = try JSONSerialization.jsonObject(with:bytes,options:[.fragmentsAllowed])
+        if value is WorkoutLog, var log = decoded as? [String:Any] {
+            for key in ["sessionStressScore","muscularImpactV2","ringStartSnapshot","postSessionPreview"] { log.removeValue(forKey:key) }
+            if let energy=log["energySummary"] as? [String:Any], isRetiredTrainingEnergyMethod(energy["methodVersion"] as? String) { log.removeValue(forKey:"energySummary") }
+            if let exercises=log["completedExercises"] as? [[String:Any]] {
+                log["completedExercises"] = try exercises.map { exercise -> [String:Any] in
+                    var item=try LegacyExerciseCoefficientImport.completedExercise(exercise)
+                    item.removeValue(forKey:"totalSpinalScore")
+                    if let sets=item["sets"] as? [[String:Any]] { item["sets"]=sets.map { $0.filter { !["spinalScore","batteryDrain","cnsDrain","muscularDrain","spinalDrain","readinessScore"].contains($0.key) } } }
+                    return item
+                }
+            }
+            decoded=log
+        } else if value is Program, let program = decoded as? [String:Any] {
+            decoded = LegacyProgramProposalImport.program(program)
+        } else if value is ExerciseMuscleInfo, let exercise=decoded as? [String:Any] {
+            decoded=try LegacyExerciseCoefficientImport.customExercise(exercise)
+        } else if value is OngoingWorkoutState, let ongoing=decoded as? [String:Any] {
+            decoded=ongoing.filter { !["readinessNeuralOverride","readinessMuscularOverride","readinessSpinalOverride","readinessMuscleOverrides","lastDrainOverlay","sessionStressScore","postSessionPreview","exerciseReadinessMap","patternReadiness","currentAutoRegulation"].contains($0.key) }
+        }
+        let sanitized=try JSONSerialization.data(withJSONObject:decoded,options:[.sortedKeys,.fragmentsAllowed])
+        guard let text=String(data:sanitized,encoding:.utf8) else { preconditionFailure("No se puede codificar el registro; los datos guardados se conservan") }
+        return text
+    } catch { preconditionFailure("No se puede codificar el registro; los datos guardados se conservan: \(error)") }
 }
 
 private func decodeModel<T: Decodable>(_ type: T.Type, from data: String) -> T? {
@@ -148,15 +173,9 @@ internal struct PostSessionFeedbackEntity: Codable {
     let data: String
 }
 
-internal struct PendingQuestionnaireEntity: Codable {
-    let rowId: Int
-    let data: String?
-}
 
-internal struct AugeAdaptiveCacheEntity: Codable {
-    let rowId: Int
-    let data: String?
-}
+
+
 
 internal struct NutritionLogEntity: Codable {
     let id: String
@@ -284,7 +303,7 @@ extension WorkoutLog {
 
 extension WorkoutLogEntity {
     func toWorkoutLog() -> WorkoutLog {
-        decodeModel(WorkoutLog.self, from: data)!
+        decodeModel(WorkoutLog.self, from: data)!.copy(discardRetiredEnergy: true)
     }
 }
 
@@ -467,31 +486,15 @@ extension PostSessionFeedbackEntity {
 
 // MARK: - PendingQuestionnaire Conversions
 
-extension PendingQuestionnaire {
-    func toEntity() -> PendingQuestionnaireEntity {
-        PendingQuestionnaireEntity(rowId: 1, data: encodeModel(self))
-    }
-}
 
-extension PendingQuestionnaireEntity {
-    func toPendingQuestionnaire() -> PendingQuestionnaire {
-        decodeModel(PendingQuestionnaire.self, from: data ?? "{}")!
-    }
-}
+
+
 
 // MARK: - AugeAdaptiveCache Conversions
 
-extension AugeAdaptiveCache {
-    func toEntity() -> AugeAdaptiveCacheEntity {
-        AugeAdaptiveCacheEntity(rowId: 1, data: encodeModel(self))
-    }
-}
 
-extension AugeAdaptiveCacheEntity {
-    func toAdaptiveCache() -> AugeAdaptiveCache {
-        decodeModel(AugeAdaptiveCache.self, from: data ?? "{}")!
-    }
-}
+
+
 
 // MARK: - NutritionLog Conversions
 
@@ -681,5 +684,90 @@ private extension Array where Element: Hashable {
     func uniqued() -> [Element] {
         var seen: Set<Element> = []
         return filter { seen.insert($0).inserted }
+    }
+}
+
+
+/// Isolated compatibility paths; no global deletion of words in user content.
+internal enum LegacyExerciseCoefficientImport {
+    private static let fields: Set<String> = ["efc","cnc","ssc","ttc","axialLoadFactor","fatigueTier"]
+    private static func rich(_ object: [String:Any]) -> [String:Any] {
+        var result=object.filter { $0.key != "fatigue" }
+        if let programming=result["programming"] as? [String:Any] { result["programming"]=programming.filter { $0.key != "fatigueCost" } }
+        return result
+    }
+    private static func profile(_ object: [String:Any]) -> [String:Any] {
+        var result=object.filter { !fields.contains($0.key) }
+        if let metadata=result["richMetadata"] as? [String:Any] { result["richMetadata"]=rich(metadata) }
+        return result
+    }
+    private static func encode(_ object: [String:Any]) throws -> String {
+        let data=try JSONSerialization.data(withJSONObject:object,options:[.sortedKeys])
+        guard let text=String(data:data,encoding:.utf8) else { throw NSError(domain:"TrainingCatalogPreservation",code:1) }
+        return text
+    }
+    private static func decode(_ raw: String) throws -> [String:Any] {
+        guard let object=try JSONSerialization.jsonObject(with:Data(raw.utf8)) as? [String:Any] else { throw NSError(domain:"TrainingCatalogPreservation",code:2) }
+        return object
+    }
+    static func customExercise(_ object: [String:Any]) throws -> [String:Any] {
+        var result=object.filter { !fields.contains($0.key) }
+        if let raw=result["catalogRichMetadataJson"] as? String { result["catalogRichMetadataJson"]=try encode(rich(decode(raw))) }
+        return result
+    }
+    static func completedExercise(_ object: [String:Any]) throws -> [String:Any] {
+        var result=object
+        if let raw=result["resolvedProfileSnapshotJson"] as? String {
+            var snapshot=try decode(raw)
+            if let resolved=snapshot["resolvedProfile"] as? [String:Any] { snapshot["resolvedProfile"]=profile(resolved) }
+            result["resolvedProfileSnapshotJson"]=try encode(snapshot)
+        }
+        return result
+    }
+    static func record(_ raw: String, custom: Bool) throws -> String {
+        var result=try decode(raw)
+        if custom { result=try customExercise(result) }
+        else if let exercises=result["completedExercises"] as? [[String:Any]] { result["completedExercises"]=try exercises.map(completedExercise) }
+        return try encode(result)
+    }
+}
+
+/// Compatibility boundary for retired pending model actions, without changing authored sessions.
+internal enum LegacyProgramProposalImport {
+    static func program(_ source: [String: Any]) -> [String: Any] {
+        let retained: Set<String> = ["ADJUST_TM", "ADJUST_XRM"]
+        func run(_ value: [String: Any]) -> [String: Any] {
+            var result = value
+            if var action = value["pendingAction"] as? [String: Any] {
+                if action["type"] as? String == "CONFIRM_DELOAD" { result["pendingAction"] = NSNull() }
+                else if action["type"] as? String == "CONFIRM_AUTOREGULATION" {
+                    let proposals = (action["proposals"] as? [[String: Any]] ?? []).filter { retained.contains($0["kind"] as? String ?? "") }
+                    if proposals.isEmpty { result["pendingAction"] = NSNull() }
+                    else {
+                        action["proposals"] = proposals
+                        action["message"] = "Revisa las propuestas del protocolo; se aplican solo con tu confirmación."
+                        result["pendingAction"] = action
+                    }
+                }
+            }
+            if let entries = value["autoregulationAudit"] as? [[String: Any]] {
+                result["autoregulationAudit"] = entries.compactMap { entry -> [String: Any]? in
+                    let kinds = (entry["kinds"] as? [String] ?? []).filter { retained.contains($0) }
+                    guard !kinds.isEmpty else { return nil }
+                    var row = entry; row["kinds"] = kinds; return row
+                }
+            }
+            return result
+        }
+        var result = source
+        if let state = source["runState"] as? [String: Any] { result["runState"] = run(state) }
+        if let breaks = source["calendarBreaks"] as? [[String: Any]] {
+            result["calendarBreaks"] = breaks.map { item -> [String: Any] in
+                var row = item
+                if let state = item["pausedRunState"] as? [String: Any] { row["pausedRunState"] = run(state) }
+                return row
+            }
+        }
+        return result
     }
 }

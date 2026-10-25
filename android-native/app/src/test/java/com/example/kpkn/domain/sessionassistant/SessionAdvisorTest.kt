@@ -2,7 +2,6 @@ package com.example.kpkn.domain.sessionassistant
 
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
-import com.example.kpkn.data.models.PredictedDrain
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.Session
@@ -12,8 +11,6 @@ import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.TrainingPhase
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.protocols.SlotRole
-import com.example.kpkn.domain.auge.AugeFatigueEngine
-import com.example.kpkn.domain.auge.InterferenceEngine
 import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.testsupport.MotCatalog
 import com.example.kpkn.testsupport.MotRecipeLine
@@ -39,7 +36,7 @@ class SessionAdvisorTest {
         week: List<Session> = emptyList(),
         logs: List<WorkoutLog> = emptyList(),
         program: Program? = Program(id = "p1", name = "P"),
-        customDrain: PredictedDrain? = null,
+
         limits: SessionEditorRuleLimits = SessionEditorRuleLimits(),
         settings: Settings = Settings(),
     ) = SessionAssistantInput(
@@ -54,7 +51,7 @@ class SessionAdvisorTest {
         mesoIndex = 0,
         programId = "p1",
         targetDurationMinutes = session.targetDurationMinutes,
-        customDrain = customDrain,
+
         supersetGroups = session.allSupersetGroups(),
         sessionWarmup = session.warmup,
         session = session,
@@ -214,58 +211,10 @@ class SessionAdvisorTest {
     // ─── Tono, techo y duplicados ────────────────────────────────────────────
 
     @Test
-    fun highCostWithoutHistory_isAnInformativeNote_withNoCutsAndNoAlarm() {
-        val session = MotSessions.session("s10", "Cadena anterior", MotSessions.S10, dayOfWeek = 3)
-        val report = SessionAssistantEngine.evaluate(input(session, customDrain = PredictedDrain(cns = 54, muscular = 62, spinal = 0)))
-        assertTrue("sin historial comparable no se propone recortar: ${report.ajustes.map { it.id }}", report.ajustes.isEmpty())
-        val text = everything(report)
-        assertTrue(text, text.contains("coste estimado"))
-        assertTrue(text, text.contains("sesiones comparables"))
-        // «Columna» es el nombre del anillo y puede aparecer; lo que no se admite es hablar de la espalda de la persona.
-        listOf("demasiado", "fatigante", "recuperación", "lesión", "lesion", "proteg", "peligro", "debes", "no añadir", "tu columna", "la columna").forEach {
-            assertFalse("no debe decir «$it»: $text", text.contains(it))
-        }
-    }
-
-    @Test
     fun costBelowTheSignal_saysNothing() {
         val session = MotSessions.session("s10", "Cadena anterior", MotSessions.S10, dayOfWeek = 3)
-        val report = SessionAssistantEngine.evaluate(input(session, customDrain = PredictedDrain(59, 59, 59)))
+        val report = SessionAssistantEngine.evaluate(input(session, ))
         assertTrue(report.ajustes.isEmpty() && report.notas.isEmpty())
-    }
-
-    @Test
-    fun withComparableHistory_aHeavierPlanOffersVerifiedOptionalCuts() {
-        val base = MotSessions.session("s10", "Cadena anterior", MotSessions.S10, dayOfWeek = 3)
-        // Una versión pesada de la receta: el doble de series a RPE 9.
-        val heavy = base.copy(
-            exercises = base.exercises.map { ex ->
-                ex.copy(sets = ex.sets + ex.sets.map { it.copy(id = it.id + "-b") }.map { it.copy(targetRPE = 9.0) })
-            },
-        )
-        val projection = AugeFatigueEngine.projectPlannedSession(heavy, index, Settings())
-        org.junit.Assume.assumeTrue("la sesión de prueba debe superar la señal de coste: pico=${projection.peak}", projection.peak >= SessionAdvisor.COST_SIGNAL)
-        val logs = (1..6).map { i ->
-            WorkoutLog(id = "l$i", programId = "p1", sessionId = "s10", sessionName = "Cadena anterior",
-                date = Instant.ofEpochMilli(now - i * 7L * 24 * 3600_000).toString(), durationMinutes = 50, sessionStressScore = 15.0)
-        }
-        val report = SessionAssistantEngine.evaluate(input(heavy, logs = logs))
-        val card = report.ajustes.firstOrNull { it.id == "dose_deviation" }
-        assertNotNull("se esperaba la tarjeta de desviación: ${report.ajustes.map { it.id }} ${report.notas}", card)
-        assertTrue(card!!.details.isNotEmpty())
-        card.details.forEach { d ->
-            assertFalse("las opciones de coste no vienen marcadas", d.defaultAccepted)
-            assertTrue("cada opción baja de verdad el pico estimado: ${d.effect}", (d.effect?.deltaPeakCost ?: 0.0) < 0.0)
-            assertTrue(d.label, d.label.contains("el pico estimado baja de"))
-        }
-        // Con menos de seis sesiones comparables, solo informa.
-        val few = SessionAssistantEngine.evaluate(input(heavy, logs = logs.take(5)))
-        assertTrue(few.ajustes.none { it.id == "dose_deviation" })
-        // En una fase de realización un coste alto puede ser deliberado: tampoco recorta.
-        val realization = SessionAssistantEngine.evaluate(
-            input(heavy, logs = logs, program = Program(id = "p1", name = "P", trainingPhase = TrainingPhase.REALIZATION)),
-        )
-        assertTrue(realization.ajustes.none { it.id == "dose_deviation" })
     }
 
     @Test
@@ -299,24 +248,6 @@ class SessionAdvisorTest {
     // ─── Cruces entre sesiones: previsto no es hecho ─────────────────────────
 
     @Test
-    fun plannedOverlap_isDescribedAsPlanned_andBelow25IsOnlyANote() {
-        val s1 = MotSessions.session("s1", "SBD Sentadilla", MotSessions.S1, dayOfWeek = 1)
-        val s2 = MotSessions.session("s2", "SBD Peso muerto", MotSessions.S2, dayOfWeek = 2)
-        val hits = InterferenceEngine.analyzeUpcomingSession(s2, listOf(s1, s2), emptyList(), index, Settings(), nowMs = now)
-        val percent = hits.first().interferencePercent
-        val report = SessionAssistantEngine.evaluate(input(s2, week = listOf(s1), customDrain = PredictedDrain(30, 30, 20)))
-        val text = everything(report)
-        assertFalse(text, text.contains("entrenaste") || text.contains("hiciste"))
-        assertTrue("debe hablar de la sesión prevista: $text", text.contains("prevista"))
-        if (percent < 25) {
-            assertTrue("un cruce de $percent % no es una tarjeta: ${report.ajustes.map { it.id }}", report.ajustes.none { it.id.startsWith("overlap-") })
-            assertTrue(report.notas.any { it.contains("Puedes mantener el plan") })
-        } else {
-            assertTrue(report.ajustes.any { it.id.startsWith("overlap-") })
-        }
-    }
-
-    @Test
     fun realizedOverlap_isTheOnlyOneToSayItWasDone() {
         val s2 = MotSessions.session("s2", "SBD Peso muerto", MotSessions.S2, dayOfWeek = 2)
         val doneLog = WorkoutLog(
@@ -331,10 +262,9 @@ class SessionAdvisorTest {
                 )
             },
         )
-        val report = SessionAssistantEngine.evaluate(input(s2, logs = listOf(doneLog), customDrain = PredictedDrain(30, 30, 20)))
+        val report = SessionAssistantEngine.evaluate(input(s2, logs = listOf(doneLog), ))
         val text = everything(report)
-        assertTrue("lo realizado sí se cuenta como hecho: $text", text.contains("hiciste"))
-        assertTrue(text, text.contains("pierna de ayer"))
+        assertTrue("Las series registradas no producen un ajuste ni un aviso fisiológico: $text", text.isEmpty())
     }
 
     // ─── Efecto de aplicar las acciones ──────────────────────────────────────
@@ -376,7 +306,7 @@ class SessionAdvisorTest {
         val current = MotSessions.session("cur", "Cadena anterior", MotSessions.S10, dayOfWeek = 2, targetDurationMinutes = 10)
         val monday = MotSessions.session("mon", "Lunes", MotSessions.S10, dayOfWeek = 1)
         val sunday = MotSessions.session("sun", "Domingo", MotSessions.S10, dayOfWeek = 7)
-        val all = SessionAssistantEngine.evaluate(input(current, week = listOf(monday, sunday), customDrain = PredictedDrain(70, 70, 65)))
+        val all = SessionAssistantEngine.evaluate(input(current, week = listOf(monday, sunday), ))
         println("MOT-S medición todas las familias · tarjetas=${all.ajustes.map { it.id }} notas=${all.notas.size}")
     }
 
@@ -385,7 +315,7 @@ class SessionAdvisorTest {
         val current = MotSessions.session("cur", "Cadena anterior", MotSessions.S10, dayOfWeek = 2, targetDurationMinutes = 10)
         val monday = MotSessions.session("mon", "Lunes", MotSessions.S10, dayOfWeek = 1)
         val sunday = MotSessions.session("sun", "Domingo", MotSessions.S10, dayOfWeek = 7)
-        val report = SessionAssistantEngine.evaluate(input(current, week = listOf(monday, sunday), customDrain = PredictedDrain(70, 70, 65)))
+        val report = SessionAssistantEngine.evaluate(input(current, week = listOf(monday, sunday), ))
         assertTrue("${report.ajustes.map { it.id }} + ${report.notas}", report.ajustes.size + report.notas.size <= SessionAdvisor.MAX_NOTICES)
         assertTrue(report.ajustes.all { it.details.isNotEmpty() && it.details.size <= 3 })
     }

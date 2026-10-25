@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Dos mancuernas cuelgan a los lados del cuerpo mientras el pie elevado queda adelantado sobre el cajón. Los brazos no añaden impulso y la pesa del lado del apoyo debe pasar libre por fuera del borde durante la subida.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Extiende la cadera y la rodilla apoyadas sin balancear el torso para arrancar.",
                 "Levanta el pie libre sin empujar desde el suelo y llega erguido sobre el cajón.",
                 "Recibe la bajada con la pierna elevada hasta que el pie libre toque el suelo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -210,14 +206,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Step-Up de Glúteo",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -232,7 +220,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -265,7 +252,6 @@
                 "Acerca el torso al muslo desde la cadera y deja la tibia elevada casi vertical."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "erector_spinae",
@@ -273,8 +259,7 @@
                 "forearm",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }
@@ -314,12 +299,9 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Dos mancuernas cuelgan junto a los muslos, sostenidas por brazos extendidos. El paso cruzado deja las cargas fuera de las rodillas y añade trabajo de agarre mientras el tronco resiste el giro hacia la pierna que retrocede.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Da un paso diagonal atrás, cruzando por detrás de la pierna de apoyo.",
@@ -327,7 +309,6 @@
                 "Empuja el suelo con la pierna delantera y devuelve el pie posterior a su posición inicial.",
                 "Orienta la rodilla delantera hacia los dedos de ese pie."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -489,14 +470,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 4.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Zancada Cruzada",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -511,7 +484,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -543,7 +515,6 @@
                 "Coloca los pies separados antes de iniciar el cruce."
               ],
               "setupTimeSeconds": 30,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_medius",
                 "core",
@@ -551,8 +522,7 @@
                 "forearm",
                 "deltoid"
               ],
-              "technicalDifficulty": 4.2,
-              "ttc": 2.0
+              "technicalDifficulty": 4.2
             },
             "selectedOptions": {}
           }

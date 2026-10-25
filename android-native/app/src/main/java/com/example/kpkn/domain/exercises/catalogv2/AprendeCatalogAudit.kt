@@ -173,7 +173,6 @@ private data class ConfigurationAuditContext(
         val biomechanics = rich.biomechanics
         val replacement = rich.replacement
         val display = rich.display
-        val fatigue = rich.fatigue
         return identity.catalogRevision != catalogRevision ||
             identity.familyId != family.id ||
             identity.definitionId != definition.id ||
@@ -201,13 +200,7 @@ private data class ConfigurationAuditContext(
             replacement.replacementPriority != profile.replacementPriority ||
             display.displayName != definition.canonicalName ||
             display.displaySummary != configuration.displaySummary ||
-            display.selectedOptions != configuration.selectedOptions ||
-            fatigue.efc != profile.efc ||
-            fatigue.cnc != profile.cnc ||
-            fatigue.ssc != profile.ssc ||
-            fatigue.ttc != profile.ttc ||
-            fatigue.axialLoadFactor != profile.axialLoadFactor ||
-            fatigue.technicalDifficulty != profile.technicalDifficulty
+            display.selectedOptions != configuration.selectedOptions
     }
 }
 

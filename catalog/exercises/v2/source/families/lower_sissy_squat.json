@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.2,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Los rodillos de la plataforma sujetan los pies por los tobillos y los talones, que quedan elevados, y el cuerpo puede inclinarse hacia atrás sin agarrarse a nada. Con ese anclaje, la bajada llega más hondo y las manos quedan libres sobre el pecho.",
-              "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
                 "Con los talones elevados, deja que las rodillas viajen al frente mientras el cuerpo se inclina atrás en bloque.",
                 "Baja hasta que los muslos casi toquen las pantorrillas, sin doblar la cadera.",
                 "Estira las rodillas para volver arriba con el cuerpo recto."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -149,14 +145,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 5.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -172,7 +160,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -203,13 +190,11 @@
                 "Cruza los brazos sobre el pecho y estira el cuerpo de las rodillas a la cabeza."
               ],
               "setupTimeSeconds": 45,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "hip_flexors",
                 "core"
               ],
-              "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "technicalDifficulty": 5.2
             },
             "selectedOptions": {
               "implement": "machine"
@@ -229,19 +214,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.2,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "La barra descansa en lo alto de la espalda, como en una sentadilla trasera, y los rieles la llevan en vertical. El tronco baja casi recto bajo ella: los talones se elevan, las rodillas avanzan y la cadera apenas se dobla, sin echarse hacia atrás.",
-              "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
                 "Sube los talones y deja que las rodillas avancen mientras la barra baja por los rieles.",
                 "Dobla la cadera solo un poco y conserva el pecho bajo la barra, sin colgarte de ella.",
                 "Empuja con la parte delantera de los pies para estirar las rodillas y subir."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -358,14 +339,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 5.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -381,7 +354,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -412,13 +384,11 @@
                 "Gira la barra para soltarla de los ganchos y deja los pies justo debajo de ella."
               ],
               "setupTimeSeconds": 40,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "core",
                 "calves"
               ],
-              "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "technicalDifficulty": 5.2
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -438,19 +408,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.2,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Una mancuerna en vertical, apoyada en el esternón y sujeta con las dos palmas bajo la cabeza superior, suma peso al tronco que se inclina. Con las dos manos ocupadas no queda ninguna para agarrarse, y sostenerse sobre la punta de los pies depende solo de las piernas.",
-              "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
                 "Adelanta las rodillas y bájalas mientras inclinas el cuerpo atrás, recto de rodillas a hombros.",
                 "Baja sin que la cadera se doble ni los talones toquen el suelo.",
                 "Sube empujando con la punta de los pies y la mancuerna pegada al pecho."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -568,14 +534,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 5.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -591,7 +549,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -622,14 +579,12 @@
                 "Ponte de pie con los pies a la anchura de la cadera y eleva los talones."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "hip_flexors",
                 "core",
                 "calves"
               ],
-              "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "technicalDifficulty": 5.2
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -649,19 +604,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.2,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El disco se abraza plano contra el pecho, sujeto por el borde, y su peso descansa sobre el esternón en lugar de colgar de las manos. Al ser ancho y delgado queda pegado al tronco aunque este se incline hacia atrás, y los discos pequeños permiten subir la carga de poco en poco.",
-              "efc": 2.8,
               "equipmentId": "plate",
               "executionCues": [
                 "Inclina el cuerpo hacia atrás en bloque mientras llevas las rodillas más allá de las puntas de los pies.",
                 "Detén la bajada antes de que la cadera se doble o los talones bajen al suelo.",
                 "Estira las rodillas para subir con el disco quieto contra el pecho."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -779,14 +730,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.2,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 5.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -802,7 +745,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -833,14 +775,12 @@
                 "Separa los pies a la anchura de la cadera y ponte de puntillas."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "hip_flexors",
                 "core",
                 "calves"
               ],
-              "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "technicalDifficulty": 5.2
             },
             "selectedOptions": {
               "implement": "plate"
@@ -860,19 +800,15 @@
             "profile": {
               "articulationType": "AISLADO",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "Con los brazos cruzados sobre el pecho, o estirados al frente como contrapeso, los talones suben y las rodillas avanzan. Basta con inclinar el cuerpo hacia atrás en una sola línea para que el cuádriceps trabaje a fondo sin añadir carga.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Eleva los talones y lleva las rodillas hacia delante mientras inclinas el cuerpo hacia atrás en una sola línea.",
                 "Baja hasta donde controles el movimiento, sin doblar la cadera ni apoyar los talones.",
                 "Sube estirando las rodillas y con los talones en alto hasta el final de la serie."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -990,14 +926,6 @@
                   }
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 5.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Sentadilla Sissy",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -1013,7 +941,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -1040,14 +967,12 @@
                 "Si necesitas ayuda para el equilibrio, apoya la punta de los dedos en una pared o en el marco de una puerta."
               ],
               "setupTimeSeconds": 15,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "hip_flexors",
                 "core",
                 "calves"
               ],
-              "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "technicalDifficulty": 5.2
             },
             "selectedOptions": {
               "implement": "bodyweight"

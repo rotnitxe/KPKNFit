@@ -60,7 +60,7 @@ class TopSetProgressionTest {
 
     private val metadata get() = CatalogCompositionTestSupport.metadata
 
-    private val signals = WeeklyAutoregulationSignals(readinessScore = 80)
+    private val signals = WeeklyAutoregulationSignals()
 
     // ─── La regla de TopSetPr ──────────────────────────────────────────────────────
 
@@ -273,7 +273,7 @@ class TopSetProgressionTest {
         val proposals = ProgramAutoregulationEngine.evaluate(
             propose, weeks.first(), listOf(topSetLog(propose, "l1", 5, 5)), recipe, signals,
         )
-        val pending = ProgramAutoregulationEngine.apply(propose, weeks[1].id, proposals, recipe, setOf(weeks.first().id), metadata)
+        val pending = proposeAndExplicitlyConfirmLegacyAutoForTest(propose, weeks[1].id, proposals, recipe, setOf(weeks.first().id), metadata)
         assertFalse(pending.applied)
         assertEquals(PendingProgramActionType.CONFIRM_AUTOREGULATION, pending.program.runState?.pendingAction?.type)
         assertEquals(2, pending.program.runState?.pendingAction?.proposals?.size)
@@ -285,10 +285,10 @@ class TopSetProgressionTest {
         assertEquals("126 + 1,25 redondea al medio kilo", 127.5, accepted.powerliftingProfile!!.benchTM!!, 1e-9)
         assertEquals(200.0, accepted.powerliftingProfile!!.squat1RM!!, 1e-9)
 
-        // AUTO: aplica, audita y la semana siguiente (top set al 100 % del TM) toma el TM nuevo.
+        // AUTO heredado: solo tras confirmación explícita aplica, audita y la semana siguiente (top set al 100 % del TM) toma el TM nuevo.
         val auto = programOf(recipe, AutoregulationMode.AUTO)
         val autoWeeks = weeksOf(auto)
-        val applied = ProgramAutoregulationEngine.apply(auto, autoWeeks[1].id, proposals, recipe, setOf(autoWeeks.first().id), metadata)
+        val applied = proposeAndExplicitlyConfirmLegacyAutoForTest(auto, autoWeeks[1].id, proposals, recipe, setOf(autoWeeks.first().id), metadata)
         assertTrue(applied.applied)
         assertEquals(182.5, applied.program.powerliftingProfile!!.squatTM!!, 1e-9)
         val audit = applied.program.runState?.autoregulationAudit.orEmpty().filter { it.resolution != null }
@@ -319,10 +319,13 @@ class TopSetProgressionTest {
 
         assertTrue(result.advancedWeek)
         assertEquals(setOf("SQUAT", "BENCH"), result.autoregulationProposals.map { it.liftSlot }.toSet())
+        assertEquals(program.powerliftingProfile, result.program.powerliftingProfile)
+        assertEquals(PendingProgramActionType.CONFIRM_AUTOREGULATION, result.program.runState?.pendingAction?.type)
+        val confirmed = ProgramAutoregulationEngine.resolvePending(result.program, true, metadata)
         // AUTO: los kilos del top set se aplican al TM al avanzar de semana.
-        assertEquals(182.5, result.program.powerliftingProfile!!.squatTM!!, 1e-9)
-        assertEquals(127.5, result.program.powerliftingProfile!!.benchTM!!, 1e-9)
-        val nextTopSet = weeksOf(result.program)[1].sessions.first().allExercises().first().sets.first().weight!!
+        assertEquals(182.5, confirmed.powerliftingProfile!!.squatTM!!, 1e-9)
+        assertEquals(127.5, confirmed.powerliftingProfile!!.benchTM!!, 1e-9)
+        val nextTopSet = weeksOf(confirmed)[1].sessions.first().allExercises().first().sets.first().weight!!
         assertEquals("el top set de la semana siguiente toma el TM nuevo", 182.5, nextTopSet, 1e-6)
     }
 
@@ -467,7 +470,7 @@ class TopSetProgressionTest {
         val proposals = ProgramAutoregulationEngine.evaluate(
             auto, weeksOf(auto).first(), listOf(repMaxLog(auto, 210.0, 2)), recipe, signals,
         )
-        val applied = ProgramAutoregulationEngine.apply(auto, null, proposals, recipe, emptySet(), metadata)
+        val applied = proposeAndExplicitlyConfirmLegacyAutoForTest(auto, null, proposals, recipe, emptySet(), metadata)
         assertTrue(applied.applied)
         assertEquals("180 × 1,025", 184.5, applied.program.powerliftingProfile!!.squatTM!!, 1e-9)
         assertEquals("los demás TM no se tocan", 126.0, applied.program.powerliftingProfile!!.benchTM!!, 1e-9)

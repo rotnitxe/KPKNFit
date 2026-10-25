@@ -103,7 +103,6 @@ class SetupWizardActivationGateTest {
         override fun activeNutritionPlanId(): String? = null
         override fun activeNutritionPlan(): com.example.kpkn.data.models.NutritionPlan? = null
         override fun nutritionPlan(id: String): com.example.kpkn.data.models.NutritionPlan? = null
-        override fun hasInitialRecoveryEvidence(): Boolean = false
         override suspend fun refreshBodyProgress() = Unit
     }
 
@@ -215,16 +214,7 @@ class SetupWizardActivationGateTest {
             )
         }
         confirm(vm, SetupStepId.WEEK_LAYOUT, SetupStepId.MILESTONE_TRAINING)
-        confirm(vm, SetupStepId.MILESTONE_TRAINING, SetupStepId.RINGS_INTRO)
-        confirm(vm, SetupStepId.RINGS_INTRO, SetupStepId.RINGS_SESSION_DAYS)
-        // Sin datos declarados de Rings no hay check-in real que exiger: «No lo recuerdo» deja el historial desconocido.
-        confirm(vm, SetupStepId.RINGS_SESSION_DAYS, SetupStepId.RINGS_FEELINGS) { vm.setTrainingUnknown() }
-        vm.skipStep(SetupStepId.RINGS_FEELINGS)
-        confirm(vm, SetupStepId.RINGS_FEELINGS, SetupStepId.RINGS_DISCOMFORT)
-        vm.skipStep(SetupStepId.RINGS_DISCOMFORT)
-        confirm(vm, SetupStepId.RINGS_DISCOMFORT, SetupStepId.RINGS_RESULT)
-        confirm(vm, SetupStepId.RINGS_RESULT, SetupStepId.MILESTONE_RINGS)
-        confirm(vm, SetupStepId.MILESTONE_RINGS, SetupStepId.REVIEW_ACTIVATE)
+        confirm(vm, SetupStepId.MILESTONE_TRAINING, SetupStepId.REVIEW_ACTIVATE)
     }
 
     @Test
@@ -255,10 +245,7 @@ class SetupWizardActivationGateTest {
 
         walkToReview(vm, materializationCalls)
 
-        assertFalse(
-            "sin datos de Rings no se exige check-in en este recorrido",
-            vm.ringsPreview().savesRealCheckIn,
-        )
+        assertEquals(SetupStepId.REVIEW_ACTIVATE,vm.state.value.currentStep)
         awaitWall("preview preparado") {
             !vm.state.value.isPreviewLoading && vm.state.value.programPreview != null
         }

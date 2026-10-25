@@ -20,19 +20,15 @@
             "profile": {
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
-              "axialLoadFactor": 0.0,
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "cnc": 2.2,
               "description": "El único lastre es el cuerpo, así que la dificultad depende de hasta dónde se aguanta la bajada antes de que las manos recojan la caída. Los tobillos necesitan un anclaje firme: un compañero que los sujete, una barra baja acolchada o los rodillos de un banco nórdico.",
-              "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Inclínate hacia delante muy despacio, sin doblar la cadera, frenando con la parte de atrás de los muslos.",
                 "Cuando ya no puedas frenar, recoge la caída con las manos como en una flexión.",
                 "Empuja con los brazos lo justo para volver arriba y vuelve a alinear el cuerpo."
               ],
-              "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
@@ -150,14 +146,6 @@
                   "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
-                "fatigue": {
-                  "axialLoadFactor": 0.0,
-                  "cnc": 2.2,
-                  "efc": 2.8,
-                  "ssc": 0.5,
-                  "technicalDifficulty": 5.2,
-                  "ttc": 2.0
-                },
                 "identity": {
                   "canonicalName": "Curl Nórdico (Nordic Hamstring Curl)",
                   "catalogRevision": "v2-approved-2026-09-29-a",
@@ -171,7 +159,6 @@
                   ]
                 },
                 "programming": {
-                  "fatigueCost": "moderate",
                   "indicativeRestSeconds": {
                     "max": 120,
                     "min": 60
@@ -200,14 +187,12 @@
                 "Endereza el cuerpo de las rodillas a la cabeza, aprieta los glúteos y lleva las manos delante del pecho."
               ],
               "setupTimeSeconds": 20,
-              "ssc": 0.5,
               "stabilizerMuscles": [
                 "gluteus_maximus",
                 "erector_spinae",
                 "core"
               ],
-              "technicalDifficulty": 5.2,
-              "ttc": 2.0
+              "technicalDifficulty": 5.2
             },
             "selectedOptions": {}
           }

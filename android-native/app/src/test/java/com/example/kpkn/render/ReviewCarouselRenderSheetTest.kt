@@ -39,7 +39,6 @@ import com.example.kpkn.screens.onboarding.design.ActivationNotice
 import com.example.kpkn.screens.onboarding.design.ActivationNutritionMoment
 import com.example.kpkn.screens.onboarding.design.ActivationPager
 import com.example.kpkn.screens.onboarding.design.ActivationProgramMoment
-import com.example.kpkn.screens.onboarding.design.ActivationRingsMoment
 import com.example.kpkn.screens.onboarding.design.ActivationYouMoment
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.onboarding.design.MacroRingFractions
@@ -51,7 +50,6 @@ import com.example.kpkn.screens.onboarding.reviewBodyFatPercentOf
 import com.example.kpkn.screens.onboarding.reviewGenderMarkOf
 import com.example.kpkn.screens.onboarding.reviewSexLabelOf
 import com.example.kpkn.screens.onboarding.withStepChoice
-import com.example.kpkn.ui.components.rings.TowerRingValues
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -186,16 +184,7 @@ class ReviewCarouselRenderSheetTest {
                 settled = settled,
             )
         },
-        ActivationMoment(SetupWizardBlock.RINGS, "RINGS", onEdit = { }) { settled ->
-            ActivationRingsMoment(
-                values = if (full) {
-                    TowerRingValues(columna = 72, musculos = 64, energia = 80)
-                } else {
-                    TowerRingValues(columna = null, musculos = null, energia = null)
-                },
-                settled = settled,
-            )
-        },
+
     )
 
     /**
@@ -296,7 +285,6 @@ class ReviewCarouselRenderSheetTest {
         val emptyNotices = activationNoticesOf(
             state = SetupWizardState(draft = SetupWizardDraft()),
             nutritionPage = true,
-            ringsPage = true,
         )
         rule.setContent {
             val base = LocalDensity.current

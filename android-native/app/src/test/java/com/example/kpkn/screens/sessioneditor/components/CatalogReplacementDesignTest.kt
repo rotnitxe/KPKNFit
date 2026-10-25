@@ -82,20 +82,18 @@ class CatalogReplacementDesignTest {
         id: String,
         implement: String,
         muscle: String,
-        axial: Double,
         laterality: ExerciseLateralityV2,
     ): ExerciseDefinitionV2 {
         val base = definition(id, "Candidato $id", "knee_dominant", listOf(muscle), listOf(implement))
         return base.copy(
             configurations = base.configurations.map { configuration ->
-                configuration.copy(profile = configuration.profile.copy(axialLoadFactor = axial, laterality = laterality))
+                configuration.copy(profile = configuration.profile.copy( laterality = laterality))
             },
         )
     }
 
-    /** La sentadilla trasera: carga axial, bilateral y cuádriceps. */
+    /** La sentadilla trasera: patrón, lateralidad y músculo declarados. */
     private fun anchor(
-        axial: Double = 0.6,
         laterality: ExerciseLateralityV2 = ExerciseLateralityV2.BILATERAL,
     ) = CatalogReplacementAnchor(
         definitionId = "back_squat",
@@ -104,7 +102,7 @@ class CatalogReplacementDesignTest {
         configurationId = "back_squat__barbell",
         mainMuscle = "quadriceps",
         laterality = laterality,
-        axialLoadFactor = axial,
+        
     )
 
     private fun line(definition: ExerciseDefinitionV2, anchor: CatalogReplacementAnchor): String? =
@@ -115,17 +113,16 @@ class CatalogReplacementDesignTest {
         )
 
     @Test
-    fun sinCargaAxialSoloSiElActualLaTiene() {
-        val press = candidate("leg_press", "machine", "quadriceps", axial = 0.0, laterality = ExerciseLateralityV2.BILATERAL)
+    fun aReplacementDoesNotInventAnAxialDifference() {
+        val press = candidate("leg_press", "machine", "quadriceps", laterality = ExerciseLateralityV2.BILATERAL)
         val material = exerciseCatalogOptionLabel("machine", "leg_press")
 
-        assertEquals("$material · sin carga axial", line(press, anchor(axial = 0.6)))
-        assertEquals("si el actual tampoco la tiene no hay nada que decir", material, line(press, anchor(axial = 0.0)))
+        assertEquals(material, line(press, anchor()))
     }
 
     @Test
     fun laLateralidadSoloSaleSiCambia() {
-        val split = candidate("split_squat", "dumbbells", "quadriceps", axial = 0.6, laterality = ExerciseLateralityV2.UNILATERAL)
+        val split = candidate("split_squat", "dumbbells", "quadriceps", laterality = ExerciseLateralityV2.UNILATERAL)
         val material = exerciseCatalogOptionLabel("dumbbells", "split_squat")
 
         assertEquals("$material · unilateral", line(split, anchor()))
@@ -134,7 +131,7 @@ class CatalogReplacementDesignTest {
 
     @Test
     fun elMusculoPrincipalSoloSaleSiEsOtro() {
-        val thrust = candidate("hip_thrust", "barbell", "gluteus_maximus", axial = 0.6, laterality = ExerciseLateralityV2.BILATERAL)
+        val thrust = candidate("hip_thrust", "barbell", "gluteus_maximus", laterality = ExerciseLateralityV2.BILATERAL)
         val material = exerciseCatalogOptionLabel("barbell", "hip_thrust")
 
         assertEquals("$material · ${exerciseCatalogMuscleLabel("gluteus_maximus")}", line(thrust, anchor()))
@@ -146,18 +143,17 @@ class CatalogReplacementDesignTest {
         val press = base.copy(
             configurations = base.configurations.map { configuration ->
                 configuration.copy(
-                    profile = configuration.profile.copy(axialLoadFactor = 0.0, laterality = ExerciseLateralityV2.BILATERAL),
+                    profile = configuration.profile.copy( laterality = ExerciseLateralityV2.BILATERAL),
                 )
             },
         )
 
-        assertEquals("Sin carga axial", line(press, anchor(axial = 0.6)))
-        assertNull("sin implemento ni diferencia no hay línea", line(press, anchor(axial = 0.0)))
+        assertNull(line(press, anchor()))
     }
 
     @Test
     fun unaLateralidadQueNoSeDiceNoImpideDecirElMusculo() {
-        val hack = candidate("hack_machine", "machine", "hamstrings", axial = 0.6, laterality = ExerciseLateralityV2.NOT_APPLICABLE)
+        val hack = candidate("hack_machine", "machine", "hamstrings", laterality = ExerciseLateralityV2.NOT_APPLICABLE)
         val material = exerciseCatalogOptionLabel("machine", "hack_machine")
 
         assertEquals("$material · ${exerciseCatalogMuscleLabel("hamstrings")}", line(hack, anchor()))
@@ -166,7 +162,7 @@ class CatalogReplacementDesignTest {
     @Test
     fun laFilaDelPropioEjercicioActualNoLlevaDiferenciaYSinConfiguracionNoHayLinea() {
         // Aunque sus datos difieran de los del ancla, es el propio ejercicio actual: solo el implemento.
-        val same = candidate("back_squat", "barbell", "quadriceps", axial = 0.0, laterality = ExerciseLateralityV2.UNILATERAL)
+        val same = candidate("back_squat", "barbell", "quadriceps", laterality = ExerciseLateralityV2.UNILATERAL)
 
         assertEquals(exerciseCatalogOptionLabel("barbell", "back_squat"), line(same, anchor()))
         assertNull(catalogReplacementCandidateLine(same, null, anchor()))

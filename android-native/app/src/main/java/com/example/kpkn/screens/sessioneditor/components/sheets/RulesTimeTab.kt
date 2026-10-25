@@ -48,7 +48,6 @@ import com.example.kpkn.screens.sessioneditor.frame.FrameRingTone
 import com.example.kpkn.screens.sessioneditor.frame.frameTimeRingTone
 import com.example.kpkn.screens.sessioneditor.sessionTimeBreakdownCaption
 import com.example.kpkn.ui.components.icons.KpknLineIcons
-import com.example.kpkn.ui.components.rings.KpknRingColors
 import com.example.kpkn.ui.design.KpknCellInput
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknMetric
@@ -102,7 +101,7 @@ internal fun rulesClockStatusOf(estimatedMinutes: Int, limitMinutes: Int?): Rule
 internal fun rulesClockColor(status: RulesClockStatus): Color = when (status) {
     RulesClockStatus.NEUTRAL -> WizardColors.textMuted
     RulesClockStatus.OK -> WizardColors.done
-    RulesClockStatus.ENERGY -> KpknRingColors.energia
+    RulesClockStatus.ENERGY -> com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette.energia
     RulesClockStatus.OVER -> WizardColors.danger
 }
 

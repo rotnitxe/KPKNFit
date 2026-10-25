@@ -221,7 +221,7 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
     }
     val activeVariant = state.activeVariant
     val expectedSessionId = session.id
-    val expectedContentHash = session.contentHashForAuge()
+    val expectedContentHash = session.contentHashForEditor()
     if (!SessionTemplateEngine.canApplyTemplate(template, session)) {
         updateUi { it.copy(snackbarMessage = "La plantilla no se puede aplicar a esta sesión.") }
         return
@@ -261,7 +261,7 @@ internal fun SessionEditorViewModel.applyTemplateInternal(template: SessionTempl
         val latestSession = latest.activeVariantSession ?: latest.session
         if (latest.activeVariant != activeVariant ||
             latestSession?.id != expectedSessionId ||
-            latestSession.contentHashForAuge() != expectedContentHash ||
+            latestSession.contentHashForEditor() != expectedContentHash ||
             !SessionTemplateEngine.canApplyTemplate(template, latestSession)
         ) {
             updateUi {

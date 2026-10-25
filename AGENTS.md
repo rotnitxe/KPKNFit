@@ -33,18 +33,18 @@ KPKN Fit is a local-first native Android application with an iOS parity port and
 
 - Android source: `android-native/app/src/main/java/com/example/kpkn/`.
 - Persistence: `data/db/`, `data/repository/`, and exported schemas under `app/schemas/`.
-- Pure engines: `domain/auge/`, `domain/nutrition/`, `domain/training/`, `domain/workout/`, `domain/exercises/`, `domain/biomechanics/`.
+- Pure engines: `domain/training/insights/`, `domain/nutrition/`, `domain/training/`, `domain/workout/`, `domain/exercises/`, `domain/biomechanics/`.
 - Screens and ViewModels: `screens/<feature>/`.
 - Navigation: `navigation/Navigation.kt` and `navigation/DeepLinkRouter.kt`.
 - Voice and hardware: `services/workout/`; changes require focused tests and diagnostics.
-- Cross-platform behavior: keep Android, iOS, and backend implementations aligned when changing AUGE, nutrition, or recovery logic.
+- Cross-platform behavior: keep Android, iOS, and backend contracts aligned for original observations, training evidence and independent nutrition accounting. AUGE/RINGS engines are retired; only isolated legacy import/purge boundaries and410 routes remain.
 
 ## Project Context
 
 - Read `.opencode/kpkn-map.md` before broad repository searches.
 - Durable agent memory lives in `.opencode/memory/MEMORY.md` and `.opencode/memory/USER.md`.
 - Architecture references are `docs/ARCHITECTURE.md`, `docs/ANDROID_ARCHITECTURE_MAP.md`, and `docs/ANDROID_UI_SCREENS_MAP.md`.
-- The code and exported Room schema are authoritative when documentation disagrees. The current Room database is **v28** (v27->v28 adds the `workout_media_session_associations` table); some older docs still say v25/v24/v23/v20/v19.
+- The code and exported Room schema are authoritative when documentation disagrees. The private POST-RINGS Room database is **v34**: v30→31 preserves original observations,31→32 retires derived storage,32→33 purges catalog coefficients,33→34 retires physiological proposals and repairs drafts. Historical schemas remain necessary for recovery; see `docs/post-rings/VALIDATION_STATUS.md`.
 
 ## Safety
 
