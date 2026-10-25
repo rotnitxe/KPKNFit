@@ -2,6 +2,26 @@ import XCTest
 @testable import KPKNFit
 
 final class KPKNFitTests: XCTestCase {
+    func testCompetitionPlanningTransportReadsOlderDocumentsAndPreservesNewFields() throws {
+        let encoder = JSONEncoder()
+        let decoder = JSONDecoder()
+        let legacy = CompetitionRecord(id: "old", title: "Meet")
+        let oldRoundTrip = try decoder.decode(CompetitionRecord.self, from: encoder.encode(legacy))
+        XCTAssertNil(oldRoundTrip.plannedAttempts)
+        XCTAssertNil(oldRoundTrip.meetResultAppliedAtMs)
+        let current = CompetitionRecord(
+            id: "meet", title: "Meet",
+            plannedAttempts: [PlannedAttempt(movementType: .SQUAT, attemptNumber: 1, weightKg: 182.5)],
+            targetWeightClass: "83 kg", targetBodyweightKg: 83.0, meetResultAppliedAtMs: 40
+        )
+        let roundTrip = try decoder.decode(CompetitionRecord.self, from: encoder.encode(current))
+        XCTAssertEqual(roundTrip.plannedAttempts?.first?.weightKg, 182.5)
+        XCTAssertNil(roundTrip.plannedAttempts?.first?.basis)
+        XCTAssertEqual(roundTrip.targetWeightClass, "83 kg")
+        XCTAssertEqual(roundTrip.targetBodyweightKg, 83.0)
+        XCTAssertEqual(roundTrip.meetResultAppliedAtMs, 40)
+    }
+
     func testApprovedExerciseCatalogV2LoadsWithUniqueIdentity() throws {
         let repository = try ExerciseCatalogV2Repository(bundle: Bundle(for: Self.self))
         XCTAssertEqual(repository.catalog.schemaVersion, 2)

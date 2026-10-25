@@ -50,6 +50,20 @@ public enum CompetitionEquipment: String, Codable {
     case CUSTOM
 }
 
+public struct PlannedAttempt: Codable {
+    public let movementType: CompetitionMovementType
+    public let attemptNumber: Int
+    public let weightKg: Double
+    public let basis: String?
+
+    public init(movementType: CompetitionMovementType, attemptNumber: Int, weightKg: Double, basis: String? = nil) {
+        self.movementType = movementType
+        self.attemptNumber = attemptNumber
+        self.weightKg = weightKg
+        self.basis = basis
+    }
+}
+
 public struct CompetitionRecord: Codable {
     public let id: String
     public let title: String
@@ -81,6 +95,11 @@ public struct CompetitionRecord: Codable {
     public let bodybuildingDetails: BodybuildingCompetitionDetails?
     public let createdAtMs: Int64
     public let updatedAtMs: Int64
+    // Optional transport keeps documents written before planning fields readable.
+    public let plannedAttempts: [PlannedAttempt]?
+    public let targetWeightClass: String?
+    public let targetBodyweightKg: Double?
+    public let meetResultAppliedAtMs: Int64?
 
     public init(
         id: String,
@@ -112,7 +131,11 @@ public struct CompetitionRecord: Codable {
         powerliftingDetails: PowerliftingCompetitionDetails? = nil,
         bodybuildingDetails: BodybuildingCompetitionDetails? = nil,
         createdAtMs: Int64 = 0,
-        updatedAtMs: Int64 = 0
+        updatedAtMs: Int64 = 0,
+        plannedAttempts: [PlannedAttempt]? = nil,
+        targetWeightClass: String? = nil,
+        targetBodyweightKg: Double? = nil,
+        meetResultAppliedAtMs: Int64? = nil
     ) {
         self.id = id
         self.title = title
@@ -144,6 +167,10 @@ public struct CompetitionRecord: Codable {
         self.bodybuildingDetails = bodybuildingDetails
         self.createdAtMs = createdAtMs
         self.updatedAtMs = updatedAtMs
+        self.plannedAttempts = plannedAttempts
+        self.targetWeightClass = targetWeightClass
+        self.targetBodyweightKg = targetBodyweightKg
+        self.meetResultAppliedAtMs = meetResultAppliedAtMs
     }
 }
 

@@ -175,7 +175,11 @@ private extension CompetitionRecord {
             powerliftingDetails: powerliftingDetails,
             bodybuildingDetails: bodybuildingDetails,
             createdAtMs: createdAtMs ?? self.createdAtMs,
-            updatedAtMs: updatedAtMs ?? self.updatedAtMs
+            updatedAtMs: updatedAtMs ?? self.updatedAtMs,
+            plannedAttempts: self.plannedAttempts,
+            targetWeightClass: self.targetWeightClass,
+            targetBodyweightKg: self.targetBodyweightKg,
+            meetResultAppliedAtMs: self.meetResultAppliedAtMs
         )
     }
 
