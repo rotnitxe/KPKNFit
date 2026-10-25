@@ -69,6 +69,54 @@ import java.time.LocalDate
 @Config(manifest = Config.NONE, sdk = [34])
 class ProgramDetailViewModelTest {
 
+    @Test fun weekly_checkin_uses_the_real_database_json_and_old_defaults() {
+        val json = com.example.kpkn.data.db.dbJson
+        val p = Program("json-checkin", "Plan", pendingWeeklyCheckin =
+            com.example.kpkn.domain.training.cycle.WeeklyCheckinRequest("w", programRunId = "run"))
+        assertEquals(p, json.decodeFromString<Program>(json.encodeToString(p)))
+        val old = json.decodeFromString<Program>("""{"id":"old","name":"Plan"}""")
+        assertNull(old.pendingWeeklyCheckin)
+        assertTrue(old.weeklyCheckins.isEmpty())
+    }
+
+    @Test fun weekly_checkin_preview_does_not_persist_until_the_person_confirms() = runBlocking {
+        val id = nextId()
+        val base = materializedRestoreProgram(id)
+        val week = weeksOf(base).first()
+        val request = com.example.kpkn.domain.training.cycle.WeeklyCheckinRequest(week.id, programRunId = "run-$id")
+        val p = base.copy(runState = ProgramRunState("run-$id", weekId = week.id), pendingWeeklyCheckin = request)
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val vm = vmFor(id)
+        assertEquals(request, withTimeout(10_000) { vm.pendingWeeklyCheckin.first { it != null } })
+        vm.previewWeeklyCheckin(com.example.kpkn.domain.training.cycle.WeeklyCheckin(week.id,
+            programRunId = "run-$id", globalPerformance = 2, globalSoreness = 2))
+        withTimeout(10_000) { vm.weeklyCheckinPreview.first { it != null } }
+        assertTrue(repository.getProgramById(id)!!.weeklyCheckins.isEmpty())
+        vm.confirmWeeklyCheckin()
+        val saved = withTimeout(10_000) { repository.programs.first { plans -> plans.any { it.id == id && it.weeklyCheckins.size == 1 } } }.first { it.id == id }
+        assertNull(saved.pendingWeeklyCheckin)
+        assertEquals(p.macrocycles, saved.macrocycles)
+        assertEquals("Sin cambios esta semana", saved.programDecisions.last().title)
+    }
+
+    @Test fun weekly_checkin_cannot_overwrite_an_edit_made_after_the_preview() = runBlocking {
+        val id = nextId()
+        val base = materializedRestoreProgram(id)
+        val weekId = weeksOf(base).first().id
+        val p = base.copy(runState = ProgramRunState("run-$id", weekId = weekId), pendingWeeklyCheckin =
+            com.example.kpkn.domain.training.cycle.WeeklyCheckinRequest(weekId, programRunId = "run-$id"))
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val preview = repository.previewWeeklyCheckin(id, com.example.kpkn.domain.training.cycle.WeeklyCheckin(
+            weekId, programRunId = "run-$id", skipped = true))!!
+        assertTrue(repository.mutateProgramNow(id) { it.copy(name = "Editado después") })
+        assertFalse(repository.submitWeeklyCheckin(id, preview))
+        assertEquals("Editado después", repository.getProgramById(id)!!.name)
+        assertTrue(repository.getProgramById(id)!!.weeklyCheckins.isEmpty())
+    }
+
+
     @get:Rule
     val roomRule = RoomTestRule()
 

@@ -76,6 +76,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.example.kpkn.domain.training.acceptsKpknAdjustments
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -184,6 +185,74 @@ class ProgramDetailViewModel(
         p?.let { ProgramProgressReportEngine.build(it, logs.filter { log -> log.programId == it.id }, exerciseCatalogSnapshot()) }
     }.flowOn(kotlinx.coroutines.Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val pendingWeeklyCheckin: StateFlow<com.example.kpkn.domain.training.cycle.WeeklyCheckinRequest?> =
+        combine(program, repository.settings) { p, settings ->
+            val current = p ?: return@combine null
+            current.pendingWeeklyCheckin?.takeIf { request ->
+                current.acceptsKpknAdjustments() && settings.algorithmSettings.weeklyCheckinEnabled &&
+                    current.runState?.runId == request.programRunId && current.runState?.cycleNumber == request.cycleNumber &&
+                    current.runState?.weekId == request.weekId
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    private val _weeklyCheckinPreview = MutableStateFlow<ProgramRepository.WeeklyCheckinPreview?>(null)
+    val weeklyCheckinPreview = _weeklyCheckinPreview.asStateFlow()
+    private val _weeklyCheckinBusy = MutableStateFlow(false)
+    val weeklyCheckinBusy = _weeklyCheckinBusy.asStateFlow()
+
+    fun clearWeeklyCheckinPreview() { _weeklyCheckinPreview.value = null }
+
+    fun previewWeeklyCheckin(answer: com.example.kpkn.domain.training.cycle.WeeklyCheckin) {
+        prepareWeeklyCheckin(answer, saveOmission = false)
+    }
+
+    fun omitWeeklyCheckin(answer: com.example.kpkn.domain.training.cycle.WeeklyCheckin) {
+        prepareWeeklyCheckin(answer.copy(skipped = true), saveOmission = true)
+    }
+
+    private fun prepareWeeklyCheckin(answer: com.example.kpkn.domain.training.cycle.WeeklyCheckin, saveOmission: Boolean) {
+        if (_weeklyCheckinBusy.value) return
+        viewModelScope.launch {
+            _weeklyCheckinBusy.value = true
+            try {
+                val preview = withContext(kotlinx.coroutines.Dispatchers.IO) { repository.previewWeeklyCheckin(programId, answer) }
+                _weeklyCheckinPreview.value = preview
+                if (preview == null) _uiState.update { it.copy(snackbarMessage = "La petición semanal cambió. Revisa el programa.") }
+                else if (saveOmission) saveWeeklyCheckinPreview(preview)
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(snackbarMessage = "No se pudo preparar la revisión semanal.") }
+            } finally { _weeklyCheckinBusy.value = false }
+        }
+    }
+
+    fun confirmWeeklyCheckin() {
+        val preview = _weeklyCheckinPreview.value ?: return
+        if (_weeklyCheckinBusy.value) return
+        viewModelScope.launch {
+            _weeklyCheckinBusy.value = true
+            try { saveWeeklyCheckinPreview(preview) }
+            catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(snackbarMessage = "No se pudo guardar la revisión semanal.") }
+            } finally { _weeklyCheckinBusy.value = false }
+        }
+    }
+
+    private suspend fun saveWeeklyCheckinPreview(preview: ProgramRepository.WeeklyCheckinPreview) {
+        val saved = withContext(kotlinx.coroutines.Dispatchers.IO) { repository.submitWeeklyCheckin(programId, preview) }
+        _weeklyCheckinPreview.value = null
+        val message = if (!saved) "El programa cambió. Revisa de nuevo la propuesta antes de confirmar."
+            else if (preview.result.effectiveWeekRecipes == preview.original.effectiveWeekRecipes) "Semana sin cambios"
+            else "Semana ajustada"
+        _uiState.update { it.copy(snackbarMessage = message) }
+    }
+
+    fun disableWeeklyCheckin() {
+        repository.updateSettings { it.copy(algorithmSettings = it.algorithmSettings.copy(weeklyCheckinEnabled = false)) }
+        _weeklyCheckinPreview.value = null
+    }
 
     // ─── Derived State ────────────────────────────────────────────────────
 

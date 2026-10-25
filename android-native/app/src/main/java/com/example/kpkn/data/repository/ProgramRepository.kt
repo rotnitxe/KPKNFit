@@ -13,6 +13,7 @@ import com.example.kpkn.domain.training.ProgramMigrationEngine
 import com.example.kpkn.domain.training.ProgramPersistNormalizer
 import com.example.kpkn.domain.training.ProgramKeyDateEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
+import com.example.kpkn.domain.training.CompositionMetadataHolder
 import com.example.kpkn.domain.training.coerceNativeWeekInstanceId
 import com.example.kpkn.domain.training.requiresNativeWeekInstances
 import com.example.kpkn.domain.training.NativeWorkoutProgressionRuntime
@@ -1321,6 +1322,37 @@ class ProgramRepository private constructor(
         }
         return ExecutedTrainingEvidence(sessionIds = sessionIds, weekIds = weekIds)
     }
+
+    data class WeeklyCheckinPreview(
+        val original: Program,
+        val result: Program,
+        val answer: com.example.kpkn.domain.training.cycle.WeeklyCheckin,
+        val evidence: ExecutedTrainingEvidence,
+    )
+
+    /** Vista previa sin persistencia, con las sesiones ya iniciadas o registradas protegidas. */
+    fun previewWeeklyCheckin(programId: String, answer: com.example.kpkn.domain.training.cycle.WeeklyCheckin): WeeklyCheckinPreview? {
+        if (!_settings.value.algorithmSettings.weeklyCheckinEnabled) return null
+        val current = getProgramById(programId) ?: return null
+        val evidence = executedTrainingEvidence(current)
+        val result = ProgramProgressEngine.applyWeeklyCheckin(current, answer,
+            CompositionMetadataHolder.resolve(), evidence.sessionIds, System.currentTimeMillis())
+        if (result == current) return null
+        return WeeklyCheckinPreview(current, result, answer, evidence)
+    }
+
+    /** Confirma exactamente la vista previa; una sesión iniciada o edición intermedia la invalida. */
+    suspend fun submitWeeklyCheckin(programId: String, preview: WeeklyCheckinPreview): Boolean =
+        withContext(Dispatchers.IO) {
+            ongoingWorkoutMutex.withLock {
+                mutateProgramNow(programId) { current ->
+                    if (current != preview.original || current.id != programId ||
+                        !_settings.value.algorithmSettings.weeklyCheckinEnabled ||
+                        executedTrainingEvidence(current) != preview.evidence) null
+                    else preview.result
+                }
+            }
+        }
 
     /**
      * Resuelve la propuesta AUGE pendiente con la evidencia real del propio

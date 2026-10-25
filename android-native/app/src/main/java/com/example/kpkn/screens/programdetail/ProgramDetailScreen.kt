@@ -69,6 +69,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdenti
 import com.example.kpkn.screens.programdetail.design.ProgramAboutModule
 import com.example.kpkn.screens.programdetail.design.ProgramProgressModule
 import com.example.kpkn.screens.programdetail.design.ProgramDecisionsSheet
+import com.example.kpkn.screens.programdetail.design.WeeklyCheckinSheet
 import com.example.kpkn.screens.programdetail.design.ProgramDetailPlaceholder
 import com.example.kpkn.screens.programdetail.design.ProgramEditDraft
 import com.example.kpkn.screens.programdetail.design.ProgramEditSheet
@@ -134,6 +135,11 @@ fun ProgramDetailScreen(
 ) {
     val program by viewModel.program.collectAsState()
     val progressReport by viewModel.progressReport.collectAsStateWithLifecycle()
+    var showDecisions by rememberSaveable { mutableStateOf(false) }
+    val pendingWeeklyCheckin by viewModel.pendingWeeklyCheckin.collectAsStateWithLifecycle()
+    val weeklyCheckinPreview by viewModel.weeklyCheckinPreview.collectAsStateWithLifecycle()
+    val weeklyCheckinBusy by viewModel.weeklyCheckinBusy.collectAsStateWithLifecycle()
+    var showWeeklyCheckin by remember(pendingWeeklyCheckin) { mutableStateOf(false) }
     var showDecisions by rememberSaveable { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
     val isActive by viewModel.isActiveProgram.collectAsState()
@@ -346,6 +352,18 @@ fun ProgramDetailScreen(
                     Spacer(Modifier.height(20.dp))
                     ProgramProgressModule(report = progressReport, onDecisions = { showDecisions = true })
                     if (progressReport != null) Spacer(Modifier.height(20.dp))
+                    pendingWeeklyCheckin?.let { request ->
+                        ProgramTransitionModule(
+                            message = "¿Cómo fue la semana pasada? Puedes revisar una propuesta para los accesorios de la nueva semana.",
+                            primaryLabel = "Responder", onPrimary = { viewModel.clearWeeklyCheckinPreview(); showWeeklyCheckin = true },
+                            secondaryLabel = null, onSecondary = {}, dismissLabel = "Omitir esta semana",
+                            onDismiss = { viewModel.omitWeeklyCheckin(com.example.kpkn.domain.training.cycle.WeeklyCheckin(
+                                request.weekId, request.cycleNumber, System.currentTimeMillis(), skipped = true,
+                                programRunId = request.programRunId, feedbackWeekId = request.feedbackWeekId,
+                                feedbackCycleNumber = request.feedbackCycleNumber)) },
+                        )
+                        Spacer(Modifier.height(20.dp))
+                    }
                 }
                 Box(
                     modifier = Modifier
@@ -458,6 +476,18 @@ fun ProgramDetailScreen(
     }
     if (showDecisions) {
         ProgramDecisionsSheet(decisions = progressReport?.decisions.orEmpty(), onDismiss = { showDecisions = false })
+    }
+    if (showWeeklyCheckin) pendingWeeklyCheckin?.let { request ->
+        WeeklyCheckinSheet(
+            request = request,
+            previewDetail = weeklyCheckinPreview?.takeIf { it.answer.weekId == request.weekId && it.answer.programRunId == request.programRunId }
+                ?.result?.programDecisions?.lastOrNull()?.detail,
+            busy = weeklyCheckinBusy,
+            onPreview = viewModel::previewWeeklyCheckin, onConfirm = viewModel::confirmWeeklyCheckin,
+            onEdit = viewModel::clearWeeklyCheckinPreview, onOmit = viewModel::omitWeeklyCheckin,
+            onDisable = { viewModel.disableWeeklyCheckin(); showWeeklyCheckin = false },
+            onDismiss = { viewModel.clearWeeklyCheckinPreview(); showWeeklyCheckin = false },
+        )
     }
     if (showMoreMenu) {
         ProgramMoreMenu(
