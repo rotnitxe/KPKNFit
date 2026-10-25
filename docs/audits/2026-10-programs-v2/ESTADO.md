@@ -1,5 +1,7 @@
 # Ola «Programas y periodización» · ESTADO (2026-10-22)
 
+> **Continuación vigente del 25-oct:** el usuario pidió adaptar el plan a la realidad actual sin AUGE/RINGS. La ejecución pasa a `codex/programs-periodization-current`, base integrada `1d399c1fc`, en el worktree administrado `programs-current/KPKNFit`. El resto de este archivo conserva el checkpoint histórico del 22-oct; no acredita la base actual. Alcance vigente: [PLAN_ACTUAL_20261025.md](../../programas/PLAN_ACTUAL_20261025.md). Resultados actuales: [EJECUCION_ACTUAL.md](EJECUCION_ACTUAL.md).
+
 > Rama: `claude/kpkn-programs-audit-periodization-7abb9c` (worktree `.claude/worktrees/kpkn-programs-audit-periodization-7abb9c`).
 > Base: master `8ac57c9d4`. Sin push. Plan: `.claude/plans/lively-squishing-bonbon.md` (o `~/.claude/plans/lively-squishing-bonbon.md`).
 > Cierre manual pedido por el usuario el 22-oct: se ejecutó hasta T-14 y se entrega el relevo.
