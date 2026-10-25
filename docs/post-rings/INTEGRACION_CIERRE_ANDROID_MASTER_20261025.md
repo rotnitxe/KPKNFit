@@ -6,6 +6,8 @@ La correccion final transmite la asignacion de carga de APRE como un dato de pre
 
 Se conservan los cambios locales concurrentes de nutricion, video, fuerza y voz. El indice de publicacion contiene solo esta integracion; el WIP no se limpia, no se incluye ni se sobrescribe.
 
-Validacion de esta integracion: PENDIENTE. Se verificaran fuentes congeladas de este indice, con registro Android normal y salida de build independiente, para excluir el WIP Room 36 presente en disco. Se reutilizan los caches de la validacion previa, no resultados de pruebas antiguos.
+Validacion de la integracion `0441aa64c`: 4.727 entradas Android contrastadas con el arbol del commit y 3.724 archivos de fuentes/configuracion recontrastados, sin diferencias. La compilacion Kotlin principal termino y las clases unitarias se compilaron en los intentos de validacion de este mismo arbol; el verificador de retiro devolvio cero violaciones activas. Se conservaron Room 35 y el registro normal del plugin Android, con fuentes congeladas para excluir el WIP Room 36.
+
+La nueva ejecucion dirigida a 13 clases NO se acepta como aprobada: un intento fallo al empaquetar recursos, otro fue cancelado para acotar el descubrimiento de clases y otro fallo por ausencia de `stableIds.txt`. El ultimo reintento regenero los recursos, pero alcanzo el limite de 600 s durante la recompilacion. Queda pendiente repetir esa regresion de integracion con la infraestructura estable. No se reutilizan resultados antiguos como pruebas nuevas; las 481 pruebas y el QA fisico documentados pertenecen al cierre aislado anterior. No se realizo una nueva instalacion ni QA fisico de Room 35.
 
 iOS: compilacion/XCTest y QA en macOS pendientes por orden del usuario. Esta operacion no modifica el telefono ni genera entregas en G:.
