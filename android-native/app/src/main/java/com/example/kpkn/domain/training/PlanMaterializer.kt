@@ -416,6 +416,16 @@ object PlanMaterializer {
         )
     }
 
+    /** Desplaza sólo RIR explícitos (1..4), conservando calentamientos y AMRAP. */
+    fun shiftRir(source: WeekRecipe, delta: Int): WeekRecipe = if (delta == 0) source else source.copy(
+        days = source.days.map { day -> day.copy(slots = day.slots.map { slot ->
+            slot.copy(sets = slot.sets.map { set ->
+                if (set.rir == null || set.isWarmup || set.resolvedPurpose.isAmrap) set
+                else set.copy(rir = (set.rir + delta).coerceIn(1, 4))
+            })
+        }) },
+    )
+
     /**
      * Escala de propuestas aceptadas sobre UNA semana de receta (§14.4):
      * - volumen solo toca slots de resistencia ordinaria: SPEED conserva su
