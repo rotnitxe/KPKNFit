@@ -149,6 +149,12 @@ data class Program(
     val volumeCalibrationNotes: String = "",
     /** Propuestas de rango aceptadas o descartadas: una decisión por ejecución, ciclo y grupo. */
     val resolvedPlanningRangeProposalIds: List<String> = emptyList(),
+    /** Revisiones descriptivas por ejecución, ciclo y bloque; sin puntuaciones fisiológicas. */
+    val blockReviews: List<com.example.kpkn.domain.training.block.BlockReview> = emptyList(),
+    /** Propuesta confirmable para un bloque/ciclo de destino concreto. */
+    val pendingBlockReview: com.example.kpkn.domain.training.block.BlockReviewProposal? = null,
+    /** Elección pendiente al terminar una ejecución finita. */
+    val pendingContinuation: com.example.kpkn.domain.training.block.ContinuationProposal? = null,
 )
 
 /** Decisión del sistema o de la persona sobre el programa, con origen y motivo. */
