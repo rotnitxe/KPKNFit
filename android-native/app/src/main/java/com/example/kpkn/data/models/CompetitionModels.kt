@@ -59,6 +59,14 @@ enum class CompetitionEquipment {
 }
 
 @Serializable
+data class PlannedAttempt(
+    val movementType: CompetitionMovementType,
+    val attemptNumber: Int,
+    val weightKg: Double,
+    val basis: String = "",
+)
+
+@Serializable
 data class CompetitionRecord(
     val id: String,
     val title: String,
@@ -92,6 +100,10 @@ data class CompetitionRecord(
     val bodybuildingDetails: BodybuildingCompetitionDetails? = null,
     val createdAtMs: Long = 0L,
     val updatedAtMs: Long = 0L,
+    val plannedAttempts: List<PlannedAttempt> = emptyList(),
+    val targetWeightClass: String? = null,
+    val targetBodyweightKg: Double? = null,
+    val meetResultAppliedAtMs: Long? = null,
 )
 
 @Serializable
