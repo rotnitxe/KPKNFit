@@ -179,6 +179,7 @@ data class WeightSuggestion(
     val suggestedWeight: Double,
     val reason: String,
     val suggestedLoadMode: LoadModeV2? = null,
+    val isCalibrationAssignment: Boolean = false,
 )
 
 data class WorkoutLoadSuggestionUi(
@@ -188,6 +189,7 @@ data class WorkoutLoadSuggestionUi(
     val reason: String,
     val source: WorkoutLoadSuggestionSource = WorkoutLoadSuggestionSource.PROGRAM,
     val suggestedLoadMode: LoadModeV2? = null,
+    val isCalibrationAssignment: Boolean = false,
 )
 
 enum class WorkoutLoadSuggestionSource {

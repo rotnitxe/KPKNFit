@@ -1,3 +1,7 @@
+> Estado actual: [integrado en el master oficial con Room 35](INTEGRACION_CIERRE_ANDROID_MASTER_20261025.md). Las evidencias Room 34 enlazadas conservan su alcance historico.
+
+> Estado vigente: [Android cerrado en el checkout aislado Room 34](ANDROID_CLOSURE_20261024.md), 481 pruebas / 44 clases y QA físico corregido. iOS pendiente. El contenido siguiente es el checkpoint cloud histórico, con sus propios hashes y recuentos; no se suma a la tanda final.
+
 # Validación privada: entrenamiento y respuesta
 
 > Estado vigente local, 24-oct-2026: [Aplicación local](LOCAL_APPLICATION.md)

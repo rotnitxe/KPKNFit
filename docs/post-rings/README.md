@@ -1,3 +1,7 @@
+> Estado actual: [integrado en el master oficial con Room 35](INTEGRACION_CIERRE_ANDROID_MASTER_20261025.md). Las evidencias Room 34 enlazadas conservan su alcance historico.
+
+> Seguimiento del cierre Android: [informe y QA del checkpoint Room 34](ANDROID_CLOSURE_20261024.md). La integracion actual de master conserva Room 35 y se documenta en [integracion final](INTEGRACION_CIERRE_ANDROID_MASTER_20261025.md).
+
 # Retiro AUGE/RINGS y entrenamiento registrado
 
 El mandato del 24-oct-2026 sustituye el desarrollo anterior Rings v4. El plan

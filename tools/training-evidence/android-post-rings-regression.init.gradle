@@ -1,0 +1,23 @@
+allprojects {
+    tasks.withType(Test).configureEach {
+        maxHeapSize = '3g'
+        maxParallelForks = 1
+        forkEvery = 5
+        filter {
+            [
+                'SessionTemplateCatalogTest', 'PlanAdaptationResolverTest', 'GeneratorPoolsCatalogTest', 'EffectiveEquipmentResolverContractTest', 'ProtocolCompositionContractTest', 'ProtocolRecipeFidelityTest', 'ProgramTemplateCompositionContractTest', 'SplitTemplatesTest', 'TrainingObservationMigrationTest', 'TrainingMigrationRoomValidationTest',
+                'TrainingSnapshotRestoreTest', 'LegacyTrainingBackupTest',
+                'TrainingObservationRepositoryReconnectTest', 'TrainingInsightsEngineTest',
+                'TrainingHistoryProjectionTest', 'SharedTrainingInsightsContractTest',
+                'SetupDraftResolverTest', 'SetupDraftCompatibilityTest', 'SetupDraftRepairTableTest',
+                'SetupStepGraphTest', 'SetupStepDefinitionsTest', 'SetupWizardActivationGateTest',
+                'SetupWizardFullJourneyTest', 'SetupWelcomeScreenTest', 'PreSessionPreparationDialogTest',
+                'WorkoutPreparationCommitterRoomTest', 'NativeWorkoutProgressionRuntimeTest',
+                'ExerciseCatalogContractTest', 'AprendeCatalogAuditTest', 'RetiredPendingDeloadTest',
+                'PostExerciseFeedbackDraftTest', 'TrainingFactChartTest',
+                'InitialPermissionRequestEffectTest', 'RecommendedPermissionsDialogTest', 'PostRingsWizardMigrationTest', 'ApreLiveCalibrationTest', 'ApreLateralCalibrationTest', 'WorkoutCalibrationRecorderRoomTest', 'WorkoutCalibrationVariantTest', 'WorkoutVoicePreparationParserTest', 'WorkoutVoiceHandsFreeTest', 'SetupPersistenceTest', 'SetExecutionCardCalibrationTest',
+                'ProgramDetailViewModelTest.feedback_never_rescales_authored_volume_references'
+            ].each { includeTestsMatching '*.' + it }
+        }
+    }
+}
