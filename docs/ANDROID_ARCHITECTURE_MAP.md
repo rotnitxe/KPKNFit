@@ -364,3 +364,46 @@ For the Swift implementation (`ios-native/KPKNFit/`), use the following technolo
 | **Jetpack Compose** | **SwiftUI** (using grids, custom canvas paths for Rings). |
 | **DataStore Preferences** | **`@AppStorage` / UserDefaults**. |
 | **Health Connect (flavor `health`)** | **HealthKit**. |
+## Programas y periodización — ampliación local del 25-oct-2026
+
+Esta sección describe la continuación sobre Room 35; no acredita por sí sola build, instalación o QA. El estado y los recibos vigentes están en docs/audits/2026-10-programs-v2/EJECUCION_ACTUAL.md. Los motores retirados no forman parte de este diseño.
+
+`domain/training/ProgramScope.kt` traduce la estructura de ejecución a alcance visible, sin presentar SIMPLE/COMPLEX como nivel del atleta. Prueba: ProgramScopeTest. La UI consume PlanLabels para fichas y cabeceras.
+
+`domain/training/RpeTopSetEngine.kt` consume top sets RPE comparables y produce propuestas de referencia confirmables; no cambia el runtime de objetivos de MFP. Prueba: RpeTopSetEngineTest y resolución por ProgramAutoregulationResolutionTest en Android.
+
+`domain/training/cycle/` contiene RirWave, WeeklyCheckinEngine y WeeklyAdjustmentEngine. La onda pertenece a recetas propias nuevas; una respuesta original identifica ejecución, ciclo y semana de referencia. Se preservan T1/T2, AMRAP, calentamientos, sesiones ejecutadas/iniciadas y días manuales. Ajustes de accesorios y límites elegidos requieren vista previa y confirmación. Pruebas: RirWaveTest, WeeklyCheckinEngineTest, WeeklyAdjustmentEngineTest, WeeklyCheckinJsonTest; persistencia/UI en ProgramDetailViewModelTest y WeeklyCheckinSheetTest.
+
+`domain/training/block/` contiene BlockReviewEngine, NextBlockAdjuster y BlockReviewLifecycle. Describe cobertura y tendencias de configuraciones comparables; no diagnostica recuperación. El wrapper del progreso observa el cierre real, mantiene separados ciclo revisado y ciclo de destino y ofrece continuación también tras el 1RM final. ContinuationProgramFactory prepara otra copia sin borrar la ejecución terminada. Pruebas: BlockReviewEngineTest, NextBlockAdjusterTest, BlockReviewLifecycleTest, BlockReviewJsonTest y ContinuationProgramFactoryTest. Las escrituras pareadas de origen/copia usan una transacción del repositorio antes de activar.
+
+`domain/training/ProgramProgressReport.kt` limita métricas al ciclo y ejecución vigentes. Los originales se distinguen de decisiones derivadas; la cobertura cuenta registros, no ausencia inferida de entrenamiento. Prueba: ProgramProgressReportTest. ProgramDetailViewModel expone el informe en StateFlow y el módulo mínimo muestra detalles desplazables con fuente ampliada.
+
+`domain/training/periodization/BlockVariantRotation.kt` declara variantes por fase; RoutinePeriodizer comprueba material del lugar concreto y conserva la identidad de los principales al recortar accesorios. No traslada referencias de fuerza entre configuraciones. Pruebas: BlockVariantRotationTest, RoutinePeriodizerTest y FidelityRegressionTest. ProgramExerciseSwap permite tres alcances, conserva sesiones ejecutadas y guarda personalización manual sin reescribir sourceRecipe; pruebas ProgramExerciseSwapTest y ExerciseSwapOptionsTest.
+
+`domain/training/planning/PlannedLoadProjector.kt` describe series previstas por músculo y objetivos explícitos de esfuerzo alto. Distingue base TM/1RM y siguiente plantilla de ciclo; no calcula readiness. Prueba: PlannedLoadProjectorTest; módulo UI ProgramPlannedLoadModuleTest.
+
+`domain/training/calibration/` separa CalibrationEvidence (registros observados), PlanningVolumeTargets (límites elegidos), propuestas confirmables de rango y WeeklyCycleEvidence (resumen al cerrar). No deriva técnica, movilidad o MRV fisiológico de respuestas o ausencia de registros. Pruebas: CalibrationEvidenceTest, PlanningVolumeTargetsTest, PlanningRangeProposalsTest y WeeklyCycleEvidenceTest; UI/persistencia en ProgramDetailViewModelTest, VolumeCalibrationOriginalsTest y ProgramPlanningVolumeTargetSheetTest.
+
+### Campos JSON aditivos de Program en esta ola
+
+`domain/training/schedule/MissedSessionPolicy.kt` conserva elecciones explícitas por ejecución/ciclo/semana/sesión. SKIP añade claves separadas, nunca logs; DO_THIS_WEEK conserva requisitos y permite reconciliar un backfill real. SOFT_RETURN protege registros, sesiones iniciadas y personalización manual. `InactivityDetector.kt` describe fechas válidas de registros, sin inferir entrenamiento fuera de KPKN. Pruebas: MissedSessionPolicyTest, MissedSessionJsonTest, InactivityDetectorTest y ProgramProgressCycleCloseTest. ProgramScheduleModule separa revisión de confirmación; repositorio valida la instantánea y la ausencia de sesión en curso.
+
+`domain/competitions/` contiene AttemptPlanner, MeetDayPlan, WeighInPlanner y MeetResultToProfile. Los tres intentos y calentamientos se limitan a SBD compatible; una proyección matemática de peso conserva su procedencia y los resultados sólo actualizan referencias tras revisión/confirmación. Pruebas: CompetitionPlanningTest, CompetitionModelsJsonTest, HomeCompetitionResolverTest y casos Room/rollback en ProgramDetailViewModelTest. ProgramRepository y CompetitionRepository coordinan versiones, locks y transacción pareada programa/record antes de publicar cachés; no se modifica un resultado original. ProgramCompetitionModule abre la ficha existente para registrar resultados, también en otras modalidades.
+
+`domain/season/SeasonAdvisor.kt` describe fase, dirección nutricional confirmada y tendencia de peso observada. No cambia metas ni contabilidad. ProgramRepository lee las tablas de planes/estado nutricional y observaciones corporales confirmadas en la misma Room; un observador de invalidación refresca el StateFlow del VM. Una propuesta semanal vuelve a validar ese contexto dentro de la transacción de escritura del programa. Pruebas: SeasonAdvisorTest, SetupNutritionPreparationTest, WeeklyAdjustmentEngineTest y casos de invalidación/edición concurrente en ProgramDetailViewModelTest. Los límites editoriales no permiten cambiar AMRAP, calentamientos ni sesiones protegidas.
+
+Todos conservan defaults y no requieren tablas ni migración. Los historiales publicados de Room permanecen intactos.
+
+- `programDecisions = emptyList()`: decisiones con origen, motivo, fecha y referencias de semana/bloque.
+- `weeklyCheckins = emptyList()`: respuestas originales por ejecución/ciclo/semana, incluidas omisiones.
+- `pendingWeeklyCheckin = null`: petición para una ocurrencia vigente y semana de referencia explícita.
+- `planningVolumeTargets = emptyList()`: límites de planificación confirmados por grupo.
+- `volumeCalibrationNotes = ""`: nota original del cuestionario, sin inferir un rasgo físico.
+- `resolvedPlanningRangeProposalIds = emptyList()`: idempotencia de propuestas aceptadas/descartadas.
+- `blockReviews = emptyList()`: revisiones descriptivas por ejecución/ciclo/bloque.
+- `pendingBlockReview = null`: propuesta revisable para un bloque/ciclo concreto.
+- `pendingContinuation = null`: elección tras finalizar una ejecución finita.
+- `skippedSessionKeys = emptyList()`: omisiones declaradas por ocurrencia, separadas de registros originales.
+- `pendingMissedSessions = null`: petición revisable de sesiones pendientes en una ejecución/ciclo concretos.
+
+VolumeCalibrationProfile añade `notes = ""`; AlgorithmSettings añade `weeklyCheckinEnabled = true`. CompetitionRecord añade `plannedAttempts = emptyList()`, `targetWeightClass = null`, `targetBodyweightKg = null` y `meetResultAppliedAtMs = null`; no hay cambios de tablas. El transporte iOS conserva campos de Program mediante opaqueFields, la preferencia nueva como opcional y la calibración declarada como JSONValue opcional. Los campos de competición son opcionales y sobreviven al helper copy. Las pruebas Swift están preparadas, sin compilación Swift ni QA iOS en este host.
