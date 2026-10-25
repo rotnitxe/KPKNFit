@@ -1099,6 +1099,9 @@ class ProgramRepository private constructor(
                         logs = historyForProgress,
                         transitionContext = buildTransitionContext(program, historyForProgress),
                         weeklySignals = buildWeeklyAutoregulationSignals(program, historyForProgress),
+                        compositionMetadata = CompositionMetadataHolder.resolve(),
+                        nowMs = System.currentTimeMillis(),
+                        reviewCatalog = exerciseCatalogSnapshot(),
                         // B.S3: la progresión de autor redondea el TM que sube con los discos reales
                         // del atleta (sin inventario, medio kilo).
                         inventory = _settings.value.resolvedEquipmentInventory(),

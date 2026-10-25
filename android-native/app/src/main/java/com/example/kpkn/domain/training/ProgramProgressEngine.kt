@@ -205,11 +205,15 @@ object ProgramProgressEngine {
         weeklySignals: WeeklyAutoregulationSignals? = null,
         compositionMetadata: ExerciseCompositionMetadataProvider? = null,
         inventory: EquipmentInventory? = null,
+        nowMs: Long = 0L,
+        reviewCatalog: List<com.example.kpkn.data.models.ExerciseMuscleInfo> = emptyList(),
     ): ProgressAdvanceResult {
         val result = advanceWithoutWeeklyCheckin(program, activeState, completedSession, weekInstanceId,
             logs, transitionContext, weeklySignals, compositionMetadata, inventory)
+        val reviewed = com.example.kpkn.domain.training.block.BlockReviewLifecycle.afterAdvance(
+            program, result, weekInstanceId, logs, transitionContext ?: BlockTransitionEngine.TransitionContext(), reviewCatalog, nowMs)
         return com.example.kpkn.domain.training.cycle.WeeklyCheckinEngine.requestAfterAdvance(
-            program, result, weekInstanceId, compositionMetadata,
+            program, reviewed, weekInstanceId, compositionMetadata,
             weeklySignals?.settings?.algorithmSettings?.weeklyCheckinEnabled != false)
     }
 
@@ -222,6 +226,27 @@ object ProgramProgressEngine {
         allowRirChange: Boolean = true,
     ): Program = com.example.kpkn.domain.training.cycle.WeeklyCheckinEngine.apply(
         program, checkin, metadata, executedSessionIds, nowMs, allowRirChange)
+
+    fun resolvePendingBlockReview(
+        program: Program,
+        accept: Boolean,
+        metadata: ExerciseCompositionMetadataProvider,
+        executedWeekIds: Set<String> = emptySet(),
+        executedSessionIds: Set<String> = emptySet(),
+        nowMs: Long = 0L,
+        expected: com.example.kpkn.domain.training.block.BlockReviewProposal? = program.pendingBlockReview,
+        alternativeIndex: Int? = null,
+    ): Program = if (expected == null) program else
+        com.example.kpkn.domain.training.block.BlockReviewLifecycle.resolveReview(
+            program, expected, accept, metadata, executedWeekIds, executedSessionIds, nowMs, alternativeIndex)
+
+    fun resolveContinuation(
+        program: Program,
+        choice: com.example.kpkn.domain.training.block.ContinuationChoice,
+        nowMs: Long,
+        expected: com.example.kpkn.domain.training.block.ContinuationProposal? = program.pendingContinuation,
+    ): Program = if (expected == null) program else
+        com.example.kpkn.domain.training.block.BlockReviewLifecycle.resolveContinuation(program, expected, choice, nowMs)
 
     private fun advanceWithoutWeeklyCheckin(
         program: Program,
