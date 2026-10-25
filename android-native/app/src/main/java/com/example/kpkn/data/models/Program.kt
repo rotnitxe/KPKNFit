@@ -143,6 +143,12 @@ data class Program(
     val weeklyCheckins: List<com.example.kpkn.domain.training.cycle.WeeklyCheckin> = emptyList(),
     /** Petición pendiente de una ocurrencia de la ejecución actual. */
     val pendingWeeklyCheckin: com.example.kpkn.domain.training.cycle.WeeklyCheckinRequest? = null,
+    /** Rangos de planificación elegidos explícitamente; vacío conserva las referencias editoriales. */
+    val planningVolumeTargets: List<com.example.kpkn.domain.training.calibration.PlanningVolumeTarget> = emptyList(),
+    /** Nota original del cuestionario histórico, sin convertirla en un rasgo calculado. */
+    val volumeCalibrationNotes: String = "",
+    /** Propuestas de rango aceptadas o descartadas: una decisión por ejecución, ciclo y grupo. */
+    val resolvedPlanningRangeProposalIds: List<String> = emptyList(),
 )
 
 /** Decisión del sistema o de la persona sobre el programa, con origen y motivo. */
@@ -325,6 +331,7 @@ data class VolumeCalibrationProfile(
     val recommendations: List<VolumeRecommendation>,
     val calibratedAtMs: Long,
     val calculatorRevision: String = "volume-calibration-v1",
+    val notes: String = "",
 )
 
 enum class TrainingStyle { BODYBUILDER, POWERBUILDER, POWERLIFTER }

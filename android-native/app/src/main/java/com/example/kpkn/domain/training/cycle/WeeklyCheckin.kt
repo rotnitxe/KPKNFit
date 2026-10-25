@@ -17,6 +17,8 @@ data class WeeklyCheckin(
     val globalSoreness: Int? = null,
     val skipped: Boolean = false,
     val programRunId: String? = null,
+    val feedbackWeekId: String? = null,
+    val feedbackCycleNumber: Int? = null,
 )
 
 /** Petición para una ocurrencia concreta; no se reutiliza entre ejecuciones del programa. */
@@ -27,4 +29,6 @@ data class WeeklyCheckinRequest(
     val muscleGroups: List<String> = emptyList(),
     val createdAtMs: Long = 0L,
     val programRunId: String? = null,
+    val feedbackWeekId: String? = null,
+    val feedbackCycleNumber: Int? = null,
 )
