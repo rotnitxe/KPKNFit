@@ -39,10 +39,13 @@
   "completeRegressionIncludesTargetedClasses": true,
   "runner": {
     "path": "tools/training-evidence/android-post-rings-regression.init.gradle",
-    "sha256": "230115a03b895ef26d5f5aa9f321a3ff0fb5be75d4fabc2b70497264f3dcb1fd",
+    "sha256": "0ff4ac38988838c7acca7a47d4e0238f1693f3f12946bb95e6fd27e62cba4745",
     "programDetailMethodOnly": [
       "feedback_never_rescales_authored_volume_references"
-    ]
+    ],
+    "executedFileSha256": "230115a03b895ef26d5f5aa9f321a3ff0fb5be75d4fabc2b70497264f3dcb1fd",
+    "sha256Normalization": "LF",
+    "executedLineEndings": "CRLF"
   },
   "suites": [
     {
