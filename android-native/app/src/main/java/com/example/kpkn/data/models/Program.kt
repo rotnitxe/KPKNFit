@@ -155,6 +155,9 @@ data class Program(
     val pendingBlockReview: com.example.kpkn.domain.training.block.BlockReviewProposal? = null,
     /** Elección pendiente al terminar una ejecución finita. */
     val pendingContinuation: com.example.kpkn.domain.training.block.ContinuationProposal? = null,
+    /** Saltos declarados por ejecución/ciclo/semana/sesión; nunca entrenamientos ficticios. */
+    val skippedSessionKeys: List<String> = emptyList(),
+    val pendingMissedSessions: com.example.kpkn.domain.training.schedule.MissedSessionsRequest? = null,
 )
 
 /** Decisión del sistema o de la persona sobre el programa, con origen y motivo. */

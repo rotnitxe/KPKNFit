@@ -43,6 +43,7 @@ object ContinuationProgramFactory {
             nativeProgressionProposals = emptyList(),nativeProgressionAudit = emptyList(),
             weeklyCheckins = emptyList(),pendingWeeklyCheckin = null,blockReviews = emptyList(),
             pendingBlockReview = null,pendingContinuation = null,resolvedPlanningRangeProposalIds = emptyList(),
+            skippedSessionKeys = emptyList(),pendingMissedSessions = null,
             loops = emptyList(),loopState = null,loopOccurrences = emptyList(),events = emptyList(),keyDates = emptyList(),
             calendarization = null,calendarBreaks = emptyList(),pausedCyclicSnapshot = null,
             optionalSessionConfirmations = emptyList(),hybridOccurrenceSchedules = emptyList(),hybridAuthoredSources = emptyList(),

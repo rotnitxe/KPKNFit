@@ -182,6 +182,7 @@ object ProgramProgressEngine {
         instanceId: String,
         cycleNumber: Int,
         programRunId: String? = null,
+        skippedSessionKeys: List<String> = emptyList(),
     ): Boolean {
         if (week.executionKind == WeekExecutionKind.REST) return true
         // Completion is declared at the session level.  "main" is a presentation
@@ -193,7 +194,8 @@ object ProgramProgressEngine {
             return false
         }
         val instanceLogs = logsForInstance(logs, programId, instanceId, cycleNumber, programRunId)
-        return requiredSessions.all { session -> instanceLogs.any { it.sessionId == session.id } }
+        return requiredSessions.all { session -> instanceLogs.any { it.sessionId == session.id } ||
+            com.example.kpkn.domain.training.schedule.MissedSessionPolicy.skippedKey(programRunId,cycleNumber,instanceId,session.id) in skippedSessionKeys }
     }
     fun advanceAfterSessionComplete(
         program: Program,
@@ -208,14 +210,30 @@ object ProgramProgressEngine {
         nowMs: Long = 0L,
         reviewCatalog: List<com.example.kpkn.data.models.ExerciseMuscleInfo> = emptyList(),
     ): ProgressAdvanceResult {
-        val result = advanceWithoutWeeklyCheckin(program, activeState, completedSession, weekInstanceId,
+        val initial = advanceWithoutWeeklyCheckin(program, activeState, completedSession, weekInstanceId,
             logs, transitionContext, weeklySignals, compositionMetadata, inventory)
+        val backfill = com.example.kpkn.domain.training.schedule.MissedSessionPolicy.backfillCursor(
+            program,initial,completedSession,weekInstanceId,logs)
+        val actualSession = backfill?.first ?: completedSession
+        val actualWeekId = backfill?.second ?: weekInstanceId
+        val result = if (backfill == null) initial else advanceWithoutWeeklyCheckin(program,activeState,actualSession,
+            actualWeekId,logs,transitionContext,weeklySignals,compositionMetadata,inventory)
         val reviewed = com.example.kpkn.domain.training.block.BlockReviewLifecycle.afterAdvance(
-            program, result, weekInstanceId, logs, transitionContext ?: BlockTransitionEngine.TransitionContext(), reviewCatalog, nowMs)
-        return com.example.kpkn.domain.training.cycle.WeeklyCheckinEngine.requestAfterAdvance(
-            program, reviewed, weekInstanceId, compositionMetadata,
+            program, result, actualWeekId, logs, transitionContext ?: BlockTransitionEngine.TransitionContext(), reviewCatalog, nowMs)
+        val checked = com.example.kpkn.domain.training.cycle.WeeklyCheckinEngine.requestAfterAdvance(
+            program, reviewed, actualWeekId, compositionMetadata,
             weeklySignals?.settings?.algorithmSettings?.weeklyCheckinEnabled != false)
+        return com.example.kpkn.domain.training.schedule.MissedSessionPolicy.afterAdvance(checked,actualSession,logs,nowMs)
     }
+
+    fun resolveMissedSessions(program: Program,choice: com.example.kpkn.domain.training.schedule.MissedSessionChoice,
+        metadata: ExerciseCompositionMetadataProvider,logs: List<WorkoutLog>,executedSessionIds: Set<String> = emptySet(),
+        nowMs: Long = 0L): Program = com.example.kpkn.domain.training.schedule.MissedSessionPolicy.resolve(
+            program,choice,metadata,logs,executedSessionIds,nowMs)
+
+    fun applySoftReturn(program: Program,metadata: ExerciseCompositionMetadataProvider,
+        executedSessionIds: Set<String> = emptySet(),nowMs: Long = 0L): Program =
+        com.example.kpkn.domain.training.schedule.MissedSessionPolicy.applySoftReturn(program,metadata,executedSessionIds,nowMs)
 
     fun applyWeeklyCheckin(
         program: Program,
@@ -313,6 +331,7 @@ object ProgramProgressEngine {
             instanceId = canonicalInstance.instanceId,
             cycleNumber = cycleNumber,
             programRunId = runId,
+            skippedSessionKeys = program.skippedSessionKeys,
         )
 
         if (!weekComplete) {
@@ -340,7 +359,7 @@ object ProgramProgressEngine {
         while (nextIndex in instances.indices) {
             val candidate = instances[nextIndex]
             val candidateWeek = hierarchy.locateWeek(candidate.templateWeekId)?.week ?: break
-            if (!isWeekInstanceComplete(candidateWeek, logs, workingProgram.id, candidate.instanceId, cycleNumber, runId)) break
+            if (!isWeekInstanceComplete(candidateWeek, logs, workingProgram.id, candidate.instanceId, cycleNumber, runId, workingProgram.skippedSessionKeys)) break
             workingProgram = markLoopOccurrenceCompletedIfNeeded(workingProgram, candidateWeek, cycleNumber)
             nextIndex++
         }
@@ -790,6 +809,7 @@ object ProgramProgressEngine {
             instanceId = weekInstanceId,
             cycleNumber = cycleForInstance,
             programRunId = runId,
+            skippedSessionKeys = program.skippedSessionKeys,
         )
         if (!weekComplete) {
             val cycleNumber = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
@@ -1216,7 +1236,7 @@ object ProgramProgressEngine {
         val runId = program.runState?.runId ?: activeState?.programRunId
         val allRequiredComplete = currentInstances.isNotEmpty() && currentInstances.all { instance ->
             val week = hierarchy.locateWeek(instance.templateWeekId)?.week ?: return@all false
-            isWeekInstanceComplete(week, logs, program.id, instance.instanceId, cycleNumber, runId)
+            isWeekInstanceComplete(week, logs, program.id, instance.instanceId, cycleNumber, runId, program.skippedSessionKeys)
         }
         if (!allRequiredComplete) return ProgressAdvanceResult(program, activeState)
 
@@ -1447,12 +1467,12 @@ object ProgramProgressEngine {
             val runId = program.runState?.runId
             val allBaseDone = instances.all { instance ->
                 val week = hierarchy.locateWeek(instance.templateWeekId)?.week ?: return@all false
-                isWeekInstanceComplete(week, emptyList(), program.id, instance.instanceId, cycle, runId)
+                isWeekInstanceComplete(week, emptyList(), program.id, instance.instanceId, cycle, runId, program.skippedSessionKeys)
             }
             // Prefer landing on first remaining incomplete instance; else start next cycle.
             val incomplete = instances.firstOrNull { instance ->
                 val week = hierarchy.locateWeek(instance.templateWeekId)?.week ?: return@firstOrNull false
-                !isWeekInstanceComplete(week, emptyList(), program.id, instance.instanceId, cycle, runId)
+                !isWeekInstanceComplete(week, emptyList(), program.id, instance.instanceId, cycle, runId, program.skippedSessionKeys)
             }
             if (incomplete != null) {
                 return program.copy(

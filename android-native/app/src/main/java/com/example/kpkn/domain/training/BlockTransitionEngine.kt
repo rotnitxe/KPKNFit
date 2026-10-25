@@ -82,6 +82,7 @@ object BlockTransitionEngine {
     ): Boolean {
         val weeks = block.mesocycles.flatMap { it.weeks }
         if (weeks.isEmpty()) return false
+        val cycle = if (program.requiresNativeWeekInstances()) program.runState?.cycleNumber ?: 1 else 1
         return weeks.all { week ->
             if (week.executionKind != com.example.kpkn.data.models.WeekExecutionKind.REST &&
                 week.sessions.none(SessionTemplateEngine::sessionHasExecutableContent)
@@ -92,9 +93,10 @@ object BlockTransitionEngine {
                 week = week,
                 logs = logs,
                 programId = program.id,
-                instanceId = week.id,
-                cycleNumber = 1,
+                instanceId = ProgramProgressEngine.instanceIdFor(cycle,week.id),
+                cycleNumber = cycle,
                 programRunId = programRunId,
+                skippedSessionKeys = program.skippedSessionKeys,
             )
         }
     }
