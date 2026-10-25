@@ -64,6 +64,38 @@ class TrainingSnapshotRestoreTest {
     private fun digest(file:File)=MessageDigest.getInstance("SHA-256").digest(file.readBytes()).toList()
     private fun ids(context:Context):List<String> = KpknDatabase.getInstance(context).openHelper.writableDatabase.query("SELECT id FROM workout_logs ORDER BY id").use { c -> buildList { while(c.moveToNext()) add(c.getString(0)) } }
 
+    @Test fun `combined snapshot restores original observations and nutrition day state on Room35`() = fixture { context, _ ->
+        val active = KpknDatabase.getInstance(context)
+        val db = active.openHelper.writableDatabase
+        val original = """{"sleepHours":7.25,"notes":"Respuesta original"}"""
+        db.execSQL("INSERT INTO training_observations VALUES('original','sleep','2026-10-02',?,'historical_original')", arrayOf(original))
+        db.execSQL("INSERT INTO nutrition_day_marks VALUES('2026-10-02','FASTING','USER','2026-10-02T12:00:00Z')")
+        db.execSQL("INSERT INTO nutrition_checkins VALUES('2026-09-28','PENDING',NULL,'{}',NULL,'2026-10-02T12:00:00Z')")
+        val name = DatabaseBackupHelper.createSnapshot(context)
+        val source = DatabaseBackupHelper.listSnapshots(context).single { it.name == name }
+        val before = digest(source)
+        db.execSQL("DELETE FROM training_observations")
+        db.execSQL("DELETE FROM nutrition_day_marks")
+        db.execSQL("DELETE FROM nutrition_checkins")
+        db.execSQL("DELETE FROM workout_logs")
+
+        DatabaseBackupHelper.restoreSnapshot(context, source)
+
+        assertSame(active, KpknDatabase.getInstance(context))
+        assertEquals(35, db.version)
+        assertEquals(listOf("active"), ids(context))
+        db.query("SELECT payload FROM training_observations WHERE sourceIdentity='original'").use {
+            assertTrue(it.moveToFirst()); assertEquals(original, it.getString(0))
+        }
+        db.query("SELECT mark FROM nutrition_day_marks WHERE date='2026-10-02'").use {
+            assertTrue(it.moveToFirst()); assertEquals("FASTING", it.getString(0))
+        }
+        db.query("SELECT proposalJson FROM nutrition_checkins WHERE weekKey='2026-09-28'").use {
+            assertTrue(it.moveToFirst()); assertEquals("{}", it.getString(0))
+        }
+        assertEquals(before, digest(source))
+    }
+
     @Test fun `legacy snapshot migrates privately and repeated restore keeps active Room and external source`() = fixture { context,root ->
         val source=legacy(root);val before=digest(source);val active=KpknDatabase.getInstance(context)
         repeat(2) {

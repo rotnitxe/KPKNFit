@@ -75,6 +75,7 @@ android {
             }
         }
         debug {
+            // Identidad y firma estables de KPKN Dev; una prueba nunca reemplaza la app personal.
             applicationIdSuffix = ".dbg"
             signingConfig = signingConfigs.getByName("debug")
         }
@@ -247,6 +248,8 @@ dependencies {
     // La app usa MediaPipe (tasks-vision). Vale para los dos sabores (base + health).
     debugImplementation("com.google.mlkit:pose-detection:18.0.0-beta5")
     implementation("com.google.mlkit:text-recognition:16.0.1")
+    // Lector de códigos de barras de ML Kit, variante EMPAQUETADA (el modelo va dentro de la APK: sin Play Services ni red; ola MFP, N3).
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
     implementation(libs.vosk.android)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)

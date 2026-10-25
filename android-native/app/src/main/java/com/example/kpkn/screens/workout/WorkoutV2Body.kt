@@ -2141,6 +2141,7 @@ internal fun WorkoutV2Body(
                                     ) {
                                         WorkoutSetInputOwner(targetExercise, activeSet.id) {
                                         SetInputCardV2(
+                                    equipmentInventory = settings.equipmentInventory,
                                     exercise = targetExercise,
                                     setIndex = activeSetIndex,
                                     currentSet = activeSet,

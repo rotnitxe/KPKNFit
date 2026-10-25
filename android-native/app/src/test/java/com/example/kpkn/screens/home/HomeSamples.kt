@@ -236,21 +236,25 @@ internal object HomeSamples {
         HomeBodyPoint(today.minusDays(ago.toLong()), 78.4 + 1.2 * progress + wobble)
     }
 
-    /** Cuerpo con tendencia y objetivo de 72 kg: 78,4 kg, −1,2 kg en 30 días y, con altura real, IMC y FFMI. */
+    /** Cuerpo con tendencia y objetivo de 72 kg: tendencia 78,2 kg (último peso 78,4), −1,1 kg en 30 días y, con altura real, IMC y FFMI. */
     fun bodyWithTrendAndGoal(): HomeBodyState {
         val trend = bodyTrend()
         return HomeBodyState(
             weightKg = trend.last().kg,
+            trendKg = 78.2,
             weightChange30d = trend.last().kg - trend.first().kg,
             trend = trend,
             windowEnd = today,
             goalKg = 72.0,
             goalMonth = "abril",
+            goalMonthRange = "mar – jun",
             changeTowardGoal = true,
             bodyFatPct = 18.2,
             musclePct = 40.1,
             bmi = 24.2,
             ffmi = 19.8,
+            trendChange30d = -1.1,
+            trendChangeTowardGoal = true,
         )
     }
 

@@ -182,14 +182,14 @@ class FoodInterpretationV2Engine(
         val vague = tag.amountIntent == AmountIntent.UNSPECIFIED || tag.amountIntent == AmountIntent.INFERRED_CONTEXT
         val minGrams = (tag.portionMinGrams ?: if (vague) grams * 0.75 else grams).coerceAtMost(grams)
         val maxGrams = (tag.portionMaxGrams ?: if (vague) grams * 1.25 else grams).coerceAtLeast(grams)
-        val source = when (tag.nutritionSource) {
+        val source = if (logged?.recipeId != null && !tag.nutrientsManuallyEdited) FoodSource.CUSTOM_CONFIRMED else when (tag.nutritionSource) {
             NutritionSourceKind.HEURISTIC_ESTIMATE -> FoodSource.HEURISTIC
             NutritionSourceKind.DATASET_ESTIMATE -> FoodSource.DATASET_SEMANTIC
             NutritionSourceKind.EXTERNAL_ESTIMATE -> FoodSource.HEURISTIC
             NutritionSourceKind.USER_PROVIDED -> FoodSource.MANUAL
             else -> food?.source.toFoodSource()
         }
-        val basis = if (tag.nutrientsManuallyEdited) NutritionBasis.PER_SERVING else food?.nutritionBasis.toNutritionBasis(tag.foodState)
+        val basis = if (logged?.recipeId != null && logged.unit != "g") NutritionBasis.PER_SERVING else if (tag.nutrientsManuallyEdited) NutritionBasis.PER_SERVING else food?.nutritionBasis.toNutritionBasis(tag.foodState)
         val uncertain = tag.isUncertain || vague || minGrams != maxGrams || questions.isNotEmpty() ||
             source in setOf(FoodSource.HEURISTIC, FoodSource.DATASET_SEMANTIC)
         val sourceId = food?.sourceRecordId ?: food?.id
@@ -201,8 +201,9 @@ class FoodInterpretationV2Engine(
         val calculatedName = if (convertsWeightBasis) {
             "${conversionStem(food!!.name)} (${if (tag.foodState == FoodState.RAW) "crudo" else "cocido"}, estimado)"
         } else food?.name ?: logged?.foodName
-        fun minimum(value: Double?, explicit: Double?) = explicit ?: (value ?: 0.0) * minGrams / grams.coerceAtLeast(1.0)
-        fun maximum(value: Double?, explicit: Double?) = explicit ?: (value ?: 0.0) * maxGrams / grams.coerceAtLeast(1.0)
+        val amountDivisor = if (logged?.recipeId != null) grams.takeIf { it > 0.0 } ?: 1.0 else grams.coerceAtLeast(1.0)
+        fun minimum(value: Double?, explicit: Double?) = explicit ?: (value ?: 0.0) * minGrams / amountDivisor
+        fun maximum(value: Double?, explicit: Double?) = explicit ?: (value ?: 0.0) * maxGrams / amountDivisor
         return FoodInterpretationV2(
             draftId = tag.id, canonicalIdentity = calculatedName,
             canonicalFamily = tag.canonicalFamily, selectedCandidateId = food?.id,
@@ -258,7 +259,7 @@ class FoodInterpretationV2Engine(
             isConfirmedEstimate = false,
             isUncertain = uncertain || convertsWeightBasis,
             declaredUnitId = tag.unitId,
-            nutritionReferenceNote = estimate?.let {
+            nutritionReferenceNote = logged?.nutritionReferenceNote?.takeIf { logged.recipeId != null } ?: estimate?.let {
                 it.assumption + if (it.isUnmatchedFallback || it.requiresCompositionClarification) " Rango orientativo; composición sin confirmar." else ""
             },
         )
@@ -318,7 +319,7 @@ fun FoodInterpretationV2.canFinalize(): Boolean = pendingQuestions.none { it.mat
 fun FoodInterpretationV2.toLoggedFood(reference: LoggedFood): LoggedFood = reference.copy(
     foodName = canonicalIdentity ?: reference.foodName,
     amount = observedGrams ?: reference.amount,
-    unit = "g",
+    unit = if (reference.recipeId != null) reference.unit else "g",
     calories = calories, protein = proteinGrams, carbs = carbsGrams, fats = fatGrams,
     caloriesMin = caloriesMin, caloriesMax = caloriesMax,
     proteinMin = proteinMinGrams, proteinMax = proteinMaxGrams,
@@ -368,6 +369,7 @@ fun ResolvedTag.confirmedLearning(): FoodLearningConfirmation? {
 }
 
 fun rescaleEstimatedFood(base: LoggedFood, grams: Double): LoggedFood {
+    if (base.recipeId != null) return RecipeCalculator.resizePortion(base, grams)
     val factor = grams / base.amount.coerceAtLeast(1.0)
     return base.copy(
         amount = grams, calories = base.calories * factor, protein = base.protein * factor,

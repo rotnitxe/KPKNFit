@@ -136,7 +136,7 @@ fun LoggerFoodItem(
             }
         }
 
-        KpknSegmentedControl(
+        if (logged?.recipeId == null) KpknSegmentedControl(
             options = portions.map { portionPresetLabel(it) },
             selectedIndex = portions.indexOf(tag.portion).coerceAtLeast(0),
             onSelect = { index -> actions.onPortionChange(portions[index]) },
@@ -235,5 +235,10 @@ private fun identityLine(tag: ResolvedTag): String? {
     val result = tag.interpretationV2 ?: return null
     val identity = result.canonicalIdentity ?: "Alimento sin identificar"
     val approx = if (result.isUncertain) "aprox. " else ""
+    val food = tag.loggedFood
+    if (food?.recipeId != null) {
+        val amount = java.text.DecimalFormat("0.##").format(food.amount)
+        return "$identity · $approx$amount ${food.unit}"
+    }
     return "$identity · $approx${kotlin.math.round(result.observedGrams ?: 0.0).toInt()} g"
 }

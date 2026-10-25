@@ -90,14 +90,14 @@ class VideoAnalysisMigrationValidateTest {
         assertEquals(1, before.getValue("workout_media_session_associations").size)
         assertEquals(1, before.getValue("programs").size)
 
-        val upgraded = Room.databaseBuilder(shortPathContext(databaseDirectory), KpknDatabase::class.java, databaseName)
-            .addMigrations(videoAnalysisMigration(28), CALIBRATION_MIGRATION_29_30)
+        val upgraded = Room.databaseBuilder(shortPathContext(databaseDirectory), PublishedMfp31FixtureDatabase::class.java, databaseName)
+            .addMigrations(videoAnalysisMigration(28), CALIBRATION_MIGRATION_29_30, nutritionDayStateMigration(30))
             .allowMainThreadQueries()
             .build()
         try {
-            // Abrir por Room = migración real + validación completa del esquema v29.
+            // Abrir por Room = migración real + validación completa del esquema integrado v31.
             val db = upgraded.openHelper.writableDatabase
-            assertEquals(30L, scalar(db, "PRAGMA user_version"))
+            assertEquals(31L, scalar(db, "PRAGMA user_version"))
 
             val after = snapshotUserTables { sql -> db.query(sql).readRows() }
             assertEquals("ninguna tabla anterior puede perder ni cambiar filas", before.keys, after.keys)
@@ -109,6 +109,7 @@ class VideoAnalysisMigrationValidateTest {
                 scalar(db, "SELECT COUNT(*) FROM workout_media WHERE catalogDefinitionId IS NULL AND catalogConfigurationId IS NULL"),
             )
             assertEquals(0L, scalar(db, "SELECT COUNT(*) FROM video_analysis"))
+            assertEquals(0L, scalar(db, "SELECT COUNT(*) FROM calibration_decisions"))
 
             db.query("PRAGMA foreign_key_check").use { assertFalse("claves foráneas rotas", it.moveToFirst()) }
             db.query("PRAGMA integrity_check").use { cursor ->
@@ -149,8 +150,8 @@ class VideoAnalysisMigrationValidateTest {
         val databaseDirectory = temporaryFolder.newFolder("room-28-29-ddl")
         createPhysicalRoom(28, File(databaseDirectory, databaseName))
 
-        val upgraded = Room.databaseBuilder(shortPathContext(databaseDirectory), KpknDatabase::class.java, databaseName)
-            .addMigrations(videoAnalysisMigration(28), CALIBRATION_MIGRATION_29_30)
+        val upgraded = Room.databaseBuilder(shortPathContext(databaseDirectory), PublishedMfp31FixtureDatabase::class.java, databaseName)
+            .addMigrations(videoAnalysisMigration(28), CALIBRATION_MIGRATION_29_30, nutritionDayStateMigration(30))
             .allowMainThreadQueries()
             .build()
         try {
@@ -334,7 +335,9 @@ class VideoAnalysisMigrationValidateTest {
     private fun snapshotUserTables(query: (String) -> List<List<String?>>): Map<String, List<List<String?>>> {
         val tables = query("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name").map { it.single()!! }
             .filterNot { it.startsWith("sqlite_") || it.startsWith("room_") || it.startsWith("global_foods_fts") }
-            .filterNot { it == "android_metadata" || it == "video_analysis" || it == "calibration_decisions" }
+            .filterNot { it == "android_metadata" || it == "video_analysis" }
+            // La comparación sigue limitada a las tablas anteriores a v29.
+            .filterNot { it == "calibration_decisions" || it == "nutrition_day_marks" || it == "nutrition_checkins" }
         return tables.associateWith { table ->
             val columns = if (table == "workout_media") {
                 V28_MEDIA_COLUMNS

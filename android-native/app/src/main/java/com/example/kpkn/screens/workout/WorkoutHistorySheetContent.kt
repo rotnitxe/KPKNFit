@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.domain.workout.restPauseDescription
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
@@ -193,5 +194,6 @@ private fun HistorySetRow(set: CompletedSet) {
             style = KpknType.body.copy(fontFeatureSettings = "'tnum' 1"),
             color = WizardColors.text,
         )
+        set.restPauseDescription()?.let { Text(it,style=KpknType.caption,color=WizardColors.textMuted) }
     }
 }

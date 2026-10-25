@@ -69,6 +69,53 @@ class ProgramAnalyticsEngineTest {
         assertTrue(report.efficiency.blockIdentity.isNotBlank())
     }
 
+    @Test
+    fun `cobertura semanal divide por todas las semanas prescritas incluida la vacia`() {
+        val f = TrainingVolumeFixtures
+        val weeks = listOf(
+            f.week("w1", f.today.minusWeeks(2), sessions = 3),
+            f.week("w2", f.today.minusWeeks(1), sessions = 3),
+            f.week("w3", f.today),
+        )
+        val report = ProgramAnalyticsEngine.analyze(f.program(weeks), emptyList(), f.catalog.values.toList())
+        assertEquals(4.0, report.coverage.musclesByWeeklySets.single { it.name == "Pectorales" }.value, 1e-9)
+        assertEquals(4.0, report.coverage.directIndirectByMuscle.single { it.muscle == "Pectorales" }.directSets, 1e-9)
+        assertEquals(32.0, report.coverage.repsByMuscle.single { it.name == "Pectorales" }.value, 1e-9)
+        assertEquals(9.0, report.coverage.timeMinutesByMuscle.single { it.name == "Pectorales" }.value, 1e-9)
+    }
+
+    @Test
+    fun `configuraciones v2 usan el mismo indice que volumen y no dejan la cobertura vacia`() {
+        val configuration = ExerciseMuscleInfo(
+            id = "press-config-v2", name = "Press", force = "Empuje", bodyPart = "upper",
+            involvedMuscles = listOf(InvolvedMuscle("Pectorales", MuscleRole.PRIMARY, 1.0)),
+        )
+        val exercise = Exercise(
+            id = "ocurrencia", name = "Press", catalogDefinitionId = "press-def",
+            catalogConfigurationId = configuration.id, sets = workSets(4),
+        )
+        val program = programWithExercises(exercise)
+        val report = ProgramAnalyticsEngine.analyze(
+            program, emptyList(), exerciseCatalog = emptyList(), exerciseIndex = mapOf(configuration.id to configuration),
+        )
+        assertEquals(4.0, report.coverage.musclesByWeeklySets.single { it.name == "Pectorales" }.value, 1e-9)
+        assertTrue(report.balance.movementPatterns.isNotEmpty())
+    }
+
+    @Test
+    fun `el desglose de cobertura no suma roles de distintas cabezas del mismo grupo`() {
+        val muscles = listOf(
+            InvolvedMuscle("Deltoides", MuscleRole.PRIMARY, 1.0, "anterior"),
+            InvolvedMuscle("Deltoides", MuscleRole.SECONDARY, 0.5, "medio"),
+        )
+        val program = programWithExercises(Exercise("e", "Press", effectiveMuscles = muscles, sets = workSets(3)))
+        val report = ProgramAnalyticsEngine.analyze(program, emptyList(), emptyList())
+        val roles = report.coverage.directIndirectByMuscle.single { it.muscle == "Deltoides" }
+        val total = report.coverage.musclesByWeeklySets.single { it.name == "Deltoides" }.value
+        assertEquals(3.0, total, 1e-9)
+        assertEquals(total, roles.directSets + roles.indirectSets, 1e-9)
+    }
+
     private fun programWithExercises(vararg exercises: Exercise): Program =
         Program(
             id = "program",

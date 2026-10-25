@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.data.models.Exercise
@@ -15,7 +16,6 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.performedPurpose
 import com.example.kpkn.data.models.isCardio
 import com.example.kpkn.data.models.isEffectivelyUnilateral
-import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.models.unresolvedDiscomfortIds
 import com.example.kpkn.data.models.SetPurpose
@@ -361,6 +361,15 @@ internal object RelatorContextBuilder {
                 sessionBestPreviousE1rm = sessionBestPrevious,
                 isStar = ex.isStarTarget || (ex.goal1RM != null && (ex.goal1RM ?: 0.0) > 0.0),
                 goal1RmKg = ex.goal1RM,
+                effort = if (inferredPhase == RelatorPhase.REST) {
+                    sessionLastSet?.let { state.completedSets[workoutSetKey(ex.id, it.setNumber - 1, activeSide)] }
+                } else CompletedSet(
+                    id = "vista-previa",
+                    actualIntensityMode = currentSet?.intensityMode,
+                    actualIntensityValue = draft?.intensityText?.replace(',', '.')?.toDoubleOrNull(),
+                    isFailure = draft?.reachedFailure == true,
+                    amrapPerformed = currentSet?.purpose?.isAmrap == true,
+                ),
             )
         }
         val discomfortHint = currentExercise?.let { exercise ->
@@ -500,7 +509,11 @@ internal object RelatorContextBuilder {
         }
         val bestRm = current?.let { queries.bestEstimated1Rm(it) } ?: 0.0
         val liveRm = snapshot.enteredWeight?.let { w ->
-            snapshot.enteredReps?.toInt()?.let { r -> calculateHybrid1RM(w, r) }
+            snapshot.enteredReps?.toInt()?.let { r -> StrengthModel.estimate1RM(w, r,
+                rir = snapshot.enteredIntensity?.takeIf { snapshot.intensityMode == IntensityMode.RIR }?.toInt(),
+                rpe = snapshot.enteredIntensity?.takeIf { snapshot.intensityMode == IntensityMode.RPE },
+                toFailure = snapshot.reachedFailure || snapshot.intensityMode == IntensityMode.SOLO_RM,
+                isAmrap = snapshot.intensityMode == IntensityMode.AMRAP) }
         }
         val distance = if (bestRm > 0 && liveRm != null) (bestRm - liveRm).coerceAtLeast(0.0) else
             bestRm.takeIf { it > 0 }?.let { snapshot.suggestedWeightKgGap(it) }

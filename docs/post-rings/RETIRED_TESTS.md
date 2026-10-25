@@ -172,3 +172,11 @@ La ficha ahora exige registro anterior con fecha, sin rótulo «Hoy» ni consejo
 carga, incluso si se inyecta un DTO legado con advice. Las pruebas no se omiten.
 
 Cierre cloud: changed-regression-v3, 200 clases/2033 pruebas, cero fallos, errores y omisiones, exit0. Las dos expectativas UI restantes de v2 se actualizaron manteniendo controles positivos de material y registros originales.
+
+## Integración MFP + POST-RINGS en master
+
+- `StrengthPlannedEnergyParityTest` cubría exclusivamente el adaptador del motor de energía de entrenamiento retirado. Se retira ese test; el modelo puro de fuerza y las prescripciones conservan sus pruebas.
+- `MyoRepsPresetTest` conserva preset, edición, JSON y paridad de conteo con rest-pause. Se retira únicamente la aserción de drenaje AUGE.
+- `VolumeAccountingContractTest` conserva todos los casos de roles, divisor, duplicados, calentamientos y contribuyentes. El ajuste legado de intensidad no cambia los conteos factuales.
+- Los tests de mapa corporal, estado y ajustes conservan volumen, accesibilidad y descanso. Se retiran los casos de porcentajes AUGE y se comprueba que no aparezcan sus controles.
+- Las cadenas históricas 27→31 se validan con una base fixture exclusiva de tests que representa el esquema público MFP31. La base real se prueba hasta v35 desde 28/29/30/31 público/31 privado/32/33/34, con originales y abortos transaccionales.

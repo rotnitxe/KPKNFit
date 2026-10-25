@@ -1,10 +1,15 @@
 package com.example.kpkn.domain.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.performedPurpose
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
+import com.example.kpkn.data.models.UnitModeV2
+import com.example.kpkn.data.models.plannedRepAnchor
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -55,10 +60,10 @@ object LoadSuggestionEngine {
     fun estimatedCapacity(set: CompletedSet): Double? {
         val mode = resolvedLoadMode(set)
         if (mode == LoadModeV2.ASSISTED || mode == LoadModeV2.BODYWEIGHT) return null
-        // Recompute from the performed full reps and normalized load. Old persisted
-        // homologations may contain the v1 AMRAP bonus; they remain untouched.
+        set.homologatedResultV3?.takeIf { it.estimatorVersion >= com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION }?.estimatedRm?.takeIf { it > 0.0 }?.let { return it }
+        // Sin valor guardado: modelo único con el esfuerzo registrado, con el mismo rango de repeticiones de siempre.
         return if (set.weight > 0.0 && set.reps > 0) {
-            calculateHybrid1RM(set.weight, set.reps)
+            StrengthModel.estimate1RM(set).takeIf { it > 0.0 }
         } else {
             null
         }

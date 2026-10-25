@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import android.content.Context
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.PerformanceRangeData
@@ -10,7 +11,6 @@ import com.example.kpkn.data.db.toPerformanceRangeData
 import com.example.kpkn.data.db.toPerformanceSnapshotData
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.PostExerciseFeedback
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.performance.PerformanceRangeCalculator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,7 +60,7 @@ class PerformanceRangeStore(appContext: Context) {
 
             val rawSessionErm = completedEx.sets.mapNotNull { set ->
                 if (set.weight > 0 && set.reps > 0) {
-                    calculateHybrid1RM(set.weight, set.reps)
+                    StrengthModel.estimate1RM(set).takeIf { it > 0.0 }
                 } else {
                     null
                 }

@@ -9,6 +9,7 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.body.goalProgressPercent
 import com.example.kpkn.domain.body.latestValidByMetric
 import com.example.kpkn.domain.exercises.analyticsExerciseKey
+import com.example.kpkn.domain.performance.StrengthModel
 import kotlin.math.min
 
 /**
@@ -75,7 +76,7 @@ fun buildStarredExerciseProgress(
             log.completedExercises.mapNotNull { exercise ->
                 val bestEstimated = exercise.sets
                     .mapNotNull { set ->
-                        calculateEpley1RM(set.weight, set.reps)
+                        StrengthModel.estimate1RM(set).takeIf { it > 0.0 }
                     }
                     .maxOrNull()
                     ?: return@mapNotNull null
@@ -97,11 +98,6 @@ fun buildStarredExerciseProgress(
             )
         }
         .sortedWith(compareByDescending<StarredExerciseProgress> { it.bestEstimated1RM ?: -1.0 }.thenBy { it.name })
-}
-
-private fun calculateEpley1RM(weight: Double, reps: Int): Double? {
-    if (!weight.isFinite() || weight <= 0.0 || reps !in 1..36) return null
-    return weight * (1.0 + reps / 30.0)
 }
 
 data class NutritionGoalProgress(

@@ -1,0 +1,15 @@
+# Rutas relativas a los srcDirs (src/main/java de la app y stubs/) que no caen en los patrones de include de build.gradle.kts.
+# Stubs del arnés (carpeta stubs/):
+android/content/HarnessContextStub.kt
+android/content/res/HarnessAssetManagerStub.kt
+androidx/compose/ui/graphics/HarnessColorStub.kt
+com/example/kpkn/telemetry/nutrition/NutritionTelemetryHarnessStub.kt
+com/example/kpkn/screens/workout/HarnessWorkoutStubs.kt
+com/example/kpkn/data/db/HarnessDbStubs.kt
+com/example/kpkn/data/repository/HarnessRepositoryStubs.kt
+# Archivos de la app puros (sin Android, sin Compose, sin ViewModel) fuera de los paquetes incluidos por defecto:
+com/example/kpkn/screens/nutrition/NutritionWizardDraft.kt
+com/example/kpkn/data/importer/ImportLimits.kt
+com/example/kpkn/data/importer/OfficeXml.kt
+com/example/kpkn/data/importer/XlsxReader.kt
+com/example/kpkn/data/importer/CsvReader.kt

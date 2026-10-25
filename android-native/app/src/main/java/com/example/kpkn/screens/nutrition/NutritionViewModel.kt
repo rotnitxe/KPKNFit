@@ -7,6 +7,11 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.nutrition.RecordedEnergyBalance
 import com.example.kpkn.domain.nutrition.*
+import com.example.kpkn.domain.nutrition.expenditure.DayMark
+import com.example.kpkn.domain.nutrition.expenditure.DayMarkSource
+import com.example.kpkn.screens.nutrition.daystate.NutritionDayState
+import com.example.kpkn.screens.nutrition.daystate.nutritionDayState
+import com.example.kpkn.domain.time.ActivityLocalDate
 import com.example.kpkn.domain.training.AppClock
 import com.example.kpkn.domain.training.SystemAppClock
 import kotlinx.coroutines.CancellationException
@@ -14,7 +19,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -45,6 +52,7 @@ class NutritionViewModel(
     private val clock: AppClock = SystemAppClock,
     private val zoneProvider: () -> ZoneId = { ZoneId.systemDefault() },
     private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val checkinRecords: Flow<List<com.example.kpkn.domain.nutrition.checkin.CheckinRecord>> = flowOf(emptyList()),
 ) : ViewModel() {
 
     private val nutritionRepo = NutritionRepository.getInstance()
@@ -224,6 +232,14 @@ class NutritionViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    /** Nutrientes del día calculados fuera del hilo principal; no altera los totales de macros. */
+    val nutrients: StateFlow<com.example.kpkn.screens.nutrition.nutrients.NutrientsSheetState> = combine(
+        todayLogs, programRepo.settings, activePlan, _selectedDate,
+    ) { logs, settings, plan, date ->
+        com.example.kpkn.screens.nutrition.nutrients.buildNutrientsSheetState(date, logs, DriTargets.profileFor(settings, plan))
+    }.flowOn(computeDispatcher).stateIn(viewModelScope, SharingStarted.Lazily,
+        com.example.kpkn.screens.nutrition.nutrients.NutrientsSheetState())
+
     // ─── Derived: Daily Totals ──────────────────────────────────────────────
 
     val dailyTotals: StateFlow<DailyMacroTotals> = todayLogs
@@ -232,7 +248,9 @@ class NutritionViewModel(
         .stateIn(viewModelScope, SharingStarted.Lazily, DailyMacroTotals())
 
     val mealGroups: StateFlow<List<MealGroup>> = todayLogs
-        .map { computeMealGroups(it) }
+        .map { logs -> computeMealGroups(logs).map { group ->
+            group.copy(logs = group.logs.sortedBy { com.example.kpkn.domain.nutrition.MealTime.label(it.date) })
+        } }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -363,8 +381,17 @@ class NutritionViewModel(
     }
 
     fun addLog(log: NutritionLog) {
-        maybePromptCreatineOnboarding(log)
-        nutritionRepo.addNutritionLog(log)
+        viewModelScope.launch {
+            try {
+                nutritionRepo.saveNutritionLog(log)
+                maybePromptCreatineOnboarding(log)
+            } catch (error: Exception) {
+                // Room también puede cancelar su propio scope al cerrar la base: eso es un fallo de guardado.
+                if (error is CancellationException) currentCoroutineContext().ensureActive()
+                android.util.Log.w("NutritionViewModel", "No se pudo guardar la comida", error)
+                _uiMessage.value = "No se pudo guardar la comida. Inténtalo de nuevo."
+            }
+        }
     }
 
     // ─── Deshacer, editar y avisos (WP-U11 / C9) ──────────────────────────────
@@ -376,7 +403,7 @@ class NutritionViewModel(
 
     private val _uiMessage = MutableStateFlow<String?>(null)
 
-    /** Aviso para el usuario (un borrado o una restauración que falló); la pantalla lo muestra y lo consume. */
+    /** Aviso para el usuario cuando falla una operación; la pantalla lo muestra y lo consume. */
     val uiMessage: StateFlow<String?> = _uiMessage.asStateFlow()
 
     fun consumeUiMessage() {
@@ -606,6 +633,197 @@ class NutritionViewModel(
                 android.util.Log.w("NutritionViewModel", "No se pudo mover la comida", error)
                 _uiMessage.value = "No se pudo mover la comida. Inténtalo de nuevo."
             }
+        }
+    }
+
+    private val _dayMarkSaving = MutableStateFlow(false)
+    val dayMarks = nutritionRepo.dayMarks
+
+    val dayState: StateFlow<NutritionDayState> = combine(
+        nutritionLogs, dayMarks, _selectedDate, _today, _dayMarkSaving,
+    ) { logs, marks, selected, today, saving ->
+        val date = runCatching { LocalDate.parse(selected) }.getOrNull()
+        if (date == null) NutritionDayState(today, editable = false)
+        else nutritionDayState(logs, marks, date, today).copy(saving = saving)
+    }.flowOn(computeDispatcher).stateIn(viewModelScope, SharingStarted.Lazily, NutritionDayState(_today.value))
+
+    fun setDayMark(mark: DayMark, source: DayMarkSource = DayMarkSource.USER): Job = changeDayMark(mark, source)
+    fun clearDayMark(): Job = changeDayMark(null, DayMarkSource.USER)
+    fun acceptPartialDaySuggestion(): Job = setDayMark(DayMark.PARTIAL, DayMarkSource.REVIEW_ACCEPTED)
+    fun rejectPartialDaySuggestion(): Job = setDayMark(DayMark.COMPLETE_CONFIRMED, DayMarkSource.REVIEW_REJECTED)
+
+    private fun changeDayMark(mark: DayMark?, source: DayMarkSource): Job {
+        val selected = _selectedDate.value
+        return viewModelScope.launch {
+            if (_dayMarkSaving.value) return@launch
+            _dayMarkSaving.value = true
+            try {
+                val date = LocalDate.parse(selected)
+                require(!date.isAfter(_today.value)) { "No puedes marcar un día futuro." }
+                withContext(NonCancellable) {
+                    if (mark == null) nutritionRepo.clearDayMark(date) else nutritionRepo.setDayMark(date, mark, source)
+                }
+            } catch (error: Exception) {
+                if (error is CancellationException) currentCoroutineContext().ensureActive()
+                _uiMessage.value = if (error is IllegalArgumentException) error.message
+                    else "No se pudo guardar el estado del día. Inténtalo de nuevo."
+            } finally {
+                _dayMarkSaving.value = false
+            }
+        }
+    }
+
+    private val checkinWeekStart = combine(programRepo.programs, programRepo.activeProgramState) { programs, active ->
+        com.example.kpkn.screens.nutrition.checkin.checkinWeekStart(programs.find { it.id == active?.programId })
+    }
+
+    val checkinAvailability: StateFlow<com.example.kpkn.domain.nutrition.checkin.CheckinAvailability> = combine(
+        activePlan, programRepo.settings, _today, checkinRecords, checkinWeekStart,
+    ) { plan, settings, today, records, weekStart ->
+        val day = settings.nutritionCheckin.dayOfWeek?.takeIf { it in 1..7 }?.let(java.time.DayOfWeek::of) ?: weekStart
+        val key = com.example.kpkn.domain.nutrition.checkin.CheckinPolicy.weekKey(today, weekStart, day)
+        com.example.kpkn.domain.nutrition.checkin.CheckinPolicy.state(today, weekStart, records.find { it.weekKey == key },
+            plan != null && !settings.nutritionTrackingOnly, day)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, com.example.kpkn.domain.nutrition.checkin.CheckinAvailability.NONE)
+
+    // ─── Reutilización del diario (N4): copiar, repetir, plantillas ─────────────
+
+    /** Las plantillas guardadas (solo lectura; el registro de comidas las lista y las aplica). */
+    val mealTemplates: StateFlow<List<MealTemplate>> = nutritionRepo.mealTemplates
+
+    /**
+     * Las comidas PLANIFICADAS del día elegido (copias a fechas futuras). No cuentan como ingesta: ni en los totales ni en el estimador.
+     * Se listan aparte para poder verlas, marcarlas como consumidas (si el día ya llegó) o quitarlas.
+     */
+    val plannedLogs: StateFlow<List<NutritionLog>> = combine(nutritionLogs, _selectedDate) { logs, date ->
+        logs.filter { it.date.take(10) == date && it.status == NutritionStatus.PLANNED }
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    private val _reuseMessage = MutableStateFlow<MealReuse.ReuseMessage?>(null)
+
+    /** El resultado de la última copia, plantilla o cambio de estado: la pantalla lo muestra y lo consume. */
+    val reuseMessage: StateFlow<MealReuse.ReuseMessage?> = _reuseMessage.asStateFlow()
+
+    fun consumeReuseMessage() {
+        _reuseMessage.value = null
+    }
+
+    private val _reuseBusy = MutableStateFlow(false)
+
+    /** True mientras una copia se está guardando: un segundo toque no lanza otra. */
+    val reuseBusy: StateFlow<Boolean> = _reuseBusy.asStateFlow()
+
+    private val _pendingRepeat = MutableStateFlow<MealReuse.RepeatDecision.NeedsConfirmation?>(null)
+
+    /** «Repetir ayer» sobre un día que ya tiene comidas: espera la respuesta «Añadir» o «Cancelar». Nunca se reemplaza nada. */
+    val pendingRepeat: StateFlow<MealReuse.RepeatDecision.NeedsConfirmation?> = _pendingRepeat.asStateFlow()
+
+    /** Copia [sources] a cada fecha de [dates] por el guardado durable; ver [runReusePlan]. */
+    fun copyLogsTo(sources: List<NutritionLog>, dates: Collection<LocalDate>): Job =
+        runReusePlan(MealReuse.planCopy(sources, dates, _today.value))
+
+    /** «Copiar día a…»: todas las comidas registradas del día elegido a cada fecha de [dates]. */
+    fun copyDayTo(dates: Collection<LocalDate>): Job {
+        val selected = _selectedDate.value
+        val day = nutritionRepo.nutritionLogs.value.filter { it.date.take(10) == selected && it.status != NutritionStatus.PLANNED }
+        return copyLogsTo(day, dates)
+    }
+
+    /**
+     * «Repetir ayer»: trae las comidas del día anterior al elegido. Con el día vacío copia ya; si el día tiene comidas deja la pregunta en
+     * [pendingRepeat] (la respuesta es [confirmRepeat] o [cancelRepeat]); sin nada que repetir, lo dice.
+     */
+    fun repeatYesterday(): Job {
+        val target = runCatching { LocalDate.parse(_selectedDate.value) }.getOrNull() ?: return viewModelScope.launch { }
+        return when (val decision = MealReuse.decideRepeat(nutritionRepo.nutritionLogs.value, target, _today.value)) {
+            is MealReuse.RepeatDecision.NothingToRepeat -> viewModelScope.launch {
+                _reuseMessage.value = MealReuse.ReuseMessage("No hay comidas registradas el día anterior.", isError = false)
+            }
+            is MealReuse.RepeatDecision.Ready -> runReusePlan(decision.plan)
+            is MealReuse.RepeatDecision.NeedsConfirmation -> viewModelScope.launch { _pendingRepeat.value = decision }
+        }
+    }
+
+    /** «Añadir» a «Repetir ayer»: se copian las comidas sin tocar las que el día ya tiene. */
+    fun confirmRepeat(): Job {
+        val pending = _pendingRepeat.value ?: return viewModelScope.launch { }
+        _pendingRepeat.value = null
+        return runReusePlan(pending.plan)
+    }
+
+    fun cancelRepeat() {
+        _pendingRepeat.value = null
+    }
+
+    /**
+     * Ejecuta un plan de copia con el guardado durable (`saveNutritionLog`: espera a Room y publica después). Una copia cuyo id derivado ya
+     * está guardado se salta, así que un doble toque o un reintento no duplica ni pisa una copia editada; un fallo no corta las demás y el
+     * aviso dice cuáles se guardaron y cuáles no. Corre sin cancelación: salir de la pantalla a mitad no deja copias a medias sin avisar.
+     */
+    private fun runReusePlan(plan: MealReuse.CopyPlan): Job = viewModelScope.launch {
+        if (!_reuseBusy.compareAndSet(false, true)) return@launch
+        try {
+            val error = plan.error
+            if (error != null) {
+                _reuseMessage.value = MealReuse.ReuseMessage(copyErrorText(error), isError = true)
+                return@launch
+            }
+            val existing = nutritionRepo.nutritionLogs.value.mapTo(HashSet()) { it.id }
+            val report = withContext(NonCancellable) {
+                MealReuse.runPlan(plan, existing) { copy -> nutritionRepo.saveNutritionLog(copy) }
+            }
+            _reuseMessage.value = MealReuse.reportMessage(report)
+        } finally {
+            _reuseBusy.value = false
+        }
+    }
+
+    private fun copyErrorText(error: MealReuse.CopyPlanError): String = when (error) {
+        MealReuse.CopyPlanError.NO_SOURCES -> "No hay comidas que copiar."
+        MealReuse.CopyPlanError.NO_DATES -> "Elige al menos una fecha."
+        MealReuse.CopyPlanError.TOO_MANY_DATES -> "Máximo ${MealReuse.MAX_TARGET_DATES} fechas por vez."
+        MealReuse.CopyPlanError.DATE_OUT_OF_RANGE -> "Hay fechas a más de un año de hoy: elige otras."
+    }
+
+    /**
+     * Guarda [log] como plantilla [name] con el id [templateId] (el que la hoja generó al abrirse: reintentar reemplaza, no duplica).
+     * La escritura espera a Room y solo entonces se publica; si falla, avisa y no queda nada a medias.
+     */
+    fun saveLogAsTemplate(log: NutritionLog, name: String, templateId: String): Job = viewModelScope.launch {
+        val valid = MealReuse.validateTemplateName(name) as? MealReuse.TemplateNameCheck.Valid
+        val template = valid?.let { MealReuse.templateFromLog(log, it.name, templateId, java.time.Instant.now().toString()) }
+        if (template == null) {
+            _reuseMessage.value = MealReuse.ReuseMessage("No se pudo guardar la plantilla: revisa el nombre y los alimentos.", isError = true)
+            return@launch
+        }
+        try {
+            withContext(NonCancellable) { nutritionRepo.saveMealTemplate(template) }
+            _reuseMessage.value = MealReuse.ReuseMessage("Plantilla «${template.name}» guardada.", isError = false)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            android.util.Log.w("NutritionViewModel", "No se pudo guardar la plantilla", error)
+            _reuseMessage.value = MealReuse.ReuseMessage("No se pudo guardar la plantilla. Inténtalo de nuevo.", isError = true)
+        }
+    }
+
+    /** Pasa una comida planificada a consumida (el día ya llegó). Un día futuro no se puede: sería contar como ingesta lo que no ocurrió. */
+    fun markPlannedConsumed(logId: String): Job = viewModelScope.launch {
+        val log = nutritionRepo.nutritionLogs.value.firstOrNull { it.id == logId && it.status == NutritionStatus.PLANNED } ?: return@launch
+        val day = runCatching { LocalDate.parse(log.date.take(10)) }.getOrNull()
+        if (day == null || day.isAfter(_today.value)) {
+            _reuseMessage.value = MealReuse.ReuseMessage("Todavía no llega ese día.", isError = true)
+            return@launch
+        }
+        try {
+            withContext(NonCancellable) { nutritionRepo.updateNutritionLog(log.copy(status = NutritionStatus.CONSUMED)) }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            android.util.Log.w("NutritionViewModel", "No se pudo marcar la comida como consumida", error)
+            _reuseMessage.value = MealReuse.ReuseMessage("No se pudo marcar la comida como consumida. Inténtalo de nuevo.", isError = true)
         }
     }
 }

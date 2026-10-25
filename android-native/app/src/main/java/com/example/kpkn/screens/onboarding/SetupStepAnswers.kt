@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.onboarding
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.CalibrationResponseState
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.EquipmentAvailability
@@ -15,7 +16,6 @@ import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.NutritionWeeklyDistributionMode
 import com.example.kpkn.domain.nutrition.WizardPacePreset
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.onboarding.ArmStyle
 import com.example.kpkn.domain.onboarding.AvoidGroup
@@ -1014,7 +1014,7 @@ private fun SetupWizardDraft.withMarkDerivation(): SetupWizardDraft {
     val profileLifts = MarksContext.BIG_THREE + LiftMark.OVERHEAD_PRESS
     fun oneRm(lift: LiftMark): Double? = liftMarks[lift]?.takeIf { repsOf(lift) <= 1 }
     fun eRm(lift: LiftMark): Double? =
-        liftMarks[lift]?.takeIf { repsOf(lift) > 1 }?.let { kg -> calculateHybrid1RM(kg, repsOf(lift)) }
+        liftMarks[lift]?.takeIf { repsOf(lift) > 1 }?.let { kg -> StrengthModel.estimate1RM(kg, repsOf(lift)) }
     val profile = if (profileLifts.none { it in liftMarks }) {
         null
     } else {

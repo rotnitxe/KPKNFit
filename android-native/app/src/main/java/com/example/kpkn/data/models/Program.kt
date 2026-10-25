@@ -135,6 +135,8 @@ data class Program(
     val hybridPlanning: HybridPlanningConfiguration? = null,
     /** Explicit added-session recipe provenance; the primary native recipe stays authoritative. */
     val hybridAuthoredSources: List<HybridAuthoredSessionSource> = emptyList(),
+    /** Grupos realmente evitados al crear el plan; vacío en programas heredados. JSON aditivo, sin migración. */
+    val avoidedExerciseGroups: Set<String> = emptySet(),
 )
 
 /**

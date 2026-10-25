@@ -1,9 +1,9 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.TechniqueType
-import com.example.kpkn.domain.calculations.calculateHybrid1RM
 
 internal fun plannedDropSetCount(set: ExerciseSet?): Int {
     val planned = set?.plannedIntensityTechniques?.firstOrNull { it.type == TechniqueType.DROP_SET }
@@ -52,7 +52,7 @@ internal fun sessionBestPreviousE1rm(
         if (set.isWarmup || set.skipped || set.weight <= 0.0 || set.reps <= 0) return@mapNotNull null
         if (side != null && parsed.side != null && parsed.side != side) return@mapNotNull null
         if (!restPhase && parsed.setIdx >= currentSetIdx) return@mapNotNull null
-        parsed.setIdx to calculateHybrid1RM(set.weight, set.reps)
+        parsed.setIdx to StrengthModel.estimate1RM(set)
     }.sortedByDescending { it.first }
     return if (restPhase) {
         values.drop(1).maxOfOrNull { it.second } ?: 0.0

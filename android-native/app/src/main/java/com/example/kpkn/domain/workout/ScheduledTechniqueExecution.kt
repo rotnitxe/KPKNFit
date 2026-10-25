@@ -30,6 +30,7 @@ data class ScheduledTechniquePlan(
     val pauseSeconds: Int,
     val followUpReps: Int,
     val dropKg: Double,
+    val style: String? = null,
 ) {
     val phaseCount: Int get() = followUpCount + 1
 }
@@ -172,6 +173,7 @@ fun ExerciseSet.scheduledTechniquePlan(): ScheduledTechniquePlan? {
         followUpCount = count,
         pauseSeconds = pause,
         followUpReps = reps,
+        style = if (isMyoReps()) "myo" else null,
         dropKg = (params["dropKg"]?.toDoubleOrNull()
             ?: params["weightDropKg"]?.toDoubleOrNull()
             ?: ScheduledTechniqueDefaults.DROP_KG).coerceAtLeast(0.0),
@@ -241,4 +243,31 @@ fun ExerciseSet.resolveScheduledTechniqueExecution(
         actualIntensityMode = actualIntensityMode,
         actualIntensityValue = actualIntensityValue,
     )
+}
+
+/** Variante sobre REST_PAUSE: mismos eslabones y mismo cómputo de volumen/fatiga. */
+fun ExerciseSet.isMyoReps(): Boolean = plannedIntensityTechniques.any { it.type == TechniqueType.REST_PAUSE && it.params["style"] == "myo" } || restPauses.any { it.style == "myo" }
+
+object MyoRepsPreset {
+    const val COUNT = 4
+    const val REPS = 4
+    const val PAUSE_SECONDS = 15
+    fun applyTo(set: ExerciseSet, count: Int = COUNT, reps: Int = REPS, pauseSeconds: Int = PAUSE_SECONDS): ExerciseSet {
+        val existing = set.plannedIntensityTechniques.firstOrNull { it.type == TechniqueType.REST_PAUSE }
+        val technique = com.example.kpkn.data.models.PlannedTechnique(
+            id = existing?.id ?: java.util.UUID.randomUUID().toString(), type = TechniqueType.REST_PAUSE,
+            params = existing?.params.orEmpty() + mapOf("style" to "myo", "count" to count.coerceIn(1,5).toString(), "reps" to reps.coerceIn(3,5).toString(),
+                "pauseSeconds" to pauseSeconds.coerceIn(10,30).toString(), "betweenMarked" to "true"))
+        return set.copy(isRestPause = true,isDropSet = false,dropSets = emptyList(),restPauses = emptyList(),restAfterSeconds = null,
+            plannedIntensityTechniques = set.plannedIntensityTechniques.filterNot { it.type == TechniqueType.REST_PAUSE || it.type == TechniqueType.DROP_SET } + technique)
+    }
+}
+
+/** Etiqueta común para historial y resumen; conserva los datos reales de cada mini-serie. */
+fun com.example.kpkn.data.models.CompletedSet.restPauseDescription(): String? {
+    if(restPauses.isEmpty()) return null
+    val myo=restPauses.any { it.style == "myo" }
+    return (if(myo) "Myo-reps · " else "Rest-pause · ") + restPauses.mapIndexed { index,row ->
+        "${if(myo) "Mini" else "Pausa"} ${index+1}: ${row.reps} reps · ${row.restTime} s"
+    }.joinToString(" / ")
 }

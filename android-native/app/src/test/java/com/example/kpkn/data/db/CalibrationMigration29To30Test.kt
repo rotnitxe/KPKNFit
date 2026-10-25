@@ -62,16 +62,18 @@ class CalibrationMigration29To30Test {
         val dir = folder.newFolder("migration")
         val file = File(dir, "cal.db")
         createV29(file)
-        val db = Room.databaseBuilder(context(dir), KpknDatabase::class.java, file.name)
-            .addMigrations(CALIBRATION_MIGRATION_29_30).allowMainThreadQueries().build()
+        val db = Room.databaseBuilder(context(dir), PublishedMfp31FixtureDatabase::class.java, file.name)
+            .addMigrations(CALIBRATION_MIGRATION_29_30, nutritionDayStateMigration(30)).allowMainThreadQueries().build()
         try {
             val sql = db.openHelper.writableDatabase
-            assertEquals(30, sql.version)
+            assertEquals(31, sql.version)
             fun single(query: String): String = sql.query(query).use { check(it.moveToFirst()); it.getString(0) }
             assertEquals("{\"keep\":true}", single("SELECT data FROM programs WHERE id='old'"))
             assertEquals("{\"draft\":\"60,5\"}", single("SELECT data FROM ongoing_workout WHERE rowId=1"))
             assertEquals("{\"reps\":5}", single("SELECT data FROM workout_logs WHERE id='log'"))
             assertEquals("0", single("SELECT COUNT(*) FROM calibration_decisions"))
+            assertEquals("0", single("SELECT COUNT(*) FROM nutrition_day_marks"))
+            assertEquals("0", single("SELECT COUNT(*) FROM nutrition_checkins"))
             val columns = sql.query("PRAGMA table_info(calibration_decisions)").use { cursor ->
                 buildSet { while(cursor.moveToNext()) add(cursor.getString(1)) }
             }
@@ -87,10 +89,10 @@ class CalibrationMigration29To30Test {
         val f = cal3Fixture()
         val accepted = f.record.copy(status = CalibrationStatus.APPLIED, resolvedAt = 1_790_000_002_000L,
             appliedSetIds = f.record.decision.affectedSets.map { it.setId }.toSet())
-        var db = Room.databaseBuilder(ctx, KpknDatabase::class.java, "reopen.db").allowMainThreadQueries().build()
+        var db = Room.databaseBuilder(ctx, PublishedMfp31FixtureDatabase::class.java, "reopen.db").allowMainThreadQueries().build()
         CalibrationDecisionRepository(db.calibrationDecisionDao()).saveSnapshot(listOf(accepted))
         db.close()
-        db = Room.databaseBuilder(ctx, KpknDatabase::class.java, "reopen.db").allowMainThreadQueries().build()
+        db = Room.databaseBuilder(ctx, PublishedMfp31FixtureDatabase::class.java, "reopen.db").allowMainThreadQueries().build()
         try {
             val repository = CalibrationDecisionRepository(db.calibrationDecisionDao())
             assertEquals(listOf(accepted), repository.forSession(accepted.sessionLogId))
@@ -104,7 +106,7 @@ class CalibrationMigration29To30Test {
 
     @Test fun onlyAppliedNonFutureCurrentReferencesAreCandidatesAndPropagationIsAlwaysEmpty() = runBlocking {
         val ctx = context(folder.newFolder("references"))
-        val db = Room.databaseBuilder(ctx, KpknDatabase::class.java, "refs.db").allowMainThreadQueries().build()
+        val db = Room.databaseBuilder(ctx, PublishedMfp31FixtureDatabase::class.java, "refs.db").allowMainThreadQueries().build()
         try {
             val repository = CalibrationDecisionRepository(db.calibrationDecisionDao())
             val f = cal3Fixture()

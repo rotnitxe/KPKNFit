@@ -189,4 +189,78 @@ class NativeProgressionTextTest {
             }
         }
     }
+
+    // ─── T4: el par (repeticiones, kilos) ────────────────────────────────────
+
+    @Test
+    fun `la subida con par dice los kilos, las repeticiones y la reserva`() {
+        assertEquals(
+            "Lo hiciste dos veces con 12 reps en todas las series. " +
+                "Propuesta: subir de 20 a 22 kg por mancuerna y buscar 8 repeticiones con 2 en reserva.",
+            NativeProgressionText.loadIncrease(2, 12, 20.0, 22.0, "kg por mancuerna", false, targetReps = 8, targetRir = 2),
+        )
+    }
+
+    @Test
+    fun `la bajada con par dice los kilos, las repeticiones y la reserva`() {
+        assertEquals(
+            "Las últimas dos veces no llegaste a las 8 reps mínimas o terminaste con menos repeticiones en " +
+                "reserva de las previstas. Propuesta: bajar de 50 a 40 kg y buscar 10 repeticiones con 2 en reserva.",
+            NativeProgressionText.loadReduction(2, 8, 50.0, 40.0, "kg", false, targetReps = 10, targetRir = 2),
+        )
+    }
+
+    @Test
+    fun `sin par el texto es el de siempre`() {
+        assertEquals(
+            "Lo hiciste dos veces con 12 reps en todas las series. Propuesta: subir de 20 a 22 kg por mancuerna.",
+            NativeProgressionText.loadIncrease(2, 12, 20.0, 22.0, "kg por mancuerna", false),
+        )
+        assertEquals(
+            "Lo hiciste dos veces con 12 reps en todas las series. Propuesta: en el próximo entrenamiento " +
+                "elige una carga un poco mayor y deja las mismas repeticiones en reserva.",
+            NativeProgressionText.loadIncrease(2, 12, 20.0, null, "kg", false, targetReps = 8, targetRir = 2),
+        )
+    }
+
+    @Test
+    fun `una repeticion y sin reserva se leen en singular y sin numero`() {
+        assertEquals("1 repetición", NativeProgressionText.repsLabel(1))
+        assertEquals("10 repeticiones", NativeProgressionText.repsLabel(10))
+        val text = NativeProgressionText.loadIncrease(2, 5, 100.0, 102.5, "kg en total", false, targetReps = 1, targetRir = 0)
+        assertTrue(text, text.endsWith("subir de 100 a 102,5 kg en total y buscar 1 repetición sin reserva."))
+    }
+
+    @Test
+    fun `mantener la carga avisa con kilos y repeticiones`() {
+        assertEquals(
+            "Lo hiciste dos veces con 10 reps en todas las series, pero el siguiente peso superior que puedes montar " +
+                "(55 kg) es un salto demasiado grande. Mantén 50 kg y busca 1 repetición más; no se propone un cambio.",
+            NativeProgressionText.increaseKeepNotice(2, 10, 50.0, 55.0, "kg", reps = 11, reserve = 2, repsOverLast = 1),
+        )
+        assertEquals(
+            "Lo hiciste dos veces con 12 reps en todas las series, pero el siguiente peso superior que puedes montar " +
+                "es un salto demasiado grande. Mantén 12 kg por mancuerna y sigue con 12 repeticiones, con 2 en reserva; " +
+                "no se propone un cambio.",
+            NativeProgressionText.increaseKeepNotice(2, 12, 12.0, null, "kg por mancuerna", reps = 12, reserve = 2, repsOverLast = 0),
+        )
+        assertEquals(
+            "Las últimas dos veces no llegaste a las 8 reps mínimas o terminaste con menos repeticiones en reserva de " +
+                "las previstas, pero el siguiente peso inferior que puedes montar (45 kg) es un salto demasiado grande. " +
+                "Mantén 50 kg y busca 9 repeticiones con 2 en reserva; no se propone un cambio.",
+            NativeProgressionText.reduceKeepNotice(2, 8, 50.0, 45.0, "kg", reps = 9, reserve = 2, repsOverLast = 3),
+        )
+    }
+
+    @Test
+    fun `los textos con par no llevan jerga ni codigos`() {
+        val texts = listOf(
+            NativeProgressionText.loadIncrease(2, 12, 20.0, 22.0, "kg por mancuerna", false, targetReps = 8, targetRir = 2),
+            NativeProgressionText.loadReduction(2, 8, 50.0, 40.0, "kg", false, targetReps = 10, targetRir = 0),
+            NativeProgressionText.increaseKeepNotice(2, 10, 50.0, 55.0, "kg", 11, 2, 1),
+            NativeProgressionText.reduceKeepNotice(2, 8, 50.0, 45.0, "kg", 9, 2, 3),
+        )
+        val jargon = listOf("RIR", "e1RM", "exposicion", "exposición", "slot", "identidad", "__")
+        texts.forEach { text -> jargon.forEach { word -> assertFalse("«$text» no debe contener «$word»", text.contains(word, ignoreCase = true)) } }
+    }
 }

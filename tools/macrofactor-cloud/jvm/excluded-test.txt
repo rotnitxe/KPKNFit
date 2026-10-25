@@ -1,0 +1,41 @@
+# Excluidos del arnés JVM (relativos a src/test/java). Motivo de cada uno en ../README.md.
+# Robolectric / clases Android (Context, SharedPreferences, ApplicationProvider):
+com/example/kpkn/domain/training/NativeWorkoutProgressionRuntimeTest.kt
+com/example/kpkn/domain/training/ProgramAnalyticsV2IndexTest.kt
+com/example/kpkn/domain/training/ProgramSnapshotStoreTest.kt
+com/example/kpkn/domain/training/T004FirstRejectionDiagnosticTest.kt
+# Helpers y pruebas que usan clases de main excluidas (FoodImporter, DatasetKnowledgeStore):
+com/example/kpkn/domain/nutrition/DatasetTestHarness.kt
+com/example/kpkn/domain/nutrition/OffSearchFixture.kt
+com/example/kpkn/domain/nutrition/UsdaSearchFixture.kt
+com/example/kpkn/domain/nutrition/DatasetExploitationTest.kt
+com/example/kpkn/domain/nutrition/DatasetKnowledgeIntegrationTest.kt
+com/example/kpkn/domain/nutrition/DatasetVocabularyTest.kt
+com/example/kpkn/domain/nutrition/FoodKnowledgeAssetTest.kt
+com/example/kpkn/domain/nutrition/NutritionQaRegressionTest.kt
+com/example/kpkn/domain/nutrition/SearchGoldenCorpusTest.kt
+com/example/kpkn/domain/nutrition/BlindMealCorpusProbeTest.kt
+com/example/kpkn/domain/nutrition/BlindMealCorpusTest.kt
+com/example/kpkn/domain/nutrition/GoldenCorpusTest.kt
+com/example/kpkn/domain/nutrition/RepairTokenVocabularyCacheTest.kt
+# Dependen de Room (toEntity, dbJson de data/db/Entities.kt, excluido):
+com/example/kpkn/domain/nutrition/FoodIdentityReliabilityTest.kt
+com/example/kpkn/domain/nutrition/checkin/NutritionHistorySeedTest.kt
+com/example/kpkn/domain/training/ProgramAutoregulationResolutionTest.kt
+com/example/kpkn/data/protocols/TrainingPlanRecipeJsonCompatTest.kt
+# Dependen de pantallas (asistente de onboarding, HomeSamples, buildVolumeCalibration, planOrderPriorityReason): el modelo del asistente
+# (screens/onboarding/SetupWizardModels.kt) arrastra SetupWizardViewModel.kt y SetupGeneratedPlans.kt (ViewModel/Compose).
+com/example/kpkn/domain/training/CoverageFixtures.kt
+com/example/kpkn/domain/training/HomeWeekResolverTest.kt
+com/example/kpkn/domain/training/OwnPlanPrioritiesAndSplitTest.kt
+com/example/kpkn/domain/training/TemplateVolumeScaleAuditTest.kt
+com/example/kpkn/domain/training/PlanCoverageContractTest.kt
+com/example/kpkn/domain/training/PlanGenerationCoverageT006Test.kt
+# Usan CoverageFixtures (excluido, depende de screens.onboarding):
+com/example/kpkn/domain/training/NativeCandidateTableSlotsTest.kt
+com/example/kpkn/domain/training/NativeMaterialEvidenceTest.kt
+com/example/kpkn/domain/training/RecipeOrderPrioritiesContractTest.kt
+com/example/kpkn/domain/training/split/SplitRedistributorRealProgramsTest.kt
+com/example/kpkn/domain/training/split/SplitRedistributorReportTest.kt
+# Reflexión sobre la clase ExerciseDatabaseKt (ExerciseDatabase.kt, excluido: catálogo v2 cargado desde assets de Android). Los 27 tests fallan por entorno:
+com/example/kpkn/domain/nutrition/NutritionTrainingCalendarAdapterTest.kt

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 31,
-    "identityHash": "7dbac3f74107ad3378c3f540309da8df",
+    "identityHash": "e66961026467b8dc05ef995dc8c01938",
     "entities": [
       {
         "tableName": "programs",
@@ -217,48 +217,6 @@
           "autoGenerate": false,
           "columnNames": [
             "rowId"
-          ]
-        }
-      },
-      {
-        "tableName": "training_observations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sourceIdentity` TEXT NOT NULL, `kind` TEXT NOT NULL, `date` TEXT NOT NULL, `payload` TEXT NOT NULL, `provenance` TEXT NOT NULL, PRIMARY KEY(`sourceIdentity`))",
-        "fields": [
-          {
-            "fieldPath": "sourceIdentity",
-            "columnName": "sourceIdentity",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "kind",
-            "columnName": "kind",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "date",
-            "columnName": "date",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "payload",
-            "columnName": "payload",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "provenance",
-            "columnName": "provenance",
-            "affinity": "TEXT",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "sourceIdentity"
           ]
         }
       },
@@ -1655,6 +1613,15 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_global_foods_normalizedBrand` ON `${TABLE_NAME}` (`normalizedBrand`)"
+          },
+          {
+            "name": "index_global_foods_sourceRecordId",
+            "unique": false,
+            "columnNames": [
+              "sourceRecordId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_global_foods_sourceRecordId` ON `${TABLE_NAME}` (`sourceRecordId`)"
           }
         ]
       },
@@ -2913,11 +2880,92 @@
             "createSql": "CREATE INDEX IF NOT EXISTS `index_calibration_decisions_exerciseConfigId_contextKey_status_resolvedAt` ON `${TABLE_NAME}` (`exerciseConfigId`, `contextKey`, `status`, `resolvedAt`)"
           }
         ]
+      },
+      {
+        "tableName": "nutrition_day_marks",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` TEXT NOT NULL, `mark` TEXT NOT NULL, `source` TEXT NOT NULL, `updatedAt` TEXT NOT NULL, PRIMARY KEY(`date`))",
+        "fields": [
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mark",
+            "columnName": "mark",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "date"
+          ]
+        }
+      },
+      {
+        "tableName": "nutrition_checkins",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`weekKey` TEXT NOT NULL, `status` TEXT NOT NULL, `decidedAt` TEXT, `proposalJson` TEXT, `appliedPlanId` TEXT, `updatedAt` TEXT NOT NULL, PRIMARY KEY(`weekKey`))",
+        "fields": [
+          {
+            "fieldPath": "weekKey",
+            "columnName": "weekKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "decidedAt",
+            "columnName": "decidedAt",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "proposalJson",
+            "columnName": "proposalJson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "appliedPlanId",
+            "columnName": "appliedPlanId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "weekKey"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7dbac3f74107ad3378c3f540309da8df')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e66961026467b8dc05ef995dc8c01938')"
     ]
   }
 }

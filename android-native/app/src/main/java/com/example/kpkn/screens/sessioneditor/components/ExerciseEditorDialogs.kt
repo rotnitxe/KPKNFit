@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import com.example.kpkn.domain.performance.StrengthModel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -179,7 +180,7 @@ EditorSheetDialog(
                             val reps = prRepsInput.safeIntOrNull()
                             onUpdateExercise { current ->
                                 if (weight != null && weight > 0 && reps != null && reps > 0) {
-                                    current.copy(prFor1RM = PrReference(weight, reps), reference1RM = calculateHybrid1RM(weight, reps))
+                                    current.copy(prFor1RM = PrReference(weight, reps), reference1RM = StrengthModel.estimate1RM(weight, reps))
                                 } else {
                                     current.copy(
                                         prFor1RM = current.prFor1RM?.copy(weight = weight ?: current.prFor1RM.weight),
@@ -199,7 +200,7 @@ EditorSheetDialog(
                             val reps = it.safeIntOrNull()
                             onUpdateExercise { current ->
                                 if (weight != null && weight > 0 && reps != null && reps > 0) {
-                                    current.copy(prFor1RM = PrReference(weight, reps), reference1RM = calculateHybrid1RM(weight, reps))
+                                    current.copy(prFor1RM = PrReference(weight, reps), reference1RM = StrengthModel.estimate1RM(weight, reps))
                                 } else {
                                     current.copy(
                                         prFor1RM = current.prFor1RM?.copy(reps = reps ?: current.prFor1RM.reps),

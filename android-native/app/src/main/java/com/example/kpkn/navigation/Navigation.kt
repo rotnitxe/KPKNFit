@@ -131,6 +131,7 @@ sealed class KpknRoute(val route: String) {
     }
 
     object Settings : KpknRoute("settings")
+    object EquipmentInventory : KpknRoute("settings/equipment-inventory")
     object SettingsGeneral : KpknRoute("settings/general")
     object SettingsProfile : KpknRoute("settings/profile")
     object SettingsNutrition : KpknRoute("settings/nutrition")
@@ -245,6 +246,23 @@ sealed class KpknRoute(val route: String) {
 
     // ─── Health Connect ───────────────────────────────────────────────
     object HealthConnect : KpknRoute("settings/health-connect")
+
+    object ExerciseProgress : KpknRoute("progress/exercise?exerciseId={exerciseId}") {
+        const val ARG_EXERCISE_ID = "exerciseId"
+        fun create(exerciseId: String? = null): String = "progress/exercise?exerciseId=${Uri.encode(exerciseId.orEmpty())}"
+    }
+
+    // ─── Progreso ─────────────────────────────────────────────────────
+    /** Panel de series registradas por músculo y ventana. Con [ARG_PROGRAM_ID] solo cuenta ese programa; vacío = todos. */
+    object MuscleVolumePanel : KpknRoute("progress/muscle-volume?programId={programId}") {
+        const val BASE_ROUTE = "progress/muscle-volume"
+        const val ARG_PROGRAM_ID = "programId"
+
+        fun create(programId: String? = null): String = "$BASE_ROUTE?programId=${Uri.encode(programId.orEmpty())}"
+    }
+    // ─── Hábitos: rachas y calendario anual (P2-D) ────────────────────
+    object Habits : KpknRoute("habits")
+
 
 }
 

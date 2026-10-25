@@ -24,14 +24,17 @@ import com.example.kpkn.data.repository.BodyProgressRepository
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.body.planWeeklyRateKg
 import com.example.kpkn.domain.nutrition.DayGoalsResult
 import com.example.kpkn.domain.nutrition.GoalsAbsence
 import com.example.kpkn.domain.nutrition.resolveDayGoals
 import com.example.kpkn.domain.training.HomeCompetitionResolver
 import com.example.kpkn.domain.training.HomeCompetitionState
 import com.example.kpkn.domain.training.HomeSessionResolver
+import com.example.kpkn.domain.training.TrainingWindow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -413,6 +416,12 @@ import java.util.Calendar
         appContext?.let { BodyProgressRepository.getInstance(it) }
     }
 
+    /** Ritmo del plan activo (kg por semana con signo) o null: solo mezcla la fecha de la meta de los primeros 14 días de pesajes. */
+    private val bodyPlanRate: Flow<Double?> = combine(
+        nutritionRepository.nutritionPlans,
+        nutritionRepository.activeNutritionPlanId,
+    ) { plans, activeId -> planWeeklyRateKg(plans.find { it.id == activeId }) }
+
     /** Cuerpo de hoy para Home: pesos, tendencia y objetivo de [BodyProgressRepository], con la altura real del perfil. */
     val bodyToday: StateFlow<HomeBodyState> = flow {
         val repo = bodyRepository
@@ -420,8 +429,8 @@ import java.util.Calendar
             emit(HomeBodyState())
         } else {
             emitAll(
-                combine(repo.observations, repo.goals, heightCm) { observations, goals, height ->
-                    homeBodyState(observations, goals, height, LocalDate.now())
+                combine(repo.observations, repo.goals, heightCm, bodyPlanRate) { observations, goals, height, planRate ->
+                    homeBodyState(observations, goals, height, LocalDate.now(), planWeeklyRateKg = planRate)
                 },
             )
         }

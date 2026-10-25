@@ -8,6 +8,8 @@ import com.example.kpkn.data.db.SetupCommitReceiptEntity
 import com.example.kpkn.data.db.SetupDraftEntity
 import com.example.kpkn.data.db.NutritionActiveStateEntity
 import com.example.kpkn.data.db.NutritionCalibrationProfileEntity
+import com.example.kpkn.data.db.NutritionDayMarkEntity
+import com.example.kpkn.data.db.NutritionCheckInEntity
 import com.example.kpkn.data.db.dbJson
 import com.example.kpkn.data.db.toCompetitionRecord
 import com.example.kpkn.data.db.toContextPerformanceStateV2
@@ -38,18 +40,32 @@ import com.example.kpkn.data.db.PerformanceSnapshotData
 import com.example.kpkn.data.prepopulateWikiLabAssets
 import com.example.kpkn.data.profile.ProfilePhotoStore
 import com.example.kpkn.data.repository.NutritionRepository
-import com.example.kpkn.data.repository.CalibrationDecisionRepository
 import com.example.kpkn.data.sessions.SessionTemplate
 import com.example.kpkn.domain.body.validateBodyValue
 import com.example.kpkn.data.food.FoodImporter
 import androidx.room.withTransaction
 import kotlinx.serialization.Serializable
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 object SettingsJsonBackup {
 
     const val EXPORT_SCHEMA_VERSION = BackupTableManifest.JSON_BACKUP_SCHEMA_VERSION
+
+    /** Una fila ilegible se conserva en su tabla, sin volcar su JSON privado en el diagnóstico. */
+    private fun <E, T : Any> readBackupRows(rows: List<E>, table: String, id: (E) -> String, decode: (E) -> T): List<T> =
+        rows.mapNotNull { row ->
+            try { decode(row) }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) {
+                android.util.Log.w("SettingsJsonBackup", "Fila ilegible en $table (id=${id(row)})")
+                null
+            }
+        }
 
     suspend fun buildPayload(
         context: Context,
@@ -81,10 +97,11 @@ object SettingsJsonBackup {
         db: KpknDatabase,
     ): SettingsExportPayload {
         val v2 = db.workoutV2Dao()
-        val competition = db.competitionRecordDao().getAll().map { it.toCompetitionRecord() }
-        val performanceRanges = db.performanceRangeDao().getAll().map { it.toPerformanceRangeData() }
-        val performanceSnapshots = db.performanceSnapshotDao().getRecent(10_000).map { it.toPerformanceSnapshotData() }
-        val workoutMedia = db.workoutMediaDao().getAll().map { it.toWorkoutMedia() }
+        val calibrationRows = db.calibrationDecisionDao().getAll()
+        val competition = readBackupRows(db.competitionRecordDao().getAll(), "competition_records", { it.id }) { it.toCompetitionRecord() }
+        val performanceRanges = readBackupRows(db.performanceRangeDao().getAll(), "performance_range", { it.contextKey }) { it.toPerformanceRangeData() }
+        val performanceSnapshots = readBackupRows(db.performanceSnapshotDao().getRecent(10_000), "performance_snapshot", { it.id.toString() }) { it.toPerformanceSnapshotData() }
+        val workoutMedia = readBackupRows(db.workoutMediaDao().getAll(), "workout_media", { it.id }) { it.toWorkoutMedia() }
         val setupDrafts = db.setupDraftDao().getAllDrafts().map {
             SetupDraftBackup(
                 draftId = it.draftId,
@@ -124,6 +141,10 @@ object SettingsJsonBackup {
             customFoods = customFoods,
             learnedResolutions = learnedResolutions,
             foodCatalogMeta = foodCatalogMeta,
+            nutritionPreferences = NutritionPreferencesBackup.read(context),
+            calibrationDecisions = CalibrationDecisionBackup.canonicalRecords(calibrationRows),
+            calibrationDecisionRows = calibrationRows,
+            includesCalibrationDecisionsSection = true,
             bodyObservations = bodyObservations,
             bodyGoals = bodyGoals,
             measurementSchedule = measurementSchedule,
@@ -137,16 +158,14 @@ object SettingsJsonBackup {
             sessionTemplates = sessionTemplates,
             customExercises = customExercises,
             competitionRecords = competition,
-            contextPerformance = v2.getAllContextPerformance().map { it.toContextPerformanceStateV2() },
-            globalPerformance = v2.getAllGlobalPerformance().map { it.toGlobalPerformanceStateV3() },
-            contextProfiles = v2.getAllContextProfiles().map { it.toWorkoutContextProfile() },
+            contextPerformance = readBackupRows(v2.getAllContextPerformance(), "workout_context_performance", { it.contextKey }) { it.toContextPerformanceStateV2() },
+            globalPerformance = readBackupRows(v2.getAllGlobalPerformance(), "workout_global_performance", { it.globalKey }) { it.toGlobalPerformanceStateV3() },
+            contextProfiles = readBackupRows(v2.getAllContextProfiles(), "workout_context_profiles", { it.id }) { it.toWorkoutContextProfile() },
             workoutTags = v2.getAllWorkoutTags().map { it.toWorkoutTag() },
-            replacementDecisions = v2.getAllReplacementDecisions().map { it.toExerciseReplacementDecisionV2() },
+            replacementDecisions = readBackupRows(v2.getAllReplacementDecisions(), "workout_replacement_decisions", { it.id }) { it.toExerciseReplacementDecisionV2() },
             performanceRanges = performanceRanges,
             performanceSnapshots = performanceSnapshots,
             workoutMedia = workoutMedia,
-            calibrationDecisions = CalibrationDecisionRepository(db.calibrationDecisionDao()).all(),
-            includesCalibrationDecisionsSection = true,
             includesCompetitionSection = true,
             includesWorkoutV2Section = true,
             includesPerformanceSection = true,
@@ -156,11 +175,14 @@ object SettingsJsonBackup {
             includesSetupSection = true,
             setupDrafts = setupDrafts,
             setupCommitReceipts = setupCommitReceipts,
+            includesNutritionDayStateSection = true,
+            nutritionDayMarks = db.nutritionDao().getAllDayMarks().map { NutritionDayMarkBackup(it.date, it.mark, it.source, it.updatedAt) },
+            nutritionCheckIns = db.nutritionDao().getAllCheckIns().map {
+                NutritionCheckInBackup(it.weekKey, it.status, it.decidedAt, it.proposalJson, it.appliedPlanId, it.updatedAt)
+            },
         )
     }
 
-    // `nutritionRepository` stays in the signature for API compatibility (the stored catalog meta is no longer restored).
-    @Suppress("UNUSED_PARAMETER")
     suspend fun importPayload(
         context: Context,
         payload: SettingsExportPayload,
@@ -173,6 +195,11 @@ object SettingsJsonBackup {
         }
         val v5 = payload.schemaVersion >= 5
         val hasSetup = payload.schemaVersion >= 6 && payload.includesSetupSection
+        // Extensión aditiva de v6: copias antiguas sin esta sección conservan las declaraciones locales.
+        val hasDayState = payload.schemaVersion >= 6 && payload.includesNutritionDayStateSection
+        // Resolver antes de borrar: una copia canónica ilegible falla sin modificar los datos locales.
+        val calibrationRowsForRestore = if (payload.schemaVersion >= 6 && payload.includesCalibrationDecisionsSection)
+            payload.calibrationDecisionRows ?: payload.calibrationDecisions?.map(CalibrationDecisionBackup::toEntity) else null
         val tablesToClear = BackupTableManifest.tablesToClearForImport(
             schemaVersion = payload.schemaVersion,
             hasCompetitionSection = v5 && payload.includesCompetitionSection,
@@ -181,13 +208,16 @@ object SettingsJsonBackup {
             hasWorkoutMediaSection = v5 && payload.includesWorkoutMediaSection,
             hasCalibrationSection = v5 && payload.includesCalibrationSection,
             hasSetupSection = hasSetup,
-            hasCalibrationDecisionsSection = payload.includesCalibrationDecisionsSection && payload.calibrationDecisions != null,
+            hasNutritionDayStateSection = hasDayState,
+            hasCalibrationDecisionsSection = calibrationRowsForRestore != null,
         )
         val settingsProfileToken = when {
             payload.profilePhotoJpegBase64 != null -> ProfilePhotoStore.STORAGE_TOKEN
             payload.settings.profilePicture.isNullOrBlank() -> null
             else -> payload.settings.profilePicture
         }
+        val previousPreferences = if (payload.nutritionPreferences != null) NutritionPreferencesBackup.read(context) else null
+        try {
         db.withTransaction {
             val sqlite = db.openHelper.writableDatabase
             BackupTableManifest.deleteRows(sqlite, tablesToClear)
@@ -198,13 +228,11 @@ object SettingsJsonBackup {
                     profilePicture = settingsProfileToken,
                 ).toEntity(),
             )
+            calibrationRowsForRestore?.let { db.calibrationDecisionDao().upsert(it) }
             payload.programs.forEach { db.programDao().upsert(it.toEntity()) }
             payload.workoutLogs.forEach { db.workoutLogDao().insert(it.toEntity()) }
             payload.activeProgramState?.let { db.stateDao().upsertActiveProgram(it.toEntity()) }
             payload.ongoingWorkout?.let { db.stateDao().upsertOngoingWorkout(it.toEntity()) }
-            if (payload.schemaVersion >= 6 && payload.includesCalibrationDecisionsSection && payload.calibrationDecisions != null) {
-                CalibrationDecisionRepository(db.calibrationDecisionDao()).saveSnapshot(payload.calibrationDecisions)
-            }
             payload.nutritionLogs.forEach { db.nutritionDao().upsertLog(it.toEntity()) }
             payload.nutritionPlans.forEach { db.nutritionDao().upsertPlan(it.toEntity()) }
             payload.activeNutritionPlanId?.let {
@@ -222,6 +250,10 @@ object SettingsJsonBackup {
                 .forEach { db.bodyProgressDao().upsertGoal(it.toEntity()) }
             payload.dailyGoalSnapshots.forEach {
                 db.nutritionDao().insertDailyGoalSnapshot(it.toEntity())
+            }
+            if (hasDayState) {
+                payload.nutritionDayMarks.forEach { db.nutritionDao().upsertDayMark(it.toEntity()) }
+                payload.nutritionCheckIns.forEach { db.nutritionDao().upsertCheckIn(it.toEntity()) }
             }
             payload.sessionTemplates.forEach { db.sessionTemplateDao().upsert(it.toEntity()) }
             payload.customExercises.forEach { db.customExerciseDao().upsert(it.toEntity()) }
@@ -289,7 +321,22 @@ object SettingsJsonBackup {
         // authoritative: `payload.foodCatalogMeta` is still exported and decoded for format compatibility, but it is
         // never applied. An empty catalog (e.g. restoring before the first import finished) is regenerated below.
         ensureRegenerableAssetsIfEmpty(context, db)
+        payload.nutritionPreferences?.let {
+            it.restore(context)
+            nutritionRepository.refreshFoodPreferencesFromStorage()
+        }
         return settingsProfileToken
+        } catch (error: Throwable) {
+            if (previousPreferences != null) {
+                try {
+                    withContext(NonCancellable) {
+                        previousPreferences.restore(context)
+                        nutritionRepository.refreshFoodPreferencesFromStorage()
+                    }
+                } catch (restoreError: Exception) { error.addSuppressed(restoreError) }
+            }
+            throw error
+        }
     }
 
     suspend fun ensureRegenerableAssetsIfEmpty(context: Context, db: KpknDatabase) {
@@ -349,8 +396,6 @@ data class SettingsExportPayload(
     val performanceRanges: List<PerformanceRangeData>? = null,
     val performanceSnapshots: List<PerformanceSnapshotData>? = null,
     val workoutMedia: List<WorkoutMedia>? = null,
-    val calibrationDecisions: List<com.example.kpkn.data.models.CalibrationDecisionRecord>? = null,
-    val includesCalibrationDecisionsSection: Boolean = false,
     val includesCompetitionSection: Boolean = false,
     val includesWorkoutV2Section: Boolean = false,
     val includesPerformanceSection: Boolean = false,
@@ -360,7 +405,35 @@ data class SettingsExportPayload(
     val includesSetupSection: Boolean = false,
     val setupDrafts: List<SetupDraftBackup> = emptyList(),
     val setupCommitReceipts: List<SetupCommitReceiptBackup> = emptyList(),
+    val includesNutritionDayStateSection: Boolean = false,
+    val nutritionDayMarks: List<NutritionDayMarkBackup> = emptyList(),
+    val nutritionCheckIns: List<NutritionCheckInBackup> = emptyList(),
+    /** Extensión opcional de v6: si no existe, importar conserva las preferencias locales. */
+    val nutritionPreferences: NutritionPreferencesBackup? = null,
+    /** Forma JSON de CalibrationDecisionRecord publicada por screens-v2, sin acoplar su runtime. */
+    val calibrationDecisions: List<kotlinx.serialization.json.JsonObject>? = null,
+    val includesCalibrationDecisionsSection: Boolean = false,
+    /** Snapshot exacto opcional: conserva también filas opacas/en cuarentena. Ausencia conserva las filas locales. */
+    val calibrationDecisionRows: List<com.example.kpkn.data.db.CalibrationDecisionEntity>? = null,
 )
+
+/** Copia fiel de las filas: conserva incluso una declaración en cuarentena. */
+@Serializable
+data class NutritionDayMarkBackup(val date: String, val mark: String, val source: String, val updatedAt: String) {
+    fun toEntity() = NutritionDayMarkEntity(date, mark, source, updatedAt)
+}
+
+@Serializable
+data class NutritionCheckInBackup(
+    val weekKey: String,
+    val status: String,
+    val decidedAt: String?,
+    val proposalJson: String?,
+    val appliedPlanId: String?,
+    val updatedAt: String,
+) {
+    fun toEntity() = NutritionCheckInEntity(weekKey, status, decidedAt, proposalJson, appliedPlanId, updatedAt)
+}
 
 @Serializable
 data class SetupDraftBackup(
@@ -422,4 +495,53 @@ data class LearnedResolutionBackup(
         confidence = confidence,
         lastConfirmedAt = lastConfirmedAt,
     )
+}
+
+
+/** Solo preferencias de nutrición del usuario; la procedencia del catálogo y las credenciales quedan fuera. */
+@Serializable
+data class NutritionPreferencesBackup(
+    val utensilVolumesMl: Map<String, Float> = emptyMap(),
+    val foodQueryLearning: String? = null,
+    val favoriteFoodIds: Set<String> = emptySet(),
+) {
+    suspend fun restore(context: Context) = withContext(Dispatchers.IO) {
+        require(utensilVolumesMl.all { (key, value) -> key.startsWith("ml_") && value.isFinite() && value > 0f }) {
+            "La copia contiene un volumen de utensilio no válido."
+        }
+        require(favoriteFoodIds.none { it.isBlank() }) { "La copia contiene un favorito no válido." }
+        val utensils = context.getSharedPreferences("nutrition_utensils", Context.MODE_PRIVATE)
+        val foods = context.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE)
+        val old = read(context)
+        fun apply(value: NutritionPreferencesBackup) {
+            val editor = utensils.edit()
+            utensils.all.keys.filter { it.startsWith("ml_") }.forEach { editor.remove(it) }
+            value.utensilVolumesMl.forEach { (key, ml) -> editor.putFloat(key, ml) }
+            check(editor.commit()) { "No se pudieron restaurar los utensilios." }
+            val foodEditor = foods.edit().putStringSet("favorite_food_ids", value.favoriteFoodIds.toSet())
+            if (value.foodQueryLearning == null) foodEditor.remove("food_query_learning_v2")
+            else foodEditor.putString("food_query_learning_v2", value.foodQueryLearning)
+            check(foodEditor.commit()) { "No se pudieron restaurar las preferencias de alimentos." }
+        }
+        try { apply(this@NutritionPreferencesBackup) }
+        catch (error: Exception) {
+            try { apply(old) } catch (restoreError: Exception) { error.addSuppressed(restoreError) }
+            throw error
+        }
+    }
+
+    companion object {
+        suspend fun read(context: Context): NutritionPreferencesBackup = withContext(Dispatchers.IO) {
+            val utensils = context.getSharedPreferences("nutrition_utensils", Context.MODE_PRIVATE)
+            val foods = context.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE)
+            NutritionPreferencesBackup(
+                utensilVolumesMl = utensils.all.mapNotNull { (key, raw) ->
+                    val ml = (raw as? Number)?.toFloat()
+                    if (key.startsWith("ml_") && ml != null && ml.isFinite() && ml > 0f) key to ml else null
+                }.toMap(),
+                foodQueryLearning = foods.getString("food_query_learning_v2", null),
+                favoriteFoodIds = foods.getStringSet("favorite_food_ids", emptySet()).orEmpty().toSet(),
+            )
+        }
+    }
 }

@@ -4,9 +4,13 @@ El mandato del 24-oct-2026 sustituye el desarrollo anterior Rings v4. El plan
 íntegro aprobado está en [PLAN_COMPLETO.md](cloud-transfer/PLAN_COMPLETO.md).
 La ejecución vigente y su validación están en [Aplicación local](LOCAL_APPLICATION.md).
 Los resultados cloud de los enlaces siguientes son checkpoints históricos.
-La base pública es `edc237f66d8474c3a9922296b61940e7030b7f8a`. La entrega cloud
+La integración conjunta MFP + POST-RINGS fue autorizada por el usuario el 24-oct-2026.
+La entrega vigente se prepara en el checkout principal y en `master`, con Room 35;
+[INTEGRACION_MFP_MASTER.md](INTEGRACION_MFP_MASTER.md) documenta su validación.
+
+El checkpoint anterior tenía como base pública `edc237f66d8474c3a9922296b61940e7030b7f8a`. La entrega cloud
 se conserva en la rama privada `codex/post-rings-training-evidence`; la aplicación
-y continuación local permanecen como WIP, sin commit ni push. La validación local
+y continuación local se conservaron entonces como WIP, sin commit ni push. La validación local
 final acredita 382 pruebas Android seleccionadas y el APK instalado en el emulador;
 los gates físicos/iOS siguen separados en el informe de aplicación local.
 

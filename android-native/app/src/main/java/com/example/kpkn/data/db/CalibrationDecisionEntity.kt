@@ -1,5 +1,6 @@
 package com.example.kpkn.data.db
 
+import kotlinx.serialization.Serializable
 import androidx.room.Dao
 import androidx.room.Entity
 import androidx.room.Index
@@ -8,6 +9,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
 
+@Serializable
 @Entity(tableName = "calibration_decisions", indices = [
     Index(value = ["sessionLogId", "sourceSetId"]),
     Index(value = ["exerciseConfigId", "contextKey", "status", "resolvedAt"]),

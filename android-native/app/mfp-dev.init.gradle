@@ -1,0 +1,9 @@
+// KPKN Dev estable para toda la QA local de esta entrega. Nunca instalar el APK personal.
+allprojects {
+    afterEvaluate { p ->
+        if (p.plugins.hasPlugin('com.android.application')) {
+            p.android.buildTypes.debug.applicationIdSuffix = '.dbg'
+            p.android.buildTypes.debug.signingConfig = p.android.signingConfigs.debug
+        }
+    }
+}

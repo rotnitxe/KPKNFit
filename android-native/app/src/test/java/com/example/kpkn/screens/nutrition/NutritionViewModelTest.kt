@@ -2,6 +2,7 @@ package com.example.kpkn.screens.nutrition
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
@@ -108,6 +109,7 @@ class NutritionViewModelTest {
             foods = listOf(LoggedFood(id = "f1", foodName = "Arroz", amount = 100.0, calories = 200.0, protein = 5.0, carbs = 40.0, fats = 1.0)),
         )
         vm.addLog(log)
+        awaitTodayLogs(SLOW_MS) { logs -> logs.any { it.id == log.id } }
 
         val todayLogs = vm.todayLogs.value
         assertTrue(todayLogs.isNotEmpty())
@@ -124,6 +126,7 @@ class NutritionViewModelTest {
             foods = listOf(LoggedFood(id = "f1", foodName = "Arroz", amount = 100.0, calories = 200.0)),
         )
         vm.addLog(log)
+        awaitTodayLogs(SLOW_MS) { logs -> logs.any { it.id == log.id } }
         assertEquals(1, vm.todayLogs.value.size)
 
         vm.deleteLog(id)
@@ -140,6 +143,7 @@ class NutritionViewModelTest {
             notes = "Nota",
         )
         vm.addLog(original)
+        awaitTodayLogs(SLOW_MS) { logs -> logs.any { it.id == original.id } }
 
         vm.duplicateLog(original)
         awaitTodayLogs { logs -> logs.size >= 2 && logs.any { it.notes?.contains("duplicado") == true } }
@@ -316,11 +320,11 @@ class NutritionViewModelTest {
 
     @Test
     fun `a failed restore keeps the undo pending and tells the user`() {
-        // A row that no longer passes the save validation (no foods): deleting it works, restoring it cannot.
+        // Fila heredada que ya no supera la validación: se puede borrar, pero no restaurar como comida válida.
         val invalid = todayLog("invalid-1").copy(foods = emptyList())
-        nutritionRepo.addNutritionLog(invalid)
-        val deadline = System.currentTimeMillis() + SLOW_MS
-        while (invalid.id !in storedLogIds() && System.currentTimeMillis() < deadline) Thread.sleep(10)
+        kotlinx.coroutines.runBlocking { nutritionRepo.databaseForTests().nutritionDao().upsertLog(invalid.toEntity()) }
+        nutritionRepo.refreshData(ApplicationProvider.getApplicationContext())
+        awaitTodayLogs(SLOW_MS) { logs -> logs.any { it.id == invalid.id } }
         assertTrue(invalid.id in storedLogIds())
 
         vm.deleteLog(invalid.id)
@@ -357,6 +361,7 @@ class NutritionViewModelTest {
         )
         vm.addLog(log1)
         vm.addLog(log2)
+        awaitTodayLogs(SLOW_MS) { logs -> logs.map { it.id }.toSet() == setOf(log1.id, log2.id) }
 
         val totals = vm.dailyTotals.value
         assertEquals(700.0, totals.calories, 0.01)
@@ -381,6 +386,7 @@ class NutritionViewModelTest {
         )
         vm.addLog(breakfast)
         vm.addLog(lunch)
+        awaitTodayLogs(SLOW_MS) { logs -> logs.map { it.id }.toSet() == setOf(breakfast.id, lunch.id) }
 
         val groups = vm.mealGroups.value
         assertEquals(4, groups.size) // BREAKFAST, LUNCH, DINNER, SNACK

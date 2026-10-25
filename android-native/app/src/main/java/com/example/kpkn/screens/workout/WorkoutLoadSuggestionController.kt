@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise

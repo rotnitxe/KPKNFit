@@ -22,7 +22,7 @@
 
 ## Critical Systems
 
-- Room database: `android-native/app/src/main/java/com/example/kpkn/data/db/KpknDatabase.kt`, current version **v34**. Recipes/TM/autoregulation live in `ProgramEntity` JSON (no extra tables). Workout media: `workout_media` + `filesDir/workout_media`.
+- Room database: `android-native/app/src/main/java/com/example/kpkn/data/db/KpknDatabase.kt`, current version **v35**. Recipes/TM/autoregulation live in `ProgramEntity` JSON (no extra tables). Workout media: `workout_media` + `filesDir/workout_media`.
 - Recorded training: `domain/training/insights/`; originals: `data/repository/TrainingObservationRepository.kt`. Retired engines are absent; compatibility importers only preserve original records.
 - Nutrition parsing: `domain/nutrition/`, `data/food/`, and `data/remote/ExternalAiService.kt`.
 - Voice: `services/workout/`, Vosk assets, foreground service, TTS, and AIDL service boundary.
@@ -38,7 +38,7 @@
 <!-- KAUPOLIKAN_DYNAMIC_MAP_START -->
 Generated from the applied local working tree: 2026-10-24T16:38:35.048295+00:00
 Kotlin main files: 1617
-Room version: 34; preservation migrations and historical schemas are authoritative.
+Room version: 35; preservation migrations and historical schemas are authoritative.
 Training recipes: data/protocols/TrainingPlanRecipe.kt → domain/training/PlanMaterializer.kt. Protocol proposals require explicit confirmation. No physiological readiness, drain or injury predictor.
 
 ### Entities
@@ -101,7 +101,7 @@ Training recipes: data/protocols/TrainingPlanRecipe.kt → domain/training/PlanM
 - SettingsProfile: `settings/profile`
 - SettingsNutrition: `settings/nutrition`
 - SettingsTraining: `settings/training`
-- SettingsAuge: `settings/auge`
+- Historial original de bienestar: `training_observations` (sin predictores AUGE).
 - SettingsNotifications: `settings/notifications`
 - SettingsData: `settings/data`
 - SettingsDiagnostics: `settings/diagnostics`

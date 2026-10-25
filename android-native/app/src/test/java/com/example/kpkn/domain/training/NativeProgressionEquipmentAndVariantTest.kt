@@ -224,7 +224,8 @@ class NativeProgressionEquipmentAndVariantTest {
         val inventory = EquipmentInventory(
             barbellWeightKg = 20.0,
             plates = FULL_PLATES,
-            dumbbells = listOf(DumbbellPairStock(12.0), DumbbellPairStock(14.0), DumbbellPairStock(16.0, pairAvailable = false)),
+            // T4: el escalón debe caber en el rango con la reserva objetivo (de 12 a 14 kg dejaría ~6 repeticiones bajo el mínimo de 8).
+            dumbbells = listOf(DumbbellPairStock(12.0), DumbbellPairStock(12.5, pairAvailable = false), DumbbellPairStock(13.0)),
             machines = listOf(
                 MachineLoadRange(
                     configurationId = CABLE_LAT,
@@ -251,7 +252,7 @@ class NativeProgressionEquipmentAndVariantTest {
 
         assertEquals(3, proposals.size)
         assertTrue(proposals.all { it.kind == NativeProgressionProposalKind.INCREASE_LOAD })
-        assertEquals("el siguiente PAR de mancuernas (16 no tiene pareja)", 14.0, targets.getValue(GOBLET)!!, 0.0001)
+        assertEquals("el siguiente PAR de mancuernas (12,5 no tiene pareja)", 13.0, targets.getValue(GOBLET)!!, 0.0001)
         assertEquals("21,25 kg por lado es la menor carga formable sobre 60 kg", 62.5, targets.getValue(BARBELL_BENCH)!!, 0.0001)
         assertEquals("el siguiente paso de la máquina declarada", 55.0, targets.getValue(CABLE_LAT)!!, 0.0001)
         val conventions = proposals.associate { it.identity.configurationId to it.identity.quantityConvention }
@@ -276,7 +277,7 @@ class NativeProgressionEquipmentAndVariantTest {
         val inventory = EquipmentInventory(
             barbellWeightKg = 20.0,
             plates = FULL_PLATES,
-            dumbbells = listOf(DumbbellPairStock(12.0), DumbbellPairStock(14.0)),
+            dumbbells = listOf(DumbbellPairStock(12.0), DumbbellPairStock(13.0)),
             machines = listOf(
                 MachineLoadRange(
                     configurationId = CABLE_LAT,
@@ -302,15 +303,19 @@ class NativeProgressionEquipmentAndVariantTest {
             .associate { it.identity.configurationId to it.explanation }
 
         assertEquals(
-            "Lo hiciste dos veces con 12 reps en todas las series. Propuesta: subir de 12 a 14 kg por mancuerna.",
+            // T4: la propuesta lleva las repeticiones que corresponden a la nueva carga (e1RM de 12 x 12 con 2 en reserva).
+            "Lo hiciste dos veces con 12 reps en todas las series. " +
+                "Propuesta: subir de 12 a 13 kg por mancuerna y buscar 8 repeticiones con 2 en reserva.",
             text.getValue(GOBLET),
         )
         assertEquals(
-            "Lo hiciste dos veces con 12 reps en todas las series. Propuesta: subir de 60 a 62,5 kg en total.",
+            "Lo hiciste dos veces con 12 reps en todas las series. " +
+                "Propuesta: subir de 60 a 62,5 kg en total y buscar 10 repeticiones con 2 en reserva.",
             text.getValue(BARBELL_BENCH),
         )
         assertEquals(
-            "Lo hiciste dos veces con 12 reps en todas las series. Propuesta: subir de 50 a 55 kg.",
+            "Lo hiciste dos veces con 12 reps en todas las series. " +
+                "Propuesta: subir de 50 a 55 kg y buscar 8 repeticiones con 2 en reserva.",
             text.getValue(CABLE_LAT),
         )
         assertTrue(text.values.none { it.contains("__") || it.contains("RIR") || it.contains("exposicion", ignoreCase = true) })

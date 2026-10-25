@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.exercises.catalogConfigurationDisplayName
 import com.example.kpkn.data.exercises.catalogExerciseIndex
-import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.AutoregulationProposal
@@ -61,6 +60,7 @@ import com.example.kpkn.domain.training.StartDaySessionMode
 import com.example.kpkn.domain.training.StartDayTemporalScope
 import com.example.kpkn.domain.training.TrainingMaxMerge
 import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.domain.training.TrainingWindow
 import com.example.kpkn.domain.training.WeekWithMeta
 import android.content.Context
 import android.util.Log

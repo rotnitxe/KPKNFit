@@ -53,6 +53,15 @@ object NativeWorkoutProgressionRuntime {
     /** Techo de la búsqueda de discos por lado, en gramos (2 000 kg por lado: nunca se alcanza). */
     private const val MAX_PLATE_SEARCH_MILLI = 2_000_000L
 
+    /** T4: cuántos escalones de material se consideran en cada dirección al proponer el par. */
+    private const val LADDER_STEPS = 6
+
+    /** T4: reserva objetivo cuando el plan no la declara (misma convención que el modelo de fuerza). */
+    private const val DEFAULT_TARGET_RIR = 2
+
+    /** T4: una semana, lo que se ve un aviso informativo; dentro de ese plazo no se repite el mismo aviso. */
+    private const val KEEP_NOTICE_REPEAT_MS = 7L * 24L * 60L * 60L * 1000L
+
     /** `AppliedRecipeProposal.kind` de una variante corporal persistida en la receta efectiva. */
     const val NATIVE_VARIANT_APPLIED_KIND = "NATIVE_BODYWEIGHT_VARIANT"
 
@@ -247,7 +256,30 @@ object NativeWorkoutProgressionRuntime {
                                 )
                                 return@forEach
                             }
-                            val target = (step as? NextLoad.Reachable)?.kg
+                            // T4: par (repeticiones, carga) sobre las cargas montables; null = comportamiento de siempre.
+                            val pair = pairedTarget(identity, latest, currentLoad, inventory, equipmentId, increase = true)
+                            if (pair != null && pair.change == LoadTargetSelector.Change.KEEP) {
+                                next = appendKeepNoticeOnce(
+                                    next,
+                                    proposalId(next.id, identity, recent.map { it.logId }, NativeProgressionProposalKind.INCREASE_LOAD),
+                                    NativeProgressionProposalKind.INCREASE_LOAD,
+                                    nowMs,
+                                    NativeProgressionText.increaseKeepNotice(
+                                        times = recent.size,
+                                        topReps = latest.topReps,
+                                        kg = currentLoad,
+                                        nextKg = (step as? NextLoad.Reachable)?.kg,
+                                        unit = unit,
+                                        reps = pair.reps,
+                                        reserve = pair.reserve,
+                                        repsOverLast = pair.repsOverLast,
+                                    ),
+                                    identity,
+                                    recent.map { it.logId },
+                                )
+                                return@forEach
+                            }
+                            val target = pair?.kg ?: (step as? NextLoad.Reachable)?.kg
                             next = appendProposalOnce(
                                 next,
                                 makeProposal(
@@ -256,6 +288,7 @@ object NativeWorkoutProgressionRuntime {
                                     kind = NativeProgressionProposalKind.INCREASE_LOAD,
                                     recent = recent,
                                     targetLoadKg = target,
+                                    targetReps = pair?.reps,
                                     explanation = NativeProgressionText.loadIncrease(
                                         times = recent.size,
                                         topReps = latest.topReps,
@@ -263,6 +296,8 @@ object NativeWorkoutProgressionRuntime {
                                         toKg = target,
                                         unit = unit,
                                         assistance = assistance,
+                                        targetReps = pair?.reps,
+                                        targetRir = pair?.reserve,
                                     ),
                                     nowMs = nowMs,
                                 ),
@@ -288,7 +323,30 @@ object NativeWorkoutProgressionRuntime {
                                 )
                                 return@forEach
                             }
-                            val target = (step as? NextLoad.Reachable)?.kg
+                            // T4: par (repeticiones, carga) sobre las cargas montables; null = comportamiento de siempre.
+                            val pair = pairedTarget(identity, latest, currentLoad, inventory, equipmentId, increase = false)
+                            if (pair != null && pair.change == LoadTargetSelector.Change.KEEP) {
+                                next = appendKeepNoticeOnce(
+                                    next,
+                                    proposalId(next.id, identity, recent.map { it.logId }, NativeProgressionProposalKind.REDUCE_LOAD),
+                                    NativeProgressionProposalKind.REDUCE_LOAD,
+                                    nowMs,
+                                    NativeProgressionText.reduceKeepNotice(
+                                        times = recent.size,
+                                        minReps = latest.minReps,
+                                        kg = currentLoad,
+                                        nextKg = (step as? NextLoad.Reachable)?.kg,
+                                        unit = unit,
+                                        reps = pair.reps,
+                                        reserve = pair.reserve,
+                                        repsOverLast = pair.repsOverLast,
+                                    ),
+                                    identity,
+                                    recent.map { it.logId },
+                                )
+                                return@forEach
+                            }
+                            val target = pair?.kg ?: (step as? NextLoad.Reachable)?.kg
                             next = appendProposalOnce(
                                 next,
                                 makeProposal(
@@ -297,6 +355,7 @@ object NativeWorkoutProgressionRuntime {
                                     kind = NativeProgressionProposalKind.REDUCE_LOAD,
                                     recent = recent,
                                     targetLoadKg = target,
+                                    targetReps = pair?.reps,
                                     explanation = NativeProgressionText.loadReduction(
                                         times = recent.size,
                                         minReps = latest.minReps,
@@ -304,6 +363,8 @@ object NativeWorkoutProgressionRuntime {
                                         toKg = target,
                                         unit = unit,
                                         assistance = assistance,
+                                        targetReps = pair?.reps,
+                                        targetRir = pair?.reserve,
                                     ),
                                     nowMs = nowMs,
                                 ),
@@ -420,6 +481,7 @@ object NativeWorkoutProgressionRuntime {
             belowMinimumOrRir = sameLog.any { it.belowMinimumOrRir },
             topReps = sameLog.mapNotNull { it.topReps }.minOrNull(),
             minReps = sameLog.mapNotNull { it.minReps }.maxOrNull(),
+            workSets = sameLog.flatMap { it.workSets },
         )
     }
 
@@ -1110,6 +1172,10 @@ object NativeWorkoutProgressionRuntime {
                     currentLoadKg = firstLoad,
                     topReps = measurements.minOf { it.maximumReps },
                     minReps = measurements.maxOf { it.minimumReps },
+                    targetRir = measurements.mapNotNull { it.targetRir }.maxOrNull(),
+                    workSets = measurements.mapNotNull { observed ->
+                        observed.actualLoadKg?.let { LoadTargetSelector.SetEvidence(it, observed.reps, observed.actualRir) }
+                    },
                 )
             }
         }
@@ -1196,6 +1262,9 @@ object NativeWorkoutProgressionRuntime {
      * mismo ciclo cuyo peso sigue SIN RESOLVER: marcador de carga manual o, en un plan
      * propio recién generado (que no emite referencias PENDING), peso nulo de un
      * ejercicio con progresión nativa gestionada. Nunca pisa una carga ya resuelta.
+     * Incluye la descarga de volumen: captura una base pendiente, no una subida de carga.
+     * Las series reducidas y el RIR objetivo de descarga se conservan; el RIR realizado
+     * se registra aparte y nunca se da por cumplido por llevar ese objetivo.
      */
     private fun captureManualLoadForFuture(
         program: Program,
@@ -1394,6 +1463,7 @@ object NativeWorkoutProgressionRuntime {
         recent: List<Exposure>,
         targetConfigurationId: String? = null,
         targetLoadKg: Double? = null,
+        targetReps: Int? = null,
         explanation: String,
         nowMs: Long,
     ) = NativeProgressionProposal(
@@ -1404,6 +1474,7 @@ object NativeWorkoutProgressionRuntime {
         sourceLogIds = recent.map { it.logId },
         targetConfigurationId = targetConfigurationId,
         targetLoadKg = targetLoadKg?.takeIf { it > 0.0 },
+        targetReps = targetReps?.takeIf { it > 0 },
         explanation = explanation,
         createdAtMs = nowMs,
     )
@@ -1500,6 +1571,28 @@ object NativeWorkoutProgressionRuntime {
         ))
     }
 
+    /**
+     * T4: el aviso «mantén la carga» se repetiría cada [exposuresBeforeProposal] sesiones mientras el
+     * escalón siga sin caber; si ya hay uno IGUAL (misma identidad, tipo y texto) de la última semana, no
+     * se vuelve a apilar. Las exposiciones siguen sin consumirse, así que el aviso reaparece solo si
+     * cambia el texto (otro material, otras repeticiones) o pasa la semana.
+     */
+    private fun appendKeepNoticeOnce(
+        program: Program,
+        proposalId: String,
+        kind: NativeProgressionProposalKind,
+        nowMs: Long,
+        reason: String,
+        identity: NativeProgressionIdentity,
+        sourceLogIds: List<String>,
+    ): Program {
+        val repeated = program.nativeProgressionAudit.any {
+            it.userFacingNotice && it.identity == identity && it.kind == kind && it.reason == reason &&
+                nowMs - it.resolvedAtMs in 0 until KEEP_NOTICE_REPEAT_MS
+        }
+        return if (repeated) program else appendNoticeOnce(program, proposalId, kind, nowMs, reason, identity, sourceLogIds)
+    }
+
     private fun expire(
         program: Program,
         proposal: NativeProgressionProposal,
@@ -1527,6 +1620,7 @@ object NativeWorkoutProgressionRuntime {
         val updatedSets = exercise.sets.map { set ->
             if (set.isEmptySlot || set.isTopSet || set.isDropSet || set.isRestPause || set.purpose.isAmrap) return@map set
             val target = proposal.targetLoadKg
+            val reps = proposal.targetReps?.takeIf { it > 0 }
             val manualSides = if (requiresManualLoad) {
                 set.manualLoadRequiredSides + side
             } else {
@@ -1538,15 +1632,16 @@ object NativeWorkoutProgressionRuntime {
                     val existingRight = set.rightTarget ?: set.toUnilateralTarget()
                     set.copy(
                         weight = null,
-                        leftTarget = if (proposal.identity.side == "left") existingLeft.copy(weight = target) else existingLeft,
-                        rightTarget = if (proposal.identity.side == "right") existingRight.copy(weight = target) else existingRight,
+                        leftTarget = if (proposal.identity.side == "left") existingLeft.copy(weight = target, targetReps = reps ?: existingLeft.targetReps) else existingLeft,
+                        rightTarget = if (proposal.identity.side == "right") existingRight.copy(weight = target, targetReps = reps ?: existingRight.targetReps) else existingRight,
                         manualLoadRequiredSides = manualSides,
                     )
                 }
                 else -> set.copy(
                     weight = target,
-                    leftTarget = set.leftTarget?.copy(weight = target),
-                    rightTarget = set.rightTarget?.copy(weight = target),
+                    targetReps = reps ?: set.targetReps,
+                    leftTarget = set.leftTarget?.let { it.copy(weight = target, targetReps = reps ?: it.targetReps) },
+                    rightTarget = set.rightTarget?.let { it.copy(weight = target, targetReps = reps ?: it.targetReps) },
                     manualLoadRequiredSides = manualSides,
                 )
             }
@@ -1566,6 +1661,7 @@ object NativeWorkoutProgressionRuntime {
             state = if (requiresManualLoad) PlanLoadReferenceState.PENDING else PlanLoadReferenceState.CAPTURED,
             capturedLoadKg = proposal.targetLoadKg,
             capturedAtMs = nowMs.takeIf { !requiresManualLoad },
+            capturedTargetReps = proposal.targetReps?.takeIf { !requiresManualLoad && it > 0 },
         )
         return exercise.copy(sets = updatedSets, loadReference = loadReference)
     }
@@ -1733,6 +1829,61 @@ object NativeWorkoutProgressionRuntime {
         return NextLoad.Reachable(loadOf(below))
     }
 
+    /**
+     * T4: las próximas [LADDER_STEPS] cargas montables en una dirección, encadenando [knownNextLoad]
+     * (misma lógica de material: mancuernas en pares, máquina, discos formables); vacío si no hay
+     * material que responda o ya se está en el tope.
+     */
+    private fun loadLadder(
+        identity: NativeProgressionIdentity,
+        fromKg: Double,
+        inventory: EquipmentInventory?,
+        increasing: Boolean,
+        equipmentId: String?,
+    ): List<Double> {
+        val rungs = mutableListOf<Double>()
+        var from = fromKg
+        while (rungs.size < LADDER_STEPS) {
+            val step = knownNextLoad(identity, from, inventory, increasing, equipmentId) as? NextLoad.Reachable ?: break
+            if (abs(step.kg - from) <= LOAD_TOLERANCE_KG) break
+            rungs += step.kg
+            from = step.kg
+        }
+        return rungs
+    }
+
+    /**
+     * T4: par (repeticiones, carga) que propone [LoadTargetSelector] sobre las cargas montables.
+     * Solo con carga externa corriente (no asistencia, lastre ni peso corporal), material que
+     * responda y series con repeticiones y rango conocidos; en cualquier otro caso null y la
+     * propuesta sale como siempre (siguiente escalón, mismas repeticiones). El «cuándo» no cambia.
+     */
+    private fun pairedTarget(
+        identity: NativeProgressionIdentity,
+        latest: Exposure,
+        currentLoadKg: Double,
+        inventory: EquipmentInventory?,
+        equipmentId: String?,
+        increase: Boolean,
+    ): LoadTargetSelector.LoadTarget? {
+        if (identity.loadMode != LoadModeV2.LOAD || isAssistanceLoad(identity)) return null
+        val repMin = latest.minReps ?: return null
+        val repMax = latest.topReps ?: return null
+        if (latest.workSets.isEmpty()) return null
+        val rungs = loadLadder(identity, currentLoadKg, inventory, increasing = increase, equipmentId = equipmentId)
+        if (rungs.isEmpty()) return null
+        return LoadTargetSelector.select(
+            sets = latest.workSets,
+            currentLoadKg = currentLoadKg,
+            repMin = repMin,
+            repMax = repMax,
+            // Sin reserva declarada en el plan, la prescripción heredada del modelo de fuerza: RIR 2.
+            targetRir = latest.targetRir ?: DEFAULT_TARGET_RIR,
+            direction = if (increase) LoadTargetSelector.Direction.INCREASE else LoadTargetSelector.Direction.REDUCE,
+            availableLoads = rungs,
+        )
+    }
+
     private fun loadStepIncreasesResistance(
         identity: NativeProgressionIdentity,
         progressionIncrease: Boolean,
@@ -1809,5 +1960,9 @@ object NativeWorkoutProgressionRuntime {
         val topReps: Int? = null,
         /** Mínimo del rango de repeticiones de las series de trabajo (solo para el texto de la propuesta). */
         val minReps: Int? = null,
+        /** T4: reserva objetivo del plan (la mayor de las series); null si el plan no la declara. */
+        val targetRir: Int? = null,
+        /** T4: lo que se hizo en cada serie de trabajo (carga, repeticiones, reserva), para estimar el e1RM. */
+        val workSets: List<LoadTargetSelector.SetEvidence> = emptyList(),
     )
 }

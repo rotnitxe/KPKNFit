@@ -43,6 +43,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -248,10 +250,13 @@ fun BodyTrendChart(
     val guidePx = with(density) { 1.dp.toPx() }
     val selectedDotPx = with(density) { 4.dp.toPx() }
     val goalStrokePx = with(density) { 1.5.dp.toPx() }
-    // La cifra de la meta va 18 dp sobre su línea (16 dp de caption y 2 de aire). En el eje, una marca de la meta no entra si
-    // queda a menos de 16 dp de la del máximo o la del mínimo.
-    val goalLabelLiftPx = with(density) { 18.dp.toPx() }
-    val axisMinGapPx = with(density) { 16.dp.toPx() }
+    // Medir la tipografía real: 18 dp fijos atravesaban la cifra al ampliar la fuente.
+    val goalLabel = goal?.let { "Meta ${bodyTargetEs(it)} $unit" }.orEmpty()
+    val textMeasurer = rememberTextMeasurer()
+    val goalTextHeight = textMeasurer.measure(goalLabel, style = KpknType.caption, maxLines = 1, softWrap = false).size.height
+    val labelGapPx = with(density) { 2.dp.toPx() }
+    val goalLabelLiftPx = goalTextHeight + labelGapPx
+    val axisMinGapPx = maxOf(with(density) { 16.dp.toPx() }, goalLabelLiftPx)
     val goalDash = remember(density) {
         PathEffect.dashPathEffect(floatArrayOf(with(density) { 6.dp.toPx() }, with(density) { 5.dp.toPx() }))
     }
@@ -300,6 +305,7 @@ fun BodyTrendChart(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
+                    .testTag("body-trend-plot")
                     .onSizeChanged { plotSize = it }
                     .pointerInput(geometry) {
                         detectTapGestures(onTap = { offset -> select(offset.x) })
@@ -365,14 +371,15 @@ fun BodyTrendChart(
                 val goalLineY = geometry?.goalY
                 if (goal != null && goalLineY != null) {
                     Text(
-                        text = "Meta ${bodyTargetEs(goal)} $unit",
+                        text = goalLabel,
                         style = KpknType.caption,
                         color = WizardColors.done,
                         maxLines = 1,
                         softWrap = false,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .offset { IntOffset(x = 0, y = (goalLineY - goalLabelLiftPx).roundToInt().coerceAtLeast(0)) },
+                            .testTag("body-trend-goal-label")
+                            .offset { IntOffset(x = 0, y = (if (goalLineY >= goalLabelLiftPx) goalLineY - goalLabelLiftPx else goalLineY + labelGapPx).roundToInt()) },
                     )
                 }
                 val sel = selected

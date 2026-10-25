@@ -1,6 +1,11 @@
 package com.example.kpkn.screens.workout.components
 
+import com.example.kpkn.domain.workout.isMyoReps
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.animation.AnimatedVisibility
+import com.example.kpkn.domain.performance.StrengthModel
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -417,6 +422,7 @@ private fun IntegratedLoadInput(
     loadMode: LoadModeV2 = LoadModeV2.LOAD,
     inlineChipsInField: Boolean = false,
     loadPopTrigger: Any? = null,
+    plateHint: com.example.kpkn.domain.training.PlateLoadLabel? = null,
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val scope = rememberCoroutineScope()
@@ -441,13 +447,14 @@ private fun IntegratedLoadInput(
         ) {
             Text(
                 // La unidad va en minúscula: «CARGA (kg)», no «CARGA (KG)» (LR1a).
-                text = if (useShortLabel) fullLabel.substringBefore(" (") else fullLabel,
+                text = plateHint?.compact ?: if (useShortLabel) fullLabel.substringBefore(" (") else fullLabel,
+                modifier = if(plateHint == null) Modifier else Modifier.testTag("load-plate-label").semantics { contentDescription = plateHint.text },
                 style = KpknType.eyebrow.copy(fontSize = 10.sp, lineHeight = 14.sp),
                 color = WizardColors.textMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                maxLines = if(plateHint == null) 1 else 2,
+                overflow = if(plateHint == null) TextOverflow.Ellipsis else TextOverflow.Clip,
                 onTextLayout = { layout ->
-                    if (shortenLabelOnOverflow && !useShortLabel && layout.hasVisualOverflow) useShortLabel = true
+                    if (plateHint == null && shortenLabelOnOverflow && !useShortLabel && layout.hasVisualOverflow) useShortLabel = true
                 },
             )
             BasicTextField(
@@ -908,10 +915,14 @@ internal fun SetInputCardV2(
     modeResultContent: (@Composable (LiveSetCardMode) -> Unit)? = null,
     amrapResultPanel: (@Composable (() -> Unit) -> Unit)? = null,
     clockNowMillis: () -> Long = { android.os.SystemClock.elapsedRealtime() },
+    equipmentInventory: com.example.kpkn.data.models.EquipmentInventory? = null,
 ) {
     val context = LocalContext.current
     var editingAmrapResult by remember(exercise.id, setIndex, activeSide, sessionCompletedSet) { mutableStateOf(false) }
     val showAmrapResult = amrapResultPanel != null && !editingAmrapResult
+    val myoParams = currentSet.plannedIntensityTechniques.firstOrNull { it.type == TechniqueType.REST_PAUSE }?.params.orEmpty()
+    val activeRestReps = if(currentSet.isMyoReps()) (myoParams["reps"]?.toIntOrNull() ?: 4).coerceIn(3,5) else RestPausePlanDefaults.Reps
+    val activeRestPauseSeconds = if(currentSet.isMyoReps()) (myoParams["pauseSeconds"]?.toIntOrNull() ?: 15).coerceIn(10,30) else RestPausePlanDefaults.PauseSeconds
     val recordActionInstanceOwner = remember { Any() }
     val isNarrowScreen = LocalLivePagerShouldReflow.current
     val resolvedWeightSuggestion = weightSuggestion.takeUnless { exercise.trainingMode == TrainingMode.SOLO_RPE }
@@ -1308,7 +1319,7 @@ internal fun SetInputCardV2(
         mutableStateOf(listOf(DropSetEntry(weight = 0.0, reps = 0)))
     }
     var restPauseSets by remember(exercise.id, setIndex, sideKey) {
-        mutableStateOf(listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = 0)))
+        mutableStateOf(listOf(RestPauseData(restTime = activeRestPauseSeconds, reps = 0, style = if(currentSet.isMyoReps()) "myo" else null)))
     }
     var partialSets by remember(exercise.id, setIndex, sideKey, sessionCompletedSet) {
         mutableStateOf(listOf(restoredPartialReps))
@@ -1356,7 +1367,7 @@ internal fun SetInputCardV2(
         mutableStateOf(savedTechniqueProgress?.dropRepsText ?: RestPausePlanDefaults.Reps.toString())
     }
     var guidedRestPauseRepsText by remember(exercise.id, setIndex, sideKey) {
-        mutableStateOf(savedTechniqueProgress?.restPauseRepsText ?: RestPausePlanDefaults.Reps.toString())
+        mutableStateOf(savedTechniqueProgress?.restPauseRepsText ?: activeRestReps.toString())
     }
     // Scheduled editor techniques run in the same card controls.  We keep the
     // phase cursor and captured rows locally until the final phase so the
@@ -1407,7 +1418,7 @@ internal fun SetInputCardV2(
         dropSetEnabled = false
         restPauseEnabled = false
         dropSets = listOf(DropSetEntry(weight = 0.0, reps = 0))
-        restPauseSets = listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = RestPausePlanDefaults.Reps))
+        restPauseSets = listOf(RestPauseData(restTime = activeRestPauseSeconds, reps = activeRestReps, style = if(currentSet.isMyoReps()) "myo" else null))
         partialSets = listOf(restoredPartialReps)
         isAmrap = initialAmrapActive
         showAmrapSheet = false
@@ -1435,7 +1446,7 @@ internal fun SetInputCardV2(
         guidedCommitRestPauseOverride = savedProgress?.commitRestPauseRows
         guidedDropWeightText = savedProgress?.dropWeightText.orEmpty()
         guidedDropRepsText = savedProgress?.dropRepsText ?: RestPausePlanDefaults.Reps.toString()
-        guidedRestPauseRepsText = savedProgress?.restPauseRepsText ?: RestPausePlanDefaults.Reps.toString()
+        guidedRestPauseRepsText = savedProgress?.restPauseRepsText ?: activeRestReps.toString()
         scheduledPhaseIndex = savedProgress
             ?.takeIf { it.kind == WorkoutTechniqueDraftKind.SCHEDULED_DROP || it.kind == WorkoutTechniqueDraftKind.SCHEDULED_REST_PAUSE }
             ?.phaseIndex ?: 0
@@ -1487,8 +1498,9 @@ internal fun SetInputCardV2(
                 val count = (plannedRestPause?.params?.get("count")?.toIntOrNull() ?: 2).coerceIn(1, 5)
                 restPauseSets = List(count) {
                     RestPauseData(
-                        restTime = RestPausePlanDefaults.PauseSeconds,
-                        reps = RestPausePlanDefaults.Reps,
+                        restTime = activeRestPauseSeconds,
+                        reps = activeRestReps,
+                        style = if(currentSet.isMyoReps()) "myo" else null,
                     )
                 }
             }
@@ -1511,7 +1523,7 @@ internal fun SetInputCardV2(
             val after = guidedPhase
             if (after is GuidedTechniquePhase.RestPauseCountdown && after.index == phase.index) {
                 guidedPhase = GuidedTechniquePhase.RestPauseReps(after.index, after.total)
-                guidedRestPauseRepsText = RestPausePlanDefaults.Reps.toString()
+                guidedRestPauseRepsText = activeRestReps.toString()
             }
         }
     }
@@ -1562,7 +1574,7 @@ internal fun SetInputCardV2(
         dropSetEnabled = false
         restPauseEnabled = false
         dropSets = listOf(DropSetEntry(weight = 0.0, reps = 0))
-        restPauseSets = listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = RestPausePlanDefaults.Reps))
+        restPauseSets = listOf(RestPauseData(restTime = activeRestPauseSeconds, reps = activeRestReps, style = if(currentSet.isMyoReps()) "myo" else null))
         partialSets = listOf(0)
         isAmrap = currentSet.purpose.isAmrap
         showAmrapSheet = false
@@ -1576,7 +1588,7 @@ internal fun SetInputCardV2(
         guidedRestPauseDrafts = emptyList()
         guidedDropWeightText = ""
         guidedDropRepsText = RestPausePlanDefaults.Reps.toString()
-        guidedRestPauseRepsText = RestPausePlanDefaults.Reps.toString()
+        guidedRestPauseRepsText = activeRestReps.toString()
         scheduledPhaseIndex = 0
         scheduledMainCapture = null
         scheduledDropDrafts = emptyList()
@@ -1830,6 +1842,23 @@ internal fun SetInputCardV2(
     val reportValueText = if (supportsIndependentSides) valueTextForSide(selectedSide) else valueText
     val timeGoalComplete = isTimeMode && !timerRunning && plannedTarget != null && plannedTarget > 0 &&
         (parseLiveDurationSeconds(reportValueText) ?: 0) >= plannedTarget
+    val targetPlateLoad = reportWeightText.replace(',','.').toDoubleOrNull() ?: plannedWeightGhost?.replace(',','.')?.toDoubleOrNull()
+    val plateHint by produceState<com.example.kpkn.domain.training.PlateLoadLabel?>(null,targetPlateLoad,loadMode,equipmentInventory,exercise.catalogConfigurationId,currentSet.loadQuantityConvention,exercise.loadQuantityConvention) {
+        value = null
+        if(loadMode == LoadModeV2.LOAD && targetPlateLoad != null && equipmentInventory?.barbellWeightKg != null) {
+            value = withContext(Dispatchers.Default) {
+                val catalog = try { withContext(Dispatchers.IO) { com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache.getOrLoad(context).catalog } }
+                    catch(cancelled: kotlinx.coroutines.CancellationException) { throw cancelled } catch(_: Exception) { null }
+                val configuration = catalog?.families?.flatMap { it.definitions }?.flatMap { it.configurations }?.firstOrNull { it.id == exercise.catalogConfigurationId }
+                val equipmentId = configuration?.profile?.equipmentId
+                val convention = currentSet.loadQuantityConvention.takeIf { it != com.example.kpkn.data.models.LoadQuantityConvention.UNSPECIFIED }
+                    ?: exercise.loadQuantityConvention.takeIf { it != com.example.kpkn.data.models.LoadQuantityConvention.UNSPECIFIED }
+                    ?: com.example.kpkn.domain.training.NativeLoadConventions.forEquipment(equipmentId)
+                com.example.kpkn.domain.training.PlateLoadLabels.build(targetPlateLoad,convention,
+                    com.example.kpkn.domain.training.NativeLoadConventions.stockKindFor(equipmentId,exercise.catalogConfigurationId.orEmpty()),equipmentInventory)
+            }
+        }
+    }
     val guidedSkipAction = remember(exercise.id, setIndex, sideKey) {
         arrayOf<(() -> Unit)?>(null)
     }
@@ -2051,6 +2080,7 @@ internal fun SetInputCardV2(
                                 updateActiveWeightText(typed)
                             },
                             label = loadFieldLabel,
+                            plateHint = plateHint,
                             placeholder = if (manualLoadRequiredNow) {
                                 "Carga a elegir"
                             } else {
@@ -2449,7 +2479,7 @@ internal fun SetInputCardV2(
 
                     if (legacyModeLayout) {
                         ValueStepperBlock(Modifier.fillMaxWidth())
-                        VideoBlock()
+                        // Misma ruta de video por chip/menu que en el diseno nuevo, sin fila duplicada.
                         EffortBlock()
                         RomBlock()
                         modeResultContent?.invoke(liveMode)
@@ -2496,7 +2526,7 @@ internal fun SetInputCardV2(
                                     updateActiveWeightText(typed)
                                 }, loadFieldLabel, plannedWeightGhost, loadMode) { ModeLoadButton() }
                             }
-                            VideoBlock()
+                            // El video conserva sus acciones en el chip de la cabecera; no se duplica ni desplaza el esfuerzo.
                             if (liveMode != LiveSetCardMode.SOLO_RPE) EffortBlock()
                             RomBlock()
                             modeResultContent?.invoke(liveMode)
@@ -2996,7 +3026,7 @@ internal fun SetInputCardV2(
                 guidedPhase = GuidedTechniquePhase.RestPauseCountdown(
                     index = index,
                     total = total,
-                    secondsLeft = RestPausePlanDefaults.PauseSeconds,
+                    secondsLeft = activeRestPauseSeconds,
                 )
             }
 
@@ -3082,7 +3112,7 @@ internal fun SetInputCardV2(
                                 }
                                 is GuidedTechniquePhase.RestPauseCountdown -> {
                                     guidedPhase = GuidedTechniquePhase.RestPauseReps(phase.index, phase.total)
-                                    guidedRestPauseRepsText = RestPausePlanDefaults.Reps.toString()
+                                    guidedRestPauseRepsText = activeRestReps.toString()
                                 }
                                 is GuidedTechniquePhase.RestPauseReps -> {
                                     val rpReps = guidedRestPauseRepsText.toIntOrNull()
@@ -3095,8 +3125,9 @@ internal fun SetInputCardV2(
                                         return@label
                                     }
                                     val nextDrafts = guidedRestPauseDrafts + RestPauseData(
-                                        restTime = RestPausePlanDefaults.PauseSeconds,
+                                        restTime = activeRestPauseSeconds,
                                         reps = rpReps,
+                                        style = if(currentSet.isMyoReps()) "myo" else null,
                                     )
                                     guidedRestPauseDrafts = nextDrafts
                                     val nextIndex = phase.index + 1
@@ -3235,6 +3266,7 @@ internal fun SetInputCardV2(
                                             retryRestRows[retryRestRows.lastIndex] = RestPauseData(
                                                 restTime = scheduledPlan.pauseSeconds,
                                                 reps = value.toInt().coerceAtLeast(0),
+                                                style = if(currentSet.isMyoReps()) "myo" else null,
                                             )
                                         }
                                     }
@@ -3280,6 +3312,7 @@ internal fun SetInputCardV2(
                             val currentRestPauseRow = RestPauseData(
                                 restTime = scheduledPlan.pauseSeconds,
                                 reps = value.toInt().coerceAtLeast(0),
+                                style = if(currentSet.isMyoReps()) "myo" else null,
                             )
                             val nextDropRows = if (scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET) {
                                 scheduledDropDrafts + currentDropRow
@@ -3396,6 +3429,9 @@ internal fun SetInputCardV2(
                     ) {
                         GuidedTechniquePanel(
                             phase = guidedPhaseNow,
+                            restPauseStyle = if(currentSet.isMyoReps()) "myo" else null,
+                            pauseSeconds = activeRestPauseSeconds,
+                            targetRestReps = activeRestReps,
                             accentColor = sessionAccentColor,
                             dropWeightText = guidedDropWeightText,
                             dropRepsText = guidedDropRepsText,
@@ -3550,7 +3586,7 @@ internal fun SetInputCardV2(
                             listOf(DropSetEntry(0.0, 0))
                         }
                         restPauseEnabled = pauses.isNotEmpty() || restPauseEnabled
-                        restPauseSets = pauses.ifEmpty { listOf(RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = 0)) }
+                        restPauseSets = pauses.ifEmpty { listOf(RestPauseData(restTime = activeRestPauseSeconds, reps = 0, style = if(currentSet.isMyoReps()) "myo" else null)) }
                         cardFace = SetCardFace.Front
                     },
                 )
