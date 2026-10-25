@@ -46,6 +46,23 @@ import java.time.LocalDate
  * - La composición corporal ACTUAL viaja como `startValue`, nunca como meta.
  */
 class SetupNutritionPreparationTest {
+    @Test fun missing_direction_can_start_at_maintenance_for_strength_programs_without_overwriting_an_explicit_choice() {
+        val p = program(listOf(weightedSession("a",1))).copy(mode = com.example.kpkn.data.models.ProgramMode.POWERLIFTING)
+        val suggested = prepare(manualDraft().copy(direction = null),p)
+        assertEquals(PlanDirection.MAINTENANCE,suggested.plan?.direction)
+        assertEquals(2000,suggested.plan?.calorieTarget)
+        val explicit = prepare(manualDraft().copy(direction = PlanDirection.SURPLUS),p)
+        assertEquals(PlanDirection.SURPLUS,explicit.plan?.direction)
+        val powerbuilding = prepare(manualDraft().copy(direction = null),p.copy(mode = com.example.kpkn.data.models.ProgramMode.POWERBUILDING))
+        assertEquals(PlanDirection.MAINTENANCE,powerbuilding.plan?.direction)
+    }
+
+    @Test fun direction_suggestion_does_not_invent_a_plan_for_tracking_only_or_choose_for_hypertrophy() {
+        val p = program(listOf(weightedSession("a",1))).copy(mode = com.example.kpkn.data.models.ProgramMode.POWERLIFTING)
+        assertNull(prepare(manualDraft(configurationMode = NutritionConfigurationMode.TRACKING_ONLY).copy(direction = null),p).plan)
+        assertNull(SetupNutritionPreparation.suggestedDirection(manualDraft().copy(direction = null),p.copy(mode = com.example.kpkn.data.models.ProgramMode.HYPERTROPHY)))
+        assertNull(SetupNutritionPreparation.suggestedDirection(manualDraft().copy(direction = null),null))
+    }
 
     private val monday: LocalDate = LocalDate.of(2026, 9, 21)
     private val week: List<LocalDate> = (0L until 7L).map { monday.plusDays(it) }
@@ -145,7 +162,7 @@ class SetupNutritionPreparationTest {
     // ─── Objetivos propios (manual) sin EER ─────────────────────────────────
 
     @Test
-    fun `self-defined manual plan is READY with exact weekly budget and variable split`() {
+    fun `self-defined manual plan keeps exact weekly budget and provisional uniform split when strength expenditure is unavailable`() {
         val result = prepare(manualDraft())
 
         assertEquals(NutritionPlanPreparationStatus.READY, result.status)
@@ -156,18 +173,17 @@ class SetupNutritionPreparationTest {
         assertNull(plan.startValue)
 
         // La base del reparto viene DEL PLAN FINAL, jamás de una re-derivación.
-        assertEquals(NutritionDistributionStatus.VARIABLE, result.distributionStatus)
+        assertEquals(NutritionDistributionStatus.PROVISIONAL_UNIFORM, result.distributionStatus)
         assertEquals(week.toSet(), result.days.map { it.date }.toSet())
         // Presupuesto semanal exacto: Σ T_i = 7 · B = 14000.
         assertEquals(14000, result.days.sumOf { it.calorieTargetKcal })
-        // Reparto real: el día con entrenamiento supera a un día de descanso.
-        assertTrue(result.days.first().calorieTargetKcal > result.days[1].calorieTargetKcal)
+        // Sin una estimación válida de fuerza no se inventa un reparto variable.
+        assertTrue(result.days.all { it.calorieTargetKcal == 2000 })
         assertTrue(result.days.all { it.proteinG > 0 && it.carbsG > 0 && it.fatG > 0 })
 
         // Gasto del calendario adaptado de verdad.
         val mondayExpenditure = result.expendituresByDate[week[0]]
-        assertTrue(mondayExpenditure is DayExpenditure.Estimated)
-        assertTrue((mondayExpenditure as DayExpenditure.Estimated).kcal > 0.0)
+        assertEquals(DayExpenditure.NotEstimable,mondayExpenditure)
         assertEquals(DayExpenditure.Rest, result.expendituresByDate[week[1]])
 
         // Previsión semanal escrita para resolver el objetivo por fecha después.
@@ -206,8 +222,7 @@ class SetupNutritionPreparationTest {
         assertNotNull(result.recommendation?.eerKcal)
         // El gasto del calendario se resuelve independientemente del plan.
         val mondayExpenditure = result.expendituresByDate[week[0]]
-        assertTrue(mondayExpenditure is DayExpenditure.Estimated)
-        assertTrue((mondayExpenditure as DayExpenditure.Estimated).kcal > 0.0)
+        assertEquals(DayExpenditure.NotEstimable,mondayExpenditure)
     }
 
     // ─── Solo registro: sin plan ni metas, pero con gasto ───────────────────
@@ -228,7 +243,7 @@ class SetupNutritionPreparationTest {
         assertNull(result.recommendation)
         // Sin metas fabricadas, pero sin perder el gasto del calendario.
         val mondayExpenditure = result.expendituresByDate[week[0]]
-        assertTrue(mondayExpenditure is DayExpenditure.Estimated)
+        assertEquals(DayExpenditure.NotEstimable,mondayExpenditure)
         assertEquals(DayExpenditure.Rest, result.expendituresByDate[week[3]])
         assertEquals(week.toSet(), result.expendituresByDate.keys)
     }

@@ -65,6 +65,11 @@ import java.util.UUID
  */
 object SetupNutritionPreparation {
 
+    internal fun suggestedDirection(draft: NutritionWizardDraft,program: Program?): com.example.kpkn.data.models.PlanDirection? =
+        draft.direction ?: if (draft.configurationMode != com.example.kpkn.domain.nutrition.NutritionConfigurationMode.TRACKING_ONLY &&
+            program?.mode in setOf(com.example.kpkn.data.models.ProgramMode.POWERLIFTING,com.example.kpkn.data.models.ProgramMode.POWERBUILDING))
+            com.example.kpkn.data.models.PlanDirection.MAINTENANCE else null
+
     /**
      * Espejo del `draftFromWizard` del editor: UNA sola traducción, en dominio.
      * [NutritionPlanEditorDraft.pendingDraftId] queda null porque el DTO del alta
@@ -84,7 +89,9 @@ object SetupNutritionPreparation {
      * con el gasto del calendario ya resuelto (independiente del plan).
      */
     fun prepare(input: SetupNutritionPreparationInput): SetupNutritionPreparationResult {
-        val editor = editorDraftOf(input.draft)
+        val direction = suggestedDirection(input.draft,input.program)
+        val effectiveDraft = if (direction != input.draft.direction) input.draft.copy(direction = direction) else input.draft
+        val editor = editorDraftOf(effectiveDraft)
         // Id ESTABLE del plan: el del borrador si viene suministrado; nunca un
         // UUID nuevo por preview (rompería la identidad entre vistas previas).
         val planId = input.draft.planId?.takeIf { it.isNotBlank() }
