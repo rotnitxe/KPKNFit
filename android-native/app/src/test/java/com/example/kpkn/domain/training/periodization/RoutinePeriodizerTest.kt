@@ -22,6 +22,28 @@ import kotlin.math.ceil
 
 class RoutinePeriodizerTest {
 
+    @Test fun heavy_phases_rotate_main_variants_with_coherent_identity_and_without_borrowing_a_different_1rm() {
+        val request = s.request(s.gym,RoutineMode.CUSTOM_POWERLIFTING,RoutineLevel.INTERMEDIATE,dayCount = 3,minutes = 60,
+            marks = mapOf(LiftMark.SQUAT to 200.0)).copy(liftVariants = mapOf(LiftMark.SQUAT to com.example.kpkn.data.protocols.CatalogIds.SQ_LOW))
+        val base = RoutineGenerator.generate(request).program
+        val source = sessionsOf(base).flatMap { it.allExercises() }.first { it.catalogConfigurationId == com.example.kpkn.data.protocols.CatalogIds.SQ_LOW }
+        val result = RoutinePeriodizer.build(request,base,ProgramVariant.PERIODIZED,Horizon.Weeks(12)).program
+        val blocks = result.macrocycles.single().blocks
+        fun lift(goal: BlockGoal) = blocks.first { it.goal == goal }.mesocycles.first().weeks.first().sessions
+            .flatMap { it.allExercises() }.first { it.id.startsWith("${source.id}-w") }
+        val accumulation = lift(BlockGoal.ACCUMULATION)
+        assertEquals(com.example.kpkn.data.protocols.CatalogIds.SQ_HIGH,accumulation.catalogConfigurationId)
+        assertEquals(accumulation.catalogConfigurationId,accumulation.exerciseDbId)
+        assertNull(accumulation.reference1RM)
+        assertNull(accumulation.referenceTrainingMax)
+        assertTrue(accumulation.sets.all { it.weight == null && it.targetPercentageRM == null })
+        val intensification = lift(BlockGoal.INTENSIFICATION)
+        assertEquals(com.example.kpkn.data.protocols.CatalogIds.SQ_PAUSED,intensification.catalogConfigurationId)
+        val specific = lift(blocks.first { it.goal in setOf(BlockGoal.REALIZATION,BlockGoal.PEAK) }.goal!!)
+        assertEquals(com.example.kpkn.data.protocols.CatalogIds.SQ_LOW,specific.catalogConfigurationId)
+        assertEquals(200.0,specific.reference1RM!!,0.0)
+    }
+
     private val s = RoutineTestSupport
 
     /** Semana base real del generador (3 días, 60 min, gimnasio) para [mode]. */

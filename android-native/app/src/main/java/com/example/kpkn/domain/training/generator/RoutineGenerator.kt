@@ -278,7 +278,7 @@ object RoutineGenerator {
     // ─── Lugares y material ────────────────────────────────────────────────────────────────────────────────
 
     /** Lugar del día: el asignado si está entre los elegidos; si no, el primero en orden gimnasio, casa, espacios públicos. */
-    private fun placeOf(request: RoutineRequest, day: Int): TrainingPlace? {
+    internal fun placeOf(request: RoutineRequest, day: Int): TrainingPlace? {
         val places = request.places
         if (places.isEmpty()) return request.dayPlaces[day]
         request.dayPlaces[day]?.takeIf { it in places }?.let { return it }
@@ -289,7 +289,7 @@ object RoutineGenerator {
      * Material del lugar. Con un solo lugar (o sin lugares) manda la disponibilidad declarada; con varios, la propia del
      * lugar y, si no vino, lo que ese lugar aporta de serie: nunca la unión (no se mezclan lugares).
      */
-    private fun availabilityFor(request: RoutineRequest, place: TrainingPlace?): EquipmentAvailability {
+    internal fun availabilityFor(request: RoutineRequest, place: TrainingPlace?): EquipmentAvailability {
         if (place == null) return request.availability
         request.availabilityByPlace[place]?.let { return it }
         if (request.places.size <= 1) return request.availability

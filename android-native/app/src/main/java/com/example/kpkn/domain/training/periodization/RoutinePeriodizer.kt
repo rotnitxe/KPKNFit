@@ -22,6 +22,7 @@ import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.ProgramExecutionContract
 import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.domain.training.generator.CatalogEntry
+import com.example.kpkn.domain.training.generator.DayEquipment
 import com.example.kpkn.domain.training.generator.Disciplines
 import com.example.kpkn.domain.training.generator.ExKind
 import com.example.kpkn.domain.training.generator.GeneratorCatalog
@@ -30,6 +31,7 @@ import com.example.kpkn.domain.training.generator.Prescriber
 import com.example.kpkn.domain.training.generator.RoutineLevel
 import com.example.kpkn.domain.training.generator.RoutineMode
 import com.example.kpkn.domain.training.generator.RoutineRequest
+import com.example.kpkn.domain.training.generator.RoutineGenerator
 import com.example.kpkn.domain.training.generator.VolumeBudgets
 import com.example.kpkn.domain.training.generator.VolumeLedger
 import kotlin.math.ceil
@@ -49,7 +51,7 @@ import kotlin.math.roundToInt
 object RoutinePeriodizer {
 
     /** Revisión del periodizador; viaja en el bloque de cada programa periodizado. */
-    const val REVISION = "routine-periodizer-v1"
+    const val REVISION = "routine-periodizer-v2"
 
     /** Nota cuando la competición está tan cerca que ni un bloque cabe: el programa queda en su versión simple. */
     private const val TOO_CLOSE_NOTE = "Tu competición está demasiado cerca para un programa por bloques."
@@ -70,7 +72,7 @@ object RoutinePeriodizer {
     private const val MIN_ACCESSORY_SETS = 2
 
     /** Pesadas: powerlifting, halterofilia y strongman. */
-    private val HEAVY_MODES = setOf(
+    internal val HEAVY_MODES = setOf(
         RoutineMode.CUSTOM_POWERLIFTING,
         RoutineMode.DISCIPLINE_STRONGMAN,
         RoutineMode.DISCIPLINE_WEIGHTLIFTING_BASE,
@@ -156,7 +158,12 @@ object RoutinePeriodizer {
 
     private fun periodizeWeek(baseSessions: List<Session>, slot: WeekSlot, ctx: PeriodContext): List<Session> {
         val rule = ruleOf(slot, ctx)
-        return baseSessions.map { session -> periodizeSession(session, slot.number, rule, ctx) }
+        return baseSessions.mapIndexed { index, session ->
+            val dayIndex = ctx.request.weekdays.indexOf(session.dayOfWeek).takeIf { it >= 0 } ?: index
+            val place = RoutineGenerator.placeOf(ctx.request,dayIndex)
+            val equipment = DayEquipment(RoutineGenerator.availabilityFor(ctx.request,place))
+            periodizeSession(session,slot.number,rule,ctx,equipment)
+        }
     }
 
     // ─── Reglas por fase y modo ────────────────────────────────────────────────────────────────────────────
@@ -172,6 +179,7 @@ object RoutinePeriodizer {
 
     /** Reglas de una semana: factor de series, repeticiones, RIR y el trato por modo. */
     private class WeekRule(
+        val phase: PhaseKind,
         val setFactor: Double,
         val repDelta: Int,
         val repCap: Int?,
@@ -208,6 +216,7 @@ object RoutinePeriodizer {
             rirFixed = realizationRir
         }
         return WeekRule(
+            phase = slot.kind,
             setFactor = row.factor,
             repDelta = repDelta,
             repCap = repCap,
@@ -248,13 +257,14 @@ object RoutinePeriodizer {
     private data class SetBounds(val min: Int, val max: Int)
 
     /** Pasa una sesión de la semana base a la semana [number]: ids con sufijo, series, kilos y bloques de cardio. */
-    private fun periodizeSession(base: Session, number: Int, rule: WeekRule, ctx: PeriodContext): Session {
+    private fun periodizeSession(base: Session, number: Int, rule: WeekRule, ctx: PeriodContext, equipment: DayEquipment): Session {
         val suffix = "-w$number"
         val principals = principalIds(base, ctx)
         val kept = HashSet<String>()
 
         fun transform(exercise: Exercise): Exercise? {
-            val changed = periodizeExercise(exercise, exercise.id in principals, rule, suffix, ctx) ?: return null
+            val changed = periodizeExercise(exercise, exercise.id in principals, rule, suffix, ctx, equipment) ?: return null
+            if (exercise.id in principals) ctx.principalOccurrences += changed.id
             kept.add(exercise.id)
             return changed
         }
@@ -308,6 +318,7 @@ object RoutinePeriodizer {
         rule: WeekRule,
         suffix: String,
         ctx: PeriodContext,
+        equipment: DayEquipment?,
     ): Exercise? {
         if (exercise.isCardio) {
             val cardio = if (rule.halveCardio) exercise.cardioDetails?.let { halved(it) } else exercise.cardioDetails
@@ -320,8 +331,28 @@ object RoutinePeriodizer {
             min = if (principal) 1 else minOf(MIN_ACCESSORY_SETS, baseSets),
             max = if (rule.testWeek) 1 else baseSets + 1,
         )
-        val sets = (0 until setCount(rule, principal, baseSets)).map { index -> reshapeSet(exercise, index, rule, suffix) }
-        return renamed(exercise, suffix).copy(sets = sets)
+        val current = if (principal && ctx.request.mode in HEAVY_MODES) rotateVariant(exercise,rule.phase,ctx,equipment) else exercise
+        val sets = (0 until setCount(rule, principal, baseSets)).map { index -> reshapeSet(current, index, rule, suffix) }
+        return renamed(current, suffix).copy(sets = sets)
+    }
+
+    private fun rotateVariant(exercise: Exercise, phase: PhaseKind, ctx: PeriodContext, equipment: DayEquipment?): Exercise {
+        val baseId = exercise.catalogConfigurationId ?: return exercise
+        val targetId = BlockVariantRotation.variantFor(baseId,phase,true)
+        if (baseId == targetId) return exercise
+        val target = ctx.catalog.entry(targetId) ?: return exercise
+        if (equipment?.allows(target,emptyList()) != true ||
+            target.definitionId in ctx.request.avoided.flatMap { com.example.kpkn.domain.onboarding.AvoidGroups.definitionIdsOf(it) }) return exercise
+        val info = target.legacy
+        // Una variante nueva no hereda el 1RM, el TM ni los contextos de otra configuración.
+        return exercise.copy(name = info.name,exerciseDbId = targetId,exerciseId = targetId,canonicalExerciseId = targetId,
+            exerciseFamilyId = target.familyId,catalogRevision = info.catalogRevision,catalogDefinitionId = info.catalogDefinitionId,
+            catalogConfigurationId = targetId,performanceProfileId = info.performanceProfileId,effectiveMuscles = info.involvedMuscles,
+            variantName = info.catalogVariantChips.joinToString(" · "),reference1RM = null,referenceTrainingMax = null,prFor1RM = null,
+            loadReference = null,selectedAspects = null,contextProfilesV3 = emptyList(),defaultContextProfileIdV3 = null,
+            sets = exercise.sets.map { it.copy(weight = null,targetPercentageRM = null,loadBasis = null,
+                plannedTargetV2 = null,leftTarget = null,rightTarget = null,contextKeyV2 = null,contextProfileIdV3 = null,
+                defaultTagIdV3 = null,defaultSetupProfileIdV3 = null,tagId = null,setupId = null) })
     }
 
     /**
@@ -501,6 +532,8 @@ object RoutinePeriodizer {
      */
     private fun principalIds(session: Session, ctx: PeriodContext): Set<String> {
         val strength = session.strengthExercises()
+        val declared = strength.filter { it.id in ctx.principalOccurrences }
+        if (declared.isNotEmpty()) return declared.map { it.id }.toSet()
         val heavy = strength.filter { kindOf(it, ctx) == ExKind.HEAVY }
         return heavy.ifEmpty { strength.take(1) }.map { it.id }.toSet()
     }
@@ -636,6 +669,7 @@ object RoutinePeriodizer {
         val kinds: Map<String, ExKind>,
         val window: IntRange,
     ) {
+        val principalOccurrences = HashSet<String>()
         /** Límites de series por ejercicio (clave: id ya con sufijo de semana). */
         val bounds = HashMap<String, SetBounds>()
 
