@@ -154,6 +154,9 @@ class ProgramRepository private constructor(
 
     private val _isReady = MutableStateFlow(false)
     val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
+    // isReady also unblocks the UI after a load failure; only a successful
+    // publication makes the cache authoritative enough for lifecycle writes.
+    @Volatile private var hasHydratedFromDb = false
 
     fun addProgram(program: Program) {
         val normalized = normalizeProgramWithCompetitions(program)
@@ -1435,7 +1438,31 @@ class ProgramRepository private constructor(
     private val _ongoingWorkoutCorrupt = MutableStateFlow(false)
     val ongoingWorkoutCorrupt: StateFlow<Boolean> = _ongoingWorkoutCorrupt.asStateFlow()
     private val ongoingWorkoutMutex = Mutex()
+    @Volatile private var ongoingWriterOwner: Any? = null
     val ongoingPersistenceScope: CoroutineScope get() = scope
+
+    internal fun ownsOngoingWorkoutWriter(owner: Any): Boolean = ongoingWriterOwner === owner
+
+    /** Transfer the writer and read its baseline under the same lock as Room commits. */
+    internal suspend fun claimOngoingWorkoutWriter(expected: OngoingWorkoutState, owner: Any): OngoingWorkoutState =
+        withContext(Dispatchers.IO + NonCancellable) {
+            ongoingWorkoutMutex.withLock {
+                val current = _ongoingWorkout.value
+                check(current != null && current.programId == expected.programId &&
+                    current.session.id == expected.session.id && current.startTime == expected.startTime) {
+                    "La ejecución cambió mientras se reabría. Vuelve a reanudarla."
+                }
+                ongoingWriterOwner = owner
+                current
+            }
+        }
+
+    internal suspend fun updateOwnedOngoingWorkoutAndFlush(
+        owner: Any,
+        update: (OngoingWorkoutState) -> OngoingWorkoutState,
+    ): com.example.kpkn.screens.workout.WorkoutPersistResult = withContext(Dispatchers.IO + NonCancellable) {
+        writeOngoingLocked(update, owner)
+    }
 
     suspend fun startWorkout(
         state: OngoingWorkoutState,
@@ -1456,11 +1483,12 @@ class ProgramRepository private constructor(
                     return@withLock StartWorkoutResult.Corrupt
                 }
                 val existing = _ongoingWorkout.value
-                if (existing != null &&
-                    !existing.sameOngoingIdentity(state.programId, state.session.id) &&
-                    !replaceExisting
-                ) {
-                    return@withLock StartWorkoutResult.Conflict(existing)
+                if (existing != null && !replaceExisting) {
+                    if (!existing.sameOngoingIdentity(state.programId, state.session.id) || existing.startTime != state.startTime) {
+                        return@withLock StartWorkoutResult.Conflict(existing)
+                    }
+                    // A repeated start is idempotent, not an empty-snapshot update.
+                    return@withLock StartWorkoutResult.Started
                 }
                 // A blank program id is the explicit ad-hoc workout sentinel.
                 // Any non-blank id must still exist in the authoritative cache;
@@ -1476,6 +1504,7 @@ class ProgramRepository private constructor(
                         calibrationDecisions.saveSnapshot(normalized.calibrationDecisions)
                     }
                     _ongoingWorkout.value = normalized
+                    ongoingWriterOwner = null
                     _ongoingWorkoutCorrupt.value = false
                     StartWorkoutResult.Started
                 } catch (error: Throwable) {
@@ -1499,8 +1528,11 @@ class ProgramRepository private constructor(
         }
     }
 
-    private suspend fun writeOngoingLocked(update: (OngoingWorkoutState) -> OngoingWorkoutState): com.example.kpkn.screens.workout.WorkoutPersistResult {
+    private suspend fun writeOngoingLocked(update: (OngoingWorkoutState) -> OngoingWorkoutState, expectedWriter: Any? = null): com.example.kpkn.screens.workout.WorkoutPersistResult {
         return ongoingWorkoutMutex.withLock {
+            if (expectedWriter != null && ongoingWriterOwner !== expectedWriter) {
+                return@withLock com.example.kpkn.screens.workout.WorkoutPersistResult.Skipped
+            }
             val current = _ongoingWorkout.value ?: return@withLock com.example.kpkn.screens.workout.WorkoutPersistResult.Cancelled
             try {
                 val next = update(current).normalizedIdentityFields()
@@ -1600,6 +1632,9 @@ class ProgramRepository private constructor(
      */
     suspend fun flushPendingWrites() {
         withContext(Dispatchers.IO + NonCancellable) {
+            // Initial nulls are not deletion requests. onStop can run while
+            // Room is loading or while its Main-thread publication is queued.
+            if (!hasHydratedFromDb) return@withContext
             // Finalization acquires ongoing→program; keep the same order here
             // so a lifecycle flush cannot deadlock a concurrent completion.
             val snapshot = ongoingWorkoutMutex.withLock {
@@ -1625,7 +1660,7 @@ class ProgramRepository private constructor(
                 val workout = _ongoingWorkout.value
                 if (workout != null) {
                     db.stateDao().upsertOngoingWorkout(workout.toEntity())
-                } else {
+                } else if (!_ongoingWorkoutCorrupt.value) {
                     db.stateDao().clearOngoingWorkout()
                 }
                 flushSnapshot
@@ -2094,6 +2129,7 @@ class ProgramRepository private constructor(
                     _contextProfiles.value = contextProfiles
                     _workoutTags.value = workoutTags
                     _replacementDecisions.value = replacementDecisions
+                    hasHydratedFromDb = true
                     _isReady.value = true
                 }
             }.onFailure { error ->

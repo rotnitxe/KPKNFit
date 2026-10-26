@@ -67,6 +67,9 @@ import com.example.kpkn.domain.biomechanics.profiles.ExerciseRef
 import com.example.kpkn.domain.biomechanics.profiles.ProfileResolution
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.workout.WorkoutMediaCaptureController
+import com.example.kpkn.screens.workout.WorkoutCameraChoice
+import com.example.kpkn.screens.workout.WorkoutCameraLens
+import com.example.kpkn.screens.workout.components.WorkoutCameraSwitchButton
 import com.example.kpkn.screens.workout.technique.design.FramingChip
 import com.example.kpkn.screens.workout.technique.design.FramingGuideOverlay
 import com.example.kpkn.screens.workout.technique.design.RecTimerPill
@@ -195,6 +198,9 @@ internal fun TechniqueRecorderStage(
     val lifecycleOwner = (activity as? LifecycleOwner) ?: LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
     val completion = remember { TechniqueRecorderCompletion() }
+    val idleChoice = remember { MutableStateFlow(WorkoutCameraChoice()) }
+    val cameraChoice by (mediaCapture?.cameraChoice ?: idleChoice).collectAsStateWithLifecycle()
+    val lens = cameraChoice.lens
 
     // Resolución asíncrona del ExerciseRef y su perfil mediante el catálogo v2
     val profileResolution by produceState<RecorderResolvedProfile?>(
@@ -415,7 +421,7 @@ internal fun TechniqueRecorderStage(
     }
 
     // Enlace de ciclo de vida con CameraX
-    DisposableEffect(previewView, lifecycleOwner, cameraPermissionGranted, profileResolution, desiredWant60, cameraRetryGeneration) {
+    DisposableEffect(previewView, lifecycleOwner, cameraPermissionGranted, profileResolution, desiredWant60, cameraRetryGeneration, lens) {
         val view = previewView ?: return@DisposableEffect onDispose {}
         if (mediaCapture == null || !cameraPermissionGranted || profileResolution == null) return@DisposableEffect onDispose {}
 
@@ -441,6 +447,7 @@ internal fun TechniqueRecorderStage(
 
                 val hasBack = cameraProvider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA)
                 val hasFront = cameraProvider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA)
+                mediaCapture.updateCameraAvailability(hasBack, hasFront)
                 hasCheckedCameras = true
                 hasAvailableCamera = hasBack || hasFront
 
@@ -449,7 +456,8 @@ internal fun TechniqueRecorderStage(
                     return@bindIfActive
                 }
 
-                val cameraSelector = if (hasBack) CameraSelector.DEFAULT_BACK_CAMERA else CameraSelector.DEFAULT_FRONT_CAMERA
+                val selectedLens = cameraChoice.detected(hasBack, hasFront).lens
+                val cameraSelector = if (selectedLens == WorkoutCameraLens.FRONT) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
                 val want60 = desiredWant60
 
                 runCatching {
@@ -524,6 +532,8 @@ internal fun TechniqueRecorderStage(
     TechniqueRecorderStageContent(
         modifier = modifier.semantics { this[TechniqueRecorderRequestKey] = request.captureRequest },
         isRecording = isRecordingState,
+        cameraChoice = cameraChoice,
+        onSwitchCamera = { mediaCapture?.switchCamera() },
         elapsedSeconds = elapsedSeconds,
         is60FpsGranted = is60FpsGranted,
         showsPlateBadge = usesPlate,
@@ -595,6 +605,8 @@ internal fun TechniqueRecorderStageContent(
     onOpenGallery: (() -> Unit)? = null,
     onRequestPermission: () -> Unit = {},
     onRetryCamera: () -> Unit = {},
+    cameraChoice: WorkoutCameraChoice = WorkoutCameraChoice(),
+    onSwitchCamera: () -> Unit = {},
     preview: @Composable () -> Unit = {},
     isProcessing: Boolean = false,
 ) {
@@ -614,6 +626,7 @@ internal fun TechniqueRecorderStageContent(
                     descriptions = listOf("Cambiar a foto", "Vídeo de técnica"),
                 )
                 Spacer(Modifier.weight(1f))
+                WorkoutCameraSwitchButton(cameraChoice, available && !isRecording && !isProcessing, onSwitchCamera)
                 if (onOpenFicha != null) MediaOverlayPill(
                     description = "Ficha del ejercicio", onClick = onOpenFicha,
                 ) { Text("Ficha", style = KpknType.chip, color = WizardColors.text) }

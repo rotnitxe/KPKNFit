@@ -50,6 +50,17 @@ import java.util.concurrent.atomic.AtomicReference
 @Config(manifest = Config.NONE, sdk = [34])
 @OptIn(ExperimentalCoroutinesApi::class)
 class WorkoutVoiceSetMutationRoomTest {
+    @Test fun openTechniquesRejectStaleCorrectionsAndUndoWithoutWriting() = runBlocking {
+        val key = "exercise_0"
+        val actual = CompletedSet("open-technique", reps = 6, weight = 20.0, techniqueStatus = RecordedTechniqueStatus.OPEN)
+        seed(state.copy(completedSets = mapOf(key to actual), setJustLoggedKey = key))
+        val before = persistCalls
+        assertTrue(controller.patchLast(weightPatch(50.0)) is WorkoutVoiceMutationResult.Rejected)
+        assertTrue(controller.patchAt(key, CompletedSetPatch(VoiceSetEditPatch(metricValue = 9))) is WorkoutVoiceMutationResult.Rejected)
+        assertTrue(controller.undo(armUndo(key, "exercise", 0)) is WorkoutVoiceMutationResult.Rejected)
+        assertEquals(before, persistCalls)
+        assertEquals(actual, room().completedSets.getValue(key))
+    }
 
     @get:Rule
     val roomRule = RoomTestRule()

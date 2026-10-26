@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
+import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.PlannedTechnique
 import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.Session
@@ -30,13 +31,14 @@ object UltraFastEngine {
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
         manualOverrides: Map<String, Boolean> = emptyMap(),
         completedSetCountByExercise: Map<String, Int> = emptyMap(),
+        protectedSetIdsByExercise: Map<String, Set<String>> = emptyMap(),
     ): UltraFastPreview {
         val beforeBd = calculateSessionTimeBreakdown(
             exercises = session.allExercises(),
             supersetGroups = session.allSupersetGroups(),
             sessionWarmup = session.warmup,
         )
-        val result = applyInternal(session, exerciseIndex, manualOverrides, completedSetCountByExercise)
+        val result = applyInternal(session, exerciseIndex, manualOverrides, completedSetCountByExercise, protectedSetIdsByExercise = protectedSetIdsByExercise)
         val afterBd = calculateSessionTimeBreakdown(
             exercises = result.transformedExercisesFlat,
             supersetGroups = result.supersetGroups,
@@ -56,8 +58,9 @@ object UltraFastEngine {
         manualOverrides: Map<String, Boolean> = emptyMap(),
         completedSetCountByExercise: Map<String, Int> = emptyMap(),
         customSetCounts: Map<String, Int> = emptyMap(),
+        protectedSetIdsByExercise: Map<String, Set<String>> = emptyMap(),
     ): UltraFastApplyResult {
-        val result = applyInternal(session, exerciseIndex, manualOverrides, completedSetCountByExercise, customSetCounts)
+        val result = applyInternal(session, exerciseIndex, manualOverrides, completedSetCountByExercise, customSetCounts, protectedSetIdsByExercise)
         val beforeBd = calculateSessionTimeBreakdown(session.allExercises(), session.allSupersetGroups(), session.warmup)
         val afterBd = calculateSessionTimeBreakdown(result.transformedExercisesFlat, result.supersetGroups, session.warmup)
         val preview = result.preview.copy(
@@ -161,6 +164,7 @@ object UltraFastEngine {
         manualOverrides: Map<String, Boolean>,
         completedSetCountByExercise: Map<String, Int> = emptyMap(),
         customSetCounts: Map<String, Int> = emptyMap(),
+        protectedSetIdsByExercise: Map<String, Set<String>> = emptyMap(),
     ): InternalResult {
         val all = session.allExercises()
         val transformed = mutableListOf<Exercise>()
@@ -172,7 +176,12 @@ object UltraFastEngine {
             val isDanger = isDangerous(ex, info)
             val override = manualOverrides[ex.id]
             val allowDensifyOnProtected = override == true
-            val loggedCount = completedSetCountByExercise[ex.id] ?: 0
+            val protectedIds = protectedSetIdsByExercise[ex.id].orEmpty()
+            val loggedCount = maxOf(completedSetCountByExercise[ex.id] ?: 0, protectedIds.size)
+            fun keepSets(count: Int): List<ExerciseSet> {
+                val pending = ex.sets.filterNot { it.id in protectedIds }.take((count - protectedIds.size).coerceAtLeast(0)).map { it.id }.toSet()
+                return ex.sets.filter { it.id in protectedIds || it.id in pending }
+            }
 
             val beforeSets = ex.sets.size
             val beforeTech = techniqueLabel(ex)
@@ -196,7 +205,7 @@ object UltraFastEngine {
                 loggedCount > 0 && (isIsolationEligible(ex, info) || allowDensifyOnProtected) -> {
                     val target = reduceTarget(beforeSets).coerceAtLeast(loggedCount)
                     if (target < beforeSets) {
-                        afterExercise = ex.copy(sets = ex.sets.take(target))
+                        afterExercise = ex.copy(sets = keepSets(target))
                         wasReduced = true
                     }
                     reason = UltraFastReason.COMPOUND_REDUCED
@@ -204,7 +213,7 @@ object UltraFastEngine {
                 (isProtected || isDanger) && !allowDensifyOnProtected -> {
                     val target = reduceTarget(beforeSets).coerceAtLeast(loggedCount)
                     if (target < beforeSets) {
-                        afterExercise = ex.copy(sets = ex.sets.take(target))
+                        afterExercise = ex.copy(sets = keepSets(target))
                         wasReduced = true
                         reason = if (isProtected) UltraFastReason.PROTECTED_BASIC else UltraFastReason.DANGEROUS_COMPLEX
                     } else {
@@ -224,7 +233,7 @@ object UltraFastEngine {
                 else -> {
                     val target = reduceTarget(beforeSets).coerceAtLeast(loggedCount)
                     if (target < beforeSets) {
-                        afterExercise = ex.copy(sets = ex.sets.take(target))
+                        afterExercise = ex.copy(sets = keepSets(target))
                         wasReduced = true
                     }
                     reason = UltraFastReason.COMPOUND_REDUCED
@@ -235,7 +244,7 @@ object UltraFastEngine {
             val customTarget = customSetCounts[ex.id]
             if (customTarget != null && customTarget > 0 && !wasDensified) {
                 val keep = customTarget.coerceAtLeast(loggedCount).coerceAtLeast(1)
-                val source = if (keep <= ex.sets.size) ex.sets.take(keep) else afterExercise.sets
+                val source = if (keep <= ex.sets.size) keepSets(keep) else afterExercise.sets
                 afterExercise = afterExercise.copy(sets = source)
 
             }
@@ -529,7 +538,8 @@ fun applyMarkedSeriesTechnique(
             val prevWeight = dropWeights[followIdx - 1]
                 ?: sets.getOrNull(followIdx - 1)?.weight
                 ?: 0.0
-            val dropped = (prevWeight - MARKED_DROPSET_WEIGHT_DROP_KG).coerceAtLeast(0.0)
+            val dropped = com.example.kpkn.domain.workout.nextDropInputLoad(prevWeight, MARKED_DROPSET_WEIGHT_DROP_KG,
+                sets[followIdx].loadModeV2 ?: sets.getOrNull(followIdx - 1)?.loadModeV2 ?: LoadModeV2.LOAD)
             dropWeights[followIdx] = dropped
         }
     }

@@ -57,14 +57,14 @@ class StrengthModelTest {
     }
 
     @Test
-    fun `fallo y AMRAP ignoran la reserva y no bonifican`() {
+    fun `fallo fuerza reserva cero pero AMRAP conserva el autoinforme`() {
         val expected = StrengthModel.estimate1RM(100.0, 5)
         assertEquals(expected, StrengthModel.estimate1RM(100.0, 5, rir = 4, rpe = 6.0, toFailure = true), 0.0)
-        assertEquals(expected, StrengthModel.estimate1RM(100.0, 5, rir = 4, isAmrap = true), 0.0)
+        assertEquals(StrengthModel.estimate1RM(100.0, 5, rir = 4), StrengthModel.estimate1RM(100.0, 5, rir = 4, isAmrap = true), 0.0)
         val set = CompletedSet("serie", weight = 100.0, reps = 5, rir = 4)
         assertEquals(expected, StrengthModel.estimate1RM(set.copy(isFailure = true)), 0.0)
         assertEquals(expected, StrengthModel.estimate1RM(set.copy(isFailedSet = true)), 0.0)
-        assertEquals(expected, StrengthModel.estimate1RM(set.copy(amrapPerformed = true)), 0.0)
+        assertEquals(StrengthModel.estimate1RM(set), StrengthModel.estimate1RM(set.copy(amrapPerformed = true)), 0.0)
         assertEquals(expected, StrengthModel.estimate1RM(set.copy(actualIntensityMode = IntensityMode.SOLO_RM)), 0.0)
     }
 

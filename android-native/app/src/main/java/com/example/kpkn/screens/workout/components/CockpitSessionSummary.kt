@@ -76,7 +76,7 @@ internal fun CockpitSessionSummary(
             CockpitElapsedClock(startTimeMs, targetMinutes, Modifier.size(96.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CockpitMetric("Series", "${metrics.completed} / ${metrics.total}", Modifier.weight(1f))
+                    CockpitMetric("Registros", "${metrics.completed} / ${metrics.total}", Modifier.weight(1f))
                     CockpitMetric("Tonelaje", "${number.format(metrics.tonnage)} kg", Modifier.weight(1f))
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

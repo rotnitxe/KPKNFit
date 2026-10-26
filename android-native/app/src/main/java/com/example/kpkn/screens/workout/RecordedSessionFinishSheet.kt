@@ -51,9 +51,11 @@ internal fun RecordedSessionFinishSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(name, style = MaterialTheme.typography.headlineSmall)
             Text("Resultados registrados · $durationMinutes min")
-            Text("${completedExercises.sumOf { it.sets.size }} series registradas")
+            val logicalSets = logicalSetCountFromCompleted(completedExercises)
+            Text(if (logicalSets == 1) "1 serie registrada" else "$logicalSets series registradas")
             completedExercises.forEach { exercise ->
-                Text("${exercise.exerciseName} · ${exercise.sets.size} series")
+                val count = logicalSetCountFromCompleted(listOf(exercise))
+                Text("${exercise.exerciseName} · $count ${if (count == 1) "serie" else "series"}")
             }
             calibrationSummaryLines(calibrationDecisions).forEach { line ->
                 Text(line,modifier=Modifier.testTag("finish-calibration-line"))

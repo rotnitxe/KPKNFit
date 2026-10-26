@@ -43,6 +43,8 @@ internal fun buildExerciseRmReference(
 ): ExerciseRmReference? {
     fun candidate(set: CompletedSet, date: String, current: Boolean): ExerciseRmReference? {
         if (!set.weight.isFinite() || set.weight <= 0.0 || set.reps <= 0 || set.skipped || set.isWarmup || set.isFailedSet) return null
+        if (set.recordedPayloadV3?.unitMode?.let { it != UnitModeV2.REPS } == true ||
+            set.timeSeconds != null || set.distanceKm != null) return null
         val estimate = StrengthModel.estimate1RM(set)
         return estimate.takeIf { it.isFinite() && it > 0.0 }?.let { ExerciseRmReference(it, set, date, current) }
     }

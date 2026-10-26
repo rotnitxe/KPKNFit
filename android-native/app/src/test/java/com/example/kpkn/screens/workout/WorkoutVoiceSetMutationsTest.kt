@@ -24,6 +24,12 @@ import org.junit.Test
 
 /** Pure transformations shared by the Room candidate and the UI publication of voice corrections. */
 class WorkoutVoiceSetMutationsTest {
+    @Test fun correctionsUseTheSameActualEffortRangeAsRecording() {
+        val actual = loadSet(weight = 20.0)
+        val invalid = VoiceSetEditPatch(intensityValue = 11.0, intensityKind = WorkoutVoiceIntensityKind.RPE)
+        assertNotNull(voiceEditEffortError(invalid))
+        assertEquals(actual, applyVoiceEditPatch(actual, invalid))
+    }
 
     // ─── applyVoiceEditPatch ─────────────────────────────────────────────────────────────────────
 

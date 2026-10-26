@@ -67,6 +67,9 @@ class WorkoutMediaRepository(
     store: WorkoutMediaStore? = null,
 ) {
     private val appContext = context.applicationContext
+    private val executionBindings by lazy { com.example.kpkn.data.media.WorkoutMediaExecutionBindings(appContext.filesDir) }
+    suspend fun executionRefFor(mediaId: String): com.example.kpkn.data.models.WorkoutSetExecutionRef? =
+        withContext(Dispatchers.IO) { executionBindings.read(mediaId) }
     private val injectedStore = store
     private val store: WorkoutMediaStore by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         injectedStore ?: WorkoutMediaStore(appContext.filesDir)
@@ -114,6 +117,7 @@ class WorkoutMediaRepository(
         withContext(Dispatchers.IO) { store.poseSidecarFile(id, createdAtMs) }
 
     suspend fun journalCapture(entry: WorkoutMediaCaptureJournalEntry) = withContext(Dispatchers.IO) {
+        entry.media.sourceRef?.let { executionBindings.write(entry.media.id, it) }
         captureJournal.writeCapturing(entry)
     }
 
@@ -122,7 +126,8 @@ class WorkoutMediaRepository(
         check(entry.sourceUri == null) { "Camera captures must use an app-owned source file" }
         MediaPersistenceOwner.activeCameraCaptures.add(entry.media.id)
         try {
-            captureJournal.writeCapturing(entry)
+            entry.media.sourceRef?.let { executionBindings.write(entry.media.id, it) }
+        captureJournal.writeCapturing(entry)
         } catch (error: Exception) {
             MediaPersistenceOwner.activeCameraCaptures.remove(entry.media.id)
             throw error
@@ -225,6 +230,7 @@ class WorkoutMediaRepository(
     fun submitReadyCapture(entry: WorkoutMediaCaptureJournalEntry): Deferred<WorkoutMedia?> =
         enqueueTracked(entry, "No se pudo guardar el medio. Puedes reintentar.") {
             check(!entry.discardedByRetention) { "La captura fue rechazada por la política de retención." }
+            entry.media.sourceRef?.let { executionBindings.write(entry.media.id, it) }
             captureJournal.writeReady(entry)
             persistJournalEntry(entry.copy(readyToIngest = true))
         }.also { work ->
@@ -261,6 +267,7 @@ class WorkoutMediaRepository(
             discardRejectedCapture(entry)
             null
         } else {
+            entry.media.sourceRef?.let { executionBindings.write(entry.media.id, it) }
             captureJournal.writeReady(entry)
             persistJournalEntry(entry.copy(readyToIngest = true))
         }
@@ -534,7 +541,8 @@ class WorkoutMediaRepository(
      * o sin carga (peso corporal) deja intacta la «foto» que ya tenía el vídeo. Cero completas con parciales positivas
      * sí actualiza las reps de una serie REPS. Devuelve cuántos vídeos cambiaron.
      */
-    suspend fun syncSetSnapshots(sessionKey: String, completedSets: Map<String, CompletedSet>): Int =
+    suspend fun syncSetSnapshots(sessionKey: String, completedSets: Map<String, CompletedSet>,
+        legacyInvalidatedExerciseIds: Set<String> = emptySet()): Int =
         withContext(Dispatchers.IO) {
             if (sessionKey.isBlank() || completedSets.isEmpty()) return@withContext 0
             db.withTransaction {
@@ -544,7 +552,11 @@ class WorkoutMediaRepository(
                     if (row.kind != WorkoutMediaKind.VIDEO.name) continue
                     val exerciseId = row.exerciseId?.takeIf { it.isNotBlank() } ?: continue
                     val setIndex = row.setIndex ?: continue
-                    val set = lookupCompletedSet(completedSets, exerciseId, setIndex, row.side) ?: continue
+                    val ref = executionBindings.read(row.id)
+                    val set = if (ref != null) completedSets.values.firstOrNull { it.sourceRef == ref }
+                        else if (exerciseId in legacyInvalidatedExerciseIds || row.catalogConfigurationId == null) null
+                        else lookupCompletedSet(completedSets, exerciseId, setIndex, row.side)
+                    if (set == null) continue
                     if (set.skipped) continue
                     val isRepSet = set.recordedPayloadV3?.unitMode?.let { it == UnitModeV2.REPS }
                         ?: (set.timeSeconds == null && set.distanceKm == null)
@@ -771,6 +783,7 @@ class WorkoutMediaRepository(
 
         // The marker must exist before resolver calls: getType or URI access can
         // fail transiently, and the user retry must retain this exact UUID.
+        entry.media.sourceRef?.let { executionBindings.write(entry.media.id, it) }
         captureJournal.writeCapturing(entry)
         runCatching {
             appContext.contentResolver.takePersistableUriPermission(

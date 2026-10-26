@@ -62,9 +62,9 @@ internal fun SessionTimeSheetContent(
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (ultraFastApplied) {
             Text("Ultrarrápido activo", style = KpknType.bodyStrong, color = WizardColors.text)
-            onRevertUltraFast?.let { HeaderSheetAction("Deshacer Ultrarrápido", it, Modifier.fillMaxWidth()) }
+            onRevertUltraFast?.let { HeaderSheetAction("Deshacer recorte", it, Modifier.fillMaxWidth()) }
         } else {
-            onUltraFastPreview?.let { HeaderSheetAction("Modo ultrarrápido", it, Modifier.fillMaxWidth().testTag("session-time-ultra"), primary = true) }
+            onUltraFastPreview?.let { HeaderSheetAction("Acortar sesión", it, Modifier.fillMaxWidth().testTag("session-time-ultra"), primary = true) }
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             Box(Modifier.size(if (androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.2f) 118.dp else 132.dp), contentAlignment = Alignment.Center) {

@@ -47,14 +47,13 @@ import kotlinx.coroutines.delay
 internal const val UNDO_PILL_VISIBLE_MS = 8_000L
 
 /**
- * La entrada de la pila de deshacer que la píldora puede ofrecer: la última, y solo mientras la sesión siga como estaba al guardarla.
- * Deshacer vuelve la sesión a esa foto, series registradas incluidas; si desde el cambio se registró (o se borró) una serie, la foto ya
- * no las tiene y deshacer se las llevaría por delante: entonces no se ofrece.
+ * La última modificación del plan. Deshacer conserva las observaciones registradas después del cambio.
  */
+@Suppress("UNUSED_PARAMETER")
 internal fun undoPillTarget(
     stack: List<GodModeUndoSnapshot>,
     completedSets: Map<String, CompletedSet>,
-): GodModeUndoSnapshot? = stack.lastOrNull()?.takeIf { it.completedSets == completedSets }
+): GodModeUndoSnapshot? = stack.lastOrNull()
 
 /** «Deshacer omitir ejercicio»: el nombre de la acción, en minúscula tras el verbo. */
 internal fun undoPillText(label: String): String {
@@ -65,7 +64,7 @@ internal fun undoPillText(label: String): String {
 /**
  * «Deshacer <acción>» sobre la barra inferior unos segundos tras cualquier cambio de estructura (desde las opciones o desde reordenar).
  * Solo salta cuando la pila CRECE mientras la pantalla está abierta: lo que ya hubiera al reanudar la sesión no se ofrece. Al deshacer
- * (la pila se acorta) o al registrar una serie, se va. [onUndo] recibe el índice de la entrada (siempre la última).
+ * (la pila se acorta), se va. [onUndo] recibe el índice de la entrada (siempre la última).
  */
 @Composable
 internal fun LiveUndoPillHost(

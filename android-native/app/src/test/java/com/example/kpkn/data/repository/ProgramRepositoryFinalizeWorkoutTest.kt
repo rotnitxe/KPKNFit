@@ -575,7 +575,7 @@ class ProgramRepositoryFinalizeWorkoutTest {
         assertEquals(restored, repository.ongoingWorkout.value)
         assertEquals(1, repository.history.value.count { it.id == log.id })
         assertTrue(db.workoutLogDao().getById(log.id) != null)
-        assertEquals(StartWorkoutResult.Started, repository.startWorkout(ongoing.copy(startTime = 20L)))
+        assertEquals(StartWorkoutResult.Started, repository.startWorkout(ongoing.copy(startTime = 20L), replaceExisting = true))
         assertTrue(runCatching { repository.finalizeWorkout(log, expectedExecutionStartTimeMs = 10L) }.isFailure)
         assertEquals(20L, db.stateDao().getOngoingWorkout()!!.toOngoingWorkoutState()!!.startTime)
     }

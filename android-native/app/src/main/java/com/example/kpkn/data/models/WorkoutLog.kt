@@ -63,6 +63,12 @@ data class WorkoutLog(
     /** Optional explicit global effort report, with its original protocol; never inferred from sets. */
     val sessionEffortRpe: Double? = null,
     val sessionEffortProtocol: String? = null,
+    val preparationReports: Map<String, PreparationReport> = emptyMap(),
+    val recordedWarmupSets: Map<String, CompletedSet> = emptyMap(),
+    val omittedSeries: Set<String> = emptySet(),
+    val mediaSetBindings: Map<String, WorkoutSetExecutionRef> = emptyMap(),
+    val legacyMediaInvalidatedExerciseIds: Set<String> = emptySet(),
+    val variantProgress: Map<WeekVariant, com.example.kpkn.screens.workout.WorkoutVariantProgress> = emptyMap(),
 )
 
 @Serializable
@@ -193,6 +199,9 @@ data class CompletedSet(
     val estimatorVersion: Int = 1,
     /** APRE S4 conservado como XRM de trabajo, separado de las capacidades 1RM/TM. */
     val apreXrm: ApreXrmCapture? = null,
+    val sourceRef: WorkoutSetExecutionRef? = null,
+    val techniqueStatus: RecordedTechniqueStatus? = null,
+    val recordedAtMs: Long? = null,
 )
 
 /** null means a legacy log without evidence: only those logs may use positional fallback. */
@@ -216,7 +225,7 @@ fun buildRecordedSetContextKey(
 ).joinToString("|") { "${it.length}:$it" }
 
 fun CompletedSet.effectiveRepEquivalent(): Double =
-    reps.toDouble() + ((partialReps ?: 0).coerceAtLeast(0) * 0.5)
+    reps.toDouble()
 
 /** Per-exercise feedback captured during/after a set block. Lives in data so domain engines can use it. */
 @Serializable
@@ -322,6 +331,9 @@ data class OngoingWorkoutState(
     val volumeAdvanceHandled: Boolean = false,
     val archivedCompletedExercises: List<CompletedExercise> = emptyList(),
     val logAlreadyWrittenId: String? = null,
+    val mediaSetBindings: Map<String, WorkoutSetExecutionRef> = emptyMap(),
+    val legacyMediaInvalidatedExerciseIds: Set<String> = emptySet(),
+    val variantProgress: Map<WeekVariant, com.example.kpkn.screens.workout.WorkoutVariantProgress> = emptyMap(),
 )
 
 fun OngoingWorkoutState.sameOngoingIdentity(programId: String, sessionId: String): Boolean =

@@ -213,6 +213,7 @@ class SetExecutionCardEffortTest {
                                     onShowHistory = {},
                                     onSetBodyWeight = {},
                                     onRecordV2 = { _, _, weight, value, intensity, advanced, _, _, _, onResult ->
+                                        registros.clear() // Revisions of this one execution replace its OPEN observation.
                                         registros += Registro(weight, value, intensity, advanced)
                                         onResult(RecordSetResult.Created("ej-1_0"))
                                     },
@@ -549,9 +550,30 @@ class SetExecutionCardEffortTest {
         pulsarCheck()
 
         rule.onNodeWithText("DROP-SET 1/2").assertExists()
-        assertTrue("con el panel guiado abierto todavía no se registra nada: $registros", registros.isEmpty())
+        assertEquals(com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN, registros.single().advanced.techniqueStatus)
+        assertTrue(registros.single().advanced.dropSets.isEmpty())
         val alto = alturaDeLaTarjeta()
         assertTrue("con el panel guiado la tarjeta mide $alto dp y $base dp antes de abrirlo", abs(alto - base) <= 0.5f)
+    }
+
+    @Test
+    fun unDropManualEnUnaSerieNormalMuestraSuFaseYPermiteGuardarSoloLaPrincipal() {
+        mostrar(casoRir())
+        marcar(0)
+        rule.onNodeWithTag("secondary_pill_avanzado").performClick()
+        rule.onNodeWithText("Drop-set").performClick()
+        rule.onNodeWithContentDescription("Volver a la serie").performClick()
+        pulsarCheck()
+
+        rule.onNodeWithText("DROP-SET 1/1").assertExists()
+        assertEquals(com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN, registros.single().advanced.techniqueStatus)
+        assertTrue("la sugerencia no es una miniserie realizada", registros.single().advanced.dropSets.isEmpty())
+        rule.onNodeWithText("Terminar técnica con lo realizado").performClick()
+        rule.onNodeWithText("Guardar lo realizado").performClick()
+        rule.waitForIdle()
+        assertEquals(1, registros.size)
+        assertTrue(registros.single().advanced.dropSets.isEmpty())
+        assertEquals(com.example.kpkn.data.models.RecordedTechniqueStatus.SKIPPED, registros.single().advanced.techniqueStatus)
     }
 
     @Test
@@ -564,7 +586,8 @@ class SetExecutionCardEffortTest {
         pulsarCheck()
 
         rule.onNodeWithText("REST PAUSE · Pausa técnica", substring = true).assertExists()
-        assertTrue("la serie principal solo se captura: todavía no se registra nada, pero se registró $registros", registros.isEmpty())
+        assertEquals(com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN, registros.single().advanced.techniqueStatus)
+        assertTrue(registros.single().advanced.restPauses.isEmpty())
         val alto = alturaDeLaTarjeta()
         assertTrue("con la pausa técnica la tarjeta mide $alto dp y $base dp antes de ella", abs(alto - base) <= 0.5f)
     }

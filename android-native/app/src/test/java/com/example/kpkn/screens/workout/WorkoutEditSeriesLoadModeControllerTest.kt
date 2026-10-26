@@ -33,6 +33,22 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class WorkoutEditSeriesLoadModeControllerTest {
+    @Test fun changingLateralityOnlyKeepsThePendingDose() {
+        val root = state.session!!
+        val ex = root.exercises.first()
+        fixture.controller.applySessionMutation(root.copy(exercises = listOf(ex.copy(isUnilateral = true), other)))
+        assertEquals(listOf("b", "c"), state.session!!.exercises.first().sets.map { it.id })
+        assertTrue(state.completedSets.isEmpty())
+        assertEquals("c0", state.archivedCompletedExercises.single().sets.single().id)
+    }
+    @Test fun reorderKeepsTheSelectedSetIdentityAndItsRecordedNeighbour() {
+        fixture.state = state.copy(currentSetIdx = 2, activeStepKey = "ex-1_2")
+        val root = state.session!!
+        val ex = root.exercises.first()
+        fixture.controller.applySessionMutation(root.copy(exercises = listOf(ex.copy(sets = ex.sets.reversed()), other)))
+        assertEquals(0, state.currentSetIdx)
+        assertEquals("c0", state.completedSets["ex-1_2"]?.id)
+    }
 
     @get:Rule
     val roomRule = RoomTestRule()

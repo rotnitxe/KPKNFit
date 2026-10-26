@@ -38,6 +38,7 @@ internal data class GuidedMainCapture(
     val amrapOverride: Boolean,
     val bodyWeight: Double?,
     val side: String?,
+    val mainFeedback: com.example.kpkn.screens.workout.SetAdvancedFeedback? = null,
 )
 
 internal data class PlannedTechniqueGuide(
@@ -93,10 +94,11 @@ internal fun suggestedDropLoadsForMainSet(
     mainWeight: Double,
     mainReps: Int,
     count: Int = DropSetPlanDefaults.DefaultDrops,
+    loadMode: com.example.kpkn.data.models.LoadModeV2 = com.example.kpkn.data.models.LoadModeV2.LOAD,
 ): List<Double> {
     val clamped = count.coerceIn(DropSetPlanDefaults.MinDrops, DropSetPlanDefaults.MaxDrops)
     return (0 until clamped).map { index ->
-        suggestDropWeightForThreeReps(mainWeight, mainReps, index, emptyList())
+        suggestDropWeightForThreeReps(mainWeight, mainReps, index, emptyList(), loadMode)
     }
 }
 
@@ -108,8 +110,13 @@ internal fun suggestDropWeightForThreeReps(
     mainReps: Int,
     dropIndex: Int,
     dropPcts: List<Double>,
+    loadMode: com.example.kpkn.data.models.LoadModeV2 = com.example.kpkn.data.models.LoadModeV2.LOAD,
 ): Double {
-    if (mainWeight <= 0.0) return 0.0
+    if (!mainWeight.isFinite() || mainWeight < 0.0) return 0.0
+    if (loadMode == com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT) return 0.0
+    if (loadMode == com.example.kpkn.data.models.LoadModeV2.ASSISTED)
+        return LoadSuggestionEngine.roundLoad(mainWeight + DropSetPlanDefaults.DropKg * (dropIndex + 1))
+    if (mainWeight == 0.0) return 0.0
     val fromKg = mainWeight - DropSetPlanDefaults.DropKg * (dropIndex + 1)
     val pct = dropPcts.getOrNull(dropIndex)
     val candidate = (if (pct != null) mainWeight + pct else fromKg)

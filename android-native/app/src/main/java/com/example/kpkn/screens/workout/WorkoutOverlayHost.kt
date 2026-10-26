@@ -137,7 +137,7 @@ internal fun WorkoutRestOverlayHost(
     if (showExpanded && restState != null) {
         RestRemainingReader(viewModel = viewModel) { restTimerRemaining ->
             androidx.compose.runtime.CompositionLocalProvider(
-                LocalRelatorActionUiContext provides RelatorActionUiContext(relatorActionScopeKey(uiState, exercises.getOrNull(uiState.currentExerciseIdx)), viewModel::performRelatorAssist),
+                LocalRelatorActionUiContext provides RelatorActionUiContext(relatorActionScopeKey(uiState, exercises.getOrNull(uiState.currentExerciseIdx)), viewModel::performRelatorAssistAndAwait),
             ) {
             RestTimerOverlay(
                 state = restState,

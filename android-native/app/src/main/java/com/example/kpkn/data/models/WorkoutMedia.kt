@@ -41,4 +41,5 @@ data class WorkoutMedia(
     val catalogDefinitionId: String? = null,
     /** Configuración exacta del catálogo (`bench_press__barbell`): la clave del perfil carga-velocidad (Room v29). */
     val catalogConfigurationId: String? = null,
+    val sourceRef: WorkoutSetExecutionRef? = null,
 )

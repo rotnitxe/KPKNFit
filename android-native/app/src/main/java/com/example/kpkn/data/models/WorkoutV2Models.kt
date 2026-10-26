@@ -225,6 +225,9 @@ data class RecordedSetPayload(
      * cumplida». Por defecto true (registros anteriores, voz y demás rutas reportan a propósito).
      */
     val intensityAdjusted: Boolean = true,
+    val actualValue: Double? = null,
+    val plannedRepRange: RepRange? = null,
+    val plannedTargetSnapshot: Double? = null,
 )
 
 @Serializable

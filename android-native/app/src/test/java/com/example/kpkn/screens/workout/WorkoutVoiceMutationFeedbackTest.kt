@@ -13,6 +13,24 @@ import org.junit.Test
 
 /** The spoken table: success is announced only for a committed result, failures say the data is kept. */
 class WorkoutVoiceMutationFeedbackTest {
+    @Test fun distanceAndTimeCorrectionsAreNeverReadOutAsRepetitions() {
+        for (unit in listOf(com.example.kpkn.data.models.UnitModeV2.DISTANCE,
+                com.example.kpkn.data.models.UnitModeV2.TIME, com.example.kpkn.data.models.UnitModeV2.CUSTOM)) {
+            val original = storedSet(20.0)
+            val actual = original.copy(recordedPayloadV3 = original.recordedPayloadV3!!.copy(unitMode = unit, actualValue = 12.5))
+            assertNull(WorkoutVoiceMutationFeedback.committedEditSpeech(VoiceSetEditPatch(metricValue = 12), actual))
+            val combined = WorkoutVoiceMutationFeedback.committedEditSpeech(VoiceSetEditPatch(weightKg = 20.0, quantityValue = 12.5), actual)!!
+            assertNull(combined.reps)
+        }
+    }
+
+    @Test fun speechUsesConfirmedRepetitionsAndEffortInsteadOfTheRequestedValues() {
+        val actual = storedSet(20.0).copy(reps = 7, rpe = 7.5, actualIntensityValue = 7.5)
+        val speech = WorkoutVoiceMutationFeedback.committedEditSpeech(
+            VoiceSetEditPatch(metricValue = 9, intensityValue = 8.0, intensityKind = WorkoutVoiceIntensityKind.RPE), actual)!!
+        assertEquals(7, speech.reps)
+        assertEquals(7.5, speech.intensityValue!!, 0.0)
+    }
     private val failure = WorkoutVoiceMutationResult.PersistenceFailed(IllegalStateException("room"))
     private val committedUndo = WorkoutVoiceMutationResult.Committed("a_1")
 
@@ -130,7 +148,7 @@ class WorkoutVoiceMutationFeedbackTest {
 
     @Test
     fun committedEditIsSpokenWithTheConfirmedValuesOfTheChangedFieldsOnly() {
-        val committed = storedSet(typedLoad = 82.5)
+        val committed = storedSet(typedLoad = 82.5).copy(rpe = 8.0, actualIntensityValue = 8.0)
         val patch = VoiceSetEditPatch(
             weightKg = 82.5,
             metricValue = 9,
@@ -176,7 +194,7 @@ class WorkoutVoiceMutationFeedbackTest {
 
     @Test
     fun bodyweightSetDoesNotSpeakAWeightItIgnored() {
-        val committed = storedSet(typedLoad = null, mode = LoadModeV2.BODYWEIGHT)
+        val committed = storedSet(typedLoad = null, mode = LoadModeV2.BODYWEIGHT).copy(reps = 12)
 
         val speech = WorkoutVoiceMutationFeedback.committedEditSpeech(
             VoiceSetEditPatch(weightKg = 10.0, metricValue = 12),

@@ -14,6 +14,7 @@ internal fun GuidedMainCapture.toDurableDraft(): WorkoutTechniqueMainCaptureDraf
         amrapOverride = amrapOverride,
         bodyWeight = bodyWeight,
         side = side,
+        mainFeedback = mainFeedback,
     )
 
 /** Returns null for older or incomplete serialized payloads instead of trusting missing fields. */
@@ -28,6 +29,7 @@ internal fun WorkoutTechniqueMainCaptureDraft?.toGuidedMainCaptureOrNull(): Guid
         amrapOverride = saved.amrapOverride ?: return null,
         bodyWeight = saved.bodyWeight,
         side = saved.side,
+        mainFeedback = saved.mainFeedback,
     )
 }
 

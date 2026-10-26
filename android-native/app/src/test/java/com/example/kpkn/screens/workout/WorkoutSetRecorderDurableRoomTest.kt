@@ -32,6 +32,63 @@ import com.example.kpkn.screens.workout.components.toGuidedPhaseOrNull
 @Config(manifest = Config.NONE, sdk = [34])
 @OptIn(ExperimentalCoroutinesApi::class)
 class WorkoutSetRecorderDurableRoomTest {
+    @Test fun eachReportedTechniquePhaseIsDurableAndClosingAdvancesExactlyOnce() = runBlocking {
+        val capture = WorkoutTechniqueMainCaptureDraft(loadMode = LoadModeV2.LOAD, unitMode = UnitModeV2.REPS,
+            weight = 20.0, value = 6.0, intensity = 8.0, amrapOverride = false)
+        val progress = WorkoutTechniqueProgressDraft(kind = WorkoutTechniqueDraftKind.GUIDED_DROP,
+            phaseIndex = 0, phaseCount = 2, mainCapture = capture, dropRows = emptyList())
+        val open = SetAdvancedFeedback(techniqueStatus = RecordedTechniqueStatus.OPEN, techniqueProgress = progress)
+        assertTrue(record(advanced = open) is RecordSetResult.Created)
+        val originalId = room().completedSets.getValue("exercise_0").id
+        assertEquals(RecordedTechniqueStatus.OPEN, room().completedSets.getValue("exercise_0").techniqueStatus)
+        assertEquals(progress, room().setDrafts.getValue("exercise_0").techniqueProgress)
+        assertTrue(isStackedTechniqueStillOpen(session.exercises.single(), 0, room().completedSets))
+        assertEquals(0, advances)
+        assertEquals(0, rests)
+        assertTrue(record(advanced = open) is RecordSetResult.Updated)
+        val drops = listOf(DropSetData(15.0, 3))
+        val next = open.copy(dropSets = drops, techniqueProgress = progress.copy(phaseIndex = 1, dropRows = drops))
+        assertTrue(record(advanced = next) is RecordSetResult.Updated)
+        assertEquals(originalId, room().completedSets.getValue("exercise_0").id)
+        assertEquals(drops, room().completedSets.getValue("exercise_0").dropSets)
+        assertEquals(0, rests)
+        assertTrue(record(advanced = SetAdvancedFeedback(dropSets = drops, techniqueStatus = RecordedTechniqueStatus.SKIPPED)) is RecordSetResult.Updated)
+        assertEquals(originalId, room().completedSets.values.single().id)
+        assertTrue(room().setDrafts.isEmpty())
+        assertEquals(1, advances)
+        assertEquals(1, rests)
+    }
+
+    @Test fun anOpenPhaseCannotAdvanceOrLoseItsMainWhenRoomFails() = runBlocking {
+        val progress = WorkoutTechniqueProgressDraft(kind = WorkoutTechniqueDraftKind.GUIDED_DROP,
+            phaseIndex = 0, phaseCount = 2, mainCapture = WorkoutTechniqueMainCaptureDraft(
+                loadMode = LoadModeV2.LOAD, unitMode = UnitModeV2.REPS, weight = 20.0, value = 6.0, intensity = 8.0, amrapOverride = false))
+        val open = SetAdvancedFeedback(techniqueStatus = RecordedTechniqueStatus.OPEN, techniqueProgress = progress)
+        assertTrue(record(advanced = open).succeeded)
+        val original = room().completedSets.getValue("exercise_0")
+        failWrites()
+        assertTrue(record(advanced = open.copy(dropSets = listOf(DropSetData(15.0, 3)),
+            techniqueProgress = progress.copy(phaseIndex = 1, dropRows = listOf(DropSetData(15.0, 3))))) is RecordSetResult.PersistenceFailed)
+        assertEquals(original, room().completedSets.getValue("exercise_0"))
+        assertEquals(progress, room().setDrafts.getValue("exercise_0").techniqueProgress)
+        assertEquals(0, advances)
+        assertEquals(0, rests)
+    }
+
+    @Test fun plannedMinisAreNeverSavedAsPerformedAndExplicitSkipClosesTechnique() = runBlocking {
+        val planned = ExerciseSet("drop", targetReps = 6, isDropSet = true,
+            dropSets = listOf(DropSetData(weight = 15.0, reps = 5)))
+        val exercise = session.exercises.single().copy(sets = listOf(planned))
+        state = state.copy(session = session.copy(exercises = listOf(exercise)))
+        assertTrue(record() is RecordSetResult.Rejected)
+        assertTrue(state.completedSets.isEmpty())
+        assertTrue(record(advanced = SetAdvancedFeedback(techniqueStatus = RecordedTechniqueStatus.SKIPPED)) is RecordSetResult.Created)
+        val done = room().completedSets.values.single()
+        assertTrue(done.dropSets.isEmpty())
+        assertEquals(RecordedTechniqueStatus.SKIPPED, done.techniqueStatus)
+        assertFalse(isStackedTechniqueStillOpen(exercise, 0, room().completedSets))
+    }
+
     @Test fun explicitLiveNoMinimumDoesNotFallBackToThePlannedMinimum() = runBlocking {
         val planned = ExerciseSet("amrap", purpose = SetPurpose.AMRAP, amrapMinimumReps = 4)
         state = state.copy(session = session.copy(exercises = listOf(session.exercises.single().copy(sets = listOf(planned)))))

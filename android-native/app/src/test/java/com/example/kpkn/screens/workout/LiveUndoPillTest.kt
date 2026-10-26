@@ -58,13 +58,10 @@ class LiveUndoPillTest {
     }
 
     @Test
-    fun noEntryIsOfferedOnceASetWasRecordedAfterTheChange() {
+    fun aLaterRecordingDoesNotPreventUndoingThePlan() {
         val stack = listOf(entry("Omitir ejercicio", completed = emptyMap()))
 
-        assertNull(
-            "deshacer ahora se llevaría por delante la serie recién registrada",
-            undoPillTarget(stack, mapOf("a_0" to set)),
-        )
+        assertEquals("Omitir ejercicio", undoPillTarget(stack, mapOf("a_0" to set))?.label)
     }
 
     @Test
@@ -147,7 +144,7 @@ class LiveUndoPillTest {
     }
 
     @Test
-    fun recordingASetHidesThePillBecauseUndoingWouldDropIt() {
+    fun recordingASetKeepsThePlanUndoAvailable() {
         show()
         rule.runOnUiThread { stack = listOf(entry("Eliminar serie")) }
         rule.waitForIdle()
@@ -157,7 +154,7 @@ class LiveUndoPillTest {
         rule.waitForIdle()
         rule.mainClock.advanceTimeBy(500)
 
-        rule.onNodeWithText("Deshacer eliminar serie").assertDoesNotExist()
+        rule.onNodeWithText("Deshacer eliminar serie").assertExists()
     }
 
     @Test

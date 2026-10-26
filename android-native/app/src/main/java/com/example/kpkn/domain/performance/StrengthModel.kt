@@ -44,7 +44,7 @@ object StrengthModel {
         region: StrengthRegion = StrengthRegion.UNSPECIFIED,
     ): Double {
         if (!weight.isFinite() || weight <= 0.0) return 0.0
-        val n = effectiveReps(reps, rir, rpe, toFailure || isAmrap)
+        val n = effectiveReps(reps, rir, rpe, toFailure || (isAmrap && rir == null && rpe == null))
         if (n == 0) return 0.0
         if (n == 1) return weight
         val estimated = if (n > 20) {
@@ -91,7 +91,7 @@ object StrengthModel {
         return estimate1RM(
             weight = set.weight,
             reps = set.reps,
-            rir = set.rir ?: value?.takeIf { mode == IntensityMode.RIR && it.isFinite() }?.toInt(),
+            rir = set.rir ?: value?.takeIf { mode in listOf(IntensityMode.RIR, IntensityMode.AMRAP) && it.isFinite() }?.toInt(),
             rpe = set.rpe ?: value?.takeIf { mode == IntensityMode.RPE },
             toFailure = set.isFailure || set.isFailedSet || payload?.reachedFailure == true || payload?.failedSet == true ||
                 set.performanceMode == PerformanceMode.FAILURE || set.performanceMode == PerformanceMode.FAILED ||

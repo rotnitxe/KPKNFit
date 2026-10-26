@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults
 import com.example.kpkn.screens.workout.toTrimmedNumberString
+import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknAlertDismissButton
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -58,6 +59,7 @@ internal fun GuidedTechniquePanel(
     restPauseStyle: String? = null,
     pauseSeconds: Int = RestPausePlanDefaults.PauseSeconds,
     targetRestReps: Int = RestPausePlanDefaults.Reps,
+    loadMode: LoadModeV2 = LoadModeV2.LOAD,
 ) {
     var confirmSkipTechnique by remember { mutableStateOf(false) }
     KpknModule(
@@ -74,7 +76,11 @@ internal fun GuidedTechniquePanel(
                         color = accentColor,
                     )
                     Text(
-                        "Sin descanso. Baja el peso y completa ~${targetRestReps} reps.",
+                        when (loadMode) {
+                            LoadModeV2.ASSISTED -> "Sin descanso. Aumenta la asistencia y completa ~${targetRestReps} reps."
+                            LoadModeV2.BODYWEIGHT -> "Sin descanso. Reduce la dificultad y completa ~${targetRestReps} reps."
+                            else -> "Sin descanso. Reduce la carga y completa ~${targetRestReps} reps."
+                        },
                         style = KpknType.caption,
                         color = WizardColors.textMuted,
                     )
@@ -85,7 +91,7 @@ internal fun GuidedTechniquePanel(
                         KpknTextField(
                             value = dropWeightText,
                             onValueChange = onDropWeightChange,
-                            label = "Peso sugerido",
+                            label = if (loadMode == LoadModeV2.ASSISTED) "Asistencia sugerida" else "Peso sugerido",
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.weight(1f),
                         )
@@ -159,7 +165,7 @@ internal fun GuidedTechniquePanel(
             }
 
             GuidedSkipAction(
-                text = "Saltar técnica y registrar solo la serie",
+                text = "Terminar técnica con lo realizado",
                 onClick = { confirmSkipTechnique = true },
             )
         }
@@ -172,7 +178,7 @@ internal fun GuidedTechniquePanel(
             confirmButton = {},
             title = {
                 Text(
-                    "¿Registrar solo la serie principal?",
+                    "¿Terminar la técnica?",
                     style = KpknType.dialogTitle,
                     color = WizardColors.text,
                 )
@@ -180,12 +186,12 @@ internal fun GuidedTechniquePanel(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     Text(
-                        "Las sub-series de drop o rest-pause quedarán descartadas.",
+                        "Se conservarán la serie principal y las miniseries ya realizadas.",
                         style = KpknType.body,
                         color = WizardColors.textMuted,
                     )
                     KpknDangerPill(
-                        text = "Sí, solo la serie",
+                        text = "Guardar lo realizado",
                         onClick = {
                             confirmSkipTechnique = false
                             onSkipTechnique()

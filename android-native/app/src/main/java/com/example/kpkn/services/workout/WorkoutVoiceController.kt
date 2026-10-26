@@ -1366,7 +1366,7 @@ class WorkoutVoiceController(
 
     /**
      * Fase 2.2 / D3: si murió a mitad de una confirmación o clarificación, se
-     * re-pregunta UNA vez ("Perdón, se cortó un segundo. ¿Me repetías?"); NUNCA se
+     * re-pregunta UNA vez ("Se cortó el audio. ¿Puedes repetirlo?"); NUNCA se
      * auto-confirma. El borrador / pregunta pendiente se conserva y re-armará su
      * timeout con token nuevo.
      *
@@ -1432,7 +1432,7 @@ class WorkoutVoiceController(
                 startEngineForCurrentInputMode(activeScope)
             },
             speak = {
-                ttsManager.speakError("Perdón, se cortó un segundo. ¿Me repetías?")
+                ttsManager.speakError("Se cortó el audio. ¿Puedes repetirlo?")
             },
         )
     }
@@ -1741,7 +1741,7 @@ class WorkoutVoiceController(
             onComplete = { resumeListening() },
             speak = {
                 ttsManager.speakError(
-                    "Te escuché muy bajito. Acercá el teléfono o revisá tus audífonos.",
+                    "Te escuché muy bajo. Acerca el teléfono o revisa tus auriculares.",
                 )
             },
         )
@@ -1811,7 +1811,7 @@ class WorkoutVoiceController(
             is VoicePendingAction.ReaskIntensity -> {
                 val base = pendingClarification.baseInterpretation
                 val value = extractFirstVoiceNumber(transcript)
-                if (value == null || value > MAX_PLAUSIBLE_RIR) {
+                if (!com.example.kpkn.screens.workout.isValidReportedReserve(value)) {
                     if (value == null && registerClarificationCaptureGrace(transcript)) {
                         // Miss atribuible a la captura: re-preguntar sin consumir intento.
                         runSpeakingOrSkip(
@@ -2491,7 +2491,7 @@ class WorkoutVoiceController(
                     )
                     runSpeakingOrSkip(
                         onComplete = { resumeListening() },
-                        speak = { ttsManager.speakError("No te entendí. Repetí la carga o el comando.") },
+                        speak = { ttsManager.speakError("No te entendí. Repite la carga o el comando.") },
                     )
                     return
                 }
@@ -2715,12 +2715,12 @@ class WorkoutVoiceController(
             )
             return
         }
-        val impossibleRir = finalInterpretation.intensityKind == WorkoutVoiceIntensityKind.RIR &&
+        val invalidRir = finalInterpretation.intensityKind == WorkoutVoiceIntensityKind.RIR &&
             finalInterpretation.intensityValue != null &&
-            finalInterpretation.intensityValue > MAX_PLAUSIBLE_RIR
-        if (impossibleRir) {
+            !com.example.kpkn.screens.workout.isValidReportedReserve(finalInterpretation.intensityValue)
+        if (invalidRir) {
             WorkoutVoiceDiagnosticLogger.event(
-                "rir_impossible_clamped",
+                "rir_invalid_value",
                 mapOf("value" to finalInterpretation.intensityValue),
             )
             _state.update {
@@ -3687,8 +3687,6 @@ class WorkoutVoiceController(
         const val CLARIFICATION_MISS_POST_TTS_GRACE_MS = 1_200L
         /** Re-preguntas de cortesía por clarificación; evita bucles si el eco del TTS recurre. */
         const val MAX_CLARIFICATION_CAPTURE_GRACE = 2
-        /** Un RIR mayor a esto es imposible (reserva en repeticiones ≤ 5): se re-pregunta. */
-        const val MAX_PLAUSIBLE_RIR = 5.0
         /** Fénix: cadencia del watchdog anti-cuelgue. */
         const val STALL_CHECK_INTERVAL_MS = 3_000L
         /** Sin heartbeats del actor este tiempo con stage LISTENING → fuerza reinicio. */

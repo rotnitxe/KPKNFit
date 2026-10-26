@@ -476,14 +476,19 @@ object CardioGpsTracker {
                 if (!acceptsCardioGpsFix(token, activeExecutionToken, _state.value)) return
                 var current = snapshot?.takeIf { it.sessionKey == token.sessionKey } ?: return
                 result.locations.forEach { location ->
+                    val capturedAtMs = location.time.takeIf { it > 0L } ?: System.currentTimeMillis()
+                    val segmentStart = current.activeSegmentStartedAtEpochMs
                     val point = GpsTrackPoint(
-                        timestampEpochMs = location.time.takeIf { it > 0L } ?: System.currentTimeMillis(),
+                        timestampEpochMs = capturedAtMs,
                         latitude = location.latitude,
                         longitude = location.longitude,
                         accuracyMeters = location.accuracy.takeIf { location.hasAccuracy() },
                         speedMetersPerSecond = location.speed.takeIf { location.hasSpeed() },
+                        activeSegmentStartedAtEpochMs = segmentStart,
+                        elapsedActiveSeconds = current.elapsedActiveSeconds +
+                            (segmentStart?.let { (capturedAtMs - it).coerceAtLeast(0L) / 1_000L } ?: 0L),
                     )
-                    val append = CardioGpsEngine.append(current.points.lastOrNull(), point)
+                    val append = CardioGpsEngine.append(current, point)
                     if (!append.accepted) return@forEach
                     val updated = current.copy(
                         points = current.points + point,

@@ -22,6 +22,8 @@ class WorkoutStepNavigator(
     private val ports: Ports,
 ) {
     interface Ports {
+        fun requestSetOmissions(keys: Set<String>): Boolean = false
+        fun requestExerciseOmission(exerciseId: String): Boolean = false
         fun visibleExercises(state: WorkoutUiState): List<Exercise>
         fun sessionForActiveMode(base: Session, mode: WeekVariant): Session
         fun isSetDone(completedSets: Map<String, CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean): Boolean
@@ -210,6 +212,7 @@ class WorkoutStepNavigator(
     }
 
     fun skipExercise(exerciseId: String) {
+        if (ports.requestExerciseOmission(exerciseId)) return
         skipExerciseAndAdvance(getState(), exerciseId)
     }
 
@@ -221,6 +224,7 @@ class WorkoutStepNavigator(
             ports.openFinishSheet()
             return
         }
+        if (ports.requestExerciseOmission(currentExercise.id)) return
         skipExerciseAndAdvance(state, currentExercise.id)
     }
 
@@ -244,6 +248,8 @@ class WorkoutStepNavigator(
             .takeWhile { it.supersetGroupId == groupId && it.supersetRoundIndex == roundIndex }
             .filter { it.type == WorkoutStepType.WORKING_SET && it.setIndex != null }
         if (remainingRoundSteps.isEmpty()) return
+
+        if (ports.requestSetOmissions(remainingRoundSteps.mapNotNull { step -> step.setIndex?.let { WorkoutStepRules.omittedSetKey(step.exerciseId, it) } }.toSet())) return
 
         val updatedCompleted = state.completedSets.toMutableMap()
         val updatedAdvanced = state.setAdvancedFeedback.toMutableMap()
@@ -285,7 +291,7 @@ class WorkoutStepNavigator(
         }
         ports.refreshLoadSuggestions(getState())
         scope.launch {
-            ports.persistOngoingStateAndAwait()
+            if (!ports.persistOngoingStateAndAwait().succeeded) return@launch
             nextSet(stopRest = false)
         }
     }
@@ -302,6 +308,8 @@ class WorkoutStepNavigator(
             nextSet(stopRest = false)
             return
         }
+
+        if (ports.requestSetOmissions(setOf(WorkoutStepRules.omittedSetKey(exercise.id, state.currentSetIdx)))) return
 
         val advanced = SetAdvancedFeedback(
             skipped = true,
@@ -353,7 +361,7 @@ class WorkoutStepNavigator(
             !updatedCompleted.containsKey(buildCompletedSetKey(exercise.id, state.currentSetIdx, side))
         }
         scope.launch {
-            ports.persistOngoingStateAndAwait()
+            if (!ports.persistOngoingStateAndAwait().succeeded) return@launch
             if (!stillPendingSide) {
                 nextSet(stopRest = false)
             }

@@ -14,6 +14,9 @@ data class GpsTrackPoint(
     val longitude: Double,
     val accuracyMeters: Float? = null,
     val speedMetersPerSecond: Float? = null,
+    /** Optional local capture metadata; original coordinates and timestamps remain unchanged. */
+    val activeSegmentStartedAtEpochMs: Long? = null,
+    val elapsedActiveSeconds: Long? = null,
 )
 
 /** Crash/process-safe snapshot; no network or account identifier is stored. */
@@ -35,6 +38,7 @@ data class GpsAppendResult(
 )
 
 enum class RejectReason {
+    INACTIVE_SEGMENT,
     INVALID_COORDINATES,
     POOR_ACCURACY,
     IMPOSSIBLE_SPEED,
@@ -45,6 +49,17 @@ object CardioGpsEngine {
     const val MAX_ACCURACY_METERS = 100.0
     const val MAX_SEGMENT_SPEED_METERS_PER_SECOND = 45.0
     private const val EARTH_RADIUS_METERS = 6_371_000.0
+
+    fun append(snapshot: GpsTrackSnapshot, point: GpsTrackPoint): GpsAppendResult {
+        val start = snapshot.activeSegmentStartedAtEpochMs
+        if (snapshot.paused || (start != null && point.timestampEpochMs < start)) {
+            return GpsAppendResult(false, reason = RejectReason.INACTIVE_SEGMENT)
+        }
+        // The first fix after resume anchors a new segment; a paused relocation
+        // must never become travelled distance or an impossible-speed jump.
+        val previous = snapshot.points.lastOrNull()?.takeIf { start == null || it.timestampEpochMs >= start }
+        return append(previous, point)
+    }
 
     fun haversineDistanceMeters(first: GpsTrackPoint, second: GpsTrackPoint): Double {
         val latitudeDelta = Math.toRadians(second.latitude - first.latitude)
@@ -71,6 +86,8 @@ object CardioGpsEngine {
             return GpsAppendResult(false, reason = RejectReason.IMPOSSIBLE_SPEED)
         }
         if (previous == null) return GpsAppendResult(true)
+        if (point.activeSegmentStartedAtEpochMs != null &&
+            point.activeSegmentStartedAtEpochMs != previous.activeSegmentStartedAtEpochMs) return GpsAppendResult(true)
 
         val distance = haversineDistanceMeters(previous, point)
         val elapsedSeconds = (point.timestampEpochMs - previous.timestampEpochMs) / 1_000.0
@@ -89,8 +106,12 @@ object CardioGpsEngine {
     fun kmSplitPaces(points: List<GpsTrackPoint>): List<Int> {
         if (points.size < 2) return emptyList()
         val splits = mutableListOf<Int>()
+        // Older files lack active clocks. Keep their original interpretation;
+        // new captures exclude paused time without rewriting legacy points.
+        val useActiveClock = points.all { it.elapsedActiveSeconds != null }
+        fun clockMs(point: GpsTrackPoint): Long = if (useActiveClock) point.elapsedActiveSeconds!! * 1_000L else point.timestampEpochMs
         var accumulated = 0.0
-        var kmStartMs = points.first().timestampEpochMs
+        var kmStartMs = clockMs(points.first())
         var previous = points.first()
         for (index in 1 until points.size) {
             val point = points[index]
@@ -102,10 +123,10 @@ object CardioGpsEngine {
             accumulated += append.distanceDeltaMeters
             previous = point
             while (accumulated >= 1_000.0) {
-                val elapsedSeconds = ((point.timestampEpochMs - kmStartMs) / 1_000L).toInt().coerceAtLeast(1)
+                val elapsedSeconds = ((clockMs(point) - kmStartMs) / 1_000L).toInt().coerceAtLeast(1)
                 splits += elapsedSeconds
                 accumulated -= 1_000.0
-                kmStartMs = point.timestampEpochMs
+                kmStartMs = clockMs(point)
             }
         }
         return splits

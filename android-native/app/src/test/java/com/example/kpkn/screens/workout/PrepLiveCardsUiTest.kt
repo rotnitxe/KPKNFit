@@ -217,6 +217,7 @@ class PrepLiveCardsUiTest {
         var restSkips = 0
         var adds = 0
         var drafts = mutableListOf<String>()
+        var deferCommit = false
         val holder = RecordActionHolder()
         val scope = Any()
     }
@@ -230,7 +231,7 @@ class PrepLiveCardsUiTest {
                     h.toggles++
                     if (completed) h.recorded = row.index to kg
                     val at = h.rows.indexOfFirst { it.warmup.id == row.warmup.id }
-                    h.rows[at] = row.copy(isCompleted = completed, actualWeightKg = if (completed) kg else null)
+                    if (!h.deferCommit) h.rows[at] = row.copy(isCompleted = completed, actualWeightKg = if (completed) kg else null)
                 },
                 onSkip = {
                     h.skips++
@@ -317,6 +318,18 @@ class PrepLiveCardsUiTest {
         rule.onNodeWithContentDescription("Desmarcar aproximación 1").performClick()
         rule.onNodeWithTag("prep-status").assertTextEquals("Aproximación pendiente")
         rule.onNodeWithTag("warmup-count", useUnmergedTree = true).assertTextEquals("0/3")
+    }
+
+    @Test fun h5WaitsForCommittedRowsBeforeClaimingCompletion() {
+        val h = WarmupHarness(threeRows()).apply { deferCommit = true }
+        showWarmup(h)
+        rule.onNode(hasContentDescription("Carga de aproximación 1 en kg") and hasSetTextAction()).performTextReplacement("62,5")
+        rule.onNodeWithContentDescription("Marcar hecha aproximación 1").performClick()
+        rule.onNodeWithTag("warmup-count", useUnmergedTree = true).assertTextEquals("0/3")
+        rule.onNodeWithTag("prep-status").assertTextEquals("Marca cada aproximación al terminar.")
+        rule.runOnIdle { h.rows[0] = h.rows[0].copy(isCompleted = true, actualWeightKg = 62.5) }
+        rule.onNodeWithTag("warmup-count", useUnmergedTree = true).assertTextEquals("1/3")
+        rule.onNodeWithTag("prep-status").assertTextEquals("Aproximación 1 hecha · 62,5 kg × 8")
     }
 
     @Test fun h5ShowsRealValuesPercentRepsAndRest() {

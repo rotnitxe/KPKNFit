@@ -183,6 +183,9 @@ public struct WorkoutContextProfile: Codable {
 // ─── RecordedSetPayload ──────────────────────────────────────────────────────
 
 public struct RecordedSetPayload: Codable {
+    public var actualValue: Double? = nil
+    public var plannedRepRange: JSONValue? = nil
+    public var plannedTargetSnapshot: Double? = nil
     public var contextProfileId: String? = nil
     public var exerciseId: String
     public var exerciseDbId: String? = nil

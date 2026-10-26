@@ -1,0 +1,75 @@
+{
+  "status": "ACCEPTED_FUNCTIONAL_ANDROID",
+  "checkoutHead": "e47cfce68",
+  "apk": {
+    "sha256": "f185523fa6bed9747d85fcd0033ab874d6485dcd80eea9afffdd1c847ce46f51",
+    "path": "apk-final-11/app-base-debug.apk",
+    "package": "com.example.kpkn.dbg",
+    "label": "KPKN Dev",
+    "versionCode": 52,
+    "certificateSha256": "f14259a4a5dd75ffca3732b5930cd7e30fa7f57d740e624e07cda6db87fe6fe4",
+    "room": 36,
+    "schemaIdentityHash": "907a5e4df31b4ead1ee0f8d86ce559cf",
+    "phoneInstalledAndColdLaunchVerified": true
+  },
+  "validation": {
+    "assembleBaseDebug": "PASS",
+    "testsConsolidated": {
+      "tests": 631,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classes": 66
+    },
+    "method": "Latest applicable XML per class across focused rounds; not one monolithic green run",
+    "unchangedSources": 3615
+  },
+  "phone": {
+    "voice": "PASS real registration and22.5kgx9RPE7 correction, sameID;771f",
+    "frontVideo": "PASS front720p15.881sec/local2rep analysis, stablebinding;ec1/771f",
+    "gps": "PASS real fixes,pause/resume/20sec background,segmentboundary exclusion;4c57",
+    "durableCardio": "PASS sameID151sec0.0405474kmRPEunknown aftercoldreentry;4c57",
+    "finalUpdateConservation": "PASS f185 exact programs/logs/observations/media unchanged",
+    "personalAppUntouched": true,
+    "noOngoingWorkout": true,
+    "qaHistoryLabelled": true
+  },
+  "emulator": {
+    "fullFlow": "PASS",
+    "history": {
+      "workingObservations": 7,
+      "logicalSeries": 6,
+      "originalIdsAndValuesPreserved": true,
+      "warmupRecords": 2,
+      "preparationMarksAndReportsPreserved": true,
+      "omissions": 6,
+      "qaLabel": true,
+      "nutritionUnchanged": true,
+      "ongoing": false
+    },
+    "counter": "PASS6logicalseries infinish andHome;7individualobservations retained",
+    "ownerRestoration": {
+      "outcome": "SETTINGS_AND_QA_CURSOR_RESTORED room=36",
+      "originalApkRestored": "9e25eb5bb55d822fc944bc930c04ceaeeb5a141cda5fed8d9174e25cbd7ebceb",
+      "otherTablesChanged": [],
+      "nutritionRowsPreserved": 8,
+      "nutritionUsageAndPublicationIdentical": true,
+      "ongoing": false,
+      "activeProgramRestoredToEmpty": true,
+      "qaHistoryRetainedAndLabelled": true
+    },
+    "originalApkLaunch": "PASS originalwelcome",
+    "devicesReleasedAndOwnerNotified": true
+  },
+  "rest": "PASS representative WARMUP,BETWEEN_SIDES,STANDARD,SUPERSET_INTRA,SUPERSET_ROUND;±15 type preserved;focused restore regressions",
+  "remaining": [],
+  "limitations": [
+    "No scientific GPS distance or biomechanics accuracy calibration",
+    "Not every edge case repeated physically; see per-version evidence and audit",
+    "Physical plan undo after later record not completed by timed UI automation; regression covered",
+    "Emulator exact alarms denied; no guarantee claimed for deep-doze alarm precision",
+    "iOS source transport updated but not compiled on Windows",
+    "No commit or push"
+  ],
+  "evidenceScope": "Pre-commit QA with concurrent Room36 nutrition WIP; raw DB, GPS, recordings and APKs remain local. Selected commit is validated separately against official master."
+}

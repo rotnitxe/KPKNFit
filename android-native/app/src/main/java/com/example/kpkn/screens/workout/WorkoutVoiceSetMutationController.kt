@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicLong
  * exactly as they were.
  */
 sealed interface WorkoutVoiceMutationResult {
+    data class Rejected(val message: String) : WorkoutVoiceMutationResult
     /** Room confirmed. [set] is the resulting set for an edit and null for an undo. */
     data class Committed(val setKey: String, val set: CompletedSet? = null) : WorkoutVoiceMutationResult
 
@@ -87,6 +88,8 @@ internal class WorkoutVoiceSetMutationController(
         val requestedAtMs = clock()
         return execute(op = "undo") { captured ->
             when {
+                captured.completedSets[captured.setJustLoggedKey]?.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN ->
+                    Prepared.Rejected(WorkoutVoiceMutationResult.Rejected("Cierra la técnica antes de deshacer su principal."))
                 !payload.isActive(requestedAtMs) || !isCurrentUndo(payload, requestedAtMs) ->
                     Prepared.Rejected(WorkoutVoiceMutationResult.NoRecentSet)
                 payload.setKey !in captured.completedSets ->
@@ -107,6 +110,9 @@ internal class WorkoutVoiceSetMutationController(
         execute(op = "patch") { captured ->
             val target = resolveVoiceEditTarget(captured, patch)
                 ?: return@execute Prepared.Rejected(WorkoutVoiceMutationResult.NoRecentSet)
+            if (target.set.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN)
+                return@execute Prepared.Rejected(WorkoutVoiceMutationResult.Rejected("Cierra la técnica antes de corregir su principal."))
+            voiceEditEffortError(patch)?.let { return@execute Prepared.Rejected(WorkoutVoiceMutationResult.Rejected(it)) }
             val updated = applyVoiceEditPatch(target.set, patch)
             if (updated == target.set) {
                 Prepared.Rejected(WorkoutVoiceMutationResult.NoChange)
@@ -130,6 +136,9 @@ internal class WorkoutVoiceSetMutationController(
             }
             val current = captured.completedSets[setKey]?.takeUnless { it.skipped }
                 ?: return@execute Prepared.Rejected(WorkoutVoiceMutationResult.NoRecentSet)
+            if (current.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN)
+                return@execute Prepared.Rejected(WorkoutVoiceMutationResult.Rejected("Cierra la técnica antes de corregir su principal."))
+            voiceEditEffortError(patch.edit)?.let { return@execute Prepared.Rejected(WorkoutVoiceMutationResult.Rejected(it)) }
             val updated = applyCompletedSetPatch(current, patch)
             if (updated == current) {
                 Prepared.Rejected(WorkoutVoiceMutationResult.NoChange)
@@ -229,7 +238,11 @@ internal class WorkoutVoiceSetMutationController(
             val apply: (WorkoutUiState) -> WorkoutUiState = { state ->
                 val next = ready.transform(state)
                 next.copy(completedSets = next.completedSets + correctedSets,
-                    calibrationDecisions = calibrated.calibrationDecisions)
+                    calibrationDecisions = calibrated.calibrationDecisions,
+                    contextualPerformanceCache = calibrated.contextualPerformanceCache,
+                    globalPerformanceCache = calibrated.globalPerformanceCache,
+                    lastSetOutcomeV2 = calibrated.lastSetOutcomeV2,
+                    lastHomologatedResultV3 = calibrated.lastHomologatedResultV3)
             }
             val candidate = apply(captured)
             val publish: () -> Unit = {

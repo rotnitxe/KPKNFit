@@ -784,7 +784,7 @@ object WorkoutVoiceCommandParser {
     }
 
     fun parseEditLastSet(normalized: String): VoiceSessionCommand.EditLastSet? {
-        val lower = normalizeText(normalized)
+        val lower = normalizeCorrectionNumbers(WorkoutVoiceMishearingCorrections.correctDeterministic(normalizeText(normalized)))
         val wordAlts = VOICE_INTEGER_WORDS.keys.joinToString("|")
         val numOrWord = """(\d+(?:[.,]\d+)?|$wordAlts)"""
         val rangeTrigger = Regex("""\bde\s+$numOrWord\s+a\s+$numOrWord(?:\s*(?:kilos?|kg))?""").containsMatchIn(lower)
@@ -793,6 +793,7 @@ object WorkoutVoiceCommandParser {
 
         var weightKg: Double? = null
         var weightDeltaKg: Double? = null
+        var quantityValue: Double? = null
         var metricValue: Int? = null
         var intensityValue: Double? = null
         var intensityKind: com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind? = null
@@ -863,12 +864,20 @@ object WorkoutVoiceCommandParser {
             }
         }
 
-        val rpeMatch = Regex("""rpe\s+(\d+(?:[.,]\d+)?)""").find(lower)
+        val quantityMatch = Regex("""(?:eran|era|fueron|corrige a)\s+(\d+(?:[.,]\d+)?)\s*(kilometros?|km|metros?|m|segundos?|s|unidades?)\b""").find(lower)
+        if (quantityMatch != null) {
+            val n = quantityMatch.groupValues[1].replace(',', '.').toDoubleOrNull()
+            quantityValue = n?.let { if (quantityMatch.groupValues[2].startsWith("k")) it * 1000.0 else it }
+            metricValue = null
+            weightKg = null
+        }
+
+        val rpeMatch = Regex("""\b(?:rpe|esfuerzo|intensidad)\s+(\d+(?:[.,]\d+)?)""").find(lower)
         if (rpeMatch != null) {
             intensityValue = rpeMatch.groupValues[1].replace(',', '.').toDoubleOrNull()
             intensityKind = com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind.RPE
         }
-        val rirMatch = Regex("""rir\s+(\d+)""").find(lower)
+        val rirMatch = Regex("""\b(?:rir|reservas|ritmo)\s+(\d+)""").find(lower)
         if (rirMatch != null) {
             intensityValue = rirMatch.groupValues[1].toDoubleOrNull()
             intensityKind = com.example.kpkn.screens.workout.WorkoutVoiceIntensityKind.RIR
@@ -885,6 +894,7 @@ object WorkoutVoiceCommandParser {
             weightKg = weightKg,
             weightDeltaKg = weightDeltaKg,
             metricValue = metricValue,
+            quantityValue = quantityValue,
             intensityValue = intensityValue,
             intensityKind = intensityKind,
             side = side,
@@ -986,6 +996,27 @@ object WorkoutVoiceCommandParser {
     private fun parseSpokenInteger(token: String): Int? {
         token.toIntOrNull()?.let { return it }
         return VOICE_INTEGER_WORDS[normalizeText(token)]
+    }
+
+    /** ASR emits words as well as digits. Preserve the whole decimal before matching a field. */
+    private fun normalizeCorrectionNumbers(text: String): String {
+        val words = VOICE_INTEGER_WORDS.toMutableMap()
+        VOICE_INTEGER_WORDS.filterValues { it in 30..90 && it % 10 == 0 }.forEach { (tens, value) ->
+            VOICE_INTEGER_WORDS.filterValues { it in 1..9 }.forEach { (unit, digit) ->
+                words["$tens y $unit"] = value + digit
+            }
+        }
+        words.toMap().filterValues { it in 1..99 }.forEach { (word, value) ->
+            words["ciento $word"] = 100 + value
+        }
+        val alternatives = words.keys.sortedByDescending { it.length }.joinToString("|") { Regex.escape(it) }
+        var result = Regex("\\b(?:$alternatives)\\b").replace(text) { words.getValue(it.value).toString() }
+        result = Regex("""(\d+)\s+(?:coma|punto)\s+(\d+(?:\s+\d+)*)""").replace(result) {
+            it.groupValues[1] + "." + it.groupValues[2].replace(" ", "")
+        }
+        return Regex("""(\d+)\s+y\s+(medio|media|cuarto)\b""").replace(result) {
+            it.groupValues[1] + if (it.groupValues[2] == "cuarto") ".25" else ".5"
+        }
     }
 
     fun parseAddSetPersistence(normalizedTranscript: String): VoiceSessionCommand {

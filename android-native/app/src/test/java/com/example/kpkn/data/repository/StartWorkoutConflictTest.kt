@@ -10,6 +10,7 @@ import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.OngoingWorkoutState
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.CompletedSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
@@ -38,6 +39,18 @@ import org.robolectric.annotation.Config
 @Config(manifest = Config.NONE, sdk = [34])
 @OptIn(ExperimentalCoroutinesApi::class)
 class StartWorkoutConflictTest {
+
+    @Test fun repeatedStartCannotEraseRecordsAndANewExecutionRequiresReplace() = runBlocking {
+        val repository = readyRepository()
+        val initial = OngoingWorkoutState(programId = "", session = executableSession("qa", "QA"), startTime = 10L)
+        assertEquals(StartWorkoutResult.Started, repository.startWorkout(initial))
+        val actual = CompletedSet("kept", weight = 20.0, reps = 8)
+        repository.updateOngoingWorkoutAndFlush { it.copy(completedSets = mapOf("e_0" to actual)) }
+        assertEquals(StartWorkoutResult.Started, repository.startWorkout(initial))
+        assertEquals(actual, repository.ongoingWorkout.value!!.completedSets["e_0"])
+        assertTrue(repository.startWorkout(initial.copy(startTime = 11L)) is StartWorkoutResult.Conflict)
+        assertEquals(actual, repository.ongoingWorkout.value!!.completedSets["e_0"])
+    }
 
     private val mainDispatcher = UnconfinedTestDispatcher()
 
@@ -106,7 +119,7 @@ class StartWorkoutConflictTest {
     }
 
     @Test
-    fun startWorkout_sameIdentity_upsertsWithoutConflict() = runBlocking {
+    fun startWorkout_sameSessionNewExecution_canBeReplacedExplicitly() = runBlocking {
         val repository = readyRepository()
         repository.addProgram(Program(id = "prog-a", name = "A"))
         withTimeout(5_000) { repository.programs.first { it.any { item -> item.id == "prog-a" } } }
@@ -124,6 +137,7 @@ class StartWorkoutConflictTest {
                 session = executableSession("session-a", "Sentadilla"),
                 startTime = 99L,
             ),
+            replaceExisting = true,
         )
         assertEquals(StartWorkoutResult.Started, again)
         assertEquals(99L, repository.ongoingWorkout.value?.startTime)
@@ -170,7 +184,7 @@ class StartWorkoutConflictTest {
         val repository = readyRepository()
         val old = OngoingWorkoutState(programId = "", session = executableSession("session", "A"), startTime = 10L)
         assertEquals(StartWorkoutResult.Started, repository.startWorkout(old))
-        assertEquals(StartWorkoutResult.Started, repository.startWorkout(old.copy(startTime = 20L)))
+        assertEquals(StartWorkoutResult.Started, repository.startWorkout(old.copy(startTime = 20L), replaceExisting = true))
         assertTrue(runCatching { repository.clearOngoingWorkoutAndFlush(old) }.isFailure)
         assertEquals(20L, repository.ongoingWorkout.value!!.startTime)
         assertEquals(20L, repository.databaseForTests().stateDao().getOngoingWorkout()!!.toOngoingWorkoutState()!!.startTime)

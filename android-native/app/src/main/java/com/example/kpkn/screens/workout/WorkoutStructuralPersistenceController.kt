@@ -36,6 +36,10 @@ class WorkoutStructuralPersistenceController(
     private val ports: Ports,
 ) {
     interface Ports {
+        fun canMutateWorkout(): Boolean = true
+        fun onMutationRejected(message: String) = Unit
+        /** True when the production owner has taken the candidate through its durable write lane. */
+        fun commitStructuralState(base: WorkoutUiState, candidate: WorkoutUiState): Boolean = false
         fun visibleExercises(state: WorkoutUiState): List<Exercise>
         fun sessionForActiveMode(base: Session, mode: WeekVariant): Session
         fun normalizeSupersetsForWorkout(session: Session): Session
@@ -52,6 +56,7 @@ class WorkoutStructuralPersistenceController(
     private var deferredReplacementPrompt: PendingReplacementPersistencePrompt? = null
 
     fun commitStructuralPersistence(scope: ReplacementPersistenceScopeV2) {
+        if (!ports.canMutateWorkout()) return
         val state = getState()
         val change = state.pendingStructuralPersistence ?: return
         val program = repository.getProgramById(programId)
@@ -396,37 +401,40 @@ class WorkoutStructuralPersistenceController(
         preferredExerciseId: String? = null,
         preferredSetId: String? = null,
         persistToProgram: Boolean = false,
+        candidateTransform: (WorkoutUiState) -> WorkoutUiState = { it },
     ) {
+        if (!ports.canMutateWorkout()) return
         val state = getState()
         val previousSession = state.session
-        val normalizedSession = ports.normalizeSupersetsForWorkout(updatedSession)
-        val remappedCompleted = if (previousSession != null) {
-            remapIndexKeyedMap(previousSession, normalizedSession, state.completedSets)
-        } else {
-            state.completedSets
-        }
+        val pendingPlan = pendingLateralityPlan(state, updatedSession)
+        pendingPlan.rejection?.let { ports.onMutationRejected(it); return }
+        val normalizedSession = ports.normalizeSupersetsForWorkout(pendingPlan.session)
+        val previousMode = previousSession?.let { ports.sessionForActiveMode(it, state.activeMode) }
+        val nextMode = ports.sessionForActiveMode(normalizedSession, state.activeMode)
+        val preserved = preserveWorkoutRecords(state, normalizedSession)
+        val remappedCompleted = preserved.completed
         val remappedOmitted = if (previousSession != null) {
-            remapIndexKeyedSet(previousSession, normalizedSession, state.omittedSetKeys)
+            remapIndexKeyedSet(checkNotNull(previousMode), nextMode, state.omittedSetKeys)
         } else {
             state.omittedSetKeys
         }
         val remappedDraftsBefore = if (previousSession != null) {
-            remapIndexKeyedMap(previousSession, normalizedSession, state.setDrafts)
+            remapIndexKeyedMap(checkNotNull(previousMode), nextMode, state.setDrafts)
         } else {
             state.setDrafts
         }
         val remappedOverrides = if (previousSession != null) {
-            remapIndexKeyedMap(previousSession, normalizedSession, state.manualLoadOverrides)
+            remapIndexKeyedMap(checkNotNull(previousMode), nextMode, state.manualLoadOverrides)
         } else {
             state.manualLoadOverrides
         }
         val remappedLoadModesBefore = if (previousSession != null) {
-            remapIndexKeyedMap(previousSession, normalizedSession, state.persistedLoadModeBySet)
+            remapIndexKeyedMap(checkNotNull(previousMode), nextMode, state.persistedLoadModeBySet)
         } else {
             state.persistedLoadModeBySet
         }
         val remappedAdvanced = if (previousSession != null) {
-            remapIndexKeyedMap(previousSession, normalizedSession, state.setAdvancedFeedback)
+            remapIndexKeyedMap(checkNotNull(previousMode), nextMode, state.setAdvancedFeedback)
         } else {
             state.setAdvancedFeedback
         }
@@ -449,18 +457,21 @@ class WorkoutStructuralPersistenceController(
         }
         val remappedLoadModes = reconciled.persistedLoadModeBySet
         val remappedDrafts = reconciled.setDrafts
-        val liveExerciseIds = normalizedSession.allExercises().map { it.id }.toSet()
+        val liveExerciseIds = nextMode.allExercises().map { it.id }.toSet()
         val preview = state.copy(
             session = normalizedSession,
             completedSets = remappedCompleted,
             omittedSetKeys = remappedOmitted,
         )
         val visible = ports.visibleExercises(preview)
-        val resolvedExerciseIdx = preferredExerciseId
+        val previousCurrent = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
+        val targetExerciseId = preferredExerciseId ?: previousCurrent?.id
+        val targetSetId = preferredSetId ?: previousCurrent?.takeIf { it.id == targetExerciseId }?.sets?.getOrNull(state.currentSetIdx)?.id
+        val resolvedExerciseIdx = targetExerciseId
             ?.let { targetId -> visible.indexOfFirst { it.id == targetId } }
             ?.takeIf { it >= 0 }
             ?: state.currentExerciseIdx.coerceIn(0, visible.lastIndex.coerceAtLeast(0))
-        val resolvedSetIdx = preferredSetId
+        val resolvedSetIdx = targetSetId
             ?.let { targetSetId ->
                 visible.getOrNull(resolvedExerciseIdx)
                     ?.sets
@@ -472,7 +483,7 @@ class WorkoutStructuralPersistenceController(
                 (visible.getOrNull(resolvedExerciseIdx)?.sets?.lastIndex ?: 0).coerceAtLeast(0),
             )
 
-        updateState {
+        val transform: (WorkoutUiState) -> WorkoutUiState = {
             // El modo de carga recordado es SOLO lo que la sesión vio hacer (registros y ajustes de «Editar series»): el plan se queda
             // en el plan. Antes, cada edición de un ejercicio copiaba los modos de su plan al recuerdo de todas sus series, y desde ese
             // momento una edición posterior del plan perdía contra su propia copia: el tipo de carga «volvía al que había». Además se
@@ -485,6 +496,14 @@ class WorkoutStructuralPersistenceController(
                 currentExerciseIdx = resolvedExerciseIdx,
                 currentSetIdx = resolvedSetIdx,
                 completedSets = remappedCompleted,
+                archivedCompletedExercises = preserved.archived,
+                preparationReports = preservePreparationReports(state, normalizedSession),
+                legacyMediaInvalidatedExerciseIds = it.legacyMediaInvalidatedExerciseIds +
+                    previousMode?.allExercises().orEmpty().filter { before ->
+                        val after = nextMode.allExercises().firstOrNull { ex -> ex.id == before.id }
+                        after == null || before.sets.map { set -> set.id } != after.sets.map { set -> set.id } ||
+                            workoutSetInputIdentity(before) != workoutSetInputIdentity(after)
+                    }.map { ex -> ex.id },
                 omittedSetKeys = remappedOmitted,
                 setDrafts = remappedDrafts,
                 manualLoadOverrides = remappedOverrides,
@@ -492,19 +511,27 @@ class WorkoutStructuralPersistenceController(
                 persistedLoadModeByExercise = persistedByExercise,
                 setAdvancedFeedback = remappedAdvanced,
                 skippedExerciseIds = pruneExerciseIdSet(it.skippedExerciseIds, liveExerciseIds),
-                warmupCompletedExerciseIds = pruneExerciseIdSet(it.warmupCompletedExerciseIds, liveExerciseIds),
-                mobilityCompletedExerciseIds = pruneExerciseIdSet(it.mobilityCompletedExerciseIds, liveExerciseIds),
+                warmupCompletedExerciseIds = preservePreparationCompletionKeys(state, normalizedSession, it.warmupCompletedExerciseIds),
+                mobilityCompletedExerciseIds = preservePreparationCompletionKeys(state, normalizedSession, it.mobilityCompletedExerciseIds),
+                mobilityTotalCompletedStepKeys = preservePreparationCompletionKeys(state, normalizedSession, it.mobilityTotalCompletedStepKeys),
                 postExerciseFeedbackByExerciseId = pruneExerciseIdMap(
                     it.postExerciseFeedbackByExerciseId,
                     liveExerciseIds,
                 ),
             )
-            val resolvedStep = when {
-                ports.stepKeyExists(next, next.activeStepKey) -> next.activeStepKey
-                else -> ports.firstIncompleteStepKey(next)
-            }
-            next.copy(activeStepKey = resolvedStep)
+            val previousWorking = state.activeStepKey?.let(::parseCompletedSetKey)?.takeIf { it.exerciseId == previousCurrent?.id }
+            val currentExercise = ports.visibleExercises(next).getOrNull(resolvedExerciseIdx)
+            val retainedStep = if (previousWorking != null && currentExercise != null)
+                WorkoutStepRules.workingStepKey(currentExercise.id, resolvedSetIdx, previousWorking.side) else next.activeStepKey
+            val resolvedStep = retainedStep?.takeIf { ports.stepKeyExists(next, it) } ?: ports.firstIncompleteStepKey(next)
+            val stepOwner = ports.visibleExercises(next).filter { ex -> resolvedStep == ex.id || resolvedStep?.startsWith("${ex.id}_") == true }.maxByOrNull { ex -> ex.id.length }
+            val parsed = resolvedStep?.let(::parseCompletedSetKey)?.takeIf { it.exerciseId == stepOwner?.id }
+            next.copy(activeStepKey = resolvedStep,
+                currentExerciseIdx = stepOwner?.let { ex -> ports.visibleExercises(next).indexOfFirst { it.id == ex.id } } ?: resolvedExerciseIdx,
+                currentSetIdx = parsed?.setIdx ?: resolvedSetIdx, editingState = null)
         }
+        val candidate = candidateTransform(transform(state))
+        if (!ports.commitStructuralState(state, candidate)) updateState { candidateTransform(transform(it)) }
         ports.refreshLoadSuggestions(getState())
         ports.persistOngoingState()
     }
@@ -528,6 +555,7 @@ class WorkoutStructuralPersistenceController(
     }
 
     fun commitPendingReplacementPersistence(scope: ReplacementPersistenceScopeV2) {
+        if (!ports.canMutateWorkout()) return
         val prompt = getState().pendingReplacementPersistencePrompt ?: return
         val state = getState()
         val session = state.session ?: return
@@ -599,6 +627,7 @@ class WorkoutStructuralPersistenceController(
         replacement: ExerciseMuscleInfo,
         deferPersistencePrompt: Boolean = false,
     ) {
+        if (!ports.canMutateWorkout()) return
         val state = getState()
         val base = state.session ?: return
         val modeSession = ports.sessionForActiveMode(base, state.activeMode)
@@ -610,13 +639,20 @@ class WorkoutStructuralPersistenceController(
 
         val archivedOriginal = toCompletedExercises(
             session = Session(id = modeSession.id, name = sourceExercise.name, exercises = listOf(sourceExercise)),
-            completedSets = state.completedSets,
+            completedSets = state.completedSets.mapValues { (key, set) ->
+                val parsed = parseCompletedSetKey(key)
+                if (parsed?.exerciseId == sourceExercise.id) set.copy(sourceRef = set.sourceRef ?: executionRef(state, sourceExercise, parsed.setIdx, parsed.side))
+                else if (set.isWarmup && key.startsWith("${sourceExercise.id}_warmup_")) set.copy(sourceRef = set.sourceRef ?: com.example.kpkn.data.models.WorkoutSetExecutionRef(
+                    state.startTimeMs, state.activeMode, sourceExercise.occurrenceId ?: sourceExercise.id, key.removePrefix("${sourceExercise.id}_warmup_"), null, executionConfigurationId(sourceExercise))) else set
+            },
             catalogIndex = catalogExerciseIndex(),
+            includeWarmupSets = true,
         )
 
         val updatedSession = withModeSession(base, state.activeMode) { activeSession ->
             activeSession.replaceExerciseById(exerciseId) { old ->
-                buildReplacementExercise(old, replacement)
+                val built = buildReplacementExercise(old, replacement)
+                built.copy(sets = pendingReplacementSets(old, built, state.completedSets, state.omittedSetKeys))
             }
         }
 
@@ -662,7 +698,7 @@ class WorkoutStructuralPersistenceController(
         val newVisible = ports.visibleExercises(state.copy(session = normalizedUpdatedSession))
         val replacementModeSession = ports.sessionForActiveMode(normalizedUpdatedSession, state.activeMode)
         val replacementExercise = replacementModeSession.allExercises().firstOrNull { it.id == exerciseId }
-        val keptSetIdx = state.currentSetIdx.coerceIn(
+        val keptSetIdx = 0.coerceIn(
             0,
             (replacementExercise?.sets?.lastIndex ?: 0).coerceAtLeast(0),
         )
@@ -670,14 +706,15 @@ class WorkoutStructuralPersistenceController(
         val newExerciseIdx = if (replacingCurrent) {
             state.currentExerciseIdx.coerceIn(0, (newVisible.size - 1).coerceAtLeast(0))
         } else {
-            newVisible.indexOfFirst { it.id == exerciseId }.takeIf { it >= 0 } ?: state.currentExerciseIdx
+            newVisible.indexOfFirst { it.id == activeVisible.getOrNull(state.currentExerciseIdx)?.id }
+                .takeIf { it >= 0 } ?: state.currentExerciseIdx
         }
         val newActiveStepKey = if (
             replacingCurrent || state.activeStepKey?.startsWith("${exerciseId}_") == true
         ) replacementStepKey else state.activeStepKey
         val newSetIdx = if (replacingCurrent) keptSetIdx else state.currentSetIdx
 
-        updateState {
+        val transform: (WorkoutUiState) -> WorkoutUiState = {
             it.copy(
                 session = normalizedUpdatedSession,
                 currentExerciseIdx = newExerciseIdx,
@@ -689,10 +726,12 @@ class WorkoutStructuralPersistenceController(
                 postExerciseFeedbackByExerciseId = cleanedFeedback,
                 omittedSetKeys = it.omittedSetKeys.filterNot { key -> key.startsWith("${exerciseId}_") }.toSet(),
                 skippedExerciseIds = it.skippedExerciseIds - exerciseId,
-                warmupCompletedExerciseIds = it.warmupCompletedExerciseIds.filterNot { key ->
-                    key == exerciseId || key.startsWith("${exerciseId}_")
-                }.toSet(),
+                warmupCompletedExerciseIds = preservePreparationCompletionKeys(state, normalizedUpdatedSession, it.warmupCompletedExerciseIds),
+                mobilityCompletedExerciseIds = preservePreparationCompletionKeys(state, normalizedUpdatedSession, it.mobilityCompletedExerciseIds),
+                mobilityTotalCompletedStepKeys = preservePreparationCompletionKeys(state, normalizedUpdatedSession, it.mobilityTotalCompletedStepKeys),
                 archivedCompletedExercises = it.archivedCompletedExercises + archivedOriginal,
+                preparationReports = preservePreparationReports(state, normalizedUpdatedSession),
+                legacyMediaInvalidatedExerciseIds = it.legacyMediaInvalidatedExerciseIds + exerciseId,
                 contextProfilesV3 = if (refreshedProfile != null) {
                     it.contextProfilesV3 + (refreshedProfile.id to refreshedProfile)
                 } else {
@@ -711,6 +750,7 @@ class WorkoutStructuralPersistenceController(
                 manualLoadOverrides = it.manualLoadOverrides.filterKeys { key -> !key.startsWith("${exerciseId}_") },
             ).withoutLoadStateOfExercise(exerciseId)
         }
+        if (!ports.commitStructuralState(state, transform(state))) updateState(transform)
         ports.refreshLoadSuggestions(getState())
         ports.persistOngoingState()
     }
@@ -719,8 +759,18 @@ class WorkoutStructuralPersistenceController(
         exerciseId: String,
         replacement: com.example.kpkn.data.models.CardioCatalogItem,
     ) {
+        if (!ports.canMutateWorkout()) return
         val state = getState()
         val base = state.session ?: return
+        val source = ports.sessionForActiveMode(base, state.activeMode).allExercises().firstOrNull { it.id == exerciseId } ?: return
+        val pending = WorkoutStepRules.cardioSetIndices(source).filter { index ->
+            WorkoutStepRules.cardioCompletionKey(exerciseId, index) !in state.completedSets &&
+                !WorkoutStepRules.isSetOmitted(exerciseId, index, state.omittedSetKeys)
+        }
+        if (pending.isEmpty()) {
+            ports.onMutationRejected("Este ejercicio ya no tiene series pendientes que reemplazar.")
+            return
+        }
         val updatedSession = withModeSession(base, state.activeMode) { activeSession ->
             activeSession.replaceExerciseById(exerciseId) { old ->
                 val existingDetails = old.cardioDetails
@@ -736,6 +786,7 @@ class WorkoutStructuralPersistenceController(
                 )
                 val synced = if (newDetails.hasIntervals()) newDetails.copy(targetDurationSeconds = newDetails.totalIntervalSeconds()) else newDetails
                 old.copy(
+                    sets = old.sets.filterIndexed { index, _ -> index in pending },
                     name = replacement.name,
                     catalogDefinitionId = replacement.id,
                     cardioDetails = synced,
@@ -744,34 +795,8 @@ class WorkoutStructuralPersistenceController(
             }
         }
 
-        val cleanedCompleted = state.completedSets.filterKeys { !it.startsWith("${exerciseId}_") }
-        val cleanedAdvanced = state.setAdvancedFeedback.filterKeys { !it.startsWith("${exerciseId}_") }
-        val cleanedFeedback = state.postExerciseFeedbackByExerciseId - exerciseId
-
-        val activeVisible = ports.visibleExercises(state)
-        val replacingCurrent = activeVisible.getOrNull(state.currentExerciseIdx)?.id == exerciseId
-        val clampedSetIdx = if (replacingCurrent) 0 else state.currentSetIdx
-
-        val normalizedUpdatedSession = ports.normalizeSupersetsForWorkout(updatedSession)
-        val newVisible = ports.visibleExercises(state.copy(session = normalizedUpdatedSession))
-        val newExerciseIdx = if (replacingCurrent) {
-            state.currentExerciseIdx.coerceIn(0, (newVisible.size - 1).coerceAtLeast(0))
-        } else {
-            newVisible.indexOfFirst { it.id == exerciseId }.takeIf { it >= 0 } ?: state.currentExerciseIdx
-        }
-
-        updateState {
-            it.copy(
-                session = normalizedUpdatedSession,
-                currentExerciseIdx = newExerciseIdx,
-                currentSetIdx = clampedSetIdx,
-                activeStepKey = null,
-                completedSets = cleanedCompleted,
-                setAdvancedFeedback = cleanedAdvanced,
-                postExerciseFeedbackByExerciseId = cleanedFeedback,
-            )
-        }
-        ports.persistOngoingState()
+        val currentExerciseId = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
+        applySessionMutation(updatedSession, preferredExerciseId = currentExerciseId)
     }
 
     fun applyReplacementDecision(
@@ -779,6 +804,7 @@ class WorkoutStructuralPersistenceController(
         replacement: ExerciseMuscleInfo,
         scope: ReplacementPersistenceScopeV2,
     ) {
+        if (!ports.canMutateWorkout()) return
         val state = getState()
         val session = state.session ?: return
         val modeSession = ports.sessionForActiveMode(session, state.activeMode)

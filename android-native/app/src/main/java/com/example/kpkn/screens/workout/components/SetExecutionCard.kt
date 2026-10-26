@@ -919,7 +919,8 @@ internal fun SetInputCardV2(
 ) {
     val context = LocalContext.current
     var editingAmrapResult by remember(exercise.id, setIndex, activeSide, sessionCompletedSet) { mutableStateOf(false) }
-    val showAmrapResult = amrapResultPanel != null && !editingAmrapResult
+    val showAmrapResult = amrapResultPanel != null && !editingAmrapResult &&
+        sessionCompletedSet?.techniqueStatus != com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN
     val myoParams = currentSet.plannedIntensityTechniques.firstOrNull { it.type == TechniqueType.REST_PAUSE }?.params.orEmpty()
     val activeRestReps = if(currentSet.isMyoReps()) (myoParams["reps"]?.toIntOrNull() ?: 4).coerceIn(3,5) else RestPausePlanDefaults.Reps
     val activeRestPauseSeconds = if(currentSet.isMyoReps()) (myoParams["pauseSeconds"]?.toIntOrNull() ?: 15).coerceIn(10,30) else RestPausePlanDefaults.PauseSeconds
@@ -2705,8 +2706,9 @@ internal fun SetInputCardV2(
                 guidedCommitDropOverride,
                 guidedCommitRestPauseOverride,
                 guidedProgressCoordinates,
+                isRecordSubmissionPending,
             ) {
-                if (!isActivePage) return@LaunchedEffect
+                if (!isActivePage || isRecordSubmissionPending) return@LaunchedEffect
                 val initialLoadMode = resolveEffectiveLoadMode(
                     draftLoadMode = restoredDraft?.loadMode,
                     persistedLoadMode = persistedLoadMode,
@@ -2839,10 +2841,25 @@ internal fun SetInputCardV2(
                 }
             }
 
+            fun submitOpenTechnique(
+                capture: GuidedMainCapture,
+                progress: WorkoutTechniqueProgressDraft,
+                onCommitted: () -> Unit,
+            ) {
+                val durable = progress.copy(mainCapture = capture.toDurableDraft())
+                submitRecord(capture.loadMode, capture.unitMode, capture.weight, capture.value,
+                    capture.intensity, (capture.mainFeedback ?: advanced).copy(
+                        dropSets = durable.dropRows.orEmpty(), restPauses = durable.restPauseRows.orEmpty(),
+                        techniqueStatus = com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN,
+                        techniqueProgress = durable),
+                    capture.amrapOverride, capture.bodyWeight, capture.side, onCommitted)
+            }
+
             fun submitScheduledRecord(
                 capture: GuidedMainCapture,
                 dropRows: List<DropSetEntry>,
                 restRows: List<RestPauseData>,
+                completion: com.example.kpkn.data.models.RecordedTechniqueStatus = if (dropRows.isEmpty() && restRows.isEmpty()) com.example.kpkn.data.models.RecordedTechniqueStatus.SKIPPED else com.example.kpkn.data.models.RecordedTechniqueStatus.COMPLETED,
             ) {
                 val plan = scheduledPlanForDraft ?: return
                 val kind = if (plan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET) {
@@ -2870,9 +2887,10 @@ internal fun SetInputCardV2(
                 scheduledPhaseIndex = plan.phaseCount
                 scheduledAwaitingCommit = true
                 scheduledRestRemainingSeconds = 0
-                val recordAdvanced = advanced.copy(
+                val recordAdvanced = (capture.mainFeedback ?: advanced).copy(
                     dropSets = retryProgress.dropRows.orEmpty(),
                     restPauses = retryProgress.restPauseRows.orEmpty(),
+                    techniqueStatus = completion,
                 )
                 submitRecord(
                     capture.loadMode,
@@ -2904,7 +2922,8 @@ internal fun SetInputCardV2(
                 restOverride: List<RestPauseData>,
             ) {
                 if (isRecordSubmissionPending) return
-                val payload = advanced.copy(
+                val payload = (capture.mainFeedback ?: advanced).copy(
+                    techniqueStatus = if (dropOverride.isEmpty() && restOverride.isEmpty()) com.example.kpkn.data.models.RecordedTechniqueStatus.SKIPPED else com.example.kpkn.data.models.RecordedTechniqueStatus.COMPLETED,
                     dropSets = dropOverride,
                     restPauses = restOverride,
                 )
@@ -2995,15 +3014,24 @@ internal fun SetInputCardV2(
             }
 
             guidedSkipAction[0] = {
-                val capture = guidedMainCapture
-                if (capture != null) {
-                    commitCapturedRecord(
-                        capture = capture,
-                        dropOverride = emptyList(),
-                        restOverride = emptyList(),
-                    )
+                val scheduled = scheduledMainCapture
+                if (scheduled != null) {
+                    submitScheduledRecord(scheduled, scheduledDropDrafts, scheduledRestPauseDrafts,
+                        if (scheduledDropDrafts.isEmpty() && scheduledRestPauseDrafts.isEmpty())
+                            com.example.kpkn.data.models.RecordedTechniqueStatus.SKIPPED
+                        else com.example.kpkn.data.models.RecordedTechniqueStatus.COMPLETED)
+                } else {
+                    guidedMainCapture?.let { capture -> commitCapturedRecord(capture,
+                        guidedDropDrafts.map { DropSetData(it.weight, it.reps) }, guidedRestPauseDrafts) }
                 }
             }
+
+            fun dropProgress(index: Int, total: Int, capture: GuidedMainCapture, guide: PlannedTechniqueGuide,
+                rows: List<DropSetEntry> = emptyList()): WorkoutTechniqueProgressDraft = WorkoutTechniqueProgressDraft(
+                kind = WorkoutTechniqueDraftKind.GUIDED_DROP, phaseIndex = index, phaseCount = total,
+                dropRows = rows.map { DropSetData(it.weight, it.reps) },
+                dropWeightText = suggestDropWeightForThreeReps(capture.weight, capture.value.roundToInt(), index, guide.dropPcts, capture.loadMode).toTrimmedNumberString(),
+                dropRepsText = RestPausePlanDefaults.Reps.toString())
 
             fun beginDropPhase(index: Int, total: Int, capture: GuidedMainCapture, guide: PlannedTechniqueGuide) {
                 val suggested = suggestDropWeightForThreeReps(
@@ -3011,6 +3039,7 @@ internal fun SetInputCardV2(
                     mainReps = capture.value.roundToInt(),
                     dropIndex = index,
                     dropPcts = guide.dropPcts,
+                    loadMode = capture.loadMode,
                 )
                 guidedDropWeightText = suggested.toTrimmedNumberString()
                 guidedDropRepsText = RestPausePlanDefaults.Reps.toString()
@@ -3088,7 +3117,7 @@ internal fun SetInputCardV2(
                                         ).show()
                                         return@label
                                     }
-                                    val nextDrafts = guidedDropDrafts + DropSetEntry(weight = dropWeight, reps = dropReps)
+                                    val nextDrafts = guidedDropDrafts.take(phase.index) + DropSetEntry(weight = dropWeight, reps = dropReps)
                                     guidedDropDrafts = nextDrafts
                                     val nextIndex = phase.index + 1
                                     if (nextIndex < phase.total) {
@@ -3098,7 +3127,9 @@ internal fun SetInputCardV2(
                                                 count = phase.total,
                                                 dropPcts = listOf(-DropSetPlanDefaults.DropKg),
                                             )
-                                        beginDropPhase(nextIndex, phase.total, capture, guide)
+                                        submitOpenTechnique(capture, dropProgress(nextIndex, phase.total, capture, guide, nextDrafts)) {
+                                            beginDropPhase(nextIndex, phase.total, capture, guide)
+                                        }
                                     } else {
                                         commitCapturedRecord(
                                             capture = capture,
@@ -3123,7 +3154,7 @@ internal fun SetInputCardV2(
                                         ).show()
                                         return@label
                                     }
-                                    val nextDrafts = guidedRestPauseDrafts + RestPauseData(
+                                    val nextDrafts = guidedRestPauseDrafts.take(phase.index) + RestPauseData(
                                         restTime = activeRestPauseSeconds,
                                         reps = rpReps,
                                         style = if(currentSet.isMyoReps()) "myo" else null,
@@ -3131,7 +3162,13 @@ internal fun SetInputCardV2(
                                     guidedRestPauseDrafts = nextDrafts
                                     val nextIndex = phase.index + 1
                                     if (nextIndex < phase.total) {
-                                        beginRestPauseCountdown(nextIndex, phase.total)
+                                        submitOpenTechnique(capture, WorkoutTechniqueProgressDraft(
+                                            kind = WorkoutTechniqueDraftKind.GUIDED_REST_PAUSE,
+                                            phaseIndex = nextIndex, phaseCount = phase.total,
+                                            restPauseRows = nextDrafts, restRemainingSeconds = activeRestPauseSeconds,
+                                            restPauseRepsText = activeRestReps.toString())) {
+                                            beginRestPauseCountdown(nextIndex, phase.total)
+                                        }
                                     } else {
                                         commitCapturedRecord(
                                             capture = capture,
@@ -3274,7 +3311,7 @@ internal fun SetInputCardV2(
                                 return@label
                             }
                             if (phase == 0 || capture == null) {
-                                scheduledMainCapture = GuidedMainCapture(
+                                val main = GuidedMainCapture(
                                     loadMode = loadMode,
                                     unitMode = resolvedUnitMode,
                                     weight = weight,
@@ -3283,23 +3320,35 @@ internal fun SetInputCardV2(
                                     amrapOverride = isAmrap,
                                     bodyWeight = resolvedBodyWeight,
                                     side = reportingSide,
+                                    mainFeedback = advanced,
                                 )
-                                scheduledPhaseIndex = 1
-                                val nextLoad = when (scheduledPlan.kind) {
-                                    com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET ->
-                                        (weight - scheduledPlan.dropKg).coerceAtLeast(0.0)
-                                    com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE -> weight
-                                }
-                                if (loadMode != LoadModeV2.BODYWEIGHT && nextLoad > 0.0) {
-                                    updateActiveWeightText(nextLoad.toTrimmedNumberString(), markManual = false)
-                                }
-                                updateActiveValueText(scheduledPlan.followUpReps.toString())
-                                scheduledRestRemainingSeconds = if (
-                                    scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE
-                                ) {
-                                    scheduledPlan.pauseSeconds
-                                } else {
-                                    0
+                                val progress = WorkoutTechniqueProgressDraft(
+                                    kind = if (scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET)
+                                        WorkoutTechniqueDraftKind.SCHEDULED_DROP else WorkoutTechniqueDraftKind.SCHEDULED_REST_PAUSE,
+                                    phaseIndex = 1, phaseCount = scheduledPlan.phaseCount,
+                                    dropWeightText = (if (scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET)
+                                        com.example.kpkn.domain.workout.nextDropInputLoad(weight, scheduledPlan.dropKg, loadMode) else weight).toTrimmedNumberString(),
+                                    dropRepsText = scheduledPlan.followUpReps.toString(),
+                                    restRemainingSeconds = scheduledPlan.pauseSeconds.takeIf { scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE })
+                                submitOpenTechnique(main, progress) {
+                                    scheduledMainCapture = main
+                                    scheduledPhaseIndex = 1
+                                    val nextLoad = when (scheduledPlan.kind) {
+                                        com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET ->
+                                            com.example.kpkn.domain.workout.nextDropInputLoad(weight, scheduledPlan.dropKg, loadMode)
+                                        com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE -> weight
+                                    }
+                                    if (loadMode != LoadModeV2.BODYWEIGHT && nextLoad > 0.0) {
+                                        updateActiveWeightText(nextLoad.toTrimmedNumberString(), markManual = false)
+                                    }
+                                    updateActiveValueText(scheduledPlan.followUpReps.toString())
+                                    scheduledRestRemainingSeconds = if (
+                                        scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE
+                                    ) {
+                                        scheduledPlan.pauseSeconds
+                                    } else {
+                                        0
+                                    }
                                 }
                                 return@label
                             }
@@ -3325,23 +3374,35 @@ internal fun SetInputCardV2(
                             }
                             val nextPhase = phase + 1
                             if (nextPhase < scheduledPlan.phaseCount) {
-                                scheduledDropDrafts = nextDropRows
-                                scheduledRestPauseDrafts = nextRestRows
-                                scheduledPhaseIndex = nextPhase
-                                val nextLoad = when (scheduledPlan.kind) {
-                                    com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET ->
-                                        (weight - scheduledPlan.dropKg).coerceAtLeast(0.0)
-                                    com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE -> weight
+                                val progress = WorkoutTechniqueProgressDraft(
+                                    kind = if (scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET)
+                                        WorkoutTechniqueDraftKind.SCHEDULED_DROP else WorkoutTechniqueDraftKind.SCHEDULED_REST_PAUSE,
+                                    phaseIndex = nextPhase, phaseCount = scheduledPlan.phaseCount,
+                                    dropWeightText = (if (scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET)
+                                        com.example.kpkn.domain.workout.nextDropInputLoad(weight, scheduledPlan.dropKg, loadMode) else weight).toTrimmedNumberString(),
+                                    dropRepsText = scheduledPlan.followUpReps.toString(),
+                                    dropRows = nextDropRows.map { DropSetData(it.weight, it.reps) }, restPauseRows = nextRestRows,
+                                    restRemainingSeconds = scheduledPlan.pauseSeconds.takeIf { scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE })
+                                submitOpenTechnique(capture, progress) {
+                                    scheduledDropDrafts = nextDropRows
+                                    scheduledRestPauseDrafts = nextRestRows
+                                    scheduledPhaseIndex = nextPhase
+                                    val nextLoad = when (scheduledPlan.kind) {
+                                        com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET ->
+                                            com.example.kpkn.domain.workout.nextDropInputLoad(weight, scheduledPlan.dropKg, loadMode)
+                                        com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE -> weight
+                                    }
+                                    if (loadMode != LoadModeV2.BODYWEIGHT && nextLoad > 0.0) {
+                                        updateActiveWeightText(nextLoad.toTrimmedNumberString(), markManual = false)
+                                    }
+                                    updateActiveValueText(scheduledPlan.followUpReps.toString())
+                                    scheduledRestRemainingSeconds = if (
+                                        scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE
+                                    ) scheduledPlan.pauseSeconds else 0
                                 }
-                                if (loadMode != LoadModeV2.BODYWEIGHT && nextLoad > 0.0) {
-                                    updateActiveWeightText(nextLoad.toTrimmedNumberString(), markManual = false)
-                                }
-                                updateActiveValueText(scheduledPlan.followUpReps.toString())
-                                scheduledRestRemainingSeconds = if (
-                                    scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE
-                                ) scheduledPlan.pauseSeconds else 0
                                 return@label
                             }
+
                             submitScheduledRecord(capture, nextDropRows, nextRestRows)
                             return@label
 
@@ -3357,18 +3418,19 @@ internal fun SetInputCardV2(
                                 amrapOverride = isAmrap,
                                 bodyWeight = resolvedBodyWeight,
                                 side = reportingSide,
+                                mainFeedback = advanced,
                             )
-                            guidedMainCapture = capture
-                            if (dropSetEnabled) {
-                                val guide = currentSet.resolvePlannedTechniqueGuide()
-                                    ?: PlannedTechniqueGuide(
-                                        kind = TechniqueType.DROP_SET,
-                                        count = dropSets.size.coerceIn(1, 5),
-                                        dropPcts = listOf(-DropSetPlanDefaults.DropKg),
-                                    )
-                                beginDropPhase(0, dropSets.size.coerceIn(1, 5), capture, guide)
-                            } else {
-                                beginRestPauseCountdown(0, restPauseSets.size.coerceIn(1, 5))
+                            val total = if (dropSetEnabled) dropSets.size.coerceIn(1, 5) else restPauseSets.size.coerceIn(1, 5)
+                            val guide = currentSet.resolvePlannedTechniqueGuide() ?: PlannedTechniqueGuide(
+                                kind = TechniqueType.DROP_SET, count = total, dropPcts = listOf(-DropSetPlanDefaults.DropKg))
+                            val progress = if (dropSetEnabled) dropProgress(0, total, capture, guide)
+                                else WorkoutTechniqueProgressDraft(kind = WorkoutTechniqueDraftKind.GUIDED_REST_PAUSE,
+                                    phaseIndex = 0, phaseCount = total, restRemainingSeconds = activeRestPauseSeconds,
+                                    restPauseRepsText = activeRestReps.toString())
+                            submitOpenTechnique(capture, progress) {
+                                guidedMainCapture = capture
+                                if (dropSetEnabled) beginDropPhase(0, total, capture, guide)
+                                else beginRestPauseCountdown(0, total)
                             }
                             return@label
                         }
@@ -3411,11 +3473,17 @@ internal fun SetInputCardV2(
             }
             // Ley 1 (LV8): la tarjeta no cambia de tamaño en ningún estado. El panel guiado de drop-set y rest-pause y el aviso del peso
             // corporal del asistido ya no se insertan arriba (la alargaban): van ENCIMA de la parte de abajo, con la carga a la vista.
+            if (scheduledMainCapture != null && !isRecordSubmissionPending && !showAmrapResult) {
+                androidx.compose.material3.TextButton(
+                    onClick = { guidedSkipAction[0]?.invoke() },
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                ) { Text("Terminar técnica con lo realizado") }
+            }
             val guidedPhaseNow = guidedPhase
             // Programmed editor techniques are VOLUME_REPLACED and use the existing top band/timeline.  The guided surface belongs
-            // only to manual STACKED_ON_SET techniques; rendering it for a scheduled plan cuts the live card (the bug shown in the
+            // to manual techniques, including those selected on an originally normal set; rendering it for a scheduled plan cuts the live card (the bug shown in the
             // beta capture).
-            if (!showAmrapResult && guidedPhaseNow != null && currentSet.techniqueScope() == SetTechniqueScope.STACKED_ON_SET) {
+            if (!showAmrapResult && guidedPhaseNow != null && !currentSet.isInlineEditorScheduledTechnique()) {
                 BoxWithConstraints(modifier = Modifier.matchParentSize()) {
                     Box(
                         modifier = Modifier
@@ -3428,6 +3496,7 @@ internal fun SetInputCardV2(
                     ) {
                         GuidedTechniquePanel(
                             phase = guidedPhaseNow,
+                            loadMode = loadMode,
                             restPauseStyle = if(currentSet.isMyoReps()) "myo" else null,
                             pauseSeconds = activeRestPauseSeconds,
                             targetRestReps = activeRestReps,
@@ -3541,6 +3610,7 @@ internal fun SetInputCardV2(
                         techniqueVideoSettings = techniqueVideoSettings,
                     )
                     else -> SetCardTechniqueBack(
+                    loadMode = loadMode,
                     currentSet = currentSet,
                     coverWeightLabel = if (reportWeightText.isBlank()) "—" else "${reportWeightText} kg",
                     coverValueLabel = if (reportValueText.isBlank()) "—" else when (resolvedPlannedUnitMode) {

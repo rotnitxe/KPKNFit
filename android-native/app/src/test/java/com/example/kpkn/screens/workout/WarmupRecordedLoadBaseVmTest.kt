@@ -9,6 +9,8 @@ import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -77,5 +79,23 @@ class WarmupRecordedLoadBaseVmTest {
         // …y nunca sale del 1RM: 65 kg (50 % de 130) sería la base equivocada.
         assertNotEquals(65.0, recorded, 1e-9)
         assertEquals("el 50 % sale del peso de trabajo", 0.5 * (anchor ?: 100.0), recorded, 2.6)
+    }
+
+    @Test fun completingAnEnteredWarmupCommitsLoadCompletionAndRestTogether() = runBlocking {
+        val exercise = liveExercise("w", sets = 3).copy(
+            warmupSets = listOf(WarmupSetDefinition(id = "wu", percentageOfWorkingWeight = 0.5, targetReps = 6, restBetween = 30)),
+        )
+        val fx = LiveSessionVmFixture(Session(id = "warmup-card", name = "QA", exercises = listOf(exercise))).prepare().also { fixture = it }
+        val vm = fx.open()
+        vm.completeWarmupStep("w", "wu", usedWeightKg = 5.0)
+        val state = withTimeout(10_000) { vm.uiState.first { it.restModalState?.kind == RestTimerKind.WARMUP } }
+        val key = WorkoutStepRules.warmupStepKey("w", "wu")
+        assertTrue(key in state.warmupCompletedExerciseIds)
+        assertEquals(5.0, state.completedSets.getValue(key).weight, 0.0)
+        assertEquals(6, state.completedSets.getValue(key).reps)
+        val durable = withTimeout(10_000) { fx.repository.ongoingWorkout.first { it?.restModalState?.kind == RestTimerKind.WARMUP } }!!
+        assertTrue(key in durable.warmupCompletedExerciseIds)
+        assertEquals(5.0, durable.completedSets.getValue(key).weight, 0.0)
+        assertEquals(RestTimerKind.WARMUP, durable.restModalState?.kind)
     }
 }

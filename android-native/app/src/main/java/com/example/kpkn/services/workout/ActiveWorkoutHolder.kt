@@ -8,6 +8,7 @@ object ActiveWorkoutHolder {
     private var _viewModelRef: WeakReference<WorkoutViewModel>? = null
 
     @Synchronized fun set(viewModel: WorkoutViewModel) {
+        _viewModelRef?.get()?.takeIf { it !== viewModel }?.onOngoingWriterSuperseded()
         _viewModelRef = WeakReference(viewModel)
     }
 

@@ -88,7 +88,7 @@ internal object WorkoutVoiceConfirmationCorrections {
     ): WorkoutVoiceInterpretation {
         val fields = buildSet {
             if (patch.weightKg != null || patch.weightDeltaKg != null) add(WorkoutVoiceField.WEIGHT)
-            if (patch.metricValue != null) add(WorkoutVoiceField.VALUE)
+            if (patch.metricValue != null || patch.quantityValue != null) add(WorkoutVoiceField.VALUE)
             if (patch.intensityValue != null) add(WorkoutVoiceField.INTENSITY)
             if (patch.side != null) add(WorkoutVoiceField.SIDE)
         }
@@ -98,7 +98,7 @@ internal object WorkoutVoiceConfirmationCorrections {
             transcript = transcript,
             weightKg = resolvedWeight,
             metricValue = patch.metricValue,
-            metricDecimalValue = patch.metricValue?.toDouble(),
+            metricDecimalValue = patch.quantityValue ?: patch.metricValue?.toDouble(),
             intensityValue = patch.intensityValue,
             intensityKind = patch.intensityKind,
             side = patch.side,

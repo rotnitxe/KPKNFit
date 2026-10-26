@@ -43,6 +43,7 @@ class WorkoutRestTimerOrchestrator(
         kind: RestTimerKind = RestTimerKind.STANDARD,
     ) {
         if (seconds <= 0) return
+        val effectiveKind = if (preserveElapsed) getState().restModalState?.kind ?: kind else kind
         restTimer.cancelJob()
         if (!preserveElapsed) {
             restTimer.setReferences(lastSet, advancedFeedback)
@@ -51,7 +52,7 @@ class WorkoutRestTimerOrchestrator(
         val sessionName = state.session?.name ?: "Entrenamiento"
         val warmupSetId = lastSet?.id
             ?.substringAfter("_warmup_", "")
-            ?.takeIf { kind == RestTimerKind.WARMUP && it.isNotBlank() }
+            ?.takeIf { effectiveKind == RestTimerKind.WARMUP && it.isNotBlank() }
         val nextExerciseName = ports.visibleExercises(state)
             .getOrNull(state.currentExerciseIdx)
             ?.let(::displayWorkoutExerciseName)
@@ -79,7 +80,7 @@ class WorkoutRestTimerOrchestrator(
 
         updateState {
             val nextVisible = ports.visibleExercises(it).getOrNull(it.currentExerciseIdx)
-            val overlayName = when (kind) {
+            val overlayName = when (effectiveKind) {
                 RestTimerKind.SUPERSET_INTRA,
                 RestTimerKind.SUPERSET_ROUND,
                 RestTimerKind.STANDARD,
@@ -92,7 +93,7 @@ class WorkoutRestTimerOrchestrator(
                     anchorExercise?.let(::displayWorkoutExerciseName) ?: nextExerciseName
                 }
             }
-            val overlayExercise = when (kind) {
+            val overlayExercise = when (effectiveKind) {
                 RestTimerKind.SUPERSET_INTRA,
                 RestTimerKind.SUPERSET_ROUND,
                 RestTimerKind.STANDARD,
@@ -109,10 +110,10 @@ class WorkoutRestTimerOrchestrator(
                 isRestTimerRunning = true,
                 isRestMinimized = false,
                 restModalState = it.restModalState?.copy(
-                    exerciseId = overlayExercise?.id,
-                    exerciseName = overlayName,
-                    kind = kind,
-                    warmupSetId = if (kind == RestTimerKind.WARMUP) {
+                    exerciseId = if (preserveElapsed) it.restModalState?.exerciseId ?: overlayExercise?.id else overlayExercise?.id,
+                    exerciseName = if (preserveElapsed) it.restModalState?.exerciseName ?: overlayName else overlayName,
+                    kind = effectiveKind,
+                    warmupSetId = if (effectiveKind == RestTimerKind.WARMUP) {
                         warmupSetId ?: it.restModalState?.warmupSetId
                     } else null,
                     activeSeconds = seconds,
@@ -123,9 +124,9 @@ class WorkoutRestTimerOrchestrator(
                     soundReady = alertCapability.soundReady,
                     startedAtMs = startedAtMs,
                 ) ?: WorkoutRestModalState(
-                    exerciseId = overlayExercise?.id,
-                    exerciseName = overlayName,
-                    kind = kind,
+                    exerciseId = if (preserveElapsed) it.restModalState?.exerciseId ?: overlayExercise?.id else overlayExercise?.id,
+                    exerciseName = if (preserveElapsed) it.restModalState?.exerciseName ?: overlayName else overlayName,
+                    kind = effectiveKind,
                     warmupSetId = warmupSetId,
                     plannedSeconds = seconds,
                     suggestedSeconds = seconds,
@@ -148,7 +149,7 @@ class WorkoutRestTimerOrchestrator(
             fields = mapOf(
                 "exerciseName" to nextExerciseName,
                 "seconds" to seconds,
-                "kind" to kind.name,
+                "kind" to effectiveKind.name,
             ),
         )
         if (voiceController.isEnabled()) {
@@ -160,8 +161,8 @@ class WorkoutRestTimerOrchestrator(
             val pending = getState().pendingRestSuggestion
             val adaptiveDelta = pending?.let { kotlin.math.abs(it.adaptiveSeconds - it.plannedSeconds) } ?: 0
             when {
-                kind == RestTimerKind.SUPERSET_INTRA || kind == RestTimerKind.SUPERSET_ROUND -> {
-                    voiceController.onRestTimerStartedContextual(seconds, isTransition = (kind == RestTimerKind.SUPERSET_INTRA))
+                effectiveKind == RestTimerKind.SUPERSET_INTRA || effectiveKind == RestTimerKind.SUPERSET_ROUND -> {
+                    voiceController.onRestTimerStartedContextual(seconds, isTransition = (effectiveKind == RestTimerKind.SUPERSET_INTRA))
                 }
                 pending != null && adaptiveDelta >= 15 -> {
                     voiceController.onRestTimerStartedWithAdaptiveHint(
@@ -218,6 +219,7 @@ class WorkoutRestTimerOrchestrator(
             lastSet = restTimer.restReferenceSet,
             advancedFeedback = restTimer.restReferenceAdvanced,
             preserveElapsed = true,
+            kind = getState().restModalState?.kind ?: RestTimerKind.STANDARD,
         )
     }
 

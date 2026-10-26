@@ -663,7 +663,7 @@ internal fun WorkoutV2Body(
                                             onResumeGps = { if (cardioPageActionIsCurrent()) viewModel.resumeCardioGps(currentExercise.id, currentCardioSetIndex) },
                                             onRecord = { duration, distance, heartRate ->
                                                 if (cardioPageActionIsCurrent()) {
-                                                    viewModel.recordCardioSetUsingGps(duration, distance, heartRate, currentExercise.id, currentCardioSetIndex)
+                                                    viewModel.recordCardioSetUsingGps(duration, distance, heartRate, currentExercise.id, currentCardioSetIndex, executionRef(uiState, currentExercise, currentCardioSetIndex, null))
                                                 } else {
                                                     false
                                                 }
@@ -1801,9 +1801,10 @@ internal fun WorkoutV2Body(
                                     sessionAccentColor = sessionAccentColor,
                                     onToggleComplete = { row, completed, weightKg ->
                                         if (completed) {
-                                            viewModel.recordWarmupWeight(row.exerciseId, row.warmup.id, weightKg)
+                                            viewModel.completeWarmupStep(row.exerciseId, row.warmup.id, usedWeightKg = weightKg)
+                                        } else {
+                                            viewModel.markWarmupComplete(row.exerciseId, row.warmup.id, completed = false)
                                         }
-                                        viewModel.markWarmupComplete(row.exerciseId, row.warmup.id, completed)
                                     },
                                     onSkip = {
                                         viewModel.skipWarmupPreparationForExercises(prepWarmupMembers.map { it.id })
@@ -1897,7 +1898,7 @@ internal fun WorkoutV2Body(
                                     onResumeGps = { if (cardioPageActionIsCurrent()) viewModel.resumeCardioGps(pageExercise.id, pageSetIndex) },
                                     onRecord = { duration, distance, heartRate ->
                                         if (cardioPageActionIsCurrent()) {
-                                            viewModel.recordCardioSetUsingGps(duration, distance, heartRate, pageExercise.id, pageSetIndex)
+                                            viewModel.recordCardioSetUsingGps(duration, distance, heartRate, pageExercise.id, pageSetIndex, executionRef(uiState, pageExercise, pageSetIndex, null))
                                         } else {
                                             false
                                         }
@@ -2123,7 +2124,7 @@ internal fun WorkoutV2Body(
                                         onResumeGps = { if (cardioPageActionIsCurrent()) viewModel.resumeCardioGps(targetExercise.id, activeSetIndex) },
                                         onRecord = { duration, distance, heartRate ->
                                             if (cardioPageActionIsCurrent()) {
-                                                viewModel.recordCardioSetUsingGps(duration, distance, heartRate, targetExercise.id, activeSetIndex)
+                                                viewModel.recordCardioSetUsingGps(duration, distance, heartRate, targetExercise.id, activeSetIndex, executionRef(uiState, targetExercise, activeSetIndex, null))
                                             } else {
                                                 false
                                             }
@@ -2139,7 +2140,7 @@ internal fun WorkoutV2Body(
                                             .fillMaxWidth()
                                             .tourAnchor(TourAnchors.WORKOUT_SERIE),
                                     ) {
-                                        WorkoutSetInputOwner(targetExercise, activeSet.id) {
+                                        WorkoutSetInputOwner(targetExercise, activeSet.id, executionKey = executionRef(uiState, targetExercise, activeSetIndex, cardSide)) {
                                         SetInputCardV2(
                                     equipmentInventory = settings.equipmentInventory,
                                     exercise = targetExercise,
@@ -2262,6 +2263,7 @@ internal fun WorkoutV2Body(
                                                 expectedExerciseId = targetExercise.id,
                                                 expectedSetIdx = activeSetIndex,
                                                 expectedSide = cardSide,
+                                                expectedSourceRef = executionRef(uiState, targetExercise, activeSetIndex, cardSide),
                                             )
                                         }
                                     },
@@ -2297,6 +2299,7 @@ internal fun WorkoutV2Body(
                                                     expectedExerciseId = targetExercise.id,
                                                     expectedSetIdx = activeSetIndex,
                                                     expectedSide = side ?: cardSide,
+                                                    expectedSourceRef = executionRef(uiState, targetExercise, activeSetIndex, side ?: cardSide),
                                                 )
                                                 onResult(result)
                                             }
@@ -2354,7 +2357,7 @@ internal fun WorkoutV2Body(
                 phaseKey = relatorResolution.phaseKey,
                 actions = relatorResolution.actions,
                 onAction = { viewModel.performRelatorAssist(it) },
-                actionContext = RelatorActionUiContext(relatorActionScopeKey(uiState, currentExercise), viewModel::performRelatorAssist),
+                actionContext = RelatorActionUiContext(relatorActionScopeKey(uiState, currentExercise), viewModel::performRelatorAssistAndAwait),
                 accentColor = sessionAccentColor,
                 silentAnimation = relatorResolution.silentAnimation,
                 onLoadPop = { viewModel.triggerRelatorLoadPop() },
@@ -2396,6 +2399,24 @@ internal fun WorkoutV2Body(
                 onSkipSet = { setIndex -> viewModel.omitSet(ex.id, setIndex) },
                 onDeleteSet = { setIndex -> viewModel.removeSetFromExercise(ex.id, setIndex) },
             )
+        }
+    }
+    if (uiState.showShortenSessionSheet) {
+        com.example.kpkn.ui.components.KpknSheet(onDismissRequest = viewModel::hideShortenSessionSheet) {
+            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Acortar sesión", style = MaterialTheme.typography.titleLarge)
+                Text("Revisa los cambios del trabajo pendiente. Lo realizado se conserva.")
+                uiState.ultraFastPreview?.let { preview ->
+                    Text("Duración prevista: " + preview.beforeSeconds / 60 + " → " + preview.afterSeconds / 60 + " min")
+                    preview.perExercise.forEach { change ->
+                        Text(change.exerciseName + ": " + change.beforeSets + " → " + change.afterSets + " series · " + change.afterTechnique)
+                    }
+                    com.example.kpkn.ui.design.KpknPrimaryPill(text = "Confirmar cambios", onClick = { viewModel.applyUltraFast() },
+                        enabled = uiState.recordingSetKey == null)
+                }
+                TextButton(onClick = viewModel::openQuickRecording) { Text("Registro rápido de una serie") }
+                TextButton(onClick = viewModel::hideShortenSessionSheet) { Text("Cancelar") }
+            }
         }
     }
     if (uiState.showUltraFastSheet) {
@@ -2449,6 +2470,7 @@ internal fun WorkoutV2Body(
                                     machineBrand = quickSet.machineBrand,
                                     setIdxOverride = quickSetIndex, expectedExerciseId = quickExercise.id,
                                     expectedSetIdx = quickSetIndex, expectedSide = activeSide,
+                                    expectedSourceRef = executionRef(uiState, quickExercise, quickSetIndex, activeSide),
                                 )
                                 // The recorder closes this sheet at durable publication.
                                 // A late return must not close a newly reopened quick form.

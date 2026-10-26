@@ -642,10 +642,7 @@ internal fun WorkoutStructureSheetsHost(
     if (state.ultraFastTargetIds.isNotEmpty()) {
         val ids = state.ultraFastTargetIds
         val applyTechnique: (SeriesTechnique) -> Unit = { technique ->
-            ids.forEach { id ->
-                val exercise = visibleExercises.firstOrNull { it.id == id } ?: return@forEach
-                if (exercise.sets.isNotEmpty()) viewModel.updatePlannedSeriesTechnique(id, 0, exercise.sets.lastIndex, technique)
-            }
+            viewModel.applyPendingSeriesTechnique(ids, technique)
             state.ultraFastTargetIds = emptyList()
         }
         KpknGlassDialog(onDismissRequest = { state.ultraFastTargetIds = emptyList() }) {
@@ -653,7 +650,7 @@ internal fun WorkoutStructureSheetsHost(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Text("Modo ultrarrápido", style = KpknType.dialogTitle, color = WizardColors.text)
+                Text("Técnica para series pendientes", style = KpknType.dialogTitle, color = WizardColors.text)
                 Text(
                     if (ids.size == 1) "Convierte las series que faltan de este ejercicio." else "Convierte las series que faltan de estos ${ids.size} ejercicios.",
                     style = KpknType.body,
@@ -1032,7 +1029,11 @@ internal fun WorkoutStructureSheetsHost(
                 editingCatalogConfigurationId = replaceTarget?.catalogConfigurationId,
                 replacement = CatalogReplacementContext(
                     exerciseName = replaceTarget?.let(::displayWorkoutExerciseName),
-                    planSummary = replaceTarget?.let(::replacementPlanSummary),
+                    planSummary = replaceTarget?.let { ex -> replacementPlanSummary(ex.copy(sets = pendingReplacementSets(ex, ex, uiState.completedSets, uiState.omittedSetKeys))) },
+                    preservationNote = replaceTarget?.let { ex ->
+                        val remaining = pendingReplacementSets(ex, ex, uiState.completedSets, uiState.omittedSetKeys).size
+                        "El reemplazo recibe $remaining series pendientes. Lo realizado se conserva en el historial."
+                    },
                     exercise = replaceTarget,
                     availability = com.example.kpkn.screens.sessioneditor.components.liveSwapAvailability(modeSession,
                         swapRepository?.programs?.value?.firstOrNull { it.id == uiState.programId },swapRepository?.settings?.value?.equipmentAvailability),
@@ -1381,7 +1382,7 @@ internal fun removeExercisesWarning(doneSlots: Int, exerciseCount: Int): String?
     val subject = if (exerciseCount == 1) "Ya tiene" else "Ya tienen"
     val series = if (doneSlots == 1) "1 serie hecha" else "$doneSlots series hechas"
     val verb = if (doneSlots == 1) "no se guardará" else "no se guardarán"
-    return "$subject $series: $verb en el entrenamiento."
+    return "$subject $series: se conservarán en el historial aunque quites el ejercicio del plan."
 }
 
 /**

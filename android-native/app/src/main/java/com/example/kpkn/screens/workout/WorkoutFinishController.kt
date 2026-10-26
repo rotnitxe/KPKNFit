@@ -158,13 +158,16 @@ class WorkoutFinishController(
                 val allExercises = activeSession.allExercises()
                 val currentExerciseIndex = exerciseIndex()
 
-                val completedExercises = state.archivedCompletedExercises + toCompletedExercises(
+                val completedExercises = (state.archivedCompletedExercises + toCompletedExercises(
                     session = activeSession,
                     completedSets = state.completedSets,
                     skippedExerciseIds = state.skippedExerciseIds,
                     catalogIndex = currentExerciseIndex,
                     includeCardioDetails = true,
-                )
+                )).map { ex -> ex.copy(sets = ex.sets.map { set ->
+                    if (set.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN)
+                        set.copy(techniqueStatus = com.example.kpkn.data.models.RecordedTechniqueStatus.SKIPPED) else set
+                }) }
 
         // Guard P0 de sesión vacía: sin series completadas no se persiste un log hueco
         // (drenaría 0 y taparía el problema); se aborta con feedback al usuario.
@@ -297,6 +300,12 @@ class WorkoutFinishController(
                         )
                     },
                     omittedExercises = omittedExercises,
+                    preparationReports = state.preparationReports,
+                    recordedWarmupSets = state.completedSets.filterValues { it.isWarmup },
+                    omittedSeries = expandedOmissionKeys(state),
+                    mediaSetBindings = state.mediaSetBindings,
+                    legacyMediaInvalidatedExerciseIds = state.legacyMediaInvalidatedExerciseIds,
+                    variantProgress = state.variantProgress + (state.activeMode to snapshotVariantProgress(state)),
                     energySummary = null,
                     stillPresentDiscomfortIds = (
                         closingFeedback.stillPresentDiscomfortIds +

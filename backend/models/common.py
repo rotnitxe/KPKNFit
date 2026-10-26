@@ -128,11 +128,13 @@ class Session(BaseModel):
 
 
 class CompletedSet(ExerciseSet):
+    model_config = ConfigDict(extra="allow")
     weight: float = 0
     side: Optional[str] = None
 
 
 class CompletedExercise(BaseModel):
+    model_config = ConfigDict(extra="allow")
     exerciseId: str = ""
     exerciseDbId: Optional[str] = None
     exerciseName: str = ""
@@ -148,6 +150,7 @@ class CompletedExercise(BaseModel):
 
 
 class WorkoutLog(BaseModel):
+    model_config = ConfigDict(extra="allow")
     id: str
     programId: str = ""
     programName: str = ""
