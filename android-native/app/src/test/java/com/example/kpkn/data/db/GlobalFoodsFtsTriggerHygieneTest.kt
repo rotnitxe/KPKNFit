@@ -131,7 +131,7 @@ class GlobalFoodsFtsTriggerHygieneTest {
     fun upgrade_path_recreates_room_triggers_before_the_cleanup_runs() {
         createCurrentDatabase()
         val rowId = withRawDatabase { db ->
-            assertEquals("La prueba rebobina una base v35 a v27; revisar al cambiar el esquema", 35, db.version)
+            assertEquals("La prueba rebobina una base v36 a v27; revisar al cambiar el esquema", 36, db.version)
             // A database that reached v27 from v<=5: legacy triggers and, until Room's onPostMigrate, no Room ones.
             ROOM_TRIGGERS.forEach { db.execSQL("DROP TRIGGER `$it`") }
             plantLegacyTriggers(db)

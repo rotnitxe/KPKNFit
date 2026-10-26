@@ -18,6 +18,18 @@ PATTERN = re.compile(r'com\.example\.kpkn\.screens\.auge\b|\b(?:rememberAugeView
 # Their SHA-256 identities prevent a whole-file compatibility exception.
 COMPAT_LINES = {'ios-native/KPKNFit/KPKNFit/Data/Db/Entities.swift': {'e1efe73f3413684d101606a0914cdb70caddeb566b20a98a7e7a2cf05133c70d', '1b11196843fab7c2ca40257ba83bb4e02f6b38c6f0e8c049a780d6131ffebb05'}, 'ios-native/KPKNFit/KPKNFit/Data/Db/KpknDatabase.swift': {'1436ffdfb697039544e530da2b10d1ea4c87fef8a54ffa3a33b74fc205ef4e4d', '2a743bf786f94a1fa1d00882fd242137ac0b2f94ef771a5432f17cdeb07f9598', '7496d3358046f1dd0c6a8e9f48ff1db122b19a0104c8b5ad50cb35ec2b1adab5'}, 'android-native/app/src/main/java/com/example/kpkn/data/models/EnergyModels.kt': {'e6beabe913539830a220e91fb24d4a88309101ba8d0776ed39cdbf4db9dd5230'}, 'ios-native/KPKNFit/KPKNFit/Data/Models/EnergyModels.swift': {'c6997eaf5c2f0c1fae19503e104edcbb9c6b510431e167f682b62c39897a0880'}}
 
+# Reviewed original-observation UI introduced by master1db6fd4e4 reuses a retired name.
+# Only that token is allowed, only in these exact complete source revisions. Any source
+# edit or other retired token invalidates the exception; no file/directory is skipped.
+ORIGINAL_OBSERVATION_UI = {'android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutReadinessSheet.kt': 'ac6a20a9a340e419c66930cdd48e3981577c6a0a2bf51db4c4ba3b717ff6263a', 'android-native/app/src/main/java/com/example/kpkn/screens/workout/WorkoutSessionOverlaysHost.kt': 'ad40ee77ce9a63664e90b4eaa158672395328f6c4442796f35de982b68f3ef92'}
+
+def original_observation_line(relative, line, source_identity):
+    matches = list(PATTERN.finditer(line))
+    return (source_identity == ORIGINAL_OBSERVATION_UI.get(relative)
+            and bool(matches)
+            and all(match.group(0) == 'WorkoutReadinessSheet' for match in matches))
+
+
 def scan():
     failures=[]
     for source in SOURCES:
@@ -25,17 +37,26 @@ def scan():
             if path.suffix not in {'.kt','.swift','.py','.xml','.json','.txt','.md'} or '__pycache__' in path.parts: continue
             relative=path.relative_to(ROOT).as_posix()
             if relative in ALLOW or 'tests' in path.parts: continue
-            for number,line in enumerate(path.read_text(encoding='utf-8-sig').splitlines(),1):
+            source_text = path.read_text(encoding='utf-8-sig')
+            source_identity = hashlib.sha256(source_text.encode()).hexdigest()
+            for number,line in enumerate(source_text.splitlines(),1):
                 stripped=line.strip()
                 if stripped.startswith(('//','/*','*','#','<!--')): continue
                 if PATTERN.search(line):
                     identity=hashlib.sha256(stripped.encode()).hexdigest()
                     if identity in COMPAT_LINES.get(relative,set()): continue
+                    if original_observation_line(relative, line, source_identity): continue
                     failures.append(f'{relative}:{number}: {stripped[:240]}')
     return failures
 
 def self_test():
-    for retired in ['AugeRecoveryEngine.compute()', 'WorkoutReadinessBridge.consume()', 'WizardBlock.RINGS', 'RINGS_ONLY', 'Tus RINGS', 'SetAdjustmentSuggestion', 'calculate_acwr', 'calculateVolumeAdjustment', 'calculateOvertrainedMuscles', 'ArticularBattery', 'rememberAugeViewModel()', 'settings.augeAutoDeload', 'homeBodyValues(perMuscle)', 'com.example.kpkn.screens.auge']:
+    reviewed = next(iter(ORIGINAL_OBSERVATION_UI))
+    source_identity = ORIGINAL_OBSERVATION_UI[reviewed]
+    assert original_observation_line(reviewed, 'WorkoutReadinessSheet(', source_identity)
+    assert not original_observation_line(reviewed, 'WorkoutReadinessSheet(', 'modified-source')
+    assert not original_observation_line('other.kt', 'WorkoutReadinessSheet(', source_identity)
+    assert not original_observation_line(reviewed, 'WorkoutReadinessSheet(AugeRecoveryEngine)', source_identity)
+    for retired in ['WorkoutReadinessSheet(', 'AugeRecoveryEngine.compute()', 'WorkoutReadinessBridge.consume()', 'WizardBlock.RINGS', 'RINGS_ONLY', 'Tus RINGS', 'SetAdjustmentSuggestion', 'calculate_acwr', 'calculateVolumeAdjustment', 'calculateOvertrainedMuscles', 'ArticularBattery', 'rememberAugeViewModel()', 'settings.augeAutoDeload', 'homeBodyValues(perMuscle)', 'com.example.kpkn.screens.auge']:
         assert PATTERN.search(retired), retired
     for independent in ['EquipmentTier.RINGS','rings_kit','Entrenamiento con anillas','hamstrings','SharedStrings','RingsArt','RINGS("Anillas o TRX")']:
         assert not PATTERN.search(independent), independent

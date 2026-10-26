@@ -176,6 +176,8 @@ object SettingsJsonBackup {
             setupDrafts = setupDrafts,
             setupCommitReceipts = setupCommitReceipts,
             includesNutritionDayStateSection = true,
+            includesFoodUsageSection = true,
+            foodUsage = db.nutritionDao().getGlobalFoodUsage().map { FoodUsageBackup(it.foodId, it.usageCount, it.lastUsedAt) },
             nutritionDayMarks = db.nutritionDao().getAllDayMarks().map { NutritionDayMarkBackup(it.date, it.mark, it.source, it.updatedAt) },
             nutritionCheckIns = db.nutritionDao().getAllCheckIns().map {
                 NutritionCheckInBackup(it.weekKey, it.status, it.decidedAt, it.proposalJson, it.appliedPlanId, it.updatedAt)
@@ -197,6 +199,9 @@ object SettingsJsonBackup {
         val hasSetup = payload.schemaVersion >= 6 && payload.includesSetupSection
         // Extensión aditiva de v6: copias antiguas sin esta sección conservan las declaraciones locales.
         val hasDayState = payload.schemaVersion >= 6 && payload.includesNutritionDayStateSection
+        val hasFoodUsage = payload.schemaVersion >= 8 && payload.includesFoodUsageSection
+        val foodUsage = if (hasFoodUsage) payload.foodUsage.map { it.toEntity() } else emptyList()
+        require(foodUsage.map { it.foodId }.distinct().size == foodUsage.size) { "Duplicate personal food usage IDs" }
         // Resolver antes de borrar: una copia canónica ilegible falla sin modificar los datos locales.
         val calibrationRowsForRestore = if (payload.schemaVersion >= 6 && payload.includesCalibrationDecisionsSection)
             payload.calibrationDecisionRows ?: payload.calibrationDecisions?.map(CalibrationDecisionBackup::toEntity) else null
@@ -210,6 +215,7 @@ object SettingsJsonBackup {
             hasSetupSection = hasSetup,
             hasNutritionDayStateSection = hasDayState,
             hasCalibrationDecisionsSection = calibrationRowsForRestore != null,
+            hasFoodUsageSection = hasFoodUsage,
         )
         val settingsProfileToken = when {
             payload.profilePhotoJpegBase64 != null -> ProfilePhotoStore.STORAGE_TOKEN
@@ -229,6 +235,11 @@ object SettingsJsonBackup {
                 ).toEntity(),
             )
             calibrationRowsForRestore?.let { db.calibrationDecisionDao().upsert(it) }
+            if (hasFoodUsage) {
+                // Clear the legacy ranking cache too; otherwise an explicitly empty section could resurrect old usage.
+                sqlite.execSQL("UPDATE global_foods SET usageCount = 0, lastUsedAt = NULL WHERE usageCount <> 0 OR lastUsedAt IS NOT NULL")
+                foodUsage.forEach { db.nutritionDao().restoreGlobalFoodUsage(it.foodId, it.usageCount, it.lastUsedAt) }
+            }
             payload.programs.forEach { db.programDao().upsert(it.toEntity()) }
             payload.workoutLogs.forEach { db.workoutLogDao().insert(it.toEntity()) }
             payload.activeProgramState?.let { db.stateDao().upsertActiveProgram(it.toEntity()) }
@@ -408,6 +419,8 @@ data class SettingsExportPayload(
     val includesNutritionDayStateSection: Boolean = false,
     val nutritionDayMarks: List<NutritionDayMarkBackup> = emptyList(),
     val nutritionCheckIns: List<NutritionCheckInBackup> = emptyList(),
+    val includesFoodUsageSection: Boolean = false,
+    val foodUsage: List<FoodUsageBackup> = emptyList(),
     /** Extensión opcional de v6: si no existe, importar conserva las preferencias locales. */
     val nutritionPreferences: NutritionPreferencesBackup? = null,
     /** Forma JSON de CalibrationDecisionRecord publicada por screens-v2, sin acoplar su runtime. */
@@ -416,6 +429,14 @@ data class SettingsExportPayload(
     /** Snapshot exacto opcional: conserva también filas opacas/en cuarentena. Ausencia conserva las filas locales. */
     val calibrationDecisionRows: List<com.example.kpkn.data.db.CalibrationDecisionEntity>? = null,
 )
+
+@Serializable
+data class FoodUsageBackup(val foodId: String, val usageCount: Int, val lastUsedAt: String?) {
+    fun toEntity(): com.example.kpkn.data.db.NutritionFoodUsageEntity {
+        require(foodId.isNotBlank() && usageCount >= 0) { "Invalid personal food usage" }
+        return com.example.kpkn.data.db.NutritionFoodUsageEntity(foodId, usageCount, lastUsedAt)
+    }
+}
 
 /** Copia fiel de las filas: conserva incluso una declaración en cuarentena. */
 @Serializable

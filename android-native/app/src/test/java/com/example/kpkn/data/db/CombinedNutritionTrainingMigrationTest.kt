@@ -62,7 +62,9 @@ class CombinedNutritionTrainingMigrationTest {
             db.execSQL("INSERT INTO programs(id,name,data) VALUES('qa-program','Programa original',?)", arrayOf("""{"id":"qa-program","name":"Programa original"}"""))
             db.execSQL("INSERT INTO settings(rowId,data) VALUES(1,?)", arrayOf("""{"username":"Ana"}"""))
             db.execSQL("INSERT INTO workout_logs(id,programId,sessionId,date,data) VALUES('qa-log','qa-program','session','2026-10-01',?)",arrayOf(log))
-            db.execSQL("INSERT INTO nutrition_custom_foods(id,name,normalizedName,normalizedBrand,aliasesJson,sourcePriority,verifiedScore,usageCount,lastUsedAt,data) VALUES('qa-food','Alimento original','alimento original',NULL,'[]',0,0.0,0,NULL,?)",arrayOf(food))
+            db.execSQL("""INSERT INTO nutrition_custom_foods(
+                id,name,normalizedName,aliasesJson,sourcePriority,verifiedScore,usageCount,data
+            ) VALUES('qa-food','Alimento original','alimento original','[]',100,1.0,7,?)""",arrayOf(food))
             if("training_observations" in names) db.execSQL("INSERT INTO training_observations VALUES('qa-original','historical_original','2026-10-01',?,'original')",arrayOf(observation))
             if("auge_wellbeing" in names) db.execSQL("INSERT INTO auge_wellbeing(id,date,data) VALUES('qa-wellbeing','2026-10-01',?)", arrayOf(wellbeing))
             if (conflictingOriginal) db.execSQL("INSERT INTO training_observations VALUES('auge_wellbeing:qa-wellbeing','wellbeing','2026-10-01',?,'original')",
@@ -74,7 +76,7 @@ class CombinedNutritionTrainingMigrationTest {
             db.version=version
         }
         val db=Room.databaseBuilder(context,KpknDatabase::class.java,"qa.db")
-            .addMigrations(*COMBINED_NUTRITION_TRAINING_35).allowMainThreadQueries().build()
+            .addMigrations(*COMBINED_NUTRITION_TRAINING_35, NUTRITION_CATALOG_35_36).allowMainThreadQueries().build()
         try {
             if (corruptOriginal || conflictingOriginal) {
                 val failure = runCatching { db.openHelper.writableDatabase }.exceptionOrNull()
@@ -95,10 +97,12 @@ class CombinedNutritionTrainingMigrationTest {
                 }
                 return
             }
-            val sql=db.openHelper.writableDatabase // Room validates every column/index against the actual v35 entities.
-            assertEquals(35,sql.version)
+            val sql=db.openHelper.writableDatabase // Room validates the combined history and current catalog storage.
+            assertEquals(36,sql.version)
             fun value(query:String)=sql.query(query).use { check(it.moveToFirst());it.getString(0) }
             assertEquals(food,value("SELECT data FROM nutrition_custom_foods WHERE id='qa-food'"))
+            assertEquals("Alimento original",value("SELECT name FROM nutrition_custom_foods WHERE id='qa-food'"))
+            assertEquals("7",value("SELECT usageCount FROM nutrition_custom_foods WHERE id='qa-food'"))
             val set=JSONObject(value("SELECT data FROM workout_logs WHERE id='qa-log'")).getJSONArray("completedExercises").getJSONObject(0).getJSONArray("sets").getJSONObject(0)
             assertEquals(80.125,set.getDouble("weight"),0.0);assertEquals(5,set.getInt("reps"));assertEquals(2,set.getInt("rir"))
             assertEquals("Ana",JSONObject(value("SELECT data FROM settings WHERE rowId=1")).getString("username"))

@@ -1,4 +1,6 @@
-# Estado vigente — programas y periodización
+# Estado de la ola — programas y periodización
+
+Integración autorizada el26-oct: el estado histórico de esta ola Room35 se conserva abajo. La rama integrada mantiene Room36; ver INTEGRACION_MASTER_ROOM36.md para la validación del árbol conjunto y la conservación del WIP.
 
 Cierre documentado el 26-oct-2026; validaciones del 25-oct. **Plan aplicado y cierre Android aprobado**: olas A–E y T60–62 terminadas, con exclusiones autorizadas y límites de plataforma documentados. Rama `codex/programs-periodization-current`, base `1d399c1fc`, Room35. Sin push ni integración en master. El checkout principal y el worktree histórico se conservan.
 

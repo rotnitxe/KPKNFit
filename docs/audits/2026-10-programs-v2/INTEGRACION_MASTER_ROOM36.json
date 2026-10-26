@@ -1,0 +1,313 @@
+{
+  "date": "2026-10-26",
+  "goalSource": "92e28972e",
+  "localMasterBefore": "1db6fd4e4",
+  "remoteMasterBefore": "1d5ba0ce7",
+  "room": {
+    "version": 36,
+    "identity": "907a5e4df31b4ead1ee0f8d86ce559cf",
+    "publishedSchemas1to35Unchanged": true
+  },
+  "validation": {
+    "classes": 39,
+    "tests": 293,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "results": [
+      {
+        "class": "com.example.kpkn.data.db.CalibrationMigration29To30Test",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.CombinedNutritionTrainingMigrationTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.CustomExerciseEntityTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.DailyGoalSnapshotTodayPinTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.GlobalFoodsFtsTriggerHygieneTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.LegacyExerciseCoefficientImportTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.LegacyProgramProposalImportTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.LegacyTrainingBackupTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.NutritionDayStateBackupTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.NutritionDayStateMigrationTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.NutritionFoodUsageBackupTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.NutritionLogsForDayPrefixTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.NutritionPlanActiveStateTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.OngoingWorkoutDecodeTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.Room36CompatibilityTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.TrainingMigrationRoomValidationTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.TrainingObservationMigrationTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.TrainingSnapshotRestoreTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.VideoAnalysisDaoTest",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.VideoAnalysisMigration28To29Test",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.VideoAnalysisMigrationValidateTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.WorkoutMediaDaoTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.WorkoutMediaMigration25To26Test",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.WorkoutMediaMigration27To28FullRoomTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.WorkoutMediaMigration27To28Test",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.WorkoutMediaSessionAssociationTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.repository.NutritionBackupRowsTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.repository.ProgramEquipmentInventoryBackupTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.settings.NutritionPreferencesBackupTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.settings.SettingsJsonBackupRowsTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.settings.SettingsJsonBackupTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.insights.RedesignTrainingMetricsTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest",
+        "tests": 43,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest",
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.programdetail.ProgramDetailViewModelTest",
+        "tests": 112,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.workout.LiveStoryEntryTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.workout.RedesignFinishSheetTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.workout.WorkoutReadinessSheetTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.DatabaseBackupHelperSnapshotTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "evidenceMode": "Green by class:38 classes/292 tests from attempt3 plus focused1/1 from attempt4; not a new jointly green run",
+    "frozenSources": 3705,
+    "sourceDrift": []
+  },
+  "apk": {
+    "package": "com.example.kpkn.dbg",
+    "label": "KPKN Dev",
+    "versionCode": 52,
+    "sha256": "32a0d138be579a9a98422395931028eb3ede017dafd13e9f5a38213be6540522",
+    "signerSha256": "f14259a4a5dd75ffca3732b5930cd7e30fa7f57d740e624e07cda6db87fe6fe4",
+    "installedInThisIntegration": false
+  },
+  "retirementGate": "rc0; exact-source/token exception for observational UI from master, with negative controls",
+  "priorValidation": "3074 tests and physical QA are historical, not rerun globally on this integration",
+  "wipBaseline": {
+    "trackedModified": 21,
+    "untrackedPaths": 58161,
+    "stagedChanges": 0
+  },
+  "privateEvidence": "C:\\Users\\valen\\.codex\\visualizations\\2026\\10\\25\\01a173b5-bf3a-7aa1-8c4d-39bc80e76c78\\programs-integration",
+  "publication": "Authorized direct fast-forward publication to origin/master; remote acknowledgement recorded separately in publication.json after push."
+}

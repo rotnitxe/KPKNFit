@@ -64,7 +64,7 @@ class TrainingSnapshotRestoreTest {
     private fun digest(file:File)=MessageDigest.getInstance("SHA-256").digest(file.readBytes()).toList()
     private fun ids(context:Context):List<String> = KpknDatabase.getInstance(context).openHelper.writableDatabase.query("SELECT id FROM workout_logs ORDER BY id").use { c -> buildList { while(c.moveToNext()) add(c.getString(0)) } }
 
-    @Test fun `combined snapshot restores original observations and nutrition day state on Room35`() = fixture { context, _ ->
+    @Test fun `combined snapshot restores original observations and nutrition day state on Room36`() = fixture { context, _ ->
         val active = KpknDatabase.getInstance(context)
         val db = active.openHelper.writableDatabase
         val original = """{"sleepHours":7.25,"notes":"Respuesta original"}"""
@@ -82,7 +82,7 @@ class TrainingSnapshotRestoreTest {
         DatabaseBackupHelper.restoreSnapshot(context, source)
 
         assertSame(active, KpknDatabase.getInstance(context))
-        assertEquals(35, db.version)
+        assertEquals(36, db.version)
         assertEquals(listOf("active"), ids(context))
         db.query("SELECT payload FROM training_observations WHERE sourceIdentity='original'").use {
             assertTrue(it.moveToFirst()); assertEquals(original, it.getString(0))

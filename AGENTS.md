@@ -44,7 +44,7 @@ KPKN Fit is a local-first native Android application with an iOS parity port and
 - Read `.opencode/kpkn-map.md` before broad repository searches.
 - Durable agent memory lives in `.opencode/memory/MEMORY.md` and `.opencode/memory/USER.md`.
 - Architecture references are `docs/ARCHITECTURE.md`, `docs/ANDROID_ARCHITECTURE_MAP.md`, and `docs/ANDROID_UI_SCREENS_MAP.md`.
-- The code and exported Room schema are authoritative. Combined MFP + POST-RINGS uses **Room v35**. Preserve public MFP31 and private POST-RINGS31/32/33/34 histories; private31 is archived under docs/post-rings/schemas-private. Direct compatibility migrations join both branches without rewriting published schemas or reactivating retired engines.
+- The code and exported Room schema are authoritative. Combined MFP + POST-RINGS uses **Room v36** (v35 combined histories plus the additive catalog-publication/personal-usage migration). Preserve public MFP31 and private POST-RINGS31/32/33/34 histories; private31 is archived under docs/post-rings/schemas-private. Direct compatibility migrations join both branches without rewriting published schemas or reactivating retired engines.
 
 ## Safety
 

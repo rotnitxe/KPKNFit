@@ -1,11 +1,10 @@
 package com.example.kpkn.data.db
 
+import android.app.Application
+import android.content.Context
 import android.content.ContextWrapper
 import android.database.DatabaseErrorHandler
 import android.database.sqlite.SQLiteDatabase
-import java.nio.file.Files
-import android.app.Application
-import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.repository.NutritionRepository
@@ -20,12 +19,28 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
+import java.nio.file.Files
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 class NutritionDayStateBackupTest {
     @get:Rule val roomRule = RoomTestRule()
-    private val context get() = ApplicationProvider.getApplicationContext<Context>()
+    // sqlite4java on Windows cannot open Robolectric's long test-name + snapshot paths.
+    private val context: Context by lazy {
+        val root = Files.createTempDirectory("nutrition-backup-").toFile()
+        object : ContextWrapper(ApplicationProvider.getApplicationContext<Context>()) {
+            override fun getApplicationContext(): Context = this
+            override fun getFilesDir() = File(root, "files").apply { mkdirs() }
+            override fun getCacheDir() = File(root, "cache").apply { mkdirs() }
+            override fun getNoBackupFilesDir() = File(root, "no-backup").apply { mkdirs() }
+            override fun getDatabasePath(name: String) = (if (File(name).isAbsolute) File(name) else File(root, "db/$name")).apply { parentFile!!.mkdirs() }
+            override fun deleteDatabase(name: String) = SQLiteDatabase.deleteDatabase(getDatabasePath(name))
+            override fun openOrCreateDatabase(name: String, mode: Int, factory: SQLiteDatabase.CursorFactory?) =
+                SQLiteDatabase.openDatabase(getDatabasePath(name).absolutePath, factory, mode or SQLiteDatabase.CREATE_IF_NECESSARY)
+            override fun openOrCreateDatabase(name: String, mode: Int, factory: SQLiteDatabase.CursorFactory?, handler: DatabaseErrorHandler?) =
+                SQLiteDatabase.openDatabase(getDatabasePath(name).absolutePath, factory, mode or SQLiteDatabase.CREATE_IF_NECESSARY, handler)
+        }
+    }
     private val mark = NutritionDayMarkEntity("2026-10-10", "PARTIAL", "REVIEW_ACCEPTED", "2026-10-11T12:00:00Z")
     private val checkin = NutritionCheckInEntity("2026-10-05", "APPLIED", mark.updatedAt,
         """{"modelVersion":"expenditure-v1","previous":2200,"proposed":2100}""", "plan-aplicado", mark.updatedAt)
@@ -87,21 +102,6 @@ class NutritionDayStateBackupTest {
     }
 
     @Test fun `copia fisica incluye ambas tablas sin un tratamiento especial`() = runBlocking(Dispatchers.IO) {
-        // Keep sqlite4java paths below Windows MAX_PATH, independent of the test method's display name.
-        val directory = Files.createTempDirectory("mfp-backup-").toFile()
-        val platformContext = context
-        val context = object : ContextWrapper(platformContext) {
-            override fun getApplicationContext(): Context = this
-            override fun getFilesDir() = File(directory, "files").apply { mkdirs() }
-            override fun getCacheDir() = File(directory, "cache").apply { mkdirs() }
-            override fun getNoBackupFilesDir() = File(directory, "no-backup").apply { mkdirs() }
-            override fun getDatabasePath(name: String) = (if (File(name).isAbsolute) File(name) else File(directory, "db/$name")).apply { parentFile!!.mkdirs() }
-            override fun deleteDatabase(name: String) = SQLiteDatabase.deleteDatabase(getDatabasePath(name))
-            override fun openOrCreateDatabase(name: String, mode: Int, factory: SQLiteDatabase.CursorFactory?) =
-                SQLiteDatabase.openDatabase(getDatabasePath(name).absolutePath, factory, mode or SQLiteDatabase.CREATE_IF_NECESSARY)
-            override fun openOrCreateDatabase(name: String, mode: Int, factory: SQLiteDatabase.CursorFactory?, handler: DatabaseErrorHandler?) =
-                SQLiteDatabase.openDatabase(getDatabasePath(name).absolutePath, factory, mode or SQLiteDatabase.CREATE_IF_NECESSARY, handler)
-        }
         KpknDatabase.closeInstance()
         context.deleteDatabase("kpkn.db")
         var snapshot: File? = null
@@ -109,13 +109,16 @@ class NutritionDayStateBackupTest {
             val db = KpknDatabase.getInstance(context)
             db.nutritionDao().upsertDayMark(mark)
             db.nutritionDao().upsertCheckIn(checkin)
+            db.nutritionCatalogDao().recordUse("orphan-snapshot", mark.updatedAt)
             snapshot = File(File(context.filesDir, "snapshots"), DatabaseBackupHelper.createSnapshot(context))
             db.nutritionDao().deleteDayMark(mark.date)
             db.openHelper.writableDatabase.execSQL("DELETE FROM nutrition_checkins")
+            db.openHelper.writableDatabase.execSQL("DELETE FROM nutrition_food_usage")
             DatabaseBackupHelper.restoreSnapshot(context, snapshot)
             val restored = KpknDatabase.getInstance(context)
             assertEquals(listOf(mark), restored.nutritionDao().getAllDayMarks())
             assertEquals(listOf(checkin), restored.nutritionDao().getAllCheckIns())
+            assertEquals(NutritionFoodUsageEntity("orphan-snapshot", 1, mark.updatedAt), restored.nutritionCatalogDao().usage("orphan-snapshot"))
         } finally {
             KpknDatabase.closeInstance()
             snapshot?.delete()
