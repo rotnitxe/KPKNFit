@@ -72,13 +72,9 @@ class SetupStepCopyRulesTest {
             "Datos básicos",
             "Entreno",
             "Nutrición",
-            "Rings",
             "Tu programa a medida",
             "Así queda tu semana",
             "Tu plan de alimentación",
-            "Tus RINGS",
-            // Intro de RINGS: título de presentación de la explicación, no pregunta.
-            "Tus RINGS, tu recuperación de un vistazo",
             "Revisión y activación",
             "Pon tu alias",
         )

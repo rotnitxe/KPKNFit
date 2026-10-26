@@ -37,12 +37,13 @@ class ProtocolProgramStructureTest {
         private val finiteSimpleIds = setOf(
             "coan-phillipi-dl",
             "smolov-jr",
-            "cube-method",
         )
         private val oneWeekBlockWhitelist = setOf(
             "smolov" to "Taper",
             "kpkn-native-sbd-4" to "Taper",
             "kpkn-rp-style" to "Descarga",
+            // El Cube cierra sus tres olas con una semana de test de autor, no con otro bloque de carga.
+            "cube-method" to "Test",
         )
 
         @BeforeClass
@@ -73,7 +74,7 @@ class ProtocolProgramStructureTest {
                 assertEquals("${protocol.id} ${block.name} semanas", block.weeks, weeksInBlock)
                 val allowOneWeek = oneWeekBlockWhitelist.any { it.first == protocol.id && it.second == block.name }
                 if (weeksInBlock == 1) {
-                    assertTrue("${protocol.id} bloque de 1 semana '${block.name}' no está en whitelist de taper/deload de autor", allowOneWeek)
+                    assertTrue("${protocol.id} bloque de 1 semana '${block.name}' no está en whitelist de taper/deload/test de autor", allowOneWeek)
                 }
             }
             val applied = apply(protocol.id)

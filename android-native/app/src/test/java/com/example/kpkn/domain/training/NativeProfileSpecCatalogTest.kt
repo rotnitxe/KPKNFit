@@ -301,11 +301,15 @@ class NativeProfileSpecCatalogTest {
     fun week_plan_is_six_weeks_with_deload_split() {
         assertEquals(6, NativeWeekBuilder.WEEKS)
         assertEquals(6, NativeWeekBuilder.DELOAD_WEEK)
-        // RIR §12.1: principiante RIR 3 siempre; intermedio/avanzado RIR 3 en
-        // semana 1 y RIR 2 en semanas 2–5.
-        (1..5).forEach { week -> assertEquals(3, NativeWeekBuilder.trainingRir(NativeDoseLevel.BEGINNER, week)) }
-        assertEquals(3, NativeWeekBuilder.trainingRir(NativeDoseLevel.INTERMEDIATE, 1))
-        (2..5).forEach { week -> assertEquals(2, NativeWeekBuilder.trainingRir(NativeDoseLevel.INTERMEDIATE, week)) }
+        // T-20: objetivos editoriales de las cinco semanas de entrenamiento, antes de la descarga.
+        listOf(3, 3, 3, 2, 2).forEachIndexed { index, rir ->
+            assertEquals("principiante semana ${index + 1}", rir,
+                NativeWeekBuilder.trainingRir(NativeDoseLevel.BEGINNER, index + 1))
+        }
+        listOf(3, 2, 2, 1, 1).forEachIndexed { index, rir ->
+            assertEquals("intermedio semana ${index + 1}", rir,
+                NativeWeekBuilder.trainingRir(NativeDoseLevel.INTERMEDIATE, index + 1))
+        }
     }
 
     @Test
