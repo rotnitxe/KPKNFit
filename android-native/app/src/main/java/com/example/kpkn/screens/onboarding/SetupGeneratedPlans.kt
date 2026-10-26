@@ -174,14 +174,14 @@ internal fun generatedVariantProgram(
  */
 internal fun fittedToMeet(program: Program, draft: SetupWizardDraft, today: LocalDate): Program {
     val meet = CompetitionRules.parseMeetDate(draft.activeMeetDate()) ?: return program
-    val fit = MeetRecipeFitter.fit(program, meet, anchor = today, weekStartDay = draft.effectiveWeekStart())
+    val fit = MeetRecipeFitter.fit(program, meet, anchor = today, weekStartDay = draft.effectiveWeekStart(),keepExact = draft.keepProtocolExact)
     return (fit as? MeetFit.Fitted)?.program ?: program
 }
 
 /** Las notas de PLAN de un programa de autor cuando la persona compite con fecha: la línea de la competición o el motivo. */
 internal fun meetNotesOf(program: Program, draft: SetupWizardDraft, today: LocalDate): List<String> {
     val meet = CompetitionRules.parseMeetDate(draft.activeMeetDate()) ?: return emptyList()
-    return when (val fit = MeetRecipeFitter.fit(program, meet, anchor = today, weekStartDay = draft.effectiveWeekStart())) {
+    return when (val fit = MeetRecipeFitter.fit(program, meet, anchor = today, weekStartDay = draft.effectiveWeekStart(),keepExact = draft.keepProtocolExact)) {
         is MeetFit.Fitted -> fit.notes
         is MeetFit.NotFittable -> listOf(fit.reason)
     }

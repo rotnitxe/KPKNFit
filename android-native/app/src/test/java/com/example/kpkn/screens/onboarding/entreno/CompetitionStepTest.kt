@@ -196,6 +196,25 @@ class CompetitionStepTest {
         rule.onNodeWithContentDescription("Tramos", substring = true).assertExists()
     }
 
+    @Test
+    fun exactProtocolSwitchOnlyAppearsWithAValidDateAndReportsTheExplicitChoice() {
+        var selected by mutableStateOf(false)
+        var answer by mutableStateOf<CompetitionAnswer?>(CompetitionAnswer.NO_DATE)
+        rule.setContent {
+            CompetitionStepContent(TrainingGoalProfile.POWERLIFTING, answer, "2027-01-04", "Meet", 1,
+                onAnswer = { answer = it }, onMeetDate = {}, onMeetName = {}, today = today,
+                keepProtocolExact = selected, onKeepProtocolExact = { selected = it })
+        }
+        rule.onNodeWithTag("competition-keep-exact").assertDoesNotExist()
+        rule.runOnIdle { answer = CompetitionAnswer.WITH_DATE }
+        rule.waitForIdle()
+        rule.onNodeWithTag("competition-keep-exact").performClick()
+        rule.runOnIdle { assertTrue(selected) }
+        rule.runOnIdle { answer = CompetitionAnswer.NO }
+        rule.waitForIdle()
+        rule.onNodeWithTag("competition-keep-exact").assertDoesNotExist()
+    }
+
     // ---------------------------------------------------------------- ayudas
 
     private fun competitionDraft(answer: CompetitionAnswer?): SetupWizardDraft = SetupWizardDraft(

@@ -513,6 +513,7 @@ data class SetupWizardDraft(
     val meetDateIso: String? = null,
     /** Nombre opcional del evento (hasta 40 caracteres); solo con [CompetitionAnswer.WITH_DATE]. */
     val meetName: String = "",
+    val keepProtocolExact: Boolean = false,
     /** Explicit ordered goals; legacy answers never synthesize this snapshot. */
     val trainingIntent: TrainingIntent? = null,
     /** Nonvisual input for the future discipline-selection UI; legacy drafts keep null. */

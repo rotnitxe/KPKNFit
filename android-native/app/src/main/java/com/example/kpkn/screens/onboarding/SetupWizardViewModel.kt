@@ -156,6 +156,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
 
     private val _state = MutableStateFlow(SetupWizardState(SetupWizardDraft(commitId = UUID.randomUUID().toString()), isLoading = true))
     val state: StateFlow<SetupWizardState> = _state.asStateFlow()
+    private val _catalogExpanded = MutableStateFlow(false)
+    val catalogExpanded = _catalogExpanded.asStateFlow()
+    fun toggleCatalogExpanded() { _catalogExpanded.update { !it } }
 
     /**
      * [preselectedPlanId] (E-18, C.P6): el plan que la persona eligió en la biblioteca («Configurar este plan»). Entra
@@ -1455,6 +1458,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         draft.trainingIntent, draft.hybridComposition,
         // ¿Compites?: respuesta y fecha que cuentan para el programa (fuera de la ruta no cuentan). El nombre no cambia el programa.
         draft.activeCompetition(), draft.activeMeetDate(),
+        draft.keepProtocolExact.takeIf { draft.activeMeetDate() != null },
         PersonalizedPlanCatalog.REVISION,
     )
 
@@ -3863,6 +3867,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
     /** Nombre opcional del evento (hasta 40 caracteres). */
     fun setMeetName(name: String) =
         mutateDraft(SetupStepId.COMPETITION) { latest -> latest.withMeetName(name) }
+
+    fun setKeepProtocolExact(enabled: Boolean) =
+        mutateDraft(SetupStepId.COMPETITION) { latest -> latest.copy(keepProtocolExact = enabled) }
 
     /**
      * RINGS: ajuste 0–100 de «Energía» (`energia`) o «Columna» (`columna`) con el valor que la persona ve; `null` lo quita.

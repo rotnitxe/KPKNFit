@@ -173,7 +173,7 @@ object SetupActivationPayload {
             program = withIntent,
             timelineStartDate = start.toString(),
             competitionDate = meet.toString(),
-            manualEndDate = end.toString(),
+            manualEndDate = if (draft.keepProtocolExact && com.example.kpkn.domain.onboarding.GeneratedPlans.variantOf(withIntent.structureTemplateId.orEmpty()) == null) null else end.toString(),
         ).program
         val title = draft.activeMeetName().trim().ifBlank { "Competición" }
         return saved.copy(

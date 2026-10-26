@@ -150,6 +150,8 @@ internal fun EntrenoCompetitionStep(state: SetupWizardState, vm: SetupWizardView
         onAnswer = { answer -> vm.setCompetition(answer) },
         onMeetDate = { iso -> vm.setMeetDate(iso) },
         onMeetName = { name -> vm.setMeetName(name) },
+        keepProtocolExact = draft.keepProtocolExact,
+        onKeepProtocolExact = vm::setKeepProtocolExact,
     )
 }
 
@@ -167,6 +169,8 @@ internal fun CompetitionStepContent(
     onMeetDate: (String?) -> Unit,
     onMeetName: (String) -> Unit,
     today: LocalDate? = null,
+    keepProtocolExact: Boolean = false,
+    onKeepProtocolExact: (Boolean) -> Unit = {},
 ) {
     val reduced = wizardReducedMotion()
     val nowDate = remember { LocalDate.now() }
@@ -209,6 +213,13 @@ internal fun CompetitionStepContent(
             CompetitionNameField(meetName = meetName, onMeetName = onMeetName)
             val meetDate = CompetitionRules.parseMeetDate(meetDateIso)
             if (meetDate != null && CompetitionRules.isValidMeetDate(meetDateIso, day)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Mantener el protocolo exacto aunque no termine en mi fecha",
+                        modifier = Modifier.weight(1f), style = WizardTypography.bodySmall, color = WizardColors.text)
+                    androidx.compose.material3.Switch(checked = keepProtocolExact,
+                        onCheckedChange = onKeepProtocolExact,
+                        modifier = Modifier.testTag("competition-keep-exact"))
+                }
                 CompetitionBlockLine(
                     profile = profile,
                     today = day,

@@ -130,6 +130,45 @@ class SetupWizardEntrenoPlanTest {
         SyncRoomExecutor.uninstall()
     }
 
+    @Test
+    fun exactProtocolKeepsRecipeSessionsAndLiteralEndWithASeparateMeetDate() = runTest(dispatcher.scheduler, timeout = 10.minutes) {
+        val anchor = java.time.LocalDate.of(2027, 1, 4)
+        val meet = anchor.plusWeeks(14).plusDays(2)
+        val draft = SetupWizardDraft().withInputs(TrainingGoalProfile.POWERLIFTING,
+            setOf(TrainingPlace.GYM), setOf(1, 2, 4, 5), 120)
+            .withCompetition(CompetitionAnswer.WITH_DATE).withMeetDate(meet.toString())
+            .copy(keepProtocolExact = true)
+        val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "tsa-9" }
+        val original = com.example.kpkn.domain.training.ProgramProtocolEngine.applyProtocol(
+            Program(id = "exact-test", name = "TSA"), protocol,
+            object : com.example.kpkn.domain.training.IdProvider {
+                private var n = 0
+                override fun newId() = "exact-${++n}"
+            }, metadata = CatalogCompositionMetadataProvider.fromCatalog(CatalogV2ProcessCache.getOrLoad(app).catalog))
+        assertTrue(original === fittedToMeet(original, draft, anchor))
+        assertEquals(listOf("Se mantiene el protocolo tal cual, sin ajustarlo a la fecha de competición."),
+            meetNotesOf(original, draft, anchor))
+        val activated = SetupActivationPayload.programForActivation(original, draft, anchor)
+        assertEquals(original.sourceRecipe, activated.sourceRecipe)
+        assertEquals(weekShape(original), weekShape(activated))
+        assertEquals(meet.toString(), activated.keyDates.single { it.type == com.example.kpkn.data.models.KeyDateType.COMPETITION }.eventDate)
+        val projection = com.example.kpkn.domain.training.ProgramCalendarEngine.project(activated)
+        assertEquals(9, projection.weeks.size)
+        assertEquals(anchor.plusWeeks(9).minusDays(1), projection.weeks.last().endDate)
+        assertNull(activated.calendarization?.manualEndDate)
+    }
+
+    @Test
+    fun exactChoiceInvalidatesTheTrainingFingerprintOnlyWithAnActiveDate() = runTest(dispatcher.scheduler) {
+        val vm = newVm()
+        val draft = SetupWizardDraft().withInputs(TrainingGoalProfile.POWERLIFTING,
+            setOf(TrainingPlace.GYM), setOf(1, 2, 4, 5), 120)
+            .withCompetition(CompetitionAnswer.WITH_DATE).withMeetDate("2027-04-14")
+        assertNotEquals(vm.trainingKey(draft), vm.trainingKey(draft.copy(keepProtocolExact = true)))
+        val withoutDate = draft.withCompetition(CompetitionAnswer.NO_DATE)
+        assertEquals(vm.trainingKey(withoutDate), vm.trainingKey(withoutDate.copy(keepProtocolExact = true)))
+    }
+
     // ─── Objetivo general: revelado, semana armada y activación ─────────────────────────────────
 
     @Test
