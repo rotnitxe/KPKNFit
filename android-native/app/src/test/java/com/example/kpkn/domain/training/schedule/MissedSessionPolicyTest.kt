@@ -29,7 +29,7 @@ class MissedSessionPolicyTest {
         assertFalse(held.advancedWeek)
         assertEquals("w1",held.program.pendingMissedSessions?.weekId)
         assertEquals(listOf("s-w1"),held.program.pendingMissedSessions?.sessionIds)
-        val skipped = ProgramProgressEngine.resolveMissedSessions(held.program,MissedSessionChoice.SKIP,metadata,logs,nowMs = 20)
+        val skipped = ProgramProgressEngine.resolveMissedSessions(held.program,MissedSessionChoice.SKIP,null,logs,nowMs = 20)
         assertEquals(1,skipped.skippedSessionKeys.size)
         assertNull(skipped.pendingMissedSessions)
         assertEquals("MISSED_SESSION",skipped.programDecisions.last().source)

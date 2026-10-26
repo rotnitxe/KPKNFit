@@ -227,7 +227,7 @@ object ProgramProgressEngine {
     }
 
     fun resolveMissedSessions(program: Program,choice: com.example.kpkn.domain.training.schedule.MissedSessionChoice,
-        metadata: ExerciseCompositionMetadataProvider,logs: List<WorkoutLog>,executedSessionIds: Set<String> = emptySet(),
+        metadata: ExerciseCompositionMetadataProvider?,logs: List<WorkoutLog>,executedSessionIds: Set<String> = emptySet(),
         nowMs: Long = 0L): Program = com.example.kpkn.domain.training.schedule.MissedSessionPolicy.resolve(
             program,choice,metadata,logs,executedSessionIds,nowMs)
 

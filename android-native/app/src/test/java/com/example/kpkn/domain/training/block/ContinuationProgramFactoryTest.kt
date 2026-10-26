@@ -15,6 +15,8 @@ class ContinuationProgramFactoryTest {
         val p = BlockReviewTestFixture.program().copy(powerliftingProfile = PowerliftingProfile(bench1RM = 120.0,benchTM = 108.0),
             programDecisions = listOf(ProgramDecision("historical",1,"MANUAL","Elección anterior")),
             effectiveWeekRecipes = listOf(EffectiveWeekRecipe(1,cycleNumber = 1)),
+            skippedSessionKeys = listOf("past-run-skip"),
+            pendingMissedSessions = com.example.kpkn.domain.training.schedule.MissedSessionsRequest("old-week","old-instance",listOf("old-session"),programRunId = "run"),
             keyDates = listOf(ProgramKeyDate("meet","Competición",type = KeyDateType.COMPETITION,startDate = "2026-10-01")))
         return BlockReviewLifecycle.ensureContinuation(p.copy(runState = p.runState!!.copy(status = ProgramRunStatus.COMPLETED)),10)
     }
@@ -31,6 +33,10 @@ class ContinuationProgramFactoryTest {
         assertTrue(next.effectiveWeekRecipes.isEmpty())
         assertTrue(next.keyDates.isEmpty())
         assertNull(next.pendingContinuation)
+        assertTrue(next.skippedSessionKeys.isEmpty())
+        assertNull(next.pendingMissedSessions)
+        assertEquals(listOf("past-run-skip"),original.skippedSessionKeys)
+        assertNotNull(original.pendingMissedSessions)
         assertEquals(2,original.programDecisions.size)
         assertEquals(1,original.effectiveWeekRecipes.size)
         assertEquals(ProgramRunStatus.COMPLETED,original.runState.status)

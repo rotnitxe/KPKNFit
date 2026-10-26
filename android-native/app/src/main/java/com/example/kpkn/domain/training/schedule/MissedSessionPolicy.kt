@@ -78,7 +78,7 @@ object MissedSessionPolicy {
         return result.copy(program = p.copy(pendingMissedSessions = request))
     }
 
-    fun resolve(program: Program,choice: MissedSessionChoice,metadata: ExerciseCompositionMetadataProvider,
+    fun resolve(program: Program,choice: MissedSessionChoice,metadata: ExerciseCompositionMetadataProvider?,
                 logs: List<WorkoutLog>,executedSessionIds: Set<String>,nowMs: Long): Program {
         val request = program.pendingMissedSessions ?: return program
         val run = program.runState ?: return program
@@ -88,10 +88,11 @@ object MissedSessionPolicy {
         // Un registro posterior o una edición obliga a revisar la petición actualizada.
         if (ids.toSet() != request.sessionIds.toSet() || ids.isEmpty()) return program.copy(pendingMissedSessions = null)
         val cleared = program.copy(pendingMissedSessions = null)
-        if (choice == MissedSessionChoice.SOFT_RETURN) {
+        if (choice == MissedSessionChoice.SOFT_RETURN && metadata != null) {
             val softened = applySoftReturn(cleared,metadata,executedSessionIds,nowMs)
             if (softened != cleared) return softened
         }
+        if (choice == MissedSessionChoice.SOFT_RETURN && metadata == null && program.acceptsKpknAdjustments()) return program
         val id = "missed:${skippedKey(run.runId,run.cycleNumber,request.weekId,choice.name)}"
         val keys = if (choice == MissedSessionChoice.SKIP) ids.map { skippedKey(run.runId,run.cycleNumber,request.weekInstanceId,it) } else emptyList()
         val detail = if (choice == MissedSessionChoice.SKIP) "${ids.size} sesiones declaradas saltadas en ${week.name}. No cuentan como entrenamientos registrados."

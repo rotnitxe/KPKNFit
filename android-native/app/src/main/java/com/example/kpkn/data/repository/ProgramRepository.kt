@@ -13,6 +13,7 @@ import com.example.kpkn.domain.training.ProgramMigrationEngine
 import com.example.kpkn.domain.training.ProgramPersistNormalizer
 import com.example.kpkn.domain.training.ProgramKeyDateEngine
 import com.example.kpkn.domain.training.ProgramProgressEngine
+import com.example.kpkn.domain.training.PlanMaterializer
 import com.example.kpkn.domain.training.CompositionMetadataHolder
 import com.example.kpkn.domain.training.coerceNativeWeekInstanceId
 import com.example.kpkn.domain.training.requiresNativeWeekInstances
@@ -32,6 +33,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -253,9 +256,10 @@ class ProgramRepository private constructor(
         program: Program,
         version: Long,
         repairActiveState: Boolean = false,
+        guardInTransaction: (suspend () -> Boolean)? = null,
     ): Boolean =
         PersistenceWriteCoordinator.mutex.withLock {
-            programWriteMutex.withLock {
+            programWriteMutex.withLock storage@{
                 // Test-only (null en producción): fallo de storage o reserva
                 // concurrente ANTES del chequeo previo; nada se tocó todavía.
                 durableCommitBeforeWriteForTests?.invoke()
@@ -265,7 +269,13 @@ class ProgramRepository private constructor(
                 if (!canWrite) {
                     false
                 } else {
-                    db.programDao().upsert(program.toEntity())
+                    if (guardInTransaction == null) db.programDao().upsert(program.toEntity())
+                    else {
+                        val saved = db.withTransaction {
+                            if (!guardInTransaction()) false else { db.programDao().upsert(program.toEntity()); true }
+                        }
+                        if (!saved) return@storage false
+                    }
                     // Hueco de test: reserva concurrente ENTRE el upsert y el
                     // chequeo+publicación (sección que ahora es indivisible).
                     durableCommitInterleaverForTests?.invoke()
@@ -298,11 +308,12 @@ class ProgramRepository private constructor(
         program: Program,
         version: Long,
         repairActiveState: Boolean = false,
+        guardInTransaction: (suspend () -> Boolean)? = null,
     ): Boolean {
         val callerJob = currentCoroutineContext()[Job]
         return withContext(NonCancellable + Dispatchers.IO) {
             try {
-                commitProgramDurable(program, version, repairActiveState)
+                commitProgramDurable(program, version, repairActiveState,guardInTransaction)
             } catch (cancelled: CancellationException) {
                 if (callerJob?.isActive == false) throw cancelled
                 throw IllegalStateException("No se pudo guardar el programa en Room.", cancelled)
@@ -1099,7 +1110,7 @@ class ProgramRepository private constructor(
                         logs = historyForProgress,
                         transitionContext = buildTransitionContext(program, historyForProgress),
                         weeklySignals = buildWeeklyAutoregulationSignals(program, historyForProgress),
-                        compositionMetadata = CompositionMetadataHolder.resolve(),
+                        compositionMetadata = if (program.sourceRecipe != null) CompositionMetadataHolder.resolve() else CompositionMetadataHolder.current,
                         nowMs = System.currentTimeMillis(),
                         reviewCatalog = exerciseCatalogSnapshot(),
                         // B.S3: la progresión de autor redondea el TM que sube con los discos reales
@@ -1326,11 +1337,204 @@ class ProgramRepository private constructor(
         return ExecutedTrainingEvidence(sessionIds = sessionIds, weekIds = weekIds)
     }
 
+    /** Sólo invalidación de lecturas: ningún objetivo nutricional se modifica desde programas. */
+    val seasonContextChanges: kotlinx.coroutines.flow.Flow<Unit> = callbackFlow {
+        val observer = object : androidx.room.InvalidationTracker.Observer("nutrition_plans","nutrition_active_state","body_observations","competition_records") {
+            override fun onInvalidated(tables: Set<String>) { trySend(Unit) }
+        }
+        db.invalidationTracker.addObserver(observer)
+        trySend(Unit)
+        awaitClose { db.invalidationTracker.removeObserver(observer) }
+    }
+
+    suspend fun seasonInput(programId: String,today: java.time.LocalDate = java.time.LocalDate.now(),
+        zone: java.time.ZoneId = java.time.ZoneId.systemDefault()): com.example.kpkn.domain.season.SeasonInput = withContext(Dispatchers.IO) {
+        val program = getProgramById(programId) ?: return@withContext com.example.kpkn.domain.season.SeasonInput()
+        db.withTransaction {
+            val activeId = db.nutritionDao().getActiveState()?.activePlanId
+            val nutrition = db.nutritionDao().getAllPlans().firstOrNull { it.id == activeId }?.toNutritionPlan()
+            val body = db.bodyProgressDao().getAllObservations().mapNotNull { it.toBodyObservation() }
+            val records = db.competitionRecordDao().getAll().map { it.toCompetitionRecord() }
+            val hierarchy = com.example.kpkn.domain.training.ProgramHierarchyIndex(program)
+            val current = program.runState?.weekId?.let { hierarchy.locateWeek(ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it) }
+            val blocks = program.macrocycles.flatMap { it.blocks }
+            val blockIndex = blocks.indexOfFirst { it.id == current?.blockId }
+            val key = program.keyDates.filter { it.type == KeyDateType.COMPETITION }.mapNotNull { date ->
+                runCatching { java.time.LocalDate.parse(date.eventDate ?: date.startDate) }.getOrNull()?.let { date to it }
+            }.sortedWith(compareBy<Pair<ProgramKeyDate,java.time.LocalDate>> { if (it.second < today) 1 else 0 }
+                .thenBy { kotlin.math.abs(java.time.temporal.ChronoUnit.DAYS.between(today,it.second)) }).firstOrNull()
+            val record = key?.let { (date,eventDate) -> records.firstOrNull { record ->
+                record.status != CompetitionRecordStatus.ARCHIVED && isCompetitionLinked(program,record) && (record.keyDateId == date.id || record.eventDate == eventDate.toString())
+            } }
+            val maintenance = nutrition?.calculationSnapshot?.result?.get("eerKcal")?.toDoubleOrNull()
+                ?.takeIf { it.isFinite() && it > 0 && it < Int.MAX_VALUE }?.let { kotlin.math.round(it).toInt() }
+            com.example.kpkn.domain.season.SeasonInput(
+                blockGoal = current?.block?.goal ?: current?.mesocycle?.goal?.name?.let { name -> BlockGoal.entries.firstOrNull { it.name == name } },
+                nextBlockGoal = if (blockIndex >= 0) blocks.getOrNull(blockIndex + 1)?.goal else null,
+                currentWeekIsDeload = current?.week?.executionKind == WeekExecutionKind.DELOAD,
+                direction = nutrition?.direction,calorieTarget = nutrition?.calorieTarget?.takeIf { it > 0 },maintenanceKcal = maintenance,
+                weeklyWeightRateKg = com.example.kpkn.domain.body.measuredWeeklyRate(body,BodyMetric.WEIGHT,zone,today),
+                daysToCompetition = key?.let { java.time.temporal.ChronoUnit.DAYS.between(today,it.second).coerceIn(Int.MIN_VALUE.toLong(),Int.MAX_VALUE.toLong()).toInt() },
+                targetBodyweightKg = record?.targetBodyweightKg?.takeIf { it.isFinite() && it > 0 },
+                currentBodyweightKg = _settings.value.userVitals.weight?.takeIf { it.isFinite() && it > 0 })
+        }
+    }
+
+    data class MeetResultPreview(
+        val original: Program,val result: Program,
+        val record: com.example.kpkn.data.models.CompetitionRecord,
+        val summary: String,val settings: Settings,val evidence: ExecutedTrainingEvidence,
+    )
+
+    fun isCompetitionLinked(program: Program,record: com.example.kpkn.data.models.CompetitionRecord): Boolean {
+        if (record.plannedProgramId != null && record.plannedProgramId != program.id) return false
+        return program.keyDates.any { key -> key.type == com.example.kpkn.data.models.KeyDateType.COMPETITION &&
+            (record.keyDateId == key.id || record.plannedProgramId == program.id && record.eventDate == (key.eventDate ?: key.startDate)) }
+    }
+
+    fun supportsSbdCompetition(program: Program,record: CompetitionRecord): Boolean =
+        record.sportType == CompetitionTemplateType.POWERLIFTING ||
+            record.sportType == CompetitionTemplateType.CUSTOM && program.mode == ProgramMode.POWERLIFTING
+
+    fun previewMeetResult(programId: String,recordId: String): MeetResultPreview? {
+        val current = getProgramById(programId) ?: return null
+        val competitions = runCatching { CompetitionRepository.getInstance() }.getOrNull() ?: return null
+        val record = competitions.getById(recordId) ?: return null
+        if (!competitions.usesDatabase(db) || !isCompetitionLinked(current,record) || !supportsSbdCompetition(current,record)) return null
+        val proposal = com.example.kpkn.domain.competitions.MeetResultToProfile.propose(record,current.powerliftingProfile,
+            com.example.kpkn.domain.training.TrainingMaxMerge.trainingMaxPercentOf(current)) ?: return null
+        val now = System.currentTimeMillis()
+        val evidence = executedTrainingEvidence(current)
+        val decisionId = "meet-result:${record.id}"
+        var result = com.example.kpkn.domain.training.ExerciseTrainingMax.syncProfile(current,
+            current.copy(powerliftingProfile = proposal.profile),now,decisionId,"Marcas válidas de competición confirmadas","COMPETITION")
+        val recipe = current.sourceRecipe
+        if (recipe != null) {
+            val blocks = current.macrocycles.flatMap { it.blocks }.filter { it.sourceDefinitionId == recipe.id }
+            val blockIds = blocks.map { it.id }.toSet()
+            blocks.flatMap { it.mesocycles }.flatMap { it.weeks }.filterNot { it.isLoopWeek }.forEach { week ->
+                result = PlanMaterializer.rematerializeWeek(result,week.id,recipe,CompositionMetadataHolder.resolve(),
+                    executedWeekIds = evidence.weekIds,executedSessionIds = evidence.sessionIds)
+            }
+            result = result.copy(macrocycles = result.macrocycles.map { macro -> macro.copy(blocks = macro.blocks.map { block ->
+                if (block.id in blockIds) block.copy(materializationPending = false) else block
+            }) })
+        }
+        result = result.copy(programDecisions = result.programDecisions + com.example.kpkn.data.models.ProgramDecision(
+            decisionId,now,"COMPETITION","Marcas de competición confirmadas",proposal.summary))
+        return MeetResultPreview(current,result,record,proposal.summary,_settings.value,evidence)
+    }
+
+    internal var meetAfterProgramWriteForTests: (() -> Unit)? = null
+
+    /** Perfil, decisión y marca de aplicación se confirman juntos; ninguna fila implica un entreno nuevo. */
+    suspend fun applyMeetResult(programId: String,preview: MeetResultPreview): Boolean = withContext(Dispatchers.IO) {
+        val competitions = CompetitionRepository.getInstance()
+        if (!competitions.usesDatabase(db)) return@withContext false
+        ongoingWorkoutMutex.withLock {
+            programRmwMutex.withLock rmw@{
+                val reservations = synchronized(programMutationLock) {
+                    if (getProgramById(programId) != preview.original || preview.original.id != programId || preview.result.id != programId ||
+                        _settings.value != preview.settings || executedTrainingEvidence(preview.original) != preview.evidence ||
+                        !isCompetitionLinked(preview.original,preview.record)) null
+                    else {
+                        val recordWrite = competitions.reserveIfUnchanged(preview.record,preview.record.copy(meetResultAppliedAtMs = System.currentTimeMillis()))
+                        recordWrite?.let { reserveProgramWrite(programId) to it }
+                    }
+                } ?: return@rmw false
+                withContext(NonCancellable + Dispatchers.IO) {
+                    PersistenceWriteCoordinator.mutex.withLock {
+                        programWriteMutex.withLock storage@{
+                            competitions.recordWriteMutex.withLock recordStorage@{
+                                durableCommitBeforeWriteForTests?.invoke()
+                                val current = synchronized(programMutationLock) {
+                                    newestProgramWrite[programId] == reservations.first && competitions.isCurrent(reservations.second)
+                                }
+                                if (!current) return@recordStorage false
+                                db.withTransaction {
+                                    db.programDao().upsert(preview.result.toEntity())
+                                    meetAfterProgramWriteForTests?.invoke()
+                                    db.competitionRecordDao().upsert(reservations.second.record.toEntity())
+                                }
+                                durableCommitInterleaverForTests?.invoke()
+                                synchronized(programMutationLock) {
+                                    if (newestProgramWrite[programId] != reservations.first || !competitions.publishIfCurrent(reservations.second)) false
+                                    else {
+                                        _programs.update { plans -> plans.map { if (it.id == programId) preview.result else it } }
+                                        repairActiveStateIfNeeded(preview.result)
+                                        true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    data class ScheduleContinuationPreview(
+        val original: Program,
+        val result: Program,
+        val settings: Settings,
+        val logs: List<WorkoutLog>,
+        val activeState: ActiveProgramState?,
+        val evidence: ExecutedTrainingEvidence,
+    )
+
+    /** Prepara una elección explícita sin crear registros de entrenamiento ni mover aún el cursor. */
+    suspend fun previewScheduleContinuation(programId: String,
+        choice: com.example.kpkn.domain.training.schedule.MissedSessionChoice?,
+        expected: com.example.kpkn.domain.training.schedule.MissedSessionsRequest? = null,
+    ): ScheduleContinuationPreview? = withContext(Dispatchers.IO) {
+        val current = getProgramById(programId) ?: return@withContext null
+        if (_ongoingWorkout.value != null || choice != null && current.pendingMissedSessions != expected) return@withContext null
+        val settings = _settings.value
+        val logs = getLogsForProgram(programId)
+        val active = _activeProgramState.value
+        val evidence = executedTrainingEvidence(current)
+        val metadata = if (current.sourceRecipe != null) CompositionMetadataHolder.resolve() else CompositionMetadataHolder.current
+        val now = System.currentTimeMillis()
+        var result = if (choice == null) ProgramProgressEngine.applySoftReturn(current,metadata ?: return@withContext null,evidence.sessionIds,now)
+            else ProgramProgressEngine.resolveMissedSessions(current,choice,metadata,logs,evidence.sessionIds,now)
+        if (result == current) return@withContext null
+        if (choice == com.example.kpkn.domain.training.schedule.MissedSessionChoice.SKIP) {
+            val run = result.runState
+            val week = run?.weekId?.let { id -> com.example.kpkn.domain.training.ProgramHierarchyIndex(result)
+                .locateWeek(ProgramProgressEngine.templateWeekIdFromInstance(id) ?: id)?.week }
+            if (run != null && week != null) {
+                val instance = ProgramProgressEngine.instanceIdFor(run.cycleNumber,week.id)
+                val actual = ProgramProgressEngine.logsForInstance(logs,programId,instance,run.cycleNumber,run.runId)
+                    .firstOrNull { log -> week.sessions.any { it.id == log.sessionId } }
+                val session = actual?.let { log -> week.sessions.firstOrNull { it.id == log.sessionId } }
+                if (session != null) result = ProgramProgressEngine.advanceAfterSessionComplete(result,
+                    active?.takeIf { it.programId == programId },session,instance,logs,
+                    transitionContext = buildTransitionContext(result,logs),
+                    weeklySignals = buildWeeklyAutoregulationSignals(result,logs),compositionMetadata = metadata,
+                    inventory = settings.resolvedEquipmentInventory(),nowMs = now,reviewCatalog = exerciseCatalogSnapshot()).program
+            }
+        }
+        ScheduleContinuationPreview(current,result,settings,logs,active,evidence)
+    }
+
+    suspend fun submitScheduleContinuation(programId: String,preview: ScheduleContinuationPreview): Boolean = withContext(Dispatchers.IO) {
+        ongoingWorkoutMutex.withLock {
+            mutateProgramNow(programId) { current ->
+                if (current != preview.original || current.id != programId || _settings.value != preview.settings ||
+                    _activeProgramState.value != preview.activeState || _ongoingWorkout.value != null ||
+                    getLogsForProgram(programId) != preview.logs || executedTrainingEvidence(current) != preview.evidence) null
+                else preview.result
+            }
+        }
+    }
+
     data class WeeklyCheckinPreview(
         val original: Program,
         val result: Program,
         val answer: com.example.kpkn.domain.training.cycle.WeeklyCheckin,
         val evidence: ExecutedTrainingEvidence,
+        val season: com.example.kpkn.domain.season.SeasonInput,
+        val settings: Settings,
     )
 
     data class BlockReviewPreview(
@@ -1550,25 +1754,33 @@ class ProgramRepository private constructor(
     }
 
     /** Vista previa sin persistencia, con las sesiones ya iniciadas o registradas protegidas. */
-    fun previewWeeklyCheckin(programId: String, answer: com.example.kpkn.domain.training.cycle.WeeklyCheckin): WeeklyCheckinPreview? {
-        if (!_settings.value.algorithmSettings.weeklyCheckinEnabled) return null
-        val current = getProgramById(programId) ?: return null
+    suspend fun previewWeeklyCheckin(programId: String, answer: com.example.kpkn.domain.training.cycle.WeeklyCheckin): WeeklyCheckinPreview? = withContext(Dispatchers.IO) {
+        if (!_settings.value.algorithmSettings.weeklyCheckinEnabled) return@withContext null
+        val current = getProgramById(programId) ?: return@withContext null
+        val settings = _settings.value
+        val season = seasonInput(programId)
         val evidence = executedTrainingEvidence(current)
         val result = ProgramProgressEngine.applyWeeklyCheckin(current, answer,
-            CompositionMetadataHolder.resolve(), evidence.sessionIds, System.currentTimeMillis())
-        if (result == current) return null
-        return WeeklyCheckinPreview(current, result, answer, evidence)
+            CompositionMetadataHolder.resolve(), evidence.sessionIds, System.currentTimeMillis(),
+            deficitMode = com.example.kpkn.domain.season.SeasonAdvisor.deficitMode(season))
+        if (result == current) return@withContext null
+        WeeklyCheckinPreview(current, result, answer, evidence,season,settings)
     }
 
     /** Confirma exactamente la vista previa; una sesión iniciada o edición intermedia la invalida. */
     suspend fun submitWeeklyCheckin(programId: String, preview: WeeklyCheckinPreview): Boolean =
         withContext(Dispatchers.IO) {
             ongoingWorkoutMutex.withLock {
-                mutateProgramNow(programId) { current ->
-                    if (current != preview.original || current.id != programId ||
-                        !_settings.value.algorithmSettings.weeklyCheckinEnabled ||
-                        executedTrainingEvidence(current) != preview.evidence) null
-                    else preview.result
+                programRmwMutex.withLock rmw@{
+                    val prepared = synchronized(programMutationLock) {
+                        val current = getProgramById(programId)
+                        if (current == null || current != preview.original || current.id != programId || _settings.value != preview.settings ||
+                            !_settings.value.algorithmSettings.weeklyCheckinEnabled || executedTrainingEvidence(current) != preview.evidence) null
+                        else normalizeProgramWithCompetitions(preview.result) to reserveProgramWrite(programId)
+                    } ?: return@rmw false
+                    commitProgramDurableForCaller(prepared.first,prepared.second,repairActiveState = true,guardInTransaction = {
+                        _settings.value == preview.settings && seasonInput(programId) == preview.season
+                    })
                 }
             }
         }

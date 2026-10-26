@@ -1602,6 +1602,9 @@ private fun KPKNNavGraph(
                     com.example.kpkn.screens.programs.ProgramCreationRequests.openSheet = true
                     navController.navigate(KpknRoute.Training.route) { launchSingleTop = true }
                 },
+                onOpenCompetition = { recordId ->
+                    navController.navigate(KpknRoute.CompetitionDetail.create(recordId)) { launchSingleTop = true }
+                },
             )
             }
         }

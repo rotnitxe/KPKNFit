@@ -137,10 +137,28 @@ fun ProgramDetailScreen(
     onOpenProgram: (String) -> Unit = {},
     onOpenCatalog: () -> Unit = {},
     viewModel: ProgramDetailViewModel = viewModel(factory = ProgramDetailViewModel.factory(programId)),
+    onOpenCompetition: ((String) -> Unit)? = null,
 ) {
     val program by viewModel.program.collectAsState()
     val progressReport by viewModel.progressReport.collectAsStateWithLifecycle()
     val plannedLoadProjection by viewModel.plannedLoadProjection.collectAsStateWithLifecycle()
+    val pendingMissedSessions by viewModel.pendingMissedSessions.collectAsStateWithLifecycle()
+    val inactivityNotice by viewModel.inactivityNotice.collectAsStateWithLifecycle()
+    val schedulePreview by viewModel.schedulePreview.collectAsStateWithLifecycle()
+    val scheduleBusy by viewModel.scheduleBusy.collectAsStateWithLifecycle()
+    val competitionState by viewModel.competitionState.collectAsStateWithLifecycle()
+    val seasonState by viewModel.seasonState.collectAsStateWithLifecycle()
+    val competitionBusy by viewModel.competitionBusy.collectAsStateWithLifecycle()
+    val meetResultPreview by viewModel.meetResultPreview.collectAsStateWithLifecycle()
+    val competitionPlanSavedRecordId by viewModel.competitionPlanSavedRecordId.collectAsStateWithLifecycle()
+    var planningCompetition by remember { mutableStateOf<ProgramCompetitionState?>(null) }
+    var meetDayAttempts by remember { mutableStateOf<List<com.example.kpkn.data.models.PlannedAttempt>?>(null) }
+    LaunchedEffect(competitionPlanSavedRecordId) {
+        if (competitionPlanSavedRecordId != null) {
+            if (planningCompetition?.record?.id == competitionPlanSavedRecordId) planningCompetition = null
+            viewModel.consumeCompetitionPlanSaved()
+        }
+    }
     var showPlannedLoad by remember(plannedLoadProjection?.weekId,plannedLoadProjection?.cycleNumber) { mutableStateOf(false) }
     val pendingWeeklyCheckin by viewModel.pendingWeeklyCheckin.collectAsStateWithLifecycle()
     val weeklyCheckinPreview by viewModel.weeklyCheckinPreview.collectAsStateWithLifecycle()
@@ -372,6 +390,24 @@ fun ProgramDetailScreen(
                     Spacer(Modifier.height(20.dp))
                     ProgramProgressModule(report = progressReport, onDecisions = { showDecisions = true })
                     if (progressReport != null) Spacer(Modifier.height(20.dp))
+                    competitionState?.let { state ->
+                        com.example.kpkn.screens.programdetail.design.ProgramCompetitionModule(state,competitionBusy,
+                            onPlan = { planningCompetition = state },onMeetDay = { meetDayAttempts = state.record.plannedAttempts },
+                            onReviewResult = { viewModel.reviewMeetResult(state.record.id) },
+                            onOpenRecord = onOpenCompetition?.let { open -> { open(state.record.id) } })
+                        Spacer(Modifier.height(20.dp))
+                    }
+                    seasonState?.takeIf { it.advice.isNotEmpty() }?.let { state ->
+                        com.example.kpkn.screens.programdetail.design.ProgramSeasonModule(state)
+                        Spacer(Modifier.height(20.dp))
+                    }
+                    if (pendingMissedSessions != null || inactivityNotice != null) program?.let { scheduleProgram ->
+                        com.example.kpkn.screens.programdetail.design.ProgramScheduleModule(scheduleProgram,
+                            pendingMissedSessions,inactivityNotice,scheduleBusy,
+                            onChoice = { viewModel.reviewScheduleContinuation(it) },
+                            onSoftReturn = { viewModel.reviewScheduleContinuation() })
+                        Spacer(Modifier.height(20.dp))
+                    }
                     plannedLoadProjection?.takeIf { it.loads.isNotEmpty() }?.let { projection ->
                         com.example.kpkn.screens.programdetail.design.ProgramPlannedLoadModule(projection) { showPlannedLoad = true }
                         Spacer(Modifier.height(20.dp))
@@ -520,6 +556,22 @@ fun ProgramDetailScreen(
             request.requiresEquipmentConfirmation,exerciseSwapPreview?.result?.programDecisions?.lastOrNull()?.detail,
             exerciseSwapBusy,viewModel::previewExerciseSwap,viewModel::confirmExerciseSwap,
             viewModel::clearExerciseSwapPreview,viewModel::closeExerciseSwap)
+    }
+    planningCompetition?.let { state ->
+        com.example.kpkn.screens.programdetail.design.CompetitionPlanSheet(state,competitionBusy,
+            onSave = { attempts,category,weight -> viewModel.saveCompetitionPlan(state.record,attempts,category,weight) },
+            onDismiss = { planningCompetition = null })
+    }
+    meetDayAttempts?.let { attempts ->
+        com.example.kpkn.screens.programdetail.design.MeetDaySheet(attempts) { meetDayAttempts = null }
+    }
+    meetResultPreview?.let { preview ->
+        com.example.kpkn.screens.programdetail.design.MeetResultReviewSheet(preview,competitionBusy,
+            viewModel::confirmMeetResult,viewModel::clearMeetResultPreview)
+    }
+    schedulePreview?.let { preview ->
+        com.example.kpkn.screens.programdetail.design.ProgramScheduleReviewSheet(preview.original,preview.result,
+            scheduleBusy,viewModel::confirmScheduleContinuation,viewModel::clearSchedulePreview)
     }
     if (showPlannedLoad) plannedLoadProjection?.let { projection ->
         com.example.kpkn.screens.programdetail.design.ProgramPlannedLoadSheet(projection) { showPlannedLoad = false }

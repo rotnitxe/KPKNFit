@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
+import com.example.kpkn.data.db.toEntity
+import com.example.kpkn.data.db.toCompetitionRecord
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.AutoregulationHook
 import com.example.kpkn.data.protocols.AutoregulationHookKind
@@ -68,6 +70,278 @@ import java.time.LocalDate
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class ProgramDetailViewModelTest {
+
+    private suspend fun completedMeetProgram(source: Program? = null): Pair<Program,CompetitionRecord> {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val competitions = CompetitionRepository.initForTests(context,repository.databaseForTests())
+        withTimeout(10_000) { competitions.isReady.first { it } }
+        val id = source?.id ?: nextId()
+        val p = (source ?: makeProgram(id)).copy(mode = ProgramMode.POWERLIFTING,
+            powerliftingProfile = source?.powerliftingProfile ?: PowerliftingProfile(squat1RM = 190.0,bench1RM = 125.0,deadlift1RM = 220.0),
+            keyDates = listOf(ProgramKeyDate("meet-date-$id","Meet",KeyDateType.COMPETITION,LocalDate.now().toString(),eventDate = LocalDate.now().toString())))
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val linked = withTimeout(10_000) { competitions.records.first { records -> records.any { repository.isCompetitionLinked(p,it) } } }
+            .first { repository.isCompetitionLinked(p,it) }
+        val completed = linked.copy(status = CompetitionRecordStatus.COMPLETED,sportType = CompetitionTemplateType.POWERLIFTING,
+            technicalBlocks = listOf(CompetitionMovementType.SQUAT to 200.0,CompetitionMovementType.BENCH to 120.0,CompetitionMovementType.DEADLIFT to 230.0).map { (movement,kg) ->
+                CompetitionTechnicalBlock(movement.name,movement.name,movementType = movement,attempts = listOf(
+                    CompetitionAttempt("good-${movement.name}",1,weightKg = kg,resultType = CompetitionAttemptResult.GOOD_LIFT),
+                    CompetitionAttempt("bad-${movement.name}",2,weightKg = kg + 50,resultType = CompetitionAttemptResult.NO_LIFT)))
+            })
+        competitions.upsertNow(completed)
+        return repository.getProgramById(p.id)!! to competitions.getById(linked.id)!!
+    }
+
+    @Test fun meet_result_requires_confirmation_and_persists_profile_and_applied_marker_together() = runBlocking {
+        val (p,record) = completedMeetProgram()
+        val competitions = CompetitionRepository.getInstance()
+        val vm = vmFor(p.id)
+        assertNotNull(withTimeout(10_000) { vm.competitionState.first { it?.resultSummary != null } })
+        vm.reviewMeetResult(record.id)
+        val preview = withTimeout(10_000) { vm.meetResultPreview.first { it != null } }!!
+        assertEquals(190.0,repository.getProgramById(p.id)!!.powerliftingProfile!!.squat1RM!!,0.0)
+        assertNull(competitions.getById(record.id)!!.meetResultAppliedAtMs)
+        vm.confirmMeetResult()
+        val saved = withTimeout(10_000) { repository.programs.first { plans -> plans.any { it.id == p.id && it.powerliftingProfile?.squat1RM == 200.0 } } }.first { it.id == p.id }
+        assertEquals(125.0,saved.powerliftingProfile!!.bench1RM!!,0.0)
+        assertEquals(230.0,saved.powerliftingProfile.deadlift1RM!!,0.0)
+        assertNotNull(competitions.getById(record.id)!!.meetResultAppliedAtMs)
+        val stored = repository.databaseForTests().competitionRecordDao().getById(record.id)!!.toCompetitionRecord()
+        assertNotNull(stored.meetResultAppliedAtMs)
+        assertEquals(record.technicalBlocks,stored.technicalBlocks)
+        assertEquals(saved.powerliftingProfile,repository.readPersistedProgramForEditorRecovery(p.id)!!.powerliftingProfile)
+        assertTrue(repository.getLogsForProgram(p.id).isEmpty())
+        assertFalse(repository.applyMeetResult(p.id,preview))
+    }
+
+    @Test fun meet_result_storage_failure_rolls_back_both_entities_and_preserves_the_original_result() = runBlocking {
+        val (p,record) = completedMeetProgram()
+        val preview = repository.previewMeetResult(p.id,record.id)!!
+        repository.meetAfterProgramWriteForTests = { throw IllegalStateException("storage unavailable after program row") }
+        try { assertTrue(runCatching { repository.applyMeetResult(p.id,preview) }.isFailure) }
+        finally { repository.meetAfterProgramWriteForTests = null }
+        assertEquals(p.powerliftingProfile,repository.readPersistedProgramForEditorRecovery(p.id)!!.powerliftingProfile)
+        assertEquals(p.powerliftingProfile,repository.getProgramById(p.id)!!.powerliftingProfile)
+        val stored = repository.databaseForTests().competitionRecordDao().getById(record.id)!!.toCompetitionRecord()
+        assertNull(stored.meetResultAppliedAtMs)
+        assertEquals(record.technicalBlocks,stored.technicalBlocks)
+        assertEquals(record,CompetitionRepository.getInstance().getById(record.id))
+    }
+
+    @Test fun meet_result_rejects_a_changed_record_program_or_started_session_and_unrelated_competition() = runBlocking {
+        val (p,record) = completedMeetProgram()
+        val competitions = CompetitionRepository.getInstance()
+        val first = repository.previewMeetResult(p.id,record.id)!!
+        competitions.upsertNow(record.copy(notes = "Edición posterior"))
+        assertFalse(repository.applyMeetResult(p.id,first))
+        val second = repository.previewMeetResult(p.id,record.id)!!
+        assertTrue(repository.mutateProgramNow(p.id) { it.copy(name = "Programa editado") })
+        assertFalse(repository.applyMeetResult(p.id,second))
+        val third = repository.previewMeetResult(p.id,record.id)!!
+        repository.startWorkout(OngoingWorkoutState(programId = p.id,session = weeksOf(repository.getProgramById(p.id)!!).first().sessions.first(),startTime = 99))
+        assertFalse(repository.applyMeetResult(p.id,third))
+        competitions.upsertNow(record.copy(id = "unrelated-${record.id}",plannedProgramId = "another-program"))
+        assertNull(repository.previewMeetResult(p.id,"unrelated-${record.id}"))
+        assertEquals(p.powerliftingProfile,repository.getProgramById(p.id)!!.powerliftingProfile)
+        assertEquals("Programa editado",repository.getProgramById(p.id)!!.name)
+        competitions.upsertNow(competitions.getById(record.id)!!.copy(sportType = CompetitionTemplateType.WEIGHTLIFTING))
+        assertNull(repository.previewMeetResult(p.id,record.id))
+    }
+
+    @Test fun a_fresh_meet_preview_preserves_an_ongoing_session_and_the_recipe_source() = runBlocking {
+        val source = com.example.kpkn.domain.training.block.BlockReviewTestFixture.program().copy(id = nextId(),powerliftingProfile = PowerliftingProfile(bench1RM = 100.0))
+        val (p,record) = completedMeetProgram(source)
+        repository.startWorkout(OngoingWorkoutState(programId = p.id,session = weeksOf(p).first().sessions.first(),startTime = 55))
+        val ongoing = repository.ongoingWorkout.value
+        val current = repository.getProgramById(p.id)!!
+        val preview = repository.previewMeetResult(p.id,record.id)!!
+        assertEquals(weeksOf(current).first().sessions.first(),weeksOf(preview.result).first().sessions.first())
+        assertEquals(current.sourceRecipe,preview.result.sourceRecipe)
+        assertTrue(repository.applyMeetResult(p.id,preview))
+        assertEquals(ongoing,repository.ongoingWorkout.value)
+        assertEquals(120.0,repository.getProgramById(p.id)!!.powerliftingProfile!!.bench1RM!!,0.0)
+    }
+
+    @Test fun planned_attempts_are_durable_editable_and_guarded_against_a_stale_competition() = runBlocking {
+        val (p,completed) = completedMeetProgram()
+        val competitions = CompetitionRepository.getInstance()
+        competitions.upsertNow(completed.copy(status = CompetitionRecordStatus.PLANNED,technicalBlocks = emptyList()))
+        val record = competitions.getById(completed.id)!!
+        val attempts = com.example.kpkn.domain.competitions.AttemptPlanner.plan(CompetitionMovementType.SQUAT,200.0)
+        val vm = vmFor(p.id)
+        vm.saveCompetitionPlan(record,attempts,"83 kg",83.0)
+        withTimeout(10_000) { vm.competitionPlanSavedRecordId.first { it == record.id } }
+        val saved = repository.databaseForTests().competitionRecordDao().getById(record.id)!!.toCompetitionRecord()
+        assertEquals(attempts,saved.plannedAttempts)
+        assertEquals(83.0,saved.targetBodyweightKg!!,0.0)
+        assertEquals(CompetitionRecordStatus.PLANNED,saved.status)
+        assertTrue(saved.technicalBlocks.isEmpty())
+        assertNull(saved.meetResultAppliedAtMs)
+        assertFalse(competitions.savePlannedAttempts(record.id,attempts,"otro",82.0,record))
+        assertEquals("83 kg",competitions.getById(record.id)!!.targetWeightClass)
+    }
+
+    private suspend fun seedSeasonNutrition(calories: Int = 2000): NutritionPlan {
+        val plan = NutritionPlan(id = "season-${nextId()}",name = "Nutrición",direction = PlanDirection.DEFICIT,calorieTarget = calories,
+            calculationSnapshot = NutritionPlanCalculationSnapshot("test","declared EER",result = mapOf("eerKcal" to "2400"),calculatedAt = "2026-10-25T10:00:00Z"))
+        val dao = repository.databaseForTests().nutritionDao()
+        dao.upsertPlan(plan.toEntity())
+        dao.upsertActiveState(com.example.kpkn.data.db.NutritionActiveStateEntity(activePlanId = plan.id))
+        return plan
+    }
+
+    @Test fun season_context_refreshes_from_committed_nutrition_without_mutating_training_or_accounting() = runBlocking {
+        val id = nextId()
+        val p = makeProgram(id).copy(runState = ProgramRunState("run-$id",weekId = "${id}_w1"))
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val plan = seedSeasonNutrition()
+        val vm = vmFor(id)
+        val first = withTimeout(10_000) { vm.seasonState.first { it?.input?.calorieTarget == 2000 } }!!
+        assertEquals(2400,first.input.maintenanceKcal)
+        assertTrue(first.advice.any { it.code == com.example.kpkn.domain.season.SeasonAdviceCode.DEFICIT_CAPS_VOLUME })
+        repository.databaseForTests().nutritionDao().upsertPlan(plan.copy(calorieTarget = 2200).toEntity())
+        val changed = withTimeout(10_000) { vm.seasonState.first { it?.input?.calorieTarget == 2200 } }!!
+        assertFalse(changed.advice.any { it.code == com.example.kpkn.domain.season.SeasonAdviceCode.DEFICIT_CAPS_VOLUME })
+        assertEquals(p.macrocycles,repository.getProgramById(id)!!.macrocycles)
+        assertTrue(repository.getLogsForProgram(id).isEmpty())
+        assertEquals(plan.id,repository.databaseForTests().nutritionDao().getActiveState()?.activePlanId)
+    }
+
+    @Test fun nutrition_changed_in_the_commit_lane_invalidates_a_weekly_preview_before_program_write() = runBlocking {
+        val id = nextId()
+        val base = materializedRestoreProgram(id)
+        val week = weeksOf(base).first()
+        val p = base.copy(runState = ProgramRunState("run-$id",weekId = week.id),pendingWeeklyCheckin =
+            com.example.kpkn.domain.training.cycle.WeeklyCheckinRequest(week.id,programRunId = "run-$id"))
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val plan = seedSeasonNutrition()
+        val answer = com.example.kpkn.domain.training.cycle.WeeklyCheckin(week.id,programRunId = "run-$id",globalPerformance = 2,globalSoreness = 2)
+        val preview = repository.previewWeeklyCheckin(id,answer)!!
+        assertTrue(com.example.kpkn.domain.season.SeasonAdvisor.deficitMode(preview.season))
+        repository.durableCommitBeforeWriteForTests = {
+            runBlocking { repository.databaseForTests().nutritionDao().upsertPlan(plan.copy(calorieTarget = 2200).toEntity()) }
+        }
+        try { assertFalse(repository.submitWeeklyCheckin(id,preview)) }
+        finally { repository.durableCommitBeforeWriteForTests = null }
+        assertTrue(repository.getProgramById(id)!!.weeklyCheckins.isEmpty())
+        assertTrue(repository.readPersistedProgramForEditorRecovery(id)!!.weeklyCheckins.isEmpty())
+        val refreshed = repository.previewWeeklyCheckin(id,answer)!!
+        assertFalse(com.example.kpkn.domain.season.SeasonAdvisor.deficitMode(refreshed.season))
+        assertTrue(repository.submitWeeklyCheckin(id,refreshed))
+        assertEquals(2200,repository.seasonInput(id).calorieTarget)
+    }
+
+    private fun heldScheduleProgram(): Pair<Program,WorkoutLog> {
+        val id = nextId()
+        val base = makeProgram(id)
+        val prepared = base.copy(macrocycles = base.macrocycles.map { macro -> macro.copy(blocks = macro.blocks.map { block ->
+            block.copy(mesocycles = block.mesocycles.map { meso -> meso.copy(weeks = meso.weeks.map { week ->
+                week.copy(sessions = week.sessions.map { session -> session.copy(exercises = listOf(Exercise("e-${session.id}","Press",
+                    sets = listOf(ExerciseSet("set-${session.id}",targetReps = 5,targetRIR = 2))))) })
+            }) })
+        }) },runState = ProgramRunState("schedule-$id",weekId = "${id}_w2",weekInstanceId = "${id}_w2",blockId = "${id}_b1"))
+        val current = weeksOf(prepared)[1]
+        val log = WorkoutLog("last-$id",id,current.sessions.single().id,"Última sesión","2026-10-25T12:00:00Z",30,
+            weekId = current.id,weekInstanceId = current.id,cycleNumber = 1,programRunId = prepared.runState!!.runId)
+        val held = ProgramProgressEngine.advanceAfterSessionComplete(prepared,null,current.sessions.single(),current.id,
+            listOf(log),compositionMetadata = CatalogCompositionTestSupport.metadata).program
+        return held to log
+    }
+
+    @Test fun missed_session_preview_does_not_persist_and_confirmed_skip_releases_hold_without_fake_workouts() = runBlocking {
+        val (p,log) = heldScheduleProgram()
+        repository.addProgram(p)
+        repository.addWorkoutLog(log)
+        repository.flushPendingWrites()
+        val vm = vmFor(p.id)
+        val request = withTimeout(10_000) { vm.pendingMissedSessions.first { it != null } }!!
+        assertEquals(2,request.sessionIds.size)
+        vm.reviewScheduleContinuation(com.example.kpkn.domain.training.schedule.MissedSessionChoice.SKIP)
+        val preview = withTimeout(10_000) { vm.schedulePreview.first { it != null } }!!
+        assertTrue(repository.getProgramById(p.id)!!.skippedSessionKeys.isEmpty())
+        assertEquals("${p.id}_w3",preview.result.runState?.weekId)
+        vm.confirmScheduleContinuation()
+        val saved = withTimeout(10_000) { repository.programs.first { plans -> plans.any { it.id == p.id && it.skippedSessionKeys.size == 2 } } }.first { it.id == p.id }
+        assertEquals("${p.id}_w3",saved.runState?.weekId)
+        assertEquals(saved.skippedSessionKeys,repository.readPersistedProgramForEditorRecovery(p.id)!!.skippedSessionKeys)
+        assertEquals(listOf(log.id),repository.getLogsForProgram(p.id).map { it.id })
+        assertFalse(repository.submitScheduleContinuation(p.id,preview))
+    }
+
+    @Test fun schedule_confirmation_rejects_edits_started_sessions_and_changed_original_logs() = runBlocking {
+        val (p,log) = heldScheduleProgram()
+        repository.addProgram(p)
+        repository.addWorkoutLog(log)
+        repository.flushPendingWrites()
+        val choice = com.example.kpkn.domain.training.schedule.MissedSessionChoice.SKIP
+        val first = repository.previewScheduleContinuation(p.id,choice,p.pendingMissedSessions)!!
+        assertTrue(repository.mutateProgramNow(p.id) { it.copy(name = "Editado") })
+        assertFalse(repository.submitScheduleContinuation(p.id,first))
+        val second = repository.previewScheduleContinuation(p.id,choice,p.pendingMissedSessions)!!
+        repository.addWorkoutLog(log.copy(notes = "Nota original posterior"))
+        repository.flushPendingWrites()
+        assertFalse(repository.submitScheduleContinuation(p.id,second))
+        val third = repository.previewScheduleContinuation(p.id,choice,p.pendingMissedSessions)!!
+        repository.startWorkout(OngoingWorkoutState(programId = p.id,session = weeksOf(p).first().sessions.first(),startTime = 22))
+        val ongoing = repository.ongoingWorkout.value
+        assertFalse(repository.submitScheduleContinuation(p.id,third))
+        assertEquals(ongoing,repository.ongoingWorkout.value)
+        assertTrue(repository.getProgramById(p.id)!!.skippedSessionKeys.isEmpty())
+        assertEquals("Editado",repository.getProgramById(p.id)!!.name)
+    }
+
+    @Test fun choosing_to_do_the_earlier_week_keeps_requirements_until_real_backfilled_workouts_complete_it() = runBlocking {
+        val (p,log) = heldScheduleProgram()
+        repository.addProgram(p)
+        repository.addWorkoutLog(log)
+        repository.flushPendingWrites()
+        val preview = repository.previewScheduleContinuation(p.id,com.example.kpkn.domain.training.schedule.MissedSessionChoice.DO_THIS_WEEK,p.pendingMissedSessions)!!
+        assertTrue(repository.submitScheduleContinuation(p.id,preview))
+        assertEquals("${p.id}_w2",repository.getProgramById(p.id)!!.runState?.weekId)
+        val missing = weeksOf(p).first()
+        missing.sessions.forEachIndexed { i,session ->
+            repository.finalizeWorkout(WorkoutLog("backfill-${p.id}-$i",p.id,session.id,session.name,"2026-10-25T15:00:00Z",30,
+                weekId = missing.id,weekInstanceId = missing.id,cycleNumber = 1,programRunId = p.runState!!.runId))
+        }
+        assertEquals("${p.id}_w3",repository.getProgramById(p.id)!!.runState?.weekId)
+        assertTrue(repository.getProgramById(p.id)!!.skippedSessionKeys.isEmpty())
+        assertEquals(3,repository.getLogsForProgram(p.id).size)
+    }
+
+    @Test fun inactivity_notice_tracks_actual_record_dates_and_disappears_after_a_current_record(): Unit = runBlocking {
+        val id = nextId()
+        val p = makeProgram(id).copy(runState = ProgramRunState("run-$id",weekId = "${id}_w1"))
+        repository.addProgram(p)
+        val old = WorkoutLog("old-$id",id,"${id}_s1","S",LocalDate.now().minusDays(21).toString(),30)
+        repository.addWorkoutLog(old)
+        repository.flushPendingWrites()
+        val vm = vmFor(id)
+        val notice = withTimeout(10_000) { vm.inactivityNotice.first { it != null } }!!
+        assertEquals(21,notice.daysSinceLastLog)
+        assertEquals(2,notice.level)
+        assertTrue(notice.message.contains("no indica si entrenaste"))
+        repository.addWorkoutLog(old.copy(id = "today-$id",actualDate = LocalDate.now().toString()))
+        withTimeout(10_000) { vm.inactivityNotice.first { it == null } }
+    }
+
+    @Test fun soft_return_is_reviewed_and_cannot_rewrite_an_authored_recipe() = runBlocking {
+        val p = com.example.kpkn.domain.training.block.BlockReviewTestFixture.program().copy(id = nextId())
+        repository.addProgram(p)
+        repository.flushPendingWrites()
+        val preview = repository.previewScheduleContinuation(p.id,null)!!
+        assertEquals(p.sourceRecipe,preview.result.sourceRecipe)
+        assertTrue(repository.getProgramById(p.id)!!.effectiveWeekRecipes.isEmpty())
+        assertTrue(preview.result.effectiveWeekRecipes.isNotEmpty())
+        assertTrue(repository.submitScheduleContinuation(p.id,preview))
+        assertNull(repository.previewScheduleContinuation(p.id,null))
+        val authored = p.copy(id = nextId(),sourceProtocolId = "author")
+        repository.addProgram(authored)
+        repository.flushPendingWrites()
+        assertNull(repository.previewScheduleContinuation(authored.id,null))
+    }
 
     @Test fun exercise_swap_requires_a_review_and_unknown_equipment_confirmation_before_persisting() = runBlocking {
         val p = com.example.kpkn.domain.training.block.BlockReviewTestFixture.program().copy(id = nextId())

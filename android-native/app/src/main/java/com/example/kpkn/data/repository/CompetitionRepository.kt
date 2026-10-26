@@ -6,10 +6,14 @@ import com.example.kpkn.data.db.toCompetitionRecord
 import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.models.CompetitionRecord
 import com.example.kpkn.data.models.CompetitionRecordStatus
+import com.example.kpkn.data.persistence.PersistenceWriteCoordinator
 import com.example.kpkn.services.competition.CompetitionReminderManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,6 +33,10 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
     private val db = databaseOverride ?: KpknDatabase.getInstance(context)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val reminderManager = CompetitionReminderManager(context)
+    private val mutationLock = Any()
+    internal val recordWriteMutex = Mutex()
+    private var writeSequence = 0L
+    private val newestWrite = mutableMapOf<String,Long>()
 
     private val _records = MutableStateFlow<List<CompetitionRecord>>(emptyList())
     val records: StateFlow<List<CompetitionRecord>> = _records.asStateFlow()
@@ -40,7 +48,9 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
     init {
         scope.launch {
             val persisted = db.competitionRecordDao().getAll().map { it.toCompetitionRecord() }
-            _records.value = persisted.sortedWith(recordSorter)
+            synchronized(mutationLock) {
+                _records.value = (persisted.filterNot { it.id in newestWrite } + _records.value).sortedWith(recordSorter)
+            }
             _isReady.value = true
         }
     }
@@ -56,36 +66,79 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
 
     fun upsert(record: CompetitionRecord) {
         val normalized = record.withFreshTimestamps()
-        _records.update { current ->
-            val next = if (current.any { it.id == normalized.id }) {
-                current.map { if (it.id == normalized.id) normalized else it }
-            } else {
-                current + normalized
-            }
-            next.sortedWith(recordSorter)
+        val reservation = synchronized(mutationLock) {
+            reserve(normalized).also { publishRecord(normalized) }
         }
-        scope.launch { db.competitionRecordDao().upsert(normalized.toEntity()) }
+        scope.launch { commitReserved(reservation) }
         syncReminders(normalized)
     }
 
     suspend fun upsertNow(record: CompetitionRecord) {
-        val normalized = record.withFreshTimestamps()
-        _records.update { current ->
-            val next = if (current.any { it.id == normalized.id }) {
-                current.map { if (it.id == normalized.id) normalized else it }
-            } else {
-                current + normalized
-            }
-            next.sortedWith(recordSorter)
-        }
-        withContext(Dispatchers.IO) { db.competitionRecordDao().upsert(normalized.toEntity()) }
-        syncReminders(normalized)
+        val reservation = synchronized(mutationLock) { reserve(record.withFreshTimestamps()) }
+        if (commitReserved(reservation)) syncReminders(reservation.record)
     }
 
     fun delete(id: String) {
-        _records.update { it.filterNot { record -> record.id == id } }
-        scope.launch { db.competitionRecordDao().delete(id) }
+        val version = synchronized(mutationLock) {
+            newestWrite[id] = ++writeSequence
+            _records.update { it.filterNot { record -> record.id == id } }
+            writeSequence
+        }
+        scope.launch {
+            PersistenceWriteCoordinator.mutex.withLock {
+                recordWriteMutex.withLock {
+                    if (synchronized(mutationLock) { newestWrite[id] == version }) db.competitionRecordDao().delete(id)
+                }
+            }
+        }
         reminderManager.cancel(id)
+    }
+
+    internal data class RecordWriteReservation(val record: CompetitionRecord,val version: Long)
+    private fun reserve(record: CompetitionRecord): RecordWriteReservation {
+        val version = ++writeSequence
+        newestWrite[record.id] = version
+        return RecordWriteReservation(record,version)
+    }
+    private fun publishRecord(record: CompetitionRecord) {
+        _records.update { current -> (current.filterNot { it.id == record.id } + record).sortedWith(recordSorter) }
+    }
+    internal fun usesDatabase(database: KpknDatabase): Boolean = db === database
+    internal fun reserveIfUnchanged(expected: CompetitionRecord,replacement: CompetitionRecord): RecordWriteReservation? = synchronized(mutationLock) {
+        if (!_isReady.value || expected.id != replacement.id || getById(expected.id) != expected) null
+        else reserve(replacement.withFreshTimestamps())
+    }
+    internal fun isCurrent(reservation: RecordWriteReservation): Boolean = synchronized(mutationLock) {
+        newestWrite[reservation.record.id] == reservation.version
+    }
+    internal fun publishIfCurrent(reservation: RecordWriteReservation): Boolean = synchronized(mutationLock) {
+        if (newestWrite[reservation.record.id] != reservation.version) false
+        else { publishRecord(reservation.record); true }
+    }
+    private suspend fun commitReserved(reservation: RecordWriteReservation): Boolean = withContext(NonCancellable + Dispatchers.IO) {
+        PersistenceWriteCoordinator.mutex.withLock {
+            recordWriteMutex.withLock {
+                if (!isCurrent(reservation)) false else {
+                    db.competitionRecordDao().upsert(reservation.record.toEntity())
+                    publishIfCurrent(reservation)
+                }
+            }
+        }
+    }
+
+    suspend fun savePlannedAttempts(recordId: String,attempts: List<com.example.kpkn.data.models.PlannedAttempt>,
+        targetWeightClass: String?,targetBodyweightKg: Double?,expected: CompetitionRecord? = getById(recordId)): Boolean {
+        val original = expected?.takeIf { it.id == recordId && it.status == CompetitionRecordStatus.PLANNED } ?: return false
+        if (targetBodyweightKg != null && (!targetBodyweightKg.isFinite() || targetBodyweightKg <= 0) ||
+            targetWeightClass.orEmpty().length > 80 || attempts.groupBy { it.movementType }.any { (movement,values) ->
+                movement !in com.example.kpkn.domain.competitions.AttemptPlanner.lifts || values.size != 3 ||
+                    values.map { it.attemptNumber }.toSet() != setOf(1,2,3) ||
+                    values.any { !it.weightKg.isFinite() || it.weightKg <= 0 } ||
+                    values.sortedBy { it.attemptNumber }.zipWithNext().any { it.first.weightKg > it.second.weightKg }
+            }) return false
+        val reservation = reserveIfUnchanged(original,original.copy(plannedAttempts = attempts,
+            targetWeightClass = targetWeightClass?.trim()?.takeIf { it.isNotEmpty() },targetBodyweightKg = targetBodyweightKg)) ?: return false
+        return commitReserved(reservation)
     }
 
     private fun syncReminders(record: CompetitionRecord) {
@@ -116,10 +169,10 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
             }
 
         /** Robolectric-friendly init with in-memory Room and isolated singleton. */
-        fun initForTests(context: Context): CompetitionRepository = synchronized(this) {
+        fun initForTests(context: Context, database: KpknDatabase? = null): CompetitionRepository = synchronized(this) {
             CompetitionRepository(
                 context = context.applicationContext,
-                databaseOverride = KpknDatabase.createInMemory(context.applicationContext),
+                databaseOverride = database ?: KpknDatabase.createInMemory(context.applicationContext),
             ).also { INSTANCE = it }
         }
 

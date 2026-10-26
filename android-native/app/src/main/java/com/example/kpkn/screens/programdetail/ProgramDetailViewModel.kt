@@ -137,6 +137,19 @@ internal data class Rematerialization(
     val failed: Boolean = false,
 )
 
+data class ProgramCompetitionState(
+    val record: com.example.kpkn.data.models.CompetitionRecord,
+    val daysToMeet: Int?,
+    val forecast: com.example.kpkn.domain.competitions.WeighInForecast?,
+    val resultSummary: String?,
+    val expectedMaxes: Map<com.example.kpkn.data.models.CompetitionMovementType,Double>,
+    val weeklyWeightRateKg: Double? = null,
+    val supportsSbdPlanning: Boolean = true,
+)
+
+data class ProgramSeasonState(val input: com.example.kpkn.domain.season.SeasonInput,
+    val advice: List<com.example.kpkn.domain.season.SeasonAdvice>)
+
 class ProgramDetailViewModel(
     private val programId: String,
     private val idProvider: IdProvider = UuidIdProvider,
@@ -182,6 +195,153 @@ class ProgramDetailViewModel(
     val activeProgramState: StateFlow<ActiveProgramState?> = repository.activeProgramState
 
     val history: StateFlow<List<WorkoutLog>> = repository.history
+
+    private val competitionRecords = runCatching { CompetitionRepository.getInstance().records }.getOrElse {
+        MutableStateFlow<List<com.example.kpkn.data.models.CompetitionRecord>>(emptyList()).asStateFlow()
+    }
+    val seasonState: StateFlow<ProgramSeasonState?> = combine(program,repository.settings,repository.seasonContextChanges) { p,_,_ ->
+        p?.let {
+            val zone = java.time.ZoneId.systemDefault()
+            val context = repository.seasonInput(it.id,appClock.today(zone),zone)
+            ProgramSeasonState(context,com.example.kpkn.domain.season.SeasonAdvisor.advise(context))
+        }
+    }.flowOn(kotlinx.coroutines.Dispatchers.IO).stateIn(viewModelScope,SharingStarted.WhileSubscribed(5_000),null)
+
+    val competitionState: StateFlow<ProgramCompetitionState?> = combine(program,competitionRecords,repository.settings,repository.seasonContextChanges) { p,records,settings,_ ->
+        if (p == null) null else {
+            val today = appClock.today(java.time.ZoneId.systemDefault())
+            val context = repository.seasonInput(p.id,today,java.time.ZoneId.systemDefault())
+            fun days(record: com.example.kpkn.data.models.CompetitionRecord): Int? {
+                val key = p.keyDates.firstOrNull { it.id == record.keyDateId }
+                val date = runCatching { java.time.LocalDate.parse(record.eventDate ?: key?.eventDate ?: key?.startDate) }.getOrNull() ?: return null
+                return java.time.temporal.ChronoUnit.DAYS.between(today,date).coerceIn(Int.MIN_VALUE.toLong(),Int.MAX_VALUE.toLong()).toInt()
+            }
+            val percent = TrainingMaxMerge.trainingMaxPercentOf(p)
+            val matching = records.filter { it.status != com.example.kpkn.data.models.CompetitionRecordStatus.ARCHIVED && repository.isCompetitionLinked(p,it) }
+            val record = matching.sortedWith(compareBy<com.example.kpkn.data.models.CompetitionRecord> {
+                if (repository.supportsSbdCompetition(p,it) && com.example.kpkn.domain.competitions.MeetResultToProfile.propose(it,p.powerliftingProfile,percent) != null) 0
+                else if ((days(it) ?: -1) >= 0) 1 else 2
+            }.thenBy { kotlin.math.abs((days(it) ?: Int.MAX_VALUE).toLong()) }).firstOrNull()
+            record?.let {
+                val supportsSbd = repository.supportsSbdCompetition(p,it)
+                val remaining = days(it)
+                val weight = settings.userVitals.weight?.takeIf { kg -> kg.isFinite() && kg > 0 }
+                val target = it.targetBodyweightKg?.takeIf { kg -> kg.isFinite() && kg > 0 }
+                val forecast = if (weight != null && target != null && remaining != null && remaining >= 0)
+                    com.example.kpkn.domain.competitions.WeighInPlanner.forecast(weight,target,context.weeklyWeightRateKg,remaining) else null
+                val expected = p.powerliftingProfile?.takeIf { supportsSbd }?.let { profile -> com.example.kpkn.domain.competitions.AttemptPlanner.lifts.mapNotNull { movement ->
+                    com.example.kpkn.domain.competitions.AttemptPlanner.expectedMaxOf(profile,movement,percent)?.let { kg -> movement to kg }
+                }.toMap() }.orEmpty()
+                ProgramCompetitionState(it,remaining,forecast,
+                    if (supportsSbd) com.example.kpkn.domain.competitions.MeetResultToProfile.propose(it,p.powerliftingProfile,percent)?.summary else null,
+                    expected,context.weeklyWeightRateKg,supportsSbd)
+            }
+        }
+    }.flowOn(kotlinx.coroutines.Dispatchers.Default).stateIn(viewModelScope,SharingStarted.WhileSubscribed(5_000),null)
+
+    private val _competitionBusy = MutableStateFlow(false)
+    val competitionBusy = _competitionBusy.asStateFlow()
+    private val _meetResultPreview = MutableStateFlow<ProgramRepository.MeetResultPreview?>(null)
+    val meetResultPreview = _meetResultPreview.asStateFlow()
+    private val _competitionPlanSavedRecordId = MutableStateFlow<String?>(null)
+    val competitionPlanSavedRecordId = _competitionPlanSavedRecordId.asStateFlow()
+    fun consumeCompetitionPlanSaved() { _competitionPlanSavedRecordId.value = null }
+    fun clearMeetResultPreview() { _meetResultPreview.value = null }
+
+    fun saveCompetitionPlan(record: com.example.kpkn.data.models.CompetitionRecord,
+        attempts: List<com.example.kpkn.data.models.PlannedAttempt>,weightClass: String?,targetKg: Double?) {
+        if (_competitionBusy.value) return
+        viewModelScope.launch {
+            _competitionBusy.value = true
+            try {
+                val p = program.value
+                val saved = p != null && repository.isCompetitionLinked(p,record) && repository.supportsSbdCompetition(p,record) &&
+                    CompetitionRepository.getInstance().savePlannedAttempts(record.id,attempts,weightClass,targetKg,record)
+                if (saved) _competitionPlanSavedRecordId.value = record.id
+                _uiState.update { it.copy(snackbarMessage = if (saved) "Plan de competición guardado" else "La competición cambió o hay pesos incompletos. Vuelve a revisarla.") }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (error: Exception) { _uiState.update { it.copy(snackbarMessage = error.message ?: "No se pudo guardar el plan de competición.") } }
+            finally { _competitionBusy.value = false }
+        }
+    }
+
+    fun reviewMeetResult(recordId: String) {
+        if (_competitionBusy.value) return
+        viewModelScope.launch {
+            _competitionBusy.value = true
+            try {
+                _meetResultPreview.value = withContext(kotlinx.coroutines.Dispatchers.IO) { repository.previewMeetResult(programId,recordId) }
+                if (_meetResultPreview.value == null) _uiState.update { it.copy(snackbarMessage = "No hay marcas válidas superiores pendientes de aplicar. Revisa el resultado y sus variantes.") }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (error: Exception) { _uiState.update { it.copy(snackbarMessage = error.message ?: "No se pudo preparar la revisión de marcas.") } }
+            finally { _competitionBusy.value = false }
+        }
+    }
+
+    fun confirmMeetResult() {
+        val preview = _meetResultPreview.value ?: return
+        if (_competitionBusy.value) return
+        viewModelScope.launch {
+            _competitionBusy.value = true
+            try {
+                val saved = repository.applyMeetResult(programId,preview)
+                _meetResultPreview.value = null
+                _uiState.update { it.copy(snackbarMessage = if (saved) "Marcas y referencias guardadas" else "El programa o la competición cambiaron. Vuelve a revisar las marcas.") }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (error: Exception) { _uiState.update { it.copy(snackbarMessage = error.message ?: "No se pudieron guardar las marcas.") } }
+            finally { _competitionBusy.value = false }
+        }
+    }
+
+    val pendingMissedSessions: StateFlow<com.example.kpkn.domain.training.schedule.MissedSessionsRequest?> = program.map { p ->
+        p?.pendingMissedSessions?.takeIf { request -> p.runState?.let { run ->
+            run.status == ProgramRunStatus.ACTIVE && run.runId == request.programRunId && run.cycleNumber == request.cycleNumber
+        } == true }
+    }.stateIn(viewModelScope,SharingStarted.WhileSubscribed(5_000),null)
+
+    val inactivityNotice: StateFlow<com.example.kpkn.domain.training.schedule.InactivityNotice?> = combine(program,history) { p,logs ->
+        if (p?.runState?.status != ProgramRunStatus.ACTIVE) null else {
+            val zone = java.time.ZoneId.systemDefault()
+            com.example.kpkn.domain.training.schedule.InactivityDetector.detect(logs,p.id,appClock.today(zone),zone)
+        }
+    }.flowOn(kotlinx.coroutines.Dispatchers.Default).stateIn(viewModelScope,SharingStarted.WhileSubscribed(5_000),null)
+
+    private val _schedulePreview = MutableStateFlow<ProgramRepository.ScheduleContinuationPreview?>(null)
+    val schedulePreview = _schedulePreview.asStateFlow()
+    private val _scheduleBusy = MutableStateFlow(false)
+    val scheduleBusy = _scheduleBusy.asStateFlow()
+    fun clearSchedulePreview() { _schedulePreview.value = null }
+
+    fun reviewScheduleContinuation(choice: com.example.kpkn.domain.training.schedule.MissedSessionChoice? = null) {
+        if (_scheduleBusy.value) return
+        val expected = pendingMissedSessions.value ?: program.value?.pendingMissedSessions
+        viewModelScope.launch {
+            _scheduleBusy.value = true
+            try {
+                _schedulePreview.value = repository.previewScheduleContinuation(programId,choice,expected)
+                if (_schedulePreview.value == null) _uiState.update { it.copy(snackbarMessage =
+                    "No hay cambios disponibles. Comprueba las sesiones registradas, las ediciones y cualquier entrenamiento en curso.") }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (error: Exception) { _uiState.update { it.copy(snackbarMessage = error.message ?: "No se pudo preparar la continuidad.") } }
+            finally { _scheduleBusy.value = false }
+        }
+    }
+
+    fun confirmScheduleContinuation() {
+        val preview = _schedulePreview.value ?: return
+        if (_scheduleBusy.value) return
+        viewModelScope.launch {
+            _scheduleBusy.value = true
+            try {
+                val saved = repository.submitScheduleContinuation(programId,preview)
+                _schedulePreview.value = null
+                _uiState.update { it.copy(snackbarMessage = if (saved) "Continuidad guardada" else
+                    "El programa o sus registros cambiaron. Vuelve a revisar la continuidad.") }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (error: Exception) { _uiState.update { it.copy(snackbarMessage = error.message ?: "No se pudo guardar la continuidad.") } }
+            finally { _scheduleBusy.value = false }
+        }
+    }
 
     /** Cumplimiento y decisiones de la ejecución actual, calculados fuera del hilo de UI. */
     val progressReport: StateFlow<ProgramProgressReport?> = combine(program, history) { p, logs ->

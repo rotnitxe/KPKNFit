@@ -26,6 +26,20 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TrainingPlanRecipeJsonCompatTest {
+    @Test fun competition_planning_and_missing_session_metadata_survive_the_actual_database_codec() {
+        val record = com.example.kpkn.data.models.CompetitionRecord("meet","Meet",
+            plannedAttempts = listOf(com.example.kpkn.data.models.PlannedAttempt(com.example.kpkn.data.models.CompetitionMovementType.SQUAT,1,182.5)),
+            targetWeightClass = "83 kg",targetBodyweightKg = 83.0,meetResultAppliedAtMs = 40)
+        assertEquals(record,dbJson.decodeFromString<com.example.kpkn.data.models.CompetitionRecord>(
+            dbJson.encodeToString(com.example.kpkn.data.models.CompetitionRecord.serializer(),record)))
+        val old = dbJson.decodeFromString<com.example.kpkn.data.models.CompetitionRecord>("""{"id":"old","title":"Old"}""")
+        assertTrue(old.plannedAttempts.isEmpty())
+        assertNull(old.meetResultAppliedAtMs)
+        val program = Program("p","Plan",skippedSessionKeys = listOf("scoped-key"),
+            pendingMissedSessions = com.example.kpkn.domain.training.schedule.MissedSessionsRequest("w","inst_c2_w",listOf("s"),3,"run",2))
+        assertEquals(program,dbJson.decodeFromString<Program>(dbJson.encodeToString(Program.serializer(),program)))
+    }
+
     private val codec = Json {
         ignoreUnknownKeys = true
         encodeDefaults = true
