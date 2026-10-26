@@ -61,6 +61,8 @@ import com.example.kpkn.screens.onboarding.withGoalProfile
 import com.example.kpkn.screens.onboarding.withPlaces
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -209,7 +211,7 @@ class EntrenoPlanStepTest {
         finishOverlay()
         rule.onNodeWithTag(PLAN_PREPARING_TAG).assertDoesNotExist()
         rule.onNodeWithTag(REVEAL_TAG).assertExists()
-        rule.onNodeWithText("Tu programa está listo").assertExists()
+        rule.onNodeWithText("Tu programa").assertExists()
         rule.onNodeWithTag("setup-plan-card-$TAILORED").assertExists()
         rule.onNodeWithTag("setup-plan-choose-$TAILORED").assertExists()
         rule.onNodeWithText("Cabe en tus 60 minutos.").assertExists()
@@ -232,7 +234,7 @@ class EntrenoPlanStepTest {
         publish(state.copy(planSweep = SetupPlanSweep.READY, planReveals = forms))
         finishOverlay()
         rule.onNodeWithTag(REVEAL_TAG).assertExists()
-        rule.onNodeWithText("Tus programas están listos").assertExists()
+        rule.onNodeWithText("Tu programa").assertExists()
     }
 
     @Test
@@ -487,7 +489,7 @@ class EntrenoPlanStepTest {
     }
 
     @Test
-    fun aDisciplineWithMoreThanSixProgramsOffersTheRestBehindAMoreAction() {
+    fun aDisciplineKeepsTailoredProgramsSeparateAndFoldsOnlyTheCatalog() {
         rule.mainClock.autoAdvance = false
         val profile = TrainingGoalProfile.POWERLIFTING
         val authors = (1..5).map { reveal("native:author-$it", "Autor $it", profile, coverSeed = it) }
@@ -498,11 +500,15 @@ class EntrenoPlanStepTest {
             planReveals = authors + own,
         )
         rule.setContent { Page() }
-        // Seis a la vista y, tras ellas, «Ver más programas (2)».
+        // Los tres a medida se mantienen; sólo el catálogo empieza plegado.
         rule.onNodeWithTag(planCardTag(own[0].planId)).assertExists()
-        rule.onNodeWithText("Ver más programas (2)").assertExists()
+        rule.onNodeWithText("Tu programa").assertExists()
+        rule.onNodeWithTag(planCardTag(authors[0].planId)).assertDoesNotExist()
+        rule.onNodeWithText("Ver programas del catálogo (5)").assertExists()
         tap(MORE_PROGRAMS_TAG)
         rule.onNodeWithTag(MORE_PROGRAMS_TAG).assertDoesNotExist()
+        rule.onNodeWithText("Del catálogo").assertExists()
+        rule.onNodeWithTag(planCardTag(authors[0].planId)).assertExists()
     }
 
     @Test
@@ -534,6 +540,35 @@ class EntrenoPlanStepTest {
         assertEquals(simpleId, recommendedIdOf(reveals, profile, null))
         // Si la forma recomendada no está entre los viables, se recomienda la simple.
         assertEquals(simpleId, recommendedIdOf(reveals.take(1), profile, SetupExperience.ADVANCED))
+    }
+
+    @Test
+    fun splitOfferKeepsAllTailoredPlansAndExpandsForACatalogSelection() {
+        val profile = TrainingGoalProfile.POWERLIFTING
+        val own = ProgramVariant.entries.map { tailoredOf(profile, it, "Programa $it") }
+        val catalog = (1..5).map { reveal("native:author-$it", "Autor $it", profile) }
+        val closed = splitPlanOfferOf(catalog + own, false, null)
+        assertEquals(own, closed.tailored)
+        assertTrue(closed.catalog.isEmpty())
+        assertEquals(5, closed.catalogHidden)
+        assertEquals(catalog, splitPlanOfferOf(catalog + own, true, null).catalog)
+        assertEquals(catalog, splitPlanOfferOf(catalog + own, false, catalog.last().planId).catalog)
+    }
+
+    @Test
+    fun splitOfferDoesNotHideASelectedSiblingAndScopeUsesActualPhases() {
+        val profile = TrainingGoalProfile.POWERLIFTING
+        val original = reveal("original:phul-ms-2021-r1", "PHUL", profile)
+        val adapted = reveal("adapted:phul-kpkn-r1", "PHUL adaptado", profile)
+        val offer = splitPlanOfferOf(listOf(original, adapted), false, adapted.planId)
+        assertEquals(0, offer.catalogHidden)
+        assertEquals(1, offer.catalog.size)
+        val generated = tailoredOf(profile, ProgramVariant.BLOCKS, "A medida").copy(
+            phases = listOf(com.example.kpkn.screens.onboarding.SetupPlanPhase("Acumulación", 7, null)),
+            blocks = listOf(com.example.kpkn.screens.onboarding.SetupPlanRevealBlock("Bloque", "7 semanas", "")))
+        assertEquals("7 semanas", generatedScopeLabelOf(generated))
+        assertEquals("Una semana que se repite", generatedScopeLabelOf(tailoredOf(profile, ProgramVariant.SIMPLE, "Base")))
+        assertNull(generatedScopeLabelOf(original))
     }
 
     private object NoPersistence : SetupWizardPersistence {

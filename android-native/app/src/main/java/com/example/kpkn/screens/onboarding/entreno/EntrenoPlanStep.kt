@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -74,9 +75,9 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
     // La recomendación («Para ti») sale de la experiencia; la oferta, de los programas viables: una ficha por familia de autor
     // (PHUL, PHAT), los de disciplina primero y, en una disciplina con muchos, las primeras seis hasta «Ver más programas».
     val recommendedId = remember(reveals, profile, draft.experience) { recommendedIdOf(reveals, profile, draft.experience) }
-    var showAllPrograms by rememberSaveable { mutableStateOf(false) }
-    val offer = remember(reveals, showAllPrograms, selectedId) {
-        planOfferOf(reveals, expanded = showAllPrograms, selectedId = selectedId)
+    val catalogExpanded by vm.catalogExpanded.collectAsState()
+    val offer = remember(reveals, catalogExpanded, selectedId) {
+        splitPlanOfferOf(reveals, catalogExpanded = catalogExpanded, selectedId = selectedId)
     }
 
     val revealKey = remember(reveals) { revealKeyOf(reveals) }
@@ -126,29 +127,20 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
                     if (discipline) "${PlanCopy.PREPARING_DISCIPLINE}…" else "${PlanCopy.PREPARING_GENERAL}…",
                 )
                 discipline -> {
-                    PlanCarousel(
-                        cards = cardModelsOf(offer.shown, recommendedId),
-                        selectedId = shownSelectedIdOf(selectedId, offer.shown),
-                        onSelect = { id -> vm.selectPlan(id) },
-                        onOpen = { id -> detailId = id },
-                        initialId = recommendedId,
-                    )
-                    if (offer.hidden > 0) {
-                        EntrenoTextAction(
-                            label = "$SEE_MORE_PROGRAMS_LABEL (${offer.hidden})",
-                            onClick = { showAllPrograms = true },
-                            modifier = Modifier.testTag(MORE_PROGRAMS_TAG),
-                        )
-                    }
+                    CatalogOfferSection(offer,recommendedId,selectedId,
+                        onSelect = vm::selectPlan,onOpen = { detailId = it },onExpandCatalog = vm::toggleCatalogExpanded)
                 }
-                else -> GeneralReveal(
-                    reveals = reveals,
-                    recommendedId = recommendedId,
-                    selectedId = selectedId,
-                    onChoose = { id -> vm.selectPlan(id) },
-                    onOpen = { id -> detailId = id },
-                    onAnotherVersion = { vm.anotherPlanVersion() },
-                )
+                else -> {
+                    GeneralReveal(
+                        reveals = offer.tailored,
+                        recommendedId = recommendedId,
+                        selectedId = selectedId,
+                        onChoose = { id -> vm.selectPlan(id) },
+                        onOpen = { id -> detailId = id },
+                        onAnotherVersion = { vm.anotherPlanVersion() },
+                    )
+                    CatalogOnlySection(offer,selectedId,vm::selectPlan,{ detailId = it },vm::toggleCatalogExpanded)
+                }
             }
             state.previewError?.let { error ->
                 EntrenoPlanNotice(
@@ -222,7 +214,7 @@ private fun GeneralReveal(
     val offered = orderedOfferOf(reveals)
     val reasons = offered.firstOrNull { it.planId == recommendedId }?.reasons ?: offered.firstOrNull()?.reasons.orEmpty()
     Column(modifier = Modifier.fillMaxWidth().testTag("setup-plan-reveal"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(text = if (offered.size > 1) READY_TITLE_MANY else READY_TITLE, style = WizardTypography.controlLabel, color = WizardColors.text)
+        Text(text = "Tu programa", style = WizardTypography.controlLabel, color = WizardColors.text)
         PlanCarousel(
             cards = cardModelsOf(offered, recommendedId),
             selectedId = selectedId,
@@ -273,10 +265,7 @@ private fun LegacyPlanFallback(fromScratch: Boolean, vm: SetupWizardViewModel) {
 private const val MAX_REASONS = 5
 
 /** Textos del revelado (COPY.md, «Revelado del programa»; el aplazado conserva el del resumen de revisión). */
-private const val READY_TITLE = "Tu programa está listo"
-private const val READY_TITLE_MANY = "Tus programas están listos"
 private const val ANOTHER_VERSION_LABEL = "Otra versión"
-private const val SEE_MORE_PROGRAMS_LABEL = "Ver más programas"
 private const val DEFER_LABEL = "Lo haré más adelante"
 private const val RESUME_LABEL = "Preparar mi programa ahora"
 private const val RETRY_LABEL = "Reintentar"
