@@ -1,0 +1,7 @@
+allprojects {
+    tasks.withType(Test).configureEach {
+        maxHeapSize = '3g'
+        maxParallelForks = 1
+        forkEvery = 5
+    }
+}

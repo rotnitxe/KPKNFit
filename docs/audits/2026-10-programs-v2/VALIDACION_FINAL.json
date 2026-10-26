@@ -1,0 +1,2214 @@
+{
+  "date": "2026-10-25",
+  "branch": "codex/programs-periodization-current",
+  "base": "1d399c1fc",
+  "productionCommit": "36ae90fc7",
+  "planApplied": true,
+  "deepSeekUsed": false,
+  "retiredEnginesReactivated": false,
+  "pushed": false,
+  "masterIntegrated": false,
+  "goalRoomVersion": 35,
+  "goalDbAndPublishedSchemasUnchanged": true,
+  "androidClosure": {
+    "classes": 286,
+    "tests": 3074.0,
+    "failures": 0.0,
+    "errors": 0.0,
+    "skipped": 0.0,
+    "sources": 159,
+    "drift": 0,
+    "results": [
+      {
+        "class": "com.example.kpkn.data.programs.PersonalizedPlanCatalogTest",
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.programs.PlanCatalogEditorialContractTest",
+        "tests": 25,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.programs.PlanGlossaryTest",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.programs.PlanLabelsTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.programs.PlanNamingUniquenessTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.programs.ProgramCoverRepositoryTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.programs.ProgramNamingTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.programs.ProgramTemplateClaimsTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.programs.ProgramTemplateCompositionContractTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.protocols.AuthoredExerciseBindingsTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.protocols.CatalogIdsExistInCatalogTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.protocols.ExemptionScopeMigrationTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.protocols.ProtocolAttributionTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.protocols.ProtocolAuditTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.protocols.ProtocolClaimsTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.protocols.ProtocolCompositionContractTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.protocols.ProtocolExemptionMatrixTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.protocols.ProtocolLibraryTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.protocols.ProtocolProgramStructureTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.protocols.ProtocolRecipeFidelityTest",
+        "tests": 72,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.protocols.RecipeContractInventoryTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.protocols.TrainingPlanRecipeJsonCompatTest",
+        "tests": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.competitions.CompetitionCompareTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.competitions.CompetitionExerciseTypeaheadTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.competitions.CompetitionPlaceHonorsTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.competitions.CompetitionPlanningTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.competitions.CompetitionScoringTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.competitions.PowerliftingWizardDraftTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.AuthoredPlanMaterializerTest",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.AuthoredPlansActivationParityTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.AvoidGroupsTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.CapabilityRulesTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.CardioChoicesTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.EntrenoStepValuesTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.EquipmentSymbolsTest",
+        "tests": 30,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.GeneratedPlansTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.GeneratedVariantsCatalogTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.LiftVariantsTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.MarksContextTest",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.MuscleSymbolsTest",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.NativeMixedFrequencyContractTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.NativePlanFailureMapperTest",
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.OlympicMarksTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.PhulNativeProgressionTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.PlanCandidateEvaluatorTest",
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.PlanCandidateSessionCacheTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.PlanGoalMatcherTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.PlanRejectionPresenterTest",
+        "tests": 28,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.PlanRepairAdvisorTest",
+        "tests": 34,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.SetupNutritionPreparationTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.SetupStepCopyRulesTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.SetupStepDefinitionsTest",
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.SetupStepGraphTest",
+        "tests": 38,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.SetupTrainingPlannerRankingTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.SetupTrainingPlannerTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.TrainingGoalRequirementsTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.WizChatCopyCatalogTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.WizChatMessageBuilderTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.WizChatRetirementTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.onboarding.WizChatStateMachineTest",
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.season.SeasonAdvisorTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.templates.SessionTemplateCatalogTest",
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.templates.SessionTemplateEngineTest",
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.templates.SessionTemplateFacetsTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.templates.SessionTemplateQualityRulesTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.templates.SessionTemplateSuggestionEngineTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.templates.TemplateCatalogFilterLogicTest",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.AmrapProgramPreviewTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.approach.ApproachGeneratedRoutineTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.approach.ApproachInfoProviderTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.approach.ApproachMaterializationTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.approach.ApproachPlannerTest",
+        "tests": 34,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.approach.JointMobilityTest",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.approach.MfpWarmupInventoryBankTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ApreXrmCaptureFactoryTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ApreXrmPrescriptionTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.AuthoredProgressionEngineTest",
+        "tests": 18,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.AuthoredRecipeCompositionTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.block.BlockReviewEngineTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.block.BlockReviewJsonTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.block.BlockReviewLifecycleTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.block.ContinuationProgramFactoryTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.block.NextBlockAdjusterTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.BlockProgressionEngineTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.BlockTransitionEngineCompetitionTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.BlockTransitionEngineTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.BodyweightLotEquipmentTest",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.Cal1AmrapProgressionTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.Cal5bMaterializerReferenceTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.Cal5GzclpTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.Cal5JackedTanAndRecordOnlyTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.Cal5JuggernautTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.Cal5NSunsTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.Cal5OneRmTestTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.Cal5PowerCalibratorTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.Cal5Wendler531Test",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.Cal6AprePrescriptionTest",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.calibration.CalibrationEvidenceTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.calibration.PlanningRangeProposalsTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.calibration.PlanningVolumeTargetsTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.calibration.WeeklyCycleEvidenceTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.CompetitionKeyDateSyncTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.CompositionTaxonomyTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ConfigurationEquipmentFilterTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ConfirmedProgramProposalsTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.cycle.RirWaveTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.cycle.WeeklyAdjustmentEngineTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.cycle.WeeklyCheckinEngineTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.cycle.WeeklyCheckinJsonTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.EffectiveEquipmentContractTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.EffectiveEquipmentResolverContractTest",
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.EquipmentReachTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ExerciseLoadReferenceStoreTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ExerciseProgressTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ExerciseSwapOptionsTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ExerciseTrainingMaxTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.FixedRecipeEquipmentCompatibilityTest",
+        "tests": 18,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.FixTmMaterializerLoadBasisTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.generator.BodyweightLotGeneratorTest",
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.generator.CardioByMaterialGeneratorTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.generator.DisciplineModesTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.generator.GeneratorEquipmentTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.generator.GeneratorPoolsCatalogTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.generator.OlympicLotGeneratorTest",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.generator.PriorityAndApproachFittingTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.generator.RoutineGeneratorBehaviorTest",
+        "tests": 25,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.generator.RoutineGeneratorLowMinutesTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.generator.RoutineGeneratorSweepTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.generator.RoutineMatrixReportTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.generator.RoutineSamplesReportTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.generator.StartingPointGeneratorTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.generator.StrengthPrescriptionParityTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.HomeCompetitionNeedsDateTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.HomeCompetitionResolverTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.HomeSessionResolverTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.HomeWeekResolverTest",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.HybridOccurrenceCalendarTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.Cal1AmrapImportTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ExerciseNameMatcherEnglishTest",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ExerciseNameMatcherTest",
+        "tests": 40,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ImportActivationTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ImportDraftEditorLoadUnitTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ImportDraftEditorTest",
+        "tests": 34,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ImportDraftPersistenceTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ImportDraftValidationTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ImportedProgramBuilderGroupsTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ImportedProgramBuilderTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ImportExerciseAliasesTest",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.KnownProgramRecognizerTest",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.OcrLayoutTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.OcrPagesJoinTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ProgramImportParserLayoutTest",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ProgramImportParserNoiseTest",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ProgramImportParserOcrCellsTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ProgramImportParserOcrTest",
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ProgramImportParserRegressionsTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ProgramImportParserSchemeColumnsTest",
+        "tests": 28,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ProgramImportParserSessionsTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ProgramImportParserSetRowsTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ProgramImportParserTest",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.importer.ProgramImportParserWeekBandsTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.insights.SharedTrainingInsightsContractTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.insights.TrainingHistoryProjectionTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.insights.TrainingInsightsEngineTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.LegacyNativeDurationConsistencyTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.LiveApreBlockTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.LoadTargetSelectorTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.LoadTargetSimulationTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.LoopEngineTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.LoopOccurrenceOperationalTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.LoopRuntimeIntegrationTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.LoopTriplicationTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.MuscleVolumePanelTest",
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.NativeCandidateTableSlotsTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.NativeMaterialEvidenceTest",
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.NativeOriginAuthorPreservationTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.NativeProfileRecipeAndFitterTest",
+        "tests": 36,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.NativeProfileSpecCatalogTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.NativeProfileSplitWitnessTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.NativeProgressionEquipmentAndVariantTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.NativeProgressionLoadTargetTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.NativeProgressionRealPlanTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.NativeProgressionTextTest",
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest",
+        "tests": 43,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.OlympicLotEquipmentTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.onboarding.InventoryHonestyValidationTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.onboarding.NativeRirWarmupAndIntegrationTest",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.onboarding.PlanWarmupConfigPersistenceTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.onboarding.SetupTrainingOptionsContractTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.OnboardingSplitSelectionTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.OwnPlanPrioritiesAndSplitTest",
+        "tests": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.PercentResolverTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.periodization.BlockVariantRotationTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.periodization.MeetRecipeFitterTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.periodization.PeriodLayoutTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.periodization.RoutinePeriodizerTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.PeriodizationEngineTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.PlanAdaptationAuthoredRecipesTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.PlanAdaptationResolverTest",
+        "tests": 33,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.PlanCoverageContractTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.PlanGenerationCoverageT006Test",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.PlanLoadReferenceTest",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.PlanMaterializerCardioIdentityTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.PlanMaterializerDurationSealTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.PlanMaterializerLegacyReferenceTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.PlanMaterializerRematerializePreservationTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.PlanMaterializerTest",
+        "tests": 25,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.planning.PlannedLoadProjectorTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.PlateLoadLabelTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.PriorityOrderOnlyTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProfileProgressTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramActiveStateEngineTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramAnalyticsEngineTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramAnalyticsV2IndexTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramAutoregulationApreXrmChannelTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramAutoregulationEngineTest",
+        "tests": 30,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramAutoregulationResolutionTest",
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramCalendarEngineTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramCurrentWeekResolverTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramDetailHelpersTest",
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramExecutionContractTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramExerciseSwapTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramHierarchyIndexTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramKeyDateEngineTest",
+        "tests": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramMigrationEngineTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramPersistNormalizerTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramProgressCycleCloseTest",
+        "tests": 45,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramProgressEngineAutoregulationTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramProgressEngineTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramProgressReportTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramProtocolEngineTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramQuarantineContractTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramRecipeValidatorTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramScopeTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramSnapshotStoreTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramStructureContractTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramTemplateEngineTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgramTemporalPolicyTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.ProgressionConsumerCoverageTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.RecipeContractPolicyTest",
+        "tests": 31,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.RecipeOrderPrioritiesContractTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.RepRangeParserTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.RetiredPendingDeloadTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.RpeTopSetEngineTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.schedule.InactivityDetectorTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.schedule.MissedSessionJsonTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.schedule.MissedSessionPolicyTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.SessionCompositionPolicyTest",
+        "tests": 32,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.SessionDurationEstimatorTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.SessionPrefillBridgeTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.split.DayFocusParserTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.split.ExerciseTraitResolverTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.split.RedistributionSweepTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.split.SplitCatalogRulesTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.split.SplitRadicalConversionTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.split.SplitRedistributorRealProgramsTest",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.split.SplitRedistributorReportTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.split.SplitRedistributorTest",
+        "tests": 42,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.split.WeekAssignmentTest",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.split.WeekBuilderTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.split.WeekUnitsTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.SplitApplicationEngineTest",
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.T004EntryCoverageProbeTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.T004FirstRejectionDiagnosticTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.TemplateVolumeScaleAuditTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.TemplateVolumeTargetsTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.TopSetProgressionTest",
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.TrainingMaxMergeTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.TrainingWindowTest",
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.VolumeAccountingContractTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.VolumeCalculatorTest",
+        "tests": 41,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.VolumeCalibrationEngineTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.VolumeLegacyAccountingTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.VolumeSoftBandTest",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.WarmupFeasibilityIntegrationTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.WarmupProductionLoadRouteTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.WeeklyKgCapTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.onboarding.entreno.EntrenoPlanStepTest",
+        "tests": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest",
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.onboarding.SetupWizardFullJourneyTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.onboarding.SetupWizardReadyWeekTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.programdetail.design.ProgramHeaderModelTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.programdetail.ProgramDetailFormatTest",
+        "tests": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.programdetail.ProgramDetailViewModelTest",
+        "tests": 112,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.programdetail.ProgramPlanDisplaySummaryTest",
+        "tests": 29,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.programs.PlanInfoModelTest",
+        "tests": 52,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "qaCompatibility": {
+    "classes": 6,
+    "tests": 181.0,
+    "failures": 0.0,
+    "errors": 0.0,
+    "skipped": 0.0,
+    "sources": 122,
+    "drift": 0,
+    "results": [
+      {
+        "class": "com.example.kpkn.screens.programdetail.ProgramDetailViewModelTest",
+        "tests": 112,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.onboarding.SetupWizardEntrenoPlanTest",
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.onboarding.SetupWizardReadyWeekTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.screens.onboarding.SetupWizardFullJourneyTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.domain.training.NativeWorkoutProgressionRuntimeTest",
+        "tests": 43,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "com.example.kpkn.data.db.NutritionDayStateMigrationTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "installedApk": {
+    "apk": "C:/Users/valen/.codex/worktrees/programs-phone-room36/KPKNFit/android-native/app/build/outputs/apk/base/debug/app-base-debug.apk",
+    "sha256": "347EFEAAC5006C0387E1978EDD8BBEE1FEAEEED9270A54325FA26F2D18A3802E",
+    "package": "com.example.kpkn.dbg",
+    "label": "KPKN Dev",
+    "versionCode": 52,
+    "roomVersion": 36,
+    "roomIdentity": "907a5e4df31b4ead1ee0f8d86ce559cf",
+    "goalSource": "58ec7525d",
+    "masterSource": "1d5ba0ce7",
+    "qaOnly": true
+  },
+  "phone": {
+    "device": "Samsung Z Flip5 SM-F731B",
+    "transport": "wireless adb",
+    "guard": "phone_run + C:/kw/phone.lock",
+    "install": "-r Success; same package/signature/schema identity",
+    "launch": "MainActivity Status ok; cold 4168ms",
+    "verified": [
+      "library tailored entry",
+      "wizard basic-data navigation and exit",
+      "program scope",
+      "progress and comparable e1RM",
+      "season context",
+      "return to library"
+    ],
+    "notVerified": [
+      "complete wizard offer/activation on physical device",
+      "meet-day/result flow on physical device",
+      "iOS runtime"
+    ],
+    "dataPreservation": {
+      "originalsUnchanged": true,
+      "originals": {
+        "workout_logs": {
+          "count": 4,
+          "sha256": "a6e62c44a9f001c716e6716e642b71b6d006881e9cfa832b3b69898e8a262a0b"
+        },
+        "training_observations": {
+          "count": 4,
+          "sha256": "bbaf4fdca22bc820824037097d08e35166ab065a3680b9a0513da05b393019fb"
+        },
+        "body_observations": {
+          "count": 2,
+          "sha256": "bd3bae2ce1f13d5192e98751b7730d84346a14fc9742180cf2acc5f9458169e3"
+        },
+        "nutrition_logs": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "competition_records": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "nutrition_food_usage": {
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "workout_media": {
+          "count": 7,
+          "sha256": "8771c25bc76eb5c882e48dac8f8fe63e9dc9a7d38ece20adc478aded77167e3d"
+        }
+      },
+      "roomVersion": 36,
+      "roomIdentity": "907a5e4df31b4ead1ee0f8d86ce559cf",
+      "signerUnchanged": true,
+      "additionalTables": {
+        "ongoing_workout": {
+          "before": {
+            "count": 1,
+            "sha256": "343201792e264ddbc8f40745c9b8c38e248ed793e7b60c10e41c0392ead611cb"
+          },
+          "after": {
+            "count": 1,
+            "sha256": "343201792e264ddbc8f40745c9b8c38e248ed793e7b60c10e41c0392ead611cb"
+          },
+          "unchanged": true
+        },
+        "programs": {
+          "before": {
+            "count": 1,
+            "sha256": "2ed683e26a5b50ddab6db1bb3c280355ec60a75f88b6ad0b5be202601dc7d42e"
+          },
+          "after": {
+            "count": 1,
+            "sha256": "2ed683e26a5b50ddab6db1bb3c280355ec60a75f88b6ad0b5be202601dc7d42e"
+          },
+          "unchanged": true
+        },
+        "settings": {
+          "before": {
+            "count": 1,
+            "sha256": "2c1e080f7a853cb016c5afe539ca4db50700c241d2f4791e8a4c1e9957cbcf6a"
+          },
+          "after": {
+            "count": 1,
+            "sha256": "2c1e080f7a853cb016c5afe539ca4db50700c241d2f4791e8a4c1e9957cbcf6a"
+          },
+          "unchanged": true
+        },
+        "setup_drafts": {
+          "before": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "after": {
+            "count": 1,
+            "sha256": "40ef930ce4b8679691c74d7ba5b7b5773d0168b5b06cbe97f0e2dde0457da5ed"
+          },
+          "unchanged": false
+        }
+      }
+    },
+    "residualQaDraft": {
+      "before": 0,
+      "after": 1,
+      "activated": false,
+      "reason": "Exit persists draft; no reachable discard UI found. Kept rather than editing database."
+    },
+    "processLogs": "No FATAL EXCEPTION/AndroidRuntime/SQLiteException/ANR markers in captured process logs; limited to current process.",
+    "homeUiDump": "UiAutomator idle failure with existing ongoing session; screenshot and subsequent standard UI dumps available.",
+    "emulatorsClosed": true
+  },
+  "limits": [
+    "T104 deferred by original plan",
+    "T80/81 and retired readiness hooks not applicable",
+    "Swift tests prepared, not executed on Windows",
+    "Backend transport inspected, no new backend suite run"
+  ],
+  "evidenceArchive": "C:\\Users\\valen\\.codex\\visualizations\\2026\\10\\25\\01a173b5-bf3a-7aa1-8c4d-39bc80e76c78\\programs-evidence",
+  "privatePhoneEvidence": "C:\\Users\\valen\\.codex\\visualizations\\2026\\10\\25\\01a173b5-bf3a-7aa1-8c4d-39bc80e76c78\\phone-qa",
+  "reportFinalized": "2026-10-26",
+  "qaSnapshotCommit": "1743c645fac2c6480f8f374b92bbffdb8e964b46",
+  "qaSnapshotRetained": "C:/Users/valen/.codex/worktrees/programs-phone-room36/KPKNFit",
+  "task60Commit": "6dfcd7a8c"
+}

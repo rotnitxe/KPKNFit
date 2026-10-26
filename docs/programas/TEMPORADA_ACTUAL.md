@@ -1,6 +1,6 @@
 # Temporada: contexto independiente de entrenamiento y nutrición
 
-T120, T122 y el motor T123 tienen pruebas dirigidas aprobadas. El repositorio, observador, módulos y guarda transaccional están en la ola Android D; el primer intento aprobó los casos nuevos de VM, y el segundo sigue pendiente. No hay validación funcional instalada aún.
+T120, T122 y el motor T123 tienen pruebas dirigidas aprobadas. El repositorio, observador, módulos y guarda transaccional tienen evidencia Android D verde por clase; el segundo intento aprobó los 112 casos completos del VM. El cierre conjunto posterior aprobó3074 tests. En Z Flip se observó la tarjeta de temporada con su contexto declarado; no se modificó nutrición ni se confirmó una propuesta semanal.
 
 SeasonAdvisor recibe hechos y declaraciones con ausencia explícita de datos: objetivo del bloque actual/siguiente, descarga programada, dirección y kcal del plan nutricional activo, referencia eerKcal guardada en su snapshot, tendencia corporal observada, fecha de competición, categoría objetivo y peso declarado en el perfil. No infiere recuperación, técnica, movilidad, lesión o gasto de fuerza.
 

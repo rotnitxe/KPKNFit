@@ -80,6 +80,7 @@ La tabla incluye sólo commits existentes. Cada fila remite al recibo de su ola;
 | 944a3b20d | [T-112] Reject invalid weight projections without inventing a zero weight | [Recibo](EJECUCION_ACTUAL.md) |
 | 58ec7525d | [T-41] Hide empty tailored sections when only catalog plans fit | Cierre: 20/20 Compose; 3074 globales |
 | 36ae90fc7 | [T-11][T-14][T-20][T-33] Align regression fixtures with current program contracts | Cierre: 286 clases/3074 tests verdes |
+| 6dfcd7a8c | [T-60] Index applied program waves with historical audit and validation limits | Índice y copia histórica; cierre3074/3074 |
 
 ## Competición
 
