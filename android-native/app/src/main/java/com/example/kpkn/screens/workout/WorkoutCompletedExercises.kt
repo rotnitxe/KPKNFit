@@ -23,9 +23,11 @@ internal fun toCompletedExercises(
     catalogIndex: Map<String, ExerciseMuscleInfo> = emptyMap(),
     includeCardioDetails: Boolean = true,
     capturedAtEpochMs: Long = System.currentTimeMillis(),
+    includeWarmupSets: Boolean = false,
 ): List<CompletedExercise> {
     return session.allExercises().mapNotNull { exercise ->
-        val sets = completedSetsForExercise(exercise, completedSets)
+        val sets = completedSetsForExercise(exercise, completedSets).filterNot { it.isWarmup } +
+            if (includeWarmupSets) exercise.warmupSets.mapNotNull { warmup -> completedSets[WorkoutStepRules.warmupStepKey(exercise.id, warmup.id)] } else emptyList()
         if (sets.isEmpty()) {
             if (exercise.id in skippedExerciseIds) return@mapNotNull null
             return@mapNotNull null
@@ -91,7 +93,16 @@ internal fun sessionTonnage(exercises: List<CompletedExercise>): Double =
     exercises.sumOf { ex ->
         ex.sets.filter { !it.skipped && !it.isWarmup }.sumOf { set ->
             val main = set.weight * set.effectiveRepEquivalent()
-            val drops = set.dropSets.sumOf { drop -> drop.weight * drop.reps }
+            val drops = set.dropSets.sumOf { drop ->
+                val body = set.recordedPayloadV3?.bodyWeightSnapshot ?: 0.0
+                val load = when (set.loadMode ?: set.recordedPayloadV3?.loadInputMode) {
+                    com.example.kpkn.data.models.LoadModeV2.LASTRE -> body + drop.weight
+                    com.example.kpkn.data.models.LoadModeV2.ASSISTED -> (body - drop.weight).coerceAtLeast(0.0)
+                    com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT -> body
+                    else -> drop.weight
+                }
+                load * drop.reps
+            }
             val restPauses = set.restPauses.sumOf { rp -> set.weight * rp.reps }
             main + drops + restPauses
         }
@@ -111,14 +122,11 @@ internal fun logicalSetCount(
 internal fun logicalSetCountFromCompleted(exercises: List<CompletedExercise>): Int =
     exercises.sumOf { exercise ->
         val working = exercise.sets.filter { !it.skipped && !it.isWarmup }
-        val bilateral = working.count { it.side.isNullOrBlank() }
-        val left = working.count { side ->
-            val value = side.side?.lowercase()
-            value == "left" || value == "l"
-        }
-        val right = working.count { side ->
-            val value = side.side?.lowercase()
-            value == "right" || value == "r"
-        }
-        bilateral + minOf(left, right)
+        val identified = working.filter { it.sourceRef != null || it.setIndex != null }
+        val legacy = working - identified.toSet()
+        identified.distinctBy { set -> set.sourceRef?.let { "${it.variant}|${it.exerciseOccurrenceId}|${it.setId}" }
+            ?: "ordinal:${set.setIndex}" }.size +
+            legacy.count { it.side.isNullOrBlank() } +
+            maxOf(legacy.count { it.side?.lowercase() in listOf("left", "l") },
+                  legacy.count { it.side?.lowercase() in listOf("right", "r") })
     }

@@ -47,6 +47,7 @@ data class WorkoutMediaSessionMeta(
     val programId: String,
     val sessionId: String,
     val sessionName: String?,
+    val executionRefs: Map<String, com.example.kpkn.data.models.WorkoutSetExecutionRef> = emptyMap(),
 )
 
 data class WorkoutMediaCaptureRequest(
@@ -97,6 +98,7 @@ class WorkoutMediaCaptureController(
     private val poseTrajectoryEnabled: () -> Boolean = { false },
     /** El esfuerzo («RIR 2», «Fallo») con el que se registró la serie de un medio, si la sesión en curso la tiene (álbum por ejercicio, LV8). */
     private val effortLabelProvider: (WorkoutMedia) -> String? = { null },
+    private val onCapturedRef: (String, com.example.kpkn.data.models.WorkoutSetExecutionRef) -> Unit = { _, _ -> },
 ) {
     data class ExternalPhotoCapture internal constructor(
         val uri: Uri,
@@ -119,6 +121,19 @@ class WorkoutMediaCaptureController(
 
     private val _isRecording = MutableStateFlow(false)
     val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
+
+    private val _cameraChoice = MutableStateFlow(WorkoutCameraChoice())
+    internal val cameraChoice: StateFlow<WorkoutCameraChoice> = _cameraChoice.asStateFlow()
+
+    internal fun updateCameraAvailability(back: Boolean, front: Boolean) {
+        _cameraChoice.value = _cameraChoice.value.detected(back, front)
+    }
+
+    internal fun switchCamera() {
+        _cameraChoice.value = _cameraChoice.value.switched(
+            _isRecording.value || activeRecording != null || videoStartJob?.isActive == true,
+        )
+    }
 
     private val _recordedDurationNanos = MutableStateFlow(0L)
     val recordedDurationNanos: StateFlow<Long> = _recordedDurationNanos.asStateFlow()
@@ -792,7 +807,10 @@ class WorkoutMediaCaptureController(
             isPr = request.isPr,
             catalogDefinitionId = request.catalogDefinitionId,
             catalogConfigurationId = request.catalogConfigurationId,
-        )
+            sourceRef = request.exerciseId?.let { exerciseId -> request.setIndex?.let { index ->
+                meta.executionRefs[workoutSetKey(exerciseId, index, request.side)]
+            } },
+        ).also { media -> media.sourceRef?.let { onCapturedRef(media.id, it) } }
 
     private fun observeDurableWrite(
         entry: WorkoutMediaCaptureJournalEntry,

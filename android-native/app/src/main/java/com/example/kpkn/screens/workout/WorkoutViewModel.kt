@@ -115,10 +115,10 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 
-internal class WorkoutRecordingGate {
+internal class WorkoutRecordingGate(private val canAcquire: () -> Boolean = { true }) {
     private val activeKey = MutableStateFlow<String?>(null)
 
-    fun tryStart(key: String): Boolean = activeKey.compareAndSet(null, key)
+    fun tryStart(key: String): Boolean = canAcquire() && activeKey.compareAndSet(null, key)
 
     fun finish(key: String) {
         activeKey.compareAndSet(key, null)
@@ -154,6 +154,9 @@ class WorkoutViewModel(
 ) : ViewModel() {
 
     private val repository = ProgramRepository.getInstance()
+    private var ongoingWriterToken = Any()
+    private var ongoingWriterGeneration = 0L
+    @Volatile private var ongoingWriterReady = false
     private var deferredOnComplete: (() -> Unit)? = null
     private var pendingVoiceDiagnosticOnComplete: (() -> Unit)? = null
     private var mobilityTotalTimerJob: Job? = null
@@ -191,6 +194,74 @@ class WorkoutViewModel(
         _uiState.update { previous ->
             val next = transform(previous)
             if (next == previous) previous else next.copy(persistenceRevision = previous.persistenceRevision + 1)
+        }
+    }
+
+    private fun canMutateLivePlan(): Boolean {
+        val allowed = canStartWorkoutRecording(_uiState.value) && !recordingGate.isBusy()
+        if (!allowed) showWorkoutToast("Espera a que termine el guardado actual.")
+        return allowed
+    }
+
+    private fun prepareRecordedPerformance(state: WorkoutUiState): WorkoutUiState =
+        rebuildRecordedPerformance(state, repository::getContextPerformanceState, repository::getGlobalPerformanceState)
+
+    private val _liveMutationResult = MutableStateFlow<WorkoutMutationResult?>(null)
+    val liveMutationResult: StateFlow<WorkoutMutationResult?> = _liveMutationResult.asStateFlow()
+
+    private var lastLiveMutation: kotlinx.coroutines.Deferred<WorkoutMutationResult>? = null
+
+    private fun commitLiveMutation(base: WorkoutUiState, proposed: WorkoutUiState, afterCommit: () -> Unit = {}): kotlinx.coroutines.Deferred<WorkoutMutationResult> {
+        val completion = kotlinx.coroutines.CompletableDeferred<WorkoutMutationResult>()
+        lastLiveMutation = completion
+        val key = "live-plan:" + base.persistenceRevision
+        if (!canStartWorkoutRecording(_uiState.value) || !recordingGate.tryStart(key)) {
+            _liveMutationResult.value = WorkoutMutationResult.Busy
+            completion.complete(WorkoutMutationResult.Busy)
+            showWorkoutToast("Espera a que termine el guardado actual.")
+            return completion
+        }
+        updateUiState { it.copy(recordingSetKey = key) }
+        viewModelScope.launch {
+            var outcome: WorkoutMutationResult = WorkoutMutationResult.Rejected("La sesión cambió antes de guardar.")
+            try {
+                if (_uiState.value.startTimeMs == base.startTimeMs && _uiState.value.session == base.session && _uiState.value.activeMode == base.activeMode) {
+                    val candidate = prepareRecordedPerformance(proposed).copy(persistenceRevision = _uiState.value.persistenceRevision + 1)
+                    val publish = { updateUiState { current -> mergeCommittedLiveMutation(base, candidate, current) } }
+                    val result = persistence.persistAndAwait(stateWithLiveTimers(candidate), publish)
+                    if (result is WorkoutPersistResult.UiPublicationFailed) publish()
+                    outcome = if (result.succeeded) WorkoutMutationResult.Confirmed else
+                        WorkoutMutationResult.PersistenceFailed((result as? WorkoutPersistResult.Failed)?.cause)
+                }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                completion.cancel(cancelled); throw cancelled
+            } catch (error: Exception) { outcome = WorkoutMutationResult.PersistenceFailed(error) }
+            finally {
+                recordingGate.finish(key)
+                updateUiState { if (it.recordingSetKey == key) it.copy(recordingSetKey = null) else it }
+            }
+            _liveMutationResult.value = outcome
+            if (outcome == WorkoutMutationResult.Confirmed) {
+                persistOngoingState()
+                runCatching { afterCommit() }
+            } else showWorkoutToast("No se pudo guardar el cambio. Se conserva la sesión anterior; reintenta.")
+            completion.complete(outcome)
+        }
+        return completion
+    }
+
+    private fun requestOmissions(exerciseIds: Set<String> = emptySet(), setKeys: Set<String> = emptySet()) {
+        if (!canMutateLivePlan()) return
+        val base = _uiState.value
+        val validExercises = base.session?.let { activeExecutionSession(it, base.activeMode).allExercises() }.orEmpty().map { it.id }.toSet()
+        val candidate = base.copy(skippedExerciseIds = base.skippedExerciseIds + (exerciseIds intersect validExercises),
+            omittedSetKeys = expandedOmissionKeys(base, exerciseIds intersect validExercises, setKeys))
+        if (candidate.skippedExerciseIds == base.skippedExerciseIds && candidate.omittedSetKeys == base.omittedSetKeys) return
+        commitLiveMutation(base, candidate) {
+            abortRestTimerHard()
+            val latest = _uiState.value
+            val next = stepNavigator.nextIncompleteStepAfter(latest, includeCurrent = true) ?: stepNavigator.firstIncompleteStep(latest)
+            if (next == null) openFinishSheet() else stepNavigator.selectWorkoutStep(next.stepKey)
         }
     }
 
@@ -295,17 +366,24 @@ class WorkoutViewModel(
     private val _mobilityTimerRemaining = MutableStateFlow(0)
     val mobilityTimerRemaining: StateFlow<Int> = _mobilityTimerRemaining.asStateFlow()
 
-    private val persistence = WorkoutPersistenceController(
+    private var persistence = createPersistenceController(ongoingWriterToken, ongoingWriterGeneration)
+
+    private fun createPersistenceController(token: Any, generation: Long) = WorkoutPersistenceController(
         scope = repository.ongoingPersistenceScope,
         programId = programId,
         sessionId = sessionId,
         getState = { stateWithLiveTimers() },
         visibleExercises = ::visibleExercises,
-        writeOngoing = { apply -> repository.updateOngoingWorkoutAndFlush(apply) },
+        writeOngoing = { apply ->
+            if (!ongoingWriterReady) WorkoutPersistResult.Skipped
+            else repository.updateOwnedOngoingWorkoutAndFlush(token, apply)
+        },
         flushPendingWrites = { repository.flushPendingWrites() },
+        isAuthorizedSnapshot = { snapshot -> ongoingWriterReady &&
+            snapshot.persistenceWriterGeneration == generation && repository.ownsOngoingWorkoutWriter(token) },
     )
 
-    private val recordingGate = WorkoutRecordingGate()
+    private val recordingGate = WorkoutRecordingGate { ongoingWriterReady && repository.ownsOngoingWorkoutWriter(ongoingWriterToken) }
     private val evaluatedContextKeysThisSession = mutableSetOf<String>()
     private var sessionStartLogged = false
 
@@ -323,6 +401,7 @@ class WorkoutViewModel(
     )
 
     private val setRecorder = WorkoutSetRecorder(
+        prepareRecordedState = ::prepareRecordedPerformance,
         tryStartRecording = { key ->
             val state = _uiState.value
             canStartWorkoutRecording(state) && recordingGate.tryStart(key)
@@ -431,13 +510,34 @@ class WorkoutViewModel(
                 programId = programId,
                 sessionId = state.session?.id ?: sessionId,
                 sessionName = state.session?.name,
+                executionRefs = buildMap {
+                    visibleExercises(state).forEach { exercise ->
+                        exercise.sets.indices.forEach { index ->
+                            listOf<String?>(null, "left", "right").forEach { side ->
+                                put(workoutSetKey(exercise.id, index, side), executionRef(state, exercise, index, side))
+                            }
+                        }
+                    }
+                },
             )
+        },
+        onCapturedRef = { mediaId, ref ->
+            viewModelScope.launch {
+                if (_uiState.value.startTimeMs == ref.executionStartedAtMs) {
+                    updateUiState { it.copy(mediaSetBindings = it.mediaSetBindings + (mediaId to ref)) }
+                    persistOngoingState()
+                }
+            }
         },
         // El álbum por ejercicio (LV8) nombra el esfuerzo de cada medio solo si la serie con la que se guardó está en la sesión en curso.
         effortLabelProvider = { media ->
-            com.example.kpkn.data.media.ExerciseAlbumModel.completedSetKey(media)
-                ?.let { key -> _uiState.value.completedSets[key] }
-                ?.let(com.example.kpkn.data.media.ExerciseAlbumModel::effortLabel)
+            val state = _uiState.value
+            val ref = media.sourceRef ?: state.mediaSetBindings[media.id]
+            val set = if (ref != null) (state.completedSets.values + state.archivedCompletedExercises.flatMap { it.sets })
+                .firstOrNull { it.sourceRef == ref }
+            else if (media.exerciseId in state.legacyMediaInvalidatedExerciseIds) null
+            else com.example.kpkn.data.media.ExerciseAlbumModel.completedSetKey(media)?.let { state.completedSets[it] }
+            set?.let(com.example.kpkn.data.media.ExerciseAlbumModel::effortLabel)
         },
     )
 
@@ -449,6 +549,12 @@ class WorkoutViewModel(
         getState = { _uiState.value },
         updateState = { transform -> updateUiState(transform) },
         ports = object : WorkoutStructuralPersistenceController.Ports {
+            override fun canMutateWorkout() = canMutateLivePlan()
+            override fun onMutationRejected(message: String) = showWorkoutToast(message)
+            override fun commitStructuralState(base: WorkoutUiState, candidate: WorkoutUiState): Boolean {
+                commitLiveMutation(base, candidate) { refreshLoadSuggestions(_uiState.value) }
+                return true
+            }
             override fun visibleExercises(state: WorkoutUiState) = this@WorkoutViewModel.visibleExercises(state)
             override fun sessionForActiveMode(base: Session, mode: WeekVariant) = this@WorkoutViewModel.sessionForActiveMode(base, mode)
             override fun normalizeSupersetsForWorkout(session: Session) = session.normalizeSupersetsForWorkout()
@@ -566,12 +672,12 @@ class WorkoutViewModel(
         },
         refreshLoadSuggestions = { state, exerciseId -> refreshLoadSuggestions(state, onlyExerciseId = exerciseId) },
         refreshCalibrations = { previous, next ->
-            if (!needsCorrectedCalibrationRefresh(previous) && !needsCorrectedCalibrationRefresh(next)) next else withContext(Dispatchers.IO) {
+            prepareRecordedPerformance(if (!needsCorrectedCalibrationRefresh(previous) && !needsCorrectedCalibrationRefresh(next)) next else withContext(Dispatchers.IO) {
                 refreshCorrectedCalibrations(previous, next, repository.history.value,
                     inventory = repository.settings.value.resolvedEquipmentInventory()) { sourceId ->
                     repository.calibrationDecisions.accepted(System.currentTimeMillis(), sourceId)
                 }
-            }
+            })
         },
     )
 
@@ -587,6 +693,13 @@ class WorkoutViewModel(
             getState = { _uiState.value },
             updateState = { transform -> updateUiState(transform) },
             ports = object : WorkoutStepNavigator.Ports {
+                override fun requestSetOmissions(keys: Set<String>): Boolean {
+                    requestOmissions(setKeys = keys); return true
+                }
+                override fun requestExerciseOmission(exerciseId: String): Boolean {
+                    requestOmissions(exerciseIds = setOf(exerciseId)); return true
+                }
+
                 override fun visibleExercises(state: WorkoutUiState) = this@WorkoutViewModel.visibleExercises(state)
                 override fun sessionForActiveMode(base: Session, mode: WeekVariant) = this@WorkoutViewModel.sessionForActiveMode(base, mode)
                 override fun isSetDone(completedSets: Map<String, CompletedSet>, exerciseId: String, setIdx: Int, isUnilateral: Boolean) =
@@ -686,6 +799,7 @@ class WorkoutViewModel(
                 override fun savePostExerciseFeedbacks(feedbacks: List<PostExerciseFeedback>) = this@WorkoutViewModel.savePostExerciseFeedbacks(feedbacks)
                 override fun addSetToCurrentExercise() = this@WorkoutViewModel.addSetToCurrentExercise()
                 override fun commitStructuralPersistenceSessionOnly() {
+        if (!canMutateLivePlan()) return
                     if (_uiState.value.pendingStructuralPersistence != null) {
                         // Session-only: keep live change, dismiss persistence prompt.
                         clearPendingStructuralPersistence()
@@ -733,12 +847,15 @@ class WorkoutViewModel(
                     replaceExercise(exerciseId = exerciseId, replacement = replacement, deferPersistencePrompt = true)
                 }
                 override fun addExerciseAfter(targetExerciseId: String, exercise: ExerciseMuscleInfo) {
+        if (!canMutateLivePlan()) return
                     addExerciseAfter(exerciseId = targetExerciseId, info = exercise)
                 }
                 override fun addExerciseAtEnd(exercise: ExerciseMuscleInfo) {
+        if (!canMutateLivePlan()) return
                     addExerciseAtEnd(info = exercise)
                 }
                 override fun createLiveSuperset(memberIds: List<String>) {
+        if (!canMutateLivePlan()) return
                     createLiveSuperset(memberIds, partId = null, restBetween = 60, restAfter = 120)
                 }
                 override fun dissolveCurrentSuperset() {
@@ -831,6 +948,17 @@ class WorkoutViewModel(
             repository = repository,
             programId = programId,
             sessionId = sessionId,
+            claimOngoing = { expected ->
+                ongoingWriterReady = false
+                persistence.cancelPendingWrites()
+                val token = Any()
+                val latest = repository.claimOngoingWorkoutWriter(expected, token)
+                ongoingWriterToken = token
+                ongoingWriterGeneration += 1L
+                persistence = createPersistenceController(token, ongoingWriterGeneration)
+                updateUiState { it.copy(persistenceWriterGeneration = ongoingWriterGeneration) }
+                latest
+            },
             getState = { _uiState.value },
             updateState = { transform -> updateUiState(transform) },
             ports = object : WorkoutSessionHydrator.Ports {
@@ -859,11 +987,18 @@ class WorkoutViewModel(
                     stepNavigator.nextIncompleteStepAfter(state, includeCurrent)
                 override fun firstIncompleteStep(state: WorkoutUiState) =
                     stepNavigator.firstIncompleteStep(state)
-                override fun startRestTimer(seconds: Int, preserveElapsed: Boolean) =
-                    this@WorkoutViewModel.startRestTimer(seconds, preserveElapsed = preserveElapsed)
-                override fun startSessionTimer(remainingSeconds: Int) = this@WorkoutViewModel.startSessionTimer(remainingSeconds)
+                override fun startRestTimer(seconds: Int, preserveElapsed: Boolean) {
+                    if (repository.ownsOngoingWorkoutWriter(ongoingWriterToken)) {
+                        this@WorkoutViewModel.startRestTimer(seconds, preserveElapsed = preserveElapsed)
+                    }
+                }
+                override fun startSessionTimer(remainingSeconds: Int) {
+                    if (repository.ownsOngoingWorkoutWriter(ongoingWriterToken)) this@WorkoutViewModel.startSessionTimer(remainingSeconds)
+                }
                 override fun workoutWidgetsSessionKey() = this@WorkoutViewModel.workoutWidgetsSessionKey()
-                override fun bindActiveWorkoutHolder() { ActiveWorkoutHolder.set(this@WorkoutViewModel) }
+                override fun bindActiveWorkoutHolder() {
+                    if (repository.ownsOngoingWorkoutWriter(ongoingWriterToken)) ActiveWorkoutHolder.set(this@WorkoutViewModel)
+                }
                 override fun restAlertCapability(soundsEnabled: Boolean): WorkoutSessionHydrator.RestAlertCapability {
                     val cap = restAlertManager.capabilityState(soundsEnabled = soundsEnabled)
                     return WorkoutSessionHydrator.RestAlertCapability(cap.notificationsEnabled, cap.exactAlarmGranted, cap.soundReady)
@@ -1089,18 +1224,24 @@ class WorkoutViewModel(
     private suspend fun loadSession(): Boolean {
         if (_uiState.value.isCancellingWorkout || _uiState.value.wasCancelled) return false
         updateUiState { it.copy(isStartingWorkout = true) }
+        ongoingWriterReady = false
+        var loadSucceeded = false
         val loaded = try {
             restAlertManager.preloadPreferences()
             if (_uiState.value.isCancellingWorkout || _uiState.value.wasCancelled) return false
-            sessionHydrator.loadSession()
+            sessionHydrator.loadSession().also { loaded ->
+                if (loaded) updateUiState { prepareRecordedPerformance(it) }
+                loadSucceeded = loaded
+            }
         } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
         catch (error: Exception) {
             updateUiState { it.copy(startPersistenceError = error.message ?: "No se pudo preparar la sesión. Reintenta.") }
             false
         } finally {
+            ongoingWriterReady = loadSucceeded && repository.ownsOngoingWorkoutWriter(ongoingWriterToken)
             updateUiState { it.copy(isStartingWorkout = false) }
         }
-        if (loaded && canRunWorkoutTimers(_uiState.value)) {
+        if (ongoingWriterReady && canRunWorkoutTimers(_uiState.value)) {
             val state = _uiState.value
             val current = visibleExercises(state)
                 .getOrNull(state.currentExerciseIdx)
@@ -1141,8 +1282,25 @@ class WorkoutViewModel(
     /** Rehydrates a persisted mobility timer after process death and accounts for wall-clock time. */
     fun resumeHostTimers() {
         hostInForeground.set(true)
+        if (_uiState.value.session == null || _uiState.value.isStartingWorkout) return
+        if (!ongoingWriterReady || !repository.ownsOngoingWorkoutWriter(ongoingWriterToken)) {
+            viewModelScope.launch { loadSession() }
+            return
+        }
         resumeRestoredMobilityTotalTimerIfNeeded()
         resumeRestoredCardioTimerIfNeeded()
+    }
+
+    internal fun onOngoingWriterSuperseded() {
+        ongoingWriterReady = false
+        persistence.cancelPendingWrites()
+        cardioTimerJob?.cancel()
+        mobilityTotalTimerJob?.cancel()
+        cardioInfoTickerJob?.cancel()
+        pacingController.cancelSessionTimer()
+        restTimer.cancelJob()
+        cardioHealthProvider.stop()
+        onVoiceHostPaused()
     }
 
     fun notifyHostBackgrounded() {
@@ -1579,15 +1737,8 @@ class WorkoutViewModel(
         } else {
             result.homologated
         }
-        updateUiState {
-            it.copy(
-                contextualPerformanceCache = it.contextualPerformanceCache + (entry.contextKey to result.nextState),
-                globalPerformanceCache = it.globalPerformanceCache + (result.nextGlobalState.globalKey to result.nextGlobalState),
-                lastHomologatedResultV3 = homologatedWithRange,
-            )
-        }
         performanceRangeStore.prefetchIfMissing(canonicalId, viewModelScope)
-        return result
+        return result.copy(homologated = homologatedWithRange)
     }
 
     fun computeSetOutcomeV2(entry: SetEntryV2): SetOutcomeV2 = evaluateSetEntryV3(entry).outcome
@@ -1636,6 +1787,7 @@ class WorkoutViewModel(
         expectedExerciseId: String? = null,
         expectedSetIdx: Int? = null,
         expectedSide: String? = null,
+        expectedSourceRef: com.example.kpkn.data.models.WorkoutSetExecutionRef? = null,
     ): RecordSetResult {
         // Once finish owns the session, no new record can enter the recorder.
         // An already-running record is allowed to complete and is awaited by
@@ -1661,6 +1813,7 @@ class WorkoutViewModel(
                 expectedExerciseId = expectedExerciseId,
                 expectedSetIdx = expectedSetIdx,
                 expectedSide = expectedSide,
+                expectedSourceRef = expectedSourceRef,
             )
         } catch (error: Exception) {
             KpknDiagnosticLogger.event(
@@ -1746,7 +1899,7 @@ class WorkoutViewModel(
         setIdx: Int,
         side: String? = null,
     ) {
-        stopRestTimer()
+        if (!canMutateLivePlan()) return
         val key = buildCompletedSetKey(exerciseId, setIdx, side)
         val state = _uiState.value
         val recorded = state.completedSets[key] ?: return
@@ -1758,8 +1911,8 @@ class WorkoutViewModel(
             .takeIf { it >= 0 } ?: return
         val exercise = visibleExercises(state).getOrNull(exerciseIdx) ?: return
         val restoredStepKey = WorkoutStepRules.workingStepKey(exerciseId, setIdx, side)
-        updateUiState { current ->
-            current.copy(
+        val current = state
+        val candidate = current.copy(
                 completedSets = current.completedSets - key,
                 setAdvancedFeedback = current.setAdvancedFeedback - key,
                 planDeviations = current.planDeviations.filterNot {
@@ -1786,9 +1939,7 @@ class WorkoutViewModel(
                 lastHomologatedResultV3 = null,
                 imbalanceNotice = null,
             )
-        }
-        clearDraftForSet(exerciseId, setIdx, side)
-        persistOngoingState()
+        commitLiveMutation(state, candidate) { stopRestTimer(); clearDraftForSet(exerciseId, setIdx, side) }
     }
 
     fun checkPaceCoachAlert() = pacingController.checkPaceCoachAlert()
@@ -2643,6 +2794,7 @@ class WorkoutViewModel(
 
 
     fun setActiveMode(mode: WeekVariant) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         if (state.activeMode == mode) return
         if (!cardioTimerAllowsVariantChange(state.cardioTimerState)) {
@@ -2663,29 +2815,17 @@ class WorkoutViewModel(
             }
         }
 
-        val preview = state.copy(activeMode = mode)
+        val preview = switchRecordedWorkoutVariant(state, mode)
         val modeExercises = visibleExercises(preview)
         val (resolvedExerciseIdx, resolvedSetIdx) = resolveResumePosition(
             exercises = modeExercises,
-            completedSets = state.completedSets,
+            completedSets = preview.completedSets,
             preferredExerciseId = null,
             preferredSetId = null,
         )
 
-        updateUiState {
-            val nextState = it.copy(
-                activeMode = mode,
-                currentExerciseIdx = resolvedExerciseIdx,
-                currentSetIdx = resolvedSetIdx,
-            )
-            it.copy(
-                activeMode = mode,
-                currentExerciseIdx = resolvedExerciseIdx,
-                currentSetIdx = resolvedSetIdx,
-                activeStepKey = nextIncompleteStepAfter(nextState, includeCurrent = true)?.stepKey,
-            )
-        }
-        persistOngoingState()
+        val candidate = preview.copy(currentExerciseIdx = resolvedExerciseIdx, currentSetIdx = resolvedSetIdx)
+        commitLiveMutation(state, candidate.copy(activeStepKey = nextIncompleteStepAfter(candidate, includeCurrent = true)?.stepKey)) { refreshLoadSuggestions(_uiState.value) }
     }
 
     fun createLiveSuperset(
@@ -2715,9 +2855,10 @@ class WorkoutViewModel(
             )
         }
         if (updatedSession == base) return
-        val createdGroup = updatedSession.allSupersetGroups().firstOrNull { it.id == groupId } ?: return
+        val activeUpdated = sessionForActiveMode(updatedSession, state.activeMode)
+        val createdGroup = activeUpdated.allSupersetGroups().firstOrNull { it.id == groupId } ?: return
         val memberNames = targetIds.mapNotNull { id ->
-            updatedSession.allExercises().firstOrNull { it.id == id }?.name
+            activeUpdated.allExercises().firstOrNull { it.id == id }?.name
         }
         val currentId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
         val preferredId = currentId?.takeIf { it in targetIds }
@@ -2752,6 +2893,7 @@ class WorkoutViewModel(
     }
 
     fun addCatalogExerciseToLiveSuperset(groupId: String, catalogExercise: ExerciseMuscleInfo) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
         val modeSession = sessionForActiveMode(base, state.activeMode)
@@ -2805,6 +2947,7 @@ class WorkoutViewModel(
         config: CatalogSupersetConfig? = null,
         targetExerciseId: String? = null,
     ) {
+        if (!canMutateLivePlan()) return
         if (catalogExercises.size < 2) return
         val state = _uiState.value
         val base = state.session ?: return
@@ -2903,6 +3046,7 @@ class WorkoutViewModel(
     ): Session = WorkoutStructuralEditor.insertExerciseAfterSupersetMembers(session, memberIds, exercise)
 
     fun dissolveLiveSuperset(groupId: String, preferredExerciseId: String? = null) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
         val memberNames = visibleExercises(state)
@@ -2930,6 +3074,7 @@ class WorkoutViewModel(
     }
 
     fun removeExerciseFromLiveSuperset(exerciseId: String) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
         val groupId = visibleExercises(state).firstOrNull { it.id == exerciseId }
@@ -2945,6 +3090,7 @@ class WorkoutViewModel(
     }
 
     fun joinExerciseToLiveSuperset(exerciseId: String, groupId: String) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
         val modeSession = sessionForActiveMode(base, state.activeMode)
@@ -2963,6 +3109,7 @@ class WorkoutViewModel(
     }
 
     fun moveLiveExerciseToPart(exerciseId: String, targetPartId: String) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
         val snapshot = captureGodModeUndoSnapshot("Mover de grupo")
@@ -2988,6 +3135,7 @@ class WorkoutViewModel(
     }
 
     fun updateLiveSupersetRest(groupId: String, restBetween: Int?, restAfter: Int?, rounds: Int?) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
         val currentExerciseId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
@@ -3005,6 +3153,7 @@ class WorkoutViewModel(
     }
 
     fun moveExercise(exerciseId: String, direction: Int) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
@@ -3012,19 +3161,12 @@ class WorkoutViewModel(
         }
         if (updatedSession == base) return
 
-        val updatedState = state.copy(session = updatedSession)
-        val newIdx = visibleExercises(updatedState).indexOfFirst { it.id == exerciseId }
-
-        updateUiState {
-            it.copy(
-                session = updatedSession,
-                currentExerciseIdx = if (newIdx >= 0) newIdx else it.currentExerciseIdx,
-            )
-        }
-        persistOngoingState()
+        val currentId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
+        applySessionMutation(updatedSession, preferredExerciseId = currentId)
     }
 
     fun reorderExercises(partId: String?, orderedExerciseIds: List<String>) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
         val currentExerciseId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
@@ -3060,6 +3202,7 @@ class WorkoutViewModel(
         reorderLive(orderedExerciseIds)
 
     fun applyReorderAndPromptPersistence(orderedExerciseIds: List<String>, originalPartMap: Map<String, String>, isGlobal: Boolean) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
         val snapshot = captureGodModeUndoSnapshot("Reordenar ejercicios")
@@ -3093,13 +3236,22 @@ class WorkoutViewModel(
 
     private fun updateExerciseDefinitionConfirmed(exerciseId: String, persistToProgram: Boolean,
         transform: (Exercise) -> Exercise, persistReferences: Boolean) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
-        val previous = sessionForActiveMode(base, state.activeMode).allExercises().firstOrNull { it.id == exerciseId }
+        val previous = sessionForActiveMode(base, state.activeMode).allExercises().firstOrNull { it.id == exerciseId } ?: return
+        val proposed = previous?.let { WorkoutEditingRules.normalizeLiveEditedExercise(transform(it)) } ?: return
+        val changesLaterality = proposed.isEffectivelyUnilateral() != previous.isEffectivelyUnilateral()
+        if (changesLaterality && previous.sets.indices.any { index ->
+            val keys = previous.completionKeysForSet(index)
+            keys.any { it in state.completedSets } && !keys.all { it in state.completedSets }
+        }) {
+            showWorkoutToast("Completa u omite el lado pendiente antes de cambiar la lateralidad.")
+            return
+        }
+        val pendingOnly = if (changesLaterality) proposed.copy(sets = pendingReplacementSets(previous, proposed, state.completedSets, state.omittedSetKeys)) else proposed
         val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
-            modeSession.replaceExerciseById(exerciseId) { exercise ->
-                WorkoutEditingRules.normalizeLiveEditedExercise(transform(exercise))
-            }
+            modeSession.replaceExerciseById(exerciseId) { pendingOnly }
         }
         if (updatedSession == base) return
         val next = sessionForActiveMode(updatedSession, state.activeMode).allExercises().firstOrNull { it.id == exerciseId }
@@ -3113,7 +3265,9 @@ class WorkoutViewModel(
                             "live-reference:${java.util.UUID.randomUUID()}", "Referencia confirmada en entrenamiento")
                     }
                     if (saved) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                        updateExerciseDefinitionConfirmed(exerciseId, persistToProgram, { next }, persistReferences = false)
+                        if (_uiState.value.startTimeMs == state.startTimeMs && _uiState.value.session == base)
+                            updateExerciseDefinitionConfirmed(exerciseId, persistToProgram, { next }, persistReferences = false)
+                        else showWorkoutToast("Referencia guardada en el programa; la sesión cambió durante el guardado.")
                     } else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { showWorkoutToast("No se pudo guardar la referencia del programa. Se conservó la anterior.") }
                 } catch (failure: Exception) {
                     if (failure is kotlinx.coroutines.CancellationException) throw failure
@@ -3123,32 +3277,7 @@ class WorkoutViewModel(
             return
         }
         applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = persistToProgram)
-        if (previous != null && next != null && previous.isEffectivelyUnilateral() != next.isEffectivelyUnilateral()) {
-            val toUnilateral = next.isEffectivelyUnilateral()
-            updateUiState {
-                it.copy(
-                    completedSets = remapCompletedSetsForUnilateralToggle(
-                        exerciseId = exerciseId,
-                        setCount = next.sets.size,
-                        completed = it.completedSets,
-                        toUnilateral = toUnilateral,
-                    ),
-                    setDrafts = remapIndexKeyedMapForUnilateralToggle(
-                        exerciseId = exerciseId,
-                        setCount = next.sets.size,
-                        values = it.setDrafts,
-                        toUnilateral = toUnilateral,
-                    ),
-                    omittedSetKeys = remapOmittedKeysForUnilateralToggle(
-                        exerciseId = exerciseId,
-                        setCount = next.sets.size,
-                        omitted = it.omittedSetKeys,
-                        toUnilateral = toUnilateral,
-                    ),
-                )
-            }
-            persistOngoingState()
-        }
+
     }
 
     /** Pure list for preparation: only missing TM references required by this session. */
@@ -3192,66 +3321,31 @@ class WorkoutViewModel(
     // ── Serie por serie: cambiar tipo (Normal / Dropset / Rest-Pause) ───────
 
     fun updatePlannedSeriesTechnique(
-        exerciseId: String,
-        fromIdx: Int,
-        toIdx: Int,
-        technique: SeriesTechnique,
+        exerciseId: String, fromIdx: Int, toIdx: Int, technique: SeriesTechnique,
         selectedIndices: Set<Int>? = null,
     ) {
-        val undoLabel = when (technique) {
+        val indices = selectedIndices?.takeIf { it.isNotEmpty() } ?: (fromIdx.coerceAtLeast(0)..toIdx.coerceAtLeast(fromIdx)).toSet()
+        applyPendingSeriesTechnique(listOf(exerciseId), technique, mapOf(exerciseId to indices))
+    }
+
+    fun applyPendingSeriesTechnique(exerciseIds: List<String>, technique: SeriesTechnique,
+        selected: Map<String, Set<Int>> = emptyMap()) {
+        if (!canMutateLivePlan()) return
+        val state = _uiState.value
+        val updated = pendingTechniqueMutation(state, exerciseIds.toSet(), technique, selected) ?: return
+        if (updated == state.session) return
+        pushGodModeUndo(when (technique) {
             SeriesTechnique.DROPSET -> "Convertir a dropset"
             SeriesTechnique.REST_PAUSE -> "Convertir a rest-pause"
             SeriesTechnique.NORMAL -> "Quitar técnica de serie"
-        }
-        val state = _uiState.value
-        val base = state.session ?: return
-        val currentExId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id
-        val isSameExercise = currentExId == exerciseId
-        val currentSetIdx = state.currentSetIdx
-        val effectiveFrom = fromIdx.coerceAtLeast(0)
-        val effectiveTo = toIdx.coerceAtLeast(effectiveFrom)
-        val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
-        val safeFrom = effectiveFrom.coerceIn(0, (exercise.sets.size - 1).coerceAtLeast(0))
-        val safeTo = effectiveTo.coerceIn(safeFrom, (exercise.sets.size - 1).coerceAtLeast(0))
-        fun setFullyCompleted(idx: Int): Boolean {
-            val keys = exercise.completionKeysForSet(idx)
-            return keys.isNotEmpty() && keys.all { state.completedSets.containsKey(it) }
-        }
-        val rangeIndices = (safeFrom..safeTo).toSet()
-        val requested = (selectedIndices?.takeIf { it.isNotEmpty() } ?: rangeIndices)
-            .filter { it in exercise.sets.indices }
-            .toSet()
-        val hasFuture = requested.any { idx ->
-            if (isSameExercise && idx < currentSetIdx) false
-            else !setFullyCompleted(idx)
-        }
-        if (!hasFuture) return
-        pushGodModeUndo(undoLabel)
-        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
-            modeSession.replaceExerciseById(exerciseId) { ex ->
-                val setsWithLifted = ex.sets.mapIndexed { idx, s ->
-                    val completed = ex.completionKeysForSet(idx)
-                        .firstNotNullOfOrNull { key -> state.completedSets[key] }
-                    if (completed != null && completed.weight > 0.0) s.copy(weight = completed.weight) else s
-                }
-                val mapped = applyMarkedSeriesTechnique(
-                    sets = setsWithLifted,
-                    selectedIndices = requested,
-                    technique = technique,
-                    skipIndex = { idx ->
-                        (isSameExercise && idx < currentSetIdx) || setFullyCompleted(idx)
-                    },
-                )
-                ex.copy(sets = mapped)
-            }
-        }
-        if (updatedSession == base) return
-        applySessionMutation(updatedSession, preferredExerciseId = exerciseId, persistToProgram = false)
-        refreshLoadSuggestions(_uiState.value)
-        persistOngoingState()
+        })
+        val current = visibleExercises(state).getOrNull(state.currentExerciseIdx)
+        applySessionMutation(updated, preferredExerciseId = current?.id,
+            preferredSetId = current?.sets?.getOrNull(state.currentSetIdx)?.id)
     }
 
     fun removeSetFromExercise(exerciseId: String, setIndex: Int) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val exercise = visibleExercises(state).firstOrNull { it.id == exerciseId } ?: return
         if (exercise.sets.size <= 1) return
@@ -3278,6 +3372,7 @@ class WorkoutViewModel(
     }
 
     fun removeExerciseFromSession(exerciseId: String) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val visible = visibleExercises(state)
         if (visible.size <= 1) return
@@ -3309,6 +3404,7 @@ class WorkoutViewModel(
     }
 
     fun removeExercisesFromSession(exerciseIds: List<String>) {
+        if (!canMutateLivePlan()) return
         val ids = exerciseIds.distinct()
         if (ids.isEmpty()) return
         val state = _uiState.value
@@ -3368,9 +3464,14 @@ class WorkoutViewModel(
             exerciseIndex = catalogExerciseIndex(),
             manualOverrides = state.ultraFastManualOverrides,
             completedSetCountByExercise = loggedWorkingSetCounts(modeSession.allExercises(), state.completedSets),
+            protectedSetIdsByExercise = protectedRecordedSetIds(modeSession, state.completedSets),
         )
-        updateUiState { it.copy(ultraFastPreview = preview, showUltraFastSheet = true) }
+        updateUiState { it.copy(ultraFastPreview = preview, showShortenSessionSheet = true) }
     }
+
+    fun openQuickRecording() { updateUiState { it.copy(showShortenSessionSheet = false, showUltraFastSheet = true) } }
+
+    fun hideShortenSessionSheet() { updateUiState { it.copy(showShortenSessionSheet = false) } }
 
     fun hideUltraFastSheet() {
         updateUiState { it.copy(showUltraFastSheet = false) }
@@ -3393,12 +3494,14 @@ class WorkoutViewModel(
                 catalogExerciseIndex(),
                 nextMap,
                 loggedWorkingSetCounts(modeSession.allExercises(), state.completedSets),
+                protectedSetIdsByExercise = protectedRecordedSetIds(modeSession, state.completedSets),
             )
             state.copy(ultraFastManualOverrides = nextMap, ultraFastPreview = preview)
         }
     }
 
     fun applyUltraFast(customSetCounts: Map<String, Int> = emptyMap()) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val base = state.session ?: return
         val modeSession = sessionForActiveMode(base, state.activeMode)
@@ -3410,6 +3513,7 @@ class WorkoutViewModel(
             state.ultraFastManualOverrides,
             loggedWorkingSetCounts(modeSession.allExercises(), state.completedSets),
             customSetCounts,
+            protectedSetIdsByExercise = modeSession.allExercises().associate { ex -> ex.id to ex.sets.filterIndexed { index, _ -> ex.completionKeysForSet(index).any { it in state.completedSets } }.map { it.id }.toSet() },
         )
         // Re-inject transformed flat back into session structure (parts vs loose)
         val flatById = result.transformedExercises.associateBy { it.id }
@@ -3423,42 +3527,23 @@ class WorkoutViewModel(
         }
         // Also need to handle transformed exercises that were loose vs part — flat handles
         // For any new superset members, their refs already applied via flatById
-        updateUiState {
-            it.copy(
-                ultraFastSnapshot = snapshot,
-                ultraFastCompletedSetsSnapshot = state.completedSets,
-                ultraFastPreview = result.preview,
-                ultraFastApplied = true,
-                ultraFastSavedSeconds = result.preview.savedSeconds,
-                showUltraFastSheet = false,
-            )
-        }
-        applySessionMutation(updatedBase, persistToProgram = false)
-        refreshLoadSuggestions(_uiState.value)
-        persistOngoingState()
+        structuralPersistence.applySessionMutation(updatedBase, candidateTransform = {
+            it.copy(ultraFastSnapshot = snapshot, ultraFastCompletedSetsSnapshot = emptyMap(),
+                ultraFastPreview = result.preview, ultraFastApplied = true,
+                ultraFastSavedSeconds = result.preview.savedSeconds, showShortenSessionSheet = false)
+        })
     }
 
     fun revertUltraFast() {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val snapshot = state.ultraFastSnapshot ?: return
-        val completedSnapshot = state.ultraFastCompletedSetsSnapshot
         val base = state.session ?: return
-        val restored = withModeSession(base, state.activeMode) { _ -> snapshot }
-        updateUiState {
-            it.copy(
-                ultraFastSnapshot = null,
-                ultraFastCompletedSetsSnapshot = emptyMap(),
-                ultraFastPreview = null,
-                ultraFastApplied = false,
-                ultraFastSavedSeconds = 0,
-                showUltraFastSheet = false,
-                ultraFastManualOverrides = emptyMap(),
-                completedSets = completedSnapshot,
-            )
-        }
-        applySessionMutation(restored, persistToProgram = false)
-        refreshLoadSuggestions(_uiState.value)
-        persistOngoingState()
+        val restored = withModeSession(base, state.activeMode) { snapshot }
+        structuralPersistence.applySessionMutation(restored, candidateTransform = {
+            it.copy(ultraFastSnapshot = null, ultraFastCompletedSetsSnapshot = emptyMap(), ultraFastPreview = null,
+                ultraFastApplied = false, ultraFastSavedSeconds = 0, ultraFastManualOverrides = emptyMap())
+        })
     }
 
     fun dismissUltraFastAppliedBanner() {
@@ -3466,6 +3551,7 @@ class WorkoutViewModel(
     }
 
     fun setQuickRecordingTechnique(exerciseId: String, fromIndex: Int, technique: SeriesTechnique) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
         if (exercise.id != exerciseId || state.currentSetIdx != fromIndex) return
@@ -3473,12 +3559,13 @@ class WorkoutViewModel(
             exercise, state.completedSets, fromIndex, technique,
         )
         if (updated == exercise) return
-        pushGodModeUndo("Técnica de Ultrarrápido")
+        pushGodModeUndo("Técnica del registro rápido")
         updateExerciseDefinition(exerciseId) { updated }
         refreshLoadSuggestions(_uiState.value)
     }
 
     fun updateExerciseSetPlan(exerciseId: String, setId: String, transform: (ExerciseSet) -> ExerciseSet) {
+        if (!canMutateLivePlan()) return
         updateExerciseDefinition(exerciseId) { exercise ->
             exercise.copy(
                 sets = exercise.sets.map { set ->
@@ -3558,6 +3645,7 @@ class WorkoutViewModel(
     }
 
     fun addExercisesAfter(exerciseId: String, infos: List<ExerciseMuscleInfo>) {
+        if (!canMutateLivePlan()) return
         if (infos.isEmpty()) return
         if (infos.size == 1) {
             addExerciseAfter(exerciseId, infos.first())
@@ -3608,45 +3696,28 @@ class WorkoutViewModel(
         }
     }
 
-    fun addExerciseAtEnd(info: ExerciseMuscleInfo) {
-        val state = _uiState.value
-        val base = state.session ?: return
-        val lastEx = sessionForActiveMode(base, state.activeMode).allExercises().lastOrNull()
-        if (lastEx != null) {
-            addExerciseAfter(lastEx.id, info)
-        } else {
-            val newId = UUID.randomUUID().toString()
-            val updated = withModeSession(base, state.activeMode) { modeSession ->
-                val dummy = Exercise(id = newId, name = info.name, exerciseDbId = info.id)
-                val newExercise = structuralPersistence.buildReplacementExercise(dummy, info).copy(
-                    id = newId,
-                    sets = listOf(ExerciseSet(id = UUID.randomUUID().toString())),
-                )
-                structuralPersistence.insertExerciseAtEnd(modeSession, newExercise)
-            }
-            if (updated == base) return
-            pushGodModeUndo("Agregar ejercicio")
-            applySessionMutation(updated, preferredExerciseId = newId, persistToProgram = false)
-            updateUiState { it.copy(pendingEditSheetExerciseId = newId) }
-        }
-    }
+    fun addExerciseAtEnd(info: ExerciseMuscleInfo) = addExercisesAtEnd(listOf(info))
 
     fun addExercisesAtEnd(infos: List<ExerciseMuscleInfo>) {
-        if (infos.isEmpty()) return
+        if (!canMutateLivePlan() || infos.isEmpty()) return
         val state = _uiState.value
         val base = state.session ?: return
-        val lastEx = sessionForActiveMode(base, state.activeMode).allExercises().lastOrNull()
-        if (lastEx != null) {
-            addExercisesAfter(lastEx.id, infos)
-        } else {
-            val previousUndo = state.godModeUndoStack
-            val snapshot = captureGodModeUndoSnapshot(if (infos.size == 1) "Agregar ejercicio" else "Agregar ejercicios")
-            infos.forEach { addExerciseAtEnd(it) }
-            if (_uiState.value.session != base) {
-                // Varias altas desde el catálogo son una sola acción: las delegadas no duplican la pila.
-                updateUiState { it.copy(godModeUndoStack = previousUndo + snapshot) }
-            }
+        val last = sessionForActiveMode(base, state.activeMode).allExercises().lastOrNull()
+        if (last != null) { addExercisesAfter(last.id, infos); return }
+        val templates = infos.map { info ->
+            val id = UUID.randomUUID().toString()
+            structuralPersistence.buildReplacementExercise(Exercise(id, info.name, exerciseDbId = info.id), info)
+                .copy(id = id, sets = listOf(ExerciseSet(UUID.randomUUID().toString())))
         }
+        val updated = withModeSession(base, state.activeMode) { mode ->
+            templates.fold(mode) { session, exercise -> structuralPersistence.insertExerciseAtEnd(session, exercise) }
+        }
+        pushGodModeUndo(if (infos.size == 1) "Agregar ejercicio" else "Agregar ejercicios")
+        structuralPersistence.applySessionMutation(updated, preferredExerciseId = templates.first().id, candidateTransform = {
+            it.copy(pendingEditSheetExerciseId = templates.first().id,
+                pendingStructuralPersistence = PendingStructuralChange.AddExercises(null, templates.map { ex -> ex.id },
+                    templates.map { ex -> ex.name }, templates))
+        })
     }
 
     fun clearPendingEditSheetExerciseId() {
@@ -3682,18 +3753,15 @@ class WorkoutViewModel(
                 )
             ),
         )
-        updateUiState { state ->
-            val session = state.session ?: return@updateUiState state
-            val updatedSession = if (session.parts.isNotEmpty()) {
-                session.copy(parts = session.parts.mapIndexed { idx, part ->
-                    if (idx == 0) part.copy(exercises = listOf(mobilityExercise) + part.exercises) else part
-                })
-            } else {
-                session.copy(exercises = listOf(mobilityExercise) + session.exercises)
-            }
-            state.copy(session = updatedSession)
+        if (!canMutateLivePlan()) return
+        val state = _uiState.value
+        val session = state.session ?: return
+        val updated = withModeSession(session, state.activeMode) { ms ->
+            if (ms.parts.isNotEmpty()) ms.copy(parts = ms.parts.mapIndexed { index, part ->
+                if (index == 0) part.copy(exercises = listOf(mobilityExercise) + part.exercises) else part
+            }) else ms.copy(exercises = listOf(mobilityExercise) + ms.exercises)
         }
-        persistOngoingState()
+        applySessionMutation(updated, preferredExerciseId = visibleExercises(state).getOrNull(state.currentExerciseIdx)?.id)
     }
 
     fun dismissPendingReplacementPersistencePrompt() =
@@ -3731,15 +3799,16 @@ class WorkoutViewModel(
     }
 
     fun skipExercises(exerciseIds: List<String>) {
+        if (!canMutateLivePlan()) return
         val visibleIds = visibleExercises(_uiState.value).map { it.id }.toSet()
         val ids = exerciseIds.distinct().filter { it in visibleIds }
         if (ids.isEmpty()) return
         pushGodModeUndo(if (ids.size == 1) "Omitir ejercicio" else "Omitir ejercicios")
-        ids.forEach(::skipExerciseInternal)
+        requestOmissions(exerciseIds = ids.toSet())
     }
 
     private fun skipExerciseInternal(exerciseId: String) {
-        stepNavigator.skipExercise(exerciseId)
+        requestOmissions(exerciseIds = setOf(exerciseId))
     }
 
 
@@ -3763,43 +3832,17 @@ class WorkoutViewModel(
     fun skipSet() = stepNavigator.skipSet()
 
     fun omitSet(exerciseId: String, setIdx: Int) {
-        val key = WorkoutStepRules.omittedSetKey(exerciseId, setIdx)
-        // Una serie ya omitida no se omite dos veces ni deja otra entrada de «Deshacer» (LV4, 10.2).
-        if (key in _uiState.value.omittedSetKeys) return
-        pushGodModeUndo("Omitir serie")
-        updateUiState { state ->
-            if (key in state.omittedSetKeys) return@updateUiState state
-            val nextState = state.copy(omittedSetKeys = state.omittedSetKeys + key)
-            val nextStep = stepNavigator.nextIncompleteStepAfter(nextState, includeCurrent = true)
-                ?: stepNavigator.firstIncompleteStep(nextState)
-            val visible = visibleExercises(nextState)
-            val nextExerciseIdx = nextStep?.exerciseId
-                ?.let { id -> visible.indexOfFirst { it.id == id }.takeIf { it >= 0 } }
-                ?: nextState.currentExerciseIdx
-            val nextExercise = visible.getOrNull(nextExerciseIdx)
-            nextState.copy(
-                activeStepKey = nextStep?.stepKey,
-                currentExerciseIdx = nextExerciseIdx,
-                currentSetIdx = nextStep?.setIndex ?: nextState.currentSetIdx,
-                editingState = nextExercise?.let { exercise ->
-                    nextStep?.setIndex?.let { setIndex ->
-                        buildEditingStateForPosition(
-                            completedSets = nextState.completedSets,
-                            exercise = exercise,
-                            setIdx = setIndex,
-                            preferredSide = nextStep.side,
-                        )
-                    }
-                },
-            )
-        }
-        persistOngoingState()
-        if (stepNavigator.firstIncompleteStep(_uiState.value) == null) {
-            openFinishSheet()
-        }
+        if (!canMutateLivePlan()) return
+        val exercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return
+        if (setIdx !in exercise.sets.indices) return
+        requestOmissions(setKeys = setOf(WorkoutStepRules.omittedSetKey(exerciseId, setIdx)))
     }
 
-    internal fun performRelatorAssist(action: RelatorAssistAction): RelatorAssistAck {
+    internal fun performRelatorAssist(action: RelatorAssistAction) {
+        viewModelScope.launch { performRelatorAssistAndAwait(action) }
+    }
+
+    internal suspend fun performRelatorAssistAndAwait(action: RelatorAssistAction): RelatorAssistAck {
         val assistKey = listOf(
             action.kind.name,
             action.exerciseId,
@@ -3814,7 +3857,8 @@ class WorkoutViewModel(
         lastRelatorAssistKey = assistKey
         lastRelatorAssistAtMs = now
         val targetName = relatorAssistTargetName(action)
-        val applied = when (action.kind) {
+        val previousMutation = lastLiveMutation
+        var applied = when (action.kind) {
             RelatorAssistActionKind.JUMP_TO_SET -> {
                 if (action.exerciseId.isBlank() || action.setIndex < 0) {
                     false
@@ -3862,7 +3906,7 @@ class WorkoutViewModel(
                     false
                 } else {
                     previewUltraFast()
-                    _uiState.value.showUltraFastSheet
+                    _uiState.value.showShortenSessionSheet
                 }
             }
             RelatorAssistActionKind.ADD_MOBILITY -> {
@@ -3908,8 +3952,7 @@ class WorkoutViewModel(
                 if (exerciseId.isBlank()) {
                     false
                 } else {
-                    skipWarmupPreparation(exerciseId)
-                    true
+                    skipWarmupPreparationForExercisesAndAwait(listOf(exerciseId)).succeeded
                 }
             }
             RelatorAssistActionKind.OPEN_REPLACE -> {
@@ -3965,6 +4008,12 @@ class WorkoutViewModel(
                 )
                 true
             }
+        }
+        val mutation = lastLiveMutation
+        if (mutation != null && mutation !== previousMutation && action.kind in setOf(
+                RelatorAssistActionKind.OMIT_SET, RelatorAssistActionKind.MOVE_EXERCISE_END,
+                RelatorAssistActionKind.CONVERT_DROPSETS, RelatorAssistActionKind.HALVE_SETS, RelatorAssistActionKind.ADD_MOBILITY)) {
+            applied = mutation.await() == WorkoutMutationResult.Confirmed
         }
         val loadUndo = lastRelatorLoadUndo?.takeIf {
             applied && !action.undoPreviousLoad &&
@@ -4267,6 +4316,7 @@ class WorkoutViewModel(
     }
 
     private fun restoreSkippedExercise(exerciseId: String) {
+        if (!canMutateLivePlan()) return
         if (exerciseId.isBlank()) return
         var restored = false
         updateUiState { state ->
@@ -4299,56 +4349,22 @@ class WorkoutViewModel(
     }
 
     private fun convertRemainingIncompleteToDropsets(): Boolean {
-        val state = _uiState.value
-        val base = state.session ?: return false
-        val visible = visibleExercises(state)
-        val currentIdx = state.currentExerciseIdx
-        val currentSetIdx = state.currentSetIdx
-        val updatedSession = withModeSession(base, state.activeMode) { modeSession ->
-            var next = modeSession
-            visible.forEachIndexed { exIdx, exercise ->
-                if (exIdx < currentIdx) return@forEachIndexed
-                val from = if (exIdx == currentIdx) currentSetIdx else 0
-                next = next.replaceExerciseById(exercise.id) { ex ->
-                    val indices = ex.sets.indices.filter { idx ->
-                        idx >= from &&
-                            !WorkoutStepRules.isSetOmitted(ex.id, idx, state.omittedSetKeys) &&
-                            !isSetDone(state.completedSets, ex.id, idx, ex.isEffectivelyUnilateral())
-                    }.toSet()
-                    if (indices.isEmpty()) {
-                        ex
-                    } else {
-                        val setsWithLifted = ex.sets.mapIndexed { idx, set ->
-                            val completed = ex.completionKeysForSet(idx)
-                                .firstNotNullOfOrNull { key -> state.completedSets[key] }
-                            if (completed != null && completed.weight > 0.0) set.copy(weight = completed.weight) else set
-                        }
-                        ex.copy(sets = applyMarkedSeriesTechnique(setsWithLifted, indices, SeriesTechnique.DROPSET))
-                    }
-                }
-            }
-            next
-        }
-        if (updatedSession == base) return false
-        pushGodModeUndo("Dropsets en lo que queda")
-        applySessionMutation(updatedSession, persistToProgram = false)
-        persistOngoingState()
-        return true
+        val before = lastLiveMutation
+        applyPendingSeriesTechnique(visibleExercises(_uiState.value).map { it.id }, SeriesTechnique.DROPSET)
+        return lastLiveMutation !== before
     }
 
     private fun halveRemainingIncompleteSets(): Boolean {
+        if (!canMutateLivePlan()) return false
         val state = _uiState.value
         val visible = visibleExercises(state)
         val currentIdx = state.currentExerciseIdx
         val currentSetIdx = state.currentSetIdx
         val extraOmits = mutableSetOf<String>()
         visible.forEachIndexed { exIdx, exercise ->
-            if (exIdx < currentIdx) return@forEachIndexed
-            val from = if (exIdx == currentIdx) currentSetIdx else 0
             val incomplete = exercise.sets.indices.filter { idx ->
-                idx >= from &&
-                    !WorkoutStepRules.isSetOmitted(exercise.id, idx, state.omittedSetKeys) &&
-                    !isSetDone(state.completedSets, exercise.id, idx, exercise.isEffectivelyUnilateral())
+                !WorkoutStepRules.isSetOmitted(exercise.id, idx, state.omittedSetKeys) &&
+                    exercise.completionKeysForSet(idx).any { it !in state.completedSets }
             }
             if (incomplete.size <= 1) return@forEachIndexed
             incomplete.takeLast(incomplete.size / 2).forEach { idx ->
@@ -4357,8 +4373,7 @@ class WorkoutViewModel(
         }
         if (extraOmits.isEmpty()) return false
         pushGodModeUndo("Reducir series a la mitad")
-        updateUiState { it.copy(omittedSetKeys = it.omittedSetKeys + extraOmits) }
-        persistOngoingState()
+        requestOmissions(setKeys = extraOmits)
         return true
     }
 
@@ -4381,35 +4396,22 @@ class WorkoutViewModel(
             completedSets = state.completedSets,
             setDrafts = state.setDrafts,
             manualLoadOverrides = state.manualLoadOverrides,
+            activeMode = state.activeMode,
         )
     }
 
     fun revertGodModeChange(stackIndex: Int) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val snapshot = state.godModeUndoStack.getOrNull(stackIndex) ?: return
-        val restoredSession = snapshot.session?.let { snapSession ->
-            withModeSession(state.session ?: snapSession, state.activeMode) { _ -> snapSession }
-        } ?: state.session
-        updateUiState {
-            it.copy(
-                session = restoredSession,
-                skippedExerciseIds = snapshot.skippedExerciseIds,
-                omittedSetKeys = snapshot.omittedSetKeys,
-                currentExerciseIdx = snapshot.currentExerciseIdx,
-                currentSetIdx = snapshot.currentSetIdx,
-                activeStepKey = snapshot.activeStepKey,
-                completedSets = snapshot.completedSets,
-                setDrafts = snapshot.setDrafts,
-                manualLoadOverrides = snapshot.manualLoadOverrides,
-                godModeUndoStack = godModeUndoStackAfterRevert(it.godModeUndoStack, stackIndex),
-                pendingStructuralPersistence = null,
-            )
-        }
-        refreshLoadSuggestions(_uiState.value)
-        persistOngoingState()
+        restoredWorkoutPlan(state, snapshot).rejection?.let { showWorkoutToast(it); return }
+        val candidate = restoreWorkoutPlan(state, snapshot).copy(
+            godModeUndoStack = godModeUndoStackAfterRevert(state.godModeUndoStack, stackIndex))
+        commitLiveMutation(state, candidate) { refreshLoadSuggestions(_uiState.value) }
     }
 
     fun revertPlanAspect(aspectId: String) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val baseline = state.plannedSessionBaseline ?: return
         val current = state.session?.let { sessionForActiveMode(it, state.activeMode) } ?: return
@@ -4428,17 +4430,15 @@ class WorkoutViewModel(
             skippedExerciseIds = state.skippedExerciseIds,
             omittedSetKeys = state.omittedSetKeys,
         )
-        val restoredSession = withModeSession(state.session ?: return, state.activeMode) { _ -> reverted.session }
-        updateUiState {
-            it.copy(
-                session = restoredSession,
-                skippedExerciseIds = reverted.skippedExerciseIds,
-                omittedSetKeys = reverted.omittedSetKeys,
-                pendingStructuralPersistence = null,
-            )
+        val pendingPlan = pendingLateralityPlan(state, withModeSession(state.session ?: return, state.activeMode) { _ -> reverted.session })
+        pendingPlan.rejection?.let { showWorkoutToast(it); return }
+        val restoredSession = pendingPlan.session
+        val preserved = preserveWorkoutRecords(state, restoredSession)
+        commitLiveMutation(state, state.copy(session = restoredSession, completedSets = preserved.completed,
+            archivedCompletedExercises = preserved.archived, skippedExerciseIds = reverted.skippedExerciseIds,
+            omittedSetKeys = reverted.omittedSetKeys, pendingStructuralPersistence = null)) {
+            refreshLoadSuggestions(_uiState.value)
         }
-        refreshLoadSuggestions(_uiState.value)
-        persistOngoingState()
     }
 
     fun dismissGodModeUndoBanner() {
@@ -4610,6 +4610,8 @@ class WorkoutViewModel(
     }
 
     fun recordWarmupWeight(exerciseId: String, warmupSetId: String, weightKg: Double) {
+        if (!canMutateLivePlan() || !weightKg.isFinite() || weightKg < 0.0) return
+        val state = _uiState.value
         val key = warmupCompletionKey(exerciseId, warmupSetId)
         val current = _uiState.value.completedSets[key]
         val exercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return
@@ -4619,8 +4621,7 @@ class WorkoutViewModel(
             reps = warmup.targetReps,
             isWarmup = true,
         )
-        updateUiState { it.copy(completedSets = it.completedSets + (key to completed)) }
-        persistOngoingState()
+        commitLiveMutation(state, state.copy(completedSets = state.completedSets + (key to completed)))
     }
 
     fun recordWarmupEffort(exerciseId: String, warmupSetId: String, effort: com.example.kpkn.domain.workout.WarmupEffort) {
@@ -5649,10 +5650,9 @@ class WorkoutViewModel(
         val gps = CardioGpsTracker.state.value.takeIf { it.sessionKey == gpsKey }
         val duration = timer?.elapsedSeconds?.takeIf { it > 0 }
             ?: gps?.elapsedActiveSeconds?.toInt()?.takeIf { it > 0 }
-            ?: details.effectiveDurationSeconds().coerceAtLeast(1)
+            ?: return false
         val distance = gps?.distanceMeters?.div(1_000.0)?.takeIf { it > 0.0 }
             ?: timer?.distanceKm
-            ?: details.targetDistanceKm
         val heartRate = timer?.averageHeartRate ?: cardioHealthState.value.heartRateBpm
         return recordCardioSetUsingGps(duration, distance, heartRate, exercise.id, setIndex)
     }
@@ -5663,6 +5663,7 @@ class WorkoutViewModel(
         averageHeartRate: Int?,
         expectedExerciseId: String? = null,
         expectedSetIndex: Int? = null,
+        expectedSourceRef: com.example.kpkn.data.models.WorkoutSetExecutionRef? = null,
     ): Boolean {
         return recordCardioSet(
             manualDurationSeconds,
@@ -5670,6 +5671,7 @@ class WorkoutViewModel(
             averageHeartRate,
             expectedExerciseId = expectedExerciseId,
             expectedSetIndex = expectedSetIndex,
+            expectedSourceRef = expectedSourceRef,
         )
     }
 
@@ -5680,13 +5682,18 @@ class WorkoutViewModel(
         kmSplitPaces: List<Int> = emptyList(),
         expectedExerciseId: String? = null,
         expectedSetIndex: Int? = null,
+        actualRpe: Double? = null,
+        expectedSourceRef: com.example.kpkn.data.models.WorkoutSetExecutionRef? = null,
     ): Boolean {
-        if (!canStartWorkoutRecording(_uiState.value)) return false
+        if (!canStartWorkoutRecording(_uiState.value) || durationSeconds <= 0 ||
+            distanceKm?.let { !it.isFinite() || it < 0.0 } == true ||
+            averageHeartRate?.let { it !in 30..240 } == true || actualRpe?.let { !it.isFinite() || it !in 0.0..10.0 } == true) return false
         val state = _uiState.value
         val exercise = visibleExercises(state).getOrNull(state.currentExerciseIdx)
             ?.takeIf { it.isCardio && (expectedExerciseId == null || it.id == expectedExerciseId) }
             ?: return false
         val setIndex = expectedSetIndex ?: state.currentSetIdx
+        if (expectedSourceRef?.let { it != executionRef(state, exercise, setIndex, null) } == true) return false
         val setId = exercise.sets.getOrNull(setIndex)?.id
         if (!isCurrentCardioPageAction(exercise.id, setIndex)) return false
         val activeTimer = liveCardioTimer() ?: state.cardioTimerState
@@ -5728,12 +5735,14 @@ class WorkoutViewModel(
             )
         }
         val completed = CompletedSet(
-            id = key,
+            id = state.completedSets[key]?.id ?: java.util.UUID.randomUUID().toString(),
+            recordedAtMs = if (key in state.completedSets) state.completedSets[key]?.recordedAtMs else System.currentTimeMillis(),
+            sourceRef = state.completedSets[key]?.sourceRef ?: executionRef(state, exercise, setIndex, null),
             timeSeconds = durationSeconds,
             distanceKm = distanceKm,
             avgHeartRate = averageHeartRate,
             calories = calories,
-            rpe = details.resolvedRpe(),
+            rpe = actualRpe,
             kmSplitPaces = kmSplitPaces,
         )
         val alreadyCompleted = state.completedSets.containsKey(key)
@@ -5799,6 +5808,7 @@ class WorkoutViewModel(
             advanceOnFinish = false,
             lastSet = pending.lastSet,
             advancedFeedback = pending.advancedFeedback,
+            kind = _uiState.value.restModalState?.kind ?: RestTimerKind.STANDARD,
         )
     }
 
@@ -6166,20 +6176,15 @@ class WorkoutViewModel(
     }
 
     private fun persistSessionTargetDuration(totalMinutes: Int?) {
+        if (!canMutateLivePlan()) return
         val state = _uiState.value
         val session = state.session ?: return
         val updatedSession = session.copy(targetDurationMinutes = totalMinutes)
-        updateUiState { it.copy(session = updatedSession, targetDurationMinutes = totalMinutes) }
-        if (state.programId.isNotBlank() && state.weekId.isNotBlank()) {
-            repository.upsertSessionInProgram(
-                programId = state.programId,
-                weekId = state.weekId,
-                macroIndex = state.macroIndex,
-                mesoIndex = state.mesoIndex,
-                session = updatedSession,
-            )
+        commitLiveMutation(state, state.copy(session = updatedSession, targetDurationMinutes = totalMinutes)) {
+            if (state.programId.isNotBlank() && state.weekId.isNotBlank()) repository.upsertSessionInProgram(
+                programId = state.programId, weekId = state.weekId, macroIndex = state.macroIndex,
+                mesoIndex = state.mesoIndex, session = updatedSession)
         }
-        persistOngoingState()
     }
 
     fun dismissCancellationError() { updateUiState { it.copy(cancellationError = null) } }
@@ -6526,6 +6531,7 @@ class WorkoutViewModel(
         openFinishSheet()
     }
     fun hideFinish() {
+        if (!canMutateLivePlan()) return
         abortRestTimerHard()
         updateUiState { state ->
             val snapshot = state.finishResumeSnapshot
@@ -7407,7 +7413,8 @@ class WorkoutViewModel(
     }
 
     override fun onCleared() {
-        stopCardioGpsIfRunning()
+        val ownsExecution = repository.ownsOngoingWorkoutWriter(ongoingWriterToken)
+        if (ownsExecution) stopCardioGpsIfRunning()
         cardioTimerJob?.cancel()
         mobilityTotalTimerJob?.cancel()
         cardioInfoTickerJob?.cancel()
@@ -7422,7 +7429,7 @@ class WorkoutViewModel(
         runCatching { voiceController.shutdown() }
         pacingController.cancelSessionTimer()
         runCatching { sessionTtsManager.shutdown() }
-        restTimer.abortHard()
+        if (ownsExecution) restTimer.abortHard() else restTimer.cancelJob()
         mediaCapture.stopIfRecording()
     }
 
@@ -7461,6 +7468,9 @@ class WorkoutViewModel(
             exercises = uiState.map(::visibleExercises).distinctUntilChanged(),
             repository = com.example.kpkn.data.repository.VideoAnalysisRepository.init(appContext),
             mediaRepository = videoMediaRepository,
+            executionBindings = uiState.map { Triple(it.startTimeMs, it.activeMode, it.mediaSetBindings) }.distinctUntilChanged().map { it.third },
+            executionMatches = { ref -> ref.executionStartedAtMs == _uiState.value.startTimeMs && ref.variant == _uiState.value.activeMode },
+            legacyAssociationsValid = { id -> id !in _uiState.value.legacyMediaInvalidatedExerciseIds }
         )
     }
 
@@ -7479,6 +7489,7 @@ class WorkoutViewModel(
                     videoMediaRepository.syncSetSnapshots(
                         WorkoutMediaCaptureController.sessionKey(programId, sessionId, requestedStart),
                         mapOf(result.setKey to committed),
+                        legacyInvalidatedExerciseIds = _uiState.value.legacyMediaInvalidatedExerciseIds,
                     )
                 } catch (cancelled: kotlinx.coroutines.CancellationException) {
                     throw cancelled

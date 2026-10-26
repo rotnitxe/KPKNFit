@@ -59,7 +59,7 @@ sealed interface VoicePendingAction {
         val value: Double,
     ) : VoicePendingAction
 
-    /** RIR imposible (>5, e.g. mishearing "rir doce"): re-pregunta el valor. */
+    /** Reserva no informada o inválida: se solicita el autoinforme sin inferir una cifra. */
     data class ReaskIntensity(
         override val baseInterpretation: WorkoutVoiceInterpretation,
     ) : VoicePendingAction

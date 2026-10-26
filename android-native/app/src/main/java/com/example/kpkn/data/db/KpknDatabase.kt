@@ -63,8 +63,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         CalibrationDecisionEntity::class,
         NutritionDayMarkEntity::class,
         NutritionCheckInEntity::class,
+        NutritionCatalogPublicationEntity::class,
+        NutritionFoodUsageEntity::class,
     ],
-    version = 35,
+    version = 36,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -77,6 +79,7 @@ abstract class KpknDatabase : RoomDatabase() {
     abstract fun stateDao(): StateDao
     abstract fun workoutV2Dao(): WorkoutV2Dao
     abstract fun nutritionDao(): NutritionDao
+    abstract fun nutritionCatalogDao(): NutritionCatalogDao
     abstract fun bodyProgressDao(): BodyProgressDao
     abstract fun customExerciseDao(): CustomExerciseDao
     abstract fun wikiLabDao(): WikiLabDao
@@ -789,6 +792,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     RETIRE_CATALOG_COEFFICIENTS_32_33,
                     RETIRE_PENDING_TRAINING_PROPOSALS_33_34,
                     *COMBINED_NUTRITION_TRAINING_35,
+                    NUTRITION_CATALOG_35_36,
                 )
                 .addCallback(GlobalFoodsFtsHygiene)
                 .apply { source?.let { createFromFile(it) } }

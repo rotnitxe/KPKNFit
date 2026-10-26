@@ -78,6 +78,9 @@ internal fun trainingLogDescription(log: WorkoutLog): String = buildList {
     log.actualDurationSeconds?.let { add("$it s · ${log.actualDurationSource ?: "fuente no indicada"}") }
         ?: add("${log.durationMinutes} min · precisión original en minutos")
     com.example.kpkn.domain.multisport.SportId.entries.firstOrNull { it.name == log.recordedSportId }?.let { add("${recordedSportLabel(it)} · disciplina declarada") }
-    if (log.completedExercises.isNotEmpty()) add("${log.completedExercises.sumOf { it.sets.size }} series registradas")
+    if (log.completedExercises.isNotEmpty()) {
+        val sets = com.example.kpkn.screens.workout.logicalSetCountFromCompleted(log.completedExercises)
+        add(if (sets == 1) "1 serie registrada" else "$sets series registradas")
+    }
     if (log.sportDocuments.isNotEmpty()) add(log.sportDocuments.map { it.sportId.lowercase().replace('_',' ') }.distinct().joinToString(" · "))
 }.joinToString(" · ")

@@ -597,10 +597,26 @@ internal fun WarmupPhaseLiveCard(
     var skipRequested by rememberSaveable { mutableStateOf(false) }
     var message by rememberSaveable { mutableStateOf<String?>(null) }
     var knownCount by rememberSaveable { mutableStateOf(rows.size) }
+    var pendingToggle by remember { mutableStateOf<Triple<String, String, Boolean>?>(null) }
     val doneCount = rows.count { it.isCompleted }
     val allDone = rows.isNotEmpty() && doneCount == rows.size
     val skipped = skipRequested && allDone
     val firstPending = rows.firstOrNull { !it.isCompleted }
+
+    // A tap requests a write; only the committed rows can confirm completion.
+    LaunchedEffect(rows) {
+        val pending = pendingToggle ?: return@LaunchedEffect
+        val row = rows.firstOrNull { it.exerciseId == pending.first && it.warmup.id == pending.second }
+            ?: return@LaunchedEffect
+        if (row.isCompleted == pending.third) {
+            val kg = row.actualWeightKg ?: 0.0
+            message = if (row.isCompleted) {
+                "Aproximación ${row.index + 1} hecha · " +
+                    (if (kg > 0.0) "${kg.toTrimmedNumberString()} kg " else "") + "× ${row.warmup.targetReps}"
+            } else "Aproximación pendiente"
+            pendingToggle = null
+        }
+    }
 
     // Al añadir una aproximación, los avisos de WarmupRules (máximo recomendado y 85 %) salen como mensaje de la tarjeta.
     LaunchedEffect(rows.size) {
@@ -715,12 +731,8 @@ internal fun WarmupPhaseLiveCard(
                             isCompleted = row.isCompleted,
                             accent = sessionAccentColor,
                             onToggle = { completed, kg ->
-                                message = if (completed) {
-                                    "Aproximación ${row.index + 1} hecha · " +
-                                        (if (kg > 0.0) "${kg.toTrimmedNumberString()} kg " else "") + "× ${row.warmup.targetReps}"
-                                } else {
-                                    "Aproximación pendiente"
-                                }
+                                pendingToggle = Triple(row.exerciseId, row.warmup.id, completed)
+                                message = null
                                 onToggleComplete(row, completed, kg)
                             },
                             onWeightDraft = onWeightDraft?.let { callback -> { text -> callback(row, text) } },

@@ -1,5 +1,7 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
+
 import com.example.kpkn.data.db.VideoAnalysisSessionRow
 import com.example.kpkn.data.media.technique.PartialSummary
 import com.example.kpkn.data.media.WorkoutMediaSides
@@ -103,8 +105,11 @@ internal class WorkoutVideoAnalysisController(
     private val repository: VideoAnalysisRepository,
     private val mediaRepository: WorkoutMediaRepository,
     ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    executionBindings: Flow<Map<String, com.example.kpkn.data.models.WorkoutSetExecutionRef>> = flowOf(emptyMap()),
+    private val executionMatches: (com.example.kpkn.data.models.WorkoutSetExecutionRef) -> Boolean = { true },
+    private val legacyAssociationsValid: (String) -> Boolean = { true },
 ) {
-    private data class Entry(val row: VideoAnalysisSessionRow, val summary: VideoAnalysisSummary?, val partials: PartialSummary? = null)
+    private data class Entry(val row: VideoAnalysisSessionRow, val summary: VideoAnalysisSummary?, val partials: PartialSummary? = null, val sourceRef: com.example.kpkn.data.models.WorkoutSetExecutionRef? = null, val configurationId: String? = null)
     private data class Snapshot(val entries: List<Entry>, val romReferences: Map<String, Double>)
 
     private val snapshots = sessionKeys.distinctUntilChanged().flatMapLatest { key ->
@@ -117,7 +122,7 @@ internal class WorkoutVideoAnalysisController(
             val partials = if (row.status == VideoAnalysisStatus.DONE.name && (row.partialReps ?: 0) > 0) {
                 summary?.reportPath?.let { repository.partialSummaryAt(it) }
             } else null
-            Entry(row, summary, partials)
+            Entry(row, summary, partials, mediaRepository.executionRefFor(row.mediaId), mediaRepository.getById(row.mediaId)?.catalogConfigurationId)
         }
         val references = HashMap<String, Double>()
         for (key in entries.mapNotNull { it.summary?.exerciseKey }.distinct()) {
@@ -155,13 +160,22 @@ internal class WorkoutVideoAnalysisController(
         Snapshot(entries, references)
     }.flowOn(ioDispatcher).shareIn(scope, SharingStarted.WhileSubscribed(5_000L), replay = 1)
 
-    val videoAnalysisBySetKey: StateFlow<Map<String, SetVideoAnalysisUi>> = combine(snapshots, completedSets, exercises) { snapshot, completed, currentExercises ->
+    val videoAnalysisBySetKey: StateFlow<Map<String, SetVideoAnalysisUi>> = combine(snapshots, completedSets, exercises, executionBindings) { snapshot, completed, currentExercises, bindings ->
         val byExercise = currentExercises.associateBy { it.id }
         snapshot.entries.mapNotNull { entry ->
             val row = entry.row
             val exercise = byExercise[row.exerciseId] ?: return@mapNotNull null
-            val index = row.setIndex?.takeIf { it >= 0 } ?: return@mapNotNull null
-            val side = WorkoutMediaSides.normalize(row.side, exercise)
+            val ref = entry.sourceRef ?: bindings[row.mediaId]
+            val index = if (ref != null) {
+                if (!executionMatches(ref) || ref.exerciseOccurrenceId != (exercise.occurrenceId ?: exercise.id) ||
+                    ref.configurationId != executionConfigurationId(exercise)) return@mapNotNull null
+                exercise.sets.indexOfFirst { it.id == ref.setId }.takeIf { it >= 0 } ?: return@mapNotNull null
+            } else {
+                if (!legacyAssociationsValid(exercise.id) ||
+                    (entry.configurationId == null || entry.configurationId != exercise.catalogConfigurationId)) return@mapNotNull null
+                row.setIndex?.takeIf { it in exercise.sets.indices } ?: return@mapNotNull null
+            }
+            val side = WorkoutMediaSides.normalize(ref?.side ?: row.side, exercise)
             val key = workoutSetKey(exercise.id, index, side)
             key to entry
         }.groupBy({ it.first }, { it.second }).mapValues { (key, entries) ->
@@ -170,14 +184,14 @@ internal class WorkoutVideoAnalysisController(
                 ?: chronological.lastOrNull { it.row.status == VideoAnalysisStatus.RUNNING.name || it.row.status == VideoAnalysisStatus.QUEUED.name }
                 ?: chronological.last()
             val exercise = byExercise.getValue(chosen.row.exerciseId!!)
-            SetVideoAnalysisUi(chosen.row.mediaId, stateFor(chosen, exercise, completed[key], snapshot.romReferences))
+            SetVideoAnalysisUi(chosen.row.mediaId, stateFor(chosen, exercise, completed[key], snapshot.romReferences, parseCompletedSetKey(key)?.setIdx ?: 0))
         }
     }.stateIn(scope, SharingStarted.WhileSubscribed(5_000L), emptyMap())
 
-    private fun stateFor(entry: Entry, exercise: Exercise, logged: CompletedSet?, references: Map<String, Double>): SetVideoAnalysisState {
+    private fun stateFor(entry: Entry, exercise: Exercise, logged: CompletedSet?, references: Map<String, Double>, resolvedIndex: Int): SetVideoAnalysisState {
         if (logged?.skipped == true) return SetVideoAnalysisState.Unsupported("Esta serie está omitida")
         val row = entry.row
-        val plannedUnit = exercise.sets.getOrNull(row.setIndex ?: -1)?.unitModeV2 ?: when (exercise.trainingMode) {
+        val plannedUnit = exercise.sets.getOrNull(resolvedIndex)?.unitModeV2 ?: when (exercise.trainingMode) {
             TrainingMode.TIME -> UnitModeV2.TIME
             TrainingMode.DISTANCE -> UnitModeV2.DISTANCE
             TrainingMode.CUSTOM, TrainingMode.SOLO_RPE -> UnitModeV2.CUSTOM

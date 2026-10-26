@@ -348,7 +348,7 @@ private fun sessionHeroPage(
 
 /** La meta de una sesión hecha: duración real y series completadas, del registro. */
 private fun doneMeta(log: WorkoutLog): String {
-    val sets = log.completedExercises.sumOf { it.sets.size }
+    val sets = com.example.kpkn.screens.workout.logicalSetCountFromCompleted(log.completedExercises)
     return listOfNotNull(
         "${log.durationMinutes} min",
         sets.takeIf { it > 0 }?.let { if (it == 1) "1 serie" else "$it series" },

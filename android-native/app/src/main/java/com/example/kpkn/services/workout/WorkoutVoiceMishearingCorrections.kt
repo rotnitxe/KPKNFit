@@ -18,20 +18,8 @@ internal object WorkoutVoiceMishearingCorrections {
         "la varra" to "la barra",
     )
 
-    private val PAIR_CORRECTIONS = mapOf(
-        "rir voz" to "rir dos",
-        "rpe voz" to "rpe dos",
-        "rir toca" to "rir dos",
-        "rpe toca" to "rpe dos",
-        "rir kilos" to "rir dos",
-        "rpe kilos" to "rpe dos",
-        "ritmo doce" to "rir dos",
-        // RIR no puede superar ~5: "doce/ocho/diez" tras "rir" son mishearings de "dos".
-        "rir doce" to "rir dos",
-        "rir ocho" to "rir dos",
-        "rir diez" to "rir dos",
-        "rir reservas doce" to "rir dos",
-    )
+    private val spelledRpe = Regex("""\b(?:erre\s+pe\s+e|erre\s+pe|errepe|r\s+p\s+e)\b""")
+    private val spelledRir = Regex("""\b(?:erre\s+i\s+erre|r\s+i\s+r)\b""")
 
     private val DOMAIN_LEXICON = setOf(
         "kilo", "kilos", "peso", "carga", "lastre", "asistencia", "contrapeso", "barra",
@@ -97,12 +85,8 @@ internal object WorkoutVoiceMishearingCorrections {
     }
 
     private fun correctedDeterministically(normalizedText: String): String {
-        var result = normalizedText
-        for ((from, to) in PAIR_CORRECTIONS) {
-            if (result.contains(from)) {
-                result = result.replace(from, to)
-            }
-        }
+        // Canonicalize the name of the scale, never the reported number. Unknown words need clarification.
+        var result = spelledRir.replace(spelledRpe.replace(normalizedText, "rpe"), "rir")
         for ((from, to) in PHRASE_CORRECTIONS) {
             if (result.contains(from)) {
                 result = result.replace(from, to)

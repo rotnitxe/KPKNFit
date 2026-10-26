@@ -60,7 +60,8 @@ internal fun liveQuantityNumber(text: String, unit: UnitModeV2): Double? = when 
 /** The legacy reps field truncates non-rep quantities; the evaluated result retains the real value. */
 internal fun completedLiveQuantity(set: CompletedSet, unit: UnitModeV2): Double? = when (unit) {
     UnitModeV2.TIME -> (set.timeSeconds ?: set.recordedPayloadV3?.durationSeconds)?.toDouble()
-    UnitModeV2.DISTANCE, UnitModeV2.CUSTOM -> set.homologatedResultV3?.actualValue
+    UnitModeV2.DISTANCE, UnitModeV2.CUSTOM -> set.recordedPayloadV3?.actualValue
+        ?: set.homologatedResultV3?.actualValue
         ?: set.setOutcomeV2?.actualValue
         ?: set.distanceKm?.takeIf { unit == UnitModeV2.DISTANCE }?.times(1000.0)
         ?: set.reps.toDouble()

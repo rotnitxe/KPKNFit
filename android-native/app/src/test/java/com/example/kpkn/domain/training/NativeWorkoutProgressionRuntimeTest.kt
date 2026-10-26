@@ -37,9 +37,11 @@ class NativeWorkoutProgressionRuntimeTest {
     @get:Rule
     val roomRule = RoomTestRule()
     private val mainDispatcher = UnconfinedTestDispatcher()
+    private var previousCompositionMetadata: ExerciseCompositionMetadataProvider? = null
 
     @Before
     fun setUp() {
+        previousCompositionMetadata = CompositionMetadataHolder.current
         Dispatchers.setMain(mainDispatcher)
     }
 
@@ -47,6 +49,7 @@ class NativeWorkoutProgressionRuntimeTest {
     fun tearDown() {
         ProgramRepository.closeInstance()
         KpknDatabase.closeInstance()
+        CompositionMetadataHolder.current = previousCompositionMetadata
         Dispatchers.resetMain()
     }
 
@@ -669,6 +672,8 @@ class NativeWorkoutProgressionRuntimeTest {
 
     @Test
     fun finalizeWorkoutPersistsNativeProposalAlongsideTheRealCompletedLogs() = runBlocking {
+        // El repositorio materializa/revisa recetas con el catálogo inicializado, como en la app real.
+        CatalogCompositionTestSupport.install()
         val context = ApplicationProvider.getApplicationContext<Context>()
         val repository = ProgramRepository.initForTests(context)
         withTimeout(10_000) { repository.isReady.first { it } }

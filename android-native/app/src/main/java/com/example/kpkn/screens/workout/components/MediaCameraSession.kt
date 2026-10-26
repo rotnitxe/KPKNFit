@@ -17,10 +17,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import com.example.kpkn.screens.workout.WorkoutMediaCaptureController
+import com.example.kpkn.screens.workout.WorkoutCameraChoice
+import com.example.kpkn.screens.workout.WorkoutCameraLens
 
 /**
  * Lo que decide cuándo se une y se suelta la cámara de «Modo visual» (LV8). Separa la CÁMARA (los casos de uso de CameraX, unidos a la
@@ -126,15 +129,18 @@ internal fun rememberMediaCameraSession(
 ): MediaCameraSession {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val idleChoice = remember { kotlinx.coroutines.flow.MutableStateFlow(WorkoutCameraChoice()) }
+    val cameraChoice by (mediaCapture?.cameraChoice ?: idleChoice).collectAsStateWithLifecycle()
+    val lens = cameraChoice.lens
     // Sin controlador de captura no hay cámara: tampoco se crea ningún objeto de CameraX.
-    val preview = remember(mediaCapture, active, bindGeneration, lifecycleOwner) { mediaCapture?.let { Preview.Builder().build() } }
+    val preview = remember(mediaCapture, active, bindGeneration, lifecycleOwner, lens) { mediaCapture?.let { Preview.Builder().build() } }
     val recording by rememberUpdatedState(isRecording)
     val shouldStopOnDispose by rememberUpdatedState(stopOnDispose)
     val bindFailed by rememberUpdatedState(onBindFailed)
     val session = remember(preview) {
         MediaCameraSession(showPreviewOn = { view -> preview?.surfaceProvider = (view as? PreviewView)?.surfaceProvider })
     }
-    DisposableEffect(lifecycleOwner, mediaCapture, active, bindGeneration) {
+    DisposableEffect(lifecycleOwner, mediaCapture, active, bindGeneration, lens) {
         val capture = mediaCapture
         if (!active || capture == null || preview == null) return@DisposableEffect onDispose { }
         val providerFuture = ProcessCameraProvider.getInstance(context)
@@ -155,11 +161,15 @@ internal fun rememberMediaCameraSession(
                 capture.isRecording.first { !it }
                 lease.bindIfActive {
                     val provider = runCatching { providerFuture.get() }.getOrNull() ?: return@bindIfActive
+                    val back = provider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA)
+                    val front = provider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA)
+                    capture.updateCameraAvailability(back, front)
+                    val selected = cameraChoice.detected(back, front).lens
                     val bound = runCatching {
                         provider.unbindAll()
                         provider.bindToLifecycle(
                             lifecycleOwner,
-                            CameraSelector.DEFAULT_BACK_CAMERA,
+                            if (selected == WorkoutCameraLens.FRONT) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA,
                             preview,
                             imageCapture,
                             videoCapture,

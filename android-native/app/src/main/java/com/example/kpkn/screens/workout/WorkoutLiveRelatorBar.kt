@@ -35,6 +35,8 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -200,14 +202,27 @@ internal fun WorkoutLiveRelatorLine(
     val currentActions = displayData.actions
     val onActionState = rememberUpdatedState(onAction)
     val contextState = rememberUpdatedState(context)
+    val actionScope = rememberCoroutineScope()
+    val currentScopeKey = rememberUpdatedState(scopeKey)
+    var dispatching by remember(scopeKey) { mutableStateOf(false) }
     val handleActionClick: (RelatorAssistAction) -> Unit = { action ->
-        if (workingAction == null && forceWorkingProgress == null) {
-            val ack = contextState.value?.dispatch?.invoke(action) ?: run { onActionState.value(action); null }
-            doneAction = null
-            workingAction = null
-            resultAck = ack
-            // El efecto ocurre en el toque. Sin un resultado verificado no se inventa un «Listo».
-            if (ack?.applied == true && !action.undoPreviousLoad && action.kind.hasWorkingPhase()) workingAction = action
+        if (!dispatching && workingAction == null && forceWorkingProgress == null) {
+            dispatching = true
+            val startedScope = scopeKey
+            actionScope.launch {
+                try {
+                    val ack = contextState.value?.dispatch?.invoke(action) ?: run { onActionState.value(action); null }
+                    if (currentScopeKey.value == startedScope) {
+                        doneAction = null
+                        workingAction = null
+                        resultAck = ack
+                        // Solo una confirmación durable puede iniciar la animación de éxito.
+                        if (ack?.applied == true && !action.undoPreviousLoad && action.kind.hasWorkingPhase()) workingAction = action
+                    }
+                } finally {
+                    if (currentScopeKey.value == startedScope) dispatching = false
+                }
+            }
         }
     }
 

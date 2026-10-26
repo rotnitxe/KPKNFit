@@ -22,6 +22,7 @@ import com.example.kpkn.data.models.performedPurpose
 import com.example.kpkn.domain.training.VolumeCalculator
 import java.time.LocalDate
 
+@kotlinx.serialization.Serializable
 data class SetAdvancedFeedback(
     val rir: Int? = null,
     val reachedFailure: Boolean = false,
@@ -49,6 +50,9 @@ data class SetAdvancedFeedback(
     val rom: Int? = null,
     val assistedReps: Int? = null,
     val notes: String? = null,
+    val techniqueStatus: com.example.kpkn.data.models.RecordedTechniqueStatus? = null,
+    /** Command-local recovery progress, committed atomically with an OPEN observation. */
+    val techniqueProgress: WorkoutTechniqueProgressDraft? = null,
 )
 
 internal fun resolveAmrapActive(
@@ -179,6 +183,7 @@ data class WeightSuggestion(
     val suggestedWeight: Double,
     val reason: String,
     val suggestedLoadMode: LoadModeV2? = null,
+    val isCalibrationAssignment: Boolean = false,
 )
 
 data class WorkoutLoadSuggestionUi(
@@ -188,6 +193,7 @@ data class WorkoutLoadSuggestionUi(
     val reason: String,
     val source: WorkoutLoadSuggestionSource = WorkoutLoadSuggestionSource.PROGRAM,
     val suggestedLoadMode: LoadModeV2? = null,
+    val isCalibrationAssignment: Boolean = false,
 )
 
 enum class WorkoutLoadSuggestionSource {

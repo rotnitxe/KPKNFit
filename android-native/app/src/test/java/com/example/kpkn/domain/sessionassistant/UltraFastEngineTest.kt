@@ -6,6 +6,15 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class UltraFastEngineTest {
+    @Test fun shorteningProtectsAnOutOfOrderRecordedIdentity() {
+        val ex = exercise("e", "Sentadilla barra alta", 4)
+        val result = UltraFastEngine.apply(Session("s", "A", exercises = listOf(ex)), emptyMap(),
+            completedSetCountByExercise = mapOf("e" to 1), customSetCounts = mapOf("e" to 2),
+            protectedSetIdsByExercise = mapOf("e" to setOf(ex.sets[3].id)))
+        val remaining = result.transformedExercises.single().sets
+        assertEquals(2, remaining.size)
+        assertTrue(remaining.any { it.id == ex.sets[3].id })
+    }
 
     private fun exercise(
         id: String,

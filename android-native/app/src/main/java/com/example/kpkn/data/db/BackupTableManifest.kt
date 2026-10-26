@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  */
 object BackupTableManifest {
 
-    const val JSON_BACKUP_SCHEMA_VERSION = 7
+    const val JSON_BACKUP_SCHEMA_VERSION = 8
 
     enum class Category { USER_DATA, REGENERABLE, CACHE }
 
@@ -38,6 +38,8 @@ object BackupTableManifest {
         "nutrition_pantry" to Category.USER_DATA,
         "nutrition_templates" to Category.USER_DATA,
         "nutrition_custom_foods" to Category.USER_DATA,
+        "nutrition_food_usage" to Category.USER_DATA,
+        "nutrition_catalog_publication" to Category.REGENERABLE,
         "learned_resolutions" to Category.USER_DATA,
         "nutrition_calibration_profile" to Category.USER_DATA,
         "daily_goal_snapshots" to Category.USER_DATA,
@@ -95,6 +97,7 @@ object BackupTableManifest {
         hasSetupSection: Boolean = false,
         hasNutritionDayStateSection: Boolean = false,
         hasCalibrationDecisionsSection: Boolean = false,
+        hasFoodUsageSection: Boolean = false,
     ): List<String> {
         val tables = coreJsonBackedTables.filterNot { table ->
             (table == "setup_drafts" || table == "setup_commit_receipts") && !(schemaVersion >= 6 && hasSetupSection)
@@ -120,6 +123,7 @@ object BackupTableManifest {
             tables += listOf("nutrition_day_marks", "nutrition_checkins")
         }
         if (schemaVersion >= 6 && hasCalibrationDecisionsSection) tables += "calibration_decisions"
+        if (schemaVersion >= 8 && hasFoodUsageSection) tables += "nutrition_food_usage"
         return tables.distinct()
     }
 

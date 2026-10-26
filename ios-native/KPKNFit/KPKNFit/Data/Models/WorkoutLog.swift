@@ -3,6 +3,12 @@ import Foundation
 // ─── WorkoutLog ───────────────────────────────────────────────────────────────
 
 public struct WorkoutLog: Codable {
+    public var preparationReports: [String: JSONValue]? = nil
+    public var recordedWarmupSets: [String: CompletedSet]? = nil
+    public var omittedSeries: [String]? = nil
+    public var mediaSetBindings: [String: JSONValue]? = nil
+    public var variantProgress: [String: JSONValue]? = nil
+    public var legacyMediaInvalidatedExerciseIds: [String]? = nil
     public let id: String
     public let programId: String
     public let sessionId: String
@@ -241,6 +247,9 @@ public struct CompletedExercise: Identifiable, Codable {
 // ─── CompletedSet ─────────────────────────────────────────────────────────────
 
 public struct CompletedSet: Identifiable, Codable {
+    public var sourceRef: JSONValue? = nil
+    public var techniqueStatus: String? = nil
+    public var recordedAtMs: Int64? = nil
     public let id: String
     public let weight: Double
     public let reps: Int
@@ -351,13 +360,17 @@ public struct CompletedSet: Identifiable, Codable {
 
 extension CompletedSet {
     public func effectiveRepEquivalent() -> Double {
-        return Double(reps) + Double(max(partialReps ?? 0, 0)) * 0.5
+        // Partial repetitions remain an independent observation, as on Android.
+        return Double(max(reps, 0))
     }
 }
 
 // ─── OngoingWorkoutState ─────────────────────────────────────────────────────
 
 public struct OngoingWorkoutState: Codable {
+    public var mediaSetBindings: [String: JSONValue]? = nil
+    public var variantProgress: [String: JSONValue]? = nil
+    public var legacyMediaInvalidatedExerciseIds: [String]? = nil
     public var recordedSportId: String?
     public var preSessionNotes: String?
     public let programId: String

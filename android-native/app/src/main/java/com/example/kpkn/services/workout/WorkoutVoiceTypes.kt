@@ -30,9 +30,10 @@ data class VoiceSetEditPatch(
     val intensityValue: Double? = null,
     val intensityKind: WorkoutVoiceIntensityKind? = null,
     val side: String? = null,
+    val quantityValue: Double? = null,
 ) {
     val hasAnyField: Boolean
-        get() = weightKg != null || weightDeltaKg != null || metricValue != null ||
+        get() = weightKg != null || weightDeltaKg != null || metricValue != null || quantityValue != null ||
             intensityValue != null || side != null
 }
 

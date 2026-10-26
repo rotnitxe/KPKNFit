@@ -13,6 +13,7 @@ import com.example.kpkn.domain.biomechanics.metrics.RepKind
 import com.example.kpkn.screens.workout.design.completedVideoCorrectionPatch
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.RecordedSetPayload
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
@@ -48,6 +49,25 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34], application = Application::class)
 class WorkoutVideoAnalysisControllerTest {
+    @Test fun stableCaptureFollowsItsSetAndRejectsAReplacementConfiguration() = runBlocking<Unit> {
+        val exercise = exercises.value.single().copy(sets = listOf(ExerciseSet("s0"), ExerciseSet("s1")))
+        exercises.value = listOf(exercise)
+        row("stable")
+        val bindings = MutableStateFlow(mapOf("stable" to executionRef(WorkoutUiState(startTimeMs = 123), exercise, 1, null)))
+        val controller = WorkoutVideoAnalysisController(scope, session, completed, exercises, analysis, media,
+            Dispatchers.Unconfined, executionBindings = bindings)
+        controller.await { it["exercise_1"] != null }
+        exercises.value = listOf(exercise.copy(sets = exercise.sets.reversed()))
+        controller.await { it["exercise_0"] != null && it["exercise_1"] == null }
+        exercises.value = listOf(exercise.copy(catalogConfigurationId = "replacement"))
+        controller.await { it.isEmpty() }
+    }
+
+    @Test fun legacyCaptureWithoutConfigurationDoesNotReplaceAKnownSuggestion() = runBlocking<Unit> {
+        row("known", at = 100L)
+        row("ambiguous", at = 200L, configurationId = null)
+        controller().await { it["exercise_0"]?.mediaId == "known" }
+    }
     @Rule @JvmField val folder = TemporaryFolder()
     private val context: Context get() = ApplicationProvider.getApplicationContext()
     private lateinit var db: KpknDatabase
@@ -56,7 +76,7 @@ class WorkoutVideoAnalysisControllerTest {
     private lateinit var analysis: VideoAnalysisRepository
     private lateinit var media: WorkoutMediaRepository
     private val completed = MutableStateFlow<Map<String, CompletedSet>>(emptyMap())
-    private val exercises = MutableStateFlow(listOf(Exercise("exercise", "Sentadilla", trackRom = true)))
+    private val exercises = MutableStateFlow(listOf(Exercise("exercise", "Sentadilla", trackRom = true, catalogConfigurationId = "test-config", sets = listOf(ExerciseSet("s0")))))
     private val session = MutableStateFlow<String?>("S1")
 
     @Before fun setUp() {
@@ -83,9 +103,10 @@ class WorkoutVideoAnalysisControllerTest {
         confidence: String = "ALTA", sessionKey: String? = "S1", rom: Double = 100.0, at: Long = 100L,
         workoutLogId: String? = null,
         failed: Int = 0,
+        configurationId: String? = "test-config",
     ) {
         TechniqueWorkTestKit.insertVideo(db, store, id) {
-            it.copy(exerciseId = "exercise", setIndex = 0, side = side, sessionKey = sessionKey, workoutLogId = workoutLogId, createdAtMs = at)
+            it.copy(exerciseId = "exercise", catalogConfigurationId = configurationId, setIndex = 0, side = side, sessionKey = sessionKey, workoutLogId = workoutLogId, createdAtMs = at)
         }
         db.videoAnalysisDao().upsert(VideoAnalysisEntity(
             mediaId = id, status = status, progressPct = 42, engineVersion = 1, poseVersion = 1,

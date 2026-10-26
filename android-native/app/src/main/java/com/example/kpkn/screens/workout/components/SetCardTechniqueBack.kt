@@ -138,6 +138,7 @@ internal fun SetCardTechniqueBack(
     setNumber: Int? = null,
     /** Paso de los botones −/+ del peso del drop: el de la carga de la tarjeta (2,5 kg; 1 en mancuernas; 5 en máquinas). */
     loadStepKg: Double = 2.5,
+    loadMode: com.example.kpkn.data.models.LoadModeV2 = com.example.kpkn.data.models.LoadModeV2.LOAD,
     modifier: Modifier = Modifier,
 ) {
     val plannedGuide = remember(currentSet) {
@@ -159,7 +160,7 @@ internal fun SetCardTechniqueBack(
     var dropRows by remember(currentSet.id, mainWeight, mainReps) {
         val count = plannedGuide?.count?.takeIf { plannedGuide.kind == TechniqueType.DROP_SET }
             ?: DropSetPlanDefaults.DefaultDrops
-        val suggestions = suggestedDropLoadsForMainSet(mainWeight, mainReps, count)
+        val suggestions = suggestedDropLoadsForMainSet(mainWeight, mainReps, count, loadMode)
         mutableStateOf(
             suggestions.map { load ->
                 TechniqueCheckRow(
@@ -316,6 +317,7 @@ internal fun SetCardTechniqueBack(
                                     mainReps = mainReps,
                                     nextIndex = nextIndex,
                                     lastWeightText = dropRows.lastOrNull()?.weightText,
+                                    loadMode = loadMode,
                                 )
                                 dropRows = dropRows + TechniqueCheckRow(
                                     weightText = suggested?.takeIf { it > 0 }?.toTrimmedNumberString().orEmpty(),
@@ -327,7 +329,7 @@ internal fun SetCardTechniqueBack(
                             accent = sessionAccentColor,
                         )
                         dropRows.getOrNull(active)?.let { row ->
-                            val suggested = suggestedDropLoadsForMainSet(mainWeight, mainReps, active + 1).getOrNull(active)
+                            val suggested = suggestedDropLoadsForMainSet(mainWeight, mainReps, active + 1, loadMode).getOrNull(active)
                                 ?.takeIf { it > 0.0 }
                             OpenTechniqueRow(
                                 title = "Drop ${active + 1}",
@@ -1076,13 +1078,15 @@ internal fun nextDropWeightKg(
     mainReps: Int,
     nextIndex: Int,
     lastWeightText: String?,
+    loadMode: com.example.kpkn.data.models.LoadModeV2 = com.example.kpkn.data.models.LoadModeV2.LOAD,
 ): Double? {
     val suggested = suggestedDropLoadsForMainSet(
         mainWeight,
         mainReps,
         (nextIndex + 1).coerceAtMost(DropSetPlanDefaults.MaxDrops),
+        loadMode,
     ).getOrNull(nextIndex)
-    return suggested ?: lastWeightText?.replace(',', '.')?.toDoubleOrNull()?.minus(DropSetPlanDefaults.DropKg)
+    return suggested ?: lastWeightText?.replace(',', '.')?.toDoubleOrNull()?.let { com.example.kpkn.domain.workout.nextDropInputLoad(it, DropSetPlanDefaults.DropKg, loadMode) }
 }
 
 /** Mismo alto visual de 30 dp, con objetivo táctil de 48 dp y etiquetas completas desplazables. */

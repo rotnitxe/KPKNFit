@@ -2,6 +2,7 @@ package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.services.workout.VoiceSetEditPatch
 
@@ -28,6 +29,7 @@ internal object WorkoutVoiceMutationFeedback {
 
     /** Phrase for an undo, or null to stay silent (the execution was replaced or discarded). */
     fun forUndo(result: WorkoutVoiceMutationResult): String? = when (result) {
+        is WorkoutVoiceMutationResult.Rejected -> result.message
         is WorkoutVoiceMutationResult.Committed -> UNDO_DONE
         WorkoutVoiceMutationResult.NoRecentSet, WorkoutVoiceMutationResult.NoChange -> UNDO_NO_RECENT_SET
         WorkoutVoiceMutationResult.Busy -> UNDO_BUSY
@@ -42,6 +44,7 @@ internal object WorkoutVoiceMutationFeedback {
      * with [committedEditSpeech]; [EDIT_DONE] is only the fallback when no set came back.
      */
     fun forEdit(result: WorkoutVoiceMutationResult): String? = when (result) {
+        is WorkoutVoiceMutationResult.Rejected -> result.message
         is WorkoutVoiceMutationResult.Committed -> EDIT_DONE
         WorkoutVoiceMutationResult.NoRecentSet -> EDIT_NO_RECENT_SET
         WorkoutVoiceMutationResult.NoChange -> EDIT_NO_CHANGE
@@ -60,7 +63,7 @@ internal object WorkoutVoiceMutationFeedback {
 
     /** Failures worth a visible notice too (the athlete may not be listening). */
     fun needsVisibleNotice(result: WorkoutVoiceMutationResult): Boolean =
-        result is WorkoutVoiceMutationResult.PersistenceFailed || result == WorkoutVoiceMutationResult.Stale
+        result is WorkoutVoiceMutationResult.PersistenceFailed || result is WorkoutVoiceMutationResult.Rejected || result == WorkoutVoiceMutationResult.Stale
 
     /** Values for `speakSetUpdated`: the CONFIRMED values of the fields the athlete changed. */
     data class SetUpdatedSpeech(
@@ -79,11 +82,21 @@ internal object WorkoutVoiceMutationFeedback {
         val intensityKind = patch.intensityKind?.takeIf {
             it != WorkoutVoiceIntensityKind.PERCENT_RM && patch.intensityValue != null
         }
+        val unit = committed.recordedPayloadV3?.unitMode ?: when {
+            committed.timeSeconds != null -> UnitModeV2.TIME
+            committed.distanceKm != null -> UnitModeV2.DISTANCE
+            else -> UnitModeV2.REPS
+        }
+        val metricEdited = (patch.quantityValue ?: patch.metricValue?.toDouble())?.let { it > 0 } == true
+        val actualEffort = if (intensityKind != null) {
+            committed.actualIntensityValue ?: if (intensityKind == WorkoutVoiceIntensityKind.RIR) committed.rir?.toDouble() else committed.rpe
+        } else null
+        if (!weightEdited && (!metricEdited || unit != UnitModeV2.REPS) && actualEffort == null) return null
         return SetUpdatedSpeech(
             weightKg = if (weightEdited) LoadSuggestionEngine.inputLoad(committed, loadMode) else null,
-            reps = patch.metricValue?.takeIf { it > 0 },
-            intensityValue = patch.intensityValue.takeIf { intensityKind != null },
-            intensityKind = intensityKind,
+            reps = committed.reps.takeIf { metricEdited && unit == UnitModeV2.REPS },
+            intensityValue = actualEffort,
+            intensityKind = intensityKind.takeIf { actualEffort != null },
         )
     }
 }

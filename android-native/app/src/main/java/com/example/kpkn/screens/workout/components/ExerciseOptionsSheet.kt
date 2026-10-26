@@ -164,7 +164,7 @@ internal fun ColumnScope.ExerciseOptionsStrengthContent(
             ExerciseOption("Reordenar", KpknLineIcons.Reorder, onReorder),
             ExerciseOption("Crear superserie", KpknLineIcons.Link, onCreateSuperset),
             ExerciseOption("Historial", KpknLineIcons.History, onHistory),
-            ExerciseOption("Ultrarrápido", LiveOptionIcons.Bolt, onUltraFast),
+            ExerciseOption("Aplicar técnica", LiveOptionIcons.Bolt, onUltraFast),
             ExerciseOption("Notas", LiveOptionIcons.Note, onNotes),
             ExerciseOption("Etiquetas", KpknLineIcons.Tag, onTags),
             ExerciseOption("Editar", KpknLineIcons.Edit, onEdit),

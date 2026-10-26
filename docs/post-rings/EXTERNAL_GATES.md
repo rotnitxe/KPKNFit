@@ -1,6 +1,10 @@
+> Estado actual: [integrado en el master oficial con Room 35](INTEGRACION_CIERRE_ANDROID_MASTER_20261025.md). Las evidencias Room 34 enlazadas conservan su alcance historico.
+
 # Gates que necesitan otro host o equipo
 
-Estos pasos están pendientes. No se ejecutan en el PC ni en el Z Flip desde cloud.
+Estado vigente: [QA Android local completado](ANDROID_CLOSURE_20261024.md). Los pasos macOS/iOS siguen pendientes por instrucción del usuario. La sección Z Flip se conserva como protocolo de reproducción del gate ya ejecutado.
+
+Los pasos macOS no se ejecutan desde este host Windows.
 La entrega privada conserva código, fixtures, APK debug y evidencia cloud.
 
 ## macOS / iOS

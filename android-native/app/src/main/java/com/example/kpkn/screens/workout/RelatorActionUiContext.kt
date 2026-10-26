@@ -3,10 +3,10 @@ package com.example.kpkn.screens.workout
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.example.kpkn.data.models.Exercise
 
-/** El despacho devuelve el Ack del mismo toque; callbacks antiguos sin resultado nunca afirman éxito. */
+/** El despacho espera la confirmación durable; callbacks sin resultado nunca afirman éxito. */
 internal data class RelatorActionUiContext(
     val scopeKey: String,
-    val dispatch: (RelatorAssistAction) -> RelatorAssistAck,
+    val dispatch: suspend (RelatorAssistAction) -> RelatorAssistAck,
 )
 
 internal val LocalRelatorActionUiContext = staticCompositionLocalOf<RelatorActionUiContext?> { null }

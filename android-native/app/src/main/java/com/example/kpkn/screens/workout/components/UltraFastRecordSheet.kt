@@ -58,7 +58,7 @@ internal fun UltraFastRecordSheet(
     val technique = when { current?.isDropSet == true -> SeriesTechnique.DROPSET; current?.isRestPause == true -> SeriesTechnique.REST_PAUSE; else -> SeriesTechnique.NORMAL }
     val pending = exercise.sets.indices.count { !exercise.isSetDone(completedSets, it) }
     HeaderSheet(onDismiss, dismissible = !busy) { close ->
-        HeaderSheetFrame("Ultrarrápido", footer = {
+        HeaderSheetFrame("Registro rápido", footer = {
             if (!supported) HeaderSheetAction("Volver a la sesión", close, Modifier.fillMaxWidth(), primary = true)
             else {
                 Text(error ?: if (rir == null) "Marca tu esfuerzo antes de registrar." else "RIR " + rir,

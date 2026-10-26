@@ -39,6 +39,34 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [28])
 class WorkoutFinishControllerPostCommitTest {
+    @Test fun finishingAPartiallySkippedExerciseIncludesItsRemainingDoseInHistory() = runTest {
+        val fixture = createFixture(this)
+        val exercise = fixture.session.exercises.single()
+        fixture.state = fixture.state.copy(session = fixture.session.copy(exercises = listOf(
+            exercise.copy(sets = exercise.sets + ExerciseSet("extra", targetReps = 8)))), skippedExerciseIds = setOf(exercise.id))
+        fixture.controller().finish("QA", 5, feedback())
+        advanceUntilIdle()
+        awaitFinished(fixture)
+        val log = fixture.repository.getLogsForSession(fixture.session.id).single()
+        assertEquals(setOf("${exercise.id}_1"), log.omittedSeries)
+        assertEquals(1, log.completedExercises.flatMap { it.sets }.size)
+    }
+    @Test fun finishingAnOpenTechniqueKeepsItsMainAndOnlyTheReportedMinis() = runTest {
+        val fixture = createFixture(this)
+        val actual = fixture.state.completedSets.values.first().copy(
+            techniqueStatus = com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN,
+            dropSets = listOf(com.example.kpkn.data.models.DropSetData(15.0, 3)))
+        val key = fixture.state.completedSets.keys.first()
+        fixture.state = fixture.state.copy(completedSets = mapOf(key to actual))
+        fixture.controller().finish("QA", 5, feedback())
+        advanceUntilIdle()
+        awaitFinished(fixture)
+        val saved = fixture.repository.getLogsForSession(fixture.session.id).single().completedExercises.flatMap { it.sets }.single()
+        assertEquals(actual.id, saved.id)
+        assertEquals(actual.reps, saved.reps)
+        assertEquals(actual.dropSets, saved.dropSets)
+        assertEquals(com.example.kpkn.data.models.RecordedTechniqueStatus.SKIPPED, saved.techniqueStatus)
+    }
 
     @get:Rule
     val roomRule = RoomTestRule()

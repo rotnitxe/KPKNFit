@@ -23,19 +23,8 @@ enum class RestTimerKind {
     BETWEEN_SIDES,
 }
 
-@Serializable
-enum class PreparationReportUnit {
-    REPS,
-    SECONDS,
-}
-
-@Serializable
-data class PreparationReport(
-    val value: Double,
-    val unit: PreparationReportUnit,
-    val weightKg: Double? = null,
-    val reps: Int? = null,
-)
+typealias PreparationReportUnit = com.example.kpkn.data.models.PreparationReportUnit
+typealias PreparationReport = com.example.kpkn.data.models.PreparationReport
 
 @Serializable
 enum class WorkoutTechniqueDraftKind {
@@ -56,6 +45,7 @@ data class WorkoutTechniqueMainCaptureDraft(
     val amrapOverride: Boolean? = null,
     val bodyWeight: Double? = null,
     val side: String? = null,
+    val mainFeedback: SetAdvancedFeedback? = null,
 )
 
 /** In-progress technique rows are part of the active set draft until Room acknowledges the set. */
@@ -145,29 +135,8 @@ internal fun remapCompletedSetsForUnilateralToggle(
     completed: Map<String, CompletedSet>,
     toUnilateral: Boolean,
 ): Map<String, CompletedSet> {
-    val result = completed.filterKeys { !it.startsWith("${exerciseId}_") }.toMutableMap()
-    for (idx in 0 until setCount.coerceAtLeast(0)) {
-        val bilateral = workoutSetKey(exerciseId, idx)
-        val left = workoutSetKey(exerciseId, idx, "left")
-        val right = workoutSetKey(exerciseId, idx, "right")
-        if (toUnilateral) {
-            val source = completed[bilateral] ?: completed[left] ?: completed[right] ?: continue
-            result[left] = source
-            result[right] = source
-        } else {
-            val leftSet = completed[left]
-            val rightSet = completed[right]
-            val source = when {
-                leftSet != null && rightSet != null ->
-                    if (completedSetWork(leftSet) >= completedSetWork(rightSet)) leftSet else rightSet
-                leftSet != null -> leftSet
-                rightSet != null -> rightSet
-                else -> completed[bilateral]
-            } ?: continue
-            result[bilateral] = source
-        }
-    }
-    return result
+    // Changing a future plan is not evidence of executing another side.
+    return completed
 }
 
 internal fun <T> remapIndexKeyedMapForUnilateralToggle(
@@ -242,7 +211,7 @@ internal fun logicalWorkingSetCount(
     )
     keys.isNotEmpty() && keys.all { key ->
         val completed = completedSets[key] ?: return@all false
-        !completed.skipped && !completed.isWarmup
+        !completed.skipped && !completed.isWarmup && completed.techniqueStatus != com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN
     }
 }
 
@@ -252,7 +221,6 @@ internal fun isStackedTechniqueStillOpen(
     completedSets: Map<String, CompletedSet>,
 ): Boolean {
     val planned = exercise.sets.getOrNull(setIdx) ?: return false
-    if (!planned.isStackedIntensityTechnique()) return false
     val keys = com.example.kpkn.domain.workout.completionKeysForSet(
         exercise.id,
         setIdx,
@@ -260,8 +228,20 @@ internal fun isStackedTechniqueStillOpen(
     )
     val logged = keys.mapNotNull(completedSets::get)
     if (logged.isEmpty() || logged.any { it.skipped }) return false
+    if (logged.any { it.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN }) return true
+    if (!planned.isStackedIntensityTechnique()) return false
+    if (logged.all { it.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.COMPLETED ||
+            it.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.SKIPPED }) return false
     return (planned.isDropSet && logged.all { it.dropSets.isEmpty() }) ||
         (planned.isRestPause && logged.all { it.restPauses.isEmpty() })
+}
+
+internal fun WorkoutSetDraft.withCommittedTechniqueProgress(progress: WorkoutTechniqueProgressDraft?): WorkoutSetDraft {
+    val scheduled = progress?.kind == WorkoutTechniqueDraftKind.SCHEDULED_DROP ||
+        progress?.kind == WorkoutTechniqueDraftKind.SCHEDULED_REST_PAUSE
+    return copy(techniqueProgress = progress, isDirty = true,
+        weightText = if (scheduled) progress?.dropWeightText ?: weightText else weightText,
+        valueText = if (scheduled) progress?.dropRepsText ?: valueText else valueText)
 }
 
 internal fun loggedWorkingSetCounts(
@@ -336,7 +316,7 @@ private fun remapIndexKeyedKey(
         val owner = prevById.keys.firstOrNull { id -> key == id || key.startsWith("${id}_") }
         return if (owner != null && owner !in nextById) null else key
     }
-    val prevExercise = prevById[parsed.exerciseId] ?: return null
+    val prevExercise = prevById[parsed.exerciseId] ?: return key
     val nextExercise = nextById[parsed.exerciseId] ?: return null
     val setId = prevExercise.sets.getOrNull(parsed.setIdx)?.id ?: return null
     val newIdx = nextExercise.sets.indexOfFirst { it.id == setId }
@@ -520,3 +500,40 @@ internal fun inferDefaultLoadModeFromCatalog(exercise: Exercise): LoadModeV2 {
         else -> LoadModeV2.LOAD
     }
 }
+
+@Serializable
+data class WorkoutVariantProgress(
+    val skippedExerciseIds: Set<String> = emptySet(),
+    val omittedSetKeys: Set<String> = emptySet(),
+    val warmupCompletedExerciseIds: Set<String> = emptySet(),
+    val mobilityCompletedExerciseIds: Set<String> = emptySet(),
+    val mobilityTotalCompletedStepKeys: Set<String> = emptySet(),
+    val preparationReports: Map<String, PreparationReport> = emptyMap(),
+    val setDrafts: Map<String, WorkoutSetDraft> = emptyMap(),
+    val manualLoadOverrides: Map<String, Double> = emptyMap(),
+    val persistedLoadModeBySet: Map<String, com.example.kpkn.data.models.LoadModeV2> = emptyMap(),
+    val persistedLoadModeByExercise: Map<String, com.example.kpkn.data.models.LoadModeV2> = emptyMap(),
+    val setAdvancedFeedback: Map<String, SetAdvancedFeedback> = emptyMap(),
+    val exerciseTags: Map<String, String> = emptyMap(),
+    val activeTagsByExercise: Map<String, List<String>> = emptyMap(),
+    val activeSubTagsByExercise: Map<String, List<String>> = emptyMap(),
+    val activeContextProfileByExerciseId: Map<String, String> = emptyMap(),
+)
+
+internal fun snapshotVariantProgress(state: WorkoutUiState) = WorkoutVariantProgress(
+    skippedExerciseIds = state.skippedExerciseIds,
+    omittedSetKeys = state.omittedSetKeys,
+    warmupCompletedExerciseIds = state.warmupCompletedExerciseIds,
+    mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds,
+    mobilityTotalCompletedStepKeys = state.mobilityTotalCompletedStepKeys,
+    preparationReports = state.preparationReports,
+    setDrafts = state.setDrafts,
+    manualLoadOverrides = state.manualLoadOverrides,
+    persistedLoadModeBySet = state.persistedLoadModeBySet,
+    persistedLoadModeByExercise = state.persistedLoadModeByExercise,
+    setAdvancedFeedback = state.setAdvancedFeedback,
+    exerciseTags = state.exerciseTags,
+    activeTagsByExercise = state.activeTagsByExercise,
+    activeSubTagsByExercise = state.activeSubTagsByExercise,
+    activeContextProfileByExerciseId = state.activeContextProfileByExerciseId,
+)

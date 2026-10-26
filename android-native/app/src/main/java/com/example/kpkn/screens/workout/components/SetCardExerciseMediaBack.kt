@@ -40,6 +40,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Collections
+import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -203,6 +204,8 @@ internal fun SetCardExerciseMediaBack(
     val idleRecording = remember { kotlinx.coroutines.flow.MutableStateFlow(false) }
     val idleError = remember { kotlinx.coroutines.flow.MutableStateFlow<String?>(null) }
     val idleBind = remember { kotlinx.coroutines.flow.MutableStateFlow(0) }
+    val idleChoice = remember { kotlinx.coroutines.flow.MutableStateFlow(com.example.kpkn.screens.workout.WorkoutCameraChoice()) }
+    val cameraChoice by (mediaCapture?.cameraChoice ?: idleChoice).collectAsStateWithLifecycle()
     val sessionMedia by (mediaCapture?.sessionMedia ?: emptyMedia).collectAsStateWithLifecycle()
     val recording by (mediaCapture?.isRecording ?: idleRecording).collectAsStateWithLifecycle()
     val observedCaptureError by (mediaCapture?.captureError ?: idleError).collectAsStateWithLifecycle()
@@ -355,6 +358,7 @@ internal fun SetCardExerciseMediaBack(
                     description = "Volver a la serie",
                 )
                 Box(modifier = Modifier.weight(1f))
+                WorkoutCameraSwitchButton(cameraChoice, !recording, { mediaCapture?.switchCamera() })
                 if (mediaCapture != null || showControlsWithoutCamera) {
                     MediaFaceIconButton(
                         description = "Álbum",
@@ -632,13 +636,14 @@ private fun MediaFacePill(
 private fun MediaFaceIconButton(
     description: String,
     onClick: () -> Unit,
+    enabled: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val interaction = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
             .size(48.dp)
-            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick)
+            .clickable(enabled = enabled, interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
@@ -649,6 +654,19 @@ private fun MediaFaceIconButton(
                 .background(KpknSurface.inset, CircleShape),
             contentAlignment = Alignment.Center,
         ) { content() }
+    }
+}
+
+@Composable
+internal fun WorkoutCameraSwitchButton(
+    choice: com.example.kpkn.screens.workout.WorkoutCameraChoice,
+    enabled: Boolean,
+    onSwitch: () -> Unit,
+) {
+    if (!choice.canSwitch) return
+    MediaFaceIconButton(description = choice.switchDescription, onClick = onSwitch, enabled = enabled) {
+        Icon(Icons.Default.Cameraswitch, contentDescription = null, modifier = Modifier.size(18.dp),
+            tint = WizardColors.text.copy(alpha = if (enabled) 1f else 0.4f))
     }
 }
 

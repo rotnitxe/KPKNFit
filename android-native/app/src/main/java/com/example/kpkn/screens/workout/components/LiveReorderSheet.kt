@@ -635,7 +635,7 @@ private fun BatchActionBar(
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             BatchPill("Quitar", onRemove, enabled = selectedCount >= 1, danger = true, modifier = Modifier.weight(1f))
-            BatchPill("Ultrarrápido", onUltraFast, enabled = selectedCount >= 1, modifier = Modifier.weight(1f))
+            BatchPill("Aplicar técnica", onUltraFast, enabled = selectedCount >= 1, modifier = Modifier.weight(1f))
         }
     }
 }

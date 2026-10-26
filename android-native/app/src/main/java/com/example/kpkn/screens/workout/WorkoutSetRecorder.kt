@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.SetPurpose
+import com.example.kpkn.domain.workout.expectedSidesForSetIndex
 import com.example.kpkn.domain.workout.isMyoReps
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
@@ -61,6 +62,7 @@ class WorkoutSetRecorder(
     private val getState: () -> WorkoutUiState,
     private val updateState: ((WorkoutUiState) -> WorkoutUiState) -> Unit,
     private val ports: Ports,
+    private val prepareRecordedState: (WorkoutUiState) -> WorkoutUiState = { it },
 ) {
     interface Ports {
         fun visibleExercises(state: WorkoutUiState): List<Exercise>
@@ -120,8 +122,13 @@ class WorkoutSetRecorder(
         expectedExerciseId: String? = null,
         expectedSetIdx: Int? = null,
         expectedSide: String? = null,
+        expectedSourceRef: com.example.kpkn.data.models.WorkoutSetExecutionRef? = null,
     ): RecordSetResult {
         val state = getState()
+        recordedObservationError(weight, value, bodyWeight, advanced, intensity)?.let { message ->
+            ports.onRecordingRejected(message)
+            return RecordSetResult.Rejected(message)
+        }
         val allExercises = ports.visibleExercises(state)
         val exercise = allExercises.getOrNull(state.currentExerciseIdx)
         if (exercise == null) {
@@ -129,6 +136,10 @@ class WorkoutSetRecorder(
             return RecordSetResult.Rejected("No hay ejercicio activo para registrar.")
         }
         val targetSetIdx = setIdxOverride ?: state.currentSetIdx
+        if (targetSetIdx !in exercise.sets.indices || exercise.sets[targetSetIdx].isEmptySlot ||
+            expectedSourceRef?.let { it != executionRef(state, exercise, targetSetIdx, side) } == true) {
+            return RecordSetResult.Rejected("La identidad de la serie cambió. Reabre su tarjeta.").also { ports.onRecordingRejected(it.reason) }
+        }
         if (expectedExerciseId != null && expectedExerciseId != exercise.id) {
             ports.onRecordingRejected("El ejercicio cambió. Vuelve a la serie activa.")
             return RecordSetResult.Rejected("El ejercicio cambió. Vuelve a la serie activa.")
@@ -147,6 +158,16 @@ class WorkoutSetRecorder(
             advanced.amrapOverride != false
         val requiresEffort = !exercise.isCardio && !advanced.isWarmup && !advanced.skipped && !calibratorRecording
         var report = if (requiresEffort) preserveExistingRecordingEffort(intensity, advanced, state.completedSets[recordingKey]) else advanced
+        if (report.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN && report.techniqueProgress?.mainCapture == null) {
+            val message = "No se pudo recuperar la principal de la técnica. Reabre su tarjeta."
+            ports.onRecordingRejected(message)
+            return RecordSetResult.Rejected(message)
+        }
+        if (state.completedSets[recordingKey]?.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN && report.techniqueStatus == null) {
+            val message = "Termina o cierra la técnica antes de volver a registrar su principal."
+            ports.onRecordingRejected(message)
+            return RecordSetResult.Rejected(message)
+        }
         if (requiresEffort) {
             recordingEffortError(intensity, report)?.let { message ->
                 ports.onRecordingRejected(message)
@@ -159,7 +180,20 @@ class WorkoutSetRecorder(
         val hasPendingTechniqueProgress =
             state.setDrafts[techniqueDraftKey]?.techniqueProgress != null ||
                 state.setDrafts[fallbackTechniqueDraftKey]?.techniqueProgress != null
-        if (hasPendingTechniqueProgress) {
+        if (!tryStartRecording(recordingKey)) {
+            ports.onRecordingRejected("Espera a que termine el registro anterior.")
+            return RecordSetResult.Rejected("Espera a que termine el registro anterior.")
+        }
+        updateState { it.copy(recordingSetKey = recordingKey) }
+        var durableResult: RecordSetResult? = null
+        try {
+            val locked = getState()
+            val lockedExercise = ports.visibleExercises(locked).getOrNull(locked.currentExerciseIdx)
+            if (locked.startTimeMs != state.startTimeMs || locked.activeMode != state.activeMode ||
+                lockedExercise == null || executionRef(locked, lockedExercise, targetSetIdx, initialSide) != executionRef(state, exercise, targetSetIdx, initialSide)) {
+                return RecordSetResult.Rejected("La serie cambió antes de guardar. Reabre su tarjeta.").also { ports.onRecordingRejected(it.reason) }
+            }
+        if (hasPendingTechniqueProgress && report.techniqueStatus != com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN) {
             val preflush = try {
                 ports.persistOngoingStateAndAwait(state) {}
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
@@ -175,15 +209,17 @@ class WorkoutSetRecorder(
                 return RecordSetResult.PersistenceFailed(cause)
             }
         }
-        if (!tryStartRecording(recordingKey)) {
-            ports.onRecordingRejected("Espera a que termine el registro anterior.")
-            return RecordSetResult.Rejected("Espera a que termine el registro anterior.")
-        }
-        updateState { it.copy(recordingSetKey = recordingKey) }
-        var durableResult: RecordSetResult? = null
-        try {
             val plannedSet = exercise.sets.getOrNull(targetSetIdx)
             val scheduledPlan = plannedSet?.scheduledTechniquePlan()
+            val needsTechniqueRows = plannedSet?.isInlineEditorScheduledTechnique() == true || plannedSet?.isStackedIntensityTechnique() == true
+            if (needsTechniqueRows && report.dropSets.isEmpty() && report.restPauses.isEmpty() &&
+                report.techniqueStatus != com.example.kpkn.data.models.RecordedTechniqueStatus.SKIPPED &&
+                report.techniqueStatus != com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN &&
+                !report.isFailedSet && !report.executionError) {
+                val message = "Registra las miniseries realizadas o termina explícitamente la técnica en su tarjeta."
+                ports.onRecordingRejected(message)
+                return RecordSetResult.Rejected(message)
+            }
             val amrapActive = resolveAmrapActive(
                 plannedSet = plannedSet,
                 requestedOverride = amrapOverride,
@@ -201,11 +237,18 @@ class WorkoutSetRecorder(
             val activeProfile = ports.activeContextProfile(exercise.id)
 
             val resolvedUnitMode = unitMode ?: plannedSet?.let { ports.inferUnitMode(exercise, it) } ?: UnitModeV2.REPS
+            if (resolvedUnitMode in listOf(UnitModeV2.REPS, UnitModeV2.TIME) && (value > Int.MAX_VALUE || value % 1.0 != 0.0)) {
+                return RecordSetResult.Rejected("Introduce repeticiones o segundos enteros.").also { ports.onRecordingRejected(it.reason) }
+            }
             var resolvedLoadMode = loadMode ?: ports.effectiveLoadModeForExercise(exercise, targetSetIdx)
             if (resolvedLoadMode == LoadModeV2.LASTRE && weight <= 0.0) {
                 resolvedLoadMode = LoadModeV2.BODYWEIGHT
             }
-            val resolvedBodyWeight = bodyWeight ?: ports.currentBodyWeight()
+            val originalPayload = state.completedSets[recordingKey]?.recordedPayloadV3
+            if (originalPayload != null && originalPayload.unitMode != resolvedUnitMode) {
+                return RecordSetResult.Rejected("La ejecución registrada usa otra unidad. Conserva su unidad al corregirla.").also { ports.onRecordingRejected(it.reason) }
+            }
+            val resolvedBodyWeight = originalPayload?.bodyWeightSnapshot ?: bodyWeight ?: ports.currentBodyWeight()
             val activeTagIds = state.activeTagsByExercise[exercise.id].orEmpty()
             val activeTagObj = state.userCreatedTags.values.flatten().firstOrNull { it.id in activeTagIds }
                 ?: state.userCreatedTags.values.flatten().firstOrNull {
@@ -243,10 +286,7 @@ class WorkoutSetRecorder(
                 UnitModeV2.TIME -> value.coerceAtLeast(0.0)
                 UnitModeV2.REPS, UnitModeV2.DISTANCE, UnitModeV2.CUSTOM -> value.coerceAtLeast(0.0)
             }
-            val logicalActualValue = when (resolvedUnitMode) {
-                UnitModeV2.REPS -> actualValue + ((report.partialReps ?: 0).coerceAtLeast(0) * 0.5)
-                else -> actualValue
-            }
+            val logicalActualValue = actualValue
             val plannedTarget = if (amrapActive && resolvedUnitMode == UnitModeV2.REPS) amrapMinimumReps?.toDouble()
                 else plannedSet?.let { ports.inferPlannedTarget(it, resolvedUnitMode) }
             val sideRepRange = when (resolvedSide) {
@@ -308,7 +348,7 @@ class WorkoutSetRecorder(
                 IntensityMode.AMRAP -> intensity
                 else -> intensity
             }
-            val actualReps = if (resolvedUnitMode == UnitModeV2.TIME) 0 else actualValue.toInt().coerceAtLeast(0)
+            val actualReps = if (resolvedUnitMode == UnitModeV2.REPS) actualValue.toInt().coerceAtLeast(0) else 0
             val durationSeconds = if (resolvedUnitMode == UnitModeV2.TIME) {
                 (report.timerElapsedSeconds ?: actualValue.toInt()).coerceAtLeast(0)
             } else {
@@ -317,13 +357,14 @@ class WorkoutSetRecorder(
             val techniques = buildList {
                 if (report.dropSets.isNotEmpty()) add(SetTechniqueV2.DROP_SET)
                 if (report.restPauses.isNotEmpty()) add(SetTechniqueV2.REST_PAUSE)
-                if (scheduledPlan?.kind == ScheduledTechniqueKind.DROP_SET && report.dropSets.isEmpty()) add(SetTechniqueV2.DROP_SET)
-                if (scheduledPlan?.kind == ScheduledTechniqueKind.REST_PAUSE && report.restPauses.isEmpty()) add(SetTechniqueV2.REST_PAUSE)
                 if (report.isPartial) add(SetTechniqueV2.PARTIALS)
                 if (report.reachedFailure) add(SetTechniqueV2.FAILURE)
                 if (amrapActive) add(SetTechniqueV2.AMRAP)
             }
             val recordedPayload = RecordedSetPayload(
+                actualValue = value,
+                plannedRepRange = plannedRepRange,
+                plannedTargetSnapshot = plannedTarget,
                 contextProfileId = activeProfile?.id,
                 exerciseId = exercise.id,
                 exerciseDbId = ports.canonicalExerciseKey(exercise),
@@ -447,6 +488,7 @@ class WorkoutSetRecorder(
             val recordedAfterAdvanced = applyAdvancedFeedback(
                 base = CompletedSet(
                     id = state.completedSets[recordingKey]?.id ?: UUID.randomUUID().toString(),
+                    recordedAtMs = if (recordingKey in state.completedSets) state.completedSets[recordingKey]?.recordedAtMs else System.currentTimeMillis(),
                     setIndex = targetSetIdx,
                     weight = outcome.augeEquivalentLoad,
                     reps = actualReps,
@@ -493,64 +535,35 @@ class WorkoutSetRecorder(
                 ),
                 advanced = report,
             )
-            val scheduledDropRows = if (plannedSet?.isInlineEditorScheduledTechnique() == true &&
-                scheduledPlan?.kind == ScheduledTechniqueKind.DROP_SET &&
-                report.dropSets.isEmpty() && weight > 0.0
-            ) {
-                List(scheduledPlan.followUpCount) { index ->
-                    com.example.kpkn.data.models.DropSetData(
-                        weight = (weight - scheduledPlan.dropKg * (index + 1)).coerceAtLeast(0.0),
-                        reps = scheduledPlan.followUpReps,
-                    )
-                }
-            } else {
-                emptyList()
-            }
-            val scheduledRestRows = if (plannedSet?.isInlineEditorScheduledTechnique() == true &&
-                scheduledPlan?.kind == ScheduledTechniqueKind.REST_PAUSE &&
-                report.restPauses.isEmpty()
-            ) {
-                List(scheduledPlan.followUpCount) {
-                    com.example.kpkn.data.models.RestPauseData(
-                        restTime = scheduledPlan.pauseSeconds,
-                        reps = scheduledPlan.followUpReps,
-                        style = scheduledPlan.style,
-                    )
-                }
-            } else {
-                emptyList()
-            }
-            val completedBeforeApre = if (plannedSet?.isVolumeReplacedTechnique() == true) {
-                recordedAfterAdvanced.copy(
-                    dropSets = recordedAfterAdvanced.dropSets
-                        .ifEmpty { plannedSet.dropSets }
-                        .ifEmpty { scheduledDropRows },
-                    restPauses = recordedAfterAdvanced.restPauses
-                        .ifEmpty { plannedSet.restPauses }
-                        .ifEmpty { scheduledRestRows },
-                )
-            } else {
-                recordedAfterAdvanced
-            }
+            val completedBeforeApre = recordedAfterAdvanced
 
-            val completedSet = completedBeforeApre.copy(apreXrm = buildRecordedApreXrm(
+            val completedSet = preserveRecordingOrigin(state.completedSets[recordingKey], completedBeforeApre.copy(
+                sourceRef = state.completedSets[recordingKey]?.sourceRef ?: executionRef(state, exercise, targetSetIdx, resolvedSide),
+                techniqueStatus = report.techniqueStatus ?: com.example.kpkn.data.models.RecordedTechniqueStatus.COMPLETED,
+                apreXrm = buildRecordedApreXrm(
                 state, exercise, targetSetIdx, completedBeforeApre, System.currentTimeMillis(),
-                repository.settings.value.resolvedEquipmentInventory()))
+                repository.settings.value.resolvedEquipmentInventory())))
             // La variante proviene de las mini-series ejecutadas, no se impone desde un plan que el reverso pudo cambiar.
 
             val key = buildCompletedSetKey(exercise.id, targetSetIdx, resolvedSide)
             val wasExistingSet = state.completedSets.containsKey(key)
             val existingSet = state.completedSets[key]
+            val isOpenTechnique = completedSet.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN
+            val advancesExecution = !wasExistingSet || existingSet?.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN
             if (existingSet != null && completedSetContentMatches(
                     existing = existingSet,
                     next = completedSet,
                     requestedNotes = report.notes,
                 )
             ) {
-                ports.onRecordingRejected("No hay cambios para actualizar.")
-                return RecordSetResult.Rejected("No hay cambios para actualizar.")
+                if (isOpenTechnique) {
+                    if (state.setDrafts[key]?.techniqueProgress == report.techniqueProgress) return RecordSetResult.Updated(key)
+                } else {
+                    ports.onRecordingRejected("No hay cambios para actualizar.")
+                    return RecordSetResult.Rejected("No hay cambios para actualizar.")
+                }
             }
-            val newDeviations = plannedSet?.let {
+            val newDeviations = if (isOpenTechnique) emptyList() else plannedSet?.let {
                 WorkoutPlanDeviationSupport.detect(
                     exerciseId = exercise.id,
                     exerciseName = displayWorkoutExerciseName(exercise),
@@ -607,12 +620,14 @@ class WorkoutSetRecorder(
             val draftKey = workoutSetKey(exercise.id, targetSetIdx, resolvedSide)
             val fallbackKey = workoutSetKey(exercise.id, targetSetIdx)
             val recordedCandidate = applyRecorded(submitted).copy(
-                setDrafts = submitted.setDrafts.minus(draftKey).minus(fallbackKey),
+                setDrafts = if (isOpenTechnique) submitted.setDrafts + (draftKey to
+                    (submitted.setDrafts[draftKey] ?: WorkoutSetDraft()).withCommittedTechniqueProgress(report.techniqueProgress))
+                    else submitted.setDrafts.minus(draftKey).minus(fallbackKey),
                 persistedLoadModeBySet = submitted.persistedLoadModeBySet + (fallbackKey to resolvedLoadMode),
                 persistedLoadModeByExercise = submitted.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode),
             )
             val now = System.currentTimeMillis()
-            val calibrationRecord = buildRecordedApreCalibration(recordedCandidate, exercise, targetSetIdx,
+            val calibrationRecord = if (isOpenTechnique) null else (buildRecordedApreCalibration(recordedCandidate, exercise, targetSetIdx,
                 completedSet, now, repository.settings.value.resolvedEquipmentInventory())
                 ?: if (performedPurpose == SetPurpose.CALIBRATOR && !completedSet.skipped) {
                 withContext(Dispatchers.IO) {
@@ -620,16 +635,20 @@ class WorkoutSetRecorder(
                         repository.history.value, repository.calibrationDecisions.accepted(now, completedSet.id), now,
                         repository.settings.value.resolvedEquipmentInventory())
                 }
-            } else null
-            val candidate = recordedCandidate.copy(calibrationDecisions = replaceRecordedCalibration(
-                submitted.calibrationDecisions, completedSet.id, calibrationRecord, now))
+            } else null)
+            val candidate = prepareRecordedState(recordedCandidate.copy(calibrationDecisions = if (isOpenTechnique) submitted.calibrationDecisions else replaceRecordedCalibration(
+                submitted.calibrationDecisions, completedSet.id, calibrationRecord, now)))
             val publishRecorded: () -> Unit = {
                 updateState { current ->
-                    val remainingDrafts = current.setDrafts.filter { (draftId, draft) ->
+                    val remainingDrafts = if (isOpenTechnique) current.setDrafts + (draftKey to
+                        (current.setDrafts[draftKey] ?: WorkoutSetDraft()).withCommittedTechniqueProgress(report.techniqueProgress))
+                    else current.setDrafts.filter { (draftId, draft) ->
                         draftId !in setOf(draftKey, fallbackKey) || submitted.setDrafts[draftId] != draft
                     }
                     current.copy(
-                        completedSets = current.completedSets + (key to completedSet),
+                        completedSets = current.completedSets + candidate.completedSets,
+                        contextualPerformanceCache = candidate.contextualPerformanceCache,
+                        globalPerformanceCache = candidate.globalPerformanceCache,
                         // Room has confirmed this record. Closing here avoids waiting for
                         // rest, suggestions and other post-commit effects to return.
                         showUltraFastSheet = false,
@@ -660,6 +679,9 @@ class WorkoutSetRecorder(
             }
             durableResult = if (wasExistingSet) RecordSetResult.Updated(key) else RecordSetResult.Created(key)
             if (persistResult is WorkoutPersistResult.UiPublicationFailed) publishRecorded()
+            // Each reported phase is already durable. The card advances only after this acknowledgement.
+            // Ordinary progression, calibration and between-set rest belong to the explicit close.
+            if (isOpenTechnique) return checkNotNull(durableResult)
             evaluatedContextKeys.add(contextKey)
             fun ancillary(name: String, effect: () -> Unit) {
                 try { effect() } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
@@ -721,17 +743,18 @@ class WorkoutSetRecorder(
 
             val postUpdateCompleted = getState().completedSets
             val unilateralPendingOtherSide = isUnilateralExercise && resolvedSide != null &&
-                postUpdateCompleted[buildCompletedSetKey(exercise.id, targetSetIdx, counterpartSide(resolvedSide))] == null
+                com.example.kpkn.domain.workout.completionKeysForSet(exercise.id, targetSetIdx,
+                    exercise.expectedSidesForSetIndex(targetSetIdx)).any { it !in postUpdateCompleted || postUpdateCompleted[it]?.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN }
             val stateAfterLoggedSet = getState()
             val nextStepForRest = ports.nextIncompleteStepAfter(stateAfterLoggedSet)
             // An execution error is a recoverable state, not a completed route:
             // keep the cursor on the red card so Revertir can remove the
             // placeholder without racing the pager/rest timer.
-            val techniqueStillOpen = plannedSet?.isStackedIntensityTechnique() == true && (
+            val techniqueStillOpen = completedSet.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN && plannedSet?.isStackedIntensityTechnique() == true && (
                 (plannedSet.isDropSet && report.dropSets.isEmpty()) ||
                     (plannedSet.isRestPause && report.restPauses.isEmpty())
                 )
-            if (!amrapActive && !isExecutionError && !unilateralPendingOtherSide && !wasExistingSet && !techniqueStillOpen) {
+            if (!amrapActive && !isExecutionError && !unilateralPendingOtherSide && advancesExecution && !techniqueStillOpen) {
                 // A legacy/one-phase scheduled set still gets its deterministic
                 // next-load prescription even when the UI did not need to
                 // collect explicit follow-up rows.
@@ -770,6 +793,7 @@ class WorkoutSetRecorder(
                         phaseCountOverride = scheduledPhaseCount,
                         actualIntensityMode = completedSet.actualIntensityMode,
                         actualIntensityValue = completedSet.actualIntensityValue,
+                        loadMode = resolvedLoadMode,
                     )
                 }
                 val nextCanonicalIndex = targetSetIdx + 1
@@ -787,7 +811,7 @@ class WorkoutSetRecorder(
             val baseRest = exercise.restTime?.takeIf { it > 0 } ?: repository.settings.value.restTimerDefaultSeconds
             val scheduledPhaseForRest = if (scheduledPlan != null &&
                 plannedSet?.isInlineEditorScheduledTechnique() == true &&
-                (completedSet.dropSets.isNotEmpty() || completedSet.restPauses.isNotEmpty())
+                completedSet.techniqueStatus != com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN
             ) {
                 scheduledPlan.phaseCount - 1
             } else {
@@ -838,10 +862,11 @@ class WorkoutSetRecorder(
                     phaseCountOverride = scheduledPhaseCountForRest,
                     actualIntensityMode = completedSet.actualIntensityMode,
                     actualIntensityValue = completedSet.actualIntensityValue,
+                    loadMode = resolvedLoadMode,
                 )?.restAfterSeconds
             }
             val sessionForRest = state.session?.let { ports.sessionForActiveMode(it, state.activeMode) }
-            val supersetGroup = sessionForRest?.effectiveSupersetGroupFor(exercise)
+            val supersetGroup = sessionForRest?.effectiveSupersetGroupFor(exercise)?.takeUnless { it.isOptional }
             val sameSupersetRound = nextStepForRest?.supersetGroupId != null &&
                 nextStepForRest.supersetGroupId == exercise.supersetGroupRefOrLegacyId() &&
                 nextStepForRest.exerciseId != exercise.id &&
@@ -886,7 +911,7 @@ class WorkoutSetRecorder(
             }.distinct().size
             // Rest follows the authored plan; no physiological drain or silent dose adjustment.
             val adaptiveRest = plannedRestForKind.coerceAtLeast(0)
-            if (!wasExistingSet) {
+            if (advancesExecution) {
                 val nextPlannedSet = exercise.sets.getOrNull(targetSetIdx + 1)
                 val plannedRest = when (restKind) {
                     RestTimerKind.SUPERSET_INTRA,
@@ -911,7 +936,7 @@ class WorkoutSetRecorder(
                 // Drop/rest-pause pauses run inside the card. Do not start the
                 // originally planned between-set rest until those techniques
                 // have actually been recorded.
-                val techniqueStillOpen = plannedSet?.isStackedIntensityTechnique() == true && (
+                val techniqueStillOpen = completedSet.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN && plannedSet?.isStackedIntensityTechnique() == true && (
                     (plannedSet.isDropSet && report.dropSets.isEmpty()) ||
                         (plannedSet.isRestPause && report.restPauses.isEmpty())
                     )
@@ -993,7 +1018,11 @@ class WorkoutSetRecorder(
         val oldPayload = existing.recordedPayloadV3
         val newPayload = next.recordedPayloadV3
         if (oldPayload != null && newPayload != null) {
-            return oldPayload == newPayload &&
+            val oldFacts = oldPayload.copy(actualValue = oldPayload.actualValue ?: completedLiveQuantity(existing, oldPayload.unitMode),
+                plannedRepRange = null, plannedTargetSnapshot = null)
+            val newFacts = newPayload.copy(plannedRepRange = null, plannedTargetSnapshot = null)
+            return oldFacts == newFacts &&
+                (existing.techniqueStatus ?: com.example.kpkn.data.models.RecordedTechniqueStatus.COMPLETED) == next.techniqueStatus &&
                 existing.dropSets == next.dropSets &&
                 existing.restPauses == next.restPauses &&
                 existing.isPartial == next.isPartial &&
@@ -1022,7 +1051,8 @@ class WorkoutSetRecorder(
             existing.amrapPerformed == next.amrapPerformed &&
             existing.amrapMinimumReps == next.amrapMinimumReps &&
             existing.amrapBelowMinimum == next.amrapBelowMinimum &&
-            existing.dropSets == next.dropSets &&
+            existing.techniqueStatus == next.techniqueStatus &&
+                existing.dropSets == next.dropSets &&
             existing.restPauses == next.restPauses &&
             existing.isPartial == next.isPartial &&
             existing.partialReps == next.partialReps &&

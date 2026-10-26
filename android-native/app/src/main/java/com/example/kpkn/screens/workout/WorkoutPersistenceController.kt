@@ -29,6 +29,7 @@ class WorkoutPersistenceController(
     private val flushPendingWrites: suspend () -> Unit = {},
     private val persistDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
     private val publishDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Main.immediate,
+    private val isAuthorizedSnapshot: (WorkoutUiState) -> Boolean = { true },
 ) {
     private var debounceJob: Job? = null
     private var immediateCoalesceJob: Job? = null
@@ -78,6 +79,9 @@ class WorkoutPersistenceController(
             withContext(NonCancellable) {
                 val result = persistSnapshot(state)
                 if (result.succeeded && onCommitted != null) {
+                    // A successor may have read this commit while Main publication
+                    // was queued. Never publish an old generation over its fresh UI.
+                    if (!isAuthorizedSnapshot(state)) return@withContext WorkoutPersistResult.Skipped
                     try {
                         withContext(publishDispatcher) { onCommitted() }
                         pendingUiCommit = null
@@ -97,6 +101,13 @@ class WorkoutPersistenceController(
     }
 
     suspend fun persistLatestAndAwait(): WorkoutPersistResult = persistFreshLocked()
+
+    fun cancelPendingWrites() {
+        debounceJob?.cancel()
+        immediateCoalesceJob?.cancel()
+        debounceJob = null
+        immediateCoalesceJob = null
+    }
 
     /** The repository owns this scope, so a cleared VM cannot cancel a final snapshot. */
     fun enqueueFinalSnapshot() {
@@ -142,6 +153,7 @@ class WorkoutPersistenceController(
     }
 
     private suspend fun persistSnapshot(state: WorkoutUiState): WorkoutPersistResult {
+        if (!isAuthorizedSnapshot(state)) return WorkoutPersistResult.Skipped
         pendingUiCommit?.let { committed ->
             if (state.startTimeMs != committed.startTimeMs || committed.completedSets.any { (key, value) ->
                     state.completedSets[key] != value
@@ -246,6 +258,9 @@ class WorkoutPersistenceController(
                     volumeAdvanceHandled = state.volumeAdvanceHandled,
                     archivedCompletedExercises = state.archivedCompletedExercises,
                     logAlreadyWrittenId = state.logAlreadyWrittenId,
+                    mediaSetBindings = state.mediaSetBindings,
+                    legacyMediaInvalidatedExerciseIds = state.legacyMediaInvalidatedExerciseIds,
+                    variantProgress = state.variantProgress,
                 )
             }
         }

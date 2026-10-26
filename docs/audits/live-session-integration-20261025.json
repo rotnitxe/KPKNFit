@@ -1,0 +1,34 @@
+{
+  "status": "PASS_ISOLATED_COMMIT",
+  "sourceCommit": "ed6cee4d6e5936514105432c5986566f504ce66d",
+  "roomVersion": 35,
+  "schemaIdentityHash": "7656051b2803f99fdde1e93d68ea13a1",
+  "android": {
+    "assembleBaseDebug": "PASS",
+    "tests": {
+      "tests": 631,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classes": 66
+    },
+    "run": "one isolated run without concurrent WIP",
+    "duration": "21m26s"
+  },
+  "backend": {
+    "commit": "ed6cee4d6e5936514105432c5986566f504ce66d",
+    "tests": 4,
+    "failures": 0,
+    "result": "4 passed in 1.76s",
+    "execution": "uv offline, isolated commit"
+  },
+  "worktreeTrackedChanges": [],
+  "excludedWipFilesNotCommitted": 21,
+  "excludedWipHashesUnchanged": 20,
+  "concurrentPreferenceChangesPreserved": [
+    ".commandcode/taste/taste/taste.md"
+  ],
+  "isolatedApkSha256": "41b08b461f65ca57c08005b93b3fc138f871680bb4e5f3789d78e0188818b671",
+  "deviceAppChangedDuringIntegration": false,
+  "rawDeviceArtifactsPublished": false
+}

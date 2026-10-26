@@ -73,7 +73,9 @@ fun ExerciseSet.isEditorScheduledTechnique(): Boolean =
  * they must not be expanded into another in-card mini-series.
  */
 fun ExerciseSet.isInlineEditorScheduledTechnique(): Boolean {
-    if (!isEditorScheduledTechnique()) return false
+    if (!isEditorScheduledTechnique()) {
+        return techniqueScope() == SetTechniqueScope.VOLUME_REPLACED && (dropSets.isNotEmpty() || restPauses.isNotEmpty())
+    }
     val technique = plannedIntensityTechniques.firstOrNull {
         it.type == TechniqueType.DROP_SET || it.type == TechniqueType.REST_PAUSE
     } ?: return false
@@ -193,6 +195,7 @@ fun ExerciseSet.resolveScheduledTechniqueExecution(
     phaseCountOverride: Int? = null,
     actualIntensityMode: IntensityMode? = null,
     actualIntensityValue: Double? = null,
+    loadMode: com.example.kpkn.data.models.LoadModeV2 = loadModeV2 ?: com.example.kpkn.data.models.LoadModeV2.LOAD,
 ): ScheduledTechniqueExecution? {
     val plan = scheduledTechniquePlan() ?: return null
     val resolvedPhaseCount = (phaseCountOverride ?: plan.phaseCount).coerceAtLeast(1)
@@ -203,7 +206,7 @@ fun ExerciseSet.resolveScheduledTechniqueExecution(
     } else {
         when (plan.kind) {
             ScheduledTechniqueKind.DROP_SET ->
-                (currentLoad - plan.dropKg).coerceAtLeast(0.0)
+                nextDropInputLoad(currentLoad, plan.dropKg, loadMode)
             ScheduledTechniqueKind.REST_PAUSE -> currentLoad
         }
     }
@@ -270,4 +273,12 @@ fun com.example.kpkn.data.models.CompletedSet.restPauseDescription(): String? {
     return (if(myo) "Myo-reps · " else "Rest-pause · ") + restPauses.mapIndexed { index,row ->
         "${if(myo) "Mini" else "Pausa"} ${index+1}: ${row.reps} reps · ${row.restTime} s"
     }.joinToString(" / ")
+}
+
+
+/** Assistance is inverse load: a drop needs more help, not less. Bodyweight needs a chosen regression. */
+fun nextDropInputLoad(current: Double, dropKg: Double, mode: com.example.kpkn.data.models.LoadModeV2): Double = when (mode) {
+    com.example.kpkn.data.models.LoadModeV2.ASSISTED -> current + dropKg.coerceAtLeast(0.0)
+    com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT -> current
+    else -> (current - dropKg.coerceAtLeast(0.0)).coerceAtLeast(0.0)
 }

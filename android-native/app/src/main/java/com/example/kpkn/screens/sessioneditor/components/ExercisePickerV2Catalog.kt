@@ -224,6 +224,7 @@ internal data class CatalogReplacementContext(
     val exercise: com.example.kpkn.data.models.Exercise? = null,
     val availability: com.example.kpkn.data.models.EquipmentAvailability? = null,
     val avoided: Set<com.example.kpkn.domain.onboarding.AvoidGroup> = emptySet(),
+    val preservationNote: String? = null,
 )
 
 /**
@@ -1420,7 +1421,7 @@ private fun ColumnScope.CatalogReadyContent(
         if (showReplaceBar) {
             val chosen = selectedRows.value.values.firstOrNull()
             CatalogReplaceBar(
-                note = replacement?.planSummary?.takeIf { it.isNotBlank() }?.let { "Se mantienen las series del plan: $it" },
+                note = replacement?.preservationNote ?: replacement?.planSummary?.takeIf { it.isNotBlank() }?.let { "Se mantienen las series del plan: $it" },
                 buttonText = chosen?.let { "Reemplazar por ${it.name}" } ?: "Reemplazar",
                 enabled = chosen != null,
                 onConfirm = { chosen?.let(onSelect) },

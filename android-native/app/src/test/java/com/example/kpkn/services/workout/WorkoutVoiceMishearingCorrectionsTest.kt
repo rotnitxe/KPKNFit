@@ -6,30 +6,28 @@ import org.junit.Test
 class WorkoutVoiceMishearingCorrectionsTest {
 
     @Test
-    fun rir_voz_is_corrected_to_rir_dos() {
-        assertEquals("rir dos", WorkoutVoiceMishearingCorrections.correct("rir voz"))
-        assertEquals("rpe dos", WorkoutVoiceMishearingCorrections.correct("rpe voz"))
+    fun unknown_noise_is_not_promoted_to_a_reported_two() {
+        assertEquals("rir voz", WorkoutVoiceMishearingCorrections.correct("rir voz"))
+        assertEquals("rpe voz", WorkoutVoiceMishearingCorrections.correct("rpe voz"))
     }
 
     @Test
-    fun rir_toca_and_rir_kilos_are_corrected_to_rir_dos() {
-        assertEquals("rir dos", WorkoutVoiceMishearingCorrections.correct("rir toca"))
-        assertEquals("rpe dos", WorkoutVoiceMishearingCorrections.correct("rpe toca"))
-        assertEquals("rir dos", WorkoutVoiceMishearingCorrections.correct("rir kilos"))
-        assertEquals("rpe dos", WorkoutVoiceMishearingCorrections.correct("rpe kilos"))
+    fun missing_effort_numbers_are_preserved_for_clarification() {
+        listOf("rir toca", "rpe toca", "rir kilos", "rpe kilos").forEach {
+            assertEquals(it, WorkoutVoiceMishearingCorrections.correct(it))
+        }
     }
 
     @Test
-    fun ritmo_doce_is_corrected_to_rir_dos() {
-        assertEquals("rir dos", WorkoutVoiceMishearingCorrections.correct("ritmo doce"))
+    fun a_spoken_number_is_not_replaced_by_a_plausibility_guess() {
+        assertEquals("ritmo doce", WorkoutVoiceMishearingCorrections.correct("ritmo doce"))
     }
 
     @Test
-    fun implausible_rir_numbers_are_corrected_to_dos() {
-        assertEquals("rir dos", WorkoutVoiceMishearingCorrections.correct("rir doce"))
-        assertEquals("rir dos", WorkoutVoiceMishearingCorrections.correct("rir ocho"))
-        assertEquals("rir dos", WorkoutVoiceMishearingCorrections.correct("rir diez"))
-        assertEquals("rir dos", WorkoutVoiceMishearingCorrections.correct("rir reservas doce"))
+    fun reserve_reports_above_five_are_not_rewritten() {
+        listOf("rir doce", "rir ocho", "rir diez", "rir reservas doce").forEach {
+            assertEquals(it, WorkoutVoiceMishearingCorrections.correct(it))
+        }
     }
 
     @Test

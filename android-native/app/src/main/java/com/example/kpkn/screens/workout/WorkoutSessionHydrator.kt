@@ -34,6 +34,7 @@ class WorkoutSessionHydrator(
     private val getState: () -> WorkoutUiState,
     private val updateState: ((WorkoutUiState) -> WorkoutUiState) -> Unit,
     private val ports: Ports,
+    private val claimOngoing: suspend (OngoingWorkoutState) -> OngoingWorkoutState = { it },
 ) {
     interface Ports {
         fun sessionForActiveMode(base: Session, mode: WeekVariant): Session
@@ -124,7 +125,7 @@ class WorkoutSessionHydrator(
             repository.ongoingWorkout.value,
             programId,
             sessionId,
-        )
+        )?.let { claimOngoing(it) }
         if (foundSession == null) {
             val snap = snapshotForThis ?: return false
             foundSession = snap.session
@@ -421,6 +422,9 @@ class WorkoutSessionHydrator(
                 showVolumeAdvanceModal = resumedState?.showVolumeAdvanceModal == true,
                 volumeAdvanceHandled = resumedState?.volumeAdvanceHandled == true,
                 archivedCompletedExercises = resumedState?.archivedCompletedExercises.orEmpty(),
+                mediaSetBindings = resumedState?.mediaSetBindings.orEmpty(),
+                legacyMediaInvalidatedExerciseIds = resumedState?.legacyMediaInvalidatedExerciseIds.orEmpty(),
+                variantProgress = resumedState?.variantProgress.orEmpty(),
                 logAlreadyWrittenId = resumedState?.logAlreadyWrittenId,
                 sessionMissingFromProgram = sessionMissingFromProgram,
                 livePlanContext = buildLivePlanContext(program, foundWeekId, foundBlock),
@@ -520,7 +524,7 @@ class WorkoutSessionHydrator(
                 )
             )
             when (startResult) {
-                StartWorkoutResult.Started -> Unit
+                StartWorkoutResult.Started -> claimOngoing(checkNotNull(repository.ongoingWorkout.value))
                 is StartWorkoutResult.Conflict -> {
                     persistBlocked = true
                     updateState { it.copy(pendingOngoingConflict = startResult.existing) }

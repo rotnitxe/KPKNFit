@@ -339,23 +339,7 @@ class WorkoutPacingController(
         }
     }
 
-    fun adjustRestTimeForPace(baseSeconds: Int): Int {
-        val state = getState()
-        val targetMin = resolveTargetMinutes(state) ?: return baseSeconds
-        if (targetMin <= 0) return baseSeconds
+    /** A time budget never authorizes changing the athlete's prescribed rest. */
+    fun adjustRestTimeForPace(baseSeconds: Int): Int = baseSeconds
 
-        val elapsedMin = ((nowMs() - state.startTimeMs) / 60000).toInt()
-        val remainingMin = targetMin - elapsedMin
-        val totalSets = visibleExercises(state).sumOf { it.sets.size }
-        val dedupCompletedSets = state.completedSets.keys.mapNotNull { key ->
-            parseCompletedSetKey(key)?.let { "${it.exerciseId}_${it.setIdx}" }
-        }.distinct().size
-        val progress = if (totalSets > 0) dedupCompletedSets.toFloat() / totalSets else 0f
-
-        val needsHurry = remainingMin <= 15 && progress < 0.50f
-        if (needsHurry && baseSeconds > 60) {
-            return 60.coerceAtLeast(baseSeconds - 30)
-        }
-        return baseSeconds
-    }
 }

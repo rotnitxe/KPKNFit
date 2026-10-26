@@ -15,12 +15,12 @@ internal data class CompletedSetPatch(
 )
 
 /** Valor lógico usado por el registro y la deuda de repeticiones. */
-internal fun logicalReps(full: Double, partials: Int?): Double = full + (partials ?: 0).coerceAtLeast(0) * 0.5
+internal fun logicalReps(full: Double, @Suppress("UNUSED_PARAMETER") partials: Int?): Double = full
 
 /**
  * Transformación pura compartida por el candidato de Room y su publicación después del commit.
  * Reutiliza la corrección de voz; normaliza también cero completas con parciales y fallo muscular.
- * Conserva los RM estimados, los PR y las puntuaciones calculadas al registrar, igual que la voz.
+ * El propietario reconstruye los derivados antes de confirmar el candidato.
  * El fallo muscular no convierte la serie en error de ejecución (isFailedSet).
  */
 internal fun applyCompletedSetPatch(current: CompletedSet, patch: CompletedSetPatch): CompletedSet {
@@ -49,7 +49,7 @@ internal fun applyCompletedSetPatch(current: CompletedSet, patch: CompletedSetPa
             partialReps = partials?.takeIf { it > 0 },
             isPartial = isPartial,
             recordedPayloadV3 = next.recordedPayloadV3?.let {
-                it.copy(completedReps = full, partialReps = partials?.takeIf { count -> count > 0 }, techniques = it.techniques.withPartials())
+                it.copy(completedReps = full, actualValue = full.toDouble(), partialReps = partials?.takeIf { count -> count > 0 }, techniques = it.techniques.withPartials())
             },
             homologatedResultV3 = next.homologatedResultV3?.let {
                 it.copy(actualValue = logical, augeEquivalentReps = logical.roundToInt(), techniques = it.techniques.withPartials())

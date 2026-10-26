@@ -386,15 +386,45 @@ interface NutritionDao {
         WHERE foodId = :foodId
         """
     )
-    suspend fun incrementGlobalFoodUsage(foodId: String, lastUsedAt: String)
+    suspend fun incrementLegacyGlobalFoodUsage(foodId: String, lastUsedAt: String)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun seedGlobalFoodUsage(usage: NutritionFoodUsageEntity)
+
+    @Query("UPDATE nutrition_food_usage SET usageCount = usageCount + 1, lastUsedAt = :lastUsedAt WHERE foodId = :foodId")
+    suspend fun incrementStoredGlobalFoodUsage(foodId: String, lastUsedAt: String)
+
+    @Transaction
+    suspend fun incrementGlobalFoodUsage(foodId: String, lastUsedAt: String) {
+        val legacy = getGlobalFoodById(foodId)
+        seedGlobalFoodUsage(NutritionFoodUsageEntity(foodId, legacy?.usageCount ?: 0, legacy?.lastUsedAt))
+        incrementStoredGlobalFoodUsage(foodId, lastUsedAt)
+        incrementLegacyGlobalFoodUsage(foodId, lastUsedAt)
+    }
 
     /** Los alimentos globales que se han usado alguna vez (WP-S8: se leen antes de reemplazar el catálogo). */
-    @Query("SELECT foodId, usageCount, lastUsedAt FROM global_foods WHERE usageCount > 0")
+    @Query("""
+        SELECT foodId, usageCount, lastUsedAt FROM nutrition_food_usage WHERE usageCount > 0 OR lastUsedAt IS NOT NULL
+        UNION ALL
+        SELECT g.foodId, g.usageCount, g.lastUsedAt FROM global_foods g
+        WHERE (g.usageCount > 0 OR g.lastUsedAt IS NOT NULL)
+          AND NOT EXISTS (SELECT 1 FROM nutrition_food_usage u WHERE u.foodId = g.foodId)
+        ORDER BY foodId
+    """)
     suspend fun getGlobalFoodUsage(): List<GlobalFoodUsage>
 
-    /** Devuelve a una fila recién importada el uso que tenía (WP-S8); si la fila ya no existe, no hace nada. */
+    /** Updates the legacy ranking cache when its product exists; personal usage is restored independently below. */
     @Query("UPDATE global_foods SET usageCount = :usageCount, lastUsedAt = :lastUsedAt WHERE foodId = :foodId")
-    suspend fun restoreGlobalFoodUsage(foodId: String, usageCount: Int, lastUsedAt: String?)
+    suspend fun restoreLegacyGlobalFoodUsage(foodId: String, usageCount: Int, lastUsedAt: String?)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun putStoredGlobalFoodUsage(usage: NutritionFoodUsageEntity)
+
+    @Transaction
+    suspend fun restoreGlobalFoodUsage(foodId: String, usageCount: Int, lastUsedAt: String?) {
+        putStoredGlobalFoodUsage(NutritionFoodUsageEntity(foodId, usageCount, lastUsedAt))
+        restoreLegacyGlobalFoodUsage(foodId, usageCount, lastUsedAt)
+    }
 
     @Query("DELETE FROM global_foods")
     suspend fun clearGlobalFoods()

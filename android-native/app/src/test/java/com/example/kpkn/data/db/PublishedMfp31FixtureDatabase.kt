@@ -1,11 +1,26 @@
 package com.example.kpkn.data.db
 
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.Upsert
 import androidx.room.Database
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.RoomDatabase
 
 /** Historical published MFP31 fixture. Only tests contain the retired storage shapes. Export disabled so published schemas are immutable. */
+@Dao
+interface PublishedMfp31NutritionDao {
+    @Query("SELECT * FROM nutrition_day_marks ORDER BY date")
+    suspend fun getAllDayMarks(): List<NutritionDayMarkEntity>
+    @Upsert
+    suspend fun upsertDayMark(entity: NutritionDayMarkEntity)
+    @Query("SELECT * FROM nutrition_checkins WHERE weekKey = :weekKey LIMIT 1")
+    suspend fun getCheckIn(weekKey: String): NutritionCheckInEntity?
+    @Upsert
+    suspend fun upsertCheckIn(entity: NutritionCheckInEntity)
+}
+
 @Database(entities = [
     ProgramEntity::class,
     WorkoutLogEntity::class,
@@ -56,7 +71,7 @@ import androidx.room.RoomDatabase
     NutritionCheckInEntity::class,
 ], version = 31, exportSchema = false)
 abstract class PublishedMfp31FixtureDatabase : RoomDatabase() {
-    abstract fun nutritionDao(): NutritionDao
+    abstract fun nutritionDao(): PublishedMfp31NutritionDao
     abstract fun workoutMediaDao(): WorkoutMediaDao
     abstract fun videoAnalysisDao(): VideoAnalysisDao
     abstract fun calibrationDecisionDao(): CalibrationDecisionDao

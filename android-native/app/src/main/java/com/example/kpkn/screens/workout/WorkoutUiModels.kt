@@ -145,6 +145,8 @@ data class CalibrationActionFailure(val decisionId: String, val message: String)
 
 data class WorkoutUiState(
     val persistenceRevision: Long = 0L,
+    /** In-process writer generation; never serialized into observations or Room. */
+    val persistenceWriterGeneration: Long = 0L,
     val isStartingWorkout: Boolean = false,
     val isCancellingWorkout: Boolean = false,
     val wasCancelled: Boolean = false,
@@ -152,6 +154,7 @@ data class WorkoutUiState(
     val startPersistenceError: String? = null,
     val session: Session? = null,
     val activeMode: WeekVariant = WeekVariant.A,
+    val variantProgress: Map<WeekVariant, WorkoutVariantProgress> = emptyMap(),
     val programId: String = "",
     val weekId: String = "",
     val macroIndex: Int = 0,
@@ -284,6 +287,7 @@ data class WorkoutUiState(
     val ultraFastCompletedSetsSnapshot: Map<String, CompletedSet> = emptyMap(),
     val ultraFastSavedSeconds: Int = 0,
     val showUltraFastSheet: Boolean = false,
+    val showShortenSessionSheet: Boolean = false,
     val ultraFastManualOverrides: Map<String, Boolean> = emptyMap(),
     val seriesTypeTarget: SeriesTypeTarget? = null,
     val godModeUndoStack: List<GodModeUndoSnapshot> = emptyList(),
@@ -293,6 +297,8 @@ data class WorkoutUiState(
     val sessionMissingFromProgram: Boolean = false,
     val logAlreadyWrittenId: String? = null,
     val archivedCompletedExercises: List<CompletedExercise> = emptyList(),
+    val mediaSetBindings: Map<String, WorkoutSetExecutionRef> = emptyMap(),
+    val legacyMediaInvalidatedExerciseIds: Set<String> = emptySet(),
     /** Protocol / block / recipe context for Relator 2.0. Null = sesión suelta. */
     val livePlanContext: LivePlanContext? = null,
     /** Veredicto diario AUGE (`calculateDailyReadiness` vía snapshot). */
@@ -319,6 +325,7 @@ data class GodModeUndoSnapshot(
     val completedSets: Map<String, CompletedSet> = emptyMap(),
     val setDrafts: Map<String, WorkoutSetDraft> = emptyMap(),
     val manualLoadOverrides: Map<String, Double> = emptyMap(),
+    val activeMode: WeekVariant? = null,
 )
 
 fun godModeUndoStackAfterRevert(

@@ -57,16 +57,26 @@ internal fun resolveVoiceEditTarget(state: WorkoutUiState, patch: VoiceSetEditPa
  * rewritten together:
  *
  * - weight: absolute or delta over the INPUT load, clamped at 0, never edited for BODYWEIGHT sets;
- * - metric: seconds for TIME sets (`timeSeconds` / `durationSeconds`), reps otherwise;
+ * - metric: the recorded unit, with decimal distance/custom values retained;
  * - intensity: RPE and RIR exclude each other; %RM is not an effort report and is ignored.
  *
- * Only load-linked fields of `homologatedResultV3` / `setOutcomeV2` (`augeEquivalentLoad` and
- * `augeEquivalentReps`, read by the fatigue engines) are kept in sync. Statistical fields
- * (estimated RM, percentiles, PR flags) keep the values computed when the set was recorded.
+ * Derived statistics are replayed by the mutation owner before the same candidate is committed.
  *
  * Returns [current] unchanged when the patch alters nothing.
  */
+internal fun voiceEditEffortError(patch: VoiceSetEditPatch): String? {
+    val value = patch.intensityValue ?: return null
+    val mode = when (patch.intensityKind) {
+        WorkoutVoiceIntensityKind.RPE -> IntensityMode.RPE
+        WorkoutVoiceIntensityKind.RIR -> IntensityMode.RIR
+        else -> return null
+    }
+    return recordingEffortError(value, SetAdvancedFeedback(actualIntensityMode = mode, actualIntensityValue = value))
+}
+
 internal fun applyVoiceEditPatch(current: CompletedSet, patch: VoiceSetEditPatch): CompletedSet {
+    if (voiceEditEffortError(patch) != null) return current
+    if (listOfNotNull(patch.weightKg, patch.weightDeltaKg, patch.intensityValue, patch.quantityValue).any { !it.isFinite() }) return current
     val payload = current.recordedPayloadV3
     var set = current
     var nextPayload = payload
@@ -101,18 +111,33 @@ internal fun applyVoiceEditPatch(current: CompletedSet, patch: VoiceSetEditPatch
         editedNormalizedLoad = normalized
     }
 
-    val metric = patch.metricValue?.takeIf { it > 0 }
+    val metric = (patch.quantityValue ?: patch.metricValue?.toDouble())?.takeIf { it.isFinite() && it > 0 }
     if (metric != null) {
-        val isTimeSet = payload?.unitMode == UnitModeV2.TIME || (payload == null && current.timeSeconds != null)
-        if (isTimeSet) {
-            set = set.copy(timeSeconds = metric)
-            nextPayload = nextPayload?.copy(durationSeconds = metric)
-            // The homologation engine derives the equivalent reps of a TIME set as seconds / 5 (min 1).
-            editedEquivalentReps = maxOf(1, metric / 5)
-        } else {
-            set = set.copy(reps = metric)
-            nextPayload = nextPayload?.copy(completedReps = metric)
-            editedEquivalentReps = metric
+        val unit = payload?.unitMode ?: when {
+            current.timeSeconds != null -> UnitModeV2.TIME
+            current.distanceKm != null -> UnitModeV2.DISTANCE
+            else -> UnitModeV2.REPS
+        }
+        if (metric != completedLiveQuantity(current, unit)) {
+        when (unit) {
+            UnitModeV2.TIME -> {
+                set = set.copy(timeSeconds = metric.toInt())
+                nextPayload = nextPayload?.copy(durationSeconds = metric.toInt(), actualValue = metric.toInt().toDouble())
+                editedEquivalentReps = maxOf(1, metric.toInt() / 5)
+            }
+            UnitModeV2.REPS -> {
+                if (metric % 1.0 != 0.0 || metric > Int.MAX_VALUE) return current
+                set = set.copy(reps = metric.toInt())
+                nextPayload = nextPayload?.copy(completedReps = metric.toInt(), actualValue = metric)
+                editedEquivalentReps = metric.toInt()
+            }
+            UnitModeV2.DISTANCE, UnitModeV2.CUSTOM -> {
+                if (unit == UnitModeV2.DISTANCE) set = set.copy(distanceKm = metric / 1000.0)
+                nextPayload = nextPayload?.copy(actualValue = metric)
+            }
+        }
+        set = set.copy(homologatedResultV3 = set.homologatedResultV3?.copy(actualValue = metric),
+            setOutcomeV2 = set.setOutcomeV2?.copy(actualValue = metric))
         }
     }
 

@@ -21,8 +21,8 @@ internal fun workoutSetInputIdentity(exercise: Exercise): WorkoutSetInputIdentit
 
 /** Plan/load edits keep their local input; replacing the exercise or set disposes its draft/effect/record owners. */
 @Composable
-internal fun WorkoutSetInputOwner(exercise: Exercise, setId: String, content: @Composable () -> Unit) {
-    key(workoutSetInputIdentity(exercise), setId) { content() }
+internal fun WorkoutSetInputOwner(exercise: Exercise, setId: String, executionKey: com.example.kpkn.data.models.WorkoutSetExecutionRef? = null, content: @Composable () -> Unit) {
+    key(workoutSetInputIdentity(exercise), setId, executionKey) { content() }
 }
 
 /** Reject queued callbacks from a card that belonged to the exercise/set previously occupying this slot. */

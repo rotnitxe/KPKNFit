@@ -9,6 +9,19 @@ import com.example.kpkn.data.models.isCardio
 
 internal const val RecordingEffortRequired = "Marca tu esfuerzo RIR o RPE antes de registrar la serie."
 
+/** A reserve above five is not impossible. Preserve the athlete's finite, nonnegative report. */
+internal fun isValidReportedReserve(value: Double?): Boolean = value != null && value.isFinite() && value >= 0.0
+
+internal fun recordedObservationError(weight: Double, value: Double, bodyWeight: Double?, report: SetAdvancedFeedback, intensity: Double? = null): String? {
+    if (intensity?.isFinite() == false || !weight.isFinite() || !value.isFinite() || weight < 0 || value < 0 ||
+        bodyWeight?.let { !it.isFinite() || it < 0 } == true ||
+        report.actualIntensityValue?.isFinite() == false || (report.partialReps ?: 0) < 0 ||
+        report.dropSets.any { !it.weight.isFinite() || it.weight < 0 || it.reps < 0 } ||
+        report.restPauses.any { it.reps < 0 || it.restTime < 0 })
+        return "Revisa el registro: las cantidades deben ser finitas y no negativas."
+    return null
+}
+
 /** Solo una edición sin un nuevo informe puede conservar el esfuerzo real ya guardado. El objetivo del plan nunca entra aquí. */
 internal fun preserveExistingRecordingEffort(intensity: Double?, advanced: SetAdvancedFeedback, existing: CompletedSet?): SetAdvancedFeedback {
     val hasReport = intensity != null || advanced.actualIntensityMode != null || advanced.actualIntensityValue != null || advanced.rir != null || advanced.reachedFailure
@@ -43,7 +56,8 @@ internal fun recordingEffortError(intensity: Double?, advanced: SetAdvancedFeedb
     return when {
         value < 0.0 -> "Revisa el esfuerzo: el valor no puede ser negativo."
         mode == IntensityMode.RPE && value > 10.0 -> "Revisa el esfuerzo: el RPE debe estar entre 0 y 10."
-        mode == IntensityMode.RPE || mode == IntensityMode.RIR -> null
+        mode == IntensityMode.RIR -> if (isValidReportedReserve(value)) null else "Revisa las repeticiones en reserva."
+        mode == IntensityMode.RPE -> null
         // AMRAP informa reserva o fallo; estar planificado como AMRAP por sí solo no basta.
         mode == IntensityMode.AMRAP && advanced.rir != null -> null
         else -> RecordingEffortRequired

@@ -1,0 +1,28 @@
+allprojects {
+    tasks.withType(Test).configureEach {
+        maxHeapSize = '3g'
+        maxParallelForks = 1
+        forkEvery = 5
+        testLogging { events 'passed', 'skipped', 'failed'; exceptionFormat = 'full' }
+        def selected = [
+                'SessionTemplateCatalogTest', 'PlanAdaptationResolverTest', 'GeneratorPoolsCatalogTest', 'EffectiveEquipmentResolverContractTest', 'ProtocolCompositionContractTest', 'ProtocolRecipeFidelityTest', 'ProgramTemplateCompositionContractTest', 'SplitTemplatesTest', 'TrainingObservationMigrationTest', 'TrainingMigrationRoomValidationTest', 'CombinedNutritionTrainingMigrationTest',
+                'TrainingSnapshotRestoreTest', 'LegacyTrainingBackupTest',
+                'TrainingObservationRepositoryReconnectTest', 'TrainingInsightsEngineTest',
+                'TrainingHistoryProjectionTest', 'SharedTrainingInsightsContractTest',
+                'SetupDraftResolverTest', 'SetupDraftCompatibilityTest', 'SetupDraftRepairTableTest',
+                'SetupStepGraphTest', 'SetupStepDefinitionsTest', 'SetupWizardActivationGateTest',
+                'SetupWizardFullJourneyTest', 'SetupWelcomeScreenTest', 'PreSessionPreparationDialogTest',
+                'WorkoutPreparationCommitterRoomTest', 'NativeWorkoutProgressionRuntimeTest',
+                'ExerciseCatalogContractTest', 'AprendeCatalogAuditTest', 'RetiredPendingDeloadTest',
+                'PostExerciseFeedbackDraftTest', 'TrainingFactChartTest',
+                'InitialPermissionRequestEffectTest', 'RecommendedPermissionsDialogTest', 'PostRingsWizardMigrationTest', 'ApreLiveCalibrationTest', 'ApreLateralCalibrationTest', 'WorkoutCalibrationRecorderRoomTest', 'WorkoutCalibrationVariantTest', 'WorkoutVoicePreparationParserTest', 'WorkoutVoiceHandsFreeTest', 'SetupPersistenceTest', 'SetExecutionCardCalibrationTest', 'WorkoutLoadSuggestionIncrementalTest', 'WorkoutSetRecorderDurableRoomTest',
+                'ProgramDetailViewModelTest.feedback_never_rescales_authored_volume_references'
+        ]
+        selected.each { specification ->
+            // Restrict discovery as well as the test framework's filter: forkEvery
+            // otherwise starts workers for compiled classes outside this suite.
+            include '**/' + specification.tokenize('.')[0] + '.class'
+            filter.includeTestsMatching '*.' + specification
+        }
+    }
+}

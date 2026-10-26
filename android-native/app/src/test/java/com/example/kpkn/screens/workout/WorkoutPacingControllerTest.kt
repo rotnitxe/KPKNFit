@@ -170,7 +170,7 @@ class WorkoutPacingControllerTest {
     }
 
     @Test
-    fun adjustRest_usesTargetDurationMinutes() = runTest {
+    fun targetDurationDoesNotAuthorizeAutomaticRestReduction() = runTest {
         var state = WorkoutUiState(
             session = Session(id = "s", name = "n"),
             startTimeMs = 0L,
@@ -187,7 +187,7 @@ class WorkoutPacingControllerTest {
                 )
             },
         )
-        assertEquals(60, controller.adjustRestTimeForPace(90))
+        assertEquals(90, controller.adjustRestTimeForPace(90))
     }
 
     @Test

@@ -136,7 +136,7 @@ object WorkoutPerformanceHomologationEngine {
         )
 
         val homologated = HomologatedPerformanceResult(
-            estimatorVersion = com.example.kpkn.domain.calculations.CAPACITY_ESTIMATOR_VERSION,
+            estimatorVersion = com.example.kpkn.domain.calculations.WORKOUT_DERIVED_ESTIMATOR_VERSION,
             contextKey = entry.contextKey,
             globalKey = globalKey,
             loadMode = entry.loadMode,
@@ -359,7 +359,7 @@ object WorkoutPerformanceHomologationEngine {
                 } else {
                     // El número sin unidad no permite distinguir RIR de RPE.
                     StrengthModel.estimate1RM(load, reps,
-                        rir = entry.actualIntensity?.takeIf { actualIntensityMode == IntensityMode.RIR }?.toInt(),
+                        rir = entry.actualIntensity?.takeIf { actualIntensityMode in listOf(IntensityMode.RIR, IntensityMode.AMRAP) }?.toInt(),
                         rpe = entry.actualIntensity?.takeIf { actualIntensityMode == IntensityMode.RPE },
                         toFailure = entry.reachedFailure || entry.failedSet || actualIntensityMode == IntensityMode.FAILURE || actualIntensityMode == IntensityMode.SOLO_RM,
                         isAmrap = entry.amrapOverride || actualIntensityMode == IntensityMode.AMRAP).coerceAtLeast(1.0)

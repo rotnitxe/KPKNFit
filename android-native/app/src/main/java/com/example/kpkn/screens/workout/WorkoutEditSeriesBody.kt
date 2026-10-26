@@ -192,6 +192,8 @@ internal fun LiveEditSeriesBody(
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+        Text("Los cambios ajustan el plan. Lo que ya registraste se conserva en el historial de esta sesión.",
+            style = KpknType.caption, color = WizardColors.textMuted, modifier = Modifier.padding(bottom = 12.dp))
         // ── Ejercicio: vale para todas las series ──
         LiveEditSectionLabel("EJERCICIO", "Vale para todas las series")
         Row(
@@ -449,7 +451,7 @@ internal fun LiveEditSeriesBody(
                         modifier = Modifier.testTag(LIVE_EDIT_DOWN_TAG),
                     )
                     LiveEditActionChip(
-                        text = "Eliminar",
+                        text = "Quitar del plan",
                         danger = true,
                         enabled = sets.size > 1,
                         onClick = {

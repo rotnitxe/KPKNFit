@@ -22,6 +22,7 @@ import kotlin.math.roundToInt
 
 /** Version vigente de los snapshots de capacidad; los anteriores se conservan como historia. */
 const val CAPACITY_ESTIMATOR_VERSION = 2
+const val WORKOUT_DERIVED_ESTIMATOR_VERSION = 3
 
 /** El modelo único sustituye las fórmulas seleccionables anteriores. */
 @Deprecated("Usa StrengthModel.estimate1RM")
