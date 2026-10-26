@@ -1128,7 +1128,8 @@ private fun MiniSessionCard(
     onCreateProgram: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val registerPhase = homeCompetition?.phase == com.example.kpkn.domain.training.CompetitionHomePhase.REGISTER
+    val registerPhase = homeCompetition?.phase in setOf(com.example.kpkn.domain.training.CompetitionHomePhase.REGISTER,
+        com.example.kpkn.domain.training.CompetitionHomePhase.MEET_DAY)
     Row(
         modifier = modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,

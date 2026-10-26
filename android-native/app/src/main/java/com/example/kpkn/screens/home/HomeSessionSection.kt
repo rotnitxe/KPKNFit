@@ -230,7 +230,7 @@ private fun homeHeroPages(
     val onToday = day == today
     val countdown = homeCompetition?.takeIf { it.phase == CompetitionHomePhase.UPCOMING }?.let(::heroCountdown)
 
-    val competition = homeCompetition?.takeIf { onToday && it.phase == CompetitionHomePhase.REGISTER }
+    val competition = homeCompetition?.takeIf { onToday && it.phase in setOf(CompetitionHomePhase.REGISTER,CompetitionHomePhase.MEET_DAY) }
     if (competition != null) {
         return listOf(
             HomeHeroPage(
@@ -238,8 +238,9 @@ private fun homeHeroPages(
                 state = HomeHeroState(
                     key = "$day/REGISTER",
                     mode = HomeHeroMode.REGISTER,
-                    kicker = homeHeroKicker(HomeHeroMode.REGISTER, day, null, null),
-                    title = "¿Cómo te fue en ${competition.title}?",
+                    kicker = if (competition.phase == CompetitionHomePhase.MEET_DAY) "Competición hoy" else homeHeroKicker(HomeHeroMode.REGISTER, day, null, null),
+                    title = if (competition.phase == CompetitionHomePhase.MEET_DAY) "Hoy compites · ${competition.title}" else "¿Cómo te fue en ${competition.title}?",
+                    body = if (competition.phase == CompetitionHomePhase.MEET_DAY) "Abre el modo competición desde tu programa." else null,
                     meta = "${competition.countdownLabel} · ${competition.competitionDateLabel}",
                 ),
                 item = null,
