@@ -31,6 +31,7 @@ internal fun SetupPlanReveal.toCardModel(): PlanCardModel = PlanCardModel(
     levelLabel = levelLabel,
     badge = badge,
     coverSeed = coverSeed,
+    scopeLabel = generatedScopeLabelOf(this),
 )
 
 /** El detalle de un programa: ejercicios, estructura, semana tipo, razones, notas y atribución. */
@@ -191,4 +192,28 @@ internal fun planOfferOf(reveals: List<SetupPlanReveal>, expanded: Boolean, sele
     val chosen = shownSelectedIdOf(selectedId, all)
     val chosenHidden = chosen != null && all.any { it.planId == chosen } && shown.none { it.planId == chosen }
     return if (chosenHidden) PlanOffer(all, hidden = 0) else PlanOffer(shown, hidden = all.size - shown.size)
+}
+
+internal data class SplitPlanOffer(val tailored: List<SetupPlanReveal>,val catalog: List<SetupPlanReveal>,val catalogHidden: Int)
+
+/** Mantiene visible toda la oferta a medida y cualquier familia de catálogo ya elegida. */
+internal fun splitPlanOfferOf(reveals: List<SetupPlanReveal>,catalogExpanded: Boolean,selectedId: String?): SplitPlanOffer {
+    val all = orderedOfferOf(reveals)
+    val tailored = all.filter { it.generated }
+    val catalog = all.filterNot { it.generated }
+    val chosen = shownSelectedIdOf(selectedId,all)
+    return if (catalogExpanded || catalog.any { it.planId == chosen }) SplitPlanOffer(tailored,catalog,0)
+        else SplitPlanOffer(tailored,emptyList(),catalog.size)
+}
+
+/** Usa fases reales cuando la fecha de competición cambió el horizonte; no anuncia siempre 6/12 semanas. */
+internal fun generatedScopeLabelOf(reveal: SetupPlanReveal): String? {
+    if (!reveal.generated) return null
+    val variant = GeneratedPlans.variantOf(reveal.planId) ?: return null
+    if (variant == ProgramVariant.SIMPLE) return com.example.kpkn.data.programs.PlanLabels.scopeLabel(
+        com.example.kpkn.data.programs.CatalogDuration.REPEATING_WEEK,1,null)
+    val weeks = reveal.phases.sumOf { it.weeks }.takeIf { it > 0 }
+        ?: com.example.kpkn.data.programs.PersonalizedPlanCatalog.find(reveal.planId)?.durationWeeks?.takeIf { it > 0 } ?: return null
+    return com.example.kpkn.data.programs.PlanLabels.scopeLabel(com.example.kpkn.data.programs.CatalogDuration.FINITE_CYCLE,
+        weeks,reveal.blocks.size.takeIf { it > 1 })
 }

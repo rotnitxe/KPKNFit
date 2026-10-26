@@ -30,6 +30,7 @@ data class PlanCardModel(
     val levelLabel: String,
     val badge: String? = null,
     val coverSeed: Int = 0,
+    val scopeLabel: String? = null,
 )
 
 /**
