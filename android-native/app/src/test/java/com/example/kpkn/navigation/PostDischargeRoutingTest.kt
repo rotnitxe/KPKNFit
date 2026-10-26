@@ -14,6 +14,15 @@ import org.robolectric.annotation.Config
 class PostDischargeRoutingTest {
 
     @Test
+    fun tailoredLibraryEntryUsesTrainingOnlyWithoutACatalogPreselection() {
+        assertEquals(KpknRoute.SetupWizard.create(mode = "TRAINING_ONLY"),
+            PostDischargeRouting.libraryPlanRoute(onboardingCompleted = true))
+        assertEquals(KpknRoute.SetupWizard.create(mode = "FULL"),
+            PostDischargeRouting.libraryPlanRoute(onboardingCompleted = false))
+        assertTrue(!PostDischargeRouting.libraryPlanRoute(true).contains("planId=null"))
+    }
+
+    @Test
     fun createProgramRoute_completed_onboarding_opens_direct_editor() {
         val route = PostDischargeRouting.createProgramRoute(onboardingCompleted = true)
 

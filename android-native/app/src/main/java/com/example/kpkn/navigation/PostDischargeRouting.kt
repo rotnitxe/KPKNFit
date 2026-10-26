@@ -6,10 +6,9 @@ package com.example.kpkn.navigation
  * nunca se reabren los wizards de módulo (TRAINING_ONLY / NUTRITION_ONLY /
  * RINGS_ONLY) como navegación ejecutable.
  *
- * Una sola excepción deliberada: [libraryPlanRoute], el plan que la persona
- * eligió en la biblioteca. Ese camino NO es «crear un programa» (el editor
- * directo no evalúa nada): es configurar un plan del catálogo, y el asistente
- * es el evaluador (material, días y tiempo, r2 §16.1).
+ * [libraryPlanRoute] abre el asistente interno desde la biblioteca, con un plan
+ * elegido o desde «Crear mi programa a medida». Evalúa material, días y objetivo.
+ * La creación manual conserva su editor directo.
  */
 object PostDischargeRouting {
 
@@ -42,9 +41,9 @@ object PostDischargeRouting {
      * Cómo esquiva el guardia de este objeto: el guardia es de CREACIÓN de programa ([createProgramRoute]) y de los
      * enlaces externos (`DeepLinkRouter` manda `kpkn://setup/wizard?mode=TRAINING_ONLY` al editor directo, y no se
      * toca). Esta ruta es navegación interna con un plan elegido, no pasa por `DeepLinkRouter`, y el plan viaja en
-     * `planId`: sin plan no hay nada que evaluar y el llamador usa [createProgramRoute].
+     * `planId`. Sin preselección evalúa los programas a medida de las respuestas.
      */
-    fun libraryPlanRoute(onboardingCompleted: Boolean, planId: String): String =
+    fun libraryPlanRoute(onboardingCompleted: Boolean, planId: String? = null): String =
         KpknRoute.SetupWizard.create(
             mode = if (onboardingCompleted) MODE_TRAINING_ONLY else MODE_FULL,
             planId = planId,

@@ -73,6 +73,7 @@ fun ProgramsScreen(
     onSelectPlan: ((CatalogEntry) -> Unit)? = null,
     /** Abre un concepto de «Conceptos clave» desde la hoja «Cómo funciona» de la biblioteca; null = sin enlace. */
     onOpenConcept: ((String) -> Unit)? = null,
+    onCreateTailoredProgram: (() -> Unit)? = null,
 ) {
     val programs by viewModel.programs.collectAsState()
     val archivedPrograms by viewModel.archivedPrograms.collectAsState()
@@ -103,13 +104,16 @@ fun ProgramsScreen(
     }
 
     if (programs.isEmpty()) {
-        EmptyStateView(
-            title = "Comienza Hoy",
-            subtitle = "Aún no tienes programas configurados",
-            actionLabel = "Crear primer programa",
-            onAction = { showCreateSheet = true },
-            modifier = Modifier.fillMaxSize().statusBarsPadding(),
-        )
+        Column(Modifier.fillMaxSize().statusBarsPadding()) {
+            onCreateTailoredProgram?.let { CreateTailoredProgramCard(it) }
+            EmptyStateView(
+                title = "Comienza Hoy",
+                subtitle = "Aún no tienes programas configurados",
+                actionLabel = "Crear primer programa",
+                onAction = { showCreateSheet = true },
+                modifier = Modifier.fillMaxWidth().weight(1f),
+            )
+        }
     } else {
         val programsAdapt = LocalViewportAdapt.current
         LazyColumn(
@@ -125,6 +129,7 @@ fun ProgramsScreen(
                 )
             }
 
+            onCreateTailoredProgram?.let { create -> item { CreateTailoredProgramCard(create) } }
             if (activeProgram != null) {
                 item {
                     ActiveProgramCard(
@@ -666,6 +671,19 @@ private fun ProgramQueueSection(
                     IconButton(onClick = { onRemove(program.id) }) { Icon(Icons.Default.Close, "Eliminar de la cola") }
                 }
             }
+        }
+    }
+}
+
+
+/** Entrada al asistente sin preselección de catálogo; crear en blanco conserva su acción propia. */
+@Composable
+internal fun CreateTailoredProgramCard(onClick: () -> Unit) {
+    OutlinedCard(onClick = onClick, modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Crear mi programa a medida", style = MaterialTheme.typography.titleMedium)
+            Text("KPKN arma un programa con tu material, tus días y tu objetivo",
+                style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

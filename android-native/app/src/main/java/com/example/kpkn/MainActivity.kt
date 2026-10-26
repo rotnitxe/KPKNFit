@@ -1183,6 +1183,7 @@ private fun KPKNNavGraph(
                 // E-18: la biblioteca entrega el plan elegido (planes propios, de autor, plantillas y métodos) y el
                 // asistente lo guarda como intención con el objetivo prefijado.
                 onSelectPlan = { entry -> openLibraryPlanInWizard(navController, entry.id) },
+                onCreateTailoredProgram = { openLibraryPlanInWizard(navController) },
                 onOpenConcept = { conceptId ->
                     navController.navigate(KpknRoute.Concepts.create(conceptId))
                 },
@@ -1800,7 +1801,7 @@ private fun KPKNNavGraph(
  * completada abre el asistente de SOLO entrenamiento (no vuelve a pedir nutrición ni Rings); con el alta incompleta, el
  * completo. La regla es de [com.example.kpkn.navigation.PostDischargeRouting.libraryPlanRoute].
  */
-private fun openLibraryPlanInWizard(navController: androidx.navigation.NavHostController, planId: String) {
+private fun openLibraryPlanInWizard(navController: androidx.navigation.NavHostController, planId: String? = null) {
     val onboardingCompleted = ProgramRepository.getInstance().settings.value.onboardingCompleted
     navController.navigate(
         com.example.kpkn.navigation.PostDischargeRouting.libraryPlanRoute(onboardingCompleted, planId),
