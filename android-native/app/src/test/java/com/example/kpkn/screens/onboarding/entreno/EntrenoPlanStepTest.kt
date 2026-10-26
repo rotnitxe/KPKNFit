@@ -571,6 +571,23 @@ class EntrenoPlanStepTest {
         assertNull(generatedScopeLabelOf(original))
     }
 
+    @Test
+    fun aGeneralProfileWithOnlyCatalogOptionsNeverShowsAnEmptyTailoredSection() {
+        rule.mainClock.autoAdvance = false
+        val authored = reveal(AUTHORED, "Catálogo", TrainingGoalProfile.STRENGTH_MUSCLE)
+        state = SetupWizardState(draft = draftFor(TrainingGoalProfile.STRENGTH_MUSCLE),
+            planSweep = SetupPlanSweep.READY, planReveals = listOf(authored))
+        rule.setContent { Page() }
+        finishOverlay()
+        rule.onNodeWithTag(ANOTHER_VERSION_TAG).assertDoesNotExist()
+        rule.onNodeWithTag(REVEAL_TAG).assertDoesNotExist()
+        rule.onNodeWithText("Tu programa").assertDoesNotExist()
+        rule.onNodeWithText("Ver programas del catálogo (1)").assertExists()
+        tap(MORE_PROGRAMS_TAG)
+        rule.onNodeWithText("Del catálogo").assertExists()
+        rule.onNodeWithTag(planCardTag(AUTHORED)).assertExists()
+    }
+
     private object NoPersistence : SetupWizardPersistence {
         override suspend fun load(draftId: String): SetupDraft? = null
         override suspend fun save(

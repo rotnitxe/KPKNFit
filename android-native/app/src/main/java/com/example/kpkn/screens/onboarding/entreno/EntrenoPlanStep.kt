@@ -131,14 +131,16 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
                         onSelect = vm::selectPlan,onOpen = { detailId = it },onExpandCatalog = vm::toggleCatalogExpanded)
                 }
                 else -> {
-                    GeneralReveal(
-                        reveals = offer.tailored,
-                        recommendedId = recommendedId,
-                        selectedId = selectedId,
-                        onChoose = { id -> vm.selectPlan(id) },
-                        onOpen = { id -> detailId = id },
-                        onAnotherVersion = { vm.anotherPlanVersion() },
-                    )
+                    if (offer.tailored.isNotEmpty()) {
+                        GeneralReveal(
+                            reveals = offer.tailored,
+                            recommendedId = recommendedId,
+                            selectedId = selectedId,
+                            onChoose = { id -> vm.selectPlan(id) },
+                            onOpen = { id -> detailId = id },
+                            onAnotherVersion = { vm.anotherPlanVersion() },
+                        )
+                    }
                     CatalogOnlySection(offer,selectedId,vm::selectPlan,{ detailId = it },vm::toggleCatalogExpanded)
                 }
             }
