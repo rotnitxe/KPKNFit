@@ -65,6 +65,9 @@ import java.util.Calendar
     val feedbacks: StateFlow<List<PostSessionFeedback>> = _feedbacks.asStateFlow()
     private var loadFeedbacksJob: Job? = null
 
+    private val _wellbeing = MutableStateFlow<List<com.example.kpkn.data.models.DailyWellbeingLog>>(emptyList())
+    private var loadWellbeingJob: Job? = null
+
     private val _showCreateProgramSheet = MutableStateFlow(false)
     val showCreateProgramSheet: StateFlow<Boolean> = _showCreateProgramSheet.asStateFlow()
     private val _pendingProgramName = MutableStateFlow<String?>(null)
@@ -175,6 +178,17 @@ import java.util.Calendar
         }
     }
 
+    fun loadWellbeing(context: Context) {
+        loadWellbeingJob?.cancel()
+        loadWellbeingJob = viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _wellbeing.value = TrainingObservationRepository.getInstance(context).getWellbeingLogs()
+            } catch (_: Exception) {
+                // Keep the previous state of arrival.
+            }
+        }
+    }
+
 
 
     val userName: StateFlow<String> = repository.settings
@@ -265,6 +279,17 @@ import java.util.Calendar
     }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
+
+    /** «Métricas de tu entreno»: cuatro semanas de la métrica elegida y el aviso de la sesión de hoy. */
+    val trainingMetrics: StateFlow<HomeTrainingMetrics> = combine(
+        repository.history,
+        _wellbeing,
+        todaySessions,
+    ) { history, wellbeing, sessions ->
+        HomeTrainingMetricsBuilder.build(history, wellbeing, sessions)
+    }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Lazily, HomeTrainingMetrics())
 
     /**
      * Metas de HOY resueltas por fecha: el snapshot del día manda sobre el

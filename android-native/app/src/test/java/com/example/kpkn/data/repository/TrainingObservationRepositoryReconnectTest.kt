@@ -45,4 +45,20 @@ class TrainingObservationRepositoryReconnectTest {
             KpknDatabase.closeInstance()
         }
     }
+    @Test fun wellbeingKeepsTheFirstOriginalAcrossRetriesAndReconnects() = runBlocking(Dispatchers.IO) {
+        val context = ApplicationProvider.getApplicationContext<Application>()
+        val repository = TrainingObservationRepository(context)
+        val original = com.example.kpkn.data.models.DailyWellbeingLog(
+            id = "arrival", date = "2026-10-25", energy = 0,
+            muscleDoms = mapOf("Pectorales" to 5), preWorkoutDiscomforts = listOf("shoulder"),
+            capturedFields = setOf("energy", "muscleDoms", "discomforts"))
+        repository.recordWellbeing(original)
+        repository.recordWellbeing(original.copy(energy = 10))
+        KpknDatabase.closeInstance()
+        assertEquals(original, repository.getWellbeingLogs().single { it.date == original.date })
+        val row = KpknDatabase.getInstance(context).trainingObservationDao().all()
+            .single { it.sourceIdentity == "wellbeing:${original.date}" }
+        assertEquals("wellbeing", row.kind)
+    }
+
 }
