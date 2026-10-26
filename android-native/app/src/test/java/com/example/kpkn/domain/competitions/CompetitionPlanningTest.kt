@@ -35,6 +35,17 @@ class CompetitionPlanningTest {
         assertTrue(unknown.message.contains("Sin tendencia"))
         assertTrue(WeighInPlanner.forecast(84.0,83.0,0.0,0).message.contains("Confirma el peso real"))
     }
+    @Test fun invalidExtrapolationsNeverInventAZeroWeightOrPromiseTheCategory() {
+        listOf(-100.0,Double.MAX_VALUE).forEach { rate ->
+            val result = WeighInPlanner.forecast(84.0,100.0,rate,365)
+            assertEquals(84.0,result.projectedKg,0.0)
+            assertFalse(result.projectionAvailable)
+            assertFalse(result.makesWeight)
+            assertTrue(result.message.contains("no permite una proyección válida"))
+        }
+        assertFalse(WeighInPlanner.forecast(84.0,100.0,null,28).projectionAvailable)
+        assertTrue(WeighInPlanner.forecast(84.0,83.0,-0.3,28).projectionAvailable)
+    }
     @Test fun meetDayRejectsAmbiguousAttemptsAndKeepsWarmupsBelowOpener() {
         val attempts = listOf(180.0,190.0,200.0).mapIndexed { i,w -> PlannedAttempt(squat,i + 1,w) }
         val plan = MeetDayPlan.build(attempts).single()
