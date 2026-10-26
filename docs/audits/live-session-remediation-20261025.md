@@ -4,7 +4,8 @@ Base de revisión: `1d399c1fc`, checkout `master`, con WIP previo conservado.
 Durante la ejecución, otros trabajos avanzaron master desde `0441aa64c` hasta
 `e47cfce68`. La comparación final de 3605 fuentes/configuraciones cubiertas por
 el manifiesto no detecta cambios respecto al inicio de la validación final.
-Esta tarea no ha creado commits ni push.
+La evidencia de QA se capturó antes del commit de integración; su validación
+aislada y publicación se documentan al final.
 Estado: **aceptación funcional Android cerrada**. La APK definitiva está instalada
 en KPKN Dev;631 pruebas/66 clases consolidadas sin fallos. El recorrido del
 emulador terminó y su APK, ajustes y cursor originales están restaurados.
@@ -371,7 +372,7 @@ lógico compartido, sin reescribir observaciones. También se corrige el singula
   Arranque posterior correcto en la bienvenida original. Se retiene el historial
   sintético etiquetado. Prueba:`emulator/owner-restoration/proof.json`.
 - Dispositivos liberados y tarea propietaria avisada mediante la autorización de
-  coordinación de esta QA. No se crearon commits ni se hizo push.
+  coordinación de esta QA. En esa fase aún no se habían creado commits ni hecho push.
 
 La evidencia física de voz, vídeo frontal y GPS corresponde a los candidatos
 indicados arriba; las últimas diferencias son de presentación y contador, con
@@ -384,3 +385,31 @@ No se realizó calibración científica de GPS/biomecánica ni compilación iOS 
 
 Estado y referencias consolidados en
 `artifacts/live-session-acceptance-20261025/FINAL_ACCEPTANCE.json`.
+
+
+### Integración en master oficial — validación aislada
+
+El código de esta remediación está en el commit `ed6cee4d6e5936514105432c5986566f504ce66d`,
+creado en `master` de `C:/Users/valen/Documents/KPKNFit`. Incluye 114 archivos de
+código, pruebas e informe; no incorpora el WIP ajeno de nutrición, esquemas o recursos.
+
+La comprobación se repitió desde una copia limpia de ese commit, sin cambios locales:
+
+- **631 pruebas Android en 66 clases, cero fallos, errores u omitidas, en una sola corrida.**
+- `assembleBaseDebug` correcto; duración de la corrida 21 min 26 s.
+- Backend: 4 pruebas correctas de transporte e historial sobre el mismo commit.
+- Room35 y su identidad publicada conservados; no se incorporó el WIP de Room36.
+- Árbol del worktree de validación sin cambios tras compilar.
+
+Los resultados de esta integración se conservan en
+`docs/audits/live-session-integration-20261025.json` y los XML locales en
+`artifacts/live-session-commit-20261025/tests-isolated/`.
+La QA física anterior corresponde a la composición local con Room36 indicada en
+su evidencia. Esta validación aislada no sustituyó la APK de los dispositivos.
+
+Los 21 archivos de WIP ajeno identificados al inicio quedaron fuera del commit.
+Veinte conservan sus hashes; un archivo de preferencias cambió concurrentemente
+y se dejó intacto, sin incluirlo ni restaurarlo. Bases de datos, coordenadas GPS,
+grabaciones y APK de QA permanecen locales y no se publican en Git.
+El destino de publicación autorizado es `origin/master`; el cierre documental
+no modifica el código ni las pruebas del commit validado.

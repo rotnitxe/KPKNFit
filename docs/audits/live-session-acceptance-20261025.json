@@ -71,5 +71,14 @@
     "iOS source transport updated but not compiled on Windows",
     "No commit or push"
   ],
-  "evidenceScope": "Pre-commit QA with concurrent Room36 nutrition WIP; raw DB, GPS, recordings and APKs remain local. Selected commit is validated separately against official master."
+  "evidenceScope": "Pre-commit QA with concurrent Room36 nutrition WIP; raw DB, GPS, recordings and APKs remain local. Selected commit is validated separately against official master.",
+  "integration": {
+    "sourceCommit": "ed6cee4d6e5936514105432c5986566f504ce66d",
+    "isolatedValidation": "PASS",
+    "roomVersion": 35,
+    "proof": "docs/audits/live-session-integration-20261025.json",
+    "androidTests": 631,
+    "classes": 66,
+    "backendTests": 4
+  }
 }
