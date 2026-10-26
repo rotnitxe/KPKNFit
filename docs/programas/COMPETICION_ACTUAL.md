@@ -1,6 +1,6 @@
 # Competición: contrato de la ampliación del 25-oct
 
-Implementación primaria Android. Los motores puros aprobaron 10 pruebas compartidas con temporada; la primera ola D aprobó sus casos nuevos de VM y Compose. La reparación de finalización sin receta, el guard por modalidad y el enlace a la ficha están en el segundo gate Android D, todavía sin resultado al redactar. No hay instalación ni QA funcional acreditados.
+Implementación primaria Android. Los motores puros aprobaron 10 pruebas compartidas con temporada. Android D tiene resultados verdes por clase; el segundo intento aprobó 133 tests, incluidos VM112, módulo competición4 y finalización11. La protección adicional de proyecciones negativas/overflow está verificada en CompetitionPlanningTest6/6, dentro de E76/76. El cierre conjunto posterior aprobó3074 tests. KPKN Dev compatible con Room36 está instalada en Z Flip; el flujo de competición no se ejercitó físicamente, para conservar los registros del usuario.
 
 ## Antes del evento
 
