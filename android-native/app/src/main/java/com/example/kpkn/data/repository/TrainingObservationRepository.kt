@@ -21,6 +21,35 @@ class TrainingObservationRepository(context: Context) {
         }
         dao.preserve(TrainingObservationEntity(sourceId, "session_context", "", payload.toString(), "explicit_self_report;optional;not_validated_scale"))
     }
+    /**
+     * Estado de llegada del día (`wellbeing`). Idempotente por fecha: se conserva la primera
+     * observación original y nunca se reescribe desde otra pantalla.
+     */
+    suspend fun recordWellbeing(log: com.example.kpkn.data.models.DailyWellbeingLog) = withContext(Dispatchers.IO) {
+        dao.preserve(
+            TrainingObservationEntity(
+                "wellbeing:${log.date}",
+                "wellbeing",
+                log.date,
+                com.example.kpkn.data.db.dbJson.encodeToString(
+                    com.example.kpkn.data.models.DailyWellbeingLog.serializer(), log,
+                ),
+                "explicit_self_report;optional;not_validated_scale",
+            ),
+        )
+        Unit
+    }
+
+    suspend fun getWellbeingLogs(): List<com.example.kpkn.data.models.DailyWellbeingLog> = withContext(Dispatchers.IO) {
+        dao.all().filter { it.kind == "wellbeing" }.mapNotNull { observation ->
+            runCatching {
+                com.example.kpkn.data.db.dbJson.decodeFromString(
+                    com.example.kpkn.data.models.DailyWellbeingLog.serializer(), observation.payload,
+                )
+            }.getOrNull()
+        }
+    }
+
     suspend fun getPostSessionFeedbacks(): List<com.example.kpkn.data.models.PostSessionFeedback> = withContext(Dispatchers.IO) {
         dao.all().filter { it.kind == "feedback" }.map { com.example.kpkn.data.db.dbJson.decodeFromString<com.example.kpkn.data.models.PostSessionFeedback>(it.payload) }
     }

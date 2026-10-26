@@ -119,9 +119,9 @@ internal data class RelatorUiSlice(
                 restSuggested = state.restModalState?.suggestedSeconds ?: 0,
                 showPostExercise = state.showPostExerciseSheet,
                 livePlan = state.livePlanContext,
-                wellbeingSleep = state.todayWellbeing?.sleepQuality,
-                wellbeingStress = state.todayWellbeing?.stressLevel,
-                wellbeingDoms = state.todayWellbeing?.doms,
+                wellbeingSleep = state.todayWellbeing?.takeIf { "sleep" in it.capturedFields }?.sleepQuality,
+                wellbeingStress = state.todayWellbeing?.takeIf { "stress" in it.capturedFields }?.stressLevel,
+                wellbeingDoms = state.todayWellbeing?.takeIf { "doms" in it.capturedFields }?.doms,
                 milestonesSize = state.sessionMilestones.size,
                 targetMinutes = state.customTargetDurationMinutes ?: state.targetDurationMinutes,
                 startTimeMs = state.startTimeMs,
@@ -627,10 +627,10 @@ internal object RelatorContextBuilder {
                 overlayMinimized = false, // F4: relator does not depend on isRestMinimized
             ),
             readiness = RelatorReadinessSlice(
-                sleepQuality = state.todayWellbeing?.sleepQuality ?: state.sleepQuality,
-                stressLevel = state.todayWellbeing?.stressLevel,
-                doms = state.todayWellbeing?.doms,
-                motivation = state.todayWellbeing?.motivation,
+                sleepQuality = state.todayWellbeing?.takeIf { "sleep" in it.capturedFields }?.sleepQuality ?: state.sleepQuality,
+                stressLevel = state.todayWellbeing?.takeIf { "stress" in it.capturedFields }?.stressLevel,
+                doms = state.todayWellbeing?.takeIf { "doms" in it.capturedFields }?.doms,
+                motivation = state.todayWellbeing?.takeIf { "motivation" in it.capturedFields }?.motivation,
                 preWorkoutDiscomforts = state.todayWellbeing?.preWorkoutDiscomforts.orEmpty(),
             ),
             warmup = RelatorWarmupSlice(

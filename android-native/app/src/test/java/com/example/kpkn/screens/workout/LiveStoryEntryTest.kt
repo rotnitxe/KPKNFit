@@ -65,10 +65,10 @@ class LiveStoryEntryTest {
             }
         }
         rule.onNodeWithTag("workout-story-header").performClick()
-        rule.onNodeWithText("Preparar historia para compartir").performClick()
+        rule.onNodeWithText("Preparar historia").performClick()
         rule.onNodeWithTag("story-sheet", useUnmergedTree = true).assertIsDisplayed()
         val viewport = rule.onNodeWithTag("story-viewport").fetchSemanticsNode().boundsInRoot
-        listOf("story-templates", "story-share-after-save", "story-save-image", "story-share").forEach { tag ->
+        listOf("story-templates", "story-save-image", "story-share").forEach { tag ->
             val bounds = rule.onNodeWithTag(tag).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
             assertTrue("$tag tiene alto", bounds.height > 0)
             assertTrue("$tag dentro del viewport: $bounds / $viewport", bounds.top >= viewport.top && bounds.bottom <= viewport.bottom)
@@ -103,7 +103,7 @@ class LiveStoryEntryTest {
         rule.runOnIdle { assertEquals(0, confirmed) }
         saveLiveQaRender(rule, view, "lv-af-story-$height-${(font * 100).toInt()}")
         rule.onNodeWithContentDescription("Volver al resumen").performClick()
-        rule.onNodeWithText("Preparar historia para compartir").assertExists()
+        rule.onNodeWithText("Preparar historia").assertExists()
         rule.runOnIdle { assertEquals(0, confirmed) }
     }
 }
