@@ -92,6 +92,8 @@ data class ExerciseDiscomfortReport(
     val notes: String? = null,
     val perceivedIntensityRpe: Double? = null,
     val perceivedFailure: Boolean = false,
+    /** Serie tras la que se reportó la molestia; null en históricos anteriores a este campo. */
+    val reportedAfterSetIndex: Int? = null,
 )
 
 @Serializable

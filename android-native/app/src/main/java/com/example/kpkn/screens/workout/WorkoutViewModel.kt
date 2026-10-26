@@ -6087,6 +6087,33 @@ class WorkoutViewModel(
         persistOngoingState()
     }
 
+    /** Estado de llegada del día: observación de bienestar, nunca un cambio de cargas. */
+    fun loadReadiness() {
+        viewModelScope.launch {
+            try {
+                val today = java.time.LocalDate.now().toString()
+                val original = com.example.kpkn.data.repository.TrainingObservationRepository
+                    .getInstance(appContext).getWellbeingLogs().firstOrNull { it.date == today }
+                updateUiState { it.copy(todayWellbeing = original) }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+              catch (_: Exception) { /* Preserve the current original on transient failure. */ }
+        }
+    }
+
+    fun recordReadiness(log: com.example.kpkn.data.models.DailyWellbeingLog,
+                        onSaved: () -> Unit, onError: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val observations = com.example.kpkn.data.repository.TrainingObservationRepository.getInstance(appContext)
+                observations.recordWellbeing(log)
+                val original = observations.getWellbeingLogs().firstOrNull { it.date == log.date }
+                updateUiState { it.copy(todayWellbeing = original) }
+                onSaved()
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+              catch (_: Exception) { onError() }
+        }
+    }
+
     fun setSessionNotes(note: String, flush: Boolean = false) {
         updateUiState { it.copy(sessionNotes = note) }
         sessionNotePersistJob?.cancel()
@@ -7185,6 +7212,7 @@ class WorkoutViewModel(
             photos = (photos + legacyPhotos + state.sessionPhotos.map { StoryPhoto(it) }).distinctBy { it.path },
             calories = null,
             records = state.sessionMilestones.count { it.kind == "pr_e1rm" },
+            milestones = state.sessionMilestones.filter { it.kind == "pr_e1rm" },
         )
     }
 

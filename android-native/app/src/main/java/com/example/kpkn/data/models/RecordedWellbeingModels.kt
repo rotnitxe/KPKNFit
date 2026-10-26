@@ -10,7 +10,11 @@ data class DailyWellbeingLog(
     val date: String, // "YYYY-MM-DD"
     val sleepQuality: Int = 3,   // 1-5
     val stressLevel: Int = 3,    // 1-5
+    /** Autoinforme de energía 0–10; null si no se respondió. */
+    val energy: Int? = null,
     val doms: Int = 1,           // 1-5
+    /** Agujetas por zona (0–5). El valor global [doms] no se deriva de este mapa. */
+    val muscleDoms: Map<String, Int> = emptyMap(),
     val motivation: Int = 3,     // 1-5
     val sleepHours: Double? = null,
     val moodState: MoodState? = null,

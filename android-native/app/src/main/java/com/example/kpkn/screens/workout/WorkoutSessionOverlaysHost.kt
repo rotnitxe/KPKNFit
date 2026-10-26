@@ -61,23 +61,47 @@ internal fun WorkoutSessionOverlaysHost(
     // Las molestias que quedaron presentes la sesión anterior, con el día en que se anotaron («Rodilla anterior · lunes»).
     TrainingMaxPreparation(viewModel.missingTrainingMaxes(session), enabled = !showReadinessSheet,
         onConfirm = viewModel::confirmTrainingMax)
+    var readinessSaving by remember { mutableStateOf(false) }
+    var readinessError by remember { mutableStateOf<String?>(null) }
+    var showContext by remember { mutableStateOf(false) }
+    LaunchedEffect(session.id) { viewModel.loadReadiness() }
     if (showReadinessSheet) {
-        val previous = remember(session.id, uiState.startTimeMs) {
-            viewModel.recentWorkoutLogs(90 * 24, uiState.startTimeMs).filter { it.sessionId == session.id }
-                .filter { com.example.kpkn.domain.time.TrainingDates.logDateMs(it) < uiState.startTimeMs }
-                .take(6)
-        }
+        WorkoutReadinessSheet(
+            session = session,
+            weekLabel = null,
+            initial = uiState.todayWellbeing,
+            previousDiscomforts = uiState.previousSessionDiscomforts,
+            onDismiss = onReadinessDismissed,
+            saving = readinessSaving,
+            error = readinessError,
+            voiceEnabled = voiceSessionEnabled,
+            captureMode = voiceCaptureMode,
+            onVoiceMode = { mode ->
+                onVoiceCaptureModeChange(mode)
+                if (!voiceSessionEnabled) viewModel.enableVoice(mode)
+            },
+            onContext = { showContext = true },
+            onConfirm = { wellbeing ->
+                readinessSaving = true
+                readinessError = null
+                viewModel.recordReadiness(wellbeing,
+                    onSaved = { readinessSaving = false; onReadinessDismissed() },
+                    onError = { readinessSaving = false; readinessError = "No se pudo guardar. Reintenta." })
+            },
+        )
+    }
+
+    if (showReadinessSheet && showContext) {
         PreSessionPreparationDialog(
             notes = uiState.sessionNotes,
-            previous = previous.map { log ->
-                val duration = log.actualDurationSeconds?.let { "$it s" } ?: "${log.durationMinutes} min (precisión original)"
-                "${log.date.take(10)} · $duration · ${log.completedExercises.size} ejercicios"
-            },
+            previous = viewModel.recentWorkoutLogs(90 * 24, uiState.startTimeMs)
+                .filter { it.sessionId == session.id }.take(6)
+                .map { "${it.date.take(10)} · ${it.durationMinutes} min" },
             discomforts = uiState.previousSessionDiscomforts.map { com.example.kpkn.data.models.discomfortLabel(it) },
             onNotes = viewModel::setSessionNotes,
             recordedSportId = uiState.recordedSportId,
             onSport = viewModel::setRecordedSport,
-            onDismiss = onReadinessDismissed,
+            onDismiss = { showContext = false },
         )
     }
 

@@ -20,6 +20,7 @@ internal data class FinishPresentationContext(
     val photos: List<StoryPhoto> = emptyList(),
     val calories: Int? = null,
     val records: Int = 0,
+    val milestones: List<com.example.kpkn.data.models.SessionMilestone> = emptyList(),
     val today: LocalDate = LocalDate.now(),
 )
 
