@@ -34,6 +34,8 @@ internal data class CoverIdentity(
     val seed: Int,
     val days: Int = 4,
     val numeralIsWeeks: Boolean = true,
+    /** Si no es null, la portada es de líneas y [style]/[palette] no se usan. */
+    val lines: LineCoverSpec? = null,
 )
 
 /** Cómo pinta PlanCover su fondo: la foto propia manda; con identidad, el motor; si no, el arte procedural de siempre. */

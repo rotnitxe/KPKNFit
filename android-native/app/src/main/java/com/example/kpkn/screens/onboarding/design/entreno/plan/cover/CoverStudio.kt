@@ -1033,6 +1033,7 @@ internal fun CoverStudioArt(
     reduced: Boolean,
     parallax: () -> Float = { 0f },
 ) {
+    identity.lines?.let { LineCoverArt(it, modifier, animate = animate, reduced = reduced); return }
     val running = animate && !reduced
     val foreground = rememberEntrenoForeground()
     var visible by remember { mutableStateOf(true) }
