@@ -20,6 +20,7 @@ import com.example.kpkn.testsupport.RoomTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -290,5 +291,34 @@ class ProgramsViewModelTest {
         // También verifica que skipCalibration = true materializa sin calibración
         val uncalibratedResult = vm.createProgramFromTemplate("simple-1", skipCalibration = true)
         assertTrue("skipCalibration debe materializar", uncalibratedResult.isSuccess)
+    }
+
+    @Test
+    fun createBlankProgram_numbers_after_the_highest_existing_name() {
+        val repository = ProgramRepository.getInstance()
+        repository.addProgram(buildNewProgram(id = "nuevo-1", name = "Nuevo programa 1"))
+        repository.addProgram(buildNewProgram(id = "nuevo-3", name = "Nuevo programa 3"))
+        val vm = createViewModel()
+
+        val id = vm.createBlankProgram()
+
+        // Contar nombres daba «Nuevo programa 3» otra vez; el mayor más uno da 4.
+        assertEquals("Nuevo programa 4", repository.getProgramById(id)!!.name)
+    }
+
+    @Test
+    fun inactivePrograms_leave_out_the_queued_program() = runBlocking {
+        val repository = ProgramRepository.getInstance()
+        repository.addProgram(buildNewProgram(id = "en-cola", name = "En cola"))
+        repository.addProgram(buildNewProgram(id = "suelto", name = "Suelto"))
+        val vm = createViewModel()
+        vm.addToQueue("en-cola")
+
+        val inactive = withTimeout(10_000) {
+            vm.inactivePrograms.first { list -> list.any { it.id == "suelto" } }
+        }
+
+        assertEquals(listOf("suelto"), inactive.map { it.id })
+        assertEquals(listOf("en-cola"), vm.programQueue.first { it.isNotEmpty() }.map { it.id })
     }
 }
