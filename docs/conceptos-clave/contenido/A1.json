@@ -1,0 +1,679 @@
+[
+  {
+    "id": "series-aproximacion",
+    "name": "Calentamiento y series de aproximación",
+    "category": "METHODS",
+    "short": "Series previas con cargas crecientes que preparan el cuerpo y la técnica antes de la carga de trabajo",
+    "aliases": [
+      "warm-up",
+      "warm-up sets",
+      "ramp sets"
+    ],
+    "body": [
+      "Las series de aproximación son las series previas a la carga de trabajo, con pesos que suben de forma gradual, y forman parte del calentamiento específico del ejercicio. El calentamiento activo deja mejor preparado para la tarea posterior. En un metaanálisis de 32 estudios, el calentamiento con actividades distintas del estiramiento mejoró el rendimiento en cerca del 79% de los criterios analizados, y hubo poca evidencia de que resulte perjudicial.",
+      "La potenciación post-activación es una mejora temporal del rendimiento que puede aparecer tras una contracción intensa previa. En una revisión de 47 estudios, su efecto fue pequeño en saltos, lanzamientos y acciones balísticas de tren superior, y moderado en sprints; fue mayor en personas más fuertes y con más experiencia en fuerza. Esa misma revisión encontró que las personas más fuertes respondieron mejor a pausas más cortas, y las más débiles a pausas más largas y a varias series de calentamiento."
+    ],
+    "practice": "Sube el peso de forma gradual en pocas series de aproximación, sin convertirlas en una serie de trabajo: el objetivo es llegar a la primera serie válida con la técnica y la velocidad que buscas, no cansarte antes de empezar. Observa la primera repetición de trabajo: si la velocidad cae o la técnica se rompe, el calentamiento te ha dejado más [[fatiga-sistemica|fatiga]] de la que conviene.",
+    "related": [
+      "fatiga-sistemica",
+      "explosividad",
+      "sobrecarga-progresiva"
+    ],
+    "sources": [
+      {
+        "title": "Effects of warming-up on physical performance: a systematic review with meta-analysis",
+        "publisher": "Journal of strength and conditioning research · 2010",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/19996770/"
+      },
+      {
+        "title": "Warm-Up Strategies for Sport and Exercise: Mechanisms and Applications",
+        "publisher": "Sports medicine (Auckland, N.Z.) · 2015",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/26400696/"
+      },
+      {
+        "title": "Factors Modulating Post-Activation Potentiation of Jump, Sprint, Throw, and Upper-Body Ballistic Performances",
+        "publisher": "Sports medicine (Auckland, N.Z.) · 2016",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/26508319/"
+      }
+    ]
+  },
+  {
+    "id": "descanso-entre-series",
+    "name": "Descanso entre series",
+    "category": "METHODS",
+    "short": "Tiempo de pausa entre series, que condiciona cuánta fuerza recuperas antes de la siguiente",
+    "aliases": [
+      "rest interval",
+      "rest period",
+      "intervalo de descanso"
+    ],
+    "body": [
+      "El descanso entre series es el tiempo que pasas sin trabajar entre una serie y la siguiente. Determina cuánta fuerza recuperas antes de volver a cargar, así que condiciona el [[volumen-entrenamiento|volumen]] y la carga que puedes sostener a lo largo de la sesión. Una revisión sistemática de 23 estudios encontró que los descansos cortos, de menos de 60 segundos, pueden producir ganancias de fuerza robustas, pero que en personas entrenadas parecen hacer falta descansos de más de dos minutos para maximizar la fuerza.",
+      "Un estudio de ocho semanas con 21 hombres entrenados, que hacían tres series de 8 a 12 repeticiones máximas en siete ejercicios por sesión, comparó descansos de un minuto con descansos de tres. El grupo de tres minutos ganó más fuerza en sentadilla y en press de banca, y más grosor muscular en el muslo. En personas no entrenadas, la misma revisión considera suficientes descansos de 60 a 120 segundos para maximizar la fuerza. Descansar más alarga la sesión, así que el beneficio hay que sopesarlo con el tiempo disponible."
+    ],
+    "practice": "Reserva los descansos largos, de dos minutos o más, para las series pesadas de los ejercicios principales si tu objetivo es la fuerza, sobre todo si ya tienes experiencia. Si entrenas con cargas moderadas y buscas volumen, prueba descansos intermedios y compara la carga y las repeticiones de cada serie.",
+    "related": [
+      "volumen-entrenamiento",
+      "fatiga-sistemica",
+      "superseries"
+    ],
+    "sources": [
+      {
+        "title": "Longer Interset Rest Periods Enhance Muscle Strength and Hypertrophy in Resistance-Trained Men",
+        "publisher": "Journal of strength and conditioning research · 2016",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/26605807/"
+      },
+      {
+        "title": "Effects of Rest Interval Duration in Resistance Training on Measures of Muscular Strength: A Systematic Review",
+        "publisher": "Sports medicine (Auckland, N.Z.) · 2018",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/28933024/"
+      }
+    ]
+  },
+  {
+    "id": "superseries",
+    "name": "Superseries y series compuestas",
+    "category": "METHODS",
+    "short": "Dos ejercicios encadenados con poca o ninguna pausa, que ahorran tiempo con un volumen parecido",
+    "aliases": [
+      "superset",
+      "supersets",
+      "paired sets"
+    ],
+    "body": [
+      "Una superserie encadena dos ejercicios con poco o ningún [[descanso-entre-series|descanso]] entre ambos. Puede ser agonista-antagonista, con grupos musculares que se oponen, o dos ejercicios de biomecánica parecida que cargan el mismo grupo muscular. Su principal atractivo es el tiempo: una metarrevisión de 19 estudios y 313 participantes encontró un número de repeticiones y un volumen de carga similares a los de las series tradicionales, con sesiones más cortas. Las superseries agonista-antagonista son las que mejor mantienen el volumen, mientras que las de biomecánica parecida lo reducen.",
+      "El precio es una mayor exigencia por serie. En la misma metarrevisión, las superseries elevaron el lactato y el esfuerzo percibido, y pueden generar más carga interna, más daño muscular y más necesidad de recuperación entre sesiones. A largo plazo, la fuerza máxima, la resistencia de fuerza y la hipertrofia resultaron parecidas a las del entrenamiento tradicional. Una revisión de 2026 sobre sistemas avanzados, con 23 estudios en personas recreativamente entrenadas, tampoco encontró una superioridad global en hipertrofia para esos sistemas en conjunto."
+    ],
+    "practice": "Las superseries sirven cuando el tiempo es el límite y el [[volumen-entrenamiento|volumen]] debe mantenerse: las superseries agonista-antagonista son la opción que menos lo sacrifica. Si encadenas dos ejercicios de la misma zona, calcula que la carga real de la superserie puede ser mayor de lo que parece y deja más recuperación antes de la siguiente sesión.",
+    "related": [
+      "descanso-entre-series",
+      "volumen-entrenamiento",
+      "series-cluster"
+    ],
+    "sources": [
+      {
+        "title": "Superset Versus Traditional Resistance Training Prescriptions",
+        "publisher": "Sports medicine (Auckland, N.Z.) · 2025",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/39903375/"
+      },
+      {
+        "title": "Effects of Advanced Resistance Training Systems on Muscle Hypertrophy and Strength in Recreationally Trained Adults: A Systematic Review and Meta-Analysis",
+        "publisher": "Journal of functional morphology and kinesiology · 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/41718208/"
+      }
+    ]
+  },
+  {
+    "id": "series-descendentes",
+    "name": "Series descendentes (drop sets)",
+    "category": "METHODS",
+    "short": "Series que se llevan hasta el fallo y continúan con menos carga, sin descanso, para acumular repeticiones",
+    "aliases": [
+      "dropset",
+      "descending set",
+      "strip set"
+    ],
+    "body": [
+      "Las series descendentes, o drop sets, consisten en llegar al [[fallo-muscular|fallo]] con una carga y seguir repitiendo con una carga menor, sin descanso, para acumular más repeticiones en una sola serie. En un estudio de 12 semanas con 32 voluntarios bien entrenados, las series descendentes se hacían con cargas de alrededor del 50 al 75% de 1RM hasta el fallo.",
+      "Cuando se iguala el volumen, el beneficio no aparece. En ese diseño, donde cada pierna recibía un protocolo distinto, las series descendentes y las pirámides crecientes no dieron más fuerza ni más hipertrofia que el entrenamiento tradicional. Una metarrevisión de 2026, con 12 estudios y 274 participantes, llegó a una conclusión parecida para hipertrofia y fuerza, con más esfuerzo percibido y más lactato. Su ventaja real es el tiempo: consiguen un trabajo parecido en una sesión más corta.",
+      "El coste está en el esfuerzo percibido y en la recuperación. En un estudio con 24 hombres entrenados, las series descendentes subieron más el esfuerzo percibido y bajaron más el agrado que las pirámides descendentes o las series tradicionales con volumen parecido. Por eso no ofrecen ventaja de fuerza."
+    ],
+    "practice": "Usa las series descendentes como herramienta de tiempo o de variedad, no como vía a más fuerza. Repártelas al final del trabajo de un grupo muscular, cuando el trabajo principal ya está hecho, y cuenta sus repeticiones dentro del [[volumen-entrenamiento|volumen]] semanal.",
+    "related": [
+      "fallo-muscular",
+      "rest-pause",
+      "volumen-entrenamiento"
+    ],
+    "sources": [
+      {
+        "title": "Crescent pyramid and drop-set systems do not promote greater strength gains, muscle hypertrophy, and changes on muscle architecture compared with traditional resistance training in well-trained men",
+        "publisher": "European journal of applied physiology · 2017",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/28130627/"
+      },
+      {
+        "title": "Acute and Chronic Effects of Drop-Set Training: A Meta-Analysis and Systematic Review",
+        "publisher": "Sports medicine - open · 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/41920484/"
+      },
+      {
+        "title": "Drop-Set Resistance Training versus Pyramidal and Traditional Sets Elicits Greater Psychophysiological Responses in Men",
+        "publisher": "Perceptual and motor skills · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/37197987/"
+      }
+    ]
+  },
+  {
+    "id": "rest-pause",
+    "name": "Rest-pause y myo-reps",
+    "category": "METHODS",
+    "short": "Técnicas de intensificación que alargan la serie con mini-series para ahorrar tiempo",
+    "aliases": [
+      "rest pause",
+      "myoreps",
+      "mini-sets"
+    ],
+    "body": [
+      "El rest-pause y los myo-reps son técnicas de intensificación: la serie se prolonga con mini-series separadas por pausas breves, para acumular repeticiones cerca del [[fallo-muscular|fallo]]. Un estudio de 2026 con 22 hombres entrenados, de ocho semanas, comparó myo-reps con series tradicionales: el grupo de myo-reps tuvo una sesión más corta y un volumen de carga cerca de un 30% menor, pero el grosor muscular y la fuerza fueron iguales en ambos grupos.",
+      "En hombres entrenados, un estudio de seis semanas con 18 personas comparó el rest-pause con series múltiples tradicionales: la fuerza fue parecida, pero el rest-pause dio más repeticiones de resistencia local en la prensa y más grosor del muslo. Otro de ocho semanas con 23 participantes, que comparó el rest-pause con las series descendentes bajo progresión supervisada, encontró adaptaciones comparables en fuerza y composición corporal. Ninguno muestra una ventaja de fuerza clara y duradera: los beneficios que aparecen son en zonas o medidas concretas, y son estudios pequeños y cortos."
+    ],
+    "practice": "Reserva estas técnicas para el último ejercicio de un grupo muscular, cuando el trabajo principal ya está hecho, y úsalas si el objetivo es ganar tiempo y te basta con un volumen algo menor, como sugiere el estudio de myo-reps. Si la técnica empeora en las últimas mini-series, la intensificación ya es excesiva para ese día.",
+    "related": [
+      "series-descendentes",
+      "fallo-muscular",
+      "volumen-entrenamiento"
+    ],
+    "sources": [
+      {
+        "title": "Similar Strength and Hypertrophic Adaptations in Less Time? Myo-Reps vs. Traditional Straight-Sets in Resistance-Trained Men",
+        "publisher": "Journal of strength and conditioning research · 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/42112925/"
+      },
+      {
+        "title": "Strength and Muscular Adaptations After 6 Weeks of Rest-Pause vs. Traditional Multiple-Sets Resistance Training in Trained Subjects",
+        "publisher": "Journal of strength and conditioning research · 2019",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/28617715/"
+      },
+      {
+        "title": "Comparison of Repetition-Based Progressive-Overload Strategies in Resistance Training: Rest-Pause Versus Drop Sets",
+        "publisher": "Scandinavian journal of medicine & science in sports · 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/42340141/"
+      }
+    ]
+  },
+  {
+    "id": "series-cluster",
+    "name": "Series cluster",
+    "category": "METHODS",
+    "short": "Series con pausas cortas entre bloques de repeticiones para mantener la velocidad y la potencia",
+    "aliases": [
+      "cluster sets",
+      "cluster set",
+      "intra-set rest"
+    ],
+    "body": [
+      "Una serie cluster reparte las repeticiones en bloques separados por pausas breves dentro de la misma serie. La revisión de esta estructura la define como una serie con descansos intermitentes entre repeticiones o entre grupos de repeticiones, cuyo objetivo es aliviar la fatiga para que el rendimiento se mantenga casi constante durante la sesión. La mayor parte de la literatura se había centrado en la potencia, y el efecto sobre fuerza e hipertrofia estaba poco explorado.",
+      "En un estudio con doce hombres entrenados, que hacían tres series de doce repeticiones al 60% de 1RM en sentadilla trasera, las series tradicionales perdieron velocidad y potencia a lo largo de la serie, mientras que las cluster las mantuvieron. Un estudio posterior de ocho semanas con diez personas entrenadas igualó series, repeticiones y [[rir|RIR]], y encontró grosor muscular y masa magra parecidos entre cluster y tradicional.",
+      "La ventaja demostrada es de velocidad y potencia más que de adaptación muscular: cuando el volumen y el RIR se igualan, la hipertrofia no parece distinta."
+    ],
+    "practice": "Usa cluster cuando quieras proteger la velocidad en levantamientos de [[volumen-entrenamiento|volumen]] alto o en trabajo de potencia con cargas moderadas. Toma las pausas de unos 20 segundos como punto de partida, no como norma. Compara la velocidad de la primera y de la última repetición: si la caída se reduce, la estructura cluster está cumpliendo su función.",
+    "related": [
+      "descanso-entre-series",
+      "explosividad",
+      "fatiga-sistemica"
+    ],
+    "sources": [
+      {
+        "title": "Theoretical and Practical Aspects of Different Cluster Set Structures: A Systematic Review",
+        "publisher": "Journal of strength and conditioning research · 2017",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/27465625/"
+      },
+      {
+        "title": "Maintenance of Velocity and Power With Cluster Sets During High-Volume Back Squats",
+        "publisher": "International journal of sports physiology and performance · 2016",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/26791936/"
+      },
+      {
+        "title": "Cluster sets and traditional sets elicit similar muscular hypertrophy: a volume and effort-matched study in resistance-trained individuals",
+        "publisher": "European journal of applied physiology · 2025",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/39932536/"
+      }
+    ]
+  },
+  {
+    "id": "tempo",
+    "name": "Tempo y cadencia",
+    "category": "METHODS",
+    "short": "Duración de cada fase de la repetición, que cambia el tiempo bajo tensión de la serie",
+    "aliases": [
+      "time under tension",
+      "TUT",
+      "repetition duration"
+    ],
+    "body": [
+      "El tempo es la duración que dedicas a cada fase de la repetición, por ejemplo la bajada, una pausa y la subida. Cuando alargas la [[fase-excentrica|fase excéntrica]] o controlas más la repetición, sube el tiempo bajo tensión, es decir, el tiempo que el músculo trabaja cargado dentro de la serie.",
+      "En diez hombres no entrenados, repeticiones de dos segundos y de seis segundos hasta el fallo durante 14 semanas dieron ganancias parecidas de 1RM y de área muscular, aunque la de seis segundos produjo más fuerza isométrica con la rodilla a 30 grados. Cuando se igualó el tiempo bajo tensión en 38 hombres no entrenados durante diez semanas, los protocolos dieron fuerza e hipertrofia parecidas.",
+      "Una metarrevisión clásica encontró que la fase excéntrica con cargas altas supera a la concéntrica en fuerza y masa muscular, y que esa ventaja parece ligada a las cargas más altas que se usan en la bajada."
+    ],
+    "practice": "Fija el tempo en el plan como un dato más del ejercicio, con la duración de cada fase, y mantenlo en todas las repeticiones de la serie. Si buscas controlar la bajada, cuenta la excéntrica sin acelerarla; si el objetivo es velocidad, mantén la subida explosiva con una carga que te lo permita. No cambies el tempo y el peso a la vez en la misma semana, porque no sabrás qué produjo el cambio.",
+    "related": [
+      "fase-excentrica",
+      "tension-mecanica",
+      "fase-concentrica"
+    ],
+    "sources": [
+      {
+        "title": "Resistance training with different repetition duration to failure: effect on hypertrophy, strength and muscle activation",
+        "publisher": "PeerJ · 2021",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/33665031/"
+      },
+      {
+        "title": "Equalization of Training Protocols by Time Under Tension Determines the Magnitude of Changes in Strength and Muscular Hypertrophy",
+        "publisher": "Journal of strength and conditioning research · 2022",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/34932279/"
+      },
+      {
+        "title": "The effects of eccentric versus concentric resistance training on muscle strength and mass in healthy adults: a systematic review with meta-analysis",
+        "publisher": "British journal of sports medicine · 2009",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/18981046/"
+      }
+    ]
+  },
+  {
+    "id": "parciales-alargadas",
+    "name": "Parciales en posición alargada",
+    "category": "METHODS",
+    "short": "Repeticiones parciales en la zona donde el músculo está más estirado, frente al rango completo",
+    "aliases": [
+      "lengthened partials",
+      "lengthened partial reps",
+      "partial ROM"
+    ],
+    "body": [
+      "Un parcial alargado es una repetición que recorre solo la parte del [[rom|rango de movimiento]] en la que el músculo está más estirado. Un estudio de 2025 con 30 personas entrenadas, en el que cada brazo hacía una variante distinta durante ocho semanas, encontró que los parciales alargados y el rango completo dieron grosor muscular y resultados de fuerza-resistencia muy parecidos.",
+      "En un estudio con 20 personas, entrenar los isquiosurales sentado, con el músculo en longitud larga, aumentó más su volumen que hacerlo boca abajo, aunque la protección frente al daño muscular fue parecida. En otro de 2022 con 45 mujeres no entrenadas, la variante que empezaba por el rango más alargado dio más hipertrofia regional en algunas zonas del cuádriceps que las demás variantes.",
+      "En fuerza máxima, las diferencias fueron pequeñas: ningún grupo superó de forma clara a la variante que alternaba los rangos. Es una herramienta para una zona concreta, no un sustituto automático del rango completo."
+    ],
+    "practice": "Usa parciales alargados para dar más peso a la zona más estirada de un músculo, por ejemplo en un curl de isquiosurales o en una extensión de rodilla, y combínalos con repeticiones a rango completo para conservar el control en toda la amplitud. Si el objetivo es la fuerza máxima, no sustituyas todo el trabajo completo por parciales sin una razón concreta.",
+    "related": [
+      "rom",
+      "fase-excentrica",
+      "hipertrofia-muscular"
+    ],
+    "sources": [
+      {
+        "title": "Lengthened partial repetitions elicit similar muscular adaptations as full range of motion repetitions during resistance training in trained individuals",
+        "publisher": "PeerJ · 2025",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/39959841/"
+      },
+      {
+        "title": "Greater Hamstrings Muscle Hypertrophy but Similar Damage Protection after Training at Long versus Short Muscle Lengths",
+        "publisher": "Medicine and science in sports and exercise · 2021",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/33009197/"
+      },
+      {
+        "title": "Partial range of motion training elicits favorable improvements in muscular adaptations when carried out at long muscle lengths",
+        "publisher": "European journal of sport science · 2022",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/33977835/"
+      }
+    ]
+  },
+  {
+    "id": "unilateral",
+    "name": "Entrenamiento unilateral",
+    "category": "METHODS",
+    "short": "Entrenar un lado cada vez, que ajusta la carga a cada pierna o brazo y mejora el lado no entrenado",
+    "aliases": [
+      "single-leg training",
+      "unilateral resistance training",
+      "cross-education"
+    ],
+    "body": [
+      "El entrenamiento unilateral trabaja un lado del cuerpo cada vez, un brazo o una pierna, en lugar de cargar los dos a la vez. Tiene un efecto cruzado, llamado cross-education: la fuerza del lado no entrenado también sube. Un metaanálisis de 31 estudios con 785 personas estimó un aumento medio de cerca del 12% en el lado contralateral, aunque con un riesgo de sesgo alto en los estudios incluidos.",
+      "En un estudio de 2026 con 28 hombres no entrenados durante ocho semanas, entrenar cada pierna por separado en prensa aumentó más el 1RM unilateral que el bilateral, con un 22,7% frente a un 13,7%. El 1RM bilateral, el salto y la fuerza isométrica subieron de forma parecida en ambos grupos. Probablemente esa diferencia refleja la [[especificidad|especificidad]] del entrenamiento: se mejora más lo que se practica.",
+      "El unilateral no sustituye al bilateral en todos los objetivos. En los ejercicios de dos piernas, los resultados fueron igual de buenos con ambos métodos, así que el unilateral suele servir como complemento."
+    ],
+    "practice": "El trabajo unilateral sirve para trabajar un lado más débil por separado, estabilizar la cadera o la rodilla y complementar los ejercicios bilaterales. Empieza con la carga que controlas en el lado más débil y repite las mismas repeticiones en el otro lado. Mide la fuerza de cada lado al inicio y al final del bloque, para saber si la diferencia se reduce.",
+    "related": [
+      "pesos-libres",
+      "maquinas",
+      "especificidad"
+    ],
+    "sources": [
+      {
+        "title": "Cross-education of muscular strength following unilateral resistance training: a meta-analysis",
+        "publisher": "European journal of applied physiology · 2017",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/28936703/"
+      },
+      {
+        "title": "Comparison Between Bilateral and Unilateral Leg-Press Resistance Exercise Training for Their Effects on Muscle Strength and Jump Performance",
+        "publisher": "Journal of strength and conditioning research · 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/42479598/"
+      }
+    ]
+  },
+  {
+    "id": "conexion-mente-musculo",
+    "name": "Conexión mente-músculo",
+    "category": "METHODS",
+    "short": "Dirigir la atención a contraer el músculo que trabajas, en lugar de centrarte solo en el peso",
+    "aliases": [
+      "mind-muscle connection",
+      "internal focus",
+      "enfoque interno"
+    ],
+    "body": [
+      "La conexión mente-músculo consiste en dirigir la atención a contraer el músculo objetivo durante la serie, en lugar de centrarte solo en mover la carga. Los estudios distinguen el enfoque interno, en el músculo, del enfoque externo, en el resultado del levantamiento. En un estudio con 18 hombres entrenados, concentrarse en el pectoral o en el tríceps durante el press de banca aumentó la activación medida con electromiografía con cargas de entre el 20 y el 60% de 1RM, pero no al 80%.",
+      "En un estudio de ocho semanas con 30 hombres no entrenados, el enfoque interno dio más grosor de los flexores del codo que el enfoque externo, sin diferencias claras en el cuádriceps ni en la fuerza. Esto sugiere que la atención puede apoyar la [[hipertrofia-muscular|hipertrofia]], aunque no demuestra que el efecto sea grande en todos los músculos.",
+      "No hay un consenso total. Un comentario sobre este tipo de estudios recordó que enfocarse en un músculo puede restar rendimiento, así que la ventaja debe valorarse junto con la técnica."
+    ],
+    "practice": "Usa la conexión mente-músculo en series de aislamiento o con cargas moderadas, donde los estudios encontraron más activación, y deja la atención en la técnica cuando la carga es alta. Antes de cada repetición, piensa en contraer el músculo objetivo, no en levantar el peso, y después comprueba que el recorrido y la postura siguen igual.",
+    "related": [
+      "tension-mecanica",
+      "hipertrofia-muscular",
+      "rom"
+    ],
+    "sources": [
+      {
+        "title": "Importance of mind-muscle connection during progressive resistance training",
+        "publisher": "European journal of applied physiology · 2016",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/26700744/"
+      },
+      {
+        "title": "Differential effects of attentional focus strategies during long-term resistance training",
+        "publisher": "European journal of sport science · 2018",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/29533715/"
+      },
+      {
+        "title": "The mind-muscle connection in resistance training: friend or foe?",
+        "publisher": "European journal of applied physiology · 2016",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/26896956/"
+      }
+    ]
+  },
+  {
+    "id": "vbt",
+    "name": "Entrenamiento basado en la velocidad (VBT)",
+    "category": "INTENSITY",
+    "short": "Usar la velocidad de la barra para estimar la carga relativa y el esfuerzo de cada serie",
+    "aliases": [
+      "velocity-based training",
+      "load-velocity profile",
+      "mean propulsive velocity"
+    ],
+    "body": [
+      "El entrenamiento basado en la velocidad usa la velocidad de la barra como medida de la [[intensidad|intensidad]] relativa. Cuanto más pesada es la carga, más lenta es la barra, lo que permite estimar el porcentaje de 1RM. En 120 hombres entrenados, la velocidad media propulsiva y el porcentaje de 1RM en press de banca se relacionaron muy de cerca (R² de 0,98), y esa relación se mantuvo estable tras seis semanas de entrenamiento.",
+      "Una metarrevisión de 2023 sobre umbrales de pérdida de velocidad encontró que, al aumentar la pérdida dentro de una serie, suben las repeticiones, el lactato y el [[rpe|RPE]], y bajan el salto y el sprint. En un estudio de ocho semanas con 22 jóvenes, permitir una pérdida de velocidad del 20% o del 40% en sentadilla dio fuerza parecida. El grupo del 40% ganó más hipertrofia, y el del 20% mejoró más el salto, con un 40% menos de repeticiones.",
+      "Los umbrales no son universales. La misma metarrevisión encontró que el umbral elegido no cambia de forma clara la fuerza ni la resistencia, pero que los umbrales más altos favorecen la hipertrofia y los más bajos mejoran el salto y el sprint."
+    ],
+    "practice": "Mide la velocidad media de cada repetición con un transductor, y decide antes del bloque qué pérdida de velocidad vas a permitir: una pérdida más baja si buscas salto o velocidad, y una más alta si buscas hipertrofia.",
+    "related": [
+      "intensidad",
+      "rpe",
+      "rm-estimado"
+    ],
+    "sources": [
+      {
+        "title": "Movement velocity as a measure of loading intensity in resistance training",
+        "publisher": "International journal of sports medicine · 2010",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/20180176/"
+      },
+      {
+        "title": "Effects of velocity loss during resistance training on athletic performance, strength gains and muscle adaptations",
+        "publisher": "Scandinavian journal of medicine & science in sports · 2017",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/27038416/"
+      },
+      {
+        "title": "The Acute and Chronic Effects of Implementing Velocity Loss Thresholds During Resistance Training",
+        "publisher": "Sports medicine (Auckland, N.Z.) · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/36178597/"
+      }
+    ]
+  },
+  {
+    "id": "rm-estimado",
+    "name": "1RM estimado y sus fórmulas",
+    "category": "INTENSITY",
+    "short": "Estimación de la carga máxima a partir de una serie con más repeticiones y una carga menor",
+    "aliases": [
+      "estimated 1RM",
+      "e1RM",
+      "one-repetition maximum estimate"
+    ],
+    "body": [
+      "El 1RM estimado es la carga que calculas que podrías levantar una sola vez a partir del peso y de las repeticiones de una serie submáxima. Fórmulas como la de Brzycki convierten esa serie en una estimación; en un estudio con adultos no entrenados con diabetes tipo 2, su fiabilidad entre dos sesiones fue muy alta (CCI entre 0,98 y 0,99).",
+      "Su límite está en el número de repeticiones y en el ejercicio. En 70 personas, la estimación más precisa salió de un test de 5 repeticiones máximas, y los autores advierten que no conviene usar más de 10 repeticiones en las ecuaciones lineales. Además, a un 60% de 1RM la sentadilla permitió más repeticiones que el press de banca o el curl de bíceps.",
+      "Por eso una estimación es una aproximación, no una medición. Sirve para programar cargas y seguir la tendencia de un mismo ejercicio, pero el error crece con series largas y cambia entre ejercicios. Si necesitas tu máximo real, mídelo directamente y anota el [[rir|RIR]] de cada serie."
+    ],
+    "practice": "Para estimar el 1RM de un ejercicio, usa una serie de unas cinco repeticiones con una carga que controles, y evita las series de más de diez, porque la predicción pierde precisión con más repeticiones. Anota la carga y las repeticiones junto al ejercicio para ver la tendencia.",
+    "related": [
+      "intensidad",
+      "rm-tm",
+      "rir"
+    ],
+    "sources": [
+      {
+        "title": "Prediction of one repetition maximum strength from multiple repetition maximum testing and anthropometry",
+        "publisher": "Journal of strength and conditioning research · 2006",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/16937972/"
+      },
+      {
+        "title": "Relationship between the number of repetitions and selected percentages of one repetition maximum in free weight exercises in trained and untrained men",
+        "publisher": "Journal of strength and conditioning research · 2006",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/17194239/"
+      },
+      {
+        "title": "Reliability of 1-repetition maximum estimation for upper and lower body muscular strength measurement in untrained middle aged type 2 diabetic patients",
+        "publisher": "Asian journal of sports medicine · 2012",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/23342225/"
+      }
+    ]
+  },
+  {
+    "id": "periodizacion-lineal",
+    "name": "Periodización lineal",
+    "category": "PERIODIZATION",
+    "short": "Subir la carga y bajar las repeticiones por fases de semanas, en una progresión ordenada",
+    "aliases": [
+      "linear periodization",
+      "traditional periodization"
+    ],
+    "body": [
+      "La periodización lineal organiza el entrenamiento en fases sucesivas de semanas en las que la [[intensidad|intensidad]] sube y las repeticiones bajan. En un estudio de 12 semanas con 20 hombres jóvenes, el grupo lineal bajó de 8 a 4 repeticiones máximas en tres fases. El grupo que cambiaba la carga cada día mejoró más la fuerza, con volumen e intensidad totales iguales.",
+      "Una metarrevisión de 18 estudios encontró un efecto moderado a favor de la periodizada en 1RM, con mayor mejora en personas menos entrenadas. Entre la lineal y la ondulante, una metarrevisión de 17 estudios y 510 participantes no encontró diferencias en fuerza de tren superior ni inferior.",
+      "En las metarrevisiones no hay una ventaja consistente frente a la ondulante. En el estudio de 12 semanas, la ondulante diaria dio más fuerza que la lineal, así que la comparación no está cerrada, y las propias revisiones señalan que los estudios son de corta duración y con historiales de entrenamiento variables."
+    ],
+    "practice": "La lineal es un buen punto de partida para aprender a progresar: sube la intensidad por fases y registra cada semana la carga, las repeticiones y el [[rir|RIR]]. Si tu fuerza deja de subir dentro de una fase, la progresión puede ser demasiado rápida o demasiado lenta para tu recuperación. No cambies de modelo cada pocas semanas, porque necesitas un periodo suficiente para ver qué respondió.",
+    "related": [
+      "sobrecarga-progresiva",
+      "periodizacion-bloques",
+      "ondulacion-diaria"
+    ],
+    "sources": [
+      {
+        "title": "A comparison of linear and daily undulating periodized programs with equated volume and intensity for strength",
+        "publisher": "Journal of strength and conditioning research · 2002",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/11991778/"
+      },
+      {
+        "title": "Systematic review and meta-analysis of linear and undulating periodized resistance training programs on muscular strength",
+        "publisher": "Journal of strength and conditioning research · 2015",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/25268290/"
+      },
+      {
+        "title": "Comparison of Periodized and Non-Periodized Resistance Training on Maximal Strength: A Meta-Analysis",
+        "publisher": "Sports medicine (Auckland, N.Z.) · 2017",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/28497285/"
+      }
+    ]
+  },
+  {
+    "id": "periodizacion-bloques",
+    "name": "Periodización por bloques",
+    "category": "PERIODIZATION",
+    "short": "Bloques concentrados de pocas capacidades, trabajadas en secuencia en lugar de a la vez",
+    "aliases": [
+      "block periodization",
+      "block training",
+      "concentrated loading"
+    ],
+    "body": [
+      "La periodización por bloques organiza la temporada en [[ciclos-entrenamiento|mesociclos]] especializados, con cargas muy concentradas dirigidas a un número reducido de capacidades que se desarrollan en secuencia. La periodización tradicional, en cambio, divide la temporada en periodos más pequeños y unidades de entrenamiento, y suele trabajar muchas capacidades a la vez.",
+      "La evidencia directa es escasa. En 31 atletas de atletismo de la División I universitaria, un bloque de diez semanas y una periodización ondulante diaria no mostraron diferencias significativas en fuerza. El bloque tuvo mejor eficiencia de entrenamiento, es decir, más mejora por unidad de volumen de trabajo. La diferencia que muestran los datos es de eficiencia, no de fuerza máxima.",
+      "Las revisiones describen el bloque como una secuencia de mesociclos especializados, pero la comparación directa con la ondulante no mostró diferencias de fuerza significativas en ese estudio. Conviene verlo como una forma de ordenar cargas y capacidades, no como una garantía de mejor fuerza o hipertrofia."
+    ],
+    "practice": "Un bloque funciona mejor si tiene un objetivo claro, una duración definida y una forma de medir la eficiencia, por ejemplo la mejora por unidad de volumen. Al final del bloque, compara la fuerza y el trabajo realizado con el bloque anterior, en vez de fiarte de una sola sesión. Si la mejora no llega, cambia la secuencia de capacidades antes de añadir más volumen.",
+    "related": [
+      "periodizacion-lineal",
+      "ciclos-entrenamiento",
+      "especificidad"
+    ],
+    "sources": [
+      {
+        "title": "New horizons for the methodology and physiology of training periodization",
+        "publisher": "Sports medicine (Auckland, N.Z.) · 2010",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/20199119/"
+      },
+      {
+        "title": "Block periodization versus traditional training theory: a review",
+        "publisher": "The Journal of sports medicine and physical fitness · 2008",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/18212712/"
+      },
+      {
+        "title": "Strength gains: block versus daily undulating periodization weight training among track and field athletes",
+        "publisher": "International journal of sports physiology and performance · 2012",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/22173008/"
+      }
+    ]
+  },
+  {
+    "id": "autorregulacion",
+    "name": "Autorregulación",
+    "category": "PERIODIZATION",
+    "short": "Ajustar cada sesión a la respuesta del día, con medidas como el RIR, el RPE o la velocidad",
+    "aliases": [
+      "autoregulation",
+      "autoregulated training",
+      "RIR-based autoregulation"
+    ],
+    "body": [
+      "La autorregulación consiste en decidir la carga, el volumen o las repeticiones de cada sesión según cómo responde la persona ese día, en lugar de seguir un plan fijo. Se apoya en medidas como el [[rir|RIR]], el [[rpe|RPE]] y la velocidad de la barra. Una escala de esfuerzo basada en RIR, en la que un RPE 10 equivale a 0 repeticiones en reserva, resultó práctica para regular la carga diaria, y la velocidad media se relacionó de forma inversa con el RPE en todos los porcentajes de 1RM estudiados.",
+      "La estimación cambia con la experiencia. En un estudio con 29 personas, quienes tenían más experiencia en sentadilla fueron más lentas y reportaron un RPE más alto en el 1RM, algo que los autores interpretan como mayor eficiencia a alta intensidad. Las revisiones sobre periodización recomiendan sistemas sensibles a la respuesta de cada persona.",
+      "Autorregularse no significa dejar de planificar. Por eso la escala debe calibrarse con el ejercicio concreto y con la experiencia de la persona."
+    ],
+    "practice": "Define antes de la sesión cuántas repeticiones quieres dejar en reserva en cada ejercicio, y anótalo como objetivo. Si el RPE o la velocidad de la primera serie no coinciden con lo que esperabas, ajusta la carga de las siguientes en lugar de repetir el plan a ciegas.",
+    "related": [
+      "rir",
+      "rpe",
+      "sobrecarga-progresiva"
+    ],
+    "sources": [
+      {
+        "title": "Novel Resistance Training-Specific Rating of Perceived Exertion Scale Measuring Repetitions in Reserve",
+        "publisher": "Journal of strength and conditioning research · 2016",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/26049792/"
+      },
+      {
+        "title": "Periodization paradigms in the 21st century: evidence-led or tradition-driven?",
+        "publisher": "International journal of sports physiology and performance · 2012",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/22356774/"
+      }
+    ]
+  },
+  {
+    "id": "ciclos-entrenamiento",
+    "name": "Macrociclo, mesociclo y microciclo",
+    "category": "PERIODIZATION",
+    "short": "Escalas de planificación: la temporada, los bloques de semanas y las semanas de entrenamiento",
+    "aliases": [
+      "macrocycle",
+      "mesocycle",
+      "microcycle"
+    ],
+    "body": [
+      "El entrenamiento se organiza en escalas de tiempo. El macrociclo es el periodo más largo, normalmente una temporada o una gran etapa, y el mesociclo es un bloque de semanas dentro de él con un objetivo concreto. El microciclo es la unidad más corta, la semana o pocas semanas, donde se reparten las sesiones y los días de descanso. Los textos de periodización describen estas tres escalas como los componentes estructurales de la planificación.",
+      "Las fases largas ordenan los objetivos, como fuerza o hipertrofia, y la periodización tradicional divide la temporada en periodos más pequeños y unidades de entrenamiento, algo que la [[periodizacion-bloques|periodización por bloques]] reorganiza. Dentro del microciclo se pueden rotar sesiones de hipertrofia y de fuerza-potencia en deportistas en temporada.",
+      "La estructura es útil, pero no es un calendario fijo. Los estudios mezclan duraciones de mesociclo distintas, lo que dificulta comparar resultados entre programas."
+    ],
+    "practice": "Empieza por el macrociclo: fija el objetivo principal y la fecha clave, divide después en mesociclos con un tema cada uno y reparte las sesiones de cada microciclo teniendo en cuenta la recuperación. Revisa cada mesociclo con datos de rendimiento y de recuperación antes de pasar al siguiente. Si cambias de escala sin una razón clara, pierdes la comparación con el bloque anterior.",
+    "related": [
+      "periodizacion-lineal",
+      "periodizacion-bloques",
+      "deload"
+    ],
+    "sources": [
+      {
+        "title": "Cross-training and periodization in running",
+        "publisher": "Journal of back and musculoskeletal rehabilitation · 1996",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/24572330/"
+      },
+      {
+        "title": "New horizons for the methodology and physiology of training periodization",
+        "publisher": "Sports medicine (Auckland, N.Z.) · 2010",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/20199119/"
+      },
+      {
+        "title": "Short-term Periodization Models: Effects on Strength and Speed-strength Performance",
+        "publisher": "Sports medicine (Auckland, N.Z.) · 2015",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/26133514/"
+      }
+    ]
+  },
+  {
+    "id": "tapering",
+    "name": "Puesta a punto (tapering)",
+    "category": "PERIODIZATION",
+    "short": "Reducción progresiva de la carga antes de competir, para llegar con menos fatiga acumulada",
+    "aliases": [
+      "taper",
+      "peaking",
+      "precompetition taper"
+    ],
+    "body": [
+      "La puesta a punto o tapering es una reducción progresiva y no lineal de la carga de entrenamiento antes de una competición. Su objetivo es reducir la [[fatiga-sistemica|fatiga]] acumulada sin perder adaptaciones: se mantiene la intensidad, se baja el volumen y, a veces, se reduce un poco la frecuencia. Las revisiones describen una mejora media de rendimiento de alrededor del 3%.",
+      "La metarrevisión de 2007, con 27 estudios de deportistas de competición, encontró que la estrategia más eficaz fue una puesta a punto de unas dos semanas, con el volumen bajando exponencialmente entre un 41 y un 60%, sin cambiar la intensidad ni la frecuencia. En 11 powerlifters de élite de Nueva Zelanda, el volumen se redujo casi un 59% manteniendo la intensidad.",
+      "La puesta a punto no es un descanso total. En el estudio de powerlifters, los atletas que se tomaron una semana o más sin entrenar describieron una puesta a punto peor. La evidencia se refiere al rendimiento en competición, no a objetivos de hipertrofia, y conviene leerla con esa cautela."
+    ],
+    "practice": "Planifica la puesta a punto como una caída gradual de volumen de unas dos semanas, con la intensidad de los levantamientos clave mantenida y el trabajo accesorio reducido. Mantén los ejercicios que se parecen al gesto de competición, y evita una pausa total de una semana sin plan.",
+    "related": [
+      "deload",
+      "fatiga-sistemica",
+      "ciclos-entrenamiento"
+    ],
+    "sources": [
+      {
+        "title": "Effects of tapering on performance: a meta-analysis",
+        "publisher": "Medicine and science in sports and exercise · 2007",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/17762369/"
+      },
+      {
+        "title": "Tapering Practices of New Zealand's Elite Raw Powerlifters",
+        "publisher": "Journal of strength and conditioning research · 2016",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/26670988/"
+      },
+      {
+        "title": "Scientific bases for precompetition tapering strategies",
+        "publisher": "Medicine and science in sports and exercise · 2003",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/12840640/"
+      }
+    ]
+  },
+  {
+    "id": "movilidad-flexibilidad",
+    "name": "Movilidad y flexibilidad",
+    "category": "QUALITIES",
+    "short": "Amplitud de movimiento articular y su relación con el estiramiento, la fuerza y el rendimiento",
+    "aliases": [
+      "flexibility",
+      "mobility",
+      "range of motion"
+    ],
+    "body": [
+      "La flexibilidad describe cuánto puede alargarse un músculo o cuánta amplitud alcanza una articulación, y se trabaja con estiramientos y con entrenamiento de fuerza. La movilidad se usa a menudo para hablar del control de ese [[rom|rango de movimiento]] con la musculatura activa, y no solo de su alcance pasivo.",
+      "El entrenamiento de fuerza con cargas externas también aumenta el rango. Una metarrevisión de 55 estudios encontró una mejora del rango articular con el entrenamiento de fuerza, similar a la del estiramiento. El consenso de expertos de 2025 coincidió en que el estiramiento mejora el rango y reduce la rigidez, pero no contribuye de forma sustancial al crecimiento muscular ni es una estrategia completa contra lesiones.",
+      "Estirar antes de rendir tiene un coste inmediato. Los estiramientos estáticos de 60 segundos o más por músculo redujeron el rendimiento de fuerza máxima en una revisión, mientras que los de menos de 60 segundos no lo hicieron. Por eso, antes de una tarea de fuerza o velocidad, conviene que los estiramientos largos vayan a otro momento de la sesión."
+    ],
+    "practice": "Si tu objetivo es ganar rango, combina estiramientos cortos con trabajo de fuerza a rango amplio, con cargas que controles, y mide el progreso con una prueba fija. Si notas dolor intenso o una pérdida de rango que no cede, consulta a un profesional sanitario.",
+    "related": [
+      "rom",
+      "elasticidad",
+      "perfil-resistencia"
+    ],
+    "sources": [
+      {
+        "title": "Resistance Training Induces Improvements in Range of Motion: A Systematic Review and Meta-Analysis",
+        "publisher": "Sports medicine (Auckland, N.Z.) · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/36622555/"
+      },
+      {
+        "title": "Effect of acute static stretch on maximal muscle performance: a systematic review",
+        "publisher": "Medicine and science in sports and exercise · 2012",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/21659901/"
+      },
+      {
+        "title": "Practical recommendations on stretching exercise",
+        "publisher": "Journal of sport and health science · 2025",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/40513717/"
+      }
+    ]
+  }
+]

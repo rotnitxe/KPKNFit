@@ -12,7 +12,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledge
 import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledgeKind
 import com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE
-import com.example.kpkn.domain.concepts.projectConceptoClave
 import com.example.kpkn.domain.concepts.searchConceptosClave
 import com.example.kpkn.ui.components.CanonicalKnowledgeOverlay
 import org.junit.Rule
@@ -25,48 +24,30 @@ class ConceptosClaveUiTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun conceptsExpandInlineAndOnlyOneConceptRemainsOpen() {
-        val ordered = searchConceptosClave("")
-        val first = ordered.first()
-        val second = ordered[1]
-        composeRule.setContent {
-            MaterialTheme {
-                ConceptosClaveScreen(onBack = {})
-            }
-        }
+    fun libraryOpensTheReadingAndBackReturnsToTheLibrary() {
+        val first = searchConceptosClave("").first()
+        composeRule.setContent { MaterialTheme { ConceptosClaveScreen(onBack = {}) } }
 
         composeRule.onNodeWithText("Buscar conceptos").assertExists()
-        composeRule.onNodeWithText(first.name).assertExists()
-        composeRule.onNodeWithTag("concept_header_${first.id}").performClick()
-        composeRule.onNodeWithText(first.description).assertExists()
-        composeRule.onNodeWithTag("concept_body_expanded_${first.id}").assertExists()
-        composeRule.onNodeWithText("Leer menos").assertExists()
-
-        composeRule.onNodeWithTag("concept_header_${second.id}").performScrollTo().performClick()
-        composeRule.onNodeWithTag("concept_body_expanded_${first.id}").assertDoesNotExist()
-        composeRule.onNodeWithTag("concept_body_expanded_${second.id}").assertExists()
-        composeRule.onNodeWithText(second.description).assertExists()
-        composeRule.onNodeWithText("Wikipedia", substring = true).assertDoesNotExist()
+        composeRule.onNodeWithTag("concept_row_${first.id}").performScrollTo().performClick()
+        composeRule.onNodeWithTag("concept_reading_${first.id}").assertExists()
+        composeRule.onNodeWithTag("concept_body_${first.id}_0").assertExists()
+        composeRule.onNodeWithTag("concept_top_button").performClick()
+        composeRule.onNodeWithTag("concept_library").assertExists()
     }
 
     @Test
-    fun homeAccordionExpandsWithoutNavigationToDetail() {
-        val concept = projectConceptoClave(TRAINING_CONCEPTS_DATABASE.first())
-        val toggled = mutableStateOf(false)
+    fun linkOpensTheReadingDirectlyAndCloseLeavesTheScreen() {
+        val concept = TRAINING_CONCEPTS_DATABASE.first()
+        val closed = mutableStateOf(false)
         composeRule.setContent {
-            MaterialTheme {
-                ConceptoClaveAccordion(
-                    concept = concept,
-                    expanded = toggled.value,
-                    onToggle = { toggled.value = !toggled.value },
-                )
-            }
+            MaterialTheme { ConceptosClaveScreen(expandedConceptId = concept.id, onBack = { closed.value = true }) }
         }
 
-        composeRule.onNodeWithText(concept.name).performClick()
-        composeRule.runOnIdle { check(toggled.value) }
-        composeRule.onNodeWithText(concept.description).assertExists()
-        composeRule.onNodeWithText("Leer menos").assertExists()
+        composeRule.onNodeWithTag("concept_reading_${concept.id}").assertExists()
+        composeRule.onNodeWithText(concept.name).assertExists()
+        composeRule.onNodeWithTag("concept_top_button").performClick()
+        composeRule.runOnIdle { check(closed.value) }
     }
 
     @Test

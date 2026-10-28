@@ -120,9 +120,9 @@ class AprendeCatalogAuditTest {
         assertTrue(source.contains("BasicTextField"))
         assertTrue(!source.contains("OutlinedTextField"))
         assertTrue(!source.contains("ConceptoClaveDetailScreen"))
-        val accordion = File("src/main/java/com/example/kpkn/screens/home/ConceptoClaveAccordion.kt").readText()
-        assertTrue(accordion.contains("Leer más"))
-        assertTrue(accordion.contains("Leer menos"))
+        // El acordeón dio paso a la lectura dedicada (propuesta profile-concepts-v1): ya no existe.
+        assertTrue(!File("src/main/java/com/example/kpkn/screens/home/ConceptoClaveAccordion.kt").exists())
+        assertTrue(File("src/main/java/com/example/kpkn/screens/home/ConceptoClaveReading.kt").readText().contains("En la práctica"))
     }
 
     @Test
