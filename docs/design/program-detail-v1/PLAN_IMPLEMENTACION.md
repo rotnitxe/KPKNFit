@@ -55,7 +55,41 @@ Sin push. Commit por paquete con PASS.
   `"-Dorg.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"` a `gradle_slot.sh`.
 - **Contrato de portada por defecto.** `ProgramCoverStudioTest.aMissingOrInvalidStudioValueGivesTheIdentityOfToday` esperaba la
   identidad vieja con null y `gradient://`; se ajusta en P1b al contrato nuevo (identidad con `lines`).
+- **«Pendiente» reutiliza los avisos de hoy.** Cada fila abre una hoja con el MISMO composable y callbacks que antes
+  (ProgramScheduleModule, ProgramTransitionModule, AutoregulationProposalsCard). La piel nueva de esas hojas llega en P9; así no se
+  pierde lógica en el traslado.
+- **Una sola paleta de fases.** La cinta usa `ProgramPhase.color` de la app y no los colores del prototipo, para que la portada,
+  Estructura y el resto coincidan.
+- **Icono de compartir local.** `KpknLineIcons` no tiene «compartir» y ese archivo lo edita la sesión en vivo; el icono vive en
+  `programdetail/design/ProgramShareIcon.kt`.
+- **Sin entrada hasta su paquete (temporal, a cerrar).** Tras P2b, «Carga planificada» (ProgramPlannedLoadSheet) y el resumen de
+  progreso no tienen entrada: van a Progreso en P4. La temporada sale (aprobado). El editor de TM se abre desde la tarjeta de
+  propuestas y desde el panel de TM de la Semana; en P5 pasa a Estructura › «Cargas de referencia».
+- **Etiqueta de rutina también en el editor.** `programProgressLabel` lo usa `MacrocycleEditorLegacy` (repeatingWeekLabel): ahora
+  dice «Semana N», coherente con «rutina».
 - **Ejercicios sin series con carga.** `LiftTrendEngine` los devuelve con 0 sesiones; la pantalla filtra `sessions > 0`.
+- **P3 en tres.** P3a (agenda en DayView/ProgramDayModule, menús de día y de sesión), P3b (cabecera y hojas de semana en
+  ProgramDetailScreen, tras P2b) y P3c (diálogos de fecha y de «fuera de fecha»). P3a no toca los archivos de P2b ni de P6a.
+- **Sesión desplegada en su sitio, estado local.** La agenda despliega sesiones, no días: el estado vive en DayView
+  (`rememberSaveable` por semana). Los parámetros `expandedDayIds` de DayView y su guardado en el ViewModel quedan sin uso hasta
+  limpiarlos en P3b.
+- **Puntos de foco.** Salen del músculo primario del catálogo (`VolumeCalculator.normalizeCanonicalMuscleGroup`): empuje, tirón,
+  pierna (incluye erectores), core y cardio; máximo tres por sesión, repartidos por frecuencia.
+- **Menús de día y de sesión anclados (vidrio).** Se reutiliza `ProgramItemMenu` en vez de la hoja con subtítulos del lienzo: mismo
+  contenido y orden; la piel de hoja, si hace falta, llega en P9.
+- **Historias con DrawScope de Compose.** `screens/stories/`: lienzo 1080 × 1920 pintado con `CanvasDrawScope` y `TextMeasurer`
+  a densidad 1 (1 sp = 1 px), que reutiliza `drawLineCover`. La misma función pinta la vista previa escalada de la hoja. Compartir y
+  guardar reutilizan `WorkoutShareService.shareBitmap` / `saveImage` (solo lectura de la zona de la sesión en vivo).
+- **Lista de programas (P6a).** «Terminado · d MMM» usa el último entreno registrado del programa (el programa no guarda fecha de
+  cierre). La cola se reordena con flechas (no hay arrastre en el código). «Compartir en historias» del ⋯ llega con P7b.
+- **Catálogo como capa, no como ruta.** La página «Catálogo» se pinta a pantalla completa sobre Programas (portal + atrás del
+  sistema), sin tocar Navigation.kt. La hoja vieja `CreateProgramTemplateSheet` se queda para Inicio, que la sigue usando.
+- **Máximos: cerrar no crea.** En el paso de TM desde Programas, deslizar para cerrar ya no crea el programa; «Crear sin TM» sí.
+- **Pendiente tras P3a.** `PostSetupCalendarUiTest.expandDay` (androidTest, no se ejecuta aquí) toca la cabecera del día para
+  desplegarlo y eso ya no despliega: adaptar en P3b. La cápsula de propuesta («+2,5 kg») de la tarjeta de sesión aún no se
+  alimenta: se conecta en P3b desde las propuestas de autorregulación. Un tramo de descansos que incluye hoy queda plegado (se ve
+  «HOY» en su fecha solo si es el primer día del tramo): revisar en P3b.
+- **Historias del mes, detalles a cerrar en P8.** Con menos de 60 min la meta de Constancia diría «0 h 45 min»: usar «45 min». La racha de 1 dice «1 sesión» (bien).
 - **P2 dividido.** P2a (piezas sin cablear: barra flotante, cinta, campana, hoja Pendiente, cabecera) y P2b (cableado en
   ProgramDetailScreen, que es un archivo de 1.373 líneas).
 
@@ -63,9 +97,21 @@ Sin push. Commit por paquete con PASS.
 
 | Paquete | Estado | Commit |
 |---|---|---|
-| P1a modelo de portadas | en curso | |
-| P1b dibujo de portadas | pendiente de P1a | |
+| P1a modelo de portadas | hecho · 34 pruebas del paquete cover | 92310c9ac |
+| P1b dibujo de portadas | hecho y verificado visualmente (render-android/lineas_contacto.png) | 92310c9ac, ec38cc20f |
 | D1a fuerza y trabajo | hecho · 19 pruebas JVM | 0f64af9aa |
 | D1b informe mensual | hecho · 33 pruebas JVM en el paquete | c51c2ce6c |
-| P2a piezas de cabecera | en curso | |
-| P2b cableado | pendiente de P2a | |
+| P2a piezas de cabecera | hecho · 141 pruebas de programdetail.design | 0bbcd74be |
+| P2b cableado | hecho · 369 pruebas de programdetail | 8af533b98 |
+| P6a lista de programas | hecho · 232 pruebas de screens.programs | ecabe59cb |
+| P6b Nuevo, catálogo, desde cero | hecho · 239 pruebas de screens.programs | dec33a576 |
+| P3a agenda de días y menús de día y sesión | hecho · 369 pruebas de programdetail | 4834cb63c |
+| P3b cabecera de semana, hoja de semanas, ⋯ de semana, vacía, rutina | hecho · 390 pruebas de programdetail | bfa6d9f22 |
+| P3c fecha con calendario y aviso «fuera de fecha» con título del caso | hecho · 18 pruebas; androidTest sin compilar por fallos previos de master (RINGS_*) | b8d6d6a8b |
+| P7a dibujo de las historias del programa (1080 × 1920) | hecho · 6 pruebas; PNG en render-android/historia_*.png, ±3 px del lienzo | d13f09c6f |
+| P7b hoja de compartir del programa y datos desde el programa | hecho · 8 pruebas; conectada en portada, ⋯ y lista (351 pruebas) | be6a2ea83, 6659a370f |
+| P7c historias del mes (Resumen, Constancia, Fuerza, Músculos) | hecho · 10 pruebas; PNG en render-android/mes_*.png | 65a36828a |
+| P7d historias del entreno (Sesión, Ejercicio, Fotos) | pendiente de fusionar master (zona de la sesión en vivo) | |
+| P4a modelo y piezas de Progreso (resumen, fuerza, trabajo por semana) | hecho · 20 pruebas; sin cablear | 6919ac012 |
+| P4b cablear resumen, fuerza y trabajo en la pestaña Progreso (con alcance) | hecho · 413 pruebas de programdetail | 94d0ea039 |
+| P4c volumen por músculo, Rangos y salida de «Calibrar» | pendiente de P4b | |
