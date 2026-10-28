@@ -396,6 +396,17 @@ class RecipeContractPolicyTest {
     }
 
     @Test
+    fun c12_does_not_apply_to_native_plans_whose_slots_are_all_kpkn_design() {
+        // Los planes nativos son diseño entero de KPKN: el mismo accesorio KPKN en 3 días es intencionado.
+        listOf(RecipeCompositionProfile.NATIVE_COMPACT, RecipeCompositionProfile.MIXED_CARDIO).forEach { profile ->
+            assertNone(
+                "$profile con el mismo accesorio KPKN en 3 días",
+                contract(fillerWeek(listOf("A", "B", "C"), profile = profile), RecipeContractPolicy.C12_FILLER_REPEAT),
+            )
+        }
+    }
+
+    @Test
     fun c12_counts_distinct_days_per_configuration_and_per_week() {
         // Dos slots de la misma configuración en un mismo día cuentan como un día.
         val sameDay = recipeOf(

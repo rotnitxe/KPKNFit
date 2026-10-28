@@ -161,9 +161,15 @@ object RecipeContractPolicy {
      * en más de 2 días distintos de la misma semana con la misma configuración. Los slots del autor y
      * las recetas `AUTHORED_EXACT` no cuentan: ahí la repetición es decisión del método. El ámbito es
      * el de la semana (`w{n}`).
+     *
+     * Solo se aplica a `LEGACY_STANDARD` (métodos de autor con relleno de KPKN y plantillas), donde el relleno
+     * es un añadido sobre un método ajeno. Los planes nativos (`NATIVE_COMPACT`, `MIXED_CARDIO`) son diseño
+     * entero de KPKN: todos sus slots son `KPKN_DEFAULT` y la frecuencia de cada ejercicio (p. ej. flexión de
+     * rodillas 5 días, crunch 3 días) es intencionada; aplicarles C12 los rechazaba con COMPOSITION y hacía
+     * desaparecer 36 programas.
      */
     private fun checkFillerRepeat(recipe: TrainingPlanRecipe): List<CompositionFinding> {
-        if (recipe.compositionProfile == RecipeCompositionProfile.AUTHORED_EXACT) return emptyList()
+        if (recipe.compositionProfile != RecipeCompositionProfile.LEGACY_STANDARD) return emptyList()
         val findings = mutableListOf<CompositionFinding>()
         recipe.weeks.forEach { week ->
             val daysByConfiguration = LinkedHashMap<String, MutableSet<Int>>()
