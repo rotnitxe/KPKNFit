@@ -8,6 +8,14 @@ object BlockVariantRotation {
     private val benches = setOf(CatalogIds.BP,CatalogIds.BP_PAUSE,CatalogIds.BP_SPOTO)
     private val deadlifts = setOf(CatalogIds.DL,CatalogIds.DL_DEF)
 
+    /** Familia de básico del id (`squat`, `bench` o `deadlift`), o null si no es una de las que rotan. */
+    internal fun familyOf(id: String): String? = when (id) {
+        in squats -> "squat"
+        in benches -> "bench"
+        in deadlifts -> "deadlift"
+        else -> null
+    }
+
     fun variantFor(baseId: String, phase: PhaseKind, heavyMode: Boolean): String {
         if (!heavyMode) return baseId
         return when (phase) {

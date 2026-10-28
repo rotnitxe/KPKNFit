@@ -34,6 +34,7 @@ import com.example.kpkn.domain.training.generator.RoutineRequest
 import com.example.kpkn.domain.training.generator.RoutineGenerator
 import com.example.kpkn.domain.training.generator.VolumeBudgets
 import com.example.kpkn.domain.training.generator.VolumeLedger
+import com.example.kpkn.domain.training.quality.SessionSlopRules
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -260,10 +261,11 @@ object RoutinePeriodizer {
     private fun periodizeSession(base: Session, number: Int, rule: WeekRule, ctx: PeriodContext, equipment: DayEquipment): Session {
         val suffix = "-w$number"
         val principals = principalIds(base, ctx)
+        val rotations = rotationsFor(base, principals, rule, ctx, equipment)
         val kept = HashSet<String>()
 
         fun transform(exercise: Exercise): Exercise? {
-            val changed = periodizeExercise(exercise, exercise.id in principals, rule, suffix, ctx, equipment) ?: return null
+            val changed = periodizeExercise(exercise, exercise.id in principals, rule, suffix, ctx, rotations[exercise.id]) ?: return null
             if (exercise.id in principals) ctx.principalOccurrences += changed.id
             kept.add(exercise.id)
             return changed
@@ -318,7 +320,7 @@ object RoutinePeriodizer {
         rule: WeekRule,
         suffix: String,
         ctx: PeriodContext,
-        equipment: DayEquipment?,
+        rotationTarget: String?,
     ): Exercise? {
         if (exercise.isCardio) {
             val cardio = if (rule.halveCardio) exercise.cardioDetails?.let { halved(it) } else exercise.cardioDetails
@@ -331,18 +333,63 @@ object RoutinePeriodizer {
             min = if (principal) 1 else minOf(MIN_ACCESSORY_SETS, baseSets),
             max = if (rule.testWeek) 1 else baseSets + 1,
         )
-        val current = if (principal && ctx.request.mode in HEAVY_MODES) rotateVariant(exercise,rule.phase,ctx,equipment) else exercise
+        val current = if (principal && rotationTarget != null) rotateVariant(exercise, rotationTarget, ctx) else exercise
         val sets = (0 until setCount(rule, principal, baseSets)).map { index -> reshapeSet(current, index, rule, suffix) }
         return renamed(current, suffix).copy(sets = sets)
     }
 
-    private fun rotateVariant(exercise: Exercise, phase: PhaseKind, ctx: PeriodContext, equipment: DayEquipment?): Exercise {
-        val baseId = exercise.catalogConfigurationId ?: return exercise
-        val targetId = BlockVariantRotation.variantFor(baseId,phase,true)
-        if (baseId == targetId) return exercise
+    /**
+     * Rotación del bloque decidida por sesión (id de ejercicio → configuración destino). Solo rota el primer básico de cada
+     * familia por sesión y nunca hacia un ejercicio que ya está en la sesión: el destino no puede ser la configuración ni la
+     * definición de otro ejercicio (original o ya rotado), ni compartir familia de movimiento con otro
+     * ([SessionSlopRules.familyOf]); además debe caber en el material del día y no estar entre los evitados.
+     */
+    private fun rotationsFor(
+        base: Session,
+        principals: Set<String>,
+        rule: WeekRule,
+        ctx: PeriodContext,
+        equipment: DayEquipment,
+    ): Map<String, String> {
+        if (ctx.request.mode !in HEAVY_MODES) return emptyMap()
+        val avoided = ctx.request.avoided.flatMap { com.example.kpkn.domain.onboarding.AvoidGroups.definitionIdsOf(it) }.toSet()
+        val exercises = base.allExercises()
+        // Configuración y definición vigentes de cada ejercicio, con las rotaciones ya aceptadas.
+        val currentConfig = HashMap<String, String?>()
+        val currentDefinition = HashMap<String, String?>()
+        exercises.forEach {
+            currentConfig[it.id] = it.catalogConfigurationId
+            currentDefinition[it.id] = it.catalogDefinitionId
+        }
+        val seenFamilies = HashSet<String>()
+        val result = LinkedHashMap<String, String>()
+        for (exercise in exercises) {
+            if (exercise.id !in principals) continue
+            val baseId = exercise.catalogConfigurationId ?: continue
+            val family = BlockVariantRotation.familyOf(baseId) ?: continue
+            if (!seenFamilies.add(family)) continue
+            val targetId = BlockVariantRotation.variantFor(baseId, rule.phase, true)
+            if (targetId == baseId) continue
+            val target = ctx.catalog.entry(targetId) ?: continue
+            if (!equipment.allows(target, emptyList()) || target.definitionId in avoided) continue
+            val others = exercises.filter { it.id != exercise.id }
+            val targetSlopFamily = SessionSlopRules.familyOf(targetId)
+            val collides = others.any { other ->
+                currentConfig[other.id] == targetId ||
+                    currentDefinition[other.id] == target.definitionId ||
+                    (targetSlopFamily != null && SessionSlopRules.familyOf(currentConfig[other.id]) == targetSlopFamily)
+            }
+            if (collides) continue
+            result[exercise.id] = targetId
+            currentConfig[exercise.id] = targetId
+            currentDefinition[exercise.id] = target.definitionId
+        }
+        return result
+    }
+
+    private fun rotateVariant(exercise: Exercise, targetId: String, ctx: PeriodContext): Exercise {
+        if (exercise.catalogConfigurationId == targetId) return exercise
         val target = ctx.catalog.entry(targetId) ?: return exercise
-        if (equipment?.allows(target,emptyList()) != true ||
-            target.definitionId in ctx.request.avoided.flatMap { com.example.kpkn.domain.onboarding.AvoidGroups.definitionIdsOf(it) }) return exercise
         val info = target.legacy
         // Una variante nueva no hereda el 1RM, el TM ni los contextos de otra configuración.
         return exercise.copy(name = info.name,exerciseDbId = targetId,exerciseId = targetId,canonicalExerciseId = targetId,
