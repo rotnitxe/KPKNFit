@@ -37,6 +37,8 @@ object CatalogIds {
     const val CURL_L = "lying_leg_curl__bilateral__machine"
     const val REV_HYPER = "reverse_hyper__machine"
     const val BACK_EXT = "back_extension_lumbar__default"
+    /** Hiperextensión a 45° con disco: extensión lumbar con material acreditable (banco de hiperextensión), a diferencia de [BACK_EXT]. */
+    const val HYPER_45 = "glutes_hiperextension_45__plate"
     const val PULL_THRU = "hams_pull_through__default"
     const val OHP = "military_press__barbell"
     const val OHP_SEATED = "seated_shoulder_press__barbell"

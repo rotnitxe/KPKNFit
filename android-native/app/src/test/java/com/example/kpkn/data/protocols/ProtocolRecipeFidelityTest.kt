@@ -1419,13 +1419,15 @@ class ProtocolRecipeFidelityTest {
         // CAL5: 5/3/1 (reinicio), nSuns (press militar con su 1+), Juggernaut (reps sobre el estándar), GZCLP (etapas), Cube y Lilliebridge (AMRAP de
         // registro explícito) pasan a la versión 3, The Rippler a la 2 y las tres plantillas `power-*` a la 3 (AMRAP calibrador).
         val bumped = listOf(
-            "madcow-5x5", "texas-method-3d", "texas-method-4d", "kpkn-native-sbd-4", "smolov", "smolov-jr",
+            "madcow-5x5", "texas-method-4d", "kpkn-native-sbd-4", "smolov", "smolov-jr",
             "kpkn-ppl-6", "kpkn-sbs-rtf", "candito-6", "gzcl-uhf-9",
-            "tsa-9", "gzcl-jt-2", "westside-conjugate", "sheiko-29-32", "korte-3x3",
+            "tsa-9", "gzcl-jt-2", "sheiko-29-32", "korte-3x3",
         )
         bumped.forEach { id -> assertEquals("$id: contentVersion", 2, recipeOf(id).contentVersion) }
         listOf(
             "lilliebridge", "wendler-531-bbb", "wendler-531-fsl", "nsuns-531-lp-4d", "gzclp", "juggernaut-2", "kpkn-rp-style", "kpkn-rts-style", "calgary-16",
+            // DUP-07: la hiperextensión a 45° (Texas 3d) y el hip thrust (Westside) sustituyen a dos máquinas sin llave curada.
+            "texas-method-3d", "westside-conjugate",
         ).forEach { id -> assertEquals("$id: contentVersion", 3, recipeOf(id).contentVersion) }
         assertEquals("cube-method: rotación y AMRAP de registro", 4, recipeOf("cube-method").contentVersion)
         assertEquals("gzcl-rippler: AMRAP de registro", 2, recipeOf("gzcl-rippler").contentVersion)

@@ -327,7 +327,8 @@ object ClassicPlProtocols {
             weekRecipe(w, 0, "Conjugate", BlockGoal.INTENSIFICATION, listOf(
                 day("ME Lower", weekday = 1, slots = listOf(
                     slot("me", SlotRole.T1_MAIN, meLower[(w - 1) % meLower.size], listOf(SetRecipe(reps = 2, percent = 90.0, isTopSet = true, loadBasis = com.example.kpkn.data.protocols.LoadBasis.REP_MAX)), 240, LiftSlot.SQUAT),
-                    kpknAssist("rev", CatalogIds.REV_HYPER, 3, 10, 90),
+                    // DUP-07: `REV_HYPER` es una máquina sin llave curada en el panel y nunca se podía acreditar; el hip thrust es el mismo patrón (extensión de cadera).
+                    kpknAssist("rev", CatalogIds.HIP, 3, 10, 90),
                     kpknAssist("ghr", CatalogIds.GHR, 4, 8, 90),
                     kpknAssist("thru", CatalogIds.PULL_THRU, 3, 12, 60),
                     kpknAssist("wheel", CatalogIds.WHEEL, 3, 8, 60),
@@ -378,7 +379,7 @@ object ClassicPlProtocols {
                         "https://www.westside-barbell.com/blogs/the-blog/the-conjugate-method",
                     ),
                 ),
-                claimedDaysPerWeek = 4, claimedLevel = "avanzado", repeats = true, contentVersion = 2,
+                claimedDaysPerWeek = 4, claimedLevel = "avanzado", repeats = true, contentVersion = 3,
             ),
             fidelitySpec = ProtocolFidelitySpec(3, 4, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("de" to listOf(50.0))),
         )

@@ -70,7 +70,8 @@ object TexasMethodProtocols {
             // L-16 (B.S6): las dominadas llevaban las 3 series como AMRAP y a RPE 8 a la vez (contradictorio), en un slot sin
             // `liftSlot`; ahora son 3×8 a RPE 8 sin AMRAP (el TM de Texas sube con el top set del viernes, `TopSetPr`).
             slot("chin", SlotRole.T3_ACCESSORY, CatalogIds.CHIN, rpeSets(3, 8, 8.0), 120),
-            slot("ext", SlotRole.T3_ACCESSORY, CatalogIds.BACK_EXT, rpeSets(3, 12, 7.0), 90, source = SlotSource.KPKN_DEFAULT),
+            // DUP-07: `BACK_EXT` es una máquina sin llave curada en el panel y nunca se podía acreditar; la hiperextensión a 45° sí.
+            slot("ext", SlotRole.T3_ACCESSORY, CatalogIds.HYPER_45, rpeSets(3, 12, 7.0), 90, source = SlotSource.KPKN_DEFAULT),
             kpknAssist("face", CatalogIds.FACE, 3, 15, 60),
         ),
     )
@@ -119,7 +120,7 @@ object TexasMethodProtocols {
         claimedLevel = "intermedio",
         autoregulationHooks = listOf(AutoregulationHook(AutoregulationHookKind.WEEKLY_REVIEW)),
         repeats = true,
-        contentVersion = 2,
+        contentVersion = 3,
     )
 
     val threeDay = Protocol(
