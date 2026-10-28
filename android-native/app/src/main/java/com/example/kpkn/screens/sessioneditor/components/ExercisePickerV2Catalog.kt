@@ -225,6 +225,8 @@ internal data class CatalogReplacementContext(
     val availability: com.example.kpkn.data.models.EquipmentAvailability? = null,
     val avoided: Set<com.example.kpkn.domain.onboarding.AvoidGroup> = emptySet(),
     val preservationNote: String? = null,
+    /** DUP-03: configuraciones de los DEMÁS ejercicios de la sesión de origen; no se ofrecen como destino. */
+    val excludedConfigurationIds: Set<String> = emptySet(),
 )
 
 /**
@@ -695,7 +697,7 @@ private fun ColumnScope.CatalogReadyContent(
             val target = replacement.exercise ?: initialCatalogConfigurationId?.takeIf { it.isNotBlank() }?.let {
                 com.example.kpkn.data.models.Exercise(id="replacement-preview",name=replacement.exerciseName.orEmpty(),catalogConfigurationId=it)
             }
-            replacementSuggestions(target,replacement.availability,replacement.avoided,catalog)
+            replacementSuggestions(target,replacement.availability,replacement.avoided,catalog,excludedConfigurationIds = replacement.excludedConfigurationIds)
         }
     }
     val projectionCache = remember(catalog) {

@@ -3,10 +3,15 @@ package com.example.kpkn.domain.training
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.training.generator.GeneratorCatalog
+import com.example.kpkn.domain.training.quality.SessionSlopRules
 
 enum class SwapScope { THIS_SESSION, REST_OF_BLOCK, WHOLE_PROGRAM }
 
-/** Cambio manual explícito; las referencias de carga siguen perteneciendo a su configuración original. */
+/**
+ * Cambio manual explícito; las referencias de carga siguen perteneciendo a su configuración original.
+ * DUP-03: una sesión afectada que ya tiene el destino (misma configuración, definición o familia de movimiento,
+ * [SessionSlopRules.familyOf]) conserva su ejercicio; la decisión cuenta esas sesiones.
+ */
 fun applyExerciseSwap(
     program: Program,
     sessionId: String,
@@ -35,6 +40,18 @@ fun applyExerciseSwap(
     val firstWeek = maxOf(sourceLocation.globalWeekIndex,currentWeek?.globalWeekIndex ?: sourceLocation.globalWeekIndex)
     val changedRoots = linkedMapOf<String,ProgramHierarchyLocation>()
     var changedExercises = 0
+    var skippedSessions = 0
+    val targetDefinition = info.catalogDefinitionId
+    val targetFamily = SessionSlopRules.familyOf(target.configId)
+    /** El destino ya está en la sesión (en otro ejercicio distinto del que se cambia). */
+    fun alreadyHasTarget(session: Session): Boolean = session.allExercises().any { other ->
+        val otherConfig = other.catalogConfigurationId
+        otherConfig != sourceConfiguration && otherConfig != null && (
+            otherConfig == target.configId ||
+                (targetDefinition != null && other.catalogDefinitionId == targetDefinition) ||
+                (targetFamily != null && SessionSlopRules.familyOf(otherConfig) == targetFamily)
+            )
+    }
 
     fun replace(exercise: Exercise): Exercise {
         if (exercise.catalogConfigurationId != sourceConfiguration) return exercise
@@ -53,7 +70,11 @@ fun applyExerciseSwap(
     }
     fun change(session: Session): Session {
         if (session.id in executedSessionIds) return session
-        val changeOwn = scope != SwapScope.THIS_SESSION || session.id == sessionId
+        var changeOwn = scope != SwapScope.THIS_SESSION || session.id == sessionId
+        if (changeOwn && session.allExercises().any { it.catalogConfigurationId == sourceConfiguration } && alreadyHasTarget(session)) {
+            skippedSessions++
+            changeOwn = false
+        }
         return session.copy(
             exercises = if (changeOwn) session.exercises.map(::replace) else session.exercises,
             parts = if (changeOwn) session.parts.map { it.copy(exercises = it.exercises.map(::replace)) } else session.parts,
@@ -82,6 +103,11 @@ fun applyExerciseSwap(
     }
     return marked.copy(programDecisions = marked.programDecisions + ProgramDecision(
         "manual-swap:${program.runState?.runId}:$nowMs:$sessionId:$exerciseId:${target.configId}:$scope",nowMs,"MANUAL","Ejercicio cambiado",
-        "${source.name} → ${info.name} en ${changedRoots.size} sesiones ($changedExercises ejercicios). Repeticiones, RIR y descansos conservados; carga pendiente para la configuración nueva.",
+        "${source.name} → ${info.name} en ${changedRoots.size} ${if (changedRoots.size == 1) "sesión" else "sesiones"} " +
+            "($changedExercises ${if (changedExercises == 1) "ejercicio" else "ejercicios"})" +
+            (if (skippedSessions > 0) {
+                "; $skippedSessions ${if (skippedSessions == 1) "sesión conserva" else "sesiones conservan"} el ejercicio porque ya tenía${if (skippedSessions == 1) "" else "n"} «${info.name}»"
+            } else "") +
+            ". Repeticiones, RIR y descansos conservados; carga pendiente para la configuración nueva.",
         weekId = sourceLocation.week.id,blockId = sourceLocation.blockId))
 }

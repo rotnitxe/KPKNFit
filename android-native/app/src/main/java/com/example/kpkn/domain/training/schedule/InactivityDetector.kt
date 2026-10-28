@@ -15,7 +15,9 @@ object InactivityDetector {
         }.maxOrNull() ?: return null
         val days = ChronoUnit.DAYS.between(last,today).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
         if (days < 7) return null
-        return InactivityNotice(days,if (days >= 21) 2 else 1,
-            "Último registro de este programa hace $days días. Esto no indica si entrenaste fuera de KPKN. Puedes conservar la semana o revisar una vuelta suave.")
+        val level = if (days >= 21) 2 else 1
+        return InactivityNotice(days,level,
+            if (level == 2) "Llevas $days días sin entrenar: te recomendamos repetir la semana con una vuelta suave antes de seguir."
+            else "Último registro de este programa hace $days días. Esto no indica si entrenaste fuera de KPKN. Puedes conservar la semana o revisar una vuelta suave.")
     }
 }

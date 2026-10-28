@@ -1,12 +1,14 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.domain.onboarding.AvoidGroup
 import com.example.kpkn.domain.onboarding.AvoidGroups
 import com.example.kpkn.domain.onboarding.EquipmentSymbolId
 import com.example.kpkn.domain.onboarding.EquipmentSymbols
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.training.generator.GeneratorCatalog
+import com.example.kpkn.domain.training.quality.SessionSlopRules
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -105,5 +107,33 @@ class ExerciseSwapOptionsTest {
         val options=ExerciseSwapOptions.optionsForUnknownEquipment(exerciseOf(barbellBench().id),catalog)
         assertTrue(options.isNotEmpty());assertTrue(options.any { index.entry(it.configId)!!.equipmentId!="bodyweight" })
         assertEquals(options,ExerciseSwapOptions.optionsForUnknownEquipment(exerciseOf(barbellBench().id),catalog))
+    }
+
+    // DUP-03 (F-13): lo que ya está en la sesión no se ofrece ni por configuración, ni por definición, ni por familia.
+
+    @Test
+    fun aConfigurationAlreadyInTheSessionIsNeverOfferedNorItsDefinition() {
+        val without = ExerciseSwapOptions.optionsFor(exerciseOf(barbellBench().id), gym(), catalog)
+        assertTrue("La prueba necesita que la banca con mancuernas se ofrezca sin exclusiones", without.any { it.configId == CatalogIds.BP_DB })
+        val options = ExerciseSwapOptions.optionsFor(
+            exerciseOf(barbellBench().id), gym(), catalog, excludedConfigurationIds = setOf(CatalogIds.BP_DB),
+        )
+        assertFalse(options.any { it.configId == CatalogIds.BP_DB })
+        assertFalse(options.any { index.entry(it.configId)!!.definitionId == "bench_press" })
+        assertTrue(options.isNotEmpty())
+        val unknown = ExerciseSwapOptions.optionsForUnknownEquipment(
+            exerciseOf(barbellBench().id), catalog, excludedConfigurationIds = setOf(CatalogIds.BP_DB),
+        )
+        assertFalse(unknown.any { index.entry(it.configId)!!.definitionId == "bench_press" })
+    }
+
+    @Test
+    fun aConfigurationOfTheSameMovementFamilyAsOneInTheSessionIsNeverOffered() {
+        val options = ExerciseSwapOptions.optionsFor(
+            exerciseOf(CatalogIds.SQ_FRONT), gym(), catalog, excludedConfigurationIds = setOf(CatalogIds.SQ_LOW),
+        )
+        assertFalse(options.any { it.configId == CatalogIds.SQ_HIGH })
+        assertFalse(options.any { SessionSlopRules.familyOf(it.configId) == SessionSlopRules.familyOf(CatalogIds.SQ_LOW) })
+        assertFalse(options.any { index.entry(it.configId)!!.definitionId == "low_bar_back_squat" })
     }
 }

@@ -24,6 +24,22 @@ object VolumeCalibrationEngine {
     fun planningBounds(targets: List<com.example.kpkn.domain.training.calibration.PlanningVolumeTarget>): List<VolumeRecommendation> =
         com.example.kpkn.domain.training.calibration.PlanningVolumeTargets.asPlanningBounds(targets)
 
+    /** Estilo de calibración que corresponde al modo de un programa: POWERLIFTING a powerlifter, POWERBUILDING a powerbuilder, el resto a bodybuilder. */
+    fun styleFor(mode: ProgramMode): TrainingStyle = when (mode) {
+        ProgramMode.POWERLIFTING -> TrainingStyle.POWERLIFTER
+        ProgramMode.POWERBUILDING -> TrainingStyle.POWERBUILDER
+        else -> TrainingStyle.BODYBUILDER
+    }
+
+    /**
+     * La calibración que KPKN sugiere cuando la persona no aportó respuestas (IMP-03): técnica 2, constancia 2, fuerza 1 y
+     * movilidad 2 con el estilo de [mode]. Sin marcas declaradas KPKN no supone fuerza alta; suma 7 = dosis estándar, nunca
+     * la avanzada (con 8 o más el nivel pasa a ADVANCED y el volumen sube). Quien la aplica la marca como SUGGESTED; nunca es
+     * una declaración de la persona.
+     */
+    fun suggested(mode: ProgramMode): VolumeCalibrationOutput =
+        calculate(style = styleFor(mode), technique = 2, consistency = 2, strength = 1, mobility = 2)
+
     fun calculate(
         style: TrainingStyle,
         technique: Int,

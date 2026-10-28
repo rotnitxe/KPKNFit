@@ -981,6 +981,8 @@ internal fun WorkoutStructureSheetsHost(
                     availability = com.example.kpkn.screens.sessioneditor.components.liveSwapAvailability(modeSession,
                         swapRepository?.programs?.value?.firstOrNull { it.id == uiState.programId },swapRepository?.settings?.value?.equipmentAvailability),
                     avoided = com.example.kpkn.screens.sessioneditor.components.persistedSwapAvoided(swapRepository?.programs?.value?.firstOrNull { it.id == uiState.programId }),
+                    excludedConfigurationIds = modeSession.allExercises().filter { it.id != replaceTarget?.id }
+                        .mapNotNull { it.catalogConfigurationId }.toSet(),
                 ),
             )
         }
