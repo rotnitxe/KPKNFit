@@ -1,0 +1,370 @@
+[
+  {
+    "id": "creatina",
+    "name": "Creatina",
+    "category": "SUPPLEMENTS",
+    "short": "Compuesto que se acumula en el músculo y puede mejorar el rendimiento en esfuerzos intensos",
+    "aliases": ["creatine", "creatine monohydrate", "monohidrato de creatina"],
+    "body": [
+      "La creatina es un compuesto que se acumula en el músculo cuando se toma como suplemento. La posición de la Sociedad Internacional de Nutrición Deportiva (ISSN) explica que la suplementación aumenta sus concentraciones intramusculares, lo que puede explicar las mejoras de rendimiento en ejercicios de [[intensidad|alta intensidad]], y que también se han estudiado efectos sobre la recuperación, la prevención de lesiones y la rehabilitación.",
+      "La evidencia de que mejora el rendimiento en ejercicios de alta intensidad es amplia. Una revisión de 2021 repasa dudas frecuentes, como la retención de agua, los calambres o la pérdida de cabello, y concluye que la creatina se tolera bien a dosis recomendadas. Un metaanálisis de 2026 con 26 estudios halló que sube la creatinina en sangre y baja la filtración renal estimada con ese marcador; según sus autores, el cambio parece reflejar el metabolismo de la creatinina y no una lesión renal."
+    ],
+    "practice": "En la práctica, la pauta de mantenimiento que recoge esa revisión de 2021 es de 3 a 5 gramos al día, y conviene elegir un producto con análisis independiente. Si te van a pedir analíticas de creatinina, indica que tomas creatina, porque puede alterar la lectura. Si tomas medicación o tienes una condición médica, consulta con un profesional sanitario antes de empezar.",
+    "related": ["fuerza", "explosividad", "estudio-creatina"],
+    "sources": [
+      {"title": "International Society of Sports Nutrition position stand: safety and efficacy of creatine supplementation in exercise, sport, and medicine", "publisher": "Journal of the International Society of Sports Nutrition · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28615996/"},
+      {"title": "Common questions and misconceptions about creatine supplementation: what does the scientific evidence really show?", "publisher": "Journal of the International Society of Sports Nutrition · 2021", "url": "https://pubmed.ncbi.nlm.nih.gov/33557850/"},
+      {"title": "Impact of creatine supplementation on kidney health: a systematic review and meta-analysis", "publisher": "International urology and nephrology · 2026", "url": "https://pubmed.ncbi.nlm.nih.gov/42507286/"}
+    ]
+  },
+  {
+    "id": "cafeina",
+    "name": "Cafeína",
+    "category": "SUPPLEMENTS",
+    "short": "Estimulante que mejora de forma pequeña a moderada varias capacidades de rendimiento",
+    "aliases": ["caffeine", "chicles de cafeína"],
+    "body": [
+      "La cafeína es un estimulante que se toma en cápsulas, bebidas o chicles. En ratas, un estudio de 2003 sugería que retrasaba la fatiga en parte al bloquear los receptores de adenosina del sistema nervioso central, un mecanismo que ayuda a entender su efecto sobre la fatiga.",
+      "La posición de la ISSN de 2021 concluye que la cafeína mejora el rendimiento de forma consistente con dosis de 3 a 6 miligramos por kilo de peso, normalmente unos 60 minutos antes del ejercicio. Los beneficios suelen ser pequeños a moderados, aparecen en muchos estudios pero no en todos, y varían entre personas; el consumo habitual también puede influir en esa respuesta.",
+      "Los efectos secundarios más consistentes en deportistas son la taquicardia, el insomnio, las molestias abdominales y la ansiedad, y aumentan con la dosis. Un metaanálisis de 2026 con 48 estudios halló que las dosis bajas o moderadas, de hasta 6 miligramos por kilo, pueden reducir ese riesgo, y la ISSN señala que dosis muy altas, de 9 miligramos por kilo, se asocian a más efectos secundarios sin ser necesarias para el efecto."
+    ],
+    "practice": "En la práctica, prueba la dosis en un entrenamiento antes de usarla en competición, y evita tomarla tarde si el [[sueno|sueño]] ya te cuesta. Si tienes ansiedad, problemas de ritmo cardiaco o tomas medicación, consulta con un profesional sanitario antes de usarla.",
+    "related": ["explosividad", "fatiga-sistemica", "estudio-cafeina"],
+    "sources": [
+      {"title": "International society of sports nutrition position stand: caffeine and exercise performance", "publisher": "Journal of the International Society of Sports Nutrition · 2021", "url": "https://pubmed.ncbi.nlm.nih.gov/33388079/"},
+      {"title": "Caffeine Use in Sport: A Systematic Review and Meta-analysis of Acute Side Effects and Implications for Athlete Health and Safety", "publisher": "Sports medicine (Auckland, N.Z.) · 2026", "url": "https://pubmed.ncbi.nlm.nih.gov/42033594/"},
+      {"title": "Central nervous system effects of caffeine and adenosine on fatigue", "publisher": "American journal of physiology. Regulatory, integrative and comparative physiology · 2003", "url": "https://pubmed.ncbi.nlm.nih.gov/12399249/"}
+    ]
+  },
+  {
+    "id": "proteina-polvo",
+    "name": "Proteína en polvo",
+    "category": "SUPPLEMENTS",
+    "short": "Proteína concentrada en polvo, una forma práctica de completar la proteína que ya necesitas",
+    "aliases": ["whey", "protein powder", "suplemento proteico"],
+    "body": [
+      "La proteína en polvo es un concentrado de proteína que se disuelve en líquido y se toma en raciones. Según la ISSN de 2017, una persona activa puede cubrir sus necesidades solo con alimentos, pero el suplemento es una forma práctica de asegurar cantidad y calidad de proteína con menos calorías.",
+      "La ISSN recomienda entre 1,4 y 2,0 gramos de proteína por kilo al día para la mayoría de personas que entrenan. [[estudio-proteina|Un metaanálisis de 2018]] con 49 estudios y 1863 participantes halló que la proteína añadida al entrenamiento de fuerza aumenta la fuerza y la masa magra, pero la mejora media fue pequeña, unos 300 gramos de masa libre de grasa, y las ganancias de masa magra no aumentaron por encima de 1,6 gramos por kilo al día en total.",
+      "En 2021 un análisis de 36 proteínas en polvo vendidas en Irlanda encontró metales en niveles aceptables, pero advirtió de que el uso excesivo y prolongado de algunos productos puede suponer un riesgo ligeramente mayor de cáncer u otros efectos a lo largo de la vida."
+    ],
+    "practice": "En la práctica, cuenta la proteína que ya comes antes de añadir un polvo, y sigue la ración del fabricante, porque el problema aparece con el uso excesivo. Si tienes enfermedad renal u otra condición médica, o tomas medicación, consulta con un profesional sanitario antes de aumentar la ingesta.",
+    "related": ["hipertrofia-muscular", "proteina-diaria", "distribucion-proteina"],
+    "sources": [
+      {"title": "International Society of Sports Nutrition Position Stand: protein and exercise", "publisher": "Journal of the International Society of Sports Nutrition · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28642676/"},
+      {"title": "A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength in healthy adults", "publisher": "British journal of sports medicine · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/28698222/"},
+      {"title": "Development, Validation and Application of an ICP-SFMS Method for the Determination of Metals in Protein Powder Samples, Sourced in Ireland, with Risk Assessment for Irish Consumers", "publisher": "Molecules (Basel, Switzerland) · 2021", "url": "https://pubmed.ncbi.nlm.nih.gov/34299622/"}
+    ]
+  },
+  {
+    "id": "beta-alanina",
+    "name": "Beta-alanina",
+    "category": "SUPPLEMENTS",
+    "short": "Aminoácido que aumenta la carnosina muscular y ayuda en esfuerzos de uno a cuatro minutos",
+    "aliases": ["beta-alanine", "β-alanina"],
+    "body": [
+      "La beta-alanina es un aminoácido no esencial que, tomado como suplemento, aumenta la carnosina del músculo, una molécula que actúa como amortiguador interno del pH. Según la ISSN de 2015, cuatro semanas de suplementación a 4-6 gramos al día aumentan significativamente la carnosina muscular, y esa función de amortiguador es la base de su uso.",
+      "La ISSN concluye que su efecto es más claro en tareas de [[resistencia-muscular|resistencia]] de unos 1 a 4 minutos, y que faltan datos sobre fuerza y pruebas de más de 25 minutos. No todas las pruebas lo confirman: un metaanálisis de 2026 con 17 ensayos no halló mejora en sprints repetidos, donde, según sus autores, la demanda depende más del agotamiento de la fosfocreatina que de la acidez.",
+      "El efecto secundario que la ISSN identifica es la parestesia, un hormigueo que se describe sobre todo como cosquilleo. Dosis divididas o formulaciones de liberación sostenida la atenúan. En un ensayo de 2023 con 15 gramos diarios repartidos en tres tomas, la mayoría de participantes la notó, casi siempre con una intensidad leve."
+    ],
+    "practice": "En la práctica, la pauta que recoge la ISSN es de 4 a 6 gramos al día durante al menos 2 a 4 semanas, y conviene repartirla en varias tomas si el hormigueo te molesta. Si tomas medicación o tienes una condición médica, consulta con un profesional sanitario antes de empezar.",
+    "related": ["sistemas-energeticos", "explosividad", "fatiga-sistemica"],
+    "sources": [
+      {"title": "International society of sports nutrition position stand: Beta-Alanine", "publisher": "Journal of the International Society of Sports Nutrition · 2015", "url": "https://pubmed.ncbi.nlm.nih.gov/26175657/"},
+      {"title": "Effect of a sustained-release formulation of β-alanine on laboratory parameters and paresthesia in recreational trained men: a randomized double-blind placebo-controlled study", "publisher": "Frontiers in nutrition · 2023", "url": "https://pubmed.ncbi.nlm.nih.gov/37766731/"},
+      {"title": "No ergogenic effect of β-alanine on repeated sprint ability: a systematic review and multilevel meta-analysis of randomized controlled trials", "publisher": "Frontiers in nutrition · 2026", "url": "https://pubmed.ncbi.nlm.nih.gov/41971372/"}
+    ]
+  },
+  {
+    "id": "bicarbonato",
+    "name": "Bicarbonato sódico",
+    "category": "SUPPLEMENTS",
+    "short": "Base que amortigua la acidez en esfuerzos intensos de entre 30 segundos y 12 minutos",
+    "aliases": ["sodium bicarbonate", "bicarbonato de sodio"],
+    "body": [
+      "El bicarbonato sódico es una base que, al tomarse, aumenta la capacidad de amortiguar la acidez fuera de las células. Se propone que actúa así, y su beneficio se ha documentado sobre todo en esfuerzos [[intensidad|intensos]] de entre 30 segundos y 12 minutos, como combate, remo, ciclismo o natación, según la ISSN de 2021.",
+      "La ISSN sitúa la dosis óptima en 0,3 gramos por kilo, tomada entre 60 y 180 minutos antes del ejercicio, y advierte de que dosis de 0,4 o 0,5 no aportan más beneficio y se asocian a más efectos adversos. Las molestias digestivas son su principal inconveniente: hinchazón, náuseas, vómitos y dolor abdominal, que probablemente aumentan con la dosis única. Una revisión de 2026 indica que repartir la toma o usar cápsulas de cubierta entérica puede reducirlas, aunque no hay comparaciones directas que lo confirmen.",
+      "En carreras continuas, un metaanálisis de 2025 con 11 ensayos halló un beneficio insignificante y molestias digestivas mucho más frecuentes que con placebo, lo que muestra que el efecto depende de la prueba."
+    ],
+    "practice": "En la práctica, prueba la tolerancia en entrenamiento antes de usarlo en competición, y empieza con dosis bajas, como 0,2 o 0,3 gramos por kilo, que la ISSN menciona para reducir molestias. Si tienes una condición médica o tomas medicación, consulta con un profesional sanitario antes de usarlo.",
+    "related": ["resistencia-muscular", "comida-entreno", "intensidad"],
+    "sources": [
+      {"title": "International Society of Sports Nutrition position stand: sodium bicarbonate and exercise performance", "publisher": "Journal of the International Society of Sports Nutrition · 2021", "url": "https://pubmed.ncbi.nlm.nih.gov/34503527/"},
+      {"title": "Gastrointestinal Symptoms Associated With Sodium Bicarbonate Supplementation Protocols: A Systematic Review", "publisher": "European journal of sport science · 2026", "url": "https://pubmed.ncbi.nlm.nih.gov/42499192/"},
+      {"title": "Negligible benefit of oral single-dose sodium bicarbonate on continuous running performance: systematic review with meta-analysis of randomized, double-blind, placebo-controlled trials", "publisher": "Journal of the International Society of Sports Nutrition · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/41416636/"}
+    ]
+  },
+  {
+    "id": "nitratos",
+    "name": "Nitratos y zumo de remolacha",
+    "category": "SUPPLEMENTS",
+    "short": "Nitrato de verduras y remolacha que reduce el coste de oxígeno del ejercicio submáximo",
+    "aliases": ["dietary nitrate", "beetroot juice", "nitrato dietético"],
+    "body": [
+      "Los nitratos de la dieta están presentes en verduras de hoja verde y en la remolacha. Al ingerirlos, el cuerpo los convierte en nitrito y, con poco oxígeno disponible, en óxido nítrico, una molécula que participa en el control vascular y metabólico, según la revisión de Jones publicada en 2014. Por eso el zumo de remolacha y las sales de nitrato se han estudiado como suplementos.",
+      "Esa misma revisión señala que el nitrato baja la presión arterial en reposo, reduce el coste de oxígeno del [[zona-2|ejercicio submáximo]] y, en algunas circunstancias, mejora la tolerancia y el rendimiento. En atletas el panorama es menos claro: un metaanálisis de 2026 con 45 ensayos y 659 deportistas no halló efectos significativos en el conjunto de seis indicadores, y solo la potencia pico mostró mejora en estudios exclusivamente masculinos, sin diferencia significativa con los mixtos."
+    ],
+    "practice": "En la práctica, la respuesta es irregular, así que compara tu rendimiento con y sin nitrato en entrenamientos antes de planificarlo para una competición. Como el nitrato baja la presión arterial en reposo, si tomas medicación para la tensión o tienes una condición cardiovascular, consulta con un profesional sanitario antes de usarlo.",
+    "related": ["zona-2", "vo2max", "umbral-lactato"],
+    "sources": [
+      {"title": "Dietary nitrate supplementation and exercise performance", "publisher": "Sports medicine (Auckland, N.Z.) · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24791915/"},
+      {"title": "Dietary Nitrate Supplementation and Exercise Performance in Athletes: A Systematic Review and Meta-Analysis of Randomised Controlled Trials", "publisher": "Sports (Basel, Switzerland) · 2026", "url": "https://pubmed.ncbi.nlm.nih.gov/42931603/"}
+    ]
+  },
+  {
+    "id": "vitamina-d",
+    "name": "Vitamina D",
+    "category": "SUPPLEMENTS",
+    "short": "Vitamina que la piel produce con la luz solar; su déficit se asocia con peor función muscular",
+    "aliases": ["vitamin D", "vitamina D3", "25-hidroxivitamina D"],
+    "body": [
+      "La vitamina D se parece más a un seco-esteroide que a una vitamina clásica: la piel la produce tras la exposición a los rayos UVB, que es su principal vía de entrada en la circulación, y tiene receptores en muchos tejidos. Según una revisión sobre deportistas de 2015, muchos de ellos tienen déficit, sobre todo en invierno, y ese déficit se ha asociado con peor función muscular, regeneración, inmunidad y [[hueso-densidad|salud ósea]].",
+      "Los autores de esa revisión advierten de que la mayoría de los estudios describen asociaciones, así que la causa aún no está clara. Suplementar a quien ya tiene niveles suficientes parece aportar poco: en un ensayo de 2026 con futbolistas profesionales, en su mayoría con niveles suficientes, ocho semanas de 4000 UI diarias no mejoraron la velocidad ni la potencia frente a placebo."
+    ],
+    "practice": "En la práctica, mide tu 25-hidroxivitamina D en sangre antes de suplementarte, porque en ese ensayo se consideró suficiente un valor superior a 30 ng/mL. El exceso también tiene riesgos: en un hospital de Barcelona, entre los resultados muy altos con calcio medido, el 4,3 % tenía hipercalcemia, y la mayoría de esos casos tomaban calcifediol en pautas de intervalos cortos. Si tomas medicación o tienes una condición médica, consulta con un profesional sanitario antes de empezar.",
+    "related": ["hueso-densidad", "fatiga-sistemica", "dano-muscular"],
+    "sources": [
+      {"title": "Vitamin D and the athlete: emerging insights", "publisher": "European journal of sport science · 2015", "url": "https://pubmed.ncbi.nlm.nih.gov/25131312/"},
+      {"title": "Eight-Week Vitamin D(3) Supplementation at 4000 IU/Day Was Not Associated with Further Improvements in Speed or Power Performance in Professional Female Soccer Players: A Randomized Controlled Trial", "publisher": "Nutrients · 2026", "url": "https://pubmed.ncbi.nlm.nih.gov/42588083/"},
+      {"title": "Overdiagnosed and oversupplemented: the iatrogenic rise of vitamin D toxicity", "publisher": "European journal of endocrinology · 2026", "url": "https://pubmed.ncbi.nlm.nih.gov/42145024/"}
+    ]
+  },
+  {
+    "id": "omega-3",
+    "name": "Omega-3",
+    "category": "SUPPLEMENTS",
+    "short": "Grasas poliinsaturadas EPA y DHA, sobre todo de aceite de pescado; su efecto muscular es incierto",
+    "aliases": ["fish oil", "aceite de pescado", "ácidos grasos n-3"],
+    "body": [
+      "Los omega-3 de cadena larga, como el EPA y el DHA, se toman a menudo como aceite de pescado. Según la revisión de Philpott de 2019, su argumento como ayuda deportiva se basa sobre todo en efectos antiinflamatorios y en cambios de la membrana celular, que podrían alterar la función del músculo.",
+      "Los estudios son desiguales. Un ensayo con nueve personas sanas halló que el omega-3 aumentó la respuesta del músculo a la insulina y a los aminoácidos, aunque no la [[sintesis-proteica-muscular|síntesis proteica]] basal. Otro con 16 hombres entrenados no encontró menos [[dano-muscular|daño muscular]] ni agujetas tras ejercicio excéntrico con aceite de pescado. La revisión de 2019 ve indicios de recuperación más rápida tras ese tipo de ejercicio, y también de que podría mejorar la resistencia al reducir el coste de oxígeno del ejercicio, pero no evidencia suficiente para ganar músculo."
+    ],
+    "practice": "En la práctica, no esperes un efecto sobre la masa muscular: la evidencia en deportistas no la respalda, así que si lo pruebas conviene medir la recuperación con indicadores concretos, como las agujetas o la fuerza, durante varias semanas. Si tomas medicación, como anticoagulantes, o tienes una condición médica, consulta con un profesional sanitario antes de empezar.",
+    "related": ["dano-muscular", "sintesis-proteica-muscular", "hipertrofia-muscular"],
+    "sources": [
+      {"title": "Omega-3 polyunsaturated fatty acids augment the muscle protein anabolic response to hyperinsulinaemia-hyperaminoacidaemia in healthy young and middle-aged men and women", "publisher": "Clinical science (London, England : 1979) · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/21501117/"},
+      {"title": "Fish oil supplementation fails to modulate indices of muscle damage and muscle repair during acute recovery from eccentric exercise in trained young males", "publisher": "European journal of sport science · 2023", "url": "https://pubmed.ncbi.nlm.nih.gov/37010103/"},
+      {"title": "Applications of omega-3 polyunsaturated fatty acid supplementation for sport performance", "publisher": "Research in sports medicine (Print) · 2019", "url": "https://pubmed.ncbi.nlm.nih.gov/30484702/"}
+    ]
+  },
+  {
+    "id": "citrulina",
+    "name": "Citrulina",
+    "category": "SUPPLEMENTS",
+    "short": "Aminoácido precursor de la arginina; su efecto sobre el rendimiento es pequeño e incierto",
+    "aliases": ["L-citrulline", "citrulina malato", "citrulline malate"],
+    "body": [
+      "La citrulina es un aminoácido que el cuerpo transforma en arginina, un precursor del óxido nítrico. Una revisión de 2026 lo describe así y explica que, al aumentar esa producción, puede influir en la función vascular. En los estudios de rendimiento suele usarse como citrulina malato.",
+      "Un ensayo de 2010 con 41 hombres halló que una dosis única de 8 gramos de citrulina malato permitió más repeticiones en varias series de press de banca y redujo un 40 % las [[dano-muscular|agujetas]] a las 24 y 48 horas. Solo se refirió molestia estomacal, en el 14,63 % de los participantes. Un metaanálisis de 2026 con 30 ensayos y 644 participantes halló una mejora pequeña del rendimiento, con intervalos amplios y una certeza baja o muy baja, y ningún efecto significativo sobre el esfuerzo percibido."
+    ],
+    "practice": "En la práctica, no hay una pauta fiable, así que si la pruebas mide tu rendimiento con y sin ella en entrenamientos parecidos. Como los autores del metaanálisis piden productos con composición verificada, conviene comprobar qué lleva el que compras. Si tienes molestias digestivas o tomas medicación, consulta con un profesional sanitario antes de empezar.",
+    "related": ["dano-muscular", "resistencia-muscular", "fatiga-sistemica"],
+    "sources": [
+      {"title": "Citrulline malate enhances athletic anaerobic performance and relieves muscle soreness", "publisher": "Journal of strength and conditioning research · 2010", "url": "https://pubmed.ncbi.nlm.nih.gov/20386132/"},
+      {"title": "Effects of Citrulline Malate Supplementation on Exercise Performance: A Systematic Review and Three-Level Meta-Analysis", "publisher": "Nutrients · 2026", "url": "https://pubmed.ncbi.nlm.nih.gov/42356270/"},
+      {"title": "L-Citrulline: Novel Pharmacotherapy to Improve Outcomes in Infants and Children at Risk of Systemic or Pulmonary Vascular Disease", "publisher": "Pharmaceuticals (Basel, Switzerland) · 2026", "url": "https://pubmed.ncbi.nlm.nih.gov/42356513/"}
+    ]
+  },
+  {
+    "id": "hmb",
+    "name": "HMB",
+    "category": "SUPPLEMENTS",
+    "short": "Metabolito de la leucina con efectos mixtos, más claros en personas poco entrenadas y en recuperación",
+    "aliases": ["beta-hydroxy-beta-methylbutyrate", "β-hidroxi-β-metilbutirato", "HMB-Ca"],
+    "body": [
+      "El HMB es un metabolito de la leucina que se comercializa como calcio HMB o como ácido libre. Según la ISSN de 2025, actúa sobre dos frentes: favorece la síntesis de proteína muscular y reduce su degradación. Esa doble acción explica el interés por usarlo en la recuperación.",
+      "La ISSN de 2025 concluye que el HMB puede mejorar la fuerza y la potencia en personas poco entrenadas, pero que sus beneficios en atletas entrenados son mixtos y aumentan en estudios de más de seis semanas. Puede ayudar a reducir el [[dano-muscular|daño muscular]] y favorecer la recuperación, y con entrenamiento de fuerza y dieta controlada se han visto mejoras de composición corporal. La pauta que recogió la ISSN en 2013 es de 38 miligramos por kilo al día, y la de 2025 considera seguro su consumo crónico hasta al menos un año.",
+      "No todos los protocolos funcionan. En un ensayo de 2025 con hombres entrenados y no entrenados, tres semanas de dosis altas de HMB libre no cambiaron la masa magra ni la grasa, ni siquiera con entrenamiento funcional de alta intensidad añadido."
+    ],
+    "practice": "En la práctica, según la ISSN de 2025, los beneficios sobre el rendimiento en atletas aumentan en estudios de más de seis semanas, así que unos días de prueba no bastan para juzgarlo. Si tienes una condición médica o tomas medicación, consulta con un profesional sanitario antes de empezar.",
+    "related": ["sintesis-proteica-muscular", "dano-muscular", "hipertrofia-muscular"],
+    "sources": [
+      {"title": "International Society of Sports Nutrition Position Stand: beta-hydroxy-beta-methylbutyrate (HMB)", "publisher": "Journal of the International Society of Sports Nutrition · 2013", "url": "https://pubmed.ncbi.nlm.nih.gov/23374455/"},
+      {"title": "International society of sports nutrition position stand: β-hydroxy-β-methylbutyrate (HMB)", "publisher": "Journal of the International Society of Sports Nutrition · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/39699070/"},
+      {"title": "High-dose medium-term HMB supplementation did not trigger body composition changes in trained and untrained males under usual conditions or high-intensity functional exercise", "publisher": "Frontiers in nutrition · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/41070011/"}
+    ]
+  },
+  {
+    "id": "bcaa",
+    "name": "Aminoácidos ramificados (BCAA)",
+    "category": "SUPPLEMENTS",
+    "short": "Leucina, isoleucina y valina; por sí solos no tienen respaldo para estimular el músculo",
+    "aliases": ["leucine", "aminoácidos de cadena ramificada", "branched-chain amino acids"],
+    "body": [
+      "Los aminoácidos ramificados son la leucina, la isoleucina y la valina, tres aminoácidos esenciales. Muchos suplementos los venden aislados con la idea de que estimulan directamente la [[sintesis-proteica-muscular|síntesis de proteína muscular]]. La idea ha generado una industria de muchos millones de dólares.",
+      "Según la revisión de Wolfe de 2017, esa idea no está justificada. No se había medido en humanos la respuesta muscular a los BCAA tomados por vía oral en solitario, y en los dos estudios con infusión intravenosa revisados los BCAA redujeron tanto la síntesis como la degradación de proteína, es decir, el recambio global.",
+      "Un ensayo aleatorizado de 2026 con personas jóvenes y mayores tampoco halló que la leucina suplementada evitara la caída de la síntesis proteica ni la pérdida de masa muscular durante tres días de inmovilización de una pierna. En ese ensayo, la leucina se comparó con un suplemento de carbohidratos de igual energía."
+    ],
+    "practice": "En la práctica, no hay una base sólida para usar BCAA sueltos como estímulo muscular, así que conviene priorizar la proteína de la dieta. Si tienes una condición médica o tomas medicación, consulta con un profesional sanitario antes de añadir un suplemento de aminoácidos.",
+    "related": ["sintesis-proteica-muscular", "proteina-diaria", "distribucion-proteina"],
+    "sources": [
+      {"title": "Branched-chain amino acids and muscle protein synthesis in humans: myth or reality?", "publisher": "Journal of the International Society of Sports Nutrition · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28852372/"},
+      {"title": "Leucine supplementation does not attenuate the decline in daily muscle protein synthesis rates or preserve leg muscle mass during leg immobilization in young or older adults: a double-blind randomized trial", "publisher": "The American journal of clinical nutrition · 2026", "url": "https://pubmed.ncbi.nlm.nih.gov/41580240/"}
+    ]
+  },
+  {
+    "id": "colageno",
+    "name": "Colágeno",
+    "category": "SUPPLEMENTS",
+    "short": "Proteína del tejido conectivo con evidencia más sólida para articulaciones que para la fuerza",
+    "aliases": ["collagen peptides", "péptidos de colágeno", "colágeno hidrolizado"],
+    "body": [
+      "El colágeno que se toma como suplemento suele ser un hidrolizado, es decir, péptidos que aportan aminoácidos para formar colágeno en tejidos como los [[tendon|tendones]] y los [[cartilago-articular|cartílagos]]. Según la revisión de Khatri de 2021, su efecto más claro es sobre la función articular y el dolor de las articulaciones, con resultados menos consistentes en otros parámetros.",
+      "Una revisión de 2026 de ocho ensayos considera sólida la evidencia de que 15 a 30 gramos al día, con al menos 50 miligramos de vitamina C y entrenamiento de alta intensidad, aumentan el área y la rigidez del tendón. Esa misma revisión no encuentra efecto adicional sobre la fuerza, y la evidencia sobre rendimiento sigue en conflicto. Un metaanálisis de 2024 con 19 estudios y 768 participantes halló efectos favorables sobre la masa libre de grasa y la fuerza máxima, con certeza moderada para la composición corporal y baja o muy baja para el resto."
+    ],
+    "practice": "En la práctica, el colágeno se ha estudiado sobre todo combinado con entrenamiento de fuerza y con dosis de unos 15 gramos o más al día, así que tomarlo sin entrenar tiene poca evidencia. Si tienes dolor persistente en un tendón o una articulación, consulta con un profesional sanitario antes de depender del suplemento, y avísale si tomas medicación.",
+    "related": ["tendon", "tendinopatia", "cartilago-articular"],
+    "sources": [
+      {"title": "The effects of collagen peptide supplementation on body composition, collagen synthesis, and recovery from joint injury and exercise: a systematic review", "publisher": "Amino acids · 2021", "url": "https://pubmed.ncbi.nlm.nih.gov/34491424/"},
+      {"title": "Collagen Supplementation on Tendon-Related Structural and Performance Outcomes: A Systematic Review", "publisher": "Journal of functional morphology and kinesiology · 2026", "url": "https://pubmed.ncbi.nlm.nih.gov/41900537/"},
+      {"title": "Impact of Collagen Peptide Supplementation in Combination with Long-Term Physical Training on Strength, Musculotendinous Remodeling, Functional Recovery, and Body Composition in Healthy Adults: A Systematic Review with Meta-analysis", "publisher": "Sports medicine (Auckland, N.Z.) · 2024", "url": "https://pubmed.ncbi.nlm.nih.gov/39060741/"}
+    ]
+  },
+  {
+    "id": "seguridad-suplementos",
+    "name": "Contaminación y sellos de calidad",
+    "category": "SUPPLEMENTS",
+    "short": "Riesgo de dopaje inadvertido por contaminación y cómo elegir productos con análisis de terceros",
+    "aliases": ["doping inadvertido", "inadvertent doping", "Informed Sport"],
+    "body": [
+      "Según el consenso del Comité Olímpico Internacional de 2018, la ingestión inadvertida de sustancias prohibidas por los códigos antidopaje es un riesgo conocido de algunos suplementos. El daño puede ir más allá de la salud: afectar al rendimiento, a la carrera y a la reputación del deportista si se produce una infracción.",
+      "Los análisis de laboratorio son preocupantes: una revisión de 2023 señala que entre el 14 y el 50 % de las muestras analizadas han dado positivo en anabolizantes u otras sustancias prohibidas. Por eso se aconseja cruzar los ingredientes con la lista de sustancias prohibidas, evitar combinar productos con ingredientes solapados, como varias fuentes de [[cafeina|cafeína]], y elegir productos verificados por un programa de certificación de terceros.",
+      "Entre esos programas figura Informed Sport. En un estudio de 2025 con 659 atletas polacos, solo el 18,2 % de los profesionales encuestados lo conocía, lo que indica que el conocimiento de estos sellos es bajo entre los encuestados."
+    ],
+    "practice": "En la práctica, elige productos con un sello de terceros como Informed Sport, revisa que cubra el producto exacto que compras y evita apilar suplementos con ingredientes parecidos. Si tomas medicación o tienes una condición médica, consulta con un profesional sanitario antes de tomar nada, porque el consenso del COI recomienda ese asesoramiento.",
+    "related": ["creatina", "cafeina", "bicarbonato"],
+    "sources": [
+      {"title": "IOC consensus statement: dietary supplements and the high-performance athlete", "publisher": "British journal of sports medicine · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/29540367/"},
+      {"title": "Prevalence of adulteration in dietary supplements and recommendations for safe supplement practices in sport", "publisher": "Frontiers in sports and active living · 2023", "url": "https://pubmed.ncbi.nlm.nih.gov/37841887/"},
+      {"title": "Dietary supplement use and knowledge among athletes: prevalence, compliance with AIS classification, and awareness of certification programs", "publisher": "Journal of the International Society of Sports Nutrition · 2025", "url": "https://pubmed.ncbi.nlm.nih.gov/40263114/"}
+    ]
+  },
+  {
+    "id": "metaanalisis",
+    "name": "Metaanálisis y revisión sistemática",
+    "category": "SCIENCE_LITERACY",
+    "short": "Revisión que recoge todos los estudios sobre una pregunta y los combina en una cifra común",
+    "aliases": ["meta-analysis", "systematic review", "PRISMA"],
+    "body": [
+      "Una revisión sistemática busca todos los estudios que responden a una pregunta concreta, con criterios de búsqueda y de selección explícitos. Un metaanálisis es el paso siguiente: combina sus resultados numéricos en una estimación conjunta. La guía PRISMA 2020 existe para que estas revisiones informen con transparencia qué buscaron, qué hicieron y qué encontraron.",
+      "Un ejemplo es el [[estudio-proteina|metaanálisis de Morton]] de 2018, que reunió 49 estudios con 1863 participantes y halló que la proteína añadida al entrenamiento de fuerza aumentó la fuerza máxima en 2,49 kilos de media. Ese promedio oculta diferencias: la ganancia de masa libre de grasa fue de unos 0,30 kilos, y el efecto varió según la edad y la experiencia de entrenamiento de los participantes.",
+      "Un metaanálisis solo vale lo que valen los estudios que incluye. Si los ensayos son pequeños, cortos o no se publicaron todos, la cifra conjunta puede sobrestimar el efecto, por eso importa tanto el método."
+    ],
+    "practice": "En la práctica, cuando veas un titular que dice que un suplemento o un método funciona según un metaanálisis, mira cuántos estudios y participantes incluye, si sus resultados son coherentes entre sí y si el informe sigue PRISMA. Un promedio grande que sale de estudios muy distintos merece más cautela que uno que sale de estudios parecidos.",
+    "related": ["estudio-proteina", "niveles-evidencia", "significancia-intervalos"],
+    "sources": [
+      {"title": "The PRISMA 2020 statement: An updated guideline for reporting systematic reviews", "publisher": "Journal of clinical epidemiology · 2021", "url": "https://pubmed.ncbi.nlm.nih.gov/33789819/"},
+      {"title": "A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength in healthy adults", "publisher": "British journal of sports medicine · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/28698222/"}
+    ]
+  },
+  {
+    "id": "ensayo-aleatorizado",
+    "name": "Ensayo controlado aleatorizado",
+    "category": "SCIENCE_LITERACY",
+    "short": "Estudio en el que el azar decide qué grupo recibe el tratamiento y se compara con un control",
+    "aliases": ["randomized controlled trial", "RCT", "ensayo clínico aleatorizado"],
+    "body": [
+      "En un ensayo controlado aleatorizado, los participantes se asignan al azar a un grupo que recibe la intervención y a un grupo de control, que recibe placebo u otra opción de comparación. El azar busca que los grupos sean parecidos al principio, de modo que las diferencias posteriores puedan atribuirse a la intervención y no a otras causas.",
+      "Este diseño se considera el estándar de referencia para medir la eficacia de un tratamiento, y las normas CONSORT describen qué debe informar un ensayo de este tipo para que se pueda evaluar con rigor. Entre las buenas prácticas está el enmascaramiento, es decir, que ni los participantes ni quienes miden los resultados sepan quién recibe qué.",
+      "Imagina un ensayo en el que un grupo toma un suplemento y otro un placebo, con el mismo programa de [[fuerza|entrenamiento de fuerza]]. Si el reparto es aleatorio y los evaluadores no saben quién toma qué, una diferencia entre grupos tiene más probabilidades de deberse al suplemento. Aun así, un ensayo pequeño o corto puede no detectar efectos reales, y uno con pocos participantes puede exagerarlos."
+    ],
+    "practice": "En la práctica, al leer un ensayo mira si el reparto fue aleatorio, si había grupo control, si hubo enmascaramiento y cuántas personas completaron el estudio. Si el informe no da estos datos, la mejora que promete vale menos, aunque el resultado parezca llamativo.",
+    "related": ["correlacion-causalidad", "niveles-evidencia", "metaanalisis"],
+    "sources": [
+      {"title": "CONSORT 2010 statement: updated guidelines for reporting parallel group randomised trials", "publisher": "International journal of surgery (London, England) · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/22019563/"},
+      {"title": "Randomised controlled trials - the gold standard for effectiveness research: Study design: randomised controlled trials", "publisher": "BJOG : an international journal of obstetrics and gynaecology · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/29916205/"}
+    ]
+  },
+  {
+    "id": "tamano-efecto",
+    "name": "Tamaño del efecto",
+    "category": "SCIENCE_LITERACY",
+    "short": "Medida de la magnitud de una diferencia, para juzgar si importa en la práctica",
+    "aliases": ["effect size", "d de Cohen", "Cohen's d"],
+    "body": [
+      "El tamaño del efecto mide cuánto se diferencian dos grupos o dos condiciones, expresado en relación con la variabilidad de los datos. Así permite comparar estudios que miden cosas distintas y saber si una diferencia es pequeña o grande en términos prácticos.",
+      "Lakens defiende que el tamaño del efecto comunica la relevancia práctica de un resultado y facilita la ciencia acumulativa, porque sirve para planear estudios futuros y para combinar resultados en metaanálisis. Sullivan y Feinn, en un artículo de 2012, lo presentan como la alternativa necesaria a depender solo del valor de p.",
+      "Imagina dos [[fuerza|programas de fuerza]] con una mejora media parecida, pero en uno de ellos la variación entre personas es mucho mayor. Mirar solo si la diferencia es estadísticamente significativa puede ocultar que el efecto es pequeño en la práctica, o que es grande pero muy incierto. Conviene preguntar cuánto mejora el grupo, no solo si mejora de forma distinta."
+    ],
+    "practice": "En la práctica, cuando un estudio solo informe un valor de p, busca la diferencia media y su magnitud en relación con la variación de los participantes. Compara esa magnitud con lo que notarías en tu entrenamiento: una mejora que no se aprecia en el día a día puede no merecer cambiar de programa.",
+    "related": ["significancia-intervalos", "metaanalisis", "variabilidad-individual"],
+    "sources": [
+      {"title": "Calculating and reporting effect sizes to facilitate cumulative science: a practical primer for t-tests and ANOVAs", "publisher": "Frontiers in psychology · 2013", "url": "https://pubmed.ncbi.nlm.nih.gov/24324449/"},
+      {"title": "Using Effect Size-or Why the P Value Is Not Enough", "publisher": "Journal of graduate medical education · 2012", "url": "https://pubmed.ncbi.nlm.nih.gov/23997866/"}
+    ]
+  },
+  {
+    "id": "significancia-intervalos",
+    "name": "Significancia e intervalos de confianza",
+    "category": "SCIENCE_LITERACY",
+    "short": "Cómo leer el valor de p y el intervalo de confianza sin confundirlos con la probabilidad de que algo sea cierto",
+    "aliases": ["p-value", "valor p", "confidence interval", "intervalo de confianza"],
+    "body": [
+      "El valor de p indica cuán incompatibles son los datos con una hipótesis concreta, habitualmente la de que no hay diferencia. No mide la probabilidad de que esa hipótesis sea cierta, ni la de que los datos sean fruto del azar por sí solos, ni el tamaño de la diferencia.",
+      "Un intervalo de confianza da el rango de valores compatibles con los datos. Si es muy ancho, la estimación es imprecisa; si va desde un beneficio importante hasta uno casi nulo, la conclusión es frágil. Greenland y colaboradores recogen 25 malinterpretaciones habituales de estos conceptos, y Calin-Jageman propone preguntar cuánto, con qué incertidumbre y qué otra evidencia existe.",
+      "Imagina que un programa de [[fuerza|fuerza]] mejora más que otro, con un intervalo que va desde casi nada hasta una mejora considerable. El resultado puede ser significativo y, a la vez, muy incierto por la [[variabilidad-individual|variación entre personas]]. Significativo no equivale a importante: un valor de p bajo solo indica que los datos chocan con la hipótesis de no diferencia, no que la diferencia sea grande."
+    ],
+    "practice": "En la práctica, cuando veas la palabra significativo, busca el intervalo de confianza y pregúntate si incluye diferencias que no te harían cambiar nada. Un resultado con p bajo y un intervalo muy amplio aconseja esperar más datos antes de tomar decisiones sobre tu entrenamiento.",
+    "related": ["tamano-efecto", "niveles-evidencia", "metaanalisis"],
+    "sources": [
+      {"title": "Statistical tests, P values, confidence intervals, and power: a guide to misinterpretations", "publisher": "European journal of epidemiology · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/27209009/"},
+      {"title": "Misconceptions, Misuses, and Misinterpretations of P Values and Significance Testing", "publisher": "The Journal of bone and joint surgery. American volume · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28926390/"},
+      {"title": "The New Statistics for Better Science: Ask How Much, How Uncertain, and What Else is Known", "publisher": "The American statistician · 2019", "url": "https://pubmed.ncbi.nlm.nih.gov/31762475/"}
+    ]
+  },
+  {
+    "id": "niveles-evidencia",
+    "name": "Niveles de evidencia",
+    "category": "SCIENCE_LITERACY",
+    "short": "Jerarquía que ordena los diseños de estudio según su fiabilidad para decidir",
+    "aliases": ["levels of evidence", "evidence pyramid", "pirámide de evidencia", "GRADE"],
+    "body": [
+      "Los niveles de evidencia ordenan los tipos de estudio según lo fiables que son para responder una pregunta práctica. Tradicionalmente, las revisiones sistemáticas y los metaanálisis ocupan la cima de la pirámide, por encima de los ensayos aleatorizados, y la opinión de expertos ocupa la base.",
+      "Esa pirámide tiene críticas. Murad y colaboradores proponen mirarla de otra forma, porque las revisiones son herramientas para valorar, sintetizar y aplicar la evidencia, no un escalón automático por encima de todo lo demás. Una revisión como la de [[estudio-proteina|Morton]] solo incluyó ensayos aleatorizados de entrenamiento de fuerza con suplementos proteicos, así que su solidez depende de la calidad de esos ensayos.",
+      "Para decidir si la evidencia es sólida, el sistema GRADE valora varios criterios, entre ellos la imprecisión: si los intervalos de confianza son tan amplios que la decisión cambiaría según el extremo que sea cierto, la calidad baja. Un testimonio de usuarios es un caso, no un ensayo, y no ofrece la misma garantía que un conjunto de ensayos aleatorizados con control."
+    ],
+    "practice": "En la práctica, cuando alguien cite evidencia, pregunta qué tipo de estudio es, cuántos participantes tuvo y si existe una revisión sistemática que lo respalde. Un único estudio pequeño, por bueno que sea, no equivale a un conjunto de ensayos con resultados parecidos.",
+    "related": ["metaanalisis", "ensayo-aleatorizado", "significancia-intervalos"],
+    "sources": [
+      {"title": "New evidence pyramid", "publisher": "Evidence-based medicine · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/27339128/"},
+      {"title": "GRADE guidelines 6. Rating the quality of evidence--imprecision", "publisher": "Journal of clinical epidemiology · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/21839614/"},
+      {"title": "The levels of evidence and their role in evidence-based medicine", "publisher": "Plastic and reconstructive surgery · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/21701348/"}
+    ]
+  },
+  {
+    "id": "variabilidad-individual",
+    "name": "Variabilidad individual y «no respondedores»",
+    "category": "SCIENCE_LITERACY",
+    "short": "Las personas responden de forma muy distinta al mismo entrenamiento, y la etiqueta puede engañar",
+    "aliases": ["high responders", "low responders", "no respondedor"],
+    "body": [
+      "Dos personas pueden hacer exactamente el mismo programa y obtener resultados muy distintos. Según la revisión de Mann y colaboradores de 2014, es habitual que los individuos muestren un amplio rango de respuestas en lugar de una respuesta parecida, así que la media del grupo no describe a cada persona.",
+      "Hubal y colaboradores siguieron a 585 personas durante 12 semanas de entrenamiento de un brazo: algunas apenas ganaron fuerza, y otras aumentaron su fuerza hasta un 250 %. Esa variación se ha atribuido al material genético, al punto de partida, al [[sueno|sueño]] y al [[estres-recuperacion|estrés]], aunque una parte puede ser error de medición.",
+      "Ross y colaboradores, en un consenso de 2019, llegan a una conclusión parecida con dosis de ejercicio: hay una variabilidad real con un componente genético, y eso obliga a diseños con varias mediciones antes y después, no solo a comparar medias."
+    ],
+    "practice": "En la práctica, si no respondes igual que otros a un programa, no te etiquetes como «no respondedor» sin antes medir varias veces para separar el error de medición de un cambio real. Si el progreso se estanca de forma persistente o aparecen síntomas que no esperas, consulta con un profesional sanitario.",
+    "related": ["estres-recuperacion", "sueno", "significancia-intervalos"],
+    "sources": [
+      {"title": "Variability in muscle size and strength gain after unilateral resistance training", "publisher": "Medicine and science in sports and exercise · 2005", "url": "https://pubmed.ncbi.nlm.nih.gov/15947721/"},
+      {"title": "High responders and low responders: factors associated with individual variation in response to standardized training", "publisher": "Sports medicine (Auckland, N.Z.) · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24807838/"},
+      {"title": "Precision exercise medicine: understanding exercise response variability", "publisher": "British journal of sports medicine · 2019", "url": "https://pubmed.ncbi.nlm.nih.gov/30862704/"}
+    ]
+  },
+  {
+    "id": "correlacion-causalidad",
+    "name": "Correlación y causalidad",
+    "category": "SCIENCE_LITERACY",
+    "short": "Que dos cosas vayan juntas no prueba que una cause la otra; hay que mirar el orden y los factores ocultos",
+    "aliases": ["correlation", "causal inference", "factor de confusión"],
+    "body": [
+      "Una correlación indica que dos variables tienden a aparecer juntas, pero no dice por qué. Puede haber causalidad en un sentido, en el otro o en ambos, y también un tercer factor que influye en las dos. Hernán y colaboradores sostienen que los estudios observacionales deben declarar explícitamente su objetivo causal, porque hablar solo de asociaciones suele ocultar esa ambigüedad.",
+      "Hill planteó en 1965 cuándo una asociación observada puede considerarse causa, en un artículo clásico que se titula «El ambiente y la enfermedad: ¿asociación o causación?». Su pregunta sigue vigente para cualquier estudio que relacione hábitos y resultados.",
+      "Imagina que quienes toman más [[proteina-diaria|proteína]] también entrenan más y [[sueno|duermen mejor]]: es fácil atribuir al suplemento lo que en realidad se debe al entrenamiento. Otra posibilidad es la causalidad inversa, en la que quienes ya tienen más fuerza eligen entrenar más. Para separar estas explicaciones hacen falta diseños que controlen esos factores, como un ensayo aleatorizado."
+    ],
+    "practice": "En la práctica, cuando una noticia diga que algo produce un resultado a partir de un estudio observacional, pregunta qué factores pudieron influir en ambos y si existe un ensayo que lo pruebe. Una asociación fuerte sigue siendo una pista, no una prueba.",
+    "related": ["ensayo-aleatorizado", "niveles-evidencia", "variabilidad-individual"],
+    "sources": [
+      {"title": "The C-Word: Scientific Euphemisms Do Not Improve Causal Inference From Observational Data", "publisher": "American journal of public health · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/29565659/"},
+      {"title": "The environment and disease: association or causation?", "publisher": "Proceedings of the Royal Society of Medicine · 1965", "url": "https://pubmed.ncbi.nlm.nih.gov/14283879/"}
+    ]
+  }
+]

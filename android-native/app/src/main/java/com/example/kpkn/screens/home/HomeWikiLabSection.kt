@@ -27,6 +27,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.wikilab.TRAINING_CONCEPTS_DATABASE
+import com.example.kpkn.domain.concepts.dailyConceptoClave
 import com.example.kpkn.domain.concepts.projectConceptoClave
 import com.example.kpkn.navigation.KpknRoute
 import com.example.kpkn.screens.home.design.HomeModuleMargin
@@ -58,11 +59,8 @@ fun HomeWikiLabSection(onNavigate: (String) -> Unit) {
             today = LocalDate.now()
         }
     }
-    val concept = remember(today) {
-        TRAINING_CONCEPTS_DATABASE[
-            Math.floorMod(today.toEpochDay().toInt(), TRAINING_CONCEPTS_DATABASE.size)
-        ]
-    }
+    // El mismo concepto del día que abre la biblioteca de Conceptos clave.
+    val concept = remember(today) { dailyConceptoClave(today.toEpochDay()) } ?: return
     val conceptProjection = projectConceptoClave(concept)
     val openConcept = { onNavigate(KpknRoute.Concepts.create(concept.id)) }
     // El resumen de dos líneas es el corto que Home ya enseñaba; si falta, la descripción del concepto.

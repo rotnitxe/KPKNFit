@@ -1,0 +1,627 @@
+[
+  {
+    "id": "musculo-pectoral",
+    "name": "Pectoral",
+    "category": "MUSCLES",
+    "short": "Músculo amplio del tórax que aduce, flexiona y rota internamente el brazo",
+    "aliases": [
+      "pectoral mayor",
+      "pectoralis major",
+      "pecs"
+    ],
+    "body": [
+      "El pectoral mayor es el músculo principal del pecho y cubre la parte alta de la caja torácica. Tiene tres porciones según su origen: la clavicular, que nace en la mitad interna de la clavícula; la esternocostal, que nace en el esternón y en los cartílagos de las costillas superiores; y la abdominal, la más baja, que se une a la aponeurosis del oblicuo externo. Todas se unen en un tendón que se inserta en el labio externo del surco bicipital del húmero.",
+      "Su función principal es aducir el brazo y rotarlo hacia dentro; la porción clavicular ayuda además a flexionarlo. El músculo se alarga cuando el brazo se abre hacia los lados y hacia atrás, así que los [[patron-empuje-horizontal|empujes horizontales]] lo cargan bien en el fondo del recorrido. Un estudio con 8 voluntarios y electromiografía de alta densidad situó la zona más activa en la porción clavicular al pasar de un banco plano a uno inclinado 45 grados."
+    ],
+    "practice": "En la práctica, no busques una inclinación que aísle una porción del pectoral: la electromiografía muestra la señal en cada zona, no cuánta fuerza produce ni cuánto crecerá. Con inclinaciones de más de 45 grados, parte del trabajo pasa al [[musculo-deltoides|deltoides anterior]], según otro estudio con electromiografía. Cuida la escápula estable y el codo bajo control; si al bajar notas dolor en el hombro, reduce el rango o consulta antes de añadir carga.",
+    "related": [
+      "patron-empuje-horizontal",
+      "musculo-deltoides",
+      "musculo-triceps"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Thorax, Pectoralis Major",
+        "publisher": "StatPearls · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30252247/"
+      },
+      {
+        "title": "Non-uniform excitation of the pectoralis major muscle during flat and inclined bench press exercises",
+        "publisher": "Scandinavian journal of medicine & science in sports · 2022",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/34644424/"
+      },
+      {
+        "title": "Effect of Five Bench Inclinations on the Electromyographic Activity of the Pectoralis Major, Anterior Deltoid, and Triceps Brachii during the Bench Press Exercise",
+        "publisher": "International journal of environmental research and public health · 2020",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/33049982/"
+      }
+    ]
+  },
+  {
+    "id": "musculo-dorsal-ancho",
+    "name": "Dorsal ancho",
+    "category": "MUSCLES",
+    "short": "Músculo ancho de la espalda que extiende, aduce y rota internamente el brazo",
+    "aliases": [
+      "latissimus dorsi",
+      "lats",
+      "espalda ancha"
+    ],
+    "body": [
+      "El dorsal ancho es el músculo más grande de la espalda y cubre buena parte del tronco por detrás. Nace en las apófisis espinosas de las vértebras dorsales bajas y lumbares, en la fascia toracolumbar, en la parte posterior de la cresta ilíaca y en las últimas costillas; sus fibras convergen y se insertan en el suelo del surco bicipital del húmero, muy cerca del pectoral.",
+      "Su acción principal es extender, aducir y rotar internamente el brazo, tirando del húmero hacia abajo y hacia atrás. Se estira cuando el brazo sube por encima de la cabeza, por eso los [[patron-tiron-vertical|tirones verticales]] lo cargan desde esa posición alta. Una revisión narrativa de 2026 sugiere, con cautela, que en el jalón la barra que avanza por delante del cuerpo se asocia con más activación del dorsal; son datos de activación aguda, no de crecimiento."
+    ],
+    "practice": "En la práctica, piensa en bajar el codo hacia el costado en lugar de tirar solo con los brazos, y deja que el hombro llegue a un estiramiento cómodo arriba. Compara un jalón con la barra por delante con uno clásico y observa en cuál notas más la espalda y menos los bíceps. Si tienes [[dolor-hombro|dolor en el hombro]], reduce el recorrido o consulta antes de añadir carga.",
+    "related": [
+      "patron-tiron-vertical",
+      "musculo-trapecio",
+      "musculo-pectoral"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Back, Latissimus Dorsi",
+        "publisher": "StatPearls · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/28846224/"
+      },
+      {
+        "title": "Electromyographic Analysis of Latissimus Dorsi Activation During Common Resistance Training Exercises: A Narrative Review",
+        "publisher": "Journal of functional morphology and kinesiology · 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/42647355/"
+      }
+    ]
+  },
+  {
+    "id": "musculo-trapecio",
+    "name": "Trapecio y romboides",
+    "category": "MUSCLES",
+    "short": "Músculos de la espalda alta que elevan, retraen y rotan la escápula",
+    "aliases": [
+      "trapezius",
+      "rhomboids",
+      "trapecio superior"
+    ],
+    "body": [
+      "El trapecio es un músculo plano y triangular que cubre la nuca, los hombros y la espalda alta. Sus fibras superiores nacen en el hueso occipital, en el ligamento de la nuca y en la séptima vértebra cervical, y las medias e inferiores, en las vértebras torácicas; todas se insertan en la clavícula y en la espina de la escápula. Por debajo, los romboides, más profundos, unen las vértebras cervical inferior y torácica alta con el borde interno de la escápula.",
+      "Cada parte tiene una función distinta: el trapecio superior eleva la escápula, el medio y los romboides la retraen (la acercan a la columna), y el inferior la baja y, junto con el superior, la gira hacia arriba, algo necesario para elevar el brazo por encima de la cabeza. Según una revisión sobre ejercicios de hombro, los [[patron-tiron-horizontal|remos]] y los tirones horizontales activan con fuerza esta musculatura escapular."
+    ],
+    "practice": "En la práctica, al remar piensa en juntar las escápulas sin encoger los hombros, y deja que el pecho acompañe el movimiento sin arquear la zona lumbar. Si notas tensión persistente en la nuca, reduce la carga, revisa la técnica y tu postura de trabajo; si no mejora, consulta con un profesional sanitario. Según la misma revisión, si el movimiento de la escápula se altera, el hombro funciona peor y el riesgo de [[dolor-hombro|dolor de hombro]] aumenta.",
+    "related": [
+      "patron-tiron-horizontal",
+      "manguito-rotador",
+      "musculo-dorsal-ancho"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Back, Trapezius",
+        "publisher": "StatPearls · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30085536/"
+      },
+      {
+        "title": "Anatomy, Back, Rhomboid Muscles",
+        "publisher": "StatPearls · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30521277/"
+      },
+      {
+        "title": "Shoulder muscle activity and function in common shoulder rehabilitation exercises",
+        "publisher": "Sports medicine (Auckland, N.Z.) · 2009",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/19769415/"
+      }
+    ]
+  },
+  {
+    "id": "musculo-deltoides",
+    "name": "Deltoides",
+    "category": "MUSCLES",
+    "short": "Músculo del hombro en tres porciones que elevan, flexionan y extienden el brazo",
+    "aliases": [
+      "deltoid",
+      "deltoides lateral",
+      "deltoides posterior"
+    ],
+    "body": [
+      "El deltoides cubre la articulación del hombro como un casquete y tiene tres porciones. La anterior nace en el tercio externo de la clavícula; la media, en el acromion, la prominencia ósea del hombro; y la posterior, en la espina de la escápula. Las tres se insertan en la tuberosidad deltoidea del húmero, a mitad del brazo. La anterior ayuda a flexionar el brazo y a girarlo hacia dentro, la media lo eleva hacia los lados y la posterior lo extiende y lo gira hacia fuera.",
+      "Como cada porción tiene una línea de tracción distinta, el reparto del trabajo cambia según el ejercicio. Una revisión sistemática de 33 estudios con electromiografía halló que las elevaciones laterales con rotación interna activaban más la porción media, los vuelos inclinados con mancuernas activaban más la anterior y las dominadas, la posterior. Son datos de activación, y el [[manguito-rotador|manguito rotador]] también contribuye a elevar el brazo."
+    ],
+    "practice": "En la práctica, si buscas trabajo para la porción media, las elevaciones laterales con control son una opción directa, y conviene vigilar que la carga no se pierda al final del recorrido. Recuerda que la electromiografía mide activación, no crecimiento: el progreso se valora con repeticiones y carga. Si el hombro duele al elevar el brazo, reduce el ángulo antes de sumar peso, también en los [[patron-empuje-vertical|empujes verticales]], y consulta si el dolor persiste.",
+    "related": [
+      "patron-empuje-vertical",
+      "manguito-rotador",
+      "musculo-pectoral"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+        "publisher": "StatPearls · 2024",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+      },
+      {
+        "title": "Activation of the three deltoid muscle portions during common strengthening exercises: A systematic review",
+        "publisher": "Journal of bodywork and movement therapies · 2024",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/39593452/"
+      },
+      {
+        "title": "Shoulder muscle activity and function in common shoulder rehabilitation exercises",
+        "publisher": "Sports medicine (Auckland, N.Z.) · 2009",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/19769415/"
+      }
+    ]
+  },
+  {
+    "id": "manguito-rotador",
+    "name": "Manguito rotador",
+    "category": "MUSCLES",
+    "short": "Conjunto de cuatro músculos que estabiliza la cabeza del húmero en el hombro",
+    "aliases": [
+      "rotator cuff",
+      "rotadores del hombro"
+    ],
+    "body": [
+      "El manguito rotador es un conjunto de cuatro músculos que rodean el hombro: supraespinoso, infraespinoso, redondo menor y subescapular. Los tres primeros nacen detrás de la escápula y se insertan en la tuberosidad mayor del húmero; el subescapular nace delante y se inserta en la tuberosidad menor. El supraespinoso inicia la elevación del brazo, el infraespinoso y el redondo menor lo rotan hacia fuera, y el subescapular lo rota hacia dentro.",
+      "Su función principal es estabilizar: centran la cabeza del húmero en la cavidad de la escápula mientras los deltoides mueven el brazo. Según una revisión sobre ejercicios de hombro, el manguito es más eficaz como abductor a ángulos bajos, y el deltoides, a ángulos altos. En un estudio de 2026 con banda elástica, rotar hacia fuera con el brazo elevado 45 o 90 grados aumentó la activación del supraespinoso respecto de 0 grados."
+    ],
+    "practice": "En la práctica, las rotaciones externas con banda o con mancuerna ligera, con el codo pegado al costado y sin compensar con el tronco, son un trabajo de base sensato. Prueba distintos ángulos de elevación y observa cómo cambia la sensación. Si tienes [[dolor-hombro|dolor de hombro]] al elevar el brazo o al dormir sobre él, consulta a un profesional sanitario antes de añadir carga; el dolor persistente del manguito merece evaluación.",
+    "related": [
+      "dolor-hombro",
+      "musculo-deltoides",
+      "musculo-trapecio"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Rotator Cuff",
+        "publisher": "StatPearls · 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/28722874/"
+      },
+      {
+        "title": "Shoulder muscle activity and function in common shoulder rehabilitation exercises",
+        "publisher": "Sports medicine (Auckland, N.Z.) · 2009",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/19769415/"
+      },
+      {
+        "title": "The effects of shoulder abduction angle and elastic band resistance on shoulder muscle activity during external rotation exercises",
+        "publisher": "Scientific reports · 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/41559205/"
+      }
+    ]
+  },
+  {
+    "id": "musculo-biceps",
+    "name": "Bíceps y braquial",
+    "category": "MUSCLES",
+    "short": "Músculos de la parte delantera del brazo que flexionan el codo y giran el antebrazo",
+    "aliases": [
+      "biceps brachii",
+      "brachialis",
+      "flexores del codo"
+    ],
+    "body": [
+      "El bíceps braquial ocupa la parte delantera del brazo y tiene dos cabezas: la corta nace en la apófisis coracoides de la escápula, y la larga, en el tubérculo supraglenoideo, cruza la articulación del hombro. Ambas se unen en un tendón que se inserta en la tuberosidad del radio. Por debajo está el braquial, que nace en la mitad inferior del húmero y se inserta en el cúbito; es el flexor principal del codo con independencia de la posición del antebrazo.",
+      "El bíceps flexiona el codo y gira la palma hacia arriba. Al extender el hombro, como en un curl inclinado, la cabeza larga queda más alargada. En un estudio de 12 semanas con 21 adultos sin experiencia de entrenamiento, el curl inclinado produjo algo más de crecimiento del bíceps, mientras que el curl de predicador, con el hombro flexionado, produjo más del braquial y del [[musculo-antebrazo|braquiorradial]]. El total de los flexores no difirió de forma clara entre ambos."
+    ],
+    "practice": "En la práctica, alterna el curl inclinado con el de predicador para no depender de un solo ángulo de hombro, sin balanceo del tronco. Como el total de flexores no cambió de forma clara, prioriza la carga y las repeticiones frente a buscar un ángulo mágico. Si notas dolor en el codo o en el [[dolor-hombro|hombro]], consulta antes de aumentar la carga.",
+    "related": [
+      "musculo-triceps",
+      "musculo-antebrazo",
+      "rom"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+        "publisher": "StatPearls · 2024",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+      },
+      {
+        "title": "Anatomy, Shoulder and Upper Limb, Brachialis Muscle",
+        "publisher": "StatPearls · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/31869094/"
+      },
+      {
+        "title": "Exercise-specific preferential hypertrophy of individual elbow flexor muscles after incline versus preacher dumbbell curl training",
+        "publisher": "Journal of sports sciences · 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/42829982/"
+      }
+    ]
+  },
+  {
+    "id": "musculo-triceps",
+    "name": "Tríceps",
+    "category": "MUSCLES",
+    "short": "Músculo de la parte posterior del brazo que extiende el codo; su cabeza larga cruza el hombro",
+    "aliases": [
+      "triceps brachii",
+      "cabeza larga del tríceps",
+      "extensores del codo"
+    ],
+    "body": [
+      "El tríceps braquial ocupa la cara posterior del brazo y tiene tres cabezas que se unen en un tendón común sobre el olécranon. La cabeza larga nace bajo la cavidad del hombro y cruza la articulación; las cabezas lateral y medial nacen en el húmero. Las tres extienden el codo, y la larga además extiende y aduce el hombro.",
+      "La cabeza larga queda más estirada con el brazo por encima de la cabeza. Es un ejemplo de [[longitud-muscular|entrenamiento en longitudes largas]]: en un estudio de 12 semanas con 21 adultos, las extensiones con el brazo por encima de la cabeza aumentaron más el volumen del tríceps que las hechas con el brazo en posición neutra, con cargas absolutas un 34 a 39 % más bajas. El mayor efecto se vio en la cabeza larga. El estudio compara la misma extensión en dos posiciones, no un ejercicio contra otro."
+    ],
+    "practice": "En la práctica, si quieres trabajar la cabeza larga, incluye una variante con el brazo por encima de la cabeza, con el tronco quieto y sin arquear la zona lumbar. Como la carga absoluta puede ser menor, progresa en repeticiones y calidad antes que en peso. Las extensiones en posición neutra también aumentaron el volumen, así que pueden combinarse. Si sientes dolor en el codo, reduce el rango y consulta.",
+    "related": [
+      "musculo-biceps",
+      "longitud-muscular",
+      "hipertrofia-regional"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Shoulder and Upper Limb, Triceps Muscle",
+        "publisher": "StatPearls · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30725681/"
+      },
+      {
+        "title": "Triceps brachii hypertrophy is substantially greater after elbow extension training performed in the overhead versus neutral arm position",
+        "publisher": "European journal of sport science · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/35819335/"
+      }
+    ]
+  },
+  {
+    "id": "musculo-antebrazo",
+    "name": "Antebrazo y agarre",
+    "category": "MUSCLES",
+    "short": "Músculos del antebrazo que mueven la muñeca y los dedos y determinan la fuerza de agarre",
+    "aliases": [
+      "forearm",
+      "fuerza de prensión",
+      "grip strength"
+    ],
+    "body": [
+      "El antebrazo reúne dos grupos de músculos. Los flexores, en la cara interna, nacen sobre todo en el epicóndilo medial del húmero y flexionan la muñeca y los dedos; el cubital anterior, por ejemplo, flexiona la muñeca y la desvía hacia el lado del meñique. Los extensores, en la cara externa, nacen en el epicóndilo lateral y extienden la muñeca y los dedos; el radial corto del carpo es uno de los más conocidos. Los flexores profundos y superficiales de los dedos, también en el antebrazo, son los que más cierran la mano.",
+      "La fuerza de agarre depende de estos músculos y tiene valor más allá del gimnasio. En el estudio PURE, con casi 140.000 personas de 17 países, una menor fuerza de prensión se asoció con más mortalidad y más eventos cardiovasculares. Es una asociación, no una prueba de que entrenar el agarre cambie ese riesgo, y el propio estudio pide comprobar si mejorar la fuerza reduce la mortalidad."
+    ],
+    "practice": "En la práctica, si un tirón o un [[patron-acarreo|acarreo]] se agota en las manos antes que en la espalda, el límite está en el antebrazo y conviene trabajarlo de forma específica. Entrena la extensión de muñeca con cargas moderadas para equilibrar los flexores, y usa correas solo en las series en que quieras aislar la espalda. Si notas dolor en la cara externa o interna del codo al agarrar, consulta antes de seguir.",
+    "related": [
+      "patron-acarreo",
+      "tendon",
+      "musculo-biceps"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Shoulder and Upper Limb, Forearm Flexor Carpi Ulnaris Muscle",
+        "publisher": "StatPearls · 2024",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30252307/"
+      },
+      {
+        "title": "Anatomy, Shoulder and Upper Limb, Forearm Extensor Carpi Radialis Brevis Muscle",
+        "publisher": "StatPearls · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30969541/"
+      },
+      {
+        "title": "Prognostic value of grip strength: findings from the Prospective Urban Rural Epidemiology (PURE) study",
+        "publisher": "Lancet (London, England) · 2015",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/25982160/"
+      }
+    ]
+  },
+  {
+    "id": "musculo-cuadriceps",
+    "name": "Cuádriceps",
+    "category": "MUSCLES",
+    "short": "Grupo de cuatro músculos del muslo delantero que extienden la rodilla",
+    "aliases": [
+      "quadriceps",
+      "cuádriceps femoral",
+      "recto femoral"
+    ],
+    "body": [
+      "El cuádriceps reúne cuatro músculos: el recto femoral, que cruza la cadera y la rodilla, y tres vastos (lateral, medial e intermedio), que solo cruzan la rodilla. Todos se unen en el tendón del cuádriceps, que cubre la rótula, y continúan por el ligamento rotuliano hasta la tuberosidad de la tibia. Su función principal es extender la rodilla; el recto femoral también flexiona la cadera, mientras que los vastos no dependen tanto de la posición de la cadera.",
+      "Las sentadillas cargan el cuádriceps con la rodilla bastante flexionada, y la extensión de rodilla lo hace con la rodilla casi extendida. En un estudio con 17 hombres, diez semanas de sentadilla completa aumentaron más el [[musculo-gluteos|glúteo mayor]] y los aductores que la media sentadilla, mientras que el recto femoral no cambió con ninguna de las dos. En otro, con 63 mujeres jóvenes, la extensión de rodilla engrosó más el recto femoral y la sentadilla, más el vasto lateral, sobre todo en la parte baja del muslo."
+    ],
+    "practice": "En la práctica, combina un patrón de [[patron-sentadilla|sentadilla]] con una variante de extensión de rodilla, porque los estudios muestran perfiles de crecimiento distintos. Si entrenas la profundidad, busca una que puedas controlar: en ese estudio con hombres, la sentadilla completa aumentó más la fuerza en esa misma profundidad, aunque el grupo era pequeño. Si notas [[dolor-femoropatelar|dolor delante de la rodilla]] al flexionarla, reduce el rango y consulta a un profesional sanitario.",
+    "related": [
+      "patron-sentadilla",
+      "patron-zancada",
+      "musculo-isquiosurales"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+        "publisher": "StatPearls · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30020706/"
+      },
+      {
+        "title": "Effects of squat training with different depths on lower limb muscle volumes",
+        "publisher": "European journal of applied physiology · 2019",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/31230110/"
+      },
+      {
+        "title": "Comparison of Muscle Hypertrophy and Strength Adaptations Induced by Back Squat and Leg Extension Resistance Exercises",
+        "publisher": "Journal of strength and conditioning research · 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/41379528/"
+      }
+    ]
+  },
+  {
+    "id": "musculo-isquiosurales",
+    "name": "Isquiosurales",
+    "category": "MUSCLES",
+    "short": "Tres músculos de la parte posterior del muslo que extienden la cadera y flexionan la rodilla",
+    "aliases": [
+      "hamstrings",
+      "isquiotibiales",
+      "bíceps femoral"
+    ],
+    "body": [
+      "Los isquiosurales son el bíceps femoral, el semitendinoso y el semimembranoso. Los tres nacen en la tuberosidad isquiática de la pelvis, salvo la cabeza corta del bíceps femoral, que nace en el fémur, y se insertan en la tibia y en la cabeza del peroné. Las cabezas largas cruzan la cadera y la rodilla, así que son biarticulares: extienden la cadera y flexionan la rodilla, mientras que la cabeza corta solo flexiona la rodilla.",
+      "Por ser biarticulares, se estiran a la vez con la cadera flexionada y la rodilla extendida, como al bajar la barra en un peso muerto rumano. En un estudio con 20 adultos, el curl sentado, con la cadera flexionada, aumentó más el volumen del grupo que el curl tumbado, y ambos redujeron de forma similar el daño tras un trabajo excéntrico. Una revisión de 2022 indica que sus brazos de momento son mayores en la cadera que en la rodilla. Entrenar en [[longitud-muscular|longitudes largas]] es una pista prometedora, aunque con pocos estudios."
+    ],
+    "practice": "En la práctica, combina la [[patron-bisagra|bisagra de cadera]] con el curl de rodilla, porque las dos posiciones dieron resultados distintos. Busca un estiramiento cómodo, con la espalda neutra y sin rebotar. Si notas un pinchazo agudo en la parte posterior del muslo, deja de entrenar y consulta, porque puede tratarse de una [[lesion-muscular|distensión]].",
+    "related": [
+      "longitud-muscular",
+      "patron-bisagra",
+      "lesion-muscular"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+        "publisher": "StatPearls · 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+      },
+      {
+        "title": "Greater Hamstrings Muscle Hypertrophy but Similar Damage Protection after Training at Long versus Short Muscle Lengths",
+        "publisher": "Medicine and science in sports and exercise · 2021",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/33009197/"
+      },
+      {
+        "title": "Hamstrings force-length relationships and their implications for angle-specific joint torques: a narrative review",
+        "publisher": "BMC sports science, medicine & rehabilitation · 2022",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/36064431/"
+      }
+    ]
+  },
+  {
+    "id": "musculo-gluteos",
+    "name": "Glúteos",
+    "category": "MUSCLES",
+    "short": "Tres músculos de la cadera que extienden y rotan el muslo y lo abducen",
+    "aliases": [
+      "glutes",
+      "gluteus maximus",
+      "glúteo mayor"
+    ],
+    "body": [
+      "Los glúteos son el mayor, el medio y el menor. El glúteo mayor, uno de los músculos más grandes del cuerpo, nace en el sacro y en la parte posterior del hueso ilíaco, y se inserta en el fémur y en la cintilla iliotibial; es el principal extensor de cadera. El glúteo medio nace en el ilion y se inserta en el trocánter mayor; abduce el muslo y estabiliza la pelvis al apoyar una sola pierna. El menor, más profundo, cumple una función parecida.",
+      "El empuje de cadera con barra (hip thrust) carga mucho el glúteo mayor. En un estudio con 13 mujeres entrenadas, activó más la parte alta y la baja de ese músculo y el bíceps femoral que la sentadilla, con cargas estimadas de 10 repeticiones máximas en cada ejercicio. Activar más no equivale a crecer: los propios autores piden estudios de entrenamiento largos."
+    ],
+    "practice": "En la práctica, el empuje de cadera es una opción directa si quieres enfatizar la extensión de cadera con carga, y la [[patron-sentadilla|sentadilla]] sigue siendo útil para el conjunto de la pierna. Para el glúteo medio, incluye trabajo de abducción o apoyo unipodal con control, porque el estudio no mide esa función. Mantén la zona lumbar neutra al final del movimiento y cuida la posición de los talones. Si sientes dolor en la cadera al moverla, consulta antes de cargar.",
+    "related": [
+      "patron-bisagra",
+      "patron-sentadilla",
+      "musculo-isquiosurales"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+        "publisher": "StatPearls · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+      },
+      {
+        "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+        "publisher": "StatPearls · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+      },
+      {
+        "title": "A Comparison of Gluteus Maximus, Biceps Femoris, and Vastus Lateralis Electromyographic Activity in the Back Squat and Barbell Hip Thrust Exercises",
+        "publisher": "Journal of applied biomechanics · 2015",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/26214739/"
+      }
+    ]
+  },
+  {
+    "id": "musculo-aductores",
+    "name": "Aductores",
+    "category": "MUSCLES",
+    "short": "Grupo de músculos del interior del muslo que juntan la pierna hacia la línea media",
+    "aliases": [
+      "adductors",
+      "aductores de cadera",
+      "hip adductors"
+    ],
+    "body": [
+      "Los aductores son el largo, el corto y el mayor, además del pectíneo y el recto interno o grácil. Nacen en el pubis y en la tuberosidad isquiática, y se insertan en la línea áspera del fémur, salvo el grácil, que baja hasta la parte interna de la tibia. Su función principal es juntar el muslo hacia la línea media, pero no son solo aductores: los anteriores ayudan a flexionar la cadera y los posteriores, a extenderla.",
+      "Su aporte cambia con el ejercicio. Un estudio de 2026 con 15 personas, que combinó modelos y electromiografía, estimó que el ejercicio de Copenhague generó las fuerzas más altas en la mayoría de aductores, y que el peso muerto y el peso muerto sumo las generaron sobre todo en la parte isquiática del aductor mayor, que responde a los ejercicios de extensión de [[patron-bisagra|cadera]]. Son estimaciones de modelo, no medidas directas, así que orientan la elección sin prometer resultados."
+    ],
+    "practice": "En la práctica, el ejercicio de Copenhague, tumbado de lado con la pierna de arriba apoyada en un banco, es una opción intensa; empieza con poca carga o con la palanca corta y progresa según tu tolerancia. En futbolistas, un programa de un solo ejercicio de aducción redujo las molestias de ingle durante una temporada en un ensayo con 35 equipos. Si notas [[dolor-y-entrenamiento|dolor en la ingle]] al aducir, consulta antes de añadir carga.",
+    "related": [
+      "patron-bisagra",
+      "patron-sentadilla",
+      "dolor-y-entrenamiento"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Adductor Magnus Muscle",
+        "publisher": "StatPearls · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30521263/"
+      },
+      {
+        "title": "The Adductor Strengthening Programme prevents groin problems among male football players: a cluster-randomised controlled trial",
+        "publisher": "British journal of sports medicine · 2019",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/29891614/"
+      },
+      {
+        "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+        "publisher": "Medicine and science in sports and exercise · 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+      }
+    ]
+  },
+  {
+    "id": "musculo-pantorrilla",
+    "name": "Gemelos y sóleo",
+    "category": "MUSCLES",
+    "short": "Gastrocnemio y sóleo, los músculos de la pantorrilla que flexionan el tobillo",
+    "aliases": [
+      "gastrocnemius",
+      "soleus",
+      "pantorrilla"
+    ],
+    "body": [
+      "La pantorrilla está formada por el gastrocnemio, con dos cabezas que nacen detrás de los cóndilos del fémur, y por el sóleo, más profundo, que nace en la tibia y el peroné. Ambos se unen en el tendón de Aquiles, que se inserta en el calcáneo. Su función principal es la flexión plantar del tobillo, es decir, ponerse de puntillas; el gastrocnemio también flexiona la rodilla, de forma secundaria.",
+      "La posición de la rodilla cambia el estímulo: con la rodilla extendida el gastrocnemio se alarga, y con la rodilla flexionada se acorta. En un estudio de 12 semanas con 14 adultos, la elevación de talones de pie hizo crecer más el gastrocnemio que la sentada, y el sóleo creció por igual. Otro estudio con 42 mujeres halló que el rango parcial de la parte más estirada aumentó más el gastrocnemio medial que el rango completo, lo que sugiere que [[longitud-muscular|entrenar en longitudes largas]] puede aportar algo."
+    ],
+    "practice": "En la práctica, combina una variante de pie y otra sentado para trabajar el gastrocnemio y el sóleo de forma distinta. Puedes usar un rango completo con una pausa en el estiramiento inferior. Si notas un pinchazo fuerte en el gemelo o en el tendón de Aquiles, deja de entrenar y consulta a un profesional sanitario.",
+    "related": [
+      "longitud-muscular",
+      "rom",
+      "tendinopatia"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Bony Pelvis and Lower Limb: Calf",
+        "publisher": "StatPearls · 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/29083629/"
+      },
+      {
+        "title": "Triceps surae muscle hypertrophy is greater after standing versus seated calf-raise training",
+        "publisher": "Frontiers in physiology · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/38156065/"
+      },
+      {
+        "title": "Greater Gastrocnemius Muscle Hypertrophy After Partial Range of Motion Training Performed at Long Muscle Lengths",
+        "publisher": "Journal of strength and conditioning research · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/37015016/"
+      }
+    ]
+  },
+  {
+    "id": "musculo-abdominales",
+    "name": "Abdominales y oblicuos",
+    "category": "MUSCLES",
+    "short": "Músculos de la pared abdominal que flexionan y rotan el tronco y ayudan a rigidizarlo",
+    "aliases": [
+      "abs",
+      "recto abdominal",
+      "transverso del abdomen"
+    ],
+    "body": [
+      "La pared abdominal tiene cuatro capas musculares. El recto del abdomen, el más superficial, va desde el pubis hasta las costillas inferiores y el esternón, y flexiona el tronco. Los oblicuos externo e interno cruzan los laterales: el externo rota el tronco hacia el lado contrario y el interno, hacia el mismo lado, y ambos lo flexionan. El transverso, el más profundo, rodea el abdomen como un corsé y contribuye a comprimir el contenido abdominal.",
+      "Por eso no todos los abdominales se activan igual en cada ejercicio. En un estudio con 21 personas, la rueda abdominal, la elevación de rodillas colgado de correas y el crunch inverso en banco inclinado 30 grados activaron más el recto y el oblicuo interno que los ejercicios tradicionales. Algunas de esas variantes también elevaron la actividad del recto femoral, lo que puede ser problemático para personas con [[lumbalgia|dolor lumbar]], y los extensores de la espalda apenas se activaron en ninguna."
+    ],
+    "practice": "En la práctica, combina ejercicios de flexión, rotación y antiextensión, como los de [[patron-core|antiextensión y antirrotación]], en lugar de repetir solo crunches, y mide la calidad del movimiento más que el número de repeticiones. Si una variante provoca dolor lumbar o en la ingle, cámbiala por otra más sencilla y consulta a un profesional sanitario. Recuerda que estos datos miden activación, no fuerza ni crecimiento.",
+    "related": [
+      "patron-core",
+      "bracing-valsalva",
+      "musculo-erectores"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Anterolateral Abdominal Wall Muscles",
+        "publisher": "StatPearls · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/29262084/"
+      },
+      {
+        "title": "Electromyographic analysis of traditional and nontraditional abdominal exercises: implications for rehabilitation and training",
+        "publisher": "Physical therapy · 2006",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/16649890/"
+      }
+    ]
+  },
+  {
+    "id": "musculo-erectores",
+    "name": "Erectores espinales",
+    "category": "MUSCLES",
+    "short": "Músculos paralelos a la columna que extienden la espalda y la inclinan hacia los lados",
+    "aliases": [
+      "erector spinae",
+      "paraespinales",
+      "extensores lumbares"
+    ],
+    "body": [
+      "Los erectores espinales son tres columnas musculares que recorren la columna a ambos lados de las apófisis espinosas: el iliocostal, el largo del dorso y el espinoso. Nacen en la parte posterior del sacro y del ilion, y se insertan en las costillas y en las vértebras a lo largo de la espalda. Su función principal es extender la columna y flexionarla hacia los lados; también controlan la inclinación hacia delante cuando cargas peso.",
+      "El peso muerto, la sentadilla y el buenos días activan los erectores de forma notable. Una revisión de 2015 señaló que esos ejercicios compuestos los activan, pero que su capacidad para producir adaptaciones específicas de los extensores lumbares es menos clara, porque también participan mucho los extensores de cadera. Las máquinas con sujeción pélvica que aíslan la extensión lumbar tienen mejor respaldo para esa adaptación específica."
+    ],
+    "practice": "En la práctica, el peso muerto y el buenos días siguen siendo útiles para la espalda baja, pero si tu objetivo es aislar la extensión lumbar, una máquina con sujeción pélvica encaja mejor con la evidencia. Mantén la columna neutra en cualquier levantamiento con carga y progresa solo cuando la técnica se sostenga. Si el [[lumbalgia|dolor lumbar]] se irradia a la pierna o no cede en reposo, consulta antes de cargar la espalda.",
+    "related": [
+      "musculo-abdominales",
+      "patron-bisagra",
+      "lumbalgia"
+    ],
+    "sources": [
+      {
+        "title": "Anatomy, Back, Muscles",
+        "publisher": "StatPearls · 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+      },
+      {
+        "title": "A review of the specificity of exercises designed for conditioning the lumbar extensors",
+        "publisher": "British journal of sports medicine · 2015",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/24092889/"
+      }
+    ]
+  },
+  {
+    "id": "bracing-valsalva",
+    "name": "Bracing y maniobra de Valsalva",
+    "category": "MOVEMENT",
+    "short": "Contraer el abdomen, a veces cerrando la glotis, para subir la presión y rigidizar el tronco",
+    "aliases": [
+      "Valsalva",
+      "bracing",
+      "presión intraabdominal"
+    ],
+    "body": [
+      "El bracing es la contracción coordinada de los [[musculo-abdominales|músculos abdominales]] y lumbares para rigidizar el tronco, y suele combinarse con una respiración controlada. La maniobra de Valsalva es una variante en la que se cierra la glotis mientras se intenta espirar, lo que eleva aún más la presión dentro del tórax y del abdomen. Esa presión intraabdominal aumenta la rigidez de la columna lumbar: en un estudio experimental con solo tres personas, al elevarla sin contraer los músculos del tronco, la columna se volvió más rígida.",
+      "Con cargas altas, por encima del 80 % de la fuerza máxima voluntaria, o al llegar cerca del fallo, la maniobra es casi inevitable. Según una revisión de 2013, la maniobra eleva la presión intraabdominal y puede ayudar a estabilizar el tronco, pero también se asocia con aumentos de la presión arterial durante el esfuerzo, y sus riesgos para la salud en el gimnasio siguen sin confirmarse."
+    ],
+    "practice": "En la práctica, aprende a contraer el abdomen y a respirar de forma controlada antes de subir cargas altas, sin retener el aire de manera prolongada. Si tienes hipertensión, una enfermedad cardiovascular o antecedentes de problemas del corazón, consulta con tu médico antes de hacer maniobras de Valsalva con cargas altas. Si notas mareo, visión borrosa o dolor en el pecho durante el esfuerzo, detente y busca atención médica.",
+    "related": [
+      "musculo-abdominales",
+      "carga-axial",
+      "patron-core"
+    ],
+    "sources": [
+      {
+        "title": "Valsalva Maneuver",
+        "publisher": "StatPearls · 2025",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/30725933/"
+      },
+      {
+        "title": "The Valsalva maneuver: its effect on intra-abdominal pressure and safety issues during resistance exercise",
+        "publisher": "Journal of strength and conditioning research · 2013",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/23222073/"
+      },
+      {
+        "title": "Intra-abdominal pressure increases stiffness of the lumbar spine",
+        "publisher": "Journal of biomechanics · 2005",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/16023475/"
+      }
+    ]
+  },
+  {
+    "id": "brazo-momento",
+    "name": "Brazo de momento",
+    "category": "MOVEMENT",
+    "short": "Distancia perpendicular entre la línea de la fuerza y el eje articular, que cambia con el ángulo",
+    "aliases": [
+      "moment arm",
+      "brazo de palanca",
+      "lever arm"
+    ],
+    "body": [
+      "El brazo de momento es la distancia perpendicular entre la línea de acción de una fuerza y el eje de la articulación. Multiplicado por la fuerza, da el par o torque que esa fuerza ejerce sobre la articulación. Como esa distancia cambia con el ángulo, la dificultad de un ejercicio varía a lo largo del recorrido aunque la carga sea la misma; los músculos también tienen su propio brazo de momento.",
+      "En el hombro, el deltoides anterior tiene un brazo de momento muy pequeño con el brazo bajo, así que su capacidad para elevar el brazo en esa zona es baja; el deltoides es más eficaz a ángulos altos y el [[manguito-rotador|manguito rotador]], a ángulos bajos. Algunas máquinas con leva modifican a propósito ese brazo: en un estudio de 2026 con una leva de extensión de pierna, el par se pareció al de un dinamómetro isocinético en la parte inicial y media del recorrido."
+    ],
+    "practice": "En la práctica, si un ejercicio resulta muy difícil solo en un tramo, pregunta primero por el [[perfil-resistencia|perfil de resistencia]] antes de culpar a la carga, porque ahí puede estar el punto de mayor par. Para comparar máquinas o variantes, anota el ángulo donde el esfuerzo es máximo además del peso. Si sientes dolor en una posición concreta, no fuerces ese rango y consulta si persiste.",
+    "related": [
+      "perfil-resistencia",
+      "tension-mecanica",
+      "rom"
+    ],
+    "sources": [
+      {
+        "title": "Shoulder muscle activity and function in common shoulder rehabilitation exercises",
+        "publisher": "Sports medicine (Auckland, N.Z.) · 2009",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/19769415/"
+      },
+      {
+        "title": "Hamstrings force-length relationships and their implications for angle-specific joint torques: a narrative review",
+        "publisher": "BMC sports science, medicine & rehabilitation · 2022",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/36064431/"
+      },
+      {
+        "title": "Angle-torque relationship and muscular activity patterns during concentric contractions with a novel variable cam system",
+        "publisher": "Frontiers in sports and active living · 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/42870857/"
+      }
+    ]
+  }
+]

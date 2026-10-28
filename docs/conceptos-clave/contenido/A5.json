@@ -1,0 +1,337 @@
+[
+  {
+    "id": "balance-energetico",
+    "name": "Balance energético",
+    "category": "NUTRITION",
+    "short": "Diferencia entre la energía que ingieres y la que gastas, y su efecto sobre el peso",
+    "aliases": ["balance calórico", "energy balance"],
+    "body": [
+      "El balance energético es la diferencia entre la energía que ingieres y la que tu cuerpo gasta en un periodo ([[gasto-energetico|gasto energético total]]). Si entra más energía de la que sale, el peso tiende a subir, y si sale más, tiende a bajar. La respuesta es lenta: en el modelo de Hall y col. para adultos, publicado en The Lancet, el peso tarda alrededor de un año en recorrer la mitad del cambio esperado, y las personas con más grasa corporal pierden más ante el mismo cambio de ingesta.",
+      "El matiz que suele olvidarse es que el desfase necesario para cambiar el peso es pequeño y persistente. En ese modelo, el aumento medio de peso de los adultos estadounidenses se explica por un desfase de unos 30 kJ diarios, algo más de 7 kcal, que se acumula durante años. Loucks y col. sostienen además que, para planificar la dieta de un atleta, la disponibilidad energética, es decir, la energía que queda para las funciones corporales tras descontar el ejercicio, es más útil que el balance simple."
+    ],
+    "practice": "En la práctica, pesa a diario a la misma hora y mira la media semanal, no un dato aislado. Si la tendencia no cambia tras varias semanas con un plan estable, revisa primero el registro de comidas y bebidas, y después el ejercicio no programado.",
+    "related": ["gasto-energetico", "deficit-calorico", "adaptacion-metabolica"],
+    "sources": [
+      {"title": "Quantification of the effect of energy imbalance on bodyweight", "publisher": "The Lancet · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/21872751/"},
+      {"title": "Energy availability in athletes", "publisher": "Journal of Sports Sciences · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/21793767/"}
+    ]
+  },
+  {
+    "id": "gasto-energetico",
+    "name": "Gasto energético total (TDEE)",
+    "category": "NUTRITION",
+    "short": "Energía total que quemas al día, desde el metabolismo en reposo hasta la actividad",
+    "aliases": ["TDEE", "gasto energético diario", "total daily energy expenditure"],
+    "body": [
+      "El gasto energético total, o TDEE por sus siglas en inglés, es la energía que tu cuerpo utiliza en 24 horas: metabolismo en reposo, digestión, actividad cotidiana y ejercicio. El metabolismo en reposo se estima con ecuaciones, y en la revisión de Frankenfield y col. la de Mifflin-St Jeor fue la que más personas predijo dentro de un 10 % del valor medido, aunque en individuos concretos los errores pueden ser notables.",
+      "El gasto no crece sin límite con la actividad. Pontzer y col. midieron con agua doblemente marcada el gasto de 332 adultos de cinco poblaciones y observaron que, por encima de cierto nivel de actividad, el gasto total se estabiliza, lo que sugiere un ajuste del organismo. Otro estudio, con datos desde recién nacidos hasta los 95 años, muestra que el gasto ajustado por masa libre de grasa se mantiene estable entre los 20 y los 60 años. Por eso, sumar sesiones no siempre eleva el gasto total en la misma proporción."
+    ],
+    "practice": "En la práctica, usa la estimación solo como punto de partida y ajústala con tus datos reales de peso y comida durante varias semanas. Si añades mucho ejercicio, no supongas que el gasto sube igual cada día, y ten en cuenta la [[neat|actividad cotidiana]] que no cuentas como entreno.",
+    "related": ["balance-energetico", "neat", "adaptacion-metabolica"],
+    "sources": [
+      {"title": "Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review", "publisher": "Journal of the American Dietetic Association · 2005", "url": "https://pubmed.ncbi.nlm.nih.gov/15883556/"},
+      {"title": "Constrained Total Energy Expenditure and Metabolic Adaptation to Physical Activity in Adult Humans", "publisher": "Current Biology · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/26832439/"},
+      {"title": "Daily energy expenditure through the human life course", "publisher": "Science · 2021", "url": "https://pubmed.ncbi.nlm.nih.gov/34385400/"}
+    ]
+  },
+  {
+    "id": "neat",
+    "name": "NEAT y pasos diarios",
+    "category": "NUTRITION",
+    "short": "Energía de la actividad cotidiana fuera del entrenamiento, como caminar o estar de pie",
+    "aliases": ["NEAT", "non-exercise activity thermogenesis", "contador de pasos"],
+    "body": [
+      "NEAT son las siglas de «nonexercise activity thermogenesis», la energía que gastas en la vida diaria fuera del ejercicio, como caminar o estar de pie. Según Levine, es una pieza central de la regulación del gasto y del peso, y puede variar mucho: dos personas de tamaño parecido pueden diferir en unas 2000 kcal diarias. En un estudio con diez personas delgadas y diez con obesidad leve, estas últimas pasaban unas dos horas más sentadas al día, y según los autores podrían gastar unas 350 kcal más si adoptaran las conductas de las delgadas.",
+      "Los pasos son una forma sencilla de medir esa actividad. En un metaanálisis de 15 cohortes internacionales, con 47 471 adultos, Paluch y col. encontraron que cuantos más pasos, menor mortalidad por cualquier causa, y que el beneficio seguía creciendo hasta unos 6000-8000 pasos diarios en mayores de 60 años y hasta 8000-10 000 en menores de 60. Los autores señalan que la cifra popular de 10 000 pasos tiene poca evidencia que la respalde. Es un dato de salud general, no de hipertrofia."
+    ],
+    "practice": "En la práctica, mide primero tu línea base de pasos durante varios días normales antes de fijarte un objetivo. Para sumar actividad sin restar recuperación, sube poco a poco, por ejemplo caminando tras las comidas. La actividad de base no sustituye a la [[sobrecarga-progresiva|sobrecarga progresiva]] del entrenamiento de fuerza.",
+    "related": ["gasto-energetico", "balance-energetico", "deficit-calorico"],
+    "sources": [
+      {"title": "Interindividual variation in posture allocation: possible role in human obesity", "publisher": "Science · 2005", "url": "https://pubmed.ncbi.nlm.nih.gov/15681386/"},
+      {"title": "Nonexercise activity thermogenesis--liberating the life-force", "publisher": "Journal of Internal Medicine · 2007", "url": "https://pubmed.ncbi.nlm.nih.gov/17697152/"},
+      {"title": "Daily steps and all-cause mortality: a meta-analysis of 15 international cohorts", "publisher": "The Lancet Public Health · 2022", "url": "https://pubmed.ncbi.nlm.nih.gov/35247352/"}
+    ]
+  },
+  {
+    "id": "deficit-calorico",
+    "name": "Déficit calórico",
+    "category": "NUTRITION",
+    "short": "Comer menos energía de la que gastas para perder peso, con un ritmo controlado",
+    "aliases": ["déficit energético", "calorie deficit", "restricción calórica"],
+    "body": [
+      "Un déficit calórico significa comer por debajo de tu gasto total, y el resultado es perder peso. Para preparar una competición de culturismo natural, Helms y col. proponen perder entre el 0,5 y el 1 % del peso por semana para maximizar la retención muscular. Garthe y col. compararon en 24 atletas de élite una pérdida del 0,7 % semanal con otra del 1,4 %: la lenta aumentó la masa magra un 2,1 % y la rápida no la cambió, por lo que recomiendan el ritmo lento a quien quiera ganar masa magra y fuerza en ese periodo.",
+      "El matiz que suele olvidarse es que un déficit grande, además de quitar grasa, puede frenar la [[hipertrofia-muscular|ganancia de masa magra]]. Murphy y Koehler, en un metaanálisis de ensayos de fuerza en déficit, hallaron que la masa magra ganaba menos mientras que la fuerza se mantenía parecida, y que un déficit de unas 500 kcal diarias impidió esas ganancias. Helms y col., en su guía de preparación, proponen 2,3 a 3,1 g de proteína por kilo de masa magra al día."
+    ],
+    "practice": "En la práctica, empieza con un déficit moderado y revisa el ritmo cada semana. Si la fuerza cae de forma sostenida en tus series principales, sube un poco la energía antes de seguir. Si tienes una condición médica o tomas medicación, consulta antes con un profesional sanitario.",
+    "related": ["recomposicion", "adaptacion-metabolica", "balance-energetico"],
+    "sources": [
+      {"title": "Energy deficiency impairs resistance training gains in lean mass but not strength: A meta-analysis and meta-regression", "publisher": "Scandinavian Journal of Medicine & Science in Sports · 2022", "url": "https://pubmed.ncbi.nlm.nih.gov/34623696/"},
+      {"title": "Effect of two different weight-loss rates on body composition and strength and power-related performance in elite athletes", "publisher": "International Journal of Sport Nutrition and Exercise Metabolism · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/21558571/"},
+      {"title": "Evidence-based recommendations for natural bodybuilding contest preparation: nutrition and supplementation", "publisher": "Journal of the International Society of Sports Nutrition · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24864135/"}
+    ]
+  },
+  {
+    "id": "superavit-calorico",
+    "name": "Superávit y fase de volumen",
+    "category": "NUTRITION",
+    "short": "Comer por encima del gasto para ganar masa, con una ganancia de peso lenta y controlada",
+    "aliases": ["superávit calórico", "bulking", "energy surplus"],
+    "body": [
+      "Un superávit calórico consiste en ingerir más energía de la que gastas para ofrecer al cuerpo material con el que construir tejido. La fase de volumen es el periodo en el que se busca ganar masa muscular con un ligero exceso de energía. La cuestión práctica es cuánto superávit hace falta. Según Slater y col., la cantidad exacta necesaria para maximizar la [[hipertrofia-muscular|hipertrofia]] es desconocida y las estimaciones no se han validado en poblaciones que entrenan con pesas; aun así, hay evidencia de un estímulo anabólico del superávit incluso sin entrenamiento de fuerza.",
+      "Una revisión narrativa de Iraki y col., dirigida a culturistas en fase de volumen, propone un superávit de alrededor del 10 al 20 %, con una ganancia objetivo de entre el 0,25 y el 0,5 % del peso corporal por semana en principiantes e intermedios, y más conservadora en los avanzados. Es un texto narrativo, no un ensayo controlado. Esa falta de cifra validada es el matiz más importante: la pauta debe ajustarse con la propia respuesta."
+    ],
+    "practice": "En la práctica, empieza con un superávit pequeño y observa durante varias semanas la tendencia del peso y la fuerza en tus ejercicios principales. Si la cintura crece más deprisa que tus cargas, reduce el exceso. Si la comida te cuesta o tienes antecedentes de trastornos alimentarios, busca apoyo profesional antes de empezar.",
+    "related": ["deficit-calorico", "recomposicion", "sobrecarga-progresiva"],
+    "sources": [
+      {"title": "Is an Energy Surplus Required to Maximize Skeletal Muscle Hypertrophy Associated With Resistance Training", "publisher": "Frontiers in Nutrition · 2019", "url": "https://pubmed.ncbi.nlm.nih.gov/31482093/"},
+      {"title": "Nutrition Recommendations for Bodybuilders in the Off-Season: A Narrative Review", "publisher": "Sports · 2019", "url": "https://pubmed.ncbi.nlm.nih.gov/31247944/"}
+    ]
+  },
+  {
+    "id": "recomposicion",
+    "name": "Recomposición corporal",
+    "category": "NUTRITION",
+    "short": "Perder grasa y ganar masa magra a la vez, con un plan de proteína y entrenamiento de fuerza",
+    "aliases": ["body recomposition", "recomp"],
+    "body": [
+      "La recomposición consiste en perder grasa y ganar masa magra a la vez, sin que el peso total cambie mucho. Un ensayo aleatorizado de Longland y col. ilustra la idea: durante cuatro semanas, con una dieta que aportaba alrededor de un 40 % menos de energía de la necesaria y entrenamiento de fuerza combinado con intervalos de alta intensidad, los hombres jóvenes que tomaron 2,4 g de proteína por kilo al día ganaron 1,2 kg de masa magra y perdieron 4,8 kg de grasa, frente a 0,1 kg y 3,5 kg en el grupo con 1,2 g/kg.",
+      "Hay que leer estos resultados con cautela: son estudios pequeños y cortos, y el de Longland incluyó hombres jóvenes que entrenaban. Garthe y col. encontraron en atletas de élite que entrenaban fuerza que perder un 0,7 % del peso por semana permitió ganar masa magra, mientras que con un 1,4 % no. Murphy y Koehler, por su parte, señalan que un déficit de unas 500 kcal diarias puede impedir las ganancias de masa magra, así que la recomposición pide un déficit moderado y bien planificado."
+    ],
+    "practice": "En la práctica, si buscas recomponer, combina un [[deficit-calorico|déficit moderado]] con proteína repartida en varias comidas y un programa de fuerza con progresión. Mide el avance con peso promediado, perímetros y fuerza en tus ejercicios principales. Si la fuerza cae de forma sostenida, reduce el déficit antes de seguir.",
+    "related": ["deficit-calorico", "superavit-calorico", "proteina-diaria"],
+    "sources": [
+      {"title": "Higher compared with lower dietary protein during an energy deficit combined with intense exercise promotes greater lean mass gain and fat mass loss: a randomized trial", "publisher": "The American Journal of Clinical Nutrition · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/26817506/"},
+      {"title": "Effect of two different weight-loss rates on body composition and strength and power-related performance in elite athletes", "publisher": "International Journal of Sport Nutrition and Exercise Metabolism · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/21558571/"},
+      {"title": "Energy deficiency impairs resistance training gains in lean mass but not strength: A meta-analysis and meta-regression", "publisher": "Scandinavian Journal of Medicine & Science in Sports · 2022", "url": "https://pubmed.ncbi.nlm.nih.gov/34623696/"}
+    ]
+  },
+  {
+    "id": "proteina-diaria",
+    "name": "Proteína diaria",
+    "category": "NUTRITION",
+    "short": "Cantidad total de proteína que conviene consumir al día para ganar o conservar músculo",
+    "aliases": ["ingesta de proteína", "protein intake", "requerimiento proteico"],
+    "body": [
+      "La proteína aporta los aminoácidos que la síntesis de proteína muscular necesita para reparar y construir tejido tras el entrenamiento. Para quien entrena fuerza y quiere ganar músculo, la pregunta práctica es cuánta proteína al día basta. Morton y col. ([[estudio-proteina|estudio de 2018]]) reunieron en un metaanálisis 49 estudios con 1863 participantes: la suplementación con proteína aumentó la fuerza y la masa libre de grasa con el entrenamiento de resistencia, pero por encima de unos 1,6 g/kg al día no encontraron más ganancias de masa libre de grasa.",
+      "La ISSN, en su posición sobre proteína y ejercicio, considera que entre 1,4 y 2 g/kg al día bastan para la mayoría de personas que hacen ejercicio, y que en periodos hipocalóricos pueden hacer falta de 2,3 a 3,1 g/kg para retener masa magra en quienes entrenan fuerza. La edad también influye: en el metaanálisis de Morton, el efecto de la suplementación sobre la masa magra disminuía con la edad, y la experiencia en el entrenamiento lo aumentaba. Más proteína por encima de esos valores no garantiza más músculo."
+    ],
+    "practice": "En la práctica, calcula tu cifra a partir de tu peso y reparte la mayoría de las raciones en las comidas principales. Si entrenas en déficit, el objetivo puede situarse en el tramo alto del rango. Si tienes una enfermedad renal o estás bajo tratamiento médico, consulta antes con un profesional sanitario.",
+    "related": ["distribucion-proteina", "proteina-polvo", "sintesis-proteica-muscular"],
+    "sources": [
+      {"title": "A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength in healthy adults", "publisher": "British Journal of Sports Medicine · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/28698222/"},
+      {"title": "International Society of Sports Nutrition Position Stand: protein and exercise", "publisher": "Journal of the International Society of Sports Nutrition · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28642676/"}
+    ]
+  },
+  {
+    "id": "distribucion-proteina",
+    "name": "Reparto de proteína y leucina",
+    "category": "NUTRITION",
+    "short": "Cómo repartir la proteína del día en varias comidas y cuánta cabe en cada una",
+    "aliases": ["protein distribution", "leucina", "dosis de proteína por comida"],
+    "body": [
+      "Repartir la proteína consiste en tomarla en varias raciones a lo largo del día en lugar de concentrarla en una sola comida. En un estudio cruzado con ocho adultos sanos, Mamerow y col. compararon un reparto uniforme, de unos 30 g en el desayuno, la comida y la cena, con otro sesgado hacia la cena, de 63 g en esa toma. La síntesis de proteína muscular de 24 horas fue un 25 % mayor con el reparto uniforme. Es un estudio pequeño, pero sugiere que conviene no concentrarla en la cena.",
+      "Cuánta proteína cabe en cada toma es menos sencillo de lo que parece. La ISSN propone de 20 a 40 g por toma, o unos 0,25 g/kg, con entre 700 y 3000 mg de leucina y tomas cada tres o cuatro horas. Schoenfeld y Aragon sugieren unos 0,4 g/kg por comida en al menos cuatro comidas para llegar a 1,6 g/kg al día, y un máximo de 0,55 g/kg por comida si la ingesta llega a 2,2 g/kg."
+    ],
+    "practice": "En la práctica, reparte la [[proteina-diaria|proteína del día]] en tres o cuatro comidas y no dejes casi todo para la cena. Un yogur, unos huevos o un batido pueden facilitar una toma en el desayuno. Si tienes problemas de salud que limiten las raciones, consulta a un profesional sanitario.",
+    "related": ["proteina-diaria", "sintesis-proteica-muscular", "comida-entreno"],
+    "sources": [
+      {"title": "Dietary protein distribution positively influences 24-h muscle protein synthesis in healthy adults", "publisher": "The Journal of Nutrition · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24477298/"},
+      {"title": "How much protein can the body use in a single meal for muscle-building? Implications for daily protein distribution", "publisher": "Journal of the International Society of Sports Nutrition · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/29497353/"},
+      {"title": "International Society of Sports Nutrition Position Stand: protein and exercise", "publisher": "Journal of the International Society of Sports Nutrition · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28642676/"}
+    ]
+  },
+  {
+    "id": "carbohidratos",
+    "name": "Carbohidratos y rendimiento",
+    "category": "NUTRITION",
+    "short": "Glucosa almacenada como glucógeno que alimenta el esfuerzo intenso y la recuperación",
+    "aliases": ["hidratos de carbono", "glucógeno", "carbohydrate availability"],
+    "body": [
+      "Los carbohidratos son una fuente clave de energía para el esfuerzo intenso y se almacenan como [[sistemas-energeticos|glucógeno]] en músculo e hígado. Burke y col. describen la disponibilidad de carbohidratos según lo que comes antes, durante y después de la sesión. En esfuerzos intensos de alrededor de una hora, incluso enjuagarse la boca con una bebida con carbohidratos puede mejorar el rendimiento. Para deportes de larga duración, la referencia es de 30 a 60 g por hora, y en eventos de más de dos horas y media pueden convenir hasta 90 g.",
+      "Impey y col. presentan un marco teórico, la hipótesis del umbral de glucógeno, según el cual entrenar con poco carbohidrato de forma periódica puede activar señales de adaptación, aunque esas adaptaciones no siempre se traducen en mejor rendimiento. Thomas y col., en la posición conjunta de las academias de nutrición y del ACSM, recuerdan que el rendimiento y la recuperación mejoran con estrategias bien elegidas, y que conviene un plan personalizado con un dietista-nutricionista."
+    ],
+    "practice": "En la práctica, come carbohidratos suficientes en las horas previas a la sesión importante y programa una pequeña cantidad durante entrenamientos largos o intensos. Para la recuperación, reparte los carbohidratos a lo largo del día. Si entrenas con poco carbohidrato a propósito, hazlo con un plan y observa si el rendimiento se resiente antes de mantenerlo.",
+    "related": ["fatiga-sistemica", "comida-entreno", "sistemas-energeticos"],
+    "sources": [
+      {"title": "Carbohydrates for training and competition", "publisher": "Journal of Sports Sciences · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/21660838/"},
+      {"title": "Position of the Academy of Nutrition and Dietetics, Dietitians of Canada, and the American College of Sports Medicine: Nutrition and Athletic Performance", "publisher": "Journal of the Academy of Nutrition and Dietetics · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/26920240/"},
+      {"title": "Fuel for the Work Required: A Theoretical Framework for Carbohydrate Periodization and the Glycogen Threshold Hypothesis", "publisher": "Sports Medicine · 2018", "url": "https://pubmed.ncbi.nlm.nih.gov/29453741/"}
+    ]
+  },
+  {
+    "id": "grasas",
+    "name": "Grasas en la dieta",
+    "category": "NUTRITION",
+    "short": "Macronutriente con más energía por gramo, que comparte el total calórico con los carbohidratos",
+    "aliases": ["lípidos", "grasa dietética", "dietary fat"],
+    "body": [
+      "Las grasas de la dieta son un macronutriente que aporta energía y que comparte el total calórico con los carbohidratos y la proteína. Cuanta más grasa, menos margen queda para los otros dos en el mismo total, así que cuánta grasa comer es una decisión práctica más que una norma. Helms y col., en su guía para la preparación de competiciones de culturismo natural, proponen que la grasa suponga entre el 15 y el 30 % de las calorías, con el resto repartido entre carbohidratos y proteína.",
+      "Un estudio cruzado con once deportistas de duatlón comparó cinco semanas con una dieta que aportaba un 53 % de grasa frente a otra con un 17 %. El rendimiento máximo, la potencia y los tiempos de prueba no cambiaron, y el glucógeno muscular tendió a ser menor con la dieta rica en grasa, aunque la diferencia no fue significativa. Vogt y col. observaron, en cambio, más grasa intramuscular con esa dieta. Es un estudio pequeño y corto."
+    ],
+    "practice": "En la práctica, fija la grasa como porcentaje de la energía total y ajusta el resto con [[carbohidratos|carbohidratos]] y proteína. Prioriza grasas de alimentos enteros, como frutos secos o aceite de oliva, y cuida el tamaño de las raciones. Si tienes el colesterol alterado, consulta a un profesional sanitario antes de cambiar tu grasa de forma notable.",
+    "related": ["carbohidratos", "proteina-diaria", "balance-energetico"],
+    "sources": [
+      {"title": "Evidence-based recommendations for natural bodybuilding contest preparation: nutrition and supplementation", "publisher": "Journal of the International Society of Sports Nutrition · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24864135/"},
+      {"title": "Effects of dietary fat on muscle substrates, metabolism, and performance in athletes", "publisher": "Medicine and Science in Sports and Exercise · 2003", "url": "https://pubmed.ncbi.nlm.nih.gov/12783043/"}
+    ]
+  },
+  {
+    "id": "fibra",
+    "name": "Fibra",
+    "category": "NUTRITION",
+    "short": "Carbohidratos que el intestino digiere poco y que aportan volumen y saciedad a la dieta",
+    "aliases": ["fibra dietética", "dietary fibre", "fibra soluble"],
+    "body": [
+      "La fibra dietética es un conjunto de carbohidratos que el intestino digiere poco o nada, presentes en verduras, legumbres, cereales integrales, frutas y frutos secos. Se distingue entre fibra soluble, que forma geles en el intestino, y fibra insoluble, que aporta volumen. Para quien entrena, su interés práctico está sobre todo en la salud general y en la saciedad. En un metaanálisis de estudios de cohortes, Threapleton y col. encontraron que cada 7 g diarios más de fibra se asociaban a un riesgo cardiovascular un 9 % menor.",
+      "Su efecto sobre el apetito es real pero modesto. Wanders y col. revisaron ensayos controlados aleatorizados y concluyeron que las fibras más viscosas, como las pectinas, los betaglucanos o la goma guar, redujeron el apetito con más frecuencia que las menos viscosas, mientras que los efectos sobre la ingesta y el peso fueron en conjunto pequeños. En una serie de revisiones de Reynolds y col., el mayor beneficio apareció con unos 25 a 29 g diarios de fibra."
+    ],
+    "practice": "En la práctica, reparte la fibra en las comidas del día con verduras, legumbres, fruta entera y cereales integrales, que también aportan [[micronutrientes-clave|micronutrientes]], y sube su cantidad poco a poco si la tienes baja. Si notas molestias digestivas o hinchazón, consulta a un profesional sanitario antes de subirla mucho. Su efecto sobre la saciedad es modesto.",
+    "related": ["balance-energetico", "carbohidratos", "micronutrientes-clave"],
+    "sources": [
+      {"title": "Dietary fibre intake and risk of cardiovascular disease: systematic review and meta-analysis", "publisher": "BMJ · 2013", "url": "https://pubmed.ncbi.nlm.nih.gov/24355537/"},
+      {"title": "Effects of dietary fibre on subjective appetite, energy intake and body weight: a systematic review of randomized controlled trials", "publisher": "Obesity Reviews · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/21676152/"},
+      {"title": "Carbohydrate quality and human health: a series of systematic reviews and meta-analyses", "publisher": "The Lancet · 2019", "url": "https://pubmed.ncbi.nlm.nih.gov/30638909/"}
+    ]
+  },
+  {
+    "id": "hidratacion",
+    "name": "Hidratación",
+    "category": "NUTRITION",
+    "short": "Equilibrio entre el agua que pierdes y la que repones, que el ejercicio y el calor alteran",
+    "aliases": ["reposición de líquidos", "fluid replacement", "deshidratación"],
+    "body": [
+      "La hidratación consiste en mantener el equilibrio entre el agua que pierdes y la que repones, algo que se complica con el calor, la intensidad y la duración del ejercicio. El Colegio Americano de Medicina del Deporte recomienda una reposición individualizada, porque la tasa de sudoración y el contenido de sal del sudor varían mucho entre personas. Su posición propone pesarse antes y después del ejercicio para estimar cuánto se ha sudado, y señala que conviene evitar una pérdida de peso por agua superior al 2 % del peso corporal durante la actividad.",
+      "El matiz importante es que el umbral del 2 % depende de la capacidad que se mide. Cheuvront y Kenefick revisaron la literatura y encontraron un umbral de alrededor del 2 % para la pérdida de rendimiento en resistencia por pérdida de volumen de líquido. En cambio, no hay un umbral claro ni un mecanismo plausible para la pérdida marginal de fuerza y potencia asociada a la deshidratación, y el efecto sobre la cognición parece pequeño y ligado sobre todo a la distracción o al malestar."
+    ],
+    "practice": "En la práctica, pésate antes y después de una sesión larga o con calor para estimar cuánto reponer. Si la sesión es muy larga, valora bebidas con carbohidratos y [[electrolitos|electrolitos]]. Si tienes problemas renales o cardiacos, consulta antes con un profesional sanitario.",
+    "related": ["electrolitos", "carbohidratos", "fatiga-sistemica"],
+    "sources": [
+      {"title": "American College of Sports Medicine position stand. Exercise and fluid replacement", "publisher": "Medicine and Science in Sports and Exercise · 2007", "url": "https://pubmed.ncbi.nlm.nih.gov/17277604/"},
+      {"title": "Dehydration: physiology, assessment, and performance effects", "publisher": "Comprehensive Physiology · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24692140/"}
+    ]
+  },
+  {
+    "id": "electrolitos",
+    "name": "Sodio y electrolitos",
+    "category": "NUTRITION",
+    "short": "Minerales como el sodio que se pierden en el sudor y que influyen en la hidratación",
+    "aliases": ["electrolytes", "sodio en el sudor", "sudor salado"],
+    "body": [
+      "Los electrolitos son minerales con carga eléctrica, como el sodio, el potasio, el magnesio o el cloruro, que participan en el equilibrio de líquidos y en la función muscular y nerviosa. En los estudios de sudor, el sodio es el que más se mide, y su concentración varía mucho entre personas. Un análisis de 1303 deportistas publicado en el Journal of Sports Sciences encontró que la pérdida de sodio por hora difería de forma marcada según el deporte: unos 27 mmol en béisbol y casi 56 mmol en fútbol americano.",
+      "La cantidad que conviene reponer depende de cada persona, y medirla no es sencillo. Baker, en su revisión de 2017, explica que la tasa de sudoración y la concentración de sodio dependen mucho de la metodología del test y de las condiciones de campo, por lo que los resultados pueden ser inconsistentes si se usan como guía de reposición. Helms y col. advierten además que manipular electrolitos y agua en los últimos días o horas antes de una competición puede ser peligroso y no mejorar la apariencia."
+    ],
+    "practice": "En la práctica, si sudas mucho, presta atención a la sal de tu dieta y a la [[hidratacion|hidratación]] en sesiones largas, y no cambies el sodio de forma brusca antes de una competición. Usa un test de sudor como orientación y no como norma. Si tienes calambres persistentes, náuseas o confusión, consulta a un profesional sanitario.",
+    "related": ["hidratacion", "carbohidratos", "micronutrientes-clave"],
+    "sources": [
+      {"title": "Normative data for sweating rate, sweat sodium concentration, and sweat sodium loss in athletes: An update and analysis by sport", "publisher": "Journal of Sports Sciences · 2019", "url": "https://pubmed.ncbi.nlm.nih.gov/31230518/"},
+      {"title": "Sweating Rate and Sweat Sodium Concentration in Athletes: A Review of Methodology and Intra/Interindividual Variability", "publisher": "Sports Medicine · 2017", "url": "https://pubmed.ncbi.nlm.nih.gov/28332116/"},
+      {"title": "Evidence-based recommendations for natural bodybuilding contest preparation: nutrition and supplementation", "publisher": "Journal of the International Society of Sports Nutrition · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24864135/"}
+    ]
+  },
+  {
+    "id": "comida-entreno",
+    "name": "Comer antes y después de entrenar",
+    "category": "NUTRITION",
+    "short": "Cómo y cuándo comer alrededor del entrenamiento, sin perder de vista el total diario",
+    "aliases": ["nutrient timing", "ventana anabólica", "comida post-entreno"],
+    "body": [
+      "Comer antes y después de entrenar forma parte del llamado «nutrient timing», una estrategia de momento y cantidad de nutrientes alrededor de la sesión. Se ha hablado de una ventana anabólica, un tiempo limitado tras el entrenamiento en el que habría que tomar proteína y carbohidratos. Aragon y Schoenfeld revisaron esa idea y señalaron que la existencia e importancia de esa ventana dependen de varios factores, y que la evidencia reciente cuestiona la visión clásica de la relevancia de la nutrición posterior para la anabolia.",
+      "Lo más importante parece ser el total diario. Schoenfeld, Aragon y Krieger analizaron ensayos con entrenamiento de resistencia y concluyeron que, al tener en cuenta la ingesta total de proteína, el momento de la toma en torno a la sesión no mostraba diferencias significativas en fuerza ni en hipertrofia; la ingesta total fue el predictor más fuerte. Helms y col. concluyen, en la preparación de competiciones, que cambiar el momento y la frecuencia de las comidas apenas altera la pérdida de grasa o la retención de masa magra."
+    ],
+    "practice": "En la práctica, asegura que cada día comes [[proteina-diaria|proteína]] y carbohidratos suficientes y reparte las comidas de forma que alguna quede cerca de la sesión si te encaja, sin obsesionarte con la ventana. Si tienes problemas digestivos o diabetes, consulta el plan con un profesional sanitario antes de cambiar horarios.",
+    "related": ["distribucion-proteina", "carbohidratos", "proteina-diaria"],
+    "sources": [
+      {"title": "The effect of protein timing on muscle strength and hypertrophy: a meta-analysis", "publisher": "Journal of the International Society of Sports Nutrition · 2013", "url": "https://pubmed.ncbi.nlm.nih.gov/24299050/"},
+      {"title": "Nutrient timing revisited: is there a post-exercise anabolic window?", "publisher": "Journal of the International Society of Sports Nutrition · 2013", "url": "https://pubmed.ncbi.nlm.nih.gov/23360586/"},
+      {"title": "Evidence-based recommendations for natural bodybuilding contest preparation: nutrition and supplementation", "publisher": "Journal of the International Society of Sports Nutrition · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24864135/"}
+    ]
+  },
+  {
+    "id": "ayuno-intermitente",
+    "name": "Ayuno intermitente",
+    "category": "NUTRITION",
+    "short": "Pautas que alternan periodos de ayuno y de comida, o limitan el horario de las comidas",
+    "aliases": ["intermittent fasting", "time-restricted eating", "ayuno en días alternos"],
+    "body": [
+      "El ayuno intermitente agrupa pautas que alternan periodos de ayuno con periodos de comida, como el ayuno en días alternos o la alimentación limitada a una franja horaria. Seimon y col. revisaron ensayos clínicos de dietas intermitentes frente a continuas y concluyeron que producen efectos parecidos a [[deficit-calorico|la restricción calórica continua]] sobre el peso, la masa grasa y la masa magra, sin mostrar una ventaja clara en la eficiencia de la pérdida de peso, aunque la mayoría de los estudios no tenían potencia para evaluarlo.",
+      "En el ensayo TREAT (Lowe y col.), con 116 adultos con sobrepeso u obesidad, la alimentación restringida a 8 horas no fue más eficaz para bajar de peso que comer a lo largo del día. En hombres que entrenaban fuerza, Moro y col. observaron que la alimentación en 8 horas durante ocho semanas redujo la masa grasa y mantuvo la masa magra y la fuerza máxima, frente a un grupo con la misma energía repartida en el día. Varios de estos estudios son de corta duración y con muestras modestas."
+    ],
+    "practice": "En la práctica, elige el ayuno intermitente solo si te ayuda a cumplir la energía y la proteína del día. Observa durante varias semanas si la fuerza, el apetito y el sueño se mantienen. Si tienes diabetes, tomas medicación o antecedentes de trastornos de la conducta alimentaria, consulta antes con un profesional sanitario.",
+    "related": ["deficit-calorico", "proteina-diaria", "adaptacion-metabolica"],
+    "sources": [
+      {"title": "Do intermittent diets provide physiological benefits over continuous diets for weight loss? A systematic review of clinical trials", "publisher": "Molecular and Cellular Endocrinology · 2015", "url": "https://pubmed.ncbi.nlm.nih.gov/26384657/"},
+      {"title": "Effects of Time-Restricted Eating on Weight Loss and Other Metabolic Parameters in Women and Men With Overweight and Obesity: The TREAT Randomized Clinical Trial", "publisher": "JAMA Internal Medicine · 2020", "url": "https://pubmed.ncbi.nlm.nih.gov/32986097/"},
+      {"title": "Effects of eight weeks of time-restricted feeding (16/8) on basal metabolism, maximal strength, body composition, inflammation, and cardiovascular risk factors in resistance-trained males", "publisher": "Journal of Translational Medicine · 2016", "url": "https://pubmed.ncbi.nlm.nih.gov/27737674/"}
+    ]
+  },
+  {
+    "id": "adaptacion-metabolica",
+    "name": "Adaptación metabólica",
+    "category": "NUTRITION",
+    "short": "Descenso del gasto energético por encima de lo que explica la pérdida de masa corporal",
+    "aliases": ["termogénesis adaptativa", "adaptive thermogenesis", "metabolic adaptation"],
+    "body": [
+      "La adaptación metabólica es la disminución del gasto energético más allá de lo que explica el cambio de masa corporal. Trexler y col., en una revisión para atletas, describen que la restricción energética se acompaña de cambios en hormonas, en la eficiencia mitocondrial y en el gasto, que tienden a reducir el déficit y a frenar la pérdida de peso. Rosenbaum y Leibel subrayan que, tras pérdidas exitosas, más del 80 % de las personas vuelve a los niveles previos de grasa corporal, y atribuyen ese retorno a respuestas metabólicas, conductuales, neuroendocrinas y autonómicas.",
+      "En personas con obesidad grave que perdieron cerca de un 38 % de su peso, Johannsen y col. midieron un gasto en reposo unas 500 kcal diarias inferior a lo que explicaba la pérdida de masa. Ese estudio se hizo con personas muy distintas de un atleta, pero ilustra por qué un déficit que funcionó al principio puede estancarse. Por eso, si la báscula se detiene, conviene revisar antes los datos que recortar más la comida."
+    ],
+    "practice": "En la práctica, si el peso se estanca tras varias semanas de [[deficit-calorico|déficit]], revisa antes el registro de comidas y tu actividad real. Vigila también tu fuerza en los ejercicios principales como referencia de la calidad de la pérdida. Si el estancamiento va con cansancio, mareos o cambios en la menstruación, consulta a un profesional sanitario.",
+    "related": ["deficit-calorico", "gasto-energetico", "balance-energetico"],
+    "sources": [
+      {"title": "Metabolic adaptation to weight loss: implications for the athlete", "publisher": "Journal of the International Society of Sports Nutrition · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24571926/"},
+      {"title": "Adaptive thermogenesis in humans", "publisher": "International Journal of Obesity · 2010", "url": "https://pubmed.ncbi.nlm.nih.gov/20935667/"},
+      {"title": "Metabolic slowing with massive weight loss despite preservation of fat-free mass", "publisher": "The Journal of Clinical Endocrinology and Metabolism · 2012", "url": "https://pubmed.ncbi.nlm.nih.gov/22535969/"}
+    ]
+  },
+  {
+    "id": "alcohol",
+    "name": "Alcohol y entrenamiento",
+    "category": "NUTRITION",
+    "short": "Efecto del alcohol sobre la síntesis de proteína muscular y el sueño tras el entrenamiento",
+    "aliases": ["alcohol and exercise", "alcohol y recuperación", "alcohol y músculo"],
+    "body": [
+      "En muchos deportes de equipo es habitual beber alcohol después de entrenar o competir, y su efecto sobre la recuperación muscular merece atención. En un estudio cruzado con ocho hombres físicamente activos, Parr y col. comprobaron que, tras una sesión de fuerza y cardio, la [[sintesis-proteica-muscular|síntesis de proteína muscular]] fue menor cuando la proteína se tomaba con alcohol (un 24 % menos) y aún menor cuando se tomaba con alcohol y carbohidratos (un 37 % menos) que con proteína sola. La dosis fue alta, de unas doce bebidas estándar.",
+      "El alcohol también afecta al sueño, que forma parte de la recuperación. Ebrahim y col. revisaron los estudios sobre sueño nocturno en voluntarios sanos y encontraron que, a cualquier dosis, el alcohol acorta el tiempo hasta dormirse, pero aumenta las interrupciones de la segunda mitad de la noche. Con dosis moderadas y altas reduce además el sueño REM total, y en la primera mitad de la noche aumenta el sueño profundo. Una copa puede parecer inofensiva y, sin embargo, cambiar la calidad del descanso."
+    ],
+    "practice": "En la práctica, si bebes después de entrenar, separa la copa de la comida de recuperación y asegura antes la proteína y los carbohidratos del día. Evita beber cerca de la hora de dormir si quieres descansar bien. Si te cuesta controlar el consumo o tienes dudas sobre cuánto beber, consulta con un profesional sanitario.",
+    "related": ["sueno", "sintesis-proteica-muscular", "hidratacion"],
+    "sources": [
+      {"title": "Alcohol ingestion impairs maximal post-exercise rates of myofibrillar protein synthesis following a single bout of concurrent training", "publisher": "PLoS One · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24533082/"},
+      {"title": "Alcohol and sleep I: effects on normal sleep", "publisher": "Alcoholism: Clinical and Experimental Research · 2013", "url": "https://pubmed.ncbi.nlm.nih.gov/23347102/"}
+    ]
+  },
+  {
+    "id": "baja-disponibilidad-energetica",
+    "name": "Baja disponibilidad energética (RED-S)",
+    "category": "NUTRITION",
+    "short": "Energía insuficiente frente al gasto del entrenamiento, con efectos sobre la salud y el rendimiento",
+    "aliases": ["RED-S", "relative energy deficiency in sport", "tríada de la mujer atleta"],
+    "body": [
+      "La baja disponibilidad energética aparece cuando la energía que comes no cubre lo que gastas en el entrenamiento y en las funciones básicas del cuerpo. El Comité Olímpico Internacional la denomina RED-S, que amplía el antiguo concepto de la tríada de la mujer atleta porque afecta a más sistemas y también a los hombres. Según su consenso de 2014, puede alterar el metabolismo, la función menstrual, la salud ósea, la inmunidad, la síntesis de proteína y la salud cardiovascular.",
+      "Loucks y col. defienden que la disponibilidad energética, es decir, la energía que queda para las funciones corporales tras restar el gasto del ejercicio, es un concepto más útil que el balance para dirigir la dieta de un atleta. Su revisión señala que el apetito no siempre compensa el gasto extra del ejercicio, lo que puede llevar a un déficit no buscado. Por eso, si aparecen cambios en la regla, problemas óseos o infecciones frecuentes, conviene una valoración profesional y no solo un ajuste de la dieta por tu cuenta."
+    ],
+    "practice": "En la práctica, si entrenas mucho y notas cambios en el ciclo menstrual, [[fatiga-sistemica|cansancio persistente]], infecciones frecuentes o molestias óseas, pide una valoración a un profesional sanitario o al equipo médico de tu club. No se resuelve solo con más dieta. Ante analíticas alteradas, sigue las indicaciones médicas.",
+    "related": ["fatiga-sistemica", "sobreentrenamiento", "deficit-calorico"],
+    "sources": [
+      {"title": "The IOC consensus statement: beyond the Female Athlete Triad--Relative Energy Deficiency in Sport (RED-S)", "publisher": "British Journal of Sports Medicine · 2014", "url": "https://pubmed.ncbi.nlm.nih.gov/24620037/"},
+      {"title": "Energy availability in athletes", "publisher": "Journal of Sports Sciences · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/21793767/"}
+    ]
+  },
+  {
+    "id": "micronutrientes-clave",
+    "name": "Hierro, calcio y otros micronutrientes clave",
+    "category": "NUTRITION",
+    "short": "Minerales y vitaminas cuya falta afecta al rendimiento y a la salud ósea",
+    "aliases": ["micronutrientes", "minerales", "iron and calcium"],
+    "body": [
+      "Los micronutrientes son vitaminas y minerales que el cuerpo necesita en pequeñas cantidades. En quien entrena, el hierro y el calcio merecen atención especial. El hierro participa en el transporte de oxígeno y en el metabolismo energético, y su déficit es frecuente entre atletas: según una revisión de Sim y col., en algunos grupos entre el 15 y el 35 % de las mujeres deportistas presenta déficit, y entre el 5 y el 11 % de los hombres.",
+      "Para el rendimiento, el dato más sólido es que la anemia por déficit de hierro reduce la capacidad aeróbica por un menor transporte de oxígeno. Haas y Brownlie, en una revisión crítica, encontraron un efecto causal bien establecido con anemia, mientras que sin anemia los efectos sobre la capacidad de trabajo parecen más sutiles. El calcio es clave para el hueso: el IOM propone entre 700 y 1300 mg diarios según la etapa de la vida, y la evidencia es sólida para la salud ósea, pero inconsistente para otros efectos."
+    ],
+    "practice": "En la práctica, revisa primero la dieta: busca fuentes de hierro y calcio en tus comidas, sobre todo si entrenas mucho o eres mujer. No tomes suplementos de hierro sin indicación médica. Si notas [[fatiga-sistemica|fatiga desproporcionada]], mareos o molestias óseas, pide un análisis de sangre y una valoración a un profesional sanitario.",
+    "related": ["fatiga-sistemica", "electrolitos", "baja-disponibilidad-energetica"],
+    "sources": [
+      {"title": "Iron considerations for the athlete: a narrative review", "publisher": "European Journal of Applied Physiology · 2019", "url": "https://pubmed.ncbi.nlm.nih.gov/31055680/"},
+      {"title": "Iron deficiency and reduced work capacity: a critical review of the research to determine a causal relationship", "publisher": "The Journal of Nutrition · 2001", "url": "https://pubmed.ncbi.nlm.nih.gov/11160598/"},
+      {"title": "The 2011 report on dietary reference intakes for calcium and vitamin D from the Institute of Medicine: what clinicians need to know", "publisher": "The Journal of Clinical Endocrinology and Metabolism · 2011", "url": "https://pubmed.ncbi.nlm.nih.gov/21118827/"}
+    ]
+  }
+]
