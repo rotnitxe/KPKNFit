@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
-import com.example.kpkn.screens.onboarding.design.entreno.markTag
 import com.example.kpkn.ui.components.*
 import com.example.kpkn.ui.theme.KPKNTheme
 import com.example.kpkn.ui.tour.TourSeenStore
@@ -70,10 +69,15 @@ class TrainingMaxWizardOverheadTest {
         rule.waitForIdle()
     }
 
+    private fun tmText(lift: LiftMark) = rule.onNodeWithTag("${tmRowTag(lift)}-tm", useUnmergedTree = true)
+
     @Test fun overheadAloneEnablesSaveShowsItsTmAndConfirmsItsOneRmWithoutInventingOtherLifts() {
         mount(PowerliftingProfile(overhead1RM = 80.0), autoEstimate = PowerliftingProfile(squat1RM = 200.0))
+        // Con 1RM propio no se pisa con la estimación: ni botón de «Calcular», ni nota de historial, ni sentadilla inventada.
         rule.onNodeWithText("Calcular desde mi historial").assertDoesNotExist()
-        rule.onNodeWithText("Press militar · TM 72 kg").assertIsDisplayed()
+        rule.onNodeWithText("Precargado con tu historial.").assertDoesNotExist()
+        tmText(LiftMark.OVERHEAD_PRESS).assertTextEquals("TM 72")
+        tmText(LiftMark.SQUAT).assertTextEquals("—")
         rule.onNodeWithTag(TM_SAVE_TAG).assertIsEnabled().performTouchInput { click() }
         rule.runOnIdle {
             assertEquals(80.0, confirmed!!.overhead1RM!!, 0.0)
@@ -87,25 +91,28 @@ class TrainingMaxWizardOverheadTest {
     @Test fun aStoredOverheadTmDoesNotBecomeAnInventedOneRmOrEnableSave() {
         mount(PowerliftingProfile(overheadTM = 72.0))
         rule.onNodeWithTag(TM_SAVE_TAG).assertIsNotEnabled()
-        rule.onNodeWithText("Press militar · TM 72 kg").assertDoesNotExist()
+        tmText(LiftMark.OVERHEAD_PRESS).assertTextEquals("—")
         assertNull(confirmed)
     }
 
-    private fun fullText(label: String) {
-        // The sheet's merged ancestor exposes the first descendant's layout (the title).
-        // Read the Text node itself so geometry belongs to this exact preview row.
-        val node = rule.onNodeWithText(label, useUnmergedTree = true).assertIsDisplayed()
-        val layouts = mutableListOf<TextLayoutResult>()
-        node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
-        val layout = layouts.single()
-        assertEquals(label, layout.layoutInput.text.text)
-        assertFalse(layout.didOverflowHeight)
-        assertEquals(label.length, layout.getLineEnd(layout.lineCount - 1, visibleEnd = true))
-        repeat(layout.lineCount) { line ->
-            assertFalse(layout.isLineEllipsized(line))
-            assertTrue(layout.getLineLeft(line) >= -1f)
-            assertTrue(layout.getLineRight(line) <= layout.size.width + 1f)
-        }
+    @Test fun withoutMarksTheHistoryEstimateIsPreloadedAndSaidSo() {
+        mount(PowerliftingProfile(), autoEstimate = PowerliftingProfile(squat1RM = 200.0))
+        rule.onNodeWithText("Calcular desde mi historial").assertDoesNotExist()
+        rule.onNodeWithText("Precargado con tu historial.").assertIsDisplayed()
+        tmText(LiftMark.SQUAT).assertTextEquals("TM 180")
+        rule.onNodeWithTag(TM_SAVE_TAG).assertIsEnabled().performTouchInput { click() }
+        rule.runOnIdle { assertEquals(200.0, confirmed!!.squat1RM!!, 0.0) }
+    }
+
+    @Test fun typingAOneRepMaxShowsItsTrainingMaxInTheSameRowWithoutAPreviewApart() {
+        mount(PowerliftingProfile())
+        rule.onNodeWithTag(TM_SAVE_TAG).assertIsNotEnabled()
+        rule.onNodeWithTag("${tmRowTag(LiftMark.BENCH)}-field", useUnmergedTree = true).performTextReplacement("112,5")
+        rule.waitForIdle()
+        tmText(LiftMark.BENCH).assertTextEquals("TM 101,3")
+        rule.onNodeWithText("Press de banca · TM", substring = true).assertDoesNotExist()
+        rule.onNodeWithTag(TM_SAVE_TAG).assertIsEnabled().performTouchInput { click() }
+        rule.runOnIdle { assertEquals(112.5, confirmed!!.bench1RM!!, 0.0) }
     }
 
     private fun geometry(height: Int, scale: Float) {
@@ -113,9 +120,11 @@ class TrainingMaxWizardOverheadTest {
             overhead1RM = 80.0), height, scale)
         val viewport = rule.onNodeWithTag("tm-viewport", useUnmergedTree = true)
             .assertWidthIsEqualTo(360.dp).assertHeightIsEqualTo(height.dp).fetchSemanticsNode().boundsInRoot
-        val labels = listOf("Sentadilla · TM 180 kg", "Press de banca · TM 108 kg",
-            "Peso muerto · TM 198 kg", "Press militar · TM 72 kg")
-        labels.forEach(::fullText)
+        mapOf(LiftMark.SQUAT to "TM 180", LiftMark.BENCH to "TM 108", LiftMark.DEADLIFT to "TM 198",
+            LiftMark.OVERHEAD_PRESS to "TM 72").forEach { (lift, label) ->
+            rule.onNodeWithTag(tmRowTag(lift), useUnmergedTree = true).performScrollTo().assertIsDisplayed()
+            tmText(lift).assertTextEquals(label)
+        }
         listOf(rule.onNodeWithTag(TM_SAVE_TAG), rule.onNodeWithText("Más tarde")).forEach { action ->
             action.assertIsDisplayed().assertHeightIsAtLeast(48.dp)
             val bounds = action.fetchSemanticsNode().boundsInRoot
@@ -123,20 +132,7 @@ class TrainingMaxWizardOverheadTest {
             assertTrue(bounds.top >= viewport.top - 1 && bounds.bottom <= viewport.bottom + 1)
         }
         save("TM-cuatro-${height}-${(scale * 100).toInt()}")
-        // Native scroll in the sheet, away from the horizontal mark ruler.
-        val scroll = rule.onNode(hasScrollAction() and hasAnyDescendant(hasTestTag(markTag(LiftMark.OVERHEAD_PRESS))),
-            useUnmergedTree = true)
-        repeat(4) {
-            scroll.performTouchInput { swipe(Offset(this.width * 0.95f, this.height * 0.85f), Offset(this.width * 0.95f, this.height * 0.15f), durationMillis = 400) }
-            rule.mainClock.advanceTimeBy(500)
-            rule.waitForIdle()
-        }
-        rule.onNodeWithTag(markTag(LiftMark.OVERHEAD_PRESS)).assertIsDisplayed().assertHeightIsAtLeast(48.dp)
-            .performTouchInput { click() }
-        rule.mainClock.advanceTimeBy(500); rule.waitForIdle()
-        labels.forEach(::fullText)
-        rule.onNodeWithTag(TM_SAVE_TAG).assertIsDisplayed().assertIsEnabled()
-        save("TM-cuatro-${height}-${(scale * 100).toInt()}-militar")
+        rule.onNodeWithTag(TM_SAVE_TAG).assertIsEnabled()
         rule.onNodeWithText("Más tarde").performTouchInput { click() }
         rule.runOnIdle { assertTrue(dismissed); assertNull(confirmed) }
     }

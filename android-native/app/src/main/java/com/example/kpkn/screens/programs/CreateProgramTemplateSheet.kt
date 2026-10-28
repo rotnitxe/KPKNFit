@@ -47,7 +47,7 @@ import com.example.kpkn.ui.components.KpknSheetWhiteButton
 
 internal enum class LibraryProfileFilter(val label: String) {
     ALL("Todos"), STRENGTH("Fuerza"), MUSCLE("Músculo"), STRENGTH_MUSCLE("Fuerza y músculo"),
-    COMPLETE_ATHLETE("Atleta completo"), OTHER("Otros"),
+    COMPLETE_ATHLETE("Atleta"),
 }
 
 /** Los filtros de procedencia coinciden con la etiqueta de la tarjeta (ver [originMatches]). */
@@ -125,8 +125,7 @@ internal fun isBlankStructure(entry: CatalogEntry): Boolean {
 }
 
 /**
- * ¿Sirve la entrada a algún objetivo del asistente? Misma regla que el filtro «Otros» de la biblioteca (su
- * complemento) y que el prefiltro del planificador ([PlanGoalMatcher]). Lo que no sirve a ninguno (la versión anterior
+ * ¿Sirve la entrada a algún objetivo del asistente? Misma regla que el prefiltro del planificador ([PlanGoalMatcher]). Lo que no sirve a ninguno (la versión anterior
  * «Músculo y cardio», `references = ∅`) no puede llegar a ser candidato: «Configurar este plan» lo dejaría en un
  * asistente que nunca lo ofrece.
  */
@@ -409,7 +408,7 @@ private fun <T> FilterRow(
     }
 }
 
-/** Los cuatro objetivos del wizard: lo que no sirve a ninguno cae en «Otros». */
+/** Los cuatro objetivos del wizard: lo que no sirve a ninguno no es candidato del asistente ([servesSomeWizardGoal]). */
 private val LIBRARY_GOAL_PROFILES: List<PlanGoalProfile> = listOf(
     PlanGoalProfile.STRENGTH,
     PlanGoalProfile.MUSCLE,
@@ -427,7 +426,6 @@ private fun profileMatches(entry: CatalogEntry, filter: LibraryProfileFilter): B
     LibraryProfileFilter.MUSCLE -> PlanGoalMatcher.matches(entry, PlanGoalProfile.MUSCLE)
     LibraryProfileFilter.STRENGTH_MUSCLE -> PlanGoalMatcher.matches(entry, PlanGoalProfile.STRENGTH_MUSCLE)
     LibraryProfileFilter.COMPLETE_ATHLETE -> PlanGoalMatcher.matches(entry, PlanGoalProfile.COMPLETE_ATHLETE)
-    LibraryProfileFilter.OTHER -> LIBRARY_GOAL_PROFILES.none { PlanGoalMatcher.matches(entry, it) }
 }
 
 /**

@@ -18,6 +18,7 @@ import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.data.models.totalProgramWeeks
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.programModeFor
 import com.example.kpkn.data.programs.programNameFor
@@ -519,6 +520,32 @@ internal fun inactiveProgramsOf(all: List<Program>, featuredId: String?, queuedI
 internal fun programIsFinished(program: Program): Boolean = program.runState?.status == ProgramRunStatus.COMPLETED
 
 private val SHORT_MONTHS = listOf("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
+
+/**
+ * Los días de entrenamiento de la semana tipo de un programa: de las semanas que no son de bucle, la que más días distintos tiene
+ * (cada sesión cuenta en su día; una sesión sin día vale un día). 0 si el programa no tiene sesiones.
+ */
+internal fun programTrainingDays(program: Program): Int =
+    program.macrocycles.asSequence()
+        .flatMap { it.blocks.asSequence() }
+        .flatMap { it.mesocycles.asSequence() }
+        .flatMap { it.weeks.asSequence() }
+        .filterNot { it.isLoopWeek }
+        .maxOfOrNull { week ->
+            val dated = week.sessions.mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }.distinct().size
+            val undated = week.sessions.count { it.dayOfWeek == null || it.dayOfWeek !in 1..7 }
+            (dated + undated).coerceAtMost(7)
+        } ?: 0
+
+/**
+ * La línea de meta de una tarjeta de «Tus programas», como el lienzo: «16 semanas · 4 días» y, en una rutina (programa simple de una
+ * sola semana), «Rutina · 4 días». Lo que no se sabe se omite.
+ */
+internal fun programListMeta(program: Program, stats: ProgramStats): String {
+    val days = programTrainingDays(program).takeIf { it > 0 }?.let { pluralDias(it) }
+    val head = if (program.isSimpleProgram && program.totalProgramWeeks <= 1) "Rutina" else pluralSemanas(stats.weeks)
+    return listOfNotNull(head, days).joinToString(" · ")
+}
 
 /** Estado de una tarjeta de «Tus programas»: «Borrador», «Terminado · 12 sep» o «Terminado» si no se sabe la fecha. */
 internal fun programListStatusLabel(completed: Boolean, completedOn: LocalDate?): String = when {

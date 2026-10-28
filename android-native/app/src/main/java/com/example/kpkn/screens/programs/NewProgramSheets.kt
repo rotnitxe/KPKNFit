@@ -12,12 +12,14 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -55,16 +57,15 @@ import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknChip
 import com.example.kpkn.ui.design.KpknPrimaryPill
-import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextField
 import com.example.kpkn.ui.design.KpknType
 
-/** El título de las hojas de «Nuevo programa» y «Desde cero»: Syne Bold 22 sp. La página del catálogo lo reutiliza para sus filtros. */
+/** El título de las hojas de Programas (`.sheet h3` del lienzo): Syne Bold 21 sp. La página del catálogo lo reutiliza para sus filtros. */
 internal val NewProgramTitleStyle = TextStyle(
     fontFamily = WizardFonts.display,
     fontWeight = FontWeight.Bold,
-    fontSize = 22.sp,
-    lineHeight = 26.sp,
+    fontSize = 21.sp,
+    lineHeight = 25.sp,
     letterSpacing = (-0.4).sp,
 )
 
@@ -95,54 +96,72 @@ internal fun NewProgramSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(text = "Nuevo programa", style = NewProgramTitleStyle, color = WizardColors.text)
+            Spacer(Modifier.height(4.dp))
             Text(text = "Elige cómo empezar.", style = KpknType.body, color = WizardColors.textMuted)
-            onTailored?.let { tailored ->
+            // `.opt-grid`: margen superior de 6 dp sobre los 12 dp bajo el subtítulo, y 8 dp entre opciones.
+            Spacer(Modifier.height(18.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                onTailored?.let { tailored ->
+                    NewProgramRow(
+                        title = "A tu medida",
+                        subtitle = "KPKN lo arma con tu material, tus días y tu objetivo",
+                        icon = ProgramLineIcons.Spark,
+                        iconTint = SymbolPalette.musculo,
+                        fill = Brush.linearGradient(
+                            listOf(SymbolPalette.musculo.copy(alpha = 0.13f), Color.White.copy(alpha = 0.024f)),
+                        ),
+                        border = SymbolPalette.musculo.copy(alpha = 0.25f),
+                        tag = "new-program-tailored",
+                        onClick = tailored,
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    NewProgramCard(
+                        title = "Del catálogo",
+                        caption = "Planes conocidos y planes KPKN",
+                        icon = KpknLineIcons.Book,
+                        tag = "new-program-catalog",
+                        onClick = onCatalog,
+                        modifier = Modifier.weight(1f),
+                    )
+                    NewProgramCard(
+                        title = "Importar",
+                        caption = "Excel, Word, PDF, texto o una foto",
+                        icon = ProgramLineIcons.Upload,
+                        tag = "new-program-import",
+                        onClick = onImport,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
                 NewProgramRow(
-                    title = "A tu medida",
-                    subtitle = "KPKN lo arma con tu material, tus días y tu objetivo",
-                    icon = KpknLineIcons.Bulb,
-                    iconTint = SymbolPalette.musculo,
-                    fill = Brush.linearGradient(
-                        listOf(SymbolPalette.musculo.copy(alpha = 0.13f), Color.White.copy(alpha = 0.02f)),
-                    ),
-                    border = SymbolPalette.musculo.copy(alpha = 0.25f),
-                    tag = "new-program-tailored",
-                    onClick = tailored,
+                    title = "Desde cero",
+                    subtitle = "Le pones nombre y armas las sesiones tú",
+                    icon = KpknLineIcons.Plus,
+                    iconTint = WizardColors.text,
+                    fill = SolidColor(OptFill),
+                    border = OptBorder,
+                    tag = "new-program-blank",
+                    onClick = onBlank,
                 )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                NewProgramCard(
-                    title = "Del catálogo",
-                    caption = "Planes conocidos y planes KPKN",
-                    icon = KpknLineIcons.Book,
-                    tag = "new-program-catalog",
-                    onClick = onCatalog,
-                    modifier = Modifier.weight(1f),
-                )
-                NewProgramCard(
-                    title = "Importar",
-                    caption = "Excel, Word, PDF, texto o una foto",
-                    // No hay icono de importar en el set: «Layers» es el neutro que queda.
-                    icon = KpknLineIcons.Layers,
-                    tag = "new-program-import",
-                    onClick = onImport,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-            NewProgramRow(
-                title = "Desde cero",
-                subtitle = "Le pones nombre y armas las sesiones tú",
-                icon = KpknLineIcons.Plus,
-                iconTint = WizardColors.text,
-                fill = SolidColor(KpknSurface.module),
-                border = KpknSurface.moduleBorder,
-                tag = "new-program-blank",
-                onClick = onBlank,
-            )
         }
+    }
+}
+
+/** El fondo y el filete de una opción (`.opt`): blanco al 3 % y al 7 %. */
+private val OptFill = Color.White.copy(alpha = 0.03f)
+private val OptBorder = Color.White.copy(alpha = 0.07f)
+
+/** El círculo de 36 dp de una opción (`.opt .ic`): blanco al 6 % con el icono de 20 dp. */
+@Composable
+private fun NewProgramIcon(icon: ImageVector, tint: Color) {
+    Box(
+        modifier = Modifier.size(36.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.063f)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
     }
 }
 
@@ -272,8 +291,8 @@ private fun BlankCoverChoice(style: LineCoverStyle, selected: Boolean, onSelect:
 }
 
 /**
- * Una opción a todo el ancho de «Nuevo programa»: icono, título, la línea que lo explica y una flecha. Mínimo 64 dp; [fill] y [border]
- * dan su color (el degradado de «A tu medida» o el módulo de siempre).
+ * Una opción a todo el ancho de «Nuevo programa» (`.opt.wide`): icono en círculo, título, la línea que lo explica y una flecha. Mínimo
+ * 72 dp; [fill] y [border] dan su color (el degradado de «A tu medida» o el de las opciones).
  */
 @Composable
 private fun NewProgramRow(
@@ -291,7 +310,7 @@ private fun NewProgramRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 64.dp)
+            .heightIn(min = 72.dp)
             .testTag(tag)
             .clip(shape)
             .background(fill, shape)
@@ -302,26 +321,25 @@ private fun NewProgramRow(
                 role = Role.Button,
                 onClick = onClick,
             )
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(22.dp))
-        Spacer(Modifier.width(14.dp))
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        NewProgramIcon(icon = icon, tint = iconTint)
+        Column(modifier = Modifier.weight(1f).padding(start = 14.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(text = title, style = KpknType.bodyStrong, color = WizardColors.text)
-            Text(text = subtitle, style = KpknType.caption, color = WizardColors.textMuted)
+            Text(text = subtitle, style = KpknType.caption, color = WizardColors.textFaint)
         }
         Spacer(Modifier.width(8.dp))
         Icon(
             imageVector = KpknLineIcons.ChevronRight,
             contentDescription = null,
             tint = WizardColors.textFaint,
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier.size(18.dp),
         )
     }
 }
 
-/** Una tarjeta de la fila de dos de «Nuevo programa»: icono arriba, título y una línea. Mínimo 64 dp, mismo módulo que Programas. */
+/** Una tarjeta de la fila de dos de «Nuevo programa» (`.opt`): icono en círculo arriba, título y una línea. Mínimo 112 dp. */
 @Composable
 private fun NewProgramCard(
     title: String,
@@ -335,22 +353,22 @@ private fun NewProgramCard(
     val interaction = remember { MutableInteractionSource() }
     Column(
         modifier = modifier
-            .heightIn(min = 64.dp)
+            .heightIn(min = 112.dp)
             .testTag(tag)
             .clip(shape)
-            .background(KpknSurface.module, shape)
-            .border(1.dp, KpknSurface.moduleBorder, shape)
+            .background(OptFill, shape)
+            .border(1.dp, OptBorder, shape)
             .clickable(
                 interactionSource = interaction,
                 indication = null,
                 role = Role.Button,
                 onClick = onClick,
             )
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Icon(imageVector = icon, contentDescription = null, tint = WizardColors.text, modifier = Modifier.size(22.dp))
+        NewProgramIcon(icon = icon, tint = WizardColors.text)
         Text(text = title, style = KpknType.bodyStrong, color = WizardColors.text)
-        Text(text = caption, style = KpknType.caption, color = WizardColors.textMuted)
+        Text(text = caption, style = KpknType.caption, color = WizardColors.textFaint)
     }
 }
