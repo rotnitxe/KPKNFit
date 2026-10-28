@@ -238,6 +238,7 @@ class ProgramSessionSlopAuditTest {
             appendLine("[session-slop] por clase de programa (violaciones):")
             audit.findings.groupingBy { classOf(it.program) }.eachCount().toSortedMap()
                 .forEach { (kind, count) -> appendLine("[session-slop]   $kind: $count") }
+            appendAggregate(audit.findings)
             appendLine("[session-slop] primeras ${REPORT_SAMPLE} violaciones (regla · programa · semana · sesión · detalle):")
             audit.findings.take(REPORT_SAMPLE).forEach { f -> appendLine("  ${f.rule} · ${f.program} · ${f.week} · ${f.session} · ${f.detail}") }
             appendLine("[session-slop] muestra por regla (hasta $RULE_SAMPLE cada una):")
@@ -250,6 +251,31 @@ class ProgramSessionSlopAuditTest {
             appendLine("[session-slop] planes no disponibles (${audit.unavailable.size}):")
             audit.unavailable.forEach { appendLine("  $it") }
         }
+    }
+
+    /** Id del programa sin nivel, días ni material: «native:x-v2», «protocol:y», «receta protocol:z», «a medida · MODO [· VARIANTE]». */
+    private fun programIdOf(label: String): String {
+        if (label.startsWith("receta ")) return label
+        val parts = label.split(" · ")
+        if (parts.first() != "a medida") return parts.first()
+        val variant = parts.last().takeIf { it.startsWith("BLOCKS ") || it.startsWith("PERIODIZED ") }?.substringBefore(" ")
+        return listOfNotNull("a medida", parts.getOrNull(2), variant).joinToString(" · ")
+    }
+
+    private val repeatCount = Regex(" ×[0-9]+")
+
+    private data class AggregateKey(val kind: String, val program: String, val rule: String, val detail: String)
+
+    /** Agrupa por (clase, programa, regla, detalle sin «×N») con recuento y un ejemplo completo; ordena por recuento. */
+    private fun StringBuilder.appendAggregate(findings: List<Finding>) {
+        val groups = findings.groupBy { f -> AggregateKey(classOf(f.program), programIdOf(f.program), f.rule, f.detail.replace(repeatCount, "")) }
+        appendLine("[session-slop] agregado: ${groups.size} grupos (clase · programa · regla · detalle normalizado → recuento; ejemplo):")
+        groups.entries.sortedWith(compareByDescending<Map.Entry<AggregateKey, List<Finding>>> { it.value.size }.thenBy { it.key.toString() })
+            .forEach { (key, list) ->
+                val example = list.first()
+                appendLine("  ${list.size} · ${key.kind} · ${key.program} · ${key.rule} · ${key.detail}")
+                appendLine("      ejemplo: ${example.program} · ${example.week} · ${example.session} · ${example.detail}")
+            }
     }
 
     private companion object {
