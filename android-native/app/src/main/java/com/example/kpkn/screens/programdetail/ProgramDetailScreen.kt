@@ -10,8 +10,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.exercises.exerciseCatalogSnapshot
@@ -33,11 +36,14 @@ import com.example.kpkn.domain.training.ProgramProgressEngine
 import com.example.kpkn.domain.training.BlockTransitionEngine
 import com.example.kpkn.domain.onboarding.LiftMark
 import com.example.kpkn.screens.programdetail.components.*
+import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.services.workout.LoopNotificationManager
 import com.example.kpkn.ui.components.KpknSnackbar
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.TourIds
@@ -51,6 +57,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
@@ -95,12 +102,16 @@ import com.example.kpkn.screens.programdetail.design.programModeLabel
 import com.example.kpkn.screens.programdetail.design.programNextSessionOf
 import com.example.kpkn.screens.programdetail.design.programPhaseColor
 import com.example.kpkn.screens.programdetail.design.programTodayAlsoLine
-import com.example.kpkn.screens.programdetail.design.repeatingWeekSubtitle
 import com.example.kpkn.screens.programdetail.design.programProgressLabel
 import com.example.kpkn.screens.programdetail.design.rememberPassedLine
 import com.example.kpkn.ui.components.rememberProgramCover
 import com.example.kpkn.ui.design.KpknStatusVeil
 import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknIconButton
+import com.example.kpkn.ui.design.KpknModule
+import com.example.kpkn.ui.design.KpknPrimaryPill
+import com.example.kpkn.ui.design.KpknSecondaryPill
+import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.design.kpknEntrance
 import com.example.kpkn.domain.training.ProgramDetailHelpers
 import com.example.kpkn.screens.programdetail.design.AutoregulationProposalsCard
@@ -117,6 +128,12 @@ import com.example.kpkn.screens.programdetail.design.ProgramWeekHeader
 import com.example.kpkn.screens.programdetail.design.ProgramWeekStrip
 import com.example.kpkn.screens.programdetail.design.programPhaseEyebrow
 import com.example.kpkn.screens.programdetail.design.programPhaseOf
+import com.example.kpkn.screens.programdetail.design.programWeekStats
+import com.example.kpkn.screens.programdetail.design.ProgramWeeksSheet
+import com.example.kpkn.screens.programdetail.design.weekDateRange
+import com.example.kpkn.screens.programdetail.design.weekNavigatorSubtitle
+import com.example.kpkn.screens.programdetail.design.weekNavigatorTitle
+import com.example.kpkn.screens.programdetail.design.weekSheetSubtitle
 import androidx.compose.ui.geometry.Rect
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -921,6 +938,12 @@ private fun TrainingPanel(
     // Hoja «Editar semana», menú de la semana (copiar y pegar) y días desplegados (en el VM: sobreviven a Estructura).
     var weekEdit by remember(program.id) { mutableStateOf<WeekEditDraft?>(null) }
     var weekMenu by remember { mutableStateOf<Pair<String, Rect>?>(null) }
+    // Navegador de la semana: la hoja «Semanas», el menú «Añadir sesión», el borrado de una semana y dónde están sus botones (para anclar menús).
+    var showWeeksSheet by remember { mutableStateOf(false) }
+    var addSessionMenu by remember { mutableStateOf<Rect?>(null) }
+    var addSessionBounds by remember { mutableStateOf(Rect.Zero) }
+    var weekMoreBounds by remember { mutableStateOf(Rect.Zero) }
+    var pendingDeleteWeek by remember { mutableStateOf<String?>(null) }
     val completedSessionIds by viewModel.completedSessionIds.collectAsState()
     val expandedWeekDays by viewModel.expandedWeekDays.collectAsState()
     val activeWeekId = currentWeekId?.currentWeekId
@@ -994,6 +1017,51 @@ private fun TrainingPanel(
         viewModel.setStructureSubTab(StructureSubTab.SEMANA)
     }
 
+    // Navegador de la semana: la lista en la que se navega (en un programa simple, las suyas; en el resto, todas) y la posición de la elegida.
+    val isRoutine = program.isSimpleProgram && currentWeeks.size <= 1
+    val navWeeks = if (program.isSimpleProgram) currentWeeks else allProgramWeeks
+    val navIndex = selectedWeekMeta?.let { week -> navWeeks.indexOfFirst { it.id == week.id } } ?: -1
+    // Una rutina no tiene a dónde ir: sus flechas se quedan apagadas.
+    val prevNavWeek = if (!isRoutine && navIndex > 0) navWeeks[navIndex - 1] else null
+    val nextNavWeek = if (!isRoutine && navIndex in 0 until navWeeks.lastIndex) navWeeks[navIndex + 1] else null
+    // Fechas de la semana: las que guarda; si no guarda ninguna, las de la proyección del calendario (la misma que usa la agenda).
+    val calendarProjection = remember(program) { ProgramCalendarEngine.project(program) }
+    val weekDates = selectedWeekMeta?.let { week ->
+        week.trainingDayDates.values.mapNotNull { ProgramCalendarEngine.parseIsoDate(it) }.ifEmpty {
+            calendarProjection.weeks.firstOrNull { it.weekId == week.id }?.trainingDayDates?.values?.toList().orEmpty()
+        }
+    }.orEmpty()
+    // La fase de la semana sale del bloque que la contiene: el color de su objetivo, sin la marca de competición (eso va en la fecha).
+    val weekBlockId = selectedWeekMeta?.let { week -> phaseBlocks.firstOrNull { block -> block.weeks.any { it.id == week.id } }?.id }
+    val weekBlockGoal = roadmapBlocks.firstOrNull { it.id == weekBlockId }?.goal
+    val weekStats = remember(displayedSessions, completedSessionIds) { programWeekStats(displayedSessions, completedSessionIds) }
+    // Ir a una semana de la lista de navegación: en un programa simple, la semana tal cual; en el resto, con su bloque.
+    fun navigateToWeek(weekId: String) {
+        if (program.isSimpleProgram) viewModel.selectWeek(weekId) else selectPhaseWeek(weekId)
+    }
+    // Añadir una sesión a un día de la semana elegida: lo usan la agenda (el «+» de cada día) y el menú «Añadir sesión».
+    fun addSessionOnDay(dayId: Int) {
+        val block = roadmapBlocks.find { it.id == selectedBlockId }
+        val weekMeta = currentWeeks.find { it.id == selectedWeekId }
+        val weekId = selectedWeekId
+        if (block != null && weekMeta != null && weekId != null) {
+            val sessionId = java.util.UUID.randomUUID().toString()
+            viewModel.addSession(
+                macroIndex = block.macroIndex,
+                mesoIndex = weekMeta.mesoIndex,
+                weekId = weekId,
+                session = createBlankRoadmapSession(sessionId, dayId),
+            )
+            onCreateSession(
+                sessionId,
+                weekId,
+                block.macroIndex,
+                weekMeta.mesoIndex,
+                dayId,
+            )
+        }
+    }
+
     // Sin bloques, Semana no tiene nada que enseñar: la salida es crear el primer bloque en Estructura (no se queda vacía).
     if (roadmapBlocks.isEmpty() && structureSubTab == StructureSubTab.SEMANA) {
         ProgramEmptyStructure(onAddFirstBlock = { viewModel.setStructureSubTab(StructureSubTab.MACROCICLO) })
@@ -1003,30 +1071,8 @@ private fun TrainingPanel(
     Column {
         Spacer(modifier = Modifier.height(4.dp))
 
+        // Las semanas ya no van en la página: el navegador de la pestaña Semana (abajo) abre la hoja «Semanas».
         if (structureSubTab != StructureSubTab.VOLUMEN && roadmapBlocks.isNotEmpty()) {
-            if (structureSubTab == StructureSubTab.SEMANA) {
-                // Semana: el módulo «Fases» (o la fila de semanas de un programa simple). Estructura lista sus bloques aparte (P3b).
-                if (!program.isSimpleProgram) {
-                    ProgramPhasesModule(
-                        blocks = phaseBlocks,
-                        selectedWeekId = selectedWeekId,
-                        onSelectWeek = { weekId -> selectPhaseWeek(weekId) },
-                        onLongPressWeek = { weekId, anchor -> weekMenu = weekId to anchor },
-                        onAddWeek = { blockId -> addWeekToBlock(blockId) },
-                        modifier = Modifier.padding(horizontal = 16.dp).kpknEntrance("programdetail.semana", 0),
-                    )
-                } else if (simpleWeeks.size > 1) {
-                    ProgramWeekStrip(
-                        weeks = simpleWeeks,
-                        selectedWeekId = selectedWeekId,
-                        onSelectWeek = { weekId -> viewModel.selectWeek(weekId) },
-                        onLongPressWeek = { weekId, anchor -> weekMenu = weekId to anchor },
-                        onAdd = { viewModel.addWeekToSimpleProgram() },
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                    )
-                }
-            }
-
             Spacer(modifier = Modifier.height(8.dp))
         }
 
@@ -1036,101 +1082,146 @@ private fun TrainingPanel(
 
         when (structureSubTab) {
             StructureSubTab.SEMANA -> {
+                // Navegador de la semana, en el lugar de la antigua cabecera: ‹ título › con sus tres cifras. El título abre la hoja «Semanas».
                 selectedWeekMeta?.let { week ->
-                    // «Semana 3 · Acumulación»; en un programa simple de una sola semana, «Semana que se repite».
-                    val repeating = program.isSimpleProgram && currentWeeks.size <= 1
-                    val weekIndex = if (program.isSimpleProgram) {
-                        currentWeeks.indexOfFirst { it.id == week.id }
-                    } else {
-                        allProgramWeeks.indexOfFirst { it.id == week.id }
-                    }
-                    val phase = week.mesoGoal
+                    val phaseLabel = week.mesoGoal
                         .takeIf { !program.isSimpleProgram && it != com.example.kpkn.data.models.MesocycleGoal.CUSTOM }
                         ?.label
                     ProgramWeekHeader(
-                        title = if (repeating) "Semana que se repite" else listOfNotNull("Semana ${weekIndex + 1}", phase).joinToString(" · "),
-                        // Un programa simple no repite el nombre de la semana («Semana repetible»): dice sus sesiones y su duración.
-                        name = if (repeating) {
-                            repeatingWeekSubtitle(
-                                sessionMinutes = displayedSessions.map {
-                                    com.example.kpkn.domain.training.SessionDurationEstimator.estimate(it).totalMinutes
-                                },
-                            )
-                        } else {
-                            week.name.takeUnless { WeekDefaultName.matches(it.trim()) }
-                        },
-                        description = week.description,
-                        onEdit = { weekEdit = WeekEditDraft(weekId = week.id, name = week.name, description = week.description.orEmpty()) },
-                        onChangeSplit = onOpenSplitPage,
+                        title = weekNavigatorTitle(isRoutine = isRoutine, weekIndex = navIndex, cycleNumber = program.runState?.cycleNumber),
+                        subtitle = weekNavigatorSubtitle(phaseLabel = phaseLabel, dateRange = weekDateRange(weekDates)),
+                        phaseColor = if (program.isSimpleProgram) null else programPhaseColor(programPhaseOf(goal = weekBlockGoal, hasCompetitionWeek = false)),
+                        stats = weekStats,
+                        canPrev = prevNavWeek != null,
+                        canNext = nextNavWeek != null,
+                        onPrev = { prevNavWeek?.let { navigateToWeek(it.id) } },
+                        onNext = { nextNavWeek?.let { navigateToWeek(it.id) } },
+                        onOpenWeeks = { if (!isRoutine) showWeeksSheet = true },
                         modifier = Modifier.padding(horizontal = 16.dp),
+                        name = week.name.takeUnless { WeekDefaultName.matches(it.trim()) },
+                        description = week.description,
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
                 val swapContext = LocalContext.current.applicationContext
-                DayView(
-                    program = program,
-                    modifier = Modifier.tourAnchor(TourAnchors.TRAINING_SEMANA),
-                    isSimpleProgram = program.isSimpleTemporalProgram,
-                    isCalendarized = ProgramCalendarEngine.isCalendarized(program),
-                    selectedWeek = selectedWeekMeta,
-                    sessions = displayedSessions,
-                    onEditSession = onEditSession,
-                    onSwapExercise = { sessionId,exerciseId ->
-                        viewModel.openExerciseSwap(sessionId,exerciseId) {
-                            com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache.getOrLoad(swapContext).catalog
-                        }
-                    },
-                    onAddSession = { dayId ->
-                        val block = roadmapBlocks.find { it.id == selectedBlockId }
-                        val weekMeta = currentWeeks.find { it.id == selectedWeekId }
-                        val weekId = selectedWeekId
-                        if (block != null && weekMeta != null && weekId != null) {
-                            val sessionId = java.util.UUID.randomUUID().toString()
-                            viewModel.addSession(
-                                macroIndex = block.macroIndex,
-                                mesoIndex = weekMeta.mesoIndex,
-                                weekId = weekId,
-                                session = createBlankRoadmapSession(sessionId, dayId),
+                if (selectedWeekMeta != null && displayedSessions.isEmpty()) {
+                    // Semana vacía: en vez de una agenda de días sin sesiones, copiar la anterior o añadir la primera sesión.
+                    KpknModule(
+                        modifier = Modifier.padding(horizontal = 16.dp).tourAnchor(TourAnchors.TRAINING_SEMANA),
+                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 26.dp),
+                    ) {
+                        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "Esta semana está vacía",
+                                style = EmptyWeekTitleStyle,
+                                color = WizardColors.text,
+                                textAlign = TextAlign.Center,
                             )
-                            onCreateSession(
-                                sessionId,
-                                weekId,
-                                block.macroIndex,
-                                weekMeta.mesoIndex,
-                                dayId,
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                text = "Copia una semana anterior o añade sesiones día a día.",
+                                style = KpknType.body,
+                                color = WizardColors.textMuted,
+                                textAlign = TextAlign.Center,
+                            )
+                            Spacer(Modifier.height(18.dp))
+                            // navIndex cuenta desde 0: la semana de antes lleva el número navIndex (los números empiezan en 1).
+                            if (prevNavWeek != null && prevNavWeek.sessions.isNotEmpty()) {
+                                KpknPrimaryPill(
+                                    text = "Copiar la semana $navIndex",
+                                    onClick = {
+                                        viewModel.copyWeekSessions(
+                                            sourceWeekId = prevNavWeek.id,
+                                            targetWeekIds = setOf(selectedWeekMeta.id),
+                                            replaceWeekIds = emptySet(),
+                                        )
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                                Spacer(Modifier.height(10.dp))
+                            }
+                            KpknSecondaryPill(
+                                text = "Añadir sesión",
+                                onClick = { addSessionMenu = addSessionBounds },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onGloballyPositioned { addSessionBounds = it.boundsInWindow() },
+                                icon = KpknLineIcons.Plus,
                             )
                         }
-                    },
-                    onDeleteSession = { sessionId ->
-                        pendingDeleteSession = displayedSessions.firstOrNull { it.id == sessionId }
-                    },
-                    onStartWorkout = { onStartWorkout(it, program) },
-                    onApplySessionsLayout = { updatedSessions ->
-                        val weekId = selectedWeekId ?: ""
-                        if (weekId.isNotEmpty()) {
-                            viewModel.replaceWeekSessions(weekId, updatedSessions)
+                    }
+                } else {
+                    DayView(
+                        program = program,
+                        modifier = Modifier.tourAnchor(TourAnchors.TRAINING_SEMANA),
+                        isSimpleProgram = program.isSimpleTemporalProgram,
+                        isCalendarized = ProgramCalendarEngine.isCalendarized(program),
+                        selectedWeek = selectedWeekMeta,
+                        sessions = displayedSessions,
+                        onEditSession = onEditSession,
+                        onSwapExercise = { sessionId,exerciseId ->
+                            viewModel.openExerciseSwap(sessionId,exerciseId) {
+                                com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache.getOrLoad(swapContext).catalog
+                            }
+                        },
+                        onAddSession = { dayId -> addSessionOnDay(dayId) },
+                        onDeleteSession = { sessionId ->
+                            pendingDeleteSession = displayedSessions.firstOrNull { it.id == sessionId }
+                        },
+                        onStartWorkout = { onStartWorkout(it, program) },
+                        onApplySessionsLayout = { updatedSessions ->
+                            val weekId = selectedWeekId ?: ""
+                            if (weekId.isNotEmpty()) {
+                                viewModel.replaceWeekSessions(weekId, updatedSessions)
+                            }
+                        },
+                        onUpdateStartDay = { startDay, scope, sessionMode ->
+                            viewModel.updateStartDay(startDay, scope, sessionMode)
+                        },
+                        onUpdateWeekMetadata = { weekId, name, description ->
+                            viewModel.updateWeekMetadata(weekId, name, description)
+                        },
+                        onUpdateTrainingDayDate = { weekId, dayOfWeek, isoDate ->
+                            viewModel.updateWeekTrainingDayDate(weekId, dayOfWeek, isoDate)
+                        },
+                        onToggleOptionalConfirmation = { dayIso, sessionId ->
+                            viewModel.toggleOptionalSessionConfirmation(dayIso, sessionId)
+                        },
+                        onRestoreManualSessionFromPlan = viewModel::restoreManualSessionFromPlan,
+                        restoreBlockedSessionIds = restoreBlockedSessionIds,
+                        completedSessionIds = completedSessionIds,
+                        expandedDayIds = expandedWeekDays?.takeIf { it.first == selectedWeekMeta?.id }?.second,
+                        onExpandedDayIdsChange = { days ->
+                            selectedWeekMeta?.id?.let { weekId -> viewModel.setExpandedWeekDays(weekId, days) }
+                        },
+                    )
+                    if (selectedWeekMeta != null) {
+                        // Debajo de la agenda: «Añadir sesión» (se elige el día) y el menú de la semana (⋯).
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .padding(top = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            KpknSecondaryPill(
+                                text = "Añadir sesión",
+                                onClick = { addSessionMenu = addSessionBounds },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .onGloballyPositioned { addSessionBounds = it.boundsInWindow() },
+                                icon = KpknLineIcons.Plus,
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            KpknIconButton(
+                                icon = KpknLineIcons.More,
+                                contentDescription = "Más opciones de la semana",
+                                onClick = { weekMenu = selectedWeekMeta.id to weekMoreBounds },
+                                modifier = Modifier.onGloballyPositioned { weekMoreBounds = it.boundsInWindow() },
+                            )
                         }
-                    },
-                    onUpdateStartDay = { startDay, scope, sessionMode ->
-                        viewModel.updateStartDay(startDay, scope, sessionMode)
-                    },
-                    onUpdateWeekMetadata = { weekId, name, description ->
-                        viewModel.updateWeekMetadata(weekId, name, description)
-                    },
-                    onUpdateTrainingDayDate = { weekId, dayOfWeek, isoDate ->
-                        viewModel.updateWeekTrainingDayDate(weekId, dayOfWeek, isoDate)
-                    },
-                    onToggleOptionalConfirmation = { dayIso, sessionId ->
-                        viewModel.toggleOptionalSessionConfirmation(dayIso, sessionId)
-                    },
-                    onRestoreManualSessionFromPlan = viewModel::restoreManualSessionFromPlan,
-                    restoreBlockedSessionIds = restoreBlockedSessionIds,
-                    completedSessionIds = completedSessionIds,
-                    expandedDayIds = expandedWeekDays?.takeIf { it.first == selectedWeekMeta?.id }?.second,
-                    onExpandedDayIdsChange = { days ->
-                        selectedWeekMeta?.id?.let { weekId -> viewModel.setExpandedWeekDays(weekId, days) }
-                    },
-                )
+                    }
+                }
             }
             StructureSubTab.MACROCICLO -> MacrocycleEditor(
                 program = program,
@@ -1303,17 +1394,116 @@ private fun TrainingPanel(
         )
     }
 
+    // Menú de la semana (⋯ del navegador, o pulsación larga de una semana en la hoja «Semanas»).
     weekMenu?.let { (weekId, anchor) ->
+        val menuWeek = allProgramWeeks.firstOrNull { it.id == weekId } ?: currentWeeks.firstOrNull { it.id == weekId }
+        val copied = copiedRoadmapWeekId
+        val copiedIndex = navWeeks.indexOfFirst { it.id == copied }
         ProgramItemMenu(
             items = buildList<ProgramAnchoredMenuItem> {
-                add(ProgramAnchoredMenuItem(label = "Copiar semana", onClick = { copiedRoadmapWeekId = weekId }))
-                if (copiedRoadmapWeekId != null && copiedRoadmapWeekId != weekId) {
-                    add(ProgramAnchoredMenuItem(label = "Pegar semana", onClick = { pasteWeek(weekId) }))
+                menuWeek?.let { week ->
+                    add(
+                        ProgramAnchoredMenuItem(
+                            label = "Nombre y nota de la semana",
+                            onClick = { weekEdit = WeekEditDraft(weekId = week.id, name = week.name, description = week.description.orEmpty()) },
+                        ),
+                    )
+                }
+                if (weekId == selectedWeekId) {
+                    add(ProgramAnchoredMenuItem(label = "Cambiar reparto", onClick = onOpenSplitPage))
+                }
+                add(ProgramAnchoredMenuItem(label = "Copiar esta semana", onClick = { copiedRoadmapWeekId = weekId }))
+                if (copied != null && copied != weekId) {
+                    val pasteLabel = if (copiedIndex >= 0) "Pegar la semana ${copiedIndex + 1} aquí" else "Pegar semana aquí"
+                    add(ProgramAnchoredMenuItem(label = pasteLabel, onClick = { pasteWeek(weekId) }))
+                }
+                add(
+                    ProgramAnchoredMenuItem(
+                        label = "Añadir una semana después",
+                        onClick = {
+                            if (program.isSimpleProgram) {
+                                viewModel.addWeekToSimpleProgram()
+                            } else {
+                                phaseBlocks.firstOrNull { block -> block.weeks.any { it.id == weekId } }?.let { addWeekToBlock(it.id) }
+                            }
+                        },
+                    ),
+                )
+                if (navWeeks.size > 1) {
+                    add(ProgramAnchoredMenuItem(label = "Eliminar esta semana", onClick = { pendingDeleteWeek = weekId }, destructive = true))
                 }
             },
             anchor = anchor,
             onDismiss = { weekMenu = null },
         )
+    }
+
+    // «Añadir sesión»: elige el día de la semana elegida.
+    addSessionMenu?.let { anchor ->
+        ProgramItemMenu(
+            items = getDynamicDays(program.startDay ?: 1, program.weekDays ?: 7).map { day ->
+                ProgramAnchoredMenuItem(label = day.name, onClick = { addSessionOnDay(day.id) })
+            },
+            anchor = anchor,
+            onDismiss = { addSessionMenu = null },
+        )
+    }
+
+    pendingDeleteWeek?.let { weekId ->
+        KpknAlertDialog(
+            onDismissRequest = { pendingDeleteWeek = null },
+            title = "¿Eliminar esta semana?",
+            text = "Se quitan sus sesiones. Tus registros se conservan.",
+            confirmLabel = "Eliminar",
+            onConfirm = {
+                viewModel.deleteWeekFromRoadmap(weekId)
+                pendingDeleteWeek = null
+            },
+            dismissLabel = "Cancelar",
+            destructive = true,
+        )
+    }
+
+    // Hoja «Semanas»: el índice de todas las semanas. Elegir una la abre y cierra la hoja.
+    if (showWeeksSheet) {
+        ProgramWeeksSheet(
+            subtitle = weekSheetSubtitle(
+                weekCount = navWeeks.size,
+                blockCount = if (program.isSimpleProgram) null else roadmapBlocks.size,
+            ),
+            onDismiss = { showWeeksSheet = false },
+            onGoToCurrent = activeWeekId?.let { id ->
+                val goToCurrent: () -> Unit = {
+                    if (program.isSimpleProgram) viewModel.selectWeek(id) else selectPhaseWeek(id)
+                    showWeeksSheet = false
+                }
+                goToCurrent
+            },
+        ) {
+            if (!program.isSimpleProgram) {
+                ProgramPhasesModule(
+                    blocks = phaseBlocks,
+                    selectedWeekId = selectedWeekId,
+                    onSelectWeek = { weekId ->
+                        selectPhaseWeek(weekId)
+                        showWeeksSheet = false
+                    },
+                    onLongPressWeek = { weekId, anchor -> weekMenu = weekId to anchor },
+                    onAddWeek = { blockId -> addWeekToBlock(blockId) },
+                )
+            } else {
+                ProgramWeekStrip(
+                    weeks = simpleWeeks,
+                    selectedWeekId = selectedWeekId,
+                    onSelectWeek = { weekId ->
+                        viewModel.selectWeek(weekId)
+                        showWeeksSheet = false
+                    },
+                    onLongPressWeek = { weekId, anchor -> weekMenu = weekId to anchor },
+                    onAdd = { viewModel.addWeekToSimpleProgram() },
+                )
+            }
+        }
     }
 
     pendingDeleteSession?.let { sessionToDelete ->
@@ -1336,6 +1526,14 @@ private data class WeekEditDraft(val weekId: String, val name: String, val descr
 
 /** Nombre por defecto de una semana («Semana 3»): no se repite como subtítulo en la cabecera. */
 private val WeekDefaultName = Regex("Semana \\d+")
+
+/** El título de la semana vacía: Syne Bold 18 / 22. */
+private val EmptyWeekTitleStyle = TextStyle(
+    fontFamily = WizardFonts.display,
+    fontWeight = FontWeight.Bold,
+    fontSize = 18.sp,
+    lineHeight = 22.sp,
+)
 
 private fun createBlankRoadmapSession(sessionId: String, dayOfWeek: Int): Session =
     Session(
