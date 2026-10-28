@@ -1,9 +1,13 @@
 package com.example.kpkn.domain.nutrition.v2
 
 import com.example.kpkn.data.models.AmountIntent
+import com.example.kpkn.domain.nutrition.ClarificationRequest
 import com.example.kpkn.domain.nutrition.FoodResolutionStatus
 import com.example.kpkn.domain.nutrition.FoodState
+import com.example.kpkn.domain.nutrition.NutritionInterpretationBridge
 import com.example.kpkn.domain.nutrition.NutritionSourceKind
+import com.example.kpkn.domain.nutrition.canFinalize
+import com.example.kpkn.domain.nutrition.hasMaterialQuestion
 import com.example.kpkn.domain.nutrition.nutrients.CatalogPortion
 import com.example.kpkn.domain.nutrition.nutrients.CatalogRecord
 import com.example.kpkn.domain.nutrition.nutrients.NutrientId
@@ -47,6 +51,17 @@ class ResolvedTagAdapterV2Test {
             concept("cuy", "Cuy", "usda_500"),
             concept("ganso", "Ganso", "usda_600"),
             concept("faisan", "Faisán", "usda_700"),
+            concept("papa", "Papa", "usda_800", FoodStateV2.RAW).copy(
+                variants = listOf(
+                    ConceptVariantV2(FoodStateV2.RAW, FoodFormV2.NA, "usda_800"),
+                    ConceptVariantV2(FoodStateV2.COOKED, FoodFormV2.NA, "usda_801"),
+                ),
+                portions = listOf(
+                    ConceptPortionV2("1 unidad mediana", 150.0),
+                    ConceptPortionV2("1 taza", 200.0, FoodStateV2.COOKED),
+                    ConceptPortionV2("1 unidad mediana", 160.0),
+                ),
+            ),
         ),
         records = mapOf(
             "usda_100" to RecordV2("usda_100", "Chicken fried", chickenPer100),
@@ -57,6 +72,8 @@ class ResolvedTagAdapterV2Test {
             "usda_500" to RecordV2("usda_500", "Guinea pig", mapOf("energy" to 100.0)),
             "usda_600" to RecordV2("usda_600", "Goose", mapOf("energy" to 305.0)),
             "usda_700" to RecordV2("usda_700", "Pheasant", mapOf("energy" to 181.0)),
+            "usda_800" to RecordV2("usda_800", "Potato raw", mapOf("energy" to 77.0, "protein" to 2.0, "carbs" to 17.0, "fat" to 0.1)),
+            "usda_801" to RecordV2("usda_801", "Potato boiled", mapOf("energy" to 87.0, "protein" to 1.9, "carbs" to 20.0, "fat" to 0.1)),
         ),
     )
 
@@ -73,12 +90,14 @@ class ResolvedTagAdapterV2Test {
         fuzzy: Boolean = false,
         questions: List<QuestionV2> = emptyList(),
         confidence: Double = 0.9,
+        autoAccepted: Boolean = questions.isEmpty(),
+        draftConceptIds: List<String> = listOfNotNull(conceptId),
     ) = MentionV2(
-        draft = MentionDraftV2(0, text.length, 0, text.length, listOfNotNull(conceptId), null, excluded = excluded, fuzzy = fuzzy),
+        draft = MentionDraftV2(0, text.length, 0, text.length, draftConceptIds, null, excluded = excluded, fuzzy = fuzzy),
         text = text, conceptId = conceptId, conceptName = conceptName, recordId = recordId, grams = grams,
         quantityKind = kind, state = state, form = FoodFormV2.NA, per100g = per100g,
         eatenKcal = null, eatenProtein = null, eatenFat = null, eatenCarbs = null,
-        excluded = excluded, confidence = confidence, questions = questions, autoAccepted = questions.isEmpty(),
+        excluded = excluded, confidence = confidence, questions = questions, autoAccepted = autoAccepted,
     )
 
     private fun adapt(vararg mentions: MentionV2) =
@@ -161,7 +180,7 @@ class ResolvedTagAdapterV2Test {
     }
 
     @Test
-    fun identityQuestionBuildsReviewCandidatesWithoutTheChosenOne() {
+    fun identityQuestionListsTheChosenOneFirstThenAlternatives() {
         val tag = adapt(
             mention(
                 text = "pavo", conceptId = "pavo", conceptName = "Pavo", recordId = "usda_300", state = FoodStateV2.COOKED,
@@ -169,19 +188,21 @@ class ResolvedTagAdapterV2Test {
                 questions = listOf(QuestionV2(QuestionDimensionV2.IDENTITY, listOf("pavo", "pato", "sinficha", "cuy", "ganso", "faisan"))),
             ),
         ).single()
-        assertEquals(listOf("off_400", "usda_500", "usda_600", "usda_700"), tag.reviewCandidates.map { it.id })
-        assertEquals(listOf("Pato", "Cuy", "Ganso", "Faisán"), tag.reviewCandidates.map { it.name })
+        // La comida actual va primero y el total se limita a 4 candidatos.
+        assertEquals(listOf("usda_300", "off_400", "usda_500", "usda_600"), tag.reviewCandidates.map { it.id })
+        assertEquals(listOf("Pavo", "Pato", "Cuy", "Ganso"), tag.reviewCandidates.map { it.name })
         assertEquals("Revisar: identidad", tag.statusText)
-        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, tag.resolutionStatus)
+        assertEquals(FoodResolutionStatus.NEEDS_REVIEW, tag.resolutionStatus)
         assertFalse(tag.needsCookingClarification)
     }
 
     @Test
-    fun stateQuestionFlagsCookingClarification() {
+    fun stateQuestionWithSingleVariantFallsBackToQuantity() {
+        // Concepto de una sola variante: no hay dos estados que ofrecer, se pregunta la cantidad (siempre contestable).
         val tag = adapt(mention(questions = listOf(QuestionV2(QuestionDimensionV2.STATE, listOf("RAW", "COOKED"))))).single()
-        assertTrue(tag.needsCookingClarification)
-        assertEquals("Revisar: estado", tag.statusText)
-        assertEquals(FoodResolutionStatus.NEEDS_STATE, tag.resolutionStatus)
+        assertFalse(tag.needsCookingClarification)
+        assertEquals("Revisar: cantidad", tag.statusText)
+        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, tag.resolutionStatus)
         assertTrue(tag.reviewCandidates.isEmpty())
     }
 
@@ -260,5 +281,126 @@ class ResolvedTagAdapterV2Test {
         assertEquals(15.0 * 1.5, saved.nutrientAmount(NutrientId.CALCIUM)!!, 1e-9)
         assertEquals(1.2 * 1.5, saved.nutrientAmount(NutrientId.IRON)!!, 1e-9)
         assertEquals("gen-pack", saved.catalogGeneration)
+    }
+
+    private fun papa(
+        state: FoodStateV2 = FoodStateV2.RAW,
+        questions: List<QuestionV2> = emptyList(),
+        autoAccepted: Boolean = questions.isEmpty(),
+    ) = mention(
+        text = "papa", conceptId = "papa", conceptName = "Papa", recordId = if (state == FoodStateV2.RAW) "usda_800" else "usda_801",
+        state = state, per100g = emptyMap(), questions = questions, autoAccepted = autoAccepted,
+    )
+
+    @Test
+    fun autoAcceptedMentionComesWithFinalizableInterpretationAndNoQuestions() {
+        val tag = adapt(mention()).single()
+        val interpretation = tag.interpretationV2
+        assertNotNull(interpretation)
+        assertTrue(interpretation!!.pendingQuestions.isEmpty())
+        assertTrue(interpretation.canFinalize())
+        assertFalse(tag.hasMaterialQuestion())
+        assertEquals(FoodResolutionStatus.AUTO, tag.resolutionStatus)
+        assertFalse(tag.needsCookingClarification)
+        assertEquals(0.0, tag.appliedOilGrams!!, 0.0)
+    }
+
+    @Test
+    fun lowConfidenceWithoutQuestionsAsksQuantityWithTheEstimateFirst() {
+        val tag = adapt(mention(autoAccepted = false)).single()
+        val request = tag.interpretationV2!!.pendingQuestions.single() as ClarificationRequest.Portion
+        assertEquals("quantity", request.requestId)
+        assertEquals("Lo estimado (150 g)", request.options.first().label)
+        assertEquals(150.0, request.options.first().grams, 1e-9)
+        assertTrue(request.allowManualGrams)
+        assertTrue(tag.hasMaterialQuestion())
+        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, tag.resolutionStatus)
+        assertEquals("Revisar: cantidad", tag.statusText)
+
+        val accepted = NutritionInterpretationBridge.acceptEstimate(tag)
+        assertTrue(accepted.interpretationV2!!.canFinalize())
+        assertFalse(accepted.hasMaterialQuestion())
+    }
+
+    @Test
+    fun fuzzyLowConfidenceWithoutQuestionsAsksIdentityWithCurrentFoodAvailable() {
+        val tag = adapt(
+            mention(
+                text = "pavo", conceptId = "pavo", conceptName = "Pavo", recordId = "usda_300", state = FoodStateV2.COOKED,
+                per100g = mapOf("energy" to 189.0), fuzzy = true, autoAccepted = false, draftConceptIds = listOf("pavo", "pato", "ganso"),
+            ),
+        ).single()
+        val request = tag.interpretationV2!!.pendingQuestions.single() as ClarificationRequest.Identity
+        assertEquals("identity", request.requestId)
+        assertEquals(listOf("usda_300", "off_400", "usda_600"), request.candidateIds)
+        assertTrue("usda_300" in tag.reviewCandidates.map { it.id })
+        assertTrue(request.candidateIds.all { id -> id in tag.reviewCandidates.map { it.id } })
+        assertEquals(FoodResolutionStatus.NEEDS_REVIEW, tag.resolutionStatus)
+        assertTrue(tag.hasMaterialQuestion())
+    }
+
+    @Test
+    fun stateQuestionOffersOneCandidatePerStateOfTheConcept() {
+        val tag = adapt(papa(questions = listOf(QuestionV2(QuestionDimensionV2.STATE, listOf("RAW", "COOKED"))))).single()
+        val request = tag.interpretationV2!!.pendingQuestions.single() as ClarificationRequest.Identity
+        assertEquals("state", request.requestId)
+        assertEquals(listOf("usda_800", "usda_801"), request.candidateIds)
+        assertEquals(listOf("Papa (crudo)", "Papa (cocido)"), request.candidateLabels)
+        assertEquals(listOf("usda_800", "usda_801"), tag.reviewCandidates.map { it.id })
+        assertEquals(FoodResolutionStatus.NEEDS_STATE, tag.resolutionStatus)
+        assertEquals("Revisar: estado", tag.statusText)
+        assertFalse(tag.needsCookingClarification)
+        assertTrue(tag.hasMaterialQuestion())
+    }
+
+    @Test
+    fun quantityQuestionOffersEstimateAndConceptPortions() {
+        val tag = adapt(papa(questions = listOf(QuestionV2(QuestionDimensionV2.QUANTITY, emptyList())))).single()
+        val request = tag.interpretationV2!!.pendingQuestions.single() as ClarificationRequest.Portion
+        // Porciones distintas por etiqueta: la repetida "1 unidad mediana" solo entra una vez.
+        assertEquals(listOf("Lo estimado (150 g)", "1 unidad mediana (150 g)", "1 taza (200 g)"), request.options.map { it.label })
+        assertEquals(listOf(150.0, 150.0, 200.0), request.options.map { it.grams })
+        assertEquals("Revisar: cantidad", tag.statusText)
+    }
+
+    @Test
+    fun materialQuestionMatchesAutoAcceptedForEveryMention() {
+        val mentions = listOf(
+            mention(),
+            mention(autoAccepted = false),
+            mention(fuzzy = true, autoAccepted = false, draftConceptIds = listOf("pollo", "pato")),
+            mention(fuzzy = true, autoAccepted = false),
+            mention(questions = listOf(QuestionV2(QuestionDimensionV2.STATE, listOf("RAW", "COOKED")))),
+            papa(questions = listOf(QuestionV2(QuestionDimensionV2.STATE, listOf("RAW", "COOKED")))),
+            papa(questions = listOf(QuestionV2(QuestionDimensionV2.QUANTITY, emptyList()))),
+            papa(questions = listOf(QuestionV2(QuestionDimensionV2.FORM, listOf("NA")))),
+            papa(
+                questions = listOf(
+                    QuestionV2(QuestionDimensionV2.QUANTITY, emptyList()),
+                    QuestionV2(QuestionDimensionV2.IDENTITY, listOf("papa", "pato")),
+                    QuestionV2(QuestionDimensionV2.STATE, listOf("RAW", "COOKED")),
+                ),
+            ),
+            mention(
+                text = "pavo", conceptId = "pavo", conceptName = "Pavo", recordId = "usda_300", per100g = mapOf("energy" to 189.0),
+                questions = listOf(QuestionV2(QuestionDimensionV2.IDENTITY, listOf("pavo", "pato", "ganso"))),
+            ),
+            mention(excluded = true, autoAccepted = false),
+        )
+        val tags = adapt(*mentions.toTypedArray())
+        assertEquals(mentions.size, tags.size)
+        mentions.zip(tags).forEach { (mention, tag) ->
+            assertTrue(tag.isResolved)
+            assertNotNull(tag.interpretationV2)
+            if (mention.excluded) {
+                assertFalse(tag.hasMaterialQuestion())
+            } else {
+                assertEquals(mention.text + " " + mention.questions, !mention.autoAccepted, tag.hasMaterialQuestion())
+            }
+            if (!mention.autoAccepted && !mention.excluded) {
+                val ids = tag.interpretationV2!!.pendingQuestions.map { it.requestId }
+                assertEquals(ids.distinct(), ids)
+            }
+        }
     }
 }

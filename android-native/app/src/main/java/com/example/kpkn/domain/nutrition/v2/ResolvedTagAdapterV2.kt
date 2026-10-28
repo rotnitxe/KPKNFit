@@ -6,21 +6,37 @@ import com.example.kpkn.data.models.CarbBreakdown
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.LoggedFood
 import com.example.kpkn.data.models.Micronutrient
+import com.example.kpkn.domain.nutrition.ClarificationRequest
+import com.example.kpkn.domain.nutrition.FoodInterpretationV2Engine
 import com.example.kpkn.domain.nutrition.FoodResolutionStatus
 import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.NutritionSourceKind
+import com.example.kpkn.domain.nutrition.PortionOption
 import com.example.kpkn.domain.nutrition.ResolvedTag
 import java.util.UUID
+import kotlin.math.roundToInt
 
 /**
  * Convierte la salida del parser v2 ([MealParseV2]) en los [ResolvedTag] que ya consume el registrador de comidas.
  *
  * Una etiqueta por [MentionV2], en el mismo orden. La ficha del catálogo ya corresponde al estado pedido (frito, cocido…):
  * no se aplica ninguna transformación de cocción ni aceite extra. Los gramos y las claves de la ficha no se redondean aquí.
+ *
+ * Cada etiqueta resuelta sale ya con `interpretationV2` construida (el registrador con el intérprete v2 no la pasa por
+ * `NutritionInterpretationBridge.enrich`). Invariante: para toda mención resuelta y no excluida,
+ * `tag.hasMaterialQuestion() == !mention.autoAccepted`; una mención autoaceptada no lleva preguntas pendientes y una no
+ * autoaceptada lleva siempre al menos una que se puede contestar (identidad, estado, presentación o cantidad), de modo que
+ * la app bloquea exactamente lo que el examen A/B no autoacepta.
  */
 object ResolvedTagAdapterV2 {
     private const val MAX_REVIEW_CANDIDATES = 4
+    private const val MAX_PORTION_OPTIONS = 4
+    private const val REQUEST_IDENTITY = "identity"
+    private const val REQUEST_STATE = "state"
+    private const val REQUEST_FORM = "form"
+    private const val REQUEST_QUANTITY = "quantity"
     private val CATALOG_PREFIXES = listOf("usda_", "ciqual_", "off_")
+    private val interpreter = FoodInterpretationV2Engine()
 
     fun toResolvedTags(parse: MealParseV2, catalog: ConceptCatalogV2): List<ResolvedTag> =
         parse.mentions.map { toResolvedTag(it, catalog) }
@@ -44,20 +60,20 @@ object ResolvedTagAdapterV2 {
         val food = buildFood(recordId, name, concept?.category, per100g, foodState, catalog.generation)
         val logged = buildLoggedFood(food, grams, recordId, per100g, catalog.generation)
 
-        val dimensions = mention.questions.map { it.dimension }.distinct()
-        val hasStateQuestion = QuestionDimensionV2.STATE in dimensions
+        val plan = clarificationPlan(mention, concept, name, food, grams, catalog)
+        val requests = plan.requests
         val status = when {
-            dimensions.isEmpty() -> FoodResolutionStatus.AUTO
-            hasStateQuestion -> FoodResolutionStatus.NEEDS_STATE
+            requests.isEmpty() -> FoodResolutionStatus.AUTO
+            requests.any { it.requestId == REQUEST_IDENTITY } -> FoodResolutionStatus.NEEDS_REVIEW
+            requests.any { it.requestId == REQUEST_STATE } -> FoodResolutionStatus.NEEDS_STATE
             else -> FoodResolutionStatus.NEEDS_CONFIRMATION
         }
         val statusText = when {
-            mention.excluded -> "Excluido"
-            dimensions.isEmpty() -> "Interpretado"
-            else -> "Revisar: " + dimensions.joinToString(", ") { dimensionName(it) }
+            requests.isEmpty() -> if (mention.excluded) "Excluido" else "Interpretado"
+            else -> "Revisar: " + requests.joinToString(", ") { requestName(it.requestId) }
         }
 
-        return ResolvedTag(
+        val tag = ResolvedTag(
             tag = mention.text,
             amountGrams = grams,
             baseAmountGrams = grams,
@@ -70,29 +86,137 @@ object ResolvedTagAdapterV2 {
             statusText = statusText,
             isExcluded = mention.excluded,
             amountIntent = amountIntentOf(mention.quantityKind),
-            needsCookingClarification = hasStateQuestion,
+            needsCookingClarification = false,
             oilApplied = true,
-            reviewCandidates = reviewCandidates(mention, catalog),
+            appliedOilGrams = 0.0,
+            reviewCandidates = plan.reviewCandidates,
             foodState = foodState,
             resolutionStatus = status,
             nutritionSource = sourceOf(recordId),
             resolutionConfidence = mention.confidence,
         )
+        return tag.copy(interpretationV2 = interpreter.interpretResolved(tag, requests))
     }
 
-    private fun reviewCandidates(mention: MentionV2, catalog: ConceptCatalogV2): List<FoodItem> {
-        val question = mention.questions.firstOrNull { it.dimension == QuestionDimensionV2.IDENTITY } ?: return emptyList()
-        return question.options
+    private class Candidate(val food: FoodItem, val label: String)
+
+    private class Plan(val requests: List<ClarificationRequest>, val reviewCandidates: List<FoodItem>)
+
+    /**
+     * Peticiones de aclaración de una mención: ninguna si está autoaceptada o excluida; si no, una por dimensión preguntada
+     * (identidad, estado, presentación, cantidad, en ese orden). Una petición de identidad/estado/presentación con menos de
+     * 2 candidatos se sustituye por la de cantidad, que siempre se puede contestar (también a mano).
+     */
+    private fun clarificationPlan(
+        mention: MentionV2,
+        concept: ConceptV2?,
+        name: String,
+        food: FoodItem,
+        grams: Double,
+        catalog: ConceptCatalogV2,
+    ): Plan {
+        if (mention.excluded || mention.autoAccepted) return Plan(emptyList(), emptyList())
+        val current = Candidate(food, name)
+        val dimensions = mention.questions.map { it.dimension }.distinct()
+        val requests = mutableListOf<ClarificationRequest>()
+        val candidateLists = mutableListOf<List<Candidate>>()
+
+        fun add(request: ClarificationRequest) {
+            if (requests.none { it.requestId == request.requestId }) requests += request
+        }
+        fun addQuantity() = add(quantityRequest(mention, concept, grams))
+        fun addIdentity(id: String, candidates: List<Candidate>) {
+            if (candidates.map { it.food.id }.distinct().size < 2) return addQuantity()
+            candidateLists += candidates
+            add(ClarificationRequest.Identity(id, candidates.map { it.food.id }, candidates.map { it.label }))
+        }
+
+        val order = listOf(QuestionDimensionV2.IDENTITY, QuestionDimensionV2.STATE, QuestionDimensionV2.FORM, QuestionDimensionV2.QUANTITY)
+        for (dimension in order) {
+            if (dimension !in dimensions) continue
+            when (dimension) {
+                QuestionDimensionV2.IDENTITY -> {
+                    val options = mention.questions.first { it.dimension == dimension }.options
+                    addIdentity(REQUEST_IDENTITY, identityCandidates(current, options, mention, catalog))
+                }
+                QuestionDimensionV2.STATE ->
+                    addIdentity(REQUEST_STATE, variantCandidates(current, mention, concept, name, catalog, byState = true))
+                QuestionDimensionV2.FORM ->
+                    addIdentity(REQUEST_FORM, variantCandidates(current, mention, concept, name, catalog, byState = false))
+                QuestionDimensionV2.QUANTITY -> addQuantity()
+            }
+        }
+        if (requests.isEmpty()) {
+            if (mention.draft.fuzzy) addIdentity(REQUEST_IDENTITY, identityCandidates(current, mention.draft.conceptIds, mention, catalog))
+            else addQuantity()
+        }
+        val review = candidateLists.flatten().map { it.food }.distinctBy { it.id }
+        return Plan(requests, review)
+    }
+
+    /** La comida actual primero y luego las de los otros conceptos (ficha por defecto), máx. 4 en total. */
+    private fun identityCandidates(
+        current: Candidate,
+        conceptIds: List<String>,
+        mention: MentionV2,
+        catalog: ConceptCatalogV2,
+    ): List<Candidate> {
+        val others = conceptIds
             .filter { it != mention.conceptId }
+            .distinct()
             .mapNotNull { conceptId ->
                 val concept = catalog.concept(conceptId) ?: return@mapNotNull null
                 val variant = concept.variants.firstOrNull { it.recordId != null && it.state == concept.defaultState && it.form == concept.defaultForm }
                     ?: concept.variants.firstOrNull { it.recordId != null }
                     ?: return@mapNotNull null
                 val record = catalog.record(variant.recordId) ?: return@mapNotNull null
-                buildFood(record.id, concept.name, concept.category, record.per100g, foodStateOf(variant.state), catalog.generation)
+                Candidate(
+                    buildFood(record.id, concept.name, concept.category, record.per100g, foodStateOf(variant.state), catalog.generation),
+                    concept.name,
+                )
             }
-            .take(MAX_REVIEW_CANDIDATES)
+        return (listOf(current) + others).distinctBy { it.food.id }.take(MAX_REVIEW_CANDIDATES)
+    }
+
+    /** Una ficha por estado (o por forma) distinto entre las variantes con ficha del concepto; la actual primero. */
+    private fun variantCandidates(
+        current: Candidate,
+        mention: MentionV2,
+        concept: ConceptV2?,
+        name: String,
+        catalog: ConceptCatalogV2,
+        byState: Boolean,
+    ): List<Candidate> {
+        if (concept == null) return listOf(current)
+        val currentState = mention.state ?: concept.variants.firstOrNull { it.recordId == current.food.id }?.state
+        val currentKey: Any? = if (byState) currentState else mention.form
+        fun keyOf(variant: ConceptVariantV2): Any? = if (byState) variant.state else variant.form
+        val others = concept.variants
+            .filter { it.recordId != null && catalog.record(it.recordId) != null }
+            .filter { keyOf(it) != null && keyOf(it) != currentKey && it.recordId != current.food.id }
+            .groupBy { keyOf(it) }
+            .values
+            .mapNotNull { group ->
+                val preferred = if (byState) group.firstOrNull { it.form == mention.form } else group.firstOrNull { it.state == currentState }
+                val variant = preferred ?: group.first()
+                val record = catalog.record(variant.recordId) ?: return@mapNotNull null
+                val food = buildFood(record.id, name, concept.category, record.per100g, foodStateOf(variant.state), catalog.generation)
+                Candidate(food, "$name (${if (byState) stateName(variant.state) else formName(variant.form)})")
+            }
+        val currentLabel = "$name (${if (byState) stateName(currentState) else formName(mention.form)})"
+        return (listOf(Candidate(current.food, currentLabel)) + others).distinctBy { it.food.id }.take(MAX_REVIEW_CANDIDATES)
+    }
+
+    /** Primera opción: lo estimado; luego hasta 4 porciones del concepto (distintas por etiqueta). */
+    private fun quantityRequest(mention: MentionV2, concept: ConceptV2?, grams: Double): ClarificationRequest.Portion {
+        val estimated = PortionOption("Lo estimado (${grams.roundToInt()} g)", grams)
+        val portions = concept?.portions.orEmpty()
+            .filter { it.grams.isFinite() && it.grams > 0.0 }
+            .sortedBy { if (it.state == null || it.state == mention.state) 0 else 1 }
+            .distinctBy { it.label }
+            .take(MAX_PORTION_OPTIONS)
+            .map { PortionOption("${it.label} (${it.grams.roundToInt()} g)", it.grams) }
+        return ClarificationRequest.Portion(REQUEST_QUANTITY, listOf(estimated) + portions)
     }
 
     /** FoodItem por 100 g; clave ausente = sin dato (sin desglose de carbohidratos ni micronutriente inventado). */
@@ -178,10 +302,33 @@ object ResolvedTagAdapterV2 {
     private fun sourceOf(recordId: String): NutritionSourceKind =
         if (CATALOG_PREFIXES.any { recordId.startsWith(it) }) NutritionSourceKind.VERIFIED_GLOBAL else NutritionSourceKind.CURATED_LOCAL
 
-    private fun dimensionName(dimension: QuestionDimensionV2): String = when (dimension) {
-        QuestionDimensionV2.IDENTITY -> "identidad"
-        QuestionDimensionV2.QUANTITY -> "cantidad"
-        QuestionDimensionV2.STATE -> "estado"
-        QuestionDimensionV2.FORM -> "presentación"
+    private fun requestName(requestId: String): String = when (requestId) {
+        REQUEST_IDENTITY -> "identidad"
+        REQUEST_STATE -> "estado"
+        REQUEST_FORM -> "presentación"
+        else -> "cantidad"
+    }
+
+    private fun stateName(state: FoodStateV2?): String = when (state) {
+        null -> "sin especificar"
+        FoodStateV2.RAW -> "crudo"
+        FoodStateV2.COOKED -> "cocido"
+        FoodStateV2.FRIED -> "frito"
+        FoodStateV2.GRILLED -> "a la plancha"
+        FoodStateV2.BAKED -> "al horno"
+        FoodStateV2.STEAMED -> "al vapor"
+    }
+
+    private fun formName(form: FoodFormV2): String = when (form) {
+        FoodFormV2.NA -> "natural"
+        FoodFormV2.POWDER_DRY -> "en polvo"
+        FoodFormV2.RECONSTITUTED -> "preparado"
+        FoodFormV2.CONCENTRATE -> "concentrado"
+        FoodFormV2.LIQUID -> "líquido"
+        FoodFormV2.DRIED -> "deshidratado"
+        FoodFormV2.CANNED_DRAINED -> "en conserva, escurrido"
+        FoodFormV2.CANNED_UNDRAINED -> "en conserva, con su líquido"
+        FoodFormV2.LIGHT -> "light"
+        FoodFormV2.SUGAR_FREE -> "sin azúcar"
     }
 }
