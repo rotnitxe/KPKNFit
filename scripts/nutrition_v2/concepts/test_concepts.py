@@ -2,7 +2,9 @@
 import copy
 import json
 import os
+import gzip
 import shutil
+import sqlite3
 import sys
 import tempfile
 import unittest
@@ -12,6 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import candidates  # noqa: E402
 import check_stage1  # noqa: E402
 import check_stage3  # noqa: E402
+import export  # noqa: E402
 import merge  # noqa: E402
 import schema  # noqa: E402
 
@@ -253,6 +256,162 @@ class MergeTest(Base):
         self.assertEqual(merge.main(["--in-dir", d, "--out", out[0], "--ambiguous", out[1], "--report", out[2]]), 0)
         with open(out[0], encoding="utf-8") as f:
             self.assertEqual(len(f.read().splitlines()), 4)
+
+    def test_repeated_id_folds_aliases(self):
+        d = self.p("in"); os.mkdir(d)
+        dup = stage3(rice()); dup["aliasesEs"] = ["arroz", "arroz graneado"]; dup["defaultGrams"] = 999
+        write(os.path.join(d, "a.jsonl"), [stage3(rice())])
+        write(os.path.join(d, "b.jsonl"), [dup])
+        paths = sorted(os.path.join(d, f) for f in os.listdir(d))
+        concepts, _, rep = merge.merge(paths)
+        self.assertEqual(len(concepts), 1)
+        self.assertEqual(rep["rejected"], [])
+        self.assertEqual(rep["folded"], [{"where": "b.jsonl:1", "id": "arroz_blanco", "into": "a.jsonl:1",
+                                          "aliasesMoved": 1}])
+        self.assertIn("arroz graneado", concepts[0]["aliasesEs"])
+        self.assertNotEqual(concepts[0]["defaultGrams"], 999)
+        concepts, _, rep = merge.merge(paths, {"keepFrom": {"arroz_blanco": "b.jsonl"}})
+        self.assertEqual(concepts[0]["defaultGrams"], 999)
+        self.assertIn("Arroz blanco", concepts[0]["aliasesEs"])
+        self.assertEqual(rep["folded"][0]["into"], "b.jsonl:1")
+
+
+class CurationTest(Base):
+    def raw(self):
+        a = stage3(rice())
+        b = stage3(rice()); b["id"] = "arroz_con_leche"
+        b["aliasesEs"] = ["arroz con leche", "Arroz"]; b["aliasesEn"] = ["rice pudding"]; b["typos"] = ["aroz con leche"]
+        m = stage3(milk()); m["variants"].append({"state": "NA", "form": "LIQUID", "query": "milk", "ref": "x"})
+        m["aliasesEs"] = ["leche en polvo", "leche con azucar"]
+        return {c["id"]: ("t:1", c) for c in (a, b, m)}
+
+    def test_drop_moves_aliases(self):
+        raw = self.raw()
+        rep = merge.apply_curation(raw, {"drop": {"arroz_con_leche": "arroz_blanco", "nada": None}})
+        self.assertNotIn("arroz_con_leche", raw)
+        dest = raw["arroz_blanco"][1]
+        self.assertEqual(dest["aliasesEs"], ["arroz", "Arroz blanco", "arroz con leche"])
+        self.assertEqual(dest["aliasesEn"], ["white rice", "rice pudding"])
+        self.assertEqual(dest["typos"], ["aroz", "aroz con leche"])
+        self.assertEqual((rep["dropped"], rep["aliasesMoved"]), (1, 3))
+        self.assertEqual(len(rep["warnings"]), 1)
+
+    def test_drop_variants_and_aliases(self):
+        raw = self.raw()
+        rep = merge.apply_curation(raw, {
+            "dropVariants": [{"id": "leche_polvo", "state": None, "form": "LIQUID"}, {"id": "fantasma", "form": "NA"}],
+            "dropAliases": {"leche_polvo": ["Leche con Azúcar"], "otro": ["x"]}})
+        m = raw["leche_polvo"][1]
+        self.assertEqual(len(m["variants"]), 1)
+        self.assertEqual(m["aliasesEs"], ["leche en polvo"])
+        self.assertEqual((rep["variantsDropped"], rep["aliasesDropped"], len(rep["warnings"])), (1, 1, 2))
+
+    def test_merge_with_curation_in_report(self):
+        d = self.p("in"); os.mkdir(d)
+        b = stage3(rice()); b["id"] = "arroz_2"; b["aliasesEs"] = ["arroz dos"]
+        write(os.path.join(d, "a.jsonl"), [stage3(rice()), b])
+        cur = self.p("cur.json")
+        with open(cur, "w", encoding="utf-8") as f:
+            json.dump({"drop": {"arroz_2": "arroz_blanco"}}, f)
+        out = [self.p(n) for n in ("c.jsonl", "a.jsonl", "r.json")]
+        self.assertEqual(merge.main(["--in-dir", d, "--out", out[0], "--ambiguous", out[1], "--report", out[2],
+                                     "--curation", cur]), 0)
+        with open(out[2], encoding="utf-8") as f:
+            rep = json.load(f)
+        self.assertEqual(rep["accepted"], 1)
+        self.assertEqual(rep["curation"]["dropped"], 1)
+
+
+class ExportTest(Base):
+    def make_pack(self):
+        path = self.p("pack.sqlite")
+        db = sqlite3.connect(path)
+        db.executescript("""
+            CREATE TABLE metadata(key TEXT, value TEXT);
+            CREATE TABLE record(id TEXT, name TEXT, name_es TEXT, density_g_per_ml REAL);
+            CREATE TABLE nutrient_value(record_id TEXT, nutrient_id INTEGER, amount REAL, quality INTEGER);
+            CREATE TABLE portion(record_id TEXT, seq INTEGER, label TEXT, label_es TEXT, grams REAL, ml REAL);
+            INSERT INTO metadata VALUES('generation','gen1');
+            INSERT INTO record VALUES('r0','Rice cooked','Arroz',NULL),('r1','Rice raw','Arroz crudo',NULL),('c1','Corn','Choclo',1.1);
+            INSERT INTO nutrient_value VALUES
+              ('r0',1,130,0),('r0',2,2.7,0),('r0',15,10,0),
+              ('r1',1,360,0),('r1',2,7,0),
+              ('c1',1,100,0),('c1',2,3,0),('c1',15,20,0);
+            INSERT INTO portion VALUES('r0',1,'1 cup','1 taza',158,NULL),('r0',2,'1 oz',NULL,28,NULL);
+        """)
+        db.commit(); db.close()
+        return path
+
+    def run_export(self, concepts, *flags):
+        write(self.p("c.jsonl"), concepts)
+        write(self.p("a.jsonl"), [{"alias": "x", "concepts": ["a", "b"]}])
+        out = self.p("out.json.gz" if "--gzip" in flags else "out.json")
+        code = export.main(["--concepts", self.p("c.jsonl"), "--ambiguous", self.p("a.jsonl"),
+                            "--pack", self.make_pack(), "--out", out] + list(flags))
+        return code, out
+
+    def load(self, out):
+        opener = gzip.open if out.endswith(".gz") else open
+        with opener(out, "rt", encoding="utf-8") as f:
+            return json.load(f)
+
+    def concepts(self):
+        r = stage3(rice()); r["variants"][0]["ref"] = "r0"; r["variants"][1]["ref"] = "r1"
+        d = stage3(dish())
+        d["components"] = [{"query": "corn", "grams": 100, "ref": "c1"},
+                           {"query": "rice", "grams": 100, "ref": "r0"},
+                           {"query": "mystery", "grams": 100, "noMatch": True}]
+        return [r, d]
+
+    def test_full_export(self):
+        code, out = self.run_export(self.concepts())
+        self.assertEqual(code, 0)
+        data = self.load(out)
+        self.assertEqual(data["generation"], "gen1")
+        self.assertEqual(len(data["conceptsSha256"]), 64)
+        self.assertEqual(set(data["records"]), {"r0", "r1", "c1", "kpkn_pastel_choclo"})
+        r0 = data["records"]["r0"]
+        self.assertEqual(r0["per100g"], {"energy": 130, "protein": 2.7, "calcium": 10})
+        self.assertEqual(r0["portions"], [{"label": "1 taza", "grams": 158}, {"label": "1 oz", "grams": 28}])
+        self.assertEqual(data["records"]["c1"]["densityGPerMl"], 1.1)
+        der = data["records"]["kpkn_pastel_choclo"]["per100g"]
+        self.assertAlmostEqual(der["energy"], (100 * 100 / 100 + 100 * 130 / 100) / 300 * 100, 3)
+        self.assertAlmostEqual(der["calcium"], (20 + 10) / 300 * 100, 3)
+        pastel = [c for c in data["concepts"] if c["id"] == "pastel_choclo"][0]
+        self.assertEqual(pastel["variants"], [{"state": None, "form": "NA", "query": "", "ref": "kpkn_pastel_choclo"}])
+        self.assertEqual(data["ambiguous"][0]["alias"], "x")
+
+    def test_missing_nutrient_in_one_component(self):
+        cs = self.concepts()
+        cs[1]["components"][0]["ref"] = "r1"  # r1 no trae calcio
+        code, out = self.run_export(cs)
+        self.assertEqual(code, 0)
+        der = self.load(out)["records"]["kpkn_pastel_choclo"]["per100g"]
+        self.assertNotIn("calcium", der)
+        self.assertIn("energy", der)
+
+    def test_macros_only_and_gzip(self):
+        code, out = self.run_export(self.concepts(), "--macros-only", "--gzip")
+        self.assertEqual(code, 0)
+        data = self.load(out)
+        self.assertEqual(data["records"]["r0"]["per100g"], {"energy": 130, "protein": 2.7})
+        self.assertNotIn("calcium", data["records"]["kpkn_pastel_choclo"]["per100g"])
+
+    def test_missing_ref_is_error(self):
+        cs = self.concepts(); cs[0]["variants"][0]["ref"] = "no_existe"
+        code, _ = self.run_export(cs)
+        self.assertEqual(code, 1)
+
+    def test_concept_without_record_is_warning(self):
+        lone = stage3(rice()); lone["id"] = "solo"
+        for v in lone["variants"]:
+            v.pop("ref"); v["noMatch"] = True
+        code, _ = self.run_export(self.concepts() + [lone])
+        self.assertEqual(code, 0)
+
+    def test_nutrient_keys_match_kotlin(self):
+        if os.path.exists(export.NUTRIENT_ID_KT):
+            self.assertTrue(export.check_nutrient_keys())
 
 
 if __name__ == "__main__":
