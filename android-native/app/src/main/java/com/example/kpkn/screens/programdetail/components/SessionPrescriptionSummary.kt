@@ -12,6 +12,7 @@ import com.example.kpkn.data.models.resolveUnitModeV2
 import com.example.kpkn.data.models.toUnitModeV2
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.domain.training.NativeProgressionText
+import com.example.kpkn.domain.training.VariantLoadEstimates
 import com.example.kpkn.ui.design.KpknSetFormat
 
 /** Espacio inseparable: va delante de «%», «kg» y las unidades de tiempo («80 %», «96 kg», «45 s»). */
@@ -86,6 +87,8 @@ internal fun formatExercisePrescription(exercise: Exercise): String? {
     val rest = first?.restAfterSeconds ?: exercise.restTime
     rest?.takeIf { it > 0 }?.let { parts += KpknSetFormat.doseTime(it) }
     if (usesRepMode && exercise.slotRole == com.example.kpkn.data.protocols.SlotRole.SPEED) parts += "Velocidad"
+    // F-23: una carga calculada desde la marca de otra variante se dice «estimada» (la marca propia la declara la persona).
+    if (exercise.loadEstimate != null && parts.isNotEmpty()) parts += VariantLoadEstimates.PRESCRIPTION_LABEL
 
     return parts.joinToString(" · ").ifBlank { null }
 }

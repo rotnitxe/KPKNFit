@@ -22,6 +22,19 @@ class VariantLoadEstimatesTest {
         assertEquals(1.0 / 0.95, e.factor, 1e-9)
     }
 
+    @Test fun accessibilityLabelNamesTheBasicAndUsesADecimalComma() {
+        val e = VariantLoadEstimates.estimate(CatalogIds.SQ_LOW, 200.0, CatalogIds.SQ_PAUSED)!!
+        assertEquals(
+            "Carga estimada desde tu 1RM de Sentadilla barra baja (×0,85). Declara la marca de esta variante para ajustarla.",
+            VariantLoadEstimates.accessibilityLabel(e, "Sentadilla barra baja"),
+        )
+        assertEquals(
+            "Carga estimada desde tu 1RM del básico (×0,85). Declara la marca de esta variante para ajustarla.",
+            VariantLoadEstimates.accessibilityLabel(e, null),
+        )
+        assertEquals("carga estimada", VariantLoadEstimates.PRESCRIPTION_LABEL)
+    }
+
     @Test fun benchToSpotoIs92Percent() {
         assertEquals(92.0, VariantLoadEstimates.estimate(CatalogIds.BP, 100.0, CatalogIds.BP_SPOTO)!!.estimatedOneRmKg, 1e-9)
     }

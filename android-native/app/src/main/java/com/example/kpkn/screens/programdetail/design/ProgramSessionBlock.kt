@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.exercises.catalogExerciseIndex
+import com.example.kpkn.domain.training.VariantLoadEstimates
 import com.example.kpkn.domain.exercises.exerciseDisplayName
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
@@ -94,8 +95,12 @@ internal fun ProgramSessionBlock(
                     }
                 }
                 formatExercisePrescription(exercise)?.let { dose ->
+                    val estimateNote = exercise.loadEstimate?.let { estimate ->
+                        VariantLoadEstimates.accessibilityLabel(estimate, exerciseLookup[estimate.sourceConfigurationId]?.name)
+                    }
                     Text(
                         text = dose,
+                        modifier = if (estimateNote != null) Modifier.semantics { contentDescription = "$dose. $estimateNote" } else Modifier,
                         style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
                         color = WizardColors.textMuted,
                         maxLines = 2,
