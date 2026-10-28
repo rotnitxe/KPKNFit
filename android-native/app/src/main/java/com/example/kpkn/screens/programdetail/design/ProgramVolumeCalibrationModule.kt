@@ -34,6 +34,7 @@ internal fun ProgramVolumeCalibrationModule(
     onEdit: () -> Unit,
     proposals: List<com.example.kpkn.domain.training.calibration.PlanningRangeProposal> = emptyList(),
     onReviewProposals: () -> Unit = {},
+    answers: List<com.example.kpkn.domain.training.calibration.ResolvedCalibrationAnswer> = emptyList(),
 ) {
     KpknModule(modifier = Modifier.fillMaxWidth(), accent = SymbolPalette.energia) {
         Text("Tu volumen", style = KpknType.bodyStrong, color = WizardColors.text)
@@ -50,7 +51,9 @@ internal fun ProgramVolumeCalibrationModule(
             Text("Ciclo ${cycle.cycleNumber}: ${cycle.answeredWeeks} semanas respondidas y ${cycle.skippedWeeks} omitidas.", style = KpknType.caption, color = WizardColors.textMuted)
         }
         Spacer(Modifier.height(8.dp))
-        if (responses != null) Text(profileOriginLine(responses.state), style = KpknType.caption, color = WizardColors.textMuted)
+        if (answers.isNotEmpty()) answers.forEach { answer ->
+            Text("${answer.trait.label}: ${answer.label()}", style = KpknType.caption, color = WizardColors.textMuted)
+        } else if (responses != null) Text(profileOriginLine(responses.state), style = KpknType.caption, color = WizardColors.textMuted)
         if (originalNotes.isNotBlank()) Text(originalNotes, style = KpknType.body, color = WizardColors.text)
         KpknCompactPill(text = "Ver registros y elegir rangos", onClick = onEdit, fullWidth = true)
         if (proposals.isNotEmpty()) {

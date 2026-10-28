@@ -780,6 +780,7 @@ private fun TrainingPanel(
     val volumeEvidence by viewModel.volumeEvidence.collectAsStateWithLifecycle()
     val closedCycleEvidence by viewModel.closedCycleEvidence.collectAsStateWithLifecycle()
     val volumeProfileResponses by viewModel.volumeProfileResponses.collectAsStateWithLifecycle()
+    val calibrationAnswers by viewModel.calibrationAnswers.collectAsStateWithLifecycle()
     val planningVolumeTargetBusy by viewModel.planningVolumeTargetBusy.collectAsStateWithLifecycle()
     val planningRangeProposals by viewModel.planningRangeProposals.collectAsStateWithLifecycle()
     val planningRangePreview by viewModel.planningRangePreview.collectAsStateWithLifecycle()
@@ -1154,7 +1155,7 @@ private fun TrainingPanel(
                 Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     ProgramVolumeCalibrationModule(volumeEvidence, program.planningVolumeTargets, closedCycleEvidence,
                         volumeProfileResponses, program.volumeCalibrationNotes, onEdit = { showPlanningVolumeTargets = true },
-                        proposals = planningRangeProposals, onReviewProposals = viewModel::reviewPlanningRanges)
+                        proposals = planningRangeProposals, onReviewProposals = viewModel::reviewPlanningRanges, answers = calibrationAnswers)
                 }
                 CompositionLocalProvider(
                     com.example.kpkn.screens.programdetail.components.LocalVolumeCalibrationSaved provides viewModel::saveVolumeCalibrationOriginals,
