@@ -111,14 +111,14 @@ Sin push. Commit por paquete con PASS.
 | P7a dibujo de las historias del programa (1080 × 1920) | hecho · 6 pruebas; PNG en render-android/historia_*.png, ±3 px del lienzo | d13f09c6f |
 | P7b hoja de compartir del programa y datos desde el programa | hecho · 8 pruebas; conectada en portada, ⋯ y lista (351 pruebas) | be6a2ea83, 6659a370f |
 | P7c historias del mes (Resumen, Constancia, Fuerza, Músculos) | hecho · 10 pruebas; PNG en render-android/mes_*.png | 65a36828a |
-| P7d historias del entreno (Sesión, Ejercicio, Fotos) | en curso tras fusionar master (557af5fe2) | |
+| P7d historias del entreno (Sesión, Ejercicio, Fotos) | hecho · 11 pruebas del modelo; PNG revisados contra historias/04-06 | 5ad726624 |
 | P4a modelo y piezas de Progreso (resumen, fuerza, trabajo por semana) | hecho · 20 pruebas; sin cablear | 6919ac012 |
 | P4b cablear resumen, fuerza y trabajo en la pestaña Progreso (con alcance) | hecho · 413 pruebas de programdetail | 94d0ea039 |
 | P4c volumen por músculo, Rangos, Hecho/Plan, modalidad y salida de «Calibrar» | hecho; verificación en la cola | 9f1cbe372 |
 | P5a mapa del programa y «Del programa» en Estructura (TM, plantillas, versiones, ruta, fechas, ciclos, revisión del plan) | hecho; verificación en la cola | 9f1cbe372 |
 | P8 resumen del mes: modelo, pantalla animada, aviso en Inicio, hoja «Compartir <mes>», «Resúmenes mensuales» en Progreso | hecho; verificación en la cola | 8951b5fa2 |
 | Fusión con master (sesión en vivo Ref02, Room 37) | hecho, sin conflictos | 557af5fe2 |
-| P9 hojas con piel KPKN y fallos de Decisiones | en curso | |
+| P9 hojas con piel KPKN y fallos de Decisiones | hecho | c9841e265, 630562e52, 5c647a85f |
 
 ## Decisiones de la noche del 27 al 28 de octubre (sin el usuario, por su orden)
 
@@ -151,6 +151,10 @@ El usuario se fue a dormir con la orden de no parar ni preguntar y de decidir lo
   también en «En cola». Ya estaban bien: nombre repetido de «Nuevo programa N», programa en cola duplicado en «Tus programas»,
   borrar deslizando (no hay deslizar; ⋯ › «Eliminar» confirma), notas de la calibración (sí se guardan) y archivados (la fila
   «Archivados · N» sale bajo el módulo de primer programa y deja restaurar).
+- **Ajustes al revisar los PNG.** Ejercicio: el relieve de fondo se apaga (velo negro al 55 %) porque cruzaba la gráfica y la
+  cifra. Fotos: el degradado a negro se pinta también sin foto (el texto pisaba las líneas) y la línea de cifras lleva tres
+  (duración, volumen y series) como el prototipo; el RIR medio queda en Sesión. Resumen del mes: en pantallas estrechas
+  «142,5 kg» cortaba la unidad; la cifra se reduce según su valor final para que no cambie de tamaño mientras cuenta.
 - **No se tocan esta noche (con motivo).** «Añadir una semana a…» de la Ruta numera por bloque («Semana 3») mientras «Añadir
   semana» numera en todo el programa («Semana 7»): unificarlo cambia `ProgramKeyDateEngine` y sus pruebas de dominio, y el nombre
   se edita en la hoja; queda para una pasada con el usuario. Las dos hojas de calibración de Programas e Inicio que nunca se abren

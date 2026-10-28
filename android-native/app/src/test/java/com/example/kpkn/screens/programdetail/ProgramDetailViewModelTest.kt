@@ -3354,7 +3354,11 @@ class ProgramDetailViewModelTest {
         // La decisión se toma en la hoja «Pendiente» (progresiones): la tarjeta de propuestas ya no vive en la pestaña Semana.
         val weekBranch = source.substringAfter("if (structureSubTab == StructureSubTab.SEMANA) {")
             .substringBefore("\n        } else {")
-        assertTrue("TM se muestra en Semana", weekBranch.contains("ExerciseTrainingMaxPanel("))
+        // El TM por ejercicio pasó a Estructura › «Cargas de referencia (TM)», en su hoja (P5): ya no ocupa la Semana.
+        assertFalse("TM sale de Semana", weekBranch.contains("ExerciseTrainingMaxPanel("))
+        val tmSheet = source.substringAfter("if (showExerciseTmSheet) {").substringBefore("\n        }\n")
+        assertTrue("TM en la hoja de cargas de referencia", tmSheet.contains("ExerciseTrainingMaxPanel("))
+        assertTrue("Estructura abre la hoja de TM", source.contains("onOpenTrainingMaxes = if (exerciseTmTargets.isNotEmpty()) ({ showExerciseTmSheet = true }) else null"))
         assertFalse("la tarjeta de propuestas sale de Semana", weekBranch.contains("AutoregulationProposalsCard("))
         assertTrue("las propuestas se revisan en la hoja Pendiente", source.contains("ProgramPendingKind.PROGRESSION -> AutoregulationProposalsCard("))
     }

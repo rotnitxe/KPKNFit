@@ -240,9 +240,10 @@ private const val WORKOUT_DOT_RADIUS = 7f
 private const val WORKOUT_DOT_GAP = 27f
 private const val WORKOUT_DOT_LIFT = 24f
 
-/** Hasta dónde llega la portada de cada plantilla. Fotos sin foto usa el lienzo entero: su relieve se funde en el 45 % inferior. */
+/** Hasta dónde llega la portada de cada plantilla (Fotos, solo cuando no hay foto). */
 private const val WORKOUT_GENERAL_ART_BOTTOM = 700f
 private const val WORKOUT_EXERCISE_ART_BOTTOM = 1036.8f
+private const val WORKOUT_PHOTOS_ART_BOTTOM = 1200f
 
 /** Donde empieza el degradado a negro de la foto: el 55 % de la altura (1056 px). */
 private const val WORKOUT_FADE_TOP = 1056f
@@ -713,6 +714,8 @@ private fun DrawScope.drawWorkoutExercise(story: WorkoutStory, measurer: TextMea
         progress = progress,
         artBottom = WORKOUT_EXERCISE_ART_BOTTOM,
     )
+    // El relieve queda de fondo, apagado como en el prototipo: la gráfica y la cifra mandan.
+    drawRect(StoryCanvas.Background, size = Size(StoryCanvas.WIDTH.toFloat(), WORKOUT_EXERCISE_ART_BOTTOM), alpha = 0.55f)
     val footTop = drawStoryFoot(measurer, workoutCaption(story.dateLine))
     val name = story.exerciseName
     if (name == null) {
@@ -752,28 +755,31 @@ private fun DrawScope.drawWorkoutExercise(story: WorkoutStory, measurer: TextMea
 private fun DrawScope.drawWorkoutPhotos(story: WorkoutStory, measurer: TextMeasurer, photo: ImageBitmap?, progress: Float) {
     if (photo != null) {
         drawWorkoutPhoto(photo)
-        drawRect(
-            brush = Brush.verticalGradient(
-                colors = listOf(StoryCanvas.Background.copy(alpha = 0f), StoryCanvas.Background),
-                startY = WORKOUT_FADE_TOP,
-                endY = StoryCanvas.HEIGHT.toFloat(),
-            ),
-            topLeft = Offset(0f, WORKOUT_FADE_TOP),
-            size = Size(StoryCanvas.WIDTH.toFloat(), StoryCanvas.HEIGHT - WORKOUT_FADE_TOP),
-        )
     } else {
-        // Sin foto, el arte llega hasta el borde: el propio backdrop lo funde con el negro en el 45 % inferior.
+        // Sin foto, el relieve ocupa la parte de arriba y se funde a negro antes del texto, como en el prototipo.
         drawStoryBackdrop(
             cover = LineCoverSpec(LineCoverStyle.RELIEVE, LineCoverBackground.CARBON, seed = 5),
             measurer = measurer,
             progress = progress,
-            artBottom = StoryCanvas.HEIGHT.toFloat(),
+            artBottom = WORKOUT_PHOTOS_ART_BOTTOM,
         )
     }
+    // Degradado a negro en el 45 % inferior, con foto o sin ella: el texto nunca pisa líneas ni una foto clara.
+    drawRect(
+        brush = Brush.verticalGradient(
+            colors = listOf(StoryCanvas.Background.copy(alpha = 0f), StoryCanvas.Background),
+            startY = WORKOUT_FADE_TOP,
+            endY = StoryCanvas.HEIGHT.toFloat(),
+        ),
+        topLeft = Offset(0f, WORKOUT_FADE_TOP),
+        size = Size(StoryCanvas.WIDTH.toFloat(), StoryCanvas.HEIGHT - WORKOUT_FADE_TOP),
+    )
     val footTop = drawStoryFoot(measurer, WORKOUT_FOOT, bottom = WORKOUT_PHOTO_FOOT_BOTTOM)
-    val natural = measurer.workoutPhotoLine(story.stats, 1f)
+    // La línea de Fotos lleva tres cifras como el prototipo (duración, volumen y series): el RIR medio queda para Sesión.
+    val photoStats = story.stats.filterNot { it.label == "RIR medio" }
+    val natural = measurer.workoutPhotoLine(photoStats, 1f)
     val line = if (natural.width > StoryCanvas.COLUMN_WIDTH) {
-        measurer.workoutPhotoLine(story.stats, StoryCanvas.COLUMN_WIDTH / natural.width)
+        measurer.workoutPhotoLine(photoStats, StoryCanvas.COLUMN_WIDTH / natural.width)
     } else {
         natural
     }

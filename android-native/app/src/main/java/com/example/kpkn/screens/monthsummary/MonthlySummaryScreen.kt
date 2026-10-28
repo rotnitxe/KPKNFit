@@ -63,6 +63,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -453,22 +455,35 @@ private fun countUpText(target: String, progress: Float): String {
 @Composable
 private fun Figure(value: String, unit: String?, reduced: Boolean) {
     val count = rememberEntry(delayMillis = FIGURE_DELAY_MILLIS, reduced = reduced, durationMillis = COUNT_MILLIS)
-    Row(verticalAlignment = Alignment.Bottom) {
-        Text(
-            text = countUpText(value, count.value),
-            style = FIGURE_STYLE,
-            color = WizardColors.text,
-            maxLines = 1,
-            modifier = Modifier.alignByBaseline(),
-        )
-        if (unit != null) {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    // En pantallas estrechas «142,5 kg» no cabe a 72 sp: se reduce la cifra según su valor final, así no cambia de tamaño al contar.
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val unitWidth = unit?.let { measurer.measure(it, KpknType.bodyStrong).size.width + with(density) { 10.dp.roundToPx() } } ?: 0
+        val figureWidth = measurer.measure(value, FIGURE_STYLE).size.width
+        val available = constraints.maxWidth - unitWidth
+        val style = if (figureWidth > available && figureWidth > 0) {
+            FIGURE_STYLE.copy(fontSize = FIGURE_STYLE.fontSize * (available.toFloat() / figureWidth * 0.98f))
+        } else {
+            FIGURE_STYLE
+        }
+        Row(verticalAlignment = Alignment.Bottom) {
             Text(
-                text = unit,
-                style = KpknType.bodyStrong,
-                color = WizardColors.textMuted,
+                text = countUpText(value, count.value),
+                style = style,
+                color = WizardColors.text,
                 maxLines = 1,
-                modifier = Modifier.alignByBaseline().padding(start = 10.dp),
+                modifier = Modifier.alignByBaseline(),
             )
+            if (unit != null) {
+                Text(
+                    text = unit,
+                    style = KpknType.bodyStrong,
+                    color = WizardColors.textMuted,
+                    maxLines = 1,
+                    modifier = Modifier.alignByBaseline().padding(start = 10.dp),
+                )
+            }
         }
     }
 }
