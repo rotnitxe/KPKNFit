@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.kpkn.data.exercises.catalogv2.CanonicalKnowledge
@@ -29,7 +29,9 @@ class ConceptosClaveUiTest {
         composeRule.setContent { MaterialTheme { ConceptosClaveScreen(onBack = {}) } }
 
         composeRule.onNodeWithText("Buscar conceptos").assertExists()
-        composeRule.onNodeWithTag("concept_row_${first.id}").performScrollTo().performClick()
+        // La portada es perezosa (áreas + índice A-Z): la fila se alcanza con el buscador.
+        composeRule.onNodeWithTag("concept_search_field").performTextInput(first.name)
+        composeRule.onNodeWithTag("concept_row_${first.id}").performClick()
         composeRule.onNodeWithTag("concept_reading_${first.id}").assertExists()
         composeRule.onNodeWithTag("concept_body_${first.id}_0").assertExists()
         composeRule.onNodeWithTag("concept_top_button").performClick()
