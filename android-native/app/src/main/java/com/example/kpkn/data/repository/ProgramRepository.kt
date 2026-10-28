@@ -1571,8 +1571,10 @@ class ProgramRepository private constructor(
         val avoided = program.avoidedExerciseGroups.mapNotNull { name ->
             com.example.kpkn.domain.onboarding.AvoidGroup.entries.firstOrNull { it.name == name }
         }.toSet()
-        val options = if (availability == null) com.example.kpkn.domain.training.ExerciseSwapOptions.optionsForUnknownEquipment(exercise,catalog,avoided)
-            else com.example.kpkn.domain.training.ExerciseSwapOptions.optionsFor(exercise,availability,catalog,avoided)
+        // DUP-03: lo que ya está en la sesión de origen no se ofrece como destino.
+        val others = session.allExercises().mapNotNull { it.catalogConfigurationId }.toSet() - setOfNotNull(exercise.catalogConfigurationId)
+        val options = if (availability == null) com.example.kpkn.domain.training.ExerciseSwapOptions.optionsForUnknownEquipment(exercise,catalog,avoided,excludedConfigurationIds = others)
+            else com.example.kpkn.domain.training.ExerciseSwapOptions.optionsFor(exercise,availability,catalog,avoided,excludedConfigurationIds = others)
         return ExerciseSwapRequest(program,settings,sessionId,exerciseId,exercise.name,options,availability == null,catalog)
     }
 

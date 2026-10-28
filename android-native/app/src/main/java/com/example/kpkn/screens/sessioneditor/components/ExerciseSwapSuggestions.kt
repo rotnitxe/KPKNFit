@@ -24,10 +24,11 @@ internal fun liveSwapAvailability(session: Session?, program: Program?, declared
 }
 internal fun persistedSwapAvoided(program: Program?): Set<AvoidGroup> = program?.avoidedExerciseGroups.orEmpty().mapNotNull { name -> AvoidGroup.entries.firstOrNull { it.name == name } }.toSet()
 internal fun replacementSuggestions(exercise: Exercise?, availability: EquipmentAvailability?, avoided: Set<AvoidGroup>, catalog: ExerciseCatalogV2,
-    query: String = ""): List<SwapOption> {
+    query: String = "", excludedConfigurationIds: Set<String> = emptySet()): List<SwapOption> {
     if (exercise?.catalogConfigurationId.isNullOrBlank() || query.isNotBlank()) return emptyList()
-    return if(availability == null) ExerciseSwapOptions.optionsForUnknownEquipment(requireNotNull(exercise),catalog,avoided,6)
-        else ExerciseSwapOptions.optionsFor(requireNotNull(exercise),availability,catalog,avoided,6)
+    // DUP-03: [excludedConfigurationIds] = las configuraciones de los demás ejercicios de la sesión de origen.
+    return if(availability == null) ExerciseSwapOptions.optionsForUnknownEquipment(requireNotNull(exercise),catalog,avoided,6,excludedConfigurationIds)
+        else ExerciseSwapOptions.optionsFor(requireNotNull(exercise),availability,catalog,avoided,6,excludedConfigurationIds)
 }
 @Composable
 internal fun ExerciseSwapSuggestions(options: List<SwapOption>, selectedConfigurationId: String?, onSelect: (String) -> Unit, modifier: Modifier = Modifier) {

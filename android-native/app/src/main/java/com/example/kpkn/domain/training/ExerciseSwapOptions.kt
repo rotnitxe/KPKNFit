@@ -12,6 +12,7 @@ import com.example.kpkn.domain.onboarding.AvoidGroups
 import com.example.kpkn.domain.training.generator.CatalogEntry
 import com.example.kpkn.domain.training.generator.DayEquipment
 import com.example.kpkn.domain.training.generator.GeneratorCatalog
+import com.example.kpkn.domain.training.quality.SessionSlopRules
 
 /*
  * Entreno v2 · «Cambiar» un ejercicio desde el detalle del programa. Función pura: dado el ejercicio, el material del lugar de
@@ -42,8 +43,10 @@ object ExerciseSwapOptions {
      * Hasta [limit] alternativas para [exercise]: primero las equivalentes (misma intención, según el ranking de
      * [AprendeSimilarityEngine]) y luego las del mismo patrón. Solo configuraciones que el material [sessionPlaceAvailability]
      * del lugar de ese día permite (el mismo equipo efectivo y el mismo filtro que el generador: [DayEquipment]); nunca la
-     * misma configuración ni una de los grupos que la persona evita ([avoided], vía [AvoidGroups]). Vacío si el ejercicio no
-     * tiene identidad de catálogo.
+     * misma configuración ni una de los grupos que la persona evita ([avoided], vía [AvoidGroups]). Tampoco las configuraciones
+     * de [excludedConfigurationIds] (los demás ejercicios de la sesión de origen), ni las de su misma definición, ni las de su
+     * misma familia de movimiento ([SessionSlopRules.familyOf]): un cambio nunca duplica un ejercicio que ya está en la sesión
+     * (DUP-03). Vacío si el ejercicio no tiene identidad de catálogo.
      */
     fun optionsFor(
         exercise: Exercise,
@@ -51,22 +54,28 @@ object ExerciseSwapOptions {
         catalog: ExerciseCatalogV2,
         avoided: Set<AvoidGroup> = emptySet(),
         limit: Int = 6,
-    ): List<SwapOption> = optionsWithAvailability(exercise, sessionPlaceAvailability, catalog, avoided, limit)
+        excludedConfigurationIds: Set<String> = emptySet(),
+    ): List<SwapOption> = optionsWithAvailability(exercise, sessionPlaceAvailability, catalog, avoided, limit, excludedConfigurationIds)
 
     /** Ausencia de declaración no equivale a declarar sólo peso corporal. No fabrica un inventario. */
-    fun optionsForUnknownEquipment(exercise: Exercise, catalog: ExerciseCatalogV2, avoided: Set<AvoidGroup> = emptySet(), limit: Int = 6): List<SwapOption> =
-        optionsWithAvailability(exercise, null, catalog, avoided, limit)
+    fun optionsForUnknownEquipment(exercise: Exercise, catalog: ExerciseCatalogV2, avoided: Set<AvoidGroup> = emptySet(), limit: Int = 6,
+        excludedConfigurationIds: Set<String> = emptySet()): List<SwapOption> =
+        optionsWithAvailability(exercise, null, catalog, avoided, limit, excludedConfigurationIds)
 
     private fun optionsWithAvailability(exercise: Exercise, availability: EquipmentAvailability?, catalog: ExerciseCatalogV2,
-        avoided: Set<AvoidGroup>, limit: Int): List<SwapOption> {
+        avoided: Set<AvoidGroup>, limit: Int, excludedConfigurationIds: Set<String> = emptySet()): List<SwapOption> {
         if (limit <= 0) return emptyList()
         val index = GeneratorCatalog.of(catalog)
         val current = exercise.catalogConfigurationId?.let(index::entry) ?: return emptyList()
         val equipment = availability?.let(::DayEquipment)
         val avoidedDefinitions = avoided.flatMapTo(mutableSetOf()) { AvoidGroups.definitionIdsOf(it) }
+        // DUP-03: lo que ya está en la sesión no se ofrece, ni por configuración, ni por definición, ni por familia.
+        val excludedDefinitions = excludedConfigurationIds.mapTo(mutableSetOf()) { index.entry(it)?.definitionId ?: it.substringBefore("__") }
+        val excludedFamilies = excludedConfigurationIds.mapNotNullTo(mutableSetOf()) { SessionSlopRules.familyOf(it) }
         // Orden fijo por id: el ranking desempata por nombre, así que el resultado no depende del orden del mapa.
         val pool = index.entries.values
             .filter { it.id != current.id && it.definitionId !in avoidedDefinitions }
+            .filter { it.id !in excludedConfigurationIds && it.definitionId !in excludedDefinitions && SessionSlopRules.familyOf(it.id) !in excludedFamilies }
             .filter { equipment?.allows(it, requires = emptyList()) != false }
             .sortedBy { it.id }
         val byId = pool.associateBy { it.id }

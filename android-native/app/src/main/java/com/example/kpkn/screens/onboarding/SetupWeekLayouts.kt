@@ -10,6 +10,7 @@ import com.example.kpkn.domain.exercises.replacedWithCatalogExercise
 import com.example.kpkn.domain.onboarding.SessionPlaceFit
 import com.example.kpkn.domain.onboarding.TrainingPlace
 import com.example.kpkn.domain.training.generator.GeneratorCatalog
+import com.example.kpkn.domain.training.quality.SessionSlopRules
 import com.example.kpkn.domain.training.split.AuthoredPlans
 import com.example.kpkn.domain.training.split.ExerciseTraitResolver
 import com.example.kpkn.domain.training.split.ProgramWeeks
@@ -117,9 +118,17 @@ internal fun applyLayout(
 internal fun applyExerciseOverrides(program: Program, overrides: Map<String, String>, catalog: ExerciseCatalogV2): Program {
     if (overrides.isEmpty()) return program
     val index = GeneratorCatalog.of(catalog)
-    val swap: (Exercise) -> Exercise = { exercise ->
+    // DUP-03: una sustitución cuyo destino (configuración, definición o familia) ya está en otro ejercicio de la sesión se ignora.
+    fun swapIn(session: Session): (Exercise) -> Exercise = { exercise ->
         val configId = overrides[exercise.id]
-        val info = configId?.takeIf { it != exercise.catalogConfigurationId }?.let { index.entry(it)?.legacy }
+        val entry = configId?.takeIf { it != exercise.catalogConfigurationId }?.let { index.entry(it) }
+        val others = session.allExercises().filter { it.id != exercise.id }
+        val collides = entry != null && others.any { other ->
+            other.catalogConfigurationId == entry.id ||
+                other.catalogDefinitionId == entry.definitionId ||
+                (SessionSlopRules.familyOf(entry.id) != null && SessionSlopRules.familyOf(other.catalogConfigurationId) == SessionSlopRules.familyOf(entry.id))
+        }
+        val info = entry?.takeUnless { collides }?.legacy
         if (info == null) {
             exercise
         } else {
@@ -137,7 +146,7 @@ internal fun applyExerciseOverrides(program: Program, overrides: Map<String, Str
                         mesocycles = block.mesocycles.map { meso ->
                             meso.copy(
                                 weeks = meso.weeks.map { week ->
-                                    week.copy(sessions = week.sessions.map { session -> session.withExercises(swap) })
+                                    week.copy(sessions = week.sessions.map { session -> session.withExercises(swapIn(session)) })
                                 },
                             )
                         },
