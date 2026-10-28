@@ -6,8 +6,16 @@ import com.example.kpkn.domain.nutrition.*
 /** Datos en memoria para inspección y regresiones; nunca consultan ni escriben repositorios. */
 object NutrientsSamples {
     val profile = DriProfile(31, DriSex.FEMALE)
+    /** Nutrientes sin DRI (azúcares, tipos de grasa, cafeína, alcohol…): un valor plausible para que el día «completo» lo sea. */
+    private val withoutDri = mapOf(
+        NutrientKey.SUGARS to 12.0, NutrientKey.ADDED_SUGARS to 4.0, NutrientKey.SAT_FAT to 5.0, NutrientKey.MONO_FAT to 8.0,
+        NutrientKey.POLY_FAT to 4.0, NutrientKey.TRANS_FAT to 0.2, NutrientKey.CHOLESTEROL to 60.0, NutrientKey.EPA_DHA to 0.1,
+        NutrientKey.ALA to 0.8, NutrientKey.CAFFEINE to 40.0, NutrientKey.ALCOHOL to 0.5,
+    )
     private val declared = LoggedFood(foodName = "Alimento con ficha", amount = 200.0, calories = 600.0,
-        micronutrients = NutrientKey.entries.mapNotNull { key -> DriTargets.lookup(key, profile)?.let { Micronutrient(key.label, it.value * 0.5, key.unit) } })
+        micronutrients = NutrientKey.entries.mapNotNull { key ->
+            (DriTargets.lookup(key, profile)?.value?.times(0.5) ?: withoutDri[key])?.let { Micronutrient(key.label, it, key.unit) }
+        })
     fun state(name: String): NutrientsSheetState {
         val foods = when (name) {
             "complete" -> listOf(declared)

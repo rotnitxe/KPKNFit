@@ -26,9 +26,11 @@ import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 
-data class NutrientsSheetState(val date: String = "", val rows: List<NutrientDayTotal> = emptyList(), val profile: DriProfile? = null)
-fun buildNutrientsSheetState(date: String, logs: List<NutritionLog>, profile: DriProfile?): NutrientsSheetState =
-    NutrientsSheetState(date, NutrientCoverage.summarize(logs.filter { it.status != NutritionStatus.PLANNED && it.date.take(10) == date }.flatMap { it.foods }), profile)
+data class NutrientsSheetState(val date: String = "", val rows: List<NutrientDayTotal> = emptyList(), val profile: DriProfile? = null, val energyKcal: Double? = null)
+fun buildNutrientsSheetState(date: String, logs: List<NutritionLog>, profile: DriProfile?): NutrientsSheetState {
+    val foods = logs.filter { it.status != NutritionStatus.PLANNED && it.date.take(10) == date }.flatMap { it.foods }
+    return NutrientsSheetState(date, NutrientCoverage.summarize(foods), profile, foods.takeIf { it.isNotEmpty() }?.sumOf { it.calories })
+}
 
 @Composable
 fun NutrientsSheet(state: NutrientsSheetState, onDismiss: () -> Unit, hazeState: HazeState? = null) {
@@ -56,11 +58,19 @@ fun NutrientsContent(state: NutrientsSheetState, expanded: Set<NutrientKey>, onT
                     ?: "Sin referencia DRI: falta un perfil adulto compatible y una ecuación declarada en el plan.", style = KpknType.caption, color = WizardColors.textMuted)
             }
             if (state.rows.isEmpty()) item { Text("Calculando nutrientes…", style = KpknType.body, color = WizardColors.textMuted) }
-            items(state.rows, key = { it.nutrient.name }) { row ->
-                NutrientRow(row, DriTargets.lookup(row.nutrient, state.profile), row.nutrient in expanded) { onToggle(row.nutrient) }
+            val rowsByKey = state.rows.associateBy { it.nutrient }
+            groupedNutrientKeys().forEach { (group, keys) ->
+                val groupRows = keys.mapNotNull { rowsByKey[it] }
+                if (groupRows.isEmpty()) return@forEach
+                item(key = "group-${group.name}") { Text(group.label, style = KpknType.caption, color = WizardColors.textMuted, modifier = Modifier.testTag("nutrient-group-${group.name}")) }
+                items(groupRows, key = { it.nutrient.name }) { row ->
+                    NutrientRow(row, DriTargets.lookup(row.nutrient, state.profile), GuideLimits.lookup(row.nutrient, state.profile), state.energyKcal, row.nutrient in expanded) { onToggle(row.nutrient) }
+                }
             }
             item { Text("RDA: ingesta recomendada; AI: ingesta adecuada. Las vitaminas sin forma comparable quedan sin sumar. Referencia general de las Academias Nacionales de EE. UU.; no sustituye el consejo de un profesional.",
                 style = KpknType.caption, color = WizardColors.textMuted) }
+            item { Text("Datos de alimentos: USDA FoodData Central (dominio público), ANSES-Ciqual (Licence Ouverte 2.0) y Open Food Facts (ODbL). Detalle en Ajustes › Fuentes y licencias.",
+                style = KpknType.caption, color = WizardColors.textMuted, modifier = Modifier.testTag("nutrients-sources")) }
         }
     }
 }
@@ -73,17 +83,18 @@ internal fun nutrientStatus(row: NutrientDayTotal): String = when (row.state) {
 }
 
 @Composable
-private fun NutrientRow(row: NutrientDayTotal, target: DriTarget?, expanded: Boolean, onToggle: () -> Unit) {
+private fun NutrientRow(row: NutrientDayTotal, target: DriTarget?, guide: GuideLimit?, energyKcal: Double?, expanded: Boolean, onToggle: () -> Unit) {
     val key = row.nutrient
     val status = nutrientStatus(row)
     val total = row.totalKnown
+    val aboveGuide = guide?.exceeds(total, energyKcal) == true
     val above = target?.exceedsKnownTotal(total) == true
     KpknModule(Modifier.fillMaxWidth().testTag("nutrient-${key.name}")) {
         Column(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onToggle)
             .semantics { stateDescription = "$status; ${if (expanded) "contribuyentes abiertos" else "ver contribuyentes"}" }, verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(key.label, style = KpknType.bodyStrong, color = WizardColors.text)
             Text(total?.let { "${nutrientNumber(it)} ${key.unit} conocidos" } ?: "Sin datos comparables",
-                style = KpknType.body, color = if (above) WizardColors.danger else WizardColors.text)
+                style = KpknType.body, color = if (above || aboveGuide) WizardColors.danger else WizardColors.text)
             Text("$status · ${row.declaredCount} de ${row.declaredCount + row.estimatedCount + row.missingCount} ${if (row.declaredCount + row.estimatedCount + row.missingCount == 1) "alimento" else "alimentos"} con dato declarado",
                 style = KpknType.caption, color = WizardColors.textMuted)
             if (row.estimatedCount > 0) Text("${row.estimatedCount} con datos estimados", style = KpknType.caption, color = WizardColors.textMuted)
@@ -108,6 +119,19 @@ private fun NutrientRow(row: NutrientDayTotal, target: DriTarget?, expanded: Boo
                     }, style = KpknType.caption, color = WizardColors.textMuted)
                 }
             }
+            if (guide != null) {
+                val ceiling = guide.ceiling(energyKcal)
+                val source = guideSourceLabel(guide)
+                val percent = guide.maxEnergyFraction?.let { "${nutrientNumber(it * 100)} %" }
+                Text(when {
+                    guide.maxAmount != null -> "Tope de la guía: ${nutrientNumber(guide.maxAmount)} ${key.unit} · $source"
+                    ceiling != null && energyKcal != null -> "Tope de la guía: ${nutrientNumber(ceiling)} ${key.unit} ($percent de ${nutrientNumber(energyKcal)} kcal registradas) · $source"
+                    else -> "Tope de la guía: $percent de la energía del día · $source"
+                }, style = KpknType.caption, color = WizardColors.textMuted)
+                if (aboveGuide) Text("El total conocido supera el tope de la guía.", style = KpknType.caption, color = WizardColors.danger)
+            }
+            if (key == NutrientKey.NIACIN) Text("Las fuentes dan niacina preformada; la referencia está en equivalentes (incluye la que el cuerpo forma del triptófano), así que tu total real suele ser mayor.",
+                style = KpknType.caption, color = WizardColors.textMuted)
             Text(if (expanded) "Ocultar contribuyentes" else "Ver contribuyentes", style = KpknType.caption, color = WizardColors.text)
         }
         if (expanded) Column(Modifier.fillMaxWidth().padding(top = 12.dp).testTag("contributors-${key.name}"), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -118,4 +142,10 @@ private fun NutrientRow(row: NutrientDayTotal, target: DriTarget?, expanded: Boo
             }
         }
     }
+}
+
+private fun guideSourceLabel(guide: GuideLimit): String = when {
+    "efsa" in guide.sourceUrl -> "EFSA"
+    "fda.gov" in guide.sourceUrl -> "FDA"
+    else -> "OMS"
 }
