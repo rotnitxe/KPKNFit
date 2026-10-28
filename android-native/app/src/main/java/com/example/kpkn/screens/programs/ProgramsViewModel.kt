@@ -97,6 +97,9 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         settings.archivedProgramIds.mapNotNull { id -> all.find { it.id == id } }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    /** Todos los registros de entrenamiento: la hoja «Compartir en historias» de la lista filtra los de cada programa. */
+    val history: StateFlow<List<WorkoutLog>> = repository.history
+
     /**
      * Currently active program state (with programId, status, currentWeekId, etc).
      * Null if no program is active.

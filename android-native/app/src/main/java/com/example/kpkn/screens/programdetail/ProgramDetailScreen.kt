@@ -29,6 +29,7 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.screens.programs.PlanInfoMode
 import com.example.kpkn.screens.programs.PlanInfoSheet
 import com.example.kpkn.screens.programs.TrainingMaxWizard
+import com.example.kpkn.screens.stories.ProgramShareSheet
 import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.ProgramAnalyticsEngine
 import com.example.kpkn.domain.training.ProgramCalendarEngine
@@ -232,6 +233,8 @@ fun ProgramDetailScreen(
     var showVolumeSheet by rememberSaveable { mutableStateOf(false) }
     var showPlanSheet by rememberSaveable { mutableStateOf(false) }
     var showMoreMenu by rememberSaveable { mutableStateOf(false) }
+    // «Compartir en historias»: desde el botón de la portada o desde «Más opciones» (⋯).
+    var showShareSheet by rememberSaveable { mutableStateOf(false) }
     // «Pendiente»: la lista (desde la campana o ⋯) y la hoja de detalle de un aviso, por su tipo.
     var showPending by remember { mutableStateOf(false) }
     var pendingDetail by remember { mutableStateOf<ProgramPendingKind?>(null) }
@@ -479,7 +482,7 @@ fun ProgramDetailScreen(
             if (weekId != null && day != null) viewModel.setExpandedWeekDays(weekId, setOf(day))
             viewModel.setStructureSubTab(StructureSubTab.SEMANA)
         },
-        onShare = null,
+        onShare = { showShareSheet = true },
         pendingCount = pendingItems.size,
         onPending = { showPending = true },
     )
@@ -724,6 +727,7 @@ fun ProgramDetailScreen(
                 if (pendingItems.isNotEmpty()) add(ProgramMenuItem(label = "Pendiente · ${pendingItems.size}", onClick = { showPending = true }))
                 add(ProgramMenuItem(label = "Sobre el programa", onClick = { showPlanSheet = true }))
                 add(ProgramMenuItem(label = "Editar programa", onClick = openEdit))
+                add(ProgramMenuItem(label = "Compartir en historias", onClick = { showShareSheet = true }))
                 // Pausar, reanudar o activar: la misma llamada que tenía el botón de la cabecera.
                 add(
                     ProgramMenuItem(
@@ -740,6 +744,10 @@ fun ProgramDetailScreen(
             },
             onDismiss = { showMoreMenu = false },
         )
+    }
+    if (showShareSheet) {
+        val shareLogs by viewModel.programLogs.collectAsStateWithLifecycle()
+        ProgramShareSheet(program = p, logs = shareLogs, onDismiss = { showShareSheet = false })
     }
     if (showEditSheet) {
         val draft = editDraft ?: programEditDraftOf(p)

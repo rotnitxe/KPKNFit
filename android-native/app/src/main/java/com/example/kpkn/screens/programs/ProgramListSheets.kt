@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
+import com.example.kpkn.screens.programdetail.design.ProgramShareIcon
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
@@ -76,6 +77,7 @@ internal fun ProgramMoreSheet(
     onActivate: () -> Unit,
     onEdit: () -> Unit,
     onQueue: () -> Unit,
+    onShare: () -> Unit,
     onArchive: () -> Unit,
     onDelete: () -> Unit,
     onDismiss: () -> Unit,
@@ -84,6 +86,7 @@ internal fun ProgramMoreSheet(
         if (canActivate) add(ProgramMenuEntry(KpknLineIcons.Play, "Activar programa", "Pasa a ser el programa en curso", false, onActivate))
         add(ProgramMenuEntry(KpknLineIcons.Edit, "Editar nombre y portada", null, false, onEdit))
         if (canQueue) add(ProgramMenuEntry(KpknLineIcons.Repeat, "Añadir a la cola", "Empieza cuando termine el actual", false, onQueue))
+        add(ProgramMenuEntry(ProgramShareIcon, "Compartir en historias", null, false, onShare))
         add(ProgramMenuEntry(KpknLineIcons.Layers, "Archivar", "Lo quitas de la lista sin borrarlo", false, onArchive))
         add(
             ProgramMenuEntry(

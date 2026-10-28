@@ -78,6 +78,7 @@ import com.example.kpkn.screens.programdetail.components.HeroCoverKind
 import com.example.kpkn.screens.programdetail.components.VolumeCalibrationSheet
 import com.example.kpkn.screens.programdetail.components.heroCoverKind
 import com.example.kpkn.screens.programdetail.design.ProgramPhaseRibbon
+import com.example.kpkn.screens.stories.ProgramShareSheet
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -122,6 +123,7 @@ fun ProgramsScreen(
     val isFeaturedPaused by viewModel.isFeaturedPaused.collectAsState()
     val lastTrainedOn by viewModel.lastTrainedOn.collectAsState()
     var moreProgram by remember { mutableStateOf<Program?>(null) }
+    var shareProgram by remember { mutableStateOf<Program?>(null) }
     var showArchived by remember { mutableStateOf(false) }
     var deleteRequest by remember { mutableStateOf<ProgramDeleteRequest?>(null) }
     var showCreateSheet by remember { mutableStateOf(false) }
@@ -254,6 +256,10 @@ fun ProgramsScreen(
                 moreProgram = null
                 viewModel.addToQueue(program.id)
             },
+            onShare = {
+                moreProgram = null
+                shareProgram = program
+            },
             onArchive = {
                 moreProgram = null
                 viewModel.archiveProgram(program.id)
@@ -264,6 +270,11 @@ fun ProgramsScreen(
             },
             onDismiss = { moreProgram = null },
         )
+    }
+
+    shareProgram?.let { prog ->
+        val logs by viewModel.history.collectAsState()
+        ProgramShareSheet(program = prog, logs = logs.filter { it.programId == prog.id }, onDismiss = { shareProgram = null })
     }
 
     if (showArchived) {
