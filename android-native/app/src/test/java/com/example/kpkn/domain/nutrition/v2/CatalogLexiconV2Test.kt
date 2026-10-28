@@ -74,4 +74,54 @@ class CatalogLexiconV2Test {
         val churrasco = lexicon.tag(NormalizerV2.tokenize("churrasco")).single().tags.filterIsInstance<LexTag.Food>()
         assertEquals(setOf("churrasco_corte", "churrasco_sandwich"), churrasco.map { it.conceptId }.toSet())
     }
+
+    // ─── Ronda 1: alias con estado o forma metidos ─────────────────────
+
+    private val embeddedJson = """
+        {"concepts": [
+          {"id": "gaseosa", "name": "Gaseosa", "aliasesEs": ["gaseosa", "bebida", "bebida zero", "bebida light", "zero cola"],
+           "aliasesEn": [], "typos": [], "defaultState": "NA", "defaultForm": "NA",
+           "variants": [{"state": "NA", "form": "NA", "ref": "r1"}, {"state": "NA", "form": "SUGAR_FREE", "ref": "r2"}]},
+          {"id": "pescado", "name": "Pescado", "aliasesEs": ["pescado", "pescado al horno"],
+           "aliasesEn": [], "typos": [], "defaultState": "COOKED", "defaultForm": "NA",
+           "variants": [{"state": "COOKED", "form": "NA", "ref": "r3"}, {"state": "BAKED", "form": "NA", "ref": "r4"}]},
+          {"id": "otro", "name": "Otro", "aliasesEs": ["otro", "otro zero"], "aliasesEn": [], "typos": [],
+           "defaultState": "NA", "defaultForm": "NA", "variants": [{"state": "NA", "form": "NA", "ref": "r5"}]}
+        ]}
+    """.trimIndent()
+
+    @Test fun aliasMadeOfAnotherAliasPlusAVariantStateOrFormIsDropped() {
+        val catalog = ConceptCatalogLoaderV2.parse(embeddedJson)
+        val phrases = catalog.lexiconEntries().map { it.tokens.joinToString(" ") }.toSet()
+        // «bebida zero» = «bebida» + forma sin azúcar, que el concepto tiene como variante: se omite.
+        assertFalse("bebida zero" in phrases)
+        // «pescado al horno» = «pescado» + estado al horno, que también es variante: se omite.
+        assertFalse("pescado al horno" in phrases)
+        // Sin esa variante (light), o sin que lo que queda sea alias del concepto («cola», «otro zero»), se conservan.
+        assertTrue("bebida light" in phrases)
+        assertTrue("zero cola" in phrases)
+        assertTrue("otro zero" in phrases)
+        assertTrue("bebida" in phrases)
+        assertTrue("pescado" in phrases)
+    }
+
+    @Test fun commonWordAliasIsNotAFood() {
+        val json = """
+            {"concepts": [{"id": "cafe_largo", "name": "Café largo", "aliasesEs": ["largo", "cafe largo"],
+              "aliasesEn": [], "typos": ["sunday"]}]}
+        """.trimIndent()
+        val phrases = ConceptCatalogLoaderV2.parse(json).lexiconEntries().map { it.tokens.joinToString(" ") }
+        assertEquals(listOf("cafe largo"), phrases)
+    }
+
+    @Test fun droppedCompoundAliasLetsTheGrammarSeeTheFormAndTheState() {
+        val lexicon = buildLexiconV2(ConceptCatalogLoaderV2.parse(embeddedJson))
+        val drink = lexicon.tag(NormalizerV2.tokenize("una bebida zero"))
+        assertEquals(3, drink.size)
+        assertTrue(drink[1].tags.contains(LexTag.Food("gaseosa", AliasKind.ES)))
+        assertEquals(listOf<LexTag>(LexTag.Form(FoodFormV2.SUGAR_FREE)), drink[2].tags)
+        val fish = lexicon.tag(NormalizerV2.tokenize("pescado al horno"))
+        assertEquals(2, fish.size)
+        assertEquals(listOf<LexTag>(LexTag.State(FoodStateV2.BAKED)), fish[1].tags)
+    }
 }

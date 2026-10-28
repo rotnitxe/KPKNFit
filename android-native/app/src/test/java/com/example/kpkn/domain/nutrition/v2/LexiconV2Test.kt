@@ -344,4 +344,117 @@ class LexiconV2Test {
         println("[F2a-perf] frase repetida (correcciones en memoria): %.3f ms".format(repeated))
         assertTrue("repetida $repeated ms", repeated < 50.0)
     }
+
+    // ─── Ronda 1: faltas de oído, vocabulario nuevo ─────────────────────
+
+    private val soundsLexicon = LexiconV2.withModifiers(
+        listOf(
+            food("queso", "queso"),
+            food("cebolla", "cebolla"),
+            food("ensalada", "ensalada"),
+            food("chorizo", "chorizo"),
+            food("pollo", "pollo"),
+            food("tortilla", "tortilla"),
+            food("tomate", "tomate"),
+            food("pera", "pera"),
+            food("vino", "vino"),
+        ),
+    )
+
+    @Test fun `la clave fonetica iguala letras que suenan igual`() {
+        assertEquals(LexiconV2.phoneticKey("queso"), LexiconV2.phoneticKey("kezo"))
+        assertEquals(LexiconV2.phoneticKey("pollo"), LexiconV2.phoneticKey("poyo"))
+        assertEquals(LexiconV2.phoneticKey("cebolla"), LexiconV2.phoneticKey("zeboya"))
+        assertEquals(LexiconV2.phoneticKey("ensalada"), LexiconV2.phoneticKey("enzalada"))
+        assertEquals(LexiconV2.phoneticKey("chorizo"), LexiconV2.phoneticKey("chorisso"))
+        assertEquals(LexiconV2.phoneticKey("vino"), LexiconV2.phoneticKey("bino"))
+        assertEquals(LexiconV2.phoneticKey("hielo"), LexiconV2.phoneticKey("ielo"))
+        // «rr» y «r» son sonidos distintos.
+        assertTrue(LexiconV2.phoneticKey("pero") != LexiconV2.phoneticKey("perro"))
+    }
+
+    @Test fun `una palabra escrita de oido se corrige aunque tenga dos letras distintas`() {
+        for ((typed, expected) in listOf(
+            "kezo" to "queso", "zebolla" to "cebolla", "enzalada" to "ensalada", "chorisso" to "chorizo", "poyo" to "pollo",
+            "tortiya" to "tortilla",
+        )) {
+            val result = spans(typed, soundsLexicon)
+            assertEquals(typed, listOf(expected), foodIds(result[0]))
+            assertTrue(typed, result[0].fuzzy)
+        }
+    }
+
+    @Test fun `dos letras seguidas intercambiadas cuentan como un solo cambio`() {
+        assertEquals(listOf("tomate"), foodIds(spans("tomtae", soundsLexicon)[0]))
+        assertEquals(1, LexiconV2.boundedDistance("tomtae", "tomate", 1))
+    }
+
+    @Test fun `una falta no cambia la primera letra y el plural se reconoce`() {
+        // «momate» está a una letra de «tomate», pero una falta no suele cambiar la primera letra.
+        assertTrue(spans("momate", soundsLexicon)[0].tags.isEmpty())
+        // «tomates» y «quesos» se reconocen aunque el alias esté en singular.
+        val plural = spans("tomates", soundsLexicon)[0]
+        assertEquals(listOf("tomate"), foodIds(plural))
+        assertEquals(listOf("queso"), foodIds(spans("quesos", soundsLexicon)[0]))
+    }
+
+    @Test fun `el plural de una palabra corta no se confunde con otra palabra`() {
+        // «andes» no es «and» + es: el tallo del plural exige al menos 4 letras.
+        assertTrue(spans("andes")[0].tags.none { it is LexTag.Connector })
+        assertTrue(LexiconV2.isCommonWord("largo"))
+        assertTrue(LexiconV2.isCommonWord("hubo"))
+        assertTrue(!LexiconV2.isCommonWord("queso"))
+    }
+
+    @Test fun `palabras corrientes que no son comida no se corrigen a una comida`() {
+        // «pero» está a una letra de «pera» y no debe volverse fruta.
+        assertTrue(spans("pero", soundsLexicon)[0].tags.isEmpty())
+        assertTrue(spans("para", soundsLexicon)[0].tags.isEmpty())
+    }
+
+    @Test fun `nuevas formas - liquido sin escurrir cero y descremado`() {
+        assertEquals(listOf<LexTag>(LexTag.Form(FoodFormV2.LIQUID)), spans("liquido")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Form(FoodFormV2.LIQUID)), spans("listo para tomar")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Form(FoodFormV2.CANNED_UNDRAINED)), spans("sin escurrir")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Form(FoodFormV2.CANNED_UNDRAINED)), spans("con su liquido")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Form(FoodFormV2.CANNED_DRAINED)), spans("sin su liquido")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Form(FoodFormV2.SUGAR_FREE)), spans("cero")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Form(FoodFormV2.SUGAR_FREE)), spans("sin azucar agregada")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Form(FoodFormV2.LIGHT)), spans("descremada")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Form(FoodFormV2.LIGHT)), spans("low fat")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Form(FoodFormV2.RECONSTITUTED)), spans("de sobre")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Form(FoodFormV2.DRIED)), spans("deshidratados")[0].tags)
+    }
+
+    @Test fun `fracciones habladas nuevas y couple of`() {
+        assertEquals(listOf<LexTag>(LexTag.Number(0.5, weak = false)), spans("la mitad")[0].tags)
+        val third = spans("un tercio de kilo")
+        assertEquals(listOf<LexTag>(LexTag.Number(1.0 / 3.0, weak = false)), third[0].tags)
+        val couple = spans("a couple of eggs")
+        assertEquals(listOf<LexTag>(LexTag.Number(2.0, weak = false)), couple[0].tags)
+        assertEquals(2, couple[0].last)
+        // «la mitad de una pizza»: sin el «de una», la mitad queda pegada a la pizza.
+        val half = spans("la mitad de una pizza")
+        assertEquals(listOf<LexTag>(LexTag.Number(0.5, weak = false)), half[0].tags)
+        assertEquals(2, half.size)
+    }
+
+    @Test fun `medidas nuevas - rodaja presa pieza y cuchara`() {
+        assertEquals(listOf<LexTag>(LexTag.Household("rodaja")), spans("rodajas")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Household("presa")), spans("presa")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Household("pieza")), spans("piezas")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Household("cucharada")), spans("cuchara")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Household("cucharadita")), spans("cucharita")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.VolumeUnit(29.57)), spans("fl oz")[0].tags)
+    }
+
+    @Test fun `ni niega y muletillas se ignoran como relleno`() {
+        assertEquals(listOf<LexTag>(LexTag.Negation), spans("ni")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Filler), spans("o sea")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Filler), spans("this morning")[0].tags)
+        // «c/u» y «cada una» no son ni conector ni cantidad.
+        assertEquals(listOf<LexTag>(LexTag.Filler), spans("c/u")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Filler), spans("cada una")[0].tags)
+        assertEquals(listOf<LexTag>(LexTag.Medium(MediumV2.WATER)), spans("en agua")[0].tags)
+    }
 }

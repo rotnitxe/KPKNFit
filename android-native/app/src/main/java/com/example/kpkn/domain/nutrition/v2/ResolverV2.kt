@@ -13,7 +13,26 @@ import kotlin.math.abs
  */
 class ResolverV2(private val catalog: ConceptCatalogV2) {
 
-    fun resolve(text: String, drafts: List<MentionDraftV2>): List<MentionV2> = drafts.map { resolveOne(text, it) }
+    fun resolve(text: String, drafts: List<MentionDraftV2>): List<MentionV2> {
+        val resolved = drafts.map { resolveOne(text, it) }
+        // «un plato de X con Y»: la medida del plato es de TODO lo que lleva; lo «colgado» sin cantidad sale de ella.
+        return resolved.mapIndexed { i, m ->
+            val plate = plateGrams(m, drafts, resolved, i)
+            if (plate == null) m else resolveOne(text, drafts[i], plate)
+        }
+    }
+
+    /** Gramos del plato menos lo que le cuelga sin cantidad; null si la mención no es una medida de plato con compañía. */
+    private fun plateGrams(m: MentionV2, drafts: List<MentionDraftV2>, resolved: List<MentionV2>, index: Int): Double? {
+        val q = drafts[index].quantity as? QuantityV2.Household ?: return null
+        if (m.excluded || m.grams == null || q.n != 1.0 || normalize(q.label) !in PLATE_LABELS) return null
+        val companions = drafts.indices.filter { j ->
+            drafts[j].attachedTo == index && drafts[j].quantity == null && !resolved[j].excluded && resolved[j].grams != null
+        }
+        if (companions.isEmpty()) return null
+        val rest = companions.sumOf { resolved[it].grams!! }
+        return (m.grams - rest).coerceAtLeast(PLATE_MIN_SHARE * m.grams)
+    }
 
     // ─── Una mención ───────────────────────────────────────────────────
 
@@ -24,11 +43,26 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
         val form: FoodFormV2,
         val grams: Double,
         val kind: QuantityKindV2,
+        val flags: Flags = Flags(),
     )
+
+    /** Avisos de cómo se llegó a los gramos y a la ficha; alimentan la política de preguntas. */
+    private class Flags {
+        /** Fracción de una pieza/envase cuyo peso entero se estimó (no lo dijo el texto). */
+        var assumedWhole = false
+        /** Medida casera o envase sin porción propia del concepto: se usó la medida genérica. */
+        var genericMeasure = false
+        /** Plural sin número («galletas»): se supuso un número de unidades. */
+        var pluralDefault = false
+        /** El estado pedido no existe en el concepto (y la diferencia con el elegido es de fondo). */
+        var stateFallback = false
+        /** La forma pedida no existe en el concepto. */
+        var formFallback = false
+    }
 
     private class Macros(val kcal: Double?, val protein: Double?, val fat: Double?)
 
-    private fun resolveOne(text: String, draft: MentionDraftV2): MentionV2 {
+    private fun resolveOne(text: String, draft: MentionDraftV2, gramsOverride: Double? = null): MentionV2 {
         val start = draft.start.coerceIn(0, text.length)
         val end = draft.end.coerceIn(start, text.length)
         val span = text.substring(start, end)
@@ -48,9 +82,12 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
                 emptyList(), false,
             )
         }
-        val solved = solve(concept, draft)
+        val plural = isBarePlural(text, draft)
+        val solved = solve(concept, draft, plural).let { s ->
+            if (gramsOverride == null) s else Solved(s.variant, s.record, s.state, s.form, gramsOverride, s.kind, s.flags)
+        }
         val per100g = solved.record?.per100g.orEmpty()
-        val questions = questionsFor(concept, draft, solved)
+        val questions = questionsFor(concept, draft, solved, plural)
         val confidence = identityConfidence(draft, questions) * quantityConfidence(solved.kind)
         val recordId = solved.variant?.recordId
         return MentionV2(
@@ -71,7 +108,7 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
             excluded = false,
             confidence = confidence,
             questions = questions,
-            autoAccepted = questions.isEmpty() && recordId != null,
+            autoAccepted = questions.isEmpty() && recordId != null && confidence >= ACCEPT_MIN_CONFIDENCE,
         )
     }
 
@@ -103,7 +140,7 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
     // ─── Variante y gramos ─────────────────────────────────────────────
 
     /** Resuelve [concept] con los datos de [draft]: variante, ficha y gramos. */
-    private fun solve(concept: ConceptV2, draft: MentionDraftV2): Solved {
+    private fun solve(concept: ConceptV2, draft: MentionDraftV2, plural: Boolean = false): Solved {
         val q = draft.quantity
         val kind = kindOf(q)
         val desiredState = draft.state ?: concept.defaultState
@@ -137,15 +174,31 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
         val state = if (variant != null) variant.state else desiredState
         val form = variant?.form ?: desiredForm
         val powder = form == FoodFormV2.POWDER_DRY
-        val grams = gramsFor(concept, record, state, powder, q, draft.attachedTo != null)
-        return Solved(variant, record, state, form, grams, kind)
+        val flags = Flags()
+        val grams = gramsFor(concept, record, state, powder, q, draft.attachedTo != null, plural, flags)
+        if (variant != null) {
+            // Lo que el texto pidió y el concepto no tiene: se usó la ficha más cercana y el hueco se avisa.
+            flags.stateFallback = draft.state != null && !stateSatisfied(draft.state, variant.state)
+            flags.formFallback = draft.form != null && !formSatisfied(draft.form, variant.form)
+        }
+        return Solved(variant, record, state, form, grams, kind, flags)
     }
+
+    /** El estado pedido se cubre con el de la variante (los de cocción seca se tratan como equivalentes entre sí). */
+    private fun stateSatisfied(wanted: FoodStateV2?, got: FoodStateV2?): Boolean =
+        wanted == got || (wanted in DRY_HEAT && got in DRY_HEAT) || (wanted == FoodStateV2.COOKED && got in COOKED_LIKE) ||
+            (got == FoodStateV2.COOKED && wanted in COOKED_LIKE)
+
+    private fun formSatisfied(wanted: FoodFormV2?, got: FoodFormV2): Boolean =
+        wanted == got || (wanted in DIET_FORMS && got in DIET_FORMS)
 
     private fun pickVariant(concept: ConceptV2, state: FoodStateV2?, form: FoodFormV2): ConceptVariantV2? {
         val candidates = concept.variants.filter { it.recordId != null }
         if (candidates.isEmpty()) return null
         return candidates.firstOrNull { it.state == state && it.form == form }
             ?: candidates.firstOrNull { it.form == form && statesCompatible(it.state, state) }
+            ?: candidates.firstOrNull { form in DIET_FORMS && it.form in DIET_FORMS && statesCompatible(it.state, state) }
+            ?: candidates.firstOrNull { it.state == state && it.form == concept.defaultForm }
             ?: candidates.firstOrNull { it.state == state }
             ?: candidates.firstOrNull { it.form == form }
             ?: candidates.firstOrNull { it.state == concept.defaultState && it.form == concept.defaultForm }
@@ -183,25 +236,60 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
         powder: Boolean,
         q: QuantityV2?,
         attached: Boolean,
+        plural: Boolean,
+        flags: Flags,
     ): Double = when (q) {
         is QuantityV2.Mass -> q.grams
         is QuantityV2.Volume -> q.ml * (concept.densityGPerMl ?: record?.densityGPerMl ?: 1.0)
-        is QuantityV2.Count -> countGrams(concept, q.n, q.size)
-        is QuantityV2.Household -> householdGrams(concept, record, state, powder, q)
-        is QuantityV2.Container -> containerGrams(concept, record, state, powder, q)
-        QuantityV2.Vague -> 0.5 * concept.defaultGrams
+        is QuantityV2.Count -> countGrams(concept, q.n, q.size, flags)
+        is QuantityV2.Household -> householdGrams(concept, record, state, powder, q, flags)
+        is QuantityV2.Container -> containerGrams(concept, record, state, powder, q, flags)
+        QuantityV2.Vague ->
+            if (plural && concept.countable) pluralUnits(concept, flags) else 0.5 * concept.defaultGrams
         null ->
             if (attached) {
-                concept.portions.filter { normalize(it.label) in SMALL_PORTION_LABELS }.minOfOrNull { it.grams }
-                    ?: (0.5 * concept.defaultGrams)
+                attachedDefault(concept)
             } else if (concept.countable) {
-                countGrams(concept, 1.0, SizeV2.M)
+                if (plural) pluralUnits(concept, flags) else countGrams(concept, 1.0, SizeV2.M, flags)
             } else {
                 concept.defaultGrams
             }
     }
 
-    private fun countGrams(concept: ConceptV2, n: Double, size: SizeV2?): Double {
+    /**
+     * Cantidad por defecto de lo que viene «con» otra cosa: la menor porción de aderezo/lámina del concepto; si el
+     * concepto es una fruta de pieza entera y esa porción es una rodaja (menos de [ATTACHED_SLICE_SHARE] de la unidad),
+     * «con plátano» es media pieza. Las verduras de aderezo («con tomate») conservan su porción chica.
+     */
+    private fun attachedDefault(concept: ConceptV2): Double {
+        val small = concept.portions.filter { normalize(it.label) in SMALL_PORTION_LABELS }.minOfOrNull { it.grams }
+        val half = 0.5 * concept.defaultGrams
+        if (small == null) return half
+        val unitM = concept.unit?.grams?.get(SizeV2.M)
+        if (unitM == null || !concept.countable || concept.category != FRUIT_CATEGORY) return small
+        return if (small < ATTACHED_SLICE_SHARE * unitM) 0.5 * unitM else small
+    }
+
+    /**
+     * Plural sin número («galletas»): dos unidades, tres si la unidad es pequeña (< [SMALL_UNIT_GRAMS] g). Las verduras y
+     * tubérculos en plural sin número son un acompañamiento de una porción, no varias piezas.
+     */
+    private fun pluralUnits(concept: ConceptV2, flags: Flags): Double {
+        val unitM = concept.unit?.grams?.let { it[SizeV2.M] ?: it.values.firstOrNull() } ?: concept.defaultGrams
+        val side = concept.category in SIDE_CATEGORIES && unitM >= SMALL_UNIT_GRAMS
+        val n = if (side) 1.0 else if (unitM < SMALL_UNIT_GRAMS) PLURAL_UNITS_SMALL else PLURAL_UNITS
+        flags.pluralDefault = n != 1.0
+        return countGrams(concept, n, SizeV2.M, Flags())
+    }
+
+    private fun countGrams(concept: ConceptV2, n: Double, size: SizeV2?, flags: Flags): Double {
+        if (n > 0.0 && n < 1.0) {
+            // Fracción de la pieza entera cuando la unidad del concepto es una porción de ella («un cuarto de pizza»).
+            wholeItemGrams(concept)?.let {
+                flags.assumedWhole = true
+                return n * it
+            }
+        }
         val unit = concept.unit
         if (unit != null && unit.grams.isNotEmpty()) {
             val grams = unit.grams[size ?: SizeV2.M] ?: unit.grams[SizeV2.M] ?: unit.grams.values.first()
@@ -213,22 +301,37 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
         return n * (portion?.grams ?: concept.defaultGrams)
     }
 
+    /**
+     * Peso de la pieza entera cuando la unidad del concepto es una porción de ella (trozo, porción, pedazo): la mediana de
+     * las porciones del concepto que pesan al menos [WHOLE_MIN_RATIO] veces la unidad. Null si no hay tal porción.
+     */
+    private fun wholeItemGrams(concept: ConceptV2): Double? {
+        val unit = concept.unit ?: return null
+        val names = unit.names.map { normalize(it) }
+        if (names.none { it in SLICE_UNIT_NAMES } || "unidad" in names) return null
+        val unitM = unit.grams[SizeV2.M] ?: return null
+        val whole = concept.portions.map { it.grams }.filter { it >= WHOLE_MIN_RATIO * unitM }.sorted()
+        return whole.getOrNull((whole.size - 1) / 2)
+    }
+
     private fun householdGrams(
         concept: ConceptV2,
         record: RecordV2?,
         state: FoodStateV2?,
         powder: Boolean,
         q: QuantityV2.Household,
+        flags: Flags,
     ): Double {
         val label = normalize(q.label)
         val factor = sizeFactor(q.size)
         conceptPortion(concept, label, state)?.let { return q.n * it.grams * factor }
         recordPortionGrams(record, HOUSEHOLD_EN[label])?.let { return q.n * it * factor }
+        if (label != "unidad") flags.genericMeasure = true
         GENERIC_HOUSEHOLD_ML[label]?.let { return q.n * it * genericDensity(concept, record, powder) * factor }
         GENERIC_HOUSEHOLD_G[label]?.let { return q.n * it * factor }
         return when (label) {
             "porcion" -> q.n * concept.defaultGrams * factor
-            "unidad" -> countGrams(concept, q.n, q.size)
+            "unidad" -> countGrams(concept, q.n, q.size, flags)
             else -> q.n * concept.defaultGrams * factor
         }
     }
@@ -239,12 +342,14 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
         state: FoodStateV2?,
         powder: Boolean,
         q: QuantityV2.Container,
+        flags: Flags,
     ): Double {
         val label = normalize(q.label)
         q.netGrams?.let { return it * q.n }
         q.netMl?.let { return it * (concept.densityGPerMl ?: record?.densityGPerMl ?: 1.0) * q.n }
         conceptPortion(concept, label, state)?.let { return q.n * it.grams }
         recordPortionGrams(record, CONTAINER_EN[label])?.let { return q.n * it }
+        flags.genericMeasure = true
         val isDrink = concept.kind == ConceptKindV2.DRINK
         val genericMl = when (label) {
             "lata" -> if (isDrink) 350.0 else null
@@ -308,6 +413,15 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
         return if (value > 0.0) value else 1.0
     }
 
+    /** Plural sin número ni «un poco» («galletas», «unas aceitunas»): la primera palabra del alimento termina en s. */
+    private fun isBarePlural(text: String, draft: MentionDraftV2): Boolean {
+        if (draft.quantity != null && draft.quantity != QuantityV2.Vague) return false
+        val start = draft.foodStart.coerceIn(0, text.length)
+        val end = draft.foodEnd.coerceIn(start, text.length)
+        val word = normalize(text.substring(start, end)).split(' ', '-').firstOrNull { it.isNotEmpty() } ?: return false
+        return word.length > 3 && word.endsWith("s") && !word.endsWith("ss") && !word.endsWith("is") && !word.endsWith("us")
+    }
+
     private fun sizeFactor(size: SizeV2?): Double = when (size) {
         SizeV2.S -> 0.75
         SizeV2.L -> 1.33
@@ -316,13 +430,13 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
 
     // ─── Preguntas ─────────────────────────────────────────────────────
 
-    private fun questionsFor(concept: ConceptV2, draft: MentionDraftV2, solved: Solved): List<QuestionV2> {
-        val out = ArrayList<QuestionV2>(1)
+    private fun questionsFor(concept: ConceptV2, draft: MentionDraftV2, solved: Solved, plural: Boolean): List<QuestionV2> {
+        val out = ArrayList<QuestionV2>(2)
 
         if (draft.conceptIds.size > 1) {
             val macros = draft.conceptIds.mapNotNull { id ->
                 catalog.concept(id)?.let { c ->
-                    val s = if (c.id == concept.id) solved else solve(c, draft)
+                    val s = if (c.id == concept.id) solved else solve(c, draft, plural)
                     macrosOf(s.record, s.grams)
                 }
             }
@@ -354,7 +468,41 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
                 out += QuestionV2(QuestionDimensionV2.FORM, alternatives.map { it.first })
             }
         }
+
+        // Estado o forma pedidos en el texto que el concepto no tiene: se usó la ficha más cercana.
+        val base = macrosOf(solved.record, solved.grams)
+        if (solved.flags.stateFallback && out.none { it.dimension == QuestionDimensionV2.STATE } && (base?.kcal ?: 0.0) >= FALLBACK_MIN_KCAL) {
+            out += QuestionV2(QuestionDimensionV2.STATE, listOfNotNull(solved.state?.name, draft.state?.name))
+        }
+        if (solved.flags.formFallback && out.none { it.dimension == QuestionDimensionV2.FORM } && (base?.kcal ?: 0.0) >= FALLBACK_MIN_KCAL) {
+            out += QuestionV2(QuestionDimensionV2.FORM, listOfNotNull(solved.form.name, draft.form?.name))
+        }
+
+        if (quantityIsDoubtful(concept, draft, solved)) {
+            out += QuestionV2(QuestionDimensionV2.QUANTITY, concept.portions.map { it.label }.distinct().take(MAX_QUANTITY_OPTIONS))
+        }
         return out
+    }
+
+    /**
+     * La cantidad es una suposición cuyo error razonable (±50 % de los gramos) pesa [MATERIAL_KCAL] kcal o
+     * [MATERIAL_GRAMS] g de proteína o grasa: fracción de una pieza o envase de peso estimado, plural sin número,
+     * medida genérica de envase y porción por defecto de lo que no se cuenta por unidades. Lo «colgado» de otro alimento
+     * sin cantidad no se pregunta (queda por confirmar por su confianza).
+     */
+    private fun quantityIsDoubtful(concept: ConceptV2, draft: MentionDraftV2, solved: Solved): Boolean {
+        val guessed = when (solved.kind) {
+            QuantityKindV2.MASS, QuantityKindV2.VOLUME -> false
+            QuantityKindV2.VAGUE -> true
+            QuantityKindV2.DEFAULT -> draft.attachedTo == null && (!concept.countable || solved.flags.pluralDefault)
+            QuantityKindV2.COUNT -> solved.flags.assumedWhole || solved.flags.pluralDefault
+            QuantityKindV2.HOUSEHOLD -> solved.flags.genericMeasure
+            QuantityKindV2.CONTAINER -> solved.flags.genericMeasure || solved.flags.assumedWhole ||
+                (draft.quantity as? QuantityV2.Container)?.let { it.n < 1.0 && it.netGrams == null && it.netMl == null } == true
+        }
+        if (!guessed) return false
+        val swing = macrosOf(solved.record, solved.grams * QUANTITY_SWING) ?: return false
+        return (swing.kcal ?: 0.0) >= MATERIAL_KCAL || (swing.protein ?: 0.0) >= MATERIAL_GRAMS || (swing.fat ?: 0.0) >= MATERIAL_GRAMS
     }
 
     private fun macrosOf(record: RecordV2?, grams: Double): Macros? {
@@ -384,9 +532,39 @@ class ResolverV2(private val catalog: ConceptCatalogV2) {
     private companion object {
         const val MATERIAL_KCAL = 50.0
         const val MATERIAL_GRAMS = 5.0
+        /** Error razonable de una cantidad supuesta: ±50 % de los gramos. */
+        const val QUANTITY_SWING = 0.5
+        /** Estado/forma pedido que no existe: solo se pregunta si lo comido pesa al menos esta energía. */
+        const val FALLBACK_MIN_KCAL = 100.0
+        const val MAX_QUANTITY_OPTIONS = 4
+        /**
+         * Confianza mínima para aceptar sin confirmar. Una cantidad no dicha (0,7) o una coincidencia aproximada sobre una
+         * cantidad estimada (0,85 × 0,9) queda por confirmar aunque no merezca una pregunta.
+         */
+        const val ACCEPT_MIN_CONFIDENCE = 0.8
         const val DEFAULT_RECONSTITUTED_DENSITY = 1.03
 
         val COOKED_LIKE = setOf(FoodStateV2.GRILLED, FoodStateV2.BAKED, FoodStateV2.STEAMED)
+        val DRY_HEAT = setOf(FoodStateV2.COOKED, FoodStateV2.GRILLED, FoodStateV2.BAKED, FoodStateV2.STEAMED)
+        val DIET_FORMS = setOf(FoodFormV2.LIGHT, FoodFormV2.SUGAR_FREE)
+
+        /** Unidades del concepto que son un pedazo de una pieza mayor (la pizza tiene «trozos», no «unidades»). */
+        val SLICE_UNIT_NAMES = setOf("trozo", "porcion", "pedazo")
+        /** Una porción cuenta como «pieza entera» si pesa al menos esto veces la unidad-trozo. */
+        const val WHOLE_MIN_RATIO = 2.5
+
+        /** Plural sin número: unidades que se suponen; tres si la unidad pesa menos de [SMALL_UNIT_GRAMS]. */
+        const val PLURAL_UNITS = 2.0
+        const val PLURAL_UNITS_SMALL = 3.0
+        const val SMALL_UNIT_GRAMS = 30.0
+        /** Una porción de aderezo menor que esta parte de la unidad es una rodaja de la pieza, no lo que se comió. */
+        const val ATTACHED_SLICE_SHARE = 0.1
+        const val FRUIT_CATEGORY = "FRUTAS"
+        val SIDE_CATEGORIES = setOf("VERDURAS", "TUBERCULOS")
+
+        /** Medidas de plato: abarcan todo lo que va «con» el alimento; el resto del plato no baja de esta parte. */
+        val PLATE_LABELS = setOf("plato", "tazon", "bowl")
+        const val PLATE_MIN_SHARE = 0.5
 
         val COUNT_LABELS = listOf("unidad", "pieza", "trozo", "porcion")
         val SMALL_PORTION_LABELS = setOf("cucharada", "rebanada", "lamina", "porcion")

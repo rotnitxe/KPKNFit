@@ -63,6 +63,7 @@ QUESTION_MAP = {
     "STATE": "STATE",
     "FORM": "FORM",
     "AMOUNT": "AMOUNT",
+    "QUANTITY": "AMOUNT",
     "OIL": "STATE",
     "CUT": "IDENTITY",
 }

@@ -146,4 +146,72 @@ class NormalizerV2Test {
         tokens.zipWithNext().forEach { (a, b) -> assertTrue("$a / $b", a.end <= b.start) }
         tokens.forEach { assertTrue(it.start < it.end) }
     }
+
+    // ─── Ronda 1: miles, «y medio», fracciones con artículo ──────────────
+
+    @Test fun `punto o coma de miles segun la unidad que sigue`() {
+        assertEquals(listOf("1000", "g"), norms("1.000 g"))
+        assertEquals(listOf("1000", "g"), norms("1,000 g"))
+        assertEquals(listOf("1250", "ml"), norms("1.250 ml"))
+        assertEquals(listOf("1500", "kcal"), norms("1.500 kcal"))
+        assertEquals(listOf("1000000"), norms("1.000.000"))
+        assertEquals(listOf("2500", "de", "arroz"), norms("2.500 de arroz"))
+        assertEquals("1.000", slices("1.000 g")[0])
+    }
+
+    @Test fun `con kilos o litros tres decimales siguen siendo decimales`() {
+        assertEquals(listOf("1.5", "kg"), norms("1.500 kg"))
+        assertEquals(listOf("2.25", "l"), norms("2,250 l"))
+        assertEquals(listOf("0.5", "kg"), norms("0.500 kg"))
+        assertEquals(listOf("1.5", "tazas"), norms("1.5 tazas"))
+        assertEquals(listOf("2.5", "kilos"), norms("2,5 kilos"))
+    }
+
+    @Test fun `N y medio suma la mitad al numero`() {
+        assertEquals(listOf("2.5", "kilos"), norms("2 y medio kilos"))
+        assertEquals(listOf("2.5"), norms("dos y media"))
+        assertEquals("dos y media", slices("dos y media")[0])
+        assertEquals(listOf("1.5", "cups"), norms("one and a half cups"))
+    }
+
+    @Test fun `numero unidad y medio deja la unidad y suma la mitad`() {
+        assertEquals(listOf("1.5", "litro", "de", "agua"), norms("un litro y medio de agua"))
+        val text = "un litro y medio de agua"
+        assertEquals(listOf("un", "litro y medio", "de", "agua"), slices(text))
+        assertEquals(listOf("2.5", "tazas"), norms("dos tazas y media"))
+        assertEquals(listOf("1.5", "cup", "of", "milk"), norms("a cup and a half of milk"))
+    }
+
+    @Test fun `unidad y medio sin numero delante vale uno y medio`() {
+        assertEquals(listOf("1.5", "kilo", "de", "papas"), norms("kilo y medio de papas"))
+        assertEquals("kilo y medio", slices("kilo y medio de papas")[1])
+    }
+
+    @Test fun `y medio que no es de una cantidad queda intacto`() {
+        assertEquals(listOf("2", "huevos", "y", "medio", "pan"), norms("2 huevos y medio pan"))
+        assertEquals(listOf("pan", "y", "media", "taza"), norms("pan y media taza"))
+    }
+
+    @Test fun `la fraccion con de y articulo se aplica a la cosa entera`() {
+        assertEquals(listOf("la", "mitad", "pizza"), norms("la mitad de una pizza"))
+        assertEquals(listOf("un", "tercio", "bandeja"), norms("un tercio de la bandeja"))
+        assertEquals(listOf("half", "pizza"), norms("half of a pizza"))
+        assertEquals(listOf("un", "cuarto", "de", "kilo"), norms("un cuarto de kilo"))
+        assertEquals(listOf("mitad", "de", "200", "g"), norms("mitad de 200 g"))
+    }
+
+    @Test fun `una hora con y media no es una cantidad`() {
+        assertEquals(listOf("a", "las", "2", "y", "media"), norms("a las 2 y media"))
+        assertEquals(listOf("la", "mitad", "tarro"), norms("la mitad del tarro"))
+    }
+
+    @Test fun `el ampersand une como el mas`() {
+        assertEquals(listOf("pan", "+", "queso"), norms("pan & queso"))
+    }
+
+    @Test fun `centenas con variantes de ortografia`() {
+        assertEquals(listOf("350", "g"), norms("trecientos cincuenta g"))
+        assertEquals(listOf("200", "g"), norms("docientos g"))
+        assertEquals(listOf("600", "ml"), norms("seicientos ml"))
+    }
 }

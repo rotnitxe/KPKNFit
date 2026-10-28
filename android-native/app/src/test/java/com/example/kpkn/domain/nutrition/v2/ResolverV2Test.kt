@@ -350,4 +350,122 @@ class ResolverV2Test {
         assertEquals(100.0, result[0].grams!!, 1e-9)
         assertEquals(180.0, result[1].grams!!, 1e-9)
     }
+
+    // ─── Ronda 1: fracciones de pieza, plurales, estado/forma pedidos y preguntas de cantidad ───────────
+
+    private fun typed(text: String, id: String, quantity: QuantityV2? = null, state: FoodStateV2? = null, form: FoodFormV2? = null) =
+        MentionDraftV2(0, text.length, 0, text.length, listOf(id), quantity, state = state, form = form)
+
+    private fun resolveText(text: String, d: MentionDraftV2, r: ResolverV2 = resolver): MentionV2 = r.resolve(text, listOf(d)).single()
+
+    /** Concepto cuya unidad es un trozo de una pieza mayor, con porciones de pieza entera. */
+    private fun pieCatalog() = catalogWith("palta") {
+        it.copy(
+            unit = CountUnitV2(listOf("trozo", "porcion"), mapOf(SizeV2.S to 80.0, SizeV2.M to 100.0, SizeV2.L to 120.0)),
+            portions = listOf(
+                ConceptPortionV2("trozo", 100.0),
+                ConceptPortionV2("tarta chica", 600.0),
+                ConceptPortionV2("tarta mediana", 800.0),
+                ConceptPortionV2("tarta grande", 1000.0),
+            ),
+            defaultGrams = 200.0,
+        )
+    }
+
+    @Test fun fraction_ofSlicedPieceIsAFractionOfTheWholePiece() {
+        val r = ResolverV2(pieCatalog())
+        val quarter = one(draft("palta", quantity = QuantityV2.Count(0.25)), r)
+        assertEquals(200.0, quarter.grams!!, 1e-9) // 0,25 de la tarta mediana (800 g), no de un trozo
+        assertFalse(quarter.autoAccepted)
+        assertEquals(QuestionDimensionV2.QUANTITY, quarter.questions.single().dimension)
+        // Piezas enteras o varios trozos: sigue siendo el trozo.
+        assertEquals(200.0, one(draft("palta", quantity = QuantityV2.Count(2.0)), r).grams!!, 1e-9)
+        assertEquals(100.0, one(draft("palta", quantity = QuantityV2.Count(1.0)), r).grams!!, 1e-9)
+        // Unidad que ya es la pieza (manzana): la mitad es media unidad.
+        assertGrams(91.0, draft("manzana", quantity = QuantityV2.Count(0.5)))
+        // Sin porción de pieza entera: se queda con el trozo.
+        val noWhole = catalogWith("palta") { it.copy(unit = CountUnitV2(listOf("trozo"), mapOf(SizeV2.M to 100.0))) }
+        assertGrams(25.0, draft("palta", quantity = QuantityV2.Count(0.25)), ResolverV2(noWhole))
+    }
+
+    @Test fun plural_withoutNumberAssumesSeveralUnits() {
+        val apples = resolveText("manzanas", typed("manzanas", "manzana"))
+        assertEquals(364.0, apples.grams!!, 1e-9) // dos unidades M
+        assertEquals(QuestionDimensionV2.QUANTITY, apples.questions.single().dimension)
+        assertFalse(apples.autoAccepted)
+        val one = resolveText("manzana", typed("manzana", "manzana"))
+        assertEquals(182.0, one.grams!!, 1e-9)
+        assertTrue(one.questions.isEmpty())
+        // Unidad pequeña: tres.
+        val small = catalogWith("manzana") { it.copy(unit = CountUnitV2(listOf("unidad"), mapOf(SizeV2.M to 12.0))) }
+        assertEquals(36.0, resolveText("manzanas", typed("manzanas", "manzana"), ResolverV2(small)).grams!!, 1e-9)
+        // Verduras en plural sin número: un acompañamiento de una porción, no varias piezas.
+        val veg = catalogWith("manzana") { it.copy(category = "VERDURAS") }
+        val side = resolveText("manzanas", typed("manzanas", "manzana"), ResolverV2(veg))
+        assertEquals(182.0, side.grams!!, 1e-9)
+        assertTrue(side.questions.isEmpty())
+        // Con número o no contable: no se supone nada.
+        assertEquals(182.0, resolveText("1 manzanas", typed("1 manzanas", "manzana", QuantityV2.Count(1.0))).grams!!, 1e-9)
+        assertEquals(180.0, resolveText("arvejas", typed("arvejas", "arroz_blanco")).grams!!, 1e-9)
+    }
+
+    @Test fun attached_pieceFruitIsNotAGarnishSlice() {
+        val slice = catalogWith("manzana") { it.copy(portions = listOf(ConceptPortionV2("rebanada", 8.0))) }
+        assertGrams(91.0, draft("manzana", attachedTo = 0), ResolverV2(slice))
+        // Una verdura de aderezo conserva su porción chica.
+        val garnish = catalogWith("manzana") { it.copy(category = "VERDURAS", portions = listOf(ConceptPortionV2("rebanada", 8.0))) }
+        assertGrams(8.0, draft("manzana", attachedTo = 0), ResolverV2(garnish))
+        // Una porción de aderezo razonable respecto de la unidad se respeta (la palta de arriba: 25 g).
+        assertGrams(25.0, draft("palta", attachedTo = 0))
+    }
+
+    @Test fun fallback_dietFormUsesTheOtherDietVariant() {
+        val onlyLight = catalogWith("cafe") { c -> c.copy(variants = c.variants.map { if (it.form == FoodFormV2.SUGAR_FREE) it.copy(form = FoodFormV2.LIGHT) else it }) }
+        val m = one(draft("cafe", quantity = QuantityV2.Volume(300.0), form = FoodFormV2.SUGAR_FREE), ResolverV2(onlyLight))
+        assertEquals(FoodFormV2.LIGHT, m.form)
+        assertTrue(m.questions.isEmpty())
+    }
+
+    @Test fun fallback_missingFriedStateAsksState() {
+        // El arroz de la prueba no tiene variante frita: se usa la cocida y se pregunta (freír suma grasa).
+        val m = one(draft("arroz_blanco", quantity = QuantityV2.Mass(300.0), state = FoodStateV2.FRIED))
+        assertEquals(FoodStateV2.COOKED, m.state)
+        assertEquals(QuestionDimensionV2.STATE, m.questions.single().dimension)
+        assertFalse(m.autoAccepted)
+        // Poca energía: no es material.
+        assertTrue(one(draft("arroz_blanco", quantity = QuantityV2.Mass(20.0), state = FoodStateV2.FRIED)).questions.isEmpty())
+        // Estados de cocción seca se dan por equivalentes.
+        assertTrue(one(draft("arroz_blanco", quantity = QuantityV2.Mass(300.0), state = FoodStateV2.BAKED)).questions.isEmpty())
+    }
+
+    @Test fun fallback_missingDietFormAsksForm() {
+        val m = one(draft("leche_entera", quantity = QuantityV2.Volume(400.0), form = FoodFormV2.SUGAR_FREE))
+        assertEquals(FoodFormV2.NA, m.form)
+        assertEquals(QuestionDimensionV2.FORM, m.questions.single().dimension)
+        assertFalse(m.autoAccepted)
+    }
+
+    @Test fun quantityQuestion_onlyForMaterialGuessedAmounts() {
+        // Sin cantidad en algo que no se cuenta: porción por defecto supuesta.
+        val loose = one(draft("arroz_blanco"))
+        assertEquals(QuestionDimensionV2.QUANTITY, loose.questions.single().dimension)
+        assertFalse(loose.autoAccepted)
+        // Poca energía: no se pregunta.
+        assertTrue(one(draft("cafe")).questions.isEmpty())
+        // Número dicho: no se pregunta.
+        assertTrue(one(draft("arroz_blanco", quantity = QuantityV2.Household(1.0, "taza"))).questions.isEmpty())
+        // Contable sin número: «un» X; sin pregunta, pero sin aceptar solo.
+        assertTrue(one(draft("manzana")).questions.isEmpty())
+        assertFalse(one(draft("manzana")).autoAccepted)
+        assertTrue(one(draft("manzana", quantity = QuantityV2.Count(1.0))).autoAccepted)
+        // Lo colgado sin cantidad no se pregunta (por confianza queda por confirmar).
+        val attached = one(draft("arroz_blanco", attachedTo = 0))
+        assertTrue(attached.questions.isEmpty())
+        assertFalse(attached.autoAccepted)
+        // Coincidencia aproximada sobre una cantidad estimada: por confirmar.
+        assertFalse(one(draft("manzana", quantity = QuantityV2.Count(2.0), fuzzy = true)).autoAccepted)
+        assertTrue(one(draft("arroz_blanco", quantity = QuantityV2.Mass(100.0), fuzzy = true)).autoAccepted)
+        // Un poco de algo.
+        assertEquals(QuestionDimensionV2.QUANTITY, one(draft("arroz_blanco", quantity = QuantityV2.Vague)).questions.single().dimension)
+    }
 }
