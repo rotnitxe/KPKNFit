@@ -58,6 +58,7 @@ class RecipesMaterializeWithAllGearTest {
             .flatMap { entry -> requireNotNull(entry.recipe).weeks.flatMap { week -> week.days.flatMap { day -> day.slots.map { it.lift.configurationId } } } }
             .toSet()
         assertTrue("recetas con máquinas inacreditables: ${used.intersect(uncurated)}", used.intersect(uncurated).isEmpty())
-        assertTrue(CatalogIds.HYPER_45 in used && CatalogIds.HIP in used)
+        // Westside cambió el hip thrust por la hiperextensión a 45° (DUP-07): la hiperextensión sigue en uso.
+        assertTrue("la hiperextensión a 45° debe seguir en las recetas: $used", CatalogIds.HYPER_45 in used)
     }
 }

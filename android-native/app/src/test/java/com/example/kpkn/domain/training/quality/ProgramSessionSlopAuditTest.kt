@@ -121,6 +121,10 @@ class ProgramSessionSlopAuditTest {
         println(report.lineSequence().take(60).joinToString("\n"))
         val total = audit.findings.size
         assertTrue(
+            "Programas revisados ${audit.programs} < suelo $PROGRAMS_FLOOR: un plan dejó de materializarse (ver build/reports/session-slop/report.txt)",
+            audit.programs >= PROGRAMS_FLOOR,
+        )
+        assertTrue(
             "Violaciones de slop en sesiones: total $total > techo $CEILING (ver build/reports/session-slop/report.txt)",
             total <= CEILING,
         )
@@ -342,6 +346,12 @@ class ProgramSessionSlopAuditTest {
 
         /** Techo (trinquete): 2238 con 3 materiales en master; 2464 al sumar E7; 1280 tras F-10/F-11; 908 tras DUP-07; 162 tras F-15 y F-48 (solo queda el relleno); 0 tras F-31 (relleno de KPKN rotado). I-2 añade DUPLICATE_DISPLAY_NAME e INTERNAL_DISPLAY_CHIP, que también valen 0. */
         const val CEILING = 0
+
+        /**
+         * Suelo de programas revisados: lo que revisaba antes de que C12 rechazara los planes nativos (7351). Un plan que
+         * deja de materializarse no es una mejora: sin violaciones porque no hay sesiones que auditar.
+         */
+        const val PROGRAMS_FLOOR = 7351
         const val FILLER_OVER_WEEKLY_CAP = "FILLER_OVER_WEEKLY_CAP"
         const val DUPLICATE_DISPLAY_NAME = "DUPLICATE_DISPLAY_NAME"
         const val INTERNAL_DISPLAY_CHIP = "INTERNAL_DISPLAY_CHIP"

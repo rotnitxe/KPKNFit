@@ -287,7 +287,8 @@ class PlanMaterializerCardioIdentityTest {
 
         assertEquals(2, part.exercises.size)
         val run = part.exercises[0]
-        assertEquals("treadmill", run.name)
+        // F-48: nombre visible en español (la identidad del ejercicio no depende del nombre).
+        assertEquals(CardioTypeLabels.label(CardioType.TREADMILL), run.name)
         assertEquals("day_cardio", run.recipeDayId)
         assertEquals("cardio_run", run.recipeSlotId)
         assertEquals(recipe.weeks.first().days.first().cardioBlocks[0].details, run.cardioDetails)
