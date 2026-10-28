@@ -18,6 +18,21 @@ object SessionSlopRules {
 
     fun familyOf(configurationId: String?): String? = configurationId?.let { MOVEMENT_FAMILIES[it] }
 
+    /**
+     * true si elegir [candidateConfigurationId] repetiría en la sesión alguna de las configuraciones [takenConfigurationIds]
+     * (misma configuración, misma definición, o misma familia de movimiento). Es el criterio de las reglas
+     * DUPLICATE_CONFIGURATION / DUPLICATE_DEFINITION / SAME_MOVEMENT_FAMILY, para que el motor lo evite al elegir.
+     */
+    fun collides(candidateConfigurationId: String, takenConfigurationIds: Collection<String>): Boolean {
+        val definition = candidateConfigurationId.substringBefore("__")
+        val family = familyOf(candidateConfigurationId)
+        return takenConfigurationIds.any { taken ->
+            taken == candidateConfigurationId ||
+                taken.substringBefore("__") == definition ||
+                (family != null && familyOf(taken) == family)
+        }
+    }
+
     /** Una aparición repetida está permitida solo si está enlazada a la anterior (identidad propia, F-15). */
     private fun linked(e: Exercise): Boolean = e.relativeToCanonicalExerciseId != null
 

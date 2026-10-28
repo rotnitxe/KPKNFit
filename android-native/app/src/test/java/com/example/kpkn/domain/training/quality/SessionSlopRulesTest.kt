@@ -89,4 +89,14 @@ class SessionSlopRulesTest {
     fun `sesion sin ejercicios`() {
         assertEquals(listOf(SlopRule.EMPTY_SESSION), SessionSlopRules.violations(session()).map { it.rule })
     }
+
+    @Test
+    fun `collides detecta configuracion, definicion y familia`() {
+        val taken = listOf("low_bar_back_squat__barbell", "bench_press__barbell")
+        assertTrue(SessionSlopRules.collides("bench_press__barbell", taken))
+        assertTrue("misma definición", SessionSlopRules.collides("bench_press__dumbbells", taken))
+        assertTrue("misma familia", SessionSlopRules.collides("high_bar_back_squat__barbell", taken))
+        assertTrue("sin nada que ver", !SessionSlopRules.collides("floor_press__dumbbells", taken))
+        assertTrue("sin nada tomado", !SessionSlopRules.collides("bench_press__barbell", emptyList()))
+    }
 }

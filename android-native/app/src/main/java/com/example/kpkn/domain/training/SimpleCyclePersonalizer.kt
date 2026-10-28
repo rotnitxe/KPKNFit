@@ -44,6 +44,7 @@ import com.example.kpkn.data.splits.isVisibleForApplication
 import com.example.kpkn.domain.exercises.catalogv2.CatalogReviewStatusV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
+import com.example.kpkn.domain.training.quality.SessionSlopRules
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.approach.ApproachInfoProvider
@@ -861,7 +862,12 @@ class SimpleCyclePersonalizer(
             .filter { it.evidence.reviewStatus == CatalogReviewStatusV2.APPROVED }
             .associateBy { it.id }
 
-        fun resolveConfiguration(key: NativeSlotKey, intent: SlotIntent): ExerciseConfigurationV2? {
+        /**
+         * Primera configuración válida de la tabla de candidatas. Con [taken] (las configuraciones que el día ya trae)
+         * prefiere la primera que no coincide con ninguna en configuración, definición ni familia de movimiento
+         * ([SessionSlopRules.collides]); si todas coinciden, conserva la primera válida (DUP-07).
+         */
+        fun resolveConfiguration(key: NativeSlotKey, intent: SlotIntent, taken: List<String> = emptyList()): ExerciseConfigurationV2? {
             // §11.5: el principiante aprende la intención rápida con la variante
             // corporal (sentadilla sin salto / flexión de rodillas).
             val candidateIds = when {
@@ -871,19 +877,20 @@ class SimpleCyclePersonalizer(
                     listOf(NativeCandidateTable.PB_BODYWEIGHT)
                 else -> NativeCandidateTable.candidatesFor(key, intent)
             }
-            return candidateIds.firstNotNullOfOrNull { configurationId ->
-                val configuration = approvedConfigurations[configurationId] ?: return@firstNotNullOfOrNull null
+            val eligible = candidateIds.asSequence().mapNotNull { configurationId ->
+                val configuration = approvedConfigurations[configurationId] ?: return@mapNotNull null
                 if (input.level == CatalogLevel.BEGINNER &&
                     !NativeCandidateTable.beginnerDifficultyExempt(key) &&
                     (configuration.profile.technicalDifficulty > 5.2 || configuration.id in hardBodyweight)
                 ) {
-                    return@firstNotNullOfOrNull null
+                    return@mapNotNull null
                 }
                 if (!ConfigurationEquipmentFilter.allows(configuration, nativeEquipment, entry.sourceId, requireExactMachineConfiguration)) {
-                    return@firstNotNullOfOrNull null
+                    return@mapNotNull null
                 }
                 configuration
             }
+            return eligible.firstOrNull { !SessionSlopRules.collides(it.id, taken) } ?: eligible.firstOrNull()
         }
 
         val horizontalPull = resolveConfiguration(NativeSlotKey.R, SlotIntent.H)
@@ -953,8 +960,21 @@ class SimpleCyclePersonalizer(
                 NativeCardioRole.ONLY -> RecipeSessionKind.CARDIO
             }
             val slots = mutableListOf<NativeSlotPlan>()
-            archetype.slots.forEach { spec ->
-                val configuration = resolveConfiguration(spec.key, spec.intent) ?: return@forEach
+            // DUP-07: la potencia (P) se resuelve DESPUÉS de los demás slots del día y evita su configuración, definición y
+            // familia (p. ej. sentadilla de velocidad con barra alta junto a la sentadilla con barra baja, o la banca de
+            // velocidad junto a la banca de volumen); sin alternativa válida conserva la primera, como antes.
+            val resolvedBySlot = HashMap<Int, ExerciseConfigurationV2>()
+            archetype.slots.forEachIndexed { slotIndex, spec ->
+                if (spec.intent != SlotIntent.P) resolveConfiguration(spec.key, spec.intent)?.let { resolvedBySlot[slotIndex] = it }
+            }
+            val dayConfigurationIds = resolvedBySlot.values.map { it.id }
+            archetype.slots.forEachIndexed { slotIndex, spec ->
+                if (spec.intent == SlotIntent.P) {
+                    resolveConfiguration(spec.key, spec.intent, dayConfigurationIds)?.let { resolvedBySlot[slotIndex] = it }
+                }
+            }
+            archetype.slots.forEachIndexed slotLoop@{ slotIndex, spec ->
+                val configuration = resolvedBySlot[slotIndex] ?: return@slotLoop
                 if (spec.key == NativeSlotKey.V && configuration.id == NativeCandidateTable.LOW_BAR_ROW) {
                     notes += "Día ${index + 1}: V se adapta a tracción horizontal con remo invertido; requiere barra baja confirmada (§13.3)."
                 }
@@ -1644,7 +1664,14 @@ class SimpleCyclePersonalizer(
             when {
                 power != null && main != null -> power.supplementalOf = main.slotId
                 power != null -> group.firstOrNull { it !== power }?.let { power.supplementalOf = it.slotId }
-                main != null -> group.filter { it !== main }.forEach { it.supplementalOf = main.slotId }
+                // DUP-07: dos slots no potentes con la MISMA configuración (p. ej. el remo de R y el de V cuando no hay
+                // jalón ni dominadas) se fusionan en el principal, no se dejan como dos tarjetas iguales.
+                main != null -> {
+                    val others = group.filter { it !== main }
+                    main.sets = maxOf(main.sets, minOf(group.sumOf { it.sets }, 4))
+                    others.forEach { it.removed = true }
+                    notes += "$dayLabel: ${group.size} slots equivalentes de ${main.configurationId} fusionados en ${main.sets} series (§13.3)."
+                }
                 else -> {
                     val first = group.first()
                     first.sets = minOf(group.sumOf { it.sets }, 4)
