@@ -50,6 +50,10 @@ fun TrainingMaxWizard(
     onDismiss: () -> Unit,
     onConfirm: (PowerliftingProfile) -> Unit,
     unit: String = MarksMath.UNIT_KG,
+    /** Qué hace la acción de texto de abajo; null = lo mismo que cerrar ([onDismiss]). Solo «Crear sin TM» la usa. */
+    onSkip: (() -> Unit)? = null,
+    /** El texto de esa acción de abajo; «Más tarde» si no se cambia. */
+    skipLabel: String = "Más tarde",
 ) {
     KpknSheet(onDismissRequest = onDismiss, stableHeightFraction = 0.9f) {
         TrainingMaxContent(
@@ -60,6 +64,8 @@ fun TrainingMaxWizard(
             onDismiss = onDismiss,
             onConfirm = onConfirm,
             unit = unit,
+            onSkip = onSkip,
+            skipLabel = skipLabel,
         )
     }
 }
@@ -77,6 +83,8 @@ internal fun TrainingMaxContent(
     onDismiss: () -> Unit,
     onConfirm: (PowerliftingProfile) -> Unit,
     unit: String = MarksMath.UNIT_KG,
+    onSkip: (() -> Unit)? = null,
+    skipLabel: String = "Más tarde",
 ) {
     var marks by remember(initial) { mutableStateOf(tmMarksOf(initial)) }
     val preview = TrainingMaxResolver.hydrateProfile(
@@ -163,7 +171,7 @@ internal fun TrainingMaxContent(
                 enabled = hasValidInput,
             )
             Box(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.Center) {
-                KpknTextAction(text = "Más tarde", onClick = onDismiss)
+                KpknTextAction(text = skipLabel, onClick = onSkip ?: onDismiss)
             }
         }
     }

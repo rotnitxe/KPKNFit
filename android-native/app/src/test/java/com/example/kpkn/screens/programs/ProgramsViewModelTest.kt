@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
 import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
@@ -304,6 +305,19 @@ class ProgramsViewModelTest {
 
         // Contar nombres daba «Nuevo programa 3» otra vez; el mayor más uno da 4.
         assertEquals("Nuevo programa 4", repository.getProgramById(id)!!.name)
+    }
+
+    @Test
+    fun createBlankProgram_uses_the_given_name_mode_and_cover() {
+        val vm = createViewModel()
+
+        val id = vm.createBlankProgram(name = "  Mi fuerza  ", mode = ProgramMode.POWERLIFTING, coverImage = "kpkn-lines://PERFIL/CARBON")
+
+        // El nombre se recorta; el modo y la portada son los que eligió la hoja «Desde cero».
+        val created = ProgramRepository.getInstance().getProgramById(id)!!
+        assertEquals("Mi fuerza", created.name)
+        assertEquals(ProgramMode.POWERLIFTING, created.mode)
+        assertEquals("kpkn-lines://PERFIL/CARBON", created.coverImage)
     }
 
     @Test

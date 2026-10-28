@@ -213,18 +213,30 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         repository.permanentlyDeleteProgram(programId)
     }
 
-    fun createBlankProgram(): String {
+    /**
+     * Crea un programa en blanco. [name] en blanco o null → «Nuevo programa N»; [mode] y [coverImage] (si no es null) son los que
+     * eligió la hoja «Desde cero», y sustituyen a los de siempre.
+     */
+    fun createBlankProgram(
+        name: String? = null,
+        mode: ProgramMode = ProgramMode.HYPERTROPHY,
+        coverImage: String? = null,
+    ): String {
         val programId = UUID.randomUUID().toString()
         // El número sale del mayor «Nuevo programa N» que ya existe (contar nombres repetía números tras borrar uno).
         val nextNumber = nextBlankProgramNumber(repository.programs.value.map { it.name })
-        repository.addProgram(
-            buildNewProgram(
-                id = programId,
-                name = "Nuevo programa $nextNumber",
-            ),
+        val base = buildNewProgram(
+            id = programId,
+            name = name?.trim()?.takeIf { it.isNotEmpty() } ?: "Nuevo programa $nextNumber",
+            mode = mode,
         )
+        repository.addProgram(coverImage?.let { base.copy(coverImage = it) } ?: base)
         return programId
     }
+
+    /** El nombre que propone la hoja «Desde cero»: el mismo que [createBlankProgram] pone si no se escribe ninguno. */
+    fun suggestedBlankProgramName(): String =
+        "Nuevo programa ${nextBlankProgramNumber(repository.programs.value.map { it.name })}"
 
     sealed interface TemplateApplyOutcome {
         data class Created(val programId: String) : TemplateApplyOutcome

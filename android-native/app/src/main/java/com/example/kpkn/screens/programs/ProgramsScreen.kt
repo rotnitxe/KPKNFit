@@ -125,6 +125,8 @@ fun ProgramsScreen(
     var showArchived by remember { mutableStateOf(false) }
     var deleteRequest by remember { mutableStateOf<ProgramDeleteRequest?>(null) }
     var showCreateSheet by remember { mutableStateOf(false) }
+    var showCatalog by remember { mutableStateOf(false) }
+    var showBlankSheet by remember { mutableStateOf(false) }
     var selectedProtocol by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var protocolForTm by remember { mutableStateOf<com.example.kpkn.data.protocols.Protocol?>(null) }
     var templateError by remember { mutableStateOf<String?>(null) }
@@ -290,46 +292,73 @@ fun ProgramsScreen(
     }
 
     if (showCreateSheet) {
-        CreateProgramTemplateSheet(
+        NewProgramSheet(
             onDismiss = { showCreateSheet = false },
-            onCreateBlank = {
-                val id = viewModel.createBlankProgram()
+            onTailored = onCreateTailoredProgram?.let { tailored ->
+                {
+                    showCreateSheet = false
+                    tailored()
+                }
+            },
+            onCatalog = {
                 showCreateSheet = false
-                onNavigateToProgram(id)
+                showCatalog = true
             },
             onImport = {
                 showCreateSheet = false
                 onImportProgram()
             },
+            onBlank = {
+                showCreateSheet = false
+                showBlankSheet = true
+            },
+        )
+    }
+    // La página «Catálogo» va por encima de Programas (no es una ruta): lo que antes hacía la hoja de la biblioteca.
+    if (showCatalog) {
+        ProgramCatalogPage(
+            onBack = { showCatalog = false },
+            hasPlanAction = onSelectPlan != null,
             onCreateFromTemplate = { template ->
                 createScope.launch {
                     when (val outcome = viewModel.createProgramFromTemplateGated(template.id)) {
                         is ProgramsViewModel.TemplateApplyOutcome.Created -> {
-                            showCreateSheet = false
+                            showCatalog = false
                             onNavigateToProgram(outcome.programId)
                         }
                         ProgramsViewModel.TemplateApplyOutcome.RequiresCalibration -> {
-                            showCreateSheet = false
+                            showCatalog = false
                             pendingCalibrationTemplateId = template.id
                         }
                     }
                 }
             },
             onSelectProtocol = { protocol ->
-                showCreateSheet = false
+                showCatalog = false
                 selectedProtocol = protocol
             },
             onSelectPlan = onSelectPlan?.let { select ->
                 { entry ->
-                    showCreateSheet = false
+                    showCatalog = false
                     select(entry)
                 }
             },
             onOpenConcept = onOpenConcept?.let { open ->
                 { conceptId ->
-                    showCreateSheet = false
+                    showCatalog = false
                     open(conceptId)
                 }
+            },
+        )
+    }
+    if (showBlankSheet) {
+        BlankProgramSheet(
+            suggestedName = viewModel.suggestedBlankProgramName(),
+            onDismiss = { showBlankSheet = false },
+            onCreate = { name, mode, coverImage ->
+                val id = viewModel.createBlankProgram(name = name, mode = mode, coverImage = coverImage)
+                showBlankSheet = false
+                onNavigateToProgram(id)
             },
         )
     }
@@ -350,7 +379,10 @@ fun ProgramsScreen(
             initial = viewModel.estimatedProfileFromHistory(),
             trainingMaxPercent = protocol.recipe?.trainingMaxPercent ?: 0.90,
             unit = if (settings.weightUnit == WeightUnit.LBS) MarksMath.UNIT_LB else MarksMath.UNIT_KG,
-            onDismiss = {
+            // Cerrar (arrastrar, atrás) ya no crea el programa: solo lo crean «Crear sin TM» y «Aplicar y crear».
+            onDismiss = { protocolForTm = null },
+            skipLabel = "Crear sin TM",
+            onSkip = {
                 val id = viewModel.createProgramFromProtocol(protocol.id)
                 protocolForTm = null
                 if (id != null) {
